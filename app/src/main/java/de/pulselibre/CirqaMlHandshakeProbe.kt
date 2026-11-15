@@ -21,6 +21,18 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private var tx: BluetoothGattCharacteristic? = null
     private var session: GarminMlHandshake.Session? = null
     private var requestedCloseAll = false
+    private var realtimeMode = false
+    private var pendingService = 0
+    private val realtimeRegistry = GarminRealtime.Registry()
+    private var heartRate: GarminRealtime.Reading.HeartRate? = null
+    private var steps: GarminRealtime.Reading.Steps? = null
+    private var realtimeFrames = 0
+
+    fun startRealtime(result: (String) -> Unit) {
+        if (active) { result("ML-Test läuft bereits."); return }
+        realtimeMode = true
+        start(false, result)
+    }
     private val notificationShapes = mutableListOf<String>()
     @Volatile private var phase = "Noch nicht gestartet"
     @Volatile private var notificationsReceived = 0
@@ -37,6 +49,12 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         } catch (_: SecurityException) { result("Bluetooth-Berechtigung fehlt."); return }
         if (device == null) { result("CIRQA nicht in Android-Kopplungen gefunden."); return }
         active = true
+        if (closeAll) realtimeMode = false
+        pendingService = 0
+        realtimeRegistry.clear()
+        heartRate = null
+        steps = null
+        realtimeFrames = 0
         notificationsReceived = 0
         notificationShapes.clear()
         writeConfirmed = false
@@ -112,7 +130,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     else { writeConfirmed = true; mark("ML-Schreiben bestätigt; warte auf Protokollantwort") }
                 }
             }, BluetoothDevice.TRANSPORT_LE)
-            main.postDelayed({ if (active) finish("ML-Handshake: Zeitlimit (20 Sekunden). Letzte Phase: $phase; Notifications: $notificationsReceived; GATT-Schreiben bestätigt: $writeConfirmed; Protokollzustand: ${session?.stage}; Antwortformen: ${notificationShapes.joinToString(" | ")}.", gatt) }, 20_000)
+            main.postDelayed({ if (active) finish(if (realtimeMode) realtimeSummary("Zeitlimit (20 Sekunden)") else "ML-Handshake: Zeitlimit (20 Sekunden). Letzte Phase: $phase; Notifications: $notificationsReceived; GATT-Schreiben bestätigt: $writeConfirmed; Protokollzustand: ${session?.stage}; Antwortformen: ${notificationShapes.joinToString(" | ")}.", gatt) }, 20_000)
         } catch (_: SecurityException) { finish("Bluetooth-Berechtigung fehlt.", gatt) }
         catch (e: IllegalArgumentException) { finish("Verbindungsfehler: ${e.javaClass.simpleName}", gatt) }
     }
@@ -148,17 +166,59 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             notificationShapes.add("L=${bytes.size}, control=$control, type=${if (control) second else "-"}, reg=${if (parsed == null) "nein" else "service:${parsed.serviceId}/status:${parsed.status}/handle:${parsed.handle}"}")
         }
         mark("ML-Notification empfangen; Protokollantwort wird geprüft")
+        if (realtimeMode && pendingService != 0) {
+            val response = GarminMlOffline.inspectRegisterResponse(bytes)
+            if (response != null && response.serviceId == pendingService) {
+                if (!response.accepted) {
+                    finish(realtimeSummary("Service $pendingService abgelehnt (Status ${response.status})"), g)
+                    return
+                }
+                realtimeRegistry.register(pendingService, response.handle)
+                if (pendingService == GarminRealtime.HEART_RATE_SERVICE) {
+                    pendingService = GarminRealtime.STEPS_SERVICE
+                    mark("Puls registriert; registriere Schritte")
+                    send(g, GarminMlHandshake.registerRequest(pendingService))
+                } else {
+                    pendingService = -1
+                    mark("Puls und Schritte registriert; warte auf Messwerte")
+                }
+                return
+            }
+            val reading = realtimeRegistry.receive(bytes)
+            if (reading != null) {
+                realtimeFrames++
+                when (reading) {
+                    is GarminRealtime.Reading.HeartRate -> heartRate = reading
+                    is GarminRealtime.Reading.Steps -> steps = reading
+                }
+                if (heartRate != null && steps != null) finish(realtimeSummary("Beide Messwerte empfangen"), g)
+            }
+            return
+        }
         val state = session ?: return
         val next = state.onNotification(bytes)
         if (next != null) { mark("CLOSE_ALL bestätigt; sende GFDI-Registrierung"); send(g, next); return }
         when (state.stage) {
-            GarminMlHandshake.Stage.COMPLETE ->
-                finish("Garmin ML: GFDI-Service erfolgreich registriert! ${if (requestedCloseAll) "CLOSE_ALL wurde zuvor bestätigt." else "Ohne CLOSE_ALL."} Verbindung beendet; keine Gesundheitsdaten gelesen.", g)
+            GarminMlHandshake.Stage.COMPLETE -> {
+                if (realtimeMode) {
+                    pendingService = GarminRealtime.HEART_RATE_SERVICE
+                    mark("GFDI registriert; registriere Puls")
+                    send(g, GarminMlHandshake.registerRequest(pendingService))
+                } else finish("Garmin ML: GFDI-Service erfolgreich registriert! ${if (requestedCloseAll) "CLOSE_ALL wurde zuvor bestätigt." else "Ohne CLOSE_ALL."} Verbindung beendet; keine Gesundheitsdaten gelesen.", g)
+            }
             GarminMlHandshake.Stage.FAILED ->
                 finish("Garmin ML: GFDI-Registrierung vom Gerät abgelehnt.", g)
             else -> Unit
         }
     }
+
+    private fun realtimeSummary(reason: String): String =
+        "CIRQA Echtzeit-Test: $reason. " +
+        "Puls: ${heartRate?.bpm?.toString() ?: "nicht empfangen"}; " +
+        "Ruhepuls: ${heartRate?.restingBpm?.toString() ?: "unbekannt"}; " +
+        "Schritte: ${steps?.count?.toString() ?: "nicht empfangen"}; " +
+        "Ziel: ${steps?.goal?.toString() ?: "unbekannt"}; " +
+        "gültige Messpakete: $realtimeFrames; Phase: $phase. Keine Daten gespeichert."
 
     @SuppressLint("MissingPermission")
     private fun safeClose(g: BluetoothGatt?) {
