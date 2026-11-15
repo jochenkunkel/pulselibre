@@ -5,7 +5,7 @@ package de.pulselibre
  * Never pair, bond, reset, write descriptors, or send proprietary commands.
  */
 object BleSafetyPolicy {
-    const val scanDurationMillis = 10_000L
+    const val scanDurationMillis = 60_000L
     const val maximumDiagnosticBytes = 64
 
     fun mayReadCharacteristic(properties: Int): Boolean =
