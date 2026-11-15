@@ -4,8 +4,8 @@ package de.pulselibre
  * Strict, offline-only inspection of a complete FIT file envelope.
  *
  * This is NOT a FIT record decoder or proof of Garmin/CIRQA origin.
- * Header/file CRC bytes are reserved but not yet verified; consumers must
- * not interpret records as authenticated or validated measurements.
+ * The CRC is an integrity check, not cryptographic authentication.
+ * No FIT records or health measurements are decoded.
  */
 object FitFileHeader {
     const val MAX_FILE_BYTES = 8 * 1024 * 1024
@@ -16,6 +16,29 @@ object FitFileHeader {
         val profileVersion: Int,
         val dataSize: Long
     )
+
+    /**
+     * FIT uses CRC-16/ARC (reflected polynomial 0xA001, initial value zero).
+     * Bounds are checked before any byte access.
+     */
+    fun crc16(bytes: ByteArray, offset: Int = 0, length: Int = bytes.size - offset): Int {
+        require(offset >= 0 && length >= 0 && offset <= bytes.size - length)
+        var crc = 0
+        for (index in offset until offset + length) {
+            crc = crc xor (bytes[index].toInt() and 0xff)
+            repeat(8) {
+                crc = if ((crc and 1) != 0) (crc ushr 1) xor 0xA001 else crc ushr 1
+            }
+        }
+        return crc and 0xffff
+    }
+
+    /** Rejects structurally invalid envelopes or CRC mismatches. */
+    fun inspectVerified(file: ByteArray): Header? {
+        val header = inspect(file) ?: return null
+        if (header.headerSize == 14 && crc16(file, 0, 14) != 0) return null
+        return header.takeIf { crc16(file) == 0 }
+    }
 
     /** Accepts standard 12- and 14-byte FIT headers and an exact file envelope. */
     fun inspect(file: ByteArray): Header? {
