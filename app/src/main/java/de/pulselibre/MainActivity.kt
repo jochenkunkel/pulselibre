@@ -280,6 +280,7 @@ class MainActivity : AppCompatActivity() {
             runOnUiThread { if (scanning && !destroyed) showDevice(result) }
         }
         override fun onScanFailed(errorCode: Int) {
+            val failedCallback: ScanCallback = this
             runOnUiThread {
                 if (!destroyed) {
                     // Best-effort cleanup; preserve the failure state and message.
