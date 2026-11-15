@@ -284,6 +284,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             callback = null
             tx = null
             session = null
+            realtimeMode = false
+            expandedMode = false
         }
     }
     fun close() {
