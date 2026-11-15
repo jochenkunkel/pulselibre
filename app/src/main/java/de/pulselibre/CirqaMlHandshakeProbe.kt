@@ -50,7 +50,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                 override fun onConnectionStateChange(g: BluetoothGatt, status: Int, state: Int) {
                     if (!active) { safeClose(g); return }
                     if (status != BluetoothGatt.GATT_SUCCESS || state == BluetoothProfile.STATE_DISCONNECTED) {
-                        finish("ML-Verbindung beendet (GATT $status, Zustand $state).", g)
+                        finish("ML-Verbindung beendet (GATT $status, Zustand $state). Letzte Phase: $phase; Notifications: $notificationsReceived; GATT-Schreiben bestätigt: $writeConfirmed; Protokollzustand: ${session?.stage}; Antwortformen: ${notificationShapes.joinToString(" | ")}.", g)
                     } else if (state == BluetoothProfile.STATE_CONNECTED) {
                         mark("GATT verbunden; Dienstsuche läuft")
                         try { if (!g.discoverServices()) finish("GATT-Dienstsuche konnte nicht starten.", g) }
