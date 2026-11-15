@@ -27,6 +27,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var cirqaCard: TextView
     private lateinit var cirqaEvidenceView: TextView
     private val cirqaScanEvidence = CirqaScanEvidence()
+    private var cirqaGattProbe: CirqaGattProbe? = null
     private val passiveRssiTracker = PassiveRssiTracker()
     private var scanning = false
     private var scanGeneration = 0
@@ -157,6 +158,20 @@ class MainActivity : AppCompatActivity() {
         deviceView(actionButton("Bluetooth-Geräte suchen") { startScan() })
         deviceView(actionButton("Diagnose teilen", false) { shareDiagnostics() })
         deviceView(actionButton("Gekoppelte Geräte anzeigen", false) { showBondedDevices() })
+        deviceView(actionButton("CIRQA: GATT-Dienste prüfen (aktive Verbindung)", false) {
+            if (!ensurePermissions()) return@actionButton
+            if (scanning) stopScan()
+            androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("Aktiver CIRQA-Verbindungstest")
+                .setMessage("Garmin Connect vorher beenden. PulseLibre verbindet sich kurz mit dem gekoppelten CIRQA, liest nur die GATT-Dienststruktur und trennt die Verbindung wieder. Keine Schreibbefehle, kein CLOSE_ALL. Fortfahren?")
+                .setNegativeButton("Abbrechen", null)
+                .setPositiveButton("Verbinden") { _, _ ->
+                    if (cirqaGattProbe == null) cirqaGattProbe = CirqaGattProbe(this, adapter)
+                    cirqaGattProbe?.start { message ->
+                        runOnUiThread { output.text = message }
+                    }
+                }.show()
+        })
         devices = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         deviceView(devices)
         output = text("Keine Geräte verbunden.", 13f, muted).apply {
@@ -388,6 +403,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         destroyed = true
+        cirqaGattProbe?.close()
         handler.removeCallbacksAndMessages(null)
         stopScan()
         super.onDestroy()
