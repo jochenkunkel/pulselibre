@@ -209,7 +209,7 @@ class MainActivity : AppCompatActivity() {
         }
         if (missing.isEmpty()) return
         val preferences = getSharedPreferences("bluetooth_permission", MODE_PRIVATE)
-        if (preferences.getBoolean("initial_prompt_shown", false)) return
+        if (!BluetoothPermissionPromptPolicy.shouldPromptOnLaunch(\n                preferences.getBoolean("initial_prompt_shown", false), missing.size)) return
         preferences.edit().putBoolean("initial_prompt_shown", true).apply()
         ActivityCompat.requestPermissions(this, missing.toTypedArray(), 10)
     }
