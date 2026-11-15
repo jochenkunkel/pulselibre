@@ -27,6 +27,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var cirqaCard: TextView
     private lateinit var cirqaEvidenceView: TextView
     private val cirqaScanEvidence = CirqaScanEvidence()
+    private val passiveRssiTracker = PassiveRssiTracker()
     private var scanning = false
     private var scanGeneration = 0
     private var destroyed = false
@@ -243,6 +244,7 @@ class MainActivity : AppCompatActivity() {
         val scanner = adapter.bluetoothLeScanner ?: run { status.text = "BLE-Scanner nicht verfügbar"; return }
         devices.removeAllViews(); found.clear(); deviceRows.clear(); diagnosticRows.clear()
         cirqaScanEvidence.reset()
+        passiveRssiTracker.reset()
         cirqaEvidenceView.text = cirqaScanEvidence.summary()
         cirqaScanMatch = false
         refreshCirqaCard()
@@ -370,6 +372,8 @@ class MainActivity : AppCompatActivity() {
             appendLine("CIRQA-Kopplung: " + if (cirqaBondAddress != null) "vorhanden" else "nicht bestätigt")
             appendLine("CIRQA-Adressabgleich: " + if (cirqaScanMatch) "Treffer (lokal geprüft; Adresse nicht exportiert)" else "Kein bestätigter Treffer; wechselnde BLE-Adressen möglich")
             appendLine(cirqaScanEvidence.summary())
+            appendLine()
+            appendLine(passiveRssiTracker.summary())
             // Never share raw BLE names, MAC addresses, UUID payloads or bond rows.
             // The detailed device list remains visible locally for diagnosis.
             appendLine("BLE-Geräteeinträge (nur Anzahl): ${diagnosticRows.size}")
@@ -406,6 +410,7 @@ class MainActivity : AppCompatActivity() {
         val serviceData = record?.serviceData?.entries?.joinToString("; ") { (uuid, bytes) ->
             "${uuid.uuid}: ${BleSafetyPolicy.safeHex(bytes)}"
         } ?: "keine"
+        passiveRssiTracker.observe(address, result.rssi, services)
         cirqaScanEvidence.observeFeatures(address,
             !((label ?: record?.deviceName).isNullOrBlank()), companyIds.isNotEmpty(), services.isNotEmpty())
         cirqaScanEvidence.observe(address, CirqaAddressMatch.matches(cirqaBondAddress, address),
