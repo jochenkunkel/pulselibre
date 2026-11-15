@@ -25,6 +25,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var output: TextView
     private lateinit var devices: LinearLayout
     private lateinit var cirqaCard: TextView
+    private lateinit var cirqaEvidenceView: TextView
+    private val cirqaScanEvidence = CirqaScanEvidence()
     private var scanning = false
     private var scanGeneration = 0
     private var destroyed = false
@@ -146,6 +148,11 @@ class MainActivity : AppCompatActivity() {
             background = rounded(Color.WHITE)
         }
         deviceView(cirqaCard)
+        cirqaEvidenceView = text(cirqaScanEvidence.summary(), 13f, muted).apply {
+            setPadding(dp(16), dp(12), dp(16), dp(12))
+            background = rounded(Color.WHITE)
+        }
+        deviceView(cirqaEvidenceView)
         deviceView(actionButton("Bluetooth-Geräte suchen") { startScan() })
         deviceView(actionButton("Diagnose teilen", false) { shareDiagnostics() })
         deviceView(actionButton("Gekoppelte Geräte anzeigen", false) { showBondedDevices() })
@@ -222,6 +229,8 @@ class MainActivity : AppCompatActivity() {
         if (scanning) return
         val scanner = adapter.bluetoothLeScanner ?: run { status.text = "BLE-Scanner nicht verfügbar"; return }
         devices.removeAllViews(); found.clear(); deviceRows.clear(); diagnosticRows.clear()
+        cirqaScanEvidence.reset()
+        cirqaEvidenceView.text = cirqaScanEvidence.summary()
         cirqaScanMatch = false
         refreshCirqaCard()
         try {
@@ -340,6 +349,7 @@ class MainActivity : AppCompatActivity() {
             }
             appendLine("CIRQA-Kopplung: " + if (cirqaBondAddress != null) "vorhanden" else "nicht bestätigt")
             appendLine("CIRQA-Adressabgleich: " + if (cirqaScanMatch) "Treffer (lokal geprüft; Adresse nicht exportiert)" else "Kein bestätigter Treffer; wechselnde BLE-Adressen möglich")
+            appendLine(cirqaScanEvidence.summary())
             diagnosticRows.values.forEachIndexed { index, item ->
                 appendLine("\nGerät ${index + 1}:\n$item")
             }
@@ -377,6 +387,9 @@ class MainActivity : AppCompatActivity() {
         val serviceData = record?.serviceData?.entries?.joinToString("; ") { (uuid, bytes) ->
             "${uuid.uuid}: ${BleSafetyPolicy.safeHex(bytes)}"
         } ?: "keine"
+        cirqaScanEvidence.observe(address, CirqaAddressMatch.matches(cirqaBondAddress, address),
+            BleAdvertisementIdentity.isGarminHint(label ?: record?.deviceName, companyIds, services))
+        cirqaEvidenceView.text = cirqaScanEvidence.summary()
         val description = BleAdvertisementIdentity.describe(
             label ?: record?.deviceName, companyIds, services, result.rssi
         )
