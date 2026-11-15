@@ -21,6 +21,10 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private var tx: BluetoothGattCharacteristic? = null
     private var session: GarminMlHandshake.Session? = null
     private var requestedCloseAll = false
+    @Volatile private var phase = "Noch nicht gestartet"
+    @Volatile private var notificationsReceived = 0
+    @Volatile private var writeConfirmed = false
+    private fun mark(value: String) { phase = value }
 
     @SuppressLint("MissingPermission")
     fun start(closeAll: Boolean, result: (String) -> Unit) {
@@ -32,6 +36,9 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         } catch (_: SecurityException) { result("Bluetooth-Berechtigung fehlt."); return }
         if (device == null) { result("CIRQA nicht in Android-Kopplungen gefunden."); return }
         active = true
+        notificationsReceived = 0
+        writeConfirmed = false
+        mark("GATT-Verbindung angefordert")
         callback = result
         requestedCloseAll = closeAll
         session = GarminMlHandshake.Session(closeAll)
@@ -43,6 +50,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     if (status != BluetoothGatt.GATT_SUCCESS || state == BluetoothProfile.STATE_DISCONNECTED) {
                         finish("ML-Verbindung beendet (GATT $status, Zustand $state).", g)
                     } else if (state == BluetoothProfile.STATE_CONNECTED) {
+                        mark("GATT verbunden; Dienstsuche läuft")
                         try { if (!g.discoverServices()) finish("GATT-Dienstsuche konnte nicht starten.", g) }
                         catch (_: SecurityException) { finish("Bluetooth-Berechtigung fehlt.", g) }
                     }
@@ -64,6 +72,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                         tx!!.properties and (BluetoothGattCharacteristic.PROPERTY_WRITE or BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE) == 0) {
                         finish("Garmin ML Characteristics unterstützen Notify/Write nicht.", g); return
                     }
+                    mark("ML RX/TX gefunden; CCCD wird aktiviert")
                     val descriptor = rx.getDescriptor(cccd)
                     if (descriptor == null) { finish("Garmin ML CCCD fehlt; kein Handshake gesendet.", g); return }
                     try {
@@ -84,6 +93,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                 override fun onDescriptorWrite(g: BluetoothGatt, descriptor: BluetoothGattDescriptor, status: Int) {
                     if (!active || descriptor.uuid != cccd) return
                     if (status != BluetoothGatt.GATT_SUCCESS) { finish("CCCD-Fehler: $status", g); return }
+                    mark("CCCD bestätigt; erster ML-Befehl wird gesendet")
                     send(g, session!!.begin())
                 }
                 @Deprecated("Android compatibility callback")
@@ -95,10 +105,12 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     receive(g, value)
                 }
                 override fun onCharacteristicWrite(g: BluetoothGatt, characteristic: BluetoothGattCharacteristic, status: Int) {
-                    if (active && status != BluetoothGatt.GATT_SUCCESS) finish("ML-Schreibfehler: $status", g)
+                    if (!active) return
+                    if (status != BluetoothGatt.GATT_SUCCESS) finish("ML-Schreibfehler: $status", g)
+                    else { writeConfirmed = true; mark("ML-Schreiben bestätigt; warte auf Protokollantwort") }
                 }
             }, BluetoothDevice.TRANSPORT_LE)
-            main.postDelayed({ if (active) finish("ML-Handshake: Zeitlimit (20 Sekunden).", gatt) }, 20_000)
+            main.postDelayed({ if (active) finish("ML-Handshake: Zeitlimit (20 Sekunden). Letzte Phase: $phase; Notifications: $notificationsReceived; GATT-Schreiben bestätigt: $writeConfirmed; Protokollzustand: ${session?.stage}.", gatt) }, 20_000)
         } catch (_: SecurityException) { finish("Bluetooth-Berechtigung fehlt.", gatt) }
         catch (e: IllegalArgumentException) { finish("Verbindungsfehler: ${e.javaClass.simpleName}", gatt) }
     }
@@ -108,6 +120,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         val char = tx ?: run { finish("ML-TX fehlt.", g); return }
         val mode = if (char.properties and BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE != 0)
             BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE else BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
+        mark(if (session?.stage == GarminMlHandshake.Stage.WAIT_CLOSE) "Sende CLOSE_ALL" else "Sende GFDI-Registrierung")
         try {
             val ok = if (Build.VERSION.SDK_INT >= 33)
                 g.writeCharacteristic(char, bytes, mode) == BluetoothStatusCodes.SUCCESS
@@ -124,9 +137,11 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
 
     private fun receive(g: BluetoothGatt, bytes: ByteArray) {
         if (!active) return
+        notificationsReceived++
+        mark("ML-Notification empfangen; Protokollantwort wird geprüft")
         val state = session ?: return
         val next = state.onNotification(bytes)
-        if (next != null) { send(g, next); return }
+        if (next != null) { mark("CLOSE_ALL bestätigt; sende GFDI-Registrierung"); send(g, next); return }
         when (state.stage) {
             GarminMlHandshake.Stage.COMPLETE ->
                 finish("Garmin ML: GFDI-Service erfolgreich registriert! ${if (requestedCloseAll) "CLOSE_ALL wurde zuvor bestätigt." else "Ohne CLOSE_ALL."} Verbindung beendet; keine Gesundheitsdaten gelesen.", g)
