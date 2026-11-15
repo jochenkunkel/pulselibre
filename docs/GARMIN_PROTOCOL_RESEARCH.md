@@ -197,3 +197,14 @@ After the successful CIRQA GFDI registration, reviewed actual upstream source in
 Implemented live user-triggered diagnostic in `CirqaMlHandshakeProbe.kt` and a new Devices-tab button `CIRQA: Puls und Schritte live testen`. On confirmation and with Garmin Connect closed, the one-shot session connects to the bonded CIRQA, enables ML notifications, registers GFDI (service 1), then sequentially registers realtime heart rate (service 6) and steps (service 7). The existing validated ML registration response parser supplies dynamic handles; the independently implemented `GarminRealtime.Registry` routes inbound notifications to the correct service. Only parsed live readings are shown; no fabricated values, no local persistence, no cloud, no CLOSE_ALL. The test ends when both metrics arrive or after 20 seconds; it closes GATT and reports which measurements were actually received. No continuous monitoring or historical FIT transfer yet.
 
 **Caveats and validation gate:** Registration alone does not guarantee the CIRQA emits these realtime services. If the band declines registration or sends no data, the UI reports that result rather than inventing measurements. Existing Android callbacks and BLE concurrency need CI and actual-device validation; do not claim a live reading until screenshot confirmation. This is a controlled test, not a finished production-grade background connector. The next development step is an offline-tested GFDI COBS/CRC decoder and bounded session management.
+
+
+### First real CIRQA HR + steps success, build #193 (2026-11-15)
+
+User-provided screenshot from the Devices tab after selecting **CIRQA: Puls und Schritte live testen** shows the app's exact output:
+
+`CIRQA Echtzeit-Test: Beide Messwerte empfangen. Puls: 87; Ruhepuls: 66; Schritte: 10244; Ziel: 8830; gültige Messpakete: 2; Phase: ML-Notification empfangen; Protokollantwort wird geprüft. Keine Daten gespeichert.`
+
+**Device-verified milestone:** Live BLE registration of GFDI, realtime HR (service 6) and realtime steps (service 7), dynamic ML handle routing and service-specific payload decoding produced one valid HR and one valid steps packet on the actual Garmin CIRQA. These are actual observed values, not synthetic data. Build #193 was successful in GitHub Actions. The screenshot establishes successful one-shot reading, **not** continuous monitoring, persistence, historical FIT sync, sensor accuracy, or repeated reliability. Do not overwrite these values with invented readings. Current test explicitly does not persist health data.
+
+**Next:** integrate typed live readings into the Overview with local-only persistence and timestamps, explicit user-controlled reading sessions, deduplication and lifecycle-safe disconnect. Then implement GFDI/COBS/CRC and FIT history using source-reviewed implementations and offline fixture tests. Keep privacy guarantees and avoid requiring Garmin Connect or cloud.
