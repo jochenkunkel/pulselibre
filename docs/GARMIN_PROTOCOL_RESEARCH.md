@@ -15,11 +15,21 @@ Observed in reference source:
 - Reference source handles several message families; it does not imply that
   the CIRQA advertises these frames during passive scans.
 
-PulseLibre currently implements only an isolated GFDI *header inspector* for
-synthetic byte arrays. It does NOT validate CRC, decode FIT or protobuf, connect
-to CIRQA, or intercept Garmin Connect. Never feed BLE advertisements into this
-inspector and infer Garmin identity from a coincidental header.
+## Implementation status (updated 2026-11-15)
 
-Next: inspect the reference CRC implementation and FIT parser, review upstream
-licensing before reuse, and build synthetic CRC-valid fixtures with rejection
-tests. Do not use real band traffic without separate user approval.
+- `GarminFrameHeader` inspects the GFDI length and message type only.
+- `GarminFrameValidator` separately validates GFDI length and CRC-16/ARC; synthetic unit tests exist.
+- `FitFileHeader` now checks a complete, bounded FIT file envelope: 12/14-byte header, `.FIT` signature, little-endian data length, exact overall size (header + data + 2 trailing CRC bytes), and an 8 MiB input cap.
+- **FIT header CRC, FIT file CRC, record definitions, data records, time fields and health metrics are NOT yet decoded or validated.** The FIT envelope inspector does not authenticate files or their device of origin.
+- None of these parsers is connected to BLE advertisements or to a CIRQA data stream. No active GATT connection is permitted without explicit approval.
+
+## Next protocol steps
+
+1. Implement and independently test FIT CRC handling and the optional 14-byte header CRC.
+2. Build strict definition/data record parsing, with bounded lengths and unknown-field handling.
+3. Validate timestamps and units using independent, synthetic fixtures before connecting to local storage.
+4. Investigate a safe CIRQA transport path without disrupting Garmin Connect; require separate user approval for any active interaction.
+
+## CI limitation
+
+The GitHub Actions build jobs are currently blocked **before steps run** by an account payment/spending-limit warning observed in the GitHub UI. Newly committed parser code and tests are **not yet CI-verified**. Avoid equating a successful git commit with a successful build.
