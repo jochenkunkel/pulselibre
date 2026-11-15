@@ -4,6 +4,10 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class BleSafetyPolicyTest {
+    @Test fun passiveScanRunsForOneMinute() {
+        assertEquals(60_000L, BleSafetyPolicy.scanDurationMillis)
+    }
+
     @Test fun neverWritesOrSubscribesBeforeProtocolApproval() {
         assertFalse(BleSafetyPolicy.mayWriteWithoutProtocolApproval())
         assertFalse(BleSafetyPolicy.maySubscribeWithoutProtocolApproval())
