@@ -11,6 +11,9 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.widget.*
+import android.graphics.Color
+import android.graphics.Typeface
+import android.graphics.drawable.GradientDrawable
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import java.util.UUID
@@ -35,20 +38,74 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         val manager = getSystemService(BLUETOOTH_SERVICE) as BluetoothManager
         adapter = manager.adapter
-        val root = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(20, 30, 20, 20) }
-        val title = TextView(this).apply { text = "PulseLibre · BLE Explorer"; textSize = 23f }
+        val violet = Color.rgb(81, 39, 201)
+        val root = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(24, 28, 24, 24)
+            setBackgroundColor(Color.rgb(249, 247, 254))
+        }
+        val title = TextView(this).apply {
+            text = "PulseLibre"
+            textSize = 27f
+            setTextColor(violet)
+            setTypeface(null, Typeface.BOLD)
+            contentDescription = "PulseLibre Gesundheitsübersicht"
+        }
+        val subtitle = TextView(this).apply {
+            text = "Deine Daten. Deine Kontrolle. · Offline"
+            textSize = 14f
+        }
+        root.addView(title)
+        root.addView(subtitle)
+        val metrics = dashboardMetrics(HealthSnapshot())
+        metrics.forEachIndexed { index, metric ->
+            val card = LinearLayout(this).apply {
+                orientation = LinearLayout.VERTICAL
+                setPadding(20, 16, 20, 16)
+                background = GradientDrawable().apply {
+                    setColor(Color.WHITE)
+                    cornerRadius = 22f
+                }
+                contentDescription = "${metric.title}: ${metric.value}. ${metric.note}"
+                tag = "metric_$index"
+            }
+            card.addView(TextView(this).apply {
+                text = metric.title
+                textSize = 17f
+                setTextColor(violet)
+                setTypeface(null, Typeface.BOLD)
+            })
+            card.addView(TextView(this).apply {
+                text = metric.value
+                textSize = 21f
+                setTextColor(Color.rgb(34, 34, 34))
+            })
+            card.addView(TextView(this).apply {
+                text = metric.note
+                textSize = 12f
+            })
+            root.addView(card, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = 14 })
+        }
+        root.addView(TextView(this).apply {
+            text = "Bluetooth · Geräte (experimentell)"
+            textSize = 20f
+            setTextColor(violet)
+        })
         status = TextView(this).apply { text = "Offline · bereit" }
         val scan = Button(this).apply { text = "Bluetooth-Geräte suchen"; setOnClickListener { startScan() } }
         val simulate = Button(this).apply { text = "Demo: Verbindungsfehler simulieren"; setOnClickListener { simulateFailure() } }
         val disconnect = Button(this).apply { text = "Trennen"; setOnClickListener { disconnect() } }
         devices = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
-        output = TextView(this).apply { text = "Wähle ein gefundenes Gerät."; setTextIsSelectable(true) }
-        val scroll = ScrollView(this).apply { addView(output) }
-        root.addView(title); root.addView(status); root.addView(scan); root.addView(simulate); root.addView(disconnect)
+        output = TextView(this).apply { text = "Keine Geräte verbunden."; setTextIsSelectable(true) }
+        root.addView(status)
+        root.addView(scan)
+        root.addView(simulate)
+        root.addView(disconnect)
         root.addView(devices)
-        root.addView(scroll, LinearLayout.LayoutParams(-1, 0, 1f))
-        setContentView(root)
-        ensurePermissions()
+        root.addView(output)
+        val scroll = ScrollView(this).apply { addView(root) }
+        setContentView(scroll)
+        // Permission prompts are deferred until an explicit BLE action.
     }
 
     /** Local simulation only; never touches Bluetooth hardware or Garmin Connect. */
