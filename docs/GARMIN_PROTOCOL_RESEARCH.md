@@ -66,3 +66,16 @@ Next safe investigation: evaluate whether privacy-preserving, locally computed a
 The user visually observed a single unnamed BLE advertiser with service UUID `3e1d50cd-7e3e-427d-8e1c-b78aa87fe624`, no manufacturer ID, and displayed RSSI around -66/-68 dBm in screenshots. When moving the CIRQA band farther away, the user's observed signal weakened from approximately -50 to -70 dBm; on bringing the band closer, it strengthened again. The user confirmed this direction of change and said no other visible device behaved similarly.
 
 **Interpretation:** This is a promising *candidate* based on correlated movement, not a verified CIRQA identity, not evidence that the UUID is Garmin-specific, and not proof of a particular GATT service. RSSI can fluctuate due to antenna orientation, body attenuation and multipath. Continue passive observation only; do not connect or subscribe to the device without explicit user authorization. Do not hard-code the UUID as confirmed CIRQA.
+
+
+### Passive RSSI field test, 2026-11-15 (development build #157)
+
+User-provided shared diagnostics after a 60-second passive BLE scan:
+- 10 unique advertisers, 84 advertisements; 3 advertisers with names, 7 with manufacturer data, 3 with service UUIDs.
+- CIRQA bonded; Android reports GATT connected (owning app unknown). No address match and no Garmin manufacturer hints.
+- Candidate service UUID `3e1d50cd-7e3e-427d-8e1c-b78aa87fe624` seen on 1 advertising address.
+- 22 RSSI samples: minimum -84 dBm, maximum -68 dBm, median -76 dBm.
+- RSSI buckets: >= -60 dBm: 0; -75..-61 dBm: 10; < -75 dBm: 12.
+- Chronological sample-window medians (10, 10, 2 samples): -77, -74, -71 dBm. The last window has only two samples and is less reliable.
+
+**Interpretation:** The new passive tracker and privacy-preserving diagnostic export work in the field. The signal appears to strengthen over the recorded samples, but the log has no time-stamped band-distance annotations, so this scan alone cannot demonstrate distance correlation. The earlier user-observed movement correlation remains separate supporting evidence. No active connection, pairing or writes were performed by PulseLibre. The UUID remains an *unconfirmed* CIRQA candidate.
