@@ -30,6 +30,18 @@ Observed in reference source:
 3. Decode validated FIT field values and timestamp/unit semantics into typed, source-attributed records, using independent synthetic fixtures before connecting to local storage.
 4. Investigate a safe CIRQA transport path without disrupting Garmin Connect; require separate user approval for any active interaction.
 
-## CI limitation
+## CI verification (2026-11-15)
 
-The GitHub Actions build jobs are currently blocked **before steps run** by an account payment/spending-limit warning observed in the GitHub UI. Newly committed parser code and tests are **not yet CI-verified**. Avoid equating a successful git commit with a successful build.
+GitHub Actions run #143 (commit `610076fb`) completed successfully: build, unit tests, lint, and emulator instrumentation job passed. This validates the tested code paths, **not** live CIRQA transport or health-data ingestion.
+
+## Samsung Galaxy S25 passive field test (2026-11-15)
+
+User-installed APK from run #143 after an in-place update failed; uninstall/reinstall succeeded. Suspected debug APK signing-key mismatch remains to be verified and fixed with stable signing before future updates.
+
+- App launched; Android nearby-device/Bluetooth permission granted.
+- CIRQA present in Android bonded-device metadata; Android reports GATT `CONNECTED` (owning app unknown). PulseLibre initiated **no** connection.
+- 60-second passive BLE scan completed with **10** advertising devices, **0** CIRQA bonded-address matches, **0** Garmin advertising hints, **10** unattributed advertisements.
+- User manually synchronized Garmin Connect during the scan. The diagnostic snapshot does **not** establish that any advertisement belongs to CIRQA, nor that PulseLibre observed Garmin's synchronization.
+- No pairing, unpairing, GATT writes, or active CIRQA session initiated by PulseLibre.
+
+Next: improve safe passive attribution diagnostics without collecting or sharing raw BLE identifiers; preserve Garmin Connect and request explicit permission before any active CIRQA operation.
