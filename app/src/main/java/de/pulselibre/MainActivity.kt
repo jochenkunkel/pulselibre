@@ -406,6 +406,8 @@ class MainActivity : AppCompatActivity() {
         val serviceData = record?.serviceData?.entries?.joinToString("; ") { (uuid, bytes) ->
             "${uuid.uuid}: ${BleSafetyPolicy.safeHex(bytes)}"
         } ?: "keine"
+        cirqaScanEvidence.observeFeatures(address,
+            !((label ?: record?.deviceName).isNullOrBlank()), companyIds.isNotEmpty(), services.isNotEmpty())
         cirqaScanEvidence.observe(address, CirqaAddressMatch.matches(cirqaBondAddress, address),
             BleAdvertisementIdentity.isGarminHint(label ?: record?.deviceName, companyIds, services))
         cirqaEvidenceView.text = cirqaScanEvidence.summary()
