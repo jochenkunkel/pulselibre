@@ -40,6 +40,7 @@ class MainActivity : AppCompatActivity() {
     private var cirqaBondAddress: String? = null
     private var cirqaScanMatch = false
     private var cirqaGattState = "Nicht abgefragt"
+    private val cirqaConnectionHistory = CirqaConnectionHistory()
     private var lastScanDiagnostic = "Noch kein Scan gestartet."
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -296,6 +297,15 @@ class MainActivity : AppCompatActivity() {
             } catch (_: IllegalArgumentException) {
                 "Android GATT: Status nicht verfügbar"
             }
+            cirqaConnectionHistory.observe(System.currentTimeMillis(), when {
+                matched == null -> CirqaConnectionHistory.State.NOT_PAIRED
+                cirqaGattState.contains("nicht verbunden") -> CirqaConnectionHistory.State.DISCONNECTED
+                cirqaGattState.contains("verbindet") -> CirqaConnectionHistory.State.CONNECTING
+                cirqaGattState.contains("trennt") -> CirqaConnectionHistory.State.DISCONNECTING
+                cirqaGattState.contains("verbunden") -> CirqaConnectionHistory.State.CONNECTED
+                cirqaGattState.contains("Berechtigung") -> CirqaConnectionHistory.State.PERMISSION_DENIED
+                else -> CirqaConnectionHistory.State.UNKNOWN
+            })
             val message = if (matched != null)
                 "CIRQA Smart Band\n✓ Mit Android gekoppelt\n" +
                 (if (cirqaScanMatch) "✓ Gleiche BLE-Adresse im Scan erkannt\n" else "BLE-Werbeadresse nicht bestätigt (wechselnde Adressen möglich)\n") +
@@ -332,6 +342,10 @@ class MainActivity : AppCompatActivity() {
             appendLine("Gefundene Werbegeräte: ${diagnosticRows.size}")
             appendLine("Scan-Status: $lastScanDiagnostic")
             appendLine("CIRQA GATT (Android-Systemstatus, keine eigene Verbindung): $cirqaGattState")
+            appendLine("CIRQA-Statuswechsel (nur bei manuellen Abfragen): ${cirqaConnectionHistory.snapshot().size}")
+            cirqaConnectionHistory.snapshot().forEach { entry ->
+                appendLine("  ${entry.timestampMillis} · ${entry.state}")
+            }
             appendLine("CIRQA-Kopplung: " + if (cirqaBondAddress != null) "vorhanden" else "nicht bestätigt")
             appendLine("CIRQA-Adressabgleich: " + if (cirqaScanMatch) "Treffer (lokal geprüft; Adresse nicht exportiert)" else "Kein bestätigter Treffer; wechselnde BLE-Adressen möglich")
             diagnosticRows.values.forEachIndexed { index, item ->
