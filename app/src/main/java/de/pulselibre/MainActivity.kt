@@ -34,7 +34,8 @@ class MainActivity : AppCompatActivity() {
         sessionState = transition(sessionState, event)
         status.text = "Bluetooth: ${sessionState.name}"
     }
-    private val found = mutableSetOf<String>()\n    private val deviceRows = mutableMapOf<String, TextView>()
+    private val found = mutableSetOf<String>()
+    private val deviceRows = mutableMapOf<String, TextView>()
     private val cccd = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")
 
     override fun onCreate(savedInstanceState: Bundle?) {
