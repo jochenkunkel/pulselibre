@@ -28,13 +28,14 @@ class CirqaDashboardReader(context: Context) {
                 val service = item.optInt("service", -1)
                 if (service !in GarminRealtime.SUPPORTED_SERVICES) return@forEach
                 count++
+                if (service == 7 && time.atZone(ZoneId.systemDefault()).toLocalDate() != now.atZone(ZoneId.systemDefault()).toLocalDate()) return@forEach
                 if (latest[service]?.first?.isBefore(time) != false) latest[service] = time to item
             }
         }
         val fmt = DateTimeFormatter.ofPattern("dd.MM. HH:mm").withZone(ZoneId.systemDefault())
-        fun metric(service: Int, title: String, key: String, unit: String, valid: (Int) -> Boolean): DashboardMetric {
+        fun metric(service: Int, title: String, key: String, unit: String, valid: (Long) -> Boolean): DashboardMetric {
             val pair = latest[service]
-            val value = pair?.second?.optInt(key, Int.MIN_VALUE)
+            val value = pair?.second?.takeIf { it.has(key) && !it.isNull(key) }?.optLong(key, Long.MIN_VALUE)
             val good = value?.takeIf(valid)
             return DashboardMetric(title, good?.let { "$it $unit".trim() } ?: "Keine Messdaten",
                 if (good == null) "Nicht gemessen oder ungültig" else
