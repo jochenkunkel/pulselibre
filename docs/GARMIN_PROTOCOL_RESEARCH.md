@@ -90,3 +90,16 @@ User requested prioritizing existing implementations rather than repeating dista
 - Linux Garmin bridge: https://github.com/wh1le/garmin-bridge . Fenix-focused BLE implementation, explicitly acknowledges Gadgetbridge protocol work.
 
 **Research-first plan:** (1) Inspect existing transport/handshake code and device discovery strategies; (2) compare documented Garmin service UUIDs with our passive observations (candidate UUID `3e1d50cd-7e3e-427d-8e1c-b78aa87fe624` is not the documented Multi-Link service); (3) build offline protocol fixtures/unit tests from public, non-sensitive examples; (4) design an opt-in CIRQA connection path only after explicit user approval. Do not initiate pairing, GATT connections, reads, writes or subscriptions during research. Check license obligations (Gadgetbridge and derived projects use AGPL) before copying code; prefer independent implementation of documented protocol concepts.
+
+
+### Source-code audit and offline implementation (2026-11-15)
+
+**Inspected source, not just READMEs:**
+- `gwerneckp/garmin-ble/garmin_ble/transport/ble.py`: BLE scan first filters Garmin-looking advertised names (or explicit address/pattern); after connecting, it probes characteristic UUID pairs `6A4E2810..2814` (RX) with corresponding `6A4E2820..2824` (TX), then starts notifications. This is **not** passive discovery of the CIRQA and cannot be used to identify the advertising UUID `3e1d50cd-7e3e-427d-8e1c-b78aa87fe624`.
+- `gwerneckp/garmin-ble/garmin_ble/protocol/mlr.py` and `constants.py`: runtime ML service registration responses (control type 1, 14-byte frame), handle-based multiplexing, and CLOSE_ALL (type 5). CLOSE_ALL can discard existing handle assignments and must **not** be sent while Garmin Connect may own a session.
+- `wh1le/garmin-bridge/src/protocol/handshake.py`: GFDI device-information, configuration, auth negotiation and time-response handlers; these are watch-specific session messages, not proof of CIRQA compatibility. Some handlers enable settings, so they are inappropriate for a passive experiment.
+- Gadgetbridge protocol documentation: https://gadgetbridge.org/internals/specifics/garmin-protocol/ ; ML service UUID `6a4e2800-667b-11e3-949a-0800200c9a66`, dynamic handles and multiple ML/MLR variants.
+
+**Implemented offline in PulseLibre:** `GarminMlOffline.kt` and `GarminMlOfflineTest.kt`. Pure Kotlin logic identifies only complete documented RX/TX characteristic pairs from supplied UUID strings, decodes strictly sized ML registration responses, and extracts a routing handle. Negative tests reject the observed advertising UUID as a GATT characteristic pair, mismatched pairs, malformed packets and control messages. This is offline protocol research, not a CIRQA connector; no Bluetooth calls, pairing, GATT access, writes, subscriptions or CLOSE_ALL requests were added.
+
+**Limitations / follow-up:** No CIRQA GATT discovery or handshake captures exist. A connected Garmin device may use a different protocol generation or proprietary UUIDs. No actual CIRQA compatibility or Garmin Connect coexistence has been established. Existing projects are AGPL-3.0; source was inspected for protocol behavior, and the small Kotlin inspection module was written independently. Verify license obligations before incorporating source-derived implementations. CI unit-test outcome must be checked separately.
