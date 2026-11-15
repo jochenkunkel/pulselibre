@@ -369,11 +369,10 @@ class MainActivity : AppCompatActivity() {
             appendLine("CIRQA-Kopplung: " + if (cirqaBondAddress != null) "vorhanden" else "nicht bestätigt")
             appendLine("CIRQA-Adressabgleich: " + if (cirqaScanMatch) "Treffer (lokal geprüft; Adresse nicht exportiert)" else "Kein bestätigter Treffer; wechselnde BLE-Adressen möglich")
             appendLine(cirqaScanEvidence.summary())
-            diagnosticRows.values.forEachIndexed { index, item ->
-                appendLine("\nGerät ${index + 1}:\n" + item.substringBefore("\nService-Daten:") + "\nService-Daten: [aus Datenschutzgründen nicht exportiert]")
-            }
-            appendLine("\nAndroid-Kopplungen: " + if (bondedRows.isEmpty()) "Liste nicht explizit abgefragt" else "Liste explizit abgefragt")
-            bondedRows.forEach { appendLine(it) }
+            // Never share raw BLE names, MAC addresses, UUID payloads or bond rows.
+            // The detailed device list remains visible locally for diagnosis.
+            appendLine("BLE-Geräteeinträge (nur Anzahl): ${diagnosticRows.size}")
+            appendLine("Android-Kopplungsliste: " + if (bondedRows.isEmpty()) "nicht abgefragt oder leer" else "lokal abgefragt (Einträge nicht exportiert)")
             appendLine("\nKeine Verbindung, Kopplung oder Schreiboperation durch diesen Scan.")
         }
         startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).apply {
