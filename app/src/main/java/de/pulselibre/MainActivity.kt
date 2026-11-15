@@ -42,76 +42,140 @@ class MainActivity : AppCompatActivity() {
         val manager = getSystemService(BLUETOOTH_SERVICE) as BluetoothManager
         adapter = manager.adapter
         val violet = Color.rgb(81, 39, 201)
+        val ink = Color.rgb(35, 29, 59)
+        val muted = Color.rgb(109, 104, 127)
+        val surface = Color.rgb(248, 247, 252)
+        fun dp(value: Int) = (value * resources.displayMetrics.density + 0.5f).toInt()
+        fun rounded(color: Int, radius: Int = 20) = GradientDrawable().apply {
+            setColor(color); cornerRadius = dp(radius).toFloat()
+        }
+        fun text(value: String, size: Float, color: Int = ink, bold: Boolean = false) =
+            TextView(this).apply {
+                this.text = value
+                textSize = size
+                setTextColor(color)
+                if (bold) setTypeface(null, Typeface.BOLD)
+                includeFontPadding = false
+            }
+        fun card(): LinearLayout = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(16), dp(16), dp(16), dp(16))
+            background = rounded(Color.WHITE)
+            elevation = dp(1).toFloat()
+        }
+        val screen = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setBackgroundColor(surface)
+            fitsSystemWindows = true
+        }
+        val header = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(20), dp(18), dp(20), dp(18))
+            background = GradientDrawable(
+                GradientDrawable.Orientation.TL_BR,
+                intArrayOf(violet, Color.rgb(94, 65, 187))
+            )
+        }
+        header.addView(text("PulseLibre", 28f, Color.WHITE, true))
+        header.addView(text("Deine Daten. Deine Kontrolle. · Offline", 13f, Color.WHITE))
+        screen.addView(header)
         val root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(24, 28, 24, 24)
-            setBackgroundColor(Color.rgb(249, 247, 254))
+            setPadding(dp(16), dp(18), dp(16), dp(24))
         }
-        val title = TextView(this).apply {
-            text = "PulseLibre"
-            textSize = 27f
-            setTextColor(violet)
-            setTypeface(null, Typeface.BOLD)
-            contentDescription = "PulseLibre Gesundheitsübersicht"
+        val scroll = ScrollView(this).apply {
+            fillViewport = true
+            clipToPadding = false
+            addView(root)
         }
-        val subtitle = TextView(this).apply {
-            text = "Deine Daten. Deine Kontrolle. · Offline"
-            textSize = 14f
+        screen.addView(scroll, LinearLayout.LayoutParams(-1, 0, 1f))
+        val overview = mutableListOf<android.view.View>()
+        val deviceViews = mutableListOf<android.view.View>()
+        fun overviewView(view: android.view.View, margin: Int = 12) {
+            root.addView(view, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(margin) })
+            overview.add(view)
         }
-        root.addView(title)
-        root.addView(subtitle)
-        root.addView(Button(this).apply {
-            text = "Einstellungen · Datenexport"
-            setOnClickListener { startActivity(Intent(this@MainActivity, ExportActivity::class.java)) }
-        })
+        fun deviceView(view: android.view.View, margin: Int = 12) {
+            root.addView(view, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(margin) })
+            deviceViews.add(view)
+            view.visibility = android.view.View.GONE
+        }
+        overviewView(text("Gesundheit im Blick", 22f, ink, true), 5)
+        overviewView(text("Deine Werte bleiben auf diesem Gerät.", 13f, muted), 16)
         val metrics = dashboardMetrics(HealthSnapshot())
+        // Keep all six semantic cards directly in the scroll root for accessibility and regression tests.
         metrics.forEachIndexed { index, metric ->
-            val card = LinearLayout(this).apply {
-                orientation = LinearLayout.VERTICAL
-                setPadding(20, 16, 20, 16)
-                background = GradientDrawable().apply {
-                    setColor(Color.WHITE)
-                    cornerRadius = 22f
-                }
-                contentDescription = "${metric.title}: ${metric.value}. ${metric.note}"
+            val item = card().apply {
                 tag = "metric_$index"
+                contentDescription = "${metric.title}: ${metric.value}. ${metric.note}"
             }
-            card.addView(TextView(this).apply {
-                text = metric.title
-                textSize = 17f
-                setTextColor(violet)
-                setTypeface(null, Typeface.BOLD)
-            })
-            card.addView(TextView(this).apply {
-                text = metric.value
-                textSize = 21f
-                setTextColor(Color.rgb(34, 34, 34))
-            })
-            card.addView(TextView(this).apply {
-                text = metric.note
-                textSize = 12f
-            })
-            root.addView(card, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = 14 })
+            item.addView(text(metric.title, 14f, violet, true))
+            item.addView(text(metric.value, 19f, ink, true),
+                LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) })
+            item.addView(text(metric.note, 12f, muted),
+                LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(5) })
+            overviewView(item)
         }
-        root.addView(TextView(this).apply {
-            text = "Bluetooth · Geräte (experimentell)"
-            textSize = 20f
-            setTextColor(violet)
-        })
-        status = TextView(this).apply { text = "Offline · bereit" }
-        val scan = Button(this).apply { text = "Bluetooth-Geräte suchen"; setOnClickListener { startScan() } }
-        val simulate = Button(this).apply { text = "Demo: Verbindungsfehler simulieren"; setOnClickListener { simulateFailure() } }
-        val disconnect = Button(this).apply { text = "Trennen"; setOnClickListener { disconnect() } }
+        val deviceHeading = text("Bluetooth · Geräte", 22f, ink, true)
+        deviceView(deviceHeading)
+        deviceView(text("Garmin CIRQA · Sichere BLE-Diagnose ohne Neu-Kopplung", 13f, muted))
+        status = text("Offline · bereit", 14f, muted)
+        deviceView(status)
+        fun actionButton(label: String, primary: Boolean = true, action: () -> Unit) =
+            TextView(this).apply {
+                text = label
+                textSize = 15f
+                setTypeface(null, Typeface.BOLD)
+                gravity = android.view.Gravity.CENTER
+                setTextColor(if (primary) Color.WHITE else violet)
+                background = rounded(if (primary) violet else Color.rgb(237, 231, 253), 14)
+                minHeight = dp(52)
+                setPadding(dp(12), dp(12), dp(12), dp(12))
+                isClickable = true
+                isFocusable = true
+                setOnClickListener { action() }
+            }
+        deviceView(actionButton("Bluetooth-Geräte suchen") { startScan() })
+        deviceView(actionButton("Trennen", false) { disconnect() })
+        deviceView(actionButton("Verbindungsfehler simulieren", false) { simulateFailure() })
         devices = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
-        output = TextView(this).apply { text = "Keine Geräte verbunden."; setTextIsSelectable(true) }
-        root.addView(status)
-        root.addView(scan)
-        root.addView(simulate)
-        root.addView(disconnect)
-        root.addView(devices)
-        root.addView(output)
-        val scroll = ScrollView(this).apply { addView(root) }
-        setContentView(scroll)
+        deviceView(devices)
+        output = text("Keine Geräte verbunden.", 13f, muted).apply {
+            setTextIsSelectable(true)
+        }
+        deviceView(output)
+        val nav = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            setPadding(dp(8), dp(8), dp(8), dp(8))
+            setBackgroundColor(Color.WHITE)
+        }
+        val tabs = mutableListOf<TextView>()
+        fun selectTab(index: Int) {
+            overview.forEach { it.visibility = if (index == 0) android.view.View.VISIBLE else android.view.View.GONE }
+            deviceViews.forEach { it.visibility = if (index == 1) android.view.View.VISIBLE else android.view.View.GONE }
+            tabs.forEachIndexed { i, tab ->
+                tab.setTextColor(if (i == index) violet else muted)
+                tab.background = if (i == index) rounded(Color.rgb(241, 235, 255), 12) else null
+            }
+            scroll.scrollTo(0, 0)
+        }
+        listOf("Übersicht", "Geräte", "Export").forEachIndexed { index, label ->
+            val tab = text(label, 14f, muted, true).apply {
+                gravity = android.view.Gravity.CENTER
+                minHeight = dp(52)
+                isClickable = true
+                isFocusable = true
+                setOnClickListener {
+                    if (index == 2) startActivity(Intent(this@MainActivity, ExportActivity::class.java))
+                    else selectTab(index)
+                }
+            }
+            nav.addView(tab, LinearLayout.LayoutParams(0, -2, 1f))
+            tabs.add(tab)
+        }
+        screen.addView(nav)
+        setContentView(screen)
+        selectTab(0)
         // Permission prompts are deferred until an explicit BLE action.
     }
 
