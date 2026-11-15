@@ -364,7 +364,7 @@ class MainActivity : AppCompatActivity() {
             appendLine("CIRQA-Adressabgleich: " + if (cirqaScanMatch) "Treffer (lokal geprüft; Adresse nicht exportiert)" else "Kein bestätigter Treffer; wechselnde BLE-Adressen möglich")
             appendLine(cirqaScanEvidence.summary())
             diagnosticRows.values.forEachIndexed { index, item ->
-                appendLine("\nGerät ${index + 1}:\n$item")
+                appendLine("\nGerät ${index + 1}:\n" + item.substringBefore("\nService-Daten:") + "\nService-Daten: [aus Datenschutzgründen nicht exportiert]")
             }
             appendLine("\nAndroid-Kopplungen: " + if (bondedRows.isEmpty()) "Liste nicht explizit abgefragt" else "Liste explizit abgefragt")
             bondedRows.forEach { appendLine(it) }
