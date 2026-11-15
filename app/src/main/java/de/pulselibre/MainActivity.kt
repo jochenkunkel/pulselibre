@@ -41,6 +41,7 @@ class MainActivity : AppCompatActivity() {
     private val bondedRows = mutableListOf<String>()
     private var cirqaBondAddress: String? = null
     private var cirqaScanMatch = false
+    private var cirqaGattState = "Nicht abgefragt"
     private var lastScanDiagnostic = "Noch kein Scan gestartet."
     private val cccd = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")
 
@@ -295,10 +296,24 @@ class MainActivity : AppCompatActivity() {
                 it.name?.contains("CIRQA", ignoreCase = true) == true
             }
             cirqaBondAddress = matched?.address
+            cirqaGattState = if (matched == null) "Kein gekoppeltes CIRQA" else try {
+                val manager = getSystemService(BLUETOOTH_SERVICE) as BluetoothManager
+                when (manager.getConnectionState(matched, BluetoothProfile.GATT)) {
+                    BluetoothProfile.STATE_CONNECTED -> "Android GATT: verbunden (App unbekannt)"
+                    BluetoothProfile.STATE_CONNECTING -> "Android GATT: verbindet"
+                    BluetoothProfile.STATE_DISCONNECTING -> "Android GATT: trennt"
+                    BluetoothProfile.STATE_DISCONNECTED -> "Android GATT: nicht verbunden"
+                    else -> "Android GATT: unbekannt"
+                }
+            } catch (_: SecurityException) {
+                "Android GATT: Berechtigung fehlt"
+            } catch (_: IllegalArgumentException) {
+                "Android GATT: Status nicht verfügbar"
+            }
             val message = if (matched != null)
                 "CIRQA Smart Band\n✓ Mit Android gekoppelt\n" +
                 (if (cirqaScanMatch) "✓ Gleiche BLE-Adresse im Scan erkannt\n" else "BLE-Werbeadresse nicht bestätigt (wechselnde Adressen möglich)\n") +
-                "Garmin Connect bleibt unverändert\nKeine PulseLibre-Verbindung · GATT nicht geprüft"
+                "${cirqaGattState}\nGarmin Connect bleibt unverändert\nKeine PulseLibre-Verbindung aufgebaut"
             else "CIRQA Smart Band\nNicht in Android-Kopplungen gefunden\nKeine Verbindung hergestellt"
             cirqaCard.text = message
             cirqaCard.contentDescription = message
@@ -325,15 +340,18 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun shareDiagnostics() {
+        refreshCirqaCard()
         val report = buildString {
             appendLine("PulseLibre · Passive BLE-Diagnose")
             appendLine("Gefundene Werbegeräte: ${diagnosticRows.size}")
             appendLine("Scan-Status: $lastScanDiagnostic")
+            appendLine("CIRQA GATT (Android-Systemstatus, keine eigene Verbindung): $cirqaGattState")
+            appendLine("CIRQA-Kopplung: " + if (cirqaBondAddress != null) "vorhanden" else "nicht bestätigt")
             appendLine("CIRQA-Adressabgleich: " + if (cirqaScanMatch) "Treffer (lokal geprüft; Adresse nicht exportiert)" else "Kein bestätigter Treffer; wechselnde BLE-Adressen möglich")
             diagnosticRows.values.forEachIndexed { index, item ->
                 appendLine("\nGerät ${index + 1}:\n$item")
             }
-            appendLine("\nAndroid-Kopplungen (nur nach expliziter Abfrage):")
+            appendLine("\nAndroid-Kopplungen: " + if (bondedRows.isEmpty()) "Liste nicht explizit abgefragt" else "Liste explizit abgefragt")
             bondedRows.forEach { appendLine(it) }
             appendLine("\nKeine Verbindung, Kopplung oder Schreiboperation durch diesen Scan.")
         }
