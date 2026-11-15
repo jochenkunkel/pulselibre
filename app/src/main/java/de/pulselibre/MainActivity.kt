@@ -34,7 +34,7 @@ class MainActivity : AppCompatActivity() {
         sessionState = transition(sessionState, event)
         status.text = "Bluetooth: ${sessionState.name}"
     }
-    private val found = mutableSetOf<String>()
+    private val found = mutableSetOf<String>()\n    private val deviceRows = mutableMapOf<String, TextView>()
     private val cccd = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -209,7 +209,7 @@ class MainActivity : AppCompatActivity() {
         if (!adapter.isEnabled) { status.text = "Bitte Bluetooth aktivieren"; return }
         if (scanning) return
         val scanner = adapter.bluetoothLeScanner ?: run { status.text = "BLE-Scanner nicht verfügbar"; return }
-        devices.removeAllViews(); found.clear()
+        devices.removeAllViews(); found.clear(); deviceRows.clear()
         try {
             scanner.startScan(callback)
         } catch (_: SecurityException) {
@@ -336,4 +336,45 @@ class MainActivity : AppCompatActivity() {
         stopScan(); disconnect()
         super.onDestroy()
     }
-}
+}    @SuppressLint("MissingPermission")
+    private fun showDevice(result: ScanResult) {
+        val device = result.device
+        val address = device.address
+        val record = result.scanRecord
+        val label = try { device.name } catch (_: SecurityException) { null }
+        val companyIds = mutableListOf<Int>()
+        record?.manufacturerSpecificData?.let { data ->
+            for (index in 0 until data.size()) companyIds.add(data.keyAt(index))
+        }
+        val services = record?.serviceUuids?.map { it.uuid.toString() } ?: emptyList()
+        val description = BleAdvertisementIdentity.describe(
+            label ?: record?.deviceName, companyIds, services, result.rssi
+        )
+        val row = deviceRows[address]
+        if (row != null) {
+            row.text = description
+            row.contentDescription = description
+            return
+        }
+        if (!found.add(address)) return
+        val density = resources.displayMetrics.density
+        fun dp(value: Int) = (value * density + 0.5f).toInt()
+        val item = TextView(this).apply {
+            text = description
+            textSize = 14f
+            setTextColor(Color.rgb(35, 29, 59))
+            setPadding(dp(16), dp(14), dp(16), dp(14))
+            background = GradientDrawable().apply {
+                setColor(Color.WHITE)
+                cornerRadius = dp(16).toFloat()
+            }
+            contentDescription = description
+            isClickable = true
+            isFocusable = true
+            setOnClickListener { connect(device) }
+        }
+        deviceRows[address] = item
+        devices.addView(item, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(10) })
+    }
+
+
