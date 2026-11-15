@@ -17,7 +17,6 @@ import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
-import java.util.UUID
 
 class MainActivity : AppCompatActivity() {
     private val handler = Handler(Looper.getMainLooper())
@@ -26,7 +25,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var output: TextView
     private lateinit var devices: LinearLayout
     private lateinit var cirqaCard: TextView
-    private var gatt: BluetoothGatt? = null
     private var scanning = false
     private var scanGeneration = 0
     private var destroyed = false
@@ -43,7 +41,6 @@ class MainActivity : AppCompatActivity() {
     private var cirqaScanMatch = false
     private var cirqaGattState = "Nicht abgefragt"
     private var lastScanDiagnostic = "Noch kein Scan gestartet."
-    private val cccd = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -191,17 +188,6 @@ class MainActivity : AppCompatActivity() {
         setContentView(screen)
         selectTab(0)
         // Permission prompts are deferred until an explicit BLE action.
-    }
-
-    /** Local simulation only; never touches Bluetooth hardware or Garmin Connect. */
-    private fun simulateFailure() {
-        stopScan()
-        disconnect()
-        applyEvent(BleEvent.RESET)
-        applyEvent(BleEvent.START_SCAN)
-        applyEvent(BleEvent.CONNECT)
-        applyEvent(BleEvent.FAILED)
-        output.append("\n[DEMO] Verbindungsfehler simuliert; keine echte Bluetooth-Verbindung.")
     }
 
     private fun permissions(): Array<String> = if (Build.VERSION.SDK_INT >= 31)
@@ -361,76 +347,10 @@ class MainActivity : AppCompatActivity() {
         }, "BLE-Diagnose teilen"))
     }
 
-    @SuppressLint("MissingPermission")
-    private fun connect(device: BluetoothDevice) {
-        if (!ensurePermissions()) return
-        stopScan(); disconnect()
-        applyEvent(BleEvent.CONNECT)
-        status.text = "Verbinde mit ${device.name ?: "BLE-Gerät"} …"
-        try { gatt = device.connectGatt(this, false, gattCallback, BluetoothDevice.TRANSPORT_LE) }
-        catch (_: SecurityException) { applyEvent(BleEvent.FAILED); status.text = "Bluetooth-Berechtigung fehlt" }
-        catch (_: IllegalStateException) { applyEvent(BleEvent.FAILED); status.text = "Bluetooth-Verbindung nicht möglich" }
-    }
-
-    @SuppressLint("MissingPermission")
-    private fun disconnect() {
-        try { gatt?.disconnect() } catch (_: SecurityException) { }
-        try { gatt?.close() } catch (_: Exception) { }
-        gatt = null
-        applyEvent(BleEvent.DISCONNECTED)
-    }
-
-    private fun log(message: String) {
-        runOnUiThread {
-            if (!destroyed) output.append("\n$message")
-        }
-    }
-
-    private val gattCallback = object : BluetoothGattCallback() {
-        @SuppressLint("MissingPermission")
-        override fun onConnectionStateChange(g: BluetoothGatt, statusCode: Int, newState: Int) {
-            if (gatt !== g || destroyed) { g.close(); return }
-            if (statusCode == BluetoothGatt.GATT_SUCCESS && newState == BluetoothProfile.STATE_CONNECTED) {
-                runOnUiThread { applyEvent(BleEvent.CONNECTED) }
-                log("Verbunden. Dienste werden gesucht …")
-                try { if (!g.discoverServices()) log("Dienstsuche konnte nicht gestartet werden") }
-                catch (_: SecurityException) { log("Bluetooth-Berechtigung fehlt") }
-            } else if (newState == BluetoothProfile.STATE_DISCONNECTED || statusCode != BluetoothGatt.GATT_SUCCESS) {
-                runOnUiThread { applyEvent(if (statusCode == BluetoothGatt.GATT_SUCCESS) BleEvent.DISCONNECTED else BleEvent.FAILED) }
-                log("Getrennt (Status $statusCode)")
-                g.close()
-                if (gatt === g) gatt = null
-            }
-        }
-
-        @SuppressLint("MissingPermission")
-        override fun onServicesDiscovered(g: BluetoothGatt, statusCode: Int) {
-            if (gatt !== g || destroyed) return
-            if (statusCode != BluetoothGatt.GATT_SUCCESS) { log("Dienstsuche fehlgeschlagen: $statusCode"); return }
-            log("Dienste: ${g.services.size}")
-            g.services.forEach { service ->
-                log("Service ${service.uuid}")
-                service.characteristics.forEach { ch ->
-                    log("  Characteristic ${ch.uuid} · ${describeProperties(ch.properties)} · Lesen: ${BleSafetyPolicy.mayReadCharacteristic(ch.properties)}")
-                }
-            }
-            log("Sicherheitsmodus: nur Diensterkennung, keine Kopplung, Schreibbefehle oder Abonnements.")
-            log("Hinweis: Proprietäre Garmin-Werte werden noch nicht dekodiert.")
-        }
-
-        override fun onCharacteristicChanged(g: BluetoothGatt, characteristic: BluetoothGattCharacteristic, value: ByteArray) {
-            log("Notify ${characteristic.uuid}: ${BleSafetyPolicy.safeHex(value)}")
-        }
-        @Deprecated("Android legacy callback")
-        override fun onCharacteristicChanged(g: BluetoothGatt, characteristic: BluetoothGattCharacteristic) {
-            log("Notify ${characteristic.uuid}: ${characteristic.value?.let { BleSafetyPolicy.safeHex(it) } ?: ""}")
-        }
-    }
-
     override fun onDestroy() {
         destroyed = true
         handler.removeCallbacksAndMessages(null)
-        stopScan(); disconnect()
+        stopScan()
         super.onDestroy()
     }
     @SuppressLint("MissingPermission")
