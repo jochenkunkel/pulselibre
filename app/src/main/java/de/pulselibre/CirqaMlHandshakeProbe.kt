@@ -19,6 +19,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private var active = false
     private var gatt: BluetoothGatt? = null
     private var callback: ((String) -> Unit)? = null
+    var onReading: ((Int, GarminRealtime.Reading) -> Unit)? = null
     private var tx: BluetoothGattCharacteristic? = null
     private var session: GarminMlHandshake.Session? = null
     private var requestedCloseAll = false
@@ -219,6 +220,18 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             val reading = realtimeRegistry.receive(bytes)
             if (reading != null) {
                 realtimeFrames++
+                val serviceCode = when (reading) {
+                    is GarminRealtime.Reading.HeartRate -> GarminRealtime.HEART_RATE_SERVICE
+                    is GarminRealtime.Reading.Steps -> GarminRealtime.STEPS_SERVICE
+                    is GarminRealtime.Reading.Calories -> GarminRealtime.CALORIES_SERVICE
+                    is GarminRealtime.Reading.Intensity -> GarminRealtime.INTENSITY_SERVICE
+                    is GarminRealtime.Reading.Hrv -> GarminRealtime.HRV_SERVICE
+                    is GarminRealtime.Reading.Stress -> GarminRealtime.STRESS_SERVICE
+                    is GarminRealtime.Reading.SpO2 -> GarminRealtime.SPO2_SERVICE
+                    is GarminRealtime.Reading.BodyBattery -> GarminRealtime.BODY_BATTERY_SERVICE
+                    is GarminRealtime.Reading.Respiration -> GarminRealtime.RESPIRATION_SERVICE
+                }
+                onReading?.invoke(serviceCode, reading)
                 when (reading) {
                     is GarminRealtime.Reading.HeartRate -> heartRate = reading
                     is GarminRealtime.Reading.Steps -> steps = reading
