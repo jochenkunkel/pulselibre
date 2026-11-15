@@ -1,32 +1,47 @@
 # PulseLibre
 
-**Verbindliche Zielgeräte:** [Garmin CIRQA Smartband und Samsung Galaxy S25 – Kontext, Sicherheitsregeln und Teststatus](docs/TARGET_DEVICES.md)
+**Offline-first Android-Projekt für Garmin CIRQA auf Samsung Galaxy S25.**
 
-**Projektleitbild und vollständige Anforderungen:** [Warum, was und wie wir entwickeln](docs/REQUIREMENTS_AND_PRINCIPLES.md)
+![PulseLibre-Logo](design/pulselibre-icon.svg)
 
-![PulseLibre project logo](design/pulselibre-icon.svg)
+**Projektstatus:** Passive BLE-Diagnose auf dem S25 praktisch getestet; erste Android-Bluetooth-Berechtigungsabfrage auf dem S25 bestätigt. **Kein CIRQA-Protokollzugriff, keine Gesundheitsdatensynchronisierung und keine aktive PulseLibre-GATT-Verbindung.** Garmin Connect wird nicht verändert.
 
-[Project poster](design/pulselibre-poster.svg) · [Brand guide](docs/BRANDING.md) · [Icon integration](docs/ICON_INTEGRATION.md)
+## Einstieg und Dokumentation
 
-Privacy-first Android Bluetooth LE explorer for Garmin CIRQA research.
+- [Architektur, Code-Review und Ablaufdiagramme](docs/ARCHITECTURE_AND_CODE_REVIEW.md)
+- [Priorisierte Roadmap bis zu echten CIRQA-Messwerten](docs/ROADMAP_TO_CIRQA_DATA.md)
+- [Geräte, Einschränkungen und Sicherheitsregeln](docs/TARGET_DEVICES.md)
+- [Garmin-Protokollrecherche](docs/GARMIN_PROTOCOL_RESEARCH.md)
+- [S25-Testplan](docs/S25_BLE_TEST_PLAN.md)
+- [Projektziele und Anforderungen](docs/REQUIREMENTS_AND_PRINCIPLES.md)
+- [Qualitätsanforderungen](docs/QUALITY_GATE.md)
+- [Design und Branding](docs/BRANDING.md)
 
-## Goal
+## Was derzeit tatsächlich funktioniert
 
-An offline-first Android prototype that scans for nearby Bluetooth LE devices, connects on demand, discovers GATT services/characteristics, and displays received notifications and characteristic reads. This is a diagnostic prototype, **not yet Garmin CIRQA protocol support**. Garmin Connect pairing is not modified.
+- Android-Laufzeitberechtigung für Bluetooth beim ersten Start; bei bereits erteilter Berechtigung kein erneuter Dialog.
+- Benutzerinitiierter, auf 60 Sekunden begrenzter **passiver** BLE-Scan; Werbeinformationen und vorsichtige Herstellerhinweise.
+- Nur lesende Android-Abfrage zu CIRQA-Kopplung und Android-GATT-Status; die verbundene App ist **unbekannt**.
+- Export einer Diagnose **nur nach ausdrücklicher Teilen-Aktion**. Vorsicht: Der Text kann Gerätebezeichnungen und rohe BLE-Service-Daten enthalten.
+- Offline-Datenmodell, lokale SQLite-Ablage mit Transaktionen und CSV-Export für künftig **validierte** Messwerte. Noch keine echte CIRQA-Datenquelle angebunden.
+- Reine Offline-Inspektion von GFDI-Headern und CRC-16-Prüfung mit synthetischen Testpaketen. **Kein FIT-Decoder.**
 
-## Privacy
+## Sicherheitsgrenzen
 
-No INTERNET permission, analytics, account, or cloud upload. Do not commit personal sensor logs. Bluetooth MAC addresses and raw payloads can be sensitive.
+Keine INTERNET-Berechtigung, kein Cloud-Sync, keine Telemetrie, keine erfundenen Gesundheitswerte. Keine aktive CIRQA-Verbindung, kein Re-Pairing, keine GATT-Schreiboperation, keine Benachrichtigungs-Subscription ohne separate ausdrückliche Freigabe. Die Android-Systemanzeige „GATT verbunden“ ist **kein** Beweis für Datenzugriff durch PulseLibre.
 
-## Build
+## Build und Tests
 
-JDK 17, Android SDK 35, Gradle 8.13. Run `gradle :app:assembleDebug :app:testDebugUnitTest :app:lintDebug` (or `./gradlew` once the wrapper has been generated and committed). Android 12+ requires Nearby Devices permissions; Android 11 and earlier require location permission for BLE scanning.
+JDK 17, Android SDK 35, Gradle 8.13. Beispiel:
 
-## Roadmap
+```bash
+gradle :app:testDebugUnitTest :app:lintDebug :app:assembleDebug :app:assembleDebugAndroidTest
+```
 
-1. BLE scanner, connect/disconnect, GATT service discovery, read/notify diagnostic view.
-2. Investigate Garmin CIRQA protocol with legally usable references and verify compatibility on a real device.
-3. Offline Room history and charts.
-4. Background synchronization and reliable signed releases.
+Der GitHub-Workflow `.github/workflows/android.yml` führt anschließend API-35-Emulatortests aus. Eine erfolgreiche CI ist **kein** Ersatz für einen echten CIRQA-Test auf dem S25. Der Workflow lädt Debug-APKs als zeitlich begrenzte Artifacts hoch. Derzeit ist kein Gradle-Wrapper im Repository.
 
-**Caution:** Scanning can work while Garmin Connect remains paired, but connecting to a proprietary device may require unpairing or exclusive access. Do not reset/unpair before saving existing Garmin data.
+## Ausblick
+
+Die nächsten Schritte sind die Behebung der im [Review](docs/ARCHITECTURE_AND_CODE_REVIEW.md) beschriebenen Risiken, ein belastbarer Offline-FIT-Parser und erst danach eine gesonderte Entscheidung über einen sicheren, vom Nutzer ausdrücklich freigegebenen CIRQA-Transportweg.
+
+[Projektposter](design/pulselibre-poster.svg)
