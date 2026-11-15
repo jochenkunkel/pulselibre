@@ -23,6 +23,11 @@ class MainActivity : AppCompatActivity() {
     private lateinit var devices: LinearLayout
     private var gatt: BluetoothGatt? = null
     private var scanning = false
+    private var sessionState = BleSessionState.IDLE
+    private fun applyEvent(event: BleEvent) {
+        sessionState = transition(sessionState, event)
+        status.text = "Bluetooth: ${sessionState.name}"
+    }
     private val found = mutableSetOf<String>()
     private val cccd = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")
 
@@ -34,15 +39,27 @@ class MainActivity : AppCompatActivity() {
         val title = TextView(this).apply { text = "PulseLibre · BLE Explorer"; textSize = 23f }
         status = TextView(this).apply { text = "Offline · bereit" }
         val scan = Button(this).apply { text = "Bluetooth-Geräte suchen"; setOnClickListener { startScan() } }
+        val simulate = Button(this).apply { text = "Demo: Verbindungsfehler simulieren"; setOnClickListener { simulateFailure() } }
         val disconnect = Button(this).apply { text = "Trennen"; setOnClickListener { disconnect() } }
         devices = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         output = TextView(this).apply { text = "Wähle ein gefundenes Gerät."; setTextIsSelectable(true) }
         val scroll = ScrollView(this).apply { addView(output) }
-        root.addView(title); root.addView(status); root.addView(scan); root.addView(disconnect)
+        root.addView(title); root.addView(status); root.addView(scan); root.addView(simulate); root.addView(disconnect)
         root.addView(devices)
         root.addView(scroll, LinearLayout.LayoutParams(-1, 0, 1f))
         setContentView(root)
         ensurePermissions()
+    }
+
+    /** Local simulation only; never touches Bluetooth hardware or Garmin Connect. */
+    private fun simulateFailure() {
+        stopScan()
+        disconnect()
+        applyEvent(BleEvent.RESET)
+        applyEvent(BleEvent.START_SCAN)
+        applyEvent(BleEvent.CONNECT)
+        applyEvent(BleEvent.FAILED)
+        output.append("\n[DEMO] Verbindungsfehler simuliert; keine echte Bluetooth-Verbindung.")
     }
 
     private fun permissions(): Array<String> = if (Build.VERSION.SDK_INT >= 31)
@@ -67,6 +84,7 @@ class MainActivity : AppCompatActivity() {
         devices.removeAllViews(); found.clear()
         scanner.startScan(callback)
         scanning = true
+        applyEvent(BleEvent.START_SCAN)
         status.text = "Suche läuft (10 Sekunden) …"
         handler.postDelayed({ stopScan() }, 10_000)
     }
@@ -76,6 +94,7 @@ class MainActivity : AppCompatActivity() {
         if (!scanning) return
         adapter.bluetoothLeScanner?.stopScan(callback)
         scanning = false
+        applyEvent(BleEvent.STOP_SCAN)
         status.text = "Suche abgeschlossen · ${found.size} Geräte"
     }
 
@@ -84,7 +103,7 @@ class MainActivity : AppCompatActivity() {
             runOnUiThread { showDevice(result) }
         }
         override fun onScanFailed(errorCode: Int) {
-            runOnUiThread { scanning = false; status.text = "Scan-Fehler: $errorCode" }
+            runOnUiThread { scanning = false; applyEvent(BleEvent.FAILED); status.text = "Scan-Fehler: $errorCode" }
         }
     }
 
@@ -104,6 +123,7 @@ class MainActivity : AppCompatActivity() {
     private fun connect(device: BluetoothDevice) {
         if (!ensurePermissions()) return
         stopScan(); disconnect()
+        applyEvent(BleEvent.CONNECT)
         status.text = "Verbinde mit ${device.name ?: "BLE-Gerät"} …"
         gatt = device.connectGatt(this, false, gattCallback, BluetoothDevice.TRANSPORT_LE)
     }
@@ -113,6 +133,7 @@ class MainActivity : AppCompatActivity() {
         gatt?.disconnect()
         gatt?.close()
         gatt = null
+        applyEvent(BleEvent.DISCONNECTED)
     }
 
     private fun log(message: String) {
@@ -125,9 +146,11 @@ class MainActivity : AppCompatActivity() {
         @SuppressLint("MissingPermission")
         override fun onConnectionStateChange(g: BluetoothGatt, statusCode: Int, newState: Int) {
             if (statusCode == BluetoothGatt.GATT_SUCCESS && newState == BluetoothProfile.STATE_CONNECTED) {
+                runOnUiThread { applyEvent(BleEvent.CONNECTED) }
                 log("Verbunden. Dienste werden gesucht …")
                 g.discoverServices()
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED || statusCode != BluetoothGatt.GATT_SUCCESS) {
+                runOnUiThread { applyEvent(if (statusCode == BluetoothGatt.GATT_SUCCESS) BleEvent.DISCONNECTED else BleEvent.FAILED) }
                 log("Getrennt (Status $statusCode)")
                 g.close()
                 if (gatt === g) gatt = null
