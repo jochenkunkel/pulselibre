@@ -33,3 +33,12 @@ The timestamps are **phone reception times**, not guaranteed original sensor sam
 - 10 MiB hard cap; bounded per-session timeout; no `CLOSE_ALL`, no reset, no bond changes.
 - Does not yet store raw GFDI messages, download FIT files, calculate daily/weekly/monthly aggregates or provide production-grade background reconnection guarantees.
 - Source code must pass CI and a real-device test before overnight use is recommended as reliable. Battery optimization, firmware differences and foreground-service behavior require verification.
+
+
+## Field finding: 2026-11-15, 10-minute export
+
+User-supplied complete export contains one session_start and 20 readings, all in the first ~7 seconds, with **no attempt outcome, second attempt or session_end**. All nine registered metric services produced at least one decoded reading. This **does not prove** that the scheduler itself failed: the Android service could have been killed, the log could have been exported before the next cycle, or completion callback could have been lost. The original scheduler depended on a completion callback and had no independent heartbeat.
+
+Fix commit a24875d: log `attempt_start` on every poll; schedule the next attempt from an independent 120-second handler timer; log `attempt_timeout` if the callback did not complete, close the old probe and retry. The new behavior requires a newly installed build and a separate real-device verification; it cannot alter an already-running older APK.
+
+Expected on next test: `session_start`, `attempt_start`, readings, possibly `attempt`, and then another `attempt_start` ~120 seconds later. If log stops entirely without `session_end`, investigate Android foreground-service lifecycle, battery policy, crash reports and user stop/force-stop. Do not infer sensor sampling continuity from a successful first burst.
