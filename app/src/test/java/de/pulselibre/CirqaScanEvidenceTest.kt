@@ -47,4 +47,25 @@ class CirqaScanEvidenceTest {
         evidence.observe("a", false, false)
         assertTrue(evidence.summary().contains("Adressgleichheit mit CIRQA-Kopplung: 1"))
     }
+    @Test fun featureCountersDeduplicateDevicesAndAccumulateFlags() {
+        val evidence = CirqaScanEvidence()
+        evidence.observeFeatures("a", hasName = false, hasManufacturerData = true, hasServiceUuids = false)
+        evidence.observeFeatures("a", hasName = true, hasManufacturerData = false, hasServiceUuids = false)
+        evidence.observeFeatures("b", hasName = false, hasManufacturerData = false, hasServiceUuids = true)
+        val summary = evidence.summary()
+        assertTrue(summary.contains("Werbeereignisse insgesamt: 3"))
+        assertTrue(summary.contains("Geräte mit sichtbarem Namen: 1"))
+        assertTrue(summary.contains("Geräte mit Herstellerdaten: 1"))
+        assertTrue(summary.contains("Geräte mit Service-UUIDs: 1"))
+        assertFalse(summary.contains("a:"))
+    }
+
+    @Test fun resetClearsAdvertisementFeatures() {
+        val evidence = CirqaScanEvidence()
+        evidence.observeFeatures("a", true, true, true)
+        evidence.reset()
+        assertTrue(evidence.summary().contains("Werbeereignisse insgesamt: 0"))
+        assertTrue(evidence.summary().contains("Geräte mit Herstellerdaten: 0"))
+    }
+
 }
