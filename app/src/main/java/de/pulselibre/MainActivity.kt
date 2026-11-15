@@ -285,7 +285,7 @@ class MainActivity : AppCompatActivity() {
                 if (!destroyed) {
                     // Best-effort cleanup; preserve the failure state and message.
                     if (scanning) {
-                        try { adapter.bluetoothLeScanner?.stopScan(callback) }
+                        try { adapter.bluetoothLeScanner?.stopScan(failedCallback) }
                         catch (_: SecurityException) { /* Permission revoked. */ }
                         catch (_: IllegalStateException) { /* Bluetooth switched off. */ }
                     }
