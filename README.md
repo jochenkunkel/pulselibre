@@ -1,5 +1,9 @@
 # PulseLibre
 
+![PulseLibre project logo](design/pulselibre-icon.svg)
+
+[Project poster](design/pulselibre-poster.svg) · [Brand guide](docs/BRANDING.md) · [Icon integration](docs/ICON_INTEGRATION.md)
+
 Privacy-first Android Bluetooth LE explorer for Garmin CIRQA research.
 
 ## Goal
