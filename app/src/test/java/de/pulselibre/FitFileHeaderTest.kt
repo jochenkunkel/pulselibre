@@ -56,4 +56,39 @@ class FitFileHeaderTest {
         assertNull(FitFileHeader.inspect(byteArrayOf()))
         assertNull(FitFileHeader.inspect(ByteArray(FitFileHeader.MAX_FILE_BYTES + 1)))
     }
+    @Test fun standardCrcVector() {
+        assertEquals(0xBB3D, FitFileHeader.crc16("123456789".toByteArray(Charsets.US_ASCII)))
+    }
+
+    @Test fun verified12ByteEnvelopeUsesIndependentKnownBytes() {
+        val bytes = byteArrayOf(
+            0x0c, 0x20, 0x64, 0, 0, 0, 0, 0,
+            0x2e, 0x46, 0x49, 0x54, 0x27, 0x29
+        )
+        assertEquals(12, FitFileHeader.inspectVerified(bytes)?.headerSize)
+        bytes[2] = 0x65
+        assertNull(FitFileHeader.inspectVerified(bytes))
+    }
+
+    @Test fun verified14ByteEnvelopeChecksHeaderAndFileCrc() {
+        val bytes = byteArrayOf(
+            0x0e, 0x20, 0x64, 0, 0, 0, 0, 0,
+            0x2e, 0x46, 0x49, 0x54,
+            0xde.toByte(), 0xee.toByte(), 0, 0
+        )
+        assertEquals(14, FitFileHeader.inspectVerified(bytes)?.headerSize)
+        bytes[12] = 0
+        assertNull(FitFileHeader.inspectVerified(bytes))
+    }
+
+    @Test fun rejectsValidStructureWithCorruptFileCrc() {
+        val bytes = byteArrayOf(
+            0x0c, 0x20, 0x64, 0, 0, 0, 0, 0,
+            0x2e, 0x46, 0x49, 0x54, 0x27, 0x29
+        )
+        bytes[13] = 0
+        assertNotNull(FitFileHeader.inspect(bytes))
+        assertNull(FitFileHeader.inspectVerified(bytes))
+    }
+
 }
