@@ -30,3 +30,10 @@ Die Projekte Mein Weg 2 und PulseLibre entstanden im persönlichen Kontext eines
 - `design/pulselibre-icon.svg`: editierbares Vektorlogo.
 - `design/pulselibre-poster.svg`: editierbares, datensparsames Poster mit ausschließlich belegbaren Projektzielen.
 - `docs/BRANDING.md`: Farbpalette, Claim und Markenbeschreibung.
+
+## Entwicklungsprüfung 2026-11-15 (13:19 CET)
+- Neuester beim Audit sichtbarer Commit: `ddba3f8` (doppelte BLE-`showDevice`-Methode entfernt, um Kotlin-Kompilierung wiederherzustellen). Zuvor wurden Hersteller-IDs und Service-UUIDs in der BLE-Geräteliste ergänzt sowie Tests für Garmin-Advertisement-Hinweise committed.
+- GitHub-Connector lieferte für `ddba3f8` keine zugehörigen Pull-Request-Workflow-Runs und keine Commit-Statuschecks. **Das ist kein Nachweis eines erfolgreichen oder fehlgeschlagenen CI-Laufs**; vollständige Actions-Runs und APK-Artefakte müssen gesondert überprüft werden.
+- Keine echten CIRQA-BLE-Daten, S25-Hardwaretests oder Garmin-Protokollkompatibilität bestätigt.
+- Priorität: (1) Build/Unit-Tests/Lint/Emulator-CI verifizieren und Kompilierungsfehler beheben, (2) installierbare Debug-APK und sicheren BLE-Scan auf S25 testen, (3) danach lokale Speicherung/Verlauf sowie wissenschaftlich belegte Gesundheitsfunktionen inkrementell implementieren.
+- Die stündliche Projektprüfung wurde auf sichere kleine Änderungen, Tests, Dokumentation und Git-Commits erweitert. Eine Automatisierung ersetzt keine echte Geräteprüfung oder bestandene CI-Pipeline.
