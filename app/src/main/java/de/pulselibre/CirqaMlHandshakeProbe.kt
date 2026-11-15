@@ -21,6 +21,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private var tx: BluetoothGattCharacteristic? = null
     private var session: GarminMlHandshake.Session? = null
     private var requestedCloseAll = false
+    private val notificationShapes = mutableListOf<String>()
     @Volatile private var phase = "Noch nicht gestartet"
     @Volatile private var notificationsReceived = 0
     @Volatile private var writeConfirmed = false
