@@ -11,7 +11,9 @@ class RawDataExportTest {
         val csv = exportRawCsv(listOf(record(1000), record(2000), record(3000)), ExportWindow(1000, 3000))
         assertEquals(3, csv.trim().split("\r\n").size)
         assertTrue(csv.contains("1970-01-01T00:00:01Z"))
-        assertFalse(csv.contains("1970-01-01T00:00:03Z"))
+        val dataRows = csv.trim().split("\r\n").drop(1)
+        assertFalse(dataRows.any { it.contains("\"1970-01-01T00:00:03Z\",") })
+        assertTrue(dataRows.any { it.contains("\"1970-01-01T00:00:03Z\"") }) // valid receive timestamp
     }
     @Test fun emptyExportStillHasHeader() {
         assertEquals(1, exportRawCsv(emptyList(), ExportWindow(0, 1)).trim().split("\r\n").size)
