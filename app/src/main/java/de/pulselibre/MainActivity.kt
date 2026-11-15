@@ -39,6 +39,8 @@ class MainActivity : AppCompatActivity() {
     private val deviceRows = mutableMapOf<String, TextView>()
     private val diagnosticRows = mutableMapOf<String, String>()
     private val bondedRows = mutableListOf<String>()
+    private var cirqaBondAddress: String? = null
+    private var cirqaScanMatch = false
     private var lastScanDiagnostic = "Noch kein Scan gestartet."
     private val cccd = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")
 
@@ -232,6 +234,8 @@ class MainActivity : AppCompatActivity() {
         if (scanning) return
         val scanner = adapter.bluetoothLeScanner ?: run { status.text = "BLE-Scanner nicht verfügbar"; return }
         devices.removeAllViews(); found.clear(); deviceRows.clear(); diagnosticRows.clear()
+        cirqaScanMatch = false
+        refreshCirqaCard()
         try {
             scanner.startScan(callback)
         } catch (_: SecurityException) {
@@ -258,6 +262,7 @@ class MainActivity : AppCompatActivity() {
         applyEvent(BleEvent.STOP_SCAN)
         status.text = "Suche abgeschlossen · ${found.size} Geräte"
         lastScanDiagnostic = if (found.isEmpty()) "60 Sekunden ohne BLE-Werbeergebnis; kein Beweis für fehlende Kopplung." else "Scan abgeschlossen mit ${found.size} Geräten."
+        refreshCirqaCard()
     }
 
     private val callback = object : ScanCallback() {
@@ -280,7 +285,8 @@ class MainActivity : AppCompatActivity() {
     /** Reads Android bond metadata only; no GATT connection or bond changes. */
     @SuppressLint("MissingPermission")
     private fun refreshCirqaCard() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED && Build.VERSION.SDK_INT >= 31) {
+        if (Build.VERSION.SDK_INT >= 31 && ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+            cirqaBondAddress = null
             cirqaCard.text = "CIRQA Smart Band\nBluetooth-Berechtigung erforderlich"
             return
         }
@@ -288,8 +294,11 @@ class MainActivity : AppCompatActivity() {
             val matched = adapter.bondedDevices.orEmpty().firstOrNull {
                 it.name?.contains("CIRQA", ignoreCase = true) == true
             }
+            cirqaBondAddress = matched?.address
             val message = if (matched != null)
-                "CIRQA Smart Band\n✓ Mit Android gekoppelt\nGarmin Connect bleibt unverändert\nKeine PulseLibre-Verbindung · GATT nicht geprüft"
+                "CIRQA Smart Band\n✓ Mit Android gekoppelt\n" +
+                (if (cirqaScanMatch) "✓ Gleiche BLE-Adresse im Scan erkannt\n" else "BLE-Werbeadresse nicht bestätigt (wechselnde Adressen möglich)\n") +
+                "Garmin Connect bleibt unverändert\nKeine PulseLibre-Verbindung · GATT nicht geprüft"
             else "CIRQA Smart Band\nNicht in Android-Kopplungen gefunden\nKeine Verbindung hergestellt"
             cirqaCard.text = message
             cirqaCard.contentDescription = message
@@ -320,6 +329,7 @@ class MainActivity : AppCompatActivity() {
             appendLine("PulseLibre · Passive BLE-Diagnose")
             appendLine("Gefundene Werbegeräte: ${diagnosticRows.size}")
             appendLine("Scan-Status: $lastScanDiagnostic")
+            appendLine("CIRQA-Adressabgleich: " + if (cirqaScanMatch) "Treffer (lokal geprüft; Adresse nicht exportiert)" else "Kein bestätigter Treffer; wechselnde BLE-Adressen möglich")
             diagnosticRows.values.forEachIndexed { index, item ->
                 appendLine("\nGerät ${index + 1}:\n$item")
             }
@@ -409,6 +419,10 @@ class MainActivity : AppCompatActivity() {
     private fun showDevice(result: ScanResult) {
         val device = result.device
         val address = device.address
+        if (cirqaBondAddress != null && address.equals(cirqaBondAddress, ignoreCase = true)) {
+            cirqaScanMatch = true
+            refreshCirqaCard()
+        }
         val record = result.scanRecord
         val label = try { device.name } catch (_: SecurityException) { null }
         val companyIds = mutableListOf<Int>()
@@ -422,7 +436,9 @@ class MainActivity : AppCompatActivity() {
         val description = BleAdvertisementIdentity.describe(
             label ?: record?.deviceName, companyIds, services, result.rssi
         )
-        val details = "$description\nService-Daten: $serviceData"
+        val isCirqaMatch = cirqaBondAddress != null && address.equals(cirqaBondAddress, ignoreCase = true)
+        val details = (if (isCirqaMatch) "✓ CIRQA: BLE-Adresse stimmt mit Android-Kopplung überein\n" else "") +
+            "$description\nService-Daten: $serviceData"
         diagnosticRows[address] = details
         val row = deviceRows[address]
         if (row != null) {
