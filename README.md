@@ -1,5 +1,7 @@
 # PulseLibre
 
+**Verbindliche Zielgeräte:** [Garmin CIRQA Smartband und Samsung Galaxy S25 – Kontext, Sicherheitsregeln und Teststatus](docs/TARGET_DEVICES.md)
+
 **Projektleitbild und vollständige Anforderungen:** [Warum, was und wie wir entwickeln](docs/REQUIREMENTS_AND_PRINCIPLES.md)
 
 ![PulseLibre project logo](design/pulselibre-icon.svg)
