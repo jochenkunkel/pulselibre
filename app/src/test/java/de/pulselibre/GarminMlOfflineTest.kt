@@ -32,7 +32,8 @@ class GarminMlOfflineTest {
         assertEquals(3, parsed.handle)
         assertTrue(parsed.accepted)
         assertEquals(4, GarminMlOffline.inspectRegisterResponse(response + byteArrayOf(1))?.serviceId)
-        assertNull(GarminMlOffline.inspectRegisterResponse(response + byteArrayOf(1, 0)))
+        assertEquals(4, GarminMlOffline.inspectRegisterResponse(response + byteArrayOf(1, 0))?.serviceId)
+        assertNull(GarminMlOffline.inspectRegisterResponse(response + ByteArray(51)))
         val wrongClient = response.clone()
         wrongClient[2] = 3
         assertNull(GarminMlOffline.inspectRegisterResponse(wrongClient))
