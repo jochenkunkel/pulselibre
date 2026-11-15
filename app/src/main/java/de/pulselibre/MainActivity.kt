@@ -28,6 +28,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var cirqaEvidenceView: TextView
     private val cirqaScanEvidence = CirqaScanEvidence()
     private var cirqaGattProbe: CirqaGattProbe? = null
+    private var cirqaMlProbe: CirqaMlHandshakeProbe? = null
     private val passiveRssiTracker = PassiveRssiTracker()
     private var scanning = false
     private var scanGeneration = 0
@@ -170,6 +171,22 @@ class MainActivity : AppCompatActivity() {
                     cirqaGattProbe?.start { message ->
                         runOnUiThread { output.text = message }
                     }
+                }.show()
+        })
+        deviceView(actionButton("CIRQA: Garmin-ML-Handshake testen", false) {
+            if (!ensurePermissions()) return@actionButton
+            if (scanning) stopScan()
+            androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("Garmin Multi-Link Handshake")
+                .setMessage("Garmin Connect vorher vollständig beenden. Der Test verbindet sich mit CIRQA, aktiviert GATT-Benachrichtigungen, sendet eine GFDI-Service-Registrierung und trennt die Verbindung. Keine Gesundheitsdaten werden gelesen. CLOSE_ALL ist optional.")
+                .setNegativeButton("Abbrechen", null)
+                .setNeutralButton("Mit CLOSE_ALL") { _, _ ->
+                    if (cirqaMlProbe == null) cirqaMlProbe = CirqaMlHandshakeProbe(this, adapter)
+                    cirqaMlProbe?.start(true) { message -> runOnUiThread { output.text = message } }
+                }
+                .setPositiveButton("Ohne CLOSE_ALL") { _, _ ->
+                    if (cirqaMlProbe == null) cirqaMlProbe = CirqaMlHandshakeProbe(this, adapter)
+                    cirqaMlProbe?.start(false) { message -> runOnUiThread { output.text = message } }
                 }.show()
         })
         devices = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
@@ -404,6 +421,7 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         destroyed = true
         cirqaGattProbe?.close()
+        cirqaMlProbe?.close()
         handler.removeCallbacksAndMessages(null)
         stopScan()
         super.onDestroy()
