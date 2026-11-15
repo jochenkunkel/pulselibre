@@ -217,3 +217,14 @@ Reviewed exact upstream `gwerneckp/garmin-ble/garmin_ble/metrics/{spo2,hrv,stres
 Added opt-in Devices-tab action **CIRQA: Alle Garmin-Messwerte testen**. It registers each of the nine supported decoder services sequentially after GFDI, maps only device-confirmed handles, continues when individual registrations are refused, and reports actual received values after a bounded 20-second session. This is capability discovery, **not** proof that CIRQA supports all Garmin services. No fabricated measurements, CLOSE_ALL, cloud, or persistence. The original two-metric diagnostic remains available.
 
 **Validation:** Wait for CI and actual device output before claiming additional measurements. Realtime registration may succeed without the watch sending data. Historical sleep, overnight SpO2, activity and FIT history are a separate GFDI/FIT sync milestone and are not yet implemented.
+
+
+### Real CIRQA expanded realtime success, build #203 (2026-11-15)
+
+User screenshot of **CIRQA: Alle Garmin-Messwerte testen** after build #203 shows the exact app output:
+
+`CIRQA Echtzeit-Test: Zeitlimit (20 Sekunden). Puls: 83; Ruhepuls: 66; Schritte: 10244; Ziel: 8830; gültige Messpakete: 42; Weitere Werte: Calories(total=3637, active=1314), Intensity(moderate=115, vigorous=89), Stress(level=62), BodyBattery(level=5), Respiration(breathsPerMinute=18), SpO2(percent=97), Hrv(rrMs=702); abgelehnte Dienste: ; Phase: ML-Notification empfangen; Protokollantwort wird geprüft. Keine Daten gespeichert.`
+
+**Device-verified:** Nine realtime service decoders produced values in a single bounded session: HR (6), steps (7), calories (8), intensity (10), HRV/RR (12), stress (13), SpO2 (19), Body Battery (20), respiration (21). 42 valid metric packets; no registration rejection shown. The 20-second timeout is the diagnostic's designed collection window, **not** a failure. RR interval 702 ms is not a computed HRV score. Neither medical accuracy, unit scaling across firmware, continuous monitoring, persistence nor FIT history is verified. Do not treat untested historical metrics or accelerometer as confirmed.
+
+**Next engineering gates:** Persist validated timestamped samples locally with source/service identity and timezone context; make overview show real measurements and unavailable states; add lifecycle/deduplication tests; then GFDI/COBS/CRC and read-only FIT history. Retain no-internet/no-cloud/no-CLOSE_ALL guarantees.
