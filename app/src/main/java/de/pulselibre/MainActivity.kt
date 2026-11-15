@@ -189,6 +189,18 @@ class MainActivity : AppCompatActivity() {
                     cirqaMlProbe?.start(false) { message -> runOnUiThread { output.text = message } }
                 }.show()
         })
+        deviceView(actionButton("CIRQA: Puls und Schritte live testen", false) {
+            if (!ensurePermissions()) return@actionButton
+            if (scanning) stopScan()
+            androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("CIRQA Echtzeit-Messwerte")
+                .setMessage("Garmin Connect vorher beenden. PulseLibre registriert GFDI, Puls und Schritte ohne CLOSE_ALL, wartet maximal 20 Sekunden auf echte Messwerte und trennt die Verbindung. Keine Speicherung, keine Kopplungsänderung. Fortfahren?")
+                .setNegativeButton("Abbrechen", null)
+                .setPositiveButton("Live-Test starten") { _, _ ->
+                    if (cirqaMlProbe == null) cirqaMlProbe = CirqaMlHandshakeProbe(this, adapter)
+                    cirqaMlProbe?.startRealtime { message -> runOnUiThread { output.text = message } }
+                }.show()
+        })
         devices = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         deviceView(devices)
         output = text("Keine Geräte verbunden.", 13f, muted).apply {
