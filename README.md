@@ -10,6 +10,7 @@
 
 - [Architektur, Code-Review und Ablaufdiagramme](docs/ARCHITECTURE_AND_CODE_REVIEW.md)
 - [Priorisierte Roadmap bis zu echten CIRQA-Messwerten](docs/ROADMAP_TO_CIRQA_DATA.md)
+- [Android-Gerätekompatibilität, Updates und Play-Store-Vorbereitung](docs/ANDROID_RELEASE_READINESS.md)
 - [Geräte, Einschränkungen und Sicherheitsregeln](docs/TARGET_DEVICES.md)
 - [Garmin-Protokollrecherche](docs/GARMIN_PROTOCOL_RESEARCH.md)
 - [S25-Testplan](docs/S25_BLE_TEST_PLAN.md)
@@ -22,7 +23,7 @@
 - Android-Laufzeitberechtigung für Bluetooth beim ersten Start; bei bereits erteilter Berechtigung kein erneuter Dialog.
 - Benutzerinitiierter, auf 60 Sekunden begrenzter **passiver** BLE-Scan; Werbeinformationen und vorsichtige Herstellerhinweise.
 - Nur lesende Android-Abfrage zu CIRQA-Kopplung und Android-GATT-Status; die verbundene App ist **unbekannt**.
-- Export einer Diagnose **nur nach ausdrücklicher Teilen-Aktion**. Vorsicht: Der Text kann Gerätebezeichnungen und rohe BLE-Service-Daten enthalten.
+- Export einer Diagnose **nur nach ausdrücklicher Teilen-Aktion**. Vorsicht: Der Text kann Gerätebezeichnungen enthalten; rohe BLE-Service-Daten werden im Standardbericht nicht mitgeteilt.
 - Offline-Datenmodell, lokale SQLite-Ablage mit Transaktionen und CSV-Export für künftig **validierte** Messwerte. Noch keine echte CIRQA-Datenquelle angebunden.
 - Reine Offline-Inspektion von GFDI-Headern und CRC-16-Prüfung mit synthetischen Testpaketen. **Kein FIT-Decoder.**
 
