@@ -72,15 +72,19 @@ class LocalReadingStore(context: Context) : SQLiteOpenHelper(
             }
             val newest = readings.maxOfOrNull { it.measuredAtEpochMillis }
             if (newest != null) {
-                val cursor = db.compileStatement(
-                    """INSERT INTO sync_cursors(device_id, last_committed_ms)
-                       VALUES (?, ?)
-                       ON CONFLICT(device_id) DO UPDATE SET
-                       last_committed_ms = MAX(last_committed_ms, excluded.last_committed_ms)"""
+                val insertCursor = db.compileStatement(
+                    "INSERT OR IGNORE INTO sync_cursors(device_id, last_committed_ms) VALUES (?, ?)"
                 )
-                cursor.bindString(1, deviceId)
-                cursor.bindLong(2, newest)
-                cursor.executeInsert()
+                insertCursor.bindString(1, deviceId)
+                insertCursor.bindLong(2, newest)
+                insertCursor.executeInsert()
+                val advanceCursor = db.compileStatement(
+                    """UPDATE sync_cursors SET last_committed_ms =
+                       MAX(last_committed_ms, ?) WHERE device_id = ?"""
+                )
+                advanceCursor.bindLong(1, newest)
+                advanceCursor.bindString(2, deviceId)
+                advanceCursor.executeUpdateDelete()
             }
             db.setTransactionSuccessful()
         } finally {
