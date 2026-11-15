@@ -1,5 +1,7 @@
 # PulseLibre
 
+**Projektleitbild und vollständige Anforderungen:** [Warum, was und wie wir entwickeln](docs/REQUIREMENTS_AND_PRINCIPLES.md)
+
 ![PulseLibre project logo](design/pulselibre-icon.svg)
 
 [Project poster](design/pulselibre-poster.svg) · [Brand guide](docs/BRANDING.md) · [Icon integration](docs/ICON_INTEGRATION.md)
