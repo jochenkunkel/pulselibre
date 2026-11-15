@@ -34,6 +34,7 @@ class CirqaOvernightService : Service() {
     private lateinit var log: CirqaLocalLog
     private var attempts = 0
     private var readings = 0
+    private var generation = 0
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -73,10 +74,24 @@ class CirqaOvernightService : Service() {
     private fun sample() {
         if (!running) return
         attempts++
+        val token = ++generation
+        if (!log.append("attempt_start", mapOf("number" to attempts))) {
+            stopCollection("storage_limit")
+            return
+        }
+        // The next poll is scheduled independently of the BLE completion callback.
+        // This also records an observable heartbeat if Android keeps the service alive.
+        handler.postDelayed({
+            if (!running || token != generation) return@postDelayed
+            probe?.close()
+            probe = null
+            if (!log.append("attempt_timeout", mapOf("number" to attempts, "reason" to "no_completion_callback"))) {
+                stopCollection("storage_limit")
+            } else sample()
+        }, INTERVAL_MS)
         val adapter = (getSystemService(BLUETOOTH_SERVICE) as BluetoothManager).adapter
         if (adapter == null || !adapter.isEnabled) {
             log.append("attempt", mapOf("number" to attempts, "result" to "bluetooth_off"))
-            scheduleNext()
             return
         }
         val current = CirqaMlHandshakeProbe(this, adapter)
@@ -92,18 +107,14 @@ class CirqaOvernightService : Service() {
                 stopCollection("storage_limit")
             } else {
                 probe = null
-                scheduleNext()
             }
         }
-    }
-
-    private fun scheduleNext() {
-        if (running) handler.postDelayed({ sample() }, INTERVAL_MS)
     }
 
     private fun stopCollection(reason: String) {
         if (running) log.append("session_end", mapOf("reason" to reason, "attempts" to attempts, "readings" to readings))
         running = false
+        generation++
         handler.removeCallbacksAndMessages(null)
         probe?.close()
         probe = null
