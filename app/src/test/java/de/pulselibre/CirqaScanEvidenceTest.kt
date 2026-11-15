@@ -68,4 +68,27 @@ class CirqaScanEvidenceTest {
         assertTrue(evidence.summary().contains("Geräte mit Herstellerdaten: 0"))
     }
 
+    @Test fun featureFlagsAreMonotonicAcrossAdvertisements() {
+        val evidence = CirqaScanEvidence()
+        evidence.observeFeatures("device-one", false, false, true)
+        evidence.observeFeatures("device-one", false, false, false)
+        evidence.observeFeatures("device-one", true, true, false)
+        val summary = evidence.summary()
+        assertTrue(summary.contains("Werbeereignisse insgesamt: 3"))
+        assertTrue(summary.contains("Geräte mit sichtbarem Namen: 1"))
+        assertTrue(summary.contains("Geräte mit Herstellerdaten: 1"))
+        assertTrue(summary.contains("Geräte mit Service-UUIDs: 1"))
+    }
+
+    @Test fun aggregateSummaryNeverExposesDeviceAddressOrName() {
+        val evidence = CirqaScanEvidence()
+        val privateAddress = "AA:BB:CC:DD:EE:FF"
+        evidence.observe(privateAddress, false, true)
+        evidence.observeFeatures(privateAddress, true, true, true)
+        val summary = evidence.summary()
+        assertFalse(summary.contains(privateAddress))
+        assertFalse(summary.contains("AA:BB"))
+        assertTrue(summary.contains("Garmin-Hinweise (nicht CIRQA-bestätigt): 1"))
+    }
+
 }
