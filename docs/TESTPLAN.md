@@ -8,10 +8,10 @@
 1. Launch with Bluetooth off: scan prompts to enable Bluetooth.
 2. Grant Nearby Devices (Android 12+) or Location (Android 11-): scan starts.
 3. Deny permissions: app must not crash; retry prompts again.
-4. Scan for 10 seconds: each BLE address listed once, RSSI shown.
-5. Select a non-sensitive test BLE device: attempt GATT connection and enumerate services.
-6. Test Garmin CIRQA while Garmin Connect is still paired: record whether scan visibility and GATT discovery work. **Do not unpair or reset yet.**
-7. Switch app away / back; close app; no background data transmission.
+4. Scan for 60 seconds: each BLE address listed once with live-updated RSSI, manufacturer IDs, service UUIDs and service data.
+5. Inspect bonded-device names via the explicit button, without connecting; check that the passive scan does not initiate GATT connections.
+6. Test Garmin CIRQA while Garmin Connect is still paired: record advertisement visibility only, not GATT discovery. **Do not unpair or reset yet.**
+7. Review and redact the local diagnostic text before using Android share; test app away/back and close; no background data transmission.
 8. Inspect merged Android manifest: INTERNET permission must be absent.
 
 ## Known limitations
