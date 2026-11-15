@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="PulseLibre icon: shoulder fixation and heartbeat">
+<rect width="512" height="512" rx="108" fill="#5127C9"/>
+<g fill="none" stroke="#FFFFFF" stroke-linecap="round" stroke-linejoin="round">
+<path d="M105 100 Q180 38 255 90 Q340 42 415 115" stroke-width="13" opacity=".55"/>
+<path d="M160 185 Q176 132 229 145 Q276 151 272 198 Q264 245 230 255 L216 404" stroke-width="24" opacity=".4"/>
+<path d="M157 170 L146 380" stroke-width="20"/>
+<path d="M158 183 L228 165 M155 211 L246 186 M153 239 L246 209 M151 277 L203 284 M148 317 L198 327 M146 356 L194 369" stroke-width="10"/>
+<path d="M265 306 C241 273 266 240 298 249 C319 253 329 268 337 278 C352 256 371 251 391 264 C423 286 410 322 385 349 L337 394 L285 349" stroke-width="13"/>
+<path d="M275 319 H302 L316 296 L331 343 L346 309 L357 320 H390" stroke-width="9"/>
+</g>
+</svg>
