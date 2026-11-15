@@ -363,7 +363,7 @@ class MainActivity : AppCompatActivity() {
     private fun showDevice(result: ScanResult) {
         val device = result.device
         val address = device.address
-        if (cirqaBondAddress != null && address.equals(cirqaBondAddress, ignoreCase = true)) {
+        if (CirqaAddressMatch.matches(cirqaBondAddress, address)) {
             cirqaScanMatch = true
             refreshCirqaCard()
         }
@@ -380,7 +380,7 @@ class MainActivity : AppCompatActivity() {
         val description = BleAdvertisementIdentity.describe(
             label ?: record?.deviceName, companyIds, services, result.rssi
         )
-        val isCirqaMatch = cirqaBondAddress != null && address.equals(cirqaBondAddress, ignoreCase = true)
+        val isCirqaMatch = CirqaAddressMatch.matches(cirqaBondAddress, address)
         val details = (if (isCirqaMatch) "✓ CIRQA: BLE-Adresse stimmt mit Android-Kopplung überein\n" else "") +
             "$description\nService-Daten: $serviceData"
         diagnosticRows[address] = details
