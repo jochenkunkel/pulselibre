@@ -37,6 +37,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         if (device == null) { result("CIRQA nicht in Android-Kopplungen gefunden."); return }
         active = true
         notificationsReceived = 0
+        notificationShapes.clear()
         writeConfirmed = false
         mark("GATT-Verbindung angefordert")
         callback = result
@@ -110,7 +111,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     else { writeConfirmed = true; mark("ML-Schreiben bestätigt; warte auf Protokollantwort") }
                 }
             }, BluetoothDevice.TRANSPORT_LE)
-            main.postDelayed({ if (active) finish("ML-Handshake: Zeitlimit (20 Sekunden). Letzte Phase: $phase; Notifications: $notificationsReceived; GATT-Schreiben bestätigt: $writeConfirmed; Protokollzustand: ${session?.stage}.", gatt) }, 20_000)
+            main.postDelayed({ if (active) finish("ML-Handshake: Zeitlimit (20 Sekunden). Letzte Phase: $phase; Notifications: $notificationsReceived; GATT-Schreiben bestätigt: $writeConfirmed; Protokollzustand: ${session?.stage}; Antwortformen: ${notificationShapes.joinToString(" | ")}.", gatt) }, 20_000)
         } catch (_: SecurityException) { finish("Bluetooth-Berechtigung fehlt.", gatt) }
         catch (e: IllegalArgumentException) { finish("Verbindungsfehler: ${e.javaClass.simpleName}", gatt) }
     }
@@ -138,6 +139,13 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private fun receive(g: BluetoothGatt, bytes: ByteArray) {
         if (!active) return
         notificationsReceived++
+        if (notificationShapes.size < 12) {
+            val first = bytes.firstOrNull()?.toInt()?.and(255)
+            val second = bytes.getOrNull(1)?.toInt()?.and(255)
+            val control = first == 0
+            val parsed = GarminMlOffline.inspectRegisterResponse(bytes)
+            notificationShapes.add("L=${bytes.size}, control=$control, type=${if (control) second else "-"}, reg=${if (parsed == null) "nein" else "service:${parsed.serviceId}/status:${parsed.status}/handle:${parsed.handle}"}")
+        }
         mark("ML-Notification empfangen; Protokollantwort wird geprüft")
         val state = session ?: return
         val next = state.onNotification(bytes)
