@@ -137,6 +137,32 @@ class MainActivity : AppCompatActivity() {
                 LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(5) })
             overviewView(item)
         }
+        overviewView(text("CIRQA · Lokale Messwerte", 20f, ink, true), 5)
+        overviewView(text("Nur tatsächlich gespeicherte Werte · Empfangszeit des Smartphones · keine Diagnose", 12f, muted), 12)
+        val cirqaDashboard = card()
+        fun updateCirqaDashboard() {
+            val summary = CirqaDashboardReader(this).read()
+            cirqaDashboard.removeAllViews()
+            cirqaDashboard.addView(text("${summary.samples} gültige Datensätze · ${summary.bytes} Bytes lokal", 13f, violet, true))
+            summary.metrics.forEach { metric ->
+                cirqaDashboard.addView(text(metric.title, 13f, muted, true),
+                    LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(14) })
+                cirqaDashboard.addView(text(metric.value, 18f, ink, true))
+                cirqaDashboard.addView(text(metric.note, 11f, muted))
+            }
+        }
+        updateCirqaDashboard()
+        overviewView(cirqaDashboard)
+        overviewView(TextView(this).apply {
+            text = "Lokale Messwerte aktualisieren"
+            textSize = 15f
+            setTextColor(violet)
+            setPadding(dp(14), dp(14), dp(14), dp(14))
+            background = rounded(Color.WHITE)
+            isClickable = true
+            isFocusable = true
+            setOnClickListener { updateCirqaDashboard() }
+        })
         val deviceHeading = text("Bluetooth · Geräte", 22f, ink, true)
         deviceView(deviceHeading)
         deviceView(text("Garmin CIRQA · Passive Diagnose ohne Verbindungsaufbau", 13f, muted))
