@@ -14,8 +14,7 @@ class DashboardTest {
     @Test fun dashboardContainsSixCardsAndNoFakeMeasurements() {
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
-                val scroll = activity.findViewById<ScrollView>(android.R.id.content)
-                    ?: findScroll(activity.findViewById(android.R.id.content))
+                val scroll = findScroll(activity.findViewById(android.R.id.content))
                 assertNotNull(scroll)
                 val root = scroll!!.getChildAt(0) as ViewGroup
                 val cards = (0 until root.childCount).map { root.getChildAt(it) }
