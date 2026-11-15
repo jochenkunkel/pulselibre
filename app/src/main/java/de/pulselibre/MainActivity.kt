@@ -39,6 +39,7 @@ class MainActivity : AppCompatActivity() {
     private val deviceRows = mutableMapOf<String, TextView>()
     private val diagnosticRows = mutableMapOf<String, String>()
     private val bondedRows = mutableListOf<String>()
+    private var lastScanDiagnostic = "Noch kein Scan gestartet."
     private val cccd = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -207,16 +208,27 @@ class MainActivity : AppCompatActivity() {
     private fun ensurePermissions(): Boolean {
         val missing = permissions().filter { ActivityCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED }
         if (missing.isNotEmpty()) {
+            status.text = "Bluetooth-Berechtigung benötigt: Geräte in der Android-Abfrage zulassen"
             ActivityCompat.requestPermissions(this, missing.toTypedArray(), 10)
             return false
         }
         return true
     }
 
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == 10 && ::status.isInitialized) {
+            val granted = grantResults.isNotEmpty() && grantResults.all { it == PackageManager.PERMISSION_GRANTED }
+            status.text = if (granted) "Bluetooth-Berechtigung erteilt · Scan erneut starten"
+                else "Bluetooth-Berechtigung abgelehnt · Einstellungen → Apps → PulseLibre → Berechtigungen → Geräte in der Nähe"
+            lastScanDiagnostic = status.text.toString()
+        }
+    }
+
     @SuppressLint("MissingPermission")
     private fun startScan() {
         if (!ensurePermissions()) return
-        if (!adapter.isEnabled) { status.text = "Bitte Bluetooth aktivieren"; return }
+        if (!adapter.isEnabled) { status.text = "Bitte Bluetooth aktivieren"; lastScanDiagnostic = status.text.toString(); return }
         if (scanning) return
         val scanner = adapter.bluetoothLeScanner ?: run { status.text = "BLE-Scanner nicht verfügbar"; return }
         devices.removeAllViews(); found.clear(); deviceRows.clear(); diagnosticRows.clear()
@@ -231,6 +243,7 @@ class MainActivity : AppCompatActivity() {
         val generation = ++scanGeneration
         applyEvent(BleEvent.START_SCAN)
         status.text = "Suche läuft (60 Sekunden) · passive Erkennung …"
+        lastScanDiagnostic = "Scan gestartet; Android hat den Startaufruf angenommen."
         handler.postDelayed({ if (generation == scanGeneration && !destroyed) stopScan() }, BleSafetyPolicy.scanDurationMillis)
     }
 
@@ -244,6 +257,7 @@ class MainActivity : AppCompatActivity() {
         scanGeneration++
         applyEvent(BleEvent.STOP_SCAN)
         status.text = "Suche abgeschlossen · ${found.size} Geräte"
+        lastScanDiagnostic = if (found.isEmpty()) "60 Sekunden ohne BLE-Werbeergebnis; kein Beweis für fehlende Kopplung." else "Scan abgeschlossen mit ${found.size} Geräten."
     }
 
     private val callback = object : ScanCallback() {
@@ -257,6 +271,7 @@ class MainActivity : AppCompatActivity() {
                     scanGeneration++
                     applyEvent(BleEvent.FAILED)
                     status.text = "Scan-Fehler: $errorCode"
+                    lastScanDiagnostic = "Android BLE ScanCallback Fehlercode: $errorCode"
                 }
             }
         }
@@ -265,7 +280,7 @@ class MainActivity : AppCompatActivity() {
     /** Reads Android bond metadata only; no GATT connection or bond changes. */
     @SuppressLint("MissingPermission")
     private fun refreshCirqaCard() {
-        if (!ensurePermissions()) {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED && Build.VERSION.SDK_INT >= 31) {
             cirqaCard.text = "CIRQA Smart Band\nBluetooth-Berechtigung erforderlich"
             return
         }
@@ -304,6 +319,7 @@ class MainActivity : AppCompatActivity() {
         val report = buildString {
             appendLine("PulseLibre · Passive BLE-Diagnose")
             appendLine("Gefundene Werbegeräte: ${diagnosticRows.size}")
+            appendLine("Scan-Status: $lastScanDiagnostic")
             diagnosticRows.values.forEachIndexed { index, item ->
                 appendLine("\nGerät ${index + 1}:\n$item")
             }
