@@ -20,6 +20,16 @@ import androidx.core.app.ActivityCompat
 
 class MainActivity : AppCompatActivity() {
     private val handler = Handler(Looper.getMainLooper())
+    private val exportCirqaLog = registerForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.CreateDocument("application/x-ndjson")
+    ) { uri ->
+        if (uri != null) try {
+            CirqaLocalLog(this).copyTo(this, uri)
+            Toast.makeText(this, "CIRQA-Protokoll exportiert", Toast.LENGTH_LONG).show()
+        } catch (_: Exception) {
+            Toast.makeText(this, "Export fehlgeschlagen", Toast.LENGTH_LONG).show()
+        }
+    }
     private lateinit var adapter: BluetoothAdapter
     private lateinit var status: TextView
     private lateinit var output: TextView
@@ -212,6 +222,36 @@ class MainActivity : AppCompatActivity() {
                     if (cirqaMlProbe == null) cirqaMlProbe = CirqaMlHandshakeProbe(this, adapter)
                     cirqaMlProbe?.startAllMetrics { message -> runOnUiThread { output.text = message } }
                 }.show()
+        })
+        deviceView(actionButton("CIRQA: Nachtaufzeichnung starten (lokal)", false) {
+            if (!ensurePermissions()) return@actionButton
+            if (scanning) stopScan()
+            androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("Lokale CIRQA-Nachtaufzeichnung")
+                .setMessage("Garmin Connect vorher beenden. Die App prüft ungefähr alle 2 Minuten die Garmin-Echtzeitdienste (jeweils höchstens 20 Sekunden), schreibt Zeitstempel und echte Messwerte in eine private JSONL-Datei (max. 10 MB) und zeigt eine dauerhafte Benachrichtigung mit Stopp-Funktion. Keine historischen FIT-Daten, keine Cloud. Android kann die Sammlung bei Akkuoptimierung oder Bluetooth-Problemen unterbrechen. Jetzt starten?")
+                .setNegativeButton("Abbrechen", null)
+                .setPositiveButton("Starten") { _, _ ->
+                    try {
+                        androidx.core.content.ContextCompat.startForegroundService(
+                            this, Intent(this, CirqaOvernightService::class.java)
+                                .setAction(CirqaOvernightService.ACTION_START))
+                        output.text = "CIRQA-Nachtaufzeichnung angefordert. Laufstatus in Android-Benachrichtigung; Daten bleiben lokal."
+                    } catch (_: Exception) {
+                        output.text = "Nachtaufzeichnung konnte nicht gestartet werden (Android-Berechtigung oder Hintergrundbeschränkung)."
+                    }
+                }.show()
+        })
+        deviceView(actionButton("CIRQA: Nachtaufzeichnung stoppen", false) {
+            startService(Intent(this, CirqaOvernightService::class.java)
+                .setAction(CirqaOvernightService.ACTION_STOP))
+            output.text = "Stopp der CIRQA-Nachtaufzeichnung angefordert."
+        })
+        deviceView(actionButton("CIRQA: Lokale Dateistatistik", false) {
+            val log = CirqaLocalLog(this)
+            output.text = "CIRQA JSONL lokal: ${log.sizeBytes()} Bytes, ${log.lines()} Zeilen. Keine automatische Aggregation; Originalmessungen und Versuchsergebnisse bleiben erhalten."
+        })
+        deviceView(actionButton("CIRQA: Nachtprotokoll exportieren", false) {
+            exportCirqaLog.launch("pulselibre-cirqa-overnight.jsonl")
         })
         devices = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         deviceView(devices)
