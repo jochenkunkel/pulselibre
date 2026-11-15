@@ -275,6 +275,8 @@ class MainActivity : AppCompatActivity() {
     private fun refreshCirqaCard() {
         if (Build.VERSION.SDK_INT >= 31 && ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
             cirqaBondAddress = null
+            cirqaGattState = CirqaStateMapping.label(CirqaConnectionHistory.State.PERMISSION_DENIED)
+            cirqaConnectionHistory.observe(System.currentTimeMillis(), CirqaConnectionHistory.State.PERMISSION_DENIED)
             cirqaCard.text = "CIRQA Smart Band\nBluetooth-Berechtigung erforderlich"
             return
         }
@@ -283,29 +285,16 @@ class MainActivity : AppCompatActivity() {
                 it.name?.contains("CIRQA", ignoreCase = true) == true
             }
             cirqaBondAddress = matched?.address
-            cirqaGattState = if (matched == null) "Kein gekoppeltes CIRQA" else try {
+            val observedState = if (matched == null) CirqaConnectionHistory.State.NOT_PAIRED else try {
                 val manager = getSystemService(BLUETOOTH_SERVICE) as BluetoothManager
-                when (manager.getConnectionState(matched, BluetoothProfile.GATT)) {
-                    BluetoothProfile.STATE_CONNECTED -> "Android GATT: verbunden (App unbekannt)"
-                    BluetoothProfile.STATE_CONNECTING -> "Android GATT: verbindet"
-                    BluetoothProfile.STATE_DISCONNECTING -> "Android GATT: trennt"
-                    BluetoothProfile.STATE_DISCONNECTED -> "Android GATT: nicht verbunden"
-                    else -> "Android GATT: unbekannt"
-                }
+                CirqaStateMapping.fromAndroidState(manager.getConnectionState(matched, BluetoothProfile.GATT))
             } catch (_: SecurityException) {
-                "Android GATT: Berechtigung fehlt"
+                CirqaConnectionHistory.State.PERMISSION_DENIED
             } catch (_: IllegalArgumentException) {
-                "Android GATT: Status nicht verfügbar"
+                CirqaConnectionHistory.State.UNKNOWN
             }
-            cirqaConnectionHistory.observe(System.currentTimeMillis(), when {
-                matched == null -> CirqaConnectionHistory.State.NOT_PAIRED
-                cirqaGattState.contains("nicht verbunden") -> CirqaConnectionHistory.State.DISCONNECTED
-                cirqaGattState.contains("verbindet") -> CirqaConnectionHistory.State.CONNECTING
-                cirqaGattState.contains("trennt") -> CirqaConnectionHistory.State.DISCONNECTING
-                cirqaGattState.contains("verbunden") -> CirqaConnectionHistory.State.CONNECTED
-                cirqaGattState.contains("Berechtigung") -> CirqaConnectionHistory.State.PERMISSION_DENIED
-                else -> CirqaConnectionHistory.State.UNKNOWN
-            })
+            cirqaGattState = CirqaStateMapping.label(observedState)
+            cirqaConnectionHistory.observe(System.currentTimeMillis(), observedState)
             val message = if (matched != null)
                 "CIRQA Smart Band\n✓ Mit Android gekoppelt\n" +
                 (if (cirqaScanMatch) "✓ Gleiche BLE-Adresse im Scan erkannt\n" else "BLE-Werbeadresse nicht bestätigt (wechselnde Adressen möglich)\n") +
@@ -314,6 +303,9 @@ class MainActivity : AppCompatActivity() {
             cirqaCard.text = message
             cirqaCard.contentDescription = message
         } catch (_: SecurityException) {
+            cirqaBondAddress = null
+            cirqaGattState = CirqaStateMapping.label(CirqaConnectionHistory.State.PERMISSION_DENIED)
+            cirqaConnectionHistory.observe(System.currentTimeMillis(), CirqaConnectionHistory.State.PERMISSION_DENIED)
             cirqaCard.text = "CIRQA Smart Band\nBluetooth-Berechtigung fehlt"
         }
     }
