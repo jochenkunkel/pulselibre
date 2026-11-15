@@ -8,6 +8,7 @@ import android.bluetooth.le.ScanResult
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.content.Intent
 import android.os.Handler
 import android.os.Looper
 import android.widget.*
@@ -57,6 +58,10 @@ class MainActivity : AppCompatActivity() {
         }
         root.addView(title)
         root.addView(subtitle)
+        root.addView(Button(this).apply {
+            text = "Einstellungen · Datenexport"
+            setOnClickListener { startActivity(Intent(this@MainActivity, ExportActivity::class.java)) }
+        })
         val metrics = dashboardMetrics(HealthSnapshot())
         metrics.forEachIndexed { index, metric ->
             val card = LinearLayout(this).apply {
