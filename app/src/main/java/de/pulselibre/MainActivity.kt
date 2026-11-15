@@ -337,7 +337,7 @@ class MainActivity : AppCompatActivity() {
         stopScan(); disconnect()
         super.onDestroy()
     }
-}    @SuppressLint("MissingPermission")
+    @SuppressLint("MissingPermission")
     private fun showDevice(result: ScanResult) {
         val device = result.device
         val address = device.address
@@ -377,5 +377,4 @@ class MainActivity : AppCompatActivity() {
         deviceRows[address] = item
         devices.addView(item, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(10) })
     }
-
-
+}
