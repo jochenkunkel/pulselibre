@@ -36,7 +36,7 @@ class MainActivity : AppCompatActivity() {
         val scan = Button(this).apply { text = "Bluetooth-Geräte suchen"; setOnClickListener { startScan() } }
         val disconnect = Button(this).apply { text = "Trennen"; setOnClickListener { disconnect() } }
         devices = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
-        output = TextView(this).apply { text = "Wähle ein gefundenes Gerät."; textIsSelectable = true }
+        output = TextView(this).apply { text = "Wähle ein gefundenes Gerät."; setTextIsSelectable(true) }
         val scroll = ScrollView(this).apply { addView(output) }
         root.addView(title); root.addView(status); root.addView(scan); root.addView(disconnect)
         root.addView(devices)
