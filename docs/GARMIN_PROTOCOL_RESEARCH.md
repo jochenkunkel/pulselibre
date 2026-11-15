@@ -45,3 +45,17 @@ User-installed APK from run #143 after an in-place update failed; uninstall/rein
 - No pairing, unpairing, GATT writes, or active CIRQA session initiated by PulseLibre.
 
 Next: improve safe passive attribution diagnostics without collecting or sharing raw BLE identifiers; preserve Garmin Connect and request explicit permission before any active CIRQA operation.
+
+
+## Samsung Galaxy S25 field test — CI #150 (2026-11-15)
+
+User-provided passive BLE diagnostics from installed #150 APK:
+
+- Scan completed; **15 unique advertisers**, **102 advertisement observations**.
+- 6 devices with visible names, 10 with manufacturer-data fields, 6 with service UUID fields (these sets may overlap).
+- CIRQA Android bond present; Android reports GATT connected (owning app unknown), one manual status observation of CONNECTED.
+- **0 bonded-address matches**, **0 Garmin hints**, **15 unclassified advertisers**. No reliable CIRQA identification.
+- Prior scan reported 10 advertisers; the increase to 15 does not establish improved CIRQA identification, as radio conditions may differ.
+- No BLE connection, pairing or writes initiated by PulseLibre. No conclusion about Garmin Connect synchronization can be drawn from these aggregate counters.
+
+Next safe investigation: evaluate whether privacy-preserving, locally computed advertisement feature combinations and signal-strength trends can narrow candidate groups without labeling any device as CIRQA. Avoid exporting raw addresses, payloads or device names; no active GATT access without explicit approval.
