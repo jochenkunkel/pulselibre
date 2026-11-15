@@ -20,12 +20,12 @@ Observed in reference source:
 - `GarminFrameHeader` inspects the GFDI length and message type only.
 - `GarminFrameValidator` separately validates GFDI length and CRC-16/ARC; synthetic unit tests exist.
 - `FitFileHeader` now checks a complete, bounded FIT file envelope: 12/14-byte header, `.FIT` signature, little-endian data length, exact overall size (header + data + 2 trailing CRC bytes), and an 8 MiB input cap.
-- **FIT header CRC, FIT file CRC, record definitions, data records, time fields and health metrics are NOT yet decoded or validated.** The FIT envelope inspector does not authenticate files or their device of origin.
+- **FIT header CRC and FIT file CRC are now checked by the separate `FitFileHeader.inspectVerified` entry point; record definitions, data records, time fields and health metrics are NOT yet decoded or validated.** The FIT envelope inspector does not authenticate files or their device of origin.
 - None of these parsers is connected to BLE advertisements or to a CIRQA data stream. No active GATT connection is permitted without explicit approval.
 
 ## Next protocol steps
 
-1. Implement and independently test FIT CRC handling and the optional 14-byte header CRC.
+1. Extend FIT CRC coverage with independent real-world-compatible, non-personal test fixtures and malformed inputs.
 2. Build strict definition/data record parsing, with bounded lengths and unknown-field handling.
 3. Validate timestamps and units using independent, synthetic fixtures before connecting to local storage.
 4. Investigate a safe CIRQA transport path without disrupting Garmin Connect; require separate user approval for any active interaction.
