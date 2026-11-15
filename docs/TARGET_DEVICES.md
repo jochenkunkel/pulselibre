@@ -30,3 +30,12 @@ Stand: 2026-11-15. Diese Datei ist die **erste Anlaufstelle** für neue Entwickl
 5. **Erst nach diesen Prüfungen** Geräte-Dekodierung, historische Synchronisation und Anzeige echter Werte freigeben.
 
 Verwandt: [S25-BLE-Testplan](S25_BLE_TEST_PLAN.md), [Projektchronik](PROJECT_HISTORY.md), [Anforderungen](REQUIREMENTS_AND_PRINCIPLES.md).
+
+## Externe CIRQA-Referenz (Recherche 2026-11-15)
+- Gadgetbridge listet Garmin CIRQA ausdrücklich als **experimentell, teilweise unterstützt**. Laut Projektseite wurde Schlafsynchronisierung bestätigt; einige Aktivitäts-/Sync-Funktionen waren mit Firmware 2.20 problematisch und wurden mit 2.32 als funktionierend gemeldet: https://gadgetbridge.org/gadgets/wearables/garmin/
+- Gadgetbridge Garmin-Überblick: https://gadgetbridge.org/basics/topics/garmin/
+- Protokollübersicht (verschiedene Garmin-BLE-Protokollgenerationen): https://gadgetbridge.org/internals/specifics/garmin-protocol/
+- **Nicht** aus Gadgetbridge-Unterstützung ableiten, dass PulseLibre bereits auf Garmin Connects GATT-Sitzung zugreifen kann. Gadgetbridge verwendet eine eigene Gerätekommunikation; deren paralleler Betrieb mit Garmin Connect ist hier nicht nachgewiesen.
+- Keine Kopplung, kein aktiver GATT-Verbindungsaufbau und kein Übernehmen der Sitzung ohne ausdrückliche Nutzerfreigabe. Vor Implementierung konkrete CIRQA-Handler, Datenformate, Lizenzbedingungen und benötigte Handshakes im Gadgetbridge-Quellcode prüfen.
+- Praxistest PulseLibre Build #93: CIRQA Android-GATT-Status `verbunden (App unbekannt)`, Android-Kopplung vorhanden, BLE-Werbeadresse nicht bestätigt; 25 fremde Werbegeräte im Scan. Kein Nachweis, dass die fremden Werbedaten zu CIRQA gehören.
+- Datenschutz: Gadgetbridge warnt davor, dass Garmin-Bluetooth-Logs möglicherweise OAuth-/Account-Informationen enthalten. Keine ungefilterten proprietären Nutzdaten in Diagnoseexporten oder Git.
