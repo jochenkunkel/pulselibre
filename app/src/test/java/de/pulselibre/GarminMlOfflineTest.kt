@@ -26,11 +26,16 @@ class GarminMlOfflineTest {
     }
 
     @Test fun decodesRegistrationResponseAndRefusal() {
-        val response = byteArrayOf(0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 3)
+        val response = byteArrayOf(0, 1, 2, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 3)
         val parsed = GarminMlOffline.inspectRegisterResponse(response)!!
         assertEquals(4, parsed.serviceId)
         assertEquals(3, parsed.handle)
         assertTrue(parsed.accepted)
+        assertEquals(4, GarminMlOffline.inspectRegisterResponse(response + byteArrayOf(1))?.serviceId)
+        assertNull(GarminMlOffline.inspectRegisterResponse(response + byteArrayOf(1, 0)))
+        val wrongClient = response.clone()
+        wrongClient[2] = 3
+        assertNull(GarminMlOffline.inspectRegisterResponse(wrongClient))
         response[12] = 3
         assertFalse(GarminMlOffline.inspectRegisterResponse(response)!!.accepted)
     }
