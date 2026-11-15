@@ -19,6 +19,16 @@ jobs:
           gradle-version: '8.13'
       - name: Build, unit tests, lint and instrumentation APK
         run: gradle :app:testDebugUnitTest :app:lintDebug :app:assembleDebug :app:assembleDebugAndroidTest --stacktrace
+      - name: Upload diagnostic reports on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pulselibre-build-diagnostics
+          path: |
+            app/build/reports/
+            app/build/test-results/
+          if-no-files-found: ignore
+          retention-days: 14
       - uses: actions/upload-artifact@v4
         if: success()
         with:
