@@ -10,7 +10,8 @@ import java.util.UUID
 
 /**
  * Explicit one-shot Garmin ML/GFDI handle registration test.
- * No GFDI application messages, file sync, health reads or persistent connection.
+ * Registers GFDI and optionally realtime services for bounded diagnostic reads.
+ * No GFDI application messages, file sync, health persistence or persistent connection.
  */
 class CirqaMlHandshakeProbe(private val context: Context, private val adapter: BluetoothAdapter) {
     private val main = Handler(Looper.getMainLooper())
@@ -72,6 +73,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         if (device == null) { result("CIRQA nicht in Android-Kopplungen gefunden."); return }
         active = true
         if (closeAll) realtimeMode = false
+        if (!realtimeMode) expandedMode = false
         pendingService = 0
         realtimeRegistry.clear()
         heartRate = null
@@ -165,7 +167,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         val char = tx ?: run { finish("ML-TX fehlt.", g); return }
         val mode = if (char.properties and BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE != 0)
             BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE else BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
-        mark(if (session?.stage == GarminMlHandshake.Stage.WAIT_CLOSE) "Sende CLOSE_ALL" else "Sende GFDI-Registrierung")
+        mark(if (session?.stage == GarminMlHandshake.Stage.WAIT_CLOSE) "Sende CLOSE_ALL" else if (pendingService > 0) "Registriere Garmin-Service $pendingService" else "Sende GFDI-Registrierung")
         try {
             val ok = if (Build.VERSION.SDK_INT >= 33)
                 g.writeCharacteristic(char, bytes, mode) == BluetoothStatusCodes.SUCCESS
@@ -221,8 +223,16 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     is GarminRealtime.Reading.HeartRate -> heartRate = reading
                     is GarminRealtime.Reading.Steps -> steps = reading
                     else -> {
-                        val routed = GarminRealtime.route(bytes)
-                        if (routed != null) extraReadings[reading.javaClass.hashCode()] = reading
+                        extraReadings[when (reading) {
+                            is GarminRealtime.Reading.SpO2 -> GarminRealtime.SPO2_SERVICE
+                            is GarminRealtime.Reading.Hrv -> GarminRealtime.HRV_SERVICE
+                            is GarminRealtime.Reading.Stress -> GarminRealtime.STRESS_SERVICE
+                            is GarminRealtime.Reading.BodyBattery -> GarminRealtime.BODY_BATTERY_SERVICE
+                            is GarminRealtime.Reading.Respiration -> GarminRealtime.RESPIRATION_SERVICE
+                            is GarminRealtime.Reading.Calories -> GarminRealtime.CALORIES_SERVICE
+                            is GarminRealtime.Reading.Intensity -> GarminRealtime.INTENSITY_SERVICE
+                            else -> -1
+                        }] = reading
                     }
                 }
                 if (!expandedMode && heartRate != null && steps != null)
