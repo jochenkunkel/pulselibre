@@ -254,18 +254,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     @SuppressLint("MissingPermission")
-    private fun showDevice(result: ScanResult) {
-        val device = result.device
-        if (!found.add(device.address)) return
-        val label = device.name ?: result.scanRecord?.deviceName ?: "Unbekanntes Gerät"
-        val button = Button(this).apply {
-            text = "$label · RSSI ${result.rssi} dBm"
-            setOnClickListener { connect(device) }
-        }
-        devices.addView(button)
-    }
-
-    @SuppressLint("MissingPermission")
     private fun connect(device: BluetoothDevice) {
         if (!ensurePermissions()) return
         stopScan(); disconnect()
