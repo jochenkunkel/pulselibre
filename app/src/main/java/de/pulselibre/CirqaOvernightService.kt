@@ -87,7 +87,7 @@ class CirqaOvernightService : Service() {
             else updateNotification("Lokal: $readings Messwerte · $attempts Versuche")
         }
         current.startAllMetrics { result ->
-            if (!running) return@startAllMetrics
+            if (!running || result.startsWith("ML-Test: Verbinde")) return@startAllMetrics
             if (!log.append("attempt", mapOf("number" to attempts, "result" to result.take(600)))) {
                 stopCollection("storage_limit")
             } else {
