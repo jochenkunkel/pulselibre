@@ -201,6 +201,18 @@ class MainActivity : AppCompatActivity() {
                     cirqaMlProbe?.startRealtime { message -> runOnUiThread { output.text = message } }
                 }.show()
         })
+        deviceView(actionButton("CIRQA: Alle Garmin-Messwerte testen", false) {
+            if (!ensurePermissions()) return@actionButton
+            if (scanning) stopScan()
+            androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("CIRQA: Weitere Messwerte")
+                .setMessage("Garmin Connect vorher beenden. PulseLibre versucht zusätzlich SpO₂, Atmung, HRV, Stress, Body Battery, Kalorien und Intensitätsminuten einzeln zu registrieren. Nicht unterstützte Dienste werden gemeldet. Maximal 20 Sekunden, kein CLOSE_ALL, keine Speicherung.")
+                .setNegativeButton("Abbrechen", null)
+                .setPositiveButton("Messwerte prüfen") { _, _ ->
+                    if (cirqaMlProbe == null) cirqaMlProbe = CirqaMlHandshakeProbe(this, adapter)
+                    cirqaMlProbe?.startAllMetrics { message -> runOnUiThread { output.text = message } }
+                }.show()
+        })
         devices = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         deviceView(devices)
         output = text("Keine Geräte verbunden.", 13f, muted).apply {
