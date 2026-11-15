@@ -25,6 +25,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var status: TextView
     private lateinit var output: TextView
     private lateinit var devices: LinearLayout
+    private lateinit var cirqaCard: TextView
     private var gatt: BluetoothGatt? = null
     private var scanning = false
     private var scanGeneration = 0
@@ -138,6 +139,11 @@ class MainActivity : AppCompatActivity() {
                 isFocusable = true
                 setOnClickListener { action() }
             }
+        cirqaCard = text("CIRQA Smart Band", 15f, ink, true).apply {
+            setPadding(dp(16), dp(16), dp(16), dp(16))
+            background = rounded(Color.WHITE)
+        }
+        deviceView(cirqaCard)
         deviceView(actionButton("Bluetooth-Geräte suchen") { startScan() })
         deviceView(actionButton("Diagnose teilen", false) { shareDiagnostics() })
         deviceView(actionButton("Gekoppelte Geräte anzeigen", false) { showBondedDevices() })
@@ -160,6 +166,7 @@ class MainActivity : AppCompatActivity() {
                 tab.setTextColor(if (i == index) violet else muted)
                 tab.background = if (i == index) rounded(Color.rgb(241, 235, 255), 12) else null
             }
+            if (index == 1) refreshCirqaCard()
             scroll.scrollTo(0, 0)
         }
         listOf("Übersicht", "Geräte", "Export").forEachIndexed { index, label ->
@@ -255,9 +262,31 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /** Reads Android bond metadata only; no GATT connection or bond changes. */
+    @SuppressLint("MissingPermission")
+    private fun refreshCirqaCard() {
+        if (!ensurePermissions()) {
+            cirqaCard.text = "CIRQA Smart Band\nBluetooth-Berechtigung erforderlich"
+            return
+        }
+        try {
+            val matched = adapter.bondedDevices.orEmpty().firstOrNull {
+                it.name?.contains("CIRQA", ignoreCase = true) == true
+            }
+            val message = if (matched != null)
+                "CIRQA Smart Band\n✓ Mit Android gekoppelt\nGarmin Connect bleibt unverändert\nKeine PulseLibre-Verbindung · GATT nicht geprüft"
+            else "CIRQA Smart Band\nNicht in Android-Kopplungen gefunden\nKeine Verbindung hergestellt"
+            cirqaCard.text = message
+            cirqaCard.contentDescription = message
+        } catch (_: SecurityException) {
+            cirqaCard.text = "CIRQA Smart Band\nBluetooth-Berechtigung fehlt"
+        }
+    }
+
     @SuppressLint("MissingPermission")
     private fun showBondedDevices() {
         if (!ensurePermissions()) return
+        refreshCirqaCard()
         bondedRows.clear()
         try {
             adapter.bondedDevices.orEmpty().sortedBy { it.name ?: "" }.forEach { device ->
