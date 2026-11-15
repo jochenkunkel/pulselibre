@@ -84,7 +84,7 @@ class MainActivity : AppCompatActivity() {
             setPadding(dp(16), dp(18), dp(16), dp(24))
         }
         val scroll = ScrollView(this).apply {
-            fillViewport = true
+            isFillViewport = true
             clipToPadding = false
             addView(root)
         }
