@@ -26,7 +26,7 @@ class GarminMlHandshakeTest {
     @Test fun acceptsOnlyGfdiRegistrationAndValidHandle() {
         val session = GarminMlHandshake.Session(false)
         session.begin()
-        val response = byteArrayOf(0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 2)
+        val response = byteArrayOf(0, 1, 2, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 2, 1)
         assertNull(session.onNotification(response))
         assertEquals(GarminMlHandshake.Stage.WAIT_REGISTER, session.stage)
         response[10] = 1
@@ -36,7 +36,7 @@ class GarminMlHandshakeTest {
     @Test fun refusalFailsClosed() {
         val session = GarminMlHandshake.Session(false)
         session.begin()
-        session.onNotification(byteArrayOf(0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 2, 0))
+        session.onNotification(byteArrayOf(0, 1, 2, 0, 0, 0, 0, 0, 0, 0, 1, 0, 2, 0))
         assertEquals(GarminMlHandshake.Stage.FAILED, session.stage)
     }
     @Test(expected = IllegalArgumentException::class)
