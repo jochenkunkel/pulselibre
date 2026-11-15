@@ -31,10 +31,10 @@ object GarminMlOffline {
     /**
      * Inspect a complete unencrypted ML control notification.
      * Layout: 0x00, response-type 0x01, 8-byte client ID, LE service ID,
-     * status, handle. Accepts the 14-byte core response and the 15-byte variant with a trailing reliability flag.
+     * status, handle. Parses the 14-byte core; later optional/extension bytes do not change its fixed offsets.\n     * An upper bound prevents treating arbitrarily large data as control frames.
      */
     fun inspectRegisterResponse(packet: ByteArray): RegisterResponse? {
-        if (packet.size !in 14..15 || u8(packet[0]) != 0 || u8(packet[1]) != 1) return null
+        if (packet.size !in 14..64 || u8(packet[0]) != 0 || u8(packet[1]) != 1) return null
         // Multi-Link client ID is an unsigned LE 64-bit value (our client ID is 2).
         if (u8(packet[2]) != 2 || (3..9).any { u8(packet[it]) != 0 }) return null
         val service = u8(packet[10]) or (u8(packet[11]) shl 8)
