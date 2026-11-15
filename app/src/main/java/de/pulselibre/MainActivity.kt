@@ -36,6 +36,8 @@ class MainActivity : AppCompatActivity() {
     }
     private val found = mutableSetOf<String>()
     private val deviceRows = mutableMapOf<String, TextView>()
+    private val diagnosticRows = mutableMapOf<String, String>()
+    private val bondedRows = mutableListOf<String>()
     private val cccd = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -119,7 +121,7 @@ class MainActivity : AppCompatActivity() {
         }
         val deviceHeading = text("Bluetooth · Geräte", 22f, ink, true)
         deviceView(deviceHeading)
-        deviceView(text("Garmin CIRQA · Sichere BLE-Diagnose ohne Neu-Kopplung", 13f, muted))
+        deviceView(text("Garmin CIRQA · Passive Diagnose ohne Verbindungsaufbau", 13f, muted))
         status = text("Offline · bereit", 14f, muted)
         deviceView(status)
         fun actionButton(label: String, primary: Boolean = true, action: () -> Unit) =
@@ -137,8 +139,8 @@ class MainActivity : AppCompatActivity() {
                 setOnClickListener { action() }
             }
         deviceView(actionButton("Bluetooth-Geräte suchen") { startScan() })
-        deviceView(actionButton("Trennen", false) { disconnect() })
-        deviceView(actionButton("Verbindungsfehler simulieren", false) { simulateFailure() })
+        deviceView(actionButton("Diagnose teilen", false) { shareDiagnostics() })
+        deviceView(actionButton("Gekoppelte Geräte anzeigen", false) { showBondedDevices() })
         devices = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         deviceView(devices)
         output = text("Keine Geräte verbunden.", 13f, muted).apply {
@@ -210,7 +212,7 @@ class MainActivity : AppCompatActivity() {
         if (!adapter.isEnabled) { status.text = "Bitte Bluetooth aktivieren"; return }
         if (scanning) return
         val scanner = adapter.bluetoothLeScanner ?: run { status.text = "BLE-Scanner nicht verfügbar"; return }
-        devices.removeAllViews(); found.clear(); deviceRows.clear()
+        devices.removeAllViews(); found.clear(); deviceRows.clear(); diagnosticRows.clear()
         try {
             scanner.startScan(callback)
         } catch (_: SecurityException) {
@@ -221,7 +223,7 @@ class MainActivity : AppCompatActivity() {
         scanning = true
         val generation = ++scanGeneration
         applyEvent(BleEvent.START_SCAN)
-        status.text = "Suche läuft (10 Sekunden) …"
+        status.text = "Suche läuft (60 Sekunden) · passive Erkennung …"
         handler.postDelayed({ if (generation == scanGeneration && !destroyed) stopScan() }, BleSafetyPolicy.scanDurationMillis)
     }
 
@@ -251,6 +253,39 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun showBondedDevices() {
+        if (!ensurePermissions()) return
+        bondedRows.clear()
+        try {
+            adapter.bondedDevices.orEmpty().sortedBy { it.name ?: "" }.forEach { device ->
+                bondedRows.add("${device.name ?: "Unbenannt"} · bereits gekoppelt (Android)")
+            }
+            output.text = "Android-Kopplungen: ${bondedRows.size}\n" +
+                bondedRows.joinToString("\n") +
+                "\nHinweis: Kopplung bedeutet nicht, dass BLE-Werbedaten sichtbar sind."
+        } catch (_: SecurityException) {
+            output.text = "Bluetooth-Berechtigung für gekoppelte Geräte fehlt."
+        }
+    }
+
+    private fun shareDiagnostics() {
+        val report = buildString {
+            appendLine("PulseLibre · Passive BLE-Diagnose")
+            appendLine("Gefundene Werbegeräte: ${diagnosticRows.size}")
+            diagnosticRows.values.forEachIndexed { index, item ->
+                appendLine("\nGerät ${index + 1}:\n$item")
+            }
+            appendLine("\nAndroid-Kopplungen (nur nach expliziter Abfrage):")
+            bondedRows.forEach { appendLine(it) }
+            appendLine("\nKeine Verbindung, Kopplung oder Schreiboperation durch diesen Scan.")
+        }
+        startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_TEXT, report)
+        }, "BLE-Diagnose teilen"))
     }
 
     @SuppressLint("MissingPermission")
@@ -336,20 +371,25 @@ class MainActivity : AppCompatActivity() {
             for (index in 0 until data.size()) companyIds.add(data.keyAt(index))
         }
         val services = record?.serviceUuids?.map { it.uuid.toString() } ?: emptyList()
+        val serviceData = record?.serviceData?.entries?.joinToString("; ") { (uuid, bytes) ->
+            "${uuid.uuid}: ${BleSafetyPolicy.safeHex(bytes)}"
+        } ?: "keine"
         val description = BleAdvertisementIdentity.describe(
             label ?: record?.deviceName, companyIds, services, result.rssi
         )
+        val details = "$description\nService-Daten: $serviceData"
+        diagnosticRows[address] = details
         val row = deviceRows[address]
         if (row != null) {
-            row.text = description
-            row.contentDescription = description
+            row.text = details
+            row.contentDescription = details
             return
         }
         if (!found.add(address)) return
         val density = resources.displayMetrics.density
         fun dp(value: Int) = (value * density + 0.5f).toInt()
         val item = TextView(this).apply {
-            text = description
+            text = details
             textSize = 14f
             setTextColor(Color.rgb(35, 29, 59))
             setPadding(dp(16), dp(14), dp(16), dp(14))
@@ -357,10 +397,8 @@ class MainActivity : AppCompatActivity() {
                 setColor(Color.WHITE)
                 cornerRadius = dp(16).toFloat()
             }
-            contentDescription = description
-            isClickable = true
-            isFocusable = true
-            setOnClickListener { connect(device) }
+            contentDescription = details
+            isClickable = false
         }
         deviceRows[address] = item
         devices.addView(item, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(10) })
