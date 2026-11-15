@@ -195,12 +195,24 @@ class MainActivity : AppCompatActivity() {
         screen.addView(nav)
         setContentView(screen)
         selectTab(0)
-        // Permission prompts are deferred until an explicit BLE action.
+        requestBluetoothPermissionOnFirstLaunch()
     }
 
     private fun permissions(): Array<String> = if (Build.VERSION.SDK_INT >= 31)
         arrayOf(Manifest.permission.BLUETOOTH_SCAN, Manifest.permission.BLUETOOTH_CONNECT)
     else arrayOf(Manifest.permission.ACCESS_FINE_LOCATION)
+
+    /** Ask once on first launch; never turn Bluetooth on or initiate a connection. */
+    private fun requestBluetoothPermissionOnFirstLaunch() {
+        val missing = permissions().filter {
+            ActivityCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
+        }
+        if (missing.isEmpty()) return
+        val preferences = getSharedPreferences("bluetooth_permission", MODE_PRIVATE)
+        if (preferences.getBoolean("initial_prompt_shown", false)) return
+        preferences.edit().putBoolean("initial_prompt_shown", true).apply()
+        ActivityCompat.requestPermissions(this, missing.toTypedArray(), 10)
+    }
 
     private fun ensurePermissions(): Boolean {
         val missing = permissions().filter { ActivityCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED }
