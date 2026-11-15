@@ -59,3 +59,10 @@ User-provided passive BLE diagnostics from installed #150 APK:
 - No BLE connection, pairing or writes initiated by PulseLibre. No conclusion about Garmin Connect synchronization can be drawn from these aggregate counters.
 
 Next safe investigation: evaluate whether privacy-preserving, locally computed advertisement feature combinations and signal-strength trends can narrow candidate groups without labeling any device as CIRQA. Avoid exporting raw addresses, payloads or device names; no active GATT access without explicit approval.
+
+
+### Follow-up: distance-correlated BLE candidate (user observation, 2026-11-15)
+
+The user visually observed a single unnamed BLE advertiser with service UUID `3e1d50cd-7e3e-427d-8e1c-b78aa87fe624`, no manufacturer ID, and displayed RSSI around -66/-68 dBm in screenshots. When moving the CIRQA band farther away, the user's observed signal weakened from approximately -50 to -70 dBm; on bringing the band closer, it strengthened again. The user confirmed this direction of change and said no other visible device behaved similarly.
+
+**Interpretation:** This is a promising *candidate* based on correlated movement, not a verified CIRQA identity, not evidence that the UUID is Garmin-specific, and not proof of a particular GATT service. RSSI can fluctuate due to antenna orientation, body attenuation and multipath. Continue passive observation only; do not connect or subscribe to the device without explicit user authorization. Do not hard-code the UUID as confirmed CIRQA.
