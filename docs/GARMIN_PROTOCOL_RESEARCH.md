@@ -79,3 +79,14 @@ User-provided shared diagnostics after a 60-second passive BLE scan:
 - Chronological sample-window medians (10, 10, 2 samples): -77, -74, -71 dBm. The last window has only two samples and is less reliable.
 
 **Interpretation:** The new passive tracker and privacy-preserving diagnostic export work in the field. The signal appears to strengthen over the recorded samples, but the log has no time-stamped band-distance annotations, so this scan alone cannot demonstrate distance correlation. The earlier user-observed movement correlation remains separate supporting evidence. No active connection, pairing or writes were performed by PulseLibre. The UUID remains an *unconfirmed* CIRQA candidate.
+
+
+### Open-source Garmin BLE implementations to study before more RSSI field tests (2026-11-15)
+
+User requested prioritizing existing implementations rather than repeating distance/RSSI tests. External references:
+- Gadgetbridge Garmin protocol documentation: https://freeyourgadget.codeberg.page/gadgetbridge_org/internals/specifics/garmin-protocol/ . Describes several Garmin BLE protocol generations, the Multi-Link service `6a4e2800-667b-11e3-949a-0800200c9a66`, registration, characteristic pairs, and Garmin data channels. Device/version applicability must be checked; this is not CIRQA confirmation.
+- Gadgetbridge Garmin devices: https://gadgetbridge.org/basics/topics/garmin/ and https://gadgetbridge.org/gadgets/wearables/garmin/ . Existing Android implementation and compatibility details.
+- Python Garmin BLE protocol library: https://github.com/gwerneckp/garmin-ble . Reports BLE handshake and live telemetry support; examine code and test coverage before adapting protocol concepts.
+- Linux Garmin bridge: https://github.com/wh1le/garmin-bridge . Fenix-focused BLE implementation, explicitly acknowledges Gadgetbridge protocol work.
+
+**Research-first plan:** (1) Inspect existing transport/handshake code and device discovery strategies; (2) compare documented Garmin service UUIDs with our passive observations (candidate UUID `3e1d50cd-7e3e-427d-8e1c-b78aa87fe624` is not the documented Multi-Link service); (3) build offline protocol fixtures/unit tests from public, non-sensitive examples; (4) design an opt-in CIRQA connection path only after explicit user approval. Do not initiate pairing, GATT connections, reads, writes or subscriptions during research. Check license obligations (Gadgetbridge and derived projects use AGPL) before copying code; prefer independent implementation of documented protocol concepts.
