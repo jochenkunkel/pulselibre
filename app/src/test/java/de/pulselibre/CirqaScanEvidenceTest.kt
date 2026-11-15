@@ -7,7 +7,7 @@ class CirqaScanEvidenceTest {
     @Test fun unknownDevicesNeverCountAsCirqa() {
         val evidence = CirqaScanEvidence()
         evidence.observe("a", false, false)
-        assertTrue(evidence.summary().contains("Bestätigte CIRQA-Werbeadressen: 0"))
+        assertTrue(evidence.summary().contains("Adressgleichheit mit CIRQA-Kopplung: 0"))
         assertTrue(evidence.summary().contains("Nicht zuordenbare Werbegeräte: 1"))
     }
 
@@ -15,7 +15,7 @@ class CirqaScanEvidenceTest {
         val evidence = CirqaScanEvidence()
         evidence.observe("a", false, true)
         assertTrue(evidence.summary().contains("Garmin-Hinweise (nicht CIRQA-bestätigt): 1"))
-        assertTrue(evidence.summary().contains("Bestätigte CIRQA-Werbeadressen: 0"))
+        assertTrue(evidence.summary().contains("Adressgleichheit mit CIRQA-Kopplung: 0"))
     }
 
     @Test fun duplicateUpdatesDoNotInflateCounts() {
@@ -23,7 +23,7 @@ class CirqaScanEvidenceTest {
         evidence.observe("a", false, true)
         evidence.observe("a", false, true)
         evidence.observe("a", true, true)
-        assertTrue(evidence.summary().contains("Bestätigte CIRQA-Werbeadressen: 1"))
+        assertTrue(evidence.summary().contains("Adressgleichheit mit CIRQA-Kopplung: 1"))
         assertTrue(evidence.summary().contains("Garmin-Hinweise (nicht CIRQA-bestätigt): 0"))
     }
 
@@ -31,6 +31,20 @@ class CirqaScanEvidenceTest {
         val evidence = CirqaScanEvidence()
         evidence.observe("a", true, false)
         evidence.reset()
-        assertTrue(evidence.summary().contains("Bestätigte CIRQA-Werbeadressen: 0"))
+        assertTrue(evidence.summary().contains("Adressgleichheit mit CIRQA-Kopplung: 0"))
+    }
+    @Test fun weakerFollowupAdvertisementDoesNotEraseGarminHint() {
+        val evidence = CirqaScanEvidence()
+        evidence.observe("a", false, true)
+        evidence.observe("a", false, false)
+        assertTrue(evidence.summary().contains("Garmin-Hinweise (nicht CIRQA-bestätigt): 1"))
+        assertTrue(evidence.summary().contains("Nicht zuordenbare Werbegeräte: 0"))
+    }
+
+    @Test fun addressMatchDoesNotGetDowngraded() {
+        val evidence = CirqaScanEvidence()
+        evidence.observe("a", true, false)
+        evidence.observe("a", false, false)
+        assertTrue(evidence.summary().contains("Adressgleichheit mit CIRQA-Kopplung: 1"))
     }
 }
