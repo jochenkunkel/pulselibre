@@ -282,6 +282,12 @@ class MainActivity : AppCompatActivity() {
         override fun onScanFailed(errorCode: Int) {
             runOnUiThread {
                 if (!destroyed) {
+                    // Best-effort cleanup; preserve the failure state and message.
+                    if (scanning) {
+                        try { adapter.bluetoothLeScanner?.stopScan(callback) }
+                        catch (_: SecurityException) { /* Permission revoked. */ }
+                        catch (_: IllegalStateException) { /* Bluetooth switched off. */ }
+                    }
                     scanning = false
                     scanGeneration++
                     applyEvent(BleEvent.FAILED)
