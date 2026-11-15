@@ -1,8 +1,19 @@
 name: Android CI
 on:
   push:
+    branches: [main]
+    tags: ['v*']
   pull_request:
   workflow_dispatch:
+    inputs:
+      full_tests:
+        description: 'Run full release checks including emulator'
+        type: boolean
+        required: false
+        default: true
+concurrency:
+  group: android-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') && github.event_name != 'workflow_dispatch' }}
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -17,8 +28,11 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.13'
-      - name: Build, unit tests, lint and instrumentation APK
-        run: gradle :app:testDebugUnitTest :app:lintDebug :app:assembleDebug :app:assembleDebugAndroidTest --stacktrace
+      - name: Build and unit tests (every change)
+        run: gradle :app:testDebugUnitTest :app:assembleDebug --stacktrace
+      - name: Lint and instrumentation test APK (full checks only)
+        if: github.event_name == 'pull_request' || startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && inputs.full_tests)
+        run: gradle :app:lintDebug :app:assembleDebugAndroidTest --stacktrace
       - name: Upload diagnostic reports on failure
         if: failure()
         uses: actions/upload-artifact@v4
@@ -36,6 +50,7 @@ jobs:
           path: app/build/outputs/apk/debug/app-debug.apk
           retention-days: 14
   emulator:
+    if: github.event_name == 'pull_request' || startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && inputs.full_tests)
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 40
@@ -51,8 +66,7 @@ jobs:
         with:
           gradle-version: '8.13'
       - name: Enable KVM
-        run: |
-          sudo chmod 666 /dev/kvm
+        run: sudo chmod 666 /dev/kvm
       - name: Emulator instrumentation tests
         uses: reactivecircus/android-emulator-runner@v2
         with:
