@@ -487,6 +487,38 @@ class MainActivity : AppCompatActivity() {
                     }
                 }.show()
         })
+        debugView(actionButton("CIRQA: Bootstrap-Rohdaten (experimentell)", false) {
+            if (!ensurePermissions()) return@actionButton
+            if (scanning) stopScan()
+            androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("CIRQA · Rohdaten-Diagnose")
+                .setMessage("Nur für Dummy-Daten: Dieser Test sendet EIN experimentelles DeviceInformation-ACK und erfasst bis zu 32 vollständige, CRC-geprüfte GFDI-Frames (maximal 8 KiB) als Hex im Ergebnisbericht. Enthalten sein können Gesundheitswerte, Seriennummern und Gerätekennungen. Die Daten werden nicht automatisch hochgeladen; beim Teilen bestimmst du selbst den Empfänger. Nach 20 Sekunden wird getrennt. Fortfahren?")
+                .setNegativeButton("Abbrechen", null)
+                .setPositiveButton("Rohdaten erfassen") { _, _ ->
+                    if (cirqaMlProbe == null) cirqaMlProbe = CirqaMlHandshakeProbe(this, adapter)
+                    lastHistoryDiagnostic = null
+                    cirqaMlProbe?.startBootstrapRawCapture { message ->
+                        runOnUiThread {
+                            output.text = message
+                            if (message.startsWith("PulsLibre · CIRQA Historien-Diagnose")) {
+                                lastHistoryDiagnostic = message
+                                androidx.appcompat.app.AlertDialog.Builder(this)
+                                    .setTitle("Bootstrap-Rohdaten abgeschlossen")
+                                    .setMessage("Bis zu 32 vollständige GFDI-Frames wurden erfasst. Der Bericht kann Kennungen und Gesundheitswerte enthalten. Nur an vertrauenswürdige Empfänger weitergeben.")
+                                    .setNegativeButton("Schließen", null)
+                                    .setPositiveButton("Bericht teilen") { _, _ ->
+                                        val intent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+                                            type = "text/plain"
+                                            putExtra(android.content.Intent.EXTRA_TEXT, message)
+                                        }
+                                        startActivity(android.content.Intent.createChooser(intent, "Rohdatenbericht teilen"))
+                                    }
+                                    .show()
+                            }
+                        }
+                    }
+                }.show()
+        })
         debugView(actionButton("CIRQA: Dateiliste lesen (experimentell)", false) {
             if (!ensurePermissions()) return@actionButton
             if (scanning) stopScan()
