@@ -12,13 +12,13 @@
 ## Implemented
 
 - `app/build.gradle.kts` accepts `-PpulselibreVersionCode=N`; CI sets it to `github.run_number`. Never lower the code relative to installed APK. If another distribution channel has higher codes, adjust strategy.
-- CI optionally restores one persistent private signing keystore from four GitHub Actions secrets. If absent, the build still produces an ordinary debug APK but warns that it is **not guaranteed updatable**.
+- CI restores one persistent private signing keystore from four GitHub Actions secrets. If absent, tests can run but **the APK artifact is not published**, preventing accidental distribution of an incompatible debug APK.
 - CI prints non-secret package/version/certificate SHA-256 digest, for comparisons across runs.
 - Do **not** commit signing keys, passwords, or exported private key material.
 
 ## One-time repository secrets (required for stable updateable CI APK)
 
-Create and securely back up a dedicated Android test keystore *outside the repository*:
+Create and securely back up a dedicated Android test keystore *outside the repository*. On a trusted Linux/macOS machine, use `bash scripts/create-android-signing-key.sh` (the script refuses to overwrite an existing key). Alternatively:
 
 ```bash
 keytool -genkeypair -v -keystore pulselibre-ci.keystore -alias pulselibre-ci -keyalg RSA -keysize 3072 -validity 10000
@@ -60,3 +60,7 @@ Use `apksigner verify --print-certs app-debug.apk` on both old/new APKs and comp
 5. If upgrade fails, collect the exact installer/ADB error before changing package ID or wiping the app.
 
 Never commit personal health data to CI artifacts. 
+
+## Artifact distribution safeguard
+
+The workflow publishes `pulselibre-signed-update-apk` only when the stable signing secrets are present and the build succeeds, and never for pull requests. When secrets are missing, no APK artifact is offered as an update. A signing-key change still requires a migration decision: Android does not automatically trust a different certificate. The signing fingerprint printed in CI should remain identical between two consecutive update APKs. A true device upgrade test remains mandatory.
