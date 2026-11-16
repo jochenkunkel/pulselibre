@@ -9,7 +9,7 @@ android {
         applicationId = "de.pulselibre"
         minSdk = 26
         targetSdk = 35
-        versionCode = 2
+        versionCode = (providers.gradleProperty("pulselibreVersionCode").orNull?.toIntOrNull() ?: 2)
         versionName = "0.1.1"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
