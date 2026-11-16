@@ -9,7 +9,7 @@ import java.time.Instant
  * Private, append-only, bounded JSON Lines diagnostic. No device IDs, MACs,
  * raw GATT payloads, cloud, or external storage permission.
  */
-class CirqaLocalLog(context: Context) {
+class CirqaLocalLog(private val context: Context) {
     private val file = File(context.filesDir, "cirqa_overnight.jsonl")
     private val maxBytes = 10L * 1024 * 1024
 
