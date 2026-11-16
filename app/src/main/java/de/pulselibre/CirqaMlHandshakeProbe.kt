@@ -31,6 +31,10 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private var realtimeFrames = 0
     private var expandedMode = false
     private var exploratoryMode = false
+    private var mousePodsMode = false
+    private var motionHandle: Int? = null
+    private var motionPackets = 0
+    private var motionStartIssued = false
     private var servicePlan: List<Int> = GarminRealtime.SUPPORTED_SERVICES
     private val exploratoryAccepted = mutableMapOf<Int, Int>()
     private val exploratoryFrames = mutableMapOf<Int, Int>()
@@ -41,6 +45,17 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     /** Opt-in bounded read-only discovery; never used by overnight recording. */
     fun startMotionDiscovery(result: (String) -> Unit) {
         if (active) { result("ML-Test läuft bereits."); return }
+        mousePodsMode = false
+        exploratoryMode = true
+        expandedMode = true
+        servicePlan = GarminServiceDiscovery.CANDIDATES
+        startRealtime(result)
+    }
+
+    /** Separate opt-in comparison: REGISTER(16), then 0x01 on its assigned handle. */
+    fun startMousePodsMotion(result: (String) -> Unit) {
+        if (active) { result("ML-Test läuft bereits."); return }
+        mousePodsMode = true
         exploratoryMode = true
         expandedMode = true
         servicePlan = GarminServiceDiscovery.CANDIDATES
@@ -49,6 +64,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
 
     fun startAllMetrics(result: (String) -> Unit) {
         if (active) { result("ML-Test läuft bereits."); return }
+        mousePodsMode = false
         expandedMode = true
         startRealtime(result)
     }
@@ -89,6 +105,9 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         if (closeAll) realtimeMode = false
         if (!realtimeMode) expandedMode = false
         pendingService = 0
+        motionHandle = null
+        motionPackets = 0
+        motionStartIssued = false
         realtimeRegistry.clear()
         heartRate = null
         steps = null
@@ -220,10 +239,22 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     }
                     rejectedServices.add(pendingService)
                 } else {
-                    if (exploratoryMode) exploratoryAccepted[pendingService] = response.handle
+                    if (exploratoryMode) {
+                        exploratoryAccepted[pendingService] = response.handle
+                        if (mousePodsMode && pendingService == 16) motionHandle = response.handle
+                    }
                     else realtimeRegistry.register(pendingService, response.handle)
                 }
-                if (expandedMode) nextRealtimeService(g)
+                if (expandedMode) {
+                    if (mousePodsMode && pendingService == 16 && response.accepted) {
+                        // MousePods' documented service-specific start byte, framed by the dynamic ML handle.
+                        val handle = motionHandle!!
+                        motionStartIssued = true
+                        mark("MousePods: Service 16 registriert; sende Start 0x01")
+                        send(g, byteArrayOf(handle.toByte(), 0x01))
+                    }
+                    nextRealtimeService(g)
+                }
                 else if (pendingService == GarminRealtime.HEART_RATE_SERVICE) {
                     pendingService = GarminRealtime.STEPS_SERVICE
                     mark("Puls registriert; registriere Schritte")
@@ -237,7 +268,10 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             if (exploratoryMode) {
                 val routed = GarminRealtime.route(bytes)
                 val id = exploratoryAccepted.entries.firstOrNull { it.value == routed?.handle }?.key
-                if (id != null) exploratoryFrames[id] = (exploratoryFrames[id] ?: 0) + 1
+                if (id != null) {
+                    exploratoryFrames[id] = (exploratoryFrames[id] ?: 0) + 1
+                    if (id == 16) motionPackets++
+                }
                 return
             }
             val reading = realtimeRegistry.receive(bytes)
@@ -300,7 +334,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         "Schritte: ${steps?.count?.toString() ?: "nicht empfangen"}; " +
         "Ziel: ${steps?.goal?.toString() ?: "unbekannt"}; " +
         "gültige Messpakete: $realtimeFrames; " +
-        (if (exploratoryMode) "Discovery: ${GarminServiceDiscovery.describe(exploratoryAccepted, rejectedServices, exploratoryFrames)}; " else if (expandedMode) "Weitere Werte: ${extraReadings.values.joinToString()}; abgelehnte Dienste: ${rejectedServices.joinToString()}; " else "") +
+        (if (exploratoryMode) "Modus: ${if (mousePodsMode) "MousePods Start 0x01" else "Nur Registrierung"}; Start gesendet: $motionStartIssued; Service-16-Pakete: $motionPackets; Discovery: ${GarminServiceDiscovery.describe(exploratoryAccepted, rejectedServices, exploratoryFrames)}; " else if (expandedMode) "Weitere Werte: ${extraReadings.values.joinToString()}; abgelehnte Dienste: ${rejectedServices.joinToString()}; " else "") +
         "Phase: $phase. Keine Daten gespeichert."
 
     @SuppressLint("MissingPermission")
@@ -314,7 +348,26 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             if (!active) return@post
             active = false
             main.removeCallbacksAndMessages(null)
-            safeClose(g)
+            // Best-effort MousePods stop command before GATT disconnect; never CLOSE_ALL.
+            val stopHandle = if (mousePodsMode && motionStartIssued) motionHandle else null
+            if (stopHandle != null && g != null && tx != null) {
+                try {
+                    val characteristic = tx!!
+                    val stop = byteArrayOf(stopHandle.toByte(), 0x00)
+                    if (Build.VERSION.SDK_INT >= 33) {
+                        g.writeCharacteristic(characteristic, stop,
+                            if (characteristic.properties and BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE != 0)
+                                BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE else BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT)
+                    } else {
+                        characteristic.writeType = BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
+                        @Suppress("DEPRECATION")
+                        characteristic.value = stop
+                        @Suppress("DEPRECATION")
+                        g.writeCharacteristic(characteristic)
+                    }
+                } catch (_: Exception) { /* Disconnect remains mandatory even if stop fails. */ }
+                main.postDelayed({ safeClose(g) }, 400L)
+            } else safeClose(g)
             gatt = null
             callback?.invoke(message)
             callback = null
@@ -323,6 +376,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             realtimeMode = false
             expandedMode = false
             exploratoryMode = false
+            mousePodsMode = false
         }
     }
     fun close() {
