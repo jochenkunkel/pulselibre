@@ -17,11 +17,14 @@ class GarminFileListProbe {
     var rejectedFrames = 0
         private set
     val frameTypes = linkedMapOf<String, Int>()
+    val responseStatuses = linkedMapOf<String, Int>()
+    var responseErrors = 0
+        private set
     var otherMessages = 0
         private set
 
     fun summary(): String = "GFDI-Frames: $frames; FileListResponse: $validLists; " +
-        "Dateieinträge: $fileEntries; Typen: $frameTypes; andere Nachrichten: $otherMessages; ungültige Frames: $rejectedFrames"
+        "Dateieinträge: $fileEntries; Typen: $frameTypes; GFDI-5000-Status: $responseStatuses; Antwortfehler: $responseErrors; andere Nachrichten: $otherMessages; ungültige Frames: $rejectedFrames"
 
     fun observeMlPayload(payload: ByteArray) {
         for (byte in payload) {
@@ -52,9 +55,28 @@ class GarminFileListProbe {
         if (GarminFrameValidator.inspectVerified(frame) == null) { rejectedFrames++; return }
         frames++
         val type = u16(frame, 2)
-        val label = if (type and 0x8000 != 0) "compact-${type and 255}" else "gfdi-$type"
+        val compact = type and 0x8000 != 0
+        val effectiveType = if (compact) 5000 + (type and 255) else type
+        val label = "gfdi-$effectiveType"
         frameTypes[label] = (frameTypes[label] ?: 0) + 1
-        if (type and 0x8000 == 0 || type and 255 !in listOf(0x2b, 0x2c, 0x39, 0x3a)) {
+        if (effectiveType == 5000 && frame.size >= 9) {
+            val original = u16(frame, 4)
+            val status = frame[6].toInt() and 255
+            val name = when (status) {
+                0 -> "ACK"
+                1 -> "NAK"
+                2 -> "UNSUPPORTED"
+                3 -> "COBS_ERROR"
+                4 -> "CRC_ERROR"
+                5 -> "LENGTH_ERROR"
+                else -> "UNKNOWN_$status"
+            }
+            val sequence = if (compact) (type ushr 8) and 31 else -1
+            val key = "request=$original/status=$name/seq=$sequence"
+            responseStatuses[key] = (responseStatuses[key] ?: 0) + 1
+            if (status != 0) responseErrors++
+        }
+        if (!compact || type and 255 !in listOf(0x2b, 0x2c, 0x39, 0x3a)) {
             otherMessages++
             return
         }
