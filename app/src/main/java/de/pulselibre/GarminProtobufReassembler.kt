@@ -36,12 +36,26 @@ class GarminProtobufReassembler(private val maxBytes: Int = 65536) {
             return null
         }
         if (offset == 0L) {
+            // A duplicate first chunk must not silently erase progress.
+            if (requestId == id && messageType == type && total == declaredTotal.toInt() &&
+                data.size >= chunkSize.toInt() &&
+                data.subList(0, chunkSize.toInt()).toByteArray().contentEquals(body.copyOfRange(14, body.size))) {
+                return null
+            }
             // A new transfer may supersede an incomplete one, but must be visible in diagnostics.
             if (requestId != null && data.isNotEmpty()) rejected++
             reset()
             requestId = id
             messageType = type
             total = declaredTotal.toInt()
+        }
+        // Accept a retransmission only when its bytes match already assembled data.
+        if (requestId == id && messageType == type && total == declaredTotal.toInt() &&
+            offset < data.size.toLong() && offset != 0L &&
+            chunkSize <= data.size.toLong() - offset) {
+            val start = offset.toInt()
+            if (data.subList(start, start + chunkSize.toInt()).toByteArray()
+                    .contentEquals(body.copyOfRange(14, body.size))) return null
         }
         if (requestId != id || messageType != type || total != declaredTotal.toInt() ||
             offset != data.size.toLong()) {
