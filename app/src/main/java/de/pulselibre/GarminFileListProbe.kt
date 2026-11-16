@@ -115,15 +115,4 @@ class GarminFileListProbe {
     private fun u16(bytes: ByteArray, offset: Int) =
         (bytes[offset].toInt() and 255) or ((bytes[offset + 1].toInt() and 255) shl 8)
 
-    companion object {
-        /** Only FileListRequest(field 9), no flags that mark or exclude files. */
-        fun requestFrame(): ByteArray {
-            val smart = byteArrayOf(0xDA.toByte(), 0x02, 0x02, 0x4A, 0x00)
-            val body = byteArrayOf(0x01, 0x00) + smart
-            val length = body.size + 6
-            val frame = byteArrayOf(length.toByte(), 0, 0x39, 0x8A.toByte()) + body
-            // CRC implementation is shared with the existing validated Garmin frame utility.
-            return frame
-        }
-    }
 }
