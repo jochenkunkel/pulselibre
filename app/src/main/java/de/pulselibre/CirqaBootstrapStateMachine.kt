@@ -9,7 +9,6 @@ class CirqaBootstrapStateMachine {
         private set
     var changed5050Payloads = 0
         private set
-        private set
     var ackAttempted = false
         private set
     private var last5050: ByteArray? = null
