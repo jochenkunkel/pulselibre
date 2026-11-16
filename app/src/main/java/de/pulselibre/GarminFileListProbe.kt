@@ -97,19 +97,25 @@ class GarminFileListProbe {
     }
 
     private fun parseSmart(bytes: ByteArray) {
-        for ((field, value) in fields(bytes)) {
+        val outer = strictFields(bytes) ?: return
+        for ((field, value) in outer) {
             if (field != 43 || value == null) continue
-            for ((sub, data) in fields(value)) {
+            val smart = strictFields(value) ?: continue
+            for ((sub, data) in smart) {
                 if (sub != 10 || data == null) continue
+                val entries = strictFields(data) ?: continue
                 validLists++
                 bootstrap.observeFileListResponse()
-                fileEntries += fields(data).count { it.first == 4 && it.second != null }
+                fileEntries += entries.count { it.first == 4 && it.second != null }
             }
         }
     }
 
-    // Bounded wire-type 0/1/2/5 reader; malformed protobuf is ignored.
-    private fun fields(bytes: ByteArray): List<Pair<Int, ByteArray?>> {
+    /**
+     * Rejects an entire malformed protobuf rather than accepting a valid-looking
+     * prefix as a FileListResponse. Bounds protect diagnostics from untrusted BLE.
+     */
+    private fun strictFields(bytes: ByteArray): List<Pair<Int, ByteArray?>>? {
         val result = ArrayList<Pair<Int, ByteArray?>>()
         var i = 0
         fun varint(): Long? {
@@ -117,29 +123,31 @@ class GarminFileListProbe {
             for (shift in 0..63 step 7) {
                 if (i >= bytes.size) return null
                 val b = bytes[i++].toInt() and 255
+                if (shift == 63 && b > 1) return null
                 n = n or ((b and 127).toLong() shl shift)
                 if (b and 128 == 0) return n
             }
             return null
         }
-        while (i < bytes.size && result.size < 256) {
-            val tag = varint() ?: break
-            val field = (tag ushr 3).toInt()
-            if (field <= 0) break
+        while (i < bytes.size) {
+            if (result.size >= 256) return null
+            val tag = varint() ?: return null
+            val field = tag ushr 3
+            if (field == 0L || field > Int.MAX_VALUE) return null
             val value = when ((tag and 7).toInt()) {
-                0 -> { if (varint() == null) break; null }
-                1 -> { if (i + 8 > bytes.size) break; i += 8; null }
+                0 -> { if (varint() == null) return null; null }
+                1 -> { if (bytes.size - i < 8) return null; i += 8; null }
                 2 -> {
-                    val len = varint() ?: break
-                    if (len > bytes.size - i || len < 0) break
+                    val len = varint() ?: return null
+                    if (len < 0 || len > bytes.size - i) return null
                     val v = bytes.copyOfRange(i, i + len.toInt())
                     i += len.toInt()
                     v
                 }
-                5 -> { if (i + 4 > bytes.size) break; i += 4; null }
-                else -> break
+                5 -> { if (bytes.size - i < 4) return null; i += 4; null }
+                else -> return null
             }
-            result.add(field to value)
+            result.add(field.toInt() to value)
         }
         return result
     }
