@@ -23,6 +23,14 @@ class GarminGfdiHeaderTest {
         }
     }
 
+    @Test fun compactSequenceUsesAllSevenBits() {
+        val h = GarminGfdiHeader.inspect(frame(0xff39, byteArrayOf(0, 0)))
+        assertNotNull(h)
+        assertTrue(h!!.compact)
+        assertEquals(5057, h.type)
+        assertEquals(127, h.sequence)
+    }
+
     @Test fun rejectsInvalidCrc() {
         val bad = frame(5050, byteArrayOf(1, 2, 3))
         bad[bad.lastIndex] = (bad.last().toInt() xor 1).toByte()
