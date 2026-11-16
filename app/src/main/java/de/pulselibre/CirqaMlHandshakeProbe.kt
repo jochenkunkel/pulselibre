@@ -429,10 +429,12 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                         if (handle == null) {
                             finish("GFDI-Handle fehlt; Dateiliste nicht angefordert.", g)
                         } else {
-                            fileListChunks.addAll(GarminFileListRequest.mlChunks(handle))
-                            fileListRequestSent = true
-                            mark("FileSync V2 Dateiliste vorbereitet; warte auf freien GATT-Schreibkanal")
-                            main.postDelayed({ if (active) sendNextFileListChunk(g) }, 200L)
+                            // CIRQA returned UNSUPPORTED for the current compact 0x8A39
+                            // request. Do not repeat it until the bootstrap is validated.
+                            mark("FileSync V2 deaktiviert: CIRQA meldete UNSUPPORTED; nur passive Analyse")
+                            main.postDelayed({
+                                if (active) finish("Dateilistenanfrage sicherheitshalber deaktiviert: CIRQA hat 0x8A39 mit UNSUPPORTED abgelehnt.", g)
+                            }, 500L)
                         }
                     } else mark("GFDI registriert; beobachte Metadaten bis zum Zeitlimit")
                 } else finish("Garmin ML: GFDI-Service erfolgreich registriert! ${if (requestedCloseAll) "CLOSE_ALL wurde zuvor bestätigt." else "Ohne CLOSE_ALL."} Verbindung beendet; keine Gesundheitsdaten gelesen.", g)
