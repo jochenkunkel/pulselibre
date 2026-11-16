@@ -70,6 +70,39 @@ class CirqaDatabase(context: Context) : SQLiteOpenHelper(context, "cirqa_measure
         return ImportResult(imported, invalid)
     }
 
+    /** Store a single locally generated JSONL event immediately, without a second BLE path. */
+    @Synchronized fun insertLine(line: String): Boolean {
+        val item = try { JSONObject(line) } catch (_: Exception) { return false }
+        val kind = item.optString("type")
+        val timestamp = item.optString("received_at_utc")
+        if (item.optInt("schema") != 1 || kind.isBlank()) return false
+        val sha = MessageDigest.getInstance("SHA-256")
+            .digest(line.toByteArray(Charsets.UTF_8))
+            .joinToString("") { "%02x".format(it.toInt() and 255) }
+        val values = ContentValues().apply {
+            put("line_sha256", sha)
+            put("received_at_utc", timestamp)
+            put("kind", kind)
+            if (item.has("service") && !item.isNull("service")) put("service", item.optInt("service"))
+            put("payload_json", line)
+        }
+        return writableDatabase.insertWithOnConflict(
+            "events", null, values, SQLiteDatabase.CONFLICT_IGNORE
+        ) != -1L
+    }
+
+    /** Raw measured readings in chronological order, not inferred values. */
+    fun readingLines(): List<String> {
+        val result = ArrayList<String>()
+        readableDatabase.rawQuery(
+            "SELECT payload_json FROM events WHERE kind = ? ORDER BY received_at_utc, id",
+            arrayOf("reading")
+        ).use { cursor ->
+            while (cursor.moveToNext()) result.add(cursor.getString(0))
+        }
+        return result
+    }
+
     data class ImportResult(val imported: Int, val invalid: Int)
 
     fun eventCount(): Long = readableDatabase.rawQuery("SELECT COUNT(*) FROM events", null).use {
