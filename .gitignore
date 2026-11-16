@@ -1,0 +1,25 @@
+*.iml
+.gradle/
+.idea/
+local.properties
+**/build/
+*.jks
+*.keystore
+*.log
+
+# Never commit captured health/device telemetry or local exports
+data/overnight/
+*.jsonl
+*.fit
+*.FIT
+*.csv
+*.db
+*.sqlite
+*.sqlite3
+*.apk
+*.aab
+*.p12
+*.pfx
+*.pem
+*.key
+*.base64

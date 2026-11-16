@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="920" viewBox="0 0 1400 920" role="img" aria-label="PulsLibre Bluetooth-Datenfluss von Garmin CIRQA zu Live-Werten und historischen FIT-Dateien">
+<title>PulsLibre – BLE-Datenbeschaffung und historischer Nachbezug</title>
+<defs><marker id="arrow" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8Z" fill="#5127C9"/></marker><style>text{font-family:Arial,Helvetica,sans-serif;fill:#251d3b}.head{font-size:34px;font-weight:700}.sub{font-size:18px;fill:#615a76}.t{font-size:21px;font-weight:700}.d{font-size:16px;fill:#544d69}.box{fill:white;stroke:#c6b7ef;stroke-width:2}.link{fill:none;stroke:#5127C9;stroke-width:4;marker-end:url(#arrow)}.dash{stroke-dasharray:10 8}.tag{font-size:16px;font-weight:700;fill:#5127C9}</style></defs>
+<rect width="1400" height="920" fill="#f8f7fc"/>
+<text x="70" y="74" class="head">PulsLibre · Daten vom Garmin CIRQA</text>
+<text x="70" y="108" class="sub">Architektur und geplanter historischer Nachbezug · kein Nachweis eines funktionierenden CIRQA-History-Downloads</text>
+<rect class="box" x="70" y="165" rx="24" width="260" height="126"/><text x="200" y="214" class="t" text-anchor="middle">Garmin CIRQA</text><text x="200" y="247" class="d" text-anchor="middle">Sensoren und Speicher</text>
+<rect class="box" x="425" y="165" rx="24" width="260" height="126"/><text x="555" y="214" class="t" text-anchor="middle">Bluetooth LE</text><text x="555" y="247" class="d" text-anchor="middle">GATT · Multi-Link</text>
+<rect class="box" x="790" y="165" rx="24" width="330" height="126"/><text x="955" y="214" class="t" text-anchor="middle">Datenpfad wählen</text><text x="955" y="247" class="d" text-anchor="middle">Live oder historische Dateien</text>
+<path class="link" d="M330 228 H425"/><path class="link" d="M685 228 H790"/>
+<rect class="box" x="155" y="395" rx="24" width="480" height="145"/><text x="395" y="437" class="tag" text-anchor="middle">LIVE · bereits am S25 beobachtet</text><text x="395" y="472" class="t" text-anchor="middle">Dynamische Service-Handles</text><text x="395" y="502" class="d" text-anchor="middle">Puls, Schritte und weitere Messwerte</text>
+<rect class="box" x="765" y="395" rx="24" width="490" height="145"/><text x="1010" y="437" class="tag" text-anchor="middle">HISTORIE · noch zu implementieren</text><text x="1010" y="472" class="t" text-anchor="middle">GFDI · COBS · CRC-Prüfung</text><text x="1010" y="502" class="d" text-anchor="middle">Dateiverzeichnis und Dateifragmente</text>
+<path class="link" d="M925 291 V343 H395 V395"/><path class="link dash" d="M985 291 V395"/>
+<rect class="box" x="765" y="590" rx="24" width="490" height="112"/><text x="1010" y="633" class="t" text-anchor="middle">FIT-Dateien prüfen und dekodieren</text><text x="1010" y="665" class="d" text-anchor="middle">Zeitstempel · Integrität · Duplikate</text>
+<path class="link dash" d="M1010 540 V590"/>
+<rect class="box" x="425" y="758" rx="24" width="570" height="112"/><text x="710" y="803" class="t" text-anchor="middle">Lokale Datenbank · Dashboard · CSV</text><text x="710" y="834" class="d" text-anchor="middle">Offline · keine Cloud · Originalzeit erhalten</text>
+<path class="link" d="M395 540 V815 H425"/><path class="link dash" d="M1010 702 V814 H995"/>
+<text x="70" y="907" class="d">Quelle: docs/CIRQA_DATA_WORKFLOW_SKETCH.md · Live-Pfad und History-Pfad bewusst getrennt</text>
+</svg>

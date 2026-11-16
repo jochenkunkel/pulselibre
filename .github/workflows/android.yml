@@ -1,0 +1,107 @@
+name: Android CI
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      full_tests:
+        description: 'Run full release checks including emulator'
+        type: boolean
+        required: false
+        default: false
+concurrency:
+  # Keep builds of successive main commits queued rather than cancelling an
+  # in-progress APK build. Separate refs do not block each other.
+  group: pulselibre-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.13'
+      - name: Restore stable APK signing key
+        env:
+          SIGNING_KEY_B64: ${{ secrets.PULSELIBRE_SIGNING_KEY_B64 }}
+          SIGNING_STORE_PASSWORD: ${{ secrets.PULSELIBRE_SIGNING_STORE_PASSWORD }}
+          SIGNING_KEY_ALIAS: ${{ secrets.PULSELIBRE_SIGNING_KEY_ALIAS }}
+          SIGNING_KEY_PASSWORD: ${{ secrets.PULSELIBRE_SIGNING_KEY_PASSWORD }}
+        run: |
+          if [ -z "$SIGNING_KEY_B64" ] || [ -z "$SIGNING_STORE_PASSWORD" ] || [ -z "$SIGNING_KEY_ALIAS" ] || [ -z "$SIGNING_KEY_PASSWORD" ]; then
+            echo "::warning::Stable signing secrets missing: CI tests can run, but APK will NOT be published as an update."
+          else
+            printf '%s' "$SIGNING_KEY_B64" | base64 --decode > "$RUNNER_TEMP/pulselibre-ci.keystore"
+            echo "PULSELIBRE_SIGNING_STORE=$RUNNER_TEMP/pulselibre-ci.keystore" >> "$GITHUB_ENV"
+            echo "PULSELIBRE_SIGNING_STORE_PASSWORD=$SIGNING_STORE_PASSWORD" >> "$GITHUB_ENV"
+            echo "PULSELIBRE_SIGNING_KEY_ALIAS=$SIGNING_KEY_ALIAS" >> "$GITHUB_ENV"
+            echo "PULSELIBRE_SIGNING_KEY_PASSWORD=$SIGNING_KEY_PASSWORD" >> "$GITHUB_ENV"
+          fi
+      # Beta gate: compile and run the JVM unit suite; full lint/emulator remain available on demand.
+      - name: Build and unit tests (every change)
+        run: gradle :app:testDebugUnitTest :app:assembleDebug -PpulselibreVersionCode=${{ github.run_number }} --stacktrace
+      - name: Print non-secret APK update diagnostics
+        run: |
+          echo "Package: de.pulselibre"
+          echo "Version code: ${{ github.run_number }}"
+          echo "Stable signing configured: $([ -n "$PULSELIBRE_SIGNING_STORE" ] && echo yes || echo no)"
+          "${ANDROID_HOME}/build-tools/35.0.0/apksigner" verify --print-certs app/build/outputs/apk/debug/app-debug.apk | grep -E 'Signer #1 certificate SHA-256 digest|Verified using'
+          "${ANDROID_HOME}/build-tools/35.0.0/aapt" dump badging app/build/outputs/apk/debug/app-debug.apk | grep '^package:'
+          if [ -n "$PULSELIBRE_SIGNING_STORE" ]; then
+            echo "APK_SIGNING_READY=true" >> "$GITHUB_ENV"
+          else
+            echo "APK_SIGNING_READY=false" >> "$GITHUB_ENV"
+          fi
+      - name: Full lint and instrumentation test APK (tags or opted-in full checks)
+        if: startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && inputs.full_tests)
+        run: gradle :app:lintDebug :app:assembleDebugAndroidTest --stacktrace
+      - name: Upload diagnostic reports on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pulselibre-build-diagnostics
+          path: |
+            app/build/reports/
+            app/build/test-results/
+          if-no-files-found: ignore
+          retention-days: 14
+      - uses: actions/upload-artifact@v4
+        if: success() && env.APK_SIGNING_READY == 'true' && github.event_name != 'pull_request'
+        with:
+          name: pulselibre-signed-update-apk
+          path: app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 14
+  emulator:
+    if: startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && inputs.full_tests)
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.13'
+      - name: Enable KVM
+        run: sudo chmod 666 /dev/kvm
+      - name: Emulator instrumentation tests
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          arch: x86_64
+          profile: pixel_6
+          script: gradle :app:connectedDebugAndroidTest --stacktrace

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="Stilisierter Oberarm mit Osteosyntheseplatte und Schrauben">
+<title>PulsLibre – Oberarm-Easter-Egg</title>
+<circle cx="256" cy="256" r="248" fill="#5127C9"/>
+<g fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round">
+<path d="M194 120 Q236 70 305 104 Q336 124 352 160 Q363 186 350 220 Q336 250 308 255 Q281 265 269 297 L262 460" stroke-width="14"/>
+<path d="M214 91 Q254 61 315 77 Q340 83 364 108 Q387 132 414 135" stroke-width="11"/>
+<path d="M177 161 Q174 148 186 145 L197 147 Q208 150 207 162 L206 445 Q205 458 193 458 L181 456 Q171 452 172 440 Z" stroke-width="13"/>
+<path d="M195 173 L263 121 M195 194 L293 133 M195 218 L313 161 M195 241 L325 190" stroke-width="12"/>
+<path d="M199 294 L261 290 M199 338 L259 334 M198 383 L256 379" stroke-width="12"/>
+</g>
+<g fill="#5127C9"><rect x="184" y="258" width="9" height="21" rx="4"/><rect x="184" y="306" width="9" height="21" rx="4"/><rect x="184" y="351" width="9" height="21" rx="4"/><rect x="184" y="401" width="9" height="21" rx="4"/></g>
+</svg>

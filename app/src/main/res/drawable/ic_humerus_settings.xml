@@ -1,0 +1,28 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="512"
+    android:viewportHeight="512">
+    <!-- Matched to design/pulselibre-humerus-easter-egg.svg. Settings only; launcher icon unchanged. -->
+    <path android:fillColor="#5127C9"
+        android:pathData="M256,8 A248,248 0,1 1,256 504 A248,248 0,1 1,256 8 Z"/>
+    <path android:fillColor="#00000000" android:strokeColor="#FFFFFF"
+        android:strokeWidth="14" android:strokeLineCap="round" android:strokeLineJoin="round"
+        android:pathData="M194,120 Q236,70 305,104 Q336,124 352,160 Q363,186 350,220 Q336,250 308,255 Q281,265 269,297 L262,460"/>
+    <path android:fillColor="#00000000" android:strokeColor="#FFFFFF"
+        android:strokeWidth="11" android:strokeLineCap="round" android:strokeLineJoin="round"
+        android:pathData="M214,91 Q254,61 315,77 Q340,83 364,108 Q387,132 414,135"/>
+    <path android:fillColor="#00000000" android:strokeColor="#FFFFFF"
+        android:strokeWidth="13" android:strokeLineCap="round" android:strokeLineJoin="round"
+        android:pathData="M177,161 Q174,148 186,145 L197,147 Q208,150 207,162 L206,445 Q205,458 193,458 L181,456 Q171,452 172,440 Z"/>
+    <path android:fillColor="#00000000" android:strokeColor="#FFFFFF"
+        android:strokeWidth="12" android:strokeLineCap="round" android:strokeLineJoin="round"
+        android:pathData="M195,173 L263,121 M195,194 L293,133 M195,218 L313,161 M195,241 L325,190"/>
+    <path android:fillColor="#00000000" android:strokeColor="#FFFFFF"
+        android:strokeWidth="12" android:strokeLineCap="round" android:strokeLineJoin="round"
+        android:pathData="M199,294 L261,290 M199,338 L259,334 M198,383 L256,379"/>
+    <path android:fillColor="#5127C9" android:pathData="M188,258 L189,258 Q193,258 193,262 L193,275 Q193,279 189,279 L188,279 Q184,279 184,275 L184,262 Q184,258 188,258 Z"/>
+    <path android:fillColor="#5127C9" android:pathData="M188,306 L189,306 Q193,306 193,310 L193,323 Q193,327 189,327 L188,327 Q184,327 184,323 L184,310 Q184,306 188,306 Z"/>
+    <path android:fillColor="#5127C9" android:pathData="M188,351 L189,351 Q193,351 193,355 L193,368 Q193,372 189,372 L188,372 Q184,372 184,368 L184,355 Q184,351 188,351 Z"/>
+    <path android:fillColor="#5127C9" android:pathData="M188,401 L189,401 Q193,401 193,405 L193,418 Q193,422 189,422 L188,422 Q184,422 184,418 L184,405 Q184,401 188,401 Z"/>
+</vector>

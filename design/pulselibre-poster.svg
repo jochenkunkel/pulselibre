@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="1200" viewBox="0 0 900 1200" role="img" aria-label="PulseLibre project poster">
+<defs><linearGradient id="g" x2="1" y2="1"><stop stop-color="#5127C9"/><stop offset="1" stop-color="#28105F"/></linearGradient></defs>
+<rect width="900" height="1200" fill="#F8F5FF"/>
+<rect width="900" height="460" fill="url(#g)"/>
+<g font-family="Arial, sans-serif">
+<text x="70" y="105" font-size="74" font-weight="bold" fill="white">PulseLibre</text>
+<text x="73" y="159" font-size="26" fill="white">Deine Gesundheitsdaten. Deine Kontrolle.</text>
+<path d="M75 292 H250 L290 224 L345 366 L399 274 L433 294 H817" fill="none" stroke="white" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="72" y="415" font-size="24" fill="#E4D8FF">Frei messen. Privat bleiben.</text>
+<text x="70" y="548" font-size="39" font-weight="bold" fill="#28105F">Aus einer persönlichen Erfahrung.</text>
+<text x="70" y="600" font-size="27" fill="#403653">Knochenbruch · Operation · Genesung</text>
+<text x="70" y="656" font-size="27" fill="#403653">Daraus entstanden zwei unabhängige Projekte:</text>
+<rect x="65" y="703" width="770" height="128" rx="27" fill="white" stroke="#E4D8FF"/>
+<text x="94" y="759" font-size="31" font-weight="bold" fill="#5127C9">Mein Weg 2</text>
+<text x="94" y="800" font-size="23" fill="#403653">Mobilität und Alltag selbstbestimmt gestalten.</text>
+<rect x="65" y="853" width="770" height="128" rx="27" fill="white" stroke="#E4D8FF"/>
+<text x="94" y="909" font-size="31" font-weight="bold" fill="#5127C9">PulseLibre</text>
+<text x="94" y="950" font-size="23" fill="#403653">Bluetooth, lokale Daten, transparente Entwicklung.</text>
+<text x="70" y="1062" font-size="29" font-weight="bold" fill="#28105F">Zwei Apps. Eine gemeinsame Geschichte.</text>
+<text x="70" y="1110" font-size="20" fill="#635A72">Vision und Designkonzept · keine fertige Produktfunktion</text>
+</g></svg>
