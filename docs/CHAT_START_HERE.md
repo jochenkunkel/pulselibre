@@ -38,7 +38,7 @@ Du arbeitest am Projekt **PulsLibre** (in älteren Gesprächen teilweise „Puls
 - Offline-first, keine INTERNET-Berechtigung laut dokumentiertem Design; Datenschutz und Exportpfade trotzdem codebezogen prüfen.
 - Android-App-Updates benötigen **gleiche kompatible Signatur, identische applicationId und höheren versionCode**. Lokaler Standard in `app/build.gradle.kts`: `versionCode=2`, `versionName=2.0.0_build2`; CI setzt versionCode über `github.run_number`.
 - Stabile CI-Debug-Signierung erfordert vier GitHub-Secrets: `PULSELIBRE_SIGNING_KEY_B64`, `PULSELIBRE_SIGNING_STORE_PASSWORD`, `PULSELIBRE_SIGNING_KEY_ALIAS`, `PULSELIBRE_SIGNING_KEY_PASSWORD`. **Ob sie eingerichtet sind, ist nicht bestätigt.** Niemals ihre Werte ausgeben oder ins Repo schreiben.
-- `.github/workflows/android.yml`: `main`-Pushes bauen Debug und führen JVM-Tests aus; Lint und API-35-Emulator laufen laut Konfiguration bei PRs, `v*`-Tags oder manuellem Full-Test-Dispatch. **Erfolg aktueller Läufe nicht unterstellen.**
+- `.github/workflows/android.yml`: `main`-Pushes bauen Debug und führen JVM-Tests aus; Lint und API-35-Emulator laufen laut aktueller Workflow-Konfiguration **nicht bei gewöhnlichen Pull Requests**, sondern nur bei `v*`-Tags oder manuellem Dispatch mit `full_tests=true`. PRs und `main`-Pushes führen Build und JVM-Tests aus. **Erfolg aktueller Läufe nicht unterstellen.**
 - Aktuell kein Gradle-Wrapper laut README. Lokaler Build, falls SDK/Gradle verfügbar: `gradle :app:testDebugUnitTest :app:lintDebug :app:assembleDebug :app:assembleDebugAndroidTest`. Ein Emulator-/Hardwaretest ist damit nicht ersetzt.
 
 ## 4. Was bereits auf `main` umgesetzt wurde (historische Commit-Referenzen)
