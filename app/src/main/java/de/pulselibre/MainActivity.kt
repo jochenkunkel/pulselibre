@@ -58,6 +58,9 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         startDashboardPolling()
+        if (::adapter.isInitialized && ::status.isInitialized && !adapter.isEnabled) {
+            status.text = "Bluetooth ist ausgeschaltet – CIRQA-Messwerte können nicht empfangen werden."
+        }
     }
     override fun onPause() {
         stopDashboardPolling()
@@ -648,6 +651,27 @@ class MainActivity : AppCompatActivity() {
         ActivityCompat.requestPermissions(this, missing.toTypedArray(), 10)
     }
 
+    private fun ensureBluetoothEnabled(): Boolean {
+        if (adapter.isEnabled) return true
+        val message = "Bluetooth ist ausgeschaltet. Bitte aktiviere Bluetooth, damit PulsLibre CIRQA-Messwerte empfangen kann."
+        status.text = message
+        if (::output.isInitialized) output.text = message
+        lastScanDiagnostic = message
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("Bluetooth ausgeschaltet")
+            .setMessage(message)
+            .setNegativeButton("Später", null)
+            .setPositiveButton("Bluetooth aktivieren") { _, _ ->
+                try {
+                    startActivity(Intent(android.provider.Settings.ACTION_BLUETOOTH_SETTINGS))
+                } catch (_: Exception) {
+                    Toast.makeText(this, "Bluetooth bitte in den Android-Einstellungen einschalten.", Toast.LENGTH_LONG).show()
+                }
+            }
+            .show()
+        return false
+    }
+
     private fun ensurePermissions(): Boolean {
         val missing = permissions().filter { ActivityCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED }
         if (missing.isNotEmpty()) {
@@ -655,7 +679,7 @@ class MainActivity : AppCompatActivity() {
             ActivityCompat.requestPermissions(this, missing.toTypedArray(), 10)
             return false
         }
-        return true
+        return ensureBluetoothEnabled()
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
