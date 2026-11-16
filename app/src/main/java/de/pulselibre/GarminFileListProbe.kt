@@ -16,11 +16,12 @@ class GarminFileListProbe {
         private set
     var rejectedFrames = 0
         private set
+    val frameTypes = linkedMapOf<String, Int>()
     var otherMessages = 0
         private set
 
     fun summary(): String = "GFDI-Frames: $frames; FileListResponse: $validLists; " +
-        "Dateieinträge: $fileEntries; andere Nachrichten: $otherMessages; ungültige Frames: $rejectedFrames"
+        "Dateieinträge: $fileEntries; Typen: $frameTypes; andere Nachrichten: $otherMessages; ungültige Frames: $rejectedFrames"
 
     fun observeMlPayload(payload: ByteArray) {
         for (byte in payload) {
@@ -51,6 +52,8 @@ class GarminFileListProbe {
         if (GarminFrameValidator.inspectVerified(frame) == null) { rejectedFrames++; return }
         frames++
         val type = u16(frame, 2)
+        val label = if (type and 0x8000 != 0) "compact-${type and 255}" else "gfdi-$type"
+        frameTypes[label] = (frameTypes[label] ?: 0) + 1
         if (type and 0x8000 == 0 || type and 255 !in listOf(0x2b, 0x2c, 0x39, 0x3a)) {
             otherMessages++
             return
