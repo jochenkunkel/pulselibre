@@ -66,6 +66,14 @@ class CirqaOvernightService : Service() {
             stopSelf()
             return START_NOT_STICKY
         }
+        val bluetooth = (getSystemService(BLUETOOTH_SERVICE) as BluetoothManager).adapter
+        if (bluetooth == null || !bluetooth.isEnabled) {
+            updateNotification("Bluetooth ausgeschaltet – bitte einschalten")
+            getSharedPreferences(PREFS, MODE_PRIVATE).edit().putBoolean(KEY_RUNNING, false).apply()
+            stopForeground(STOP_FOREGROUND_REMOVE)
+            stopSelf()
+            return START_NOT_STICKY
+        }
         running = true
         getSharedPreferences(PREFS, MODE_PRIVATE).edit().putBoolean(KEY_RUNNING, true).apply()
         if (!log.append("session_start", mapOf("interval_seconds" to INTERVAL_MS / 1000, "mode" to "realtime_poll"))) {
