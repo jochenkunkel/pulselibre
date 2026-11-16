@@ -19,7 +19,7 @@ object GarminGfdiHeader {
         val high = frame[3].toInt() and 0xff
         val compact = (high and 0x80) != 0
         val type = if (compact) 5000 + low else low or (high shl 8)
-        val sequence = if (compact) high and 0x1f else null
+        val sequence = if (compact) high and 0x7f else null
         val responseTo = if (type == 5000 && frame.size >= 9)
             (frame[4].toInt() and 0xff) or ((frame[5].toInt() and 0xff) shl 8)
         else null
