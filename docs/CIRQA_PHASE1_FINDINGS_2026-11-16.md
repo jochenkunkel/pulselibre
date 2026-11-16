@@ -30,3 +30,14 @@ GFDI-Registrierung und Empfang von DeviceInformation sind bestätigt. Die verfü
 ## Test-Gate
 
 Ein neuer Gerätetest ist erst sinnvoll, wenn ein grüner Build die zusätzlich benötigten strukturellen Diagnosen tatsächlich erfasst. Bis dahin ist keine weitere Benutzeraktion erforderlich.
+
+## Zweiter vollständiger Gerätetest: Bootstrap-Diagnose
+
+- GFDI-Registrierung bestätigt, Handle **12**, GATT-Schreiben bestätigt, Protokollzustand COMPLETE.
+- Beobachtungsfenster regulär beendet, **5 Notifications** (eine Registrierung, vier GFDI-Pakete zu je 58 Bytes).
+- **4 gültige GFDI-Frames**, ausschließlich **5024**; **3 wiederholte DeviceInformation**; keine ungültigen Frames.
+- Bootstrap-Diagnose: Status=0, weitere Typen=0, aktive Bootstrap-Befehle=0.
+- FileListResponse=0, Dateieinträge=0; keine Dateiübertragung, keine FileListRequest.
+- Reproduziert den ersten vollständigen Lauf (Handle 11, vier 5024-Frames). Unterschiedliches GFDI-Handle ist kein Fehlerbeleg.
+
+**Interpretation:** Reine Registrierung/Beobachtung führt reproduzierbar nicht über wiederholte DeviceInformation hinaus. Ein ausstehendes ACK ist eine plausible, **nicht bestätigte** Hypothese. Ein weiterer unveränderter passiver Lauf bringt voraussichtlich keinen Erkenntnisgewinn. Nächster Entwicklungsschritt: ACK-Frameformat und sicheren expliziten Bootstrap-Versuch anhand verifizierter Protokollreferenzen prüfen; keine fenix-8-Identitätsbytes ungeprüft senden.
