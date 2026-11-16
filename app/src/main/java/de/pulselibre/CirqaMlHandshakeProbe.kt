@@ -36,6 +36,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private var fileListProbe = GarminFileListProbe()
     private var historyHandle: Int? = null
     private var historyRouted = 0
+    private var historyBurstStopped = false
     private var historyUnrouted = 0
     private val historyLengths = BoundedPacketLengths()
     private var pendingService = 0
@@ -147,6 +148,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         fileListProbe = GarminFileListProbe()
         historyHandle = null
         historyRouted = 0
+        historyBurstStopped = false
         historyUnrouted = 0
         historyLengths.clear()
         if (closeAll) realtimeMode = false
@@ -304,6 +306,14 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                 if (first != null && first == historyHandle) {
                     historyRouted++
                     fileListProbe.observeMlPayload(bytes.copyOfRange(1, bytes.size))
+                    // Fail closed on repetitive protocol traffic: do not let a read-only
+                    // diagnostic keep the device in an unacknowledged response loop.
+                    if (fileListRequestMode && !historyBurstStopped &&
+                        fileListProbe.frames >= 60 && fileListProbe.validLists == 0) {
+                        historyBurstStopped = true
+                        finish("Sicherheitsabbruch: mindestens 60 GFDI-Frames ohne Dateilistenantwort; möglicher Wiederholungsverkehr.", g)
+                        return
+                    }
                 } else historyUnrouted++
                 historyLengths.record(bytes.size)
             }
