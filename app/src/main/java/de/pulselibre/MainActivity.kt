@@ -137,39 +137,74 @@ class MainActivity : AppCompatActivity() {
                 LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(5) })
             overviewView(item)
         }
-        overviewView(text("CIRQA · Lokale Messwerte", 20f, ink, true), 5)
-        overviewView(text("Nur tatsächlich gespeicherte Werte · Empfangszeit des Smartphones · keine Diagnose", 12f, muted), 12)
-        val cirqaDashboard = card()
+        // CIRQA home dashboard: source-backed values only, never placeholder health scores.
+        overviewView(text("CIRQA · Gesundheitsübersicht", 22f, ink, true), 5)
+        overviewView(text("Lokal gespeichert · Messzeit = Empfangszeit · keine medizinische Diagnose", 12f, muted), 12)
+        val cirqaDashboard = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         fun updateCirqaDashboard() {
-            // Import the diagnostic file into the indexed, lossless local database.
-            // Import is idempotent and does not modify the running recorder or JSONL.
-            val dbStatus = try {
-                CirqaDatabase(this).use { db ->
-                    val result = db.importJsonl()
-                    "SQLite: ${db.eventCount()} Ereignisse · ${result.invalid} ungültige Zeilen"
-                }
-            } catch (e: Exception) {
-                "SQLite-Import nicht verfügbar (${e.javaClass.simpleName}); JSONL bleibt erhalten"
-            }
             val summary = CirqaDashboardReader(this).read()
             cirqaDashboard.removeAllViews()
-            cirqaDashboard.addView(text("${summary.samples} gültige Datensätze · ${summary.bytes} Bytes lokal", 13f, violet, true))
-            cirqaDashboard.addView(text(dbStatus, 11f, muted))
-            summary.metrics.forEach { metric ->
-                cirqaDashboard.addView(text(metric.title, 13f, muted, true),
-                    LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(14) })
-                cirqaDashboard.addView(text(metric.value, 18f, ink, true))
-                cirqaDashboard.addView(text(metric.note, 11f, muted))
+            val headerCard = card()
+            headerCard.addView(text("DEINE MESSDATEN", 11f, violet, true))
+            headerCard.addView(text("${summary.samples} empfangene Messungen", 21f, ink, true),
+                LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(7) })
+            headerCard.addView(text("Originalprotokoll: ${summary.bytes / 1024} KiB · keine Cloud", 12f, muted),
+                LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(5) })
+            cirqaDashboard.addView(headerCard, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(12) })
+
+            // The first four cards are high-priority measurements, not derived health claims.
+            val primary = summary.metrics.take(4)
+            val tiles = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+            primary.chunked(2).forEach { pair ->
+                val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+                pair.forEachIndexed { index, metric ->
+                    val tile = card().apply {
+                        contentDescription = "${metric.title}: ${metric.value}. ${metric.note}"
+                        addView(text(metric.title, 12f, muted, true))
+                        addView(text(metric.value, 22f, ink, true),
+                            LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(10) })
+                        addView(text(metric.note, 10f, muted),
+                            LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(7) })
+                    }
+                    row.addView(tile, LinearLayout.LayoutParams(0, -2, 1f).apply {
+                        if (index == 0) rightMargin = dp(8)
+                    })
+                }
+                tiles.addView(row, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(8) })
             }
+            cirqaDashboard.addView(tiles)
+
+            val detail = card()
+            detail.addView(text("WEITERE GESUNDHEITSWERTE", 11f, violet, true))
+            summary.metrics.drop(4).forEach { metric ->
+                val item = LinearLayout(this).apply {
+                    orientation = LinearLayout.VERTICAL
+                    setPadding(0, dp(13), 0, dp(13))
+                    contentDescription = "${metric.title}: ${metric.value}. ${metric.note}"
+                }
+                item.addView(text(metric.title, 13f, muted, true))
+                item.addView(text(metric.value, 19f, ink, true),
+                    LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(4) })
+                item.addView(text(metric.note, 11f, muted),
+                    LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(4) })
+                detail.addView(item)
+                detail.addView(android.view.View(this).apply {
+                    setBackgroundColor(Color.rgb(236, 233, 244))
+                }, LinearLayout.LayoutParams(-1, dp(1)))
+            }
+            cirqaDashboard.addView(detail, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(4) })
         }
         updateCirqaDashboard()
         overviewView(cirqaDashboard)
         overviewView(TextView(this).apply {
-            text = "Lokale Messwerte aktualisieren"
+            text = "↻  Gesundheitswerte aktualisieren"
             textSize = 15f
+            setTypeface(null, Typeface.BOLD)
+            gravity = android.view.Gravity.CENTER
             setTextColor(violet)
+            minHeight = dp(52)
             setPadding(dp(14), dp(14), dp(14), dp(14))
-            background = rounded(Color.WHITE)
+            background = rounded(Color.WHITE, 14)
             isClickable = true
             isFocusable = true
             setOnClickListener { updateCirqaDashboard() }
