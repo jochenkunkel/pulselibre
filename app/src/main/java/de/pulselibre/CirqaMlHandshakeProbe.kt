@@ -27,6 +27,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private var historyDiagnosticMode = false
     private var historyRegistered = false
     private var historyTransport = GarminHistoryTransportInspector()
+    private var fileListProbe = GarminFileListProbe()
     private var historyHandle: Int? = null
     private var historyRouted = 0
     private var historyUnrouted = 0
@@ -123,6 +124,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         active = true
         historyRegistered = false
         historyTransport = GarminHistoryTransportInspector()
+        fileListProbe = GarminFileListProbe()
         historyHandle = null
         historyRouted = 0
         historyUnrouted = 0
@@ -253,7 +255,10 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                 historyHandle = registration.handle
             } else {
                 val first = bytes.firstOrNull()?.toInt()?.and(255)
-                if (first != null && first == historyHandle) historyRouted++ else historyUnrouted++
+                if (first != null && first == historyHandle) {
+                    historyRouted++
+                    fileListProbe.observeMlPayload(bytes.copyOfRange(1, bytes.size))
+                } else historyUnrouted++
                 historyLengths.record(bytes.size)
             }
         }
@@ -375,6 +380,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         "Notifications: $notificationsReceived\n" +
         "Protokollzustand: ${session?.stage}\n" +
         "Transportanalyse: ${historyTransport.summary()}\n" +
+        "Passiver GFDI/COBS/FileSync-Decoder: ${fileListProbe.summary()}\n" +
         "GFDI-Handle: ${historyHandle ?: "unbekannt"}; zugeordnete Pakete: $historyRouted; übrige Pakete: $historyUnrouted\n" +
         "Paketlängen (ohne Registrierung): ${historyLengths.summary()}\n" +
         "Antwort-Metadaten (max. 12): ${notificationShapes.joinToString(" | ")}\n" +
