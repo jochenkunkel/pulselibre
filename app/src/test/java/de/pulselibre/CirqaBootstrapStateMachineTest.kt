@@ -43,4 +43,36 @@ class CirqaBootstrapStateMachineTest {
         assertEquals(101, machine.retries)
         assertTrue(machine.summary().contains("Intervalle-ms=[5000"))
     }
+    @Test fun ignoresUnverifiedFramesAndDoesNotCountBeforeAck() {
+        val machine = CirqaBootstrapStateMachine()
+        val repeated = frame(5050, byteArrayOf(7, 8))
+        machine.observe(repeated, 100L)
+        machine.observe(repeated, 200L)
+        assertEquals(0, machine.retries)
+        assertEquals(CirqaBootstrapStateMachine.State.WAITING_DEVICE_INFORMATION, machine.state)
+
+        val corrupt = frame(5024, byteArrayOf(1)).clone()
+        corrupt[corrupt.lastIndex] = (corrupt.last().toInt() xor 0x01).toByte()
+        machine.observe(corrupt, 300L)
+        assertEquals(CirqaBootstrapStateMachine.State.WAITING_DEVICE_INFORMATION, machine.state)
+
+        machine.observe(frame(5024, byteArrayOf(1)), 400L)
+        machine.onAckAttempt()
+        machine.observe(repeated, 500L)
+        machine.observe(frame(5050, byteArrayOf(7, 9)), 600L)
+        assertEquals(0, machine.retries)
+        assertEquals(CirqaBootstrapStateMachine.State.WAITING_5050_RESPONSE, machine.state)
+    }
+
+    @Test fun ignoresPostRetryMessageUntil5050ObservedAfterAck() {
+        val machine = CirqaBootstrapStateMachine()
+        machine.observe(frame(5024, byteArrayOf(1)), 10L)
+        machine.onAckAttempt()
+        machine.observe(frame(5011, byteArrayOf(9)), 20L)
+        assertEquals(CirqaBootstrapStateMachine.State.ACK_ATTEMPTED, machine.state)
+        machine.observe(frame(5050, byteArrayOf(7)), 30L)
+        machine.observe(frame(5011, byteArrayOf(9)), 40L)
+        assertEquals(CirqaBootstrapStateMachine.State.POST_RETRY_5011_SEEN, machine.state)
+        assertEquals(0, machine.retries)
+    }
 }
