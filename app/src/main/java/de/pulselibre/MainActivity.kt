@@ -295,6 +295,21 @@ class MainActivity : AppCompatActivity() {
                     cirqaMlProbe?.startAllMetrics { message -> runOnUiThread { output.text = message } }
                 }.show()
         })
+        deviceView(actionButton("CIRQA: Bewegungssensor (Service 16) prüfen", false) {
+            if (!ensurePermissions()) return@actionButton
+            if (cirqaMlProbe == null) cirqaMlProbe = CirqaMlHandshakeProbe(this, adapter)
+            output.text = "Service 16: einmalige, zeitbegrenzte Prüfung · keine Rohdaten gespeichert"
+            cirqaMlProbe?.startMotionDiscovery { message ->
+                runOnUiThread {
+                    output.text = message
+                    android.app.AlertDialog.Builder(this)
+                        .setTitle("CIRQA · Bewegungssensor-Test")
+                        .setMessage(message)
+                        .setPositiveButton("OK", null)
+                        .show()
+                }
+            }
+        })
         deviceView(actionButton("CIRQA: Nachtaufzeichnung starten (lokal)", false) {
             if (!ensurePermissions()) return@actionButton
             if (scanning) stopScan()
