@@ -402,7 +402,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             if (!active) return@post
             active = false
             main.removeCallbacksAndMessages(null)
-            CirqaBleSessionGate.release(this)
+            // Keep the session gate until GATT has actually been closed.
             // Best-effort MousePods stop command before GATT disconnect; never CLOSE_ALL.
             val stopHandle = if (mousePodsMode && motionStartIssued) motionHandle else null
             if (stopHandle != null && g != null && tx != null &&
@@ -423,8 +423,14 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                         g.writeCharacteristic(characteristic)
                     }
                 } catch (_: Exception) { /* Disconnect remains mandatory even if stop fails. */ }
-                main.postDelayed({ safeClose(g) }, 400L)
-            } else safeClose(g)
+                main.postDelayed({
+                    safeClose(g)
+                    CirqaBleSessionGate.release(this)
+                }, 400L)
+            } else {
+                safeClose(g)
+                CirqaBleSessionGate.release(this)
+            }
             gatt = null
             callback?.invoke(if (historyDiagnosticMode) historyReport(message) else message)
             callback = null
@@ -439,9 +445,9 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     }
     fun close() {
         active = false
-        CirqaBleSessionGate.release(this)
         main.removeCallbacksAndMessages(null)
         safeClose(gatt)
+        CirqaBleSessionGate.release(this)
         gatt = null
         callback = null
         session = null
