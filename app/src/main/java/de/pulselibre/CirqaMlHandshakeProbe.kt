@@ -25,6 +25,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private var requestedCloseAll = false
     private var realtimeMode = false
     private var historyDiagnosticMode = false
+    private var fileListRequestMode = false
+    private var fileListRequestSent = false
     private var historyRegistered = false
     private var historyTransport = GarminHistoryTransportInspector()
     private var fileListProbe = GarminFileListProbe()
@@ -56,6 +58,15 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
      */
     fun startHistoryDiagnostic(result: (String) -> Unit) {
         if (active) { result("ML-Test läuft bereits."); return }
+        historyDiagnosticMode = true
+        realtimeMode = false
+        start(false, result)
+    }
+
+    /** Explicit one-shot FileSync V2 list query; does not download or modify files. */
+    fun startFileListQuery(result: (String) -> Unit) {
+        if (active) { result("ML-Test läuft bereits."); return }
+        fileListRequestMode = true
         historyDiagnosticMode = true
         realtimeMode = false
         start(false, result)
@@ -123,6 +134,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         if (!CirqaBleSessionGate.acquire(this)) { result("CIRQA Bluetooth belegt: Bitte laufende Messung abwarten und erneut versuchen."); return }
         active = true
         historyRegistered = false
+        fileListRequestSent = false
         historyTransport = GarminHistoryTransportInspector()
         fileListProbe = GarminFileListProbe()
         historyHandle = null
@@ -362,7 +374,19 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     send(g, GarminMlHandshake.registerRequest(pendingService))
                 } else if (historyDiagnosticMode) {
                     historyRegistered = true
-                    mark("GFDI registriert; beobachte Metadaten bis zum Zeitlimit")
+                    if (fileListRequestMode) {
+                        val handle = historyHandle
+                        if (handle == null) {
+                            finish("GFDI-Handle fehlt; Dateiliste nicht angefordert.", g)
+                        } else {
+                            fileListRequestSent = true
+                            mark("Sende einmalig FileSync V2 FileListRequest")
+                            val chunks = GarminFileListRequest.mlChunks(handle)
+                            chunks.forEachIndexed { index, chunk ->
+                                main.postDelayed({ if (active) send(g, chunk) }, 150L * (index + 1))
+                            }
+                        }
+                    } else mark("GFDI registriert; beobachte Metadaten bis zum Zeitlimit")
                 } else finish("Garmin ML: GFDI-Service erfolgreich registriert! ${if (requestedCloseAll) "CLOSE_ALL wurde zuvor bestätigt." else "Ohne CLOSE_ALL."} Verbindung beendet; keine Gesundheitsdaten gelesen.", g)
             }
             GarminMlHandshake.Stage.FAILED ->
@@ -384,8 +408,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         "GFDI-Handle: ${historyHandle ?: "unbekannt"}; zugeordnete Pakete: $historyRouted; übrige Pakete: $historyUnrouted\n" +
         "Paketlängen (ohne Registrierung): ${historyLengths.summary()}\n" +
         "Antwort-Metadaten (max. 12): ${notificationShapes.joinToString(" | ")}\n" +
-        "Dateiliste: NICHT angefordert; Historienzugriff NICHT nachgewiesen.\n" +
-        "Keine Dateibefehle, kein CLOSE_ALL, keine Gesundheitswerte oder Geräteadressen im Bericht."
+        "Dateiliste: ${if (fileListRequestSent) \"FileSync V2 Anfrage gesendet (Antwort nicht garantiert)\" else \"NICHT angefordert\"}; Historienzugriff ${if (fileListProbe.validLists > 0) \"durch Antwort bestätigt\" else \"NICHT nachgewiesen\"}.\\n" +
+        "Keine Dateiübertragung, kein SetFlags, kein CLOSE_ALL, keine Gesundheitswerte oder Geräteadressen im Bericht."
 
     private fun realtimeSummary(reason: String): String =
         "CIRQA Echtzeit-Test: $reason. " +
@@ -444,6 +468,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             session = null
             realtimeMode = false
             historyDiagnosticMode = false
+            fileListRequestMode = false
             expandedMode = false
             exploratoryMode = false
             mousePodsMode = false
