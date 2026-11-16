@@ -71,7 +71,7 @@ class GarminFileListProbe {
                 5 -> "LENGTH_ERROR"
                 else -> "UNKNOWN_$status"
             }
-            val sequence = if (compact) (type ushr 8) and 31 else -1
+            val sequence = if (compact) (type ushr 8) and 0x7f else -1
             val key = "request=$original/status=$name/seq=$sequence"
             responseStatuses[key] = (responseStatuses[key] ?: 0) + 1
             if (status != 0) responseErrors++
