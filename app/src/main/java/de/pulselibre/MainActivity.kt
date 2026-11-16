@@ -455,6 +455,37 @@ class MainActivity : AppCompatActivity() {
                     }
                 }.show()
         })
+        debugView(actionButton("CIRQA: Dateiliste lesen (experimentell)", false) {
+            if (!ensurePermissions()) return@actionButton
+            if (scanning) stopScan()
+            androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("CIRQA · Dateiliste lesen (experimentell)")
+                .setMessage("Garmin Connect und PulsLibre-Recorder vorher beenden. Es wird EIN FileSync-V2-Dateilistenbefehl an das Band gesendet. Keine Dateien werden heruntergeladen, gelöscht oder als synchronisiert markiert. Die CIRQA-Kompatibilität ist unbestätigt. Der Versuch endet nach 20 Sekunden. Fortfahren?")
+                .setNegativeButton("Abbrechen", null)
+                .setPositiveButton("Dateiliste anfragen") { _, _ ->
+                    if (cirqaMlProbe == null) cirqaMlProbe = CirqaMlHandshakeProbe(this, adapter)
+                    lastHistoryDiagnostic = null
+                    cirqaMlProbe?.startFileListQuery { message ->
+                        runOnUiThread {
+                            output.text = message
+                            if (message.startsWith("PulsLibre · CIRQA Historien-Diagnose")) {
+                                lastHistoryDiagnostic = message
+                                androidx.appcompat.app.AlertDialog.Builder(this)
+                                    .setTitle("Dateilisten-Test abgeschlossen")
+                                    .setMessage(message)
+                                    .setPositiveButton("Schließen", null)
+                                    .setNeutralButton("Bericht teilen") { _, _ ->
+                                        val intent = Intent(Intent.ACTION_SEND).apply {
+                                            type = "text/plain"
+                                            putExtra(Intent.EXTRA_TEXT, message)
+                                        }
+                                        startActivity(Intent.createChooser(intent, "CIRQA-Dateilisten-Test teilen"))
+                                    }.show()
+                            }
+                        }
+                    }
+                }.show()
+        })
         debugView(actionButton("Letzte Historien-Diagnose teilen", false) {
             val report = lastHistoryDiagnostic
             if (report == null) {
