@@ -5,6 +5,7 @@ package de.pulselibre
  * MIT-licensed GarminHRM600. No file flags, FileRequest, or device mutation.
  */
 object GarminFileListRequest {
+    /** Offline-only wire preview. CIRQA rejected this compact request with UNSUPPORTED. */
     fun gfdi(): ByteArray {
         // Smart container field 43 (length-delimited), containing field 9
         // FileListRequest with an empty message: list all, no sync flags.
