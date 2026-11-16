@@ -23,6 +23,18 @@ class GarminPostBootstrapObserverTest {
         assertTrue(summary.contains("5050=1"))
         assertTrue(summary.contains("5011=1"))
         assertTrue(summary.contains("5050={3=1}"))
+        assertTrue(summary.contains("5050=[1]"))
         assertFalse(summary.contains("Payload=01"))
     }
+    @Test fun reportsEqualityPatternsWithoutPayloadOrHashes() {
+        val observer = GarminPostBootstrapObserver()
+        observer.observe(frame(5050, byteArrayOf(71, 72)), true)
+        observer.observe(frame(5050, byteArrayOf(71, 72)), true)
+        observer.observe(frame(5050, byteArrayOf(71, 73)), true)
+        val summary = observer.summary()
+        assertTrue(summary.contains("5050=[1, 1, 2]"))
+        assertFalse(summary.contains("71"))
+        assertFalse(summary.contains("72"))
+    }
+
 }
