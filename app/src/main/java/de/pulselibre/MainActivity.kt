@@ -308,6 +308,30 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         })
+        deviceView(actionButton("CIRQA: Bewegungssensor – MousePods Start + Lesen", false) {
+            if (!ensurePermissions()) return@actionButton
+            if (scanning) stopScan()
+            androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("CIRQA · MousePods-Vergleichstest")
+                .setMessage("Garmin Connect vorher vollständig beenden. Anders als beim normalen Service-16-Test registriert PulseLibre den Dienst und sendet anschließend das Startkommando 0x01 auf dem bestätigten Handle. Maximal 20 Sekunden; Paketanzahl wird angezeigt, keine Rohbewegungsdaten gespeichert. Beim Beenden wird 0x00 zum Stoppen versucht. Kein CLOSE_ALL, keine Kopplungsänderung. Jetzt testen?")
+                .setNegativeButton("Abbrechen", null)
+                .setPositiveButton("MousePods-Test starten") { _, _ ->
+                    if (cirqaMlProbe == null) cirqaMlProbe = CirqaMlHandshakeProbe(this, adapter)
+                    output.text = "MousePods-Vergleichstest läuft · maximal 20 Sekunden"
+                    cirqaMlProbe?.startMousePodsMotion { message ->
+                        runOnUiThread {
+                            output.text = message
+                            if (!message.startsWith("ML-Test: Verbinde")) {
+                                android.app.AlertDialog.Builder(this)
+                                    .setTitle("CIRQA · MousePods-Ergebnis")
+                                    .setMessage(message)
+                                    .setPositiveButton("OK", null)
+                                    .show()
+                            }
+                        }
+                    }
+                }.show()
+        })
         deviceView(actionButton("CIRQA: Nachtaufzeichnung starten (lokal)", false) {
             if (!ensurePermissions()) return@actionButton
             if (scanning) stopScan()
