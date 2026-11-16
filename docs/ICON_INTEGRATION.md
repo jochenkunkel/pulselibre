@@ -2,9 +2,9 @@
 
 ## Android
 - `AndroidManifest.xml`: `android:icon` and `android:roundIcon` point to launcher resources.
-- API 26+: adaptive icon in `mipmap-anydpi-v26/ic_launcher.xml` and `ic_launcher_round.xml`; violet background #5127C9, white heart/ECG symbol, monochrome layer for themed icons.
+- API 26+: adaptive icon in `mipmap-anydpi-v26/ic_launcher.xml` and `ic_launcher_round.xml`; violet background #5127C9, original P-and-heart/ECG illustration from `design/pulselibre-icon.svg`, scaled to the adaptive icon safe zone; themed monochrome layer remains simplified.
 - API 25 and below: vector fallback in `drawable/ic_pulselibre_legacy.xml` (minSdk is 26; included as reusable asset).
-- Original detailed shoulder-fixation artwork remains in `design/pulselibre-icon.svg`; simplified heart/ECG is intentionally used for small launcher sizes and adaptive icon safe zone.
+- The original detailed P-and-heart artwork is the source of truth in `design/pulselibre-icon.svg`; the launcher foreground now reproduces its paths. Android may mask/crop the violet background depending on launcher. Legacy and themed monochrome variants remain simplified.
 - Personal medical X-ray image is NOT committed.
 
 ## GitHub
