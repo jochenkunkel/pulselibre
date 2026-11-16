@@ -345,6 +345,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                         val handle = historyHandle
                         if (handle != null) {
                             bootstrapAckSent = true
+                            fileListProbe.ackAttempted = true
                             bootstrapBaselineFrames = fileListProbe.frames
                             val framed = GarminFileListRequest.cobs(GarminDeviceInformationAckCandidate.frame())
                             framed.toList().chunked(19).forEach { part ->
