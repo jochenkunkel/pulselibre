@@ -36,6 +36,8 @@ class GarminProtobufReassembler(private val maxBytes: Int = 65536) {
             return null
         }
         if (offset == 0L) {
+            // A new transfer may supersede an incomplete one, but must be visible in diagnostics.
+            if (requestId != null && data.isNotEmpty()) rejected++
             reset()
             requestId = id
             messageType = type
