@@ -309,6 +309,12 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     // Fail closed on repetitive protocol traffic: do not let a read-only
                     // diagnostic keep the device in an unacknowledged response loop.
                     if (fileListRequestMode && !historyBurstStopped &&
+                        fileListProbe.responseErrors >= 3) {
+                        historyBurstStopped = true
+                        finish("Sicherheitsabbruch: mindestens drei negative GFDI-Protokollantworten; siehe GFDI-5000-Status.", g)
+                        return
+                    }
+                    if (fileListRequestMode && !historyBurstStopped &&
                         fileListProbe.frames >= 60 && fileListProbe.validLists == 0) {
                         historyBurstStopped = true
                         finish("Sicherheitsabbruch: mindestens 60 GFDI-Frames ohne Dateilistenantwort; möglicher Wiederholungsverkehr.", g)
