@@ -30,8 +30,30 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.13'
+      - name: Restore stable APK signing key
+        env:
+          SIGNING_KEY_B64: ${{ secrets.PULSELIBRE_SIGNING_KEY_B64 }}
+          SIGNING_STORE_PASSWORD: ${{ secrets.PULSELIBRE_SIGNING_STORE_PASSWORD }}
+          SIGNING_KEY_ALIAS: ${{ secrets.PULSELIBRE_SIGNING_KEY_ALIAS }}
+          SIGNING_KEY_PASSWORD: ${{ secrets.PULSELIBRE_SIGNING_KEY_PASSWORD }}
+        run: |
+          if [ -z "$SIGNING_KEY_B64" ] || [ -z "$SIGNING_STORE_PASSWORD" ] || [ -z "$SIGNING_KEY_ALIAS" ] || [ -z "$SIGNING_KEY_PASSWORD" ]; then
+            echo "::warning::Stable signing secrets missing: generated debug APK cannot reliably update previous CI installs."
+          else
+            printf '%s' "$SIGNING_KEY_B64" | base64 --decode > "$RUNNER_TEMP/pulselibre-ci.keystore"
+            echo "PULSELIBRE_SIGNING_STORE=$RUNNER_TEMP/pulselibre-ci.keystore" >> "$GITHUB_ENV"
+            echo "PULSELIBRE_SIGNING_STORE_PASSWORD=$SIGNING_STORE_PASSWORD" >> "$GITHUB_ENV"
+            echo "PULSELIBRE_SIGNING_KEY_ALIAS=$SIGNING_KEY_ALIAS" >> "$GITHUB_ENV"
+            echo "PULSELIBRE_SIGNING_KEY_PASSWORD=$SIGNING_KEY_PASSWORD" >> "$GITHUB_ENV"
+          fi
       - name: Build and unit tests (every change)
-        run: gradle :app:testDebugUnitTest :app:assembleDebug --stacktrace
+        run: gradle :app:testDebugUnitTest :app:assembleDebug -PpulselibreVersionCode=${{ github.run_number }} --stacktrace
+      - name: Print non-secret APK update diagnostics
+        run: |
+          echo "Package: de.pulselibre"
+          echo "Version code: ${{ github.run_number }}"
+          echo "Stable signing configured: $([ -n "$PULSELIBRE_SIGNING_STORE" ] && echo yes || echo no)"
+          "${ANDROID_HOME}/build-tools/35.0.0/apksigner" verify --print-certs app/build/outputs/apk/debug/app-debug.apk | grep -E 'Signer #1 certificate SHA-256 digest|Verified using' || true
       - name: Lint and instrumentation test APK (full checks only)
         if: github.event_name == 'pull_request' || startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && inputs.full_tests)
         run: gradle :app:lintDebug :app:assembleDebugAndroidTest --stacktrace
