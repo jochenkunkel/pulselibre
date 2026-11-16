@@ -12,8 +12,10 @@ on:
         required: false
         default: true
 concurrency:
-  group: android-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') && github.event_name != 'workflow_dispatch' }}
+  # One active run across pushes, PRs, tags and manually launched test suites.
+  # Cancels the entire superseded run, including its build, lint and emulator jobs.
+  group: pulselibre-single-active-workflow
+  cancel-in-progress: true
 jobs:
   build:
     runs-on: ubuntu-latest
