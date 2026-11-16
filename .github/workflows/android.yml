@@ -12,10 +12,9 @@ on:
         required: false
         default: false
 concurrency:
-  # Keep builds of successive main commits queued rather than cancelling an
-  # in-progress APK build. Separate refs do not block each other.
+  # Only the newest run per ref remains active; obsolete builds are cancelled.
   group: pulselibre-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: false
+  cancel-in-progress: true
 jobs:
   build:
     runs-on: ubuntu-latest
