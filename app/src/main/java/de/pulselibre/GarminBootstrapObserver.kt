@@ -10,6 +10,8 @@ class GarminBootstrapObserver {
         private set
     var deviceInformationFrames = 0
         private set
+    var repeatedDeviceInformationFrames = 0
+        private set
     var rejectedFileListRequests = 0
         private set
     var acknowledgedFileListRequests = 0
@@ -21,6 +23,7 @@ class GarminBootstrapObserver {
         val rawType = u16(frame, 2)
         val kind = if (rawType and 0x8000 != 0) 5000 + (rawType and 0xff) else rawType
         if (kind == 5024) {
+            if (deviceInformationFrames > 0) repeatedDeviceInformationFrames++
             deviceInformationFrames++
             if (state == State.WAITING_FOR_DEVICE) state = State.DEVICE_INFORMATION_SEEN
         }
@@ -43,7 +46,7 @@ class GarminBootstrapObserver {
     fun observeFileListResponse() { state = State.FILE_LIST_SEEN }
 
     fun summary(): String =
-        "Bootstrap: $state; Geräteinformationen: $deviceInformationFrames; " +
+        "Bootstrap: $state; Geräteinformationen: $deviceInformationFrames; wiederholte 5024: $repeatedDeviceInformationFrames; " +
         "Dateilisten-ACK: $acknowledgedFileListRequests; " +
         "Dateilisten-UNSUPPORTED: $rejectedFileListRequests"
 
