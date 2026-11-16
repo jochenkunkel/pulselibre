@@ -11,7 +11,9 @@ class CirqaBootstrapStateMachine {
         private set
     private var last5050: ByteArray? = null
     private var last5050AtMs: Long? = null
-    private val intervals = mutableListOf<Long>()
+    // Keep only recent timing evidence; repeated notifications must not grow memory forever.
+    private val intervals = ArrayDeque<Long>()
+    private val maxIntervals = 32
 
     fun onAckAttempt() {
         ackAttempted = true
@@ -26,8 +28,13 @@ class CirqaBootstrapStateMachine {
             5050 -> if (ackAttempted) {
                 val body = frame.copyOfRange(4, frame.size - 2)
                 if (last5050?.contentEquals(body) == true) {
-                    retries++
-                    last5050AtMs?.let { intervals.add(elapsedMs - it) }
+                    if (retries < Int.MAX_VALUE) retries++
+                    last5050AtMs?.let { previous ->
+                        if (elapsedMs >= previous) {
+                            if (intervals.size == maxIntervals) intervals.removeFirst()
+                            intervals.addLast(elapsedMs - previous)
+                        }
+                    }
                     state = State.RETRY_5050_OBSERVED
                 } else state = State.WAITING_5050_RESPONSE
                 last5050 = body
@@ -42,6 +49,6 @@ class CirqaBootstrapStateMachine {
         "; 5024-ACK versucht=" + ackAttempted +
         "; Anwendungs-ACK nachgewiesen=false" +
         "; 5050-Wiederholungen=" + retries +
-        "; Intervalle-ms=" + intervals +
+        "; Intervalle-ms=" + intervals.toList() +
         "; 5050-Antwort=NICHT_GESENDET"
 }
