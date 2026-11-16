@@ -267,11 +267,12 @@ class MainActivity : AppCompatActivity() {
                 .setPositiveButton("Live-Test starten") { _, _ ->
                     if (cirqaMlProbe == null) cirqaMlProbe = CirqaMlHandshakeProbe(this, adapter)
                     cirqaMlProbe?.onReading = { service, reading ->
-                        if (CirqaLocalLog(this).reading(service, reading)) {
-                            runOnUiThread { updateCirqaDashboard() }
-                        }
+                        CirqaLocalLog(this).reading(service, reading)
                     }
-                    cirqaMlProbe?.startRealtime { message -> runOnUiThread { output.text = message } }
+                    cirqaMlProbe?.startRealtime { message -> runOnUiThread {
+                        output.text = message
+                        if (!message.startsWith("ML-Test: Verbinde")) updateCirqaDashboard()
+                    } }
                 }.show()
         })
         deviceView(actionButton("CIRQA: Alle Garmin-Messwerte testen", false) {
@@ -284,11 +285,12 @@ class MainActivity : AppCompatActivity() {
                 .setPositiveButton("Messwerte prüfen") { _, _ ->
                     if (cirqaMlProbe == null) cirqaMlProbe = CirqaMlHandshakeProbe(this, adapter)
                     cirqaMlProbe?.onReading = { service, reading ->
-                        if (CirqaLocalLog(this).reading(service, reading)) {
-                            runOnUiThread { updateCirqaDashboard() }
-                        }
+                        CirqaLocalLog(this).reading(service, reading)
                     }
-                    cirqaMlProbe?.startAllMetrics { message -> runOnUiThread { output.text = message } }
+                    cirqaMlProbe?.startAllMetrics { message -> runOnUiThread {
+                        output.text = message
+                        if (!message.startsWith("ML-Test: Verbinde")) updateCirqaDashboard()
+                    } }
                 }.show()
         })
         deviceView(actionButton("CIRQA: Bewegungssensor (Service 16) prüfen", false) {
