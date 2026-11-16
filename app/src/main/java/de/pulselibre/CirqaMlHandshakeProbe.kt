@@ -27,6 +27,10 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private var historyDiagnosticMode = false
     private var fileListRequestMode = false
     private var fileListRequestSent = false
+    private var fileListWritePending = false
+    private var fileListWriteConfirmed = false
+    private var mlWritePending = false
+    private var fileListChunks = ArrayDeque<ByteArray>()
     private var historyRegistered = false
     private var historyTransport = GarminHistoryTransportInspector()
     private var fileListProbe = GarminFileListProbe()
@@ -135,6 +139,10 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         active = true
         historyRegistered = false
         fileListRequestSent = false
+        fileListWritePending = false
+        fileListWriteConfirmed = false
+        mlWritePending = false
+        fileListChunks.clear()
         historyTransport = GarminHistoryTransportInspector()
         fileListProbe = GarminFileListProbe()
         historyHandle = null
@@ -229,7 +237,17 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                 override fun onCharacteristicWrite(g: BluetoothGatt, characteristic: BluetoothGattCharacteristic, status: Int) {
                     if (!active) return
                     if (status != BluetoothGatt.GATT_SUCCESS) finish("ML-Schreibfehler: $status", g)
-                    else { writeConfirmed = true; mark("ML-Schreiben bestätigt; warte auf Protokollantwort") }
+                    else {
+                        writeConfirmed = true
+                        mlWritePending = false
+                        if (fileListWritePending) {
+                            fileListWritePending = false
+                            if (fileListChunks.isEmpty()) fileListWriteConfirmed = true
+                        }
+                        if (fileListRequestMode && historyRegistered && fileListChunks.isNotEmpty()) {
+                            main.postDelayed({ if (active) sendNextFileListChunk(g) }, 80L)
+                        } else mark("ML-Schreiben bestätigt; warte auf Protokollantwort")
+                    }
                 }
             }, BluetoothDevice.TRANSPORT_LE)
             main.postDelayed({ if (active) finish(if (historyDiagnosticMode) "CIRQA Historien-Diagnose: Beobachtungsfenster beendet." else if (realtimeMode) realtimeSummary("Zeitlimit (20 Sekunden)") else "ML-Handshake: Zeitlimit (20 Sekunden). Letzte Phase: $phase; Notifications: $notificationsReceived; GATT-Schreiben bestätigt: $writeConfirmed; Protokollzustand: ${session?.stage}; Antwortformen: ${notificationShapes.joinToString(" | ")}.", gatt) }, 20_000)
@@ -237,12 +255,25 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         catch (e: IllegalArgumentException) { finish("Verbindungsfehler: ${e.javaClass.simpleName}", gatt) }
     }
 
+    private fun sendNextFileListChunk(g: BluetoothGatt) {
+        if (!active || !historyRegistered || mlWritePending || fileListChunks.isEmpty()) return
+        val chunk = fileListChunks.removeFirst()
+        fileListWritePending = true
+        mark("Sende FileSync-V2-Dateilistenanfrage (${chunk.size} Bytes)")
+        send(g, chunk)
+    }
+
     @SuppressLint("MissingPermission")
     private fun send(g: BluetoothGatt, bytes: ByteArray) {
         val char = tx ?: run { finish("ML-TX fehlt.", g); return }
         val mode = if (char.properties and BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE != 0)
             BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE else BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
-        mark(if (session?.stage == GarminMlHandshake.Stage.WAIT_CLOSE) "Sende CLOSE_ALL" else if (pendingService > 0) "Registriere Garmin-Service $pendingService" else "Sende GFDI-Registrierung")
+        if (mlWritePending) {
+            finish("ML-Schreibvorgang noch aktiv; neuer Schreibauftrag verhindert.", g)
+            return
+        }
+        if (!fileListWritePending) mark(if (session?.stage == GarminMlHandshake.Stage.WAIT_CLOSE) "Sende CLOSE_ALL" else if (pendingService > 0) "Registriere Garmin-Service $pendingService" else "Sende GFDI-Registrierung")
+        mlWritePending = true
         try {
             val ok = if (Build.VERSION.SDK_INT >= 33)
                 g.writeCharacteristic(char, bytes, mode) == BluetoothStatusCodes.SUCCESS
@@ -253,7 +284,10 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                 @Suppress("DEPRECATION")
                 g.writeCharacteristic(char)
             }
-            if (!ok) finish("ML-Schreibauftrag abgelehnt.", g)
+            if (!ok) {
+                mlWritePending = false
+                finish("ML-Schreibauftrag abgelehnt (${if (fileListWritePending) "FileSync V2" else "Registrierung"}).", g)
+            }
         } catch (_: SecurityException) { finish("Bluetooth-Berechtigung beim Schreiben fehlt.", g) }
     }
 
@@ -379,12 +413,10 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                         if (handle == null) {
                             finish("GFDI-Handle fehlt; Dateiliste nicht angefordert.", g)
                         } else {
+                            fileListChunks.addAll(GarminFileListRequest.mlChunks(handle))
                             fileListRequestSent = true
-                            mark("Sende einmalig FileSync V2 FileListRequest")
-                            val chunks = GarminFileListRequest.mlChunks(handle)
-                            chunks.forEachIndexed { index, chunk ->
-                                main.postDelayed({ if (active) send(g, chunk) }, 150L * (index + 1))
-                            }
+                            mark("FileSync V2 Dateiliste vorbereitet; warte auf freien GATT-Schreibkanal")
+                            main.postDelayed({ if (active) sendNextFileListChunk(g) }, 200L)
                         }
                     } else mark("GFDI registriert; beobachte Metadaten bis zum Zeitlimit")
                 } else finish("Garmin ML: GFDI-Service erfolgreich registriert! ${if (requestedCloseAll) "CLOSE_ALL wurde zuvor bestätigt." else "Ohne CLOSE_ALL."} Verbindung beendet; keine Gesundheitsdaten gelesen.", g)
@@ -408,7 +440,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         "GFDI-Handle: ${historyHandle ?: "unbekannt"}; zugeordnete Pakete: $historyRouted; übrige Pakete: $historyUnrouted\n" +
         "Paketlängen (ohne Registrierung): ${historyLengths.summary()}\n" +
         "Antwort-Metadaten (max. 12): ${notificationShapes.joinToString(" | ")}\n" +
-        "Dateiliste: ${if (fileListRequestSent) "FileSync V2 Anfrage gesendet (Antwort nicht garantiert)" else "NICHT angefordert"}; Historienzugriff ${if (fileListProbe.validLists > 0) "durch Antwort bestätigt" else "NICHT nachgewiesen"}.\n" +
+        "Dateiliste: ${if (fileListWriteConfirmed) "FileSync V2 GATT-Schreiben bestätigt" else if (fileListRequestSent) "FileSync V2 Sendeversuch, nicht vollständig bestätigt" else "NICHT angefordert"}; Historienzugriff ${if (fileListProbe.validLists > 0) "durch Antwort bestätigt" else "NICHT nachgewiesen"}.\n" +
         "Keine Dateiübertragung, kein SetFlags, kein CLOSE_ALL, keine Gesundheitswerte oder Geräteadressen im Bericht."
 
     private fun realtimeSummary(reason: String): String =
