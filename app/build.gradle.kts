@@ -10,7 +10,7 @@ android {
         minSdk = 26
         targetSdk = 35
         versionCode = (providers.gradleProperty("pulselibreVersionCode").orNull?.toIntOrNull() ?: 2)
-        versionName = "0.1.1"
+        versionName = "2.0.0_build${providers.gradleProperty("pulselibreVersionCode").orNull ?: "2"}"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     // CI uses one persistent private signing key supplied by GitHub Actions secrets.
