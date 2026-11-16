@@ -27,4 +27,20 @@ class CirqaBootstrapStateMachineTest {
         assertTrue(machine.summary().contains("4998, 5007"))
         assertTrue(machine.summary().contains("Anwendungs-ACK nachgewiesen=false"))
     }
+    @Test fun boundsRetryTimingEvidenceAndSkipsClockRegression() {
+        val machine = CirqaBootstrapStateMachine()
+        machine.observe(frame(5024, byteArrayOf(1)), 0)
+        machine.onAckAttempt()
+        val msg = frame(5050, byteArrayOf(7, 8))
+        for (i in 0..100) machine.observe(msg, i * 5000L)
+        assertEquals(100, machine.retries)
+        val summary = machine.summary()
+        val intervals = summary.substringAfter("Intervalle-ms=[").substringBefore("]")
+            .split(", ").filter { it.isNotBlank() }
+        assertEquals(32, intervals.size)
+        assertTrue(intervals.all { it == "5000" })
+        machine.observe(msg, 1000L)
+        assertEquals(101, machine.retries)
+        assertTrue(machine.summary().contains("Intervalle-ms=[5000"))
+    }
 }
