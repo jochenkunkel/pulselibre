@@ -155,7 +155,7 @@ class MainActivity : AppCompatActivity() {
             gravity = android.view.Gravity.CENTER_VERTICAL
         }
         val bodyFigure = TextView(this).apply {
-            text = "♙"
+            text = "🧍"
             textSize = 76f
             gravity = android.view.Gravity.CENTER
             setTextColor(Color.rgb(185, 164, 239))
