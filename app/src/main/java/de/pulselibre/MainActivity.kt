@@ -455,6 +455,38 @@ class MainActivity : AppCompatActivity() {
                     }
                 }.show()
         })
+        debugView(actionButton("CIRQA: Bootstrap-ACK-Test (experimentell)", false) {
+            if (!ensurePermissions()) return@actionButton
+            if (scanning) stopScan()
+            androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("CIRQA · Aktiver Bootstrap-Test")
+                .setMessage("Garmin Connect und laufende Aufzeichnungen vorher beenden. Nach einer gültigen DeviceInformation (5024) wird genau EIN experimenteller, identitätsfreier ACK-Kandidat gesendet. Keine Dateiliste, keine Dateien, keine Änderungen am Gerät. Abbruch nach 20 Sekunden. Das CIRQA-Verhalten ist unbekannt. Starten?")
+                .setNegativeButton("Abbrechen", null)
+                .setPositiveButton("ACK einmalig testen") { _, _ ->
+                    if (cirqaMlProbe == null) cirqaMlProbe = CirqaMlHandshakeProbe(this, adapter)
+                    lastHistoryDiagnostic = null
+                    cirqaMlProbe?.startBootstrapAckTest { message ->
+                        runOnUiThread {
+                            output.text = message
+                            if (message.startsWith("PulsLibre · CIRQA Historien-Diagnose")) {
+                                lastHistoryDiagnostic = message
+                                androidx.appcompat.app.AlertDialog.Builder(this)
+                                    .setTitle("Bootstrap-ACK-Test abgeschlossen")
+                                    .setMessage(message)
+                                    .setPositiveButton("Schließen", null)
+                                    .setNeutralButton("Bericht teilen") { _, _ ->
+                                        val intent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+                                            type = "text/plain"
+                                            putExtra(android.content.Intent.EXTRA_TEXT, message)
+                                        }
+                                        startActivity(android.content.Intent.createChooser(intent, "Diagnosebericht teilen"))
+                                    }
+                                    .show()
+                            }
+                        }
+                    }
+                }.show()
+        })
         debugView(actionButton("CIRQA: Dateiliste lesen (experimentell)", false) {
             if (!ensurePermissions()) return@actionButton
             if (scanning) stopScan()
