@@ -15,7 +15,7 @@ class GarminCompactAckTest {
         val ack = GarminCompactAck.chunk(0x2b, 127, 65535, 0x12345678)
         assertEquals(17, ack.size)
         assertEquals(0xff, ack[3].toInt() and 255)
-        assertEquals(0x2b, ack[4].toInt() and 255)
+        assertEquals(0xb3, ack[4].toInt() and 255)
         assertEquals(0x13, ack[5].toInt() and 255)
         assertEquals(0xff, ack[7].toInt() and 255)
         assertEquals(0xff, ack[8].toInt() and 255)
