@@ -493,9 +493,9 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     }
 
     private fun historyReport(reason: String): String =
-        "PulsLibre · CIRQA Historien-Diagnose (Phase 1)\\n" +
+        "PulsLibre · CIRQA Historien-Diagnose (Phase 1)\n" +
         "Ergebnis: $reason\n" +
-        (if (bootstrapAckMode) "Bootstrap-ACK-Test: Kandidat gesendet=$bootstrapAckSent; GATT bestätigt=$bootstrapAckConfirmed; GFDI-Frames nach ACK-Start=${(fileListProbe.frames - bootstrapBaselineFrames).coerceAtLeast(0)}; Dateibefehle=0\\n" else "") +
+        (if (bootstrapAckMode) "Bootstrap-ACK-Test: Kandidat gesendet=$bootstrapAckSent; GATT bestätigt=$bootstrapAckConfirmed; GFDI-Frames nach ACK-Start=${(fileListProbe.frames - bootstrapBaselineFrames).coerceAtLeast(0)}; Dateibefehle=0\n" else "") +
         "GFDI-Registrierung: ${if (historyRegistered) "bestätigt" else "nicht bestätigt"}\n" +
         "Letzte Phase: $phase\n" +
         "GATT-Schreiben bestätigt: $writeConfirmed\n" +
