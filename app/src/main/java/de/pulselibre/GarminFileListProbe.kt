@@ -12,6 +12,7 @@ class GarminFileListProbe {
     var ackAttempted = false
     var captureRawFrames = false
     private val rawFrames = mutableListOf<String>()
+    private val rawStartNanos = System.nanoTime()
     private var rawBytes = 0
     private var droppedRawFrames = 0
 
@@ -71,7 +72,9 @@ class GarminFileListProbe {
         frames++
         if (captureRawFrames) {
             if (rawFrames.size < 32 && rawBytes + frame.size <= 8192) {
-                rawFrames.add("Frame #$frames: " + frame.joinToString("") { "%02x".format(it.toInt() and 255) })
+                rawFrames.add("RX +${(System.nanoTime() - rawStartNanos) / 1_000_000}ms Frame #$frames " +
+                    "GFDI=${(frame[2].toInt() and 255) or ((frame[3].toInt() and 255) shl 8)} " +
+                    "CRC=OK: " + frame.joinToString("") { "%02x".format(it.toInt() and 255) })
                 rawBytes += frame.size
             } else droppedRawFrames++
         }
