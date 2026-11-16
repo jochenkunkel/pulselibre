@@ -143,6 +143,61 @@ class MainActivity : AppCompatActivity() {
             deviceViews.add(view)
             view.visibility = android.view.View.GONE
         }
+        // Compact personal body card: user-entered profile, not measured BLE data.
+        val bodyCard = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(16), dp(12), dp(16), dp(14))
+            background = rounded(Color.WHITE)
+        }
+        bodyCard.addView(text("MEIN KÖRPERPROFIL  ·  Tippen zum Bearbeiten", 12f, violet, true))
+        val bodyRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = android.view.Gravity.CENTER_VERTICAL
+        }
+        val bodyFigure = TextView(this).apply {
+            text = "♙"
+            textSize = 76f
+            gravity = android.view.Gravity.CENTER
+            setTextColor(Color.rgb(185, 164, 239))
+            contentDescription = "Symbolische Personendarstellung"
+        }
+        bodyRow.addView(bodyFigure, LinearLayout.LayoutParams(0, dp(112), 1f))
+        val bodyValues = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+        bodyRow.addView(bodyValues, LinearLayout.LayoutParams(0, -2, 2f))
+        bodyCard.addView(bodyRow)
+        fun refreshBodyCard() {
+            val p = getSharedPreferences("local_personal_profile", MODE_PRIVATE)
+            bodyValues.removeAllViews()
+            listOf(
+                Triple("↕", "Größe", p.getString("height_cm", "").orEmpty().let { if (it.isBlank()) "–" else it + " cm" }),
+                Triple("⚖", "Gewicht", p.getString("weight_kg", "").orEmpty().let { if (it.isBlank()) "–" else it + " kg" }),
+                Triple("◷", "Alter", p.getString("age_years", "").orEmpty().let { if (it.isBlank()) "–" else it + " Jahre" })
+            ).forEach { (icon, title, value) ->
+                val row = LinearLayout(this).apply {
+                    orientation = LinearLayout.HORIZONTAL
+                    gravity = android.view.Gravity.CENTER_VERTICAL
+                }
+                row.addView(text(icon + "  ", 17f, violet, true))
+                row.addView(text(title + "  ", 12f, muted))
+                row.addView(text(value, 15f, ink, true))
+                bodyValues.addView(row, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(8) })
+            }
+            bodyCard.contentDescription = "Mein Körperprofil. " +
+                (0 until bodyValues.childCount).joinToString(", ") { i ->
+                    val row = bodyValues.getChildAt(i) as LinearLayout
+                    (0 until row.childCount).joinToString(" ") { j -> (row.getChildAt(j) as TextView).text }
+                }
+        }
+        refreshBodyCard()
+        bodyCard.isClickable = true
+        bodyCard.isFocusable = true
+        bodyCard.setOnClickListener {
+            PersonalSettings.show(this) {
+                avatarButton.text = "⚙  " + PersonalSettings.avatar(this)
+                refreshBodyCard()
+            }
+        }
+        overviewView(bodyCard, 14)
         overviewView(text("Gesundheit im Blick", 22f, ink, true), 5)
         overviewView(text("Deine Werte bleiben auf diesem Gerät.", 13f, muted), 16)
         // CIRQA home dashboard: source-backed values only, never placeholder health scores.
