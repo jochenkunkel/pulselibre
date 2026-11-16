@@ -408,7 +408,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         "GFDI-Handle: ${historyHandle ?: "unbekannt"}; zugeordnete Pakete: $historyRouted; übrige Pakete: $historyUnrouted\n" +
         "Paketlängen (ohne Registrierung): ${historyLengths.summary()}\n" +
         "Antwort-Metadaten (max. 12): ${notificationShapes.joinToString(" | ")}\n" +
-        "Dateiliste: ${if (fileListRequestSent) \"FileSync V2 Anfrage gesendet (Antwort nicht garantiert)\" else \"NICHT angefordert\"}; Historienzugriff ${if (fileListProbe.validLists > 0) \"durch Antwort bestätigt\" else \"NICHT nachgewiesen\"}.\\n" +
+        "Dateiliste: ${if (fileListRequestSent) "FileSync V2 Anfrage gesendet (Antwort nicht garantiert)" else "NICHT angefordert"}; Historienzugriff ${if (fileListProbe.validLists > 0) "durch Antwort bestätigt" else "NICHT nachgewiesen"}.\n" +
         "Keine Dateiübertragung, kein SetFlags, kein CLOSE_ALL, keine Gesundheitswerte oder Geräteadressen im Bericht."
 
     private fun realtimeSummary(reason: String): String =
