@@ -41,3 +41,14 @@ Ein neuer Gerätetest ist erst sinnvoll, wenn ein grüner Build die zusätzlich 
 - Reproduziert den ersten vollständigen Lauf (Handle 11, vier 5024-Frames). Unterschiedliches GFDI-Handle ist kein Fehlerbeleg.
 
 **Interpretation:** Reine Registrierung/Beobachtung führt reproduzierbar nicht über wiederholte DeviceInformation hinaus. Ein ausstehendes ACK ist eine plausible, **nicht bestätigte** Hypothese. Ein weiterer unveränderter passiver Lauf bringt voraussichtlich keinen Erkenntnisgewinn. Nächster Entwicklungsschritt: ACK-Frameformat und sicheren expliziten Bootstrap-Versuch anhand verifizierter Protokollreferenzen prüfen; keine fenix-8-Identitätsbytes ungeprüft senden.
+
+## Dritter Gerätetest: einmaliges aktives 5024-ACK (2026-11-16)
+
+Vom Benutzer gemeldeter vollständiger Testbericht:
+- Bootstrap-ACK-Kandidat gesendet=true; GATT bestätigt=true; keine Dateibefehle.
+- GFDI-Registrierung bestätigt, Handle 13; sechs Notifications (eine Registrierung und fünf GFDI-Pakete).
+- Fünf gültige Frames, Typen: **5024 ×1, 5050 ×3, 5011 ×1**, keine CRC-Fehler.
+- Paketlängen: 58 ×1, 29 ×3, 31 ×1. Keine wiederholte 5024.
+- Vier Frames nach ACK-Start; keine FileListResponse, keine Dateieinträge, kein Historienzugriff nachgewiesen.
+
+**Befund:** Im Gegensatz zu den passiven Läufen mit jeweils vier wiederholten 5024-Frames folgen auf das einmalige ACK neue Nachrichtentypen. Dies stützt die Bootstrap-Hypothese, beweist aber noch nicht die semantische ACK-Akzeptanz oder einen FileSync-Handshake. Die Typ-ID 5050 und ihr Payload sind noch nicht dekodiert; 5011 ist in GarminHRM600 als FIT_DEFINITION bezeichnet, CIRQA-Bedeutung noch zu verifizieren. Nächster Schritt: datensparsame strukturelle Analyse von 5050/5011 (Länge, GFDI-Header, sichere Statusfelder, keine Rohgesundheitsdaten) und Prüfung der Referenzimplementierungen vor weiteren aktiven Kommandos.
