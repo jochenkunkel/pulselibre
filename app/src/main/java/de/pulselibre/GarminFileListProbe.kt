@@ -8,6 +8,8 @@ package de.pulselibre
 class GarminFileListProbe {
     val bootstrap = GarminBootstrapObserver()
     val bootstrapDiagnosis = GarminBootstrapDiagnosis()
+    val postBootstrap = GarminPostBootstrapObserver()
+    var ackAttempted = false
     val chunks = GarminChunkObserver()
     val protobuf = GarminProtobufReassembler()
     private val pending = ArrayList<Byte>()
@@ -28,7 +30,7 @@ class GarminFileListProbe {
         private set
 
     fun summary(): String = "GFDI-Frames: $frames; FileListResponse: $validLists; " +
-        "Dateieinträge: $fileEntries; Typen: $frameTypes; GFDI-5000-Status: $responseStatuses; Antwortfehler: $responseErrors; andere Nachrichten: $otherMessages; ungültige Frames: $rejectedFrames; ${bootstrap.summary()}; ${bootstrapDiagnosis.summary()}; ${chunks.summary()}; ${protobuf.summary()}"
+        "Dateieinträge: $fileEntries; Typen: $frameTypes; GFDI-5000-Status: $responseStatuses; Antwortfehler: $responseErrors; andere Nachrichten: $otherMessages; ungültige Frames: $rejectedFrames; ${bootstrap.summary()}; ${bootstrapDiagnosis.summary()}; ${postBootstrap.summary()}; ${chunks.summary()}; ${protobuf.summary()}"
 
     fun observeMlPayload(payload: ByteArray) {
         for (byte in payload) {
@@ -60,6 +62,7 @@ class GarminFileListProbe {
         frames++
         bootstrap.observe(frame)
         bootstrapDiagnosis.observe(frame)
+        postBootstrap.observe(frame, ackAttempted)
         chunks.observe(frame)
         protobuf.accept(frame)?.let { parseSmart(it) }
         val type = u16(frame, 2)
