@@ -20,3 +20,13 @@ Nach dem einmaligen minimalen GFDI-5024-ACK folgen reproduzierbar 5050 ×3 (Body
 Die vorhandene Schaltfläche **CIRQA: Bootstrap-ACK-Test (experimentell)** protokolliert nun zusätzlich `Payload-Varianten` für 5050/5011. Dabei werden nur flüchtige Gleichheitsklassen pro Typ ausgegeben: `5050=[1, 1, 1]` bedeutet drei identische Bodies; `5050=[1, 2, 3]` drei unterschiedliche Bodies. Kein Payload, Hash, Seriennummer oder Messwert wird ausgegeben. Höchstens acht Varianten je Typ werden intern verglichen.
 
 Der Test sendet weiterhin ausschließlich das einmalige minimale DeviceInformation-ACK. **Kein unbekanntes 5050-ACK wird gesendet**, solange das Format nicht bestätigt ist. Nach dem nächsten Gerätetest lässt sich die Retransmissions-Hypothese gezielter bewerten.
+
+## Rohdaten-Test (vom Nutzer ausdrücklich zur Analyse freigegeben)
+
+GFDI-Handle 15; fünf CRC-geprüfte Frames; nach ACK: 5050 ×3 identisch, dann 5011 ×1. Kein FileSync.
+
+- 5024: `3600a01397009b138d5bcbd9a401000210434952514120536d6172742042616e640543495251410a536d6172742042616e640000a569`
+- 5050 (dreimal identisch): `1900ba131279071420f6df680e9a350695230209000200f480`
+- 5011: `1b00931342000001000515048c17048c1a048c01010a1601009559`
+
+5050-Body: `1279071420f6df680e9a350695230209000200` (19 Bytes). 5011-Body: `42000001000515048c17048c1a048c01010a160100` (21 Bytes). Die 5050-Identität stützt die Retransmission-Hypothese, ist aber kein Beweis für fehlende Bestätigung. Keine unbekannten ACK-Bytes senden, bevor Protokollsemantik geklärt ist. Die Geräteinformation enthält Klartextname CIRQA Smart Band; Rohdaten können auch Kennungen enthalten. **Nicht als unkritische Dummy-Daten einstufen.**
