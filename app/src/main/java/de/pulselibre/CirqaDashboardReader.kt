@@ -11,7 +11,7 @@ import java.time.format.DateTimeFormatter
  * Read-only view of the append-only overnight log. Never modifies the running
  * collection or invents missing readings. Only complete valid JSONL lines count.
  */
-class CirqaDashboardReader(context: Context) {
+class CirqaDashboardReader(private val context: Context) {
     private val file = File(context.filesDir, "cirqa_overnight.jsonl")
     data class Sample(val value: String, val receivedAt: Instant)
     data class Summary(val metrics: List<DashboardMetric>, val samples: Int, val bytes: Long)
@@ -19,18 +19,22 @@ class CirqaDashboardReader(context: Context) {
     fun read(now: Instant = Instant.now()): Summary {
         val latest = mutableMapOf<Int, Pair<Instant, JSONObject>>()
         var count = 0
-        if (file.exists()) file.bufferedReader(Charsets.UTF_8).useLines { lines ->
-            lines.forEach { line ->
-                val item = try { JSONObject(line) } catch (_: Exception) { return@forEach }
-                if (item.optString("type") != "reading" || item.optInt("schema") != 1) return@forEach
-                val time = try { Instant.parse(item.getString("received_at_utc")) } catch (_: Exception) { return@forEach }
-                if (time.isAfter(now.plusSeconds(60))) return@forEach
-                val service = item.optInt("service", -1)
-                if (service !in GarminRealtime.SUPPORTED_SERVICES) return@forEach
-                count++
-                if (service == 7 && time.atZone(ZoneId.systemDefault()).toLocalDate() != now.atZone(ZoneId.systemDefault()).toLocalDate()) return@forEach
-                if (latest[service]?.first?.isBefore(time) != false) latest[service] = time to item
-            }
+        // Migrate legacy JSONL records idempotently, then read the SQLite index.
+        // The original JSONL remains untouched and available for export.
+        val records = CirqaDatabase(context).use { db ->
+            db.importJsonl()
+            db.readingLines()
+        }
+        records.forEach { line ->
+            val item = try { JSONObject(line) } catch (_: Exception) { return@forEach }
+            if (item.optString("type") != "reading" || item.optInt("schema") != 1) return@forEach
+            val time = try { Instant.parse(item.getString("received_at_utc")) } catch (_: Exception) { return@forEach }
+            if (time.isAfter(now.plusSeconds(60))) return@forEach
+            val service = item.optInt("service", -1)
+            if (service !in GarminRealtime.SUPPORTED_SERVICES) return@forEach
+            count++
+            if (service == 7 && time.atZone(ZoneId.systemDefault()).toLocalDate() != now.atZone(ZoneId.systemDefault()).toLocalDate()) return@forEach
+            if (latest[service]?.first?.isBefore(time) != false) latest[service] = time to item
         }
         val fmt = DateTimeFormatter.ofPattern("dd.MM. HH:mm").withZone(ZoneId.systemDefault())
         fun metric(service: Int, title: String, key: String, unit: String, valid: (Long) -> Boolean): DashboardMetric {
