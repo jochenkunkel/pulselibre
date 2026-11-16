@@ -141,9 +141,20 @@ class MainActivity : AppCompatActivity() {
         overviewView(text("Nur tatsächlich gespeicherte Werte · Empfangszeit des Smartphones · keine Diagnose", 12f, muted), 12)
         val cirqaDashboard = card()
         fun updateCirqaDashboard() {
+            // Import the diagnostic file into the indexed, lossless local database.
+            // Import is idempotent and does not modify the running recorder or JSONL.
+            val dbStatus = try {
+                CirqaDatabase(this).use { db ->
+                    val result = db.importJsonl()
+                    "SQLite: ${db.eventCount()} Ereignisse · ${result.invalid} ungültige Zeilen"
+                }
+            } catch (e: Exception) {
+                "SQLite-Import nicht verfügbar (${e.javaClass.simpleName}); JSONL bleibt erhalten"
+            }
             val summary = CirqaDashboardReader(this).read()
             cirqaDashboard.removeAllViews()
             cirqaDashboard.addView(text("${summary.samples} gültige Datensätze · ${summary.bytes} Bytes lokal", 13f, violet, true))
+            cirqaDashboard.addView(text(dbStatus, 11f, muted))
             summary.metrics.forEach { metric ->
                 cirqaDashboard.addView(text(metric.title, 13f, muted, true),
                     LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(14) })
