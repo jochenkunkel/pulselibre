@@ -38,7 +38,7 @@ jobs:
           SIGNING_KEY_PASSWORD: ${{ secrets.PULSELIBRE_SIGNING_KEY_PASSWORD }}
         run: |
           if [ -z "$SIGNING_KEY_B64" ] || [ -z "$SIGNING_STORE_PASSWORD" ] || [ -z "$SIGNING_KEY_ALIAS" ] || [ -z "$SIGNING_KEY_PASSWORD" ]; then
-            echo "::warning::Stable signing secrets missing: generated debug APK cannot reliably update previous CI installs."
+            echo "::warning::Stable signing secrets missing: CI tests can run, but APK will NOT be published as an update."
           else
             printf '%s' "$SIGNING_KEY_B64" | base64 --decode > "$RUNNER_TEMP/pulselibre-ci.keystore"
             echo "PULSELIBRE_SIGNING_STORE=$RUNNER_TEMP/pulselibre-ci.keystore" >> "$GITHUB_ENV"
@@ -53,7 +53,13 @@ jobs:
           echo "Package: de.pulselibre"
           echo "Version code: ${{ github.run_number }}"
           echo "Stable signing configured: $([ -n "$PULSELIBRE_SIGNING_STORE" ] && echo yes || echo no)"
-          "${ANDROID_HOME}/build-tools/35.0.0/apksigner" verify --print-certs app/build/outputs/apk/debug/app-debug.apk | grep -E 'Signer #1 certificate SHA-256 digest|Verified using' || true
+          "${ANDROID_HOME}/build-tools/35.0.0/apksigner" verify --print-certs app/build/outputs/apk/debug/app-debug.apk | grep -E 'Signer #1 certificate SHA-256 digest|Verified using'
+          "${ANDROID_HOME}/build-tools/35.0.0/aapt" dump badging app/build/outputs/apk/debug/app-debug.apk | grep '^package:'
+          if [ -n "$PULSELIBRE_SIGNING_STORE" ]; then
+            echo "APK_SIGNING_READY=true" >> "$GITHUB_ENV"
+          else
+            echo "APK_SIGNING_READY=false" >> "$GITHUB_ENV"
+          fi
       - name: Lint and instrumentation test APK (full checks only)
         if: github.event_name == 'pull_request' || startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && inputs.full_tests)
         run: gradle :app:lintDebug :app:assembleDebugAndroidTest --stacktrace
@@ -68,9 +74,9 @@ jobs:
           if-no-files-found: ignore
           retention-days: 14
       - uses: actions/upload-artifact@v4
-        if: success()
+        if: success() && env.APK_SIGNING_READY == 'true' && github.event_name != 'pull_request'
         with:
-          name: pulselibre-debug-apk
+          name: pulselibre-signed-update-apk
           path: app/build/outputs/apk/debug/app-debug.apk
           retention-days: 14
   emulator:
