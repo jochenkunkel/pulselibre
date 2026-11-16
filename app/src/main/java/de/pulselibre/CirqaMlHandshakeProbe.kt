@@ -282,8 +282,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         when (state.stage) {
             GarminMlHandshake.Stage.COMPLETE -> {
                 if (realtimeMode) {
-                    pendingService = GarminRealtime.HEART_RATE_SERVICE
-                    mark("GFDI registriert; registriere Puls")
+                    pendingService = if (expandedMode) servicePlan.first() else GarminRealtime.HEART_RATE_SERVICE
+                    mark("GFDI registriert; registriere Service $pendingService")
                     send(g, GarminMlHandshake.registerRequest(pendingService))
                 } else finish("Garmin ML: GFDI-Service erfolgreich registriert! ${if (requestedCloseAll) "CLOSE_ALL wurde zuvor bestätigt." else "Ohne CLOSE_ALL."} Verbindung beendet; keine Gesundheitsdaten gelesen.", g)
             }
