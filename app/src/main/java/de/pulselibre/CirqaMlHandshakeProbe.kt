@@ -25,6 +25,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private var requestedCloseAll = false
     private var realtimeMode = false
     private var historyDiagnosticMode = false
+    private var rawCaptureMode = false
     private var bootstrapAckMode = false
     private var bootstrapAckSent = false
     private var bootstrapAckConfirmed = false
@@ -86,6 +87,16 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     /** Explicit opt-in: one minimal identity-free 5024 ACK candidate, no FileSync commands. */
     fun startBootstrapAckTest(result: (String) -> Unit) {
         if (active) { result("ML-Test läuft bereits."); return }
+        bootstrapAckMode = true
+        historyDiagnosticMode = true
+        realtimeMode = false
+        start(false, result)
+    }
+
+    /** Explicit consent: retain at most 32 CRC-verified GFDI frames in the final report. */
+    fun startBootstrapRawCapture(result: (String) -> Unit) {
+        if (active) { result("ML-Test läuft bereits."); return }
+        rawCaptureMode = true
         bootstrapAckMode = true
         historyDiagnosticMode = true
         realtimeMode = false
@@ -166,6 +177,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         fileListChunks.clear()
         historyTransport = GarminHistoryTransportInspector()
         fileListProbe = GarminFileListProbe()
+        fileListProbe.captureRawFrames = rawCaptureMode
         historyHandle = null
         historyRouted = 0
         historyBurstStopped = false
@@ -506,6 +518,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         "Passiver GFDI/COBS/FileSync-Decoder: ${fileListProbe.summary()}\n" +
         "GFDI-Handle: ${historyHandle ?: "unbekannt"}; zugeordnete Pakete: $historyRouted; übrige Pakete: $historyUnrouted\n" +
         "Paketlängen (ohne Registrierung): ${historyLengths.summary()}\n" +
+        (if (rawCaptureMode) fileListProbe.rawCaptureReport() + "\n" else "") +
         "Antwort-Metadaten (max. 12): ${notificationShapes.joinToString(" | ")}\n" +
         "Dateiliste: ${if (fileListWriteConfirmed) "FileSync V2 GATT-Schreiben bestätigt" else if (fileListRequestSent) "FileSync V2 Sendeversuch, nicht vollständig bestätigt" else "NICHT angefordert"}; Historienzugriff ${if (fileListProbe.validLists > 0) "durch Antwort bestätigt" else "NICHT nachgewiesen"}.\n" +
         "Keine Dateiübertragung, kein SetFlags, kein CLOSE_ALL, keine Gesundheitswerte oder Geräteadressen im Bericht."
@@ -569,6 +582,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             historyDiagnosticMode = false
             fileListRequestMode = false
             bootstrapAckMode = false
+            rawCaptureMode = false
             expandedMode = false
             exploratoryMode = false
             mousePodsMode = false
@@ -584,6 +598,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         session = null
         realtimeMode = false
         bootstrapAckMode = false
+        rawCaptureMode = false
         expandedMode = false
         exploratoryMode = false
     }
