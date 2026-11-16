@@ -26,3 +26,11 @@ The existing foreground service **continues writing JSONL**. On opening/refeshin
 ## Ground rules
 
 See `docs/CIRQA_DASHBOARD_GROUND_RULES.md` and `docs/CIRQA_OVERNIGHT_FIRST_RESULTS.md`. No sleep-stage inference, no single-RR RMSSD, no addition of cumulative counters, no unvalidated calorie unit, no clinical interpretation of consumer wearable values.
+
+## Integration update (2026-11-16)
+
+- `CirqaLocalLog.append()` now writes each completed event to the private SQLite `events` table immediately after appending to the original JSONL. Duplicate rows are ignored using the same line SHA-256; a SQLite failure never destroys the original event.
+- `CirqaDashboardReader.read()` now imports any legacy/missed JSONL rows idempotently and queries SQLite for measurements; the dashboard no longer parses JSONL as its measurement source.
+- SQLite is the **application query store**; JSONL is the **lossless recovery/export journal**. This is not yet a database-only storage design.
+- **Known performance limitation:** migration/import and SQLite reading currently run synchronously on dashboard refresh, potentially blocking the UI with large logs. Move to background execution and incremental checkpointing before calling the integration production-ready.
+- A successful CI build is not proof of real-device persistence. Validate by testing live values, restarting the app, and checking they remain visible.
