@@ -13,6 +13,24 @@ android {
         versionName = "0.1.1"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
+    // CI uses one persistent private signing key supplied by GitHub Actions secrets.
+    // Without these variables, assembleDebug remains an ordinary non-updatable CI debug APK.
+    val ciStore = System.getenv("PULSELIBRE_SIGNING_STORE")
+    val ciStorePassword = System.getenv("PULSELIBRE_SIGNING_STORE_PASSWORD")
+    val ciKeyAlias = System.getenv("PULSELIBRE_SIGNING_KEY_ALIAS")
+    val ciKeyPassword = System.getenv("PULSELIBRE_SIGNING_KEY_PASSWORD")
+    if (!ciStore.isNullOrBlank() && !ciStorePassword.isNullOrBlank() &&
+        !ciKeyAlias.isNullOrBlank() && !ciKeyPassword.isNullOrBlank()) {
+        signingConfigs {
+            create("stableCiDebug") {
+                storeFile = file(ciStore)
+                storePassword = ciStorePassword
+                keyAlias = ciKeyAlias
+                keyPassword = ciKeyPassword
+            }
+        }
+        buildTypes.getByName("debug").signingConfig = signingConfigs.getByName("stableCiDebug")
+    }
     buildFeatures { viewBinding = true }
     compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
     kotlinOptions { jvmTarget = "17" }
