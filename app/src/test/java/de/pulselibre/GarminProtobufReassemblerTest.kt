@@ -37,6 +37,14 @@ class GarminProtobufReassemblerTest {
         assertEquals(1, receiver.rejected)
     }
 
+    @Test fun reportsSupersededIncompleteTransfer() {
+        val receiver = GarminProtobufReassembler()
+        assertNull(receiver.accept(packet(7, 0, 5, byteArrayOf(1, 2))))
+        assertArrayEquals(byteArrayOf(9), receiver.accept(packet(8, 0, 1, byteArrayOf(9))))
+        assertEquals(1, receiver.rejected)
+        assertEquals(1, receiver.completed)
+    }
+
     @Test fun ignoresCorruptCrc() {
         val receiver = GarminProtobufReassembler()
         val packet = packet(7, 0, 1, byteArrayOf(1))
