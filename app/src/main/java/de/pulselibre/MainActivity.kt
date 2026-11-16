@@ -97,7 +97,29 @@ class MainActivity : AppCompatActivity() {
                 intArrayOf(violet, Color.rgb(94, 65, 187))
             )
         }
-        header.addView(text("PulseLibre", 28f, Color.WHITE, true))
+        val headerRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = android.view.Gravity.CENTER_VERTICAL
+        }
+        headerRow.addView(text("PulseLibre", 28f, Color.WHITE, true), LinearLayout.LayoutParams(0, -2, 1f))
+        val avatarButton = TextView(this).apply {
+            text = "⚙  " + PersonalSettings.avatar(this@MainActivity)
+            textSize = 23f
+            setTextColor(Color.WHITE)
+            gravity = android.view.Gravity.CENTER
+            contentDescription = "Einstellungen und persönliches Profil öffnen"
+            minWidth = dp(64)
+            minHeight = dp(48)
+            isClickable = true
+            isFocusable = true
+            setOnClickListener {
+                PersonalSettings.show(this@MainActivity) {
+                    text = "⚙  " + PersonalSettings.avatar(this@MainActivity)
+                }
+            }
+        }
+        headerRow.addView(avatarButton)
+        header.addView(headerRow)
         header.addView(text("Deine Daten. Deine Kontrolle. · Offline", 13f, Color.WHITE))
         screen.addView(header)
         val root = LinearLayout(this).apply {
@@ -224,76 +246,6 @@ class MainActivity : AppCompatActivity() {
             background = rounded(Color.WHITE)
         }
         deviceView(cirqaEvidenceView)
-        deviceView(actionButton("Mein Profil · Körperdaten konfigurieren", false) {
-            val prefs = getSharedPreferences("local_personal_profile", MODE_PRIVATE)
-            val container = LinearLayout(this).apply {
-                orientation = LinearLayout.VERTICAL
-                val pad = (18 * resources.displayMetrics.density).toInt()
-                setPadding(pad, pad / 2, pad, 0)
-            }
-            fun profileField(label: String, saved: String, decimal: Boolean = false): EditText {
-                container.addView(TextView(this).apply { text = label; textSize = 14f })
-                return EditText(this).apply {
-                    setSingleLine(true)
-                    inputType = if (decimal)
-                        android.text.InputType.TYPE_CLASS_NUMBER or android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL
-                    else android.text.InputType.TYPE_CLASS_NUMBER
-                    setText(saved)
-                    hint = label
-                    container.addView(this)
-                }
-            }
-            val height = profileField("Körpergröße (cm)", prefs.getString("height_cm", "") ?: "")
-            val weight = profileField("Körpergewicht (kg)", prefs.getString("weight_kg", "") ?: "", true)
-            val age = profileField("Alter (Jahre)", prefs.getString("age_years", "") ?: "")
-            container.addView(TextView(this).apply {
-                text = "Geschlecht für geschlechtsspezifische Schätzformeln (optional)"
-                textSize = 14f
-            })
-            val gender = Spinner(this)
-            val genders = listOf("Keine Angabe", "Männlich", "Weiblich", "Divers / andere")
-            gender.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, genders)
-            gender.setSelection(genders.indexOf(prefs.getString("gender", "Keine Angabe")).coerceAtLeast(0))
-            container.addView(gender)
-            container.addView(TextView(this).apply {
-                text = "Nur lokal auf diesem Smartphone. Angaben sind optional und werden nicht automatisch als medizinisch validierte Messwerte behandelt."
-                textSize = 12f
-            })
-            androidx.appcompat.app.AlertDialog.Builder(this)
-                .setTitle("Mein Profil · lokal und privat")
-                .setView(container)
-                .setNegativeButton("Abbrechen", null)
-                .setNeutralButton("Daten löschen") { _, _ ->
-                    prefs.edit().clear().apply()
-                    Toast.makeText(this, "Profilangaben lokal gelöscht", Toast.LENGTH_SHORT).show()
-                }
-                .setPositiveButton("Speichern", null)
-                .create().apply {
-                    setOnShowListener {
-                        getButton(androidx.appcompat.app.AlertDialog.BUTTON_POSITIVE).setOnClickListener {
-                            val h = height.text.toString().trim().toIntOrNull()
-                            val w = weight.text.toString().trim().replace(',', '.').toDoubleOrNull()
-                            val a = age.text.toString().trim().toIntOrNull()
-                            val valid = (height.text.isBlank() || h != null && h in 50..250) &&
-                                (weight.text.isBlank() || w != null && w in 15.0..400.0) &&
-                                (age.text.isBlank() || a != null && a in 1..120)
-                            if (!valid) {
-                                Toast.makeText(this@MainActivity, "Bitte gültige Werte eingeben: Größe 50–250 cm, Gewicht 15–400 kg, Alter 1–120.", Toast.LENGTH_LONG).show()
-                                return@setOnClickListener
-                            }
-                            prefs.edit()
-                                .putString("height_cm", h?.toString() ?: "")
-                                .putString("weight_kg", w?.toString() ?: "")
-                                .putString("age_years", a?.toString() ?: "")
-                                .putString("gender", genders[gender.selectedItemPosition])
-                                .apply()
-                            Toast.makeText(this@MainActivity, "Profil lokal gespeichert", Toast.LENGTH_SHORT).show()
-                            dismiss()
-                        }
-                    }
-                    show()
-                }
-        })
         deviceView(actionButton("Bluetooth-Geräte suchen") { startScan() })
         deviceView(actionButton("Diagnose teilen", false) { shareDiagnostics() })
         deviceView(actionButton("Gekoppelte Geräte anzeigen", false) { showBondedDevices() })
