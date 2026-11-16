@@ -52,3 +52,14 @@ Vom Benutzer gemeldeter vollständiger Testbericht:
 - Vier Frames nach ACK-Start; keine FileListResponse, keine Dateieinträge, kein Historienzugriff nachgewiesen.
 
 **Befund:** Im Gegensatz zu den passiven Läufen mit jeweils vier wiederholten 5024-Frames folgen auf das einmalige ACK neue Nachrichtentypen. Dies stützt die Bootstrap-Hypothese, beweist aber noch nicht die semantische ACK-Akzeptanz oder einen FileSync-Handshake. Die Typ-ID 5050 und ihr Payload sind noch nicht dekodiert; 5011 ist in GarminHRM600 als FIT_DEFINITION bezeichnet, CIRQA-Bedeutung noch zu verifizieren. Nächster Schritt: datensparsame strukturelle Analyse von 5050/5011 (Länge, GFDI-Header, sichere Statusfelder, keine Rohgesundheitsdaten) und Prüfung der Referenzimplementierungen vor weiteren aktiven Kommandos.
+
+## Vierter Gerätetest: Post-ACK-Strukturanalyse
+
+- Bootstrap-ACK-Kandidat gesendet und GATT bestätigt; keine Dateibefehle.
+- GFDI-Handle 14; Registrierung erfolgreich; sechs Notifications, fünf gültige GFDI-Frames.
+- Folge nach dem ACK: **5050, 5050, 5050, 5011** (vorher einmal 5024).
+- Body-Längen: **5050 = 19 Bytes (dreimal)**, **5011 = 21 Bytes (einmal)**.
+- Keine wiederholte 5024, keine ungültigen Frames, keine FileListResponse, keine Dateieinträge.
+- Reproduziert die Typenfolge des dritten Gerätetests (damals Handle 13). Eine semantische ACK-Bestätigung ist nicht separat beobachtet.
+
+**Nächste Untersuchung:** Referenzprotokolle für 5050 und 5011 prüfen; die reine Wiederholung der bestehenden Diagnose bringt keine neue Information. Vor einem weiteren aktiven Test zunächst sichere strukturelle Dekodierung bzw. erwartete Bestätigungen bestimmen. Keine Payload- oder Gesundheitsdaten im Diagnosebericht speichern.
