@@ -24,3 +24,7 @@ Der Test sendet weiterhin ausschließlich das einmalige minimale DeviceInformati
 ## Rohdaten-Test: Strukturresultat
 
 GFDI-Handle 15; fünf CRC-geprüfte Frames. Nach dem einmaligen DeviceInformation-ACK wurden drei bytegenau identische GFDI-5050-Frames (je 19 Byte Body) und ein GFDI-5011-Frame (21 Byte Body) empfangen. Keine FileSync-Antwort. Die Identität stützt die Retransmission-Hypothese, belegt aber keine bestimmte ACK-Semantik. Vollständige Rohbytes werden aus Datenschutzgründen nicht in dieser öffentlichen Dokumentation geführt.
+
+## Erweiterter Export – Stand 2026-11-16
+
+Der opt-in Bootstrap-Rohdatenbericht erhält für jedes empfangene, CRC-geprüfte Frame relative Millisekunden, Richtung RX und den GFDI-Typ zusätzlich zu Hexbytes. Die bestehenden Limits (32 Frames / 8 KiB) bleiben erhalten. TX-Rohbytes und persistente Exportdateien sind **noch nicht implementiert**; das ist ein nächster Entwicklungsschritt. Vor einem neuen aktiven Protokollbefehl zuerst die identischen 5050-Wiederholungen und ihre Abstände prüfen. Keine unbestätigten ACKs senden.
