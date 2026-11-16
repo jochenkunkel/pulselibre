@@ -6,6 +6,7 @@ package de.pulselibre
  * A response is only reported after validated COBS + GFDI length + CRC.
  */
 class GarminFileListProbe {
+    val bootstrap = GarminBootstrapObserver()
     private val pending = ArrayList<Byte>()
     private var collecting = false
     var frames = 0
@@ -54,6 +55,7 @@ class GarminFileListProbe {
         val frame = out.toByteArray()
         if (GarminFrameValidator.inspectVerified(frame) == null) { rejectedFrames++; return }
         frames++
+        bootstrap.observe(frame)
         val type = u16(frame, 2)
         val compact = type and 0x8000 != 0
         val effectiveType = if (compact) 5000 + (type and 255) else type
@@ -96,6 +98,7 @@ class GarminFileListProbe {
             for ((sub, data) in fields(value)) {
                 if (sub != 10 || data == null) continue
                 validLists++
+                bootstrap.observeFileListResponse()
                 fileEntries += fields(data).count { it.first == 4 && it.second != null }
             }
         }
