@@ -10,12 +10,9 @@ object GarminFileListRequest {
         // Smart container field 43 (length-delimited), containing field 9
         // FileListRequest with an empty message: list all, no sync flags.
         val smart = byteArrayOf(0xDA.toByte(), 0x02, 0x02, 0x4A, 0x00)
-        // Compact kind 0x39; sequence=10, counter=1.
-        val body = byteArrayOf(1, 0) + smart
-        val length = body.size + 6
-        val packet = byteArrayOf(length.toByte(), 0, 0x39, 0x8A.toByte()) + body
-        val crc = GarminFrameValidator.crc16Arc(packet)
-        return packet + byteArrayOf(crc.toByte(), (crc ushr 8).toByte())
+        // Compact kind 0x39; initial sequence=10, counter=1.
+        // Offline compatibility only: active CIRQA transmission stays disabled.
+        return GarminCompactTransport.frame(0x39, 10, 1, smart)
     }
 
     fun cobs(data: ByteArray): ByteArray {
