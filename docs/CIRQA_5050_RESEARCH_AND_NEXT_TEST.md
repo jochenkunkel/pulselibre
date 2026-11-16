@@ -28,3 +28,7 @@ GFDI-Handle 15; fünf CRC-geprüfte Frames. Nach dem einmaligen DeviceInformatio
 ## Erweiterter Export – Stand 2026-11-16
 
 Der opt-in Bootstrap-Rohdatenbericht erhält für jedes empfangene, CRC-geprüfte Frame relative Millisekunden, Richtung RX und den GFDI-Typ zusätzlich zu Hexbytes. Die bestehenden Limits (32 Frames / 8 KiB) bleiben erhalten. TX-Rohbytes und persistente Exportdateien sind **noch nicht implementiert**; das ist ein nächster Entwicklungsschritt. Vor einem neuen aktiven Protokollbefehl zuerst die identischen 5050-Wiederholungen und ihre Abstände prüfen. Keine unbestätigten ACKs senden.
+
+## Zeitmessung: periodische 5050-Wiederholung (2026-11-16)
+
+Neuer Opt-in-Rohdatenbericht: 5024 bei +1540 ms; 5050 bei +1599, +6597, +11604 ms; 5011 bei +16620 ms. Intervalle 5050→5050: **4998 ms** und **5007 ms**; letzter 5050→5011: **5016 ms**. Alle drei 5050-Frames sind bytegenau identisch und CRC-geprüft. Das spricht stark für einen 5-s-Retry/Timeout, belegt jedoch noch nicht, ob GFDI-5050 ein ACK auf Transport- oder Anwendungsebene benötigt. Keine FileListResponse und kein Historienzugriff. Rohpayloads bleiben aus öffentlicher Dokumentation ausgeschlossen. Nächster Schritt: Antwortsemantik anhand verifizierter Referenzimplementierungen oder eines funktionierenden Client-Mitschnitts bestimmen, bevor aktive Antworten gesendet werden.
