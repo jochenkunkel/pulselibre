@@ -123,20 +123,6 @@ class MainActivity : AppCompatActivity() {
         }
         overviewView(text("Gesundheit im Blick", 22f, ink, true), 5)
         overviewView(text("Deine Werte bleiben auf diesem Gerät.", 13f, muted), 16)
-        val metrics = dashboardMetrics(HealthSnapshot())
-        // Keep all six semantic cards directly in the scroll root for accessibility and regression tests.
-        metrics.forEachIndexed { index, metric ->
-            val item = card().apply {
-                tag = "metric_$index"
-                contentDescription = "${metric.title}: ${metric.value}. ${metric.note}"
-            }
-            item.addView(text(metric.title, 14f, violet, true))
-            item.addView(text(metric.value, 19f, ink, true),
-                LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) })
-            item.addView(text(metric.note, 12f, muted),
-                LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(5) })
-            overviewView(item)
-        }
         // CIRQA home dashboard: source-backed values only, never placeholder health scores.
         overviewView(text("CIRQA · Gesundheitsübersicht", 22f, ink, true), 5)
         overviewView(text("Lokal gespeichert · Messzeit = Empfangszeit · keine medizinische Diagnose", 12f, muted), 12)
@@ -276,10 +262,15 @@ class MainActivity : AppCompatActivity() {
             if (scanning) stopScan()
             androidx.appcompat.app.AlertDialog.Builder(this)
                 .setTitle("CIRQA Echtzeit-Messwerte")
-                .setMessage("Garmin Connect vorher beenden. PulseLibre registriert GFDI, Puls und Schritte ohne CLOSE_ALL, wartet maximal 20 Sekunden auf echte Messwerte und trennt die Verbindung. Keine Speicherung, keine Kopplungsänderung. Fortfahren?")
+                .setMessage("Garmin Connect vorher beenden. PulseLibre registriert GFDI, Puls und Schritte ohne CLOSE_ALL, wartet maximal 20 Sekunden auf echte Messwerte und trennt die Verbindung. Empfangene Messwerte werden lokal für die Übersicht gespeichert. Keine Kopplungsänderung. Fortfahren?")
                 .setNegativeButton("Abbrechen", null)
                 .setPositiveButton("Live-Test starten") { _, _ ->
                     if (cirqaMlProbe == null) cirqaMlProbe = CirqaMlHandshakeProbe(this, adapter)
+                    cirqaMlProbe?.onReading = { service, reading ->
+                        if (CirqaLocalLog(this).reading(service, reading)) {
+                            runOnUiThread { updateCirqaDashboard() }
+                        }
+                    }
                     cirqaMlProbe?.startRealtime { message -> runOnUiThread { output.text = message } }
                 }.show()
         })
@@ -288,10 +279,15 @@ class MainActivity : AppCompatActivity() {
             if (scanning) stopScan()
             androidx.appcompat.app.AlertDialog.Builder(this)
                 .setTitle("CIRQA: Weitere Messwerte")
-                .setMessage("Garmin Connect vorher beenden. PulseLibre versucht zusätzlich SpO₂, Atmung, HRV, Stress, Body Battery, Kalorien und Intensitätsminuten einzeln zu registrieren. Nicht unterstützte Dienste werden gemeldet. Maximal 20 Sekunden, kein CLOSE_ALL, keine Speicherung.")
+                .setMessage("Garmin Connect vorher beenden. PulseLibre versucht zusätzlich SpO₂, Atmung, HRV, Stress, Body Battery, Kalorien und Intensitätsminuten einzeln zu registrieren. Nicht unterstützte Dienste werden gemeldet. Maximal 20 Sekunden, kein CLOSE_ALL. Empfangene Messwerte werden lokal für die Übersicht gespeichert.")
                 .setNegativeButton("Abbrechen", null)
                 .setPositiveButton("Messwerte prüfen") { _, _ ->
                     if (cirqaMlProbe == null) cirqaMlProbe = CirqaMlHandshakeProbe(this, adapter)
+                    cirqaMlProbe?.onReading = { service, reading ->
+                        if (CirqaLocalLog(this).reading(service, reading)) {
+                            runOnUiThread { updateCirqaDashboard() }
+                        }
+                    }
                     cirqaMlProbe?.startAllMetrics { message -> runOnUiThread { output.text = message } }
                 }.show()
         })
