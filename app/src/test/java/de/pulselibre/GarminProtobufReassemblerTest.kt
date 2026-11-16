@@ -23,6 +23,35 @@ class GarminProtobufReassemblerTest {
         assertEquals(0, receiver.rejected)
     }
 
+    @Test fun duplicateFirstChunkDoesNotResetProgress() {
+        val receiver = GarminProtobufReassembler()
+        val first = packet(7, 0, 5, byteArrayOf(1, 2))
+        assertNull(receiver.accept(first))
+        assertNull(receiver.accept(first))
+        assertArrayEquals(byteArrayOf(1, 2, 3, 4, 5),
+            receiver.accept(packet(7, 2, 5, byteArrayOf(3, 4, 5))))
+        assertEquals(0, receiver.rejected)
+    }
+
+    @Test fun duplicateMiddleChunkDoesNotCorruptProgress() {
+        val receiver = GarminProtobufReassembler()
+        assertNull(receiver.accept(packet(7, 0, 6, byteArrayOf(1, 2))))
+        val middle = packet(7, 2, 6, byteArrayOf(3, 4))
+        assertNull(receiver.accept(middle))
+        assertNull(receiver.accept(middle))
+        assertArrayEquals(byteArrayOf(1, 2, 3, 4, 5, 6),
+            receiver.accept(packet(7, 4, 6, byteArrayOf(5, 6))))
+        assertEquals(0, receiver.rejected)
+    }
+
+    @Test fun rejectsConflictingRetransmission() {
+        val receiver = GarminProtobufReassembler()
+        assertNull(receiver.accept(packet(7, 0, 6, byteArrayOf(1, 2))))
+        assertNull(receiver.accept(packet(7, 2, 6, byteArrayOf(3, 4))))
+        assertNull(receiver.accept(packet(7, 2, 6, byteArrayOf(9, 9))))
+        assertEquals(1, receiver.rejected)
+    }
+
     @Test fun rejectsGapAndDoesNotReturnPartialData() {
         val receiver = GarminProtobufReassembler()
         assertNull(receiver.accept(packet(7, 0, 5, byteArrayOf(1, 2))))
