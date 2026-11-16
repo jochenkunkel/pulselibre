@@ -1,0 +1,55 @@
+"""Synthetic, privacy-safe tests for the offline btsnoop validator."""
+import importlib.util
+import struct
+import tempfile
+import unittest
+from pathlib import Path
+
+MODULE = Path(__file__).with_name("btsnoop_summary.py")
+spec = importlib.util.spec_from_file_location("btsnoop_summary", MODULE)
+snoop = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(snoop)
+
+
+def capture(records, datalink=1002):
+    header = b"btsnoop\x00" + struct.pack(">II", 1, datalink)
+    for record in records:
+        header += struct.pack(">IIIIQ", len(record), len(record), 0, 0, 0) + record
+    return header
+
+
+class SnoopTests(unittest.TestCase):
+    def check(self, data):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "synthetic.log"
+            path.write_bytes(data)
+            return snoop.summarize(path)
+
+    def test_zero_acl_explicitly_insufficient(self):
+        result = self.check(capture([b"\x04\x0e", b"\x01\x01"]))
+        self.assertEqual(result["acl_records"], 0)
+        self.assertFalse(result["sufficient_for_att_analysis"])
+        self.assertEqual(result["types"], {"command": 1, "event": 1})
+
+    def test_complete_att_acl(self):
+        # H4 ACL, start fragment, L2CAP CID 4, one-byte ATT payload.
+        acl = b"\x02" + struct.pack("<HHHH", 1 | (2 << 12), 5, 1, 4) + b"\x0a"
+        result = self.check(capture([acl]))
+        self.assertEqual(result["complete_att_candidates"], 1)
+        self.assertTrue(result["sufficient_for_att_analysis"])
+
+    def test_truncated_and_oversized_rejected(self):
+        with self.assertRaises(snoop.InvalidSnoop):
+            self.check(capture([b"\x04"])[:-1])
+        oversized = b"btsnoop\x00" + struct.pack(">II", 1, 1002)
+        oversized += struct.pack(">IIIIQ", 20000000, 20000000, 0, 0, 0)
+        with self.assertRaises(snoop.InvalidSnoop):
+            self.check(oversized)
+
+    def test_unsupported_datalink_rejected(self):
+        with self.assertRaises(snoop.InvalidSnoop):
+            self.check(capture([b"\x04"], 1001))
+
+
+if __name__ == "__main__":
+    unittest.main()
