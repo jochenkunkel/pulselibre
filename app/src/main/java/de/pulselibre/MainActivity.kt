@@ -487,6 +487,28 @@ class MainActivity : AppCompatActivity() {
                     }
                 }.show()
         })
+        debugView(actionButton("CIRQA: Garmin-Connect-HCI-Mitschnitt vorbereiten", false) {
+            androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("CIRQA · Referenz-Handshake aufzeichnen")
+                .setMessage(
+                    "1. Android-Einstellungen > Über das Telefon > Buildnummer siebenmal antippen, falls Entwickleroptionen fehlen.\\n\\n" +
+                    "2. Entwickleroptionen öffnen und \"Bluetooth-HCI-Snoop-Protokoll aktivieren\" einschalten. Die Bezeichnung hängt vom Gerät ab.\\n\\n" +
+                    "3. PulsLibre-Aufzeichnung und BLE-Diagnose beenden. Garmin Connect in Android > Apps wieder aktivieren.\\n\\n" +
+                    "4. Garmin Connect starten und CIRQA genau einmal synchronisieren.\\n\\n" +
+                    "5. HCI-Snoop sofort wieder ausschalten; Garmin Connect bei Bedarf deaktivieren.\\n\\n" +
+                    "6. Über Android-Fehlerbericht oder ADB den Bluetooth-HCI-Snoop-Log sichern und lokal in Wireshark auf die Garmin-GATT-Schreibvorgänge prüfen.\\n\\n" +
+                    "WICHTIG: HCI-Logs können Gerätekennungen, Gesundheitsdaten und andere Bluetooth-Verbindungen enthalten. Vor dem Teilen bereinigen. PulsLibre kann die systemgeschützte HCI-Datei nicht selbst auslesen. Keine Kopplung löschen oder zurücksetzen."
+                )
+                .setNegativeButton("Schließen", null)
+                .setPositiveButton("Entwickleroptionen öffnen") { _, _ ->
+                    try {
+                        startActivity(Intent(android.provider.Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS))
+                    } catch (_: Exception) {
+                        Toast.makeText(this, "Entwickleroptionen bitte manuell in Android-Einstellungen öffnen.", Toast.LENGTH_LONG).show()
+                    }
+                }
+                .show()
+        })
         debugView(actionButton("CIRQA: Bootstrap-Rohdaten (experimentell)", false) {
             if (!ensurePermissions()) return@actionButton
             if (scanning) stopScan()
