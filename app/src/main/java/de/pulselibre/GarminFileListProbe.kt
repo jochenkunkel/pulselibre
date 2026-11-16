@@ -25,7 +25,7 @@ class GarminFileListProbe {
         private set
 
     fun summary(): String = "GFDI-Frames: $frames; FileListResponse: $validLists; " +
-        "Dateieinträge: $fileEntries; Typen: $frameTypes; GFDI-5000-Status: $responseStatuses; Antwortfehler: $responseErrors; andere Nachrichten: $otherMessages; ungültige Frames: $rejectedFrames"
+        "Dateieinträge: $fileEntries; Typen: $frameTypes; GFDI-5000-Status: $responseStatuses; Antwortfehler: $responseErrors; andere Nachrichten: $otherMessages; ungültige Frames: $rejectedFrames; ${bootstrap.summary()}"
 
     fun observeMlPayload(payload: ByteArray) {
         for (byte in payload) {
