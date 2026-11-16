@@ -30,9 +30,22 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private var steps: GarminRealtime.Reading.Steps? = null
     private var realtimeFrames = 0
     private var expandedMode = false
+    private var exploratoryMode = false
+    private var servicePlan: List<Int> = GarminRealtime.SUPPORTED_SERVICES
+    private val exploratoryAccepted = mutableMapOf<Int, Int>()
+    private val exploratoryFrames = mutableMapOf<Int, Int>()
     private var registrationIndex = 0
     private val rejectedServices = mutableListOf<Int>()
     private val extraReadings = mutableMapOf<Int, GarminRealtime.Reading>()
+
+    /** Opt-in bounded read-only discovery; never used by overnight recording. */
+    fun startMotionDiscovery(result: (String) -> Unit) {
+        if (active) { result("ML-Test läuft bereits."); return }
+        exploratoryMode = true
+        expandedMode = true
+        servicePlan = GarminServiceDiscovery.CANDIDATES
+        startRealtime(result)
+    }
 
     fun startAllMetrics(result: (String) -> Unit) {
         if (active) { result("ML-Test läuft bereits."); return }
@@ -42,8 +55,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
 
     private fun nextRealtimeService(g: BluetoothGatt) {
         registrationIndex++
-        if (registrationIndex < GarminRealtime.SUPPORTED_SERVICES.size) {
-            pendingService = GarminRealtime.SUPPORTED_SERVICES[registrationIndex]
+        if (registrationIndex < servicePlan.size) {
+            pendingService = servicePlan[registrationIndex]
             mark("Registriere Garmin-Service $pendingService")
             send(g, GarminMlHandshake.registerRequest(pendingService))
         } else {
@@ -81,6 +94,9 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         steps = null
         realtimeFrames = 0
         registrationIndex = 0
+        if (!exploratoryMode) servicePlan = GarminRealtime.SUPPORTED_SERVICES
+        exploratoryAccepted.clear()
+        exploratoryFrames.clear()
         rejectedServices.clear()
         extraReadings.clear()
         notificationsReceived = 0
@@ -204,7 +220,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     }
                     rejectedServices.add(pendingService)
                 } else {
-                    realtimeRegistry.register(pendingService, response.handle)
+                    if (exploratoryMode) exploratoryAccepted[pendingService] = response.handle
+                    else realtimeRegistry.register(pendingService, response.handle)
                 }
                 if (expandedMode) nextRealtimeService(g)
                 else if (pendingService == GarminRealtime.HEART_RATE_SERVICE) {
@@ -215,6 +232,12 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     pendingService = -1
                     mark("Puls und Schritte registriert; warte auf Messwerte")
                 }
+                return
+            }
+            if (exploratoryMode) {
+                val routed = GarminRealtime.route(bytes)
+                val id = exploratoryAccepted.entries.firstOrNull { it.value == routed?.handle }?.key
+                if (id != null) exploratoryFrames[id] = (exploratoryFrames[id] ?: 0) + 1
                 return
             }
             val reading = realtimeRegistry.receive(bytes)
@@ -277,7 +300,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         "Schritte: ${steps?.count?.toString() ?: "nicht empfangen"}; " +
         "Ziel: ${steps?.goal?.toString() ?: "unbekannt"}; " +
         "gültige Messpakete: $realtimeFrames; " +
-        (if (expandedMode) "Weitere Werte: ${extraReadings.values.joinToString()}; abgelehnte Dienste: ${rejectedServices.joinToString()}; " else "") +
+        (if (exploratoryMode) "Discovery: ${GarminServiceDiscovery.describe(exploratoryAccepted, rejectedServices, exploratoryFrames)}; " else if (expandedMode) "Weitere Werte: ${extraReadings.values.joinToString()}; abgelehnte Dienste: ${rejectedServices.joinToString()}; " else "") +
         "Phase: $phase. Keine Daten gespeichert."
 
     @SuppressLint("MissingPermission")
@@ -299,6 +322,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             session = null
             realtimeMode = false
             expandedMode = false
+            exploratoryMode = false
         }
     }
     fun close() {
@@ -310,5 +334,6 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         session = null
         realtimeMode = false
         expandedMode = false
+        exploratoryMode = false
     }
 }
