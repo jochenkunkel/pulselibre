@@ -10,6 +10,15 @@ class GarminFileListProbe {
     val bootstrapDiagnosis = GarminBootstrapDiagnosis()
     val postBootstrap = GarminPostBootstrapObserver()
     var ackAttempted = false
+    var captureRawFrames = false
+    private val rawFrames = mutableListOf<String>()
+    private var rawBytes = 0
+    private var droppedRawFrames = 0
+
+    fun rawCaptureReport(): String =
+        "GFDI-Rohdaten (CRC-geprüft; vollständige Frames, Hex; nur auf Nutzerfreigabe teilen): " +
+            "Frames=${rawFrames.size}; Bytes=$rawBytes; wegen Limit verworfen=$droppedRawFrames\\n" +
+            rawFrames.joinToString("\\n")
     val chunks = GarminChunkObserver()
     val protobuf = GarminProtobufReassembler()
     private val pending = ArrayList<Byte>()
@@ -60,6 +69,12 @@ class GarminFileListProbe {
         val frame = out.toByteArray()
         if (GarminFrameValidator.inspectVerified(frame) == null) { rejectedFrames++; return }
         frames++
+        if (captureRawFrames) {
+            if (rawFrames.size < 32 && rawBytes + frame.size <= 8192) {
+                rawFrames.add("Frame #$frames: " + frame.joinToString("") { "%02x".format(it.toInt() and 255) })
+                rawBytes += frame.size
+            } else droppedRawFrames++
+        }
         bootstrap.observe(frame)
         bootstrapDiagnosis.observe(frame)
         postBootstrap.observe(frame, ackAttempted)
