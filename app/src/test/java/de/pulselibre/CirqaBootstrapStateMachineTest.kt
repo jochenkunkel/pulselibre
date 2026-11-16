@@ -25,6 +25,7 @@ class CirqaBootstrapStateMachineTest {
         assertEquals(2, machine.retries)
         assertEquals(CirqaBootstrapStateMachine.State.POST_RETRY_5011_SEEN, machine.state)
         assertTrue(machine.summary().contains("4998, 5007"))
+        assertTrue(machine.summary().contains("5s-Retry-Kandidaten=2"))
         assertTrue(machine.summary().contains("Anwendungs-ACK nachgewiesen=false"))
     }
     @Test fun boundsRetryTimingEvidenceAndSkipsClockRegression() {
@@ -61,7 +62,21 @@ class CirqaBootstrapStateMachineTest {
         machine.observe(repeated, 500L)
         machine.observe(frame(5050, byteArrayOf(7, 9)), 600L)
         assertEquals(0, machine.retries)
+        assertEquals(1, machine.changed5050Payloads)
         assertEquals(CirqaBootstrapStateMachine.State.WAITING_5050_RESPONSE, machine.state)
+    }
+
+    @Test fun clockRegressionDoesNotCorruptNextRetryInterval() {
+        val machine = CirqaBootstrapStateMachine()
+        machine.observe(frame(5024, byteArrayOf(1)), 0L)
+        machine.onAckAttempt()
+        val msg = frame(5050, byteArrayOf(7))
+        machine.observe(msg, 10000L)
+        machine.observe(msg, 1000L)
+        machine.observe(msg, 15000L)
+        assertEquals(2, machine.retries)
+        assertTrue(machine.summary().contains("Intervalle-ms=[5000]"))
+        assertTrue(machine.summary().contains("5s-Retry-Kandidaten=1"))
     }
 
     @Test fun ignoresPostRetryMessageUntil5050ObservedAfterAck() {
