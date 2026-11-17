@@ -46,3 +46,7 @@ Der aktive `CirqaMlHandshakeProbe` wurde **ohne neue BLE-Befehle** angepasst: Be
 Im bestehenden **Nullmasken**-`configurationTestMode` wird jetzt unmittelbar beim Einplanen der 5050-Antwort die Anzahl bereits empfangener `gfdi-5050`-Frames festgehalten. Kommt danach eine weitere 5050-Anfrage, beendet `CirqaMlHandshakeProbe` die Sitzung über `finish` statt erneut zu verhandeln. Die Vergleichslogik ist als `Cirqa5050RetryGuard` isoliert und mit Unit-Tests abgedeckt. Die vorhandene 5050-Nullmasken-Antwort und der normale Recorder werden nicht verändert.
 
 **Grenze:** Das Zählverfahren wertet vollständige Frames nach dem Queue-Zeitpunkt aus und unterscheidet keine Gerätesequenznummern. Der aktive SYNC-Bit-3-Versuch bleibt gesperrt. CI-Erfolg für diesen Commit muss geprüft werden.
+
+## Vierter Implementierungsnachtrag: 5050-ACK-Reihenfolge
+
+Der aktive **Nullmasken**-Diagnosepfad erkennt ein positives GFDI-5000-ACK für 5050 nun nur dann als `configurationAckReceived`, wenn die gesamte 5050-GATT-Schreibfolge bestätigt ist. Die reine Regel `Cirqa5050AckGate` wird sowohl beim Eintreffen des ACK als auch beim letzten GATT-Schreibcallback ausgewertet, damit ein früh eingetroffenes ACK nicht verloren geht. Unit-Tests prüfen alle acht booleschen Kombinationen und die frühe ACK-Reihenfolge. **Wichtig:** Das Gate wertet den bisherigen kumulierten Status des passiven Decoders aus; es beweist nicht die Sequenznummern-Zuordnung oder die Herkunft eines ACKs aus einer bestimmten Sitzung. Ein SYNC-Bit-3-Gerätetest ist weiterhin nicht freigegeben oder implementiert.
