@@ -30,16 +30,35 @@ class MainActivity : AppCompatActivity() {
     private var debugDevicesVisible = false
     private var recorderRefresh: (() -> Unit)? = null
     private var dashboardPolling = false
-    private var dashboardLastCount = -1L
+    private var dashboardLastEventId = -1L
     private var dashboardLastRefreshAt = 0L
     private val dashboardWorker = java.util.concurrent.Executors.newSingleThreadExecutor()
 
+    private var pollInFlight = false
+    private var readingDashboard = false
+    private var pendingDashboard: ((CirqaDashboardReader.Summary) -> Unit)? = null
+
     private fun readDashboard(includeTotals: Boolean = false, show: (CirqaDashboardReader.Summary) -> Unit) {
         if (dashboardWorker.isShutdown) return
+        if (!includeTotals && readingDashboard) {
+            pendingDashboard = show
+            return
+        }
+        if (!includeTotals) readingDashboard = true
         dashboardWorker.execute {
             val summary = try { CirqaDashboardReader(applicationContext).read(includeTotals = includeTotals) }
-                catch (_: android.database.sqlite.SQLiteException) { return@execute }
-            handler.post { if (!isFinishing && !isDestroyed) show(summary) }
+                catch (_: android.database.sqlite.SQLiteException) { null }
+            handler.post {
+                if (!includeTotals) readingDashboard = false
+                if (!isFinishing && !isDestroyed) {
+                    if (summary != null) show(summary)
+                    if (!includeTotals) {
+                        val pending = pendingDashboard
+                        pendingDashboard = null
+                        if (pending != null) readDashboard(show = pending)
+                    }
+                }
+            }
         }
     }
 
@@ -48,18 +67,23 @@ class MainActivity : AppCompatActivity() {
             if (!dashboardPolling || destroyed) return
             connectionIndicatorRefresh?.invoke()
             recorderRefresh?.invoke()
-            if (dashboardVisible || historyVisible) {
-                try {
-                    val count = CirqaDatabase(this@MainActivity).use { it.eventCount() }
-                    val now = System.currentTimeMillis()
-                    if (count != dashboardLastCount || now - dashboardLastRefreshAt >= 30_000L) {
-                        if (dashboardVisible) dashboardRefresh?.invoke()
-                        if (historyVisible) historyRefresh?.invoke()
-                        dashboardLastCount = count
-                        dashboardLastRefreshAt = now
+            if ((dashboardVisible || historyVisible) && !pollInFlight) {
+                pollInFlight = true
+                dashboardWorker.execute {
+                    val latest = try { CirqaDatabase(applicationContext).use { it.latestEventId() } }
+                        catch (_: android.database.sqlite.SQLiteException) { null }
+                    handler.post {
+                        pollInFlight = false
+                        if (dashboardPolling && !destroyed && latest != null) {
+                            val now = android.os.SystemClock.elapsedRealtime()
+                            if (latest != dashboardLastEventId || now - dashboardLastRefreshAt >= 30_000L) {
+                                dashboardLastEventId = latest
+                                dashboardLastRefreshAt = now
+                                if (dashboardVisible) dashboardRefresh?.invoke()
+                                if (historyVisible) historyRefresh?.invoke()
+                            }
+                        }
                     }
-                } catch (_: Exception) {
-                    // A temporary database read error must not crash the dashboard.
                 }
             }
             if (dashboardPolling && !destroyed) handler.postDelayed(this, 1000L)
@@ -68,7 +92,7 @@ class MainActivity : AppCompatActivity() {
     private fun startDashboardPolling() {
         if (dashboardPolling) return
         dashboardPolling = true
-        dashboardLastCount = -1L
+        dashboardLastEventId = -1L
         dashboardLastRefreshAt = 0L
         handler.post(dashboardPoll)
     }
@@ -183,7 +207,7 @@ class MainActivity : AppCompatActivity() {
             isFocusable = true
             setOnClickListener {
                 PersonalSettings.show(this@MainActivity) {
-                    dashboardLastCount = -1L
+                    dashboardLastEventId = -1L
                     dashboardLastRefreshAt = 0L
                 }
             }
@@ -344,7 +368,7 @@ class MainActivity : AppCompatActivity() {
         bodyCard.setOnClickListener {
             PersonalSettings.show(this) {
                 refreshBodyCard()
-                dashboardLastCount = -1L
+                dashboardLastEventId = -1L
                 dashboardLastRefreshAt = 0L
             }
         }
@@ -807,14 +831,14 @@ class MainActivity : AppCompatActivity() {
             historyVisible = index == 1
             devicesVisible = index == 2
             if (dashboardVisible) {
-                dashboardLastCount = -1L
+                dashboardLastEventId = -1L
                 dashboardLastRefreshAt = 0L
             }
             overview.forEach { it.visibility = if (index == 0) android.view.View.VISIBLE else android.view.View.GONE }
             historyViews.forEach { it.visibility = if (index == 1) android.view.View.VISIBLE else android.view.View.GONE }
             deviceViews.forEach { it.visibility = if (index == 2 && (debugDevicesVisible || it !in debugDeviceViews)) android.view.View.VISIBLE else android.view.View.GONE }
             if (index == 1) {
-                dashboardLastCount = -1L
+                dashboardLastEventId = -1L
                 dashboardLastRefreshAt = 0L
                 historyRefresh?.invoke()
             }
