@@ -791,6 +791,7 @@ class MainActivity : AppCompatActivity() {
             setBackgroundColor(palette.card)
         }
         val tabs = mutableListOf<TextView>()
+        val tabViews = mutableListOf<LinearLayout>()
         fun selectTab(index: Int) {
             dashboardVisible = index == 0
             historyVisible = index == 1
@@ -810,17 +811,32 @@ class MainActivity : AppCompatActivity() {
             if (index == 2) recorderRefresh?.invoke()
             tabs.forEachIndexed { i, tab ->
                 tab.setTextColor(if (i == index) violet else muted)
-                tab.background = if (i == index) rounded(palette.tinted, 12) else null
+                tabViews[i].background = if (i == index) rounded(palette.tinted, 12) else null
             }
             if (index == 2) refreshCirqaCard()
             scroll.scrollTo(0, 0)
         }
         listOf("Übersicht", "Verlauf", "Geräte", "Testlabor", "Daten").forEachIndexed { index, label ->
-            val tab = text(label, 14f, muted, true).apply {
+            val iconKind = when (index) {
+                0 -> DashboardInfoIconView.Kind.HOME
+                1 -> DashboardInfoIconView.Kind.HISTORY
+                2 -> DashboardInfoIconView.Kind.DEVICES
+                3 -> DashboardInfoIconView.Kind.LAB
+                else -> DashboardInfoIconView.Kind.DATA
+            }
+            val tab = text(label, 10f, muted, true).apply {
+                gravity = android.view.Gravity.CENTER
+                importantForAccessibility = android.view.View.IMPORTANT_FOR_ACCESSIBILITY_NO
+            }
+            val item = LinearLayout(this).apply {
+                orientation = LinearLayout.VERTICAL
                 gravity = android.view.Gravity.CENTER
                 minHeight = dp(52)
+                setPadding(dp(2), dp(3), dp(2), dp(3))
                 isClickable = true
                 isFocusable = true
+                contentDescription = label
+                tag = "navigation_item_$label"
                 setOnClickListener {
                     when (index) {
                         3 -> startActivity(Intent(this@MainActivity, CirqaTestLaboratoryActivity::class.java))
@@ -829,8 +845,13 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
             }
-            nav.addView(tab, LinearLayout.LayoutParams(0, -2, 1f))
+            item.addView(DashboardInfoIconView(this, iconKind, violet).apply {
+                tag = "navigation_icon_$label"
+            }, LinearLayout.LayoutParams(dp(18), dp(18)))
+            item.addView(tab, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(2) })
+            nav.addView(item, LinearLayout.LayoutParams(0, -2, 1f))
             tabs.add(tab)
+            tabViews.add(item)
         }
         screen.addView(nav)
         setContentView(screen)
