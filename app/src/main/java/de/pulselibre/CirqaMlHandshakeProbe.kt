@@ -253,7 +253,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         try {
             gatt = device.connectGatt(context, false, object : BluetoothGattCallback() {
                 override fun onConnectionStateChange(g: BluetoothGatt, status: Int, state: Int) {
-                    if (!active) { safeClose(g); return }
+                    if (!active || terminationRequested) { safeClose(g); return }
                     if (status != BluetoothGatt.GATT_SUCCESS || state == BluetoothProfile.STATE_DISCONNECTED) {
                         finish("ML-Verbindung beendet (GATT $status, Zustand $state). Letzte Phase: $phase; Notifications: $notificationsReceived; GATT-Schreiben bestätigt: $writeConfirmed; Protokollzustand: ${session?.stage}; Antwortformen: ${notificationShapes.joinToString(" | ")}.", g)
                     } else if (state == BluetoothProfile.STATE_CONNECTED) {
@@ -263,7 +263,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     }
                 }
                 override fun onServicesDiscovered(g: BluetoothGatt, status: Int) {
-                    if (!active) return
+                    if (!active || terminationRequested) return
                     if (status != BluetoothGatt.GATT_SUCCESS) { finish("Dienstsuche fehlgeschlagen: $status", g); return }
                     val service = g.services.orEmpty().firstOrNull {
                         it.uuid.toString().equals(GarminMlOffline.SERVICE_UUID, true)
