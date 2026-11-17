@@ -34,3 +34,9 @@ Fehlt ein Beleg, ist das Ergebnis **NO_SESSION_EVIDENCE** oder **WRONG_SESSION**
 Nutzerbericht: GFDI-Registrierung bestätigt; 5 Notifications (1 Registrierung, 4 GFDI); alle vier GFDI-Frames sind CRC-gültige 5024-DeviceInformation, drei Wiederholungen; 5024-ACK nicht gesendet; 5050=0, 5037=0, FileListResponse=0; kompakte RX-Frames=0, TX-Session-Zähler unbekannt. Keine negativen Antworten und keine ungültigen Frames.
 
 **Interpretation:** Der passive Modus erreicht ohne 5024-ACK keine spätere Bootstrap-Phase. Null kompakte Frames ist kein Beweis für falsche Counter oder fehlende FileSync-V2-Unterstützung. Dieser Test darf nicht als Zählertest gewertet werden. Vor einer aktiven FileList-Probe zuerst den bereits implementierten expliziten 5024+5050-Diagnosepfad nutzen, um nach bestätigter 5050-Antwort passiv nach kompakten Frames zu suchen. Selbst dann bleibt RX ≠ TX; der Sendepfad ist weiter gesperrt.
+
+## Realgerät: 5024+5050 mit Null-Hostmaske (17.11.2026)
+
+Nutzerbericht: GFDI registriert (Handle 63), 5024 einmal, 5050 einmal, GFDI-5000-ACK für 5050 einmal (request=5050/status=ACK), keine negativen Antworten, keine ungültigen Frames. 5050-Antwort 15 Bytes mit **allen Host-Bits 0**, GATT-Schreibfolge bestätigt. Nach Schreibbestätigung genau ein 5000-Frame; kein 5037, 5011, FileListResponse oder kompakter RX-Frame. Ergebnis `ACK_WITHOUT_5037`.
+
+Dieser Test ist **nicht** der frühere SYNC-Bit-3-Test. Nullmaske und SYNC-Bit 3 dürfen in Vergleichen nicht vermischt werden. Das ACK beweist keine Historienfreigabe. Der passive Decoder zeigt `5050-Antwort=NICHT_GESENDET`, obwohl der aktive Test sie sendete; diese Felder betreffen unterschiedliche Komponenten und sind nicht als widersprechende BLE-Evidenz zu interpretieren. RX- und TX-Counter bleiben unbekannt; der FileList-Sendepfad bleibt deaktiviert.
