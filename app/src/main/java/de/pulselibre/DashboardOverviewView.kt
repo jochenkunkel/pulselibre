@@ -117,7 +117,8 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
             val valueLayer = android.widget.FrameLayout(context).apply {
                 contentDescription = metric.value
             }
-            valueLayer.addView(SpO2LungView(context, percent, SpO2DisplaySettings.read(context).colorFor(percent, palette), palette.track),
+            val displaySettings = SpO2DisplaySettings.read(context)
+            valueLayer.addView(SpO2LungView(context, percent, displaySettings.colorFor(percent, palette), palette.track),
                 android.widget.FrameLayout.LayoutParams(-1, dp(76), Gravity.CENTER))
             valueLayer.addView(label(metric.value, 22f, accent, true).apply {
                 gravity = Gravity.CENTER
@@ -364,8 +365,9 @@ private class ReceptionIndicatorView(
             profile.sourceName?.let { row("↗", "Quelle  $it", palette.accent, profile.sourceUrl) }
             if (metric.title == "Sauerstoffsättigung · SpO₂") {
                 val displayBands = SpO2DisplaySettings.read(context)
-                row("▰", "Anzeige  🟢 ≥${displayBands.greenFrom}%  🟠 ${displayBands.orangeFrom}–${displayBands.greenFrom - 1}%  🔴 <${displayBands.orangeFrom}%  ⚪ kein gültiger Wert", palette.muted)
-                row("⚠", "Konfigurierbare Farbskala, keine CIRQA-Signalqualität oder medizinische Bewertung.", palette.muted)
+                row("▰", "Vorschau  ${displayBands.bandLabel()}", palette.muted)
+                row("⏳", "Orientierung deaktiviert · CIRQA-Handgelenksensor nicht gerätespezifisch validiert.", palette.muted)
+                row("⚠", "Keine Signalqualität verfügbar; keine Diagnose oder Alarmfunktion.", palette.muted)
                 row("↗", "Quelle  NHS-Fingerpulsoximeter-Kontext; nicht für CIRQA validiert", palette.accent,
                     "https://www.england.nhs.uk/coronavirus/documents/c0445-pulse-oximetry-to-detect-early-deterioration-of-patients-with-covid-19-in-primary-and-community-care-settings-12-january-2021/")
             }
