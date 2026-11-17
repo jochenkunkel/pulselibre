@@ -214,7 +214,7 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
             val indicator = ReceptionIndicatorView(context, metric, stepGoal).apply {
                 tag = "reception_indicator_${metric.title}"
             }
-            addView(indicator, android.widget.FrameLayout.LayoutParams(dp(24), dp(24), Gravity.TOP or Gravity.END).apply {
+            addView(indicator, android.widget.FrameLayout.LayoutParams(dp(48), dp(48), Gravity.TOP or Gravity.END).apply {
                 topMargin = dp(4)
                 marginEnd = dp(4)
             })
@@ -224,7 +224,7 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
     private fun header(metric: DashboardMetric) = LinearLayout(context).apply {
         orientation = HORIZONTAL
         gravity = Gravity.CENTER_VERTICAL
-        setPadding(0, 0, dp(28), 0)
+        setPaddingRelative(0, 0, dp(28), 0)
         addView(DashboardMetricIconView(context, metric.title, iconColor(metric.title)).apply {
             tag = "dashboard_metric_icon_${metric.title}"
         }, LayoutParams(dp(20), dp(20)).apply { marginEnd = dp(6) })
@@ -355,7 +355,7 @@ private class ReceptionIndicatorView(
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-        val x = width - 8f * density
+        val x = if (layoutDirection == View.LAYOUT_DIRECTION_RTL) 8f * density else width - 8f * density
         val y = 8f * density
         val color = when (state) {
             ReceptionFreshness.FRESH -> Color.rgb(31, 166, 113)
