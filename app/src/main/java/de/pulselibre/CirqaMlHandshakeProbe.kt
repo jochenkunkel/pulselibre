@@ -30,6 +30,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private var session: GarminMlHandshake.Session? = null
     private var requestedCloseAll = false
     private var realtimeMode = false
+    private var continuousRecordingMode = false
     private var historyDiagnosticMode = false
     private var rawCaptureMode = false
     private var bootstrapAckMode = false
@@ -162,6 +163,13 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         expandedMode = true
         servicePlan = GarminServiceDiscovery.CANDIDATES
         startRealtime(result)
+    }
+
+    /** Recorder-only: retain the established GATT subscription until stop or disconnect. */
+    fun startContinuousAllMetrics(result: (String) -> Unit) {
+        if (active) { result("ML-Test läuft bereits."); return }
+        continuousRecordingMode = true
+        startAllMetrics(result)
     }
 
     fun startAllMetrics(result: (String) -> Unit) {
@@ -378,7 +386,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             }, BluetoothDevice.TRANSPORT_LE)
             if (configurationTestMode) main.postDelayed(configurationTimeout, 20_000L)
             /* Legacy timeout for non-configuration modes. */
-            if (!configurationTestMode) main.postDelayed({ if (active) finish(if (historyDiagnosticMode) "CIRQA Historien-Diagnose: Beobachtungsfenster beendet." else if (realtimeMode) realtimeSummary("Zeitlimit (20 Sekunden)") else "ML-Handshake: Zeitlimit (20 Sekunden). Letzte Phase: $phase; Notifications: $notificationsReceived; GATT-Schreiben bestätigt: $writeConfirmed; Protokollzustand: ${session?.stage}; Antwortformen: ${notificationShapes.joinToString(" | ")}.", gatt) }, 20_000)
+            if (!configurationTestMode && !continuousRecordingMode) main.postDelayed({ if (active) finish(if (historyDiagnosticMode) "CIRQA Historien-Diagnose: Beobachtungsfenster beendet." else if (realtimeMode) realtimeSummary("Zeitlimit (20 Sekunden)") else "ML-Handshake: Zeitlimit (20 Sekunden). Letzte Phase: $phase; Notifications: $notificationsReceived; GATT-Schreiben bestätigt: $writeConfirmed; Protokollzustand: ${session?.stage}; Antwortformen: ${notificationShapes.joinToString(" | ")}.", gatt) }, 20_000)
         } catch (_: SecurityException) { finish("Bluetooth-Berechtigung fehlt.", gatt) }
         catch (e: IllegalArgumentException) { finish("Verbindungsfehler: ${e.javaClass.simpleName}", gatt) }
     }
@@ -751,6 +759,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             tx = null
             session = null
             realtimeMode = false
+            continuousRecordingMode = false
             historyDiagnosticMode = false
             bootstrapAckMode = false
             configurationTestMode = false
@@ -770,6 +779,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         callback = null
         session = null
         realtimeMode = false
+        continuousRecordingMode = false
         bootstrapAckMode = false
         configurationTestMode = false
         rawCaptureMode = false
