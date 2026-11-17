@@ -119,9 +119,9 @@ Diese Schritte sind ein **noch auszuführender** S25-Testplan. Automatisierte JV
 | T25 | Bereich „Passiv beobachtete Protokolle und lokale Logs“ ansehen | Das Labor sagt ausdrücklich, dass keine passiven CIRQA-Rohframes gespeichert sind. SQLite-Zähler sind App-Ereignisse und kein passiver Protokollmitschnitt. |
 | T26 | Offline-Kandidat „GFDI 5007“ im Testlabor prüfen | Bytepreview zeigt den aus Connect 5.31 abgeleiteten Kandidaten; Gerätetest-Button ist deaktiviert. Keine Anfrage wird gesendet und keine CIRQA-Kompatibilität behauptet. |
 
-**Stufe-2-Vorschlag:** siehe [CIRQA_TEST_LAB_STAGE2_PROPOSAL_2026-11-17.md](CIRQA_TEST_LAB_STAGE2_PROPOSAL_2026-11-17.md). Er ist derzeit wegen fehlender CIRQA-Evidenz und äußerer Requestbytes nicht ausführbar. Jede Ausführung benötigt einen neuen Auftrag, der genau diesen vervollständigten Plan ausdrücklich freigibt.
+**Stufe-2-Vorschlag:** siehe [CIRQA_TEST_LAB_STAGE2_PROPOSAL_2026-11-17.md](protocol/experiments/CIRQA_TEST_LAB_STAGE2_PROPOSAL_2026-11-17.md). Er ist derzeit wegen fehlender CIRQA-Evidenz und äußerer Requestbytes nicht ausführbar. Jede Ausführung benötigt einen neuen Auftrag, der genau diesen vervollständigten Plan ausdrücklich freigibt.
 
-**Issue #22 / 5007:** [Vorbereitung und Byte-/Risiko-Review](CIRQA_5007_CONTROLLED_TEST_PREPARATION_2026-11-17.md). Offline-Preview und synthetische Tests sind kein Gerätetest; Button und Sendepfad bleiben gesperrt bis zur separaten Freigabe.
+**Issue #22 / 5007:** [Vorbereitung und Byte-/Risiko-Review](protocol/experiments/CIRQA_5007_CONTROLLED_TEST_PREPARATION_2026-11-17.md). Offline-Preview und synthetische Tests sind kein Gerätetest; Button und Sendepfad bleiben gesperrt bis zur separaten Freigabe.
 
 ```text
 Testlabor APK/Version:
