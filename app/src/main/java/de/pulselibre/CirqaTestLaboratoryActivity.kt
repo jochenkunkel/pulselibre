@@ -48,7 +48,6 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
     private lateinit var fitOutput: TextView
     private lateinit var storedReadingsOutput: TextView
     private lateinit var root: LinearLayout
-    private lateinit var legacy5007Button: Button
     private var permissionAction: (() -> Unit)? = null
     private var scanCallback: ScanCallback? = null
     private var scanning = false
@@ -144,10 +143,10 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
         ), LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(6); bottomMargin = dp(16) })
 
         val warning = card()
-        warning.addView(label("Historischer CIRQA-Download bleibt gesperrt", 17f, true))
+        warning.addView(label("Historischer CIRQA-Download NICHT FREIGEGEBEN", 17f, true))
         warning.addView(label(
-            "Nur der separat freigegebene einmalige GFDI-5007-Kompatibilitätstest ist verfügbar. " +
-                "5031, 5002, 5004 und 0x8A39 bleiben gesperrt. Keine Datei wird angefordert, archiviert, gelöscht oder verändert.",
+            "Dieses Labor sendet keine 5007-, 5031-, 5002- oder 5004-Kommandos. " +
+                "0x8A39 wird nicht verwendet. Keine Datei wird vom Band gelesen, archiviert, gelöscht oder verändert.",
             14f
         ), LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) })
         addCard(warning)
@@ -279,17 +278,11 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
                 "5007 kann einen Pending-Upload-/Sync-Pfad anstoßen. Sofortiges Trennen verhindert keine unbekannte geräteseitige Reaktion.",
             13f
         ), LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) })
-        legacy5007Button = button("Einmaligen 5007-Test starten") { confirmLegacy5007Test() }
-        val legacy5007AlreadyAttempted = preferences.getBoolean("legacy5007TestAttempted", false)
-        legacy5007Button.isEnabled = !legacy5007AlreadyAttempted
-        if (legacy5007AlreadyAttempted) legacy5007Button.text = "Einmaliger Test bereits verbraucht"
-        legacy5007Button.contentDescription =
-            "Startet höchstens einen GFDI-5007-Write mit dynamischem Handle und fünf Sekunden Antwortfenster."
-        compatibilityCard.addView(legacy5007Button)
-        compatibilityCard.addView(button("CIRQA-Teststatus") {
-            statusOutput.text = "GFDI-5007-Test: " +
-                (preferences.getString("legacy5007TestSummary", null) ?: "Noch nicht ausgeführt.")
-        })
+        val disabled5007 = button("Gerätetest derzeit gesperrt") {}
+        disabled5007.isEnabled = false
+        disabled5007.contentDescription =
+            "Einmaliger GFDI-5007-Gerätetest gesperrt; bisher nur Offline-Bytes geprüft."
+        compatibilityCard.addView(disabled5007)
         addRecordView(compatibilityCard, CirqaTestLaboratory.TestId.LEGACY_5007_COMPATIBILITY)
         addCard(compatibilityCard)
 
@@ -356,6 +349,10 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
             CirqaTestLaboratory.initialRecords().first {
                 it.test == CirqaTestLaboratory.TestId.PASSIVE_PROTOCOL
             }
+        records[CirqaTestLaboratory.TestId.LEGACY_5007_COMPATIBILITY] =
+            CirqaTestLaboratory.initialRecords().first {
+                it.test == CirqaTestLaboratory.TestId.LEGACY_5007_COMPATIBILITY
+            }
     }
 
     private fun saveRecord(
@@ -364,7 +361,8 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
         evidence: CirqaTestLaboratory.EvidenceLevel,
         safeSummary: String
     ) {
-        if (test == CirqaTestLaboratory.TestId.HISTORICAL_DOWNLOAD) return
+        if (test == CirqaTestLaboratory.TestId.HISTORICAL_DOWNLOAD ||
+            test == CirqaTestLaboratory.TestId.LEGACY_5007_COMPATIBILITY) return
         val now = System.currentTimeMillis()
         val record = CirqaTestLaboratory.Record(test, verdict, evidence, now, safeSummary)
         records[test] = record
@@ -406,92 +404,6 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
         else {
             permissionAction = action
             permissionLauncher.launch(missing.toTypedArray())
-        }
-    }
-
-    private fun confirmLegacy5007Test() {
-        if (preferences.getBoolean("legacy5007TestAttempted", false)) {
-            legacy5007Button.isEnabled = false
-            legacy5007Button.text = "Einmaliger Test bereits verbraucht"
-            return
-        }
-        AlertDialog.Builder(this)
-            .setTitle("Einmaligen GFDI-5007-Test starten?")
-            .setMessage(
-                "Es wird zuerst nur der Garmin-ML-GFDI-Dienst registriert und danach genau ein Request gesendet:\n\n" +
-                    "07 00 8F 13 03 C9 1A\n\n" +
-                    "Der dynamische ML-Handle und TX-Characteristic werden zur Laufzeit ermittelt. " +
-                    "Danach höchstens fünf Sekunden auf eine einzelne CRC-geprüfte GFDI-5000-Antwort zu 5007 warten. " +
-                    "Der Filter kann geräteseitige Pending-Sync-Aktivität auslösen; Trennen verhindert unbekannte Bandwirkungen nicht. " +
-                    "Garmin Connect und Recorder müssen beendet sein. Kein Retry und keine Folgekommandos."
-            )
-            .setNegativeButton("Abbrechen", null)
-            .setPositiveButton("Genau einen Request senden") { _, _ ->
-                withBluetoothPermissions(needsScan = false) { runLegacy5007TestOnce() }
-            }
-            .show()
-    }
-
-    @SuppressLint("MissingPermission")
-    private fun runLegacy5007TestOnce() {
-        if (preferences.getBoolean("legacy5007TestAttempted", false)) {
-            legacy5007Button.isEnabled = false
-            return
-        }
-        val matchingDevices = try {
-            adapter.bondedDevices.orEmpty().filter { it.name?.contains("CIRQA", ignoreCase = true) == true }
-        } catch (_: SecurityException) {
-            emptyList()
-        }
-        if (matchingDevices.size != 1) {
-            val message = if (matchingDevices.isEmpty())
-                "Kein gekoppeltes CIRQA-Gerät gefunden; kein Request gesendet."
-            else "Mehrere gekoppelte CIRQA-Geräte gefunden; Ziel nicht eindeutig, kein Request gesendet."
-            Toast.makeText(this, message, Toast.LENGTH_LONG).show()
-            return
-        }
-        if (CirqaBleSessionGate.isBusy()) {
-            Toast.makeText(this, "CIRQA-Bluetooth ist durch eine laufende Sitzung belegt; kein Request gesendet.", Toast.LENGTH_LONG).show()
-            return
-        }
-        // Persist before attempting GATT so a process restart cannot enable a retry.
-        if (!preferences.edit().putBoolean("legacy5007TestAttempted", true).commit()) {
-            Toast.makeText(this, "Einmal-Gate konnte nicht dauerhaft gespeichert werden; kein Request gesendet.", Toast.LENGTH_LONG).show()
-            return
-        }
-        legacy5007Button.isEnabled = false
-        legacy5007Button.text = "Einmaliger Test bereits verbraucht"
-        statusOutput.text = "5007-Test läuft; keine Folgekommandos sind vorgesehen."
-        if (mlProbe == null) mlProbe = CirqaMlHandshakeProbe(this, adapter)
-        mlProbe?.startLegacy5007CompatibilityTest { message ->
-            runOnUiThread {
-                statusOutput.text = message
-                val supported = message.contains("Status 0 (Connect-Vertrag")
-                val notSupported = message.contains("negativer Status")
-                val hasVerifiedResponse = message.contains("Antwort: 5000;")
-                val verdict = when {
-                    supported -> CirqaTestLaboratory.Verdict.PASSED
-                    notSupported -> CirqaTestLaboratory.Verdict.NOT_SUPPORTED
-                    else -> CirqaTestLaboratory.Verdict.FAILED
-                }
-                val evidence = if (hasVerifiedResponse)
-                    CirqaTestLaboratory.EvidenceLevel.DEVICE_CONFIRMED
-                else CirqaTestLaboratory.EvidenceLevel.PASSIVELY_OBSERVED
-                val safeSummary = when {
-                    supported -> "Eine CRC-validierte GFDI-5000-Antwort zu 5007 meldete Status 0; nur Kompatibilität dieses Filters beobachtet, kein Historienabruf."
-                    notSupported -> "Eine CRC-validierte GFDI-5000-Antwort zu 5007 meldete einen negativen Status; keine Folgeanfrage gesendet."
-                    message.contains("Fünf-Sekunden") -> "Einmaliger 5007-Request gesendet; innerhalb von fünf Sekunden keine passende Antwort beobachtet."
-                    message.contains("nicht gesendet") -> "Test vor dem Request abgebrochen; kein 5007-Request gesendet."
-                    else -> "Einmaliger Test abgebrochen; keine Folgeanfrage oder Wiederholung."
-                }
-                preferences.edit().putString("legacy5007TestSummary", safeSummary).apply()
-                saveRecord(
-                    CirqaTestLaboratory.TestId.LEGACY_5007_COMPATIBILITY,
-                    verdict,
-                    evidence,
-                    safeSummary
-                )
-            }
         }
     }
 

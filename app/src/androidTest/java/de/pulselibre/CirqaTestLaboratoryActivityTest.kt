@@ -25,7 +25,7 @@ class CirqaTestLaboratoryActivityTest {
                 visit(activity.findViewById(android.R.id.content))
                 val labels = views.filterIsInstance<TextView>().map { it.text.toString() }
                 assertTrue(labels.any { it.contains("CIRQA-Testlabor") })
-                assertTrue(labels.any { it.contains("Historischer CIRQA-Download bleibt gesperrt") })
+                assertTrue(labels.any { it.contains("Historischer CIRQA-Download NICHT FREIGEGEBEN") })
                 assertTrue(labels.any { it.contains("GFDI 5007") })
                 assertTrue(labels.any { it.contains("07 00 8F 13 03 C9 1A") })
                 assertTrue(labels.any { it.contains("CIRQA-GFDI-Antworttyp") && it.contains("nicht bestätigt") })
@@ -40,10 +40,10 @@ class CirqaTestLaboratoryActivityTest {
                     it.isClickable && it.isFocusable &&
                         it.text.toString().contains("FIT-Datei auswählen")
                 })
-                val oneShotTest = views.filterIsInstance<Button>()
-                    .single { it.text.toString() == "Einmaligen 5007-Test starten" }
-                assertTrue(oneShotTest.isEnabled)
-                assertTrue(oneShotTest.isClickable)
+                val gatedTest = views.filterIsInstance<Button>()
+                    .single { it.text.toString() == "Gerätetest derzeit gesperrt" }
+                assertFalse(gatedTest.isEnabled)
+                assertFalse(gatedTest.isClickable)
             }
         }
     }

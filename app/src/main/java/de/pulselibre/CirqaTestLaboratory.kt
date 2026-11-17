@@ -62,7 +62,7 @@ object CirqaTestLaboratory {
         appendLine("Erstellt: ${Instant.ofEpochMilli(generatedAtEpochMillis)}")
         appendLine("Datenschutz: Bericht enthält keine Gerätekennung, Adresse, Rohpayloads, Dateinamen oder Messwerte.")
         appendLine("FIT-Dateien werden ausschließlich lokal geprüft und nicht in die Messwertdatenbank importiert.")
-        appendLine("Historischer CIRQA-Download: GESPERRT. Separat freigegebener 5007-Kompatibilitätstest kann höchstens einen Filterrequest senden; keine 5031/5002/5004-Folgekommandos.")
+        appendLine("Historischer CIRQA-Download: NICHT FREIGEGEBEN; es wurden keine FileSync-Kommandos gesendet.")
         appendLine()
         TestId.values().forEach { test ->
             val record = records.firstOrNull { it.test == test }
