@@ -499,6 +499,37 @@ class MainActivity : AppCompatActivity() {
                     }
                 }.show()
         })
+        debugView(actionButton("CIRQA: synthetische SYNC-Aushandlung (experimentell)", false) {
+            if (!ensurePermissions()) return@actionButton
+            if (scanning) stopScan()
+            androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("CIRQA · Synthetischer SYNC-Debugtest")
+                .setMessage("Nur für das freigegebene Testgerät mit synthetischen Daten. Garmin Connect und laufende Aufzeichnung vorher beenden. PulsLibre sendet einmalig 5050-ACK und eine 15-Byte-Hostmaske mit ausschließlich SYNC-Bit 3. Es werden noch KEINE Dateien heruntergeladen oder verändert. Bei Protokollfehlern wird abgebrochen. Dies ist ein experimenteller Bluetooth-Schreibtest. Fortfahren?")
+                .setNegativeButton("Abbrechen", null)
+                .setPositiveButton("SYNC-Debugtest starten") { _, _ ->
+                    if (cirqaMlProbe == null) cirqaMlProbe = CirqaMlHandshakeProbe(this, adapter)
+                    lastHistoryDiagnostic = null
+                    cirqaMlProbe?.startSyntheticSyncDebug { message ->
+                        runOnUiThread {
+                            output.text = message
+                            if (message.startsWith("PulsLibre · CIRQA Historien-Diagnose")) {
+                                lastHistoryDiagnostic = message
+                                androidx.appcompat.app.AlertDialog.Builder(this)
+                                    .setTitle("Synthetischer SYNC-Debugtest abgeschlossen")
+                                    .setMessage(message)
+                                    .setPositiveButton("Schließen", null)
+                                    .setNeutralButton("Bericht teilen") { _, _ ->
+                                        val intent = Intent(Intent.ACTION_SEND).apply {
+                                            type = "text/plain"
+                                            putExtra(Intent.EXTRA_TEXT, message)
+                                        }
+                                        startActivity(Intent.createChooser(intent, "CIRQA-SYNC-Debugbericht teilen"))
+                                    }.show()
+                            }
+                        }
+                    }
+                }.show()
+        })
         debugView(actionButton("CIRQA: Bootstrap-Rohdaten (experimentell)", false) {
             if (!ensurePermissions()) return@actionButton
             if (scanning) stopScan()
