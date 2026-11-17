@@ -81,7 +81,7 @@ The previous complete overnight export contained **5,055 readings**, 83 attempt 
 
 ## Directly inspected primary source references
 
-- PulseLibre `docs/CIRQA_PROTOCOL_SPEC.md`, `GarminMlHandshake.kt`, `GarminMlOffline.kt`, `GarminRealtime.kt`, `CirqaMlHandshakeProbe.kt`, `GarminServiceDiscovery.kt`, `GarminFrameValidator.kt`; own device screenshots and overnight export analysis.
+- PulseLibre `docs/protocol/CIRQA_PROTOCOL_SPEC.md`, `GarminMlHandshake.kt`, `GarminMlOffline.kt`, `GarminRealtime.kt`, `CirqaMlHandshakeProbe.kt`, `GarminServiceDiscovery.kt`, `GarminFrameValidator.kt`; own device screenshots and overnight export analysis.
 - https://github.com/gwerneckp/garmin-ble/blob/main/garmin_ble/protocol/mlr.py — MLR framing and registration.
 - https://github.com/gwerneckp/garmin-ble/blob/main/garmin_ble/metrics/accelerometer.py — motion payload decoder and timestamp interpretation.
 - https://github.com/starman-tech/mousepods/blob/main/docs/GARMIN.md — measured quatix 7 motion stream, service 4 capability bitmap, start/stop bytes and limitations.
