@@ -37,6 +37,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private var configuration5037Baseline = 0
     private var configurationRejectedBaseline = 0
     private var configurationErrorBaseline = 0
+    private var configurationNotificationBaseline = 0
     private var configuration5037ObservationStarted = false
     private var post5050Evidence = Cirqa5050PostWriteEvidence()
     private var bootstrapAckSent = false
@@ -200,6 +201,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         configuration5037Baseline = 0
         configurationRejectedBaseline = 0
         configurationErrorBaseline = 0
+        configurationNotificationBaseline = 0
         configuration5037ObservationStarted = false
         post5050Evidence = Cirqa5050PostWriteEvidence()
         configurationResponseConfirmed = false
@@ -410,6 +412,13 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private fun receive(g: BluetoothGatt, bytes: ByteArray) {
         if (!active) return
         notificationsReceived++
+        if (configurationTestMode && configurationResponseQueued &&
+            Cirqa5050NotificationFloodGuard.shouldAbort(
+                configurationNotificationBaseline, notificationsReceived
+            )) {
+            finish("Sicherheitsabbruch: zu viele BLE-Notifications nach 5050.", g)
+            return
+        }
         if (historyDiagnosticMode) {
             historyTransport.observe(bytes)
             val registration = GarminMlOffline.inspectRegisterResponse(bytes)
@@ -481,6 +490,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                         configurationAckBaseline = Cirqa5050AckEvidence.count(fileListProbe.responseStatuses)
                         configurationRejectedBaseline = fileListProbe.rejectedFrames
                         configurationErrorBaseline = fileListProbe.responseErrors
+                        configurationNotificationBaseline = notificationsReceived
                         configurationResponseQueued = true
                         val handle = historyHandle
                         if (handle != null) {
