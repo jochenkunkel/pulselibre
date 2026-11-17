@@ -58,6 +58,17 @@ class CirqaLegacyOfflineFileSession(
     fun completedFile(): ByteArray? =
         if (phase == Phase.COMPLETE) assembler?.completedBytes() else null
 
+    /**
+     * Exposes a complete FIT file only after both transport-chunk validation
+     * (injected CRC verifier) and the independent FIT envelope/file CRC pass.
+     * This is offline validation, not proof of CIRQA provenance or authenticity.
+     */
+    fun completedVerifiedFit(): ByteArray? {
+        if (fileIndex == 0) return null
+        val candidate = completedFile() ?: return null
+        return candidate.takeIf { FitFileHeader.inspectVerified(it) != null }
+    }
+
     fun completedDirectory(): CirqaLegacyDirectoryParser.Directory? =
         if (fileIndex == 0) completedFile()?.let(CirqaLegacyDirectoryParser::parse) else null
 }
