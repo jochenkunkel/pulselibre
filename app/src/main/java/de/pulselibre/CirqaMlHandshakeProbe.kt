@@ -35,6 +35,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private var configuration5050Baseline = 0
     private var configurationAckBaseline = 0
     private var configuration5037Baseline = 0
+    private var configurationMalformed5037Baseline = 0
     private var configurationRejectedBaseline = 0
     private var configurationErrorBaseline = 0
     private var configurationNotificationBaseline = 0
@@ -199,6 +200,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         configuration5050Baseline = 0
         configurationAckBaseline = 0
         configuration5037Baseline = 0
+        configurationMalformed5037Baseline = 0
         configurationRejectedBaseline = 0
         configurationErrorBaseline = 0
         configurationNotificationBaseline = 0
@@ -431,6 +433,11 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     fileListProbe.observeMlPayload(bytes.copyOfRange(1, bytes.size))
                     if (configurationTestMode) post5050Evidence.observe(fileListProbe.frameTypes)
                     if (configurationTestMode && configurationResponseQueued &&
+                        fileListProbe.malformedSynchronizationShapes > configurationMalformed5037Baseline) {
+                        finish("Sicherheitsabbruch: ungültige 5037-Synchronisationsstruktur nach 5050.", g)
+                        return
+                    }
+                    if (configurationTestMode && configurationResponseQueued &&
                         Cirqa5050MalformedFrameGuard.shouldAbort(
                             configurationRejectedBaseline, fileListProbe.rejectedFrames
                         )) {
@@ -488,6 +495,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                         (fileListProbe.frameTypes["gfdi-5050"] ?: 0) > 0) {
                         configuration5050Baseline = fileListProbe.frameTypes["gfdi-5050"] ?: 0
                         configurationAckBaseline = Cirqa5050AckEvidence.count(fileListProbe.responseStatuses)
+                        configurationMalformed5037Baseline = fileListProbe.malformedSynchronizationShapes
                         configurationRejectedBaseline = fileListProbe.rejectedFrames
                         configurationErrorBaseline = fileListProbe.responseErrors
                         configurationNotificationBaseline = notificationsReceived
