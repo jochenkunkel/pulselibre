@@ -56,7 +56,7 @@ def summarize(path):
                 pb = (handle_flags >> 12) & 3
                 if pb in (0, 2) and acl_length >= 4 and len(packet) >= 4 + acl_length:
                     l2_length, cid = struct.unpack_from("<HH", packet, 4)
-                    if cid == 4 and l2_length > 0 and acl_length >= 4 + l2_length:
+                    if cid == 4 and l2_length > 0 and acl_length == 4 + l2_length:
                         att_candidates += 1
     return {
         "records": sum(counts.values()),
