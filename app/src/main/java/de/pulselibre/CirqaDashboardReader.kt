@@ -8,7 +8,7 @@ import java.time.format.DateTimeFormatter
 
 /**
  * Read-only view of the canonical CIRQA SQLite database. Never modifies the running
- * collection or invents missing readings. Only complete valid JSONL lines count.
+ * collection or invents missing readings. Reads stored SQLite events only.
  */
 class CirqaDashboardReader(private val context: Context) {
     data class Sample(val value: String, val receivedAt: Instant)
@@ -17,10 +17,8 @@ class CirqaDashboardReader(private val context: Context) {
     fun read(now: Instant = Instant.now()): Summary {
         val latest = mutableMapOf<Int, Pair<Instant, JSONObject>>()
         var count = 0
-        // Migrate legacy JSONL records idempotently, then read the SQLite index.
-        // The original JSONL remains untouched and available for export.
+        // Read the canonical SQLite events; no legacy file import.
         val records = CirqaDatabase(context).use { db ->
-            db.importJsonl()
             db.readingLines()
         }
         records.forEach { line ->

@@ -1,36 +1,46 @@
 # CIRQA local SQLite storage v1
 
-Implemented in `CirqaDatabase.kt`. Android's built-in SQLiteOpenHelper, no cloud, no INTERNET permission, no schema-destroying migrations.
+Stand: 2026-11-17, Bereinigungs-PR. `CirqaDatabase` verwendet Androids
+`SQLiteOpenHelper`, ohne Cloud und ohne INTERNET-Berechtigung.
 
 ## Schema
 
 `events(id INTEGER PRIMARY KEY, line_sha256 TEXT UNIQUE NOT NULL, received_at_utc TEXT NOT NULL, kind TEXT NOT NULL, service INTEGER, payload_json TEXT NOT NULL)`
 
-Indexes: `(service, received_at_utc)`, `(kind, received_at_utc)`.
+Indizes: `(service, received_at_utc)` und `(kind, received_at_utc)`.
+Messfelder bleiben als JSON in `payload_json`; SHA-256 dedupliziert identische Ereignisse.
+Schema und vorhandene SQLite-Ereignisse werden durch die Bereinigung nicht verändert.
 
-The complete original JSONL line is preserved as `payload_json`; no lossy aggregation, guessed units, or fabricated sensor timestamps. SHA-256 of the line prevents duplicates on repeated imports. Repeated identical lines are deduplicated (normally each line has a unique reception timestamp). Invalid JSON/schema/timestamp lines are skipped and counted; a database failure does not remove the JSONL.
+## Schreib-/Lesepfade
 
-## Lifecycle
+`CirqaLocalLog.append()/reading()` schreibt unmittelbar SQLite. Dashboard, Statistik,
+CSV und nutzergesteuerter JSONL-Export lesen SQLite. Es gibt kein zusätzliches
+JSONL-Aufzeichnungsjournal mehr.
 
-The existing foreground service **continues writing JSONL**. On opening/refeshing the dashboard, the app imports all valid JSONL records into the private `cirqa_measurements.db`. Import is transactional and idempotent; dashboard currently displays its original JSONL-derived projection, not yet SQLite queries. This is a conservative first migration that avoids changing the proven BLE recorder during a field test.
+Auf ausdrücklichen Nutzerwunsch wird die frühere private `cirqa_overnight.jsonl`
+nicht mehr importiert. Beim Öffnen der Datenbank wird nur diese Datei bestmöglich
+entfernt, ohne Verzeichnisse rekursiv zu löschen. Bereits importierte Ereignisse
+bleiben erhalten; alte, noch nicht importierte Dateiinhalte werden verworfen.
+Andere Dateien und Exporte werden nicht gelöscht. Die Bereinigung erfolgt erst,
+wenn eine App-Version mit dieser Änderung auf dem Gerät die Datenbank öffnet.
 
-## Next work
+Der separate Import aus `pulselibre_readings.db` beim CSV-Export bleibt erhalten.
+Siehe [einheitliche Speicherung](UNIFIED_LOCAL_STORAGE_2026-11-16.md).
 
-- Instrumented tests on Android emulator/device for DB create, duplicate import, truncated lines, upgrade safety, and privacy.
-- Replace full-file reimport with a crash-safe cursor/checkpoint; avoid blocking UI thread for large files.
-- Read dashboard metrics via indexed DB queries and add explicit day/reset segmentation.
-- Validate timezone/device-day boundaries and sample quality; add scientific aggregates only after coverage tests.
-- Introduce bounded retention with explicit export/consent; currently the JSONL 10 MiB cap still limits recording.
-- Keep sensitive health JSONL and DB out of public Git repositories.
+## Tests und Grenzen
 
-## Ground rules
+JVM-Tests prüfen gezielte Dateientfernung, Wiederholung, Erhalt anderer Dateien
+und Ablehnung rekursiver Verzeichnislöschung. Ein Android-Test mit isoliertem
+Datenbank-/Dateiverzeichnis prüft zusätzlich Öffnen/Wiederöffnen, Erhalt vorhandener
+SQLite-Ereignisse und ausbleibenden JSONL-Import. Tatsächliche Prüfergebnisse stehen
+im Pull Request; Testcode allein ist kein Nachweis eines erfolgreichen Laufs.
 
-See `docs/CIRQA_DASHBOARD_GROUND_RULES.md` and `docs/CIRQA_OVERNIGHT_FIRST_RESULTS.md`. No sleep-stage inference, no single-RR RMSSD, no addition of cumulative counters, no unvalidated calorie unit, no clinical interpretation of consumer wearable values.
+Lokale Prüfung dieses Bereinigungsstands (2026-11-17, Gradle 8.13/JDK 17/SDK 35):
+227 JVM-Tests bestanden, App-APK und Android-Test-APK gebaut, `lintDebug` erfolgreich.
+Der Android-Integrationstest wurde kompiliert, aber nicht ausgeführt; kein
+Emulator-/S25-Nachweis und keine Installationsfreigabe.
 
-## Integration update (2026-11-16)
-
-- `CirqaLocalLog.append()` now writes each completed event to the private SQLite `events` table immediately after appending to the original JSONL. Duplicate rows are ignored using the same line SHA-256; a SQLite failure never destroys the original event.
-- `CirqaDashboardReader.read()` now imports any legacy/missed JSONL rows idempotently and queries SQLite for measurements; the dashboard no longer parses JSONL as its measurement source.
-- SQLite is the **application query store**; JSONL is the **lossless recovery/export journal**. This is not yet a database-only storage design.
-- **Known performance limitation:** migration/import and SQLite reading currently run synchronously on dashboard refresh, potentially blocking the UI with large logs. Move to background execution and incremental checkpointing before calling the integration production-ready.
-- A successful CI build is not proof of real-device persistence. Validate by testing live values, restarting the app, and checking they remain visible.
+Offen bleiben Hintergrundausführung und begrenzte Abfragen für große Bestände,
+Aufbewahrung, additive Schema-Migrationen und vollständige Persistenztests.
+Keine Schlafstadien, kein RMSSD aus einzelnen RR-Werten, keine Addition kumulativer
+Schrittzähler und keine unbelegten Einheiten oder klinischen Aussagen.

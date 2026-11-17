@@ -2,17 +2,13 @@ package de.pulselibre
 
 import android.content.Context
 import org.json.JSONObject
-import java.io.File
 import java.time.Instant
 
 /**
- * SQLite-backed CIRQA event store; legacy JSONL is imported idempotently. No device IDs, MACs,
+ * SQLite-backed CIRQA event store. No device IDs, MACs,
  * raw GATT payloads, cloud, or external storage permission.
  */
 class CirqaLocalLog(private val context: Context) {
-    private val file = File(context.filesDir, "cirqa_overnight.jsonl")
-
-
     @Synchronized fun append(type: String, fields: Map<String, Any?> = emptyMap()): Boolean {
         val item = JSONObject()
             .put("schema", 1)
@@ -21,7 +17,6 @@ class CirqaLocalLog(private val context: Context) {
         for ((key, value) in fields) item.put(key, value ?: JSONObject.NULL)
         return try {
             CirqaDatabase(context).use { db ->
-                db.importJsonl()
                 db.insertLine(item.toString())
             }
         } catch (_: Exception) { false }
@@ -43,16 +38,13 @@ class CirqaLocalLog(private val context: Context) {
     }
 
     fun sizeBytes(): Long = CirqaDatabase(context).use { db ->
-        db.importJsonl()
         db.eventBytes()
     }
     fun lines(): Int = CirqaDatabase(context).use { db ->
-        db.importJsonl()
         db.eventCount().toInt()
     }
     fun copyTo(context: Context, uri: android.net.Uri) {
         CirqaDatabase(context).use { db ->
-            db.importJsonl()
             context.contentResolver.openOutputStream(uri)?.bufferedWriter(Charsets.UTF_8)?.use { output ->
                 db.allLines().forEach { output.append(it).append('\n') }
             } ?: error("Exportziel nicht beschreibbar")

@@ -5,16 +5,14 @@ import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import org.json.JSONObject
-import java.io.File
 import java.security.MessageDigest
 
 /**
  * Canonical local SQLite store for CIRQA events.
- * Legacy JSONL is imported without deletion; new events are written here directly.
+ * New events are written here directly; obsolete JSONL recordings are no longer imported.
  * UNIQUE SHA-256 of each full line makes repeated imports idempotent.
  */
 class CirqaDatabase(private val contextRef: Context) : SQLiteOpenHelper(contextRef, "cirqa_measurements.db", null, 1) {
-    private val source = File(contextRef.filesDir, "cirqa_overnight.jsonl")
 
     override fun onCreate(db: SQLiteDatabase) {
         db.execSQL("""CREATE TABLE events (
@@ -34,40 +32,11 @@ class CirqaDatabase(private val contextRef: Context) : SQLiteOpenHelper(contextR
         error("Unsupported CIRQA database migration $oldVersion -> $newVersion")
     }
 
-    /** Safe to call repeatedly. Malformed/incomplete records are skipped. */
-    @Synchronized fun importJsonl(): ImportResult {
-        if (!source.exists()) return ImportResult(0, 0)
-        val db = writableDatabase
-        var imported = 0
-        var invalid = 0
-        db.beginTransaction()
-        try {
-            source.bufferedReader(Charsets.UTF_8).useLines { lines ->
-                lines.forEach { line ->
-                    val item = try { JSONObject(line) } catch (_: Exception) { invalid++; return@forEach }
-                    val kind = item.optString("type")
-                    val timestamp = item.optString("received_at_utc")
-                    if (item.optInt("schema") != 1 || kind.isBlank() ||
-                        !timestamp.matches(Regex("^\\d{4}-\\d{2}-\\d{2}T.*Z$"))) {
-                        invalid++
-                        return@forEach
-                    }
-                    val sha = MessageDigest.getInstance("SHA-256")
-                        .digest(line.toByteArray(Charsets.UTF_8))
-                        .joinToString("") { "%02x".format(it.toInt() and 255) }
-                    val values = ContentValues().apply {
-                        put("line_sha256", sha)
-                        put("received_at_utc", timestamp)
-                        put("kind", kind)
-                        if (item.has("service") && !item.isNull("service")) put("service", item.optInt("service"))
-                        put("payload_json", line)
-                    }
-                    if (db.insertWithOnConflict("events", null, values, SQLiteDatabase.CONFLICT_IGNORE) != -1L) imported++
-                }
-            }
-            db.setTransactionSuccessful()
-        } finally { db.endTransaction() }
-        return ImportResult(imported, invalid)
+    override fun onOpen(db: SQLiteDatabase) {
+        super.onOpen(db)
+        // Explicit user decision: discard the former JSONL night recording.
+        // SQLite events are preserved. Retry on a later open if deletion fails.
+        LegacyNightRecording.remove(contextRef.filesDir)
     }
 
     /** Store a single locally generated JSONL event immediately, without a second BLE path. */
@@ -160,8 +129,6 @@ class CirqaDatabase(private val contextRef: Context) : SQLiteOpenHelper(contextR
         cursor.moveToFirst()
         cursor.getLong(0)
     }
-
-    data class ImportResult(val imported: Int, val invalid: Int)
 
     fun eventCount(): Long = readableDatabase.rawQuery("SELECT COUNT(*) FROM events", null).use {
         it.moveToFirst()
