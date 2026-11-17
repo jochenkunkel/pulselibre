@@ -45,7 +45,8 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
             else metricCard(metric, palette.oxygen)
         }
         addView(metricCard(overview.sleep, violet),
-            LayoutParams(-1, -2).apply { bottomMargin = dp(16) })
+            LayoutParams(-1, -2).apply { bottomMargin = dp(8) })
+        addNightOxygenCard()
         heading("Heute auf einen Blick")
         addStepContextChip()
         addCardPair(overview.today) { metric ->
@@ -72,6 +73,61 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
             gauge.post { if (gauge.isAttachedToWindow) gauge.show(model, activity, previous.fraction) }
         }
         return card
+    }
+
+    private fun addNightOxygenCard() {
+        val card = LinearLayout(context).apply {
+            orientation = VERTICAL
+            setPadding(dp(14), dp(12), dp(14), dp(12))
+            background = GradientDrawable().apply {
+                setColor(palette.card)
+                cornerRadius = dp(18).toFloat()
+            }
+            tag = "dashboard_night_oxygen_insights"
+            contentDescription = "Nacht-Insights. SpO₂-Auswertung noch nicht berechenbar: Sampling und Signalqualität für CIRQA sind nicht validiert. Keine Diagnose."
+        }
+        val titleRow = LinearLayout(context).apply {
+            orientation = HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            addView(DashboardInfoIconView(context, DashboardInfoIconView.Kind.TIME, palette.accent),
+                LayoutParams(dp(24), dp(24)).apply { marginEnd = dp(8) })
+            addView(label("Nacht-Insights", 15f, ink, true), LayoutParams(0, -2, 1f))
+            addView(label("⏳", 17f, palette.muted, true).apply {
+                contentDescription = "Analyse nicht verfügbar"
+            }, LayoutParams(-2, -2))
+        }
+        card.addView(titleRow)
+        card.addView(View(context).apply { setBackgroundColor(palette.track) },
+            LayoutParams(-1, dp(1)).apply { topMargin = dp(10); bottomMargin = dp(10) })
+        val insightRow = LinearLayout(context).apply {
+            orientation = HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+        }
+        addNightIndicator(insightRow, "◉", "SpO₂", "Keine verifizierte Nachtserie", palette.muted)
+        addNightIndicator(insightRow, "◷", "Abdeckung", "Sampling unbekannt", palette.muted)
+        addNightIndicator(insightRow, "⌁", "ODI / T90", "Nicht berechenbar", palette.muted)
+        card.addView(insightRow)
+        card.addView(label("Nur Originalpunkte · keine Diagnose", 10f, muted).apply {
+            gravity = Gravity.END
+            contentDescription = "Nur gespeicherte Originalmessungen; keine Diagnose"
+        }, LayoutParams(-1, -2).apply { topMargin = dp(8) })
+        card.isFocusable = true
+        card.importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_YES
+        addView(card, LayoutParams(-1, -2).apply { bottomMargin = dp(16) })
+    }
+
+    private fun addNightIndicator(parent: LinearLayout, icon: String, title: String, value: String, color: Int) {
+        val cell = LinearLayout(context).apply {
+            orientation = VERTICAL
+            gravity = Gravity.CENTER
+            setPadding(dp(4), dp(3), dp(4), dp(3))
+            contentDescription = "$title: $value"
+            importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_YES
+            addView(label(icon, 18f, color, true), LayoutParams(-2, -2))
+            addView(label(title, 9f, muted, true), LayoutParams(-2, -2))
+            addView(label(value, 9f, color), LayoutParams(-1, -2))
+        }
+        parent.addView(cell, LayoutParams(0, -2, 1f))
     }
 
     private fun addStepContextChip() {
@@ -117,7 +173,8 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
             val valueLayer = android.widget.FrameLayout(context).apply {
                 contentDescription = metric.value
             }
-            valueLayer.addView(SpO2LungView(context, percent, SpO2DisplaySettings.read(context).colorFor(percent, palette), palette.track),
+            val displaySettings = SpO2DisplaySettings.read(context)
+            valueLayer.addView(SpO2LungView(context, percent, displaySettings.colorFor(percent, palette), palette.track),
                 android.widget.FrameLayout.LayoutParams(-1, dp(76), Gravity.CENTER))
             valueLayer.addView(label(metric.value, 22f, accent, true).apply {
                 gravity = Gravity.CENTER
@@ -364,8 +421,9 @@ private class ReceptionIndicatorView(
             profile.sourceName?.let { row("↗", "Quelle  $it", palette.accent, profile.sourceUrl) }
             if (metric.title == "Sauerstoffsättigung · SpO₂") {
                 val displayBands = SpO2DisplaySettings.read(context)
-                row("▰", "Anzeige  🟢 ≥${displayBands.greenFrom}%  🟠 ${displayBands.orangeFrom}–${displayBands.greenFrom - 1}%  🔴 <${displayBands.orangeFrom}%  ⚪ kein gültiger Wert", palette.muted)
-                row("⚠", "Konfigurierbare Farbskala, keine CIRQA-Signalqualität oder medizinische Bewertung.", palette.muted)
+                row("▰", "Vorschau  ${displayBands.bandLabel()}", palette.muted)
+                row("⏳", "Orientierung deaktiviert · CIRQA-Handgelenksensor nicht gerätespezifisch validiert.", palette.muted)
+                row("⚠", "Keine Signalqualität verfügbar; keine Diagnose oder Alarmfunktion.", palette.muted)
                 row("↗", "Quelle  NHS-Fingerpulsoximeter-Kontext; nicht für CIRQA validiert", palette.accent,
                     "https://www.england.nhs.uk/coronavirus/documents/c0445-pulse-oximetry-to-detect-early-deterioration-of-patients-with-covid-19-in-primary-and-community-care-settings-12-january-2021/")
             }

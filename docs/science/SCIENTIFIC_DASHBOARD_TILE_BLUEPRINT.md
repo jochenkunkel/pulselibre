@@ -115,8 +115,10 @@ Alle Kacheln zeigen auf Abruf: **Wert + Einheit + Zeitbezug + Quelle/Service + M
 
 #### O01 · SpO₂ — **P1, wenn CIRQA-Wert verifiziert**
 - **Quelle:** Service 19; 1–100 % (Decodergültigkeit ist **keine** physiologische Plausibilität).
-- **Bereiche:** 95–100 % als **neutrale** typische Orientierung aus NHS-Fingerpulsoximeter-Patienteninformation für viele Erwachsene in Ruhe; **nicht** auf CIRQA-Handgelenk als validierte Alarm-/Diagnosegrenze übertragen. Für 90–94 % und <90 % **keine** automatische medizinische „gelb/rot“-Klassifikation ohne validiertes Messgerät, klinischen Kontext und Sicherheitsprüfung.
-- **Visualisierung:** Wert, Signalqualität soweit vorhanden, Verlauf ohne interpolierte Lücken, Warntext zu Bewegung, Durchblutung, Hautpigmentierung und Sensorfehlern.
+- **Bereiche:** 95–100 % und 90–94 % / <90 % sind nur eine konfigurierbare, vorläufige Produkt-Orientierung (Issue #39), kein aus Quellen validierter CIRQA-Grenzwert. 95–100 % ist NHS-Fingerpulsoximeter-Kontext für viele Erwachsene in Ruhe. BTS-Therapiezielbereiche und NHS-COVID-Triagegrenzen gelten nicht als CIRQA-Wearable-Cutoffs.
+- **Sicherheitsgate:** Die farbige Gesundheitsorientierung bleibt standardmäßig deaktiviert bis zu dokumentierter gerätespezifischer CIRQA-Validierung; keine Alarme/Handlungsempfehlungen. Signalqualität nur zeigen, wenn sie tatsächlich übermittelt und validiert wird.
+- **Nächtliche Auswertung:** ODI3/ODI4, Ereigniszahl und T90 erst nach validiertem Zeitbezug, Sampling, Nachtsegment, Qualitäts-/Artefaktfiltern und dokumentierter fachlicher Definition; keine Interpolation. Bis dahin explizit „nicht berechenbar“.
+- **Visualisierung:** aktueller Wert neutral, originale Verlaufspunkte mit Lücken; Signalqualität soweit vorhanden, sonst als nicht verfügbar kennzeichnen.
 - **Tests:** 0, 255, Grenzwerte, falsche Datenquelle, alte/isolierte Messung, fehlende Validierung.
 
 #### O02 · Atemfrequenz in Ruhe — **P2**

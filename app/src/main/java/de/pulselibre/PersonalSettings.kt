@@ -88,17 +88,17 @@ object PersonalSettings {
         val activityWindow = field("Auswertefenster in Minuten", "activity_window_minutes", true).apply {
             setText(activitySettings.windowMinutes.toString())
         }
-        heading("SpO₂-Farbanzeige")
+        heading("SpO₂-Orientierung · Validierung ausstehend")
         val spo2Settings = SpO2DisplaySettings.read(context)
         layout.addView(TextView(context).apply {
-            text = "Konfigurierbare Anzeige: Grün ab %, Orange ab %, darunter Rot. Ohne gültigen Wert Grau. Diese Farben zeigen nur den Messwertbereich, keine CIRQA-Signalqualität oder medizinische Bewertung."
+            text = "Vorschau ${spo2Settings.bandLabel()}\n⏳ Farbskala bleibt neutral, bis der CIRQA-Handgelenksensor gerätespezifisch validiert ist. Keine Diagnose oder Alarmfunktion; Signalqualität wird nicht übertragen."
             textSize = 12f
         })
-        val spo2Green = field("Grün ab SpO₂ (%)", "spo2_display_green_from", true).apply {
+        val spo2Green = field("Vorschau: Grün ab SpO₂ (%)", "spo2_display_green_from", true).apply {
             setText(spo2Settings.greenFrom.toString())
         }
-        val spo2Orange = field("Orange ab SpO₂ (%)", "spo2_display_orange_from", true).apply {
-            setText(spo2Settings.orangeFrom.toString())
+        val spo2Orange = field("Vorschau: Orange ab SpO₂ (%)", "spo2_display_red_below", true).apply {
+            setText(spo2Settings.redBelow.toString())
         }
         heading("Persönliches Profil")
         val name = field("Anzeigename (optional)", "display_name")
@@ -155,7 +155,7 @@ object PersonalSettings {
                     (restSteps.text.toString().toIntOrNull() ?: 100) >= (sportSteps.text.toString().toIntOrNull() ?: 0) ||
                     spo2Green.text.toString().toIntOrNull()?.let { it !in 2..100 } != false ||
                     spo2Orange.text.toString().toIntOrNull()?.let { it !in 1 until (spo2Green.text.toString().toIntOrNull() ?: 0) } != false) {
-                    Toast.makeText(context, "Bitte die Zahlen prüfen (Größe, Gewicht, Alter, Ziele und SpO₂-Farbbereiche).", Toast.LENGTH_LONG).show()
+                    Toast.makeText(context, "Bitte die Zahlen prüfen (Größe, Gewicht, Alter, Ziele und SpO₂-Orientierungsbereiche).", Toast.LENGTH_LONG).show()
                     return@setOnClickListener
                 }
                 ActivityDetectionPreference.save(context, ActivityDetectionSettings(
@@ -165,7 +165,7 @@ object PersonalSettings {
                 ))
                 SpO2DisplaySettings.save(context, SpO2DisplaySettings(
                     greenFrom = spo2Green.text.toString().toInt(),
-                    orangeFrom = spo2Orange.text.toString().toInt()
+                    redBelow = spo2Orange.text.toString().toInt()
                 ))
                 val edit = p.edit()
                 fun save(key: String, value: String) { edit.putString(key, value) }
