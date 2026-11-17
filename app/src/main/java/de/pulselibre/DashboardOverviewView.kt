@@ -366,10 +366,11 @@ private class ReceptionIndicatorView(
             profile.sourceName?.let { row("↗", "Quelle  $it", palette.accent, profile.sourceUrl) }
             if (metric.title == "Sauerstoffsättigung · SpO₂") {
                 val displayBands = SpO2DisplaySettings.read(context)
-                row("▰", "Anzeige  🟢 ≥${displayBands.greenFrom}%  🟠 ${displayBands.orangeFrom}–${displayBands.greenFrom - 1}%  🔴 <${displayBands.orangeFrom}%  ⚪ kein gültiger Wert", palette.muted)
-                row("⚠", "Konfigurierbare Farbskala, keine CIRQA-Signalqualität oder medizinische Bewertung.", palette.muted)
-                row("↗", "Quelle  NHS-Fingerpulsoximeter-Kontext; nicht für CIRQA validiert", palette.accent,
-                    "https://www.england.nhs.uk/coronavirus/documents/c0445-pulse-oximetry-to-detect-early-deterioration-of-patients-with-covid-19-in-primary-and-community-care-settings-12-january-2021/")
+                row("▰", "Vorschau  ${displayBands.bandLabel()}", palette.muted)
+                row("⏳", "Farben deaktiviert · CIRQA-Wrist nicht validiert.", palette.muted)
+                row("⚠", "Keine Signalqualität; keine Diagnose oder Alarmfunktion.", palette.muted)
+                row("↗", "Quelle  NHS/Oxford · Finger-Pulsoximeter, Ruhe", palette.accent,
+                    "https://www.ouh.nhs.uk/redirecthandler/?id=82415Poximeter&type=patientleaflet")
             }
             row("⚠", profile.caveat, palette.muted)
         } else if (metric.title == "Moderate Intensitätsminuten" || metric.title == "Intensive Intensitätsminuten") {
