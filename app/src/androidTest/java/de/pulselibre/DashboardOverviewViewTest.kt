@@ -87,7 +87,7 @@ class DashboardOverviewViewTest {
                 assertEquals((20 * view.resources.displayMetrics.density + 0.5f).toInt(), params.width)
                 assertEquals((20 * view.resources.displayMetrics.density + 0.5f).toInt(), params.height)
                 assertEquals(android.view.Gravity.END,
-                    params.gravity and android.view.Gravity.HORIZONTAL_GRAVITY_MASK)
+                    params.gravity and android.view.Gravity.RELATIVE_HORIZONTAL_GRAVITY_MASK)
                 assertEquals(android.view.Gravity.TOP,
                     params.gravity and android.view.Gravity.VERTICAL_GRAVITY_MASK)
                 assertTrue(indicator.contentDescription.contains("Antippen"))
