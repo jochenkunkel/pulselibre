@@ -227,7 +227,6 @@ class ExportActivity : AppCompatActivity() {
      */
     private fun readUnifiedExport(window: ExportWindow): List<RawExportRecord> {
         val legacy = CirqaDatabase(this).use { db ->
-            db.importJsonl()
             db.importLegacyReadings()
             db.legacyLines().mapNotNull { line ->
                 try {
@@ -264,7 +263,6 @@ class ExportActivity : AppCompatActivity() {
             21 to listOf("breaths_per_min" to "breaths/min")
         )
         return CirqaDatabase(this).use { db ->
-            db.importJsonl()
             db.readingLines().flatMapIndexed { index, line ->
                 val item = try { JSONObject(line) } catch (_: Exception) { return@flatMapIndexed emptyList() }
                 if (item.optInt("schema") != 1 || item.optString("type") != "reading") {
