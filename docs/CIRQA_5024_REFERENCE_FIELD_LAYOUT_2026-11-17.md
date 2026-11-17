@@ -23,3 +23,11 @@ Der dort dokumentierte 52-Byte-Frame ist ein beobachteter fenix-8-Watch-Response
 **Wichtige Korrektur gegenüber der ersten Analyse:** Die 43 Erweiterungsbytes enthalten **drei** längenpräfixierte Textfelder (14, 5, 8 Byte), nicht nur zwei. Die erste Bytegruppe ist 12 Byte lang. Ein strukturierter Offline-Parser und Test sollten alle drei Textfelder prüfen. Keine kopierten Watch-Identitätsdaten an CIRQA senden.
 
 Nächster Schritt: unabhängige Feldsemantik aus öffentlicher Referenz oder validiertem Client ableiten. Erst dann einen expliziten, begrenzten Gerätetest mit CIRQA-eigenen Angaben aktivieren.
+
+## Verifikationsstand und Entscheidung
+
+- Der Offline-Parser prüft CRC, Response-Typ, Originaltyp, Status, drei ASCII-Längenfelder und Grenzen. Negative Unit-Tests für ungültige Textlänge und CRC sind ergänzt.
+- Die zwölf Binärbytes sind **nicht** unabhängig semantisch dokumentiert. Keine Interpretation als Device-ID, Capability-Maske oder Versionsnummer ohne Evidenz.
+- Die Referenz zeigt eine vollständige fenix-8-Identität; das Nachspielen dieses Captures wäre keine CIRQA-native Implementierung.
+- **Entscheidung:** Kein zusätzlicher aktiver BLE-Testmodus mit willkürlichen 5024-Erweiterungen. Erst ein überprüfbares Feldschema oder ein unabhängiger funktionierender CIRQA-Handshake rechtfertigt die Freigabe.
+- Alternativer nächster Forschungsansatz: Auswertung des bereits vorhandenen CIRQA-5024-Frames und der drei 5050-Frames auf Frame-Typ, Sequenz/Counter und strukturierte Metadaten; keine weitere Samsung-HCI-Anforderung an den Tester.
