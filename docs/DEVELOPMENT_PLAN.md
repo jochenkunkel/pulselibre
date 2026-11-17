@@ -65,3 +65,10 @@ Stand: 2026-11-16. Maßgeblich sind die tatsächlichen Repository-Dateien, GitHu
 - Workflow `.github/workflows/android.yml`: Upload-Artefakte mit `retention-days: 14`; ältere Runs/Artefakte nicht inventarisiert und nicht gelöscht. Keine Löschfreigabe.
 - Combined-Status und commitbezogene Workflow-Abfrage für `ef19503` ergaben leere Listen. Letztere filtert auf PR-Runs und erfasst Push-Runs nicht vollständig: **CI unbekannt**, nicht erfolgreich bestätigt.
 - **Nächster Hygiene-Schritt:** vollständige Tree-Inventur und Linkprüfung, Branch-Referenzen mit PRs abgleichen; ausschließlich nachgewiesene reversible Korrekturen durchführen.
+
+## Repository-Hygieneprüfung 2026-11-17 (16:35 MEZ)
+- **Sichtbarkeit neu verifiziert:** GitHub-Repository-Metadaten melden jetzt `private` (zuvor `public` im Bericht 15:35). Die ältere Angabe bleibt als historischer Befund stehen. Die Umstellung beweist **keine** Bereinigung früher öffentlich erreichbarer Git-Historie oder externer Kopien.
+- Aktueller ermittelter Commit: `aa2fb79` (Merge PR #17, 15:22 UTC); zwölf Branches einschließlich `main`. Branches sind nicht als verwaist nachgewiesen und wurden nicht gelöscht. Offene PR-Suche ergab keine Treffer; offene Issues u. a. #7, #11, #16, #18 und #19 sind reguläre Aufgaben.
+- README, `.gitignore` und `.github/workflows/android.yml` geprüft. Build-/APK-Ausschlüsse vorhanden, `*.class` nicht explizit ausgeschlossen, aber reguläre `build/`-Verzeichnisse ausgeschlossen. Codesuche nach `app-debug.apk` fand Referenzen in Dokumentation/Workflow, keinen nachgewiesenen eingecheckten APK-Binärblob; vollständige Git-Tree-Inventur bleibt ausstehend.
+- Workflow: Artefaktaufbewahrung 14 Tage; keine Runs, Artefakte, Branches oder Dateien gelöscht. Combined-Status leer; commitbezogene Workflow-Abfrage filtert PR-Runs und kann Push-CI nicht verifizieren. **CI für `aa2fb79` unbekannt.**
+- **Nächster Schritt:** Git-Tree-Inventur mit einem geeigneten vollständigen Tree-/Clone-Zugriff; anschließend Link- und Duplikatprüfung. Keine Produktentwicklung.
