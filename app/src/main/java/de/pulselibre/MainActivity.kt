@@ -815,7 +815,7 @@ class MainActivity : AppCompatActivity() {
             if (index == 2) refreshCirqaCard()
             scroll.scrollTo(0, 0)
         }
-        listOf("Übersicht", "Verlauf", "Geräte", "Testlabor", "Export").forEachIndexed { index, label ->
+        listOf("Übersicht", "Verlauf", "Geräte", "Testlabor", "Daten").forEachIndexed { index, label ->
             val tab = text(label, 14f, muted, true).apply {
                 gravity = android.view.Gravity.CENTER
                 minHeight = dp(52)

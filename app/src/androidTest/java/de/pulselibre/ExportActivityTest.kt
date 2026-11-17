@@ -25,7 +25,7 @@ class ExportActivityTest {
                 }
                 visit(root)
                 val labels = fields.map { it.text.toString() }
-                assertTrue("Export title missing", labels.contains("Datenexport"))
+                assertTrue("Daten title missing", labels.contains("Daten"))
                 assertTrue("Start label missing", labels.contains("Von"))
                 assertTrue("End label missing", labels.contains("Bis"))
                 val dates = fields.filter {
@@ -40,6 +40,15 @@ class ExportActivityTest {
                 }
                 assertTrue(export.isClickable && export.isFocusable)
                 assertTrue(export.text.contains("CSV exportieren"))
+                listOf(
+                    "Lokales Datenbankbackup erstellen",
+                    "Datenbank aus einem Backup wiederherstellen",
+                    "Alle lokalen Datenbankeinträge löschen"
+                ).forEach { description ->
+                    val action = fields.single { it.contentDescription?.toString() == description }
+                    assertTrue("$description must be an accessible action", action.isClickable && action.isFocusable)
+                }
+                assertTrue(labels.any { it.contains("unverschlüsselt") })
                 assertTrue(labels.any {
                     it.contains(ZoneId.systemDefault().id) && it.contains("Endminute inklusive")
                 })

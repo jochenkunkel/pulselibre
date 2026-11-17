@@ -41,23 +41,7 @@ class CirqaDatabase(private val contextRef: Context) : SQLiteOpenHelper(contextR
 
     /** Store a single locally generated JSONL event immediately, without a second BLE path. */
     @Synchronized fun insertLine(line: String): Boolean {
-        val item = try { JSONObject(line) } catch (_: Exception) { return false }
-        val kind = item.optString("type")
-        val timestamp = item.optString("received_at_utc")
-        if (item.optInt("schema") != 1 || kind.isBlank()) return false
-        val sha = MessageDigest.getInstance("SHA-256")
-            .digest(line.toByteArray(Charsets.UTF_8))
-            .joinToString("") { "%02x".format(it.toInt() and 255) }
-        val values = ContentValues().apply {
-            put("line_sha256", sha)
-            put("received_at_utc", timestamp)
-            put("kind", kind)
-            if (item.has("service") && !item.isNull("service")) put("service", item.optInt("service"))
-            put("payload_json", line)
-        }
-        return writableDatabase.insertWithOnConflict(
-            "events", null, values, SQLiteDatabase.CONFLICT_IGNORE
-        ) != -1L
+        return insertLine(writableDatabase, line)
     }
 
     /** Raw measured readings in chronological order, not inferred values. */
@@ -134,4 +118,122 @@ class CirqaDatabase(private val contextRef: Context) : SQLiteOpenHelper(contextR
         it.moveToFirst()
         it.getLong(0)
     }
+
+    /** Run a callback against a consistent read snapshot of both local SQLite stores. */
+    @Synchronized internal fun <T> readStoredSnapshot(block: (SQLiteDatabase) -> T): T =
+        withLegacyDatabase { db ->
+            db.beginTransaction()
+            try {
+                val result = block(db)
+                db.setTransactionSuccessful()
+                result
+            } finally {
+                db.endTransaction()
+            }
+        }
+
+    /** Replace both local stores in a single attached-database transaction. */
+    @Synchronized fun replaceAllStoredRows(
+        events: Sequence<String>,
+        readings: Sequence<RawExportRecord>,
+        cursors: Sequence<LocalSyncCursor>
+    ) = withLegacyDatabase { db ->
+        db.beginTransaction()
+        try {
+            db.execSQL("DELETE FROM main.events")
+            db.execSQL("DELETE FROM legacy.readings")
+            db.execSQL("DELETE FROM legacy.sync_cursors")
+
+            val eventInsert = db.compileStatement(
+                "INSERT INTO main.events(line_sha256, received_at_utc, kind, service, payload_json) VALUES(?, ?, ?, ?, ?)"
+            )
+            events.forEach { line ->
+                require(isValidStoredLine(line)) { "Ungültiger Ereigniseintrag im Backup" }
+                val item = JSONObject(line)
+                eventInsert.clearBindings()
+                eventInsert.bindString(1, lineSha256(line))
+                eventInsert.bindString(2, item.getString("received_at_utc"))
+                eventInsert.bindString(3, item.getString("type"))
+                if (item.has("service") && !item.isNull("service")) eventInsert.bindLong(4, item.getLong("service"))
+                else eventInsert.bindNull(4)
+                eventInsert.bindString(5, line)
+                eventInsert.executeInsert()
+            }
+
+            val readingInsert = db.compileStatement(
+                """INSERT INTO legacy.readings
+                   (device_id, metric, measured_at_ms, value, unit, sample_id, received_at_ms)
+                   VALUES(?, ?, ?, ?, ?, ?, ?)"""
+            )
+            readings.forEach { record ->
+                require(isValidStoredReading(record)) { "Ungültiger Messwert im Backup" }
+                readingInsert.clearBindings()
+                readingInsert.bindString(1, record.deviceId)
+                readingInsert.bindString(2, record.metric)
+                readingInsert.bindLong(3, record.measuredAtEpochMillis)
+                readingInsert.bindDouble(4, record.value)
+                readingInsert.bindString(5, record.unit)
+                readingInsert.bindString(6, record.sampleId ?: "")
+                if (record.receivedAtEpochMillis == null) readingInsert.bindNull(7)
+                else readingInsert.bindLong(7, record.receivedAtEpochMillis)
+                readingInsert.executeInsert()
+            }
+
+            val cursorInsert = db.compileStatement(
+                "INSERT INTO legacy.sync_cursors(device_id, last_committed_ms) VALUES(?, ?)"
+            )
+            cursors.forEach { value ->
+                require(value.deviceId.isNotBlank() && value.lastCommittedEpochMillis >= 0) {
+                    "Ungültiger Synchronisationsstand im Backup"
+                }
+                cursorInsert.clearBindings()
+                cursorInsert.bindString(1, value.deviceId)
+                cursorInsert.bindLong(2, value.lastCommittedEpochMillis)
+                cursorInsert.executeInsert()
+            }
+            db.setTransactionSuccessful()
+        } finally {
+            db.endTransaction()
+        }
+    }
+
+    private fun insertLine(db: SQLiteDatabase, line: String): Boolean {
+        val item = try { JSONObject(line) } catch (_: Exception) { return false }
+        val kind = item.optString("type")
+        if (item.optInt("schema") != 1 || kind.isBlank()) return false
+        val values = ContentValues().apply {
+            put("line_sha256", lineSha256(line))
+            put("received_at_utc", item.optString("received_at_utc"))
+            put("kind", kind)
+            if (item.has("service") && !item.isNull("service")) put("service", item.optInt("service"))
+            put("payload_json", line)
+        }
+        return db.insertWithOnConflict("events", null, values, SQLiteDatabase.CONFLICT_IGNORE) != -1L
+    }
+
+    private inline fun <T> withLegacyDatabase(block: (SQLiteDatabase) -> T): T {
+        LocalReadingStore(contextRef).use { it.writableDatabase }
+        val db = writableDatabase
+        db.execSQL("ATTACH DATABASE ? AS legacy", arrayOf(contextRef.getDatabasePath("pulselibre_readings.db").absolutePath))
+        return try { block(db) }
+        finally { runCatching { db.execSQL("DETACH DATABASE legacy") } }
+    }
+
+    companion object {
+        fun isValidStoredLine(line: String): Boolean = try {
+            val item = JSONObject(line)
+            item.optInt("schema") == 1 && item.optString("type").isNotBlank() &&
+                item.optString("received_at_utc").isNotBlank()
+        } catch (_: Exception) { false }
+
+        fun isValidStoredReading(record: RawExportRecord): Boolean = record.deviceId.isNotBlank() &&
+            record.metric.isNotBlank() && record.unit.isNotBlank() && record.measuredAtEpochMillis >= 0 &&
+            record.value.isFinite() && (record.receivedAtEpochMillis == null || record.receivedAtEpochMillis >= 0)
+
+        private fun lineSha256(line: String): String = MessageDigest.getInstance("SHA-256")
+            .digest(line.toByteArray(Charsets.UTF_8))
+            .joinToString("") { "%02x".format(it.toInt() and 255) }
+    }
 }
+
+data class LocalSyncCursor(val deviceId: String, val lastCommittedEpochMillis: Long)

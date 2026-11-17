@@ -194,6 +194,12 @@ beiden Paletten. Tatsächliche Build-/CI-Ergebnisse stehen im Übergabestatus bz
 
 Der ausführliche, quellenbasierte Forschungs- und Implementierungsplan für Messwerte, abgeleitete Kennzahlen, Referenzbereiche, wissenschaftliche Grenzen, Kachelverträge und Tests liegt unter [SCIENTIFIC_DASHBOARD_TILE_BLUEPRINT.md](science/SCIENTIFIC_DASHBOARD_TILE_BLUEPRINT.md). Er ist ein **Plan**, keine Freigabe zusätzlicher Gesundheitsberechnungen oder CIRQA-Datenquellen. Für neue Kacheln gelten weiterhin die Evidenz- und KDoc-Regeln aus [ENGINEERING_SCIENTIFIC_STANDARDS.md](ENGINEERING_SCIENTIFIC_STANDARDS.md).
 
+## Datenbank sichern und wiederherstellen
+
+Der Export-Reiter heißt „Daten“. Neben CSV kann der Nutzer beide lokalen SQLite-Datenspeicher in ein versioniertes ZIP-Backup sichern: CIRQA-Ereignisse sowie Legacy-Messwerte und Sync-Cursor. Das Backup enthält keine SQLite-Schema-/App-Einstellungen, ist unverschlüsselt und wird ausschließlich über den Android-Dateiauswahldialog geschrieben. Die UI weist auf sensible Inhalte hin.
+
+Vor Restore werden Dateieinträge, Größenlimits, Formatversion, SHA-256-Prüfsummen und Datensatzinhalte validiert. Erst nach expliziter Bestätigung ersetzt eine SQLite-Transaktion die Einträge in beiden Stores; bei Fehlern rollt SQLite die Änderung zurück. Reset verwendet dieselbe Transaktion und löscht nur Datenbankzeilen, nicht Profil- oder Darstellungseinstellungen. Bei laufender Nachtaufzeichnung muss der Nutzer deren Stopp bestätigen. Es werden keine BLE-/GFDI-/FileSync-Aktionen ausgelöst.
+
 ## Auflösung und Symbole im Verlauf (2026-11-17)
 
 Die Verlaufskarten fassen echte Empfangssnapshots abhängig vom gewählten Zeitraum in Zeitfenstern zusammen: 15 Minuten bei 24 Stunden, 2 Stunden bei 7 Tagen und 6 Stunden bei 30 Tagen. Pro belegtem Fenster zeigt die Grafik beobachtetes Minimum, Median und Maximum sowie die Anzahl der Originalwerte. Leere Zeitfenster bleiben leer. Es gibt keine Interpolation, künstliche Messpunkte oder Verbindungslinien. Die Karten nennen Auflösung, belegte Fenster und ursprüngliche Punktzahl.
