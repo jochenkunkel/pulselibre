@@ -612,7 +612,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         (if (bootstrapAckMode) "Bootstrap-ACK-Test: Kandidat gesendet=$bootstrapAckSent; GATT bestätigt=$bootstrapAckConfirmed; GFDI-Frames nach ACK-Start=${(fileListProbe.frames - bootstrapBaselineFrames).coerceAtLeast(0)}; Dateibefehle=0\n" else "") +
         (if (configurationTestMode) "5050-Konfigurationstest: Antwort eingeplant=$configurationResponseQueued; GATT-Schreibfolge bestätigt=$configurationResponseConfirmed; GFDI-5000-ACK für 5050 empfangen=$configurationAckReceived; Hostmaske=15 Bytes/alle Bits 0; Dateibefehle=0\n" else "") +
         (if (configurationTestMode) post5050Evidence.summary() + "\n" else "") +
-        (if (configurationTestMode) "Passiv beobachtete 5037-Sync-Frames: ${fileListProbe.frameTypes["gfdi-5037"] ?: 0}; keine aktive Sync-Anforderung.\n" else "") +
+        (if (configurationTestMode) "Passiv beobachtete 5037-Frames: ${fileListProbe.frameTypes["gfdi-5037"] ?: 0}; gültige 5037-Strukturen: ${fileListProbe.validSynchronizationShapes}; ungültige 5037-Strukturen: ${fileListProbe.malformedSynchronizationShapes}; keine aktive Sync-Anforderung.\n" else "") +
         "GFDI-Registrierung: ${if (historyRegistered) "bestätigt" else "nicht bestätigt"}\n" +
         "Letzte Phase: $phase\n" +
         "GATT-Schreiben bestätigt: $writeConfirmed\n" +
