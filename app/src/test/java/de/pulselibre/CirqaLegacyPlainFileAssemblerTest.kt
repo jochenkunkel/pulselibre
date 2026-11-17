@@ -51,6 +51,18 @@ class CirqaLegacyPlainFileAssemblerTest {
         assertNull(a.completedBytes())
     }
 
+    @Test fun rejectsNonzeroTransferStatusEvenWithValidCrc() {
+        val a = assembler(1)
+        val invalidStatus = chunk(0, 7, 7)
+        invalidStatus[0] = 1
+        assertEquals(CirqaLegacyPlainFileAssembler.Result.MALFORMED,
+            a.accept(invalidStatus))
+        assertEquals(0, a.receivedBytes)
+        assertNull(a.completedBytes())
+        assertEquals(CirqaLegacyPlainFileAssembler.Result.COMPLETE,
+            a.accept(chunk(0, 7, 7)))
+    }
+
     @Test fun enforcesMemoryLimit() {
         try {
             CirqaLegacyPlainFileAssembler(11, { _, _ -> true }, 10)
