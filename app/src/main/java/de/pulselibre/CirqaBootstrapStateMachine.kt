@@ -7,7 +7,7 @@ class CirqaBootstrapStateMachine {
         private set
     var retries = 0
         private set
-    var changed5050Payloads = 0
+    var payloadChanges = 0
         private set
     var ackAttempted = false
         private set
@@ -39,7 +39,7 @@ class CirqaBootstrapStateMachine {
                     }
                     state = State.RETRY_5050_OBSERVED
                 } else {
-                    if (last5050 != null && changed5050Payloads < Int.MAX_VALUE) changed5050Payloads++
+                    if (last5050 != null && payloadChanges < Int.MAX_VALUE) payloadChanges++
                     state = State.WAITING_5050_RESPONSE
                 }
                 last5050 = body
@@ -55,7 +55,7 @@ class CirqaBootstrapStateMachine {
         "; 5024-ACK versucht=" + ackAttempted +
         "; Anwendungs-ACK nachgewiesen=false" +
         "; 5050-Wiederholungen=" + retries +
-        "; 5050-Payloadwechsel=" + changed5050Payloads +
+        "; 5050-Payloadwechsel=" + payloadChanges +
         "; 5s-Retry-Kandidaten=" + intervals.count { it in 4500L..5500L } +
         "; Intervalle-ms=" + intervals.toList() +
         "; 5050-Antwort=NICHT_GESENDET"
