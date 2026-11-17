@@ -65,10 +65,42 @@ class HistoryOverviewView(
         }
         addView(rangeRow, LayoutParams(-1, -2).apply { bottomMargin = dp(10) })
         val resolution = HistoryResolution.forRange(snapshot.range)
-        addView(label("Zeit = Empfang auf dem Telefon. Werte werden je Zeitfenster als Median und beobachtete Spanne zusammengefasst; leere Fenster bleiben leer.",
-            12f, palette.muted), LayoutParams(-1, -2).apply { bottomMargin = dp(14) })
+        addLegend()
         metricCard("Herzfrequenz", "bpm", snapshot.heartRate, snapshot, 240, palette.pulse, resolution)
         metricCard("Sauerstoffsättigung · SpO₂", "%", snapshot.oxygen, snapshot, 100, palette.oxygen, resolution)
+    }
+
+    private fun addLegend() {
+        val row = LinearLayout(context).apply {
+            orientation = HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            isFocusable = true
+            contentDescription = "Verlaufslegende. Zeitpunkt: Empfang auf dem Telefon. Punkt: Median; Strich: beobachtetes Minimum bis Maximum. Leere Fenster enthalten keine Messdaten."
+            importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_YES
+        }
+        listOf(
+            DashboardInfoIconView.Kind.TIME to "Telefonzeit",
+            DashboardInfoIconView.Kind.RANGE to "Median · Min–Max",
+            DashboardInfoIconView.Kind.WINDOW to "Leer = keine Daten"
+        ).forEachIndexed { index, (kind, text) ->
+            val chip = LinearLayout(context).apply {
+                orientation = HORIZONTAL
+                gravity = Gravity.CENTER
+                setPadding(dp(4), dp(7), dp(4), dp(7))
+                background = GradientDrawable().apply {
+                    setColor(palette.tinted)
+                    cornerRadius = dp(10).toFloat()
+                }
+                importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+                addView(DashboardInfoIconView(context, kind, palette.accent),
+                    LayoutParams(dp(15), dp(15)).apply { marginEnd = dp(3) })
+                addView(label(text, 9f, palette.muted, true), LayoutParams(-2, -2))
+            }
+            row.addView(chip, LayoutParams(0, -2, 1f).apply {
+                if (index < 2) marginEnd = dp(4)
+            })
+        }
+        addView(row, LayoutParams(-1, -2).apply { bottomMargin = dp(14) })
     }
 
     private fun metricCard(
@@ -98,18 +130,18 @@ class HistoryOverviewView(
             marginEnd = dp(7)
         })
         heading.addView(label(title, 15f, palette.ink, true).apply { maxLines = 2 }, LayoutParams(0, -2, 1f))
-        heading.addView(TextView(context).apply {
-            text = "ⓘ"
-            textSize = 20f
-            gravity = Gravity.CENTER
-            setTextColor(palette.indicator)
-            minWidth = dp(48)
-            minHeight = dp(48)
+        val infoButton = android.widget.FrameLayout(context).apply {
+            minimumWidth = dp(48)
+            minimumHeight = dp(48)
             isClickable = true
             isFocusable = true
             contentDescription = "Quelle und Skala für $title anzeigen"
+            tag = "history_info_$title"
             setOnClickListener { showMetricInfo(title, unit) }
-        }, LayoutParams(dp(48), dp(48)))
+            addView(DashboardInfoIconView(context, DashboardInfoIconView.Kind.SOURCE, palette.indicator),
+                android.widget.FrameLayout.LayoutParams(dp(20), dp(20), Gravity.CENTER))
+        }
+        heading.addView(infoButton, LayoutParams(dp(48), dp(48)))
         card.addView(heading)
         card.addView(label("${points.size} Werte · ${buckets.size} belegte Fenster · ${resolution.label} · Skala 0–$axisMaximum $unit",
             12f, palette.muted), LayoutParams(-1, -2).apply { topMargin = dp(4) })
@@ -135,11 +167,25 @@ class HistoryOverviewView(
             setPadding(dp(22), dp(8), dp(22), dp(8))
         }
         fun row(symbol: String, text: String, url: String? = null) {
-            content.addView(TextView(context).apply {
-                this.text = "$symbol   $text"
+            val kind = when (symbol) {
+                "▬" -> DashboardInfoIconView.Kind.SCALE
+                "▰" -> DashboardInfoIconView.Kind.RANGE
+                "↗" -> DashboardInfoIconView.Kind.SOURCE
+                "◷" -> DashboardInfoIconView.Kind.TIME
+                "⚠" -> DashboardInfoIconView.Kind.LIMIT
+                else -> DashboardInfoIconView.Kind.WINDOW
+            }
+            val line = LinearLayout(context).apply {
+                orientation = HORIZONTAL
+                gravity = Gravity.CENTER_VERTICAL
+                setPadding(0, dp(5), 0, dp(5))
+            }
+            line.addView(DashboardInfoIconView(context, kind, if (url == null) palette.muted else palette.accent),
+                LayoutParams(dp(18), dp(18)).apply { marginEnd = dp(10) })
+            line.addView(TextView(context).apply {
+                this.text = text
                 textSize = 14f
                 setTextColor(if (url == null) palette.ink else palette.accent)
-                setPadding(0, dp(5), 0, dp(5))
                 if (url != null) {
                     isFocusable = true
                     isClickable = true
@@ -148,7 +194,8 @@ class HistoryOverviewView(
                             android.net.Uri.parse(url))) } catch (_: Exception) { }
                     }
                 }
-            })
+            }, LayoutParams(0, -2, 1f))
+            content.addView(line)
         }
         row("▬", "Skala ${profile?.minimum ?: 0}–${profile?.maximum ?: if (unit == "%") 100 else 240} $unit")
         profile?.referenceMinimum?.let { low ->

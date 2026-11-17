@@ -47,8 +47,7 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
         addView(metricCard(overview.sleep, violet),
             LayoutParams(-1, -2).apply { bottomMargin = dp(16) })
         heading("Heute auf einen Blick")
-        addView(label("Schritte: kumulativer Tageszähler, keine Summe", 12f, muted),
-            LayoutParams(-1, -2).apply { bottomMargin = dp(12) })
+        addStepContextChip()
         addCardPair(overview.today) { metric ->
             metricCard(metric, if (metric.title == "Tagesziel Schritte") palette.indicator else ink)
         }
@@ -73,6 +72,27 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
             gauge.post { if (gauge.isAttachedToWindow) gauge.show(model, activity, previous.fraction) }
         }
         return card
+    }
+
+    private fun addStepContextChip() {
+        val chip = LinearLayout(context).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(dp(8), dp(5), dp(10), dp(5))
+            background = GradientDrawable().apply {
+                setColor(palette.tinted)
+                cornerRadius = dp(12).toFloat()
+            }
+            isFocusable = true
+            contentDescription = "Tagesstand. Kumulativer Gerätezähler; Messpunkte werden nicht addiert."
+            importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_YES
+            addView(DashboardMetricIconView(context, "Schritte", palette.indicator),
+                LayoutParams(dp(18), dp(18)).apply { marginEnd = dp(5) })
+            addView(label("Tagesstand", 11f, muted, true), LayoutParams(-2, -2))
+        }
+        chip.getChildAt(0).importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+        chip.getChildAt(1).importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+        addView(chip, LayoutParams(-2, -2).apply { bottomMargin = dp(12) })
     }
 
     private fun addCardPair(metrics: List<DashboardMetric>, create: (DashboardMetric) -> LinearLayout) {
@@ -305,11 +325,25 @@ private class ReceptionIndicatorView(
             setPadding(dp(22), dp(8), dp(22), dp(8))
         }
         fun row(symbol: String, text: String, color: Int = palette.ink, url: String? = null) {
-            val line = TextView(context).apply {
-                this.text = "$symbol   $text"
+            val kind = when (symbol) {
+                "▬" -> DashboardInfoIconView.Kind.SCALE
+                "▰" -> DashboardInfoIconView.Kind.RANGE
+                "↗" -> DashboardInfoIconView.Kind.SOURCE
+                "◷" -> DashboardInfoIconView.Kind.TIME
+                "⚠" -> DashboardInfoIconView.Kind.LIMIT
+                else -> DashboardInfoIconView.Kind.WINDOW
+            }
+            val line = LinearLayout(context).apply {
+                orientation = LinearLayout.HORIZONTAL
+                gravity = Gravity.CENTER_VERTICAL
+                setPadding(0, dp(5), 0, dp(5))
+            }
+            line.addView(DashboardInfoIconView(context, kind, if (url == null) palette.muted else palette.accent),
+                LayoutParams(dp(18), dp(18)).apply { marginEnd = dp(10) })
+            line.addView(TextView(context).apply {
+                this.text = text
                 textSize = 14f
                 setTextColor(if (url == null) color else palette.accent)
-                setPadding(0, dp(5), 0, dp(5))
                 if (url != null) {
                     isClickable = true
                     isFocusable = true
@@ -318,7 +352,7 @@ private class ReceptionIndicatorView(
                         catch (_: Exception) { /* Keep the source readable if no browser is available. */ }
                     }
                 }
-            }
+            }, LayoutParams(0, -2, 1f))
             details.addView(line)
         }
         val profile = MetricReferenceProfile.forMetric(metric, stepGoal)
