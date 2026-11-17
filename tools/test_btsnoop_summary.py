@@ -66,6 +66,7 @@ class SnoopTests(unittest.TestCase):
         result = self.check(capture([acl]))
         self.assertEqual(result["acl_records"], 1)
         self.assertEqual(result["complete_att_candidates"], 0)
+        self.assertFalse(result["sufficient_for_att_analysis"])
 
     def test_truncated_record_not_counted_as_complete_att(self):
         # A capture may store fewer bytes than the original on-wire packet.
@@ -75,12 +76,14 @@ class SnoopTests(unittest.TestCase):
         result = self.check(data)
         self.assertEqual(result["acl_records"], 1)
         self.assertEqual(result["complete_att_candidates"], 0)
+        self.assertFalse(result["sufficient_for_att_analysis"])
 
     def test_acl_continuation_not_misclassified_as_complete_att(self):
         continuation = b"\x02" + struct.pack("<HH", 1 | (1 << 12), 5) + b"\x01\x00\x04\x00\x0a"
         result = self.check(capture([continuation]))
         self.assertEqual(result["acl_records"], 1)
         self.assertEqual(result["complete_att_candidates"], 0)
+        self.assertFalse(result["sufficient_for_att_analysis"])
 
     def test_unsupported_datalink_rejected(self):
         with self.assertRaises(snoop.InvalidSnoop):
