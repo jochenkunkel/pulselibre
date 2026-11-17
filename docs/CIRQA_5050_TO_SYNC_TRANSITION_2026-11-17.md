@@ -60,3 +60,8 @@ Implementiert: `Cirqa5050BodyParser` und `CirqaConnect531HandshakeModel` mit JVM
 ## 5024-Parser: implementierte Offline-Charakterisierung
 
 `Cirqa5024DeviceInformationParser` verarbeitet die aus Connect 5.31 berichteten festen LE-Felder (`u16 protocolVersion`, `u16 productNumber`, `u32 unitId`, `u16 softwareVersion`, `u16 maxPacketSize`) sowie drei längenpräfixierte UTF-8-Strings. Zu kurze Felder und ungültiges UTF-8 werden abgelehnt; verbleibende gerätespezifische Bytes werden **nur gezählt**, nicht interpretiert. Der Parser erzeugt weder eine ACK-Antwort noch Bluetooth-Verkehr. Fünf JVM-Tests prüfen Endianness, sämtliche abgeschnittenen Präfixe, ungültige Stringlängen, optionale Tailbytes und UTF-8. Noch offen: produktabhängige optionale Felder und die exakte von Connect erzeugte 5024-Hostantwort. Der Offline-Parser ist noch nicht in den Android-BLE-Pfad integriert.
+
+
+## Passive 5024-Strukturevidenz im Android-Diagnosebericht
+
+`Cirqa5024StructureObserver` wurde in `GarminFileListProbe` integriert. Er prüft nur CRC-validierte GFDI-5024-Frames gegen den Offline-Parser und meldet Anzahl, Bodylängen, Parser-Treffer und optionale Restlängen. Unit-ID, Produktidentität und Zeichenketten werden nicht ausgegeben. Ein Parser-Fehlschlag ist **keine** Aussage über die Gültigkeit der CIRQA-Geräteinformation: Garmin Connect interpretiert optionale Felder produktabhängig, und die Zuordnung der protokollierten Bodybytes zum 5.31-Layout muss am Gerät bestätigt werden. Drei JVM-Tests decken Metadaten, CRC-Ablehnung und verkürzte Frames ab. Es wurde kein aktiver Sendepfad geändert.
