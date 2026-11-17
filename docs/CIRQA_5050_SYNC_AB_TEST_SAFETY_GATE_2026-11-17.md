@@ -60,3 +60,9 @@ Die Nullmasken-Diagnose speichert beim Einplanen ihrer 5050-Antwort die bisherig
 Der bestehende `GarminFileListProbe` prüft jetzt nach erfolgreicher COBS-Dekodierung, GFDI-Längenprüfung und CRC-Validierung zusätzlich eingehende GFDI-5037-Bodies mit `Cirqa5037OfflineSynchronization.inspect`. Er zählt gültige und ungültige 5037-Strukturen getrennt und erfasst nur die **Anzahl** gesetzter Maskenbits. Die 5050-Diagnose zeigt diese Zähler ebenfalls an. Synthetische Unit-Tests prüfen einen gültigen 5037-Body, einen strukturell ungültigen Body und einen CRC-Fehler. Keine automatischen 5037-Antworten, Filter oder Dateianfragen wurden hinzugefügt.
 
 **Evidenzgrenze:** Ein strukturell gültiger 5037-Body ist noch kein Nachweis eines historischen Downloads oder der semantischen Richtigkeit der Dateitypbits. Die zuvor dokumentierten Frame-Typ-Zähler bleiben getrennt. Der SYNC-Bit-3-Test ist weiterhin nicht aktivierbar.
+
+## Siebter Implementierungsnachtrag: 5037-Evidenzfenster
+
+Im bestehenden **Nullmasken**-Diagnosepfad startet das passive 5037-Evidenzfenster erst dann, wenn sowohl die gesamte 5050-GATT-Schreibfolge als auch ein frisches positives 5050-ACK bestätigt wurden. Genau zu diesem Zeitpunkt wird die bisherige Anzahl strukturell gültiger, CRC-geprüfter 5037-Nachrichten als Baseline gespeichert. Erst eine danach neu eintreffende gültige 5037-Struktur kann im Abschlussbericht als `frisches 5037-Signal nach bestätigtem 5050` erscheinen. Der Offline-Guard `Cirqa5037SyncEvidenceGate` und Unit-Tests prüfen die Bedingungen. Eine vorzeitige 5037-Nachricht wird bewusst **nicht** nachträglich als Nachweis gewertet.
+
+Das ist **kein** historischer Datenabruf und kein Beleg, dass CIRQA die SYNC-Bit-3-Hypothese unterstützt. Die eigentliche `CirqaSyncDiagnosticSession` ist noch nicht mit GATT verbunden; es wurden keine neuen BLE-Befehle eingeführt.
