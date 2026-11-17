@@ -20,14 +20,14 @@
 - [QUALITY_GATE.md](QUALITY_GATE.md), [CI_TEST_STRATEGY.md](CI_TEST_STRATEGY.md), [TESTPLAN.md](TESTPLAN.md): Qualität und Tests.
 - [PRIVACY_INCIDENT_2026-11-16.md](PRIVACY_INCIDENT_2026-11-16.md): Datenschutzvorfall; nicht in ein Archiv verstecken.
 - [ARCHITECTURE_AND_CODE_REVIEW.md](ARCHITECTURE_AND_CODE_REVIEW.md): Architektur und historische Prüfungen.
-- [CIRQA_SQLITE_STORAGE.md](CIRQA_SQLITE_STORAGE.md), [LOCAL_STORAGE.md](LOCAL_STORAGE.md): gemeinsame Datenhaltung zwischen Protokoll und UI.
+- [CIRQA_SQLITE_STORAGE.md](protocol/data-model/CIRQA_SQLITE_STORAGE.md), [LOCAL_STORAGE.md](LOCAL_STORAGE.md): gemeinsame Datenhaltung zwischen Protokoll und UI.
 
 ## Umzugsregeln (2026-11-17)
 
-1. **Kanonische Spezifikationen** liegen in Themenordnern; am alten Ort verbleibt ein kurzer Link als Kompatibilitäts-Stub.
+1. **Kanonische Spezifikationen** liegen in Themenordnern; alte Weiterleitungsdateien wurden nach der Linkmigration entfernt.
 2. **Protokoll-Experimente** sind Evidenz, nicht automatisch Spezifikation oder Testfreigabe.
 3. **Wissenschaftliche Referenzen** sind keine automatisch gültigen klinischen Schwellen.
 4. Weitere Dateien erst nach Prüfung von relativen Links, Code-/Testreferenzen, offenen PRs und inhaltlichen Dubletten verschieben. Keine unkontrollierten Massenlöschungen.
 5. Für neue Dokumente einen Themenordner verwenden. Im Stamm nur bereichsübergreifende Projektführung.
 
-**Migration:** Drei kanonische Hauptdokumente wurden in die Themenordner übernommen. Zahlreiche bestehende Fachnotizen sind zunächst weiterhin unter `docs/` verlinkt; das ist eine **schrittweise Migration**, kein bereits vollständig abgeschlossenes Reorganisieren.
+**Migration (2026-11-17):** 48 bisherige Markdown-Weiterleitungsdateien wurden nach Anpassung der dokumentierten Links entfernt; eine identische doppelte Protokollforschungsdatei ebenfalls. Der Hauptbereich `docs/` enthält weiterhin bereichsübergreifende Dokumente. Alte direkte GitHub-Datei-URLs auf die entfernten Dateien funktionieren nicht mehr; neue Links verwenden die kanonischen Pfade.

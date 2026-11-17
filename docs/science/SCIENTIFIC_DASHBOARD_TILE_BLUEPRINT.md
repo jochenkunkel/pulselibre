@@ -17,7 +17,7 @@ Alle Kacheln zeigen auf Abruf: **Wert + Einheit + Zeitbezug + Quelle/Service + M
 
 ## 1. Messwertinventar des aktuellen Repositories
 
-**Technischer Ausgangspunkt:** `app/src/main/java/de/pulselibre/GarminRealtime.kt`, `docs/CIRQA_PROTOCOL_SPEC.md`, `docs/CIRQA_DASHBOARD_GROUND_RULES.md`, `docs/DASHBOARD_IMPLEMENTATION.md`.
+**Technischer Ausgangspunkt:** `app/src/main/java/de/pulselibre/GarminRealtime.kt`, `docs/protocol/CIRQA_PROTOCOL_SPEC.md`, `docs/protocol/data-model/CIRQA_DASHBOARD_GROUND_RULES.md`, `docs/DASHBOARD_IMPLEMENTATION.md`.
 
 | Rohsignal | Garmin-ML-Service | Decoder-Feld/Einheit | CIRQA-Evidenz | Wichtige Einschränkung |
 | --- | --- | --- | --- | --- |

@@ -22,7 +22,7 @@
 - [Priorisierte Roadmap bis zu echten CIRQA-Messwerten](docs/ROADMAP_TO_CIRQA_DATA.md)
 - [Android-Gerätekompatibilität, Updates und Play-Store-Vorbereitung](docs/ANDROID_RELEASE_READINESS.md)
 - [Geräte, Einschränkungen und Sicherheitsregeln](docs/TARGET_DEVICES.md)
-- [Garmin-Protokollrecherche](docs/GARMIN_PROTOCOL_RESEARCH.md)
+- [Garmin-Protokollrecherche](docs/protocol/research/GARMIN_PROTOCOL_RESEARCH.md)
 - [S25-Testplan](docs/S25_BLE_TEST_PLAN.md)
 - [Projektziele und Anforderungen](docs/REQUIREMENTS_AND_PRINCIPLES.md)
 - [Qualitätsanforderungen](docs/QUALITY_GATE.md)

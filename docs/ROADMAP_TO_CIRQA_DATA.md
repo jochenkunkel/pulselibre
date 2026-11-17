@@ -89,4 +89,4 @@ flowchart LR
 - Vollständige FIT-Dateiauswertung.
 - Hintergrundsynchronisierung und Produktionsrelease.
 
-Weiterführend: [Architektur und Code-Review](ARCHITECTURE_AND_CODE_REVIEW.md), [Protokollrecherche](GARMIN_PROTOCOL_RESEARCH.md), [S25-Testplan](S25_BLE_TEST_PLAN.md).
+Weiterführend: [Architektur und Code-Review](ARCHITECTURE_AND_CODE_REVIEW.md), [Protokollrecherche](protocol/research/GARMIN_PROTOCOL_RESEARCH.md), [S25-Testplan](S25_BLE_TEST_PLAN.md).

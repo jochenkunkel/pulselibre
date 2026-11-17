@@ -109,4 +109,4 @@ sequenceDiagram
 4. Für echte CIRQA-Kommunikation: vorab gesonderte Nutzerfreigabe, Interoperabilitätsplan mit Garmin Connect und ein Abbruch-/Rollback-Verfahren.
 5. Keine Behauptung „Gesundheitsdaten verfügbar“, bevor echte Herkunft, Zeitstempel, Einheit und Integrität auf dem S25 nachgewiesen sind.
 
-Siehe [Roadmap](ROADMAP_TO_CIRQA_DATA.md) und [Protokollrecherche](GARMIN_PROTOCOL_RESEARCH.md).
+Siehe [Roadmap](ROADMAP_TO_CIRQA_DATA.md) und [Protokollrecherche](protocol/research/GARMIN_PROTOCOL_RESEARCH.md).

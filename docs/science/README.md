@@ -6,8 +6,8 @@
 
 - [Wissenschaftliche Referenzen](../SCIENTIFIC_REFERENCES.md)
 - [Verbindliche wissenschaftliche Engineering-Standards](../ENGINEERING_SCIENTIFIC_STANDARDS.md)
-- [Dashboard-Messwertregeln](../CIRQA_DASHBOARD_GROUND_RULES.md)
-- [Schlaf-/Bewegungsregeln](../CIRQA_SLEEP_MOTION_GROUND_RULES.md)
+- [Dashboard-Messwertregeln](../protocol/data-model/CIRQA_DASHBOARD_GROUND_RULES.md)
+- [Schlaf-/Bewegungsregeln](../protocol/data-model/CIRQA_SLEEP_MOTION_GROUND_RULES.md)
 
 ## Klare Trennung
 

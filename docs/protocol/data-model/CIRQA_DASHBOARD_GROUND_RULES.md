@@ -34,7 +34,7 @@
 
 ## Reference and verification
 
-- Project: `docs/CIRQA_PROTOCOL_SPEC.md`, `docs/CIRQA_OVERNIGHT_COLLECTION.md`, `GarminRealtime.kt`, `CirqaLocalLog.kt`.
+- Project: `docs/protocol/CIRQA_PROTOCOL_SPEC.md`, `docs/protocol/device-tests/CIRQA_OVERNIGHT_COLLECTION.md`, `GarminRealtime.kt`, `CirqaLocalLog.kt`.
 - WHO physical activity guidelines: https://www.who.int/publications/i/item/9789240015128 (adult weekly moderate 150–300 min or vigorous 75–150 min; not a per-device realtime score).
 - Heart-rate variability measurement conventions: Task Force of ESC/NASPE, *Heart Rate Variability: Standards of Measurement, Physiological Interpretation, and Clinical Use*, Circulation 1996; RMSSD is sqrt(mean of squared differences between successive **normal-to-normal** RR intervals), not a single RR sample.
 - Source-backed byte layouts: https://github.com/gwerneckp/garmin-ble/tree/main/garmin_ble/metrics and https://github.com/Freeyourgadget/Gadgetbridge

@@ -21,13 +21,7 @@
 
 ## Migration und Verlinkung
 
-Am 2026-11-17 wurden **23 vorhandene Protokoll-/Forschungs-/Sync-Dokumente** in diese Unterordner kopiert und die bisherigen `docs/<Dateiname>`-Pfade zu Weiterleitungen umgewandelt. Die ursprünglichen Inhalte wurden nicht zusammengekürzt. Zusätzlich bleibt die Hauptspezifikation direkt unter `docs/protocol/`.
-
-**Achtung bei relativen Links:** Die Dokumente wurden zunächst inhaltlich unverändert übernommen. Etwaige relative Links oder Asset-Pfade innerhalb der verschobenen Originaltexte müssen gesondert geprüft und auf die neue Verzeichnistiefe angepasst werden. Der Umzug ist **kein** Beleg für einen vollständig bestandenen Linkcheck.
-
-## Weitere Dokumente im alten Pfad
-
-Einige Geräte-Testberichte und weitere CIRQA-Notizen liegen noch unter `docs/`; die gesonderte Kategorie [Testnachweise und Verifikation](../test-evidence/README.md) enthält dazu eine Übersicht. Bei weiterer Migration erst Verweise/Code-Referenzen prüfen, dann mit Kompatibilitätsweiterleitung verschieben.
+Die CIRQA-Fachtexte wurden in die Unterordner einsortiert; ihre Inhalte bleiben erhalten. **Die alten Markdown-Weiterleitungsdateien unter `docs/` wurden auf ausdrücklichen Wunsch entfernt.** Querverweise in den Markdown-Dokumenten wurden auf die kanonischen Pfade aktualisiert. Externe Lesezeichen auf alte Dateipfade müssen geändert werden. Ein CI-/Buildlauf ist dadurch nicht nachgewiesen.
 
 ## Ergänzung: CIRQA-Restmigration vom 2026-11-17
 
@@ -38,4 +32,4 @@ Alle 23 zuvor noch vollständig unter `docs/CIRQA_*.md` liegenden Fachtexte wurd
 - [research/](research/) – 4 weitere Untersuchungen, u. a. Gadgetbridge und 5050-Rohframes.
 - [experiments/](experiments/) – 4 weitere Versuchsvorbereitungen, Filelist- und Testlabor-Analysen.
 
-Die ursprünglichen `docs/CIRQA_*.md`-Pfade bleiben als kurze Weiterleitungsdateien bestehen. **Wichtig:** In relativen Links innerhalb der unverändert übernommenen Originaltexte kann noch die alte Verzeichnistiefe stecken; ein vollständiger Linkcheck steht aus. Verweise auf solche alten Pfade funktionieren als Einstieg, aber relative Links aus neuem Standort müssen gesondert überprüft werden.
+Die bisherigen Weiterleitungen unter `docs/CIRQA_*.md` wurden gelöscht. Für neue Links ausschließlich die kanonischen Unterordner verwenden; eine automatische Vollprüfung aller nicht-Markdown-Verweise steht gesondert aus.

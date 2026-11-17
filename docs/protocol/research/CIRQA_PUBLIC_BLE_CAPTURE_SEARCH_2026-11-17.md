@@ -4,7 +4,7 @@
 
 Gezielte Web- und GitHub-Code-Suche nach `Garmin CIRQA btsnoop`, `CIRQA Bluetooth sniff log`, `Garmin CIRQA BLE capture`, `Garmin CIRQA GFDI 5050` ergab **keinen unabhängig veröffentlichten, verifizierbaren CIRQA-ACL/ATT-Mitschnitt**. Die GitHub-Treffer mit CIRQA beziehen sich überwiegend auf **unser eigenes Repository**. Das ist keine Behauptung, dass weltweit kein Mitschnitt existiert.
 
-Vorhandene **eigene** Evidenz in `docs/CIRQA_GARMIN_CONNECT_SYNC_EVIDENCE_2026-11-16.md`: Garmin Connect hat historisch Dateien synchronisiert, darunter Monitoring- und Schlaf-Dateikategorien. Der bisherige umgewandelte `btsnooz`-Log enthält 6990 HCI-Command/Event-Datensätze, aber **null ACL-Datenpakete** und ist daher für GATT/GFDI-Nachrichten nicht verwertbar. Die App-Diagnose-Screenshots sind kein BLE-Dump.
+Vorhandene **eigene** Evidenz in `docs/protocol/device-tests/CIRQA_GARMIN_CONNECT_SYNC_EVIDENCE_2026-11-16.md`: Garmin Connect hat historisch Dateien synchronisiert, darunter Monitoring- und Schlaf-Dateikategorien. Der bisherige umgewandelte `btsnooz`-Log enthält 6990 HCI-Command/Event-Datensätze, aber **null ACL-Datenpakete** und ist daher für GATT/GFDI-Nachrichten nicht verwertbar. Die App-Diagnose-Screenshots sind kein BLE-Dump.
 
 ## Nützliche Alternativen
 

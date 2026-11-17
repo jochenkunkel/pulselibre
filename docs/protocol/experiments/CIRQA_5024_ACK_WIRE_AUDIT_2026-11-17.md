@@ -26,4 +26,4 @@
 - `app/src/main/java/de/pulselibre/GarminDeviceInformationAckCandidate.kt`
 - `app/src/main/java/de/pulselibre/CirqaMlHandshakeProbe.kt`
 - `app/src/main/java/de/pulselibre/GarminCompactAck.kt`
-- `docs/CIRQA_BOOTSTRAP_DEVICE_TEST_2026-11-17.md`
+- `docs/protocol/device-tests/CIRQA_BOOTSTRAP_DEVICE_TEST_2026-11-17.md`

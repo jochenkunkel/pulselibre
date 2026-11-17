@@ -4,7 +4,7 @@
 
 ## Umfang der Prüfung
 
-- **Inhaltlich gelesen/abgeglichen:** `README.md`, `docs/CHAT_START_HERE.md`, `docs/PROJECT_STATUS.md`, `docs/PROJECT_HISTORY.md` (historische Auszüge), `docs/DEVELOPMENT_PLAN.md`, `docs/QUALITY_GATE.md`, `docs/CI_TEST_STRATEGY.md`, `docs/AUTONOMOUS_DEVELOPMENT_AGENT.md`, `docs/ENGINEERING_SCIENTIFIC_STANDARDS.md`, `docs/ROADMAP_TO_CIRQA_DATA.md`, `docs/CIRQA_HISTORY_SYNC_PLAN.md`, `docs/CIRQA_5050_THIRD_TEST_AND_PHASE_FIX_2026-11-17.md`, `.github/workflows/android.yml` und die aktuelle 5050-Diagnoseimplementierung.
+- **Inhaltlich gelesen/abgeglichen:** `README.md`, `docs/CHAT_START_HERE.md`, `docs/PROJECT_STATUS.md`, `docs/PROJECT_HISTORY.md` (historische Auszüge), `docs/DEVELOPMENT_PLAN.md`, `docs/QUALITY_GATE.md`, `docs/CI_TEST_STRATEGY.md`, `docs/AUTONOMOUS_DEVELOPMENT_AGENT.md`, `docs/ENGINEERING_SCIENTIFIC_STANDARDS.md`, `docs/ROADMAP_TO_CIRQA_DATA.md`, `docs/protocol/sync/CIRQA_HISTORY_SYNC_PLAN.md`, `docs/protocol/device-tests/CIRQA_5050_THIRD_TEST_AND_PHASE_FIX_2026-11-17.md`, `.github/workflows/android.yml` und die aktuelle 5050-Diagnoseimplementierung.
 - **Dateiinventar gesichtet:** Die im Git-Tree vorhandenen `docs/*.md`-Dateinamen einschließlich CI, Datenschutz, BLE, Speicher, Dashboard, UI und Release. **Nicht alle Texte wurden zeilenweise gelesen**; deren Vollprüfung bleibt ausdrücklich offen.
 - **Weitere Quellen:** Vom Nutzer im Projektchat übermittelte, redigierte CIRQA-Diagnoseberichte und verifizierter schneller Android-CI-Lauf `44045596436`. Keine privaten Rohframes oder Gerätedaten übernommen.
 

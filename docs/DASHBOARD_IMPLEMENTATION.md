@@ -13,7 +13,7 @@ Das reine `HealthSnapshot`-Modell besteht für Offline-Funktionen und Tests fort
 Vor diesem Schritt wurden Herzfrequenz, Ruhepuls, Schritte und Schrittziel in vier
 primären Kacheln gezeigt; SpO₂ und Schlaf standen in der nachgeordneten Liste.
 Das entspricht noch nicht der freigegebenen Hierarchie aus
-[APPROVED_UI_CONCEPT_2026-11-15.md](APPROVED_UI_CONCEPT_2026-11-15.md).
+[APPROVED_UI_CONCEPT_2026-11-15.md](ui/APPROVED_UI_CONCEPT_2026-11-15.md).
 
 ## Umsetzung im Review-Branch
 
@@ -43,7 +43,7 @@ Empfangszeit ist kein belegter Sensorzeitstempel. Es werden keine statistischen
 Verfahren, medizinischen Schwellen oder neuen wissenschaftlichen Formeln eingeführt.
 Daher entsteht in diesem Schritt keine neue wissenschaftliche Quellenbehauptung.
 Maßgeblich bleiben [ENGINEERING_SCIENTIFIC_STANDARDS.md](ENGINEERING_SCIENTIFIC_STANDARDS.md)
-und [CIRQA_DASHBOARD_GROUND_RULES.md](CIRQA_DASHBOARD_GROUND_RULES.md).
+und [CIRQA_DASHBOARD_GROUND_RULES.md](protocol/data-model/CIRQA_DASHBOARD_GROUND_RULES.md).
 
 ## Verifikation
 
@@ -192,7 +192,7 @@ beiden Paletten. Tatsächliche Build-/CI-Ergebnisse stehen im Übergabestatus bz
 
 ## Wissenschaftlicher Kachelbauplan (2026-11-17)
 
-Der ausführliche, quellenbasierte Forschungs- und Implementierungsplan für Messwerte, abgeleitete Kennzahlen, Referenzbereiche, wissenschaftliche Grenzen, Kachelverträge und Tests liegt unter [SCIENTIFIC_DASHBOARD_TILE_BLUEPRINT.md](SCIENTIFIC_DASHBOARD_TILE_BLUEPRINT.md). Er ist ein **Plan**, keine Freigabe zusätzlicher Gesundheitsberechnungen oder CIRQA-Datenquellen. Für neue Kacheln gelten weiterhin die Evidenz- und KDoc-Regeln aus [ENGINEERING_SCIENTIFIC_STANDARDS.md](ENGINEERING_SCIENTIFIC_STANDARDS.md).
+Der ausführliche, quellenbasierte Forschungs- und Implementierungsplan für Messwerte, abgeleitete Kennzahlen, Referenzbereiche, wissenschaftliche Grenzen, Kachelverträge und Tests liegt unter [SCIENTIFIC_DASHBOARD_TILE_BLUEPRINT.md](science/SCIENTIFIC_DASHBOARD_TILE_BLUEPRINT.md). Er ist ein **Plan**, keine Freigabe zusätzlicher Gesundheitsberechnungen oder CIRQA-Datenquellen. Für neue Kacheln gelten weiterhin die Evidenz- und KDoc-Regeln aus [ENGINEERING_SCIENTIFIC_STANDARDS.md](ENGINEERING_SCIENTIFIC_STANDARDS.md).
 
 ## Datenbank sichern und wiederherstellen
 

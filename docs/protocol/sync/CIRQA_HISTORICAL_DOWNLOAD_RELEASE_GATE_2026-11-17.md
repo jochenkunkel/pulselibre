@@ -57,7 +57,7 @@ Der erfolgreiche signierte Basisbuild `23c2cfd9` ist unter GitHub Actions Run `4
 1. Erledigt: DEX-Registerprüfung von `yw40.a([B)` und nachprüfbare Connect-CRC-Vektoren dokumentiert.
 2. `v5d`-Registrierung und CIRQA-spezifische FileSync-Route mit belegtem Callgraph untersuchen; Connect-Code nicht als CIRQA-Beweis ausgeben.
 3. Belegbare CIRQA-Capability-/Subtype-Information und passive Trace-Auswertung ergänzen; keine aktiven BLE-Kommandos.
-4. Ergebnisse in `docs/GARMIN_CONNECT_531_FILESYNC_REVERSE_ENGINEERING.md` und `docs/CIRQA_LEGACY_FILESYNC_PROTOCOL.md` mit exakten Referenzen aktualisieren.
+4. Ergebnisse in `docs/protocol/research/GARMIN_CONNECT_531_FILESYNC_REVERSE_ENGINEERING.md` und `docs/protocol/specifications/CIRQA_LEGACY_FILESYNC_PROTOCOL.md` mit exakten Referenzen aktualisieren.
 
 **Freigabeentscheidung:** CRC-DEX-Frage für Connect ist geklärt; **NO-GO** für aktive historische CIRQA-Downloads bleibt bestehen, bis CIRQA-spezifische Protokollunterstützung und der sichere Transport-/ACK-Pfad nachgewiesen sind. Das schützt die Uhr und verhindert, dass ein grüner APK-Build fälschlich als erfolgreicher historischer Download interpretiert wird.
 

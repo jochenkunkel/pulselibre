@@ -8,7 +8,7 @@ Drei gezielte S25-Tests zeigen nach GATT-bestätigter aktiver 5050-Antwort (15 H
 
 1. [Amazfish: Configuration](https://github.com/piggz/harbour-amazfish/blob/master/daemon/src/services/garmin/garminconfigurationmessage.cpp): `parse` erzeugt eine Host-5050-Nachricht mit `[u8 Länge][Host-Capabilities]`; `generateCapabilities` setzt bei 15 Bytes nahezu alle bekannten Bits und nimmt ausdrücklich bestimmte unbekannte Bits aus. Das ist eine **breite Fremdimplementierung**, keine sichere CIRQA-Vorlage. `completePairing()` wird nach dem Senden aufgerufen, beweist aber keinen Dateizugriff.
 2. [Amazfish: Synchronization](https://github.com/piggz/harbour-amazfish/blob/master/daemon/src/services/garmin/garminsynchronizationmessage.cpp): `parse` verarbeitet **eingehende** `5037`-Nachrichten mit `[u8 syncType][u8 maskLength][4 oder 8 Byte LE fileTypeBitmask]`. Es sendet darauf ein GFDI-5000-ACK für `5037`; bei gesetzten Workout-/Activity-/Summary-/Sleep-Dateitypen folgt in dieser Implementierung ein GFDI-Filter (`5007`) mit Filtertyp 3. Der Kommentar markiert Teile als TODO; dies ist **kein** Beweis für einen vollständigen Download.
-3. [GarminHRM600 FileSync-Vergleich](CIRQA_FILESYNC_REFERENCE_COMPARISON_2026-11-16.md): Früherer CIRQA-Versuch mit kompakter FileListRequest wurde dreimal als `UNSUPPORTED` (GFDI-5000-Status 2 für `0x8A39`) abgewiesen. Der Fehler kann am falschen Nachrichtentyp, Bootstrap oder an Capabilities liegen; aus dem Status ist die Ursache **nicht** bestimmbar.
+3. [GarminHRM600 FileSync-Vergleich](../research/CIRQA_FILESYNC_REFERENCE_COMPARISON_2026-11-16.md): Früherer CIRQA-Versuch mit kompakter FileListRequest wurde dreimal als `UNSUPPORTED` (GFDI-5000-Status 2 für `0x8A39`) abgewiesen. Der Fehler kann am falschen Nachrichtentyp, Bootstrap oder an Capabilities liegen; aus dem Status ist die Ursache **nicht** bestimmbar.
 
 ## Abgeleitete Protokollhypothesen – noch unbewiesen
 
@@ -73,7 +73,7 @@ OpenCode hat offline folgenden Aufbau der **Erweiterung nach dem 5000-ACK-Präfi
 
 `CirqaConnect531Host5024Response` bildet diesen Aufbau **offline** mit explizit übergebenen Werten ab. Es erfindet keine App-Version, Geräteidentität, Android-Build-Werte oder Feature-Flags und wird nicht vom Bluetooth-Sender aufgerufen. Tests prüfen die Bytefolge, den 5000/5024-Frame inklusive CRC, die Protokollbedingung, UTF-8-Bytezahl und Feldgrenzen. Der bisherige minimale 5024-Kandidat bleibt als historischer Diagnoseversuch erhalten; er ist nicht mit der Connect-Hostantwort gleichzusetzen.
 
-Die von OpenCode genannte Detailanalyse `docs/GARMIN_CONNECT_531_FILESYNC_REVERSE_ENGINEERING.md` lag zum Zeitpunkt dieser Umsetzung nur lokal bei OpenCode und war **noch nicht ins Repository gepusht**. Die vorstehende Zusammenfassung basiert auf der ausdrücklich übergebenen Analyse, nicht auf einer unabhängig verifizierten APK.
+Die von OpenCode genannte Detailanalyse `docs/protocol/research/GARMIN_CONNECT_531_FILESYNC_REVERSE_ENGINEERING.md` lag zum Zeitpunkt dieser Umsetzung nur lokal bei OpenCode und war **noch nicht ins Repository gepusht**. Die vorstehende Zusammenfassung basiert auf der ausdrücklich übergebenen Analyse, nicht auf einer unabhängig verifizierten APK.
 
 
 ## Vorbereitung eines aktiven 5024-Vergleichstests
