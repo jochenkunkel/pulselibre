@@ -17,8 +17,18 @@ class CirqaSyncDiagnosticSessionTest {
         val session = observing()
         assertEquals(CirqaSyncDiagnosticSession.State.SYNC_SIGNAL,
             session.on(CirqaSyncDiagnosticSession.Event.CRC_VALID_5037))
-        assertEquals(CirqaSyncDiagnosticSession.State.SYNC_SIGNAL,
+        assertTrue(session.signalObserved)
+        assertEquals(CirqaSyncDiagnosticSession.State.STOPPED,
             session.on(CirqaSyncDiagnosticSession.Event.TIMEOUT))
+        assertTrue(session.signalObserved)
+    }
+
+    @Test fun disconnectAfterSignalStopsSessionWithoutLosingEvidence() {
+        val session = observing()
+        session.on(CirqaSyncDiagnosticSession.Event.CRC_VALID_5037)
+        assertEquals(CirqaSyncDiagnosticSession.State.STOPPED,
+            session.on(CirqaSyncDiagnosticSession.Event.CONNECTION_LOST))
+        assertTrue(session.signalObserved)
     }
 
     @Test fun refuses5037BeforeAuthorizationOrAck() {
