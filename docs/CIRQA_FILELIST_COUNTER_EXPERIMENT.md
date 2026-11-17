@@ -40,3 +40,9 @@ Nutzerbericht: GFDI-Registrierung bestätigt; 5 Notifications (1 Registrierung, 
 Nutzerbericht: GFDI registriert (Handle 63), 5024 einmal, 5050 einmal, GFDI-5000-ACK für 5050 einmal (request=5050/status=ACK), keine negativen Antworten, keine ungültigen Frames. 5050-Antwort 15 Bytes mit **allen Host-Bits 0**, GATT-Schreibfolge bestätigt. Nach Schreibbestätigung genau ein 5000-Frame; kein 5037, 5011, FileListResponse oder kompakter RX-Frame. Ergebnis `ACK_WITHOUT_5037`.
 
 Dieser Test ist **nicht** der frühere SYNC-Bit-3-Test. Nullmaske und SYNC-Bit 3 dürfen in Vergleichen nicht vermischt werden. Das ACK beweist keine Historienfreigabe. Der passive Decoder zeigt `5050-Antwort=NICHT_GESENDET`, obwohl der aktive Test sie sendete; diese Felder betreffen unterschiedliche Komponenten und sind nicht als widersprechende BLE-Evidenz zu interpretieren. RX- und TX-Counter bleiben unbekannt; der FileList-Sendepfad bleibt deaktiviert.
+
+## 5050-Vergleich: maschinell prüfbare Auswertung
+
+`Cirqa5050ExperimentComparison` vergleicht die Nullmaske und SYNC-Bit-3-Probe getrennt. Die Auswertung unterscheidet `NOT_CONFIRMED`, `ACK_ONLY`, `SYNC_SIGNAL` (gültiges 5037 nach ACK) und `FILE_LIST_OBSERVED`. Ein frisches GFDI-5000-ACK ohne 5037 wird **nicht** als erfolgreiche Synchronisation klassifiziert. Vier Unit-Tests decken die entscheidenden Grenzen ab. Dies ist ausschließlich Offline-Logik; kein neuer BLE-Sendepfad, keine neue Test-APK.
+
+Die bereits bekannten Realgerätberichte ergeben für beide 5050-Masken nur `ACK_ONLY` (`SAME_ACK_ONLY`), sofern die jeweiligen ACKs bestätigt sind. Die nächste belastbare Hypothese betrifft einen fehlenden Übergangsschritt nach 5050, nicht eine nachgewiesene falsche FileSync-Sequenz.
