@@ -86,13 +86,13 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
             isFocusable = true
             contentDescription = "Tagesstand. Kumulativer Gerätezähler; Messpunkte werden nicht addiert."
             importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_YES
-            addView(DashboardMetricIconView(context, "Schritte", palette.indicator),
-                LayoutParams(dp(18), dp(18)).apply { marginEnd = dp(5) })
-            addView(label("Tagesstand", 11f, muted, true), LayoutParams(-2, -2))
+            val stepIconParams = LinearLayout.LayoutParams(dp(18), dp(18)).apply { rightMargin = dp(5) }
+            addView(DashboardMetricIconView(context, "Schritte", palette.indicator), stepIconParams)
+            addView(label("Tagesstand", 11f, muted, true), LinearLayout.LayoutParams(-2, -2))
         }
         chip.getChildAt(0).importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
         chip.getChildAt(1).importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
-        addView(chip, LayoutParams(-2, -2).apply { bottomMargin = dp(12) })
+        addView(chip, LinearLayout.LayoutParams(-2, -2).apply { bottomMargin = dp(12) })
     }
 
     private fun addCardPair(metrics: List<DashboardMetric>, create: (DashboardMetric) -> LinearLayout) {
@@ -338,8 +338,8 @@ private class ReceptionIndicatorView(
                 gravity = Gravity.CENTER_VERTICAL
                 setPadding(0, dp(5), 0, dp(5))
             }
-            line.addView(DashboardInfoIconView(context, kind, if (url == null) palette.muted else palette.accent),
-                LayoutParams(dp(18), dp(18)).apply { marginEnd = dp(10) })
+            val infoIconParams = LinearLayout.LayoutParams(dp(18), dp(18)).apply { rightMargin = dp(10) }
+            line.addView(DashboardInfoIconView(context, kind, if (url == null) palette.muted else palette.accent), infoIconParams)
             line.addView(TextView(context).apply {
                 this.text = text
                 textSize = 14f
