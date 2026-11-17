@@ -40,7 +40,75 @@ Die FULL_SYNC-Komponenten sind laut Analyse geordnet: `x6d` (Zeit-Sync), `a7d` (
 
 **Korrektur:** Der Protobuf-`GDIFileAccess.ItemListRequest` gehört zu einem separaten `CoreTransferManager → AgentQueueHelper → FileTransferManager`-Pfad, nicht zu dem nachgewiesenen `v5d/hqi/a7d`-Pending-Upload-Weg. Sein Builder verwendet `GDISmartProto.Smart` mit Extension `GDIFileAccessExtension.fileAccessService` und `GDIFileAccess.Service.itemListRequest`; die äußeren Wire-Feldnummern sind nicht verifiziert. Nicht als ersten CIRQA-Historienrequest voraussetzen.
 
-PulsLibre zählt eingehende, CRC-geprüfte GFDI-Nachrichten 5007/5031/5002/5004 passiv über `CirqaLegacyDirectoryObserver`; es werden weder Payloads veröffentlicht noch Nachrichten gesendet. Offline existieren inzwischen Parser für 5031 und Directory-Einträge sowie Decoder/Reassembler/Session-Koordinator für synthetische 5002/5004-Daten. Sie sind nicht an BLE angeschlossen; die reale CRC-Implementierung und Requestcodierung sind weiterhin nicht verifiziert. Den früheren `0x8A39`-Kandidaten nicht wiederholen.
+PulsLibre zählt eingehende GFDI-Nachrichten 5007/5031/5002/5004 passiv über `CirqaLegacyDirectoryObserver`; es werden weder Payloads veröffentlicht noch Nachrichten gesendet. Offline existieren Parser/Assembler für synthetische Transfers, nicht an BLE angeschlossen. CRC-Algorithmus und 5002-Requestcodierung sind nun aus Connect statisch rekonstruiert; **offen bleiben** die `yw40`-Vergleichsbesonderheit, CIRQA-Capabilities, konkrete CIRQA-Transferroute, GATT/ML-Transport und erfolgreiche Geräteantworten. Den früheren `0x8A39`-Kandidaten nicht wiederholen.
+
+## 2026-11-17: CRC-16 und vollständige 5002-Serialisierung
+
+### Quellen und Methoden
+
+* `classes10.dex:defpackage.u45.a(byte,int)` – nibbleweise CRC-Update.
+* `classes.dex:defpackage.yw40.a(byte[])` – unkomprimierter 5004-Parser und CRC-Aufruf.
+* `classes3.dex:defpackage.lbb.T(ByteArrayOutputStream,int)` und `.U(ByteArrayOutputStream,long)` – 16-/32-bit Writer.
+* `classes14.dex:defpackage.a60.E(int,byte[])` und `.F(int,byte[])` – unsigned LE Reader.
+* `classes.dex:defpackage.wtz.c(int)` – 5002 Requestbau, Statusmapping und Retry.
+
+Die lokalen JADX-Einzelklassen wurden nur zur statischen Prüfung verwendet und bleiben außerhalb des Repositories.
+
+### CRC-16/ARC Update und Testvektoren
+
+`u45.a` enthält die reflected nibble table
+`0000 CC01 D801 1400 F001 3C00 2800 E401 A001 6C00 7800 B401 5000 9C01 8801 4400`.
+Das entspricht CRC-16/ARC (CRC-16/IBM): `poly=0xA001` reflected (`0x8005` normal), `init=0x0000`, `refin/refout=true`, `xorout=0x0000`. Der Routineaufruf ist ein Update und nimmt den laufenden Wert entgegen; es gibt keinen final-XOR-Schritt. Beispielwerte:
+
+| Input bytes | Result | Little-endian CRC bytes |
+|---|---:|---|
+| empty | `0x0000` | `00 00` |
+| ASCII `123456789` (`31 32 33 34 35 36 37 38 39`) | `0xBB3D` | `3D BB` |
+| `00` | `0x0000` | `00 00` |
+| `01 02 03` | `0xA110` | `10 A1` |
+| ASCII `FIT` (`46 49 54`) | `0xBAD7` | `D7 BA` |
+
+`yw40` erwartet 5004-Body mindestens 7 Bytes, liest empfangenen CRC als `a60.E(1,body)` (u16 LE), Offset als `a60.F(3,body)` (u32 LE), und ruft `u45.a` ausschließlich für Payloadbytes ab Offset 7 auf. Das CRC-Feld ist damit little endian. Der `yw40.e` Akkumulator beginnt als JVM-default 0 und wird am Parserobjekt fortgeführt.
+
+Dieselbe `u45.a`-Routine berechnet in `classes.dex:defpackage.vns.a` auch den äußeren GFDI-Frame-CRC: Startwert 0, alle Framebytes außer den finalen zwei CRC-Bytes; `a60.O` serialisiert das Ergebnis u16 LE. Das äußere Frame-CRC und das innere 5004-Payload-CRC verwenden also dieselbe Routine, aber unterschiedliche Bytebereiche.
+
+**DEX-Kontrollfluss verifiziert:** `classes.dex` wurde mit Android SDK `dexdump -c` checksum-validiert. In `yw40.a([B)Ljow;` laden die Code-Unit-Offsets `0x0032–0x0033` `this.e` in `v7`; `0x0037–0x003d` aktualisieren und speichern `v7` pro Payloadbyte; Offset `0x0042` vergleicht `if-eq v7,v4`. Der Vergleich erfolgt nach allen Payloadupdates. DEX-Codeadresse des CRC-Aufrufs `0x4f834a`, Vergleich `0x4f835c`. Die JADX-Variable war irreführend rekonstruiert. Dies belegt Connect-Verhalten, nicht CIRQA-Kompatibilität.
+
+Standardalgorithmus-Chunkvektor und Connect-Endvergleich: `00 3D BB 00 00 00 00 31 32 33 34 35 36 37 38 39` bedeutet unkomprimierter Byte0 `00`, CRC `0xBB3D` als LE `3D BB`, Offset 0 und ASCII-Payload `123456789`.
+
+### 5002-Request vollständig
+
+`lbb.T` schreibt genau u16 LE; `lbb.U` schreibt genau u32 LE, jeweils low byte zuerst. `wtz.c` schreibt:
+
+| Offset | Bytes | Quelle/Wert |
+|---:|---:|---|
+| 0–1 | `T(fileIndex)` | u16 LE Index |
+| 2–5 | `U(0)` | u32 LE Konstante |
+| 6 | `01` | konstantes Byte |
+| 7–8 | `T(0)` | u16 LE Konstante |
+| 9–12 | `U(0)` | u32 LE Konstante |
+| 13 | `01` oder `00` | Kompression ein/aus |
+
+Gesamtlänge sind **14 Bytes**. `ByteArrayOutputStream(13)` im Aufrufer setzt nur Anfangskapazität und wächst bei Bedarf; es ist kein Wire-Length-Feld. Konstante Felder sind binär belegt, ihre semantischen Namen/Bedeutung jedoch nicht.
+
+Synthetischer Request: fileIndex `0x1234`, compressed:
+`34 12 00 00 00 00 01 00 00 00 00 00 00 01`.
+Für Index 0, uncompressed: `00 00 00 00 00 00 01 00 00 00 00 00 00 00`.
+
+### 5002-Response und vollständig decodierbarer Beispielwert
+
+`a60.F(offset,bytes)` liest vier Bytes unsigned Little Endian in `long` (jedes Byte mit `0xff` maskiert; Shifts 0, 8, 16, 24). `wtz.c` interpretiert Statusbyte 0; bei Status 0 muss Länge mindestens 5 sein und es liest `F(1,body)`, castet dann zu `int`. Somit ist das Response-Bodylayout:
+
+```text
+offset 0: u8 status
+offset 1: u32 LE value (bei Status 0: erwartete Dateigröße/-länge)
+```
+
+Vektor `00 78 56 34 12` → Status 0, Wert `0x12345678` = 305419896. Werte über `Int.MAX_VALUE` sind im Java-`int`-Cast negativ, obwohl `F` selbst unsigned `long` liefert; Größenlimit/Überlauf muss der PulsLibre-Decoder explizit behandeln. `NOT_READY` (Status 3) wird einmal nach 1000 ms wiederholt, zweites Status 3 schlägt fehl.
+
+### Geltungsbereich
+
+Das bestätigt die **Garmin Connect 5.31 Legacy-GFDI-Implementierung**, einschließlich Directoryindex 0 und Einzeldateiindex-Reads. Es beweist nicht, dass CIRQA diese Requests, Optionen oder CRC-Konvention akzeptiert. CIRQA-Capabilities, 5007/5031/5002/5004 Antworten, verwendete Kompressionsvariante und eine tatsächliche Historienübertragung bleiben unbelegt. Es wurden keine Gerätekommandos gesendet und keine Gerätedateien verändert.
 
 ## 2026-11-17: Handshake-Konfiguration und vollständiger Transfer-Call-Graph
 
@@ -62,7 +130,7 @@ byte 0x01
 
 `pxk.b` ist im untersuchten Connect-Build **konstant true**, nicht ein unbekannter dynamischer Feature-Flag. Deren Wirkung an dieser Stelle: Protocolwert 150 für DeviceProtocol >=150, sonst 113. Die Methode hängt den payload-ACK an die Antwort für 5024. Das ist Connect-Code, keine Bestätigung, dass CIRQA dieses Layout akzeptiert.
 
-`HostConfiguration` ist ein Interface, das `zxl` injiziert bekommt. Die konkreten Laufzeitimplementierungen für `getAppVersion()` und `getFriendlyName()` wurden in den verfügbaren DEX-Ausgaben nicht gefunden. `a860.a()` hat zwar einen separaten App-`versionName`-Getter mit Cache und Fallback `"1.0"`, aber dessen Gleichheit mit `HostConfiguration.getAppVersion()` ist nicht belegt. `friendlyName`-Provenienz bleibt ebenfalls unbekannt. `T/U/V` sind kleine Binary-Writer-Helfer; solange die tatsächlichen `T/U`-Primitivebreiten nicht aus Bytecode/Implementierung belegt sind, die obige Folge nicht als konkreten Encoder implementieren.
+`HostConfiguration` ist ein Interface, das `zxl` injiziert bekommt. Die konkreten Laufzeitimplementierungen für `getAppVersion()` und `getFriendlyName()` wurden in den verfügbaren DEX-Ausgaben nicht gefunden. `a860.a()` hat zwar einen separaten App-`versionName`-Getter mit Cache und Fallback `"1.0"`, aber dessen Gleichheit mit `HostConfiguration.getAppVersion()` ist nicht belegt. `friendlyName`-Provenienz bleibt ebenfalls unbekannt. `T/U/V` sind kleine Binary-Writer-Helfer; `T/U` sind inzwischen als u16LE/u32LE aufgelöst; `V` ist length-prefixed UTF-8. Die Herkunft der Konfigurationswerte bleibt offen.
 
 ### 5050, Bit-Indizes und 5030
 
@@ -78,7 +146,7 @@ byte 0x01
 
 Der Entry-Constructor `k7h` bezeichnet seine Werte als `index`, `dataType`, 3-byte `identifier`, `flags`, `size`, `timestamp`, `xmlDataType`. Damit sind Offset 8 `u32LE size` und Offset 12 `u32LE timestamp` besser belegt als die älteren unbenannten `fieldA/B`-Bezeichnungen. Identifierbyte 0 dient als Subtype; die weiteren zwei Bytes werden als u16 aus dem Identifier gelesen, ihre weitergehende Semantik ist nicht gesichert. Offset 6 wird im Directoryparser ignoriert. Der 16-byte Header bleibt opak.
 
-Bei unkomprimiertem 5004-Offsetfehler sendet `yw40.e(4)` fünf Bytes (`result + u32 currentOffset`), nicht sechs. Das komprimierte Parserformat hat einen separaten Sequence-Bytezähler. Die Connect-CRC-Helfer sind im verfügbaren JADX-Quellbaum nicht so aufgelöst, dass PulsLibre einen produktiven Prüfer aus dieser Analyse allein portieren darf; aktuelle Offline-Reassembly verlangt eine injizierte Prüffunktion.
+Bei unkomprimiertem 5004-Offsetfehler sendet `yw40.e(4)` fünf Bytes (`result + u32 currentOffset`), nicht sechs. Das komprimierte Parserformat hat einen separaten Sequence-Bytezähler. Die CRC-Updatefunktion ist statisch als CRC-16/ARC aufgelöst; die genaue `yw40`-Vergleichsvariable muss noch im DEX-Bytecode verifiziert werden. Die Offline-Reassembly verlangt weiterhin eine injizierte Prüffunktion und ist nicht an BLE angeschlossen.
 
 `DeviceManager.extractFile(index)` ruft den Legacy-Reader für einzelne Directory-Indizes. Connects `a7d` lädt/archiviert aber nach cloudseitiger Verarbeitung: Callback `archiveFile(fileIndex)` → `DeviceManager.archiveFile` → `FileManagerCompat.archive`. Das ist ein potenziell geräteverändernder Schritt. PulsLibre darf den Archivierungs-, Erase-, Write- oder Flagänderungspfad nicht benutzen.
 
@@ -123,9 +191,9 @@ Das entspricht CRC-16/ARC (CRC-16/IBM): `poly=0xA001` reflected (`0x8005` normal
 
 Dieselbe `u45.a`-Routine berechnet in `classes.dex:defpackage.vns.a` auch den äußeren GFDI-Frame-CRC: Startwert 0, alle Framebytes außer den finalen zwei CRC-Bytes; `a60.O` serialisiert das Ergebnis u16 LE. Das äußere Frame-CRC und das innere 5004-Payload-CRC verwenden also dieselbe Routine, aber unterschiedliche Bytebereiche.
 
-**Wichtige Unsicherheit:** Die vorhandene JADX-Rekonstruktion setzt in der Payload-Schleife `i = this.e` unmittelbar vor `this.e = u45.a(byte,i)`; nach der Schleife vergleicht sie `i` (also den vor dem letzten Byte gelesenen Stand) mit dem übertragenen CRC, nicht `this.e` (den aktualisierten Stand). Bei leerem Payload wird der aktuelle Akkumulator verglichen. Das sieht nach einem Connect-Parserfehler oder einer ungewöhnlichen Wire-Konvention aus. Für echte Bytecode-Verhaltensgleichheit muss die Registerfolge in DEX/smali noch einmal bestätigt werden. Deshalb darf der normale CRC-16/ARC Endwert nicht ohne diesen Vorbehalt als nachgewiesene CIRQA-Chunkakzeptanz ausgegeben werden.
+**DEX-Kontrollfluss verifiziert:** `classes.dex` wurde mit Android SDK `dexdump -c` checksum-validiert. In `yw40.a([B)Ljow;` laden die Code-Unit-Offsets `0x0032–0x0033` `this.e` in `v7`; `0x0037–0x003d` aktualisieren und speichern `v7` pro Payloadbyte; Offset `0x0042` vergleicht `if-eq v7,v4`. Der Vergleich erfolgt nach allen Payloadupdates. DEX-Codeadresse des CRC-Aufrufs `0x4f834a`, Vergleich `0x4f835c`. Die JADX-Variable war irreführend rekonstruiert. Dies belegt Connect-Verhalten, nicht CIRQA-Kompatibilität.
 
-Standardalgorithmus-Chunkvektor (nicht automatisch Passvektor des obigen dekompilierten Vergleichs): `00 3D BB 00 00 00 00 31 32 33 34 35 36 37 38 39` bedeutet unkomprimierter Byte0 `00`, CRC `0xBB3D` als LE `3D BB`, Offset 0 und ASCII-Payload `123456789`.
+Standardalgorithmus-Chunkvektor und Connect-Endvergleich: `00 3D BB 00 00 00 00 31 32 33 34 35 36 37 38 39` bedeutet unkomprimierter Byte0 `00`, CRC `0xBB3D` als LE `3D BB`, Offset 0 und ASCII-Payload `123456789`.
 
 ### 5002-Request vollständig
 
@@ -162,4 +230,4 @@ Vektor `00 78 56 34 12` → Status 0, Wert `0x12345678` = 305419896. Werte über
 Das bestätigt die **Garmin Connect 5.31 Legacy-GFDI-Implementierung**, einschließlich Directoryindex 0 und Einzeldateiindex-Reads. Es beweist nicht, dass CIRQA diese Requests, Optionen oder CRC-Konvention akzeptiert. CIRQA-Capabilities, 5007/5031/5002/5004 Antworten, verwendete Kompressionsvariante und eine tatsächliche Historienübertragung bleiben unbelegt. Es wurden keine Gerätekommandos gesendet und keine Gerätedateien verändert.
 
 
-**Umsetzung in PulsLibre:** Reine Offline-Primitive `CirqaLegacyCrc16` und `CirqaLegacy5002Codec`, mit JVM-Vektoren. Keine 5004-Produktivakzeptanz vor DEX-Kontrollflussprüfung, keine BLE-Sendefunktion.
+**Umsetzung in PulsLibre:** Reine Offline-Primitive `CirqaLegacyCrc16` und `CirqaLegacy5002Codec`, mit JVM-Vektoren. Keine BLE-Sendefunktion; CIRQA-Kompatibilität bleibt unbelegt.

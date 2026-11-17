@@ -20,13 +20,52 @@ Leerer Requestbody. Response: `u8 count`, dann je Eintrag `u8 type | u8 subtype 
 
 ## GFDI 5002 Download File
 
-`wtz.c(i)` verwendet `ByteArrayOutputStream(13)` (initiale Kapazität, **nicht Beweis der serialisierten Bodylänge**) und schreibt in der beobachteten Reihenfolge `T(fileIndex) || U(0) || 01 || T(0) || U(0) || compressionFlag`. Die Primitive `lbb.T/U` sind noch nicht verifiziert; **keine Feldbreiten/Offsets raten oder einen aktiven Request daraus konstruieren**. Verzeichnisindex 0 wird bevorzugt komprimiert gelesen; bei `CANCELLED_BY_DEVICE` wird einmal unkomprimiert neu versucht.
+`wtz.c(i)` erzeugt den Request mit `ByteArrayOutputStream(13)`; `13` ist nur dessen initiale Kapazität. Die jetzt untersuchten Writer `classes3.dex:defpackage.lbb.T/U` legen die Breiten fest:
 
-Response Status an Byte 0: `0=SUCCESS` (mindestens 5 Bytes, `a60.F(1,body)` liefert erwartete Größe/Parameter), `1=INDEX_MISSING`, `2=NOT_READABLE`, `3=NOT_READY`, `4=INVALID_REQUEST`, `5=CRC_MISMATCH`, `6=EXCEEDS_FILE_SIZE`. Bei Status 3 genau **ein** Retry nach 1000 ms; erneutes 3 beendet den Versuch.
+* `T(ByteArrayOutputStream,int)`: genau zwei Bytes, low byte dann high byte (u16 LE).
+* `U(ByteArrayOutputStream,long)`: genau vier Bytes, Bits 0–7, 8–15, 16–23, 24–31 (u32 LE).
+
+Damit ist der 5002-Request vollständig:
+
+| Offset | Länge | Serialisierung | Belegte Semantik |
+|---:|---:|---|---|
+| 0 | 2 | `T(fileIndex)` u16 LE | Dateiindex (`0` ist Directory) |
+| 2 | 4 | `U(0)` u32 LE | Wert konstant 0; Feldbedeutung unbekannt |
+| 6 | 1 | literal `01` | konstante Option; Bedeutung unbekannt |
+| 7 | 2 | `T(0)` u16 LE | Wert konstant 0; Feldbedeutung unbekannt |
+| 9 | 4 | `U(0)` u32 LE | Wert konstant 0; Feldbedeutung unbekannt |
+| 13 | 1 | compression flag | `01` komprimierter Versuch, `00` unkomprimiert |
+
+Bodylänge: **14 bytes** (also eine Byte mehr als die anfängliche BAOS-Kapazität; `ByteArrayOutputStream` wächst automatisch). Beispiel mit `fileIndex=0x1234`, Kompression an: `34 12 00 00 00 00 01 00 00 00 00 00 00 01`. Verzeichnisindex 0 wird bevorzugt komprimiert gelesen; bei `CANCELLED_BY_DEVICE` wird einmal unkomprimiert neu versucht. Die drei konstanten/optionalen Felder sind wire-genau, ihre Protokollsemantik bleibt unbekannt.
+
+Response: `u8 status | u32LE value`. `classes14.dex:defpackage.a60.F(offset,bytes)` liest vier unsigned Bytes als `long` (masked `0xffL`, Shifts 0/8/16/24). Bei Success muss der Body mindestens 5 Bytes haben; `wtz.c` liest `F(1,body)` und castet anschließend zu Java `int`, weshalb Werte oberhalb `Int.MAX_VALUE` im Connect-Aufrufer signed überlaufen können. Synthetisches Beispiel: `00 78 56 34 12` → unsigned `0x12345678` = 305419896. Statusmapping: `0=SUCCESS`, `1=INDEX_MISSING`, `2=NOT_READABLE`, `3=NOT_READY`, `4=INVALID_REQUEST`, `5=CRC_MISMATCH`, `6=EXCEEDS_FILE_SIZE`. Bei Status 3 genau **ein** Retry nach 1000 ms; erneutes 3 beendet den Versuch.
 
 ## GFDI 5004 File Data
 
-Unkomprimiert: `u8 status | u16LE chunkCRC | u32LE offset | payload` (mindestens 7 Bytes). CRC `u45.a` ausschließlich über Payloadbytes, Algorithmus noch zu verifizieren. Offset muss dem erwarteten Gesamtbytezähler entsprechen; exaktes Duplicate des zuletzt akzeptierten Offsets wird nicht erneut angehängt. Antwortbody `u8 result | u32LE currentOffset`: `0=OK/duplicate`, `2=malformed`, `3=CRC mismatch`, `4=offset mismatch`. Connects `e(4)` erzeugt fünf Bytes (Result plus aktuellem u32-Offset); ein sechstes Byte gibt es nicht. Drei aufeinanderfolgende ungültige Chunks brechen ab.
+Unkomprimiert: `u8 byte0 | u16LE chunkCRC | u32LE offset | payload` (mindestens 7 Bytes). `yw40.a` liest CRC via `a60.E(1,body)`, Offset via `a60.F(3,body)` und akkumuliert ausschließlich Bytes ab Offset 7 mittels `u45.a`. Die CRC-Routine ist eine nibbleweise reflektierte CRC-16/ARC-Routine (Details und wichtiger Vergleichsbesonderheit siehe unten). `byte0` wird vom gezeigten unkomprimierten Parser nicht geprüft; seine Semantik ist hier unbekannt. Offset muss dem erwarteten Gesamtbytezähler entsprechen; exaktes Duplicate des zuletzt akzeptierten Offsets wird nicht erneut angehängt. Antwortbody `u8 result | u32LE currentOffset`: `0=OK/duplicate`, `2=malformed`, `3=CRC mismatch`, `4=offset mismatch`; `yw40.e` erzeugt genau fünf Bytes. Drei aufeinanderfolgende ungültige Chunks brechen ab.
+
+### CRC-16: Routine, Parameter und Aufrufpfad
+
+`classes10.dex:defpackage.u45.a(byte,int)` verwendet die 16-Einträge-Tabelle
+`0000 CC01 D801 1400 F001 3C00 2800 E401 A001 6C00 7800 B401 5000 9C01 8801 4400`.
+Der Helper verarbeitet low/high nibble mit reflektierter Lookup-Tabelle; äquivalent ist CRC-16/ARC (auch CRC-16/IBM): width 16, reflected polynomial `0xA001` (normal-form `0x8005`), `init=0x0000`, `refin=true`, `refout=true`, `xorout=0x0000`. Der Helper selbst hat keinen final-xor-Schritt. Aufrufpfad `yw40.a` startet mit Instanzfeld `e` (JVM-default 0), aktualisiert es für Payloadbytes 7..end. Die Vergleichsbytes sind little endian aus `a60.E(1,body)`.
+
+Dieselbe Routine wird auch für den äußeren GFDI-Frame-CRC in `vns.a` verwendet: initial 0, über alle Nachrichtbytes außer den letzten zwei CRC-Bytes, danach schreibt `a60.O` die CRC als u16 LE. Beim 5004-Dateichunk dagegen nimmt `yw40.a` nur Bytes ab Offset 7 als Updateinput und liest das erwartete Feld bei Offset 1.
+
+**DEX-Kontrollfluss verifiziert:** Das außerhalb des Repositorys vorhandene `classes.dex` wurde mit Android SDK `dexdump -c` checksum-validiert. In `yw40.a([B)Ljow;` laden Code-Unit-Offsets `0x0032–0x0033` `this.e` nach `v7`; `0x0037–0x003d` aktualisieren `v7` pro Payloadbyte mit `u45.a` und speichern den Wert; `0x0035` springt bei leerem Payload direkt zu `0x0042`, wo `if-eq v7,v4,0x005a` den aktualisierten Endakkumulator vergleicht. CRC-Aufruf: DEX-Adresse `0x4f834a`; Rückgabewert nach `v7`: `0x4f8350`; Vergleich: `0x4f835c`. Die frühere JADX-Variable war irreführend rekonstruiert. Das ist Connect-Evidenz, kein CIRQA-Kompatibilitätsnachweis.
+
+#### Reproduzierbare synthetische Referenzvektoren für `u45.a`
+
+| Datenbytes | Init | CRC numerisch | CRC als LE bytes |
+|---|---:|---:|---|
+| leer | `0000` | `0000` | `00 00` |
+| ein Byte `41` (`A`) | `0000` | `30C0` | `C0 30` |
+| `31 32 33 34 35 36 37 38 39` (`123456789`) | `0000` | `BB3D` | `3D BB` |
+| `00` | `0000` | `0000` | `00 00` |
+| `01 02 03` | `0000` | `A110` | `10 A1` |
+| `46 49 54` (`FIT`) | `0000` | `BAD7` | `D7 BA` |
+
+Ein synthetischer Standard-Chunk mit Payload `123456789`, Offset 0, CRC-16/ARC: `00 3D BB 00 00 00 00 31 32 33 34 35 36 37 38 39`. Der laufende Akkumulator wird über Chunks fortgeführt; ein leerer Payload vergleicht den bestehenden Wert ohne Update.
 
 Komprimiert: `u8 sequence | u8 flags | u32LE uncompressedOffset | u16LE expectedCRC | deflateBytes` (mindestens 8 Bytes). Sequenz 8-bit mit Wrap; Flag `0x02` beendet den aktuellen Deflate-Stream; CRC über **dekomprimierte** Bytes. ACK/NACK: `[sequence,00]` OK, `01` malformed, `02` CRC, `03` Deflate, `04` Sequenz-/Offsetabweichung. Ohne verifizierte CRC-Routine kein produktiver Reader.
 
@@ -48,21 +87,21 @@ Connect ignoriert trailing 1–15 Bytes; PulsLibre lehnt unvollständige Einträ
 
 ## Umsetzung und Grenzen
 
-Offline implementiert: `CirqaLegacyDirectoryParser`, `CirqaLegacyFileTypesParser` mit JVM-Tests; passiver GFDI-Zähler `CirqaLegacyDirectoryObserver`. Kein neuer BLE-Sendepfad. Offene Punkte: CRC `u45.a`, `lbb.T/U`, `a60.F`, reale CIRQA-Capabilities, v5d-Registrierung, Dateiauswahl, persistente Speicherung und Geräteantworten. Der abgelehnte `0x8A39`-Kandidat bleibt deaktiviert. Kein Upload-Flag setzen, kein Löschen, kein CLOSE_ALL.
+Offline implementiert: `CirqaLegacyDirectoryParser`, `CirqaLegacyFileTypesParser` mit JVM-Tests; passiver GFDI-Zähler `CirqaLegacyDirectoryObserver`. Kein neuer BLE-Sendepfad. CRC-Primitive, aktualisierter DEX-Vergleichsfluss und 5002-Serialisierung sind aus Connect-Code rekonstruiert; offen bleiben reale CIRQA-Capabilities, v5d-Registrierung, Dateiauswahl und CIRQA-Antworten. Der abgelehnte `0x8A39`-Kandidat bleibt deaktiviert. Kein Upload-Flag setzen, kein Löschen, kein CLOSE_ALL.
 
 **Mutationswarnung:** Connects `a7d` ruft nach erfolgreichem Server-Upload `archiveFile(fileIndex)` auf. `DeviceManager.archiveFile` delegiert an asynchrones `FileManagerCompat.archive`; das ist geräteseitige Mutation und für PulsLibre verboten. Auch ERASE/WRITE/Flagänderungen dürfen im ersten Abrufpfad nicht auftreten. Die genaue Archive-Wire-Nachricht und deren Geräteseiteneffekt wurden nicht vollständig dekodiert.
 
 ## Implementierungsfortschritt (2026-11-17)
 
-`CirqaLegacyTransferDecoder.kt` decodiert **offline** 5002-Response-Status (0–6), validiert die Mindestlänge der Success-Response und bewahrt die vier Bytes ab Offset 1 ausdrücklich als rohe Bytes auf, bis `a60.F` verifiziert ist. Für 5004 extrahiert er aus unkomprimierten Chunks Status, CRC16, u32LE Offset und Payload; für komprimierte Chunks Sequenz, Flags, u32LE Offset, CRC16 und Deflate-Rohdaten. JVM-Tests enthalten synthetische Grenzwerte. Der Decoder **validiert keine CRC**, reassembliert keine Daten und sendet keine ACKs. Nicht für eine produktive Dateiübertragung verwenden, bis `u45.a`, `a60.F`, `lbb.T/U` und die Transferzustandsmaschine belegt und getestet sind.
+`CirqaLegacyTransferDecoder.kt` decodiert **offline** 5002-Response-Status (0–6), validiert die Mindestlänge der Success-Response und bewahrt die vier Bytes ab Offset 1 roh auf. Für 5004 extrahiert er die Felder und sendet keine ACKs. Die statischen Connect-Helfer sind inzwischen aufgelöst; der Kotlin-Decoder selbst implementiert aber weiterhin weder CRC-Prüfung noch den vollständigen Live-Reader. DEX-Bytecode bestätigt den Vergleich des aktualisierten Endakkumulators; dies ist kein CIRQA-Geräteakzeptanzvertrag.
 
 ## Offline-Reassembly (2026-11-17)
 
-`CirqaLegacyPlainFileAssembler` implementiert ausschließlich die **unkomprimierte** 5004-Reassembly im JVM-Code. Eine injizierte CRC-Prüffunktion ist zwingend; ohne nachgewiesene `u45.a`-Implementierung ist keine Verbindung zum Live-BLE-Pfad vorgesehen. Es prüft erwartete Offsets, behandelt nur identische Wiederholungen als Duplicate, begrenzt die Dateigröße (Default 16 MiB), verhindert Overshoot, gibt Daten erst nach vollständigem Transfer heraus und bricht nach drei aufeinanderfolgenden Fehlern ab. Die zugehörigen Tests verwenden einen ausdrücklich synthetischen CRC-Prüfer. Die Semantik des 5004-Statusbytes, der reale CRC-Algorithmus und der komprimierte Transfer bleiben offen. Die Anwendung sendet weder 5002 noch 5004-ACKs durch diesen Baustein.
+`CirqaLegacyPlainFileAssembler` implementiert ausschließlich die **unkomprimierte** 5004-Reassembly im JVM-Code. Eine injizierte CRC-Prüffunktion ist zwingend; die Connect-CRC-16/ARC-Updatefunktion ist nun statisch bekannt, aber noch nicht als produktive PulsLibre-Prüfung integriert. Der Assembler prüft erwartete Offsets, behandelt nur identische Wiederholungen als Duplicate, begrenzt die Dateigröße (Default 16 MiB), verhindert Overshoot, gibt Daten erst nach vollständigem Transfer heraus und bricht nach drei aufeinanderfolgenden Fehlern ab. Bisherige Assembler-Tests verwenden einen ausdrücklich synthetischen CRC-Prüfer. CIRQA-Kompatibilität und der komprimierte Transfer bleiben offen. Die Anwendung sendet weder 5002 noch 5004-ACKs durch diesen Baustein.
 
 ## Offline-Dateisitzung (2026-11-17)
 
-`CirqaLegacyOfflineFileSession` verbindet 5002-Response-Decoding, `CirqaLegacyPlainFileAssembler` und optional den Directory-Parser für Index 0. Es ist eine bewusst **transportfreie** Zustandsmaschine (`AWAITING_READ_RESPONSE → RECEIVING → COMPLETE/FAILED`). Die Dateilänge muss vom Aufrufer als **separat verifizierter Wert** kommen, weil `a60.F` noch nicht verifiziert wurde; aus vier rohen 5002-Bytes wird keine Größe geraten. Für echte Geräteübertragung ist außerdem die reale `u45.a`-CRC-Implementierung erforderlich. Tests bilden einen synthetischen 5002/5004-Verzeichnistransfer und einen normalen Dateiindex nach. **Kein echter CIRQA-Download**, kein BLE und keine automatische FIT-Persistenz.
+`CirqaLegacyOfflineFileSession` verbindet 5002-Response-Decoding, `CirqaLegacyPlainFileAssembler` und optional den Directory-Parser für Index 0. Es ist eine bewusst **transportfreie** Zustandsmaschine (`AWAITING_READ_RESPONSE → RECEIVING → COMPLETE/FAILED`). Die Session sollte den Größenwert erst nach unsigned-u32LE-Decoding und Größenlimitprüfung akzeptieren; `a60.F` ist als vier-Byte-LE-Reader statisch belegt. Tests bilden einen synthetischen 5002/5004-Verzeichnistransfer und einen normalen Dateiindex nach. **Kein echter CIRQA-Download**, kein BLE und keine automatische FIT-Persistenz.
 
 ## Protobuf/CoreTransfer-Grenze
 
@@ -83,23 +122,22 @@ Der Helper verarbeitet low/high nibble mit reflektierter Lookup-Tabelle; äquiva
 
 Dieselbe Routine wird auch für den äußeren GFDI-Frame-CRC in `vns.a` verwendet: initial 0, über alle Nachrichtbytes außer den letzten zwei CRC-Bytes, danach schreibt `a60.O` die CRC als u16 LE. Beim 5004-Dateichunk dagegen nimmt `yw40.a` nur Bytes ab Offset 7 als Updateinput und liest das erwartete Feld bei Offset 1.
 
-**Achtung: möglicher Connect-Parserfehler / decompiler-verification gate.** In der verfügbaren JADX-Rekonstruktion von `yw40.a`, unmittelbar vor jeder CRC-Aktualisierung, wird `i = this.e` gesetzt; nach Verlassen der Schleife wird `i` mit dem empfangenen CRC verglichen. Literal gelesen entspricht `i` damit dem Akkumulator **vor der Verarbeitung des letzten Payloadbytes**, nicht dem danach gespeicherten Endakkumulator `this.e`. Bei einer Payload von null Bytes wird der aktuelle Startwert verglichen. Diese Kontrollflussbesonderheit weicht vom normalen CRC-16/ARC-Endwert ab. Vor produktiver 5004-Validierung ist die DEX-Bytecodefolge zu bestätigen; nicht stillschweigend die mutmaßlich beabsichtigte statt der tatsächlich dekompilierten Semantik implementieren.
+**DEX-Kontrollfluss verifiziert:** Das außerhalb des Repositorys vorhandene `classes.dex` wurde mit Android SDK `dexdump -c` checksum-validiert. In `yw40.a([B)Ljow;` laden Code-Unit-Offsets `0x0032–0x0033` `this.e` nach `v7`; `0x0037–0x003d` aktualisieren `v7` pro Payloadbyte mit `u45.a` und speichern den Wert; `0x0035` springt bei leerem Payload direkt zu `0x0042`, wo `if-eq v7,v4,0x005a` den aktualisierten Endakkumulator vergleicht. CRC-Aufruf: DEX-Adresse `0x4f834a`; Rückgabewert nach `v7`: `0x4f8350`; Vergleich: `0x4f835c`. Die frühere JADX-Variable war irreführend rekonstruiert. Das ist Connect-Evidenz, kein CIRQA-Kompatibilitätsnachweis.
 
 #### Reproduzierbare synthetische Referenzvektoren für `u45.a`
 
 | Datenbytes | Init | CRC numerisch | CRC als LE bytes |
 |---|---:|---:|---|
 | leer | `0000` | `0000` | `00 00` |
+| ein Byte `41` (`A`) | `0000` | `30C0` | `C0 30` |
 | `31 32 33 34 35 36 37 38 39` (`123456789`) | `0000` | `BB3D` | `3D BB` |
 | `00` | `0000` | `0000` | `00 00` |
 | `01 02 03` | `0000` | `A110` | `10 A1` |
 | `46 49 54` (`FIT`) | `0000` | `BAD7` | `D7 BA` |
 
-Ein synthetischer Standard-Chunk mit Payload `123456789`, Offset 0, erwarteter Standard-ARC-CRC wäre:
-`00 3D BB 00 00 00 00 31 32 33 34 35 36 37 38 39`.
-**Dieser Vektor testet den Helper-/Standardalgorithmus; wegen der oben genannten `yw40`-Vergleichsvariable ist er nicht automatisch ein erwarteter Pass-Vektor des dekompilierten Connect-Parsers.**
+Ein synthetischer Standard-Chunk mit Payload `123456789`, Offset 0, CRC-16/ARC: `00 3D BB 00 00 00 00 31 32 33 34 35 36 37 38 39`. Der laufende Akkumulator wird über Chunks fortgeführt; ein leerer Payload vergleicht den bestehenden Wert ohne Update.
 
 Komprimiert: `u8 sequence | u8 flags | u32LE uncompressedOffset | u16LE expectedCRC | deflateBytes` (mindestens 8 Bytes). Sequenz 8-bit mit Wrap; Flag `0x02` beendet den aktuellen Deflate-Stream; CRC über **dekomprimierte** Bytes. ACK/NACK: `[sequence,00]` OK, `01` malformed, `02` CRC, `03` Deflate, `04` Sequenz-/Offsetabweichung. Ohne verifizierte CRC-Routine kein produktiver Reader.
 
 
-**PulsLibre-Umsetzung:** `CirqaLegacy5002Codec` (14-Byte-Offline-Request, unsigned-u32LE-Response, begrenzte Größe), `CirqaLegacyCrc16` (reiner CRC-16/ARC-Helper) und `CirqaLegacyOfflineFileSession.beginFrom5002Response`. Keine BLE-Integration; die `yw40`-Vergleichsbesonderheit bleibt DEX-offen.
+**PulsLibre-Umsetzung:** `CirqaLegacy5002Codec` (14-Byte-Offline-Request, unsigned-u32LE-Response, begrenzte Größe), `CirqaLegacyCrc16` (reiner CRC-16/ARC-Helper) und `CirqaLegacyOfflineFileSession.beginFrom5002Response`. Keine BLE-Integration; DEX bestätigt den aktualisierten Endakkumulator, CIRQA-Kompatibilität bleibt unbelegt.

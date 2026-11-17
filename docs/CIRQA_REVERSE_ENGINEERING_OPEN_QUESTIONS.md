@@ -2,6 +2,10 @@
 
 **Stand:** 2026-11-17. Diese Liste priorisiert Fakten, die einen sicheren historischen Abruf blockieren. Keine Frage in dieser Datei ist eine Erlaubnis für neue BLE-Kommandos.
 
+## CRC-DEX-Nachtrag (2026-11-17)
+
+`classes.dex` war lokal vorhanden, bytegleich zur `base.apk`-Extraktion (DEX SHA-256 `ccbfa18c9edf15754fbf0d92faf20215f0fc6f0ff88ae85a2ab36782e55e5408`) und `dexdump -c` meldete eine gültige Checksumme. In `yw40.a`, Code-Unit-Offset `0x0042`, `if-eq v7,v4` vergleicht den **aktualisierten** CRC nach der Payloadschleife; `v7` wird bei `0x003c` aus `u45.a` aktualisiert und bei `0x003d` im Parserzustand gespeichert. Der frühere Verdacht auf Vergleich vor dem letzten Byte war ein JADX-Rekonstruktionsartefakt. Leere Payload vergleicht den laufenden CRC; `41` mit init 0 ergibt `30C0` (`C0 30`); `123456789` ergibt `BB3D` (`3D BB`).
+
 ## Aktueller Befund
 
 ### Nachgewiesen
@@ -19,8 +23,8 @@
 * Ob CIRQA Legacy-GFDI-Dateitransfer oder CoreTransfer-Protobuf verwendet.
 * Ob CIRQA 5007, 5031, 5002, 5004 oder einen anderen Bootstrap unterstützt.
 * `v5d`-Laufzeitregistrierung an `p860.f`; Implementierungsklasse gefunden, Setter/Injection nicht nachgewiesen.
-* Exakte 5002 Request-Primitive-Breiten/Offsets und die Semantik seiner Null-/Konstantfelder.
-* 5002 Erfolgsgrößenfelds exakte Wire-Endian/Primitivbreite, wenn Helperbytecode nicht verfügbar ist.
+* Semantik der konstanten Felder im Connect-5002-Request; die u16LE/u32LE-Breiten, 14-Byte-Länge und Feldoffsets sind statisch verifiziert.
+* CIRQA-Bedeutung/Größeninterpretation der 5002 Success-Antwort; Connect liest u32LE unsigned und castet den Wert danach zu int.
 * 5031 CIRQA Typ-/Subtype-Map.
 * 16-Byte Directoryheader und Subfelder byte 4–6; Gerätewirkungen des Filters/Flags.
 * 5004 Outer-ACK-Frame in der tatsächlichen CIRQA/ML-Übertragung, peerseitiges Retry-Timing, Wiederaufnahme nach Trennung.
@@ -47,7 +51,7 @@
 
 ### P0 – vor jedem aktiven Datei-Befehl
 
-1. Recover `lbb.T/U` field definitions or DEX bytecode and pin exact 5002 request bytes; separately verify 5002 success size field.
+1. Preserve synthetic tests for the now-decoded 5002 u16LE/u32LE request and unsigned-u32LE response; constant-field semantics remain unknown.
 2. Inspect FileManagerCompat coroutine and low-level GFDI responder to document the complete 5004 ACK outer response and whether incoming 5004 is inherently device-mutating.
 3. Reconstruct Support subtype mapping without assuming the legacy uploadable set represents CIRQA history.
 4. Review modern `origin/main` parser/test changes and keep them pure offline; do not add BLE writer.

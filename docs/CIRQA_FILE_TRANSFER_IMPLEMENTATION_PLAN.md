@@ -46,9 +46,9 @@ Existing `CirqaLegacyDirectoryParser` and `CirqaLegacyFileTypesParser` are offli
 
 * Directory: 16-byte opaque header, entry sizes, unsigned size/timestamp, 0/1/multiple entries, truncation, unknown type/flags, high indexes and `Long` boundaries.
 * 5031: count 0, many types, truncated count/tuple/name, invalid UTF-8, duplicate types and bounded count/name lengths.
-* 5004: independent CRC implementation from Connect's algorithm/reference fixture, offset ordering, duplicate chunk, wrong offset, malformed length, CRC error, data beyond final size, no double append.
+* 5004: CRC-16/ARC reference vectors (DEX confirms comparison uses the updated accumulator), offset ordering, duplicate chunk, wrong offset, malformed length, CRC error, data beyond final size, no double append. Keep the verifier injected/offline until CIRQA semantics are evidenced.
 * Compressed 5004: bounded inflater, sequence wrap, stream-final flag, corrupt DEFLATE, CRC over expanded content, decompression bomb limits.
-* 5002: status mapping and one 1-second `NOT_READY` retry once the request field encodings are proven.
+* 5002: exact 14-byte request vectors (u16LE/u32LE), unsigned u32LE response, status mapping, overflow/size bound, and one 1-second `NOT_READY` retry. This remains Connect-only evidence.
 
 All fixtures synthetic. Avoid testing on live GATT or committing real packet bytes.
 
