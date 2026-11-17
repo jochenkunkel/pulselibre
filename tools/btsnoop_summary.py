@@ -54,7 +54,7 @@ def summarize(path):
                 if len(packet) != 4 + acl_length:
                     raise InvalidSnoop("ACL payload length mismatch")
                 pb = (handle_flags >> 12) & 3
-                if pb in (0, 2) and acl_length >= 4 and len(packet) >= 4 + acl_length:
+                if included == original and pb in (0, 2) and acl_length >= 4:
                     l2_length, cid = struct.unpack_from("<HH", packet, 4)
                     if cid == 4 and l2_length > 0 and acl_length == 4 + l2_length:
                         att_candidates += 1
