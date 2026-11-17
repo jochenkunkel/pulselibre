@@ -12,24 +12,49 @@ import java.security.MessageDigest
  * New events are written here directly; obsolete JSONL recordings are no longer imported.
  * UNIQUE SHA-256 of each full line makes repeated imports idempotent.
  */
-class CirqaDatabase(private val contextRef: Context) : SQLiteOpenHelper(contextRef, "cirqa_measurements.db", null, 1) {
+class CirqaDatabase(private val contextRef: Context) : SQLiteOpenHelper(contextRef, "cirqa_measurements.db", null, 2) {
 
     override fun onCreate(db: SQLiteDatabase) {
         db.execSQL("""CREATE TABLE events (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             line_sha256 TEXT NOT NULL UNIQUE,
             received_at_utc TEXT NOT NULL,
+            dashboard_time TEXT,
             kind TEXT NOT NULL,
             service INTEGER,
             payload_json TEXT NOT NULL
         )""")
         db.execSQL("CREATE INDEX events_service_time ON events(service, received_at_utc)")
+        createDashboardIndex(db)
         db.execSQL("CREATE INDEX events_kind_time ON events(kind, received_at_utc)")
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-        // Never drop raw health records. A future migration must be additive.
-        error("Unsupported CIRQA database migration $oldVersion -> $newVersion")
+        require(oldVersion == 1 && newVersion == 2)
+        db.execSQL("ALTER TABLE events ADD COLUMN dashboard_time TEXT")
+        var lastId = 0L
+        while (true) {
+            val batch = ArrayList<Pair<Long, String>>()
+            db.rawQuery("SELECT id, received_at_utc FROM events WHERE id > ? AND kind = 'reading' ORDER BY id LIMIT 512",
+                arrayOf(lastId.toString())).use { rows ->
+                while (rows.moveToNext()) batch.add(rows.getLong(0) to rows.getString(1))
+            }
+            if (batch.isEmpty()) break
+            for ((id, timestamp) in batch) {
+                db.execSQL("UPDATE events SET dashboard_time = ? WHERE id = ?", arrayOf(timeKey(timestamp), id))
+            }
+            lastId = batch.last().first
+        }
+        createDashboardIndex(db)
+    }
+
+    private fun createDashboardIndex(db: SQLiteDatabase) {
+        db.execSQL("CREATE INDEX events_dashboard_time ON events(service, dashboard_time DESC, id ASC) WHERE kind = 'reading'")
+    }
+
+    fun latestEventId(): Long = readableDatabase.rawQuery("SELECT COALESCE(MAX(id), 0) FROM events", null).use {
+        it.moveToFirst()
+        it.getLong(0)
     }
 
     override fun onOpen(db: SQLiteDatabase) {
@@ -145,7 +170,7 @@ class CirqaDatabase(private val contextRef: Context) : SQLiteOpenHelper(contextR
             db.execSQL("DELETE FROM legacy.sync_cursors")
 
             val eventInsert = db.compileStatement(
-                "INSERT INTO main.events(line_sha256, received_at_utc, kind, service, payload_json) VALUES(?, ?, ?, ?, ?)"
+                "INSERT INTO main.events(line_sha256, received_at_utc, kind, service, payload_json, dashboard_time) VALUES(?, ?, ?, ?, ?, ?)"
             )
             events.forEach { line ->
                 require(isValidStoredLine(line)) { "Ungültiger Ereigniseintrag im Backup" }
@@ -157,6 +182,8 @@ class CirqaDatabase(private val contextRef: Context) : SQLiteOpenHelper(contextR
                 if (item.has("service") && !item.isNull("service")) eventInsert.bindLong(4, item.getLong("service"))
                 else eventInsert.bindNull(4)
                 eventInsert.bindString(5, line)
+                val key = if (item.getString("type") == "reading") timeKey(item.getString("received_at_utc")) else null
+                if (key == null) eventInsert.bindNull(6) else eventInsert.bindString(6, key)
                 eventInsert.executeInsert()
             }
 
@@ -204,6 +231,7 @@ class CirqaDatabase(private val contextRef: Context) : SQLiteOpenHelper(contextR
         val values = ContentValues().apply {
             put("line_sha256", lineSha256(line))
             put("received_at_utc", item.optString("received_at_utc"))
+            if (kind == "reading") put("dashboard_time", timeKey(item.optString("received_at_utc")))
             put("kind", kind)
             if (item.has("service") && !item.isNull("service")) put("service", item.optInt("service"))
             put("payload_json", line)
@@ -220,6 +248,11 @@ class CirqaDatabase(private val contextRef: Context) : SQLiteOpenHelper(contextR
     }
 
     companion object {
+        private val keyFormat = java.time.format.DateTimeFormatterBuilder().appendInstant(9).toFormatter()
+        internal fun timeKey(time: java.time.Instant): String = keyFormat.format(time)
+        private fun timeKey(timestamp: String): String? = try { timeKey(java.time.Instant.parse(timestamp)) }
+            catch (_: java.time.format.DateTimeParseException) { null }
+
         fun isValidStoredLine(line: String): Boolean = try {
             val item = JSONObject(line)
             item.optInt("schema") == 1 && item.optString("type").isNotBlank() &&
