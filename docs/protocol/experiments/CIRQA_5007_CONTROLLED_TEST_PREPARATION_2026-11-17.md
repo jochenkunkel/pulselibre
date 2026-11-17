@@ -82,7 +82,11 @@ Der letzte Hardwarelauf scheiterte beim BLE-Verbindungsaufbau; Bluetooth meldete
 
 Nach Analyse anderer Implementierungen wurde genau **ein kombinierter Gerätelauf** autorisiert. Neue Reihenfolge: ML/GFDI-Registrierung → Empfang von 5024 → Connect-kompatibler 5000-ACK mit Hostinformationen → Empfang von 5050 → 5050-ACK und konservative 15-Byte-Null-Hostmaske → GATT-Bestätigung dieser Antwort **und** CRC-validierter GFDI-5000-ACK auf 5050. Erst wenn alle Bedingungen erfüllt sind und keine Schreibaufträge/Chunks offen sind, darf die App genau einen 5007-Request senden. Bei jedem Fehler, fehlendem ACK, erneutem/unerwartetem Frame oder Timeout wird ohne 5007 abgebrochen. Kein 5037/5031/5002/5004, kein Retry.
 
-Der persistente Gate wird einmalig von 4 auf 5 erhöht; fünfter Lauf verbraucht ihn vor Verbindungsaufbau und schließt danach dauerhaft. Der kombinierte Test ist eine neue ausdrückliche Gerätefreigabe und kein Schluss, dass ein 5007 nach Bootstrap sicher oder unterstützt ist. Die Nullmaske ist die bereits separat beobachtete, konservative Variante; SYNC-Bit 3 bleibt aus.
+Der persistente Gate wurde einmalig von 4 auf 5 erhöht; der fünfte Lauf verbraucht ihn vor Verbindungsaufbau und schließt danach dauerhaft. Der kombinierte Test war eine neue ausdrückliche Gerätefreigabe. Die Nullmaske ist die bereits separat beobachtete, konservative Variante; SYNC-Bit 3 blieb aus.
+
+#### Ergebnis des fünften Laufs
+
+Build 922, gespeicherter Zähler 4 vor Start. Der Bootstrap wurde vollständig beobachtet: 5024-ACK GATT-Callback erfolgreich; 5050-Hostantwort GATT-Callback erfolgreich; anschließend ein CRC-valider GFDI-5000-ACK auf 5050. Erst danach sendete die App genau einen 5007-Request. Antwort: CRC-valides GFDI 5000, `responseTo=5007`, Status `0` (ACK). Dies ist ein positiver CIRQA-Protokollbeleg für die Annahme dieses Directory-Filterrequests und deutlich stärker als Androids `writeCharacteristic`-Erfolg allein. Es belegt weiterhin weder eine nichtleere Dateiliste noch einen Dateiabruf oder FIT-Historie. Handle 100; RX `6a4e2810…`, TX `6a4e2820…`; alle sechs erfassten TX-Metadaten meldeten `WITHOUT_RESPONSE` mit Callback `SUCCESS`. Kein Retry, 5031/5002/5004 oder anderes Folgekommando. Gate nun 5/5 und geschlossen.
 
 ## Ergebnis und Freigabeschwelle
 
@@ -90,4 +94,4 @@ Der persistente Gate wird einmalig von 4 auf 5 erhöht; fünfter Lauf verbraucht
 - Erfolgreicher Puls-/Schritte-Livepfad: aus Issue #22 übernommen; kein FileSync-Beweis.
 - CIRQA-5007-Support, CIRQA-Responseformat, produktiver Timeout und Nebenwirkungsfreiheit: **unbewiesen/offen**.
 - 0x8A39/FileSync-V2-Anfrage: vorhandener App-Einstieg ist fail-closed deaktiviert; nicht wiederholen.
-- Die Freigabe für Versuch 4 ist ausgeschöpft. Danach wurde genau ein kombinierter fünfter Bootstrap→5007-Lauf ausdrücklich autorisiert; das persistente Gate ist dafür auf 5/5 angehoben. Kein weiterer 5007-Write oder FileSync-Schritt ist damit autorisiert.
+- Die Freigabe für Versuch 4 war ausgeschöpft; der separat freigegebene kombinierte fünfte Lauf ist jetzt ebenfalls verbraucht. Das persistente Gate steht auf 5/5. Kein weiterer 5007-Write oder FileSync-Schritt ist autorisiert.
