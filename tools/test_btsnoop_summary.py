@@ -67,6 +67,15 @@ class SnoopTests(unittest.TestCase):
         self.assertEqual(result["acl_records"], 1)
         self.assertEqual(result["complete_att_candidates"], 0)
 
+    def test_truncated_record_not_counted_as_complete_att(self):
+        # A capture may store fewer bytes than the original on-wire packet.
+        acl = b"\\x02" + struct.pack("<HHHH", 1 | (2 << 12), 5, 1, 4) + b"\\x0a"
+        data = b"btsnoop\\x00" + struct.pack(">II", 1, 1002)
+        data += struct.pack(">IIIIQ", len(acl) + 8, len(acl), 0, 0, 0) + acl
+        result = self.check(data)
+        self.assertEqual(result["acl_records"], 1)
+        self.assertEqual(result["complete_att_candidates"], 0)
+
     def test_acl_continuation_not_misclassified_as_complete_att(self):
         continuation = b"\x02" + struct.pack("<HH", 1 | (1 << 12), 5) + b"\x01\x00\x04\x00\x0a"
         result = self.check(capture([continuation]))
