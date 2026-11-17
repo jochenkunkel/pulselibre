@@ -13,8 +13,8 @@ internal data class SpO2DisplaySettings(
     val colorBandsEnabled: Boolean = false
 ) {
     fun colorFor(percent: Int?, palette: AppPalette): Int {
-        if (percent == null || percent !in 1..100) return palette.muted
-        if (!colorBandsEnabled) return palette.ink
+        if (!isInRange(percent)) return missingColor(palette)
+        if (!colorBandsEnabled) return neutralColor(palette)
         return when {
             percent >= greenFrom -> palette.indicator
             percent >= redBelow -> palette.oxygen
@@ -30,6 +30,9 @@ internal data class SpO2DisplaySettings(
         private const val GREEN_FROM_KEY = "spo2_display_green_from"
         private const val RED_BELOW_KEY = "spo2_display_red_below"
         private const val VALIDATION_GATE_KEY = "spo2_device_validation_recorded"
+        internal fun isInRange(percent: Int?): Boolean = percent != null && percent in 1..100
+        internal fun neutralColor(palette: AppPalette): Int = palette.ink
+        internal fun missingColor(palette: AppPalette): Int = palette.muted
 
         fun read(context: Context): SpO2DisplaySettings {
             val prefs = context.getSharedPreferences(STORE, Context.MODE_PRIVATE)
