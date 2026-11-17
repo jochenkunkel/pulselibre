@@ -22,3 +22,9 @@ Ziel ist die **Hypothese**, dass ein minimal gesetztes Host-SYNC-Bit (Capability
 ## Entscheidungspunkt
 
 Erst nach erfolgreichem CI und erneuter Prüfung des aktiven BLE-Schreibpfads den Nutzer ausdrücklich um Zustimmung zum **einmaligen** SYNC-Bit-3-Gerätetest bitten. Diese Datei ist eine **Planung**, keine vorweggenommene Freigabe. Der bisherige A-Test wurde bereits mehrfach durchgeführt; nicht ohne neuen Erkenntnisgewinn wiederholen.
+
+## Implementierungsnachtrag: Offline-Sicherheitsentscheidung
+
+`CirqaSyncExperimentGate` und `CirqaSyncExperimentGateTest` modellieren eine **rein lokale**, fehlersichere Entscheidung: ohne ausdrückliche Zustimmung, gestoppten Recorder, bestätigten GATT-Schreibabschluss und positiven 5050-ACK ist kein Beobachtungserfolg möglich. Negative Antwort, unerwartetes Frame, Verbindungsverlust, wiederholte 5050-Anfrage oder Überschreitung von 10 Sekunden führen zu `STOP`. Ein CRC-validierter 5037-Eingang wird nur als *Sync-Signal* klassifiziert, nicht als Dateidownload. Die Policy ist **noch nicht** an den BLE-Callback angeschlossen und bewirkt dort folglich noch keinen automatischen Abbruch; sie ist Vorarbeit, kein bereits aktiver Schutz.
+
+**Codeprüfungsbefund:** Der bestehende Protokollfehler-Abbruch in `CirqaMlHandshakeProbe` ist derzeit an `fileListRequestMode` gebunden, nicht an `configurationTestMode`. Vor einer aktiven SYNC-Variante müssen sämtliche Stop-Bedingungen tatsächlich mit dem BLE-Lebenszyklus verdrahtet und getestet werden. Der vorhandene `startConfigurationTest` bleibt bei der 15-Byte-Nullmaske; keine SYNC-Bit-Übertragung wurde implementiert.
