@@ -58,12 +58,12 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
         }
     }
 
-    private fun pulseCard(metric: DashboardMetric, activity: StepActivityEstimate): LinearLayout {
+    private fun pulseCard(metric: DashboardMetric, activity: StepActivityEstimate): MetricCard {
         val model = HeartRateGaugeModel.from(metric)
         val previous = lastPulse
         lastPulse = model
         val card = card(metric)
-        card.addView(header(metric))
+        card.content.addView(header(metric))
         val gauge = HeartRateGaugeView(context)
         gauge.show(model, activity)
         card.addView(gauge, LayoutParams(-1, -2))
@@ -167,7 +167,7 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
     }
 
     private fun metricCard(metric: DashboardMetric, accent: Int) = card(metric).apply {
-        addView(header(metric))
+        content.addView(header(metric))
         if (metric.title == "Sauerstoffsättigung · SpO₂") {
             val percent = Regex("^[0-9]+(?= %$)").find(metric.value)?.value?.toIntOrNull()
             val valueLayer = android.widget.FrameLayout(context).apply {
@@ -180,35 +180,51 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
                 gravity = Gravity.CENTER
                 tag = "spo2_value"
             }, android.widget.FrameLayout.LayoutParams(-1, -1))
-            addView(valueLayer, LayoutParams(-1, dp(76)).apply { topMargin = dp(4) })
+            content.addView(valueLayer, LayoutParams(-1, dp(76)).apply { topMargin = dp(4) })
         } else {
-            addView(label(metric.value, 22f, accent, true),
+            content.addView(label(metric.value, 22f, accent, true),
                 LayoutParams(-1, -2).apply { topMargin = dp(6) })
         }
         val profile = MetricReferenceProfile.forMetric(metric, stepGoal)
         val value = Regex("-?[0-9]+") .find(metric.value)?.value?.toIntOrNull()
         if (profile != null && value != null) {
-            addView(MetricReferenceScaleView(context, profile, value, accent, ink, muted,
+            content.addView(MetricReferenceScaleView(context, profile, value, accent, ink, muted,
                 palette.track, palette.muted), LayoutParams(-1, dp(40)).apply { topMargin = dp(8) })
         }
     }
 
-    private fun card(metric: DashboardMetric) = LinearLayout(context).apply {
-        orientation = VERTICAL
-        setPadding(dp(10), dp(10), dp(10), dp(10))
-        background = GradientDrawable().apply {
-            setColor(palette.card)
-            cornerRadius = dp(18).toFloat()
+    private fun card(metric: DashboardMetric) = MetricCard(metric)
+
+    private inner class MetricCard(metric: DashboardMetric) : android.widget.FrameLayout(context) {
+        val content = LinearLayout(context).apply {
+            orientation = VERTICAL
+            setPadding(dp(10), dp(10), dp(10), dp(10))
         }
-        tag = "dashboard_metric_${metric.title}"
-        contentDescription = "${metric.title}: ${metric.value}"
-        ViewCompat.setScreenReaderFocusable(this, false)
-        importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+
+        init {
+            background = GradientDrawable().apply {
+                setColor(palette.card)
+                cornerRadius = dp(18).toFloat()
+            }
+            tag = "dashboard_metric_${metric.title}"
+            contentDescription = "${metric.title}: ${metric.value}"
+            ViewCompat.setScreenReaderFocusable(this, false)
+            importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+            addView(content, android.widget.FrameLayout.LayoutParams(-1, -2))
+            val indicator = ReceptionIndicatorView(context, metric, stepGoal).apply {
+                tag = "reception_indicator_${metric.title}"
+            }
+            addView(indicator, android.widget.FrameLayout.LayoutParams(dp(20), dp(20), Gravity.TOP or Gravity.END).apply {
+                topMargin = dp(8)
+                marginEnd = dp(8)
+            })
+        }
     }
 
     private fun header(metric: DashboardMetric) = LinearLayout(context).apply {
         orientation = HORIZONTAL
         gravity = Gravity.CENTER_VERTICAL
+        setPadding(0, 0, dp(24), 0)
         addView(DashboardMetricIconView(context, metric.title, iconColor(metric.title)).apply {
             tag = "dashboard_metric_icon_${metric.title}"
         }, LayoutParams(dp(20), dp(20)).apply { marginEnd = dp(6) })
@@ -217,14 +233,7 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
             ellipsize = android.text.TextUtils.TruncateAt.END
             contentDescription = metric.title
         }, LayoutParams(0, -2, 1f))
-        addView(ReceptionIndicatorView(context, metric, stepGoal).apply {
-            tag = "reception_indicator_${metric.title}"
-            minimumWidth = dp(48)
-            minimumHeight = dp(48)
-        }, LayoutParams(dp(48), dp(48)))
-    }
-
-    private fun iconColor(title: String) = when {
+    }    private fun iconColor(title: String) = when {
         title.contains("Herzfrequenz", true) || title.contains("Ruhepuls", true) -> palette.pulse
         title.contains("SpO₂", true) || title.contains("Sauerstoff", true) -> palette.oxygen
         title.contains("Schritt", true) -> palette.indicator
