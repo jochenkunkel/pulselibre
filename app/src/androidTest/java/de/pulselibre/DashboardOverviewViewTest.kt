@@ -131,4 +131,22 @@ class DashboardOverviewViewTest {
 
     private fun descendants(view: View): List<View> = listOf(view) +
         if (view is ViewGroup) (0 until view.childCount).flatMap { descendants(view.getChildAt(it)) } else emptyList()
-}
+
+    @Test fun profilePortraitIsScalableAndAccessible() {
+        InstrumentationRegistry.getInstrumentation().runOnMainSync {
+            val ctx = context(1f, 400)
+            val portrait = BodyProfileAvatarView(ctx)
+            portrait.measure(
+                View.MeasureSpec.makeMeasureSpec(112, View.MeasureSpec.EXACTLY),
+                View.MeasureSpec.makeMeasureSpec(120, View.MeasureSpec.EXACTLY)
+            )
+            portrait.layout(0, 0, 112, 120)
+            val bitmap = android.graphics.Bitmap.createBitmap(112, 120, android.graphics.Bitmap.Config.ARGB_8888)
+            portrait.draw(android.graphics.Canvas(bitmap))
+            assertTrue((0 until bitmap.height).any { y ->
+                (0 until bitmap.width).any { x -> android.graphics.Color.alpha(bitmap.getPixel(x, y)) > 0 }
+            })
+            assertTrue(portrait.contentDescription.contains("bärtigen Mann"))
+        }
+    }
+\n}\n
