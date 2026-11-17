@@ -110,10 +110,11 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         val manager = getSystemService(BLUETOOTH_SERVICE) as BluetoothManager
         adapter = manager.adapter
-        val violet = Color.rgb(81, 39, 201)
-        val ink = Color.rgb(35, 29, 59)
-        val muted = Color.rgb(109, 104, 127)
-        val surface = Color.rgb(248, 247, 252)
+        val palette = AppPalette.of(this)
+        val violet = palette.accent
+        val ink = palette.ink
+        val muted = palette.muted
+        val surface = palette.background
         fun dp(value: Int) = (value * resources.displayMetrics.density + 0.5f).toInt()
         fun rounded(color: Int, radius: Int = 20) = GradientDrawable().apply {
             setColor(color); cornerRadius = dp(radius).toFloat()
@@ -129,7 +130,7 @@ class MainActivity : AppCompatActivity() {
         fun card(): LinearLayout = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(dp(16), dp(16), dp(16), dp(16))
-            background = rounded(Color.WHITE)
+            background = rounded(palette.card)
             elevation = dp(1).toFloat()
         }
         val screen = LinearLayout(this).apply {
@@ -142,7 +143,7 @@ class MainActivity : AppCompatActivity() {
             setPadding(dp(20), dp(18), dp(20), dp(18))
             background = GradientDrawable(
                 GradientDrawable.Orientation.TL_BR,
-                intArrayOf(violet, Color.rgb(94, 65, 187))
+                intArrayOf(palette.header, palette.headerEnd)
             )
         }
         val headerRow = LinearLayout(this).apply {
@@ -190,7 +191,7 @@ class MainActivity : AppCompatActivity() {
         val bodyCard = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(dp(16), dp(12), dp(16), dp(14))
-            background = rounded(Color.WHITE)
+            background = rounded(palette.card)
         }
         bodyCard.addView(text("MEIN KÖRPERPROFIL  ·  Tippen zum Bearbeiten", 12f, violet, true))
         val bodyRow = LinearLayout(this).apply {
@@ -211,7 +212,7 @@ class MainActivity : AppCompatActivity() {
             text = "ⓘ"
             textSize = 26f
             gravity = android.view.Gravity.CENTER
-            setTextColor(Color.rgb(30, 135, 70))
+            setTextColor(AppPalette.of(this@MainActivity).indicator)
             minWidth = dp(48)
             minHeight = dp(48)
             contentDescription = "Informationen zu empfangenen Messungen und lokaler Speicherung"
@@ -299,7 +300,7 @@ class MainActivity : AppCompatActivity() {
                 setTypeface(null, Typeface.BOLD)
                 gravity = android.view.Gravity.CENTER
                 setTextColor(if (primary) Color.WHITE else violet)
-                background = rounded(if (primary) violet else Color.rgb(237, 231, 253), 14)
+                background = rounded(if (primary) palette.primary else palette.tinted, 14)
                 minHeight = dp(52)
                 setPadding(dp(12), dp(12), dp(12), dp(12))
                 isClickable = true
@@ -308,12 +309,12 @@ class MainActivity : AppCompatActivity() {
             }
         cirqaCard = text("CIRQA Smart Band", 15f, ink, true).apply {
             setPadding(dp(16), dp(16), dp(16), dp(16))
-            background = rounded(Color.WHITE)
+            background = rounded(palette.card)
         }
         deviceView(cirqaCard)
         cirqaEvidenceView = text(cirqaScanEvidence.summary(), 13f, muted).apply {
             setPadding(dp(16), dp(12), dp(16), dp(12))
-            background = rounded(Color.WHITE)
+            background = rounded(palette.card)
         }
         debugView(cirqaEvidenceView)
         // Foreground service samples periodically; it is not a continuous raw BLE stream.
@@ -357,7 +358,7 @@ class MainActivity : AppCompatActivity() {
             val running = getSharedPreferences(CirqaOvernightService.PREFS, MODE_PRIVATE)
                 .getBoolean(CirqaOvernightService.KEY_RUNNING, false)
             recorderState.text = if (running) "●  Aufzeichnung läuft · lokale Messwerte" else "○  Aufzeichnung aus"
-            recorderState.setTextColor(if (running) Color.rgb(30, 135, 70) else muted)
+            recorderState.setTextColor(if (running) AppPalette.of(this@MainActivity).indicator else muted)
             playButton.alpha = if (running) 0.45f else 1f
             stopButton.alpha = if (running) 1f else 0.45f
             playButton.isEnabled = !running
@@ -703,7 +704,7 @@ class MainActivity : AppCompatActivity() {
         val nav = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             setPadding(dp(8), dp(8), dp(8), dp(8))
-            setBackgroundColor(Color.WHITE)
+            setBackgroundColor(palette.card)
         }
         val tabs = mutableListOf<TextView>()
         fun selectTab(index: Int) {
@@ -715,7 +716,7 @@ class MainActivity : AppCompatActivity() {
             if (index == 1) recorderRefresh?.invoke()
             tabs.forEachIndexed { i, tab ->
                 tab.setTextColor(if (i == index) violet else muted)
-                tab.background = if (i == index) rounded(Color.rgb(241, 235, 255), 12) else null
+                tab.background = if (i == index) rounded(palette.tinted, 12) else null
             }
             if (index == 1) refreshCirqaCard()
             scroll.scrollTo(0, 0)
@@ -1001,10 +1002,10 @@ class MainActivity : AppCompatActivity() {
         val item = TextView(this).apply {
             text = details
             textSize = 14f
-            setTextColor(Color.rgb(35, 29, 59))
+            setTextColor(AppPalette.of(this@MainActivity).ink)
             setPadding(dp(16), dp(14), dp(16), dp(14))
             background = GradientDrawable().apply {
-                setColor(Color.WHITE)
+                setColor(AppPalette.of(this@MainActivity).card)
                 cornerRadius = dp(16).toFloat()
             }
             contentDescription = details

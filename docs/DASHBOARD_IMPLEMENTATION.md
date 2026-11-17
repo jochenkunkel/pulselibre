@@ -79,3 +79,40 @@ Noch offen: die bestehende Aktualisierung nur bei geänderter Ereignisanzahl lä
 Empfangsalter und Tageswechsel ohne neue Ereignisse unverändert. Der Reader lädt
 vollständige Datenlisten und kann Legacy-Importe anstoßen. Speicher-/Threading-
 Änderungen müssen mit dem anderen Agenten koordiniert werden.
+
+
+## Tacho und Erscheinungsbild (2026-11-17)
+
+Auf Nutzerwunsch wird die freigegebene helle/dunkle Tacho-Gestaltung als native
+Android-Ansicht umgesetzt. Der Puls bekommt eine breite Instrumentenkarte mit
+radialen Teilstrichen, Zeiger, großem unverändertem Messwert und Modus in der Mitte.
+SpO₂ bleibt eine eigene Messwertkarte. Der Zeiger wird bei geänderten gültigen
+Messwerten kurz animiert; ausgeschaltete Systemanimationen werden respektiert.
+Fehlende Werte zeigen einen Strich und keinen Zeiger. Empfangsnotizen bleiben sichtbar.
+
+Die Skala 40–180 bpm ist ausschließlich eine feste Anzeigeskala, keine physiologische
+Norm und kein geschätzter Maximalpuls. Außerhalb liegende gültige Werte bleiben
+numerisch erhalten; der Zeiger steht am Rand und ein Hinweis benennt die Überschreitung.
+Der türkise Bogen visualisiert den Messwert, **keine gesunde oder sichere Zielzone**.
+Es werden keine alters-/geschlechts-/gewichtsabhängigen Grenzwerte und kein neuer
+wissenschaftlicher Gesundheitsalgorithmus eingeführt.
+
+Ruhe, leichte Bewegung und Sport werden ausdrücklich **manuell** gewählt, separat
+lokal gespeichert und durch erneutes Tippen wieder aufgehoben. Ohne Auswahl heißt
+der Modus „unbekannt“. Puls oder kumulative Schritte werden nicht als automatische
+Erkennung von Sitzen, Sport oder Schlaf ausgegeben. Klinische Trainingszonen und
+persönliche Ruhepulsvergleiche bleiben eine gesondert zu validierende Erweiterung.
+
+### Theme-Konfiguration
+
+In Einstellungen → Darstellung gibt es Systemeinstellung (Standard), Hell und Dunkel.
+Die Auswahl liegt in `app_appearance`, getrennt vom löschbaren persönlichen Profil.
+`PulseLibreApplication` setzt AppCompat beim Prozessstart auf die gespeicherte Wahl;
+Systemmodus folgt Android, die beiden expliziten Modi überschreiben ihn. Speichern
+aktualisiert die Activities über AppCompat. Messdaten und Recorder werden nicht migriert.
+
+Die Palette umfasst Übersicht, Gerätekarten, Navigation, Export und Profilüberschriften.
+Systemdialoge und Eingaben verwenden das bestehende AppCompat-DayNight-Theme.
+Theme- und Gauge-Modelle haben JVM-Tests; Android-Tests prüfen Light/Dark in beiden
+Activities, Rückkehr zum Systemmodus, leere Gauge, manuelle Auswahl und Zeichnung in
+beiden Paletten. Tatsächliche Build-/CI-Ergebnisse stehen im Übergabestatus bzw. GitHub.

@@ -11,18 +11,26 @@ import androidx.core.view.ViewCompat
 
 /** Read-only cards for locally received observations. No transport or persistence ownership. */
 class DashboardOverviewView(context: Context) : LinearLayout(context) {
-    private val ink = Color.rgb(35, 29, 59)
-    private val muted = Color.rgb(109, 104, 127)
-    private val violet = Color.rgb(81, 39, 201)
+    private val palette = AppPalette.of(context)
+    private val ink = palette.ink
+    private val muted = palette.muted
+    private val violet = palette.accent
+    private val preferences = context.getSharedPreferences("dashboard_display", Context.MODE_PRIVATE)
+    private var selectedContext = PulseContext.from(preferences.getString("pulse_context", null))
+
+    private var lastPulse: HeartRateGaugeModel? = null
 
     init { orientation = VERTICAL }
 
     fun render(metrics: List<DashboardMetric>) {
         removeAllViews()
         val overview = dashboardOverview(metrics)
-        addView(label("Lokal empfangene Werte · keine medizinische Bewertung", 12f, muted),
+        addView(label("Deine Messwerte · lokal gespeichert", 12f, muted),
             LayoutParams(-1, -2).apply { bottomMargin = dp(12) })
-        addPair(overview.vitalSigns)
+        addView(pulseCard(overview.vitalSigns.first()),
+            LayoutParams(-1, -2).apply { bottomMargin = dp(12) })
+        addView(metricCard(overview.vitalSigns[1], palette.oxygen),
+            LayoutParams(-1, -2).apply { bottomMargin = dp(12) })
         addView(metricCard(overview.sleep, violet),
             LayoutParams(-1, -2).apply { bottomMargin = dp(16) })
         heading("Heute auf einen Blick")
@@ -36,6 +44,75 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
         }
     }
 
+    private fun pulseCard(metric: DashboardMetric): LinearLayout {
+        val model = HeartRateGaugeModel.from(metric)
+        val previous = lastPulse
+        lastPulse = model
+        val card = metricCard(metric, palette.pulse)
+        // Replace the ordinary value card with the approved instrument layout.
+        card.removeAllViews()
+        val gauge = HeartRateGaugeView(context)
+        fun updateContext() {
+            gauge.show(model, selectedContext)
+            card.contentDescription = "${metric.title}: ${metric.value}. ${metric.note}. " +
+                "${selectedContext.label}. ${if (selectedContext == PulseContext.UNKNOWN) "Aktivität nicht erkannt" else "Modus manuell gewählt"}. ${model.scaleNote}"
+        }
+        card.addView(label("Herzfrequenz", 16f, ink, true))
+        card.addView(gauge, LayoutParams(-1, -2))
+        val controls = LinearLayout(context).apply {
+            orientation = if (resources.configuration.fontScale >= 1.3f ||
+                resources.configuration.screenWidthDp < 360) VERTICAL else HORIZONTAL
+        }
+        val buttons = mutableListOf<TextView>()
+        fun refreshButtons() {
+            buttons.forEach { button ->
+                val selected = button.tag == selectedContext
+                button.isSelected = selected
+                button.setTextColor(if (selected) Color.WHITE else violet)
+                button.background = GradientDrawable().apply {
+                    setColor(if (selected) palette.primary else palette.tinted)
+                    cornerRadius = dp(20).toFloat()
+                }
+            }
+        }
+        listOf(PulseContext.REST, PulseContext.MOVEMENT, PulseContext.SPORT).forEach { mode ->
+            val button = label(if (mode == PulseContext.MOVEMENT) "Bewegung" else mode.label, 13f, violet, true).apply {
+                tag = mode
+                gravity = android.view.Gravity.CENTER
+                minHeight = dp(48)
+                setPadding(dp(4), dp(6), dp(4), dp(6))
+                isClickable = true
+                isFocusable = true
+                contentDescription = "${mode.label} manuell wählen; erneut tippen hebt die Auswahl auf"
+                setOnClickListener {
+                    selectedContext = if (selectedContext == mode) PulseContext.UNKNOWN else mode
+                    preferences.edit().putString("pulse_context", selectedContext.name).apply()
+                    updateContext()
+                    refreshButtons()
+                }
+            }
+            buttons.add(button)
+            controls.addView(button, if (controls.orientation == VERTICAL)
+                LayoutParams(-1, -2).apply { bottomMargin = dp(6) }
+            else LayoutParams(0, -2, 1f).apply { marginEnd = dp(4) })
+        }
+        card.addView(controls)
+        card.addView(label("Modus manuell wählen · erneut tippen zum Aufheben", 12f, muted),
+            LayoutParams(-1, -2).apply { topMargin = dp(10) })
+        card.addView(label(model.scaleNote, 12f, muted),
+            LayoutParams(-1, -2).apply { topMargin = dp(6) })
+        card.addView(label(metric.note, 12f, muted),
+            LayoutParams(-1, -2).apply { topMargin = dp(6) })
+        // The context buttons remain individually accessible, unlike the read-only value cards.
+        ViewCompat.setScreenReaderFocusable(card, false)
+        updateContext()
+        refreshButtons()
+        if (previous?.bpm != null && model.bpm != null && previous.bpm != model.bpm) {
+            gauge.post { if (gauge.isAttachedToWindow) gauge.show(model, selectedContext, previous.fraction) }
+        }
+        return card
+    }
+
     private fun addPair(metrics: List<DashboardMetric>) {
         // Preserve readable text at large accessibility font sizes and narrow widths.
         val stacked = resources.configuration.fontScale >= 1.3f ||
@@ -44,8 +121,8 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
         metrics.forEachIndexed { index, metric ->
             // Accent colors identify metrics, never normal/abnormal health states.
             val accent = when (metric.title) {
-                "Herzfrequenz" -> Color.rgb(166, 38, 79)
-                "Sauerstoffsättigung · SpO₂" -> Color.rgb(27, 91, 156)
+                "Herzfrequenz" -> palette.pulse
+                "Sauerstoffsättigung · SpO₂" -> palette.oxygen
                 else -> ink
             }
             row.addView(metricCard(metric, accent),
@@ -62,7 +139,7 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
         orientation = VERTICAL
         setPadding(dp(16), dp(16), dp(16), dp(16))
         background = GradientDrawable().apply {
-            setColor(Color.WHITE)
+            setColor(palette.card)
             cornerRadius = dp(20).toFloat()
         }
         tag = "dashboard_metric_${metric.title}"

@@ -63,9 +63,10 @@ class ExportActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val violet = Color.rgb(81, 39, 201)
-        val ink = Color.rgb(35, 29, 59)
-        val muted = Color.rgb(109, 104, 127)
+        val palette = AppPalette.of(this)
+        val violet = palette.accent
+        val ink = palette.ink
+        val muted = palette.muted
         fun dp(value: Int) = (value * resources.displayMetrics.density + 0.5f).toInt()
         fun rounded(color: Int, radius: Int = 18) = GradientDrawable().apply {
             setColor(color)
@@ -81,7 +82,7 @@ class ExportActivity : AppCompatActivity() {
             }
         val screen = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setBackgroundColor(Color.rgb(248, 247, 252))
+            setBackgroundColor(palette.background)
             fitsSystemWindows = true
         }
         val header = LinearLayout(this).apply {
@@ -89,7 +90,7 @@ class ExportActivity : AppCompatActivity() {
             setPadding(dp(16), dp(10), dp(16), dp(12))
             background = GradientDrawable(
                 GradientDrawable.Orientation.TL_BR,
-                intArrayOf(violet, Color.rgb(94, 65, 187))
+                intArrayOf(palette.header, palette.headerEnd)
             )
         }
         val headerRow = LinearLayout(this).apply {
@@ -128,7 +129,7 @@ class ExportActivity : AppCompatActivity() {
         val panel = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(dp(14), dp(14), dp(14), dp(14))
-            background = rounded(Color.WHITE)
+            background = rounded(palette.card)
         }
         root.addView(panel)
         panel.addView(label("Zeitraum", 17f, ink, true),
@@ -137,7 +138,7 @@ class ExportActivity : AppCompatActivity() {
             gravity = Gravity.CENTER_VERTICAL
             minHeight = dp(48)
             setPadding(dp(10), dp(8), dp(10), dp(8))
-            background = rounded(Color.rgb(241, 235, 255), 12)
+            background = rounded(palette.tinted, 12)
             isClickable = true
             isFocusable = true
         }
@@ -177,7 +178,7 @@ class ExportActivity : AppCompatActivity() {
         val exportButton = label("⬇  CSV exportieren", 16f, Color.WHITE, true).apply {
             gravity = Gravity.CENTER
             minHeight = dp(54)
-            background = rounded(violet, 14)
+            background = rounded(palette.primary, 14)
             isClickable = true
             isFocusable = true
             contentDescription = "Messwerte als CSV exportieren"

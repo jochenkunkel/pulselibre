@@ -304,3 +304,21 @@ Issues: https://github.com/jochenkunkel/pulselibre/issues
   zugängliche Exportaktion. Keine Änderung an Exportdaten oder Garmin-Protokollen.
 - Vor Handyfreigabe sind der neue main-Build und der wiederholte Full-Lauf separat
   zu prüfen; ein schneller grüner Build allein behebt den roten Emulator-Gate nicht.
+
+
+## Tacho und System-/Hell-/Dunkel-Theme – 2026-11-17
+
+- Nutzer hat die beiden Tacho-Entwürfe zur nativen Umsetzung freigegeben und
+  automatische Android-Theme-Anpassung mit manueller Überschreibung beauftragt.
+- Breite Pulskarte mit Zeiger, echten lokalen Werten und manuell gewähltem Modus;
+  fehlende Werte bleiben leer. Der Bogen ist eine Messwertanzeige, keine medizinische
+  Zielzone. Alter/Geschlecht/Gewicht erzeugen keine ungeprüften Gesundheitsgrenzen.
+- Darstellung in Einstellungen: Systemeinstellung (Standard), Hell, Dunkel.
+  Separate lokale Appearance-Präferenz; Anwendung beim Prozessstart über AppCompat.
+  Paletten für Übersicht, Gerätekarten, Navigation, Export und Profileinstellungen.
+- Lokale Verifikation des UI-Stands auf Basis `26266e0`: 248 JVM-Tests bestanden;
+  App-Build, Lint und Android-Test-APK erfolgreich. Neue Android-Tests kompiliert;
+  ihr Emulatorlauf ist vor Freigabe gesondert zu prüfen.
+- Parallele neuere Protokolländerungen werden bei Integration erhalten. Keine eigenen
+  Änderungen an Garmin-BLE/GFDI/5050/FileSync, Datenbankschema oder Exportsemantik.
+  Details: `docs/DASHBOARD_IMPLEMENTATION.md`.

@@ -32,7 +32,7 @@ class DashboardOverviewViewTest {
             assertEquals("dashboard_metric_Herzfrequenz", cards[0].tag)
             assertEquals("dashboard_metric_Sauerstoffsättigung · SpO₂", cards[1].tag)
             assertEquals("dashboard_metric_Schlaf", cards[2].tag)
-            assertEquals(LinearLayout.HORIZONTAL, (cards[0].parent as LinearLayout).orientation)
+            assertEquals(LinearLayout.VERTICAL, (cards[0].parent as LinearLayout).orientation)
         }
     }
 

@@ -38,7 +38,7 @@ object PersonalSettings {
             layout.addView(TextView(context).apply {
                 text = label
                 textSize = 18f
-                setTextColor(Color.rgb(81, 39, 201))
+                setTextColor(AppPalette.of(context).accent)
                 setPadding(0, 18, 0, 8)
             })
         }
@@ -61,6 +61,17 @@ object PersonalSettings {
                 setSelection(options.indexOf(p.getString(key, options[0])).coerceAtLeast(0))
                 layout.addView(this)
             }
+        }
+        heading("Darstellung")
+        layout.addView(TextView(context).apply {
+            text = "Design: automatisch nach Android oder dauerhaft überschreiben"
+        })
+        val themeChoice = Spinner(context).apply {
+            adapter = ArrayAdapter(context, android.R.layout.simple_spinner_dropdown_item,
+                ThemePreference.entries.map { it.label })
+            setSelection(AppAppearance.preference(context).ordinal)
+            contentDescription = "App-Design auswählen"
+            layout.addView(this)
         }
         heading("Persönliches Profil")
         val name = field("Anzeigename (optional)", "display_name")
@@ -132,6 +143,7 @@ object PersonalSettings {
                 onSaved()
                 Toast.makeText(context, "Profil lokal gespeichert", Toast.LENGTH_SHORT).show()
                 dialog.dismiss()
+                AppAppearance.save(context, ThemePreference.entries[themeChoice.selectedItemPosition])
             }
         }
         dialog.show()
