@@ -49,3 +49,7 @@ Connect ignoriert trailing 1–15 Bytes; PulsLibre lehnt unvollständige Einträ
 ## Umsetzung und Grenzen
 
 Offline implementiert: `CirqaLegacyDirectoryParser`, `CirqaLegacyFileTypesParser` mit JVM-Tests; passiver GFDI-Zähler `CirqaLegacyDirectoryObserver`. Kein neuer BLE-Sendepfad. Offene Punkte: CRC `u45.a`, `lbb.T/U`, `a60.F`, reale CIRQA-Capabilities, v5d-Registrierung, Dateiauswahl, persistente Speicherung und Geräteantworten. Der abgelehnte `0x8A39`-Kandidat bleibt deaktiviert. Kein Upload-Flag setzen, kein Löschen, kein CLOSE_ALL.
+
+## Implementierungsfortschritt (2026-11-17)
+
+`CirqaLegacyTransferDecoder.kt` decodiert **offline** 5002-Response-Status (0–6), validiert die Mindestlänge der Success-Response und bewahrt die vier Bytes ab Offset 1 ausdrücklich als rohe Bytes auf, bis `a60.F` verifiziert ist. Für 5004 extrahiert er aus unkomprimierten Chunks Status, CRC16, u32LE Offset und Payload; für komprimierte Chunks Sequenz, Flags, u32LE Offset, CRC16 und Deflate-Rohdaten. JVM-Tests enthalten synthetische Grenzwerte. Der Decoder **validiert keine CRC**, reassembliert keine Daten und sendet keine ACKs. Nicht für eine produktive Dateiübertragung verwenden, bis `u45.a`, `a60.F`, `lbb.T/U` und die Transferzustandsmaschine belegt und getestet sind.
