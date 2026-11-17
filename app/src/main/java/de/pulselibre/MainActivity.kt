@@ -514,7 +514,7 @@ class MainActivity : AppCompatActivity() {
             if (scanning) stopScan()
             androidx.appcompat.app.AlertDialog.Builder(this)
                 .setTitle("CIRQA · Gezielter 5050-Test")
-                .setMessage("Experimenteller einmaliger Bluetooth-Test. Garmin Connect und laufende Aufzeichnung vorher beenden. Nach dem bisherigen 5024-ACK und einer empfangenen 5050-Konfiguration sendet PulsLibre genau ein 5050-ACK und eine 15-Byte-Hostmaske ohne gesetzte Fähigkeiten. Das Armband kann die Antwort ablehnen. Keine Dateioperationen vorgesehen; Auswirkungen der experimentellen GATT-Schreibbefehle auf das Band sind nicht verifiziert. Nur nach gesonderter Freigabe am S25 testen. Automatische Trennung nach 20 Sekunden. Jetzt starten?")
+                .setMessage("Experimenteller einmaliger Bluetooth-Test. Garmin Connect und laufende Aufzeichnung vorher beenden. Nach dem bisherigen 5024-ACK und einer empfangenen 5050-Konfiguration sendet PulsLibre genau ein 5050-ACK und eine 15-Byte-Hostmaske ohne gesetzte Fähigkeiten. Das Armband kann die Antwort ablehnen. Keine Dateioperationen vorgesehen; Auswirkungen der experimentellen GATT-Schreibbefehle auf das Band sind nicht verifiziert. Nur nach gesonderter Freigabe am S25 testen. Automatische Trennung spätestens 20 Sekunden ohne Schreibabschluss, sonst 10 Sekunden nach der 5050-Schreibbestätigung. Jetzt starten?")
                 .setNegativeButton("Abbrechen", null)
                 .setPositiveButton("5050-Test starten") { _, _ ->
                     if (cirqaMlProbe == null) cirqaMlProbe = CirqaMlHandshakeProbe(this, adapter)
