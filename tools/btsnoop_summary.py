@@ -64,8 +64,9 @@ def summarize(path):
         "acl_records": counts["acl"],
         "complete_att_candidates": att_candidates,
         "sufficient_for_att_analysis": att_candidates > 0,
-        "warning": "No ACL packets; ATT/GATT analysis impossible" if not counts["acl"] else
-                   "ACL present; ATT completeness and device attribution not established",
+        "warning": ("No ACL packets; ATT/GATT analysis impossible" if not counts["acl"] else
+                    "ACL packets present, but no complete ATT candidate; ATT analysis not established" if not att_candidates else
+                    "Complete ATT candidate present; device attribution and protocol semantics not established"),
     }
 
 
