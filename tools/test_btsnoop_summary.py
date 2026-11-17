@@ -29,6 +29,7 @@ class SnoopTests(unittest.TestCase):
         result = self.check(capture([b"\x04\x0e", b"\x01\x01"]))
         self.assertEqual(result["acl_records"], 0)
         self.assertFalse(result["sufficient_for_att_analysis"])
+        self.assertIn("No ACL packets", result["warning"])
         self.assertEqual(result["types"], {"command": 1, "event": 1})
 
     def test_complete_att_acl(self):
@@ -37,6 +38,7 @@ class SnoopTests(unittest.TestCase):
         result = self.check(capture([acl]))
         self.assertEqual(result["complete_att_candidates"], 1)
         self.assertTrue(result["sufficient_for_att_analysis"])
+        self.assertIn("Complete ATT candidate", result["warning"])
 
     def test_truncated_and_oversized_rejected(self):
         with self.assertRaises(snoop.InvalidSnoop):
@@ -67,6 +69,7 @@ class SnoopTests(unittest.TestCase):
         self.assertEqual(result["acl_records"], 1)
         self.assertEqual(result["complete_att_candidates"], 0)
         self.assertFalse(result["sufficient_for_att_analysis"])
+        self.assertIn("no complete ATT candidate", result["warning"])
 
     def test_truncated_record_not_counted_as_complete_att(self):
         # A capture may store fewer bytes than the original on-wire packet.
