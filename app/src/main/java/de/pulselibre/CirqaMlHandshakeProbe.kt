@@ -32,6 +32,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private var configurationResponseConfirmed = false
     private var configurationAckReceived = false
     private var configurationObservationExtended = false
+    private var configuration5050Baseline = 0
     private var post5050Evidence = Cirqa5050PostWriteEvidence()
     private var bootstrapAckSent = false
     private var bootstrapAckConfirmed = false
@@ -189,6 +190,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         configurationResponseQueued = false
         configurationAckReceived = false
         configurationObservationExtended = false
+        configuration5050Baseline = 0
         post5050Evidence = Cirqa5050PostWriteEvidence()
         configurationResponseConfirmed = false
         bootstrapAckConfirmed = false
@@ -403,6 +405,13 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                         finish("Sicherheitsabbruch: negative GFDI-Antwort während 5050-Diagnose.", g)
                         return
                     }
+                    // A second device 5050 after our response was queued is an
+                    // unverified retry; stop instead of negotiating repeatedly.
+                    if (configurationTestMode && configurationResponseQueued &&
+                        (fileListProbe.frameTypes["gfdi-5050"] ?: 0) > configuration5050Baseline) {
+                        finish("Sicherheitsabbruch: erneute 5050-Anfrage nach geplanter Antwort.", g)
+                        return
+                    }
                     if (configurationTestMode && configurationResponseQueued &&
                         fileListProbe.responseStatuses.keys.any { it.startsWith("request=5050/status=ACK/") }) {
                         configurationAckReceived = true
@@ -426,6 +435,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     if (configurationTestMode && !configurationResponseQueued &&
                         bootstrapAckConfirmed && !bootstrapAckPending && bootstrapAckChunks.isEmpty() &&
                         (fileListProbe.frameTypes["gfdi-5050"] ?: 0) > 0) {
+                        configuration5050Baseline = fileListProbe.frameTypes["gfdi-5050"] ?: 0
                         configurationResponseQueued = true
                         val handle = historyHandle
                         if (handle != null) {
