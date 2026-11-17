@@ -6,6 +6,8 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
+import android.view.View
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -19,6 +21,20 @@ class LaunchTest {
             }
         }
     }
+    @Test fun primaryNavigationKeepsReadableLabelsAndAddsMatchingIcons() {
+        ActivityScenario.launch(MainActivity::class.java).use {
+            it.onActivity { activity ->
+                val root = activity.findViewById<android.view.ViewGroup>(android.R.id.content)
+                listOf("Übersicht", "Verlauf", "Geräte", "Testlabor", "Daten").forEach { label ->
+                    val item = root.findViewWithTag<View>("navigation_item_$label")
+                    assertNotNull(item)
+                    assertEquals(label, item.contentDescription)
+                    assertNotNull(root.findViewWithTag<View>("navigation_icon_$label"))
+                }
+            }
+        }
+    }
+
     @Test fun noInternetPermission() {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         assertEquals(android.content.pm.PackageManager.PERMISSION_DENIED,
