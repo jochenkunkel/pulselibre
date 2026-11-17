@@ -78,10 +78,16 @@ Build 907: gespeicherter Zähler `3`, Recorder und Garmin Connect beendet, BLE v
 
 Der letzte Hardwarelauf scheiterte beim BLE-Verbindungsaufbau; Bluetooth meldete `CONNECTION_FAILED_ESTABLISHMENT (0x3e)`. `CirqaMlHandshakeProbe` nutzt bereits `BluetoothDevice.TRANSPORT_LE`, und es gab keine automatischen Wiederholungen. Das ist ein Link-Layer-/Geräteverbindungsfehler, kein belegter 5007-Protokollfehler. Die Testoberfläche speichert für künftige Läufe den GATT-Abbruchgrund sowie ausdrücklich, ob der 5007-Write vor dem Abbruch gesendet wurde. Keine Änderung am Request-Bytekandidaten und keine automatische Reconnect-Schleife.
 
+### Erneute Freigabe: Bootstrap vor 5007 (2026-11-17)
+
+Nach Analyse anderer Implementierungen wurde genau **ein kombinierter Gerätelauf** autorisiert. Neue Reihenfolge: ML/GFDI-Registrierung → Empfang von 5024 → Connect-kompatibler 5000-ACK mit Hostinformationen → Empfang von 5050 → 5050-ACK und konservative 15-Byte-Null-Hostmaske → GATT-Bestätigung dieser Antwort **und** CRC-validierter GFDI-5000-ACK auf 5050. Erst wenn alle Bedingungen erfüllt sind und keine Schreibaufträge/Chunks offen sind, darf die App genau einen 5007-Request senden. Bei jedem Fehler, fehlendem ACK, erneutem/unerwartetem Frame oder Timeout wird ohne 5007 abgebrochen. Kein 5037/5031/5002/5004, kein Retry.
+
+Der persistente Gate wird einmalig von 4 auf 5 erhöht; fünfter Lauf verbraucht ihn vor Verbindungsaufbau und schließt danach dauerhaft. Der kombinierte Test ist eine neue ausdrückliche Gerätefreigabe und kein Schluss, dass ein 5007 nach Bootstrap sicher oder unterstützt ist. Die Nullmaske ist die bereits separat beobachtete, konservative Variante; SYNC-Bit 3 bleibt aus.
+
 ## Ergebnis und Freigabeschwelle
 
 - Offline-Kandidat + CRC/COBS/ML-Wrapper: **implementiert und synthetisch testbar**.
 - Erfolgreicher Puls-/Schritte-Livepfad: aus Issue #22 übernommen; kein FileSync-Beweis.
 - CIRQA-5007-Support, CIRQA-Responseformat, produktiver Timeout und Nebenwirkungsfreiheit: **unbewiesen/offen**.
 - 0x8A39/FileSync-V2-Anfrage: vorhandener App-Einstieg ist fail-closed deaktiviert; nicht wiederholen.
-- Die erneute Freigabe für genau Versuch 4 ist ausgeschöpft; das persistente Gate ist 4/4. Kein weiterer 5007-Write oder FileSync-Schritt ist autorisiert.
+- Die Freigabe für Versuch 4 ist ausgeschöpft. Danach wurde genau ein kombinierter fünfter Bootstrap→5007-Lauf ausdrücklich autorisiert; das persistente Gate ist dafür auf 5/5 angehoben. Kein weiterer 5007-Write oder FileSync-Schritt ist damit autorisiert.

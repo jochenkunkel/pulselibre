@@ -279,10 +279,10 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
                 "5007 kann einen Pending-Upload-/Sync-Pfad anstoßen. Sofortiges Trennen verhindert keine unbekannte geräteseitige Reaktion.",
             13f
         ), LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) })
-        legacy5007Button = button("Einmaligen 5007-Test starten") { confirmLegacy5007Test() }
+        legacy5007Button = button("Einmaligen Bootstrap→5007-Test starten") { confirmLegacy5007Test() }
         refreshLegacy5007Button()
         legacy5007Button.contentDescription =
-            "Startet höchstens einen GFDI-5007-Write mit dynamischem Handle und fünf Sekunden Antwortfenster."
+            "Führt 5024/5050-Bootstrap aus und sendet nur nach bestätigtem Abschluss höchstens einen GFDI-5007-Write."
         compatibilityCard.addView(legacy5007Button)
         compatibilityCard.addView(button("CIRQA-Teststatus") {
             statusOutput.text = "GFDI-5007-Test: " +
@@ -418,21 +418,24 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
             1 -> "ersten"
             2 -> "zweiten"
             3 -> "dritten"
-            else -> "vierten"
+            4 -> "vierten"
+            else -> "fünften"
         }
         AlertDialog.Builder(this)
-            .setTitle("$attemptOrdinal freigegebenen GFDI-5007-Test starten?")
+            .setTitle("$attemptOrdinal freigegebenen Bootstrap-/5007-Test starten?")
             .setMessage(
                 "Dies ist Versuch $nextAttempt von ${CirqaLegacy5007AttemptGate.MAX_AUTHORIZED_ATTEMPTS}. " +
-                    "Es wird zuerst nur der Garmin-ML-GFDI-Dienst registriert und danach genau ein Request gesendet:\n\n" +
+                    "Zuerst wird der Garmin-ML-GFDI-Dienst registriert. Danach wird der 5024/5050-Handshake ausgeführt. " +
+                    "Nur wenn 5024-ACK, 5050-Hostantwort und GFDI-ACK für 5050 bestätigt sind, folgt genau ein 5007-Request:\n\n" +
                     "07 00 8F 13 03 C9 1A\n\n" +
-                    "Der dynamische ML-Handle und TX-Characteristic werden zur Laufzeit ermittelt. " +
-                    "Danach höchstens fünf Sekunden auf eine einzelne CRC-geprüfte GFDI-5000-Antwort zu 5007 warten. " +
+                    "Der dynamische ML-Handle und TX-Characteristic werden zur Laufzeit ermittelt. Die 5050-Hostmaske enthält 15 Nullbytes. " +
+                    "Nach dem 5007-Write höchstens fünf Sekunden auf eine einzelne CRC-geprüfte GFDI-5000-Antwort warten. " +
                     "Der Filter kann geräteseitige Pending-Sync-Aktivität auslösen; Trennen verhindert unbekannte Bandwirkungen nicht. " +
-                    "Garmin Connect und Recorder müssen beendet sein. Kein Retry und keine Folgekommandos."
+                    "Bei unvollständigem/negativem Bootstrap wird ohne 5007 passiv abgebrochen. Garmin Connect und Recorder müssen beendet sein. " +
+                    "Kein Retry und keine Datei-/Folgekommandos."
             )
             .setNegativeButton("Abbrechen", null)
-            .setPositiveButton("Genau einen Request senden") { _, _ ->
+            .setPositiveButton("Bootstrap; danach max. ein 5007") { _, _ ->
                 withBluetoothPermissions(needsScan = false) { runLegacy5007TestOnce() }
             }
             .show()
@@ -473,9 +476,9 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
             return
         }
         refreshLegacy5007Button()
-        statusOutput.text = "5007-Test läuft; keine Folgekommandos sind vorgesehen."
+        statusOutput.text = "Bootstrap-Test läuft; 5007 nur nach bestätigtem 5024/5050-Handshake."
         if (mlProbe == null) mlProbe = CirqaMlHandshakeProbe(this, adapter)
-        mlProbe?.startLegacy5007CompatibilityTest { message ->
+        mlProbe?.startLegacy5007AfterBootstrapTest { message ->
             runOnUiThread {
                 statusOutput.text = message
                 val supported = message.contains("Status 0 (Connect-Vertrag")
@@ -531,10 +534,11 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
             consumed == 1 -> "Freigegebenen zweiten 5007-Test starten"
             consumed == 2 -> "Freigegebenen dritten 5007-Test starten"
             consumed == 3 -> "Freigegebenen vierten 5007-Test starten"
-            else -> "Einmaligen 5007-Test starten"
+            consumed == 4 -> "Freigegebenen fünften Bootstrap→5007-Test starten"
+            else -> "Einmaligen Bootstrap→5007-Test starten"
         }
         legacy5007Button.contentDescription =
-            "Noch $remaining freigegebener 5007-Testversuch; dynamischer Handle, fünf Sekunden Antwortfenster."
+            "Noch $remaining freigegebener Bootstrap-/5007-Testversuch; 5007 nur nach bestätigtem 5024/5050-Handshake."
     }
 
     @SuppressLint("MissingPermission")

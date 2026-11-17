@@ -1,12 +1,12 @@
 package de.pulselibre
 
 /**
- * Hard lifetime cap for the specifically authorized four-run 5007 review.
+ * Hard lifetime cap for the specifically authorized five-run 5007 review.
  * The legacy boolean is migrated as one consumed attempt; it can never clear
  * or lower a persisted count.
  */
 object CirqaLegacy5007AttemptGate {
-    const val MAX_AUTHORIZED_ATTEMPTS = 4
+    const val MAX_AUTHORIZED_ATTEMPTS = 5
 
     fun consumedAttempts(storedCount: Int, legacyAttempted: Boolean): Int =
         maxOf(storedCount.coerceAtLeast(0), if (legacyAttempted) 1 else 0)

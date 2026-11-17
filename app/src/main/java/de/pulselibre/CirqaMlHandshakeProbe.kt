@@ -116,6 +116,24 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         }
     }
 
+    /** One-shot 5024/5050 bootstrap; only after its confirmed ACK may one 5007 be sent. */
+    fun startLegacy5007AfterBootstrapTest(result: (String) -> Unit) {
+        if (active) { result("ML-Test läuft bereits."); return }
+        legacy5007TestMode = true
+        bootstrapAckMode = true
+        configurationTestMode = true
+        historyDiagnosticMode = true
+        realtimeMode = false
+        continuousRecordingMode = false
+        start(false, result)
+        if (!active) {
+            legacy5007TestMode = false
+            bootstrapAckMode = false
+            configurationTestMode = false
+            historyDiagnosticMode = false
+        }
+    }
+
     /** Explicit opt-in: one minimal identity-free 5024 ACK candidate, no FileSync commands. */
     fun startBootstrapAckTest(result: (String) -> Unit) {
         if (active) { result("ML-Test läuft bereits."); return }
@@ -421,7 +439,10 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                         }
                         if (bootstrapAckMode && bootstrapAckSent && bootstrapAckChunks.isNotEmpty()) {
                             main.postDelayed({ if (active) sendNextBootstrapAckChunk(g) }, 80L)
-                        } else mark("ML-Schreiben bestätigt; warte auf Protokollantwort")
+                        } else {
+                            maybeSendLegacy5007AfterBootstrap(g)
+                            if (!legacy5007WriteClaimed) mark("ML-Schreiben bestätigt; warte auf Protokollantwort")
+                        }
                     }
                 }
             }, BluetoothDevice.TRANSPORT_LE)
@@ -516,7 +537,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                 val first = bytes.firstOrNull()?.toInt()?.and(255)
                 if (first != null && first == historyHandle) {
                     historyRouted++
-                    if (legacy5007TestMode) {
+                    if (legacy5007TestMode && legacy5007WriteClaimed) {
                         when (legacy5007Response.observeMlPayload(bytes.copyOfRange(1, bytes.size))) {
                             CirqaLegacy5007ResponseObserver.Result.PENDING -> Unit
                             CirqaLegacy5007ResponseObserver.Result.SUPPORTED ->
@@ -582,6 +603,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                             configuration5037ObservationStarted = true
                         }
                         phase = "GFDI-5000-ACK für 5050 empfangen; beobachte weitere Antworten"
+                        maybeSendLegacy5007AfterBootstrap(g)
                     }
                     if (bootstrapAckMode && historyRegistered && !bootstrapAckSent &&
                         fileListProbe.bootstrap.deviceInformationFrames > 0 &&
@@ -631,7 +653,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                 } else {
                     historyUnrouted++
                     if (legacy5007TestMode) {
-                        finish("5007-Test abgebrochen: unerwartete ML-Control-Nachricht oder dynamischer Handle.", g)
+                        finish("5007-Test abgebrochen: unerwartete ML-Control-Nachricht oder dynamischer Handle; 5007 nur nach abgeschlossenem Bootstrap.", g)
                         return
                     }
                 }
@@ -738,7 +760,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     send(g, GarminMlHandshake.registerRequest(pendingService))
                 } else if (historyDiagnosticMode && !historyRegistered) {
                     historyRegistered = true
-                    if (legacy5007TestMode) {
+                    if (legacy5007TestMode && !bootstrapAckMode) {
                         val handle = historyHandle
                         if (handle == null || legacy5007WriteClaimed) {
                             finish("5007-Test abgebrochen: dynamischer GFDI-Handle fehlt oder Request bereits gesendet.", g)
@@ -747,7 +769,11 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                             send(g, CirqaLegacy5007RequestCandidate.mlGattValueCandidate(handle))
                         }
                     } else {
-                        mark(if (bootstrapAckMode) "GFDI registriert; warte auf DeviceInformation für einmaliges ACK" else "GFDI registriert; beobachte Metadaten bis zum Zeitlimit")
+                        mark(if (bootstrapAckMode && legacy5007TestMode) {
+                            "GFDI registriert; warte auf 5024/5050-Handshake vor 5007"
+                        } else if (bootstrapAckMode) {
+                            "GFDI registriert; warte auf DeviceInformation für einmaliges ACK"
+                        } else "GFDI registriert; beobachte Metadaten bis zum Zeitlimit")
                     }
                 } else if (!historyDiagnosticMode) finish("Garmin ML: GFDI-Service erfolgreich registriert! ${if (requestedCloseAll) "CLOSE_ALL wurde zuvor bestätigt." else "Ohne CLOSE_ALL."} Verbindung beendet; keine Gesundheitsdaten gelesen.", g)
             }
@@ -757,9 +783,31 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         }
     }
 
+    private fun maybeSendLegacy5007AfterBootstrap(g: BluetoothGatt) {
+        if (!legacy5007TestMode || legacy5007WriteClaimed ||
+            !CirqaLegacy5007BootstrapGate.maySend5007(
+                bootstrapAckSent,
+                bootstrapAckConfirmed,
+                configurationResponseQueued,
+                configurationResponseConfirmed,
+                configurationAckReceived,
+                mlWritePending,
+                bootstrapAckChunks.isNotEmpty()
+            )) return
+        val handle = historyHandle
+        if (handle == null) {
+            finish("Bootstrap abgeschlossen, aber dynamischer GFDI-Handle fehlt; 5007 nicht gesendet.", g)
+            return
+        }
+        legacy5007WriteClaimed = true
+        mark("5024/5050 bestätigt; sende genau einen 5007-Request")
+        send(g, CirqaLegacy5007RequestCandidate.mlGattValueCandidate(handle))
+    }
+
     private fun legacy5007Report(reason: String): String =
         "PulsLibre · CIRQA GFDI-5007-Einzeltest\n" +
             "Ergebnis: $reason\n" +
+            (if (bootstrapAckMode) "Vorbedingung: 5024-ACK gesendet=${bootstrapAckSent}; GATT bestätigt=$bootstrapAckConfirmed; 5050-Hostantwort bestätigt=$configurationResponseConfirmed; 5000-ACK für 5050 empfangen=$configurationAckReceived.\n" else "") +
             "5007-Request gesendet: $legacy5007RequestSent (höchstens ein Versuch)\n" +
             "Connect-Kandidat: Typ 5007, Body 03, GFDI/CRC/COBS offline geprüft.\n" +
             "GFDI-Handle: ${historyHandle ?: "unbekannt"}; RX=$selectedRxUuid; TX=$selectedTxUuid; " +
