@@ -66,8 +66,8 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
         card.content.addView(header(metric))
         val gauge = HeartRateGaugeView(context)
         gauge.show(model, activity)
-        card.addView(gauge, LayoutParams(-1, -2))
-        card.addView(label(activity.caption, 11f, muted),
+        card.content.addView(gauge, LayoutParams(-1, -2))
+        card.content.addView(label(activity.caption, 11f, muted),
             LayoutParams(-1, -2).apply { topMargin = dp(2) })
         if (previous?.bpm != null && model.bpm != null && previous.bpm != model.bpm) {
             gauge.post { if (gauge.isAttachedToWindow) gauge.show(model, activity, previous.fraction) }
