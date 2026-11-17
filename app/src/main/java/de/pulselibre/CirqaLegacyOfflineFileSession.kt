@@ -2,7 +2,9 @@ package de.pulselibre
 
 /**
  * Offline coordinator: 5002 success -> 5004 chunks -> validated directory or file bytes.
- * No transport, outbound GFDI requests, ACKs, persistence or real CRC implementation.
+ * No transport, outbound GFDI requests, ACKs or persistence.
+ * CRC verification is injected: the ARC helper is reconstructed, but the
+ * Connect 5004 parser's final-byte comparison is not yet DEX-verified.
  */
 class CirqaLegacyOfflineFileSession(
     private val fileIndex: Int,
@@ -38,9 +40,9 @@ class CirqaLegacyOfflineFileSession(
     }
 
     /**
-     * Caller supplies the verified decoded size because a60.F is not yet
-     * independently established. A raw 5002 response is never interpreted as
-     * a length by this coordinator.
+     * Alternate entry point for callers with an independently validated size.
+     * Prefer beginFrom5002Response for the reconstructed u32LE 5002 field.
+     * This method does not compare verifiedSize with the response bytes.
      */
     fun beginWithVerifiedSize(readResponseBody: ByteArray, verifiedSize: Int): Boolean {
         if (phase != Phase.AWAITING_READ_RESPONSE) return false
