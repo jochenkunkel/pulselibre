@@ -63,6 +63,7 @@ class ExportActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        restoreSelection(savedInstanceState)
         val palette = AppPalette.of(this)
         val violet = palette.accent
         val ink = palette.ink
@@ -199,6 +200,31 @@ class ExportActivity : AppCompatActivity() {
             LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(14) })
         updateLabels()
         setContentView(screen)
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.putString("export_from", from.toString())
+        outState.putString("export_through", through.toString())
+        outState.putString("export_from_time", fromTime.toString())
+        outState.putString("export_through_time", throughTime.toString())
+        pendingWindow?.let {
+            outState.putLong("export_pending_start", it.startInclusiveEpochMillis)
+            outState.putLong("export_pending_end", it.endExclusiveEpochMillis)
+        }
+        super.onSaveInstanceState(outState)
+    }
+
+    private fun restoreSelection(state: Bundle?) {
+        if (state == null) return
+        from = state.getString("export_from")?.let { runCatching { LocalDate.parse(it) }.getOrNull() } ?: from
+        through = state.getString("export_through")?.let { runCatching { LocalDate.parse(it) }.getOrNull() } ?: through
+        fromTime = state.getString("export_from_time")?.let { runCatching { LocalTime.parse(it) }.getOrNull() } ?: fromTime
+        throughTime = state.getString("export_through_time")?.let { runCatching { LocalTime.parse(it) }.getOrNull() } ?: throughTime
+        if (state.containsKey("export_pending_start") && state.containsKey("export_pending_end")) {
+            val start = state.getLong("export_pending_start")
+            val end = state.getLong("export_pending_end")
+            pendingWindow = ExportWindow(start, end).takeIf { end > start }
+        }
     }
 
     private fun updateLabels() {
