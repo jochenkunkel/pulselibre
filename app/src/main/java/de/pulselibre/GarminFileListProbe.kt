@@ -29,6 +29,7 @@ class GarminFileListProbe {
             rawFrames.joinToString("\\n")
     val chunks = GarminChunkObserver()
     val protobuf = GarminProtobufReassembler()
+    val compactSession = CirqaCompactSessionObserver()
     private val pending = ArrayList<Byte>()
     private var collecting = false
     var frames = 0
@@ -53,7 +54,7 @@ class GarminFileListProbe {
 
 
     fun summary(): String = "GFDI-Frames: $frames; FileListResponse: $validLists; " +
-        "Dateieinträge: $fileEntries; Typen: $frameTypes; 5037-Strukturen gültig=$validSynchronizationShapes/ungültig=$malformedSynchronizationShapes; 5037-Maskenbitanzahl=$synchronizationMaskBitCounts; GFDI-5000-Status: $responseStatuses; Antwortfehler: $responseErrors; andere Nachrichten: $otherMessages; ungültige Frames: $rejectedFrames; ${bootstrap.summary()}; ${bootstrapDiagnosis.summary()}; ${postBootstrap.summary()}; ${handshake.summary()}; ${structure5050.summary()}; ${chunks.summary()}; ${protobuf.summary()}"
+        "Dateieinträge: $fileEntries; Typen: $frameTypes; 5037-Strukturen gültig=$validSynchronizationShapes/ungültig=$malformedSynchronizationShapes; 5037-Maskenbitanzahl=$synchronizationMaskBitCounts; GFDI-5000-Status: $responseStatuses; Antwortfehler: $responseErrors; andere Nachrichten: $otherMessages; ungültige Frames: $rejectedFrames; ${bootstrap.summary()}; ${bootstrapDiagnosis.summary()}; ${postBootstrap.summary()}; ${handshake.summary()}; ${structure5050.summary()}; ${chunks.summary()}; ${protobuf.summary()}; ${compactSession.summary()}"
 
     fun observeMlPayload(payload: ByteArray) {
         for (byte in payload) {
@@ -83,6 +84,7 @@ class GarminFileListProbe {
         val frame = out.toByteArray()
         if (GarminFrameValidator.inspectVerified(frame) == null) { rejectedFrames++; return }
         frames++
+        compactSession.observe(frame)
         if (captureRawFrames) {
             if (rawFrames.size < 32 && rawBytes + frame.size <= 8192) {
                 rawFrames.add("RX +${(System.nanoTime() - rawStartNanos) / 1_000_000}ms Frame #$frames " +
