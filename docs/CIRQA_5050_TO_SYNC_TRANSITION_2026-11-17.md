@@ -65,3 +65,12 @@ Implementiert: `Cirqa5050BodyParser` und `CirqaConnect531HandshakeModel` mit JVM
 ## Passive 5024-Strukturevidenz im Android-Diagnosebericht
 
 `Cirqa5024StructureObserver` wurde in `GarminFileListProbe` integriert. Er prüft nur CRC-validierte GFDI-5024-Frames gegen den Offline-Parser und meldet Anzahl, Bodylängen, Parser-Treffer und optionale Restlängen. Unit-ID, Produktidentität und Zeichenketten werden nicht ausgegeben. Ein Parser-Fehlschlag ist **keine** Aussage über die Gültigkeit der CIRQA-Geräteinformation: Garmin Connect interpretiert optionale Felder produktabhängig, und die Zuordnung der protokollierten Bodybytes zum 5.31-Layout muss am Gerät bestätigt werden. Drei JVM-Tests decken Metadaten, CRC-Ablehnung und verkürzte Frames ab. Es wurde kein aktiver Sendepfad geändert.
+
+
+## Garmin Connect 5.31: rekonstruierte 5024-Hostantwort (Übergabe OpenCode)
+
+OpenCode hat offline folgenden Aufbau der **Erweiterung nach dem 5000-ACK-Präfix für 5024** nachvollzogen: `u16(protocol = featureFlag && deviceProtocol >= 150 ? 150 : 113)`, `u16(0xFFFF)`, `u32(0xFFFFFFFF)`, `u16(hostConfig.appVersion)`, `u16(0xFFFF)`, dann drei jeweils mit `u8`-Bytezahl präfixierte UTF-8-Felder (`hostConfig.friendlyName`, `Build.MANUFACTURER`, `Build.MODEL`), gefolgt von `u8(0x01)`. Zahlen sind little-endian. Die Bedeutung des letzten Bytes ist **unbekannt**. Dies belegt den Connect-Codepfad, nicht die Akzeptanz durch CIRQA.
+
+`CirqaConnect531Host5024Response` bildet diesen Aufbau **offline** mit explizit übergebenen Werten ab. Es erfindet keine App-Version, Geräteidentität, Android-Build-Werte oder Feature-Flags und wird nicht vom Bluetooth-Sender aufgerufen. Tests prüfen die Bytefolge, den 5000/5024-Frame inklusive CRC, die Protokollbedingung, UTF-8-Bytezahl und Feldgrenzen. Der bisherige minimale 5024-Kandidat bleibt als historischer Diagnoseversuch erhalten; er ist nicht mit der Connect-Hostantwort gleichzusetzen.
+
+Die von OpenCode genannte Detailanalyse `docs/GARMIN_CONNECT_531_FILESYNC_REVERSE_ENGINEERING.md` lag zum Zeitpunkt dieser Umsetzung nur lokal bei OpenCode und war **noch nicht ins Repository gepusht**. Die vorstehende Zusammenfassung basiert auf der ausdrücklich übergebenen Analyse, nicht auf einer unabhängig verifizierten APK.
