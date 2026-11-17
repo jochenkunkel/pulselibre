@@ -13,7 +13,7 @@ jobs:
   cleanup:
     runs-on: ubuntu-latest
     steps:
-      - name: Keep five newest signed APKs and remove older build artifacts
+      - name: Keep five newest APKs across legacy and signed artifact names
         env:
           GH_TOKEN: ${{ github.token }}
           REPOSITORY: ${{ github.repository }}
@@ -28,7 +28,7 @@ jobs:
           kept=0
           while IFS=$'\t' read -r created id name; do
             case "$name" in
-              pulselibre-signed-update-apk)
+              pulselibre-signed-update-apk|pulselibre-debug-apk)
                 apk_seen=$((apk_seen + 1))
                 if [ "$apk_seen" -le 5 ]; then
                   echo "KEEP recent APK artifact $id ($created)"
