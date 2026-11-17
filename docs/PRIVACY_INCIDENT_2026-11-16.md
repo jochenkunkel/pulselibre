@@ -1,7 +1,7 @@
 # Critical privacy incident — 2026-11-16
 
 ## Confirmed exposure
-A user-supplied CIRQA overnight JSONL recording was tracked in a public GitHub repository at `data/overnight/pulselibre-cirqa-overnight.jsonl`. It contains timestamps and individual health metrics (including heart rate, SpO2, RR intervals, stress and activity). The document `docs/CIRQA_OVERNIGHT_FIRST_RESULTS.md` contained derived precise measurements and time ranges. These data must be treated as potentially identifiable health data.
+A user-supplied CIRQA overnight JSONL recording was tracked in a public GitHub repository at `data/overnight/pulselibre-cirqa-overnight.jsonl`. It contains timestamps and individual health metrics (including heart rate, SpO2, RR intervals, stress and activity). The document `docs/protocol/device-tests/CIRQA_OVERNIGHT_FIRST_RESULTS.md` contained derived precise measurements and time ranges. These data must be treated as potentially identifiable health data.
 
 ## Completed containment on main
 - Commit `7d9d6a5`: delete recording from current tree.

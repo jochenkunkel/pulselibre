@@ -20,7 +20,7 @@
 - [QUALITY_GATE.md](QUALITY_GATE.md), [CI_TEST_STRATEGY.md](CI_TEST_STRATEGY.md), [TESTPLAN.md](TESTPLAN.md): Qualität und Tests.
 - [PRIVACY_INCIDENT_2026-11-16.md](PRIVACY_INCIDENT_2026-11-16.md): Datenschutzvorfall; nicht in ein Archiv verstecken.
 - [ARCHITECTURE_AND_CODE_REVIEW.md](ARCHITECTURE_AND_CODE_REVIEW.md): Architektur und historische Prüfungen.
-- [CIRQA_SQLITE_STORAGE.md](CIRQA_SQLITE_STORAGE.md), [LOCAL_STORAGE.md](LOCAL_STORAGE.md): gemeinsame Datenhaltung zwischen Protokoll und UI.
+- [CIRQA_SQLITE_STORAGE.md](protocol/data-model/CIRQA_SQLITE_STORAGE.md), [LOCAL_STORAGE.md](LOCAL_STORAGE.md): gemeinsame Datenhaltung zwischen Protokoll und UI.
 
 ## Umzugsregeln (2026-11-17)
 
