@@ -61,3 +61,7 @@ Offline implementiert: `CirqaLegacyDirectoryParser`, `CirqaLegacyFileTypesParser
 ## Offline-Dateisitzung (2026-11-17)
 
 `CirqaLegacyOfflineFileSession` verbindet 5002-Response-Decoding, `CirqaLegacyPlainFileAssembler` und optional den Directory-Parser für Index 0. Es ist eine bewusst **transportfreie** Zustandsmaschine (`AWAITING_READ_RESPONSE → RECEIVING → COMPLETE/FAILED`). Die Dateilänge muss vom Aufrufer als **separat verifizierter Wert** kommen, weil `a60.F` noch nicht verifiziert wurde; aus vier rohen 5002-Bytes wird keine Größe geraten. Für echte Geräteübertragung ist außerdem die reale `u45.a`-CRC-Implementierung erforderlich. Tests bilden einen synthetischen 5002/5004-Verzeichnistransfer und einen normalen Dateiindex nach. **Kein echter CIRQA-Download**, kein BLE und keine automatische FIT-Persistenz.
+
+## FIT-Dateiauswahl (2026-11-17)
+
+`CirqaLegacyFitFileSelector` selektiert **nur offline** Einträge mit `fileIndex != 0`, `type == 0x80`, READ-Attribut, und Subtype in der Schnittmenge von **explizit gelieferten** unterstützten Dateitypen und Upload-Subtypes. Fehlende Informationen führen zu einer leeren Auswahl; es werden keine Default-/Fallback-Subtypes als CIRQA-Fähigkeit interpretiert. Doppelte Indizes werden dedupliziert. Dieser Baustein löst keine BLE-Anfragen aus und verändert keine Dateiattribute. Die tatsächliche Uploadable-Subtype-Menge und die Connect-Filterlogik müssen für CIRQA noch bestätigt werden.
