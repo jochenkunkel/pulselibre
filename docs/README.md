@@ -9,6 +9,8 @@
 | **UI und Produktdesign** | Screens, Kacheln, Navigation, Barrierefreiheit, Theme | [docs/ui/README.md](ui/README.md) |
 | **CIRQA-Protokollentwicklung** | BLE, MLR/GFDI/FIT, History, Versuche und Freigabegrenzen | [docs/protocol/README.md](protocol/README.md) |
 | **Wissenschaft und Messwerte** | Metriken, Formeln, Normkontext, Evidenz, Validierung | [docs/science/README.md](science/README.md) |
+| **Testnachweise und Verifikation** | Testpläne, Geräteversuche, CI-Ergebnisse und nachvollziehbare Prüfberichte | [docs/test-evidence/README.md](test-evidence/README.md) |
+| **Zusammenarbeit und Projektregeln** | Agenten, Zuständigkeiten, Qualitätsvorgaben und Übergaben | [docs/collaboration/README.md](collaboration/README.md) |
 
 ## Bereichsübergreifend (vorerst bewusst im Stammverzeichnis)
 
