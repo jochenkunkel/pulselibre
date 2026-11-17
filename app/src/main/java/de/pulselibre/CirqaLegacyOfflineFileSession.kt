@@ -22,6 +22,22 @@ class CirqaLegacyOfflineFileSession(
     }
 
     /**
+     * Starts from the now-reconstructed Connect 5002 unsigned LE length.
+     * Rejects zero, overflow and sizes beyond the configured maximum.
+     * Offline only; does not assert CIRQA compatibility.
+     */
+    fun beginFrom5002Response(readResponseBody: ByteArray): Boolean {
+        if (phase != Phase.AWAITING_READ_RESPONSE) return false
+        val verifiedSize = CirqaLegacy5002Codec.boundedSuccessSize(readResponseBody, maxFileBytes)
+        if (verifiedSize == null) {
+            readStatus = CirqaLegacy5002Codec.response(readResponseBody)?.status
+            phase = Phase.FAILED
+            return false
+        }
+        return beginWithVerifiedSize(readResponseBody, verifiedSize)
+    }
+
+    /**
      * Caller supplies the verified decoded size because a60.F is not yet
      * independently established. A raw 5002 response is never interpreted as
      * a length by this coordinator.
