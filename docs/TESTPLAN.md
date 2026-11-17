@@ -133,3 +133,7 @@ T24: NICHT GETESTET
 T25: NICHT GETESTET
 Abbruch / beobachtete Nebenwirkung:
 ```
+
+## CI-Neustart nach Wiederherstellung der öffentlichen Repository-Sichtbarkeit (2026-11-17)
+
+Der Repository-API-Status wurde als `private=false`, `visibility=public` geprüft. Die vorherigen Android-CI-Läufe (zuletzt `44126931755` für `cd050708`) endeten mit `failure`; die genaue Ursache ist damit **nicht** nachgewiesen. Dieser Dokumentationscommit löst einen neuen `push`-Build auf `main` aus. Erst ein erfolgreich abgeschlossener Lauf mit vorhandenem signiertem APK-Artefakt erlaubt die Ausgabe als installierbares Update. Eine geänderte Sichtbarkeit allein beweist keine Reparatur des Builds. Der CIRQA-Historiendownload bleibt NO-GO.
