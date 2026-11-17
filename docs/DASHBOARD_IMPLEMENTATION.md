@@ -207,3 +207,14 @@ Vor Restore werden Dateieinträge, Größenlimits, Formatversion, SHA-256-Prüfs
 Die Verlaufskarten fassen echte Empfangssnapshots abhängig vom gewählten Zeitraum in Zeitfenstern zusammen: 15 Minuten bei 24 Stunden, 2 Stunden bei 7 Tagen und 6 Stunden bei 30 Tagen. Pro belegtem Fenster zeigt die Grafik beobachtetes Minimum, Median und Maximum sowie die Anzahl der Originalwerte. Leere Zeitfenster bleiben leer. Es gibt keine Interpolation, künstliche Messpunkte oder Verbindungslinien. Die Karten nennen Auflösung, belegte Fenster und ursprüngliche Punktzahl.
 
 Das Dashboard versieht Messwerttitel mit kleinen thematischen Symbolen (Puls, Sauerstoff, Schlaf, Schritte und weitere Messwertgruppen). Die Symbole sind dekorative Orientierung und tragen keine Mess- oder Gesundheitsinformation. Android-UI-Tests sichern die Symbolpräsenz an Messkarten und die Verlaufstests die Zeitfensteraggregation ab. Die Gauge-Karte ist für ein kompakteres Kachelverhältnis neu angeordnet; Skalenbeschriftungen liegen innerhalb der Anzeige und Modus, Wert und Einheit stehen direkt unter dem Bogen.
+
+
+## Issue #19: Messwertkacheln, Icons und Skalen (2026-11-17)
+
+Die Prüfung gegen `docs/science/SCIENTIFIC_DASHBOARD_TILE_BLUEPRINT.md` ergibt drei Gruppen:
+
+- **Direkt als Kachel darstellbar:** Herzfrequenz, kumulativer Tagesschrittstand und Geräte-Schrittziel; ihre Anzeige übernimmt gespeicherte Werte und Einheiten. Die zusätzlich sichtbare Kachel „Tagesziel Schritte“ berechnet `Schritte ÷ Geräte-Schrittziel × 100`. Das ist ausschließlich Produktfortschritt zum vom Band gelieferten Ziel, keine WHO-Empfehlung oder Gesundheitsbewertung. Fehlende/ungültige Eingaben ergeben „Keine Messdaten“; Werte über 100 % bleiben numerisch erhalten.
+- **Nur mit Quellenhinweis und Einschränkung:** SpO₂, Ruhepuls und Atemfrequenz zeigen den Gerätewert samt neutraler, kontextgebundener Referenzmarke. Der NHS-Kontext für SpO₂ stammt vom Finger-Pulsoximeter und validiert den CIRQA-Handgelenksensor nicht. Eine Referenzmarke wird nicht als klinische Ampel eingefärbt.
+- **Noch keine zusätzliche Gesundheitsauswertung:** Schrittfrequenz/Belastungstrends, Stress/Body Battery, RR→HRV, Aktivitätsminuten gegen WHO-Wochenziele, Schlafdauer/-stadien, Sitzzeit und Kalorieninterpretationen benötigen bestätigte Service-Semantik, ausreichend dichte Daten oder Historien-/Sensorzugriff. Die vorhandenen Roh-/Gerätewerte bleiben entsprechend gekennzeichnet; daraus wird kein weiterer Score abgeleitet.
+
+Jede Messwertkachel erhält ein thematisches Icon. Skalenfüllungen verwenden die jeweilige Akzentfarbe; neutrale Referenzbereiche bleiben getrennt davon. Farbbänder mit medizinischer Bedeutung werden nur mit belastbarer, auf Messmethode und Kontext anwendbarer Evidenz ergänzt. Für die Schrittziel-Kachel testet die JVM-Suite gültige Prozentberechnung, Überschreitung, fehlende Eingaben und den nicht-klinischen Skalenvertrag.
