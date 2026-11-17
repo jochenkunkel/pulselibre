@@ -27,6 +27,10 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private var historyDiagnosticMode = false
     private var rawCaptureMode = false
     private var bootstrapAckMode = false
+    private var configurationTestMode = false
+    private var configurationResponseQueued = false
+    private var configurationResponseConfirmed = false
+    private var configurationChunksOutstanding = 0
     private var bootstrapAckSent = false
     private var bootstrapAckConfirmed = false
     private var bootstrapAckPending = false
@@ -87,6 +91,20 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     /** Explicit opt-in: one minimal identity-free 5024 ACK candidate, no FileSync commands. */
     fun startBootstrapAckTest(result: (String) -> Unit) {
         if (active) { result("ML-Test läuft bereits."); return }
+        bootstrapAckMode = true
+        historyDiagnosticMode = true
+        realtimeMode = false
+        start(false, result)
+    }
+
+    /**
+     * Explicit one-shot active configuration test: 5024 ACK, then 5050 ACK
+     * and a conservative 15-byte zero-capability 5050 response.
+     * Never downloads files or runs from background recording.
+     */
+    fun startConfigurationTest(result: (String) -> Unit) {
+        if (active) { result("ML-Test läuft bereits."); return }
+        configurationTestMode = true
         bootstrapAckMode = true
         historyDiagnosticMode = true
         realtimeMode = false
@@ -166,6 +184,9 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         active = true
         historyRegistered = false
         bootstrapAckSent = false
+        configurationResponseQueued = false
+        configurationResponseConfirmed = false
+        configurationChunksOutstanding = 0
         bootstrapAckConfirmed = false
         bootstrapAckPending = false
         bootstrapAckChunks.clear()
@@ -281,6 +302,9 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                         if (bootstrapAckPending) {
                             bootstrapAckPending = false
                             if (bootstrapAckChunks.isEmpty()) bootstrapAckConfirmed = true
+                            if (configurationResponseQueued && bootstrapAckChunks.isEmpty()) {
+                                configurationResponseConfirmed = true
+                            }
                         }
                         if (bootstrapAckMode && bootstrapAckSent && bootstrapAckChunks.isNotEmpty()) {
                             main.postDelayed({ if (active) sendNextBootstrapAckChunk(g) }, 80L)
@@ -363,6 +387,26 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                             framed.toList().chunked(19).forEach { part ->
                                 bootstrapAckChunks.addLast(byteArrayOf(handle.toByte()) + part.toByteArray())
                             }
+                            main.post { if (active) sendNextBootstrapAckChunk(g) }
+                        }
+                    }
+                    if (configurationTestMode && !configurationResponseQueued &&
+                        bootstrapAckConfirmed && !bootstrapAckPending && bootstrapAckChunks.isEmpty() &&
+                        (fileListProbe.frameTypes["gfdi-5050"] ?: 0) > 0) {
+                        configurationResponseQueued = true
+                        val handle = historyHandle
+                        if (handle != null) {
+                            val candidates = listOf(
+                                CirqaOfflineGfdiStatusCandidate.ackFrame(5050),
+                                Cirqa5050OfflineHostCapabilities.offlineFrame(byteCount = 15)
+                            )
+                            for (candidate in candidates) {
+                                GarminFileListRequest.cobs(candidate).toList().chunked(19).forEach { part ->
+                                    bootstrapAckChunks.addLast(byteArrayOf(handle.toByte()) + part.toByteArray())
+                                    configurationChunksOutstanding++
+                                }
+                            }
+                            mark("5050 empfangen; sende einmalig ACK und konservative 15-Byte-Hostmaske")
                             main.post { if (active) sendNextBootstrapAckChunk(g) }
                         }
                     }
@@ -509,6 +553,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         "PulsLibre · CIRQA Historien-Diagnose (Phase 1)\n" +
         "Ergebnis: $reason\n" +
         (if (bootstrapAckMode) "Bootstrap-ACK-Test: Kandidat gesendet=$bootstrapAckSent; GATT bestätigt=$bootstrapAckConfirmed; GFDI-Frames nach ACK-Start=${(fileListProbe.frames - bootstrapBaselineFrames).coerceAtLeast(0)}; Dateibefehle=0\n" else "") +
+        (if (configurationTestMode) "5050-Konfigurationstest: Antwort eingeplant=$configurationResponseQueued; GATT-Schreibfolge bestätigt=$configurationResponseConfirmed; Hostmaske=15 Bytes/alle Bits 0; Dateibefehle=0\\n" else "") +
         "GFDI-Registrierung: ${if (historyRegistered) "bestätigt" else "nicht bestätigt"}\n" +
         "Letzte Phase: $phase\n" +
         "GATT-Schreiben bestätigt: $writeConfirmed\n" +
@@ -582,6 +627,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             historyDiagnosticMode = false
             fileListRequestMode = false
             bootstrapAckMode = false
+            configurationTestMode = false
             rawCaptureMode = false
             expandedMode = false
             exploratoryMode = false
@@ -598,6 +644,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         session = null
         realtimeMode = false
         bootstrapAckMode = false
+        configurationTestMode = false
         rawCaptureMode = false
         expandedMode = false
         exploratoryMode = false
