@@ -1,3 +1,6 @@
+Failed to create stream fd: Operation not permitted
+Failed to create stream fd: Operation not permitted
+Failed to create stream fd: Operation not permitted
 package de.pulselibre
 
 import android.annotation.SuppressLint
@@ -90,8 +93,22 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
 
     private fun metricCard(metric: DashboardMetric, accent: Int) = card(metric).apply {
         addView(header(metric))
-        addView(label(metric.value, 22f, accent, true),
-            LayoutParams(-1, -2).apply { topMargin = dp(6) })
+        if (metric.title == "Sauerstoffsättigung · SpO₂") {
+            val percent = Regex("^[0-9]+(?= %$)").find(metric.value)?.value?.toIntOrNull()
+            val valueLayer = android.widget.FrameLayout(context).apply {
+                contentDescription = metric.value
+            }
+            valueLayer.addView(SpO2LungView(context, percent, palette.indicator, palette.muted, palette.track),
+                android.widget.FrameLayout.LayoutParams(-1, dp(76), Gravity.CENTER))
+            valueLayer.addView(label(metric.value, 22f, accent, true).apply {
+                gravity = Gravity.CENTER
+                tag = "spo2_value"
+            }, android.widget.FrameLayout.LayoutParams(-1, -1))
+            addView(valueLayer, LayoutParams(-1, dp(76)).apply { topMargin = dp(4) })
+        } else {
+            addView(label(metric.value, 22f, accent, true),
+                LayoutParams(-1, -2).apply { topMargin = dp(6) })
+        }
         val profile = MetricReferenceProfile.forMetric(metric, stepGoal)
         val value = Regex("-?[0-9]+") .find(metric.value)?.value?.toIntOrNull()
         if (profile != null && value != null) {
@@ -157,6 +174,78 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
     }
 
     private fun dp(value: Int) = (value * resources.displayMetrics.density + 0.5f).toInt()
+}
+
+/** Decorative oxygen-fill silhouette. It conveys only the received percent, never a diagnosis.
+ * Blueprint O01: 95–100% is reference context for a finger oximeter only. No CIRQA wrist-device
+ * clinical bands are defined below 95%; the requested 90% green boundary is a product visual
+ * convention, not a medical threshold. Thus readings below 90% use a neutral fill color.
+ */
+@SuppressLint("ViewConstructor")
+internal class SpO2LungView(
+    context: Context,
+    percent: Int?,
+    private val neutralColor: Int,
+    private val greenColor: Int,
+    private val trackColor: Int
+) : View(context) {
+    val fillFraction: Float? = percent?.takeIf { it in 1..100 }?.div(100f)
+    val fillColor: Int = if (percent != null && percent >= 90) greenColor else neutralColor
+    private val density = resources.displayMetrics.density
+    private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val lung = android.graphics.Path()
+
+    init {
+        contentDescription = "Dekorative Lungengrafik${fillFraction?.let { ", Füllstand ${percent}%" } ?: ", keine Messdaten"}; keine medizinische Bewertung"
+        importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO
+    }
+
+    override fun onDraw(canvas: Canvas) {
+        super.onDraw(canvas)
+        val w = width.toFloat()
+        val h = height.toFloat()
+        if (w <= 0f || h <= 0f) return
+        val scale = minOf(w / 64f, h / 76f)
+        val left = (w - 64f * scale) / 2f
+        val top = (h - 76f * scale) / 2f
+        val save = canvas.save()
+        canvas.translate(left, top)
+        canvas.scale(scale, scale)
+        lung.reset()
+        // Trachea and paired lung lobes, drawn as one continuous silhouette.
+        lung.moveTo(28f, 5f); lung.lineTo(36f, 5f); lung.lineTo(36f, 29f)
+        lung.cubicTo(40f, 28f, 46f, 18f, 53f, 21f)
+        lung.cubicTo(61f, 24f, 63f, 40f, 60f, 57f)
+        lung.cubicTo(58f, 69f, 50f, 74f, 43f, 70f)
+        lung.cubicTo(37f, 67f, 37f, 56f, 36f, 45f)
+        lung.lineTo(32f, 40f); lung.lineTo(28f, 45f)
+        lung.cubicTo(27f, 56f, 27f, 67f, 21f, 70f)
+        lung.cubicTo(14f, 74f, 6f, 69f, 4f, 57f)
+        lung.cubicTo(1f, 40f, 3f, 24f, 11f, 21f)
+        lung.cubicTo(18f, 18f, 24f, 28f, 28f, 29f)
+        lung.close()
+        paint.style = Paint.Style.FILL
+        paint.color = trackColor
+        canvas.drawPath(lung, paint)
+        fillFraction?.let { fraction ->
+            val fillSave = canvas.save()
+            canvas.clipPath(lung)
+            canvas.clipRect(0f, 76f * (1f - fraction), 64f, 76f)
+            paint.color = fillColor
+            paint.alpha = 175
+            canvas.drawRect(0f, 0f, 64f, 76f, paint)
+            paint.alpha = 255
+            canvas.restoreToCount(fillSave)
+        }
+        paint.style = Paint.Style.STROKE
+        paint.strokeWidth = 1.6f
+        paint.strokeCap = Paint.Cap.ROUND
+        paint.strokeJoin = Paint.Join.ROUND
+        paint.color = fillColor
+        paint.alpha = 210
+        canvas.drawPath(lung, paint)
+        canvas.restoreToCount(save)
+    }
 }
 
 /** Small, individually accessible tap target; only the drawn dot changes with reception age. */

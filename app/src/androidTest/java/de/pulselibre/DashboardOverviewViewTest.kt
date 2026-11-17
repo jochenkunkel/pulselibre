@@ -1,3 +1,6 @@
+Failed to create stream fd: Operation not permitted
+Failed to create stream fd: Operation not permitted
+Failed to create stream fd: Operation not permitted
 package de.pulselibre
 
 import android.content.Context
@@ -20,6 +23,22 @@ class DashboardOverviewViewTest {
             this.fontScale = fontScale
             screenWidthDp = width
         })
+    }
+
+    @Test fun spo2LungFillsFromActualPercentAndOnlyUsesRequestedGreenAtNinetyOrAbove() {
+        InstrumentationRegistry.getInstrumentation().runOnMainSync {
+            val base = AppPalette.of(context(1f, 400))
+            val atNinety = SpO2LungView(context(1f, 400), 90, base.indicator, base.muted, base.track)
+            val belowNinety = SpO2LungView(context(1f, 400), 89, base.indicator, base.muted, base.track)
+            val missing = SpO2LungView(context(1f, 400), null, base.indicator, base.muted, base.track)
+            assertEquals(0.9f, atNinety.fillFraction!!, 0.001f)
+            assertEquals(base.indicator, atNinety.fillColor)
+            assertEquals(0.89f, belowNinety.fillFraction!!, 0.001f)
+            assertEquals(base.muted, belowNinety.fillColor)
+            assertNull(missing.fillFraction)
+            assertEquals(base.muted, missing.fillColor)
+            assertTrue(missing.contentDescription.contains("keine Messdaten"))
+        }
     }
 
     @Test fun emptyCardsAreAccessibleAndNeverSeedMeasurements() {
