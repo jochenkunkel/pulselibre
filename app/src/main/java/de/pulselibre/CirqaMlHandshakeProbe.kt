@@ -408,7 +408,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     // A second device 5050 after our response was queued is an
                     // unverified retry; stop instead of negotiating repeatedly.
                     if (configurationTestMode && configurationResponseQueued &&
-                        (fileListProbe.frameTypes["gfdi-5050"] ?: 0) > configuration5050Baseline) {
+                        Cirqa5050RetryGuard.hasRetry(configuration5050Baseline, fileListProbe.frameTypes["gfdi-5050"] ?: 0)) {
                         finish("Sicherheitsabbruch: erneute 5050-Anfrage nach geplanter Antwort.", g)
                         return
                     }
