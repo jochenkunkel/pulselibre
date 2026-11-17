@@ -12,7 +12,7 @@ object CirqaConnect531HandshakePreflight {
         FRIENDLY_NAME_NOT_VERIFIED,
         MANUFACTURER_NOT_VERIFIED,
         MODEL_NOT_VERIFIED,
-        HOST_RESPONSE_NOT_VERIFIED_ON_CIRQA
+        EXPLICIT_TRIAL_AUTHORIZATION_MISSING
     }
 
     data class Evidence(
@@ -22,7 +22,7 @@ object CirqaConnect531HandshakePreflight {
         val friendlyNameVerified: Boolean = false,
         val manufacturerVerified: Boolean = false,
         val modelVerified: Boolean = false,
-        val hostResponseVerifiedOnCirqa: Boolean = false
+        val explicitTrialAuthorized: Boolean = false
     )
 
     fun blockers(evidence: Evidence): Set<Blocker> = buildSet {
@@ -32,6 +32,6 @@ object CirqaConnect531HandshakePreflight {
         if (!evidence.friendlyNameVerified) add(Blocker.FRIENDLY_NAME_NOT_VERIFIED)
         if (!evidence.manufacturerVerified) add(Blocker.MANUFACTURER_NOT_VERIFIED)
         if (!evidence.modelVerified) add(Blocker.MODEL_NOT_VERIFIED)
-        if (!evidence.hostResponseVerifiedOnCirqa) add(Blocker.HOST_RESPONSE_NOT_VERIFIED_ON_CIRQA)
+        if (!evidence.explicitTrialAuthorized) add(Blocker.EXPLICIT_TRIAL_AUTHORIZATION_MISSING)
     }
 }
