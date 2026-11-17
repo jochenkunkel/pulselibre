@@ -63,7 +63,7 @@ def summarize(path):
         "types": dict(sorted(counts.items())),
         "acl_records": counts["acl"],
         "complete_att_candidates": att_candidates,
-        "sufficient_for_att_analysis": counts["acl"] > 0,
+        "sufficient_for_att_analysis": att_candidates > 0,
         "warning": "No ACL packets; ATT/GATT analysis impossible" if not counts["acl"] else
                    "ACL present; ATT completeness and device attribution not established",
     }
