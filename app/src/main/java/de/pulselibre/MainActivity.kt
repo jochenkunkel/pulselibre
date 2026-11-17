@@ -262,28 +262,17 @@ class MainActivity : AppCompatActivity() {
             setPadding(dp(16), dp(12), dp(16), dp(14))
             background = rounded(palette.card)
         }
-        bodyCard.addView(text("MEIN KÖRPERPROFIL  ·  Tippen zum Bearbeiten", 12f, violet, true))
-        val bodyRow = LinearLayout(this).apply {
+        val bodyHeader = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = android.view.Gravity.CENTER_VERTICAL
         }
-        val bodyFigure = TextView(this).apply {
-            text = PersonalSettings.bodyAvatar(this@MainActivity)
-            textSize = 76f
-            gravity = android.view.Gravity.CENTER
-            setTextColor(Color.rgb(185, 164, 239))
-            contentDescription = "Symbolische Personendarstellung"
-        }
-        bodyRow.addView(bodyFigure, LinearLayout.LayoutParams(0, dp(112), 1f))
-        val bodyValues = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
-        bodyRow.addView(bodyValues, LinearLayout.LayoutParams(0, -2, 2f))
+        bodyHeader.addView(text("MEIN KÖRPERPROFIL · Tippen zum Bearbeiten", 12f, violet, true),
+            LinearLayout.LayoutParams(0, -2, 1f))
         val healthInfo = TextView(this).apply {
             text = "ⓘ"
-            textSize = 26f
+            textSize = 17f
             gravity = android.view.Gravity.CENTER
             setTextColor(AppPalette.of(this@MainActivity).indicator)
-            minWidth = dp(48)
-            minHeight = dp(48)
             contentDescription = "Informationen zu empfangenen Messungen und lokaler Speicherung"
             isClickable = true
             isFocusable = true
@@ -291,22 +280,32 @@ class MainActivity : AppCompatActivity() {
                 val summary = CirqaDashboardReader(this@MainActivity).read()
                 androidx.appcompat.app.AlertDialog.Builder(this@MainActivity)
                     .setTitle("Deine Messdaten")
-                    .setMessage("${summary.samples} empfangene Messungen\n" +
-                        "Originalprotokoll: ${summary.bytes / 1024} KiB\n\n" +
-                        "Deine Werte bleiben auf diesem Gerät. Keine Cloud.\n" +
+                    .setMessage("${summary.samples} empfangene Messungen\\n" +
+                        "Originalprotokoll: ${summary.bytes / 1024} KiB\\n\\n" +
+                        "Deine Werte bleiben auf diesem Gerät. Keine Cloud.\\n" +
                         "Messzeit = Empfangszeit. Keine medizinische Diagnose.")
                     .setPositiveButton("Schließen", null)
                     .show()
             }
         }
-        // Align the information button with the mannequin, not the dashboard heading.
-        bodyRow.addView(healthInfo, LinearLayout.LayoutParams(dp(48), dp(48)))
+        bodyHeader.addView(healthInfo, LinearLayout.LayoutParams(dp(32), dp(32)))
+        bodyCard.addView(bodyHeader)
+
+        val bodyRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = android.view.Gravity.CENTER_VERTICAL
+        }
+        val bodyFigure = BodyProfileAvatarView(this)
+        bodyRow.addView(bodyFigure, LinearLayout.LayoutParams(dp(112), dp(120)).apply {
+            marginEnd = dp(12)
+        })
+        val bodyValues = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+        bodyRow.addView(bodyValues, LinearLayout.LayoutParams(0, -2, 1f))
         bodyCard.addView(bodyRow)
         fun refreshBodyCard() {
             val p = getSharedPreferences("local_personal_profile", MODE_PRIVATE)
             bodyValues.removeAllViews()
-            bodyFigure.text = PersonalSettings.bodyAvatar(this@MainActivity)
-            bodyFigure.contentDescription = "Körperprofil-Avatar: ${p.getString("gender", "Keine Angabe")}"
+            bodyFigure.contentDescription = "Illustration eines bärtigen Mannes. Profilwerte sind daneben aufgeführt."
             listOf(
                 Triple("↕", "Größe", p.getString("height_cm", "").orEmpty().let { if (it.isBlank()) "–" else it + " cm" }),
                 Triple("⚖", "Gewicht", p.getString("weight_kg", "").orEmpty().let { if (it.isBlank()) "–" else it + " kg" }),
