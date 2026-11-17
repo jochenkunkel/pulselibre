@@ -5,7 +5,6 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.RectF
-import android.graphics.SweepGradient
 import android.view.View
 import kotlin.math.cos
 import kotlin.math.sin
@@ -15,9 +14,6 @@ class HeartRateGaugeView(context: Context) : View(context) {
     private val colors = AppPalette.of(context)
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val arc = RectF()
-    private var gradient: SweepGradient? = null
-    private var gradientCenterX = Float.NaN
-    private var gradientCenterY = Float.NaN
     private var reading = HeartRateGaugeModel(null)
     private var mode = PulseContext.UNKNOWN
     private var shownFraction = 0f
@@ -32,7 +28,8 @@ class HeartRateGaugeView(context: Context) : View(context) {
         mode = activity.context
         contentDescription = "Herzfrequenz: ${model.bpm?.let { "$it bpm" } ?: "Keine Messdaten"}. " +
             "${activity.context.label}. ${activity.explanation}. " +
-            "Modus heuristisch aus Schrittzähler abgeleitet, kein Nachweis von Sitzen oder Sport. ${model.scaleNote}"
+            "Modus heuristisch aus Schrittzähler abgeleitet, kein Nachweis von Sitzen oder Sport. " +
+            "Anzeigeskala 40 bis 180 bpm, keine medizinischen Zonen. ${model.scaleNote}"
         val target = model.fraction ?: 0f
         if (isAttachedToWindow && model.bpm != null && ValueAnimator.areAnimatorsEnabled()) {
             animator = ValueAnimator.ofFloat(shownFraction, target).apply {
@@ -59,7 +56,7 @@ class HeartRateGaugeView(context: Context) : View(context) {
         val h = height.toFloat()
         if (w <= 0 || h <= 0) return
         val cx = w / 2
-        val cy = h * 0.35f
+        val cy = h * 0.29f
         val radius = w * 0.31f
         arc.set(cx - radius, cy - radius, cx + radius, cy + radius)
         fun point(angle: Float, r: Float): Pair<Float, Float> {
@@ -72,25 +69,23 @@ class HeartRateGaugeView(context: Context) : View(context) {
         paint.strokeWidth = w * 0.045f
         paint.color = colors.track
         paint.shader = null
-        canvas.drawArc(arc, 135f, 270f, false, paint)
+        drawArcRotated(canvas, arc, 0f, HeartRateGaugeModel.ARC_SWEEP_DEGREES,
+            cx, cy, HeartRateGaugeModel.ARC_START_DEGREES, paint)
 
-        // A continuous green→yellow→orange→red display gradient. Colors are not health zones.
-        if (gradientCenterX != cx || gradientCenterY != cy || gradient == null) {
-            gradient = SweepGradient(cx, cy,
-                intArrayOf(0xFF26A879.toInt(), 0xFF85BE55.toInt(), 0xFFE4C441.toInt(), 0xFFE78A31.toInt(), 0xFFD84B52.toInt()),
-                floatArrayOf(0f, 0.20f, 0.42f, 0.62f, 0.75f))
-            gradientCenterX = cx
-            gradientCenterY = cy
+        // Continuous green→yellow→orange→red display gradient; colors are not medical bands.
+        val ramp = intArrayOf(0xFF26A879.toInt(), 0xFFE4C441.toInt(), 0xFFE78A31.toInt(), 0xFFD84B52.toInt())
+        val segments = 120
+        for (i in 0 until segments) {
+            paint.color = rampColor(ramp, i.toFloat() / (segments - 1))
+            drawArcRotated(canvas, arc,
+                i * HeartRateGaugeModel.ARC_SWEEP_DEGREES / segments,
+                (HeartRateGaugeModel.ARC_SWEEP_DEGREES + 0.8f) / segments,
+                cx, cy, HeartRateGaugeModel.ARC_START_DEGREES, paint)
         }
-        paint.shader = gradient
-        canvas.save()
-        canvas.rotate(135f, cx, cy)
-        canvas.drawArc(arc, 0f, 270f, false, paint)
-        canvas.restore()
-        paint.shader = null
 
         for (i in 0..70) {
-            val angle = 135f + i / 70f * 270f
+            val angle = HeartRateGaugeModel.ARC_START_DEGREES +
+                i / 70f * HeartRateGaugeModel.ARC_SWEEP_DEGREES
             val major = i % 10 == 0
             val (x1, y1) = point(angle, radius - w * (if (major) 0.045f else 0.020f))
             val (x2, y2) = point(angle, radius + w * 0.015f)
@@ -103,11 +98,10 @@ class HeartRateGaugeView(context: Context) : View(context) {
             }
         }
 
-        // Pivot is below the dial and the readout is below the pivot, so the needle is never
-        // painted under text or cut into fragments by a text backdrop.
-        val pivotY = h * 0.675f
+        // The pivot sits on the chord through both arc endpoints, like a classic semicircular dial.
+        val pivotY = cy + HeartRateGaugeModel.pivotOffsetFromCircleCenter(radius)
         if (reading.bpm != null) {
-            val (tipX, tipY) = point(135f + shownFraction * 270f, radius - w * 0.02f)
+            val (tipX, tipY) = point(HeartRateGaugeModel.needleAngle(shownFraction), radius - w * 0.025f)
             paint.shader = null
             paint.style = Paint.Style.STROKE
             paint.strokeCap = Paint.Cap.ROUND
@@ -118,10 +112,27 @@ class HeartRateGaugeView(context: Context) : View(context) {
             paint.color = colors.accent
             canvas.drawCircle(cx, pivotY, w * 0.027f, paint)
         }
-        drawText(canvas, mode.label, cx, h * 0.755f, w * 0.065f, colors.muted, bold = true)
-        drawText(canvas, reading.bpm?.toString() ?: "—", cx, h * 0.875f, w * 0.19f, colors.ink, bold = true)
+        drawText(canvas, mode.label, cx, h * 0.63f, w * 0.062f, colors.muted, bold = true)
+        drawText(canvas, reading.bpm?.toString() ?: "—", cx, h * 0.79f, w * 0.19f, colors.ink, bold = true)
         drawText(canvas, if (reading.bpm == null) "Keine Messdaten" else "bpm",
-            cx, h * 0.97f, w * 0.052f, colors.muted)
+            cx, h * 0.9f, w * 0.052f, colors.muted)
+    }
+
+    private fun drawArcRotated(canvas: Canvas, bounds: RectF, start: Float, sweep: Float,
+                               cx: Float, cy: Float, rotation: Float, targetPaint: Paint) {
+        canvas.save()
+        canvas.rotate(rotation, cx, cy)
+        canvas.drawArc(bounds, start, sweep, false, targetPaint)
+        canvas.restore()
+    }
+
+    private fun rampColor(stops: IntArray, fraction: Float): Int {
+        val position = fraction.coerceIn(0f, 1f) * (stops.size - 1)
+        val index = position.toInt().coerceAtMost(stops.size - 2)
+        val part = position - index
+        fun channel(shift: Int) = (((stops[index] shr shift) and 0xFF) * (1f - part) +
+            ((stops[index + 1] shr shift) and 0xFF) * part).toInt()
+        return android.graphics.Color.rgb(channel(16), channel(8), channel(0))
     }
 
     private fun drawText(canvas: Canvas, value: String, x: Float, y: Float, size: Float,
