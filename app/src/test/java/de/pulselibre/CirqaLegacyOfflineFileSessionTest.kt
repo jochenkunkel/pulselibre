@@ -47,6 +47,19 @@ class CirqaLegacyOfflineFileSessionTest {
         assertEquals(CirqaLegacyOfflineFileSession.Phase.FAILED, b.phase)
     }
 
+    @Test fun beginsFromUnsigned5002LengthWithStrictBounds() {
+        val s = session(12)
+        assertTrue(s.beginFrom5002Response(byteArrayOf(0, 2, 0, 0, 0)))
+        assertEquals(CirqaLegacyOfflineFileSession.Phase.RECEIVING, s.phase)
+        assertEquals(CirqaLegacyPlainFileAssembler.Result.COMPLETE,
+            s.accept5004(chunk(0, byteArrayOf(1, 2))))
+        val overflow = session(12)
+        assertFalse(overflow.beginFrom5002Response(byteArrayOf(0, -1, -1, -1, -1)))
+        assertEquals(CirqaLegacyOfflineFileSession.Phase.FAILED, overflow.phase)
+        val zero = session(12)
+        assertFalse(zero.beginFrom5002Response(byteArrayOf(0, 0, 0, 0, 0)))
+    }
+
     @Test fun completedFitRequiresIndependentFileCrc() {
         // Known synthetic 12-byte FIT envelope, no health records.
         val valid = byteArrayOf(
