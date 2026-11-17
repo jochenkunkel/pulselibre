@@ -4,6 +4,15 @@
 
 > **Arbeitsregel für alle Chats und Entwicklungsagenten:** Dieses Dokument und der aktuelle GitHub-`main` sind der gemeinsame, versionierte Übergabepunkt. Ein Chatverlauf wird **nicht automatisch** in andere Chats übertragen. Zu Beginn jeder Arbeit zuerst `main`, diese Datei, die offenen Issues und die CI-Ergebnisse lesen. Widersprüche gegen den aktuellen Code prüfen; nicht ungeprüft aus älteren Chatantworten übernehmen.
 
+## Parallele Entwicklungsaufträge (vereinbart am 2026-11-17)
+
+| Zuständigkeit | Agent | Umfang | Grenze |
+| --- | --- | --- | --- |
+| Dashboard und wissenschaftliche Analysen | OpenAI Codex in VSCodium | Freigegebenes Vier-Screens-UI, Visualisierung und Zeitreihen aus validierten lokalen Daten, überprüfbare wissenschaftliche Methoden, UI-/Unit-Tests | Keine Änderungen am BLE-/GFDI-/5050-/FileSync-Historientransport |
+| CIRQA-Historien-Download | ChatGPT-Entwicklungsagent | Capability-/Handshake-Recherche, sichere Offline-Protokolltests, kontrollierter Downloadpfad nach Nachweis und Freigabe | Keine parallele Bearbeitung von Dashboard oder wissenschaftlichen Algorithmen |
+
+**Start und Übergabe:** `AGENTS.md` enthält die verbindliche Arbeitsteilung; der kopierbare Codex-Willkommensauftrag steht in `docs/CHAT_START_HERE.md`. GitHub ist gemeinsame Wahrheit. Codex wird erst durch einen Auftrag in VSCodium tatsächlich aktiv. Gemeinsame Dateien/SQLite-Schema/CI nur koordiniert ändern; getrennte Worktrees/Branches und PRs für parallele Änderungen. **Diese Aufgabenverteilung ist kein Nachweis, dass Codex bereits arbeitet oder dass historische Daten heruntergeladen werden können.**
+
 ## Aktueller CIRQA- und Teamstatus (2026-11-17)
 
 - Drei vom Nutzer übermittelte gezielte CIRQA-5050-Diagnosen bestätigen GFDI-Registrierung, einen GATT-bestätigten 5024-ACK-Kandidaten und eine GATT-bestätigte aktive Antwortfolge auf 5050 (GFDI-5000-ACK für request=5050). Im jüngsten 10-Sekunden-Fenster **nach** bestätigtem 5050-Schreibabschluss: genau ein GFDI-5000-ACK, **keine** 5050-Wiederholung, kein 5011, keine FileListResponse und keine Protobuf-Übertragung. Keine Historienfreigabe nachgewiesen. Siehe [dritter Test und Phasenkorrektur](CIRQA_5050_THIRD_TEST_AND_PHASE_FIX_2026-11-17.md), [Post-5050-Auswertung](CIRQA_POST_5050_EVIDENCE_2026-11-17.md).
