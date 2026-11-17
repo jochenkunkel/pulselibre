@@ -509,6 +509,37 @@ class MainActivity : AppCompatActivity() {
                 }
                 .show()
         })
+        debugView(actionButton("CIRQA: 5050-Konfiguration gezielt testen", false) {
+            if (!ensurePermissions()) return@actionButton
+            if (scanning) stopScan()
+            androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("CIRQA · Gezielter 5050-Test")
+                .setMessage("Experimenteller einmaliger Bluetooth-Test. Garmin Connect und laufende Aufzeichnung vorher beenden. Nach dem bisherigen 5024-ACK und einer empfangenen 5050-Konfiguration sendet PulsLibre genau ein 5050-ACK und eine 15-Byte-Hostmaske ohne gesetzte Fähigkeiten. Das Armband kann die Antwort ablehnen. Keine Dateioperationen, keine Datenänderungen; automatische Trennung nach 20 Sekunden. Jetzt starten?")
+                .setNegativeButton("Abbrechen", null)
+                .setPositiveButton("5050-Test starten") { _, _ ->
+                    if (cirqaMlProbe == null) cirqaMlProbe = CirqaMlHandshakeProbe(this, adapter)
+                    lastHistoryDiagnostic = null
+                    cirqaMlProbe?.startConfigurationTest { message ->
+                        runOnUiThread {
+                            output.text = message
+                            if (message.startsWith("PulsLibre · CIRQA Historien-Diagnose")) {
+                                lastHistoryDiagnostic = message
+                                androidx.appcompat.app.AlertDialog.Builder(this)
+                                    .setTitle("5050-Konfigurationstest abgeschlossen")
+                                    .setMessage(message)
+                                    .setPositiveButton("Schließen", null)
+                                    .setNeutralButton("Bericht teilen") { _, _ ->
+                                        val intent = Intent(Intent.ACTION_SEND).apply {
+                                            type = "text/plain"
+                                            putExtra(Intent.EXTRA_TEXT, message)
+                                        }
+                                        startActivity(Intent.createChooser(intent, "CIRQA-5050-Test teilen"))
+                                    }.show()
+                            }
+                        }
+                    }
+                }.show()
+        })
         debugView(actionButton("CIRQA: Bootstrap-Rohdaten (experimentell)", false) {
             if (!ensurePermissions()) return@actionButton
             if (scanning) stopScan()
