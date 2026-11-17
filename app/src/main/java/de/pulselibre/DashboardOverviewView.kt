@@ -49,7 +49,9 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
         heading("Heute auf einen Blick")
         addView(label("Schritte: kumulativer Tageszähler, keine Summe", 12f, muted),
             LayoutParams(-1, -2).apply { bottomMargin = dp(12) })
-        addCardPair(overview.today) { metric -> metricCard(metric, ink) }
+        addCardPair(overview.today) { metric ->
+            metricCard(metric, if (metric.title == "Tagesziel Schritte") palette.indicator else ink)
+        }
         heading("Weitere Gesundheitswerte")
         overview.details.chunked(2).forEach { pair ->
             addCardPair(pair) { metric -> metricCard(metric, ink) }
@@ -79,7 +81,7 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
         metrics.forEachIndexed { index, metric ->
             val view = create(metric)
             row.addView(view,
-                if (stacked) LayoutParams(-1, -2).apply {
+                if (stacked || metrics.size == 1) LayoutParams(-1, -2).apply {
                     if (index != metrics.lastIndex) bottomMargin = dp(8)
                 } else LayoutParams(0, -2, 1f).apply {
                     if (index != metrics.lastIndex) marginEnd = dp(8)

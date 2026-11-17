@@ -19,7 +19,7 @@ class DashboardMetricIconView(
         title.contains("Herzfrequenz", true) || title.contains("Ruhepuls", true) -> Kind.PULSE
         title.contains("SpO₂", true) || title.contains("Sauerstoff", true) -> Kind.OXYGEN
         title.contains("Schlaf", true) -> Kind.SLEEP
-        title.contains("Schrittziel", true) -> Kind.GOAL
+        title.contains("Schrittziel", true) || title.contains("Tagesziel", true) -> Kind.GOAL
         title.contains("Schritte", true) -> Kind.STEPS
         title.contains("Kalorien", true) || title.contains("Energie", true) -> Kind.CALORIES
         title.contains("Intensitätsminuten", true) || title.contains("Aktivität", true) -> Kind.ACTIVITY

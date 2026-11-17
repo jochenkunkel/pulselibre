@@ -51,4 +51,13 @@ class MetricReferenceProfileTest {
         assertNull(MetricReferenceProfile.forMetric(metric("Moderate Intensitätsminuten")))
         assertNull(MetricReferenceProfile.forMetric(metric("Intensive Intensitätsminuten")))
     }
+    @Test fun stepGoalProgressUsesPercentScaleWithoutClinicalBand() {
+        val profile = MetricReferenceProfile.forMetric(metric("Tagesziel Schritte"))!!
+        assertEquals(0, profile.minimum)
+        assertEquals(100, profile.maximum)
+        assertNull(profile.referenceMinimum)
+        assertNull(profile.referenceMaximum)
+        assertTrue(profile.caveat.contains("keine Gesundheitsbewertung"))
+    }
+
 }
