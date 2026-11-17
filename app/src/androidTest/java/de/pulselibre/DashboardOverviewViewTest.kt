@@ -66,6 +66,11 @@ class DashboardOverviewViewTest {
             val cards = cards(view)
             assertEquals(5, cards.size)
             assertTrue(cards.all { it.contentDescription.contains("Keine Messdaten") })
+            val night = descendants(view).single { it.tag == "dashboard_night_oxygen_insights" }
+            assertTrue(night.contentDescription.contains("nicht validiert"))
+            assertTrue(night.contentDescription.contains("Keine Diagnose"))
+            assertTrue(descendants(night).any { it.contentDescription?.contains("ODI / T90: Nicht berechenbar") == true })
+            assertTrue(descendants(night).any { it.contentDescription?.contains("Abdeckung: Sampling unbekannt") == true })
             assertEquals("dashboard_metric_Herzfrequenz", cards[0].tag)
             assertEquals("dashboard_metric_Sauerstoffsättigung · SpO₂", cards[1].tag)
             assertEquals("dashboard_metric_Schlaf", cards[2].tag)
