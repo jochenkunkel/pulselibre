@@ -32,3 +32,21 @@ Der erfolgreiche signierte Basisbuild `23c2cfd9` ist unter GitHub Actions Run `4
 4. Ergebnisse in `docs/GARMIN_CONNECT_531_FILESYNC_REVERSE_ENGINEERING.md` und `docs/CIRQA_LEGACY_FILESYNC_PROTOCOL.md` mit exakten Referenzen aktualisieren.
 
 **Freigabeentscheidung:** **NO-GO** für aktive historische CIRQA-Downloads bis die oben genannten Beweise vorliegen. Das schützt die Uhr und verhindert, dass ein grüner APK-Build fälschlich als erfolgreicher historischer Download interpretiert wird.
+
+## Nachtrag: gemeldete DEX-Verifikation und begrenzter Prüfauftrag (2026-11-17)
+
+**Quelle:** Entwicklungsrückmeldung des Benutzers zu einem separaten, bislang nicht nach `main` gepushten Worktree `/tmp/pulselibre-historical-audit`. Die nachstehenden Bytecode-Befunde wurden in diesem Commit **nicht unabhängig anhand der Original-DEX-Datei nachgeprüft**; die entsprechenden Nachweisartefakte sind noch einzupflegen.
+
+* Laut Rückmeldung vergleicht `yw40.a([B)` den **aktualisierten** CRC-Akkumulator: DEX-Code-Unit-Offset `0x0042`, `if-eq v7,v4`. Der bisherige Verdacht eines Vorletztes-Byte-Vergleichs gilt nach diesem Bericht als widerlegt; Disassembly und Testnachweis in `main` nachführen.
+* CRC-16/ARC: Payload `A` -> `0x30C0` (LE `C0 30`); `123456789` -> `0xBB3D` (LE `3D BB`).
+* 5002-Request: 14 Bytes, statisch für Garmin Connect 5.31 rekonstruiert. **Keine CIRQA-Kompatibilitätsaussage.**
+
+### Arbeitsauftrag für den Coding-Agenten – keine neuen BLE-Kommandos
+
+1. Aktuelles `main` abrufen und den lokalen Audit-Worktree auf Änderungen/Commits prüfen; relevante **Offline**-Änderungen konfliktfrei integrieren. Keine parallelen oder neueren Änderungen überschreiben.
+2. JVM-/Android-Unit-Tests ausführen, CRC-Vektoren und DEX-Offset nachvollziehbar belegen; Testbefunde mit Commit und CI-Lauf dokumentieren.
+3. Statisch untersuchen, ob `v5d`-Registrierung und eine CIRQA-spezifische FileSync-Route belegbar sind. Connect-Callgraph nicht als CIRQA-Nachweis ausgeben.
+4. Nur vorhandene, autorisierte **passive** CIRQA-Traces auf Capability-, GFDI- und Dateitransfer-Evidenz prüfen; Rohgesundheitsdaten und Gerätekennungen nicht öffentlich hochladen.
+5. Erst bei CIRQA-spezifischer Evidenz einen **separaten Sicherheitsreview** für einen einzelnen begrenzten, rein lesenden Gerätetest vorlegen und ausdrückliche Benutzerfreigabe einholen.
+
+**Verboten:** neue aktive BLE-Kommandos; erneutes `0x8A39`; Archivieren, Löschen, Schreiben, Ändern von Geräteflags; Download-UI oder als Historien-Download beworbene Test-APK vor belegtem sicherem CIRQA-Pfad. **Freigabe bleibt NO-GO.**
