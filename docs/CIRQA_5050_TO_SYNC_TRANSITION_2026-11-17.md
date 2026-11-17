@@ -29,3 +29,14 @@ Drei gezielte S25-Tests zeigen nach GATT-bestätigter aktiver 5050-Antwort (15 H
 ## Koordination
 
 Dieser Bereich gehört dem ChatGPT-Agenten gemäß `AGENTS.md`. Codex arbeitet parallel ausschließlich an Dashboard und wissenschaftlichen Auswertungen; keine gemeinsamen Kotlin-Dateien ohne Absprache ändern.
+
+## Abgleich mit alternativen Implementierungen nach CIRQA-SYNC-Bit-3-Gerätetest
+
+Quelltext erneut geprüft (öffentlich, MIT-basierter Referenzpfad):
+- [GarminHRM600 `bootstrap.py`](https://github.com/mskerwiderski/GarminHRM600/blob/main/hrm600/bootstrap.py) enthält einen **52-Byte-5024-RESPONSE** mit fenix-8-Geräteidentität und weitere aufgezeichnete kompakte Bootstrap-Frames: Status-ACK für kompakte Nachricht, Session/Core-Preamble, FeatureCapabilitiesRequest, FeatureCapabilitiesResponse-ACK und Ready-Trigger. Diese Bytes stammen aus einer **HRM600/fenix-8-Wachemulation**, nicht von CIRQA. **Nicht kopieren oder aktiv senden.**
+- [GarminHRM600 `client.py`](https://github.com/mskerwiderski/GarminHRM600/blob/main/hrm600/client.py) initialisiert kompakte Counter/Sequence mit `0x01EF`/`0x0A` und erhöht sie je Nachricht. PulsLibre verwendet für die bisher abgewiesene Dateiliste feste `1`/`10`; das ist ein **konkreter Protokollunterschied**, aber noch kein Nachweis für die Ursache von `UNSUPPORTED`.
+- [Amazfish `garminconfigurationmessage.cpp`](https://github.com/piggz/harbour-amazfish/blob/master/daemon/src/services/garmin/garminconfigurationmessage.cpp) sendet eine breite 15-Byte-Hostmaske und ruft danach `completePairing()` auf; `garminsynchronizationmessage.cpp` behandelt 5037 als **eingehend** und antwortet dann mit ACK und gegebenenfalls Filter. Beides sind **Fremdimplementierungen**, kein Beweis, dass CIRQA diese Schritte erwartet.
+
+**Neue, testbare Unterscheidung:** PulsLibre bestätigt 5024 derzeit nur mit einem **9-Byte-Status-ACK**; GATT bestätigt das Schreiben, aber ein **5024-Anwendungs-ACK ist nicht nachgewiesen**. Die fremde HRM600-Implementierung sendet stattdessen eine identitätstragende 5024-Antwort. Daher sind fehlende 5024-Handshake-Daten oder ein späterer Core-Feature-Schritt plausible Blocker für 5037; sie sind **nicht** als Ursache belegt. Das 5050-ACK mit SYNC-Bit 3 zeigt lediglich, dass der Empfänger diese einzelne Nachricht quittiert hat.
+
+**Engineering:** `CirqaBootstrapGapAnalysis` klassifiziert die vorhandene Evidenz offline, ohne fremde Watch-Identität oder neue BLE-Befehle zu senden. Drei Unit-Tests prüfen die Entscheidung. Priorität: zunächst CIRQA-spezifischen 5024-/Core-Handshake aus einer autorisierten Referenzaufzeichnung oder passiven Daten verifizieren, erst danach einen neuen begrenzten aktiven Test konstruieren. Keine Wiederholung der zuvor abgewiesenen `0x8A39`-Dateiliste ohne neuen Beleg.
