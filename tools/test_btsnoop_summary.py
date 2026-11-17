@@ -46,6 +46,25 @@ class SnoopTests(unittest.TestCase):
         with self.assertRaises(snoop.InvalidSnoop):
             self.check(oversized)
 
+    def test_acl_header_and_length_mismatch_rejected(self):
+        # A valid btsnoop record may still contain malformed HCI ACL framing.
+        with self.assertRaises(snoop.InvalidSnoop):
+            self.check(capture([b"\\x02\\x01\\x00"]))
+        # Declared ACL payload has five bytes, but only four follow.
+        short = b"\\x02" + struct.pack("<HH", 1 | (2 << 12), 5) + b"\\x01\\x00\\x04\\x00"
+        with self.assertRaises(snoop.InvalidSnoop):
+            self.check(capture([short]))
+        # Trailing bytes must not be silently accepted either.
+        extra = b"\\x02" + struct.pack("<HH", 1 | (2 << 12), 0) + b"\\x00"
+        with self.assertRaises(snoop.InvalidSnoop):
+            self.check(capture([extra]))
+
+    def test_acl_continuation_not_misclassified_as_complete_att(self):
+        continuation = b"\\x02" + struct.pack("<HH", 1 | (1 << 12), 5) + b"\\x01\\x00\\x04\\x00\\x0a"
+        result = self.check(capture([continuation]))
+        self.assertEqual(result["acl_records"], 1)
+        self.assertEqual(result["complete_att_candidates"], 0)
+
     def test_unsupported_datalink_rejected(self):
         with self.assertRaises(snoop.InvalidSnoop):
             self.check(capture([b"\x04"], 1001))
