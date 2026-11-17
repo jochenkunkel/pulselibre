@@ -177,10 +177,6 @@ object PersonalSettings {
                 ))
                 SpO2DisplaySettings.save(context, SpO2DisplaySettings(
                     greenFrom = spo2Green.text.toString().toInt(),
-                    orangeFrom = spo2Orange.text.toString().toInt()
-                ))
-                SpO2DisplaySettings.save(context, SpO2DisplaySettings(
-                    greenFrom = spo2Green.text.toString().toInt(),
                     redBelow = spo2Orange.text.toString().toInt()
                 ))
                 val edit = p.edit()
