@@ -322,3 +322,14 @@ Issues: https://github.com/jochenkunkel/pulselibre/issues
 - Parallele neuere Protokolländerungen werden bei Integration erhalten. Keine eigenen
   Änderungen an Garmin-BLE/GFDI/5050/FileSync, Datenbankschema oder Exportsemantik.
   Details: `docs/DASHBOARD_IMPLEMENTATION.md`.
+
+
+### Tacho-/Theme-Verifikation und Darstellungsschliff
+
+- [main-Build #608](https://github.com/jochenkunkel/pulselibre/actions/runs/44066866520)
+  und [Full-Lauf #609](https://github.com/jochenkunkel/pulselibre/actions/runs/44066871013)
+  für `df53e18` erfolgreich, einschließlich aller zwölf Android-Tests.
+- Abschließender Darstellungsschliff begrenzt die Zeigerabdeckung auf die tatsächlichen
+  Textflächen und lässt mehr Platz für die oberen Skalenbeschriftungen. Der Bitmap-Test
+  prüft gezeichnete Text-/Skalenfarben beider Paletten. Lokaler Build/JVM/Lint/Test-APK
+  für die Textflächenänderung erfolgreich; abschließender CI-Lauf separat prüfen.

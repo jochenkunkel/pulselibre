@@ -72,7 +72,12 @@ class AppearanceAndGaugeTest {
                     gauge.layout(0, 0, gauge.measuredWidth, gauge.measuredHeight)
                     val bitmap = Bitmap.createBitmap(gauge.width, gauge.height, Bitmap.Config.ARGB_8888)
                     gauge.draw(Canvas(bitmap))
-                    assertEquals(AppPalette.of(context).card, bitmap.getPixel(bitmap.width / 2, (bitmap.height * 0.45).toInt()))
+                    val pixels = IntArray(bitmap.width * bitmap.height)
+                    bitmap.getPixels(pixels, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height)
+                    val palette = AppPalette.of(context)
+                    assertTrue(pixels.contains(palette.ink))
+                    assertTrue(pixels.contains(palette.muted))
+                    assertTrue(pixels.contains(palette.track))
                     bitmap.recycle()
                 }
             }

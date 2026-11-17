@@ -54,7 +54,7 @@ class HeartRateGaugeView(context: Context) : View(context) {
         val h = height.toFloat()
         if (w <= 0 || h <= 0) return
         val cx = w / 2
-        val cy = h * 0.45f
+        val cy = h * 0.48f
         val radius = w * 0.39f
         val arc = RectF(cx - radius, cy - radius, cx + radius, cy + radius)
         fun point(angle: Float, r: Float): Pair<Float, Float> {
@@ -95,14 +95,10 @@ class HeartRateGaugeView(context: Context) : View(context) {
             paint.color = colors.accent
             canvas.drawCircle(cx, pivotY, w * 0.024f, paint)
         }
-        // Keep central labels legible when the needle points directly behind them.
-        paint.style = Paint.Style.FILL
-        paint.color = colors.card
-        canvas.drawRoundRect(RectF(w * 0.24f, h * 0.25f, w * 0.76f, h * 0.67f), w * 0.05f, w * 0.05f, paint)
         drawModeIcon(canvas, cx, h * 0.29f, w * 0.02f)
-        text(canvas, mode.label, cx, h * 0.40f, w * 0.043f, colors.muted, true)
-        text(canvas, reading.bpm?.toString() ?: "—", cx, h * 0.54f, w * 0.18f, colors.ink, true)
-        text(canvas, if (reading.bpm == null) "Keine Messdaten" else "bpm", cx, h * 0.64f, w * 0.045f, colors.muted)
+        text(canvas, mode.label, cx, h * 0.40f, w * 0.043f, colors.muted, true, true)
+        text(canvas, reading.bpm?.toString() ?: "—", cx, h * 0.54f, w * 0.18f, colors.ink, true, true)
+        text(canvas, if (reading.bpm == null) "Keine Messdaten" else "bpm", cx, h * 0.64f, w * 0.045f, colors.muted, backdrop = true)
     }
 
     private fun drawModeIcon(canvas: Canvas, x: Float, y: Float, unit: Float) {
@@ -134,12 +130,22 @@ class HeartRateGaugeView(context: Context) : View(context) {
         }
     }
 
-    private fun text(canvas: Canvas, value: String, x: Float, y: Float, size: Float, color: Int, bold: Boolean = false) {
+    private fun text(canvas: Canvas, value: String, x: Float, y: Float, size: Float, color: Int, bold: Boolean = false, backdrop: Boolean = false) {
         paint.style = Paint.Style.FILL
         paint.color = color
         paint.typeface = if (bold) Typeface.create("sans-serif", Typeface.BOLD) else Typeface.create("sans-serif", Typeface.NORMAL)
         paint.textSize = size
         paint.textAlign = Paint.Align.CENTER
-        canvas.drawText(value, x, y - (paint.ascent() + paint.descent()) / 2, paint)
+        val baseline = y - (paint.ascent() + paint.descent()) / 2
+        if (backdrop) {
+            // Protect only the actual text, so the rest of the needle remains visible.
+            val padding = size * 0.08f
+            val half = paint.measureText(value) / 2 + padding
+            paint.color = colors.card
+            canvas.drawRoundRect(RectF(x - half, baseline + paint.ascent() - padding,
+                x + half, baseline + paint.descent() + padding), padding, padding, paint)
+            paint.color = color
+        }
+        canvas.drawText(value, x, baseline, paint)
     }
 }
