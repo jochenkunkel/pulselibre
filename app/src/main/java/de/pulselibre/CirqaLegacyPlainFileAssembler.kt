@@ -37,6 +37,8 @@ class CirqaLegacyPlainFileAssembler(
         if (isComplete) return Result.COMPLETE
         val chunk = CirqaLegacyTransferDecoder.plainChunk(body)
             ?: return fail(Result.MALFORMED)
+        // A nonzero transport status must never be appended as file data.
+        if (chunk.transferStatus != 0) return fail(Result.MALFORMED)
         if (!verifyPayloadCrc(chunk.payload, chunk.crc16)) return fail(Result.CRC_ERROR)
         val current = receivedBytes.toLong()
         if (chunk.offset == lastOffset &&
