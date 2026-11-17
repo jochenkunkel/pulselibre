@@ -117,7 +117,7 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
             val valueLayer = android.widget.FrameLayout(context).apply {
                 contentDescription = metric.value
             }
-            valueLayer.addView(SpO2LungView(context, percent, palette.muted, palette.track),
+            valueLayer.addView(SpO2LungView(context, percent, SpO2DisplaySettings.read(context).colorFor(percent, palette), palette.track),
                 android.widget.FrameLayout.LayoutParams(-1, dp(76), Gravity.CENTER))
             valueLayer.addView(label(metric.value, 22f, accent, true).apply {
                 gravity = Gravity.CENTER
@@ -212,7 +212,7 @@ internal class SpO2LungView(
     private val lung = android.graphics.Path()
 
     init {
-        contentDescription = "Dezente Lungengrafik${fillFraction?.let { ", Füllstand ${percent}%" } ?: ", keine Messdaten"}; keine Signalqualitätsanzeige, keine medizinische Bewertung"
+        contentDescription = "Dezente Lungengrafik${fillFraction?.let { ", Füllstand ${percent}%" } ?: ", keine Messdaten"}; Farbe nach konfigurierbarer SpO₂-Skala, keine Signalqualitätsanzeige"
         importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO
     }
 
