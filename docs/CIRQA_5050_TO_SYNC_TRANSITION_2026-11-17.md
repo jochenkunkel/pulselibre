@@ -79,3 +79,8 @@ Die von OpenCode genannte Detailanalyse `docs/GARMIN_CONNECT_531_FILESYNC_REVERS
 ## Vorbereitung eines aktiven 5024-Vergleichstests
 
 Die Offline-Preflight-Komponente `CirqaConnect531HandshakePreflight` blockiert einen künftigen 5024-Versuch standardmäßig: erforderlich sind verifizierte eingehende 5024-Informationen, explizit geklärtes Feature-Flag, belegte App-Version, belegte Werte für Friendly Name/Hersteller/Modell sowie eine ausdrückliche Testfreigabe. Die Preflight-Komponente selbst ist **nicht** mit der BLE-Laufzeit verdrahtet. Zwei Unit-Tests sichern Default-Deny und die Vollständigkeit der Evidenz ab. Diese Vorarbeit ist keine Behauptung, CIRQA akzeptiere die Connect-Hostantwort; eine tatsächliche Geräteprüfung steht aus.
+
+
+## Android-Hostevidenz ohne Sende-Freigabe
+
+`Cirqa5024AndroidHostEvidence` prüft lesend, ob `Build.MANUFACTURER` und `Build.MODEL` verfügbar sind. Im opt-in gestarteten `CirqaMlHandshakeProbe` wird ausschließlich ein boolescher Verfügbarkeitsbericht ausgegeben, keine Hoststrings oder Identitäten. Garmin-spezifische Werte (`hostConfig.appVersion`, `friendlyName`, Feature-Flag und verifiziertes Geräteprotokoll) bleiben **ungeklärt**; insbesondere wird die PulsLibre-`versionCode` nicht als Garmin-Appversion ausgegeben. Der Preflight bleibt gesperrt und der bisherige BLE-Sendepfad unverändert. Zwei JVM-Tests prüfen Default-Deny und datensparsame Ausgabe. **Dies ist noch kein aktiver Connect-kompatibler 5024-Test.**
