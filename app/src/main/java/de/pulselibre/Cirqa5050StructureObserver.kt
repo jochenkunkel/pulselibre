@@ -5,6 +5,10 @@ package de.pulselibre
  */
 class Cirqa5050StructureObserver {
     private var count = 0
+    private var validLengthPrefixes = 0
+    private var invalidLengthPrefixes = 0
+    private val bitmapByteLengths = linkedMapOf<Int, Int>()
+    private val tailByteLengths = linkedMapOf<Int, Int>()
     private var duplicates = 0
     private var changes = 0
     private var previous: ByteArray? = null
@@ -18,6 +22,14 @@ class Cirqa5050StructureObserver {
         if (u16(2) != 5050) return
         val body = frame.copyOfRange(4, frame.size - 2)
         if (count < Int.MAX_VALUE) count++
+        val parsed = Cirqa5050BodyParser.parse(body)
+        if (parsed == null) {
+            if (invalidLengthPrefixes < Int.MAX_VALUE) invalidLengthPrefixes++
+        } else {
+            if (validLengthPrefixes < Int.MAX_VALUE) validLengthPrefixes++
+            bitmapByteLengths[parsed.declaredBitmapBytes] = (bitmapByteLengths[parsed.declaredBitmapBytes] ?: 0) + 1
+            tailByteLengths[parsed.tailBytes] = (tailByteLengths[parsed.tailBytes] ?: 0) + 1
+        }
         bodyLengths[body.size] = (bodyLengths[body.size] ?: 0).let { if (it < Int.MAX_VALUE) it + 1 else it }
         previous?.let { old ->
             if (old.contentEquals(body)) {
@@ -38,5 +50,7 @@ class Cirqa5050StructureObserver {
         "Payloadwechsel=$changes; Body-Längen=$bodyLengths; " +
         "gemeinsame Präfixlängen bei Wechsel=$prefixLengths; " +
         "unterschiedliche erste Body-Bytes=${firstBodyByteFrequencies.size}; " +
-        "5050-Format=UNBEKANNT; automatische Antwort=NEIN"
+        "5050-Längenpräfix gültig=$validLengthPrefixes/ungültig=$invalidLengthPrefixes; " +
+        "Bitmap-Längen=$bitmapByteLengths; Tail-Längen=$tailByteLengths; " +
+        "5050-Format=LÄNGENPRÄFIX-CHARAKTERISIERUNG; automatische Antwort=NEIN"
 }
