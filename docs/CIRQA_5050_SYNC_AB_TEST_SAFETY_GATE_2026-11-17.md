@@ -40,3 +40,9 @@ Erst nach erfolgreichem CI und erneuter Prüfung des aktiven BLE-Schreibpfads de
 Der aktive `CirqaMlHandshakeProbe` wurde **ohne neue BLE-Befehle** angepasst: Bei einer negativen GFDI-Protokollantwort (`fileListProbe.responseErrors > 0`) während `configurationTestMode` wird die Diagnose jetzt sofort über `finish(...)` beendet. Im Abschlussbericht wird außerdem die Anzahl passiv erkannter `gfdi-5037`-Frames ausgewiesen. Diese Zahl ist eine **Frame-Typ-Zählung**, keine vollständig decodierte 5037-Dateitypmaske und kein Nachweis eines erfolgreichen Downloads. Die 15-Byte-Nullmaske bleibt unverändert.
 
 **Noch offen:** Die neue Offline-Zustandsmaschine ist weiterhin nicht an GATT angebunden; ein separater SYNC-Bit-3-Modus existiert nicht. Die vorhandene Nullmasken-Diagnose hat keine neue Nutzerfreigabe erhalten und wurde nicht am Gerät ausgeführt. Vor einer neuen Gerätevariante müssen die noch fehlenden Stop-Gates und die Freigabe geprüft werden.
+
+## Dritter Implementierungsnachtrag: 5050-Retry-Abbruch
+
+Im bestehenden **Nullmasken**-`configurationTestMode` wird jetzt unmittelbar beim Einplanen der 5050-Antwort die Anzahl bereits empfangener `gfdi-5050`-Frames festgehalten. Kommt danach eine weitere 5050-Anfrage, beendet `CirqaMlHandshakeProbe` die Sitzung über `finish` statt erneut zu verhandeln. Die Vergleichslogik ist als `Cirqa5050RetryGuard` isoliert und mit Unit-Tests abgedeckt. Die vorhandene 5050-Nullmasken-Antwort und der normale Recorder werden nicht verändert.
+
+**Grenze:** Das Zählverfahren wertet vollständige Frames nach dem Queue-Zeitpunkt aus und unterscheidet keine Gerätesequenznummern. Der aktive SYNC-Bit-3-Versuch bleibt gesperrt. CI-Erfolg für diesen Commit muss geprüft werden.
