@@ -146,15 +146,17 @@ der kanonischen SQLite-Datenbank. Die drei wählbaren Fenster sind rollierende
 Telefon-Empfangszeit. Ungültige JSON-Einträge, Zeitstempel außerhalb des Fensters,
 Pulswerte außerhalb 1–240 bpm und SpO₂ außerhalb 1–100 % werden nicht geplottet.
 
-Jeder Messwert wird als einzelner Punkt gezeichnet. Es gibt weder Verbindungslinien,
-Interpolation, Mittelwerte, Datenlückenauffüllung noch medizinische Schwellen. Feste
-Achsen dienen nur der Lesbarkeit. Leere Zeiträume bleiben ausdrücklich leer. Die
-Abfrage ist read-only und begrenzt; sie löst keinen Legacy-Import aus.
+Dichte Messreihen werden für die Darstellung nach Zeitfenstern zusammengefasst:
+24-h-Ansicht in 1-h-Fenstern, 7-Tage-Ansicht in 6-h-Fenstern, 30-Tage-Ansicht in
+Tagesfenstern. Je belegtem Fenster zeigt die Grafik den Median sowie Minimum und
+Maximum der tatsächlich empfangenen Werte; leere Fenster bleiben leer. Es gibt keine
+Verbindungslinien, Interpolation oder medizinische Schwellen. Die feineren vertikalen
+Zeitstriche markieren die Fenster; Beschriftungen erscheinen in gröberen Abständen,
+damit sie auf dem Telefon lesbar bleiben. Die Rohmesspunkte bleiben in der Datenbank
+unverändert; die Abfrage ist read-only und löst keinen Legacy-Import aus.
 
-JVM-Tests decken Fensterlängen und Zeitkoordinaten ab. Android-Tests mit isolierter,
-synthetischer SQLite-Datenbank prüfen Filterung, Sortierung, UI-Auswahl und leere
-Zeitreihen. Activity-Test prüft den Verlauf-Reiter. Lauf und Ergebnisse werden nach
-Abschluss der Branch-Prüfungen ergänzt.
+JVM-Tests prüfen Auflösung, Aggregation, Median und beobachtete Spanne mit synthetischen
+Fixtures. Android-Tests prüfen weiterhin Zeitreihenauswahl und leere Zustände.
 
 ## Tachometer-Geometrie und Referenzskalen (2026-11-17)
 
