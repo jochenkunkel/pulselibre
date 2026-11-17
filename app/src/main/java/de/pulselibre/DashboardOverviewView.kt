@@ -117,7 +117,8 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
             val valueLayer = android.widget.FrameLayout(context).apply {
                 contentDescription = metric.value
             }
-            valueLayer.addView(SpO2LungView(context, percent, SpO2DisplaySettings.read(context).colorFor(percent, palette), palette.track),
+            val display = SpO2DisplaySettings.read(context)
+            valueLayer.addView(SpO2LungView(context, percent, display.colorFor(percent, palette), palette.track),
                 android.widget.FrameLayout.LayoutParams(-1, dp(76), Gravity.CENTER))
             valueLayer.addView(label(metric.value, 22f, accent, true).apply {
                 gravity = Gravity.CENTER
