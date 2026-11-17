@@ -431,10 +431,12 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     // A negative protocol response must stop the existing zero-mask
                     // configuration diagnostic immediately, not only FileList probes.
                     // This does not enable the experimental SYNC capability.
-                    if (configurationTestMode && configurationResponseQueued &&
-                        Cirqa5050NegativeResponseGuard.shouldAbort(
-                            configurationErrorBaseline, fileListProbe.responseErrors
-                        )) {
+                    if (configurationTestMode &&
+                        ((!configurationResponseQueued && fileListProbe.responseErrors > 0) ||
+                            (configurationResponseQueued &&
+                                Cirqa5050NegativeResponseGuard.shouldAbort(
+                                    configurationErrorBaseline, fileListProbe.responseErrors
+                                )))) {
                         finish("Sicherheitsabbruch: negative GFDI-Antwort während 5050-Diagnose.", g)
                         return
                     }
