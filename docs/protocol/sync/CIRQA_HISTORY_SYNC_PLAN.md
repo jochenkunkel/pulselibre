@@ -75,7 +75,7 @@ Nutzer meldet laufenden Echtzeit-Recorder während Historien-Diagnose: GFDI-Regi
 
 **1 → 2 → 3 → 4.** Ohne nachgewiesene Dateiliste kein Downloadversprechen. Ohne validierten Download keine Interpretation als historische Gesundheitsdaten. Ohne idempotenten Datenbankimport kein automatischer Job. Rohbeschleunigung, Schlafphasen und vollständige Historie sind **nicht zugesichert**: nur tatsächlich verfügbare, nachgewiesene Datensätze übernehmen.
 
-**Verknüpfte Dokumente:** [Garmin-Protokollrecherche](GARMIN_PROTOCOL_RESEARCH.md), [Roadmap](ROADMAP_TO_CIRQA_DATA.md), [einheitliche Speicherung](UNIFIED_LOCAL_STORAGE_2026-11-16.md), [Bewegung/Schlaf-Grenzen](CIRQA_SLEEP_MOTION_GROUND_RULES.md).
+**Verknüpfte Dokumente:** [Garmin-Protokollrecherche](../research/GARMIN_PROTOCOL_RESEARCH.md), [Roadmap](../../ROADMAP_TO_CIRQA_DATA.md), [einheitliche Speicherung](../../UNIFIED_LOCAL_STORAGE_2026-11-16.md), [Bewegung/Schlaf-Grenzen](../data-model/CIRQA_SLEEP_MOTION_GROUND_RULES.md).
 
 ## Debugging-Freigabe vom 17.11.2026: synthetische CIRQA-Testdaten
 

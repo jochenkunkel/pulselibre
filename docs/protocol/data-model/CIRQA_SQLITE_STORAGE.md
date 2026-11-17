@@ -25,7 +25,7 @@ Andere Dateien und Exporte werden nicht gelöscht. Die Bereinigung erfolgt erst,
 wenn eine App-Version mit dieser Änderung auf dem Gerät die Datenbank öffnet.
 
 Der separate Import aus `pulselibre_readings.db` beim CSV-Export bleibt erhalten.
-Siehe [einheitliche Speicherung](UNIFIED_LOCAL_STORAGE_2026-11-16.md).
+Siehe [einheitliche Speicherung](../../UNIFIED_LOCAL_STORAGE_2026-11-16.md).
 
 ## Tests und Grenzen
 

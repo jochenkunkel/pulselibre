@@ -25,4 +25,4 @@ Source: user-provided Garmin Connect 5.31 device-sync diagnostic screenshots, 20
 4. Correlate device 5024 -> 5050 x3 -> 5011 with verified TX, then write offline regression fixtures before any new active command.
 5. Only after confirmed bootstrap, implement read-only file listing, complete retrieval, persistence and FIT decoding.
 
-Related: [5050 research](CIRQA_5050_RESEARCH_AND_NEXT_TEST.md), [FileSync reference comparison](CIRQA_FILESYNC_REFERENCE_COMPARISON_2026-11-16.md), [safe device test](CIRQA_NEXT_DEVICE_TEST.md), [Issue #7](https://github.com/jochenkunkel/pulselibre/issues/7).
+Related: [5050 research](../experiments/CIRQA_5050_RESEARCH_AND_NEXT_TEST.md), [FileSync reference comparison](../research/CIRQA_FILESYNC_REFERENCE_COMPARISON_2026-11-16.md), [safe device test](CIRQA_NEXT_DEVICE_TEST.md), [Issue #7](https://github.com/jochenkunkel/pulselibre/issues/7).
