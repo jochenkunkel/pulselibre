@@ -30,7 +30,6 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private var configurationTestMode = false
     private var configurationResponseQueued = false
     private var configurationResponseConfirmed = false
-    private var configurationChunksOutstanding = 0
     private var configurationAckReceived = false
     private var configurationObservationExtended = false
     private var post5050Evidence = Cirqa5050PostWriteEvidence()
@@ -192,7 +191,6 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         configurationObservationExtended = false
         post5050Evidence = Cirqa5050PostWriteEvidence()
         configurationResponseConfirmed = false
-        configurationChunksOutstanding = 0
         bootstrapAckConfirmed = false
         bootstrapAckPending = false
         bootstrapAckChunks.clear()
@@ -318,7 +316,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                                     main.removeCallbacks(configurationTimeout)
                                     main.postDelayed(configurationTimeout, 10_000L)
                                 }
-                                mark("5050-Test: Schreibfolge bestätigt; beobachte Antworten 10 Sekunden")
+                                phase = "5050-Schreibfolge bestätigt; beobachte Antworten 10 Sekunden"
+                                mark(phase)
                             }
                         }
                         if (bootstrapAckMode && bootstrapAckSent && bootstrapAckChunks.isNotEmpty()) {
@@ -400,6 +399,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     if (configurationTestMode && configurationResponseQueued &&
                         fileListProbe.responseStatuses.keys.any { it.startsWith("request=5050/status=ACK/") }) {
                         configurationAckReceived = true
+                        phase = "GFDI-5000-ACK für 5050 empfangen; beobachte weitere Antworten"
                     }
                     if (bootstrapAckMode && historyRegistered && !bootstrapAckSent &&
                         fileListProbe.bootstrap.deviceInformationFrames > 0 &&
@@ -429,7 +429,6 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                             for (candidate in candidates) {
                                 GarminFileListRequest.cobs(candidate).toList().chunked(19).forEach { part ->
                                     bootstrapAckChunks.addLast(byteArrayOf(handle.toByte()) + part.toByteArray())
-                                    configurationChunksOutstanding++
                                 }
                             }
                             mark("5050 empfangen; sende einmalig ACK und konservative 15-Byte-Hostmaske")
