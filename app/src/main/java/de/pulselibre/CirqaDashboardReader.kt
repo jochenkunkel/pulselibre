@@ -30,24 +30,21 @@ class CirqaDashboardReader(private val context: Context) {
         val records = mutableListOf<String>()
         val totals = CirqaDatabase(context).use { db ->
             val sql = db.readableDatabase
-            val eligible = "kind = 'reading' AND service IN ($services) AND julianday(received_at_utc) <= julianday(?)"
+            val eligible = "kind = 'reading' AND service IN ($services) AND dashboard_time <= ?"
             for (service in GarminRealtime.SUPPORTED_SERVICES) {
-                // Include ties at SQLite's timestamp precision. Instant selects the latest below.
                 val query = """SELECT payload_json FROM events WHERE service = ? AND kind = 'reading'
-                    AND julianday(received_at_utc) = (SELECT MAX(julianday(received_at_utc)) FROM events
-                    WHERE service = ? AND kind = 'reading' AND julianday(received_at_utc) <= julianday(?))
-                    ORDER BY id"""
-                sql.rawQuery(query, arrayOf(service.toString(), service.toString(), cutoff.toString())).use { cursor ->
-                    while (cursor.moveToNext()) records.add(cursor.getString(0))
+                    AND dashboard_time <= ? ORDER BY dashboard_time DESC, id ASC LIMIT 1"""
+                sql.rawQuery(query, arrayOf(service.toString(), CirqaDatabase.timeKey(cutoff))).use { cursor ->
+                    if (cursor.moveToFirst()) records.add(cursor.getString(0))
                 }
             }
             sql.rawQuery("""SELECT payload_json FROM events WHERE service = 7 AND kind = 'reading'
-                AND julianday(received_at_utc) BETWEEN julianday(?) AND julianday(?) ORDER BY id""",
-                arrayOf(windowStart.toString(), now.toString())).use { cursor ->
+                AND dashboard_time BETWEEN ? AND ? ORDER BY id""",
+                arrayOf(CirqaDatabase.timeKey(windowStart), CirqaDatabase.timeKey(now))).use { cursor ->
                 while (cursor.moveToNext()) records.add(cursor.getString(0))
             }
             if (!includeTotals) return@use 0 to 0L
-            val count = sql.rawQuery("SELECT COUNT(*) FROM events WHERE $eligible", arrayOf(cutoff.toString())).use {
+            val count = sql.rawQuery("SELECT COUNT(*) FROM events WHERE $eligible", arrayOf(CirqaDatabase.timeKey(cutoff))).use {
                 it.moveToFirst()
                 it.getInt(0)
             }
