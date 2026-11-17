@@ -22,28 +22,35 @@ class DashboardOverviewViewTest {
         })
     }
 
-    @Test fun spo2LungUsesConfiguredBandsAndShowsNoSignalQualityClaim() {
+    @Test fun spo2LungStaysNeutralUntilDeviceValidationIsRecorded() {
         InstrumentationRegistry.getInstrumentation().runOnMainSync {
             val ctx = context(1f, 400)
-            val base = AppPalette.of(ctx)
-            val settings = SpO2DisplaySettings(95, 93)
-            val green = SpO2LungView(ctx, 95, settings.colorFor(95, base), base.track)
-            val greenTop = SpO2LungView(ctx, 100, settings.colorFor(100, base), base.track)
-            val orangeLow = SpO2LungView(ctx, 93, settings.colorFor(93, base), base.track)
-            val orangeHigh = SpO2LungView(ctx, 94, settings.colorFor(94, base), base.track)
-            val red = SpO2LungView(ctx, 92, settings.colorFor(92, base), base.track)
-            val missing = SpO2LungView(ctx, null, settings.colorFor(null, base), base.track)
-            assertEquals(0.95f, green.fillFraction!!, 0.001f)
-            assertEquals(base.indicator, green.fillColor)
-            assertEquals(base.indicator, greenTop.fillColor)
-            assertEquals(base.oxygen, orangeLow.fillColor)
-            assertEquals(base.oxygen, orangeHigh.fillColor)
-            assertEquals(android.graphics.Color.rgb(205, 57, 65), red.fillColor)
+            val palette = AppPalette.of(ctx)
+            val settings = SpO2DisplaySettings(95, 90)
+            listOf(89, 90, 94, 95, 100).forEach { percent ->
+                val lung = SpO2LungView(ctx, percent, settings.colorFor(percent, palette), palette.track)
+                assertEquals(percent / 100f, lung.fillFraction!!, 0.001f)
+                assertEquals(palette.ink, lung.fillColor)
+                assertTrue(lung.contentDescription.contains("keine Signalqualitätsanzeige"))
+            }
+            val invalid = SpO2LungView(ctx, 0, settings.colorFor(0, palette), palette.track)
+            assertNull(invalid.fillFraction)
+            assertEquals(palette.muted, invalid.fillColor)
+            val missing = SpO2LungView(ctx, null, settings.colorFor(null, palette), palette.track)
             assertNull(missing.fillFraction)
-            assertEquals(base.muted, missing.fillColor)
+            assertEquals(palette.muted, missing.fillColor)
             assertTrue(missing.contentDescription.contains("keine Messdaten"))
-            assertTrue(green.contentDescription.contains("keine Signalqualitätsanzeige"))
         }
+    }
+
+    @Test fun explicitValidatedPreviewUses95And90PercentBoundaries() {
+        val palette = AppPalette.of(context(1f, 400))
+        val settings = SpO2DisplaySettings(95, 90, colorBandsEnabled = true)
+        assertEquals(android.graphics.Color.rgb(205, 57, 65), settings.colorFor(89, palette))
+        assertEquals(palette.oxygen, settings.colorFor(90, palette))
+        assertEquals(palette.oxygen, settings.colorFor(94, palette))
+        assertEquals(palette.indicator, settings.colorFor(95, palette))
+        assertEquals(palette.indicator, settings.colorFor(100, palette))
     }
 
     @Test fun emptyCardsAreAccessibleAndNeverSeedMeasurements() {
@@ -53,6 +60,10 @@ class DashboardOverviewViewTest {
             val cards = cards(view)
             assertEquals(5, cards.size)
             assertTrue(cards.all { it.contentDescription.contains("Keine Messdaten") })
+            val night = descendants(view).single { it.tag == "dashboard_night_oxygen_insights" }
+            assertTrue(night.contentDescription.contains("nicht validiert"))
+            assertTrue(night.contentDescription.contains("Keine Diagnose"))
+            assertTrue(descendants(night).any { it.contentDescription?.contains("ODI / T90: Nicht berechenbar") == true })
             assertEquals("dashboard_metric_Herzfrequenz", cards[0].tag)
             assertEquals("dashboard_metric_Sauerstoffsättigung · SpO₂", cards[1].tag)
             assertEquals("dashboard_metric_Schlaf", cards[2].tag)
