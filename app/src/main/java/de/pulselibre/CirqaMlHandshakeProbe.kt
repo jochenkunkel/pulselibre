@@ -412,8 +412,11 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                         finish("Sicherheitsabbruch: erneute 5050-Anfrage nach geplanter Antwort.", g)
                         return
                     }
-                    if (configurationTestMode && configurationResponseQueued &&
-                        fileListProbe.responseStatuses.keys.any { it.startsWith("request=5050/status=ACK/") }) {
+                    if (configurationTestMode && Cirqa5050AckGate.isConfirmed(
+                            configurationResponseQueued,
+                            configurationResponseConfirmed,
+                            fileListProbe.responseStatuses.keys.any { it.startsWith("request=5050/status=ACK/") }
+                        )) {
                         configurationAckReceived = true
                         phase = "GFDI-5000-ACK für 5050 empfangen; beobachte weitere Antworten"
                     }
