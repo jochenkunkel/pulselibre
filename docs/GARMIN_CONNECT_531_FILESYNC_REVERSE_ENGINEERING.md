@@ -72,9 +72,9 @@ Das entspricht CRC-16/ARC (CRC-16/IBM): `poly=0xA001` reflected (`0x8005` normal
 
 Dieselbe `u45.a`-Routine berechnet in `classes.dex:defpackage.vns.a` auch den äußeren GFDI-Frame-CRC: Startwert 0, alle Framebytes außer den finalen zwei CRC-Bytes; `a60.O` serialisiert das Ergebnis u16 LE. Das äußere Frame-CRC und das innere 5004-Payload-CRC verwenden also dieselbe Routine, aber unterschiedliche Bytebereiche.
 
-**Wichtige Unsicherheit:** Die vorhandene JADX-Rekonstruktion setzt in der Payload-Schleife `i = this.e` unmittelbar vor `this.e = u45.a(byte,i)`; nach der Schleife vergleicht sie `i` (also den vor dem letzten Byte gelesenen Stand) mit dem übertragenen CRC, nicht `this.e` (den aktualisierten Stand). Bei leerem Payload wird der aktuelle Akkumulator verglichen. Das sieht nach einem Connect-Parserfehler oder einer ungewöhnlichen Wire-Konvention aus. Für echte Bytecode-Verhaltensgleichheit muss die Registerfolge in DEX/smali noch einmal bestätigt werden. Deshalb darf der normale CRC-16/ARC Endwert nicht ohne diesen Vorbehalt als nachgewiesene CIRQA-Chunkakzeptanz ausgegeben werden.
+**DEX-Kontrollfluss verifiziert:** `classes.dex` wurde mit Android SDK `dexdump -c` checksum-validiert. In `yw40.a([B)Ljow;` laden die Code-Unit-Offsets `0x0032–0x0033` `this.e` in `v7`; `0x0037–0x003d` aktualisieren und speichern `v7` pro Payloadbyte; Offset `0x0042` vergleicht `if-eq v7,v4`. Der Vergleich erfolgt nach allen Payloadupdates. DEX-Codeadresse des CRC-Aufrufs `0x4f834a`, Vergleich `0x4f835c`. Die JADX-Variable war irreführend rekonstruiert. Dies belegt Connect-Verhalten, nicht CIRQA-Kompatibilität.
 
-Standardalgorithmus-Chunkvektor (nicht automatisch Passvektor des obigen dekompilierten Vergleichs): `00 3D BB 00 00 00 00 31 32 33 34 35 36 37 38 39` bedeutet unkomprimierter Byte0 `00`, CRC `0xBB3D` als LE `3D BB`, Offset 0 und ASCII-Payload `123456789`.
+Standardalgorithmus-Chunkvektor und Connect-Endvergleich: `00 3D BB 00 00 00 00 31 32 33 34 35 36 37 38 39` bedeutet unkomprimierter Byte0 `00`, CRC `0xBB3D` als LE `3D BB`, Offset 0 und ASCII-Payload `123456789`.
 
 ### 5002-Request vollständig
 
@@ -191,9 +191,9 @@ Das entspricht CRC-16/ARC (CRC-16/IBM): `poly=0xA001` reflected (`0x8005` normal
 
 Dieselbe `u45.a`-Routine berechnet in `classes.dex:defpackage.vns.a` auch den äußeren GFDI-Frame-CRC: Startwert 0, alle Framebytes außer den finalen zwei CRC-Bytes; `a60.O` serialisiert das Ergebnis u16 LE. Das äußere Frame-CRC und das innere 5004-Payload-CRC verwenden also dieselbe Routine, aber unterschiedliche Bytebereiche.
 
-**Wichtige Unsicherheit:** Die vorhandene JADX-Rekonstruktion setzt in der Payload-Schleife `i = this.e` unmittelbar vor `this.e = u45.a(byte,i)`; nach der Schleife vergleicht sie `i` (also den vor dem letzten Byte gelesenen Stand) mit dem übertragenen CRC, nicht `this.e` (den aktualisierten Stand). Bei leerem Payload wird der aktuelle Akkumulator verglichen. Das sieht nach einem Connect-Parserfehler oder einer ungewöhnlichen Wire-Konvention aus. Für echte Bytecode-Verhaltensgleichheit muss die Registerfolge in DEX/smali noch einmal bestätigt werden. Deshalb darf der normale CRC-16/ARC Endwert nicht ohne diesen Vorbehalt als nachgewiesene CIRQA-Chunkakzeptanz ausgegeben werden.
+**DEX-Kontrollfluss verifiziert:** `classes.dex` wurde mit Android SDK `dexdump -c` checksum-validiert. In `yw40.a([B)Ljow;` laden die Code-Unit-Offsets `0x0032–0x0033` `this.e` in `v7`; `0x0037–0x003d` aktualisieren und speichern `v7` pro Payloadbyte; Offset `0x0042` vergleicht `if-eq v7,v4`. Der Vergleich erfolgt nach allen Payloadupdates. DEX-Codeadresse des CRC-Aufrufs `0x4f834a`, Vergleich `0x4f835c`. Die JADX-Variable war irreführend rekonstruiert. Dies belegt Connect-Verhalten, nicht CIRQA-Kompatibilität.
 
-Standardalgorithmus-Chunkvektor (nicht automatisch Passvektor des obigen dekompilierten Vergleichs): `00 3D BB 00 00 00 00 31 32 33 34 35 36 37 38 39` bedeutet unkomprimierter Byte0 `00`, CRC `0xBB3D` als LE `3D BB`, Offset 0 und ASCII-Payload `123456789`.
+Standardalgorithmus-Chunkvektor und Connect-Endvergleich: `00 3D BB 00 00 00 00 31 32 33 34 35 36 37 38 39` bedeutet unkomprimierter Byte0 `00`, CRC `0xBB3D` als LE `3D BB`, Offset 0 und ASCII-Payload `123456789`.
 
 ### 5002-Request vollständig
 
@@ -230,4 +230,4 @@ Vektor `00 78 56 34 12` → Status 0, Wert `0x12345678` = 305419896. Werte über
 Das bestätigt die **Garmin Connect 5.31 Legacy-GFDI-Implementierung**, einschließlich Directoryindex 0 und Einzeldateiindex-Reads. Es beweist nicht, dass CIRQA diese Requests, Optionen oder CRC-Konvention akzeptiert. CIRQA-Capabilities, 5007/5031/5002/5004 Antworten, verwendete Kompressionsvariante und eine tatsächliche Historienübertragung bleiben unbelegt. Es wurden keine Gerätekommandos gesendet und keine Gerätedateien verändert.
 
 
-**Umsetzung in PulsLibre:** Reine Offline-Primitive `CirqaLegacyCrc16` und `CirqaLegacy5002Codec`, mit JVM-Vektoren. Keine 5004-Produktivakzeptanz vor DEX-Kontrollflussprüfung, keine BLE-Sendefunktion.
+**Umsetzung in PulsLibre:** Reine Offline-Primitive `CirqaLegacyCrc16` und `CirqaLegacy5002Codec`, mit JVM-Vektoren. Keine BLE-Sendefunktion; CIRQA-Kompatibilität bleibt unbelegt.

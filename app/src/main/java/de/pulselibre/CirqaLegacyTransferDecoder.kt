@@ -5,7 +5,7 @@ package de.pulselibre
  *
  * No BLE transport, CRC acceptance or ACK sender. The independently
  * reconstructed 5002 request codec and CRC-16/ARC helper live in separate
- * offline-only classes; yw40's final comparison still needs DEX verification.
+ * offline-only classes; DEX confirms yw40 compares the updated CRC accumulator.
  */
 object CirqaLegacyTransferDecoder {
     enum class ReadStatus {

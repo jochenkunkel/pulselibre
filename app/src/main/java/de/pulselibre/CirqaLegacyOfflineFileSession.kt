@@ -3,8 +3,8 @@ package de.pulselibre
 /**
  * Offline coordinator: 5002 success -> 5004 chunks -> validated directory or file bytes.
  * No transport, outbound GFDI requests, ACKs or persistence.
- * CRC verification is injected: the ARC helper is reconstructed, but the
- * Connect 5004 parser's final-byte comparison is not yet DEX-verified.
+ * CRC verification is injected: DEX confirms Connect's final accumulator
+ * comparison, but neither that behavior nor the command is CIRQA-verified.
  */
 class CirqaLegacyOfflineFileSession(
     private val fileIndex: Int,
