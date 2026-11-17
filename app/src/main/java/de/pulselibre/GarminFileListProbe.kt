@@ -31,6 +31,7 @@ class GarminFileListProbe {
     val protobuf = GarminProtobufReassembler()
     val compactSession = CirqaCompactSessionObserver()
     val deviceInfoStructure = Cirqa5024StructureObserver()
+    val legacyDirectory = CirqaLegacyDirectoryObserver()
     private val pending = ArrayList<Byte>()
     private var collecting = false
     var frames = 0
@@ -55,7 +56,7 @@ class GarminFileListProbe {
 
 
     fun summary(): String = "GFDI-Frames: $frames; FileListResponse: $validLists; " +
-        "Dateieinträge: $fileEntries; Typen: $frameTypes; 5037-Strukturen gültig=$validSynchronizationShapes/ungültig=$malformedSynchronizationShapes; 5037-Maskenbitanzahl=$synchronizationMaskBitCounts; GFDI-5000-Status: $responseStatuses; Antwortfehler: $responseErrors; andere Nachrichten: $otherMessages; ungültige Frames: $rejectedFrames; ${bootstrap.summary()}; ${bootstrapDiagnosis.summary()}; ${postBootstrap.summary()}; ${handshake.summary()}; ${structure5050.summary()}; ${chunks.summary()}; ${protobuf.summary()}; ${compactSession.summary()}; ${deviceInfoStructure.summary()}"
+        "Dateieinträge: $fileEntries; Typen: $frameTypes; 5037-Strukturen gültig=$validSynchronizationShapes/ungültig=$malformedSynchronizationShapes; 5037-Maskenbitanzahl=$synchronizationMaskBitCounts; GFDI-5000-Status: $responseStatuses; Antwortfehler: $responseErrors; andere Nachrichten: $otherMessages; ungültige Frames: $rejectedFrames; ${bootstrap.summary()}; ${bootstrapDiagnosis.summary()}; ${postBootstrap.summary()}; ${handshake.summary()}; ${structure5050.summary()}; ${chunks.summary()}; ${protobuf.summary()}; ${compactSession.summary()}; ${deviceInfoStructure.summary()}; ${legacyDirectory.summary()}"
 
     fun observeMlPayload(payload: ByteArray) {
         for (byte in payload) {
@@ -87,6 +88,7 @@ class GarminFileListProbe {
         frames++
         compactSession.observe(frame)
         deviceInfoStructure.observe(frame)
+        legacyDirectory.observeVerified(frame)
         if (captureRawFrames) {
             if (rawFrames.size < 32 && rawBytes + frame.size <= 8192) {
                 rawFrames.add("RX +${(System.nanoTime() - rawStartNanos) / 1_000_000}ms Frame #$frames " +
