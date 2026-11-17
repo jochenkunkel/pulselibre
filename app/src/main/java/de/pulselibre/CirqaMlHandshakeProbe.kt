@@ -456,11 +456,6 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     historyRouted++
                     fileListProbe.observeMlPayload(bytes.copyOfRange(1, bytes.size))
                     if (configurationTestMode) post5050Evidence.observe(fileListProbe.frameTypes)
-                    if (configurationTestMode && configuration5037ObservationStarted &&
-                        Cirqa5037SyncEvidenceGate.isPostHandshakeSignal(
-                            configuration5037Baseline, fileListProbe.validSynchronizationShapes,
-                            configurationResponseConfirmed, configurationAckReceived
-                        )) passive5050Session.valid5037()
                     if (configurationTestMode && configurationResponseQueued &&
                         Cirqa5050Malformed5037Guard.shouldAbort(
                             configurationMalformed5037Baseline, fileListProbe.malformedSynchronizationShapes
@@ -494,6 +489,11 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                         finish("Sicherheitsabbruch: erneute 5050-Anfrage nach geplanter Antwort.", g)
                         return
                     }
+                    if (configurationTestMode && configuration5037ObservationStarted &&
+                        Cirqa5037SyncEvidenceGate.isPostHandshakeSignal(
+                            configuration5037Baseline, fileListProbe.validSynchronizationShapes,
+                            configurationResponseConfirmed, configurationAckReceived
+                        )) passive5050Session.valid5037()
                     if (configurationTestMode && Cirqa5050AckGate.isConfirmed(
                             configurationResponseQueued,
                             configurationResponseConfirmed,
