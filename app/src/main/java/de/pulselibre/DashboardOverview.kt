@@ -43,7 +43,7 @@ internal fun stepGoalProgressMetric(steps: DashboardMetric, goal: DashboardMetri
             receivedAt
         )
     }
-    val percent = ((stepsValue.toDouble() / goalValue.toDouble()) * 100.0).toInt()
+    val percent = ((stepsValue.toDouble() / goalValue.toDouble()) * 100.0).toLong()
     return DashboardMetric(
         "Tagesziel Schritte", "$percent %",
         "$stepsValue von $goalValue Schritten · Fortschritt zum Geräte-Schrittziel; keine Gesundheitsbewertung.",
