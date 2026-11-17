@@ -268,51 +268,9 @@ class MainActivity : AppCompatActivity() {
         overviewView(bodyCard, 14)
         // One compact dashboard heading; privacy details remain accessible via the info button.
         overviewView(text("Gesundheit · CIRQA", 17f, ink, true), 6)
-        val cirqaDashboard = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+        val cirqaDashboard = DashboardOverviewView(this)
         fun updateCirqaDashboard() {
-            val summary = CirqaDashboardReader(this).read()
-            cirqaDashboard.removeAllViews()
-            // The first four cards are high-priority measurements, not derived health claims.
-            val primary = summary.metrics.take(4)
-            val tiles = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
-            primary.chunked(2).forEach { pair ->
-                val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-                pair.forEachIndexed { index, metric ->
-                    val tile = card().apply {
-                        contentDescription = "${metric.title}: ${metric.value}. ${metric.note}"
-                        addView(text(metric.title, 12f, muted, true))
-                        addView(text(metric.value, 22f, ink, true),
-                            LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(10) })
-                        addView(text(metric.note, 10f, muted),
-                            LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(7) })
-                    }
-                    row.addView(tile, LinearLayout.LayoutParams(0, -2, 1f).apply {
-                        if (index == 0) rightMargin = dp(8)
-                    })
-                }
-                tiles.addView(row, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(8) })
-            }
-            cirqaDashboard.addView(tiles)
-
-            val detail = card()
-            detail.addView(text("WEITERE GESUNDHEITSWERTE", 11f, violet, true))
-            summary.metrics.drop(4).forEach { metric ->
-                val item = LinearLayout(this).apply {
-                    orientation = LinearLayout.VERTICAL
-                    setPadding(0, dp(13), 0, dp(13))
-                    contentDescription = "${metric.title}: ${metric.value}. ${metric.note}"
-                }
-                item.addView(text(metric.title, 13f, muted, true))
-                item.addView(text(metric.value, 19f, ink, true),
-                    LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(4) })
-                item.addView(text(metric.note, 11f, muted),
-                    LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(4) })
-                detail.addView(item)
-                detail.addView(android.view.View(this).apply {
-                    setBackgroundColor(Color.rgb(236, 233, 244))
-                }, LinearLayout.LayoutParams(-1, dp(1)))
-            }
-            cirqaDashboard.addView(detail, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(4) })
+            cirqaDashboard.render(CirqaDashboardReader(this).read().metrics)
         }
         updateCirqaDashboard()
         dashboardRefresh = { updateCirqaDashboard() }
