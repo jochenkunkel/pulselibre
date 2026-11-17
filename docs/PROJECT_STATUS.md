@@ -1,8 +1,17 @@
 # PulsLibre – zentraler Projektstatus und Chat-Übergabe
 
-**Stand:** 2026-11-16 · **maßgeblicher Codezweig:** `main` · **Status:** aktive Entwicklung, keine Produktionsfreigabe.
+**Stand:** 2026-11-17 (Codex-Übergabe; historische Einträge bleiben datiert) · **maßgeblicher Codezweig:** `main` · **Status:** aktive Entwicklung, keine Produktionsfreigabe.
 
 > **Arbeitsregel für alle Chats und Entwicklungsagenten:** Dieses Dokument und der aktuelle GitHub-`main` sind der gemeinsame, versionierte Übergabepunkt. Ein Chatverlauf wird **nicht automatisch** in andere Chats übertragen. Zu Beginn jeder Arbeit zuerst `main`, diese Datei, die offenen Issues und die CI-Ergebnisse lesen. Widersprüche gegen den aktuellen Code prüfen; nicht ungeprüft aus älteren Chatantworten übernehmen.
+
+## Aktueller CIRQA- und Teamstatus (2026-11-17)
+
+- Drei vom Nutzer übermittelte gezielte CIRQA-5050-Diagnosen bestätigen GFDI-Registrierung, einen GATT-bestätigten 5024-ACK-Kandidaten und eine GATT-bestätigte aktive Antwortfolge auf 5050 (GFDI-5000-ACK für request=5050). Im jüngsten 10-Sekunden-Fenster **nach** bestätigtem 5050-Schreibabschluss: genau ein GFDI-5000-ACK, **keine** 5050-Wiederholung, kein 5011, keine FileListResponse und keine Protobuf-Übertragung. Keine Historienfreigabe nachgewiesen. Siehe [dritter Test und Phasenkorrektur](CIRQA_5050_THIRD_TEST_AND_PHASE_FIX_2026-11-17.md), [Post-5050-Auswertung](CIRQA_POST_5050_EVIDENCE_2026-11-17.md).
+- Die 15-Byte-Null-Hostmaske ist ein experimenteller Konfigurationskandidat, keine bestätigte Sync-Fähigkeit. SYNC-Bit 3 und 18-Byte-Varianten sind bisher nur Offline-Recherche; **nicht** automatisch an CIRQA senden. Keine ungefragten FileSync-/5037-/Filter-Befehle.
+- Die Diagnosephase wurde im Code gegen wiederholte `COMPLETE`-Benachrichtigungen abgesichert (Commit `deffb383`). Das ändert keine BLE-Kommandos. Ein früherer Bericht zeigte deshalb fälschlich weiterhin „warte auf DeviceInformation“.
+- Letzter vor dieser Dokumentationsvorbereitung explizit geprüfter Android-CI-Lauf: [Run 44045596436](https://github.com/jochenkunkel/pulselibre/actions/runs/44045596436), Commit `cf5a20b2`, `completed/success` (**schneller** Gate). Neuere Commits und der Dokumentations-PR brauchen ihren **eigenen** CI-Nachweis; kein Full-CI- oder S25-Release-Gate daraus ableiten.
+- **Codex + VSCodium:** Die Repositorywurzel enthält im Dokumentationsvorschlag `AGENTS.md` mit gemeinsamer Git-/Sicherheits-/Testpraxis. Parallele Agenten arbeiten in getrennten Branches/Worktrees; für diesen Dokumentationsauftrag ist ein Review-PR vorgesehen, kein direktes Merge nach `main`.
+- Priorität bei Historienentwicklung: Bedeutung der Garmin-Host-Capabilities und der Sync-Initiierung durch unabhängige Quellen validieren; erst dann einen ausdrücklich freigegebenen, begrenzten aktiven Test entwerfen. Kein produktionsreifer Historienzugriff behauptet.
 
 ## Gesicherter Projektstand
 
