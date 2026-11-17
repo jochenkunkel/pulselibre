@@ -18,22 +18,48 @@ class CirqaDashboardReader(private val context: Context) {
         val activity: StepActivityEstimate
     )
 
-    fun read(now: Instant = Instant.now()): Summary {
+    fun read(now: Instant = Instant.now(), includeTotals: Boolean = true): Summary {
         val latest = mutableMapOf<Int, Pair<Instant, JSONObject>>()
         val stepObservations = mutableListOf<StepObservation>()
-        var count = 0
-        // Read the canonical SQLite events; no legacy file import.
-        val records = CirqaDatabase(context).use { db ->
-            db.readingLines()
+        val zone = ZoneId.systemDefault()
+        val settings = ActivityDetectionPreference.read(context)
+        val services = GarminRealtime.SUPPORTED_SERVICES.joinToString(",")
+        val dayStart = now.atZone(zone).toLocalDate().atStartOfDay(zone).toInstant()
+        val windowStart = maxOf(dayStart, now.minusSeconds(settings.windowMinutes * 60L))
+        val cutoff = now.plusSeconds(60)
+        val records = mutableListOf<String>()
+        val totals = CirqaDatabase(context).use { db ->
+            val sql = db.readableDatabase
+            val eligible = "kind = 'reading' AND service IN ($services) AND julianday(received_at_utc) <= julianday(?)"
+            for (service in GarminRealtime.SUPPORTED_SERVICES) {
+                // Include ties at SQLite's timestamp precision. Instant selects the latest below.
+                val query = """SELECT payload_json FROM events WHERE service = ? AND kind = 'reading'
+                    AND julianday(received_at_utc) = (SELECT MAX(julianday(received_at_utc)) FROM events
+                    WHERE service = ? AND kind = 'reading' AND julianday(received_at_utc) <= julianday(?))
+                    ORDER BY id"""
+                sql.rawQuery(query, arrayOf(service.toString(), service.toString(), cutoff.toString())).use { cursor ->
+                    while (cursor.moveToNext()) records.add(cursor.getString(0))
+                }
+            }
+            sql.rawQuery("""SELECT payload_json FROM events WHERE service = 7 AND kind = 'reading'
+                AND julianday(received_at_utc) BETWEEN julianday(?) AND julianday(?) ORDER BY id""",
+                arrayOf(windowStart.toString(), now.toString())).use { cursor ->
+                while (cursor.moveToNext()) records.add(cursor.getString(0))
+            }
+            if (!includeTotals) return@use 0 to 0L
+            val count = sql.rawQuery("SELECT COUNT(*) FROM events WHERE $eligible", arrayOf(cutoff.toString())).use {
+                it.moveToFirst()
+                it.getInt(0)
+            }
+            count to db.eventBytes()
         }
-        records.forEach { line ->
+        records.distinct().forEach { line ->
             val item = try { JSONObject(line) } catch (_: Exception) { return@forEach }
             if (item.optString("type") != "reading" || item.optInt("schema") != 1) return@forEach
             val time = try { Instant.parse(item.getString("received_at_utc")) } catch (_: Exception) { return@forEach }
             if (time.isAfter(now.plusSeconds(60))) return@forEach
             val service = item.optInt("service", -1)
             if (service !in GarminRealtime.SUPPORTED_SERVICES) return@forEach
-            count++
             if (service == 7 && time.atZone(ZoneId.systemDefault()).toLocalDate() != now.atZone(ZoneId.systemDefault()).toLocalDate()) return@forEach
             if (service == 7 && !time.isAfter(now)) {
                 val steps = item.optLong("steps", Long.MIN_VALUE)
@@ -67,9 +93,7 @@ class CirqaDashboardReader(private val context: Context) {
             DashboardMetric("Schlaf", "Keine Messdaten", "Schlafphasen/-dauer erfordern validierte FIT-Historie"),
             DashboardMetric("Ground Rules", "Quellen & Grenzen", "Keine Diagnosen; keine geschätzten Werte; kein RR→RMSSD ohne Zeitreihe")
         )
-        val bytes = CirqaDatabase(context).use { it.eventBytes() }
-        val activity = estimateStepActivity(stepObservations, now, ZoneId.systemDefault(),
-            ActivityDetectionPreference.read(context))
-        return Summary(result, count, bytes, activity)
+        val activity = estimateStepActivity(stepObservations, now, zone, settings)
+        return Summary(result, totals.first, totals.second, activity)
     }
 }
