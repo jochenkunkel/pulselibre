@@ -20,6 +20,19 @@ class GarminDeviceInformationReferenceTest {
         assertEquals(1, structure.trailingBinaryBytes)
     }
 
+    @Test fun malformedTextLengthIsRejectedEvenWithCorrectCrc() {
+        val extension = ByteArray(43)
+        extension[12] = 99.toByte() // would exceed extension bounds
+        val frame = GarminDeviceInformationAckCandidate.extendedFrame(extension)
+        assertNull(GarminDeviceInformationReference.inspect(frame))
+    }
+
+    @Test fun alteredCrcIsRejected() {
+        val frame = GarminDeviceInformationAckCandidate.extendedFrame(ByteArray(43))
+        frame[frame.lastIndex] = (frame.last().toInt() xor 1).toByte()
+        assertNull(GarminDeviceInformationReference.inspect(frame))
+    }
+
     @Test fun minimalResponseHasNoReferenceLayout() {
         assertNull(GarminDeviceInformationReference.inspect(GarminDeviceInformationAckCandidate.frame()))
     }
