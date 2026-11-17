@@ -71,3 +71,35 @@ Der alternative Builder setzt `GDIFileAccess.Service` als Extension `GDIFileAcce
 ## Integration nach OpenCode-Bericht (2026-11-17)
 
 Der Stand von `main` enthält zusätzlich `CirqaLegacyFitFileSelector` als vollständig offline ausgeführte, capability-gesteuerte Vorauswahl und die Korrektur, dass die unkomprimierte Reassembly 5004-Pakete mit Nichtnull-Transferstatus zurückweist. Diese Erweiterungen sind unabhängig vom Connect-Nachweis und bleiben **nicht** an BLE angeschlossen. Die unbekannte CIRQA-Capability-/Subtype-Map ist kein Grund, unterstützte Dateitypen zu behaupten. Der im Connect-Code nachgewiesene geräteseitige Archivierungsschritt ist für PulsLibre explizit verboten.
+
+
+## Nachtrag: OpenCode-Prüfung `research/gc531-crc-5002` (`eb847b5`)
+
+### CRC-16: Routine, Parameter und Aufrufpfad
+
+`classes10.dex:defpackage.u45.a(byte,int)` verwendet die 16-Einträge-Tabelle
+`0000 CC01 D801 1400 F001 3C00 2800 E401 A001 6C00 7800 B401 5000 9C01 8801 4400`.
+Der Helper verarbeitet low/high nibble mit reflektierter Lookup-Tabelle; äquivalent ist CRC-16/ARC (auch CRC-16/IBM): width 16, reflected polynomial `0xA001` (normal-form `0x8005`), `init=0x0000`, `refin=true`, `refout=true`, `xorout=0x0000`. Der Helper selbst hat keinen final-xor-Schritt. Aufrufpfad `yw40.a` startet mit Instanzfeld `e` (JVM-default 0), aktualisiert es für Payloadbytes 7..end. Die Vergleichsbytes sind little endian aus `a60.E(1,body)`.
+
+Dieselbe Routine wird auch für den äußeren GFDI-Frame-CRC in `vns.a` verwendet: initial 0, über alle Nachrichtbytes außer den letzten zwei CRC-Bytes, danach schreibt `a60.O` die CRC als u16 LE. Beim 5004-Dateichunk dagegen nimmt `yw40.a` nur Bytes ab Offset 7 als Updateinput und liest das erwartete Feld bei Offset 1.
+
+**Achtung: möglicher Connect-Parserfehler / decompiler-verification gate.** In der verfügbaren JADX-Rekonstruktion von `yw40.a`, unmittelbar vor jeder CRC-Aktualisierung, wird `i = this.e` gesetzt; nach Verlassen der Schleife wird `i` mit dem empfangenen CRC verglichen. Literal gelesen entspricht `i` damit dem Akkumulator **vor der Verarbeitung des letzten Payloadbytes**, nicht dem danach gespeicherten Endakkumulator `this.e`. Bei einer Payload von null Bytes wird der aktuelle Startwert verglichen. Diese Kontrollflussbesonderheit weicht vom normalen CRC-16/ARC-Endwert ab. Vor produktiver 5004-Validierung ist die DEX-Bytecodefolge zu bestätigen; nicht stillschweigend die mutmaßlich beabsichtigte statt der tatsächlich dekompilierten Semantik implementieren.
+
+#### Reproduzierbare synthetische Referenzvektoren für `u45.a`
+
+| Datenbytes | Init | CRC numerisch | CRC als LE bytes |
+|---|---:|---:|---|
+| leer | `0000` | `0000` | `00 00` |
+| `31 32 33 34 35 36 37 38 39` (`123456789`) | `0000` | `BB3D` | `3D BB` |
+| `00` | `0000` | `0000` | `00 00` |
+| `01 02 03` | `0000` | `A110` | `10 A1` |
+| `46 49 54` (`FIT`) | `0000` | `BAD7` | `D7 BA` |
+
+Ein synthetischer Standard-Chunk mit Payload `123456789`, Offset 0, erwarteter Standard-ARC-CRC wäre:
+`00 3D BB 00 00 00 00 31 32 33 34 35 36 37 38 39`.
+**Dieser Vektor testet den Helper-/Standardalgorithmus; wegen der oben genannten `yw40`-Vergleichsvariable ist er nicht automatisch ein erwarteter Pass-Vektor des dekompilierten Connect-Parsers.**
+
+Komprimiert: `u8 sequence | u8 flags | u32LE uncompressedOffset | u16LE expectedCRC | deflateBytes` (mindestens 8 Bytes). Sequenz 8-bit mit Wrap; Flag `0x02` beendet den aktuellen Deflate-Stream; CRC über **dekomprimierte** Bytes. ACK/NACK: `[sequence,00]` OK, `01` malformed, `02` CRC, `03` Deflate, `04` Sequenz-/Offsetabweichung. Ohne verifizierte CRC-Routine kein produktiver Reader.
+
+
+**PulsLibre-Umsetzung:** `CirqaLegacy5002Codec` (14-Byte-Offline-Request, unsigned-u32LE-Response, begrenzte Größe), `CirqaLegacyCrc16` (reiner CRC-16/ARC-Helper) und `CirqaLegacyOfflineFileSession.beginFrom5002Response`. Keine BLE-Integration; die `yw40`-Vergleichsbesonderheit bleibt DEX-offen.
