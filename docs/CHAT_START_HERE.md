@@ -1,8 +1,10 @@
 # PulsLibre – CHAT_START_HERE
 
-**Letzte redaktionelle Prüfung: 2026-11-16.** **GitHub-Repository:** `jochenkunkel/pulselibre` (privat). **Verbindlicher Zweig:** `main`.
+**Letzte redaktionelle Prüfung: 2026-11-17 (Codex-Übergabe).** **GitHub-Repository:** `jochenkunkel/pulselibre` (privat). **Verbindlicher Zweig:** `main`.
 
 > Diese Datei ist der **Copy-&-Paste-Einstiegspunkt für neue Chats und Entwicklungsagenten**. Sie bewahrt den im Repository dokumentierten Projektkontext, ersetzt aber weder den tatsächlichen aktuellen Git-Stand noch automatisch synchronisierte Chatverläufe. Vor jeder Änderung den aktuellen `main`-Stand und die Issues erneut lesen.
+
+**Codex-/VSCodium-Einstieg:** Zuerst [AGENTS.md](../AGENTS.md) lesen. Der aktuelle CIRQA-5050-Befund steht in [PROJECT_STATUS.md](PROJECT_STATUS.md), Abschnitt „Aktueller CIRQA- und Teamstatus (2026-11-17)“. Die nachstehenden älteren Commits, Issue-Prioritäten und Beispiele sind historische Einstiegshilfen und dürfen nicht als aktueller Git-Head interpretiert werden. Für ausdrücklich zur Prüfung bestellte Änderungen Branch + PR statt Direkt-Commit nach main verwenden.
 
 ## 1. Auftrag an den neuen Chat / Entwicklungsagenten
 
@@ -10,7 +12,7 @@ Du arbeitest am Projekt **PulsLibre** (in älteren Gesprächen teilweise „Puls
 
 **Arbeitsweise des Nutzers:**
 - Deutsch antworten, klar und pragmatisch; möglichst selbstständig konkrete Änderungen implementieren statt nur Pläne schreiben.
-- Änderungen nach ausdrücklicher Nutzerpräferenz **direkt nach `main`** committen, in kleinen nachvollziehbaren Commits. Vor riskanten Änderungen Daten- und Gerätesicherheit beachten.
+- Änderungen normalerweise gemäß dokumentierter Nutzerpräferenz in kleinen nachvollziehbaren Commits bearbeiten; bei ausdrücklich gewünschter Prüfung zunächst Branch + Pull Request verwenden (siehe `AGENTS.md`). Vor riskanten Änderungen Daten- und Gerätesicherheit beachten.
 - GitHub als gemeinsame Quelle für andere Chats verwenden. Jede wichtige neue Erkenntnis, Entscheidung, Codeänderung und offene Frage in GitHub festhalten.
 - Keine Ergebnisse von Tests, Hardwareversuchen, CI, APK-Updates oder Datensynchronisation behaupten, die nicht überprüft wurden.
 - **Keine Secrets, Signaturschlüssel, Gesundheitsdaten, persönlichen BLE-Adressen oder Rohdiagnosen in Git committen.**
