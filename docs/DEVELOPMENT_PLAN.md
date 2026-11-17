@@ -72,3 +72,11 @@ Stand: 2026-11-16. Maßgeblich sind die tatsächlichen Repository-Dateien, GitHu
 - README, `.gitignore` und `.github/workflows/android.yml` geprüft. Build-/APK-Ausschlüsse vorhanden, `*.class` nicht explizit ausgeschlossen, aber reguläre `build/`-Verzeichnisse ausgeschlossen. Codesuche nach `app-debug.apk` fand Referenzen in Dokumentation/Workflow, keinen nachgewiesenen eingecheckten APK-Binärblob; vollständige Git-Tree-Inventur bleibt ausstehend.
 - Workflow: Artefaktaufbewahrung 14 Tage; keine Runs, Artefakte, Branches oder Dateien gelöscht. Combined-Status leer; commitbezogene Workflow-Abfrage filtert PR-Runs und kann Push-CI nicht verifizieren. **CI für `aa2fb79` unbekannt.**
 - **Nächster Schritt:** Git-Tree-Inventur mit einem geeigneten vollständigen Tree-/Clone-Zugriff; anschließend Link- und Duplikatprüfung. Keine Produktentwicklung.
+
+## Repository-Hygieneprüfung 2026-11-17 (18:30 MEZ)
+- GitHub-Metadaten: Repository `private`, Schreibzugriff vorhanden; 13 Branches einschließlich `main`, offene Issues #7, #16, #18, #19, #20, #22; keine offenen PRs in der Suchabfrage.
+- Letzter vor dem Hygiene-Commit gefundener Commit: `2f5940c` (Dokumentationsweiterleitung). README, Entwicklungsplan, `.gitignore` und Android-Workflow geprüft.
+- **Sichere Änderung:** `.gitignore` um `*.class` ergänzt (Commit `e04a82e`), um versehentlich außerhalb von `build/` erzeugte Java-/Kotlin-Klassendateien auszuschließen. Bestehende Dateien nicht gelöscht. GitHub-Codesuche zeigte nur Textreferenzen, keinen nachgewiesenen versionierten `.class`-Blob; vollständiger Git-Tree-Audit weiterhin offen.
+- Workflow enthält `retention-days: 14`; keine Workflow-Runs/Artefakte inventarisiert oder gelöscht. Commitbezogene Workflow-Abfrage liefert nur PR-Runs; leere Listen und Combined-Status beweisen keinen erfolgreichen Push-Build.
+- Keine Produktfunktionen, Secrets, Signing, Release-Dateien, Git-Historie oder Branches verändert. Branch-/Dateibesitz und PR-Verweise vor etwaigen Löschvorschlägen prüfen.
+- **Nächster Hygiene-Schritt:** Vollständigen Git-Tree mit geeignetem autorisierten Clone/Tree-API inventarisieren, dann Links und Duplikate prüfen. Alte CI-Artefakte nur mit belastbarer Aufbewahrungsinformation auflisten.
