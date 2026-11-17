@@ -22,6 +22,11 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private var callback: ((String) -> Unit)? = null
     var onReading: ((Int, GarminRealtime.Reading) -> Unit)? = null
     private var tx: BluetoothGattCharacteristic? = null
+    private var selectedRxUuid = "nicht ermittelt"
+    private var selectedTxUuid = "nicht ermittelt"
+    private var selectedTxProperties = 0
+    private var txTrace = CirqaGfdiWriteTrace()
+    private var sessionStartedNanos = 0L
     private var session: GarminMlHandshake.Session? = null
     private var requestedCloseAll = false
     private var realtimeMode = false
@@ -49,18 +54,12 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private var bootstrapAckPending = false
     private var bootstrapAckChunks = ArrayDeque<ByteArray>()
     private var bootstrapBaselineFrames = 0
-    private var fileListRequestMode = false
-    private var fileListRequestSent = false
-    private var fileListWritePending = false
-    private var fileListWriteConfirmed = false
     private var mlWritePending = false
-    private var fileListChunks = ArrayDeque<ByteArray>()
     private var historyRegistered = false
     private var historyTransport = GarminHistoryTransportInspector()
     private var fileListProbe = GarminFileListProbe()
     private var historyHandle: Int? = null
     private var historyRouted = 0
-    private var historyBurstStopped = false
     private var historyUnrouted = 0
     private val historyLengths = BoundedPacketLengths()
     private var pendingService = 0
@@ -92,13 +91,9 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         start(false, result)
     }
 
-    /** Explicit one-shot FileSync V2 list query; does not download or modify files. */
+    /** Permanently fail-closed after CIRQA rejected the compact FileSync V2 candidate. */
     fun startFileListQuery(result: (String) -> Unit) {
-        if (active) { result("ML-Test läuft bereits."); return }
-        fileListRequestMode = true
-        historyDiagnosticMode = true
-        realtimeMode = false
-        start(false, result)
+        result("FileSync V2 ist nach UNSUPPORTED dauerhaft gesperrt; keine Verbindung und kein BLE-Befehl ausgeführt.")
     }
 
     /** Explicit opt-in: one minimal identity-free 5024 ACK candidate, no FileSync commands. */
@@ -211,6 +206,11 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         if (!CirqaBleSessionGate.acquire(this)) { result("CIRQA Bluetooth belegt: Bitte laufende Messung abwarten und erneut versuchen."); return }
         terminationRequested = false
         active = true
+        sessionStartedNanos = System.nanoTime()
+        txTrace = CirqaGfdiWriteTrace()
+        selectedRxUuid = "nicht ermittelt"
+        selectedTxUuid = "nicht ermittelt"
+        selectedTxProperties = 0
         historyRegistered = false
         bootstrapAckSent = false
         configurationResponseQueued = false
@@ -231,17 +231,12 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         bootstrapAckPending = false
         bootstrapAckChunks.clear()
         bootstrapBaselineFrames = 0
-        fileListRequestSent = false
-        fileListWritePending = false
-        fileListWriteConfirmed = false
         mlWritePending = false
-        fileListChunks.clear()
         historyTransport = GarminHistoryTransportInspector()
         fileListProbe = GarminFileListProbe()
         fileListProbe.captureRawFrames = rawCaptureMode
         historyHandle = null
         historyRouted = 0
-        historyBurstStopped = false
         historyUnrouted = 0
         historyLengths.clear()
         if (closeAll) realtimeMode = false
@@ -296,6 +291,9 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     }
                     val rx = service.getCharacteristic(UUID.fromString(pair.rx))
                     tx = service.getCharacteristic(UUID.fromString(pair.tx))
+                    selectedRxUuid = rx?.uuid?.toString() ?: "nicht ermittelt"
+                    selectedTxUuid = tx?.uuid?.toString() ?: "nicht ermittelt"
+                    selectedTxProperties = tx?.properties ?: 0
                     if (rx == null || tx == null || rx.properties and BluetoothGattCharacteristic.PROPERTY_NOTIFY == 0 ||
                         tx!!.properties and (BluetoothGattCharacteristic.PROPERTY_WRITE or BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE) == 0) {
                         finish("Garmin ML Characteristics unterstützen Notify/Write nicht.", g); return
@@ -334,14 +332,11 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                 }
                 override fun onCharacteristicWrite(g: BluetoothGatt, characteristic: BluetoothGattCharacteristic, status: Int) {
                     if (!active || terminationRequested) return
+                    txTrace.completePendingCallback(status)
                     if (status != BluetoothGatt.GATT_SUCCESS) finish("ML-Schreibfehler: $status", g)
                     else {
                         writeConfirmed = true
                         mlWritePending = false
-                        if (fileListWritePending) {
-                            fileListWritePending = false
-                            if (fileListChunks.isEmpty()) fileListWriteConfirmed = true
-                        }
                         if (bootstrapAckPending) {
                             bootstrapAckPending = false
                             if (bootstrapAckChunks.isEmpty()) bootstrapAckConfirmed = true
@@ -377,8 +372,6 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                         }
                         if (bootstrapAckMode && bootstrapAckSent && bootstrapAckChunks.isNotEmpty()) {
                             main.postDelayed({ if (active) sendNextBootstrapAckChunk(g) }, 80L)
-                        } else if (fileListRequestMode && historyRegistered && fileListChunks.isNotEmpty()) {
-                            main.postDelayed({ if (active) sendNextFileListChunk(g) }, 80L)
                         } else mark("ML-Schreiben bestätigt; warte auf Protokollantwort")
                     }
                 }
@@ -401,14 +394,6 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         send(g, bootstrapAckChunks.removeFirst())
     }
 
-    private fun sendNextFileListChunk(g: BluetoothGatt) {
-        if (!active || terminationRequested || !historyRegistered || mlWritePending || fileListChunks.isEmpty()) return
-        val chunk = fileListChunks.removeFirst()
-        fileListWritePending = true
-        mark("Sende FileSync-V2-Dateilistenanfrage (${chunk.size} Bytes)")
-        send(g, chunk)
-    }
-
     @SuppressLint("MissingPermission")
     private fun send(g: BluetoothGatt, bytes: ByteArray) {
         if (!active || terminationRequested) return
@@ -419,7 +404,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             finish("ML-Schreibvorgang noch aktiv; neuer Schreibauftrag verhindert.", g)
             return
         }
-        if (!fileListWritePending) mark(if (session?.stage == GarminMlHandshake.Stage.WAIT_CLOSE) "Sende CLOSE_ALL" else if (pendingService > 0) "Registriere Garmin-Service $pendingService" else "Sende GFDI-Registrierung")
+        mark(if (session?.stage == GarminMlHandshake.Stage.WAIT_CLOSE) "Sende CLOSE_ALL" else if (pendingService > 0) "Registriere Garmin-Service $pendingService" else "Sende GFDI-Registrierung")
         mlWritePending = true
         try {
             val ok = if (Build.VERSION.SDK_INT >= 33)
@@ -433,7 +418,15 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             }
             if (!ok) {
                 mlWritePending = false
-                finish("ML-Schreibauftrag abgelehnt (${if (fileListWritePending) "FileSync V2" else "Registrierung"}).", g)
+                finish("ML-Schreibauftrag abgelehnt.", g)
+            } else {
+                txTrace.record(
+                    bytes,
+                    if (mode == BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE)
+                        "WITHOUT_RESPONSE (API-Auftrag angenommen)"
+                    else "WITH_RESPONSE (API-Auftrag angenommen)",
+                    (System.nanoTime() - sessionStartedNanos) / 1_000_000
+                )
             }
         } catch (_: SecurityException) { finish("Bluetooth-Berechtigung beim Schreiben fehlt.", g) }
     }
@@ -555,18 +548,6 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     }
                     // Fail closed on repetitive protocol traffic: do not let a read-only
                     // diagnostic keep the device in an unacknowledged response loop.
-                    if (fileListRequestMode && !historyBurstStopped &&
-                        fileListProbe.responseErrors >= 3) {
-                        historyBurstStopped = true
-                        finish("Sicherheitsabbruch: mindestens drei negative GFDI-Protokollantworten; siehe GFDI-5000-Status.", g)
-                        return
-                    }
-                    if (fileListRequestMode && !historyBurstStopped &&
-                        fileListProbe.frames >= 60 && fileListProbe.validLists == 0) {
-                        historyBurstStopped = true
-                        finish("Sicherheitsabbruch: mindestens 60 GFDI-Frames ohne Dateilistenantwort; möglicher Wiederholungsverkehr.", g)
-                        return
-                    }
                 } else historyUnrouted++
                 historyLengths.record(bytes.size)
             }
@@ -671,19 +652,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     send(g, GarminMlHandshake.registerRequest(pendingService))
                 } else if (historyDiagnosticMode && !historyRegistered) {
                     historyRegistered = true
-                    if (fileListRequestMode) {
-                        val handle = historyHandle
-                        if (handle == null) {
-                            finish("GFDI-Handle fehlt; Dateiliste nicht angefordert.", g)
-                        } else {
-                            // CIRQA returned UNSUPPORTED for the current compact 0x8A39
-                            // request. Do not repeat it until the bootstrap is validated.
-                            mark("FileSync V2 deaktiviert: CIRQA meldete UNSUPPORTED; nur passive Analyse")
-                            main.postDelayed({
-                                if (active) finish("Dateilistenanfrage sicherheitshalber deaktiviert: CIRQA hat 0x8A39 mit UNSUPPORTED abgelehnt.", g)
-                            }, 500L)
-                        }
-                    } else mark(if (bootstrapAckMode) "GFDI registriert; warte auf DeviceInformation für einmaliges ACK" else "GFDI registriert; beobachte Metadaten bis zum Zeitlimit")
+                    mark(if (bootstrapAckMode) "GFDI registriert; warte auf DeviceInformation für einmaliges ACK" else "GFDI registriert; beobachte Metadaten bis zum Zeitlimit")
                 } else if (!historyDiagnosticMode) finish("Garmin ML: GFDI-Service erfolgreich registriert! ${if (requestedCloseAll) "CLOSE_ALL wurde zuvor bestätigt." else "Ohne CLOSE_ALL."} Verbindung beendet; keine Gesundheitsdaten gelesen.", g)
             }
             GarminMlHandshake.Stage.FAILED ->
@@ -708,13 +677,18 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         "Protokollzustand: ${session?.stage}\n" +
         "Transportanalyse: ${historyTransport.summary()}\n" +
         "Passiver GFDI/COBS/FileSync-Decoder: ${fileListProbe.summary()}\n" +
+        "GATT-Merkmale: RX=$selectedRxUuid; TX=$selectedTxUuid; TX-Properties=$selectedTxProperties; MTU nicht aktiv ausgehandelt.\n" +
+        txTrace.summary() + "\n" +
         (if (configurationTestMode) "Hinweis: Der passive Decoder meldet seinen eigenen 5050-Sendestatus; die aktive Testsequenz wird oben separat ausgewiesen. Ein 5000-ACK bestätigt keine Historienfreigabe.\n" else "") +
         "GFDI-Handle: ${historyHandle ?: "unbekannt"}; zugeordnete Pakete: $historyRouted; übrige Pakete: $historyUnrouted\n" +
         "Paketlängen (ohne Registrierung): ${historyLengths.summary()}\n" +
         (if (rawCaptureMode) fileListProbe.rawCaptureReport() + "\n" else "") +
         "Antwort-Metadaten (max. 12): ${notificationShapes.joinToString(" | ")}\n" +
-        "Dateiliste: ${if (fileListWriteConfirmed) "FileSync V2 GATT-Schreiben bestätigt" else if (fileListRequestSent) "FileSync V2 Sendeversuch, nicht vollständig bestätigt" else "NICHT angefordert"}; Historienzugriff ${if (fileListProbe.validLists > 0) "durch Antwort bestätigt" else "NICHT nachgewiesen"}.\n" +
-        "Keine Dateiübertragung, kein SetFlags, kein CLOSE_ALL, keine Gesundheitswerte oder Geräteadressen im Bericht."
+        "FileSync-Anfrage: NICHT angefordert; Historienzugriff ${if (fileListProbe.validLists > 0) "durch Antwort bestätigt" else "NICHT nachgewiesen"}.\n" +
+        (if (rawCaptureMode)
+            "Hinweis: Dieser ausdrücklich angeforderte Rohdatenbericht kann Geräte-/Gesundheitsdaten enthalten; nicht öffentlich teilen."
+        else
+            "Keine Dateiübertragung, kein SetFlags, kein CLOSE_ALL, keine Rohframes oder Geräteadressen im Standardbericht.")
 
     private fun realtimeSummary(reason: String): String =
         "CIRQA Echtzeit-Test: $reason. " +
@@ -724,7 +698,9 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         "Ziel: ${steps?.goal?.toString() ?: "unbekannt"}; " +
         "gültige Messpakete: $realtimeFrames; " +
         (if (exploratoryMode) "Modus: ${if (mousePodsMode) "MousePods Start 0x01" else "Nur Registrierung"}; Start gesendet: $motionStartIssued; Service-16-Pakete: $motionPackets; Discovery: ${GarminServiceDiscovery.describe(exploratoryAccepted, rejectedServices, exploratoryFrames)}; " else if (expandedMode) "Weitere Werte: ${extraReadings.values.joinToString()}; abgelehnte Dienste: ${rejectedServices.joinToString()}; " else "") +
-        "Phase: $phase. Keine Daten gespeichert."
+        "Phase: $phase. Keine Daten gespeichert.\n" +
+        "GATT-Merkmale: RX=$selectedRxUuid; TX=$selectedTxUuid; TX-Properties=$selectedTxProperties; MTU nicht aktiv ausgehandelt.\n" +
+        txTrace.summary()
 
     @SuppressLint("MissingPermission")
     private fun safeClose(g: BluetoothGatt?) {
@@ -776,7 +752,6 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             session = null
             realtimeMode = false
             historyDiagnosticMode = false
-            fileListRequestMode = false
             bootstrapAckMode = false
             configurationTestMode = false
             rawCaptureMode = false

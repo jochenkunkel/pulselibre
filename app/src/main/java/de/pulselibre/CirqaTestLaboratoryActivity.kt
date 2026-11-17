@@ -72,6 +72,9 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
     private fun dp(value: Int) =
         (value * resources.displayMetrics.density + 0.5f).toInt()
 
+    private fun ByteArray.hexBytes(): String =
+        joinToString(" ") { "%02X".format(Locale.ROOT, it.toInt() and 0xff) }
+
     private val permissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { grants ->
@@ -255,6 +258,34 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
         addRecordView(historyCard, CirqaTestLaboratory.TestId.HISTORICAL_DOWNLOAD)
         addCard(historyCard)
 
+        val compatibilityCard = card()
+        compatibilityCard.addView(label("GFDI 5007 · einmaliger Kompatibilitätstest", 16f, true))
+        val candidateFrame = CirqaLegacy5007RequestCandidate.gfdiFrame()
+        val candidateCobs = CirqaLegacy5007RequestCandidate.cobsDelimitedFrame()
+        compatibilityCard.addView(label(
+            "Offline-Kandidat aus Garmin Connect 5.31, nicht am CIRQA bestätigt:\n" +
+                "PENDING_UPLOADS_ONLY-Body: 03\n" +
+                "GFDI-Rahmen (7 B): ${candidateFrame.hexBytes()}\n" +
+                "COBS mit Delimitern: ${candidateCobs.hexBytes()}\n" +
+                "GATT-Wert-Kandidat: <dynamischer GFDI-Handle> || COBS-Rahmen. " +
+                "TX-Characteristic wird im bestehenden Garmin-ML-Paar zur Laufzeit gewählt; " +
+                "kein fester CIRQA-Handle/UUID ist aus dem erfolgreichen Live-Testbericht belegt.",
+            13f
+        ), LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) })
+        compatibilityCard.addView(label(
+            "Antwortpfad: Connect erwartet eine Antwort-Nutzlast mit mindestens einem Statusbyte " +
+                "(00 = unterstützt); CIRQA-GFDI-Antworttyp, Rückgabehülle, Timeout und Sync-Nebenwirkungen sind nicht bestätigt. " +
+                "5007 kann einen Pending-Upload-/Sync-Pfad anstoßen. Sofortiges Trennen verhindert keine unbekannte geräteseitige Reaktion.",
+            13f
+        ), LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) })
+        val disabled5007 = button("Gerätetest derzeit gesperrt") {}
+        disabled5007.isEnabled = false
+        disabled5007.contentDescription =
+            "Einmaliger GFDI-5007-Gerätetest gesperrt; bisher nur Offline-Bytes geprüft."
+        compatibilityCard.addView(disabled5007)
+        addRecordView(compatibilityCard, CirqaTestLaboratory.TestId.LEGACY_5007_COMPATIBILITY)
+        addCard(compatibilityCard)
+
         root.addView(button("Datensparsamen Testbericht speichern") {
             AlertDialog.Builder(this)
                 .setTitle("Testbericht lokal speichern")
@@ -318,6 +349,10 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
             CirqaTestLaboratory.initialRecords().first {
                 it.test == CirqaTestLaboratory.TestId.PASSIVE_PROTOCOL
             }
+        records[CirqaTestLaboratory.TestId.LEGACY_5007_COMPATIBILITY] =
+            CirqaTestLaboratory.initialRecords().first {
+                it.test == CirqaTestLaboratory.TestId.LEGACY_5007_COMPATIBILITY
+            }
     }
 
     private fun saveRecord(
@@ -326,7 +361,8 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
         evidence: CirqaTestLaboratory.EvidenceLevel,
         safeSummary: String
     ) {
-        if (test == CirqaTestLaboratory.TestId.HISTORICAL_DOWNLOAD) return
+        if (test == CirqaTestLaboratory.TestId.HISTORICAL_DOWNLOAD ||
+            test == CirqaTestLaboratory.TestId.LEGACY_5007_COMPATIBILITY) return
         val now = System.currentTimeMillis()
         val record = CirqaTestLaboratory.Record(test, verdict, evidence, now, safeSummary)
         records[test] = record

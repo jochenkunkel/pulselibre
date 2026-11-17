@@ -2,6 +2,7 @@ package de.pulselibre
 
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.TextView
 import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -25,6 +26,9 @@ class CirqaTestLaboratoryActivityTest {
                 val labels = views.filterIsInstance<TextView>().map { it.text.toString() }
                 assertTrue(labels.any { it.contains("CIRQA-Testlabor") })
                 assertTrue(labels.any { it.contains("Historischer CIRQA-Download NICHT FREIGEGEBEN") })
+                assertTrue(labels.any { it.contains("GFDI 5007") })
+                assertTrue(labels.any { it.contains("07 00 8F 13 03 C9 1A") })
+                assertTrue(labels.any { it.contains("CIRQA-GFDI-Antworttyp") && it.contains("nicht bestätigt") })
                 assertTrue(labels.any { it.contains("Gesperrt") && it.contains("Unbewiesen") })
                 assertTrue(labels.any { it.contains("Offline-FIT") || it.contains("FIT-Datei") })
                 assertTrue(views.filterIsInstance<TextView>().none {
@@ -36,6 +40,10 @@ class CirqaTestLaboratoryActivityTest {
                     it.isClickable && it.isFocusable &&
                         it.text.toString().contains("FIT-Datei auswählen")
                 })
+                val gatedTest = views.filterIsInstance<Button>()
+                    .single { it.text.toString() == "Gerätetest derzeit gesperrt" }
+                assertFalse(gatedTest.isEnabled)
+                assertFalse(gatedTest.isClickable)
             }
         }
     }

@@ -16,6 +16,11 @@ class CirqaTestLaboratoryTest {
         assertEquals(CirqaTestLaboratory.Verdict.NOT_TESTED, passiveProtocol.verdict)
         assertEquals(CirqaTestLaboratory.EvidenceLevel.UNPROVEN, passiveProtocol.evidence)
         assertTrue(passiveProtocol.safeSummary.contains("keine Anfrage"))
+        val legacy5007 = CirqaTestLaboratory.initialRecords()
+            .single { it.test == CirqaTestLaboratory.TestId.LEGACY_5007_COMPATIBILITY }
+        assertEquals(CirqaTestLaboratory.Verdict.NOT_TESTED, legacy5007.verdict)
+        assertEquals(CirqaTestLaboratory.EvidenceLevel.UNPROVEN, legacy5007.evidence)
+        assertTrue(legacy5007.safeSummary.contains("kein Request gesendet"))
     }
 
     @Test fun reportAlwaysStatesHistoryGateAndContainsOnlyTheSafeSummary() {

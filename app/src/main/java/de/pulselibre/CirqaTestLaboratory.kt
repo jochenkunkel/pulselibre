@@ -13,6 +13,7 @@ object CirqaTestLaboratory {
         GATT_DISCOVERY("GATT-Dienstsuche"),
         LIVE_READINGS("Unterstützte Live-Messwerte"),
         FIT_FILE("Lokale FIT-Analyse"),
+        LEGACY_5007_COMPATIBILITY("Legacy-GFDI-5007-Kompatibilität"),
         HISTORICAL_DOWNLOAD("Historischer CIRQA-Download")
     }
 
@@ -48,6 +49,8 @@ object CirqaTestLaboratory {
             null,
             when (test) {
                 TestId.HISTORICAL_DOWNLOAD -> "Gesperrt; nicht freigegeben."
+                TestId.LEGACY_5007_COMPATIBILITY ->
+                    "Nur Connect-Bytes offline rekonstruiert; CIRQA-Kompatibilität unbewiesen; kein Request gesendet."
                 TestId.PASSIVE_PROTOCOL -> "Keine passive CIRQA-Framequelle vorhanden; keine Anfrage gesendet."
                 else -> "Noch kein Ergebnis."
             }

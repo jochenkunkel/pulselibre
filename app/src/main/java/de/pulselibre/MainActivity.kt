@@ -638,37 +638,14 @@ class MainActivity : AppCompatActivity() {
                     }
                 }.show()
         })
-        debugView(actionButton("CIRQA: Dateiliste lesen (experimentell)", false) {
-            if (!ensurePermissions()) return@actionButton
-            if (scanning) stopScan()
-            androidx.appcompat.app.AlertDialog.Builder(this)
-                .setTitle("CIRQA · Dateiliste lesen (experimentell)")
-                .setMessage("Garmin Connect und PulsLibre-Recorder vorher beenden. Es wird EIN FileSync-V2-Dateilistenbefehl an das Band gesendet. Keine Dateien werden heruntergeladen, gelöscht oder als synchronisiert markiert. Die CIRQA-Kompatibilität ist unbestätigt. Der Versuch endet nach 20 Sekunden. Fortfahren?")
-                .setNegativeButton("Abbrechen", null)
-                .setPositiveButton("Dateiliste anfragen") { _, _ ->
-                    if (cirqaMlProbe == null) cirqaMlProbe = CirqaMlHandshakeProbe(this, adapter)
-                    lastHistoryDiagnostic = null
-                    cirqaMlProbe?.startFileListQuery { message ->
-                        runOnUiThread {
-                            output.text = message
-                            if (message.startsWith("PulsLibre · CIRQA Historien-Diagnose")) {
-                                lastHistoryDiagnostic = message
-                                androidx.appcompat.app.AlertDialog.Builder(this)
-                                    .setTitle("Dateilisten-Test abgeschlossen")
-                                    .setMessage(message)
-                                    .setPositiveButton("Schließen", null)
-                                    .setNeutralButton("Bericht teilen") { _, _ ->
-                                        val intent = Intent(Intent.ACTION_SEND).apply {
-                                            type = "text/plain"
-                                            putExtra(Intent.EXTRA_TEXT, message)
-                                        }
-                                        startActivity(Intent.createChooser(intent, "CIRQA-Dateilisten-Test teilen"))
-                                    }.show()
-                            }
-                        }
-                    }
-                }.show()
-        })
+        val disabledFileSyncV2 = actionButton("CIRQA: FileSync V2 dauerhaft gesperrt", false) {}
+        disabledFileSyncV2.isEnabled = false
+        disabledFileSyncV2.isClickable = false
+        disabledFileSyncV2.isFocusable = false
+        disabledFileSyncV2.alpha = 0.55f
+        disabledFileSyncV2.contentDescription =
+            "FileSync V2 gesperrt; CIRQA hat die frühere Anfrage abgelehnt. Keine Anfrage wird gesendet."
+        debugView(disabledFileSyncV2)
         debugView(actionButton("Letzte Historien-Diagnose teilen", false) {
             val report = lastHistoryDiagnostic
             if (report == null) {

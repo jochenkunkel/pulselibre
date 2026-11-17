@@ -333,3 +333,11 @@ Issues: https://github.com/jochenkunkel/pulselibre/issues
   Textflächen und lässt mehr Platz für die oberen Skalenbeschriftungen. Der Bitmap-Test
   prüft gezeichnete Text-/Skalenfarben beider Paletten. Lokaler Build/JVM/Lint/Test-APK
   für die Textflächenänderung erfolgreich; abschließender CI-Lauf separat prüfen.
+
+## Issue #22 – 5007-Einmaltest nur offline vorbereitet (2026-11-17)
+
+- Ausgangs-`main`: `00a69a5`; Push-CI [Run 44128501318](https://github.com/jochenkunkel/pulselibre/actions/runs/44128501318) erfolgreich. Der S25-Livebericht bestätigt vorhandene Puls-/Schritte-Kommunikation und GATT-Erkennung, nicht FileSync.
+- Garmin Connect 5.31 DEX/JADX-Aufruf `FileManager.applyDirectoryFilter` wurde nachverfolgt: Messenger-Typ `5007`, Body genau `03` (`PENDING_UPLOADS_ONLY`); Connect liest das erste Byte der Antwortnutzlast (`00` = unterstützt). Kandidaten-GFDI/CRC/COBS/ML-Bytes und Laufzeitvariable sind im neuen Issue-#22-Dokument festgehalten.
+- Der Testlabor-Button für 5007 bleibt deaktiviert; es existiert kein 5007-BLE-Sendepfad. FileSync-V2/0x8A39 ist in UI und Probe fail-closed deaktiviert. Im vorhandenen autorisierten Diagnosepfad werden begrenzte TX-Metadaten (keine Payloads) plus ausgewählte RX-/GATT-Struktur ausgegeben.
+- Lokale Prüfung dieses vorbereiteten Stands: 399 JVM-Tests bestanden, 8 Python-Tests bestanden, `lintDebug`, Debug-APK und Instrumentation-APK erfolgreich gebaut; Android-Instrumentation nicht auf Emulator/Gerät ausgeführt.
+- Offen: CIRQA-spezifischer GFDI-5007-Antworttyp/-Envelope, exakte Laufzeit-Characteristic/Handle, CIRQA-Timeout und mögliche Sync-Nebenwirkungen. Kein 5007-Gerätetest ausgeführt. Der in `docs/CIRQA_5007_CONTROLLED_TEST_PREPARATION_2026-11-17.md` vorgeschlagene einzelne Write ist **nicht freigegeben**; vor jeder Ausführung ist eine konkrete erneute Nutzerzustimmung nötig.

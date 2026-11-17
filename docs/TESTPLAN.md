@@ -117,8 +117,11 @@ Diese Schritte sind ein **noch auszuführender** S25-Testplan. Automatisierte JV
 | T23 | Standard-Testbericht speichern und Datei vor Weitergabe prüfen | Export enthält Status, Zeitpunkt und sichere Zähler/Ergebniszusammenfassungen, keine Gerätekennung, Dateinamen, Rohpayloads oder Messwerte. SAF kann Cloud-Ziele anbieten; nur vertrauenswürdigen Speicherort wählen. |
 | T24 | Im Labor nach historischem Download / `0x8A39` suchen | Kein Download-Button und kein `0x8A39`; Historienstatus bleibt „Nicht getestet / Unbewiesen / gesperrt“. 5007/5031/5002/5004 werden nicht vom Gerät angefordert. |
 | T25 | Bereich „Passiv beobachtete Protokolle und lokale Logs“ ansehen | Das Labor sagt ausdrücklich, dass keine passiven CIRQA-Rohframes gespeichert sind. SQLite-Zähler sind App-Ereignisse und kein passiver Protokollmitschnitt. |
+| T26 | Offline-Kandidat „GFDI 5007“ im Testlabor prüfen | Bytepreview zeigt den aus Connect 5.31 abgeleiteten Kandidaten; Gerätetest-Button ist deaktiviert. Keine Anfrage wird gesendet und keine CIRQA-Kompatibilität behauptet. |
 
 **Stufe-2-Vorschlag:** siehe [CIRQA_TEST_LAB_STAGE2_PROPOSAL_2026-11-17.md](CIRQA_TEST_LAB_STAGE2_PROPOSAL_2026-11-17.md). Er ist derzeit wegen fehlender CIRQA-Evidenz und äußerer Requestbytes nicht ausführbar. Jede Ausführung benötigt einen neuen Auftrag, der genau diesen vervollständigten Plan ausdrücklich freigibt.
+
+**Issue #22 / 5007:** [Vorbereitung und Byte-/Risiko-Review](CIRQA_5007_CONTROLLED_TEST_PREPARATION_2026-11-17.md). Offline-Preview und synthetische Tests sind kein Gerätetest; Button und Sendepfad bleiben gesperrt bis zur separaten Freigabe.
 
 ```text
 Testlabor APK/Version:
@@ -131,6 +134,7 @@ T22: NICHT GETESTET
 T23: NICHT GETESTET
 T24: NICHT GETESTET
 T25: NICHT GETESTET
+T26: NICHT GETESTET
 Abbruch / beobachtete Nebenwirkung:
 ```
 
