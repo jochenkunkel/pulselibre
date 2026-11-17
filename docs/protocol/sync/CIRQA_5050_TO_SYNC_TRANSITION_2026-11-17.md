@@ -73,7 +73,7 @@ OpenCode hat offline folgenden Aufbau der **Erweiterung nach dem 5000-ACK-Präfi
 
 `CirqaConnect531Host5024Response` bildet diesen Aufbau **offline** mit explizit übergebenen Werten ab. Es erfindet keine App-Version, Geräteidentität, Android-Build-Werte oder Feature-Flags und wird nicht vom Bluetooth-Sender aufgerufen. Tests prüfen die Bytefolge, den 5000/5024-Frame inklusive CRC, die Protokollbedingung, UTF-8-Bytezahl und Feldgrenzen. Der bisherige minimale 5024-Kandidat bleibt als historischer Diagnoseversuch erhalten; er ist nicht mit der Connect-Hostantwort gleichzusetzen.
 
-Die von OpenCode genannte Detailanalyse `docs/GARMIN_CONNECT_531_FILESYNC_REVERSE_ENGINEERING.md` lag zum Zeitpunkt dieser Umsetzung nur lokal bei OpenCode und war **noch nicht ins Repository gepusht**. Die vorstehende Zusammenfassung basiert auf der ausdrücklich übergebenen Analyse, nicht auf einer unabhängig verifizierten APK.
+Die von OpenCode genannte Detailanalyse `docs/protocol/research/GARMIN_CONNECT_531_FILESYNC_REVERSE_ENGINEERING.md` lag zum Zeitpunkt dieser Umsetzung nur lokal bei OpenCode und war **noch nicht ins Repository gepusht**. Die vorstehende Zusammenfassung basiert auf der ausdrücklich übergebenen Analyse, nicht auf einer unabhängig verifizierten APK.
 
 
 ## Vorbereitung eines aktiven 5024-Vergleichstests
