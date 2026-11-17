@@ -4,23 +4,41 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class GarminMlOfflineTest {
-    @Test fun requiresBothCharacteristicsAndIgnoresCase() {
+    @Test fun usesConnectCounterpartWhenPresentAndIgnoresCase() {
         val rx = "6A4E2810-667B-11E3-949A-0800200C9A66"
         val tx = "6a4e2820-667b-11e3-949a-0800200c9a66"
-        assertNull(GarminMlOffline.findCharacteristicPair(listOf(rx)))
         assertNull(GarminMlOffline.findCharacteristicPair(listOf(tx)))
         assertEquals(tx, GarminMlOffline.findCharacteristicPair(listOf(rx, tx))?.tx)
     }
 
-    @Test fun neverMatchesUnrelatedAdvertisingCandidate() {
-        assertNull(GarminMlOffline.findCharacteristicPair(
-            listOf("3e1d50cd-7e3e-427d-8e1c-b78aa87fe624")))
+    @Test fun supportsWholeConnectMlRangeAndSameCharacteristicFallback() {
+        val rx = "6a4e2819-667b-11e3-949a-0800200c9a66"
+        val candidates = GarminMlOffline.characteristicPairCandidates(listOf(rx))
+        assertEquals(1, candidates.size)
+        assertEquals(rx, candidates.single().rx)
+        assertEquals(rx, candidates.single().tx)
+
+        val tx = "6a4e2829-667b-11e3-949a-0800200c9a66"
+        assertEquals(tx, GarminMlOffline.findCharacteristicPair(listOf(rx, tx))?.tx)
     }
 
-    @Test fun rejectsMismatchedPairAndAcceptsLaterPair() {
+    @Test fun returnsAllDiscoveredCandidatesInStableOrder() {
+        val later = "6a4e2819-667b-11e3-949a-0800200c9a66"
+        val earlier = "6a4e2815-667b-11e3-949a-0800200c9a66"
+        val candidates = GarminMlOffline.characteristicPairCandidates(listOf(later, earlier))
+        assertEquals(listOf(earlier, later), candidates.map { it.rx })
+        assertEquals(listOf(earlier, later), candidates.map { it.tx })
+    }
+
+    @Test fun neverMatchesUnrelatedAdvertisingCandidate() {
+        assertTrue(GarminMlOffline.characteristicPairCandidates(
+            listOf("3e1d50cd-7e3e-427d-8e1c-b78aa87fe624")).isEmpty())
+    }
+
+    @Test fun fallsBackToSameCharacteristicWhenCounterpartIsAbsent() {
         val rx = "6a4e2811-667b-11e3-949a-0800200c9a66"
         val wrongTx = "6a4e2820-667b-11e3-949a-0800200c9a66"
-        assertNull(GarminMlOffline.findCharacteristicPair(listOf(rx, wrongTx)))
+        assertEquals(rx, GarminMlOffline.findCharacteristicPair(listOf(rx, wrongTx))?.tx)
         val tx = "6a4e2821-667b-11e3-949a-0800200c9a66"
         assertEquals(rx, GarminMlOffline.findCharacteristicPair(listOf(rx, wrongTx, tx))?.rx)
     }

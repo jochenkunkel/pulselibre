@@ -6,10 +6,12 @@
 
 `BLE GATT → Garmin Multi-Link (MLR) → {Realtime-Dienste | GFDI mit COBS → FIT-Dateien} → validierte Messwerte → lokale Datenbank`.
 
-- GATT-Service **[C]**: `6a4e2800-667b-11e3-949a-0800200c9a66`. Mögliche RX-Characteristics `6a4e2810` bis `6a4e2814`, TX jeweils +`0x10` im 16-Bit-UUID-Teil **[O]**; PulseLibre sucht ausschließlich vorhandene RX/TX-Paare und prüft Properties/CCCD.
+- GATT-Service **[C]**: `6a4e2800-667b-11e3-949a-0800200c9a66`. Garmin Connect 5.31 durchsucht laut statischer APK-Analyse ML-Daten-Characteristics `6a4e2810` bis `6a4e2819`; als Schreib-Characteristic nutzt es jeweils die korrespondierende UUID `+0x10`, falls vorhanden, andernfalls dieselbe Characteristic für Lesen und Schreiben **[O, Garmin-Connect-5.31-APK; konkrete CIRQA-Characteristics damit nicht bestätigt]**. PulseLibre bildet diese Auswahl nach, prüft aber die tatsächlich entdeckten Notify-/Write-Properties und CCCD vor dem Handshake.
 - RX: Notifications vom Gerät; TX: Schreibvorgänge der App; CCCD Notifications aktivieren. Tatsächlich verfügbare Paar-UUIDs werden zur Laufzeit entdeckt.
 - Alle Mehrbyte-Zahlen in den unten beschriebenen MLR-/GFDI-Feldern sind **Little Endian**, sofern nicht anders markiert. `u8`=8 Bit, `u16`=16 Bit, `u32`=32 Bit, `u64`=64 Bit; `i32`=vorzeichenbehaftete 32 Bit.
 - Keine feste Registeradresse für Puls, SpO₂ usw. Die App fordert einen **Servicecode** an, das Band weist einen **Handle** zu; nur danach darf das Paket diesem Dienst zugeordnet werden.
+
+**Provenienz:** Bereich und Fallback stammen aus statischer Analyse von Garmin Connect 5.31 (`classes12.dex:defpackage.vit.initialize`, UUID-Gegenstückableitung in `defpackage.eb00`). Das ist proprietäres Referenzverhalten, keine offizielle Garmin-Spezifikation und kein CIRQA-Mitschnitt; es wurde kein dekompilierter Garmin-Code übernommen.
 
 ## 2. Multi-Link (MLR) Byte-Protokoll
 

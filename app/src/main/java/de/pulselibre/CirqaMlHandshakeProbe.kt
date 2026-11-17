@@ -314,31 +314,39 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     val service = g.services.orEmpty().firstOrNull {
                         it.uuid.toString().equals(GarminMlOffline.SERVICE_UUID, true)
                     }
-                    val characteristicUuids = service?.characteristics.orEmpty()
-                        .map { it.uuid.toString().lowercase() }.toSet()
-                    val completePairCount = (0x2810..0x2814).count { rxId ->
-                        val rxUuid = "6a4e${rxId.toString(16).padStart(4, '0')}-667b-11e3-949a-0800200c9a66"
-                        val txUuid = "6a4e${(rxId + 0x10).toString(16).padStart(4, '0')}-667b-11e3-949a-0800200c9a66"
-                        rxUuid in characteristicUuids && txUuid in characteristicUuids
-                    }
-                    if (legacy5007TestMode && completePairCount != 1) {
-                        finish("5007-Test abgebrochen: Garmin-ML-RX/TX-Paar fehlt oder ist nicht eindeutig.", g)
+                    if (service == null) {
+                        finish("Garmin-ML-GATT-Dienst ${GarminMlOffline.SERVICE_UUID} nicht gefunden.", g)
                         return
                     }
-                    val pair = GarminMlOffline.findCharacteristicPair(
-                        characteristicUuids)
-                    if (service == null || pair == null) {
-                        finish("Garmin ML RX/TX-Paar im ML-Dienst nicht vorhanden.", g); return
+                    val characteristics = service.characteristics.orEmpty()
+                    val pairs = GarminMlOffline.characteristicPairCandidates(
+                        characteristics.map { it.uuid.toString() }
+                    )
+                    if (pairs.isEmpty()) {
+                        finish("Im Garmin-ML-Dienst keine unterstützte Daten-Characteristic (0x2810–0x2819) gefunden.", g)
+                        return
                     }
-                    val rx = service.getCharacteristic(UUID.fromString(pair.rx))
-                    tx = service.getCharacteristic(UUID.fromString(pair.tx))
+                    val selected = pairs.firstNotNullOfOrNull { pair ->
+                        val candidateRx = service.getCharacteristic(UUID.fromString(pair.rx))
+                        val candidateTx = service.getCharacteristic(UUID.fromString(pair.tx))
+                        if (candidateRx != null && candidateTx != null &&
+                            candidateRx.properties and BluetoothGattCharacteristic.PROPERTY_NOTIFY != 0 &&
+                            candidateRx.getDescriptor(cccd) != null &&
+                            candidateTx.properties and (
+                                BluetoothGattCharacteristic.PROPERTY_WRITE or
+                                    BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE
+                                ) != 0
+                        ) pair to (candidateRx to candidateTx) else null
+                    }
+                    if (selected == null) {
+                        finish("Garmin-ML-Daten-Characteristics gefunden, aber kein Notify-/Write-kompatibler Connect-Kandidat.", g)
+                        return
+                    }
+                    val (rx, selectedTx) = selected.second
+                    tx = selectedTx
                     selectedRxUuid = rx?.uuid?.toString() ?: "nicht ermittelt"
                     selectedTxUuid = tx?.uuid?.toString() ?: "nicht ermittelt"
                     selectedTxProperties = tx?.properties ?: 0
-                    if (rx == null || tx == null || rx.properties and BluetoothGattCharacteristic.PROPERTY_NOTIFY == 0 ||
-                        tx!!.properties and (BluetoothGattCharacteristic.PROPERTY_WRITE or BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE) == 0) {
-                        finish("Garmin ML Characteristics unterstützen Notify/Write nicht.", g); return
-                    }
                     mark("ML RX/TX gefunden; CCCD wird aktiviert")
                     val descriptor = rx.getDescriptor(cccd)
                     if (descriptor == null) { finish("Garmin ML CCCD fehlt; kein Handshake gesendet.", g); return }

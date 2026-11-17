@@ -13,16 +13,26 @@ object GarminMlOffline {
 
     data class CharacteristicPair(val rx: String, val tx: String)
 
-    /** Returns a complete known RX/TX pair, never an assumed or partial pair. */
-    fun findCharacteristicPair(uuids: Collection<String>): CharacteristicPair? {
+    /**
+     * Garmin Connect 5.31 scans ML data characteristics 0x2810..0x2819.
+     * Its GATT transport uses the corresponding 0x2820..0x2829 characteristic
+     * for writes when present, and falls back to the same characteristic when
+     * that counterpart is absent. This is APK-derived behavior, not a CIRQA
+     * capture or proof that every device exposes every candidate.
+     */
+    fun characteristicPairCandidates(uuids: Collection<String>): List<CharacteristicPair> {
         val normalized = uuids.map { it.lowercase() }.toSet()
-        for (rxId in 0x2810..0x2814) {
+        return (0x2810..0x2819).mapNotNull { rxId ->
             val rx = "6a4e${rxId.toString(16).padStart(4, '0')}$BASE_SUFFIX"
+            if (rx !in normalized) return@mapNotNull null
             val tx = "6a4e${(rxId + 0x10).toString(16).padStart(4, '0')}$BASE_SUFFIX"
-            if (rx in normalized && tx in normalized) return CharacteristicPair(rx, tx)
+            CharacteristicPair(rx, if (tx in normalized) tx else rx)
         }
-        return null
     }
+
+    /** Returns the first Connect-compatible candidate, if any was discovered. */
+    fun findCharacteristicPair(uuids: Collection<String>): CharacteristicPair? =
+        characteristicPairCandidates(uuids).firstOrNull()
 
     data class RegisterResponse(val serviceId: Int, val status: Int, val handle: Int) {
         val accepted: Boolean get() = status == 0 && handle in 1..127
