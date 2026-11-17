@@ -184,7 +184,7 @@ private class HistoryScatterChartView(
     private val axisMaximum: Int,
     private val accent: Int,
     range: HistoryRange,
-    resolution: HistoryResolution
+    private val resolution: HistoryResolution
 ) : View(context) {
     private val palette = AppPalette.of(context)
     private val density = resources.displayMetrics.density
