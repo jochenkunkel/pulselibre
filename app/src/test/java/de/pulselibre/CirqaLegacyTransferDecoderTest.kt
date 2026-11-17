@@ -9,13 +9,13 @@ class CirqaLegacyTransferDecoderTest {
         assertNull(d.readResponse(byteArrayOf()))
         assertNull(d.readResponse(byteArrayOf(0, 1, 2, 3)))
         assertNull(d.readResponse(byteArrayOf(7)))
-        assertEquals(d.ReadStatus.SUCCESS,
+        assertEquals(CirqaLegacyTransferDecoder.ReadStatus.SUCCESS,
             d.readResponse(byteArrayOf(0, 1, 2, 3, 4))!!.status)
         assertArrayEquals(byteArrayOf(1, 2, 3, 4),
             d.readResponse(byteArrayOf(0, 1, 2, 3, 4))!!.sizeBytes)
-        assertEquals(d.ReadStatus.NOT_READY,
+        assertEquals(CirqaLegacyTransferDecoder.ReadStatus.NOT_READY,
             d.readResponse(byteArrayOf(3))!!.status)
-        assertEquals(d.ReadStatus.CRC_MISMATCH,
+        assertEquals(CirqaLegacyTransferDecoder.ReadStatus.CRC_MISMATCH,
             d.readResponse(byteArrayOf(5))!!.status)
     }
 
