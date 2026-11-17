@@ -280,9 +280,7 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
             13f
         ), LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) })
         legacy5007Button = button("Einmaligen 5007-Test starten") { confirmLegacy5007Test() }
-        val legacy5007AlreadyAttempted = preferences.getBoolean("legacy5007TestAttempted", false)
-        legacy5007Button.isEnabled = !legacy5007AlreadyAttempted
-        if (legacy5007AlreadyAttempted) legacy5007Button.text = "Einmaliger Test bereits verbraucht"
+        refreshLegacy5007Button()
         legacy5007Button.contentDescription =
             "Startet höchstens einen GFDI-5007-Write mit dynamischem Handle und fünf Sekunden Antwortfenster."
         compatibilityCard.addView(legacy5007Button)
@@ -410,15 +408,18 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
     }
 
     private fun confirmLegacy5007Test() {
-        if (preferences.getBoolean("legacy5007TestAttempted", false)) {
-            legacy5007Button.isEnabled = false
-            legacy5007Button.text = "Einmaliger Test bereits verbraucht"
+        val attempts = legacy5007ConsumedAttempts()
+        if (attempts >= CirqaLegacy5007AttemptGate.MAX_AUTHORIZED_ATTEMPTS) {
+            refreshLegacy5007Button()
             return
         }
+        val nextAttempt = attempts + 1
+        val attemptOrdinal = if (nextAttempt == 1) "ersten" else "zweiten"
         AlertDialog.Builder(this)
-            .setTitle("Einmaligen GFDI-5007-Test starten?")
+            .setTitle("$attemptOrdinal freigegebenen GFDI-5007-Test starten?")
             .setMessage(
-                "Es wird zuerst nur der Garmin-ML-GFDI-Dienst registriert und danach genau ein Request gesendet:\n\n" +
+                "Dies ist Versuch $nextAttempt von ${CirqaLegacy5007AttemptGate.MAX_AUTHORIZED_ATTEMPTS}. " +
+                    "Es wird zuerst nur der Garmin-ML-GFDI-Dienst registriert und danach genau ein Request gesendet:\n\n" +
                     "07 00 8F 13 03 C9 1A\n\n" +
                     "Der dynamische ML-Handle und TX-Characteristic werden zur Laufzeit ermittelt. " +
                     "Danach höchstens fünf Sekunden auf eine einzelne CRC-geprüfte GFDI-5000-Antwort zu 5007 warten. " +
@@ -434,8 +435,12 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
 
     @SuppressLint("MissingPermission")
     private fun runLegacy5007TestOnce() {
-        if (preferences.getBoolean("legacy5007TestAttempted", false)) {
-            legacy5007Button.isEnabled = false
+        val consumed = legacy5007ConsumedAttempts()
+        val nextAttempt = CirqaLegacy5007AttemptGate.nextAttempt(
+            preferences.getInt("legacy5007TestAttemptCount", consumed),
+            preferences.getBoolean("legacy5007TestAttempted", false)
+        ) ?: run {
+            refreshLegacy5007Button()
             return
         }
         val matchingDevices = try {
@@ -454,13 +459,15 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
             Toast.makeText(this, "CIRQA-Bluetooth ist durch eine laufende Sitzung belegt; kein Request gesendet.", Toast.LENGTH_LONG).show()
             return
         }
-        // Persist before attempting GATT so a process restart cannot enable a retry.
-        if (!preferences.edit().putBoolean("legacy5007TestAttempted", true).commit()) {
+        // Persist the authorized attempt before GATT so process restart cannot retry it.
+        if (!preferences.edit()
+                .putBoolean("legacy5007TestAttempted", true)
+                .putInt("legacy5007TestAttemptCount", nextAttempt)
+                .commit()) {
             Toast.makeText(this, "Einmal-Gate konnte nicht dauerhaft gespeichert werden; kein Request gesendet.", Toast.LENGTH_LONG).show()
             return
         }
-        legacy5007Button.isEnabled = false
-        legacy5007Button.text = "Einmaliger Test bereits verbraucht"
+        refreshLegacy5007Button()
         statusOutput.text = "5007-Test läuft; keine Folgekommandos sind vorgesehen."
         if (mlProbe == null) mlProbe = CirqaMlHandshakeProbe(this, adapter)
         mlProbe?.startLegacy5007CompatibilityTest { message ->
@@ -493,6 +500,25 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
                 )
             }
         }
+    }
+
+    private fun legacy5007ConsumedAttempts(): Int =
+        CirqaLegacy5007AttemptGate.consumedAttempts(
+            preferences.getInt("legacy5007TestAttemptCount", 0),
+            preferences.getBoolean("legacy5007TestAttempted", false)
+        )
+
+    private fun refreshLegacy5007Button() {
+        val consumed = legacy5007ConsumedAttempts()
+        val remaining = CirqaLegacy5007AttemptGate.MAX_AUTHORIZED_ATTEMPTS - consumed
+        legacy5007Button.isEnabled = remaining > 0
+        legacy5007Button.text = when {
+            remaining <= 0 -> "Freigegebene 5007-Tests verbraucht"
+            consumed == 1 -> "Freigegebenen zweiten 5007-Test starten"
+            else -> "Einmaligen 5007-Test starten"
+        }
+        legacy5007Button.contentDescription =
+            "Noch $remaining freigegebener 5007-Testversuch; dynamischer Handle, fünf Sekunden Antwortfenster."
     }
 
     @SuppressLint("MissingPermission")

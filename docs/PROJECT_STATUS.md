@@ -344,8 +344,8 @@ Issues: https://github.com/jochenkunkel/pulselibre/issues
 
 ## Issue #22 – freigegebener Einzeltest in App verdrahtet (2026-11-17)
 
-- Nutzer hat den zuvor beschriebenen einmaligen 5007-Test ausdrücklich freigegeben.
-- `CirqaMlHandshakeProbe.startLegacy5007CompatibilityTest` registriert nur den GFDI-ML-Service und sendet bei erfolgreicher dynamischer Handle-Zuteilung genau einen 5007-Request. Persistenter App-Gate verhindert einen zweiten Versuch; Laufzeit-Characteristic/Handle werden nicht fest codiert.
+- Nutzer hat den zuerst beschriebenen und danach einen weiteren einmaligen 5007-Test ausdrücklich freigegeben.
+- `CirqaMlHandshakeProbe.startLegacy5007CompatibilityTest` registriert nur den GFDI-ML-Service und sendet pro Versuch höchstens einen 5007-Request. Persistenter App-Gate migriert den alten Verbrauchsstatus als Versuch 1 und gestattet nach der Folgefreigabe genau Versuch 2; danach bleibt er gesperrt. Laufzeit-Characteristic/Handle werden nicht fest codiert.
 - Der Lauf stoppt nach maximal fünf Sekunden, bei erstem strukturell unerwartetem Frame, ungültigem CRC/COBS oder einer nicht passenden Antwort. Klassifiziert wird nur eine CRC-geprüfte GFDI-5000-Antwort zu Typ 5007; es gibt keinen 5031/5002/5004-/0x8A39-/Retry-Sendepfad.
 - Testlabor verlangt einen unmittelbaren Bestätigungsdialog mit Bytekandidat und Nebenwirkungswarnung und verweigert einen Versuch, falls kein/ein mehrdeutiges gekoppeltes CIRQA-Gerät oder eine laufende App-BLE-Sitzung vorliegt.
-- Beim Implementieren war `adb devices -l` leer; daher weiterhin **kein Gerätetest/keine BLE-Anfrage**. Auf dem aktuellen `main`-Stand lokal geprüft: 407 JVM-Tests, 8 Python-Tests, Debug- und AndroidTest-APK erfolgreich gebaut, Lint erfolgreich; Instrumentation nicht ausgeführt. Der Actions-Lauf dieses Commits ist nach Push separat zu prüfen.
+- Der erste Versuch ist als verbraucht markiert. Der zweite Test wird über das signierte Main-Update mit persistenter Zwei-Versuche-Obergrenze vorbereitet. CI-Build und Hardwareergebnis des Folgecommits sind separat zu dokumentieren.

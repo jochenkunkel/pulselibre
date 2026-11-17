@@ -1,6 +1,6 @@
 # CIRQA GFDI 5007 – Vorbereitung eines einmaligen Kompatibilitätstests
 
-**Stand:** 2026-11-17 · **Status:** Einzeltest ausdrücklich freigegeben und implementiert; Hardwareausführung mangels angeschlossenem Testgerät offen · Issue #22
+**Stand:** 2026-11-17 · **Status:** erster Versuch verbraucht; ein ausdrücklich freigegebener zweiter Einzelversuch wird vorbereitet · Issue #22
 Dieses Dokument und der Byte-Builder erzeugen keine Bluetooth-Verbindung und senden nichts.
 
 ## Ausgangsevidenz
@@ -66,7 +66,7 @@ Falls ein späterer, ausdrücklich freigegebener Versuch nach vollständigem Rev
 5. Bei GATT-Fehler, negativem Status, unerwartetem/mehrfachem Frame, Verbindungsverlust oder Timeout sofort Diagnose stoppen, GATT schließen und Sitzung freigeben. Keine Interpretation unbekannter Antwortbytes und keine Datei-/Payloadspeicherung.
 6. Nur datensparsame Metadaten lokal berichten: ausgewähltes RX/TX-Paar, Write-Typ/Callback, Request-Typ/CRC-Status, Antworttyp/-länge/CRC-/Statusklasse, Zeit bis Antwort und Abbruchgrund. Keine Adresse, Rohframes, Dateinamen oder Gesundheitswerte exportieren.
 
-Das Fünf-Sekunden-Limit ist ein konservativer Implementierungswert; Connects konkreter Timeout wurde aus dem analysierten Callgraph nicht gesichert. Der Scope ist kein Nachweis, dass ein 5007-Write risikofrei oder CIRQA-kompatibel ist. Nach erteilter Freigabe enthält die App einen eigenen Bestätigungsdialog und einen persistenten Einmal-Gate. Der Sendepfad registriert nur den GFDI-ML-Service, sendet höchstens einen 5007-Write, validiert ausschließlich eine passende CRC-geprüfte GFDI-5000-Antwort und beendet bei unerwarteten/malformed Daten oder Timeout. Keine Retry- oder Folgekommandos.
+Das Fünf-Sekunden-Limit ist ein konservativer Implementierungswert; Connects konkreter Timeout wurde aus dem analysierten Callgraph nicht gesichert. Der Scope ist kein Nachweis, dass ein 5007-Write risikofrei oder CIRQA-kompatibel ist. Nach Freigabe enthält die App einen eigenen Bestätigungsdialog und einen persistenten Gate mit maximal zwei Versuchen über die Lebensdauer der Installation. Der bisherige Boolean wird als verbrauchter erster Versuch migriert; die neue ausdrückliche Freigabe erlaubt genau noch einen zweiten. Pro Lauf registriert der Sendepfad nur den GFDI-ML-Service, sendet höchstens einen 5007-Write, validiert ausschließlich eine passende CRC-geprüfte GFDI-5000-Antwort und beendet bei unerwarteten/malformed Daten oder Timeout. Keine Retry- oder Folgekommandos.
 
 ## Ergebnis und Freigabeschwelle
 
@@ -74,4 +74,4 @@ Das Fünf-Sekunden-Limit ist ein konservativer Implementierungswert; Connects ko
 - Erfolgreicher Puls-/Schritte-Livepfad: aus Issue #22 übernommen; kein FileSync-Beweis.
 - CIRQA-5007-Support, CIRQA-Responseformat, produktiver Timeout und Nebenwirkungsfreiheit: **unbewiesen/offen**.
 - 0x8A39/FileSync-V2-Anfrage: vorhandener App-Einstieg ist fail-closed deaktiviert; nicht wiederholen.
-- Aktiver 5007-Gerätetest: **noch nicht ausgeführt**. Die ausdrückliche Zustimmung zu genau diesem Test liegt vor; beim Implementieren war `adb devices -l` leer, daher kein Gerätetest möglich. Keine weitere FileSync-Stufe ist damit genehmigt.
+- Der erste Versuch ist laut Nutzer verbraucht. Für genau einen weiteren 5007-Versuch liegt eine neue ausdrückliche Freigabe vor; die App wird dafür aktualisiert und die installierte signierte APK verwendet. Ergebnis und etwaiger Geräteversuch sind separat zu dokumentieren. Keine weitere Wiederholung oder FileSync-Stufe ist damit genehmigt.

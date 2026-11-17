@@ -40,9 +40,16 @@ class CirqaTestLaboratoryActivityTest {
                     it.isClickable && it.isFocusable &&
                         it.text.toString().contains("FIT-Datei auswählen")
                 })
-                val oneShotTest = views.filterIsInstance<Button>()
-                    .single { it.text.toString() == "Einmaligen 5007-Test starten" }
-                assertTrue(oneShotTest.isEnabled)
+                val oneShotTest = views.filterIsInstance<Button>().single {
+                    it.text.toString().contains("5007-Test") || it.text.toString().contains("5007-Tests")
+                }
+                val consumed = CirqaLegacy5007AttemptGate.consumedAttempts(
+                    activity.getSharedPreferences("cirqa_test_laboratory", 0)
+                        .getInt("legacy5007TestAttemptCount", 0),
+                    activity.getSharedPreferences("cirqa_test_laboratory", 0)
+                        .getBoolean("legacy5007TestAttempted", false)
+                )
+                assertEquals(consumed < CirqaLegacy5007AttemptGate.MAX_AUTHORIZED_ATTEMPTS, oneShotTest.isEnabled)
                 assertTrue(oneShotTest.isClickable)
             }
         }

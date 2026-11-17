@@ -101,7 +101,7 @@ Diese Schritte sind ein **noch auszuführender** S25-Testplan. Automatisierte JV
 - Sicherstellen, dass die installierte APK aus vertrauenswürdigem Build stammt. Bei Update-Signaturkonflikt abbrechen und **nicht deinstallieren**.
 - Garmin Connect nicht entkoppeln; CIRQA nicht zurücksetzen. Vor dem bestehenden aktiven Live-Messwerttest Garmin Connect schließen.
 - Stufe 1 umfasst passiven Scan, Android-Statusbeobachtung, vorhandene read-only GATT-Dienstsuche, vorhandene Puls-/Schritte-Liveprobe und lokale SAF-FIT-Analyse.
-- Nur der explizit freigegebene GFDI-5007-Einzeltest darf über seinen eigenen Bestätigungsdialog ausgeführt werden. Keine Wiederholung oder Folgekommandos. Stufe 3 (Archivieren/Löschen/Reset/Firmware/Flags) bleibt gesperrt.
+- Nur ausdrücklich freigegebene GFDI-5007-Einzelversuche dürfen über ihren jeweiligen Bestätigungsdialog ausgeführt werden. Der persistente App-Gate begrenzt die aktuell erteilte Gesamtfreigabe auf zwei Versuche; keine weiteren Wiederholungen oder Folgekommandos. Stufe 3 (Archivieren/Löschen/Reset/Firmware/Flags) bleibt gesperrt.
 - Bei unerwartetem BLE-Verhalten, Garmin-Connect-Abbruch oder sichtbaren Daten-/Berechtigungsproblemen sofort abbrechen. Keine Gerätekennungen oder Messwerte in öffentliche Tickets/Chats kopieren.
 
 ### Testfälle
@@ -117,7 +117,7 @@ Diese Schritte sind ein **noch auszuführender** S25-Testplan. Automatisierte JV
 | T23 | Standard-Testbericht speichern und Datei vor Weitergabe prüfen | Export enthält Status, Zeitpunkt und sichere Zähler/Ergebniszusammenfassungen, keine Gerätekennung, Dateinamen, Rohpayloads oder Messwerte. SAF kann Cloud-Ziele anbieten; nur vertrauenswürdigen Speicherort wählen. |
 | T24 | Im Labor nach historischem Download / `0x8A39` suchen | Kein Download-Button und kein `0x8A39`; Historienstatus bleibt „Nicht getestet / Unbewiesen / gesperrt“. Keine 5031/5002/5004-Folgekommandos. |
 | T25 | Bereich „Passiv beobachtete Protokolle und lokale Logs“ ansehen | Das Labor sagt ausdrücklich, dass keine passiven CIRQA-Rohframes gespeichert sind. SQLite-Zähler sind App-Ereignisse und kein passiver Protokollmitschnitt. |
-| T26 | GFDI-5007-Karte im Testlabor prüfen | Bytepreview zeigt den Connect-5.31-Kandidaten. Der Button verlangt direkte Bestätigung, ist persistent nur einmal ausführbar und sendet höchstens einen 5007-Write; keine CIRQA-Kompatibilität wird vor einer passenden CRC-validierten Antwort behauptet. |
+| T26 | GFDI-5007-Karte im Testlabor prüfen | Bytepreview zeigt den Connect-5.31-Kandidaten. Jeder ausdrücklich freigegebene Versuch verlangt direkte Bestätigung; der persistente Gate lässt maximal zwei Versuche zu und sendet pro Versuch höchstens einen 5007-Write. Keine CIRQA-Kompatibilität ohne passende CRC-validierte Antwort behaupten. |
 
 **Stufe-2-Vorschlag:** siehe [CIRQA_TEST_LAB_STAGE2_PROPOSAL_2026-11-17.md](protocol/experiments/CIRQA_TEST_LAB_STAGE2_PROPOSAL_2026-11-17.md). Nur der gesondert freigegebene 5007-Test ist erlaubt; jede andere Stufe benötigt eine neue ausdrückliche Freigabe.
 
