@@ -151,7 +151,7 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
         addView(chip, LinearLayout.LayoutParams(-2, -2).apply { bottomMargin = dp(12) })
     }
 
-    private fun addCardPair(metrics: List<DashboardMetric>, create: (DashboardMetric) -> LinearLayout) {
+    private fun addCardPair(metrics: List<DashboardMetric>, create: (DashboardMetric) -> View) {
         val stacked = resources.configuration.fontScale >= 1.3f
         val row = LinearLayout(context).apply { orientation = if (stacked) VERTICAL else HORIZONTAL }
         metrics.forEachIndexed { index, metric ->
