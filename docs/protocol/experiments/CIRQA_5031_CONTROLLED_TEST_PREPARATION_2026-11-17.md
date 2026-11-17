@@ -16,6 +16,17 @@ Der Nutzer hat einen einzelnen, begrenzten 5031-Test freigegeben. Die Probe soll
 
 Die Probe folgt dem Connect-5.31-Verhalten: leerer 5031-Body; erfolgreicher Ergebnis-Payload beginnt mit Anzahl und Einträgen `(type, subtype, UTF-8-name)`. Connects `UNKNOWN_OR_NOT_SUPPORTED`-Fallback ist eine Cliententscheidung und wird nicht als CIRQA-Dateitypenantwort ausgegeben. Fremdgeräteberichte – einschließlich HRM 600 und FR245 – sind kein CIRQA-Nachweis.
 
-## Status
+## Ergebnis des freigegebenen Laufs – 2026-11-17
 
-Implementierung und Offline-Regressionstests wurden vorbereitet. Vor Hardwarelauf erforderlich: erfolgreicher Android-Build/JVM-Test und Bereitstellung eines passenden Builds, anschließend Gerätevoraussetzungen prüfen. In dieser Vorbereitung wurde keine BLE-Verbindung aufgebaut und kein Gerätetest gestartet. Lokaler Build/Test ist wegen fehlender installierter/lizenzierter Android SDK Build-Tools 34 und Platform 35 derzeit blockiert.
+Build 931; separater Einmal-Gate wurde vor Verbindungsaufbau verbraucht. CI-Build und alle 423 JVM-Unit-Tests waren erfolgreich. Installationsupdate war signaturkompatibel und erhielt App-Daten.
+
+- Bootstrap vollständig: 5024-ACK geschrieben und GATT-bestätigt; 5050-Hostantwort geschrieben und GATT-bestätigt; CRC-valides GFDI-5000-ACK zu 5050 empfangen.
+- Genau ein 5007-Request; CRC-valides GFDI-5000-ACK mit Status 0.
+- Genau ein leerer 5031-Request; CRC-valide GFDI-5000-Antwort mit Status 0. Der Body wurde strikt geparst; CIRQA meldete:
+  - FIT: `128/4`, `128/32`, `128/44`, `128/41`, `128/49`, `128/68`, `128/70`, `128/73`, `128/72`, `128/74`
+  - weitere gemeldete Typen: `255/245` (`ErrorShutdownReports`), `255/247` (`ULFLogs`)
+- Kein zweiter Antwortframe, kein Retry und **kein 5002**. Keine Dateiliste oder FIT-Datei angefordert.
+- Report: dynamischer GFDI-Handle 111; RX/TX waren das bekannte `2810`/`2820`-Paar. TX-Metadaten enthielten sieben GATT-Schreibaufträge mit Callback `SUCCESS`, einschließlich eines 5007- und eines 5031-Requests. Geräteannahme wird durch die jeweiligen CRC-validen GFDI-Antworten belegt, nicht durch den GATT-Callback allein.
+- Abschließend Bluetooth getrennt; 5007-Gate blieb 5/5 geschlossen; der 5031-Einmal-Gate ist verbraucht.
+
+**Einordnung:** CIRQA hat den leeren Supported-File-Types-Request angenommen und 12 Typen gemeldet. Das ist keine Dateiliste, kein Beleg für vorhandene Einträge und kein FIT-Historienabruf. Der nächste Connect-Schritt wäre 5002 für Verzeichniseintrag Index 0; dafür liegt keine Freigabe vor und es wurde nichts gesendet.
