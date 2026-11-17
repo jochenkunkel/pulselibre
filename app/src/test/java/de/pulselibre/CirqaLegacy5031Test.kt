@@ -22,7 +22,7 @@ class CirqaLegacy5031Test {
     @Test fun parsesSuccessfulSupportedTypesResponse() {
         val types = byteArrayOf(1, 0x80.toByte(), 4, 1, 'A'.code.toByte())
         val prefix = byteArrayOf(
-            14, 0, 0x88.toByte(), 0x13, 0xB7.toByte(), 0x13, 0
+            14, 0, 0x88.toByte(), 0x13, 0xA7.toByte(), 0x13, 0
         ) + types
         val crc = GarminFrameValidator.crc16Arc(prefix)
         val response = prefix + byteArrayOf(crc.toByte(), (crc ushr 8).toByte())
@@ -52,7 +52,7 @@ class CirqaLegacy5031Test {
             )
         )
         val malformedBody = byteArrayOf(1, 0x80.toByte(), 4, 2, 65)
-        val malformedPrefix = byteArrayOf(14, 0, 0x88.toByte(), 0x13, 0xB7.toByte(), 0x13, 0) + malformedBody
+        val malformedPrefix = byteArrayOf(14, 0, 0x88.toByte(), 0x13, 0xA7.toByte(), 0x13, 0) + malformedBody
         val crc = GarminFrameValidator.crc16Arc(malformedPrefix)
         val malformed = malformedPrefix + byteArrayOf(crc.toByte(), (crc ushr 8).toByte())
         assertEquals(
