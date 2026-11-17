@@ -21,7 +21,9 @@ import androidx.core.app.ActivityCompat
 class MainActivity : AppCompatActivity() {
     private val handler = Handler(Looper.getMainLooper())
     private var dashboardRefresh: (() -> Unit)? = null
+    private var historyRefresh: (() -> Unit)? = null
     private var dashboardVisible = true
+    private var historyVisible = false
     private var devicesVisible = false
     private var debugDevicesVisible = false
     private var recorderRefresh: (() -> Unit)? = null
@@ -32,12 +34,13 @@ class MainActivity : AppCompatActivity() {
         override fun run() {
             if (!dashboardPolling || destroyed) return
             recorderRefresh?.invoke()
-            if (dashboardVisible) {
+            if (dashboardVisible || historyVisible) {
                 try {
                     val count = CirqaDatabase(this@MainActivity).use { it.eventCount() }
                     val now = System.currentTimeMillis()
                     if (count != dashboardLastCount || now - dashboardLastRefreshAt >= 30_000L) {
-                        dashboardRefresh?.invoke()
+                        if (dashboardVisible) dashboardRefresh?.invoke()
+                        if (historyVisible) historyRefresh?.invoke()
                         dashboardLastCount = count
                         dashboardLastRefreshAt = now
                     }
@@ -186,6 +189,7 @@ class MainActivity : AppCompatActivity() {
         }
         screen.addView(scroll, LinearLayout.LayoutParams(-1, 0, 1f))
         val overview = mutableListOf<android.view.View>()
+        val historyViews = mutableListOf<android.view.View>()
         val deviceViews = mutableListOf<android.view.View>()
         fun overviewView(view: android.view.View, margin: Int = 12) {
             root.addView(view, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(margin) })
@@ -194,6 +198,11 @@ class MainActivity : AppCompatActivity() {
         fun deviceView(view: android.view.View, margin: Int = 12) {
             root.addView(view, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(margin) })
             deviceViews.add(view)
+            view.visibility = android.view.View.GONE
+        }
+        fun historyView(view: android.view.View, margin: Int = 12) {
+            root.addView(view, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(margin) })
+            historyViews.add(view)
             view.visibility = android.view.View.GONE
         }
         // Compact personal body card: user-entered profile, not measured BLE data.
@@ -288,6 +297,10 @@ class MainActivity : AppCompatActivity() {
         updateCirqaDashboard()
         dashboardRefresh = { updateCirqaDashboard() }
         overviewView(cirqaDashboard)
+        val cirqaHistory = HistoryOverviewView(this) { range -> CirqaHistoryReader(this).read(range) }
+        historyRefresh = { cirqaHistory.refresh() }
+        cirqaHistory.refresh()
+        historyView(cirqaHistory)
         val deviceHeading = text("Bluetooth · Geräte", 22f, ink, true)
         deviceView(deviceHeading)
         val debugDeviceViews = mutableListOf<android.view.View>()
@@ -752,29 +765,36 @@ class MainActivity : AppCompatActivity() {
         val tabs = mutableListOf<TextView>()
         fun selectTab(index: Int) {
             dashboardVisible = index == 0
-            devicesVisible = index == 1
+            historyVisible = index == 1
+            devicesVisible = index == 2
             if (dashboardVisible) {
                 dashboardLastCount = -1L
                 dashboardLastRefreshAt = 0L
             }
             overview.forEach { it.visibility = if (index == 0) android.view.View.VISIBLE else android.view.View.GONE }
-            deviceViews.forEach { it.visibility = if (index == 1 && (debugDevicesVisible || it !in debugDeviceViews)) android.view.View.VISIBLE else android.view.View.GONE }
-            if (index == 1) recorderRefresh?.invoke()
+            historyViews.forEach { it.visibility = if (index == 1) android.view.View.VISIBLE else android.view.View.GONE }
+            deviceViews.forEach { it.visibility = if (index == 2 && (debugDevicesVisible || it !in debugDeviceViews)) android.view.View.VISIBLE else android.view.View.GONE }
+            if (index == 1) {
+                dashboardLastCount = -1L
+                dashboardLastRefreshAt = 0L
+                historyRefresh?.invoke()
+            }
+            if (index == 2) recorderRefresh?.invoke()
             tabs.forEachIndexed { i, tab ->
                 tab.setTextColor(if (i == index) violet else muted)
                 tab.background = if (i == index) rounded(palette.tinted, 12) else null
             }
-            if (index == 1) refreshCirqaCard()
+            if (index == 2) refreshCirqaCard()
             scroll.scrollTo(0, 0)
         }
-        listOf("Übersicht", "Geräte", "Export").forEachIndexed { index, label ->
+        listOf("Übersicht", "Verlauf", "Geräte", "Export").forEachIndexed { index, label ->
             val tab = text(label, 14f, muted, true).apply {
                 gravity = android.view.Gravity.CENTER
                 minHeight = dp(52)
                 isClickable = true
                 isFocusable = true
                 setOnClickListener {
-                    if (index == 2) startActivity(Intent(this@MainActivity, ExportActivity::class.java))
+                    if (index == 3) startActivity(Intent(this@MainActivity, ExportActivity::class.java))
                     else selectTab(index)
                 }
             }

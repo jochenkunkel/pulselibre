@@ -1,6 +1,6 @@
 # Dashboard: Bestandsaufnahme und erster Konzeptschritt
 
-Stand: 2026-11-17. Basis: `c02bbc1`; Arbeitsbranch `codex/dashboard-overview`.
+Stand: 2026-11-17. Basis: `f17f977`; Arbeitsbranch `codex/dashboard-history`.
 
 ## Bestand
 
@@ -73,7 +73,7 @@ und [CIRQA_DASHBOARD_GROUND_RULES.md](CIRQA_DASHBOARD_GROUND_RULES.md).
 2. Reader-Tests für Zeitzonen, Tageswechsel, ungültige Daten und Empfangsalter ergänzen.
 3. Zeitreihenmodell mit expliziten Lücken und Herkunft entwickeln; vor wissenschaftlichen
    Aggregationen Quellen, Abdeckung, Fehlwertregeln und Einheiten prüfen.
-4. Tag-/Woche-/Monat-Verlauf mit überprüften lokalen Zeitreihen umsetzen.
+4. Verlauf im Emulator bei verschiedenen Schriftgrößen und mit TalkBack prüfen.
 
 Noch offen: die bestehende Aktualisierung nur bei geänderter Ereignisanzahl lässt
 Empfangsalter und Tageswechsel ohne neue Ereignisse unverändert. Der Reader lädt
@@ -136,6 +136,25 @@ Die Auswahl liegt in `app_appearance`, getrennt vom löschbaren persönlichen Pr
 `PulseLibreApplication` setzt AppCompat beim Prozessstart auf die gespeicherte Wahl;
 Systemmodus folgt Android, die beiden expliziten Modi überschreiben ihn. Speichern
 aktualisiert die Activities über AppCompat. Messdaten und Recorder werden nicht migriert.
+
+## Lokaler Messverlauf (2026-11-17)
+
+Die Hauptnavigation enthält nun Übersicht, Verlauf, Geräte und Export. Der Verlauf
+liest nur Ereignisse `kind=reading` der CIRQA-Dienste 6 (Puls) und 19 (SpO₂) aus
+der kanonischen SQLite-Datenbank. Die drei wählbaren Fenster sind rollierende
+24 Stunden, 7 Tage und 30 Tage bis zum aktuellen Zeitpunkt. Empfangszeit bleibt
+Telefon-Empfangszeit. Ungültige JSON-Einträge, Zeitstempel außerhalb des Fensters,
+Pulswerte außerhalb 1–240 bpm und SpO₂ außerhalb 1–100 % werden nicht geplottet.
+
+Jeder Messwert wird als einzelner Punkt gezeichnet. Es gibt weder Verbindungslinien,
+Interpolation, Mittelwerte, Datenlückenauffüllung noch medizinische Schwellen. Feste
+Achsen dienen nur der Lesbarkeit. Leere Zeiträume bleiben ausdrücklich leer. Die
+Abfrage ist read-only und begrenzt; sie löst keinen Legacy-Import aus.
+
+JVM-Tests decken Fensterlängen und Zeitkoordinaten ab. Android-Tests mit isolierter,
+synthetischer SQLite-Datenbank prüfen Filterung, Sortierung, UI-Auswahl und leere
+Zeitreihen. Activity-Test prüft den Verlauf-Reiter. Lauf und Ergebnisse werden nach
+Abschluss der Branch-Prüfungen ergänzt.
 
 Die Palette umfasst Übersicht, Gerätekarten, Navigation, Export und Profilüberschriften.
 Systemdialoge und Eingaben verwenden das bestehende AppCompat-DayNight-Theme.
