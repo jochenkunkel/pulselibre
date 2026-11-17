@@ -17,6 +17,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private val main = Handler(Looper.getMainLooper())
     private val cccd = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")
     private var active = false
+    @Volatile private var terminationRequested = false
     private var gatt: BluetoothGatt? = null
     private var callback: ((String) -> Unit)? = null
     var onReading: ((Int, GarminRealtime.Reading) -> Unit)? = null
@@ -191,6 +192,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         } catch (_: SecurityException) { result("Bluetooth-Berechtigung fehlt."); return }
         if (device == null) { result("CIRQA nicht in Android-Kopplungen gefunden."); return }
         if (!CirqaBleSessionGate.acquire(this)) { result("CIRQA Bluetooth belegt: Bitte laufende Messung abwarten und erneut versuchen."); return }
+        terminationRequested = false
         active = true
         historyRegistered = false
         bootstrapAckSent = false
@@ -310,7 +312,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     receive(g, value)
                 }
                 override fun onCharacteristicWrite(g: BluetoothGatt, characteristic: BluetoothGattCharacteristic, status: Int) {
-                    if (!active) return
+                    if (!active || terminationRequested) return
                     if (status != BluetoothGatt.GATT_SUCCESS) finish("ML-Schreibfehler: $status", g)
                     else {
                         writeConfirmed = true
@@ -369,14 +371,14 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     }
 
     private fun sendNextBootstrapAckChunk(g: BluetoothGatt) {
-        if (!active || !historyRegistered || mlWritePending || bootstrapAckChunks.isEmpty()) return
+        if (!active || terminationRequested || !historyRegistered || mlWritePending || bootstrapAckChunks.isEmpty()) return
         bootstrapAckPending = true
         mark(if (configurationResponseQueued) "5050-Test: sende konfigurierte Antwortfolge" else "Bootstrap-Test: sende einmaliges DeviceInformation-ACK")
         send(g, bootstrapAckChunks.removeFirst())
     }
 
     private fun sendNextFileListChunk(g: BluetoothGatt) {
-        if (!active || !historyRegistered || mlWritePending || fileListChunks.isEmpty()) return
+        if (!active || terminationRequested || !historyRegistered || mlWritePending || fileListChunks.isEmpty()) return
         val chunk = fileListChunks.removeFirst()
         fileListWritePending = true
         mark("Sende FileSync-V2-Dateilistenanfrage (${chunk.size} Bytes)")
@@ -385,6 +387,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
 
     @SuppressLint("MissingPermission")
     private fun send(g: BluetoothGatt, bytes: ByteArray) {
+        if (!active || terminationRequested) return
         val char = tx ?: run { finish("ML-TX fehlt.", g); return }
         val mode = if (char.properties and BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE != 0)
             BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE else BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
@@ -412,7 +415,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     }
 
     private fun receive(g: BluetoothGatt, bytes: ByteArray) {
-        if (!active) return
+        if (!active || terminationRequested) return
         notificationsReceived++
         if (configurationTestMode && configurationResponseQueued &&
             Cirqa5050NotificationFloodGuard.shouldAbort(
@@ -696,6 +699,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         try { g.close() } catch (_: Exception) {}
     }
     private fun finish(message: String, g: BluetoothGatt?) {
+        if (!active || terminationRequested) return
+        terminationRequested = true
         main.post {
             if (!active) return@post
             active = false
@@ -746,6 +751,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         }
     }
     fun close() {
+        terminationRequested = true
         active = false
         main.removeCallbacksAndMessages(null)
         safeClose(gatt)
