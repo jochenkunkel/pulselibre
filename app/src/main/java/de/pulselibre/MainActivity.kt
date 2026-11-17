@@ -393,7 +393,7 @@ class MainActivity : AppCompatActivity() {
             background = rounded(palette.card)
         }
         debugView(cirqaEvidenceView)
-        // Foreground service samples periodically; it is not a continuous raw BLE stream.
+        // The foreground service keeps a CIRQA notification connection open and reconnects after disconnects.
         val recorderState = text("○  Aufzeichnung aus", 15f, muted, true)
         deviceView(recorderState, 8)
         val recorderRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
@@ -402,7 +402,7 @@ class MainActivity : AppCompatActivity() {
             try {
                 startService(Intent(this, CirqaContinuousRecordingService::class.java)
                     .setAction(CirqaContinuousRecordingService.ACTION_STOP))
-                recorderState.text = "◌  Aufzeichnung wird beendet …"
+                recorderState.text = "◌  CIRQA-Sammlung wird beendet …"
             } catch (_: Exception) {
                 output.text = "Stopp konnte nicht angefordert werden."
             }
@@ -411,8 +411,8 @@ class MainActivity : AppCompatActivity() {
             if (!ensurePermissions()) return@setOnClickListener
             if (scanning) stopScan()
             androidx.appcompat.app.AlertDialog.Builder(this@MainActivity)
-                .setTitle("CIRQA-Aufzeichnung starten")
-                .setMessage("Garmin Connect vorher beenden. PulsLibre liest etwa alle zwei Minuten für bis zu 20 Sekunden verfügbare Echtzeitmesswerte und speichert sie lokal. Keine kontinuierliche Rohdatenaufzeichnung. Starten?")
+                .setTitle("CIRQA-Sammlung starten")
+                .setMessage("PulsLibre verbindet sich aktiv per Bluetooth mit dem CIRQA-Armband und empfängt verfügbare Echtzeitmesswerte über eine laufende Verbindung. Bei Verbindungsabbrüchen versucht die App die Verbindung erneut. Die Messwerte werden lokal auf diesem Gerät gespeichert. Es werden keine historischen FIT-Daten geladen. Android zeigt währenddessen eine dauerhafte Benachrichtigung; das System kann den Dienst dennoch beenden. Garmin Connect kann die Bluetooth-Verbindung beeinflussen. Jetzt starten?")
                 .setNegativeButton("Abbrechen", null)
                 .setPositiveButton("Starten") { _, _ ->
                     try {
@@ -421,7 +421,7 @@ class MainActivity : AppCompatActivity() {
                             Intent(this@MainActivity, CirqaContinuousRecordingService::class.java)
                                 .setAction(CirqaContinuousRecordingService.ACTION_START)
                         )
-                        recorderState.text = "◌  Aufzeichnung wird gestartet …"
+                        recorderState.text = "◌  CIRQA-Sammlung wird gestartet …"
                     } catch (_: Exception) {
                         output.text = "Start fehlgeschlagen. Bluetooth- und Android-Berechtigungen prüfen."
                     }
@@ -433,7 +433,7 @@ class MainActivity : AppCompatActivity() {
         recorderRefresh = {
             val running = getSharedPreferences(CirqaContinuousRecordingService.PREFS, MODE_PRIVATE)
                 .getBoolean(CirqaContinuousRecordingService.KEY_RUNNING, false)
-            recorderState.text = if (running) "●  Aufzeichnung läuft · lokale Messwerte" else "○  Aufzeichnung aus"
+            recorderState.text = if (running) "●  CIRQA-Sammlung läuft · lokale Messwerte" else "○  Aufzeichnung aus"
             recorderState.setTextColor(if (running) AppPalette.of(this@MainActivity).indicator else muted)
             playButton.alpha = if (running) 0.45f else 1f
             stopButton.alpha = if (running) 1f else 0.45f
@@ -749,34 +749,34 @@ class MainActivity : AppCompatActivity() {
                     }
                 }.show()
         })
-        debugView(actionButton("CIRQA: Nachtaufzeichnung starten (lokal)", false) {
+        debugView(actionButton("CIRQA: kontinuierliche Sammlung starten (lokal)", false) {
             if (!ensurePermissions()) return@actionButton
             if (scanning) stopScan()
             androidx.appcompat.app.AlertDialog.Builder(this)
-                .setTitle("Lokale CIRQA-Nachtaufzeichnung")
-                .setMessage("Garmin Connect vorher beenden. Die App prüft ungefähr alle 2 Minuten die Garmin-Echtzeitdienste (jeweils höchstens 20 Sekunden), schreibt Zeitstempel und echte Messwerte in eine private JSONL-Datei (max. 10 MB) und zeigt eine dauerhafte Benachrichtigung mit Stopp-Funktion. Keine historischen FIT-Daten, keine Cloud. Android kann die Sammlung bei Akkuoptimierung oder Bluetooth-Problemen unterbrechen. Jetzt starten?")
+                .setTitle("Lokale CIRQA-Sammlung")
+                .setMessage("PulsLibre verbindet sich aktiv per Bluetooth mit dem CIRQA-Armband und hält die GATT-Verbindung für verfügbare Echtzeitmesswerte offen. Bei Verbindungsabbrüchen versucht die App die Verbindung erneut. Messwerte und Sitzungsereignisse werden lokal in der App-Datenbank gespeichert. Es werden keine historischen FIT-Daten geladen und keine Daten in eine Cloud übertragen. Android zeigt eine dauerhafte Benachrichtigung mit Stopp-Funktion; das System kann den Dienst dennoch beenden. Garmin Connect kann die Bluetooth-Verbindung beeinflussen. Jetzt starten?")
                 .setNegativeButton("Abbrechen", null)
                 .setPositiveButton("Starten") { _, _ ->
                     try {
                         androidx.core.content.ContextCompat.startForegroundService(
                             this, Intent(this, CirqaContinuousRecordingService::class.java)
                                 .setAction(CirqaContinuousRecordingService.ACTION_START))
-                        output.text = "CIRQA-Nachtaufzeichnung angefordert. Laufstatus in Android-Benachrichtigung; Daten bleiben lokal."
+                        output.text = "CIRQA-Sammlung angefordert. Laufstatus in Android-Benachrichtigung; Daten bleiben lokal."
                     } catch (_: Exception) {
-                        output.text = "Nachtaufzeichnung konnte nicht gestartet werden (Android-Berechtigung oder Hintergrundbeschränkung)."
+                        output.text = "CIRQA-Sammlung konnte nicht gestartet werden (Android-Berechtigung oder Hintergrundbeschränkung)."
                     }
                 }.show()
         })
-        debugView(actionButton("CIRQA: Nachtaufzeichnung stoppen", false) {
+        debugView(actionButton("CIRQA: Sammlung stoppen", false) {
             startService(Intent(this, CirqaContinuousRecordingService::class.java)
                 .setAction(CirqaContinuousRecordingService.ACTION_STOP))
-            output.text = "Stopp der CIRQA-Nachtaufzeichnung angefordert."
+            output.text = "Stopp der CIRQA-Sammlung angefordert."
         })
         debugView(actionButton("CIRQA: Lokale Dateistatistik", false) {
             val log = CirqaLocalLog(this)
             output.text = "CIRQA JSONL lokal: ${log.sizeBytes()} Bytes, ${log.lines()} Zeilen. Keine automatische Aggregation; Originalmessungen und Versuchsergebnisse bleiben erhalten."
         })
-        debugView(actionButton("CIRQA: Nachtprotokoll exportieren", false) {
+        debugView(actionButton("CIRQA: Messprotokoll exportieren", false) {
             exportCirqaLog.launch("pulselibre-cirqa-overnight.jsonl")
         })
         devices = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
