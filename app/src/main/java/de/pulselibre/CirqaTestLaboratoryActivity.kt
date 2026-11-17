@@ -49,6 +49,7 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
     private lateinit var storedReadingsOutput: TextView
     private lateinit var root: LinearLayout
     private lateinit var legacy5007Button: Button
+    private lateinit var legacy5031Button: Button
     private var permissionAction: (() -> Unit)? = null
     private var scanCallback: ScanCallback? = null
     private var scanning = false
@@ -290,6 +291,29 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
         })
         addRecordView(compatibilityCard, CirqaTestLaboratory.TestId.LEGACY_5007_COMPATIBILITY)
         addCard(compatibilityCard)
+
+        val supportedTypesCard = card()
+        supportedTypesCard.addView(label("GFDI 5031 · einmalige Dateitypen-Probe", 16f, true))
+        supportedTypesCard.addView(label(
+            "Getrennter Einmal-Gate. Führt den bestätigten 5024/5050-Bootstrap aus, verlangt danach Status 0 für genau einen 5007 und sendet anschließend genau einen leeren 5031-Request. Bei Fehler, unerwartetem Frame oder Timeout Stopp. Antwortstatus und Dateitypen werden geprüft. Kein 5002, kein Retry.",
+            13f
+        ), LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) })
+        val candidate5031 = CirqaLegacy5031RequestCandidate.gfdiFrame()
+        supportedTypesCard.addView(label(
+            "Connect-5.31-Kandidat: leerer Body; GFDI-Rahmen: ${candidate5031.hexBytes()}. " +
+                "CIRQA-Antwortformat noch unbestätigt. Das separate 5007-Gate 5/5 bleibt unverändert geschlossen.",
+            13f
+        ), LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) })
+        legacy5031Button = button("Einmaligen Bootstrap→5007→5031-Test starten") { confirmLegacy5031Test() }
+        refreshLegacy5031Button()
+        legacy5031Button.contentDescription =
+            "Separater Einmaltest: Bootstrap, Status-0-5007, ein leerer 5031; kein 5002."
+        supportedTypesCard.addView(legacy5031Button)
+        supportedTypesCard.addView(button("5031-Teststatus") {
+            statusOutput.text = "GFDI-5031-Test: " +
+                (preferences.getString("legacy5031TestSummary", null) ?: "Noch nicht ausgeführt.")
+        })
+        addCard(supportedTypesCard)
 
         root.addView(button("Datensparsamen Testbericht speichern") {
             AlertDialog.Builder(this)
@@ -539,6 +563,90 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
         }
         legacy5007Button.contentDescription =
             "Noch $remaining freigegebener Bootstrap-/5007-Testversuch; 5007 nur nach bestätigtem 5024/5050-Handshake."
+    }
+
+    private fun confirmLegacy5031Test() {
+        val consumed = preferences.getBoolean("legacy5031TestAttempted", false)
+        if (!CirqaLegacy5031AttemptGate.canAttempt(consumed)) {
+            refreshLegacy5031Button()
+            return
+        }
+        AlertDialog.Builder(this)
+            .setTitle("Einmaligen Bootstrap-/5007-/5031-Test starten?")
+            .setMessage(
+                "Der separate Einmal-Gate wird vor dem Verbindungsaufbau dauerhaft verbraucht. " +
+                    "Zuerst bestätigter 5024/5050-Bootstrap, dann höchstens ein 5007. Nur nach CRC-validem Status 0 folgt genau ein leerer 5031-Request. " +
+                    "Auf höchstens eine CRC-geprüfte Antwort wird maximal fünf Sekunden gewartet. Bei negativer, fehlender, unerwarteter oder ungültiger Antwort wird abgebrochen. " +
+                    "Nach 5031 wird immer vor 5002 gestoppt; kein Retry oder weiteres Kommando. " +
+                    "Garmin Connect und Recorder müssen beendet sein. Gerätereaktionen nach Trennung sind unbekannt."
+            )
+            .setNegativeButton("Abbrechen", null)
+            .setPositiveButton("Einmaligen Test ausführen") { _, _ ->
+                withBluetoothPermissions(needsScan = false) { runLegacy5031TestOnce() }
+            }
+            .show()
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun runLegacy5031TestOnce() {
+        if (!CirqaLegacy5031AttemptGate.canAttempt(
+                preferences.getBoolean("legacy5031TestAttempted", false)
+            )) {
+            refreshLegacy5031Button()
+            return
+        }
+        val matchingDevices = try {
+            adapter.bondedDevices.orEmpty().filter { it.name?.contains("CIRQA", ignoreCase = true) == true }
+        } catch (_: SecurityException) { emptyList() }
+        if (matchingDevices.size != 1) {
+            Toast.makeText(
+                this,
+                if (matchingDevices.isEmpty()) "Kein gekoppeltes CIRQA-Gerät gefunden; kein Request gesendet."
+                else "Mehrere gekoppelte CIRQA-Geräte gefunden; Ziel nicht eindeutig, kein Request gesendet.",
+                Toast.LENGTH_LONG
+            ).show()
+            return
+        }
+        if (CirqaBleSessionGate.isBusy()) {
+            Toast.makeText(this, "CIRQA-Bluetooth ist durch eine laufende Sitzung belegt; kein Request gesendet.", Toast.LENGTH_LONG).show()
+            return
+        }
+        if (!preferences.edit().putBoolean("legacy5031TestAttempted", true).commit()) {
+            Toast.makeText(this, "5031-Einmal-Gate konnte nicht dauerhaft gespeichert werden; kein Request gesendet.", Toast.LENGTH_LONG).show()
+            return
+        }
+        refreshLegacy5031Button()
+        statusOutput.text = "5031-Test läuft; Bootstrap und bestätigter 5007 sind Voraussetzungen. Kein 5002."
+        if (mlProbe == null) mlProbe = CirqaMlHandshakeProbe(this, adapter)
+        mlProbe?.startLegacy5031AfterBootstrapTest { message ->
+            runOnUiThread {
+                statusOutput.text = message
+                val has5031Response = message.contains("5031-Antwort CRC-validiert")
+                val passed = message.contains("Status 0; Dateitypen=")
+                val negative = message.contains("5031-Antwort CRC-validiert; negativer Status")
+                val safeSummary = when {
+                    passed -> "5031 wurde nach bestätigtem Bootstrap und 5007 Status 0 beantwortet; Dateitypen klassifiziert. Vor 5002 gestoppt."
+                    negative -> "5031-Antwort meldete negativen Status; vor 5002 gestoppt."
+                    has5031Response -> "5031-Antwort war unerwartet oder strukturell ungültig; vor 5002 gestoppt."
+                    message.contains("5031-Request gesendet: true") -> "Einmaliger 5031-Request gesendet; keine verwertbare passende Antwort. Vor 5002 gestoppt."
+                    else -> "Einmaliger Probe vor 5031 abgebrochen; keine Folgeanfrage oder Wiederholung."
+                }
+                val reportSummary = message.lineSequence()
+                    .firstOrNull { it.startsWith("5031-Request gesendet:") }
+                    ?.take(700)
+                    ?.let { "$safeSummary $it" }
+                    ?: safeSummary
+                preferences.edit().putString("legacy5031TestSummary", reportSummary).apply()
+                statusOutput.text = "$message\nEinmal-Gate verbraucht; 5002 wurde nicht gesendet."
+            }
+        }
+    }
+
+    private fun refreshLegacy5031Button() {
+        val consumed = preferences.getBoolean("legacy5031TestAttempted", false)
+        legacy5031Button.isEnabled = CirqaLegacy5031AttemptGate.canAttempt(consumed)
+        legacy5031Button.text = if (consumed) "Freigegebener 5031-Test verbraucht"
+        else "Einmaligen Bootstrap→5007→5031-Test starten"
     }
 
     @SuppressLint("MissingPermission")
