@@ -59,6 +59,14 @@ class SnoopTests(unittest.TestCase):
         with self.assertRaises(snoop.InvalidSnoop):
             self.check(capture([extra]))
 
+    def test_l2cap_trailing_bytes_not_counted_as_complete_att(self):
+        # A six-byte ACL payload contains an L2CAP header, one ATT byte,
+        # and one trailing byte that is not part of the declared L2CAP PDU.
+        acl = b"\x02" + struct.pack("<HHHH", 1 | (2 << 12), 6, 1, 4) + b"\x0a\xff"
+        result = self.check(capture([acl]))
+        self.assertEqual(result["acl_records"], 1)
+        self.assertEqual(result["complete_att_candidates"], 0)
+
     def test_acl_continuation_not_misclassified_as_complete_att(self):
         continuation = b"\x02" + struct.pack("<HH", 1 | (1 << 12), 5) + b"\x01\x00\x04\x00\x0a"
         result = self.check(capture([continuation]))
