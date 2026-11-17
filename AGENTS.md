@@ -4,8 +4,8 @@ Diese Datei gilt repositoryweit. **GitHub ist die verbindliche, versionierte Wis
 
 ## Aktuelle Aufgabenverteilung (2026-11-17)
 
-- **Codex in VSCodium – alleiniger Bearbeiter für Dashboard/UI und wissenschaftliche Analyse:** Umsetzung des freigegebenen Vier-Screens-Konzepts in `docs/APPROVED_UI_CONCEPT_2026-11-15.md`, Prüfung vorhandener Dashboard-/Export-Datenflüsse, nachvollziehbare Visualisierung echter lokal gespeicherter Messwerte; wissenschaftliche Methoden/Quellen kritisch prüfen und nur nach `docs/ENGINEERING_SCIENTIFIC_STANDARDS.md` implementieren. Keine erfundenen Schlafphasen, SpO₂, Kalorien, Bewegungssensorwerte oder klinischen Aussagen. Bestehende Datenbank und Exportsemantik erhalten.
-- **ChatGPT-Entwicklungsagent – alleiniger Bearbeiter für CIRQA-Historien-Download:** Garmin-ML/GFDI/5050-Capabilities, sichere FileSync-/FIT-Protokollforschung, Offline-Tests und gezielte, ausdrücklich freigegebene S25-Gerätetests. Keine spekulativen BLE-Schreibbefehle; Historienzugriff weiterhin unbewiesen. Einstieg: `docs/CIRQA_HISTORY_SYNC_PLAN.md` und `docs/CIRQA_5050_THIRD_TEST_AND_PHASE_FIX_2026-11-17.md`.
+- **Codex in VSCodium – alleiniger Bearbeiter für Dashboard/UI und wissenschaftliche Analyse:** Umsetzung des freigegebenen Vier-Screens-Konzepts in `docs/ui/APPROVED_UI_CONCEPT_2026-11-15.md`, Prüfung vorhandener Dashboard-/Export-Datenflüsse, nachvollziehbare Visualisierung echter lokal gespeicherter Messwerte; wissenschaftliche Methoden/Quellen kritisch prüfen und nur nach `docs/ENGINEERING_SCIENTIFIC_STANDARDS.md` implementieren. Keine erfundenen Schlafphasen, SpO₂, Kalorien, Bewegungssensorwerte oder klinischen Aussagen. Bestehende Datenbank und Exportsemantik erhalten.
+- **ChatGPT-Entwicklungsagent – alleiniger Bearbeiter für CIRQA-Historien-Download:** Garmin-ML/GFDI/5050-Capabilities, sichere FileSync-/FIT-Protokollforschung, Offline-Tests und gezielte, ausdrücklich freigegebene S25-Gerätetests. Keine spekulativen BLE-Schreibbefehle; Historienzugriff weiterhin unbewiesen. Einstieg: `docs/protocol/sync/CIRQA_HISTORY_SYNC_PLAN.md` und `docs/protocol/device-tests/CIRQA_5050_THIRD_TEST_AND_PHASE_FIX_2026-11-17.md`.
 - **Gemeinsame Dateien** (`AGENTS.md`, `README.md`, `docs/PROJECT_STATUS.md`, `docs/CHAT_START_HERE.md`, CI/Gradle, Datenbankschema): vor Änderungen koordinieren, eigene Branches/Worktrees verwenden und Konflikte nicht blind überschreiben. Codex soll keine BLE-Protokolländerungen vornehmen; ChatGPT soll keine Dashboard-/Wissenschaftsänderungen vornehmen, solange diese Aufteilung gilt.
 - Codex arbeitet nicht allein durch diesen Eintrag automatisch: Auftrag in der Codex-Sitzung starten. Die Zuständigkeit ist eine Arbeitsvereinbarung, kein Nachweis einer laufenden Agenten-Ausführung.
 
@@ -13,7 +13,7 @@ Diese Datei gilt repositoryweit. **GitHub ist die verbindliche, versionierte Wis
 
 1. `git status`, aktuellen Branch, `git fetch origin` und neuesten `origin/main` prüfen; lokale Änderungen nicht überschreiben.
 2. `README.md`, `docs/PROJECT_STATUS.md`, `docs/CHAT_START_HERE.md`, `docs/REQUIREMENTS_AND_PRINCIPLES.md`, `docs/QUALITY_GATE.md` lesen.
-3. Für BLE-/History-Arbeit zusätzlich `docs/CIRQA_HISTORY_SYNC_PLAN.md`, `docs/CIRQA_5050_THIRD_TEST_AND_PHASE_FIX_2026-11-17.md`, `docs/CIRQA_PROTOCOL_SPEC.md` und `docs/LICENSE_AGPL_AUDIT_2026-11-16.md` lesen.
+3. Für BLE-/History-Arbeit zusätzlich `docs/protocol/sync/CIRQA_HISTORY_SYNC_PLAN.md`, `docs/protocol/device-tests/CIRQA_5050_THIRD_TEST_AND_PHASE_FIX_2026-11-17.md`, `docs/protocol/CIRQA_PROTOCOL_SPEC.md` und `docs/LICENSE_AGPL_AUDIT_2026-11-16.md` lesen.
 4. Offene GitHub-Issues, Pull Requests, neueste Commits und Actions-Läufe prüfen; Änderungen anderer Agenten beachten.
 
 ## Gemeinsamer Git-Workflow
@@ -45,7 +45,7 @@ Diese Datei gilt repositoryweit. **GitHub ist die verbindliche, versionierte Wis
 - Aktueller Status und Übergabe: `docs/PROJECT_STATUS.md`
 - Einstieg für neue Agenten: `docs/CHAT_START_HERE.md`
 - Anforderungen und Architektur: `docs/REQUIREMENTS_AND_PRINCIPLES.md`, `docs/ARCHITECTURE_AND_CODE_REVIEW.md` (historische Befunde)
-- CIRQA-Historie: `docs/CIRQA_HISTORY_SYNC_PLAN.md`, `docs/CIRQA_5050_THIRD_TEST_AND_PHASE_FIX_2026-11-17.md`
+- CIRQA-Historie: `docs/protocol/sync/CIRQA_HISTORY_SYNC_PLAN.md`, `docs/protocol/device-tests/CIRQA_5050_THIRD_TEST_AND_PHASE_FIX_2026-11-17.md`
 - Release-/Signing-Regeln: `docs/ANDROID_RELEASE_READINESS.md`
 - Audit und offene Arbeit: `docs/AUDIT_2026-11-16.md`, GitHub-Issues #2–#6
 - Autonomer Auftrag (nur bei tatsächlich eingerichteter Automation): `docs/AUTONOMOUS_DEVELOPMENT_AGENT.md`
