@@ -19,6 +19,8 @@ class CirqaLegacyDirectoryParserTest {
         assertTrue(file.readable)
         assertEquals(0x12345678L, file.fieldA)
         assertEquals(0x89abcdefL, file.fieldB)
+        assertEquals(0x12345678L, file.size)
+        assertEquals(0x89abcdefL, file.timestamp)
     }
 
     @Test fun rejectsTruncatedDirectory() {

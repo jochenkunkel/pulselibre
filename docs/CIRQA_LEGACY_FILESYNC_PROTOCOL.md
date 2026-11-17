@@ -42,7 +42,7 @@ Response: `u8 status | u32LE value`. `classes14.dex:defpackage.a60.F(offset,byte
 
 ## GFDI 5004 File Data
 
-Unkomprimiert: `u8 byte0 | u16LE chunkCRC | u32LE offset | payload` (mindestens 7 Bytes). `yw40.a` liest CRC via `a60.E(1,body)`, Offset via `a60.F(3,body)` und akkumuliert ausschließlich Bytes ab Offset 7 mittels `u45.a`. Die CRC-Routine ist eine nibbleweise reflektierte CRC-16/ARC-Routine (Details und wichtiger Vergleichsbesonderheit siehe unten). `byte0` wird vom gezeigten unkomprimierten Parser nicht geprüft; seine Semantik ist hier unbekannt. Offset muss dem erwarteten Gesamtbytezähler entsprechen; exaktes Duplicate des zuletzt akzeptierten Offsets wird nicht erneut angehängt. Antwortbody `u8 result | u32LE currentOffset`: `0=OK/duplicate`, `2=malformed`, `3=CRC mismatch`, `4=offset mismatch`. Drei aufeinanderfolgende ungültige Chunks brechen ab.
+Unkomprimiert: `u8 byte0 | u16LE chunkCRC | u32LE offset | payload` (mindestens 7 Bytes). `yw40.a` liest CRC via `a60.E(1,body)`, Offset via `a60.F(3,body)` und akkumuliert ausschließlich Bytes ab Offset 7 mittels `u45.a`. Die CRC-Routine ist eine nibbleweise reflektierte CRC-16/ARC-Routine (Details und wichtiger Vergleichsbesonderheit siehe unten). `byte0` wird vom gezeigten unkomprimierten Parser nicht geprüft; seine Semantik ist hier unbekannt. Offset muss dem erwarteten Gesamtbytezähler entsprechen; exaktes Duplicate des zuletzt akzeptierten Offsets wird nicht erneut angehängt. Antwortbody `u8 result | u32LE currentOffset`: `0=OK/duplicate`, `2=malformed`, `3=CRC mismatch`, `4=offset mismatch`; `yw40.e` erzeugt genau fünf Bytes. Drei aufeinanderfolgende ungültige Chunks brechen ab.
 
 ### CRC-16: Routine, Parameter und Aufrufpfad
 
@@ -78,17 +78,19 @@ Komprimiert: `u8 sequence | u8 flags | u32LE uncompressedOffset | u16LE expected
 |---:|---:|---|
 | 0 | 2 | u16 LE fileIndex |
 | 2 | 1 | u8 type |
-| 3 | 3 | rohe Subtypebytes; Byte 0 als Subtype |
-| 6 | 1 | ignoriert/reserviert |
-| 7 | 1 | Attribute: READ=0x80, WRITE=0x40, ERASE=0x20, ARCHIVE=0x10, APPEND=0x08, CRYPTO=0x04 |
-| 8 | 4 | u32 LE fieldA; möglicher File-Size-Wert, nicht abschließend verifiziert |
-| 12 | 4 | u32 LE fieldB; Semantik unbekannt |
+| 3 | 3 | `identifier[3]`; Byte 0 als Subtype, Bytes 1–2 vom `k7h`-Modell als u16 Identifier weitergelesen (genauere Semantik unbekannt) |
+| 6 | 1 | specific/reserved byte, Listingparser überspringt |
+| 7 | 1 | Flags: READ=0x80, WRITE=0x40, ERASE=0x20, ARCHIVE=0x10, APPEND=0x08, CRYPTO=0x04 |
+| 8 | 4 | u32 LE `size` (Kotlin-Metadaten des `k7h`-Konstruktors) |
+| 12 | 4 | u32 LE `timestamp` (Kotlin-Metadaten des `k7h`-Konstruktors) |
 
-Connect ignoriert trailing 1–15 Bytes; PulsLibre lehnt unvollständige Einträge defensiv ab. `a7d` filtert nach type=0x80 und Upload-/Supported-Subtypes und liest ausgewählte Indizes über `DeviceManager.extractFile → FileManager.readFile → 5002/5004`. Die CIRQA-Subtype-Menge ist unbekannt.
+Connect ignoriert trailing 1–15 Bytes; PulsLibre lehnt unvollständige Einträge defensiv ab. `a7d` filtert nach type=0x80 und Upload-/Supported-Subtypes und liest ausgewählte Indizes über `DeviceManager.extractFile → FileManager.readFile → 5002/5004`. Die CIRQA-Subtype-Menge ist unbekannt. Die ersten 16 Headerbytes werden übersprungen und bleiben vollständig unbekannt; das Directory-Format zeigt im geparsten Eintrag kein explizites CRC-Feld.
 
 ## Umsetzung und Grenzen
 
 Offline implementiert: `CirqaLegacyDirectoryParser`, `CirqaLegacyFileTypesParser` mit JVM-Tests; passiver GFDI-Zähler `CirqaLegacyDirectoryObserver`. Kein neuer BLE-Sendepfad. Die CRC-Primitive und 5002-Serialisierung sind nun aus Connect-Code rekonstruierbar; offen sind insbesondere der `yw40`-Vergleichsfluss als DEX-Verifikation, reale CIRQA-Capabilities, v5d-Registrierung, Dateiauswahl, persistente Speicherung und CIRQA-Antworten. Der abgelehnte `0x8A39`-Kandidat bleibt deaktiviert. Kein Upload-Flag setzen, kein Löschen, kein CLOSE_ALL.
+
+**Mutationswarnung:** Connects `a7d` ruft nach erfolgreichem Server-Upload `archiveFile(fileIndex)` auf. `DeviceManager.archiveFile` delegiert an asynchrones `FileManagerCompat.archive`; das ist geräteseitige Mutation und für PulsLibre verboten. Auch ERASE/WRITE/Flagänderungen dürfen im ersten Abrufpfad nicht auftreten. Die genaue Archive-Wire-Nachricht und deren Geräteseiteneffekt wurden nicht vollständig dekodiert.
 
 ## Implementierungsfortschritt (2026-11-17)
 
@@ -102,6 +104,10 @@ Offline implementiert: `CirqaLegacyDirectoryParser`, `CirqaLegacyFileTypesParser
 
 `CirqaLegacyOfflineFileSession` verbindet 5002-Response-Decoding, `CirqaLegacyPlainFileAssembler` und optional den Directory-Parser für Index 0. Es ist eine bewusst **transportfreie** Zustandsmaschine (`AWAITING_READ_RESPONSE → RECEIVING → COMPLETE/FAILED`). Die Session sollte den Größenwert erst nach unsigned-u32LE-Decoding und Größenlimitprüfung akzeptieren; `a60.F` ist als vier-Byte-LE-Reader statisch belegt. Tests bilden einen synthetischen 5002/5004-Verzeichnistransfer und einen normalen Dateiindex nach. **Kein echter CIRQA-Download**, kein BLE und keine automatische FIT-Persistenz.
 
-## FIT-Dateiauswahl (2026-11-17)
+## Protobuf/CoreTransfer-Grenze
 
-`CirqaLegacyFitFileSelector` selektiert **nur offline** Einträge mit `fileIndex != 0`, `type == 0x80`, READ-Attribut, und Subtype in der Schnittmenge von **explizit gelieferten** unterstützten Dateitypen und Upload-Subtypes. Fehlende Informationen führen zu einer leeren Auswahl; es werden keine Default-/Fallback-Subtypes als CIRQA-Fähigkeit interpretiert. Doppelte Indizes werden dedupliziert. Dieser Baustein löst keine BLE-Anfragen aus und verändert keine Dateiattribute. Die tatsächliche Uploadable-Subtype-Menge und die Connect-Filterlogik müssen für CIRQA noch bestätigt werden.
+Der alternative Builder setzt `GDIFileAccess.Service` als Extension `GDIFileAccessExtension.fileAccessService` in `GDISmartProto.Smart`; der CoreTransfer-Agentpfad ist nicht als Aufruf aus `v5d`/Legacy-Listing belegt. Builder-seitig ist für Pull ein Item-UID/Reference, Priority, unterstützte Transporttypen, Offset und optional ein angefordertes Compression Window (Connect setzt 15) sichtbar. Pull-Response verlangt Result, Transport und Transfer-Handle; optionales Fenster wird nur im Bereich 9–15 akzeptiert, falls Kompression angefordert war. Generated Schema-/Extension-Descriptoren sind in den verfügbaren JADX-Quellen nicht vorhanden: Extensionnummern, Service-oneof-Feldnummern, vollständige On-Wire-Bytes und Chunktransport bleiben **unbekannt**. Nicht mit GFDI-Indizes, Sequenzen oder Countern vermischen.
+
+## Integration nach OpenCode-Bericht (2026-11-17)
+
+Der Stand von `main` enthält zusätzlich `CirqaLegacyFitFileSelector` als vollständig offline ausgeführte, capability-gesteuerte Vorauswahl und die Korrektur, dass die unkomprimierte Reassembly 5004-Pakete mit Nichtnull-Transferstatus zurückweist. Diese Erweiterungen sind unabhängig vom Connect-Nachweis und bleiben **nicht** an BLE angeschlossen. Die unbekannte CIRQA-Capability-/Subtype-Map ist kein Grund, unterstützte Dateitypen zu behaupten. Der im Connect-Code nachgewiesene geräteseitige Archivierungsschritt ist für PulsLibre explizit verboten.
