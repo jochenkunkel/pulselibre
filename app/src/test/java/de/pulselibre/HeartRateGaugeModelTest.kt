@@ -31,6 +31,21 @@ class HeartRateGaugeModelTest {
         assertEquals(170f, HeartRateGaugeModel.needleAngle(0f), 0f)
         assertEquals(370f, HeartRateGaugeModel.needleAngle(1f), 0f)
     }
+    @Test fun compactDialKeepsTopScaleLabelsInsideAndCentersValueBelowEndpointChord() {
+        val dialCenter = HeartRateGaugeModel.GAUGE_HEIGHT_PER_WIDTH *
+            HeartRateGaugeModel.DIAL_CENTER_Y_PER_HEIGHT
+        val outerLabel = HeartRateGaugeModel.DIAL_RADIUS_PER_WIDTH +
+            HeartRateGaugeModel.MAJOR_LABEL_OUTSET_PER_WIDTH
+        assertTrue("100/120 labels need top inset", dialCenter - outerLabel > 0f)
+        assertTrue("Mode must remain below the dial chord",
+            HeartRateGaugeModel.MODE_Y_PER_HEIGHT * HeartRateGaugeModel.GAUGE_HEIGHT_PER_WIDTH >
+                dialCenter + kotlin.math.sin(Math.toRadians(HeartRateGaugeModel.ARC_START_DEGREES.toDouble())) *
+                HeartRateGaugeModel.DIAL_RADIUS_PER_WIDTH)
+        assertTrue("Unit label must fit in compact height",
+            HeartRateGaugeModel.UNIT_Y_PER_HEIGHT < 1f)
+        assertTrue("Current value must appear before its unit",
+            HeartRateGaugeModel.VALUE_Y_PER_HEIGHT < HeartRateGaugeModel.UNIT_Y_PER_HEIGHT)
+    }
     @Test fun gaugeContextComesFromStepEstimateAndDefaultsToUnknown() {
         assertEquals(PulseContext.UNKNOWN, StepActivityEstimate.UNKNOWN.context)
         assertEquals(PulseContext.SPORT, PulseActivityFixture.sport.context)

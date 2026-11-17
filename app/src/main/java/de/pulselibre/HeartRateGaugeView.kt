@@ -47,7 +47,8 @@ class HeartRateGaugeView(context: Context) : View(context) {
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         val w = MeasureSpec.getSize(widthMeasureSpec)
-        setMeasuredDimension(resolveSize(w, widthMeasureSpec), resolveSize((w * 1.12f).toInt(), heightMeasureSpec))
+        setMeasuredDimension(resolveSize(w, widthMeasureSpec),
+            resolveSize((w * HeartRateGaugeModel.GAUGE_HEIGHT_PER_WIDTH).toInt(), heightMeasureSpec))
     }
 
     override fun onDraw(canvas: Canvas) {
@@ -56,8 +57,10 @@ class HeartRateGaugeView(context: Context) : View(context) {
         val h = height.toFloat()
         if (w <= 0 || h <= 0) return
         val cx = w / 2
-        val cy = h * 0.29f
-        val radius = w * 0.31f
+        // Keep the upper scale labels inside the tile and reserve the open dial
+        // below the endpoint chord for mode and current reading.
+        val cy = h * HeartRateGaugeModel.DIAL_CENTER_Y_PER_HEIGHT
+        val radius = w * HeartRateGaugeModel.DIAL_RADIUS_PER_WIDTH
         arc.set(cx - radius, cy - radius, cx + radius, cy + radius)
         fun point(angle: Float, r: Float): Pair<Float, Float> {
             val radians = Math.toRadians(angle.toDouble())
@@ -93,8 +96,8 @@ class HeartRateGaugeView(context: Context) : View(context) {
             paint.strokeWidth = if (major) w * 0.006f else w * 0.0025f
             canvas.drawLine(x1, y1, x2, y2, paint)
             if (major) {
-                val (tx, ty) = point(angle, radius + w * 0.085f)
-                drawText(canvas, (40 + i * 2).toString(), tx, ty, w * 0.043f, colors.muted)
+                val (tx, ty) = point(angle, radius + w * HeartRateGaugeModel.MAJOR_LABEL_OUTSET_PER_WIDTH)
+                drawText(canvas, (40 + i * 2).toString(), tx, ty, w * 0.047f, colors.muted)
             }
         }
 
@@ -112,10 +115,10 @@ class HeartRateGaugeView(context: Context) : View(context) {
             paint.color = colors.accent
             canvas.drawCircle(cx, pivotY, w * 0.027f, paint)
         }
-        drawText(canvas, mode.label, cx, h * 0.63f, w * 0.062f, colors.muted, bold = true)
-        drawText(canvas, reading.bpm?.toString() ?: "—", cx, h * 0.79f, w * 0.19f, colors.ink, bold = true)
+        drawText(canvas, mode.label, cx, h * HeartRateGaugeModel.MODE_Y_PER_HEIGHT, w * 0.052f, colors.muted, bold = true)
+        drawText(canvas, reading.bpm?.toString() ?: "—", cx, h * HeartRateGaugeModel.VALUE_Y_PER_HEIGHT, w * 0.17f, colors.ink, bold = true)
         drawText(canvas, if (reading.bpm == null) "Keine Messdaten" else "bpm",
-            cx, h * 0.9f, w * 0.052f, colors.muted)
+            cx, h * HeartRateGaugeModel.UNIT_Y_PER_HEIGHT, w * 0.045f, colors.muted)
     }
 
     private fun drawArcRotated(canvas: Canvas, bounds: RectF, start: Float, sweep: Float,

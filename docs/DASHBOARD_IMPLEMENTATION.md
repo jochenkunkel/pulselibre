@@ -193,3 +193,9 @@ beiden Paletten. Tatsächliche Build-/CI-Ergebnisse stehen im Übergabestatus bz
 ## Wissenschaftlicher Kachelbauplan (2026-11-17)
 
 Der ausführliche, quellenbasierte Forschungs- und Implementierungsplan für Messwerte, abgeleitete Kennzahlen, Referenzbereiche, wissenschaftliche Grenzen, Kachelverträge und Tests liegt unter [SCIENTIFIC_DASHBOARD_TILE_BLUEPRINT.md](SCIENTIFIC_DASHBOARD_TILE_BLUEPRINT.md). Er ist ein **Plan**, keine Freigabe zusätzlicher Gesundheitsberechnungen oder CIRQA-Datenquellen. Für neue Kacheln gelten weiterhin die Evidenz- und KDoc-Regeln aus [ENGINEERING_SCIENTIFIC_STANDARDS.md](ENGINEERING_SCIENTIFIC_STANDARDS.md).
+
+## Auflösung und Symbole im Verlauf (2026-11-17)
+
+Die Verlaufskarten fassen echte Empfangssnapshots abhängig vom gewählten Zeitraum in Zeitfenstern zusammen: 15 Minuten bei 24 Stunden, 2 Stunden bei 7 Tagen und 6 Stunden bei 30 Tagen. Pro belegtem Fenster zeigt die Grafik beobachtetes Minimum, Median und Maximum sowie die Anzahl der Originalwerte. Leere Zeitfenster bleiben leer. Es gibt keine Interpolation, künstliche Messpunkte oder Verbindungslinien. Die Karten nennen Auflösung, belegte Fenster und ursprüngliche Punktzahl.
+
+Das Dashboard versieht Messwerttitel mit kleinen thematischen Symbolen (Puls, Sauerstoff, Schlaf, Schritte und weitere Messwertgruppen). Die Symbole sind dekorative Orientierung und tragen keine Mess- oder Gesundheitsinformation. Android-UI-Tests sichern die Symbolpräsenz an Messkarten und die Verlaufstests die Zeitfensteraggregation ab. Die Gauge-Karte ist für ein kompakteres Kachelverhältnis neu angeordnet; Skalenbeschriftungen liegen innerhalb der Anzeige und Modus, Wert und Einheit stehen direkt unter dem Bogen.

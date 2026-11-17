@@ -1,8 +1,8 @@
 # Offene Issues: Relevanz- und Evidenzprüfung
 
-**Prüfstand:** 2026-11-17 · lokaler Quellstand `a335def` (GitHub `main` nach Merge von PR #15)
+**Prüfstand:** 2026-11-17 · GitHub `main` `fa8aad7`; Dashboard-Folgeänderungen in PR #21
 
-Diese Prüfung behandelt die offenen GitHub-Issues #2, #3, #5, #6, #7 und #11. Issue #4 ist auf GitHub bereits geschlossen; ältere Statusdokumente, die es weiter als offen führen, sind insoweit überholt. Die hier vorgenommene Triage ist kein vollständiges Codeaudit und ersetzt keine Hardware- oder Datenschutzfreigabe.
+Diese Prüfung behandelt offene CIRQA-, Audit- und Dashboard-Issues. Issue #4 ist auf GitHub bereits geschlossen; ältere Statusdokumente, die es weiter als offen führen, sind insoweit überholt. Die hier vorgenommene Triage ist kein vollständiges Codeaudit und ersetzt keine Hardware- oder Datenschutzfreigabe.
 
 ## Priorität und Zuständigkeit
 
@@ -13,7 +13,11 @@ Diese Prüfung behandelt die offenen GitHub-Issues #2, #3, #5, #6, #7 und #11. I
 | [#5 – Review und Datenschutz-Export](https://github.com/jochenkunkel/pulselibre/issues/5) | **P1, teilweise bearbeitet** | R01/R02/R04/R05 zeigen im Code Schutzkorrekturen; die Testabdeckung ist uneinheitlich. R08 (Exportzustand bei Activity-Neuerstellung) wird in diesem Branch abgesichert. Die vollständige Datenfluss- und R01–R12-Neubewertung bleibt offen. |
 | [#6 – vollständiges Codeaudit](https://github.com/jochenkunkel/pulselibre/issues/6) | **P2, relevant als fortlaufende Arbeit** | Das vorliegende Dokument ist nur eine gezielte Issue-/Exportprüfung. Die geforderte Datei-für-Datei-Inventur, OWASP-MASVS-Gegenprüfung und vollständige Regressionsevidenz sind nicht erbracht. Issue offen lassen. |
 | [#7 – Garmin-Connect-Referenztrace](https://github.com/jochenkunkel/pulselibre/issues/7) | **P1 für History-Download, blockiert durch fehlenden Trace** | Offline-Metadatenvalidator ist vorhanden. Die acht synthetischen Python-Tests liefen in dieser Prüfung erfolgreich; echter ACL/ATT-Trace oder unabhängig belegter Protokollnachweis fehlt. Gehört zum CIRQA-/FileSync-Agenten; hier keine Änderung. |
-| [#11 – Personalisierung des Puls-Tachos](https://github.com/jochenkunkel/pulselibre/issues/11) | **P1 für Personalisierung; jetzige Anzeige bereits weiterentwickelt** | Der Tacho ist inzwischen eine feste Messwertskala ohne medizinische Farbzonen. Der Kontext wird aus frischen Schrittständen heuristisch abgeleitet; manuelle Modusschalter sind entfernt. Kein verlässlicher persönlicher Sollpuls kann aus den aktuellen CIRQA-Daten abgeleitet werden. Quellenprüfung unten; vorerst keine Personalisierungsformel implementieren. |
+| [#11 – Personalisierung des Puls-Tachos](https://github.com/jochenkunkel/pulselibre/issues/11) | **Geschlossen: keine medizinisch vertretbare Personalisierungsformel aus vorhandenen Daten** | Der Tacho nutzt eine feste Messwertskala ohne medizinische Farbzonen. Der Modus wird experimentell aus frischen Schrittständen abgeleitet; manuelle Schalter sind entfernt. Die Quellenprüfung unten begründet, warum keine individuelle Sollpulsformel implementiert wird. Issue wurde mit dieser Entscheidung geschlossen. |
+| [#16 – Verlauf aggregieren](https://github.com/jochenkunkel/pulselibre/issues/16) | **P1, umgesetzt in PR #21** | 24 h: 15-min-, 7 Tage: 2-h-, 30 Tage: 6-h-Fenster; beobachtete Min/Median/Max, keine Interpolation oder leeren Nullwerte. JVM-Tests prüfen Fenster, Statistik und Grenzen. Nach PR-Merge schließen. |
+| [#18 – Tachometer kompakter ausrichten](https://github.com/jochenkunkel/pulselibre/issues/18) | **P1, umgesetzt in PR #21** | Bogen, Skalenlabels, Modus, Wert und Einheit sind im Kachelformat neu angeordnet; geometrische JVM-Tests ergänzt. UI-Instrumentierung kompiliert; visuelle S25-/Emulatorabnahme fehlt. Nach Review/Merge schließen. |
+| [#19 – Messwertsymbole und Blueprint-Abgleich](https://github.com/jochenkunkel/pulselibre/issues/19) | **P1, umgesetzt in PR #21** | Kleine thematische Icons ergänzt, darunter Schritte; der Blueprint bleibt maßgeblich für Einheiten, Quellen und Evidenzgrenzen. Android-Test prüft die Präsenz auf jeder Messkarte. Nach Review/Merge schließen. |
+| [#20 – CIRQA-Testlabor und Offline-FIT-Analyse](https://github.com/jochenkunkel/pulselibre/issues/20) | **P1, noch offen** | Größere eigenständige Funktion mit Geräteprüfungen, Offline-FIT-Analyse, Datenschutz-Export und S25-Testplan. Aktive BLE-/GATT-Funktionen und Testlabor-Abnahme fallen in den CIRQA-/Gerätebereich; kein Testlabor wird hier als erledigt behauptet. Für die Abnahme sind Telefon-/Bandbelege und separater Implementierungsumfang erforderlich. |
 
 ## Issue #11 – wissenschaftliche Entscheidung
 
