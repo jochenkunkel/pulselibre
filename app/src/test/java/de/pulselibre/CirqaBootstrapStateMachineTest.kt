@@ -62,7 +62,7 @@ class CirqaBootstrapStateMachineTest {
         machine.observe(repeated, 500L)
         machine.observe(frame(5050, byteArrayOf(7, 9)), 600L)
         assertEquals(0, machine.retries)
-        assertEquals(1, machine.changed5050Payloads)
+        assertEquals(1, machine.payloadChanges)
         assertEquals(CirqaBootstrapStateMachine.State.WAITING_5050_RESPONSE, machine.state)
     }
 
