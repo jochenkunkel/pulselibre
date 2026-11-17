@@ -31,6 +31,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private var configurationResponseQueued = false
     private var configurationResponseConfirmed = false
     private var configurationChunksOutstanding = 0
+    private var configurationAckReceived = false
     private var bootstrapAckSent = false
     private var bootstrapAckConfirmed = false
     private var bootstrapAckPending = false
@@ -185,6 +186,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         historyRegistered = false
         bootstrapAckSent = false
         configurationResponseQueued = false
+        configurationAckReceived = false
         configurationResponseConfirmed = false
         configurationChunksOutstanding = 0
         bootstrapAckConfirmed = false
@@ -322,7 +324,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private fun sendNextBootstrapAckChunk(g: BluetoothGatt) {
         if (!active || !historyRegistered || mlWritePending || bootstrapAckChunks.isEmpty()) return
         bootstrapAckPending = true
-        mark("Bootstrap-Test: sende einmaliges DeviceInformation-ACK")
+        mark(if (configurationResponseQueued) "5050-Test: sende konfigurierte Antwortfolge" else "Bootstrap-Test: sende einmaliges DeviceInformation-ACK")
         send(g, bootstrapAckChunks.removeFirst())
     }
 
@@ -375,6 +377,10 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                 if (first != null && first == historyHandle) {
                     historyRouted++
                     fileListProbe.observeMlPayload(bytes.copyOfRange(1, bytes.size))
+                    if (configurationTestMode && configurationResponseQueued &&
+                        fileListProbe.responseStatuses.keys.any { it.startsWith("request=5050/status=ACK/") }) {
+                        configurationAckReceived = true
+                    }
                     if (bootstrapAckMode && historyRegistered && !bootstrapAckSent &&
                         fileListProbe.bootstrap.deviceInformationFrames > 0 &&
                         GarminDeviceInformationAckCandidate.validCandidate()) {
@@ -553,7 +559,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         "PulsLibre · CIRQA Historien-Diagnose (Phase 1)\n" +
         "Ergebnis: $reason\n" +
         (if (bootstrapAckMode) "Bootstrap-ACK-Test: Kandidat gesendet=$bootstrapAckSent; GATT bestätigt=$bootstrapAckConfirmed; GFDI-Frames nach ACK-Start=${(fileListProbe.frames - bootstrapBaselineFrames).coerceAtLeast(0)}; Dateibefehle=0\n" else "") +
-        (if (configurationTestMode) "5050-Konfigurationstest: Antwort eingeplant=$configurationResponseQueued; GATT-Schreibfolge bestätigt=$configurationResponseConfirmed; Hostmaske=15 Bytes/alle Bits 0; Dateibefehle=0\n" else "") +
+        (if (configurationTestMode) "5050-Konfigurationstest: Antwort eingeplant=$configurationResponseQueued; GATT-Schreibfolge bestätigt=$configurationResponseConfirmed; GFDI-5000-ACK für 5050 empfangen=$configurationAckReceived; Hostmaske=15 Bytes/alle Bits 0; Dateibefehle=0\n" else "") +
         "GFDI-Registrierung: ${if (historyRegistered) "bestätigt" else "nicht bestätigt"}\n" +
         "Letzte Phase: $phase\n" +
         "GATT-Schreiben bestätigt: $writeConfirmed\n" +
@@ -561,6 +567,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         "Protokollzustand: ${session?.stage}\n" +
         "Transportanalyse: ${historyTransport.summary()}\n" +
         "Passiver GFDI/COBS/FileSync-Decoder: ${fileListProbe.summary()}\n" +
+        (if (configurationTestMode) "Hinweis: Der passive Decoder meldet seinen eigenen 5050-Sendestatus; die aktive Testsequenz wird oben separat ausgewiesen. Ein 5000-ACK bestätigt keine Historienfreigabe.\\n" else "") +
         "GFDI-Handle: ${historyHandle ?: "unbekannt"}; zugeordnete Pakete: $historyRouted; übrige Pakete: $historyUnrouted\n" +
         "Paketlängen (ohne Registrierung): ${historyLengths.summary()}\n" +
         (if (rawCaptureMode) fileListProbe.rawCaptureReport() + "\n" else "") +
