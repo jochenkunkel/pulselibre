@@ -400,8 +400,8 @@ class MainActivity : AppCompatActivity() {
         val playButton = actionButton("▶  Starten") { /* Click handler installed below. */ }
         val stopButton = actionButton("■  Stoppen", false) {
             try {
-                startService(Intent(this, CirqaOvernightService::class.java)
-                    .setAction(CirqaOvernightService.ACTION_STOP))
+                startService(Intent(this, CirqaContinuousRecordingService::class.java)
+                    .setAction(CirqaContinuousRecordingService.ACTION_STOP))
                 recorderState.text = "◌  Aufzeichnung wird beendet …"
             } catch (_: Exception) {
                 output.text = "Stopp konnte nicht angefordert werden."
@@ -418,8 +418,8 @@ class MainActivity : AppCompatActivity() {
                     try {
                         androidx.core.content.ContextCompat.startForegroundService(
                             this@MainActivity,
-                            Intent(this@MainActivity, CirqaOvernightService::class.java)
-                                .setAction(CirqaOvernightService.ACTION_START)
+                            Intent(this@MainActivity, CirqaContinuousRecordingService::class.java)
+                                .setAction(CirqaContinuousRecordingService.ACTION_START)
                         )
                         recorderState.text = "◌  Aufzeichnung wird gestartet …"
                     } catch (_: Exception) {
@@ -431,8 +431,8 @@ class MainActivity : AppCompatActivity() {
         recorderRow.addView(stopButton, LinearLayout.LayoutParams(0, -2, 1f))
         deviceView(recorderRow, 12)
         recorderRefresh = {
-            val running = getSharedPreferences(CirqaOvernightService.PREFS, MODE_PRIVATE)
-                .getBoolean(CirqaOvernightService.KEY_RUNNING, false)
+            val running = getSharedPreferences(CirqaContinuousRecordingService.PREFS, MODE_PRIVATE)
+                .getBoolean(CirqaContinuousRecordingService.KEY_RUNNING, false)
             recorderState.text = if (running) "●  Aufzeichnung läuft · lokale Messwerte" else "○  Aufzeichnung aus"
             recorderState.setTextColor(if (running) AppPalette.of(this@MainActivity).indicator else muted)
             playButton.alpha = if (running) 0.45f else 1f
@@ -759,8 +759,8 @@ class MainActivity : AppCompatActivity() {
                 .setPositiveButton("Starten") { _, _ ->
                     try {
                         androidx.core.content.ContextCompat.startForegroundService(
-                            this, Intent(this, CirqaOvernightService::class.java)
-                                .setAction(CirqaOvernightService.ACTION_START))
+                            this, Intent(this, CirqaContinuousRecordingService::class.java)
+                                .setAction(CirqaContinuousRecordingService.ACTION_START))
                         output.text = "CIRQA-Nachtaufzeichnung angefordert. Laufstatus in Android-Benachrichtigung; Daten bleiben lokal."
                     } catch (_: Exception) {
                         output.text = "Nachtaufzeichnung konnte nicht gestartet werden (Android-Berechtigung oder Hintergrundbeschränkung)."
@@ -768,8 +768,8 @@ class MainActivity : AppCompatActivity() {
                 }.show()
         })
         debugView(actionButton("CIRQA: Nachtaufzeichnung stoppen", false) {
-            startService(Intent(this, CirqaOvernightService::class.java)
-                .setAction(CirqaOvernightService.ACTION_STOP))
+            startService(Intent(this, CirqaContinuousRecordingService::class.java)
+                .setAction(CirqaContinuousRecordingService.ACTION_STOP))
             output.text = "Stopp der CIRQA-Nachtaufzeichnung angefordert."
         })
         debugView(actionButton("CIRQA: Lokale Dateistatistik", false) {
