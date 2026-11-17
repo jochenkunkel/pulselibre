@@ -50,6 +50,7 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
     private lateinit var root: LinearLayout
     private lateinit var legacy5007Button: Button
     private lateinit var legacy5031Button: Button
+    private lateinit var legacyHistoryDownloadButton: Button
     private var permissionAction: (() -> Unit)? = null
     private var scanCallback: ScanCallback? = null
     private var scanning = false
@@ -145,10 +146,10 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
         ), LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(6); bottomMargin = dp(16) })
 
         val warning = card()
-        warning.addView(label("Historischer CIRQA-Download bleibt gesperrt", 17f, true))
+        warning.addView(label("Begrenzter lokaler FIT-Abruf freigegeben", 17f, true))
         warning.addView(label(
-            "Separat freigegeben ist genau ein Bootstrap→5007→5031-Test; er stoppt vor jeder Verzeichnis- oder Datei-Anfrage. " +
-                "5002, 5004 und 0x8A39 bleiben gesperrt. Kein Dateiabruf, keine Archivierung, Löschung oder Änderung.",
+            "Der freigegebene Einmalpfad lädt nur Directory-Index 0 und höchstens vier lesbare, durch den bestätigten 5031-Status unterstützte FIT-Dateien herunter. " +
+                "Kein Archivieren, Flag-Ändern, Löschen, CLOSE_ALL oder FileSync-V2.",
             14f
         ), LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) })
         addCard(warning)
@@ -251,10 +252,9 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
         addCard(fitCard)
 
         val historyCard = card()
-        historyCard.addView(label("Historischer Download", 16f, true))
+        historyCard.addView(label("Historischer Downloadstatus", 16f, true))
         historyCard.addView(label(
-            "Nicht getestet · Unbewiesen · Gesperrt. CIRQA-Capabilities und erfolgreiche Dateiantworten " +
-                "sind nicht belegt. Hier gibt es absichtlich keinen Download-Button.",
+            "Vor dem separat freigegebenen, begrenzten Einmaltransfer: unbewiesen. Der Transferbutton und seine festen Grenzen stehen weiter unten.",
             14f
         ), LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) })
         addRecordView(historyCard, CirqaTestLaboratory.TestId.HISTORICAL_DOWNLOAD)
@@ -315,11 +315,30 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
         })
         addCard(supportedTypesCard)
 
+        val boundedDownloadCard = card()
+        boundedDownloadCard.addView(label("Verzeichnis + FIT-Dateien · einmalig begrenzt", 16f, true))
+        boundedDownloadCard.addView(label(
+            "Nutzt nur die zuvor CRC-validierten 5031-Dateitypen; wiederholt weder 5007 noch 5031. Frischer Bootstrap, dann Directory-Index 0 und nur lesbare FIT-Einträge vom Typ 128. " +
+                "Unkomprimierte Transfers; höchstens 4 Dateien, je 4 MiB, insgesamt 16 MiB; Directory max. 1 MiB; Gesamtlaufzeit max. 5 Minuten. " +
+                "5004-ACK nur nach CRC-/Offset-Prüfung. Vollständige FIT-Dateien werden nach zusätzlicher FIT-CRC-Prüfung im privaten App-Speicher abgelegt, nicht in SQLite importiert. Kein Retry; keine Archiv-/Lösch-/Flag-Befehle.",
+            13f
+        ), LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) })
+        legacyHistoryDownloadButton =
+            button("Einmaligen Directory-/FIT-Transfer starten") { confirmLegacyHistoryDownload() }
+        refreshLegacyHistoryDownloadButton()
+        boundedDownloadCard.addView(legacyHistoryDownloadButton)
+        boundedDownloadCard.addView(button("Directory-/FIT-Transferstatus") {
+            statusOutput.text = preferences.getString(
+                "legacyHistoryDownloadSummary", "Noch nicht ausgeführt."
+            )
+        })
+        addCard(boundedDownloadCard)
+
         root.addView(button("Datensparsamen Testbericht speichern") {
             AlertDialog.Builder(this)
                 .setTitle("Testbericht lokal speichern")
                 .setMessage(
-                    "Der Standardbericht enthält keine Gerätekennung, Rohpayloads, FIT-Dateinamen oder Messwerte. " +
+            "Der Standardbericht enthält keine Gerätekennung, Rohpayloads, FIT-Dateinamen oder Messwerte. " +
                         "Der Android-Dateidialog kann auch Cloud-Ziele anbieten; wähle nur einen Speicherort, dem du vertraust."
                 )
                 .setNegativeButton("Abbrechen", null)
@@ -647,6 +666,90 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
         legacy5031Button.isEnabled = CirqaLegacy5031AttemptGate.canAttempt(consumed)
         legacy5031Button.text = if (consumed) "Freigegebener 5031-Test verbraucht"
         else "Einmaligen Bootstrap→5007→5031-Test starten"
+    }
+
+    private fun confirmLegacyHistoryDownload() {
+        if (!CirqaLegacyHistoryDownloadGate.canAttempt(
+                preferences.getBoolean("legacyHistoryDownloadAttempted", false)
+            )) {
+            refreshLegacyHistoryDownloadButton()
+            return
+        }
+        val cachedSummary = preferences.getString("legacy5031TestSummary", null)
+        val supportedTypes = CirqaLegacySupportedTypesCache.parse(cachedSummary)
+        if (supportedTypes.isEmpty()) {
+            statusOutput.text = "Kein erfolgreicher gespeicherter 5031-Befund; kein Gerät kontaktiert."
+            return
+        }
+        AlertDialog.Builder(this)
+            .setTitle("Begrenzten Directory-/FIT-Transfer einmalig starten?")
+            .setMessage(
+                "Ein frischer Bootstrap wird ausgeführt. Der geschlossene 5007-Gate wird nicht wiederverwendet: Es werden weder 5007 noch 5031 erneut gesendet. " +
+                    "Danach wird Directory-Index 0 gelesen und höchstens vier lesbare FIT-Dateien aus den zuvor bestätigten 5031-Typen angefordert. " +
+                    "Unkomprimiert; Directory höchstens 1 MiB, jede FIT-Datei höchstens 4 MiB, gesamte FIT-Daten höchstens 16 MiB, Laufzeit höchstens 5 Minuten. " +
+                    "Notwendige 5004-ACKs nur nach CRC-/Offset-Prüfung; jeder Fehler stoppt ohne Retry. " +
+                    "Vollständig FIT-validierte Dateien werden in PulsLibres privatem App-Speicher abgelegt, nicht in SQLite. " +
+                    "Kein SetFlags/Archivieren/Löschen/CLOSE_ALL. Der Einmal-Gate wird vor Verbindungsaufbau verbraucht; Teilabbrüche werden nicht automatisch fortgesetzt."
+            )
+            .setNegativeButton("Abbrechen", null)
+            .setPositiveButton("Einmaligen Transfer ausführen") { _, _ ->
+                withBluetoothPermissions(needsScan = false) { runLegacyHistoryDownloadOnce(supportedTypes) }
+            }
+            .show()
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun runLegacyHistoryDownloadOnce(supportedTypes: Set<Pair<Int, Int>>) {
+        if (!CirqaLegacyHistoryDownloadGate.canAttempt(
+                preferences.getBoolean("legacyHistoryDownloadAttempted", false)
+            )) {
+            refreshLegacyHistoryDownloadButton()
+            return
+        }
+        val matchingDevices = try {
+            adapter.bondedDevices.orEmpty().filter { it.name?.contains("CIRQA", ignoreCase = true) == true }
+        } catch (_: SecurityException) { emptyList() }
+        if (matchingDevices.size != 1) {
+            Toast.makeText(
+                this,
+                if (matchingDevices.isEmpty()) "Kein gekoppeltes CIRQA-Gerät gefunden; kein Request gesendet."
+                else "Mehrere gekoppelte CIRQA-Geräte gefunden; Ziel nicht eindeutig, kein Request gesendet.",
+                Toast.LENGTH_LONG
+            ).show()
+            return
+        }
+        if (CirqaBleSessionGate.isBusy()) {
+            Toast.makeText(this, "CIRQA-Bluetooth ist belegt; kein Request gesendet.", Toast.LENGTH_LONG).show()
+            return
+        }
+        if (!preferences.edit().putBoolean("legacyHistoryDownloadAttempted", true).commit()) {
+            Toast.makeText(this, "Einmal-Gate konnte nicht dauerhaft gespeichert werden; kein Request gesendet.", Toast.LENGTH_LONG).show()
+            return
+        }
+        refreshLegacyHistoryDownloadButton()
+        statusOutput.text = "Begrenzter Directory-/FIT-Transfer läuft; maximal 5 Minuten, keine Wiederaufnahme."
+        if (mlProbe == null) mlProbe = CirqaMlHandshakeProbe(this, adapter)
+        mlProbe?.startLegacyDirectoryAndFitsTest(supportedTypes) { message ->
+            runOnUiThread {
+                statusOutput.text = message
+                val summary = message.lineSequence()
+                    .filter { it.startsWith("Ergebnis:") || it.startsWith("5002-Indizes") ||
+                        it.startsWith("Directory-Einträge=") || it.startsWith("Vollständig validierte") ||
+                        it.startsWith("Grenzen:") }
+                    .joinToString(" ")
+                    .take(900)
+                    .ifEmpty { message.take(900) }
+                preferences.edit().putString("legacyHistoryDownloadSummary", summary).apply()
+            }
+        }
+    }
+
+    private fun refreshLegacyHistoryDownloadButton() {
+        val consumed = preferences.getBoolean("legacyHistoryDownloadAttempted", false)
+        legacyHistoryDownloadButton.isEnabled = CirqaLegacyHistoryDownloadGate.canAttempt(consumed)
+        legacyHistoryDownloadButton.text = if (consumed)
+            "Freigegebener Directory-/FIT-Transfer verbraucht"
+        else "Einmaligen Directory-/FIT-Transfer starten"
     }
 
     @SuppressLint("MissingPermission")

@@ -6,6 +6,8 @@ import android.content.Context
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import java.io.File
+import java.io.FileOutputStream
 import java.util.UUID
 
 /**
@@ -41,6 +43,35 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private var legacy5031WriteClaimed = false
     private var legacy5031RequestSent = false
     private var legacy5031Response = CirqaLegacy5031ResponseObserver()
+    private var legacyHistoryDownloadMode = false
+    private var legacy5002RequestWriteClaimed = false
+    private var legacy5002RequestSent = false
+    private var legacy5002Response = CirqaLegacy5002ResponseObserver()
+    private var legacy5004Response = CirqaLegacy5004ResponseObserver()
+    private var legacySupportedTypes: Set<Pair<Int, Int>> = emptySet()
+    private var legacyFileQueue = ArrayDeque<CirqaLegacyDirectoryParser.Entry>()
+    private var legacyCurrentDirectoryEntry: CirqaLegacyDirectoryParser.Entry? = null
+    private var legacyCurrentFileIndex: Int? = null
+    private var legacyCurrentExpectedSize = 0
+    private val legacyRequestedIndices = mutableListOf<Int>()
+    private var legacyCurrentAssembler: CirqaLegacyPlainFileAssembler? = null
+    private var legacyCurrentCrc = 0
+    private var legacyPreviousCrc = 0
+    private var legacyLastPayload: ByteArray? = null
+    private var legacyPendingCrc: Int? = null
+    private var legacyDirectory: CirqaLegacyDirectoryParser.Directory? = null
+    private var legacyDirectoryEntriesSeen = 0
+    private var legacyFitBytesWritten = 0
+    private val legacyDownloadedIndices = mutableListOf<Int>()
+    private var legacyCurrentTransferCompleted = false
+    private var legacyHistorySessionStartedAt = 0L
+    private var legacyHistoryReportStatus = "Noch nicht gestartet"
+    private var legacyHistoryReportDirectoryEntries = 0
+    private var legacyHistoryReportEligibleFiles = 0
+    private var legacyHistoryReportSkippedFiles = 0
+    private var legacyHistoryReportCompletedFiles = 0
+    private var legacyHistoryReportStoredBytes = 0
+    private var legacyHistoryOutputDirectory: File? = null
     private var rawCaptureMode = false
     private var bootstrapAckMode = false
     private var configurationTestMode = false
@@ -151,7 +182,34 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         start(false, result)
         if (!active) {
             legacy5007TestMode = false
-            legacy5031TestMode = false
+        legacy5031TestMode = false
+        legacyHistoryDownloadMode = false
+        bootstrapAckMode = false
+            configurationTestMode = false
+            historyDiagnosticMode = false
+        }
+    }
+
+    /** Fresh bootstrap and one directory transfer plus strictly bounded supported FIT files. */
+    fun startLegacyDirectoryAndFitsTest(
+        supportedTypes: Set<Pair<Int, Int>>,
+        result: (String) -> Unit
+    ) {
+        if (active) { result("ML-Test läuft bereits."); return }
+        if (supportedTypes.isEmpty()) {
+            result("Keine gespeicherten, bestätigten 5031-Dateitypen vorhanden; keine Verbindung und kein Request ausgeführt.")
+            return
+        }
+        legacyHistoryDownloadMode = true
+        legacySupportedTypes = supportedTypes.toSet()
+        bootstrapAckMode = true
+        configurationTestMode = true
+        historyDiagnosticMode = true
+        realtimeMode = false
+        continuousRecordingMode = false
+        start(false, result)
+        if (!active) {
+            legacyHistoryDownloadMode = false
             bootstrapAckMode = false
             configurationTestMode = false
             historyDiagnosticMode = false
@@ -287,6 +345,33 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         legacy5031WriteClaimed = false
         legacy5031RequestSent = false
         legacy5031Response = CirqaLegacy5031ResponseObserver()
+        legacy5002RequestSent = false
+        legacy5002RequestWriteClaimed = false
+        legacyRequestedIndices.clear()
+        legacy5002Response = CirqaLegacy5002ResponseObserver()
+        legacy5004Response = CirqaLegacy5004ResponseObserver()
+        legacyFileQueue.clear()
+        legacyCurrentDirectoryEntry = null
+        legacyCurrentFileIndex = null
+        legacyCurrentExpectedSize = 0
+        legacyCurrentAssembler = null
+        legacyCurrentCrc = 0
+        legacyPreviousCrc = 0
+        legacyLastPayload = null
+        legacyPendingCrc = null
+        legacyDirectory = null
+        legacyDirectoryEntriesSeen = 0
+        legacyFitBytesWritten = 0
+        legacyDownloadedIndices.clear()
+        legacyCurrentTransferCompleted = false
+        legacyHistorySessionStartedAt = 0L
+        legacyHistoryReportStatus = "Noch nicht gestartet"
+        legacyHistoryReportDirectoryEntries = 0
+        legacyHistoryReportEligibleFiles = 0
+        legacyHistoryReportSkippedFiles = 0
+        legacyHistoryReportCompletedFiles = 0
+        legacyHistoryReportStoredBytes = 0
+        legacyHistoryOutputDirectory = null
         bootstrapAckSent = false
         configurationResponseQueued = false
         configurationAckReceived = false
@@ -466,8 +551,13 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                         }
                         if (bootstrapAckMode && bootstrapAckSent && bootstrapAckChunks.isNotEmpty()) {
                             main.postDelayed({ if (active) sendNextBootstrapAckChunk(g) }, 80L)
+                        } else if (legacyHistoryDownloadMode && legacyCurrentTransferCompleted) {
+                            main.post {
+                                if (active && legacyHistoryDownloadMode) completeLegacyTransferAndContinue(g)
+                            }
                         } else {
                             maybeSendLegacy5007AfterBootstrap(g)
+                            maybeSendLegacy5002AfterBootstrap(g)
                             if (!legacy5007WriteClaimed) mark("ML-Schreiben bestätigt; warte auf Protokollantwort")
                         }
                     }
@@ -486,6 +576,11 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private val legacy5007Timeout = Runnable {
         if (active && legacy5007TestMode) {
             finish("5007-Test: Fünf-Sekunden-Beobachtungsfenster ohne passende Antwort beendet.", gatt)
+        }
+    }
+    private val legacyHistoryTimeout = Runnable {
+        if (active && legacyHistoryDownloadMode) {
+            finish("Begrenzter Verzeichnis-/FIT-Transfer nach fünf Minuten beendet.", gatt)
         }
     }
 
@@ -508,6 +603,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         }
         mark(
             when {
+                legacyHistoryDownloadMode && legacy5002RequestWriteClaimed -> "Sende genau einen 5002-Request für Index ${legacyCurrentFileIndex ?: 0}"
+                legacyHistoryDownloadMode -> "Sende 5004-Daten-ACK"
                 legacy5031TestMode && legacy5031WriteClaimed -> "Sende genau eine GFDI-5031-Anfrage"
                 legacy5007TestMode && legacy5007WriteClaimed -> "Sende genau eine GFDI-5007-Anfrage"
                 session?.stage == GarminMlHandshake.Stage.WAIT_CLOSE -> "Sende CLOSE_ALL"
@@ -537,15 +634,20 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     else "WITH_RESPONSE (API-Auftrag angenommen)",
                     (System.nanoTime() - sessionStartedNanos) / 1_000_000
                 )
-                if (legacy5007TestMode && legacy5007WriteClaimed) {
+                if (legacy5007TestMode && legacy5007WriteClaimed && !legacyHistoryDownloadMode) {
                     legacy5007RequestSent = true
                     main.removeCallbacks(legacy5007Timeout)
                     main.postDelayed(legacy5007Timeout, 5_000L)
                 }
-                if (legacy5031TestMode && legacy5031WriteClaimed) {
+                if (legacy5031TestMode && legacy5031WriteClaimed && !legacyHistoryDownloadMode) {
                     legacy5031RequestSent = true
                     main.removeCallbacks(legacy5007Timeout)
                     main.postDelayed(legacy5007Timeout, 5_000L)
+                }
+                if (legacyHistoryDownloadMode && legacy5002RequestWriteClaimed) {
+                    legacy5002RequestSent = true
+                    legacy5002RequestWriteClaimed = false
+                    legacyCurrentFileIndex?.let(legacyRequestedIndices::add)
                 }
             }
         } catch (_: SecurityException) { finish("Bluetooth-Berechtigung beim Schreiben fehlt.", g) }
@@ -570,6 +672,10 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                 val first = bytes.firstOrNull()?.toInt()?.and(255)
                 if (first != null && first == historyHandle) {
                     historyRouted++
+                    if (legacyHistoryDownloadMode && legacy5002RequestSent) {
+                        receiveLegacyDirectoryOrFitData(g, bytes.copyOfRange(1, bytes.size))
+                        return
+                    }
                     if (legacy5007TestMode && legacy5007WriteClaimed) {
                         if (legacy5031TestMode && legacy5031RequestSent) {
                             when (legacy5031Response.observeMlPayload(bytes.copyOfRange(1, bytes.size))) {
@@ -663,6 +769,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                         }
                         phase = "GFDI-5000-ACK für 5050 empfangen; beobachte weitere Antworten"
                         maybeSendLegacy5007AfterBootstrap(g)
+                        maybeSendLegacy5002AfterBootstrap(g)
                     }
                     if (bootstrapAckMode && historyRegistered && !bootstrapAckSent &&
                         fileListProbe.bootstrap.deviceInformationFrames > 0 &&
@@ -863,6 +970,319 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         send(g, CirqaLegacy5007RequestCandidate.mlGattValueCandidate(handle))
     }
 
+    private fun maybeSendLegacy5002AfterBootstrap(g: BluetoothGatt) {
+        if (!legacyHistoryDownloadMode || legacy5002RequestSent || legacy5002RequestWriteClaimed ||
+            legacyHistorySessionStartedAt != 0L ||
+            !CirqaLegacy5007BootstrapGate.maySend5007(
+                bootstrapAckSent,
+                bootstrapAckConfirmed,
+                configurationResponseQueued,
+                configurationResponseConfirmed,
+                configurationAckReceived,
+                mlWritePending,
+                bootstrapAckChunks.isNotEmpty()
+            )) return
+        val handle = historyHandle
+        if (handle == null) {
+            finish("Bootstrap vollständig, aber dynamischer GFDI-Handle fehlt; 5002 nicht gesendet.", g)
+            return
+        }
+        configurationTestMode = false
+        legacyHistorySessionStartedAt = System.nanoTime()
+        main.removeCallbacks(configurationTimeout)
+        main.removeCallbacks(legacy5007Timeout)
+        main.postDelayed(legacyHistoryTimeout, CirqaLegacyDownloadLimits.MAX_SESSION_MILLIS)
+        legacyCurrentFileIndex = 0
+        legacy5002Response = CirqaLegacy5002ResponseObserver()
+        legacy5004Response = CirqaLegacy5004ResponseObserver()
+        legacyCurrentFileIndex = 0
+        legacyCurrentAssembler = null
+        legacy5002RequestWriteClaimed = true
+        legacyHistoryReportStatus = "5002 Index 0 gesendet; warte auf begrenzte Directory-Übertragung"
+        mark("Bootstrap bestätigt; sende einen unkomprimierten 5002-Request für Directory-Index 0")
+        send(g, CirqaLegacy5002RequestCandidate.mlGattValueCandidate(
+            dynamicHandle = handle,
+            fileIndex = 0,
+            compressed = false
+        ))
+    }
+
+    private fun receiveLegacyDirectoryOrFitData(g: BluetoothGatt, payload: ByteArray) {
+        if (legacyCurrentAssembler == null) {
+            when (legacy5002Response.observeMlPayload(payload)) {
+                CirqaLegacy5002ResponseObserver.Result.PENDING -> Unit
+                CirqaLegacy5002ResponseObserver.Result.SUCCESS -> {
+                    val index = legacyCurrentFileIndex
+                    val response = legacy5002Response.response
+                    val size = response?.unsignedValue
+                    val maxSize = if (index == 0) CirqaLegacyDownloadLimits.MAX_DIRECTORY_BYTES
+                    else minOf(
+                        CirqaLegacyDownloadLimits.MAX_FIT_FILE_BYTES,
+                        CirqaLegacyDownloadLimits.MAX_TOTAL_FIT_BYTES - legacyFitBytesWritten
+                    )
+                    if (index == null || size == null || size !in 1..maxSize.toLong()) {
+                        legacyHistoryReportStatus = "5002 success size fehlt oder überschreitet das festgelegte Limit"
+                        finish(legacyHistoryReportStatus, g)
+                        return
+                    }
+                    val directoryEntry = legacyCurrentDirectoryEntry
+                    if (index != 0 && (directoryEntry?.fileIndex != index ||
+                            directoryEntry.size != size)) {
+                        finish("5002-Größe für FIT-Index $index stimmt nicht mit dem Verzeichniseintrag überein; Datei-Transfer gestoppt.", g)
+                        return
+                    }
+                    legacyCurrentExpectedSize = size.toInt()
+                    legacyCurrentCrc = 0
+                    legacyPreviousCrc = 0
+                    legacyLastPayload = null
+                    legacyLastOffset = null
+                    legacyPendingCrc = null
+                    legacyCurrentAssembler = CirqaLegacyPlainFileAssembler(
+                        expectedSize = legacyCurrentExpectedSize,
+                        verifyPayloadCrc = ::verifyLegacyChunkCrc,
+                        maxFileBytes = maxSize
+                    )
+                    legacy5004Response = CirqaLegacy5004ResponseObserver()
+                    legacyHistoryReportStatus =
+                        "5002 Index $index erfolgreich; Größe=${legacyCurrentExpectedSize} Bytes; warte auf CRC-validierte 5004-Chunks"
+                    mark(legacyHistoryReportStatus)
+                }
+                CirqaLegacy5002ResponseObserver.Result.STATUS_ERROR -> {
+                    val status = legacy5002Response.response?.status?.name
+                        ?: "GFDI-${legacy5002Response.gfdiStatus ?: "unbekannt"}"
+                    legacyHistoryReportStatus = "5002 Index ${legacyCurrentFileIndex ?: "?"} abgelehnt: $status"
+                    finish(legacyHistoryReportStatus, g)
+                }
+                CirqaLegacy5002ResponseObserver.Result.UNEXPECTED ->
+                    finish("5002-Test abgebrochen: unerwartete GFDI-Antwort oder mehrere Frames; kein Retry.", g)
+                CirqaLegacy5002ResponseObserver.Result.MALFORMED ->
+                    finish("5002-Test abgebrochen: Antwort-COBS/GFDI/CRC/Response-Body ungültig; kein Retry.", g)
+            }
+            return
+        }
+
+        when (legacy5004Response.observeMlPayload(payload)) {
+            CirqaLegacy5004ResponseObserver.Result.PENDING -> Unit
+            CirqaLegacy5004ResponseObserver.Result.UNEXPECTED ->
+                finish("Transfer abgebrochen: unerwarteter oder zusätzlicher Frame während 5004; kein Retry.", g)
+            CirqaLegacy5004ResponseObserver.Result.MALFORMED ->
+                finish("Transfer abgebrochen: ungültiger COBS/GFDI/CRC-Frame; kein ACK und kein Retry.", g)
+            CirqaLegacy5004ResponseObserver.Result.DATA -> {
+                val body = legacy5004Response.body ?: run {
+                    finish("Transfer abgebrochen: 5004-Body fehlt.", g)
+                    return
+                }
+                val chunk = CirqaLegacyTransferDecoder.plainChunk(body) ?: run {
+                    finish("Transfer abgebrochen: 5004-Chunkheader ungültig; kein ACK.", g)
+                    return
+                }
+                legacyCandidateChunkOffset = chunk.offset
+                legacyPendingCrc = null
+                val accepted = legacyCurrentAssembler?.accept(body)
+                when (accepted) {
+                    CirqaLegacyPlainFileAssembler.Result.ACCEPTED,
+                    CirqaLegacyPlainFileAssembler.Result.COMPLETE -> {
+                        val crc = legacyPendingCrc
+                        if (crc == null) {
+                            finish("Transfer abgebrochen: CRC-Akkumulator nicht konsistent; kein ACK.", g)
+                            return
+                        }
+                        legacyPreviousCrc = legacyCurrentCrc
+                        legacyCurrentCrc = crc
+                        legacyLastPayload = chunk.payload.copyOf()
+                        legacyLastOffset = chunk.offset
+                    }
+                    CirqaLegacyPlainFileAssembler.Result.DUPLICATE -> Unit
+                    else -> {
+                        finish("Transfer abgebrochen: 5004-Chunk nicht CRC-/Offset-validiert ($accepted); kein ACK oder Retry.", g)
+                        return
+                    }
+                }
+                legacyCurrentTransferCompleted =
+                    accepted == CirqaLegacyPlainFileAssembler.Result.COMPLETE
+                legacy5004Response = CirqaLegacy5004ResponseObserver()
+                val handle = historyHandle ?: run {
+                    finish("Transfer abgebrochen: dynamischer GFDI-Handle fehlt; kein ACK.", g)
+                    return
+                }
+                val nextOffset = legacyCurrentAssembler?.receivedBytes ?: run {
+                    finish("Transfer abgebrochen: Assembler fehlt; kein ACK.", g)
+                    return
+                }
+                legacyHistoryReportStatus =
+                    "5004-Chunk CRC/Offset-validiert; nächster Offset=$nextOffset/${legacyCurrentExpectedSize}"
+                mark(legacyHistoryReportStatus)
+                send(g, CirqaLegacy5004AckCandidate.mlGattValueCandidate(handle, nextOffset))
+            }
+        }
+    }
+
+    private var legacyCandidateChunkOffset = -1L
+    private var legacyLastOffset: Long? = null
+
+    private fun verifyLegacyChunkCrc(payload: ByteArray, expected: Int): Boolean {
+        if (legacyCandidateChunkOffset == legacyLastOffset &&
+            legacyLastPayload?.contentEquals(payload) == true &&
+            CirqaLegacyCrc16.compute(payload, legacyPreviousCrc) == expected) {
+            legacyPendingCrc = null
+            return true
+        }
+        val updated = CirqaLegacyCrc16.compute(payload, legacyCurrentCrc)
+        if (updated != expected) {
+            legacyPendingCrc = null
+            return false
+        }
+        legacyPendingCrc = updated
+        return true
+    }
+
+    private fun completeLegacyTransferAndContinue(g: BluetoothGatt) {
+        val bytes = legacyCurrentAssembler?.completedBytes() ?: run {
+            finish("Transferabschluss ungültig; vollständige CRC-validierte Daten fehlen.", g)
+            return
+        }
+        val index = legacyCurrentFileIndex ?: run {
+            finish("Transferabschluss ohne bekannten Dateiindex.", g)
+            return
+        }
+        legacyCurrentAssembler = null
+        legacyCurrentExpectedSize = 0
+        legacyCurrentTransferCompleted = false
+
+        if (index == 0) {
+            val directory = CirqaLegacyDirectoryParser.parse(bytes) ?: run {
+                finish("Directory-Index 0 vollständig übertragen, aber strikt nicht parsebar; FIT-Requests gestoppt.", g)
+                return
+            }
+            legacyDirectory = directory
+            legacyDirectoryEntriesSeen = directory.entries.size
+            legacyHistoryReportDirectoryEntries = directory.entries.size
+            val candidates = CirqaLegacyDownloadLimits.selectReadableSupportedFits(
+                directory.entries, legacySupportedTypes
+            )
+            var selectedBytes = legacyFitBytesWritten
+            val bounded = candidates.filter { entry ->
+                val fits = entry.size <=
+                    (CirqaLegacyDownloadLimits.MAX_TOTAL_FIT_BYTES - selectedBytes).toLong()
+                if (fits) selectedBytes += entry.size.toInt()
+                fits
+            }
+            legacyHistoryReportEligibleFiles = bounded.size
+            legacyHistoryReportSkippedFiles =
+                (directory.entries.count { it.type == 128 } - bounded.size).coerceAtLeast(0)
+            legacyFileQueue.clear()
+            bounded.forEach(legacyFileQueue::addLast)
+            if (legacyFileQueue.isEmpty()) {
+                legacyHistoryReportStatus = "Directory gelesen; keine passenden lesbaren, unterstützten FIT-Einträge innerhalb der Limits."
+                finish(legacyHistoryReportStatus, g)
+                return
+            }
+            issueNextLegacyFitRequest(g)
+            return
+        }
+
+        FitFileHeader.inspectVerified(bytes) ?: run {
+            finish("FIT-Index $index vollständig übertragen, aber FIT-Header/CRC ungültig; nächste Datei gestoppt.", g)
+            return
+        }
+        if (!persistVerifiedLegacyFit(index, bytes)) {
+            finish("FIT-Index $index verifiziert, aber sichere lokale Speicherung schlug fehl; nächste Datei gestoppt.", g)
+            return
+        }
+        legacyDownloadedIndices += index
+        legacyFitBytesWritten += bytes.size
+        legacyHistoryReportCompletedFiles = legacyDownloadedIndices.size
+        legacyHistoryReportStoredBytes = legacyFitBytesWritten
+        legacyHistoryReportStatus =
+            "FIT-Index $index lokal gespeichert; Größe=${bytes.size}; verifizierter Header CRC=OK"
+        if (legacyFileQueue.isEmpty()) {
+            finish("Verzeichnis und ${legacyDownloadedIndices.size} FIT-Datei(en) erfolgreich und begrenzt lokal gespeichert.", g)
+        } else {
+            issueNextLegacyFitRequest(g)
+        }
+    }
+
+    private fun issueNextLegacyFitRequest(g: BluetoothGatt) {
+        if (!active || terminationRequested) return
+        val entry = if (legacyFileQueue.isEmpty()) null else legacyFileQueue.removeFirst()
+        if (entry == null) {
+            finish("Verzeichnis und FIT-Auswahl abgeschlossen.", g)
+            return
+        }
+        val handle = historyHandle ?: run {
+            finish("FIT-Transfer gestoppt: dynamischer GFDI-Handle fehlt.", g)
+            return
+        }
+        if (legacyDownloadedIndices.size >= CirqaLegacyDownloadLimits.MAX_FIT_FILES ||
+            legacyFitBytesWritten + entry.size > CirqaLegacyDownloadLimits.MAX_TOTAL_FIT_BYTES) {
+            finish("FIT-Auswahl-Limit erreicht; keine weitere Datei angefordert.", g)
+            return
+        }
+        legacyCurrentFileIndex = entry.fileIndex
+        legacyCurrentDirectoryEntry = entry
+        legacy5002Response = CirqaLegacy5002ResponseObserver()
+        legacy5004Response = CirqaLegacy5004ResponseObserver()
+        legacy5002RequestWriteClaimed = true
+        legacyHistoryReportStatus =
+            "Sende einen unkomprimierten 5002-Request für lesbaren, unterstützten FIT-Index ${entry.fileIndex}"
+        mark(legacyHistoryReportStatus)
+        send(g, CirqaLegacy5002RequestCandidate.mlGattValueCandidate(
+            dynamicHandle = handle,
+            fileIndex = entry.fileIndex,
+            compressed = false
+        ))
+    }
+
+    private fun persistVerifiedLegacyFit(index: Int, bytes: ByteArray): Boolean {
+        return try {
+            val parent = File(context.filesDir, "cirqa_fit_history")
+            if (!parent.exists() && !parent.mkdirs()) return false
+            val directory = legacyHistoryOutputDirectory ?: File(
+                parent, "session_${System.currentTimeMillis()}"
+            ).also {
+                if (!it.mkdir()) return false
+                legacyHistoryOutputDirectory = it
+            }
+            val target = File(directory, "fit_index_${index}.fit")
+            if (target.exists()) return false
+            val temporary = File.createTempFile("fit_${index}_", ".part", directory)
+            try {
+                FileOutputStream(temporary).use { stream ->
+                    stream.write(bytes)
+                    stream.fd.sync()
+                }
+                if (!temporary.renameTo(target)) return false
+                true
+            } finally {
+                if (temporary.exists()) temporary.delete()
+            }
+        } catch (_: Exception) {
+            false
+        }
+    }
+
+    private fun legacyHistoryDownloadReport(reason: String): String =
+        "PulsLibre · CIRQA Legacy-Verzeichnis-/FIT-Einzeltest\n" +
+            "Ergebnis: $reason\n" +
+            "Bootstrap: 5024-ACK=${bootstrapAckConfirmed}; 5050-Antwort=${configurationResponseConfirmed}; 5050-ACK=${configurationAckReceived}.\n" +
+            "5007/5031 wurden in diesem Lauf nicht wiederholt; verwendet wurden nur die zuvor CRC-validierten 5031-Typen. " +
+            "Der geschlossene 5007-Gate 5/5 blieb unverändert.\n" +
+            "5002-Indizes angefordert: ${legacyRequestedIndices.joinToString().ifEmpty { "keine" }}; Retry=0.\n" +
+            "Directory-Einträge=${legacyHistoryReportDirectoryEntries}; geeignete FITs=${legacyHistoryReportEligibleFiles}; " +
+            "wegen Limits/Filter übersprungen=${legacyHistoryReportSkippedFiles}.\n" +
+            "Vollständig validierte und lokal gespeicherte FIT-Dateien=${legacyDownloadedIndices.joinToString().ifEmpty { "keine" }}; " +
+            "Dateien=${legacyHistoryReportCompletedFiles}; Bytes=$legacyHistoryReportStoredBytes; " +
+            "Privater App-Speicher=${legacyHistoryOutputDirectory?.name ?: "kein FIT gespeichert"}.\n" +
+            "Grenzen: max. Directory ${CirqaLegacyDownloadLimits.MAX_DIRECTORY_BYTES} B; " +
+            "max. ${CirqaLegacyDownloadLimits.MAX_FIT_FILES} Dateien, je ${CirqaLegacyDownloadLimits.MAX_FIT_FILE_BYTES} B, " +
+            "gesamt ${CirqaLegacyDownloadLimits.MAX_TOTAL_FIT_BYTES} B; Laufzeit höchstens 5 min.\n" +
+            "Nur lesbare, als FIT (type 128) und in der gespeicherten 5031-Liste unterstützte Einträge. " +
+            "Unkomprimierte 5004-Chunks nur nach CRC/Offset-Validierung positiv bestätigt.\n" +
+            "Kein 5008/Archive/Erase/SetFlags, CLOSE_ALL, Retry oder sonstiges Sync-Folgekommando. " +
+            "Dateiinhalte/Messwerte nicht in Bericht oder SQLite übernommen.\n" +
+            "GFDI-Handle=${historyHandle ?: "unbekannt"}; RX=$selectedRxUuid; TX=$selectedTxUuid.\n" +
+            txTrace.summary()
+
     private fun legacy5007Report(reason: String): String =
         "PulsLibre · CIRQA ${if (legacy5031TestMode) "GFDI-5031-Einzeltest" else "GFDI-5007-Einzeltest"}\n" +
             "Ergebnis: $reason\n" +
@@ -964,7 +1384,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             }
             gatt = null
             callback?.invoke(
-                if (legacy5007TestMode) legacy5007Report(message)
+                if (legacyHistoryDownloadMode) legacyHistoryDownloadReport(message)
+                else if (legacy5007TestMode) legacy5007Report(message)
                 else if (historyDiagnosticMode) historyReport(message)
                 else message
             )
@@ -976,6 +1397,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             historyDiagnosticMode = false
             legacy5007TestMode = false
             legacy5031TestMode = false
+            legacyHistoryDownloadMode = false
             bootstrapAckMode = false
             configurationTestMode = false
             rawCaptureMode = false
@@ -997,6 +1419,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         continuousRecordingMode = false
         historyDiagnosticMode = false
         legacy5007TestMode = false
+        legacy5031TestMode = false
+        legacyHistoryDownloadMode = false
         bootstrapAckMode = false
         configurationTestMode = false
         rawCaptureMode = false
