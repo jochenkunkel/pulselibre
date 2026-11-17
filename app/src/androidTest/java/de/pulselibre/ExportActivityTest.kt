@@ -9,6 +9,7 @@ import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.time.LocalDate
+import java.time.LocalTime
 import java.time.ZoneId
 
 @RunWith(AndroidJUnit4::class)
@@ -45,4 +46,42 @@ class ExportActivityTest {
             }
         }
     }
+
+    @Test fun exportRangeAndPendingFileWindowSurviveActivityRecreation() {
+        ActivityScenario.launch(ExportActivity::class.java).use { scenario ->
+            val from = LocalDate.of(2026, 2, 3)
+            val through = LocalDate.of(2026, 2, 9)
+            val fromTime = LocalTime.of(7, 15)
+            val throughTime = LocalTime.of(21, 45)
+            val pending = ExportWindow(1_770_100_000_000L, 1_770_200_000_000L)
+            scenario.onActivity { activity ->
+                setPrivateField(activity, "from", from)
+                setPrivateField(activity, "through", through)
+                setPrivateField(activity, "fromTime", fromTime)
+                setPrivateField(activity, "throughTime", throughTime)
+                setPrivateField(activity, "pendingWindow", pending)
+            }
+            scenario.recreate()
+            scenario.onActivity { activity ->
+                assertEquals(from, privateField(activity, "from"))
+                assertEquals(through, privateField(activity, "through"))
+                assertEquals(fromTime, privateField(activity, "fromTime"))
+                assertEquals(throughTime, privateField(activity, "throughTime"))
+                assertEquals(pending, privateField(activity, "pendingWindow"))
+            }
+        }
+    }
+
+    private fun setPrivateField(target: Any, name: String, value: Any?) {
+        target.javaClass.getDeclaredField(name).apply {
+            isAccessible = true
+            set(target, value)
+        }
+    }
+
+    private fun privateField(target: Any, name: String): Any? =
+        target.javaClass.getDeclaredField(name).let {
+            it.isAccessible = true
+            it.get(target)
+        }
 }
