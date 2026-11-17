@@ -37,6 +37,10 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private var legacy5007WriteClaimed = false
     private var legacy5007RequestSent = false
     private var legacy5007Response = CirqaLegacy5007ResponseObserver()
+    private var legacy5031TestMode = false
+    private var legacy5031WriteClaimed = false
+    private var legacy5031RequestSent = false
+    private var legacy5031Response = CirqaLegacy5031ResponseObserver()
     private var rawCaptureMode = false
     private var bootstrapAckMode = false
     private var configurationTestMode = false
@@ -128,6 +132,26 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         start(false, result)
         if (!active) {
             legacy5007TestMode = false
+            bootstrapAckMode = false
+            configurationTestMode = false
+            historyDiagnosticMode = false
+        }
+    }
+
+    /** One-shot bootstrap, one 5007 prerequisite, then one empty 5031 and stop. */
+    fun startLegacy5031AfterBootstrapTest(result: (String) -> Unit) {
+        if (active) { result("ML-Test läuft bereits."); return }
+        legacy5007TestMode = true
+        legacy5031TestMode = true
+        bootstrapAckMode = true
+        configurationTestMode = true
+        historyDiagnosticMode = true
+        realtimeMode = false
+        continuousRecordingMode = false
+        start(false, result)
+        if (!active) {
+            legacy5007TestMode = false
+            legacy5031TestMode = false
             bootstrapAckMode = false
             configurationTestMode = false
             historyDiagnosticMode = false
@@ -260,6 +284,9 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         legacy5007WriteClaimed = false
         legacy5007RequestSent = false
         legacy5007Response = CirqaLegacy5007ResponseObserver()
+        legacy5031WriteClaimed = false
+        legacy5031RequestSent = false
+        legacy5031Response = CirqaLegacy5031ResponseObserver()
         bootstrapAckSent = false
         configurationResponseQueued = false
         configurationAckReceived = false
@@ -481,6 +508,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         }
         mark(
             when {
+                legacy5031TestMode && legacy5031WriteClaimed -> "Sende genau eine GFDI-5031-Anfrage"
                 legacy5007TestMode && legacy5007WriteClaimed -> "Sende genau eine GFDI-5007-Anfrage"
                 session?.stage == GarminMlHandshake.Stage.WAIT_CLOSE -> "Sende CLOSE_ALL"
                 pendingService > 0 -> "Registriere Garmin-Service $pendingService"
@@ -514,6 +542,11 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     main.removeCallbacks(legacy5007Timeout)
                     main.postDelayed(legacy5007Timeout, 5_000L)
                 }
+                if (legacy5031TestMode && legacy5031WriteClaimed) {
+                    legacy5031RequestSent = true
+                    main.removeCallbacks(legacy5007Timeout)
+                    main.postDelayed(legacy5007Timeout, 5_000L)
+                }
             }
         } catch (_: SecurityException) { finish("Bluetooth-Berechtigung beim Schreiben fehlt.", g) }
     }
@@ -538,10 +571,36 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                 if (first != null && first == historyHandle) {
                     historyRouted++
                     if (legacy5007TestMode && legacy5007WriteClaimed) {
+                        if (legacy5031TestMode && legacy5031RequestSent) {
+                            when (legacy5031Response.observeMlPayload(bytes.copyOfRange(1, bytes.size))) {
+                                CirqaLegacy5031ResponseObserver.Result.PENDING -> Unit
+                                CirqaLegacy5031ResponseObserver.Result.SUPPORTED ->
+                                    finish("5031-Antwort CRC-validiert; Status 0; Dateitypen=${legacy5031Response.fileTypes?.size ?: 0}. Stopp vor 5002.", g)
+                                CirqaLegacy5031ResponseObserver.Result.NOT_SUPPORTED ->
+                                    finish("5031-Antwort CRC-validiert; negativer Status ${legacy5031Response.responseStatus}. Stopp vor 5002.", g)
+                                CirqaLegacy5031ResponseObserver.Result.UNEXPECTED ->
+                                    finish("5031-Test abgebrochen: unerwarteter GFDI-Antworttyp oder mehrere Frames. Stopp vor 5002.", g)
+                                CirqaLegacy5031ResponseObserver.Result.MALFORMED ->
+                                    finish("5031-Test abgebrochen: Antwort-COBS/GFDI/CRC/Dateitypen ungültig. Stopp vor 5002.", g)
+                            }
+                            return
+                        }
                         when (legacy5007Response.observeMlPayload(bytes.copyOfRange(1, bytes.size))) {
                             CirqaLegacy5007ResponseObserver.Result.PENDING -> Unit
-                            CirqaLegacy5007ResponseObserver.Result.SUPPORTED ->
-                                finish("5007-Antwort strukturell passend; Status 0 (Connect-Vertrag: unterstützt, CIRQA-Kompatibilität beobachtet).", g)
+                            CirqaLegacy5007ResponseObserver.Result.SUPPORTED -> {
+                                if (legacy5031TestMode) {
+                                    val handle = historyHandle
+                                    if (handle == null || legacy5031WriteClaimed || mlWritePending) {
+                                        finish("5007 bestätigt, aber 5031 nicht gesendet: Handle fehlt oder Schreibpfad belegt. Stopp vor 5002.", g)
+                                    } else {
+                                        legacy5031WriteClaimed = true
+                                        mark("5007 Status 0 bestätigt; sende genau einen leeren 5031-Request")
+                                        send(g, CirqaLegacy5031RequestCandidate.mlGattValueCandidate(handle))
+                                    }
+                                } else {
+                                    finish("5007-Antwort strukturell passend; Status 0 (Connect-Vertrag: unterstützt, CIRQA-Kompatibilität beobachtet).", g)
+                                }
+                            }
                             CirqaLegacy5007ResponseObserver.Result.NOT_SUPPORTED ->
                                 finish("5007-Antwort strukturell passend; negativer Status ${legacy5007Response.responseStatus}.", g)
                             CirqaLegacy5007ResponseObserver.Result.UNEXPECTED ->
@@ -805,10 +864,11 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     }
 
     private fun legacy5007Report(reason: String): String =
-        "PulsLibre · CIRQA GFDI-5007-Einzeltest\n" +
+        "PulsLibre · CIRQA ${if (legacy5031TestMode) "GFDI-5031-Einzeltest" else "GFDI-5007-Einzeltest"}\n" +
             "Ergebnis: $reason\n" +
             (if (bootstrapAckMode) "Vorbedingung: 5024-ACK gesendet=${bootstrapAckSent}; GATT bestätigt=$bootstrapAckConfirmed; 5050-Hostantwort bestätigt=$configurationResponseConfirmed; 5000-ACK für 5050 empfangen=$configurationAckReceived.\n" else "") +
             "5007-Request gesendet: $legacy5007RequestSent (höchstens ein Versuch)\n" +
+            (if (legacy5031TestMode) "5031-Request gesendet: $legacy5031RequestSent (höchstens ein leerer Request); Status=${legacy5031Response.responseStatus ?: "unbekannt"}; erkannte Dateitypen=${legacy5031Response.fileTypes?.joinToString { "${it.type}/${it.subtype}:${it.name}" }?.take(512) ?: "keine"}; 5002=NICHT GESENDET.\n" else "") +
             "Connect-Kandidat: Typ 5007, Body 03, GFDI/CRC/COBS offline geprüft.\n" +
             "GFDI-Handle: ${historyHandle ?: "unbekannt"}; RX=$selectedRxUuid; TX=$selectedTxUuid; " +
             "TX-Properties=$selectedTxProperties.\n" +
@@ -915,6 +975,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             continuousRecordingMode = false
             historyDiagnosticMode = false
             legacy5007TestMode = false
+            legacy5031TestMode = false
             bootstrapAckMode = false
             configurationTestMode = false
             rawCaptureMode = false
