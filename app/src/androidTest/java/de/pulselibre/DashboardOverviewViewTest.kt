@@ -84,8 +84,8 @@ class DashboardOverviewViewTest {
                 assertTrue(indicator.isClickable)
                 assertTrue(indicator.isFocusable)
                 val params = indicator.layoutParams as android.widget.FrameLayout.LayoutParams
-                assertEquals((20 * view.resources.displayMetrics.density + 0.5f).toInt(), params.width)
-                assertEquals((20 * view.resources.displayMetrics.density + 0.5f).toInt(), params.height)
+                assertEquals((24 * view.resources.displayMetrics.density + 0.5f).toInt(), params.width)
+                assertEquals((24 * view.resources.displayMetrics.density + 0.5f).toInt(), params.height)
                 assertEquals(android.view.Gravity.END,
                     params.gravity and android.view.Gravity.RELATIVE_HORIZONTAL_GRAVITY_MASK)
                 assertEquals(android.view.Gravity.TOP,
