@@ -4,7 +4,6 @@ import android.content.Context
 import org.json.JSONObject
 import java.time.Instant
 import java.time.ZoneId
-import java.time.format.DateTimeFormatter
 
 /**
  * Read-only view of the canonical CIRQA SQLite database. Never modifies the running
@@ -42,15 +41,14 @@ class CirqaDashboardReader(private val context: Context) {
             }
             if (latest[service]?.first?.isBefore(time) != false) latest[service] = time to item
         }
-        val fmt = DateTimeFormatter.ofPattern("dd.MM. HH:mm").withZone(ZoneId.systemDefault())
         fun metric(service: Int, title: String, key: String, unit: String, valid: (Long) -> Boolean): DashboardMetric {
             val pair = latest[service]
             val value = pair?.second?.takeIf { it.has(key) && !it.isNull(key) }?.optLong(key, Long.MIN_VALUE)
             val good = value?.takeIf(valid)
+            val receivedAt = pair?.takeIf { it.second.has(key) && !it.second.isNull(key) }?.first
             return DashboardMetric(title, good?.let { "$it $unit".trim() } ?: "Keine Messdaten",
-                if (good == null) "Nicht gemessen oder ungültig" else
-                    "Empfangen: ${fmt.format(pair.first)} · ${if (now.epochSecond - pair.first.epochSecond > 900) "älter als 15 min" else "aktuell empfangen"}",
-                pair?.first)
+                if (good == null) "Nicht gemessen oder ungültig" else "Quelle: CIRQA-Service $service",
+                receivedAt)
         }
         val result = listOf(
             metric(6, "Herzfrequenz", "bpm", "bpm") { it in 1..240 },

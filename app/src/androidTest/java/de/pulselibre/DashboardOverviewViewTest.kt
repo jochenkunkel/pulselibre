@@ -33,8 +33,13 @@ class DashboardOverviewViewTest {
             assertEquals("dashboard_metric_Sauerstoffsättigung · SpO₂", cards[1].tag)
             assertEquals("dashboard_metric_Schlaf", cards[2].tag)
             assertEquals(LinearLayout.HORIZONTAL, (cards[0].parent as LinearLayout).orientation)
-            assertTrue(cards[0].findViewWithTag<View>("reception_indicator_Herzfrequenz").minimumWidth >=
-                (48 * view.resources.displayMetrics.density).toInt())
+            cards.forEach { card ->
+                val indicator = descendants(card).single { it.tag?.toString()?.startsWith("reception_indicator_") == true }
+                assertTrue(indicator.isClickable)
+                assertTrue(indicator.isFocusable)
+                assertTrue(indicator.minimumWidth >= (48 * view.resources.displayMetrics.density).toInt())
+                assertTrue(indicator.contentDescription.contains("Antippen"))
+            }
         }
     }
 

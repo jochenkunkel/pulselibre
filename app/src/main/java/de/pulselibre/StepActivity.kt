@@ -43,7 +43,8 @@ data class StepActivityEstimate(
 /**
  * PULSELIBRE EXPERIMENTAL HEURISTIC — NOT CLINICALLY VALIDATED (version 1).
  * Computes (last cumulative count − first count) × 60,000 / elapsed milliseconds over
- * the newest contiguous, local-calendar-day segment inside a five-minute window. Conflicting
+ * the newest contiguous, local-calendar-day segment inside the configured window (five minutes
+ * by default). Conflicting
  * timestamps, counter decreases (resets), stale latest samples, gaps, future records, invalid
  * UInt32 counters, and spans shorter than 30 seconds fail closed to UNKNOWN. The configurable
  * 10/100 steps/min cutoffs are user display preferences, not thresholds endorsed by research.

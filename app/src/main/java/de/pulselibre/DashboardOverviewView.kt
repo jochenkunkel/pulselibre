@@ -26,7 +26,12 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
     private val violet = palette.accent
     private var lastPulse: HeartRateGaugeModel? = null
 
-    init { orientation = VERTICAL }
+    init {
+        orientation = VERTICAL
+        // Drop a legacy manual mode left by older app versions; mode is now step-derived.
+        context.getSharedPreferences("dashboard_display", Context.MODE_PRIVATE).edit()
+            .remove("pulse_context").apply()
+    }
 
     fun render(metrics: List<DashboardMetric>, activity: StepActivityEstimate = StepActivityEstimate.UNKNOWN) {
         removeAllViews()
@@ -167,6 +172,7 @@ private class ReceptionIndicatorView(context: Context, private val metric: Dashb
 
     private fun showDetails() {
         val now = Instant.now()
+        val currentState = ReceptionFreshness.of(metric.receivedAt, now)
         val timestamp = metric.receivedAt
         val received = timestamp?.let {
             val local = DateTimeFormatter.ofPattern("dd.MM.yyyy, HH:mm:ss z")
@@ -181,7 +187,7 @@ private class ReceptionIndicatorView(context: Context, private val metric: Dashb
         } ?: "Für diesen Wert liegt kein Empfangszeitpunkt vor."
         AlertDialog.Builder(context)
             .setTitle("Empfang · ${metric.title}")
-            .setMessage("Wert: ${metric.value}\n$received\nStatus: ${state.label()}\n\n" +
+            .setMessage("Wert: ${metric.value}\n$received\nStatus: ${currentState.label()}\n\n" +
                 "Die Farbe zeigt nur das Alter des letzten Empfangs: Grün ≤ 3 min, Gelb ≤ 15 min, " +
                 "Orange ≤ 60 min, Rot > 60 min; Grau = kein Zeitstempel. Sie bewertet weder Messqualität noch Gesundheit.\n\n" +
                 "${metric.note}\n\nDer Zeitstempel stammt vom Empfang auf dem Telefon; ein Sensor-Messzeitpunkt ist nicht belegt.")
