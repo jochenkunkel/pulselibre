@@ -45,9 +45,15 @@ class GarminFileListProbe {
         private set
     var otherMessages = 0
         private set
+    var validSynchronizationShapes = 0
+        private set
+    var malformedSynchronizationShapes = 0
+        private set
+    val synchronizationMaskBitCounts = linkedMapOf<Int, Int>()
+
 
     fun summary(): String = "GFDI-Frames: $frames; FileListResponse: $validLists; " +
-        "Dateieinträge: $fileEntries; Typen: $frameTypes; GFDI-5000-Status: $responseStatuses; Antwortfehler: $responseErrors; andere Nachrichten: $otherMessages; ungültige Frames: $rejectedFrames; ${bootstrap.summary()}; ${bootstrapDiagnosis.summary()}; ${postBootstrap.summary()}; ${handshake.summary()}; ${structure5050.summary()}; ${chunks.summary()}; ${protobuf.summary()}"
+        "Dateieinträge: $fileEntries; Typen: $frameTypes; 5037-Strukturen gültig=$validSynchronizationShapes/ungültig=$malformedSynchronizationShapes; 5037-Maskenbitanzahl=$synchronizationMaskBitCounts; GFDI-5000-Status: $responseStatuses; Antwortfehler: $responseErrors; andere Nachrichten: $otherMessages; ungültige Frames: $rejectedFrames; ${bootstrap.summary()}; ${bootstrapDiagnosis.summary()}; ${postBootstrap.summary()}; ${handshake.summary()}; ${structure5050.summary()}; ${chunks.summary()}; ${protobuf.summary()}"
 
     fun observeMlPayload(payload: ByteArray) {
         for (byte in payload) {
@@ -97,6 +103,21 @@ class GarminFileListProbe {
         val effectiveType = if (compact) 5000 + (type and 255) else type
         val label = "gfdi-$effectiveType"
         frameTypes[label] = (frameTypes[label] ?: 0) + 1
+        // Passive inspection only. GFDI envelope CRC was checked above.
+        // Never acknowledge 5037 or initiate FileSync from this observer.
+        if (effectiveType == 5037) {
+            val shape = Cirqa5037OfflineSynchronization.inspect(
+                frame.copyOfRange(4, frame.size - 2)
+            )
+            if (shape == null) {
+                malformedSynchronizationShapes++
+            } else {
+                validSynchronizationShapes++
+                val bitCount = shape.setFileTypeBits.size
+                synchronizationMaskBitCounts[bitCount] =
+                    (synchronizationMaskBitCounts[bitCount] ?: 0) + 1
+            }
+        }
         if (effectiveType == 5000 && frame.size >= 9) {
             val original = u16(frame, 4)
             val status = frame[6].toInt() and 255
