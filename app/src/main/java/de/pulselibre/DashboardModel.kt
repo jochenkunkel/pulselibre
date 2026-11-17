@@ -8,7 +8,13 @@ data class HealthSnapshot(
     val sleepMinutes: Int? = null
 )
 
-data class DashboardMetric(val title: String, val value: String, val note: String)
+data class DashboardMetric(
+    val title: String,
+    val value: String,
+    val note: String,
+    /** Phone reception time; this is not a proven sensor measurement timestamp. */
+    val receivedAt: java.time.Instant? = null
+)
 
 fun dashboardMetrics(snapshot: HealthSnapshot): List<DashboardMetric> = listOf(
     DashboardMetric("Herzfrequenz", snapshot.pulseBpm?.takeIf { it in 20..250 }?.let { "$it bpm" } ?: "Keine Messdaten", "Nur echte Messwerte"),

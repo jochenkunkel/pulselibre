@@ -20,9 +20,12 @@ class HeartRateGaugeModelTest {
         assertEquals("Oberhalb der Anzeigeskala", reading("210 bpm").scaleNote)
         assertEquals("Unterhalb der Anzeigeskala", reading("35 bpm").scaleNote)
     }
-    @Test fun noInferredActivityWhenSelectionIsAbsentOrUnknown() {
-        assertEquals(PulseContext.UNKNOWN, PulseContext.from(null))
-        assertEquals(PulseContext.UNKNOWN, PulseContext.from("auto"))
-        assertEquals(PulseContext.SPORT, PulseContext.from("SPORT"))
+    @Test fun gaugeContextComesFromStepEstimateAndDefaultsToUnknown() {
+        assertEquals(PulseContext.UNKNOWN, StepActivityEstimate.UNKNOWN.context)
+        assertEquals(PulseContext.SPORT, PulseActivityFixture.sport.context)
     }
+}
+
+private object PulseActivityFixture {
+    val sport = StepActivityEstimate(PulseContext.SPORT, 101.0, 3, 180, "Schrittbasierte Einordnung")
 }

@@ -1,11 +1,8 @@
 package de.pulselibre
 
-/** Manually selected context, not an inferred activity or a clinical category. */
+/** Step-derived display context; this is an experimental activity proxy, not a clinical category. */
 enum class PulseContext(val label: String) {
     UNKNOWN("Modus unbekannt"), REST("Ruhe"), MOVEMENT("Leichte Bewegung"), SPORT("Sport");
-    companion object {
-        fun from(value: String?): PulseContext = entries.firstOrNull { it.name == value } ?: UNKNOWN
-    }
 }
 
 /** Fixed display scale only. Endpoints are not medical thresholds or a maximum heart rate. */

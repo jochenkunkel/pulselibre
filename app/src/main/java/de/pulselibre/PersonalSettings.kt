@@ -73,6 +73,21 @@ object PersonalSettings {
             contentDescription = "App-Design auswählen"
             layout.addView(this)
         }
+        heading("Automatische Aktivität aus Schritten")
+        val activitySettings = ActivityDetectionPreference.read(context)
+        layout.addView(TextView(context).apply {
+            text = "Aus kumulativen CIRQA-Schrittständen der letzten Minuten. Der Modus ist eine grobe Anzeige-Heuristik: Schritte belegen weder Sitzen noch eine bestimmte Sportart. Bei zu wenigen oder veralteten Werten bleibt er unbekannt."
+            textSize = 12f
+        })
+        val restSteps = field("Ruhe unter Schritte/min", "activity_rest_below", true).apply {
+            setText(activitySettings.restBelowStepsPerMinute.toString())
+        }
+        val sportSteps = field("Sport über Schritte/min", "activity_sport_above", true).apply {
+            setText(activitySettings.sportAboveStepsPerMinute.toString())
+        }
+        val activityWindow = field("Auswertefenster in Minuten", "activity_window_minutes", true).apply {
+            setText(activitySettings.windowMinutes.toString())
+        }
         heading("Persönliches Profil")
         val name = field("Anzeigename (optional)", "display_name")
         val genderOptions = listOf("Keine Angabe", "Männlich", "Weiblich", "Divers / andere")
@@ -121,10 +136,19 @@ object PersonalSettings {
                 if (!intValue(height, 50, 250) || !decimalValue(weight, 15.0, 400.0) ||
                     !intValue(age, 1, 120) || !intValue(birthYear, 1900, 2100) ||
                     !intValue(stepGoal, 100, 100000) || !decimalValue(sleepGoal, 1.0, 16.0) ||
-                    !intValue(resting, 25, 220)) {
+                    !intValue(resting, 25, 220) ||
+                    restSteps.text.toString().toIntOrNull()?.let { it !in 0..99 } != false ||
+                    sportSteps.text.toString().toIntOrNull()?.let { it !in 1..300 } != false ||
+                    activityWindow.text.toString().toIntOrNull()?.let { it !in 2..15 } != false ||
+                    (restSteps.text.toString().toIntOrNull() ?: 100) >= (sportSteps.text.toString().toIntOrNull() ?: 0)) {
                     Toast.makeText(context, "Bitte die Zahlen prüfen (Größe, Gewicht, Alter, Ziele).", Toast.LENGTH_LONG).show()
                     return@setOnClickListener
                 }
+                ActivityDetectionPreference.save(context, ActivityDetectionSettings(
+                    restBelowStepsPerMinute = restSteps.text.toString().toInt(),
+                    sportAboveStepsPerMinute = sportSteps.text.toString().toInt(),
+                    windowMinutes = activityWindow.text.toString().toInt()
+                ))
                 val edit = p.edit()
                 fun save(key: String, value: String) { edit.putString(key, value) }
                 save("display_name", name.text.toString().trim().take(60))

@@ -44,12 +44,13 @@ class AppearanceAndGaugeTest {
         }
     }
 
-    @Test fun gaugesRenderInBothPalettesAndManualModeDoesNotInventReadings() {
+    @Test fun compactGaugeShowsAutomaticStepContextAndRendersContinuousGradientInBothPalettes() {
         val app = ApplicationProvider.getApplicationContext<Context>()
         val prefs = app.getSharedPreferences("dashboard_display", Context.MODE_PRIVATE)
         val original = prefs.getString("pulse_context", null)
         try {
-            prefs.edit().remove("pulse_context").commit()
+            // A previously stored manual mode is deliberately ignored by the automatic model.
+            prefs.edit().putString("pulse_context", "SPORT").commit()
             InstrumentationRegistry.getInstrumentation().runOnMainSync {
                 for (night in listOf(Configuration.UI_MODE_NIGHT_NO, Configuration.UI_MODE_NIGHT_YES)) {
                     val config = Configuration(app.resources.configuration).apply {
@@ -58,17 +59,17 @@ class AppearanceAndGaugeTest {
                     val context = app.createConfigurationContext(config)
                     val view = DashboardOverviewView(context)
                     view.render(emptyList())
-                    val gauge = descendants(view).filterIsInstance<HeartRateGaugeView>().single()
+                    var gauge = descendants(view).filterIsInstance<HeartRateGaugeView>().single()
                     assertTrue(gauge.contentDescription.contains("Keine Messdaten"))
                     assertTrue(gauge.contentDescription.contains("Modus unbekannt"))
-                    descendants(view).filterIsInstance<TextView>().single { it.tag == PulseContext.SPORT }.performClick()
+                    view.render(listOf(DashboardMetric("Herzfrequenz", "110 bpm", "Empfangen")),
+                        StepActivityEstimate(PulseContext.SPORT, 101.0, 3, 180, "Schrittbasiert · heuristisch"))
+                    gauge = descendants(view).filterIsInstance<HeartRateGaugeView>().single()
                     assertTrue(gauge.contentDescription.contains("Sport"))
-                    assertTrue(gauge.contentDescription.contains("manuell"))
-                    assertTrue(gauge.contentDescription.contains("Keine Messdaten"))
-                    descendants(view).filterIsInstance<TextView>().single { it.tag == PulseContext.SPORT }.performClick()
-                    assertTrue(gauge.contentDescription.contains("Modus unbekannt"))
+                    assertTrue(gauge.contentDescription.contains("Schrittzähler abgeleitet"))
+                    assertTrue(gauge.contentDescription.contains("110 bpm"))
                     gauge.measure(View.MeasureSpec.makeMeasureSpec(900, View.MeasureSpec.EXACTLY),
-                        View.MeasureSpec.makeMeasureSpec(900, View.MeasureSpec.AT_MOST))
+                        View.MeasureSpec.makeMeasureSpec(1100, View.MeasureSpec.AT_MOST))
                     gauge.layout(0, 0, gauge.measuredWidth, gauge.measuredHeight)
                     val bitmap = Bitmap.createBitmap(gauge.width, gauge.height, Bitmap.Config.ARGB_8888)
                     gauge.draw(Canvas(bitmap))
@@ -77,7 +78,12 @@ class AppearanceAndGaugeTest {
                     val palette = AppPalette.of(context)
                     assertTrue(pixels.contains(palette.ink))
                     assertTrue(pixels.contains(palette.muted))
-                    assertTrue(pixels.contains(palette.track))
+                    assertTrue(pixels.any { android.graphics.Color.green(it) > android.graphics.Color.red(it) * 1.2f &&
+                        android.graphics.Color.green(it) > android.graphics.Color.blue(it) * 1.2f })
+                    assertTrue(pixels.any { android.graphics.Color.red(it) > android.graphics.Color.green(it) * 1.35f &&
+                        android.graphics.Color.green(it) > android.graphics.Color.blue(it) * 1.1f })
+                    // The needle has an uninterrupted dark stroke above the lower text readout.
+                    assertEquals(palette.ink, bitmap.getPixel(450, (900 * 0.72f).toInt()))
                     bitmap.recycle()
                 }
             }
