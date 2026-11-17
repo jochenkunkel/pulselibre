@@ -349,8 +349,8 @@ class ExportActivity : AppCompatActivity() {
 
     /** Stop the explicit background recorder before a destructive database operation. */
     private fun stopRecorderThen(onCancel: () -> Unit = {}, action: () -> Unit) {
-        val prefs = getSharedPreferences(CirqaOvernightService.PREFS, MODE_PRIVATE)
-        if (!prefs.getBoolean(CirqaOvernightService.KEY_RUNNING, false)) {
+        val prefs = getSharedPreferences(CirqaContinuousRecordingService.PREFS, MODE_PRIVATE)
+        if (!prefs.getBoolean(CirqaContinuousRecordingService.KEY_RUNNING, false)) {
             action()
             return
         }
@@ -360,8 +360,8 @@ class ExportActivity : AppCompatActivity() {
             .setNegativeButton("Abbrechen") { _, _ -> onCancel() }
             .setPositiveButton("Beenden und fortfahren") { _, _ ->
                 try {
-                    startService(Intent(this, CirqaOvernightService::class.java)
-                        .setAction(CirqaOvernightService.ACTION_STOP))
+                    startService(Intent(this, CirqaContinuousRecordingService::class.java)
+                        .setAction(CirqaContinuousRecordingService.ACTION_STOP))
                 } catch (_: Exception) {
                     databaseFeedback.text = "Aufzeichnung konnte nicht beendet werden; Datenbank blieb unverändert."
                     onCancel()
@@ -370,7 +370,7 @@ class ExportActivity : AppCompatActivity() {
                 val deadline = SystemClock.elapsedRealtime() + 10_000L
                 val wait = object : Runnable {
                     override fun run() {
-                        if (!prefs.getBoolean(CirqaOvernightService.KEY_RUNNING, false)) action()
+                        if (!prefs.getBoolean(CirqaContinuousRecordingService.KEY_RUNNING, false)) action()
                         else if (SystemClock.elapsedRealtime() >= deadline) {
                             databaseFeedback.text = "Aufzeichnung läuft noch; Datenbank blieb unverändert."
                             onCancel()
