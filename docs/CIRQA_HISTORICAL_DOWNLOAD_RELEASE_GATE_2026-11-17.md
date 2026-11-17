@@ -50,3 +50,7 @@ Der erfolgreiche signierte Basisbuild `23c2cfd9` ist unter GitHub Actions Run `4
 5. Erst bei CIRQA-spezifischer Evidenz einen **separaten Sicherheitsreview** für einen einzelnen begrenzten, rein lesenden Gerätetest vorlegen und ausdrückliche Benutzerfreigabe einholen.
 
 **Verboten:** neue aktive BLE-Kommandos; erneutes `0x8A39`; Archivieren, Löschen, Schreiben, Ändern von Geräteflags; Download-UI oder als Historien-Download beworbene Test-APK vor belegtem sicherem CIRQA-Pfad. **Freigabe bleibt NO-GO.**
+
+### Übergabestatus: lokaler Offline-Testlauf (2026-11-17)
+
+Vom Entwickler gemeldet: `./gradlew :app:testDebugUnitTest` bzw. Gradle-Task `:app:testDebugUnitTest` **BUILD SUCCESSFUL (24 Tasks)** auf dem separaten lokalen Arbeitsbranch/Worktree. **Nicht unabhängig in GitHub CI verifiziert.** Die Änderungen sind weiterhin **uncommitted und unpushed**; `origin/main` ist seit Beginn der lokalen Arbeit weitergelaufen. Vor Integration: `git fetch origin`, aktuellen `origin/main` und lokale Änderungen einschließlich untracked Dateien prüfen, Änderungen sichern (nicht verwerfen), konfliktfrei auf aktuellen Stand übertragen, Tests erneut ausführen, dann erst committen/pushen. Keine pauschalen Reset-/Clean-Befehle, die ungesicherte Arbeit zerstören. Aktiver CIRQA-FileSync weiterhin **NO-GO**.
