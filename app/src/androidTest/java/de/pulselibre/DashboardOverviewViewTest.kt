@@ -22,19 +22,27 @@ class DashboardOverviewViewTest {
         })
     }
 
-    @Test fun spo2LungFillsFromActualPercentAndOnlyUsesRequestedGreenAtNinetyOrAbove() {
+    @Test fun spo2LungUsesConfiguredBandsAndShowsNoSignalQualityClaim() {
         InstrumentationRegistry.getInstrumentation().runOnMainSync {
-            val base = AppPalette.of(context(1f, 400))
-            val atNinety = SpO2LungView(context(1f, 400), 90, base.indicator, base.muted, base.track)
-            val belowNinety = SpO2LungView(context(1f, 400), 89, base.indicator, base.muted, base.track)
-            val missing = SpO2LungView(context(1f, 400), null, base.indicator, base.muted, base.track)
-            assertEquals(0.9f, atNinety.fillFraction!!, 0.001f)
-            assertEquals(base.indicator, atNinety.fillColor)
-            assertEquals(0.89f, belowNinety.fillFraction!!, 0.001f)
-            assertEquals(base.muted, belowNinety.fillColor)
+            val ctx = context(1f, 400)
+            val base = AppPalette.of(ctx)
+            val settings = SpO2DisplaySettings(95, 93)
+            val green = SpO2LungView(ctx, 95, settings.colorFor(95, base), base.track)
+            val greenTop = SpO2LungView(ctx, 100, settings.colorFor(100, base), base.track)
+            val orangeLow = SpO2LungView(ctx, 93, settings.colorFor(93, base), base.track)
+            val orangeHigh = SpO2LungView(ctx, 94, settings.colorFor(94, base), base.track)
+            val red = SpO2LungView(ctx, 92, settings.colorFor(92, base), base.track)
+            val missing = SpO2LungView(ctx, null, settings.colorFor(null, base), base.track)
+            assertEquals(0.95f, green.fillFraction!!, 0.001f)
+            assertEquals(base.indicator, green.fillColor)
+            assertEquals(base.indicator, greenTop.fillColor)
+            assertEquals(base.oxygen, orangeLow.fillColor)
+            assertEquals(base.oxygen, orangeHigh.fillColor)
+            assertEquals(android.graphics.Color.rgb(205, 57, 65), red.fillColor)
             assertNull(missing.fillFraction)
             assertEquals(base.muted, missing.fillColor)
             assertTrue(missing.contentDescription.contains("keine Messdaten"))
+            assertTrue(green.contentDescription.contains("keine Signalqualitätsanzeige"))
         }
     }
 
