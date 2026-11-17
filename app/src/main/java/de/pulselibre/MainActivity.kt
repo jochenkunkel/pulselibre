@@ -154,7 +154,7 @@ class MainActivity : AppCompatActivity() {
             orientation = LinearLayout.HORIZONTAL
             gravity = android.view.Gravity.CENTER_VERTICAL
         }
-        headerRow.addView(text("PulseLibre", 28f, Color.WHITE, true), LinearLayout.LayoutParams(0, -2, 1f))
+        headerRow.addView(text("PulsLibre", 28f, Color.WHITE, true), LinearLayout.LayoutParams(0, -2, 1f))
         // Personal Easter egg: the dedicated humerus SVG-matched vector replaces the gear.
         // Keep a 48dp touch target and an explicit accessibility label.
         val avatarButton = android.widget.ImageView(this).apply {
