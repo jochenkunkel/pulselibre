@@ -229,18 +229,39 @@ private class HistoryScatterChartView(
             paint.style = Paint.Style.STROKE
             paint.color = palette.track
         }
-        paint.style = Paint.Style.FILL
-        paint.textSize = 10f * density
-        paint.color = palette.muted
         val zone = ZoneId.systemDefault()
-        canvas.drawText(timeFormatter.format(start.atZone(zone)), plot.left, h - 7f * density, paint)
-        paint.textAlign = Paint.Align.CENTER
-        canvas.drawText(timeFormatter.format(start.plusMillis(java.time.Duration.between(start, end).toMillis() / 2).atZone(zone)),
-            plot.centerX(), h - 7f * density, paint)
-        paint.textAlign = Paint.Align.RIGHT
-        canvas.drawText(timeFormatter.format(end.atZone(zone)), plot.right, h - 7f * density, paint)
-
         val span = java.time.Duration.between(start, end).toMillis().coerceAtLeast(1L)
+        val bucketMillis = resolution.duration.toMillis()
+        val tickCount = ((span + bucketMillis - 1L) / bucketMillis).toInt().coerceAtLeast(1)
+        paint.style = Paint.Style.STROKE
+        for (index in 0..tickCount) {
+            val fraction = index.toFloat() / tickCount
+            val x = plot.left + fraction * plot.width()
+            val major = index % resolution.majorTickEvery == 0 || index == tickCount
+            if (index > 0) {
+                paint.color = palette.track
+                paint.alpha = if (major) 150 else 65
+                paint.strokeWidth = if (major) 1f * density else 0.7f * density
+                canvas.drawLine(x, plot.top, x, plot.bottom, paint)
+            }
+            paint.alpha = 255
+            paint.strokeWidth = 1f * density
+            canvas.drawLine(x, plot.bottom, x, plot.bottom + (if (major) 4f else 2.5f) * density, paint)
+            if (major) {
+                val time = start.plusMillis(span * index / tickCount).atZone(zone)
+                paint.style = Paint.Style.FILL
+                paint.textSize = 10f * density
+                paint.color = palette.muted
+                paint.textAlign = when (index) {
+                    0 -> Paint.Align.LEFT
+                    tickCount -> Paint.Align.RIGHT
+                    else -> Paint.Align.CENTER
+                }
+                canvas.drawText(timeFormatter.format(time), x, h - 7f * density, paint)
+                paint.style = Paint.Style.STROKE
+            }
+        }
+
         buckets.forEach { bucket ->
             val center = bucket.start.plusMillis(java.time.Duration.between(bucket.start, bucket.end).toMillis() / 2L)
             val xFraction = (java.time.Duration.between(start, center).toMillis().toDouble() / span)
@@ -250,11 +271,13 @@ private class HistoryScatterChartView(
             val medianY = plot.bottom - (bucket.median.toFloat() / axisMaximum).coerceIn(0f, 1f) * plot.height()
             val maxY = plot.bottom - (bucket.maximum.toFloat() / axisMaximum).coerceIn(0f, 1f) * plot.height()
             paint.color = accent
-            paint.strokeWidth = 1.5f * density
+            paint.style = Paint.Style.STROKE
+            paint.strokeWidth = 1.1f * density
             canvas.drawLine(x, maxY, x, minY, paint)
-            canvas.drawLine(x - 2f * density, maxY, x + 2f * density, maxY, paint)
-            canvas.drawLine(x - 2f * density, minY, x + 2f * density, minY, paint)
-            canvas.drawCircle(x, medianY, 2.5f * density, paint)
+            canvas.drawLine(x - 1.5f * density, maxY, x + 1.5f * density, maxY, paint)
+            canvas.drawLine(x - 1.5f * density, minY, x + 1.5f * density, minY, paint)
+            paint.style = Paint.Style.FILL
+            canvas.drawCircle(x, medianY, 2f * density, paint)
         }
     }
 }
