@@ -149,4 +149,5 @@ class DashboardOverviewViewTest {
             assertTrue(portrait.contentDescription.contains("bärtigen Mann"))
         }
     }
-\n}\n
+
+}
