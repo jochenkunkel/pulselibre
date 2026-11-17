@@ -2,38 +2,57 @@ package de.pulselibre
 
 import android.content.Context
 
-/** User-configurable visual bands; these are not a device signal-quality or clinical assessment. */
+/**
+ * PULSELIBRE EXPERIMENTAL HEURISTIC — NOT CLINICALLY VALIDATED for CIRQA wrist readings.
+ * Reference thresholds are an orientation preview behind the device-validation gate.
+ */
 internal data class SpO2DisplaySettings(
     val greenFrom: Int = 95,
-    val orangeFrom: Int = 93
+    val redBelow: Int = 90,
+    val colorBandsEnabled: Boolean = false
 ) {
     fun colorFor(percent: Int?, palette: AppPalette): Int {
-        if (percent == null || percent !in 1..100) return palette.muted
+        if (!isInRange(percent)) return missingColor(palette)
+        if (!colorBandsEnabled) return neutralColor(palette)
         return when {
-            percent >= greenFrom -> palette.indicator
-            percent >= orangeFrom -> palette.oxygen
+            percent!! >= greenFrom -> palette.indicator
+            percent >= redBelow -> palette.oxygen
             else -> android.graphics.Color.rgb(205, 57, 65)
         }
     }
 
+    fun bandLabel(): String =
+        "🟢 $greenFrom–100 %   🟠 $redBelow–${greenFrom - 1} %   🔴 < $redBelow %   ⚪ kein gültiger Wert"
+
     companion object {
         private const val STORE = "local_personal_profile"
         private const val GREEN_FROM_KEY = "spo2_display_green_from"
-        private const val ORANGE_FROM_KEY = "spo2_display_orange_from"
+        private const val RED_BELOW_KEY = "spo2_display_red_below"
+        private const val VALIDATION_GATE_KEY = "spo2_device_validation_recorded"
+
+        internal fun isInRange(percent: Int?): Boolean = percent != null && percent in 1..100
+        internal fun neutralColor(palette: AppPalette): Int = palette.ink
+        internal fun missingColor(palette: AppPalette): Int = palette.muted
 
         fun read(context: Context): SpO2DisplaySettings {
             val prefs = context.getSharedPreferences(STORE, Context.MODE_PRIVATE)
-            val green = prefs.getInt(GREEN_FROM_KEY, 95).coerceIn(1, 100)
-            val orange = prefs.getInt(ORANGE_FROM_KEY, 93).coerceIn(1, green)
-            return SpO2DisplaySettings(green, orange)
+            val green = prefs.getInt(GREEN_FROM_KEY, 95).coerceIn(2, 100)
+            val red = prefs.getInt(RED_BELOW_KEY, 90).coerceIn(1, green)
+            return SpO2DisplaySettings(green, red, prefs.getBoolean(VALIDATION_GATE_KEY, false))
+        }
+
+        /** Only a documented, device-specific validation decision may enable colors. */
+        fun recordDeviceValidation(context: Context, validated: Boolean) {
+            context.getSharedPreferences(STORE, Context.MODE_PRIVATE).edit()
+                .putBoolean(VALIDATION_GATE_KEY, validated).apply()
         }
 
         fun save(context: Context, settings: SpO2DisplaySettings) {
-            require(settings.greenFrom in 1..100)
-            require(settings.orangeFrom in 1 until settings.greenFrom)
+            require(settings.greenFrom in 2..100)
+            require(settings.redBelow in 1 until settings.greenFrom)
             context.getSharedPreferences(STORE, Context.MODE_PRIVATE).edit()
                 .putInt(GREEN_FROM_KEY, settings.greenFrom)
-                .putInt(ORANGE_FROM_KEY, settings.orangeFrom)
+                .putInt(RED_BELOW_KEY, settings.redBelow)
                 .apply()
         }
     }
