@@ -55,3 +55,22 @@ OpenCode untersuchte die vom Nutzer bereitgestellte Garmin Connect 5.31 (version
 - Ein 5030-Event ist im untersuchten Handler keine nachgewiesene Voraussetzung. Die nächste FileSync-Startnachricht bleibt unbekannt.
 
 Implementiert: `Cirqa5050BodyParser` und `CirqaConnect531HandshakeModel` mit JVM-Tests, offline-only. Der neue Zustandsautomat ist **nicht** mit dem BLE-Laufzeitpfad verdrahtet und darf nicht als aktiver CIRQA-Handshake ausgegeben werden. Der bisherige Diagnosepfad bleibt unverändert. Offene Aufgaben: reale 5024-Antwortstruktur vergleichen; 5050-HostConfiguration aus echten Geräteeigenschaften herleiten; Completion-Callback auf Android getrennt nachweisen; FileSync-Start im Connect-Code zurückverfolgen.
+
+
+## 5024-Parser: implementierte Offline-Charakterisierung
+
+`Cirqa5024DeviceInformationParser` verarbeitet die aus Connect 5.31 berichteten festen LE-Felder (`u16 protocolVersion`, `u16 productNumber`, `u32 unitId`, `u16 softwareVersion`, `u16 maxPacketSize`) sowie drei längenpräfixierte UTF-8-Strings. Zu kurze Felder und ungültiges UTF-8 werden abgelehnt; verbleibende gerätespezifische Bytes werden **nur gezählt**, nicht interpretiert. Der Parser erzeugt weder eine ACK-Antwort noch Bluetooth-Verkehr. Fünf JVM-Tests prüfen Endianness, sämtliche abgeschnittenen Präfixe, ungültige Stringlängen, optionale Tailbytes und UTF-8. Noch offen: produktabhängige optionale Felder und die exakte von Connect erzeugte 5024-Hostantwort. Der Offline-Parser ist noch nicht in den Android-BLE-Pfad integriert.
+
+
+## Passive 5024-Strukturevidenz im Android-Diagnosebericht
+
+`Cirqa5024StructureObserver` wurde in `GarminFileListProbe` integriert. Er prüft nur CRC-validierte GFDI-5024-Frames gegen den Offline-Parser und meldet Anzahl, Bodylängen, Parser-Treffer und optionale Restlängen. Unit-ID, Produktidentität und Zeichenketten werden nicht ausgegeben. Ein Parser-Fehlschlag ist **keine** Aussage über die Gültigkeit der CIRQA-Geräteinformation: Garmin Connect interpretiert optionale Felder produktabhängig, und die Zuordnung der protokollierten Bodybytes zum 5.31-Layout muss am Gerät bestätigt werden. Drei JVM-Tests decken Metadaten, CRC-Ablehnung und verkürzte Frames ab. Es wurde kein aktiver Sendepfad geändert.
+
+
+## Garmin Connect 5.31: rekonstruierte 5024-Hostantwort (Übergabe OpenCode)
+
+OpenCode hat offline folgenden Aufbau der **Erweiterung nach dem 5000-ACK-Präfix für 5024** nachvollzogen: `u16(protocol = featureFlag && deviceProtocol >= 150 ? 150 : 113)`, `u16(0xFFFF)`, `u32(0xFFFFFFFF)`, `u16(hostConfig.appVersion)`, `u16(0xFFFF)`, dann drei jeweils mit `u8`-Bytezahl präfixierte UTF-8-Felder (`hostConfig.friendlyName`, `Build.MANUFACTURER`, `Build.MODEL`), gefolgt von `u8(0x01)`. Zahlen sind little-endian. Die Bedeutung des letzten Bytes ist **unbekannt**. Dies belegt den Connect-Codepfad, nicht die Akzeptanz durch CIRQA.
+
+`CirqaConnect531Host5024Response` bildet diesen Aufbau **offline** mit explizit übergebenen Werten ab. Es erfindet keine App-Version, Geräteidentität, Android-Build-Werte oder Feature-Flags und wird nicht vom Bluetooth-Sender aufgerufen. Tests prüfen die Bytefolge, den 5000/5024-Frame inklusive CRC, die Protokollbedingung, UTF-8-Bytezahl und Feldgrenzen. Der bisherige minimale 5024-Kandidat bleibt als historischer Diagnoseversuch erhalten; er ist nicht mit der Connect-Hostantwort gleichzusetzen.
+
+Die von OpenCode genannte Detailanalyse `docs/GARMIN_CONNECT_531_FILESYNC_REVERSE_ENGINEERING.md` lag zum Zeitpunkt dieser Umsetzung nur lokal bei OpenCode und war **noch nicht ins Repository gepusht**. Die vorstehende Zusammenfassung basiert auf der ausdrücklich übergebenen Analyse, nicht auf einer unabhängig verifizierten APK.
