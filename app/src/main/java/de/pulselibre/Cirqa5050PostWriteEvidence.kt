@@ -14,9 +14,12 @@ class Cirqa5050PostWriteEvidence {
 
     fun observe(frameTypes: Map<String, Int>) {
         val before = baseline ?: return
+        // Counters are snapshots, not incremental events. Remove stale entries when a
+        // source resets or a type disappears, rather than reporting phantom frames.
+        counts.keys.retainAll(frameTypes.keys)
         for ((type, total) in frameTypes) {
             val delta = (total - (before[type] ?: 0)).coerceAtLeast(0)
-            if (delta > 0) counts[type] = delta
+            if (delta > 0) counts[type] = delta else counts.remove(type)
         }
     }
 
