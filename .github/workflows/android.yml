@@ -60,6 +60,8 @@ jobs:
             echo "PULSELIBRE_SIGNING_KEY_ALIAS=$SIGNING_KEY_ALIAS" >> "$GITHUB_ENV"
             echo "PULSELIBRE_SIGNING_KEY_PASSWORD=$SIGNING_KEY_PASSWORD" >> "$GITHUB_ENV"
           fi
+      - name: Python offline HCI validator regression tests
+        run: python3 -m unittest discover -s tools -p 'test_*.py' -v
       # Beta gate: compile and run the JVM unit suite; full lint/emulator remain available on demand.
       - name: Build and unit tests (every change)
         run: gradle :app:testDebugUnitTest :app:assembleDebug -PpulselibreVersionCode=${{ github.run_number }} --stacktrace
