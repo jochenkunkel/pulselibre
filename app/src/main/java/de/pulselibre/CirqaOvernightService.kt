@@ -18,7 +18,7 @@ import android.os.Looper
 
 /**
  * Explicitly user-started, foreground BLE sampling experiment.
- * Each connection is bounded by the existing 20-second probe and closes.
+ * An established GATT notification session stays open until stop/disconnect.
  * No historical FIT downloads yet; Android may still stop the service.
  */
 class CirqaOvernightService : Service() {
@@ -29,7 +29,6 @@ class CirqaOvernightService : Service() {
         const val KEY_RUNNING = "running"
         private const val CHANNEL = "cirqa_collection"
         private const val ID = 1401
-        private const val INTERVAL_MS = 120_000L
     }
 
     private val handler = Handler(Looper.getMainLooper())
@@ -76,7 +75,7 @@ class CirqaOvernightService : Service() {
         }
         running = true
         getSharedPreferences(PREFS, MODE_PRIVATE).edit().putBoolean(KEY_RUNNING, true).apply()
-        if (!log.append("session_start", mapOf("interval_seconds" to INTERVAL_MS / 1000, "mode" to "realtime_poll"))) {
+        if (!log.append("session_start", mapOf("mode" to "continuous_notifications"))) {
             stopCollection("storage_limit")
             return START_NOT_STICKY
         }
@@ -89,52 +88,51 @@ class CirqaOvernightService : Service() {
         if (!running) return
         attempts++
         val token = ++generation
-        var completed = false
         val attemptNumber = attempts
-        if (!log.append("attempt_start", mapOf("number" to attempts))) {
+        if (!log.append("attempt_start", mapOf("number" to attemptNumber))) {
             stopCollection("storage_limit")
             return
         }
-        // The polling cadence is independent of completion; timeout is a separate
-        // cancellable callback so a successful attempt cannot retain a stale timeout.
-        val timeout = Runnable {
-            if (!running || token != generation || completed) return@Runnable
-            completed = true
-            probe?.close()
-            probe = null
-            if (!log.append("attempt_timeout", mapOf("number" to attemptNumber, "reason" to "no_completion_callback"))) {
-                stopCollection("storage_limit")
-            }
-        }
-        handler.postDelayed(timeout, INTERVAL_MS)
-        handler.postDelayed({
-            if (running && token == generation) sample()
-        }, INTERVAL_MS)
         val adapter = (getSystemService(BLUETOOTH_SERVICE) as BluetoothManager).adapter
         if (adapter == null || !adapter.isEnabled) {
-            completed = true
-            handler.removeCallbacks(timeout)
-            if (!log.append("attempt", mapOf("number" to attemptNumber, "result" to "bluetooth_off"))) stopCollection("storage_limit")
+            scheduleReconnect(token, "bluetooth_off")
             return
         }
         val current = CirqaMlHandshakeProbe(this, adapter)
         probe = current
         current.onReading = readingCallback@{ service, reading ->
-            if (!running || token != generation || completed) return@readingCallback
+            if (!running || token != generation) return@readingCallback
             readings++
             if (!log.reading(service, reading)) stopCollection("storage_limit")
-            else updateNotification("Lokal: $readings Messwerte · $attempts Versuche")
+            else updateNotification("Lokal: $readings Messwerte · CIRQA-Daten empfangen")
         }
-        current.startAllMetrics { result ->
-            if (!running || token != generation || completed || result.startsWith("ML-Test: Verbinde")) return@startAllMetrics
-            completed = true
-            handler.removeCallbacks(timeout)
+        // The probe owns one GATT connection and receives notifications until stopped
+        // or disconnected. No periodic disconnect/reconnect while the session is alive.
+        current.startContinuousAllMetrics { result ->
+            if (!running || token != generation) return@startContinuousAllMetrics
+            if (result.startsWith("ML-Test: Verbinde")) {
+                updateNotification("CIRQA-Verbindung wird aufgebaut")
+                return@startContinuousAllMetrics
+            }
+            probe = null
             if (!log.append("attempt", mapOf("number" to attemptNumber, "result" to result.take(600)))) {
                 stopCollection("storage_limit")
             } else {
-                probe = null
+                scheduleReconnect(token, "connection_ended")
             }
         }
+    }
+
+    private fun scheduleReconnect(token: Int, reason: String) {
+        if (!running || token != generation) return
+        // Bounded backoff: 2, 4, 8, 16, 32, then 60 seconds.
+        val shift = (attempts - 1).coerceIn(0, 5)
+        val delayMs = (2_000L shl shift).coerceAtMost(60_000L)
+        updateNotification("CIRQA getrennt · neuer Versuch in ${delayMs / 1000}s")
+        log.append("reconnect_scheduled", mapOf("reason" to reason, "delay_ms" to delayMs))
+        handler.postDelayed({
+            if (running && token == generation) sample()
+        }, delayMs)
     }
 
     private fun stopCollection(reason: String) {
