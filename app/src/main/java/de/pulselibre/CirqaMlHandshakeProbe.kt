@@ -29,6 +29,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private var rawCaptureMode = false
     private var bootstrapAckMode = false
     private var configurationTestMode = false
+    private var syntheticSyncDebugMode = false
     private var configurationResponseQueued = false
     private var configurationResponseConfirmed = false
     private var configurationAckReceived = false
@@ -116,6 +117,21 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
      */
     fun startConfigurationTest(result: (String) -> Unit) {
         if (active) { result("ML-Test läuft bereits."); return }
+        configurationTestMode = true
+        bootstrapAckMode = true
+        historyDiagnosticMode = true
+        realtimeMode = false
+        start(false, result)
+    }
+
+    /**
+     * Explicit foreground-only synthetic-device SYNC negotiation diagnostic.
+     * Sends a single 5050 capability response advertising only bit 3.
+     * Does not claim to download files; file transfer requires verified protocol.
+     */
+    fun startSyntheticSyncDebug(result: (String) -> Unit) {
+        if (active) { result("ML-Test läuft bereits."); return }
+        syntheticSyncDebugMode = true
         configurationTestMode = true
         bootstrapAckMode = true
         historyDiagnosticMode = true
@@ -521,7 +537,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                         if (handle != null) {
                             val candidates = listOf(
                                 CirqaOfflineGfdiStatusCandidate.ackFrame(5050),
-                                Cirqa5050OfflineHostCapabilities.offlineFrame(byteCount = 15)
+                                Cirqa5050OfflineHostCapabilities.offlineFrame(\n                                    advertiseSyncForOfflineComparison = syntheticSyncDebugMode, byteCount = 15\n                                )
                             )
                             for (candidate in candidates) {
                                 GarminFileListRequest.cobs(candidate).toList().chunked(19).forEach { part ->
@@ -675,9 +691,9 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         "PulsLibre · CIRQA Historien-Diagnose (Phase 1)\n" +
         "Ergebnis: $reason\n" +
         (if (bootstrapAckMode) "Bootstrap-ACK-Test: Kandidat gesendet=$bootstrapAckSent; GATT bestätigt=$bootstrapAckConfirmed; GFDI-Frames nach ACK-Start=${(fileListProbe.frames - bootstrapBaselineFrames).coerceAtLeast(0)}; Dateibefehle=0\n" else "") +
-        (if (configurationTestMode) "5050-Konfigurationstest: Antwort eingeplant=$configurationResponseQueued; GATT-Schreibfolge bestätigt=$configurationResponseConfirmed; GFDI-5000-ACK für 5050 empfangen=$configurationAckReceived; Hostmaske=15 Bytes/alle Bits 0; Dateibefehle=0\n" else "") +
+        (if (configurationTestMode) "5050-Konfigurationstest: Antwort eingeplant=$configurationResponseQueued; GATT-Schreibfolge bestätigt=$configurationResponseConfirmed; GFDI-5000-ACK für 5050 empfangen=$configurationAckReceived; Hostmaske=15 Bytes/${if (syntheticSyncDebugMode) "nur SYNC-Bit 3" else "alle Bits 0"}; Dateibefehle=0\n" else "") +
         (if (configurationTestMode) "5050-Evidenzstatus: ${Cirqa5050Outcome.classify(configurationResponseQueued, configurationResponseConfirmed, configurationAckReceived, configuration5037ObservationStarted && Cirqa5037SyncEvidenceGate.isPostHandshakeSignal(configuration5037Baseline, fileListProbe.validSynchronizationShapes, configurationResponseConfirmed, configurationAckReceived))}; kein Beleg für Dateiliste oder Historien-Download.\n" else "") +
-        (if (configurationTestMode) "5050-Passivzustand vor Abbruch: ${passive5050Session.stateBeforeStop ?: passive5050Session.state}; 5037-Signal beobachtet=${passive5050Session.signalObserved}; keine aktive SYNC-Freigabe.\n" else "") +
+        (if (configurationTestMode) "5050-Passivzustand vor Abbruch: ${passive5050Session.stateBeforeStop ?: passive5050Session.state}; 5037-Signal beobachtet=${passive5050Session.signalObserved}; \${if (syntheticSyncDebugMode) "synthetischer SYNC-Debugmodus aktiv; kein Dateiabruf" else "keine aktive SYNC-Freigabe"}.\n" else "") +
         (if (configurationTestMode) post5050Evidence.summary() + "\n" else "") +
         (if (configurationTestMode) "Passiv beobachtete 5037-Frames: ${fileListProbe.frameTypes["gfdi-5037"] ?: 0}; gültige 5037-Strukturen: ${fileListProbe.validSynchronizationShapes}; ungültige 5037-Strukturen: ${fileListProbe.malformedSynchronizationShapes}; frisches 5037-Signal nach bestätigtem 5050: ${(configuration5037ObservationStarted && Cirqa5037SyncEvidenceGate.isPostHandshakeSignal(configuration5037Baseline, fileListProbe.validSynchronizationShapes, configurationResponseConfirmed, configurationAckReceived))}; keine aktive Sync-Anforderung.\n" else "") +
         "GFDI-Registrierung: ${if (historyRegistered) "bestätigt" else "nicht bestätigt"}\n" +
