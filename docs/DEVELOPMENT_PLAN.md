@@ -56,3 +56,12 @@ Stand: 2026-11-16. Maßgeblich sind die tatsächlichen Repository-Dateien, GitHu
 - Alte GitHub-Actions-Artefakte/APKs: Bei dieser Prüfung **nicht inventarisiert**; ohne nachgewiesene Aufbewahrungsanforderungen, API-Zugriff und ausdrückliche Löschfreigabe keine Entfernung.
 - Offene Issues vorhanden (u.a. #7 CIRQA-Referenztrace und #11 wissenschaftliche Tacho-Personalisierung). Nicht als Reinigungsreste behandeln.
 - **Nächster Hygiene-Schritt:** Referenzen und PRs der fünf Nebenbranches prüfen, anschließend auf tatsächlich eingecheckte Binär-/Builddateien, Duplikate und verwaiste Dokumentation prüfen. Nur sichere, nachvollziehbare Änderungen committen.
+
+## Repository-Hygieneprüfung 2026-11-17 (15:35 MEZ)
+- **Geltender Auftrag:** ausschließlich sichere, reversible Repository-Hygiene; die älteren Abschnitte „Priorisierte Aufgaben“ und „Ablauf für den nächsten Agenten“ beschreiben den historischen Entwicklungsauftrag und erteilen derzeit **keine** Entwicklungsfreigabe.
+- GitHub-Metadaten: Repository **public**; die frühere Datenschutz-/Git-Historienfrage ist nicht als erledigt belegt. Keine personenbezogenen Rohdaten veröffentlichen, keine Historie automatisch umschreiben.
+- Letzter bei dieser Prüfung gefundener Commit: `ef19503` (2026-11-17 14:35 UTC); Commits können parallel weiterlaufen. Branchsuche ergab zehn Namen einschließlich `main`; offener PR #13. Kein Branch ohne Eigentümer-/Referenzprüfung löschen.
+- `.gitignore` enthält bereits `**/build/`, `.gradle/`, `*.apk`, `*.aab`, `*.class` **nicht ausdrücklich**; `*.class` unter `build/` wird durch die Verzeichnisregel abgedeckt. Eine GitHub-Codesuche nach Buildmustern lieferte keine beweiskräftige vollständige Inventur. Vor Änderungen den vollständigen Git-Tree prüfen.
+- Workflow `.github/workflows/android.yml`: Upload-Artefakte mit `retention-days: 14`; ältere Runs/Artefakte nicht inventarisiert und nicht gelöscht. Keine Löschfreigabe.
+- Combined-Status und commitbezogene Workflow-Abfrage für `ef19503` ergaben leere Listen. Letztere filtert auf PR-Runs und erfasst Push-Runs nicht vollständig: **CI unbekannt**, nicht erfolgreich bestätigt.
+- **Nächster Hygiene-Schritt:** vollständige Tree-Inventur und Linkprüfung, Branch-Referenzen mit PRs abgleichen; ausschließlich nachgewiesene reversible Korrekturen durchführen.
