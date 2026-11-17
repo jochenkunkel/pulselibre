@@ -339,7 +339,7 @@ private class ReceptionIndicatorView(
                 setPadding(0, dp(5), 0, dp(5))
             }
             line.addView(DashboardInfoIconView(context, kind, if (url == null) palette.muted else palette.accent),
-                LayoutParams(dp(18), dp(18)).apply { marginEnd = dp(10) })
+                LinearLayout.LayoutParams(dp(18), dp(18)).apply { marginEnd = dp(10) })
             line.addView(TextView(context).apply {
                 this.text = text
                 textSize = 14f
@@ -352,7 +352,7 @@ private class ReceptionIndicatorView(
                         catch (_: Exception) { /* Keep the source readable if no browser is available. */ }
                     }
                 }
-            }, LayoutParams(0, -2, 1f))
+            }, LinearLayout.LayoutParams(0, -2, 1f))
             details.addView(line)
         }
         val profile = MetricReferenceProfile.forMetric(metric, stepGoal)
