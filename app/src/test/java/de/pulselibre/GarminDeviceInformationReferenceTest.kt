@@ -16,6 +16,7 @@ class GarminDeviceInformationReferenceTest {
         assertEquals(12, structure.leadingBinaryBytes)
         assertEquals(14, structure.firstTextBytes)
         assertEquals(5, structure.secondTextBytes)
+        assertEquals(8, structure.thirdTextBytes)
         assertEquals(1, structure.trailingBinaryBytes)
     }
 
