@@ -12,11 +12,11 @@ internal data class SpO2DisplaySettings(
     val colorBandsEnabled: Boolean = false
 ) {
     fun colorFor(percent: Int?, palette: AppPalette): Int {
-        if (!isInRange(percent)) return missingColor(palette)
+        val value = percent?.takeIf { it in 1..100 } ?: return missingColor(palette)
         if (!colorBandsEnabled) return neutralColor(palette)
         return when {
-            percent >= greenFrom -> palette.indicator
-            percent >= redBelow -> palette.oxygen
+            value >= greenFrom -> palette.indicator
+            value >= redBelow -> palette.oxygen
             else -> android.graphics.Color.rgb(205, 57, 65)
         }
     }
