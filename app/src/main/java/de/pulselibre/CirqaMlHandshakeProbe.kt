@@ -551,7 +551,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     pendingService = if (expandedMode) servicePlan.first() else GarminRealtime.HEART_RATE_SERVICE
                     mark("GFDI registriert; registriere Service $pendingService")
                     send(g, GarminMlHandshake.registerRequest(pendingService))
-                } else if (historyDiagnosticMode) {
+                } else if (historyDiagnosticMode && !historyRegistered) {
                     historyRegistered = true
                     if (fileListRequestMode) {
                         val handle = historyHandle
@@ -566,7 +566,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                             }, 500L)
                         }
                     } else mark(if (bootstrapAckMode) "GFDI registriert; warte auf DeviceInformation für einmaliges ACK" else "GFDI registriert; beobachte Metadaten bis zum Zeitlimit")
-                } else finish("Garmin ML: GFDI-Service erfolgreich registriert! ${if (requestedCloseAll) "CLOSE_ALL wurde zuvor bestätigt." else "Ohne CLOSE_ALL."} Verbindung beendet; keine Gesundheitsdaten gelesen.", g)
+                } else if (!historyDiagnosticMode) finish("Garmin ML: GFDI-Service erfolgreich registriert! ${if (requestedCloseAll) "CLOSE_ALL wurde zuvor bestätigt." else "Ohne CLOSE_ALL."} Verbindung beendet; keine Gesundheitsdaten gelesen.", g)
             }
             GarminMlHandshake.Stage.FAILED ->
                 finish("Garmin ML: GFDI-Registrierung vom Gerät abgelehnt.", g)
