@@ -4,14 +4,14 @@ All existing tests remain in the repository; no test was deleted.
 
 ## Development (push to main)
 
-- Run **all JVM unit tests** with `testDebugUnitTest`.
-- Compile the Android app and upload the debug APK with `assembleDebug`.
+- Run **all JVM unit tests** with `testDebugUnitTest` and Python HCI validator regression tests.
+- Compile the Android app with `assembleDebug`. A signed update APK artifact is uploaded only if the four stable signing secrets are available and the run succeeds; no unsigned APK upload is promised.
 - Skip Android lint and the emulator instrumentation suite for fast feedback.
 - Cancel older in-progress runs on the same branch when newer commits arrive, reducing wasted runner minutes. Cancellation means earlier runs may show `cancelled`, not failed.
 
 ## Full verification
 
-Triggered automatically by pull requests and tags beginning with `v`; also manually through Actions > Android CI > Run workflow (enable `full_tests`, which defaults to true).
+Triggered automatically by tags beginning with `v`; also manually through Actions > Android CI > Run workflow with `full_tests=true` (the input currently defaults to **false**). Ordinary pull requests receive only the development checks. This reflects `.github/workflows/android.yml` as inspected on 2026-11-17.
 
 - All JVM unit tests and APK build.
 - Android lint and instrumentation APK build.

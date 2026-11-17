@@ -8,6 +8,8 @@
 
 **Projektstatus:** Passive BLE-Diagnose auf dem S25 praktisch getestet; erste Android-Bluetooth-Berechtigungsabfrage auf dem S25 bestätigt. **Es gibt experimentelle, nutzerinitiierte aktive GATT- und Garmin-ML-Probe-Pfade; eine verlässliche CIRQA-Gesundheitsdatensynchronisierung ist nicht nachgewiesen.** Garmin Connect wird nicht verändert.
 
+**Für Codex in VSCodium und weitere Coding-Agenten:** [AGENTS.md](AGENTS.md) beschreibt die gemeinsamen Arbeitsregeln, Branch-/Review-Absprachen und Sicherheitsgrenzen. Für die aktuelle CIRQA-Evidenz gilt [PROJECT_STATUS.md](docs/PROJECT_STATUS.md); ältere Protokollnotizen sind historische Beobachtungen.
+
 ## Einstieg und Dokumentation
 
 **Für alle Chats und Entwicklungsagenten verbindlicher Einstieg:** [Zentraler Projektstatus und Übergabeprotokoll](docs/PROJECT_STATUS.md). Änderungen und neue Erkenntnisse aus anderen Chats müssen dort explizit dokumentiert werden; Chatverläufe synchronisieren sich nicht automatisch.
