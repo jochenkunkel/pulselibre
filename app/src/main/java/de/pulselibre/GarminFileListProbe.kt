@@ -10,6 +10,7 @@ class GarminFileListProbe {
     val bootstrapDiagnosis = GarminBootstrapDiagnosis()
     val postBootstrap = GarminPostBootstrapObserver()
     val handshake = CirqaBootstrapStateMachine()
+    val structure5050 = Cirqa5050StructureObserver()
     private val handshakeStartNanos = System.nanoTime()
     var ackAttempted = false
         set(value) {
@@ -46,7 +47,7 @@ class GarminFileListProbe {
         private set
 
     fun summary(): String = "GFDI-Frames: $frames; FileListResponse: $validLists; " +
-        "Dateieinträge: $fileEntries; Typen: $frameTypes; GFDI-5000-Status: $responseStatuses; Antwortfehler: $responseErrors; andere Nachrichten: $otherMessages; ungültige Frames: $rejectedFrames; ${bootstrap.summary()}; ${bootstrapDiagnosis.summary()}; ${postBootstrap.summary()}; ${handshake.summary()}; ${chunks.summary()}; ${protobuf.summary()}"
+        "Dateieinträge: $fileEntries; Typen: $frameTypes; GFDI-5000-Status: $responseStatuses; Antwortfehler: $responseErrors; andere Nachrichten: $otherMessages; ungültige Frames: $rejectedFrames; ${bootstrap.summary()}; ${bootstrapDiagnosis.summary()}; ${postBootstrap.summary()}; ${handshake.summary()}; ${structure5050.summary()}; ${chunks.summary()}; ${protobuf.summary()}"
 
     fun observeMlPayload(payload: ByteArray) {
         for (byte in payload) {
@@ -85,6 +86,7 @@ class GarminFileListProbe {
             } else droppedRawFrames++
         }
         handshake.observe(frame, (System.nanoTime() - handshakeStartNanos) / 1_000_000)
+        structure5050.observe(frame)
         bootstrap.observe(frame)
         bootstrapDiagnosis.observe(frame)
         postBootstrap.observe(frame, ackAttempted)
