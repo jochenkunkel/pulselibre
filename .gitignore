@@ -3,6 +3,8 @@
 .idea/
 local.properties
 **/build/
+# Also exclude compiled Java/Kotlin bytecode outside conventional build directories.
+*.class
 *.jks
 *.keystore
 *.log
