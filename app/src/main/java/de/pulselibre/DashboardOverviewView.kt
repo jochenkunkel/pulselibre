@@ -363,7 +363,11 @@ private class ReceptionIndicatorView(
             }
             profile.sourceName?.let { row("↗", "Quelle  $it", palette.accent, profile.sourceUrl) }
             if (metric.title == "Sauerstoffsättigung · SpO₂") {
-                row("⚠", "CIRQA-Signalqualität nicht verfügbar; Füllung zeigt nur den Prozentwert.", palette.muted)
+                val displayBands = SpO2DisplaySettings.read(context)
+                row("▰", "Anzeige  🟢 ≥${displayBands.greenFrom}%  🟠 ${displayBands.orangeFrom}–${displayBands.greenFrom - 1}%  🔴 <${displayBands.orangeFrom}%  ⚪ kein gültiger Wert", palette.muted)
+                row("⚠", "Konfigurierbare Farbskala, keine CIRQA-Signalqualität oder medizinische Bewertung.", palette.muted)
+                row("↗", "Quelle  NHS-Fingerpulsoximeter-Kontext; nicht für CIRQA validiert", palette.accent,
+                    "https://www.england.nhs.uk/coronavirus/documents/c0445-pulse-oximetry-to-detect-early-deterioration-of-patients-with-covid-19-in-primary-and-community-care-settings-12-january-2021/")
             }
             row("⚠", profile.caveat, palette.muted)
         } else if (metric.title == "Moderate Intensitätsminuten" || metric.title == "Intensive Intensitätsminuten") {
