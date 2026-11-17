@@ -33,6 +33,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private var configurationAckReceived = false
     private var configurationObservationExtended = false
     private var configuration5050Baseline = 0
+    private var configurationAckBaseline = 0
     private var post5050Evidence = Cirqa5050PostWriteEvidence()
     private var bootstrapAckSent = false
     private var bootstrapAckConfirmed = false
@@ -191,6 +192,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         configurationAckReceived = false
         configurationObservationExtended = false
         configuration5050Baseline = 0
+        configurationAckBaseline = 0
         post5050Evidence = Cirqa5050PostWriteEvidence()
         configurationResponseConfirmed = false
         bootstrapAckConfirmed = false
@@ -315,7 +317,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                                 if (Cirqa5050AckGate.isConfirmed(
                                         configurationResponseQueued,
                                         configurationResponseConfirmed,
-                                        fileListProbe.responseStatuses.keys.any { it.startsWith("request=5050/status=ACK/") }
+                                        Cirqa5050AckEvidence.isNewAck(configurationAckBaseline, fileListProbe.responseStatuses)
                                     )) {
                                     configurationAckReceived = true
                                 }
@@ -424,7 +426,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     if (configurationTestMode && Cirqa5050AckGate.isConfirmed(
                             configurationResponseQueued,
                             configurationResponseConfirmed,
-                            fileListProbe.responseStatuses.keys.any { it.startsWith("request=5050/status=ACK/") }
+                            Cirqa5050AckEvidence.isNewAck(configurationAckBaseline, fileListProbe.responseStatuses)
                         )) {
                         configurationAckReceived = true
                         phase = "GFDI-5000-ACK für 5050 empfangen; beobachte weitere Antworten"
@@ -448,6 +450,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                         bootstrapAckConfirmed && !bootstrapAckPending && bootstrapAckChunks.isEmpty() &&
                         (fileListProbe.frameTypes["gfdi-5050"] ?: 0) > 0) {
                         configuration5050Baseline = fileListProbe.frameTypes["gfdi-5050"] ?: 0
+                        configurationAckBaseline = Cirqa5050AckEvidence.count(fileListProbe.responseStatuses)
                         configurationResponseQueued = true
                         val handle = historyHandle
                         if (handle != null) {
