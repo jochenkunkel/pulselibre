@@ -72,6 +72,10 @@ Das Fünf-Sekunden-Limit ist ein konservativer Implementierungswert; Connects ko
 
 Nach Verbrauch der ursprünglichen drei Läufe hat der Nutzer genau **einen vierten** 5007-Test autorisiert, um die korrigierte ML-Characteristic-Erkennung zu prüfen. Das App-Gate wird dafür einmalig auf vier Gesamtversuche angehoben; das ist keine Dauerfreigabe. Der vierte Lauf bleibt auf höchstens einen 5007-Write begrenzt, ohne Retry oder Folgekommando. Vor dem Request müssen persistierter Zähler `3`, gestoppter Recorder, beendetes Garmin Connect und freie BLE-Sitzung geprüft sein. Ist eine Voraussetzung nicht erfüllt, wird vor dem Write abgebrochen; danach bleibt das Gate endgültig geschlossen.
 
+#### Ergebnis des vierten Laufs
+
+Build 907: gespeicherter Zähler `3`, Recorder und Garmin Connect beendet, BLE vorab getrennt. Die neue Discovery wählte RX `6a4e2810…` und TX `6a4e2820…`; der dynamische GFDI-Handle war 89. Die App rief genau einmal den 5007-GATT-Write im `WITHOUT_RESPONSE`-Modus auf; Android akzeptierte den API-Auftrag, während der lokale TX-Trace `PENDING` blieb. Das belegt keinen ATT-Level-Versand. Ein CRC-valider GFDI-5024-Frame löste den vorgesehenen Abbruch als unerwarteter Anwendungstyp aus. Es wurde kein passender GFDI-5000-ACK zu 5007 klassifiziert. Keine Wiederholung oder Folgekommandos; Gate ist nun 4/4 und geschlossen.
+
 Der letzte Hardwarelauf scheiterte beim BLE-Verbindungsaufbau; Bluetooth meldete `CONNECTION_FAILED_ESTABLISHMENT (0x3e)`. `CirqaMlHandshakeProbe` nutzt bereits `BluetoothDevice.TRANSPORT_LE`, und es gab keine automatischen Wiederholungen. Das ist ein Link-Layer-/Geräteverbindungsfehler, kein belegter 5007-Protokollfehler. Die Testoberfläche speichert für künftige Läufe den GATT-Abbruchgrund sowie ausdrücklich, ob der 5007-Write vor dem Abbruch gesendet wurde. Keine Änderung am Request-Bytekandidaten und keine automatische Reconnect-Schleife.
 
 ## Ergebnis und Freigabeschwelle
@@ -80,4 +84,4 @@ Der letzte Hardwarelauf scheiterte beim BLE-Verbindungsaufbau; Bluetooth meldete
 - Erfolgreicher Puls-/Schritte-Livepfad: aus Issue #22 übernommen; kein FileSync-Beweis.
 - CIRQA-5007-Support, CIRQA-Responseformat, produktiver Timeout und Nebenwirkungsfreiheit: **unbewiesen/offen**.
 - 0x8A39/FileSync-V2-Anfrage: vorhandener App-Einstieg ist fail-closed deaktiviert; nicht wiederholen.
-- Der erste Versuch ist laut Nutzer verbraucht. Für genau einen weiteren 5007-Versuch liegt eine neue ausdrückliche Freigabe vor; die App wird dafür aktualisiert und die installierte signierte APK verwendet. Ergebnis und etwaiger Geräteversuch sind separat zu dokumentieren. Keine weitere Wiederholung oder FileSync-Stufe ist damit genehmigt.
+- Die erneute Freigabe für genau Versuch 4 ist ausgeschöpft; das persistente Gate ist 4/4. Kein weiterer 5007-Write oder FileSync-Schritt ist autorisiert.
