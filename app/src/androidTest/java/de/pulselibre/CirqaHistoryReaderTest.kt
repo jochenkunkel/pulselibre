@@ -45,6 +45,33 @@ class CirqaHistoryReaderTest {
         }
     }
 
+    @Test fun existingVersionOneReadingsReceiveSortableKeys() {
+        val base = ApplicationProvider.getApplicationContext<Context>()
+        val root = Files.createTempDirectory(base.cacheDir.toPath(), "dashboard-migration-").toFile()
+        val context = isolatedContext(base, root)
+        try {
+            SQLiteDatabase.openOrCreateDatabase(context.getDatabasePath("cirqa_measurements.db"), null).use { db ->
+                db.execSQL("""CREATE TABLE events(id INTEGER PRIMARY KEY AUTOINCREMENT, line_sha256 TEXT UNIQUE,
+                    received_at_utc TEXT NOT NULL, kind TEXT NOT NULL, service INTEGER, payload_json TEXT NOT NULL)""")
+                db.execSQL("""INSERT INTO events VALUES(1,'a','2026-11-17T12:00:00Z','reading',6,'{}'),
+                    (2,'b','2026-11-17T12:00:00.001Z','reading',6,'{}')""")
+                db.version = 1
+            }
+            CirqaDatabase(context).use { db ->
+                assertEquals(2L, db.latestEventId())
+                db.readableDatabase.rawQuery("SELECT id, dashboard_time FROM events ORDER BY dashboard_time DESC", null).use {
+                    assertTrue(it.moveToFirst())
+                    assertEquals(2L, it.getLong(0))
+                    assertEquals("2026-11-17T12:00:00.001000000Z", it.getString(1))
+                    assertTrue(it.moveToNext())
+                    assertEquals(1L, it.getLong(0))
+                }
+            }
+        } finally {
+            root.deleteRecursively()
+        }
+    }
+
     private fun isolatedContext(base: Context, root: File) = object : ContextWrapper(base) {
         override fun getFilesDir(): File = root
         override fun getDatabasePath(name: String): File = File(root, name)
