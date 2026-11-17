@@ -74,4 +74,35 @@ class CirqaSyncDiagnosticSessionTest {
                 session.on(CirqaSyncDiagnosticSession.Event.CRC_VALID_5037))
         }
     }
+    @Test fun authorizationCannotBeReusedOrRestartedAfterStop() {
+        val session = CirqaSyncDiagnosticSession()
+        assertEquals(CirqaSyncDiagnosticSession.State.WAITING_FOR_5050_ACK,
+            session.on(CirqaSyncDiagnosticSession.Event.AUTHORIZE_WITH_RECORDER_STOPPED))
+        assertEquals(CirqaSyncDiagnosticSession.State.STOPPED,
+            session.on(CirqaSyncDiagnosticSession.Event.AUTHORIZE_WITH_RECORDER_STOPPED))
+        assertEquals(CirqaSyncDiagnosticSession.State.STOPPED,
+            session.on(CirqaSyncDiagnosticSession.Event.AUTHORIZE_WITH_RECORDER_STOPPED))
+        assertFalse(session.signalObserved)
+    }
+
+    @Test fun signalNeverAuthorizesSecondSynchronizationOrIgnoresStop() {
+        val session = observing()
+        assertEquals(CirqaSyncDiagnosticSession.State.SYNC_SIGNAL,
+            session.on(CirqaSyncDiagnosticSession.Event.CRC_VALID_5037))
+        assertEquals(CirqaSyncDiagnosticSession.State.STOPPED,
+            session.on(CirqaSyncDiagnosticSession.Event.NEGATIVE_RESPONSE))
+        assertEquals(CirqaSyncDiagnosticSession.State.STOPPED,
+            session.on(CirqaSyncDiagnosticSession.Event.AUTHORIZE_WITH_RECORDER_STOPPED))
+        assertTrue(session.signalObserved)
+    }
+
+    @Test fun unsafeEventBeforeAuthorizationPermanentlyStopsSession() {
+        val session = CirqaSyncDiagnosticSession()
+        assertEquals(CirqaSyncDiagnosticSession.State.STOPPED,
+            session.on(CirqaSyncDiagnosticSession.Event.CONNECTION_LOST))
+        assertEquals(CirqaSyncDiagnosticSession.State.STOPPED,
+            session.on(CirqaSyncDiagnosticSession.Event.AUTHORIZE_WITH_RECORDER_STOPPED))
+        assertFalse(session.signalObserved)
+    }
+
 }
