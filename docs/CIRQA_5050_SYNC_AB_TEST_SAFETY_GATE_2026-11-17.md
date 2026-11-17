@@ -70,3 +70,7 @@ Das ist **kein** historischer Datenabruf und kein Beleg, dass CIRQA die SYNC-Bit
 ## Achter Implementierungsnachtrag: Grenze für ungültige GFDI-Frames
 
 Die vorhandene aktive **5050-Nullmasken-Diagnose** speichert beim Einplanen ihrer Antwort die bisherige Zahl von COBS-, Längen- und CRC-Fehlern aus `GarminFileListProbe.rejectedFrames`. Ab **drei neuen** abgewiesenen GFDI-Frames wird die Sitzung über `finish` beendet und GATT anschließend geschlossen. Frühere Fehler werden nicht nachträglich dem aktuellen 5050-Versuch zugerechnet. Die Regel `Cirqa5050MalformedFrameGuard` ist offline mit Grenzwert- und ungültigen Zählerfällen getestet. Der SYNC-Bit-3-Versuch bleibt deaktiviert; es wurden keine neuen GFDI-Kommandos ergänzt.
+
+## Neunter Implementierungsnachtrag: negative Statusantworten zeitlich abgrenzen
+
+Die aktive Nullmasken-Diagnose bricht weiterhin bei **jeder negativen GFDI-Antwort vor** dem Einplanen der 5050-Antwort ab. Ab dem Queue-Zeitpunkt zählt sie negative Antworten relativ zum dort gespeicherten `responseErrors`-Ausgangswert und stoppt bereits bei der ersten neu hinzugekommenen negativen Antwort. Der Offline-Guard `Cirqa5050NegativeResponseGuard` und Unit-Tests prüfen diesen Zählervergleich. Diese Abgrenzung vermeidet falsche Zuordnung früherer Fehler, ist jedoch **keine** echte Sequenznummernkorrelation. Keine Änderung an 5050-Nullmaske oder BLE-Sendefolge; SYNC-Bit-3 bleibt gesperrt.
