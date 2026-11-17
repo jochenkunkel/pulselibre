@@ -25,6 +25,17 @@ class Cirqa5050StructureObserverTest {
         assertTrue(summary.contains("automatische Antwort=NEIN"))
     }
 
+    @Test fun characterizesBitmapAndTailWithoutPublishingBytes() {
+        val observer = Cirqa5050StructureObserver()
+        observer.observe(frame(byteArrayOf(2, 8, 16, 99)))
+        observer.observe(frame(byteArrayOf(3, 1)))
+        observer.observe(frame(byteArrayOf(0)))
+        val report = observer.summary()
+        assertTrue(report.contains("5050-Längenpräfix gültig=2/ungültig=1"))
+        assertTrue(report.contains("Bitmap-Längen={2=1, 0=1}"))
+        assertTrue(report.contains("Tail-Längen={1=1, 0=1}"))
+    }
+
     @Test fun ignoresInvalidCrcAndOtherTypes() {
         val observer = Cirqa5050StructureObserver()
         val invalid = frame(byteArrayOf(5))
