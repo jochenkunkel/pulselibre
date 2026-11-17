@@ -44,4 +44,27 @@ class Cirqa5050PassiveSessionTest {
         s.freshAck()
         assertEquals(Cirqa5050PassiveSession.State.STOPPED, s.state)
     }
+
+    @Test fun stopPreservesLastMeaningfulState() {
+        val s = Cirqa5050PassiveSession()
+        s.queued()
+        s.writeConfirmed()
+        s.freshAck()
+        s.stop()
+        assertEquals(Cirqa5050PassiveSession.State.OBSERVING, s.stateBeforeStop)
+        assertEquals(Cirqa5050PassiveSession.State.STOPPED, s.state)
+        s.stop()
+        assertEquals(Cirqa5050PassiveSession.State.OBSERVING, s.stateBeforeStop)
+    }
+
+    @Test fun signalRemainsVisibleAfterCleanup() {
+        val s = Cirqa5050PassiveSession()
+        s.queued()
+        s.writeConfirmed()
+        s.freshAck()
+        s.valid5037()
+        s.stop()
+        assertEquals(Cirqa5050PassiveSession.State.SIGNAL, s.stateBeforeStop)
+        assertTrue(s.signalObserved)
+    }
 }
