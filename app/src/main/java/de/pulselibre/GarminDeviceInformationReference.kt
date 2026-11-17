@@ -10,6 +10,7 @@ object GarminDeviceInformationReference {
         val leadingBinaryBytes: Int,
         val firstTextBytes: Int,
         val secondTextBytes: Int,
+        val thirdTextBytes: Int,
         val trailingBinaryBytes: Int
     )
 
@@ -26,12 +27,17 @@ object GarminDeviceInformationReference {
         val secondLengthAt = 13 + firstLength
         if (firstLength == 0 || secondLengthAt >= ext.size) return null
         val secondLength = ext[secondLengthAt].toInt() and 255
-        val end = secondLengthAt + 1 + secondLength
-        if (secondLength == 0 || end > ext.size) return null
+        val thirdLengthAt = secondLengthAt + 1 + secondLength
+        if (secondLength == 0 || thirdLengthAt >= ext.size) return null
+        val thirdLength = ext[thirdLengthAt].toInt() and 255
+        val end = thirdLengthAt + 1 + thirdLength
+        if (thirdLength == 0 || end > ext.size) return null
         val first = ext.copyOfRange(13, secondLengthAt)
-        val second = ext.copyOfRange(secondLengthAt + 1, end)
+        val second = ext.copyOfRange(secondLengthAt + 1, thirdLengthAt)
+        val third = ext.copyOfRange(thirdLengthAt + 1, end)
         if (!first.all { (it.toInt() and 255) in 32..126 } ||
-            !second.all { (it.toInt() and 255) in 32..126 }) return null
-        return Structure(frame.size, ext.size, 12, firstLength, secondLength, ext.size - end)
+            !second.all { (it.toInt() and 255) in 32..126 } ||
+            !third.all { (it.toInt() and 255) in 32..126 }) return null
+        return Structure(frame.size, ext.size, 12, firstLength, secondLength, thirdLength, ext.size - end)
     }
 }
