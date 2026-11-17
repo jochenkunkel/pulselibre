@@ -22,3 +22,9 @@ Fehlt ein Beleg, ist das Ergebnis **NO_SESSION_EVIDENCE** oder **WRONG_SESSION**
 4. Unit-Tests, Android-Build und bereitgestelltes Test-APK.
 
 **Aktueller Stand:** Nur Offline-Encoder, Entscheidungsgate und Unit-Tests sind implementiert. Es existiert noch **kein freigegebener aktiver Zählertest und keine neue Test-APK**. Eine GATT-Schreibbestätigung allein wäre keine Bestätigung der Protokollakzeptanz.
+
+## Passive RX-Zählerdiagnose (17.11.2026)
+
+`CirqaCompactSessionObserver` ist nun in `GarminFileListProbe` integriert. Der Diagnosebericht zeigt CRC-geprüfte kompakte **RX**-Frames, die zuletzt beobachtete Sequenz/Counter/Kennung sowie Duplikate und Diskontinuitäten. Der Observer speichert keine Protobuf-Nutzdaten. Unit-Tests prüfen CRC-Ablehnung, Wraparound, Duplikate und Sprünge.
+
+**Wesentliche Einschränkung:** Empfangene Geräte-Zähler sind nicht gleichbedeutend mit dem Host-Sendezähler. Der Observer speist das Freigabegate ausdrücklich **nicht**; der aktive FileList-Sendepfad bleibt deaktiviert. Erst CIRQA-spezifisch belegte TX-Zähler erlauben eine belastbare Freigabe.
