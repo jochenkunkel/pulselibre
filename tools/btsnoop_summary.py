@@ -47,8 +47,12 @@ def summarize(path):
                 raise InvalidSnoop("Unsupported unframed datalink 1001")
             counts[TYPES.get(packet_type, "unknown")] += 1
             # Only complete single-fragment L2CAP ATT ACL frames are counted.
-            if packet_type == 2 and len(packet) >= 8:
+            if packet_type == 2:
+                if len(packet) < 4:
+                    raise InvalidSnoop("Truncated ACL header")
                 handle_flags, acl_length = struct.unpack_from("<HH", packet)
+                if len(packet) != 4 + acl_length:
+                    raise InvalidSnoop("ACL payload length mismatch")
                 pb = (handle_flags >> 12) & 3
                 if pb in (0, 2) and acl_length >= 4 and len(packet) >= 4 + acl_length:
                     l2_length, cid = struct.unpack_from("<HH", packet, 4)
