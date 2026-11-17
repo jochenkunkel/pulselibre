@@ -28,3 +28,14 @@ Am 2026-11-17 wurden **23 vorhandene Protokoll-/Forschungs-/Sync-Dokumente** in 
 ## Weitere Dokumente im alten Pfad
 
 Einige Geräte-Testberichte und weitere CIRQA-Notizen liegen noch unter `docs/`; die gesonderte Kategorie [Testnachweise und Verifikation](../test-evidence/README.md) enthält dazu eine Übersicht. Bei weiterer Migration erst Verweise/Code-Referenzen prüfen, dann mit Kompatibilitätsweiterleitung verschieben.
+
+## Ergänzung: CIRQA-Restmigration vom 2026-11-17
+
+Alle 23 zuvor noch vollständig unter `docs/CIRQA_*.md` liegenden Fachtexte wurden ohne Inhaltsänderung nach `docs/protocol/` verschoben:
+
+- [device-tests/](device-tests/) – 11 datierte Gerätetests, Mess- und Beobachtungsberichte. Sie sind zugleich im fachübergreifenden Bereich [Testnachweise](../test-evidence/README.md) einzuordnen.
+- [data-model/](data-model/) – 4 Dokumente zu Datenfluss, SQLite, Dashboard- und Schlaf-/Bewegungsgrundregeln; wissenschaftliche Interpretation bleibt mit [science](../science/README.md) abzustimmen.
+- [research/](research/) – 4 weitere Untersuchungen, u. a. Gadgetbridge und 5050-Rohframes.
+- [experiments/](experiments/) – 4 weitere Versuchsvorbereitungen, Filelist- und Testlabor-Analysen.
+
+Die ursprünglichen `docs/CIRQA_*.md`-Pfade bleiben als kurze Weiterleitungsdateien bestehen. **Wichtig:** In relativen Links innerhalb der unverändert übernommenen Originaltexte kann noch die alte Verzeichnistiefe stecken; ein vollständiger Linkcheck steht aus. Verweise auf solche alten Pfade funktionieren als Einstieg, aber relative Links aus neuem Standort müssen gesondert überprüft werden.
