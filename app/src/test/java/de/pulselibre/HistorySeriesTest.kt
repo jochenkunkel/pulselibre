@@ -24,10 +24,25 @@ class HistorySeriesTest {
         assertNull(historyTimeFraction(start, end, start))
     }
 
-    @Test fun resolutionGetsCoarserForLongerRanges() {
-        assertEquals(15 * 60, HistoryResolution.forRange(HistoryRange.DAY).duration.seconds)
-        assertEquals(2 * 60 * 60, HistoryResolution.forRange(HistoryRange.WEEK).duration.seconds)
-        assertEquals(6 * 60 * 60, HistoryResolution.forRange(HistoryRange.MONTH).duration.seconds)
+    @Test fun phoneChartUsesAboutOneSummaryPerHourOrDay() {
+        assertEquals(60 * 60, HistoryResolution.forRange(HistoryRange.DAY).duration.seconds)
+        assertEquals(6 * 60 * 60, HistoryResolution.forRange(HistoryRange.WEEK).duration.seconds)
+        assertEquals(24 * 60 * 60, HistoryResolution.forRange(HistoryRange.MONTH).duration.seconds)
+    }
+
+    @Test fun minuteSamplesAggregateToTwentyFourReadableDailyBuckets() {
+        val start = HistoryRange.DAY.startAt(end)
+        val points = (0 until 24 * 60).map { minute ->
+            HistoryPoint(start.plusSeconds(minute * 60L), 70 + minute % 10)
+        }
+
+        val buckets = aggregateHistoryPoints(points, start, end, HistoryResolution.forRange(HistoryRange.DAY))
+
+        assertEquals(24, buckets.size)
+        assertTrue(buckets.all { it.count == 60 })
+        assertEquals(70, buckets.first().minimum)
+        assertEquals(79, buckets.first().maximum)
+        assertEquals(74.5, buckets.first().median, 0.0)
     }
 
     @Test fun aggregationKeepsObservedRangeAndMedianWithoutCreatingEmptyWindows() {
