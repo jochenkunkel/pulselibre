@@ -16,9 +16,16 @@ class CirqaSyncDiagnosticSession {
         private set
     private var writeConfirmed = false
     private var ackConfirmed = false
+    var signalObserved = false
+        private set
 
     fun on(event: Event): State {
-        if (state == State.STOPPED || state == State.SYNC_SIGNAL) return state
+        if (state == State.STOPPED) return state
+        // A 5037 signal is evidence, not permission to ignore later aborts.
+        if (state == State.SYNC_SIGNAL) {
+            state = State.STOPPED
+            return state
+        }
         when (event) {
             Event.AUTHORIZE_WITH_RECORDER_STOPPED -> {
                 if (state == State.NOT_AUTHORIZED) state = State.WAITING_FOR_5050_ACK
@@ -37,7 +44,10 @@ class CirqaSyncDiagnosticSession {
                 }
             }
             Event.CRC_VALID_5037 -> {
-                state = if (state == State.OBSERVING) State.SYNC_SIGNAL else State.STOPPED
+                if (state == State.OBSERVING) {
+                    signalObserved = true
+                    state = State.SYNC_SIGNAL
+                } else state = State.STOPPED
             }
             Event.NEGATIVE_RESPONSE, Event.REPEATED_5050, Event.UNEXPECTED_FRAME,
             Event.CONNECTION_LOST, Event.TIMEOUT -> state = State.STOPPED
