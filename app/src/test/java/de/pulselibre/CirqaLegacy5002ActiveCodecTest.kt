@@ -66,6 +66,31 @@ class CirqaLegacy5002ActiveCodecTest {
         assertTrue(CirqaLegacySupportedTypesCache.parse(null).isEmpty())
         assertTrue(CirqaLegacyHistoryDownloadGate.canAttempt(false))
         assertFalse(CirqaLegacyHistoryDownloadGate.canAttempt(true))
+        assertTrue(CirqaLegacyHistoryDownloadGate.canRunMetadataFollowUp(false))
+        assertFalse(CirqaLegacyHistoryDownloadGate.canRunMetadataFollowUp(true))
+    }
+
+    @Test fun classifiesDirectoryEntriesWithSafeExclusionReasons() {
+        fun entry(index: Int, type: Int, subtype: Int, flags: Int, size: Long) =
+            CirqaLegacyDirectoryParser.Entry(index, type, listOf(subtype, 0, 0), 0, flags, size, 0)
+        val decisions = CirqaLegacyDownloadLimits.classifyEntries(
+            listOf(
+                entry(1, 128, 4, 0x80, 100),
+                entry(2, 128, 4, 0, 100),
+                entry(3, 128, 99, 0x80, 100),
+                entry(4, 255, 245, 0x80, 100),
+                entry(5, 128, 4, 0x80, 0),
+                entry(6, 128, 4, 0x80, 100)
+            ),
+            setOf(128 to 4)
+        )
+        assertEquals(
+            listOf(
+                "eligible", "not-readable", "unsupported-subtype",
+                "not-fit-type", "size-out-of-range", "eligible"
+            ),
+            decisions.map { it.reason }
+        )
     }
 
     @Test fun observesFragmentedCrcValid5004Frame() {

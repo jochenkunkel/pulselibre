@@ -71,6 +71,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private var legacyHistoryReportSkippedFiles = 0
     private var legacyHistoryReportCompletedFiles = 0
     private var legacyHistoryReportStoredBytes = 0
+    private var legacyHistoryDirectoryEntryDiagnostics = "keine"
     private var legacyHistoryOutputDirectory: File? = null
     private var rawCaptureMode = false
     private var bootstrapAckMode = false
@@ -371,6 +372,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         legacyHistoryReportSkippedFiles = 0
         legacyHistoryReportCompletedFiles = 0
         legacyHistoryReportStoredBytes = 0
+        legacyHistoryDirectoryEntryDiagnostics = "keine"
         legacyHistoryOutputDirectory = null
         bootstrapAckSent = false
         configurationResponseQueued = false
@@ -1157,19 +1159,41 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             legacyDirectory = directory
             legacyDirectoryEntriesSeen = directory.entries.size
             legacyHistoryReportDirectoryEntries = directory.entries.size
-            val candidates = CirqaLegacyDownloadLimits.selectReadableSupportedFits(
+            val initialDecisions = CirqaLegacyDownloadLimits.classifyEntries(
                 directory.entries, legacySupportedTypes
             )
+            var selectedCount = 0
             var selectedBytes = legacyFitBytesWritten
-            val bounded = candidates.filter { entry ->
-                val fits = entry.size <=
-                    (CirqaLegacyDownloadLimits.MAX_TOTAL_FIT_BYTES - selectedBytes).toLong()
-                if (fits) selectedBytes += entry.size.toInt()
-                fits
+            val finalDecisions = initialDecisions.map { decision ->
+                if (!decision.eligible) return@map decision to decision.reason
+                val entry = decision.entry
+                val reason = when {
+                    selectedCount >= CirqaLegacyDownloadLimits.MAX_FIT_FILES -> "file-count-limit"
+                    entry.size >
+                        (CirqaLegacyDownloadLimits.MAX_TOTAL_FIT_BYTES - selectedBytes).toLong() ->
+                        "total-size-limit"
+                    else -> {
+                        selectedCount++
+                        selectedBytes += entry.size.toInt()
+                        "selected"
+                    }
+                }
+                decision to reason
             }
+            val bounded = finalDecisions.filter { it.second == "selected" }.map { it.first.entry }
             legacyHistoryReportEligibleFiles = bounded.size
-            legacyHistoryReportSkippedFiles =
-                (directory.entries.count { it.type == 128 } - bounded.size).coerceAtLeast(0)
+            legacyHistoryReportSkippedFiles = directory.entries.size - bounded.size
+            val reasonCounts = finalDecisions.groupingBy { it.second }.eachCount()
+            val rows = finalDecisions.take(MAX_DIRECTORY_DIAGNOSTIC_ENTRIES).map { (decision, reason) ->
+                val entry = decision.entry
+                "idx=${entry.fileIndex},type=${entry.type},subtype=${entry.subtype}," +
+                    "read=${entry.readable},flags=0x${entry.attributes.toString(16).padStart(2, '0')}," +
+                    "size=${entry.size},decision=$reason"
+            }
+            val remainingEntries = finalDecisions.size - rows.size
+            legacyHistoryDirectoryEntryDiagnostics =
+                "reasonCounts=$reasonCounts; ${rows.joinToString("; ")}" +
+                    if (remainingEntries > 0) "; weitere=$remainingEntries" else ""
             legacyFileQueue.clear()
             bounded.forEach(legacyFileQueue::addLast)
             if (legacyFileQueue.isEmpty()) {
@@ -1270,6 +1294,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             "5002-Indizes angefordert: ${legacyRequestedIndices.joinToString().ifEmpty { "keine" }}; Retry=0.\n" +
             "Directory-Einträge=${legacyHistoryReportDirectoryEntries}; geeignete FITs=${legacyHistoryReportEligibleFiles}; " +
             "wegen Limits/Filter übersprungen=${legacyHistoryReportSkippedFiles}.\n" +
+            "Directory-Eintrag-Metadaten (ohne Zeitstempel, Identifierbytes oder Rohdaten): $legacyHistoryDirectoryEntryDiagnostics.\n" +
             "Vollständig validierte und lokal gespeicherte FIT-Dateien=${legacyDownloadedIndices.joinToString().ifEmpty { "keine" }}; " +
             "Dateien=${legacyHistoryReportCompletedFiles}; Bytes=$legacyHistoryReportStoredBytes; " +
             "Privater App-Speicher=${legacyHistoryOutputDirectory?.name ?: "kein FIT gespeichert"}.\n" +
@@ -1282,6 +1307,10 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             "Dateiinhalte/Messwerte nicht in Bericht oder SQLite übernommen.\n" +
             "GFDI-Handle=${historyHandle ?: "unbekannt"}; RX=$selectedRxUuid; TX=$selectedTxUuid.\n" +
             txTrace.summary()
+
+    companion object {
+        private const val MAX_DIRECTORY_DIAGNOSTIC_ENTRIES = 12
+    }
 
     private fun legacy5007Report(reason: String): String =
         "PulsLibre · CIRQA ${if (legacy5031TestMode) "GFDI-5031-Einzeltest" else "GFDI-5007-Einzeltest"}\n" +

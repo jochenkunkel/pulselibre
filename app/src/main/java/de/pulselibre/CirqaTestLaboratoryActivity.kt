@@ -51,6 +51,7 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
     private lateinit var legacy5007Button: Button
     private lateinit var legacy5031Button: Button
     private lateinit var legacyHistoryDownloadButton: Button
+    private lateinit var legacyHistoryFollowUpButton: Button
     private var permissionAction: (() -> Unit)? = null
     private var scanCallback: ScanCallback? = null
     private var scanning = false
@@ -330,6 +331,16 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
         boundedDownloadCard.addView(button("Directory-/FIT-Transferstatus") {
             statusOutput.text = preferences.getString(
                 "legacyHistoryDownloadSummary", "Noch nicht ausgeführt."
+            )
+        })
+        legacyHistoryFollowUpButton = button("Metadaten-Nachlauf nach erstem Transfer") {
+            confirmLegacyHistoryMetadataFollowUp()
+        }
+        refreshLegacyHistoryFollowUpButton()
+        boundedDownloadCard.addView(legacyHistoryFollowUpButton)
+        boundedDownloadCard.addView(button("Metadaten-Nachlaufstatus") {
+            statusOutput.text = preferences.getString(
+                "legacyHistoryMetadataFollowUpSummary", "Noch nicht ausgeführt."
             )
         })
         addCard(boundedDownloadCard)
@@ -727,6 +738,7 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
             return
         }
         refreshLegacyHistoryDownloadButton()
+        refreshLegacyHistoryFollowUpButton()
         statusOutput.text = "Begrenzter Directory-/FIT-Transfer läuft; maximal 5 Minuten, keine Wiederaufnahme."
         if (mlProbe == null) mlProbe = CirqaMlHandshakeProbe(this, adapter)
         mlProbe?.startLegacyDirectoryAndFitsTest(supportedTypes) { message ->
@@ -750,6 +762,113 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
         legacyHistoryDownloadButton.text = if (consumed)
             "Freigegebener Directory-/FIT-Transfer verbraucht"
         else "Einmaligen Directory-/FIT-Transfer starten"
+    }
+
+    private fun confirmLegacyHistoryMetadataFollowUp() {
+        val firstAttemptConsumed =
+            preferences.getBoolean("legacyHistoryDownloadAttempted", false)
+        if (!firstAttemptConsumed ||
+            !CirqaLegacyHistoryDownloadGate.canRunMetadataFollowUp(
+                preferences.getBoolean("legacyHistoryMetadataFollowUpAttempted", false)
+            )) {
+            refreshLegacyHistoryFollowUpButton()
+            return
+        }
+        val supportedTypes = CirqaLegacySupportedTypesCache.parse(
+            preferences.getString("legacy5031TestSummary", null)
+        )
+        if (supportedTypes.isEmpty()) {
+            statusOutput.text = "Kein erfolgreicher gespeicherter 5031-Befund; kein Gerät kontaktiert."
+            return
+        }
+        AlertDialog.Builder(this)
+            .setTitle("Einmaligen Metadaten-Nachlauf starten?")
+            .setMessage(
+                "Ein zweiter und letzter, ausdrücklich freigegebener Lauf liest Directory-Index 0 erneut und protokolliert begrenzt nur Dateiindex, Typ/Subtyp, READ-Flag, Größe und Auswahlgrund. " +
+                    "Zeitstempel, Identifierbytes und Rohdaten werden nicht protokolliert. Falls lesbare, unterstützte FIT-Einträge vorhanden sind, dürfen im selben Lauf höchstens vier Dateien (je 4 MiB, gesamt 16 MiB) mit FIT-CRC-Prüfung lokal gespeichert werden. " +
+                    "Directory max. 1 MiB, Gesamtlaufzeit max. 5 Minuten; frischer Bootstrap, aber keine Wiederholung von 5007/5031. Kein Retry, Archivieren, Löschen, SetFlags oder CLOSE_ALL. " +
+                    "Der gesonderte Follow-up-Gate wird vor dem Verbindungsaufbau verbraucht."
+            )
+            .setNegativeButton("Abbrechen", null)
+            .setPositiveButton("Einmaligen Nachlauf ausführen") { _, _ ->
+                withBluetoothPermissions(needsScan = false) {
+                    runLegacyHistoryMetadataFollowUpOnce(supportedTypes)
+                }
+            }
+            .show()
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun runLegacyHistoryMetadataFollowUpOnce(supportedTypes: Set<Pair<Int, Int>>) {
+        if (!preferences.getBoolean("legacyHistoryDownloadAttempted", false) ||
+            !CirqaLegacyHistoryDownloadGate.canRunMetadataFollowUp(
+                preferences.getBoolean("legacyHistoryMetadataFollowUpAttempted", false)
+            )) {
+            refreshLegacyHistoryFollowUpButton()
+            return
+        }
+        val matchingDevices = try {
+            adapter.bondedDevices.orEmpty().filter {
+                it.name?.contains("CIRQA", ignoreCase = true) == true
+            }
+        } catch (_: SecurityException) {
+            emptyList()
+        }
+        if (matchingDevices.size != 1) {
+            Toast.makeText(
+                this,
+                if (matchingDevices.isEmpty()) "Kein gekoppeltes CIRQA-Gerät gefunden; kein Request gesendet."
+                else "Mehrere gekoppelte CIRQA-Geräte gefunden; Ziel nicht eindeutig, kein Request gesendet.",
+                Toast.LENGTH_LONG
+            ).show()
+            return
+        }
+        if (CirqaBleSessionGate.isBusy()) {
+            Toast.makeText(this, "CIRQA-Bluetooth ist belegt; kein Request gesendet.", Toast.LENGTH_LONG).show()
+            return
+        }
+        if (!preferences.edit()
+                .putBoolean("legacyHistoryMetadataFollowUpAttempted", true)
+                .commit()) {
+            Toast.makeText(this, "Follow-up-Gate konnte nicht dauerhaft gespeichert werden; kein Request gesendet.", Toast.LENGTH_LONG).show()
+            return
+        }
+        refreshLegacyHistoryFollowUpButton()
+        statusOutput.text = "Einmaliger Metadaten-Nachlauf läuft; dieselben Größen-/Zeitlimits gelten."
+        if (mlProbe == null) mlProbe = CirqaMlHandshakeProbe(this, adapter)
+        mlProbe?.startLegacyDirectoryAndFitsTest(supportedTypes) { message ->
+            runOnUiThread {
+                statusOutput.text = message
+                val persisted = message.lineSequence()
+                    .filter {
+                        it.startsWith("Ergebnis:") ||
+                            it.startsWith("5002-Indizes") ||
+                            it.startsWith("Directory-Einträge=") ||
+                            it.startsWith("Directory-Eintrag-Metadaten") ||
+                            it.startsWith("Vollständig validierte") ||
+                            it.startsWith("Grenzen:")
+                    }
+                    .joinToString(" ")
+                    .take(3200)
+                    .ifEmpty { message.take(3200) }
+                preferences.edit()
+                    .putString("legacyHistoryMetadataFollowUpSummary", persisted)
+                    .apply()
+            }
+        }
+    }
+
+    private fun refreshLegacyHistoryFollowUpButton() {
+        val firstConsumed = preferences.getBoolean("legacyHistoryDownloadAttempted", false)
+        val followUpConsumed =
+            preferences.getBoolean("legacyHistoryMetadataFollowUpAttempted", false)
+        legacyHistoryFollowUpButton.isEnabled =
+            firstConsumed && CirqaLegacyHistoryDownloadGate.canRunMetadataFollowUp(followUpConsumed)
+        legacyHistoryFollowUpButton.text = when {
+            followUpConsumed -> "Metadaten-Nachlauf verbraucht"
+            firstConsumed -> "Einmaligen Directory-/FIT-Nachlauf starten"
+            else -> "Nachlauf erst nach dem ersten Transfer verfügbar"
+        }
     }
 
     @SuppressLint("MissingPermission")
