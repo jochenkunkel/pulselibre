@@ -45,3 +45,14 @@ Stand: 2026-11-16. Maßgeblich sind die tatsächlichen Repository-Dateien, GitHu
 - Offline-first, kein INTERNET-Permission und keine sensiblen Rohdaten im Repository.
 - BLE-Diagnostik strikt von nicht verifizierter Garmin-Protokollunterstützung trennen.
 - Keine unkontrollierte APK-Auslieferung mit wechselnder Signatur; Updatefähigkeit muss belegt sein.
+
+
+## Repository-Hygieneprüfung 2026-11-17 (12:32 CET)
+- **Auftrag geändert:** Der stündliche Agent ist bis zur erneuten Freigabe ausschließlich für sichere Repository-Pflege zuständig; keine eigenständige Produktentwicklung. Siehe `docs/AUTONOMOUS_DEVELOPMENT_AGENT.md` für den früheren Entwicklungsauftrag; der aktuelle Automatisierungsauftrag hat Vorrang.
+- `.gitignore` geprüft: `**/build/`, `.gradle/`, `*.apk`, `*.aab`, `*.jks`, `*.keystore`, `*.log`, lokale Daten/Exports und Schlüsselmaterial sind bereits ausgeschlossen. Kein begründeter Änderungsbedarf.
+- Beim Audit sichtbare Branches: `main`, `audit/documentation-consistency-2026-11-16`, `codex/dashboard-overview`, `codex/phone-preview-20261117`, `codex/remove-legacy-night-recording`, `docs/codex-onboarding-2026-11-17`. **Nicht gelöscht**: PR-/Merge- und Nutzungsstatus vor einer Löschung klären.
+- Neuester sichtbarer Commit: `6afb00f` (Dokumentation zur synthetischen SYNC-Diagnose). Dieser Entwicklungsplan war auf 2026-11-16 datiert und ist kein Nachweis des aktuellen Produktstands.
+- GitHub-Connector lieferte für `6afb00f` keine Workflow-Runs. CI-Ergebnis **unbekannt**, nicht grün.
+- Alte GitHub-Actions-Artefakte/APKs: Bei dieser Prüfung **nicht inventarisiert**; ohne nachgewiesene Aufbewahrungsanforderungen, API-Zugriff und ausdrückliche Löschfreigabe keine Entfernung.
+- Offene Issues vorhanden (u.a. #7 CIRQA-Referenztrace und #11 wissenschaftliche Tacho-Personalisierung). Nicht als Reinigungsreste behandeln.
+- **Nächster Hygiene-Schritt:** Referenzen und PRs der fünf Nebenbranches prüfen, anschließend auf tatsächlich eingecheckte Binär-/Builddateien, Duplikate und verwaiste Dokumentation prüfen. Nur sichere, nachvollziehbare Änderungen committen.
