@@ -32,6 +32,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private var configurationResponseConfirmed = false
     private var configurationChunksOutstanding = 0
     private var configurationAckReceived = false
+    private var post5050Evidence = Cirqa5050PostWriteEvidence()
     private var bootstrapAckSent = false
     private var bootstrapAckConfirmed = false
     private var bootstrapAckPending = false
@@ -187,6 +188,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         bootstrapAckSent = false
         configurationResponseQueued = false
         configurationAckReceived = false
+        post5050Evidence = Cirqa5050PostWriteEvidence()
         configurationResponseConfirmed = false
         configurationChunksOutstanding = 0
         bootstrapAckConfirmed = false
@@ -306,6 +308,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                             if (bootstrapAckChunks.isEmpty()) bootstrapAckConfirmed = true
                             if (configurationResponseQueued && bootstrapAckChunks.isEmpty()) {
                                 configurationResponseConfirmed = true
+                                post5050Evidence.onWriteConfirmed(fileListProbe.frameTypes)
                             }
                         }
                         if (bootstrapAckMode && bootstrapAckSent && bootstrapAckChunks.isNotEmpty()) {
@@ -377,6 +380,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                 if (first != null && first == historyHandle) {
                     historyRouted++
                     fileListProbe.observeMlPayload(bytes.copyOfRange(1, bytes.size))
+                    if (configurationTestMode) post5050Evidence.observe(fileListProbe.frameTypes)
                     if (configurationTestMode && configurationResponseQueued &&
                         fileListProbe.responseStatuses.keys.any { it.startsWith("request=5050/status=ACK/") }) {
                         configurationAckReceived = true
@@ -560,6 +564,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         "Ergebnis: $reason\n" +
         (if (bootstrapAckMode) "Bootstrap-ACK-Test: Kandidat gesendet=$bootstrapAckSent; GATT bestätigt=$bootstrapAckConfirmed; GFDI-Frames nach ACK-Start=${(fileListProbe.frames - bootstrapBaselineFrames).coerceAtLeast(0)}; Dateibefehle=0\n" else "") +
         (if (configurationTestMode) "5050-Konfigurationstest: Antwort eingeplant=$configurationResponseQueued; GATT-Schreibfolge bestätigt=$configurationResponseConfirmed; GFDI-5000-ACK für 5050 empfangen=$configurationAckReceived; Hostmaske=15 Bytes/alle Bits 0; Dateibefehle=0\n" else "") +
+        (if (configurationTestMode) post5050Evidence.summary() + "\n" else "") +
         "GFDI-Registrierung: ${if (historyRegistered) "bestätigt" else "nicht bestätigt"}\n" +
         "Letzte Phase: $phase\n" +
         "GATT-Schreiben bestätigt: $writeConfirmed\n" +
