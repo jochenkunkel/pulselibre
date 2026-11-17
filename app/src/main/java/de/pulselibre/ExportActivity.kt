@@ -2,7 +2,11 @@ package de.pulselibre
 
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
+import android.content.Intent
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.os.SystemClock
 import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
@@ -12,6 +16,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AlertDialog
 import org.json.JSONObject
 import java.time.Instant
 import java.time.LocalDate
@@ -31,8 +36,53 @@ class ExportActivity : AppCompatActivity() {
     private lateinit var fromTimeButton: TextView
     private lateinit var throughTimeButton: TextView
     private lateinit var feedback: TextView
+    private lateinit var databaseFeedback: TextView
     private val executor = Executors.newSingleThreadExecutor()
+    private val operationHandler = Handler(Looper.getMainLooper())
     private var pendingWindow: ExportWindow? = null
+
+    private val createDatabaseBackup = registerForActivityResult(
+        ActivityResultContracts.CreateDocument("application/zip")
+    ) { uri ->
+        if (uri == null) {
+            databaseFeedback.text = "Backup abgebrochen."
+        } else {
+            databaseFeedback.text = "Backup wird erstellt …"
+            executor.execute {
+                try {
+                    val output = contentResolver.openOutputStream(uri)
+                        ?: error("Backup-Ziel kann nicht geöffnet werden")
+                    val report = output.use { DatabaseBackup.write(this, it) }
+                    runOnUiThread {
+                        databaseFeedback.text = "Backup gespeichert: ${report.events} Ereignisse, " +
+                            "${report.legacyReadings} historische Messwerte."
+                    }
+                } catch (_: Exception) {
+                    runOnUiThread { databaseFeedback.text = "Backup fehlgeschlagen. Bitte Speicherort prüfen." }
+                }
+            }
+        }
+    }
+
+    private val restoreDatabaseBackup = registerForActivityResult(
+        ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        if (uri != null) {
+            databaseFeedback.text = "Backup wird geprüft …"
+            executor.execute {
+                try {
+                    val input = contentResolver.openInputStream(uri)
+                        ?: error("Backup-Datei kann nicht geöffnet werden")
+                    val plan = input.use { DatabaseBackup.prepareRestore(this, it) }
+                    runOnUiThread {
+                        if (isFinishing || isDestroyed) plan.close() else confirmRestore(plan)
+                    }
+                } catch (_: Exception) {
+                    runOnUiThread { databaseFeedback.text = "Backup ungültig oder nicht lesbar. Datenbank unverändert." }
+                }
+            }
+        }
+    }
 
     private val createDocument = registerForActivityResult(
         ActivityResultContracts.CreateDocument("text/csv")
@@ -107,7 +157,7 @@ class ExportActivity : AppCompatActivity() {
             contentDescription = "Zurück zur Übersicht"
             setOnClickListener { finish() }
         }
-        headerRow.addView(label("Datenexport", 22f, Color.WHITE, true),
+        headerRow.addView(label("Daten", 22f, Color.WHITE, true),
             LinearLayout.LayoutParams(0, -2, 1f))
         headerRow.addView(android.widget.ImageView(this).apply {
             setImageResource(R.drawable.ic_humerus_settings)
@@ -115,7 +165,7 @@ class ExportActivity : AppCompatActivity() {
             contentDescription = "PulsLibre Armbruch-Symbol"
         }, LinearLayout.LayoutParams(dp(38), dp(38)))
         header.addView(headerRow)
-        header.addView(label("CSV · lokal und offline", 12f, Color.WHITE))
+        header.addView(label("Export · Backup · Wiederherstellung · lokal und offline", 12f, Color.WHITE))
         screen.addView(header)
 
         val root = LinearLayout(this).apply {
@@ -198,8 +248,138 @@ class ExportActivity : AppCompatActivity() {
         panel.addView(exportButton)
         panel.addView(label("🔒  Nur auf deinem Gerät · Keine Cloud · Keine Anmeldung", 12f, muted),
             LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(14) })
+
+        val dataPanel = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(14), dp(14), dp(14), dp(14))
+            background = rounded(palette.card)
+        }
+        root.addView(dataPanel, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(12) })
+        dataPanel.addView(label("Lokale Datenbank", 17f, ink, true))
+        dataPanel.addView(label(
+            "Backup enthält CIRQA-Ereignisse, historische Messwerte und Synchronisationsstände. " +
+                "Die ZIP-Datei ist unverschlüsselt und enthält sensible Gesundheitsdaten.", 12f, muted
+        ), LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8); bottomMargin = dp(12) })
+        fun databaseAction(title: String, description: String, background: Int, action: () -> Unit) =
+            label(title, 15f, Color.WHITE, true).apply {
+                gravity = Gravity.CENTER
+                minHeight = dp(52)
+                setPadding(dp(8), dp(8), dp(8), dp(8))
+                this.background = rounded(background, 14)
+                isClickable = true
+                isFocusable = true
+                contentDescription = description
+                setOnClickListener { action() }
+            }
+        dataPanel.addView(databaseAction(
+            "Backup erstellen", "Lokales Datenbankbackup erstellen", palette.primary
+        ) {
+            createDatabaseBackup.launch("pulslibre_backup_${LocalDate.now()}.zip")
+        })
+        dataPanel.addView(databaseAction(
+            "Backup wiederherstellen", "Datenbank aus einem Backup wiederherstellen", palette.accent
+        ) {
+            restoreDatabaseBackup.launch(arrayOf("application/zip", "application/octet-stream"))
+        }, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) })
+        dataPanel.addView(databaseAction(
+            "Datenbank zurücksetzen", "Alle lokalen Datenbankeinträge löschen", Color.rgb(170, 52, 65)
+        ) { confirmReset() }, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) })
+        databaseFeedback = label("App-Einstellungen bleiben bei Wiederherstellung und Reset erhalten.", 12f, muted)
+        dataPanel.addView(databaseFeedback, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(10) })
         updateLabels()
         setContentView(screen)
+    }
+
+    private fun confirmRestore(plan: PreparedDatabaseRestore) {
+        AlertDialog.Builder(this)
+            .setTitle("Datenbank ersetzen?")
+            .setMessage(
+                "Das Backup vom ${plan.createdAt} enthält ${plan.events} Ereignisse, " +
+                    "${plan.legacyReadings} historische Messwerte und ${plan.syncCursors} Synchronisationsstände.\n\n" +
+                    "Alle aktuell gespeicherten Datenbankeinträge werden ersetzt. " +
+                    "App-Einstellungen bleiben erhalten. Nur mit einem Backup aus vertrauenswürdiger Quelle fortfahren."
+            )
+            .setNegativeButton("Abbrechen") { _, _ ->
+                plan.close()
+                databaseFeedback.text = "Wiederherstellung abgebrochen."
+            }
+            .setPositiveButton("Ersetzen") { _, _ ->
+                stopRecorderThen(onCancel = { plan.close() }) {
+                    databaseFeedback.text = "Datenbank wird wiederhergestellt …"
+                    executor.execute {
+                        try {
+                            DatabaseBackup.restore(this, plan)
+                            runOnUiThread { databaseFeedback.text = "Datenbank aus Backup wiederhergestellt." }
+                        } catch (_: Exception) {
+                            runOnUiThread { databaseFeedback.text = "Wiederherstellung fehlgeschlagen. Bitte Datenbank prüfen." }
+                        } finally { plan.close() }
+                    }
+                }
+            }
+            .setOnCancelListener {
+                plan.close()
+                databaseFeedback.text = "Wiederherstellung abgebrochen."
+            }
+            .show()
+    }
+
+    private fun confirmReset() {
+        AlertDialog.Builder(this)
+            .setTitle("Lokale Datenbank zurücksetzen?")
+            .setMessage(
+                "Alle lokal gespeicherten CIRQA-Ereignisse, historischen Messwerte und Synchronisationsstände werden dauerhaft gelöscht. " +
+                    "App-Einstellungen bleiben erhalten. Diese Aktion kann nicht rückgängig gemacht werden."
+            )
+            .setNegativeButton("Abbrechen", null)
+            .setPositiveButton("Daten löschen") { _, _ ->
+                stopRecorderThen {
+                    databaseFeedback.text = "Datenbank wird zurückgesetzt …"
+                    executor.execute {
+                        try {
+                            DatabaseBackup.reset(this)
+                            runOnUiThread { databaseFeedback.text = "Lokale Datenbank wurde geleert." }
+                        } catch (_: Exception) {
+                            runOnUiThread { databaseFeedback.text = "Reset fehlgeschlagen. Datenbank bitte prüfen." }
+                        }
+                    }
+                }
+            }
+            .show()
+    }
+
+    /** Stop the explicit background recorder before a destructive database operation. */
+    private fun stopRecorderThen(onCancel: () -> Unit = {}, action: () -> Unit) {
+        val prefs = getSharedPreferences(CirqaOvernightService.PREFS, MODE_PRIVATE)
+        if (!prefs.getBoolean(CirqaOvernightService.KEY_RUNNING, false)) {
+            action()
+            return
+        }
+        AlertDialog.Builder(this)
+            .setTitle("Aufzeichnung läuft")
+            .setMessage("Die laufende lokale CIRQA-Aufzeichnung muss vor dem Datenbankvorgang beendet werden.")
+            .setNegativeButton("Abbrechen") { _, _ -> onCancel() }
+            .setPositiveButton("Beenden und fortfahren") { _, _ ->
+                try {
+                    startService(Intent(this, CirqaOvernightService::class.java)
+                        .setAction(CirqaOvernightService.ACTION_STOP))
+                } catch (_: Exception) {
+                    databaseFeedback.text = "Aufzeichnung konnte nicht beendet werden; Datenbank blieb unverändert."
+                    onCancel()
+                    return@setPositiveButton
+                }
+                val deadline = SystemClock.elapsedRealtime() + 10_000L
+                val wait = object : Runnable {
+                    override fun run() {
+                        if (!prefs.getBoolean(CirqaOvernightService.KEY_RUNNING, false)) action()
+                        else if (SystemClock.elapsedRealtime() >= deadline) {
+                            databaseFeedback.text = "Aufzeichnung läuft noch; Datenbank blieb unverändert."
+                            onCancel()
+                        } else operationHandler.postDelayed(this, 100L)
+                    }
+                }
+                operationHandler.post(wait)
+            }
+            .show()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -212,6 +392,12 @@ class ExportActivity : AppCompatActivity() {
             outState.putLong("export_pending_end", it.endExclusiveEpochMillis)
         }
         super.onSaveInstanceState(outState)
+    }
+
+    override fun onDestroy() {
+        operationHandler.removeCallbacksAndMessages(null)
+        executor.shutdown()
+        super.onDestroy()
     }
 
     private fun restoreSelection(state: Bundle?) {
@@ -320,8 +506,4 @@ class ExportActivity : AppCompatActivity() {
         }
     }
 
-    override fun onDestroy() {
-        executor.shutdown()
-        super.onDestroy()
-    }
 }
