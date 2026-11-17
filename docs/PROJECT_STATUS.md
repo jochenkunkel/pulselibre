@@ -285,3 +285,22 @@ Issues: https://github.com/jochenkunkel/pulselibre/issues
 - **Prüfstatus:** Code committed; Gradle-/JVM-/Python-Tests nicht lokal ausgeführt. Die GitHub-Combined-Status-Abfrage für `63ede881` lieferte eine leere Statusliste; das beweist weder erfolgreichen noch fehlgeschlagenen Actions-Lauf. Full-Gates (Lint/Emulator) und S25-Gerätetest für diese Commits nicht bestätigt; keine APK-Installations- oder Produktivfreigabe.
 - **Risiko/Entscheidung:** Eine positive GFDI-5000-Antwort auf 5050 beweist keine Dateilisten- oder Historienfreigabe. Die aktiven 5050-Experimente bleiben nutzerinitiierte, unvalidierte Tests. Keine weiteren automatischen GATT-Schreibbefehle.
 - **Nächster Schritt:** CI für `5200148` und aktuellem `main`-Head über Actions-Runs/Logs verifizieren, bei Bedarf Folgefehler beheben. Danach die wiederholte COMPLETE-Callback-Regression mit deterministischen Tests absichern; PR #8 separat prüfen.
+
+
+## Dashboard und Speicher – main-Übernahme 2026-11-17
+
+- Auf ausdrückliche Nutzerfreigabe sind PR #9 (Dashboard-Hierarchie) und PR #10
+  (alte private JSONL-Nachtdatei entfernen) in `main` integriert: `f384d57`.
+  SQLite-Ereignisse und aktuelle Aufzeichnung bleiben erhalten; die alte Datei
+  wird nach Installation beim Datenbanköffnen bestmöglich entfernt.
+- Der Full-Lauf [#579](https://github.com/jochenkunkel/pulselibre/actions/runs/44058249766)
+  desselben Commits bestand Build/JVM/Lint/Test-APK; neun von zehn Android-Tests
+  bestanden. Ein vorhandener Export-UI-Test erwartete veraltete Beschriftungen
+  (`Von:`, `Bis einschließlich:`, exaktes `CSV exportieren`, `Zeitzone:`).
+  Die aktuelle Oberfläche hat separate Datums-/Zeitfelder, `Von`/`Bis`, einen
+  Exportknopf mit Symbol und die tatsächliche Zeitzonen-ID samt Endminutenhinweis.
+- Der Test wird an diesen bestehenden Bedienvertrag angepasst und prüft zusätzlich
+  beide anklickbaren Datumsfelder, Start-/Endzeit, zeitliche Reihenfolge sowie die
+  zugängliche Exportaktion. Keine Änderung an Exportdaten oder Garmin-Protokollen.
+- Vor Handyfreigabe sind der neue main-Build und der wiederholte Full-Lauf separat
+  zu prüfen; ein schneller grüner Build allein behebt den roten Emulator-Gate nicht.
