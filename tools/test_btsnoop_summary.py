@@ -69,8 +69,8 @@ class SnoopTests(unittest.TestCase):
 
     def test_truncated_record_not_counted_as_complete_att(self):
         # A capture may store fewer bytes than the original on-wire packet.
-        acl = b"\\x02" + struct.pack("<HHHH", 1 | (2 << 12), 5, 1, 4) + b"\\x0a"
-        data = b"btsnoop\\x00" + struct.pack(">II", 1, 1002)
+        acl = b"\x02" + struct.pack("<HHHH", 1 | (2 << 12), 5, 1, 4) + b"\x0a"
+        data = b"btsnoop\x00" + struct.pack(">II", 1, 1002)
         data += struct.pack(">IIIIQ", len(acl) + 8, len(acl), 0, 0, 0) + acl
         result = self.check(data)
         self.assertEqual(result["acl_records"], 1)
