@@ -310,6 +310,15 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                             if (bootstrapAckChunks.isEmpty()) bootstrapAckConfirmed = true
                             if (configurationResponseQueued && bootstrapAckChunks.isEmpty()) {
                                 configurationResponseConfirmed = true
+                                // ACK can arrive before the final GATT callback.
+                                // Re-evaluate existing evidence at write completion.
+                                if (Cirqa5050AckGate.isConfirmed(
+                                        configurationResponseQueued,
+                                        configurationResponseConfirmed,
+                                        fileListProbe.responseStatuses.keys.any { it.startsWith("request=5050/status=ACK/") }
+                                    )) {
+                                    configurationAckReceived = true
+                                }
                                 post5050Evidence.onWriteConfirmed(fileListProbe.frameTypes)
                                 // Allow a full 10 seconds after the last confirmed write.
                                 // This replaces, rather than duplicates, the original timeout.
