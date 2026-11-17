@@ -1,0 +1,292 @@
+package de.pulselibre
+
+import java.security.MessageDigest
+
+/**
+ * Small, offline FIT profile reader for explicitly supported measurement fields.
+ *
+ * It is not a complete FIT SDK implementation. It requires a valid FIT envelope
+ * and parses standard definitions, developer-field lengths, and normal/compressed
+ * timestamps. Unknown fields are skipped, never guessed or imported.
+ */
+object FitHistoricalObservations {
+    private const val FIT_EPOCH_UNIX_SECONDS = 631_065_600L
+    private const val GLOBAL_RECORD = 20
+    private const val GLOBAL_MONITORING = 55
+
+    enum class Metric(val unit: String) {
+        HEART_RATE("bpm"),
+        CADENCE("rpm"),
+        DISTANCE("m"),
+        SPEED("m/s"),
+        POWER("W"),
+        CUMULATIVE_STEPS("steps")
+    }
+
+    enum class Quality { PROFILE_VALID, MISSING_TIMESTAMP, OUTSIDE_DISPLAY_RANGE }
+
+    data class Observation(
+        val metric: Metric,
+        val timestampEpochMillis: Long?,
+        val value: Double,
+        val unit: String,
+        val sourceFileSha256: String,
+        val recordOrdinal: Int,
+        val globalMessageNumber: Int,
+        val fieldNumber: Int,
+        val quality: Quality,
+        /** Stable for idempotent re-import of the same original FIT file. */
+        val idempotencyKey: String,
+        /** Flags exact same-time/value observations across files without deleting them. */
+        val duplicateFingerprint: String
+    )
+
+    data class Result(
+        val observations: List<Observation>,
+        val dataRecordCount: Int,
+        val unsupportedMeasurementFieldCount: Int
+    ) {
+        fun potentialDuplicates(): List<List<Observation>> =
+            observations.groupBy { it.duplicateFingerprint }
+                .values.filter { it.size > 1 }
+    }
+
+    private data class FieldDefinition(val number: Int, val size: Int, val baseType: Int)
+    private data class Definition(
+        val globalNumber: Int,
+        val bigEndian: Boolean,
+        val fields: List<FieldDefinition>,
+        val developerFieldSizes: List<Int>
+    )
+
+    /**
+     * Decodes only Garmin FIT Profile fields with explicit mappings below.
+     * Malformed file structure returns null. Invalid/sentinel fields are omitted.
+     */
+    fun decode(file: ByteArray): Result? {
+        val header = FitFileHeader.inspectVerified(file) ?: return null
+        val dataEnd = header.headerSize + header.dataSize.toInt()
+        val fileSha = sha256(file)
+        val definitions = arrayOfNulls<Definition>(16)
+        val observations = mutableListOf<Observation>()
+        var cursor = header.headerSize
+        var previousFitTimestamp: Long? = null
+        var recordOrdinal = 0
+        var unsupportedFields = 0
+
+        fun requireBytes(count: Int): Boolean =
+            count >= 0 && cursor <= dataEnd - count
+
+        fun u8(index: Int): Int = file[index].toInt() and 0xff
+
+        while (cursor < dataEnd) {
+            if (!requireBytes(1)) return null
+            val headerByte = u8(cursor++)
+            val compressed = headerByte and 0x80 != 0
+
+            if (!compressed && headerByte and 0x40 != 0) {
+                // FIT definition message. Reserved bits/bytes must be zero.
+                if (headerByte and 0x10 != 0 || !requireBytes(5)) return null
+                val localType = headerByte and 0x0f
+                val reserved = u8(cursor++)
+                val architecture = u8(cursor++)
+                if (reserved != 0 || architecture !in 0..1) return null
+                val globalNumber = readU16(file, cursor, architecture == 1)
+                cursor += 2
+                val fieldCount = u8(cursor++)
+                if (!requireBytes(fieldCount * 3)) return null
+                val fields = ArrayList<FieldDefinition>(fieldCount)
+                repeat(fieldCount) {
+                    val fieldNumber = u8(cursor++)
+                    val size = u8(cursor++)
+                    val baseType = u8(cursor++)
+                    if (size == 0) return null
+                    fields += FieldDefinition(fieldNumber, size, baseType)
+                }
+                val developerSizes = mutableListOf<Int>()
+                if (headerByte and 0x20 != 0) {
+                    if (!requireBytes(1)) return null
+                    val developerCount = u8(cursor++)
+                    if (!requireBytes(developerCount * 3)) return null
+                    repeat(developerCount) {
+                        val size = u8(cursor + 1)
+                        if (size == 0) return null
+                        developerSizes += size
+                        cursor += 3 // field number, size, developer-data index
+                    }
+                }
+                definitions[localType] = Definition(
+                    globalNumber, bigEndian = architecture == 1,
+                    fields = fields, developerFieldSizes = developerSizes
+                )
+                continue
+            }
+            if (!compressed && headerByte and 0x30 != 0) return null
+
+            val localType = if (compressed) (headerByte ushr 5) and 0x03
+                else headerByte and 0x0f
+            val definition = definitions[localType] ?: return null
+            val compressedTimestampField = if (compressed) {
+                definition.fields.firstOrNull { it.number == 253 } ?: return null
+            } else null
+
+            val fieldBytes = LinkedHashMap<FieldDefinition, Int>()
+            for (field in definition.fields) {
+                if (compressed && field == compressedTimestampField) continue
+                if (!requireBytes(field.size)) return null
+                fieldBytes[field] = cursor
+                cursor += field.size
+            }
+            for (size in definition.developerFieldSizes) {
+                if (!requireBytes(size)) return null
+                cursor += size
+            }
+
+            val fitTimestamp = if (compressed) {
+                val old = previousFitTimestamp ?: return null
+                val delta = headerByte and 0x1f
+                var reconstructed = (old and -32L) + delta
+                if (reconstructed < old) reconstructed += 32
+                reconstructed
+            } else {
+                val timestampField = definition.fields.firstOrNull { it.number == 253 }
+                val offset = timestampField?.let(fieldBytes::get)
+                offset?.let {
+                    readUnsigned32(file, it, timestampField.size, definition.bigEndian, timestampField)
+                }
+            }
+            if (fitTimestamp != null && fitTimestamp != 0xffff_ffffL) {
+                previousFitTimestamp = fitTimestamp
+            }
+            val timestampMillis = fitTimestamp
+                ?.takeIf { it != 0xffff_ffffL }
+                ?.let { (it + FIT_EPOCH_UNIX_SECONDS) * 1_000L }
+
+            if (definition.globalNumber == GLOBAL_RECORD || definition.globalNumber == GLOBAL_MONITORING) {
+                recordOrdinal++
+                for ((field, offset) in fieldBytes) {
+                    val mapped = mapping(definition.globalNumber, field.number) ?: continue
+                    val raw = readSupportedUnsigned(file, offset, field, definition.bigEndian, mapped.baseType)
+                    if (raw == null) {
+                        unsupportedFields++
+                        continue
+                    }
+                    if (raw == invalidSentinel(field)) continue
+                    // A data field without a valid timestamp is retained as an
+                    // explicitly non-importable observation for quality auditing.
+                    val value = mapped.scale(raw)
+                    val quality = when (mapped.metric) {
+                        Metric.HEART_RATE -> if (value in 1.0..240.0)
+                            if (timestampMillis == null) Quality.MISSING_TIMESTAMP else Quality.PROFILE_VALID
+                            else Quality.OUTSIDE_DISPLAY_RANGE
+                        else -> if (timestampMillis == null) Quality.MISSING_TIMESTAMP else Quality.PROFILE_VALID
+                    }
+                    val semanticKey = "${mapped.metric.name}:${timestampMillis ?: "missing"}:${value.toBits()}"
+                    observations += Observation(
+                        metric = mapped.metric,
+                        timestampEpochMillis = timestampMillis,
+                        value = value,
+                        unit = mapped.metric.unit,
+                        sourceFileSha256 = fileSha,
+                        recordOrdinal = recordOrdinal,
+                        globalMessageNumber = definition.globalNumber,
+                        fieldNumber = field.number,
+                        quality = quality,
+                        idempotencyKey = sha256("$fileSha:$recordOrdinal:${definition.globalNumber}:${field.number}".toByteArray()),
+                        duplicateFingerprint = sha256(semanticKey.toByteArray())
+                    )
+                }
+            }
+        }
+
+        return Result(observations, recordOrdinal, unsupportedFields)
+    }
+
+    private data class Mapping(
+        val metric: Metric,
+        val baseType: Int,
+        val divisor: Double = 1.0,
+        val multiplier: Double = 1.0
+    ) {
+        fun scale(raw: Long): Double = raw.toDouble() * multiplier / divisor
+    }
+
+    private fun mapping(global: Int, field: Int): Mapping? = when (global) {
+        GLOBAL_RECORD -> when (field) {
+            3 -> Mapping(Metric.HEART_RATE, baseType = 2) // uint8, bpm
+            4 -> Mapping(Metric.CADENCE, baseType = 2) // uint8, rpm; not step cadence
+            5 -> Mapping(Metric.DISTANCE, baseType = 6, divisor = 100.0) // uint32, m
+            6 -> Mapping(Metric.SPEED, baseType = 4, divisor = 1_000.0) // uint16, m/s
+            7 -> Mapping(Metric.POWER, baseType = 4) // uint16, W
+            73 -> Mapping(Metric.SPEED, baseType = 6, divisor = 1_000.0) // enhanced_speed
+            else -> null
+        }
+        GLOBAL_MONITORING -> when (field) {
+            9 -> Mapping(Metric.CUMULATIVE_STEPS, baseType = 4, multiplier = 2.0) // 2 steps/cycle
+            27 -> Mapping(Metric.HEART_RATE, baseType = 2) // uint8, bpm
+            else -> null
+        }
+        else -> null
+    }
+
+    private fun readSupportedUnsigned(
+        file: ByteArray,
+        offset: Int,
+        field: FieldDefinition,
+        bigEndian: Boolean,
+        expectedBaseType: Int
+    ): Long? {
+        val base = field.baseType and 0x1f
+        if (base != expectedBaseType) return null
+        val expectedSize = when (base) {
+            2 -> 1 // uint8
+            4 -> 2 // uint16
+            6 -> 4 // uint32
+            else -> return null
+        }
+        if (field.size != expectedSize) return null
+        return when (expectedSize) {
+            1 -> (file[offset].toInt() and 0xff).toLong()
+            2 -> readU16(file, offset, bigEndian).toLong()
+            else -> readU32(file, offset, bigEndian)
+        }
+    }
+
+    private fun readUnsigned32(
+        file: ByteArray,
+        offset: Int,
+        size: Int,
+        bigEndian: Boolean,
+        field: FieldDefinition
+    ): Long? {
+        if (size != 4 || field.baseType and 0x1f != 6) return null
+        return readU32(file, offset, bigEndian)
+    }
+
+    private fun invalidSentinel(field: FieldDefinition): Long = when (field.baseType and 0x1f) {
+        2 -> 0xffL
+        4 -> 0xffffL
+        6 -> 0xffff_ffffL
+        else -> Long.MIN_VALUE
+    }
+
+    private fun readU16(bytes: ByteArray, offset: Int, bigEndian: Boolean): Int {
+        val a = bytes[offset].toInt() and 0xff
+        val b = bytes[offset + 1].toInt() and 0xff
+        return if (bigEndian) (a shl 8) or b else a or (b shl 8)
+    }
+
+    private fun readU32(bytes: ByteArray, offset: Int, bigEndian: Boolean): Long {
+        var value = 0L
+        if (bigEndian) {
+            for (i in 0..3) value = (value shl 8) or (bytes[offset + i].toLong() and 0xff)
+        } else {
+            for (i in 3 downTo 0) value = (value shl 8) or (bytes[offset + i].toLong() and 0xff)
+        }
+        return value
+    }
+
+    private fun sha256(value: ByteArray): String =
+        MessageDigest.getInstance("SHA-256").digest(value)
+            .joinToString("") { "%02x".format(it.toInt() and 0xff) }
+}

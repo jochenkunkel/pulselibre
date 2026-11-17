@@ -34,7 +34,7 @@ Garmin Connect 5.31, versionCode 11761; APK-Bundle SHA-256 `a7cbd2bdde76d4fb804c
 
 ## 2026-11-17: Listener gefunden; Korrektur der Sync-Pfadzuordnung
 
-Die ausführliche vom Benutzer gelieferte OpenCode-Datei identifiziert `classes12.dex:defpackage.v5d` (`DeviceSyncManager`) als konkrete `l860`-Implementierung. `C0375m860` ruft den in `p860.f` gehaltenen Listener auf; **die konkrete Registrierung der v5d-Instanz bleibt offen**. `v5d.h` prüft initialisierte Sync-Bibliothek, Credentials, DeviceProfile/Verbindung, abgeschlossenen GFDI-Handshake, App-Sync-Zustand und Internet. Erst danach wird die `hqi`-FULL_SYNC-Strategie gestartet.
+Die ausführliche vom Benutzer gelieferte OpenCode-Datei identifiziert `classes12.dex:defpackage.v5d` (`DeviceSyncManager`) als konkrete `l860`-Implementierung. `DeviceSyncService.onCreate()` ruft `vlj.c(...).a.b(v5d.f())` auf; `vlj.a` ist `e68`, und `e68.b(ConnectionCallback)` trägt `v5d` in das Connection-Callback-Set ein. Das belegt die Registrierung als **ConnectionCallback**, nicht als `l860`-Listener in `p860.f`. `C0375m860` ruft einen dort gehaltenen Listener nur auf, wenn die AtomicReference nicht null ist; eine Zuweisung `v5d` → `p860.f` ist nicht gefunden und bleibt unbelegt. `v5d.h` prüft initialisierte Sync-Bibliothek, Credentials, DeviceProfile/Verbindung, abgeschlossenen GFDI-Handshake, App-Sync-Zustand und Internet. Erst danach wird die `hqi`-FULL_SYNC-Strategie gestartet.
 
 Die FULL_SYNC-Komponenten sind laut Analyse geordnet: `x6d` (Zeit-Sync), `a7d` (Gerät-zu-Host-Pending-Uploads) und `p5d` (Download-Queue). `a7d` verlangt globale Upload-Freigabe und aktivierten Auto-Upload. Der belegte **Legacy-Verzeichnisweg** ist dann `DeviceManager.listFiles(filter=3)` → `PENDING_UPLOADS_ONLY` → **GFDI 5007 Directory Filter** → gegebenenfalls **5031 Supported File Types** → **5002 Download File (Directory-Index 0)** → eingehende **5004 File Data**. Der Parser überspringt 16 Headerbytes und liest 16-Byte-Einträge. Dies ist eine Connect-Codebeobachtung, keine verifizierte CIRQA-Übertragung.
 
@@ -140,7 +140,7 @@ byte 0x01
 
 `p860.requestSync` hat separat diese Bedingungen: bei Geräte-Capability 5 sendet es `GDICore.SyncRequest` und setzt, sofern möglich, `useThisConnection=false`; ohne Bit 5 führt Bit 90 zur Ablehnung als nicht anwendbar für Sync 2; ansonsten sendet Gerätebit 4 `HOST_DID_ENTER_FOREGROUND`, andernfalls wird `f()` über einen einmaligen Gate aufgerufen. Diese Pfade sind nicht mit einem Host-FileRequest gleichzusetzen.
 
-`v5d` implementiert `l860`, jedoch ist die Runtime-Zuweisung an `p860.f` nicht gefunden und bleibt **unbekannt**. Wenn `v5d` den Callback erhält, verlangt `FULL_SYNC` initialisierte Sync-Library, gültige Credentials, verbundenes DeviceProfile, abgeschlossenen GFDI-Handshake, Internet, keinen app-eigenen und keinen konkurrierenden Sync. CIRQA erfüllt diese Gates nicht nachweislich; seine Capability-Konfiguration bleibt unbekannt.
+`v5d` implementiert `l860`, ist aber separat nachweislich als `ConnectionCallback` in `e68` registriert. Die Runtime-Zuweisung an `p860.f` ist nicht gefunden und bleibt **unbekannt**. Wenn `v5d` den Sync-Callback erhält, verlangt `FULL_SYNC` initialisierte Sync-Library, gültige Credentials, verbundenes DeviceProfile, abgeschlossenen GFDI-Handshake, Internet, keinen app-eigenen und keinen konkurrierenden Sync. CIRQA erfüllt diese Gates nicht nachweislich; seine Capability-Konfiguration bleibt unbekannt.
 
 ### Directory-Felder, 5004-Korrekturen, Dateiablage
 

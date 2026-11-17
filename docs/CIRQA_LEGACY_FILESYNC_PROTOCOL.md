@@ -2,9 +2,19 @@
 
 Stand 2026-11-17. Grundlage: vom Projektinhaber bereitgestellter vollständiger Bericht `GARMIN_CONNECT_531_FILESYNC_REVERSE_ENGINEERING.md` (410 Zeilen) und `GARMIN_CONNECT_531_HANDSHAKE_TEST_NOTES.md` (151 Zeilen). Diese Beschreibung ist **Connect-Code-Evidenz**, keine nachgewiesene CIRQA-Kompatibilität.
 
+## FIT-Offline-Auswertung (kein Geräteimport)
+
+`FitHistoricalObservations` dekodiert nach bestandenem FIT-Header-/Datei-CRC-Check nur ausgewählte Standardfelder. Die Feldnummern, Basistypen, Einheiten und Skalierungen wurden gegen Garmins `fit-python-sdk` `Profile.py`, Profilversion **21.221.0**, geprüft: https://github.com/garmin/fit-python-sdk/blob/main/garmin_fit_sdk/profile.py
+
+Unterstützt sind Record (Global Message 20) Timestamp 253, Herzfrequenz 3, Kadenz 4, Distanz 5, Speed 6/73 und Leistung 7; außerdem Monitoring (Global Message 55) Timestamp 253, `cycles_16` 9 und Herzfrequenz 27. `cycles_16` ist laut Profil als `2 * cycles (steps)` dokumentiert und wird entsprechend verdoppelt. Kadenz bleibt rpm und wird ausdrücklich **nicht** als Schrittzahl interpretiert. Andere Felder, insbesondere unbekannte Developer Fields, werden übersprungen.
+
+Der Parser verarbeitet FIT-Definitionen, Endianness, Developer-Field-Größen und normale/komprimierte FIT-Zeitstempel; ungültige Feldsentinels werden ausgelassen. Herzfrequenz außerhalb 1–240 bpm wird als `OUTSIDE_DISPLAY_RANGE` markiert (Qualitätsflag, keine klinische Grenze). Ohne Zeitstempel bleibt ein Wert mit `MISSING_TIMESTAMP` erhalten, darf aber nicht in eine zeitbasierte kanonische Datenbank importiert werden. SHA-256 des Originalfiles plus Nachrichten-/Feldordinal bilden den Reimport-Schlüssel; ein getrenntes Fingerprint markiert identische Zeit-/Wertbeobachtungen lediglich als mögliche Duplikate. Nichts wird automatisch zusammengeführt, verworfen oder in die Datenbank geschrieben.
+
+Diese Offline-Komponente verarbeitet valide FIT-Bytes unabhängig von Herkunft. Sie beweist weder CIRQA-Kompatibilität noch Download-/Importfreigabe; der historische BLE-Transfer bleibt bis zu CIRQA-spezifischen Antworten und Sicherheitsfreigabe gesperrt.
+
 ## Zwei getrennte Wege
 
-**Legacy FULL_SYNC (Connect):** 5050-Hostresponse-Completion → 5030 `HANDSHAKE_COMPLETE` (8) → unter Bedingungen `p860.f()` → `l860` (Implementierung `v5d`, tatsächliche Registrierung unbekannt) → `hqi` FULL_SYNC → Zeit-Sync `x6d` → Upload-Komponente `a7d` → `FileManager` → 5007 → ggf. 5031 → 5002 Index 0 → 5004 Directory-Daten → einzelne Dateiindizes per 5002/5004.
+**Legacy FULL_SYNC (Connect):** 5050-Hostresponse-Completion → 5030 `HANDSHAKE_COMPLETE` (8) → unter Bedingungen `p860.f()` → optionaler `l860`-Callback (Implementierung `v5d`; als `ConnectionCallback` bei `DeviceSyncService.onCreate()` registriert, aber Bindung an `p860.f` unbelegt) → `hqi` FULL_SYNC → Zeit-Sync `x6d` → Upload-Komponente `a7d` → `FileManager` → 5007 → ggf. 5031 → 5002 Index 0 → 5004 Directory-Daten → einzelne Dateiindizes per 5002/5004.
 
 **Separater CoreTransfer:** `CoreTransferManager → AgentQueueHelper → FileTransferManager → GDIFileAccess.ItemListRequest` in `GDISmartProto.Smart`. Kein nachgewiesener Übergang vom `l860`-Legacy-Pfad. Nicht mit Legacy-GFDI vermischen.
 
@@ -87,7 +97,7 @@ Connect ignoriert trailing 1–15 Bytes; PulsLibre lehnt unvollständige Einträ
 
 ## Umsetzung und Grenzen
 
-Offline implementiert: `CirqaLegacyDirectoryParser`, `CirqaLegacyFileTypesParser` mit JVM-Tests; passiver GFDI-Zähler `CirqaLegacyDirectoryObserver`. Kein neuer BLE-Sendepfad. CRC-Primitive, aktualisierter DEX-Vergleichsfluss und 5002-Serialisierung sind aus Connect-Code rekonstruiert; offen bleiben reale CIRQA-Capabilities, v5d-Registrierung, Dateiauswahl und CIRQA-Antworten. Der abgelehnte `0x8A39`-Kandidat bleibt deaktiviert. Kein Upload-Flag setzen, kein Löschen, kein CLOSE_ALL.
+Offline implementiert: `CirqaLegacyDirectoryParser`, `CirqaLegacyFileTypesParser` mit JVM-Tests; passiver GFDI-Zähler `CirqaLegacyDirectoryObserver`. Kein neuer BLE-Sendepfad. CRC-Primitive, aktualisierter DEX-Vergleichsfluss und 5002-Serialisierung sind aus Connect-Code rekonstruiert; offen bleiben reale CIRQA-Capabilities, eine mögliche `v5d`-zu-`p860.f` Sync-Listener-Bindung, Dateiauswahl und CIRQA-Antworten. Die separate Registrierung von `v5d` als ConnectionCallback ist belegt. Der abgelehnte `0x8A39`-Kandidat bleibt deaktiviert. Kein Upload-Flag setzen, kein Löschen, kein CLOSE_ALL.
 
 **Mutationswarnung:** Connects `a7d` ruft nach erfolgreichem Server-Upload `archiveFile(fileIndex)` auf. `DeviceManager.archiveFile` delegiert an asynchrones `FileManagerCompat.archive`; das ist geräteseitige Mutation und für PulsLibre verboten. Auch ERASE/WRITE/Flagänderungen dürfen im ersten Abrufpfad nicht auftreten. Die genaue Archive-Wire-Nachricht und deren Geräteseiteneffekt wurden nicht vollständig dekodiert.
 
