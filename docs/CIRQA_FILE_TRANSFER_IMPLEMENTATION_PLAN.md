@@ -104,3 +104,7 @@ No user authorization in this document activates BLE behavior.
 * No device-mutating operation in the captured/reviewed send path.
 * Repeat download yields one local item (idempotent); disconnect does not create a completed partial.
 * Tests and CI status for exact commit recorded. A successful GFDI registration, 5050 ACK, 5037 signal or Connect source analysis alone does not meet this bar.
+
+## Offline-Integritätsschritt (2026-11-17)
+
+`CirqaLegacyOfflineFileSession.completedVerifiedFit()` gibt einen vollständigen, nicht als Directory-Index 0 behandelten Dateiinhalt ausschließlich dann als defensive Kopie heraus, wenn die 5004-Chunks durch den **injizierten** Transport-CRC-Prüfer akzeptiert wurden und zusätzlich `FitFileHeader.inspectVerified` den FIT-Header und die FIT-Datei-CRC validiert. Tests umfassen eine synthetische FIT-Datei mit gültiger CRC, korrupte Datei-CRC und den Directory-Ausschluss. **Wichtig:** Die injizierte Test-CRC ist nicht der nachgewiesene Garmin-Transportalgorithmus; der Baustein ist weder an BLE noch an Dateipersistenz angeschlossen. FIT-CRC ist eine Integritätsprüfung, kein Herkunfts-/Authentizitätsbeweis. Die Stufe `ATOMIC_LOCAL_COMMIT` bleibt offen.
