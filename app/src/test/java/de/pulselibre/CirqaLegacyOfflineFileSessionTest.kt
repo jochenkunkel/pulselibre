@@ -47,6 +47,41 @@ class CirqaLegacyOfflineFileSessionTest {
         assertEquals(CirqaLegacyOfflineFileSession.Phase.FAILED, b.phase)
     }
 
+    @Test fun completedFitRequiresIndependentFileCrc() {
+        // Known synthetic 12-byte FIT envelope, no health records.
+        val valid = byteArrayOf(
+            0x0c, 0x20, 0x64, 0, 0, 0, 0, 0,
+            0x2e, 0x46, 0x49, 0x54, 0x27, 0x29
+        )
+        val good = session(42)
+        assertTrue(good.beginWithVerifiedSize(byteArrayOf(0, 0, 0, 0, 0), valid.size))
+        assertNull(good.completedVerifiedFit())
+        assertEquals(CirqaLegacyPlainFileAssembler.Result.COMPLETE,
+            good.accept5004(chunk(0, valid)))
+        assertArrayEquals(valid, good.completedVerifiedFit())
+
+        val corrupt = valid.copyOf()
+        corrupt[13] = 0
+        val bad = session(43)
+        assertTrue(bad.beginWithVerifiedSize(byteArrayOf(0, 0, 0, 0, 0), corrupt.size))
+        assertEquals(CirqaLegacyPlainFileAssembler.Result.COMPLETE,
+            bad.accept5004(chunk(0, corrupt)))
+        assertNull(bad.completedVerifiedFit())
+        assertArrayEquals(corrupt, bad.completedFile())
+    }
+
+    @Test fun directoryCannotBeExportedAsFit() {
+        val s = session(0)
+        val fit = byteArrayOf(
+            0x0c, 0x20, 0x64, 0, 0, 0, 0, 0,
+            0x2e, 0x46, 0x49, 0x54, 0x27, 0x29
+        )
+        assertTrue(s.beginWithVerifiedSize(byteArrayOf(0, 0, 0, 0, 0), fit.size))
+        assertEquals(CirqaLegacyPlainFileAssembler.Result.COMPLETE,
+            s.accept5004(chunk(0, fit)))
+        assertNull(s.completedVerifiedFit())
+    }
+
     @Test fun fileTransferDoesNotPretendToBeDirectory() {
         val s = session(12)
         assertTrue(s.beginWithVerifiedSize(byteArrayOf(0, 0, 0, 0, 0), 2))
