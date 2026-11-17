@@ -28,3 +28,9 @@ Fehlt ein Beleg, ist das Ergebnis **NO_SESSION_EVIDENCE** oder **WRONG_SESSION**
 `CirqaCompactSessionObserver` ist nun in `GarminFileListProbe` integriert. Der Diagnosebericht zeigt CRC-geprüfte kompakte **RX**-Frames, die zuletzt beobachtete Sequenz/Counter/Kennung sowie Duplikate und Diskontinuitäten. Der Observer speichert keine Protobuf-Nutzdaten. Unit-Tests prüfen CRC-Ablehnung, Wraparound, Duplikate und Sprünge.
 
 **Wesentliche Einschränkung:** Empfangene Geräte-Zähler sind nicht gleichbedeutend mit dem Host-Sendezähler. Der Observer speist das Freigabegate ausdrücklich **nicht**; der aktive FileList-Sendepfad bleibt deaktiviert. Erst CIRQA-spezifisch belegte TX-Zähler erlauben eine belastbare Freigabe.
+
+## Realgerät: passive Historien-Diagnose (17.11.2026)
+
+Nutzerbericht: GFDI-Registrierung bestätigt; 5 Notifications (1 Registrierung, 4 GFDI); alle vier GFDI-Frames sind CRC-gültige 5024-DeviceInformation, drei Wiederholungen; 5024-ACK nicht gesendet; 5050=0, 5037=0, FileListResponse=0; kompakte RX-Frames=0, TX-Session-Zähler unbekannt. Keine negativen Antworten und keine ungültigen Frames.
+
+**Interpretation:** Der passive Modus erreicht ohne 5024-ACK keine spätere Bootstrap-Phase. Null kompakte Frames ist kein Beweis für falsche Counter oder fehlende FileSync-V2-Unterstützung. Dieser Test darf nicht als Zählertest gewertet werden. Vor einer aktiven FileList-Probe zuerst den bereits implementierten expliziten 5024+5050-Diagnosepfad nutzen, um nach bestätigter 5050-Antwort passiv nach kompakten Frames zu suchen. Selbst dann bleibt RX ≠ TX; der Sendepfad ist weiter gesperrt.
