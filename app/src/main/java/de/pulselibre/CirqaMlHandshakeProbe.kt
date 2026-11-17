@@ -268,6 +268,9 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         requestedCloseAll = closeAll
         session = GarminMlHandshake.Session(closeAll)
         result("ML-Test: Verbinde und suche Garmin-Dienste …")
+        if (bootstrapAckMode || configurationTestMode) {
+            result(Cirqa5024AndroidHostEvidence.inspect(context).summary())
+        }
         try {
             gatt = device.connectGatt(context, false, object : BluetoothGattCallback() {
                 override fun onConnectionStateChange(g: BluetoothGatt, status: Int, state: Int) {
