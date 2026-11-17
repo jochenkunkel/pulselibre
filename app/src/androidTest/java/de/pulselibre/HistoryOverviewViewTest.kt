@@ -34,6 +34,23 @@ class HistoryOverviewViewTest {
         }
     }
 
+    @Test fun compactLegendUsesIconsAndKeepsFullMeaningAccessible() {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val end = Instant.parse("2026-11-17T12:00:00Z")
+        InstrumentationRegistry.getInstrumentation().runOnMainSync {
+            val view = HistoryOverviewView(context) { range ->
+                HistorySnapshot(range, range.startAt(end), end, emptyList(), emptyList())
+            }
+            view.refresh()
+            val legend = descendants(view).single { it.contentDescription?.startsWith("Verlaufslegende.") == true }
+            assertTrue(legend.contentDescription.contains("Empfang auf dem Telefon"))
+            assertTrue(legend.contentDescription.contains("Median"))
+            assertTrue(legend.contentDescription.contains("Leere Fenster"))
+            assertEquals(3, descendants(legend).filterIsInstance<DashboardInfoIconView>().size)
+            assertFalse(containsText(view, "Werte werden je Zeitfenster als Median"))
+        }
+    }
+
     @Test fun chartAccessibilityReportsOnlyStoredPointsAndNoInterpolation() {
         val context = ApplicationProvider.getApplicationContext<Context>()
         val end = Instant.parse("2026-11-17T12:00:00Z")

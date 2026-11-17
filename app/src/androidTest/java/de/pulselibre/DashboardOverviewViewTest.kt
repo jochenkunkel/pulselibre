@@ -63,6 +63,19 @@ class DashboardOverviewViewTest {
         }
     }
 
+    @Test fun stepCounterExplanationIsCompactButFullyAccessible() {
+        InstrumentationRegistry.getInstrumentation().runOnMainSync {
+            val view = DashboardOverviewView(context(1f, 400))
+            view.render(emptyList())
+            val chip = descendants(view).single { it.contentDescription?.startsWith("Tagesstand.") == true }
+            assertTrue(chip.contentDescription.contains("kumulativer Gerätezähler"))
+            assertTrue(chip.contentDescription.contains("nicht addiert"))
+            assertTrue(descendants(chip).any { it is DashboardMetricIconView })
+            assertFalse(descendants(view).filterIsInstance<android.widget.TextView>()
+                .any { it.text.toString().contains("kumulativer Tageszähler, keine Summe") })
+        }
+    }
+
     @Test fun largeFontsStackButNarrowDefaultScreensKeepTwoColumnsAndHideReceiptNotes() {
         InstrumentationRegistry.getInstrumentation().runOnMainSync {
             for ((scale, width, stacked) in listOf(Triple(2f, 400, true), Triple(1f, 320, false))) {
