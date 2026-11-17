@@ -25,6 +25,7 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
     private val muted = palette.muted
     private val violet = palette.accent
     private var lastPulse: HeartRateGaugeModel? = null
+    private var stepGoal: Int? = null
 
     init {
         orientation = VERTICAL
@@ -35,6 +36,7 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
 
     fun render(metrics: List<DashboardMetric>, activity: StepActivityEstimate = StepActivityEstimate.UNKNOWN) {
         removeAllViews()
+        stepGoal = metrics.firstOrNull { it.title == "Schrittziel" }?.value?.toIntOrNull()
         val overview = dashboardOverview(metrics)
         addView(label("Deine Messwerte · lokal gespeichert", 12f, muted),
             LayoutParams(-1, -2).apply { bottomMargin = dp(12) })
@@ -90,6 +92,12 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
         addView(header(metric))
         addView(label(metric.value, 22f, accent, true),
             LayoutParams(-1, -2).apply { topMargin = dp(6) })
+        val profile = MetricReferenceProfile.forMetric(metric, stepGoal)
+        val value = Regex("-?[0-9]+") .find(metric.value)?.value?.toIntOrNull()
+        if (profile != null && value != null) {
+            addView(MetricReferenceScaleView(context, profile, value, accent, ink, muted,
+                palette.track, palette.muted), LayoutParams(-1, dp(40)).apply { topMargin = dp(8) })
+        }
     }
 
     private fun card(metric: DashboardMetric) = LinearLayout(context).apply {
@@ -109,7 +117,7 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
         orientation = HORIZONTAL
         gravity = Gravity.CENTER_VERTICAL
         addView(label(metric.title, 13f, muted, true), LayoutParams(0, -2, 1f))
-        addView(ReceptionIndicatorView(context, metric).apply {
+        addView(ReceptionIndicatorView(context, metric, stepGoal).apply {
             tag = "reception_indicator_${metric.title}"
             minimumWidth = dp(48)
             minimumHeight = dp(48)
@@ -138,7 +146,11 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
 
 /** Small, individually accessible tap target; only the drawn dot changes with reception age. */
 @SuppressLint("ViewConstructor")
-private class ReceptionIndicatorView(context: Context, private val metric: DashboardMetric) : View(context) {
+private class ReceptionIndicatorView(
+    context: Context,
+    private val metric: DashboardMetric,
+    private val stepGoal: Int?
+) : View(context) {
     private val density = resources.displayMetrics.density
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val palette = AppPalette.of(context)
@@ -147,7 +159,7 @@ private class ReceptionIndicatorView(context: Context, private val metric: Dashb
     init {
         isClickable = true
         isFocusable = true
-        contentDescription = "Empfangsinformationen zu ${metric.title}: ${state.label()}. Antippen für Details."
+        contentDescription = "Quelle, Skala und Empfangsinformationen zu ${metric.title}: ${state.label()}. Antippen für Details."
         setOnClickListener { showDetails() }
     }
 
@@ -185,15 +197,52 @@ private class ReceptionIndicatorView(context: Context, private val metric: Dashb
             }
             "Empfangen: $local ($age)"
         } ?: "Für diesen Wert liegt kein Empfangszeitpunkt vor."
-        AlertDialog.Builder(context)
-            .setTitle("Empfang · ${metric.title}")
-            .setMessage("Wert: ${metric.value}\n$received\nStatus: ${currentState.label()}\n\n" +
-                "Die Farbe zeigt nur das Alter des letzten Empfangs: Grün ≤ 3 min, Gelb ≤ 15 min, " +
-                "Orange ≤ 60 min, Rot > 60 min; Grau = kein Zeitstempel. Sie bewertet weder Messqualität noch Gesundheit.\n\n" +
-                "${metric.note}\n\nDer Zeitstempel stammt vom Empfang auf dem Telefon; ein Sensor-Messzeitpunkt ist nicht belegt.")
-            .setPositiveButton("Schließen", null)
-            .show()
+        val details = LinearLayout(context).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(22), dp(8), dp(22), dp(8))
+        }
+        fun row(symbol: String, text: String, color: Int = palette.ink, url: String? = null) {
+            val line = TextView(context).apply {
+                this.text = "$symbol   $text"
+                textSize = 14f
+                setTextColor(if (url == null) color else palette.accent)
+                setPadding(0, dp(5), 0, dp(5))
+                if (url != null) {
+                    isClickable = true
+                    isFocusable = true
+                    setOnClickListener {
+                        try { context.startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(url))) }
+                        catch (_: Exception) { /* Keep the source readable if no browser is available. */ }
+                    }
+                }
+            }
+            details.addView(line)
+        }
+        val profile = MetricReferenceProfile.forMetric(metric, stepGoal)
+        row("■", "${metric.title}  ·  ${metric.value}")
+        if (profile != null) {
+            row("▬", "Skala  ${profile.minimum}–${profile.maximum} ${profile.unit}", palette.muted)
+            if (profile.referenceMinimum != null && profile.referenceMaximum != null) {
+                row("▰", "${profile.referenceMinimum}–${profile.referenceMaximum} ${profile.unit}  ·  ${profile.referenceLabel}", palette.muted)
+            }
+            profile.sourceName?.let { row("↗", "Quelle  $it", palette.accent, profile.sourceUrl) }
+            row("⚠", profile.caveat, palette.muted)
+        } else if (metric.title == "Moderate Intensitätsminuten" || metric.title == "Intensive Intensitätsminuten") {
+            row("▱", "WHO: 150–300 min moderat oder 75–150 min intensiv/Woche", palette.muted)
+            row("↗", "Quelle  WHO", palette.accent, "https://www.who.int/initiatives/behealthy/physical-activity")
+            row("⚠", "CIRQA-Zeitraum unbestätigt; kein Wochenvergleich.", palette.muted)
+        } else {
+            row("▱", metric.note, palette.muted)
+            row("⚠", "Keine validierte Normskala für diesen Gerätewert.", palette.muted)
+        }
+        row("◷", received, palette.muted)
+        row("●", "Empfangsstatus  ${currentState.label()}", palette.muted)
+        row("i", "Punktfarbe oben zeigt nur Empfangsalter, keine Gesundheit.", palette.muted)
+        AlertDialog.Builder(context).setTitle("ⓘ  ${metric.title}").setView(details)
+            .setPositiveButton("Schließen", null).show()
     }
+
+    private fun dp(value: Int) = (value * resources.displayMetrics.density + 0.5f).toInt()
 
     private fun ReceptionFreshness.label() = when (this) {
         ReceptionFreshness.UNKNOWN -> "kein Empfangszeitpunkt"

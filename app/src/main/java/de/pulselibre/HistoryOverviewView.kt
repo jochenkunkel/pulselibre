@@ -87,7 +87,24 @@ class HistoryOverviewView(
             }
             tag = "history_series_$title"
         }
-        card.addView(label(title, 16f, palette.ink, true))
+        val heading = LinearLayout(context).apply {
+            orientation = HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+        }
+        heading.addView(label(title, 16f, palette.ink, true), LayoutParams(0, -2, 1f))
+        heading.addView(TextView(context).apply {
+            text = "ⓘ"
+            textSize = 20f
+            gravity = Gravity.CENTER
+            setTextColor(palette.indicator)
+            minWidth = dp(48)
+            minHeight = dp(48)
+            isClickable = true
+            isFocusable = true
+            contentDescription = "Quelle und Skala für $title anzeigen"
+            setOnClickListener { showMetricInfo(title, unit) }
+        }, LayoutParams(dp(48), dp(48)))
+        card.addView(heading)
         card.addView(label("${points.size} Messpunkte · Skala 0–$axisMaximum $unit",
             12f, palette.muted), LayoutParams(-1, -2).apply { topMargin = dp(4) })
         if (points.isEmpty()) {
@@ -103,6 +120,42 @@ class HistoryOverviewView(
     private fun showFailure() {
         removeAllViews()
         addView(label("Der lokale Verlauf konnte nicht geladen werden.", 14f, palette.muted))
+    }
+
+    private fun showMetricInfo(title: String, unit: String) {
+        val profile = MetricReferenceProfile.forMetric(DashboardMetric(title, "Keine Messdaten", ""))
+        val content = LinearLayout(context).apply {
+            orientation = VERTICAL
+            setPadding(dp(22), dp(8), dp(22), dp(8))
+        }
+        fun row(symbol: String, text: String, url: String? = null) {
+            content.addView(TextView(context).apply {
+                this.text = "$symbol   $text"
+                textSize = 14f
+                setTextColor(if (url == null) palette.ink else palette.accent)
+                setPadding(0, dp(5), 0, dp(5))
+                if (url != null) {
+                    isFocusable = true
+                    isClickable = true
+                    setOnClickListener {
+                        try { context.startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW,
+                            android.net.Uri.parse(url))) } catch (_: Exception) { }
+                    }
+                }
+            })
+        }
+        row("▬", "Skala ${profile?.minimum ?: 0}–${profile?.maximum ?: if (unit == "%") 100 else 240} $unit")
+        profile?.referenceMinimum?.let { low ->
+            row("▰", "$low–${profile.referenceMaximum} $unit · ${profile.referenceLabel}")
+        }
+        profile?.sourceName?.let { row("↗", "Quelle $it", profile.sourceUrl) }
+        row("⚠", profile?.caveat ?: "Keine validierte Norm für Einzelmesswerte.")
+        row("◷", "Zeitstempel = Empfang auf dem Telefon.")
+        androidx.appcompat.app.AlertDialog.Builder(context)
+            .setTitle("ⓘ  $title")
+            .setView(content)
+            .setPositiveButton("Schließen", null)
+            .show()
     }
 
     private fun label(value: String, size: Float, color: Int, bold: Boolean = false) = TextView(context).apply {

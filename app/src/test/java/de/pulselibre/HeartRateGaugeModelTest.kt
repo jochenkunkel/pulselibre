@@ -20,6 +20,17 @@ class HeartRateGaugeModelTest {
         assertEquals("Oberhalb der Anzeigeskala", reading("210 bpm").scaleNote)
         assertEquals("Unterhalb der Anzeigeskala", reading("35 bpm").scaleNote)
     }
+    @Test fun dialOpensTwoHundredDegreesAndPivotLiesOnChordThroughArcEnds() {
+        assertEquals(200f, HeartRateGaugeModel.ARC_SWEEP_DEGREES, 0f)
+        val radius = 100f
+        val startY = kotlin.math.sin(Math.toRadians(HeartRateGaugeModel.ARC_START_DEGREES.toDouble())).toFloat() * radius
+        val endY = kotlin.math.sin(Math.toRadians((HeartRateGaugeModel.ARC_START_DEGREES +
+            HeartRateGaugeModel.ARC_SWEEP_DEGREES).toDouble())).toFloat() * radius
+        assertEquals(startY, endY, 0.0001f)
+        assertEquals(startY, HeartRateGaugeModel.pivotOffsetFromCircleCenter(radius), 0.0001f)
+        assertEquals(170f, HeartRateGaugeModel.needleAngle(0f), 0f)
+        assertEquals(370f, HeartRateGaugeModel.needleAngle(1f), 0f)
+    }
     @Test fun gaugeContextComesFromStepEstimateAndDefaultsToUnknown() {
         assertEquals(PulseContext.UNKNOWN, StepActivityEstimate.UNKNOWN.context)
         assertEquals(PulseContext.SPORT, PulseActivityFixture.sport.context)

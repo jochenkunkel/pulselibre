@@ -156,6 +156,33 @@ synthetischer SQLite-Datenbank prüfen Filterung, Sortierung, UI-Auswahl und lee
 Zeitreihen. Activity-Test prüft den Verlauf-Reiter. Lauf und Ergebnisse werden nach
 Abschluss der Branch-Prüfungen ergänzt.
 
+## Tachometer-Geometrie und Referenzskalen (2026-11-17)
+
+Der Puls-Tacho hat eine 200°-Öffnung (170° bis 370°). Die Nadel dreht um ihren
+Drehpunkt auf der Sehne zwischen den beiden Bogenenden. Große Skalenstriche markieren
+die Anzeigeskala 40–180 bpm; grün-gelb-orange-rot illustriert ausschließlich die
+Skalenposition, nicht die Gesundheit oder eine Trainingszone.
+
+Kleine Messkarten zeichnen Messwert und Skala als Balken. SpO₂ nutzt 0–100 %, mit einem
+neutral markierten Kontextbereich 95–100 % aus einer NHS-Patienteninformation für
+Finger-Pulsoximeter an Erwachsenen. Ruhepuls nutzt 60–100 bpm (AHA, Erwachsene); die
+Atemfrequenz 12–20/min (MedlinePlus, Erwachsene in Ruhe). Die Quellen, Kurzbezeichnung
+und Einschränkung stehen hinter dem Info-Punkt. CIRQA-SpO₂ am Handgelenk ist durch diese
+Fremdquellen nicht validiert; Ruhe- und Atemfrequenzbereiche gelten nur im jeweiligen
+Messkontext.
+
+Die Balken ändern ihre Messwertfarbe nicht in eine medizinische Ampel. Die Referenzbereiche
+werden neutral hinterlegt. Proprietäre Stress-/Body-Battery-Werte zeigen nur 0–100 der
+Geräteskala. Schritte zeigen, falls vorhanden, den Anteil am geräteseitigen Tagesziel.
+Einzelne RR-Intervalle bleiben als Millisekunden-Skala gekennzeichnet und sind keine HRV.
+WHO-Intensitätsziele (150–300 moderate oder 75–150 intensive Minuten/Woche) sind als
+Quellenhinweis verfügbar, werden aber wegen des unbestätigten CIRQA-Zeitraums nicht als
+Fortschritt oder Wochenzielbalken interpretiert. Kalorien-/Schlafwerte ohne bestätigte
+Einheiten bzw. Daten erhalten keine erfundene Normskala.
+
+Quellen und Geltungsbereiche sind in [SCIENTIFIC_REFERENCES.md](SCIENTIFIC_REFERENCES.md)
+festgehalten. Skalenprofile und Tacho-Geometrie sind durch JVM-Tests abgedeckt.
+
 Die Palette umfasst Übersicht, Gerätekarten, Navigation, Export und Profilüberschriften.
 Systemdialoge und Eingaben verwenden das bestehende AppCompat-DayNight-Theme.
 Theme- und Gauge-Modelle haben JVM-Tests; Android-Tests prüfen Light/Dark in beiden
