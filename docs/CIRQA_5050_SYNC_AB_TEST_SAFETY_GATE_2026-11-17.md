@@ -54,3 +54,9 @@ Der aktive **Nullmasken**-Diagnosepfad erkennt ein positives GFDI-5000-ACK für 
 ## Fünfter Implementierungsnachtrag: Frische ACK-Evidenz
 
 Die Nullmasken-Diagnose speichert beim Einplanen ihrer 5050-Antwort die bisherige Zahl CRC-validierter `GFDI-5000 ACK(request=5050)` aus `GarminFileListProbe.responseStatuses`. Erst wenn diese Zahl anschließend steigt **und** die komplette GATT-Schreibfolge bestätigt ist, wird `configurationAckReceived` gesetzt. `Cirqa5050AckEvidence` und zugehörige Tests sichern die Zählung gegen alte und fremde Statusmeldungen ab. Damit wird eine vor dem Queue-Zeitpunkt beobachtete ACK-Nachricht nicht mehr als Bestätigung der aktuellen Antwort fehlinterpretiert. Einschränkung: Eine nach dem Queue-Zeitpunkt empfangene, verspätete ACK-Nachricht lässt sich ohne geprüfte Sequenzkorrelation nicht eindeutig einem einzelnen Sendeversuch zuordnen. Es gibt weiterhin keinen SYNC-Bit-3-BLE-Test.
+
+## Sechster Implementierungsnachtrag: passiver 5037-Strukturdecoder
+
+Der bestehende `GarminFileListProbe` prüft jetzt nach erfolgreicher COBS-Dekodierung, GFDI-Längenprüfung und CRC-Validierung zusätzlich eingehende GFDI-5037-Bodies mit `Cirqa5037OfflineSynchronization.inspect`. Er zählt gültige und ungültige 5037-Strukturen getrennt und erfasst nur die **Anzahl** gesetzter Maskenbits. Die 5050-Diagnose zeigt diese Zähler ebenfalls an. Synthetische Unit-Tests prüfen einen gültigen 5037-Body, einen strukturell ungültigen Body und einen CRC-Fehler. Keine automatischen 5037-Antworten, Filter oder Dateianfragen wurden hinzugefügt.
+
+**Evidenzgrenze:** Ein strukturell gültiger 5037-Body ist noch kein Nachweis eines historischen Downloads oder der semantischen Richtigkeit der Dateitypbits. Die zuvor dokumentierten Frame-Typ-Zähler bleiben getrennt. Der SYNC-Bit-3-Test ist weiterhin nicht aktivierbar.
