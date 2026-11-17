@@ -3,8 +3,9 @@ package de.pulselibre
 /**
  * Offline-only decoders for Connect 5.31 legacy GFDI transfer bodies.
  *
- * Deliberately no request encoder, BLE transport, CRC acceptance or ACK sender:
- * the u45 CRC primitive and 5002 request field widths are not yet verified.
+ * No BLE transport, CRC acceptance or ACK sender. The independently
+ * reconstructed 5002 request codec and CRC-16/ARC helper live in separate
+ * offline-only classes; yw40's final comparison still needs DEX verification.
  */
 object CirqaLegacyTransferDecoder {
     enum class ReadStatus {
@@ -27,7 +28,8 @@ object CirqaLegacyTransferDecoder {
             6 -> ReadStatus.DATA_REQUESTED_EXCEEDS_FILE_SIZE
             else -> return null
         }
-        // a60.F(1, body) primitive is not yet independently verified.
+        // a60.F is verified as unsigned u32 LE; preserve bytes for the
+        // bounded interpretation in CirqaLegacy5002Codec.
         if (status == ReadStatus.SUCCESS && body.size < 5) return null
         return ReadResponse(status, if (status == ReadStatus.SUCCESS)
             body.copyOfRange(1, 5) else null)
