@@ -45,7 +45,8 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
             else metricCard(metric, palette.oxygen)
         }
         addView(metricCard(overview.sleep, violet),
-            LayoutParams(-1, -2).apply { bottomMargin = dp(16) })
+            LayoutParams(-1, -2).apply { bottomMargin = dp(8) })
+        addView(SpO2NightInsightCardView(context), LayoutParams(-1, -2).apply { bottomMargin = dp(16) })
         heading("Heute auf einen Blick")
         addStepContextChip()
         addCardPair(overview.today) { metric ->
