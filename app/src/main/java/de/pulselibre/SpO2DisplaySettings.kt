@@ -3,9 +3,9 @@ package de.pulselibre
 import android.content.Context
 
 /**
- * Display thresholds are a product orientation only.
+
  * PULSELIBRE EXPERIMENTAL HEURISTIC — NOT CLINICALLY VALIDATED for CIRQA wrist readings.
- * The color bands stay disabled until device-specific validation is explicitly recorded.
+ * Reference thresholds are an orientation preview behind the device-validation gate.
  */
 internal data class SpO2DisplaySettings(
     val greenFrom: Int = 95,
