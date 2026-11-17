@@ -97,7 +97,7 @@ object PersonalSettings {
         val spo2Green = field("Vorschau: Grün ab SpO₂ (%)", "spo2_display_green_from", true).apply {
             setText(spo2Settings.greenFrom.toString())
         }
-        val spo2Orange = field("Vorschau: Rot unter SpO₂ (%)", "spo2_display_red_below", true).apply {
+        val spo2Orange = field("Vorschau: Orange ab SpO₂ (%)", "spo2_display_red_below", true).apply {
             setText(spo2Settings.redBelow.toString())
         }
         heading("Persönliches Profil")
@@ -155,7 +155,7 @@ object PersonalSettings {
                     (restSteps.text.toString().toIntOrNull() ?: 100) >= (sportSteps.text.toString().toIntOrNull() ?: 0) ||
                     spo2Green.text.toString().toIntOrNull()?.let { it !in 2..100 } != false ||
                     spo2Orange.text.toString().toIntOrNull()?.let { it !in 1 until (spo2Green.text.toString().toIntOrNull() ?: 0) } != false) {
-                    Toast.makeText(context, "Bitte die Zahlen prüfen (Größe, Gewicht, Alter, Ziele und SpO₂-Farbbereiche).", Toast.LENGTH_LONG).show()
+                    Toast.makeText(context, "Bitte die Zahlen prüfen (Größe, Gewicht, Alter, Ziele und SpO₂-Orientierungsbereiche).", Toast.LENGTH_LONG).show()
                     return@setOnClickListener
                 }
                 ActivityDetectionPreference.save(context, ActivityDetectionSettings(
