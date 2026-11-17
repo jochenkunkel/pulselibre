@@ -27,6 +27,7 @@ class MainActivity : AppCompatActivity() {
     private var recorderRefresh: (() -> Unit)? = null
     private var dashboardPolling = false
     private var dashboardLastCount = -1L
+    private var dashboardLastRefreshAt = 0L
     private val dashboardPoll = object : Runnable {
         override fun run() {
             if (!dashboardPolling || destroyed) return
@@ -34,9 +35,11 @@ class MainActivity : AppCompatActivity() {
             if (dashboardVisible) {
                 try {
                     val count = CirqaDatabase(this@MainActivity).use { it.eventCount() }
-                    if (count != dashboardLastCount) {
-                        dashboardLastCount = count
+                    val now = System.currentTimeMillis()
+                    if (count != dashboardLastCount || now - dashboardLastRefreshAt >= 30_000L) {
                         dashboardRefresh?.invoke()
+                        dashboardLastCount = count
+                        dashboardLastRefreshAt = now
                     }
                 } catch (_: Exception) {
                     // A temporary database read error must not crash the dashboard.
@@ -49,6 +52,7 @@ class MainActivity : AppCompatActivity() {
         if (dashboardPolling) return
         dashboardPolling = true
         dashboardLastCount = -1L
+        dashboardLastRefreshAt = 0L
         handler.post(dashboardPoll)
     }
     private fun stopDashboardPolling() {
@@ -160,7 +164,12 @@ class MainActivity : AppCompatActivity() {
             setPadding(dp(2), dp(2), dp(2), dp(2))
             isClickable = true
             isFocusable = true
-            setOnClickListener { PersonalSettings.show(this@MainActivity) {} }
+            setOnClickListener {
+                PersonalSettings.show(this@MainActivity) {
+                    dashboardLastCount = -1L
+                    dashboardLastRefreshAt = 0L
+                }
+            }
         }
         headerRow.addView(avatarButton, LinearLayout.LayoutParams(dp(48), dp(48)))
         header.addView(headerRow)
@@ -264,6 +273,8 @@ class MainActivity : AppCompatActivity() {
         bodyCard.setOnClickListener {
             PersonalSettings.show(this) {
                 refreshBodyCard()
+                dashboardLastCount = -1L
+                dashboardLastRefreshAt = 0L
             }
         }
         overviewView(bodyCard, 14)
@@ -271,7 +282,8 @@ class MainActivity : AppCompatActivity() {
         overviewView(text("Gesundheit · CIRQA", 17f, ink, true), 6)
         val cirqaDashboard = DashboardOverviewView(this)
         fun updateCirqaDashboard() {
-            cirqaDashboard.render(CirqaDashboardReader(this).read().metrics)
+            val summary = CirqaDashboardReader(this).read()
+            cirqaDashboard.render(summary.metrics, summary.activity)
         }
         updateCirqaDashboard()
         dashboardRefresh = { updateCirqaDashboard() }
@@ -741,7 +753,10 @@ class MainActivity : AppCompatActivity() {
         fun selectTab(index: Int) {
             dashboardVisible = index == 0
             devicesVisible = index == 1
-            if (dashboardVisible) dashboardLastCount = -1L
+            if (dashboardVisible) {
+                dashboardLastCount = -1L
+                dashboardLastRefreshAt = 0L
+            }
             overview.forEach { it.visibility = if (index == 0) android.view.View.VISIBLE else android.view.View.GONE }
             deviceViews.forEach { it.visibility = if (index == 1 && (debugDevicesVisible || it !in debugDeviceViews)) android.view.View.VISIBLE else android.view.View.GONE }
             if (index == 1) recorderRefresh?.invoke()

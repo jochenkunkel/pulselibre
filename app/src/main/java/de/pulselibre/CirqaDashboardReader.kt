@@ -12,10 +12,16 @@ import java.time.format.DateTimeFormatter
  */
 class CirqaDashboardReader(private val context: Context) {
     data class Sample(val value: String, val receivedAt: Instant)
-    data class Summary(val metrics: List<DashboardMetric>, val samples: Int, val bytes: Long)
+    data class Summary(
+        val metrics: List<DashboardMetric>,
+        val samples: Int,
+        val bytes: Long,
+        val activity: StepActivityEstimate
+    )
 
     fun read(now: Instant = Instant.now()): Summary {
         val latest = mutableMapOf<Int, Pair<Instant, JSONObject>>()
+        val stepObservations = mutableListOf<StepObservation>()
         var count = 0
         // Read the canonical SQLite events; no legacy file import.
         val records = CirqaDatabase(context).use { db ->
@@ -30,6 +36,10 @@ class CirqaDashboardReader(private val context: Context) {
             if (service !in GarminRealtime.SUPPORTED_SERVICES) return@forEach
             count++
             if (service == 7 && time.atZone(ZoneId.systemDefault()).toLocalDate() != now.atZone(ZoneId.systemDefault()).toLocalDate()) return@forEach
+            if (service == 7 && !time.isAfter(now)) {
+                val steps = item.optLong("steps", Long.MIN_VALUE)
+                if (steps in 0L..0xFFFF_FFFFL) stepObservations += StepObservation(time.toEpochMilli(), steps)
+            }
             if (latest[service]?.first?.isBefore(time) != false) latest[service] = time to item
         }
         val fmt = DateTimeFormatter.ofPattern("dd.MM. HH:mm").withZone(ZoneId.systemDefault())
@@ -39,7 +49,8 @@ class CirqaDashboardReader(private val context: Context) {
             val good = value?.takeIf(valid)
             return DashboardMetric(title, good?.let { "$it $unit".trim() } ?: "Keine Messdaten",
                 if (good == null) "Nicht gemessen oder ungültig" else
-                    "Letzter Empfang: ${fmt.format(pair.first)} · ${if (now.epochSecond - pair.first.epochSecond > 900) "älter als 15 min" else "aktuell empfangen"}")
+                    "Empfangen: ${fmt.format(pair.first)} · ${if (now.epochSecond - pair.first.epochSecond > 900) "älter als 15 min" else "aktuell empfangen"}",
+                pair?.first)
         }
         val result = listOf(
             metric(6, "Herzfrequenz", "bpm", "bpm") { it in 1..240 },
@@ -59,6 +70,8 @@ class CirqaDashboardReader(private val context: Context) {
             DashboardMetric("Ground Rules", "Quellen & Grenzen", "Keine Diagnosen; keine geschätzten Werte; kein RR→RMSSD ohne Zeitreihe")
         )
         val bytes = CirqaDatabase(context).use { it.eventBytes() }
-        return Summary(result, count, bytes)
+        val activity = estimateStepActivity(stepObservations, now, ZoneId.systemDefault(),
+            ActivityDetectionPreference.read(context))
+        return Summary(result, count, bytes, activity)
     }
 }

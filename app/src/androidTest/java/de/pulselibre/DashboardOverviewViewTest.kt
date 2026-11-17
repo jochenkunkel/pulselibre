@@ -32,20 +32,26 @@ class DashboardOverviewViewTest {
             assertEquals("dashboard_metric_Herzfrequenz", cards[0].tag)
             assertEquals("dashboard_metric_Sauerstoffsättigung · SpO₂", cards[1].tag)
             assertEquals("dashboard_metric_Schlaf", cards[2].tag)
-            assertEquals(LinearLayout.VERTICAL, (cards[0].parent as LinearLayout).orientation)
+            assertEquals(LinearLayout.HORIZONTAL, (cards[0].parent as LinearLayout).orientation)
+            assertTrue(cards[0].findViewWithTag<View>("reception_indicator_Herzfrequenz").minimumWidth >=
+                (48 * view.resources.displayMetrics.density).toInt())
         }
     }
 
-    @Test fun largeFontsAndNarrowScreensStackCardsAndKeepReceiptNotes() {
+    @Test fun largeFontsStackButNarrowDefaultScreensKeepTwoColumnsAndHideReceiptNotes() {
         InstrumentationRegistry.getInstrumentation().runOnMainSync {
-            for ((scale, width) in listOf(2f to 400, 1f to 320)) {
+            for ((scale, width, stacked) in listOf(Triple(2f, 400, true), Triple(1f, 320, false))) {
                 val view = DashboardOverviewView(context(scale, width))
                 val note = "Letzter Empfang: 17.11. 08:00 · älter als 15 min"
                 view.render(listOf(DashboardMetric("Herzfrequenz", "71 bpm", note)))
                 val pulse = cards(view).first()
                 assertTrue(pulse.contentDescription.contains("71 bpm"))
-                assertTrue(pulse.contentDescription.contains(note))
-                assertEquals(LinearLayout.VERTICAL, (pulse.parent as LinearLayout).orientation)
+                assertFalse(pulse.contentDescription.contains(note))
+                assertEquals(if (stacked) LinearLayout.VERTICAL else LinearLayout.HORIZONTAL,
+                    (pulse.parent as LinearLayout).orientation)
+                val visibleLabels = descendants(pulse).filterIsInstance<android.widget.TextView>().map { it.text.toString() }
+                assertFalse(visibleLabels.any { it.contains("Letzter Empfang") || it.contains("älter als") })
+                assertNotNull(pulse.findViewWithTag<View>("reception_indicator_Herzfrequenz"))
                 // A later empty refresh must remove the previous observed value.
                 view.render(emptyList())
                 assertFalse(cards(view).first().contentDescription.contains("71 bpm"))
@@ -58,4 +64,7 @@ class DashboardOverviewViewTest {
         return if (view is ViewGroup) (0 until view.childCount).flatMap { cards(view.getChildAt(it)) }
         else emptyList()
     }
+
+    private fun descendants(view: View): List<View> = listOf(view) +
+        if (view is ViewGroup) (0 until view.childCount).flatMap { descendants(view.getChildAt(it)) } else emptyList()
 }

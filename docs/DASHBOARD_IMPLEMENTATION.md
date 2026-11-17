@@ -103,6 +103,32 @@ der Modus „unbekannt“. Puls oder kumulative Schritte werden nicht als automa
 Erkennung von Sitzen, Sport oder Schlaf ausgegeben. Klinische Trainingszonen und
 persönliche Ruhepulsvergleiche bleiben eine gesondert zu validierende Erweiterung.
 
+## Kompakter Tacho, Empfangsdetails und automatische Schritt-Heuristik (2026-11-17)
+
+Der Tacho und die SpO₂-Kachel stehen nebeneinander; der Tacho nutzt einen kleineren
+Kreisbogen mit durchgehendem Zeiger und einem kontinuierlichen Grün-Gelb-Orange-Rot-
+Verlauf. Farbe kodiert ausschließlich die Position auf der festen Anzeigeskala 40–180 bpm,
+keine gesundheitliche Risikozone. Modusschalter sind entfernt.
+
+Der Modus wird aus den jüngsten kumulativen CIRQA-Schrittständen abgeleitet. Standard:
+unter 10 Schritte/min = Ruhe, 10 bis einschließlich 100 = leichte Bewegung, über 100 =
+Sport. Berechnet wird die mittlere Rate im jüngsten zusammenhängenden Fünf-Minuten-Fenster.
+Das Dashboard benötigt mindestens zwei frische Werte über 30 Sekunden; Datenlücken,
+Zählerreset, Tagesgrenze, Zukunftszeitstempel oder zu alte Daten ergeben „unbekannt“.
+Fünf-Minuten-Fenster, Ruhe-/Sportgrenze und Mindestspanne sind keine klinisch validierten
+Schwellen. Ein Schrittzähler beweist weder Sitzen noch Trainingsart. Die Parameter sind in
+den lokalen Einstellungen veränderbar. Forschung und Grenzen: [SCIENTIFIC_REFERENCES.md](SCIENTIFIC_REFERENCES.md).
+
+Jede Messkachel zeigt rechts oben einen kleinen Empfangsindikator. Grün ≤3 Minuten,
+Gelb ≤15 Minuten, Orange ≤60 Minuten und Rot darüber beschreiben ausschließlich das Alter
+des letzten Telefonempfangs; ohne Zeitstempel bleibt der Punkt grau. Der Indikator öffnet
+Wert, Empfangszeit, Datenhinweis und Farblegende. Zeitstempel werden nicht mehr direkt in den
+Kacheln gezeigt; sie sind Telefon-Empfangszeiten, keine bestätigten Sensor-Messzeiten.
+
+Die Dashboard-Aktualisierung läuft spätestens alle 30 Sekunden, damit sich Empfangsalter und
+Schrittfenster auch ohne neue Ereignisse ändern. Bei Schriftvergrößerung ab 1,3 werden Kacheln
+gestapelt; bei üblichen Schriftgrößen bleiben sie auch auf schmalen Displays paarweise.
+
 ### Theme-Konfiguration
 
 In Einstellungen → Darstellung gibt es Systemeinstellung (Standard), Hell und Dunkel.
