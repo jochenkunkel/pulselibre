@@ -1,25 +1,30 @@
-# Garmin-CIRQA-Protokollentwicklung
+# CIRQA-Protokollentwicklung – Dokumentationsindex
 
-**Kanonischer Protokollvertrag:** [CIRQA-Protokollspezifikation](CIRQA_PROTOCOL_SPEC.md).
+**Kanonische Hauptspezifikation:** [CIRQA_PROTOCOL_SPEC.md](CIRQA_PROTOCOL_SPEC.md).
 
-## Spezifikation und Recherche (weitere Dokumente noch unter docs/)
+## Fachliche Unterbereiche
 
-- [Garmin-Protokollrecherche](../GARMIN_PROTOCOL_RESEARCH.md)
-- [CIRQA-Service-Discovery](../CIRQA_SERVICE_DISCOVERY.md)
-- [Offene Reverse-Engineering-Fragen](../CIRQA_REVERSE_ENGINEERING_OPEN_QUESTIONS.md)
-- [Historische Synchronisierung](../HISTORICAL_SYNC.md) und [CIRQA-History-Plan](../CIRQA_HISTORY_SYNC_PLAN.md)
-- [Dateitransfer-Implementierungsplan](../CIRQA_FILE_TRANSFER_IMPLEMENTATION_PLAN.md)
-- [S25-BLE-Testplan](../S25_BLE_TEST_PLAN.md)
-- [Historien-Download-Release-Gate](../CIRQA_HISTORICAL_DOWNLOAD_RELEASE_GATE_2026-11-17.md)
+| Ordner | Zuständigkeit | Beispiele |
+| --- | --- | --- |
+| [specifications/](specifications/) | Nachrichtenformate und dokumentierte Service-/FileSync-Verträge | Service Discovery, Legacy FileSync, 5050-ACK-Format |
+| [research/](research/) | Protokollrecherche, Reverse Engineering und Quellenvergleiche | Garmin-Protokollrecherche, 5050 Capabilities, Garmin Connect 5.3.1 |
+| [sync/](sync/) | Historische Datenübertragung und Freigabe-/Abbruchbedingungen | History Sync, File Transfer, Download Release Gate |
+| [experiments/](experiments/) | datierte technische Untersuchungen, Hypothesen und beobachtete ACKs | 5024 ACK Wire Audit, Post-5050-Evidenz, A/B-Sicherheitsprüfung |
 
-## Forschungs-/Versuchsprotokolle (nicht mit freigegebenem Protokoll verwechseln)
+## Abgrenzung und Nachweisstatus
 
-- [5050-Capabilities-Recherche](../CIRQA_5050_CAPABILITIES_RESEARCH_2026-11-17.md)
-- [5050-Test](../CIRQA_5050_TARGETED_DEVICE_TEST_2026-11-17.md), [zweiter Test](../CIRQA_5050_ACK_SECOND_DEVICE_TEST_2026-11-17.md), [dritter Test](../CIRQA_5050_THIRD_TEST_AND_PHASE_FIX_2026-11-17.md)
-- [Post-5050-Evidenz](../CIRQA_POST_5050_EVIDENCE_2026-11-17.md)
-- [FileSync-Referenzvergleich](../CIRQA_FILESYNC_REFERENCE_COMPARISON_2026-11-16.md)
-- [Garmin Connect 5.3.1 Reverse Engineering](../GARMIN_CONNECT_531_FILESYNC_REVERSE_ENGINEERING.md)
+- **Spezifikation ≠ Hypothese:** Nicht jeder Text unter `specifications/` ist am Gerät validiert; Verifikationsstatus im Dokument beachten.
+- **Forschung ≠ Implementierung:** Protokollvergleiche sind keine Freigabe zum Senden von GATT-/FileSync-Kommandos.
+- **ACK ≠ Download:** Beobachtete 5024/5050-ACKs belegen nicht, dass historische FIT-Dateien erfolgreich gelesen wurden.
+- **Protokoll-Experiment ≠ Geräte-Testbericht:** Reine Analyse und Reverse Engineering stehen hier; vollständige Ausführungsnachweise werden in [Testnachweise und Verifikation](../test-evidence/README.md) katalogisiert.
+- **Datenschutz:** keine Gerätekennungen, privaten Messwerte oder Rohpayloads in GitHub.
 
-**Sicherheitsstatus:** Beobachtete ACKs sind kein erfolgreicher Historien-Download. Keine ungefragten Gerätekommandos, Lösch-/Archivierungsflags oder Sync-Freigaben. Einzelberichte datiert lesen; aktuellen Stand aus [Projektstatus](../PROJECT_STATUS.md) ermitteln.
+## Migration und Verlinkung
 
-**Spätere Unterteilung bei geprüfter Migration:** `research/` (Literatur/Protokollhypothesen), `experiments/` (datierte Tests), `specifications/` (bestätigte Verträge). Derzeit keine unkontrollierte Verschiebung der zahlreichen 5050-Dateien.
+Am 2026-11-17 wurden **23 vorhandene Protokoll-/Forschungs-/Sync-Dokumente** in diese Unterordner kopiert und die bisherigen `docs/<Dateiname>`-Pfade zu Weiterleitungen umgewandelt. Die ursprünglichen Inhalte wurden nicht zusammengekürzt. Zusätzlich bleibt die Hauptspezifikation direkt unter `docs/protocol/`.
+
+**Achtung bei relativen Links:** Die Dokumente wurden zunächst inhaltlich unverändert übernommen. Etwaige relative Links oder Asset-Pfade innerhalb der verschobenen Originaltexte müssen gesondert geprüft und auf die neue Verzeichnistiefe angepasst werden. Der Umzug ist **kein** Beleg für einen vollständig bestandenen Linkcheck.
+
+## Weitere Dokumente im alten Pfad
+
+Einige Geräte-Testberichte und weitere CIRQA-Notizen liegen noch unter `docs/`; die gesonderte Kategorie [Testnachweise und Verifikation](../test-evidence/README.md) enthält dazu eine Übersicht. Bei weiterer Migration erst Verweise/Code-Referenzen prüfen, dann mit Kompatibilitätsweiterleitung verschieben.
