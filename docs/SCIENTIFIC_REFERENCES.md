@@ -62,3 +62,14 @@ die Messwertfarbe wird nicht nach „normal/abnormal“ geändert. Die grün-gel
 Tacho-Farbfläche bleibt eine feste Skalenillustration von 40–180 bpm, keine medizinische
 Bewertung. Schrittbalken vergleichen ausschließlich mit dem vom CIRQA gelieferten
 Tagesziel. Proprietäre Stress-/Body-Battery-Werte haben keine klinische Normalzone.
+
+
+## SpO₂-Orientierung und nächtliche Auswertung (Issue #39)
+
+Die vorgeschlagenen Orientierungsbänder 95–100 %, 90–94 % und <90 % sind eine Produktkonfiguration, keine durch diese Quellen validierte CIRQA-Grenze. Die NHS-Patienteninformation nennt 95–100 % als typische Orientierung für viele Erwachsene in Ruhe mit einem Finger-Pulsoximeter: Oxford University Hospitals NHS Foundation Trust, *How to use your pulse oximeter*, https://www.ouh.nhs.uk/redirecthandler/?id=82415Poximeter&type=patientleaflet. Die NHS-England-COVID-Heimüberwachung verwendete andere Eskalationsschwellen in einem akuten COVID-Kontext und darf nicht als Begründung für CIRQA-Wrist-Wearable-Farben oder Handlungshinweise verwendet werden: https://www.england.nhs.uk/coronavirus/documents/c0445-pulse-oximetry-to-detect-early-deterioration-of-patients-with-covid-19-in-primary-and-community-care-settings-12-january-2021/.
+
+BTS (2017), *Guideline for oxygen use in adults in healthcare and emergency settings*, Thorax 72(Suppl 1):ii1–ii90, DOI 10.1136/thoraxjnl-2016-209729, https://thorax.bmj.com/content/72/Suppl_1/ii1, behandelt klinisch verordnete Sauerstofftherapie-Zielbereiche in Versorgungskontexten. Diese Zielwerte sind keine Referenzschwellen für gesunde Wearable-Nutzer. Die FDA weist auf Grenzen/Fehlerquellen von Pulsoximetern hin, einschließlich Durchblutung, Hauttemperatur, Bewegung und Pigmentierung: https://www.fda.gov/medical-devices/products-and-medical-procedures/pulse-oximeters.
+
+Für CIRQA liegen aktuell nur dekodierte Service-19-Einzelwerte (1–100 %) mit Telefon-Empfangszeit vor. Es fehlen ein Signalqualitätskennzeichen, bestätigte Sensorvalidierung, garantierte Samplingfrequenz und ein ausreichend geprüftes Nachtfenster. Deshalb bleiben die Farben standardmäßig deaktiviert; die konfigurierbaren 95/90-Grenzen sind nur eine Vorschau. Keine Medizin- oder Alarmfunktion.
+
+Nächtliches ODI3/ODI4, Zeit unter einer SpO₂-Schwelle (T90) und Desaturationsereignisse werden nicht berechnet, solange sampling, Nachtsegmentierung, Bewegungs-/Artefaktmarkierung, Ausfallregeln und Sensorgüte nicht nachgewiesen sind. Lücken werden nicht interpoliert. Das Dashboard zeigt im Night-Insights-Panel daher ausschließlich den Nichtverfügbarkeitsstatus und erfindet weder Schlafzeiten noch Ereignisse. AASM-Scoring-Regeln sind versions-/kontextabhängig und erfordern die maßgebliche aktuelle Ausgabe: https://aasm.org/clinical-resources/scoring-manual/.
