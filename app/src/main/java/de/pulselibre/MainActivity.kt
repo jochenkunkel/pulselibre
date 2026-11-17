@@ -32,6 +32,17 @@ class MainActivity : AppCompatActivity() {
     private var dashboardPolling = false
     private var dashboardLastCount = -1L
     private var dashboardLastRefreshAt = 0L
+    private val dashboardWorker = java.util.concurrent.Executors.newSingleThreadExecutor()
+
+    private fun readDashboard(includeTotals: Boolean = false, show: (CirqaDashboardReader.Summary) -> Unit) {
+        if (dashboardWorker.isShutdown) return
+        dashboardWorker.execute {
+            val summary = try { CirqaDashboardReader(applicationContext).read(includeTotals = includeTotals) }
+                catch (_: android.database.sqlite.SQLiteException) { return@execute }
+            handler.post { if (!isFinishing && !isDestroyed) show(summary) }
+        }
+    }
+
     private val dashboardPoll = object : Runnable {
         override fun run() {
             if (!dashboardPolling || destroyed) return
@@ -277,7 +288,7 @@ class MainActivity : AppCompatActivity() {
             isClickable = true
             isFocusable = true
             setOnClickListener {
-                val summary = CirqaDashboardReader(this@MainActivity).read()
+                readDashboard(includeTotals = true) { summary ->
                 androidx.appcompat.app.AlertDialog.Builder(this@MainActivity)
                     .setTitle("Deine Messdaten")
                     .setMessage("${summary.samples} empfangene Messungen\\n" +
@@ -286,6 +297,7 @@ class MainActivity : AppCompatActivity() {
                         "Messzeit = Empfangszeit. Keine medizinische Diagnose.")
                     .setPositiveButton("Schließen", null)
                     .show()
+                }
             }
         }
         bodyHeader.addView(healthInfo, LinearLayout.LayoutParams(dp(32), dp(32)))
@@ -341,8 +353,7 @@ class MainActivity : AppCompatActivity() {
         overviewView(text("Gesundheit · CIRQA", 17f, ink, true), 6)
         val cirqaDashboard = DashboardOverviewView(this)
         fun updateCirqaDashboard() {
-            val summary = CirqaDashboardReader(this).read()
-            cirqaDashboard.render(summary.metrics, summary.activity)
+            readDashboard { summary -> cirqaDashboard.render(summary.metrics, summary.activity) }
         }
         updateCirqaDashboard()
         dashboardRefresh = { updateCirqaDashboard() }
@@ -1068,6 +1079,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
+        dashboardWorker.shutdownNow()
         stopDashboardPolling()
         dashboardRefresh = null
         connectionIndicatorRefresh = null
