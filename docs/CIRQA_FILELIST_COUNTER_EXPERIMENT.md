@@ -22,3 +22,27 @@ Fehlt ein Beleg, ist das Ergebnis **NO_SESSION_EVIDENCE** oder **WRONG_SESSION**
 4. Unit-Tests, Android-Build und bereitgestelltes Test-APK.
 
 **Aktueller Stand:** Nur Offline-Encoder, Entscheidungsgate und Unit-Tests sind implementiert. Es existiert noch **kein freigegebener aktiver Zählertest und keine neue Test-APK**. Eine GATT-Schreibbestätigung allein wäre keine Bestätigung der Protokollakzeptanz.
+
+## Passive RX-Zählerdiagnose (17.11.2026)
+
+`CirqaCompactSessionObserver` ist nun in `GarminFileListProbe` integriert. Der Diagnosebericht zeigt CRC-geprüfte kompakte **RX**-Frames, die zuletzt beobachtete Sequenz/Counter/Kennung sowie Duplikate und Diskontinuitäten. Der Observer speichert keine Protobuf-Nutzdaten. Unit-Tests prüfen CRC-Ablehnung, Wraparound, Duplikate und Sprünge.
+
+**Wesentliche Einschränkung:** Empfangene Geräte-Zähler sind nicht gleichbedeutend mit dem Host-Sendezähler. Der Observer speist das Freigabegate ausdrücklich **nicht**; der aktive FileList-Sendepfad bleibt deaktiviert. Erst CIRQA-spezifisch belegte TX-Zähler erlauben eine belastbare Freigabe.
+
+## Realgerät: passive Historien-Diagnose (17.11.2026)
+
+Nutzerbericht: GFDI-Registrierung bestätigt; 5 Notifications (1 Registrierung, 4 GFDI); alle vier GFDI-Frames sind CRC-gültige 5024-DeviceInformation, drei Wiederholungen; 5024-ACK nicht gesendet; 5050=0, 5037=0, FileListResponse=0; kompakte RX-Frames=0, TX-Session-Zähler unbekannt. Keine negativen Antworten und keine ungültigen Frames.
+
+**Interpretation:** Der passive Modus erreicht ohne 5024-ACK keine spätere Bootstrap-Phase. Null kompakte Frames ist kein Beweis für falsche Counter oder fehlende FileSync-V2-Unterstützung. Dieser Test darf nicht als Zählertest gewertet werden. Vor einer aktiven FileList-Probe zuerst den bereits implementierten expliziten 5024+5050-Diagnosepfad nutzen, um nach bestätigter 5050-Antwort passiv nach kompakten Frames zu suchen. Selbst dann bleibt RX ≠ TX; der Sendepfad ist weiter gesperrt.
+
+## Realgerät: 5024+5050 mit Null-Hostmaske (17.11.2026)
+
+Nutzerbericht: GFDI registriert (Handle 63), 5024 einmal, 5050 einmal, GFDI-5000-ACK für 5050 einmal (request=5050/status=ACK), keine negativen Antworten, keine ungültigen Frames. 5050-Antwort 15 Bytes mit **allen Host-Bits 0**, GATT-Schreibfolge bestätigt. Nach Schreibbestätigung genau ein 5000-Frame; kein 5037, 5011, FileListResponse oder kompakter RX-Frame. Ergebnis `ACK_WITHOUT_5037`.
+
+Dieser Test ist **nicht** der frühere SYNC-Bit-3-Test. Nullmaske und SYNC-Bit 3 dürfen in Vergleichen nicht vermischt werden. Das ACK beweist keine Historienfreigabe. Der passive Decoder zeigt `5050-Antwort=NICHT_GESENDET`, obwohl der aktive Test sie sendete; diese Felder betreffen unterschiedliche Komponenten und sind nicht als widersprechende BLE-Evidenz zu interpretieren. RX- und TX-Counter bleiben unbekannt; der FileList-Sendepfad bleibt deaktiviert.
+
+## 5050-Vergleich: maschinell prüfbare Auswertung
+
+`Cirqa5050ExperimentComparison` vergleicht die Nullmaske und SYNC-Bit-3-Probe getrennt. Die Auswertung unterscheidet `NOT_CONFIRMED`, `ACK_ONLY`, `SYNC_SIGNAL` (gültiges 5037 nach ACK) und `FILE_LIST_OBSERVED`. Ein frisches GFDI-5000-ACK ohne 5037 wird **nicht** als erfolgreiche Synchronisation klassifiziert. Vier Unit-Tests decken die entscheidenden Grenzen ab. Dies ist ausschließlich Offline-Logik; kein neuer BLE-Sendepfad, keine neue Test-APK.
+
+Die bereits bekannten Realgerätberichte ergeben für beide 5050-Masken nur `ACK_ONLY` (`SAME_ACK_ONLY`), sofern die jeweiligen ACKs bestätigt sind. Die nächste belastbare Hypothese betrifft einen fehlenden Übergangsschritt nach 5050, nicht eine nachgewiesene falsche FileSync-Sequenz.
