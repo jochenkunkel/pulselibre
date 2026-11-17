@@ -433,7 +433,9 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     fileListProbe.observeMlPayload(bytes.copyOfRange(1, bytes.size))
                     if (configurationTestMode) post5050Evidence.observe(fileListProbe.frameTypes)
                     if (configurationTestMode && configurationResponseQueued &&
-                        fileListProbe.malformedSynchronizationShapes > configurationMalformed5037Baseline) {
+                        Cirqa5050Malformed5037Guard.shouldAbort(
+                            configurationMalformed5037Baseline, fileListProbe.malformedSynchronizationShapes
+                        )) {
                         finish("Sicherheitsabbruch: ungültige 5037-Synchronisationsstruktur nach 5050.", g)
                         return
                     }
