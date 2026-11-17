@@ -50,6 +50,9 @@ data class MetricReferenceProfile(
             "Schritte (Tageszähler)" -> stepGoal?.takeIf { it > 0 }?.let {
                 MetricReferenceProfile(0, it, "Schritte", caveat = "Fortschritt zum geräteeigenen Tagesziel, keine WHO-Norm.")
             }
+            "Tagesziel Schritte" -> MetricReferenceProfile(
+                0, 100, "%", caveat = "Produktfortschritt zum vom Gerät gelieferten Tagesziel; keine Gesundheitsbewertung oder Bewegungsempfehlung."
+            )
             else -> null
         }
     }
