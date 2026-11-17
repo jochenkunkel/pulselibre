@@ -24,7 +24,7 @@ Der 5030-Completion-Aufruf von `p860.f()` hängt vom **an yb60 übergebenen Host
 
 Requestbody: exakt ein Byte Filterenum: `NO_FILTER=00`, `DEFAULT=01`, `PENDING_UPLOADS_ONLY=03`. Response mindestens ein Byte; `00` bedeutet unterstützt, sonst nicht unterstützt. Ein Nichtnullstatus wird von Connect protokolliert, führt nicht allein zum Fehler. Leere Response ist malformed.
 
-Die konkrete Connect-5.31-Aufrufstelle (`FileManager.applyDirectoryFilter`, DEX-Continuation `defpackage.s7h`) ruft den Messenger mit Typ 5007 und genau `{03}` für `PENDING_UPLOADS_ONLY` auf. Die offline berechnete GFDI-Frame-/CRC-/COBS-/ML-Kandidatenfolge und die offenen CIRQA-/GATT-/Nebenwirkungsfragen stehen in [CIRQA_5007_CONTROLLED_TEST_PREPARATION_2026-11-17.md](../experiments/CIRQA_5007_CONTROLLED_TEST_PREPARATION_2026-11-17.md). Dies ist Connect-Evidenz, kein CIRQA-Nachweis; der App-Sendepfad bleibt deaktiviert.
+Die konkrete Connect-5.31-Aufrufstelle (`FileManager.applyDirectoryFilter`, DEX-Continuation `defpackage.s7h`) ruft den Messenger mit Typ 5007 und genau `{03}` für `PENDING_UPLOADS_ONLY` auf. Die offline berechnete GFDI-Frame-/CRC-/COBS-/ML-Kandidatenfolge und die offenen CIRQA-/GATT-/Nebenwirkungsfragen stehen in [CIRQA_5007_CONTROLLED_TEST_PREPARATION_2026-11-17.md](../experiments/CIRQA_5007_CONTROLLED_TEST_PREPARATION_2026-11-17.md). Dies ist Connect-Evidenz, kein CIRQA-Nachweis. Der ausdrücklich freigegebene App-Pfad bleibt auf einen einzelnen Request mit fünf Sekunden Beobachtungsfenster begrenzt; eine Antwort bestätigt keinen Historien-Download.
 
 ## GFDI 5031 Supported File Types
 

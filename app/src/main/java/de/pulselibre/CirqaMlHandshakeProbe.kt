@@ -10,8 +10,9 @@ import java.util.UUID
 
 /**
  * Explicit one-shot Garmin ML/GFDI handle registration test.
- * Registers GFDI and optionally realtime services for bounded diagnostic reads.
- * No GFDI application messages, file sync, health persistence or persistent connection.
+ * Registers GFDI and optionally realtime services for bounded diagnostics.
+ * The separately gated legacy-5007 mode sends at most one filter request and
+ * never performs a file request, sync follow-up, health persistence or retry.
  */
 class CirqaMlHandshakeProbe(private val context: Context, private val adapter: BluetoothAdapter) {
     private val main = Handler(Looper.getMainLooper())
@@ -32,6 +33,10 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private var realtimeMode = false
     private var continuousRecordingMode = false
     private var historyDiagnosticMode = false
+    private var legacy5007TestMode = false
+    private var legacy5007WriteClaimed = false
+    private var legacy5007RequestSent = false
+    private var legacy5007Response = CirqaLegacy5007ResponseObserver()
     private var rawCaptureMode = false
     private var bootstrapAckMode = false
     private var configurationTestMode = false
@@ -95,6 +100,20 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     /** Permanently fail-closed after CIRQA rejected the compact FileSync V2 candidate. */
     fun startFileListQuery(result: (String) -> Unit) {
         result("FileSync V2 ist nach UNSUPPORTED dauerhaft gesperrt; keine Verbindung und kein BLE-Befehl ausgeführt.")
+    }
+
+    /** One GFDI registration followed by exactly one 5007 write and a five-second observation. */
+    fun startLegacy5007CompatibilityTest(result: (String) -> Unit) {
+        if (active) { result("ML-Test läuft bereits."); return }
+        legacy5007TestMode = true
+        historyDiagnosticMode = true
+        realtimeMode = false
+        continuousRecordingMode = false
+        start(false, result)
+        if (!active) {
+            legacy5007TestMode = false
+            historyDiagnosticMode = false
+        }
     }
 
     /** Explicit opt-in: one minimal identity-free 5024 ACK candidate, no FileSync commands. */
@@ -220,6 +239,9 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         selectedTxUuid = "nicht ermittelt"
         selectedTxProperties = 0
         historyRegistered = false
+        legacy5007WriteClaimed = false
+        legacy5007RequestSent = false
+        legacy5007Response = CirqaLegacy5007ResponseObserver()
         bootstrapAckSent = false
         configurationResponseQueued = false
         configurationAckReceived = false
@@ -292,8 +314,19 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     val service = g.services.orEmpty().firstOrNull {
                         it.uuid.toString().equals(GarminMlOffline.SERVICE_UUID, true)
                     }
+                    val characteristicUuids = service?.characteristics.orEmpty()
+                        .map { it.uuid.toString().lowercase() }.toSet()
+                    val completePairCount = (0x2810..0x2814).count { rxId ->
+                        val rxUuid = "6a4e${rxId.toString(16).padStart(4, '0')}-667b-11e3-949a-0800200c9a66"
+                        val txUuid = "6a4e${(rxId + 0x10).toString(16).padStart(4, '0')}-667b-11e3-949a-0800200c9a66"
+                        rxUuid in characteristicUuids && txUuid in characteristicUuids
+                    }
+                    if (legacy5007TestMode && completePairCount != 1) {
+                        finish("5007-Test abgebrochen: Garmin-ML-RX/TX-Paar fehlt oder ist nicht eindeutig.", g)
+                        return
+                    }
                     val pair = GarminMlOffline.findCharacteristicPair(
-                        service?.characteristics.orEmpty().map { it.uuid.toString() })
+                        characteristicUuids)
                     if (service == null || pair == null) {
                         finish("Garmin ML RX/TX-Paar im ML-Dienst nicht vorhanden.", g); return
                     }
@@ -394,6 +427,11 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private val configurationTimeout = Runnable {
         if (active) finish("CIRQA Historien-Diagnose: Beobachtungsfenster nach 5050-Schreibbestätigung beendet.", gatt)
     }
+    private val legacy5007Timeout = Runnable {
+        if (active && legacy5007TestMode) {
+            finish("5007-Test: Fünf-Sekunden-Beobachtungsfenster ohne passende Antwort beendet.", gatt)
+        }
+    }
 
     private fun sendNextBootstrapAckChunk(g: BluetoothGatt) {
         if (!active || terminationRequested || !historyRegistered || mlWritePending || bootstrapAckChunks.isEmpty()) return
@@ -412,7 +450,14 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             finish("ML-Schreibvorgang noch aktiv; neuer Schreibauftrag verhindert.", g)
             return
         }
-        mark(if (session?.stage == GarminMlHandshake.Stage.WAIT_CLOSE) "Sende CLOSE_ALL" else if (pendingService > 0) "Registriere Garmin-Service $pendingService" else "Sende GFDI-Registrierung")
+        mark(
+            when {
+                legacy5007TestMode && legacy5007WriteClaimed -> "Sende genau eine GFDI-5007-Anfrage"
+                session?.stage == GarminMlHandshake.Stage.WAIT_CLOSE -> "Sende CLOSE_ALL"
+                pendingService > 0 -> "Registriere Garmin-Service $pendingService"
+                else -> "Sende GFDI-Registrierung"
+            }
+        )
         mlWritePending = true
         try {
             val ok = if (Build.VERSION.SDK_INT >= 33)
@@ -435,6 +480,11 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     else "WITH_RESPONSE (API-Auftrag angenommen)",
                     (System.nanoTime() - sessionStartedNanos) / 1_000_000
                 )
+                if (legacy5007TestMode && legacy5007WriteClaimed) {
+                    legacy5007RequestSent = true
+                    main.removeCallbacks(legacy5007Timeout)
+                    main.postDelayed(legacy5007Timeout, 5_000L)
+                }
             }
         } catch (_: SecurityException) { finish("Bluetooth-Berechtigung beim Schreiben fehlt.", g) }
     }
@@ -458,6 +508,20 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                 val first = bytes.firstOrNull()?.toInt()?.and(255)
                 if (first != null && first == historyHandle) {
                     historyRouted++
+                    if (legacy5007TestMode) {
+                        when (legacy5007Response.observeMlPayload(bytes.copyOfRange(1, bytes.size))) {
+                            CirqaLegacy5007ResponseObserver.Result.PENDING -> Unit
+                            CirqaLegacy5007ResponseObserver.Result.SUPPORTED ->
+                                finish("5007-Antwort strukturell passend; Status 0 (Connect-Vertrag: unterstützt, CIRQA-Kompatibilität beobachtet).", g)
+                            CirqaLegacy5007ResponseObserver.Result.NOT_SUPPORTED ->
+                                finish("5007-Antwort strukturell passend; negativer Status ${legacy5007Response.responseStatus}.", g)
+                            CirqaLegacy5007ResponseObserver.Result.UNEXPECTED ->
+                                finish("5007-Test abgebrochen: unerwarteter GFDI-Antworttyp oder mehrere Frames.", g)
+                            CirqaLegacy5007ResponseObserver.Result.MALFORMED ->
+                                finish("5007-Test abgebrochen: Antwort-COBS/GFDI/CRC ungültig.", g)
+                        }
+                        return
+                    }
                     fileListProbe.observeMlPayload(bytes.copyOfRange(1, bytes.size))
                     if (configurationTestMode) post5050Evidence.observe(fileListProbe.frameTypes)
                     if (configurationTestMode && configurationResponseQueued &&
@@ -556,7 +620,13 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     }
                     // Fail closed on repetitive protocol traffic: do not let a read-only
                     // diagnostic keep the device in an unacknowledged response loop.
-                } else historyUnrouted++
+                } else {
+                    historyUnrouted++
+                    if (legacy5007TestMode) {
+                        finish("5007-Test abgebrochen: unerwartete ML-Control-Nachricht oder dynamischer Handle.", g)
+                        return
+                    }
+                }
                 historyLengths.record(bytes.size)
             }
         }
@@ -660,7 +730,17 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     send(g, GarminMlHandshake.registerRequest(pendingService))
                 } else if (historyDiagnosticMode && !historyRegistered) {
                     historyRegistered = true
-                    mark(if (bootstrapAckMode) "GFDI registriert; warte auf DeviceInformation für einmaliges ACK" else "GFDI registriert; beobachte Metadaten bis zum Zeitlimit")
+                    if (legacy5007TestMode) {
+                        val handle = historyHandle
+                        if (handle == null || legacy5007WriteClaimed) {
+                            finish("5007-Test abgebrochen: dynamischer GFDI-Handle fehlt oder Request bereits gesendet.", g)
+                        } else {
+                            legacy5007WriteClaimed = true
+                            send(g, CirqaLegacy5007RequestCandidate.mlGattValueCandidate(handle))
+                        }
+                    } else {
+                        mark(if (bootstrapAckMode) "GFDI registriert; warte auf DeviceInformation für einmaliges ACK" else "GFDI registriert; beobachte Metadaten bis zum Zeitlimit")
+                    }
                 } else if (!historyDiagnosticMode) finish("Garmin ML: GFDI-Service erfolgreich registriert! ${if (requestedCloseAll) "CLOSE_ALL wurde zuvor bestätigt." else "Ohne CLOSE_ALL."} Verbindung beendet; keine Gesundheitsdaten gelesen.", g)
             }
             GarminMlHandshake.Stage.FAILED ->
@@ -668,6 +748,19 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             else -> Unit
         }
     }
+
+    private fun legacy5007Report(reason: String): String =
+        "PulsLibre · CIRQA GFDI-5007-Einzeltest\n" +
+            "Ergebnis: $reason\n" +
+            "5007-Request gesendet: $legacy5007RequestSent (höchstens ein Versuch)\n" +
+            "Connect-Kandidat: Typ 5007, Body 03, GFDI/CRC/COBS offline geprüft.\n" +
+            "GFDI-Handle: ${historyHandle ?: "unbekannt"}; RX=$selectedRxUuid; TX=$selectedTxUuid; " +
+            "TX-Properties=$selectedTxProperties.\n" +
+            "Antwort: ${legacy5007Response.responseType?.toString() ?: "keine klassifizierte Antwort"}; " +
+            "Status=${legacy5007Response.responseStatus?.toString() ?: "unbekannt"}; " +
+            "CRC-validierte Ergebnisframes=${if (legacy5007Response.responseType == null) 0 else 1}.\n" +
+            txTrace.summary() + "\n" +
+            "Keine Folgekommandos, Rohframes, Dateiinhalte oder Messwerte erfasst."
 
     private fun historyReport(reason: String): String =
         "PulsLibre · CIRQA Historien-Diagnose (Phase 1)\n" +
@@ -754,13 +847,18 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                 CirqaBleSessionGate.release(this)
             }
             gatt = null
-            callback?.invoke(if (historyDiagnosticMode) historyReport(message) else message)
+            callback?.invoke(
+                if (legacy5007TestMode) legacy5007Report(message)
+                else if (historyDiagnosticMode) historyReport(message)
+                else message
+            )
             callback = null
             tx = null
             session = null
             realtimeMode = false
             continuousRecordingMode = false
             historyDiagnosticMode = false
+            legacy5007TestMode = false
             bootstrapAckMode = false
             configurationTestMode = false
             rawCaptureMode = false
@@ -780,6 +878,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         session = null
         realtimeMode = false
         continuousRecordingMode = false
+        historyDiagnosticMode = false
+        legacy5007TestMode = false
         bootstrapAckMode = false
         configurationTestMode = false
         rawCaptureMode = false

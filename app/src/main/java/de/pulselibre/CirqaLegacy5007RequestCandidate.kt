@@ -2,8 +2,8 @@ package de.pulselibre
 
 /**
  * Offline-only reconstruction of Garmin Connect 5.31's Legacy GFDI 5007
- * PENDING_UPLOADS_ONLY request. This is a preview/fixture builder, never a
- * Bluetooth sender and not evidence that CIRQA accepts the request.
+ * PENDING_UPLOADS_ONLY request. Construction performs no Bluetooth I/O; the
+ * dedicated device test is separately one-shot gated.
  */
 object CirqaLegacy5007RequestCandidate {
     const val MESSAGE_TYPE = 5007
@@ -24,7 +24,7 @@ object CirqaLegacy5007RequestCandidate {
         return prefix + byteArrayOf(crc.toByte(), (crc ushr 8).toByte())
     }
 
-    /** Existing ML COBS framing, including zero delimiters; still offline only. */
+    /** Existing ML COBS framing, including zero delimiters. */
     fun cobsDelimitedFrame(): ByteArray {
         val frame = gfdiFrame()
         val output = ArrayList<Byte>(frame.size + 4)
@@ -45,8 +45,7 @@ object CirqaLegacy5007RequestCandidate {
     }
 
     /**
-     * Characteristic-value candidate for a runtime-assigned GFDI handle.
-     * Not a complete ATT PDU and intentionally not connected to GATT writes.
+     * Characteristic value for a runtime-assigned GFDI handle; not an ATT PDU.
      */
     fun mlGattValueCandidate(dynamicHandle: Int): ByteArray {
         require(dynamicHandle in 1..127)

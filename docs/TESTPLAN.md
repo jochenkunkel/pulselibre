@@ -1,6 +1,6 @@
 # PulsLibre – manueller Testplan für Galaxy S25
 
-Stand: 2026-11-17. Grundlage: Android-CI-Build `23c2cfd9`, Run `44101529585` (success), signiertes Artifact `pulselibre-signed-update-apk`. Nachfolgende reine Branding-/Dokumentationsänderungen sind **nicht Bestandteil** dieser APK. Ziel: sichere Abnahme der **vorhandenen** App-Funktionen, **kein** CIRQA-FileSync-Freigabetest.
+Stand: 2026-11-17. Grundlage: Android-CI-Build `23c2cfd9`, Run `44101529585` (success), signiertes Artifact `pulselibre-signed-update-apk`. Nachfolgende reine Branding-/Dokumentationsänderungen sind **nicht Bestandteil** dieser APK. Ziel: sichere Abnahme vorhandener App-Funktionen; der separat freigegebene einmalige GFDI-5007-Kompatibilitätstest bleibt ein eigener, eng begrenzter Versuch.
 
 ## Vorbereitungen und Sicherheitsregeln
 
@@ -8,7 +8,7 @@ Stand: 2026-11-17. Grundlage: Android-CI-Build `23c2cfd9`, Run `44101529585` (su
 - Vor einem Update bei Bedarf lokale Messdaten und Diagnosen exportieren. **Nicht deinstallieren**, falls die Signatur nicht passt: App-private Daten können verloren gehen.
 - Garmin Connect nicht entkoppeln; CIRQA nicht zurücksetzen.
 - Bei einer Sicherheitswarnung, unerwarteten BLE-Aktion oder instabiler Verbindung abbrechen.
-- Keine experimentellen Buttons für `5050`, synthetisches `SYNC`, `Bootstrap`, `Dateiliste`, `Garmin-ML-Handshake`, `MousePods` oder `CLOSE_ALL` auslösen. Diese sind **nicht** Teil des sicheren manuellen Tests.
+- Keine experimentellen Buttons für `5050`, synthetisches `SYNC`, `Bootstrap`, `Dateiliste`, `Garmin-ML-Handshake`, `MousePods` oder `CLOSE_ALL` auslösen. Diese sind **nicht** Teil des freigegebenen 5007-Einzeltests.
 - Keine Gesundheitsdaten, MAC-Adressen oder ungeschwärzten Diagnoseprotokolle öffentlich posten.
 
 ## Testfälle (Status jeweils: OK / FEHLER / NICHT GETESTET)
@@ -101,7 +101,7 @@ Diese Schritte sind ein **noch auszuführender** S25-Testplan. Automatisierte JV
 - Sicherstellen, dass die installierte APK aus vertrauenswürdigem Build stammt. Bei Update-Signaturkonflikt abbrechen und **nicht deinstallieren**.
 - Garmin Connect nicht entkoppeln; CIRQA nicht zurücksetzen. Vor dem bestehenden aktiven Live-Messwerttest Garmin Connect schließen.
 - Stufe 1 umfasst passiven Scan, Android-Statusbeobachtung, vorhandene read-only GATT-Dienstsuche, vorhandene Puls-/Schritte-Liveprobe und lokale SAF-FIT-Analyse.
-- Stufe 2 hat **keine Freigabe**: Der Vorschlag zu GFDI 5007 ist nur Dokumentation; insbesondere keine FileSync-Aktion im Labor starten. Stufe 3 (Archivieren/Löschen/Reset/Firmware/Flags) ist gesperrt.
+- Nur der explizit freigegebene GFDI-5007-Einzeltest darf über seinen eigenen Bestätigungsdialog ausgeführt werden. Keine Wiederholung oder Folgekommandos. Stufe 3 (Archivieren/Löschen/Reset/Firmware/Flags) bleibt gesperrt.
 - Bei unerwartetem BLE-Verhalten, Garmin-Connect-Abbruch oder sichtbaren Daten-/Berechtigungsproblemen sofort abbrechen. Keine Gerätekennungen oder Messwerte in öffentliche Tickets/Chats kopieren.
 
 ### Testfälle
@@ -115,13 +115,13 @@ Diese Schritte sind ein **noch auszuführender** S25-Testplan. Automatisierte JV
 | T21 | Bestehende Puls-/Schritte-Liveprobe nur nach eigenem Bestätigungsdialog | Bestehender unterstützter Livepfad; keine neue Protokolloperation. Echte empfangene Werte können lokal gespeichert werden. Das ist weder Historienimport noch Stufe-2-FileSync. |
 | T22 | FIT-Datei über SAF auswählen (nur autorisierte Testdatei) | Lokal: Envelope-/CRC-Validierung und ausgewählte unterstützte Felder, Zeitstempel, Einheiten, Qualitätsflags, fehlende Werte und mögliche Duplikate prüfen. Max. 8 MiB/50.000 Beobachtungen, max. 80 Einzelzeilen in der Anzeige. Keine Kopie und kein SQLite-Import. |
 | T23 | Standard-Testbericht speichern und Datei vor Weitergabe prüfen | Export enthält Status, Zeitpunkt und sichere Zähler/Ergebniszusammenfassungen, keine Gerätekennung, Dateinamen, Rohpayloads oder Messwerte. SAF kann Cloud-Ziele anbieten; nur vertrauenswürdigen Speicherort wählen. |
-| T24 | Im Labor nach historischem Download / `0x8A39` suchen | Kein Download-Button und kein `0x8A39`; Historienstatus bleibt „Nicht getestet / Unbewiesen / gesperrt“. 5007/5031/5002/5004 werden nicht vom Gerät angefordert. |
+| T24 | Im Labor nach historischem Download / `0x8A39` suchen | Kein Download-Button und kein `0x8A39`; Historienstatus bleibt „Nicht getestet / Unbewiesen / gesperrt“. Keine 5031/5002/5004-Folgekommandos. |
 | T25 | Bereich „Passiv beobachtete Protokolle und lokale Logs“ ansehen | Das Labor sagt ausdrücklich, dass keine passiven CIRQA-Rohframes gespeichert sind. SQLite-Zähler sind App-Ereignisse und kein passiver Protokollmitschnitt. |
-| T26 | Offline-Kandidat „GFDI 5007“ im Testlabor prüfen | Bytepreview zeigt den aus Connect 5.31 abgeleiteten Kandidaten; Gerätetest-Button ist deaktiviert. Keine Anfrage wird gesendet und keine CIRQA-Kompatibilität behauptet. |
+| T26 | GFDI-5007-Karte im Testlabor prüfen | Bytepreview zeigt den Connect-5.31-Kandidaten. Der Button verlangt direkte Bestätigung, ist persistent nur einmal ausführbar und sendet höchstens einen 5007-Write; keine CIRQA-Kompatibilität wird vor einer passenden CRC-validierten Antwort behauptet. |
 
-**Stufe-2-Vorschlag:** siehe [CIRQA_TEST_LAB_STAGE2_PROPOSAL_2026-11-17.md](protocol/experiments/CIRQA_TEST_LAB_STAGE2_PROPOSAL_2026-11-17.md). Er ist derzeit wegen fehlender CIRQA-Evidenz und äußerer Requestbytes nicht ausführbar. Jede Ausführung benötigt einen neuen Auftrag, der genau diesen vervollständigten Plan ausdrücklich freigibt.
+**Stufe-2-Vorschlag:** siehe [CIRQA_TEST_LAB_STAGE2_PROPOSAL_2026-11-17.md](protocol/experiments/CIRQA_TEST_LAB_STAGE2_PROPOSAL_2026-11-17.md). Nur der gesondert freigegebene 5007-Test ist erlaubt; jede andere Stufe benötigt eine neue ausdrückliche Freigabe.
 
-**Issue #22 / 5007:** [Vorbereitung und Byte-/Risiko-Review](protocol/experiments/CIRQA_5007_CONTROLLED_TEST_PREPARATION_2026-11-17.md). Offline-Preview und synthetische Tests sind kein Gerätetest; Button und Sendepfad bleiben gesperrt bis zur separaten Freigabe.
+**Issue #22 / 5007:** [Byte-/Risiko-Review und kontrollierte Implementierung](protocol/experiments/CIRQA_5007_CONTROLLED_TEST_PREPARATION_2026-11-17.md). Der Request bleibt auf genau einen dynamisch gerouteten Write mit fünf Sekunden Beobachtungsfenster begrenzt.
 
 ```text
 Testlabor APK/Version:

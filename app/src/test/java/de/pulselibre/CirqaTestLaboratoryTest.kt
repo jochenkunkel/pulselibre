@@ -33,7 +33,7 @@ class CirqaTestLaboratoryTest {
             ) else it
         }
         val report = CirqaTestLaboratory.report(records, 1_700_000_001_000L)
-        assertTrue(report.contains("NICHT FREIGEGEBEN"))
+        assertTrue(report.contains("Historischer CIRQA-Download: GESPERRT"))
         assertTrue(report.contains("keine Gerätekennung"))
         assertTrue(report.contains("Passiver BLE-Scan: Bestanden"))
         assertFalse(report.contains("00:11:22:33:44:55"))
