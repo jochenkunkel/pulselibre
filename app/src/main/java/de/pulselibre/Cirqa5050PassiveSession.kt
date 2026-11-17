@@ -11,6 +11,8 @@ class Cirqa5050PassiveSession {
         private set
     var signalObserved = false
         private set
+    var stateBeforeStop: State? = null
+        private set
 
     fun queued() {
         if (state == State.IDLE) state = State.QUEUED else stop()
@@ -31,5 +33,8 @@ class Cirqa5050PassiveSession {
         }
     }
 
-    fun stop() { state = State.STOPPED }
+    fun stop() {
+        if (state != State.STOPPED) stateBeforeStop = state
+        state = State.STOPPED
+    }
 }
