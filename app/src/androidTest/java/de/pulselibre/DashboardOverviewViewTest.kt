@@ -33,6 +33,9 @@ class DashboardOverviewViewTest {
                 assertEquals(base.ink, lung.fillColor)
                 assertTrue(lung.contentDescription.contains("keine Signalqualitätsanzeige"))
             }
+            val invalid = SpO2LungView(ctx, 0, settings.colorFor(0, base), base.track)
+            assertNull(invalid.fillFraction)
+            assertEquals(base.muted, invalid.fillColor)
             val missing = SpO2LungView(ctx, null, settings.colorFor(null, base), base.track)
             assertNull(missing.fillFraction)
             assertEquals(base.muted, missing.fillColor)
@@ -48,6 +51,7 @@ class DashboardOverviewViewTest {
             assertEquals(android.graphics.Color.rgb(205, 57, 65), settings.colorFor(89, palette))
             assertEquals(palette.oxygen, settings.colorFor(90, palette))
             assertEquals(palette.oxygen, settings.colorFor(94, palette))
+            assertEquals(palette.oxygen, settings.colorFor(90, palette))
             assertEquals(palette.indicator, settings.colorFor(95, palette))
             assertEquals(palette.indicator, settings.colorFor(100, palette))
             assertEquals(palette.muted, settings.colorFor(0, palette))
