@@ -75,4 +75,4 @@ Die DEX-Registerbefunde, CRC-Vektoren und 5002-Connect-Layouts sind oben anhand 
 
 ### Teststatus
 
-Ein vorheriger lokaler Lauf von `:app:testDebugUnitTest` war erfolgreich (24 Tasks). Nach Rebase auf den inzwischen aktualisierten `origin/main` läuft derselbe Task erneut. Ein Push erfolgt erst nach erfolgreichem Abschluss und erneutem Remote-Stand-Check.
+Ein vorheriger lokaler Lauf von `:app:testDebugUnitTest` war erfolgreich (24 Tasks). Nach Abgleich mit dem aktuellen `origin/main` wurde `:app:testDebugUnitTest` laut Entwickler erneut erfolgreich abgeschlossen (`BUILD SUCCESSFUL`, 24 Tasks). Der Entwickler meldet einen sauberen Worktree und Push auf `main` mit Commit `23a566e90f1f354a9298c9705323a1b80311058d`. GitHub bestätigt den Commit. Der lokale Testlauf ist als Entwicklerbericht dokumentiert; ein separater CI-Lauf ist davon zu unterscheiden.
