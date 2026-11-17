@@ -24,16 +24,23 @@ data class HistorySnapshot(
 )
 
 /** Fixed display resolutions sized to keep selected ranges readable on a phone chart. */
-enum class HistoryResolution(val label: String, val duration: Duration) {
-    FIFTEEN_MINUTES("15 min", Duration.ofMinutes(15)),
-    TWO_HOURS("2 Std.", Duration.ofHours(2)),
-    SIX_HOURS("6 Std.", Duration.ofHours(6));
+enum class HistoryResolution(
+    val label: String,
+    val duration: Duration,
+    val majorTickEvery: Int
+) {
+    FIFTEEN_MINUTES("15 min", Duration.ofMinutes(15), 16),
+    TWO_HOURS("2 Std.", Duration.ofHours(2), 2),
+    ONE_HOUR("1 Std.", Duration.ofHours(1), 4),
+    SIX_HOURS("6 Std.", Duration.ofHours(6), 4),
+    ONE_DAY("1 Tag", Duration.ofDays(1), 5);
 
     companion object {
+        /** Keep the rendered series near 24–30 summaries for legibility on phone screens. */
         fun forRange(range: HistoryRange): HistoryResolution = when (range) {
-            HistoryRange.DAY -> FIFTEEN_MINUTES
-            HistoryRange.WEEK -> TWO_HOURS
-            HistoryRange.MONTH -> SIX_HOURS
+            HistoryRange.DAY -> ONE_HOUR
+            HistoryRange.WEEK -> SIX_HOURS
+            HistoryRange.MONTH -> ONE_DAY
         }
     }
 }
