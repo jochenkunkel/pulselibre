@@ -83,7 +83,13 @@ class DashboardOverviewViewTest {
                 val indicator = descendants(card).single { it.tag?.toString()?.startsWith("reception_indicator_") == true }
                 assertTrue(indicator.isClickable)
                 assertTrue(indicator.isFocusable)
-                assertTrue(indicator.minimumWidth >= (48 * view.resources.displayMetrics.density).toInt())
+                val params = indicator.layoutParams as android.widget.FrameLayout.LayoutParams
+                assertEquals((20 * view.resources.displayMetrics.density + 0.5f).toInt(), params.width)
+                assertEquals((20 * view.resources.displayMetrics.density + 0.5f).toInt(), params.height)
+                assertEquals(android.view.Gravity.END,
+                    params.gravity and android.view.Gravity.HORIZONTAL_GRAVITY_MASK)
+                assertEquals(android.view.Gravity.TOP,
+                    params.gravity and android.view.Gravity.VERTICAL_GRAVITY_MASK)
                 assertTrue(indicator.contentDescription.contains("Antippen"))
             }
         }
