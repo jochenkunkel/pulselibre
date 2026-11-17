@@ -3,7 +3,6 @@ package de.pulselibre
 import android.content.Context
 
 /**
-
  * PULSELIBRE EXPERIMENTAL HEURISTIC — NOT CLINICALLY VALIDATED for CIRQA wrist readings.
  * Reference thresholds are an orientation preview behind the device-validation gate.
  */
