@@ -10,7 +10,7 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE"/>
     <application android:name=".PulseLibreApplication" android:icon="@mipmap/ic_launcher" android:roundIcon="@mipmap/ic_launcher_round" android:allowBackup="false" android:label="PulseLibre" android:theme="@style/Theme.AppCompat.DayNight.NoActionBar" android:supportsRtl="true">
-        <service android:name=".CirqaOvernightService" android:exported="false" android:foregroundServiceType="connectedDevice"/>
+        <service android:name=".CirqaContinuousRecordingService" android:exported="false" android:foregroundServiceType="connectedDevice" android:label="CIRQA · Kontinuierliche Aufzeichnung"/>
         <activity android:name=".ExportActivity" android:exported="false"/>
         <activity android:name=".CirqaTestLaboratoryActivity" android:exported="false"/>
         <activity android:name=".MainActivity" android:exported="true">
