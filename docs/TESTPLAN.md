@@ -75,3 +75,14 @@ Weitere Beobachtungen:
 - **Veraltete Kommentare:** `CirqaLegacyTransferDecoder` behauptete noch, die 5002-Feldbreiten und `u45`-CRC seien unbekannt. Auf `main` korrigiert. `readResponse().sizeBytes` ist ein historischer Name für vier rohe Größenbytes; der typisierte unsigned Wert liegt jetzt in `CirqaLegacy5002Codec.Response.unsignedValue`. Umbenennung nur mit abgestimmter API-Migration.
 - **Produktversprechen:** Begriffe wie „Historien-Diagnose“, „Dateiliste lesen“, „Bewegungssensor“ sind **experimentelle Diagnosefunktionen**, kein Nachweis eines funktionierenden Historienimports.
 - **Testdokumentation:** Der alte Testplan trug den Titel „PulseLibre 0.1“ und beschrieb einen älteren BLE-Scanner-Stand. Dieser Plan ersetzt ihn. Keine Behauptung einer vollständigen Prüfung aller Quellbezeichner: geprüft wurden Paketstruktur, relevante Kotlin-Klassen, UI-Labels und aktuelle Dokumentation.
+
+## Rückmeldung zu T07 – Verbindungsstatus am Oberarmbruch-Icon (2026-11-17)
+
+**Featurewunsch / noch nicht implementiert:** Das Oberarmbruch-Einstellungsicon im oberen App-Header soll einen gut erkennbaren farbigen Rand als Statusanzeige erhalten:
+
+- **Grüner Rand:** aktive, bestätigte BLE-Verbindung zur CIRQA-Armbanduhr.
+- **Schwarzer Rand:** offline / keine aktive CIRQA-Verbindung, einschließlich Bluetooth ausgeschaltet oder Verbindung verloren.
+
+Wichtig: Ein sichtbares BLE-Advertisement, eine gespeicherte Kopplung oder ein laufender Scan zählen **nicht** als aktive Verbindung. Der Rand muss bei Connect, Disconnect, Bluetooth-Off und App-Wiederaufnahme korrekt aktualisiert werden. Grün darf nicht nur wegen alter/gespeicherter Statusdaten angezeigt werden. Bei dunklem Design muss der schwarze Rand weiterhin klar sichtbar sein (z. B. mit zusätzlicher heller Kontur). Das Icon bleibt als Einstellungsbutton bedienbar.
+
+**Erweiterter T07-Abnahmetest:** Bluetooth aus → schwarzer Rand; Bluetooth an ohne CIRQA-Verbindung → schwarz; CIRQA tatsächlich verbunden → grün; Verbindung trennen oder außer Reichweite → wieder schwarz. Den Befund als OK/FEHLER/NICHT GETESTET dokumentieren. **Im derzeitigen Testbuild nicht vorhanden**, daher zunächst als Featureanforderung und nicht als Testfehler behandeln.
