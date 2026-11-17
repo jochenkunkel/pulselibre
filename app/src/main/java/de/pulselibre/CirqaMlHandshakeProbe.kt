@@ -326,7 +326,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                         if (bootstrapAckPending) {
                             bootstrapAckPending = false
                             if (bootstrapAckChunks.isEmpty()) bootstrapAckConfirmed = true
-                            if (configurationResponseQueued && bootstrapAckChunks.isEmpty()) {
+                            if (configurationResponseQueued && bootstrapAckChunks.isEmpty() &&
+                                !configurationResponseConfirmed) {
                                 configurationResponseConfirmed = true
                                 passive5050Session.writeConfirmed()
                                 // ACK can arrive before the final GATT callback.
