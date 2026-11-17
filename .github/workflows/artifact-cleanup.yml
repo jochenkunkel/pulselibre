@@ -1,52 +1,22 @@
-name: Clean old workflow artifacts
+name: Audit old workflow artifacts (read-only)
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '23 3 * * *'
-  push:
-    paths:
-      - '.github/workflows/artifact-cleanup.yml'
 permissions:
-  actions: write
+  actions: read
   contents: read
 jobs:
-  cleanup:
+  audit:
     runs-on: ubuntu-latest
     steps:
-      - name: Keep five newest APKs across legacy and signed artifact names
+      - name: Inventory artifacts without deletion
         env:
           GH_TOKEN: ${{ github.token }}
           REPOSITORY: ${{ github.repository }}
         run: |
           set -euo pipefail
-          # Paginate across the entire repository; do not touch artifacts from other workflows.
           gh api --paginate "repos/$REPOSITORY/actions/artifacts?per_page=100" \
-            --jq '.artifacts[] | select(.expired == false) | [.created_at, (.id|tostring), .name] | @tsv' \
+            --jq '.artifacts[] | [.created_at, (.id|tostring), .name, (.expired|tostring)] | @tsv' \
             | sort -r > "$RUNNER_TEMP/artifacts.tsv"
-          apk_seen=0
-          removed=0
-          kept=0
-          while IFS=$'\t' read -r created id name; do
-            case "$name" in
-              pulselibre-signed-update-apk|pulselibre-debug-apk)
-                apk_seen=$((apk_seen + 1))
-                if [ "$apk_seen" -le 5 ]; then
-                  echo "KEEP recent APK artifact $id ($created)"
-                  kept=$((kept + 1))
-                  continue
-                fi
-                ;;
-              pulselibre-build-diagnostics)
-                # Diagnostics are disposable once the build has finished.
-                ;;
-              *)
-                echo "KEEP unrelated artifact $id ($name)"
-                kept=$((kept + 1))
-                continue
-                ;;
-            esac
-            echo "DELETE obsolete $name artifact $id ($created)"
-            gh api -X DELETE "repos/$REPOSITORY/actions/artifacts/$id"
-            removed=$((removed + 1))
-          done < "$RUNNER_TEMP/artifacts.tsv"
-          echo "Cleanup complete: removed=$removed kept=$kept"
+          echo "Read-only artifact inventory (no deletion):"
+          cat "$RUNNER_TEMP/artifacts.tsv"
+          echo "Review ownership, references and retention before proposing any deletion."
