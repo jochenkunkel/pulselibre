@@ -214,9 +214,9 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
             val indicator = ReceptionIndicatorView(context, metric, stepGoal).apply {
                 tag = "reception_indicator_${metric.title}"
             }
-            addView(indicator, android.widget.FrameLayout.LayoutParams(dp(20), dp(20), Gravity.TOP or Gravity.END).apply {
-                topMargin = dp(8)
-                marginEnd = dp(8)
+            addView(indicator, android.widget.FrameLayout.LayoutParams(dp(24), dp(24), Gravity.TOP or Gravity.END).apply {
+                topMargin = dp(4)
+                marginEnd = dp(4)
             })
         }
     }
@@ -224,7 +224,7 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
     private fun header(metric: DashboardMetric) = LinearLayout(context).apply {
         orientation = HORIZONTAL
         gravity = Gravity.CENTER_VERTICAL
-        setPadding(0, 0, dp(24), 0)
+        setPadding(0, 0, dp(28), 0)
         addView(DashboardMetricIconView(context, metric.title, iconColor(metric.title)).apply {
             tag = "dashboard_metric_icon_${metric.title}"
         }, LayoutParams(dp(20), dp(20)).apply { marginEnd = dp(6) })
@@ -233,7 +233,9 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
             ellipsize = android.text.TextUtils.TruncateAt.END
             contentDescription = metric.title
         }, LayoutParams(0, -2, 1f))
-    }    private fun iconColor(title: String) = when {
+    }
+
+    private fun iconColor(title: String) = when {
         title.contains("Herzfrequenz", true) || title.contains("Ruhepuls", true) -> palette.pulse
         title.contains("SpO₂", true) || title.contains("Sauerstoff", true) -> palette.oxygen
         title.contains("Schritt", true) -> palette.indicator
@@ -353,8 +355,8 @@ private class ReceptionIndicatorView(
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-        val x = width / 2f
-        val y = height / 2f
+        val x = width - 8f * density
+        val y = 8f * density
         val color = when (state) {
             ReceptionFreshness.FRESH -> Color.rgb(31, 166, 113)
             ReceptionFreshness.RECENT -> Color.rgb(207, 166, 19)
