@@ -21,7 +21,7 @@ Stand: 2026-11-17. Grundlage: Android-CI-Build `23c2cfd9`, Run `44101529585` (su
 | T04 | P1 | Oberarmbruch-Icon oben antippen | Einstellungen/Profil öffnen; Icon hat eine verständliche Accessibility-Beschreibung |
 | T05 | P0 | Körperprofil ändern, App schließen und neu öffnen | Eingaben bleiben gespeichert |
 | T06 | P0 | Dashboard ohne aktuelle Messungen ansehen | Keine erfundenen Messwerte; Empfangszeit wird nicht als historische Messzeit dargestellt |
-| T07 | P0 | Bluetooth ausschalten und App erneut öffnen | Verständlicher Status, kein Absturz |
+| T07 | P0 | Bluetooth ausschalten und App erneut öffnen | Verständlicher Status, kein Absturz; Oberarmbruch-Icon schwarz offline, grün nur bei aktuell bestätigter CIRQA-GATT-Verbindung |
 | T08 | P0 | Bluetooth-/Nearby-Devices-Berechtigung verweigern und anschließend gewähren | Keine Abstürze, kontrollierter Wiederholungsversuch |
 | T09 | P0 | Unter Bluetooth/Geräte die Gerätesuche starten | CIRQA wird bei Sichtbarkeit erkannt; kein Zwang zum Entkoppeln |
 | T10 | P1 | CIRQA-Eintrag und RSSI während des Scans beobachten | Plausible Anzeige, keine unnötigen Duplikate |
@@ -76,19 +76,18 @@ Weitere Beobachtungen:
 - **Produktversprechen:** Begriffe wie „Historien-Diagnose“, „Dateiliste lesen“, „Bewegungssensor“ sind **experimentelle Diagnosefunktionen**, kein Nachweis eines funktionierenden Historienimports.
 - **Testdokumentation:** Der alte Testplan trug den Titel „PulseLibre 0.1“ und beschrieb einen älteren BLE-Scanner-Stand. Dieser Plan ersetzt ihn. Keine Behauptung einer vollständigen Prüfung aller Quellbezeichner: geprüft wurden Paketstruktur, relevante Kotlin-Klassen, UI-Labels und aktuelle Dokumentation.
 
-## Rückmeldung zu T07 – Verbindungsstatus am Oberarmbruch-Icon (2026-11-17)
+## T07 – Verbindungsrand am Oberarmbruch-Icon
 
-**Featurewunsch / noch nicht implementiert:** Das Oberarmbruch-Einstellungsicon im oberen App-Header soll einen gut erkennbaren farbigen Rand als Statusanzeige erhalten:
+**Implementiert in `codex/t07-connection-indicator`:** Das Einstellungsicon zeigt einen schwarzen inneren Rand im Offline-Zustand und einen grünen Rand, wenn Android aktuell für ein gekoppeltes Gerät mit CIRQA-Namen `GATT/STATE_CONNECTED` meldet. Eine weiße Außenkontur hält den schwarzen Rand auch im dunklen Theme sichtbar. Das 48-dp-Icon bleibt derselbe Einstellungsbutton.
 
-- **Grüner Rand:** aktive, bestätigte BLE-Verbindung zur CIRQA-Armbanduhr.
-- **Schwarzer Rand:** offline / keine aktive CIRQA-Verbindung, einschließlich Bluetooth ausgeschaltet oder Verbindung verloren.
+Der Status wird bei App-Wiederaufnahme und anschließend jede Sekunde neu aus dem Android-Bluetoothmanager abgefragt. Bluetooth aus, fehlende Berechtigung, kein gekoppeltes CIRQA oder jeder Zustand außer `STATE_CONNECTED` bleiben offline. Es werden weder Scan-Ergebnisse noch gespeicherte Verbindungsflags verwendet; die App startet keine Verbindung. Die Android-Systemabfrage belegt **nicht**, welche App die GATT-Verbindung hält. TalkBack nennt deshalb ausdrücklich „Android meldet …; verbundene App unbekannt“.
 
-Wichtig: Ein sichtbares BLE-Advertisement, eine gespeicherte Kopplung oder ein laufender Scan zählen **nicht** als aktive Verbindung. Der Rand muss bei Connect, Disconnect, Bluetooth-Off und App-Wiederaufnahme korrekt aktualisiert werden. Grün darf nicht nur wegen alter/gespeicherter Statusdaten angezeigt werden. Bei dunklem Design muss der schwarze Rand weiterhin klar sichtbar sein (z. B. mit zusätzlicher heller Kontur). Das Icon bleibt als Einstellungsbutton bedienbar.
+**Automatisiert:** Policy-Unit-Tests decken Bluetooth aus, fehlende Berechtigung, fehlende Kopplung und getrennten GATT-Zustand ab. Activity-Test prüft die sichtbare Statusbeschreibung, Fokusierbarkeit und 48-dp-Touchfläche.
 
-**Erweiterter T07-Abnahmetest:** Bluetooth aus → schwarzer Rand; Bluetooth an ohne CIRQA-Verbindung → schwarz; CIRQA tatsächlich verbunden → grün; Verbindung trennen oder außer Reichweite → wieder schwarz. Den Befund als OK/FEHLER/NICHT GETESTET dokumentieren. **Im derzeitigen Testbuild nicht vorhanden**, daher zunächst als Featureanforderung und nicht als Testfehler behandeln.
+**Manueller S25-Abnahmetest – nach Installation des PR-Builds noch auszuführen:** Bluetooth aus → schwarz; Bluetooth an, CIRQA nicht verbunden → schwarz; CIRQA-GATT-Verbindung aktiv → grün; Verbindung trennen oder Band außer Reichweite → schwarz; T04 erneut antippen → Einstellungen öffnen. Dunkles Theme prüfen. Ergebnisse je Schritt als OK/FEHLER/NICHT GETESTET ergänzen. CI oder ein Emulator ersetzt diesen Hardwaretest nicht.
 
 ## Manuelle Rückmeldung Galaxy S25 – 2026-11-17
 
 Der Tester meldet: **„bis auf 16 ist alles ok“**. Daher werden **T01–T15 als vom Benutzer bestanden gemeldet** erfasst (kein unabhängiger Hardware-Nachweis durch CI). **T16 ist offen:** Noch nicht klar, ob TalkBack/Barrierefreiheit fehlgeschlagen oder lediglich nicht getestet wurde. Diese Unterscheidung vor einer Freigabe nachfragen. Kein vollständiger Release-Gate; Historien-FileSync weiterhin unbewiesen.
 
-**Offener UI-Wunsch:** T07 grüner Rahmen um das Oberarmbruch-Icon bei aktiver CIRQA-BLE-Verbindung, schwarzer Rahmen bei Offline-Status. Bereits als Folgeanforderung notiert, **nicht** Bestandteil des bestandenen T07-Basistests.
+**T07-Hardwareabnahme bleibt offen:** Die historische manuelle Meldung „bis auf 16 ist alles ok“ bezog sich auf den früheren Testbuild ohne Verbindungsrand und gilt nicht als Test dieses Features.

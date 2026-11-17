@@ -1,6 +1,7 @@
 package de.pulselibre
 
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -29,6 +30,26 @@ class DashboardTest {
                 assertTrue(containsText(root, "PulseLibre"))
             }
         }
+    }
+    @Test fun humerusSettingsButtonShowsAccessibleConnectionStatusAndKeepsTouchTarget() {
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            scenario.onActivity { activity ->
+                val root = activity.findViewById<ViewGroup>(android.R.id.content)
+                val button = findStatusIcon(root) ?: error("Verbindungsstatus-Icon fehlt")
+                assertTrue(button.isClickable)
+                assertTrue(button.isFocusable)
+                assertTrue(button.contentDescription.startsWith("CIRQA-Verbindungsstatus:"))
+                val expectedSize = (48 * activity.resources.displayMetrics.density + 0.5f).toInt()
+                assertEquals(expectedSize, button.layoutParams.width)
+                assertTrue(button.contentDescription.contains("schwarzer Rand") ||
+                    button.contentDescription.contains("grüner Rand"))
+            }
+        }
+    }
+    private fun findStatusIcon(view: android.view.View): ImageView? {
+        if (view is ImageView && view.contentDescription?.toString()?.startsWith("CIRQA-Verbindungsstatus:") == true) return view
+        if (view is ViewGroup) for (i in 0 until view.childCount) findStatusIcon(view.getChildAt(i))?.let { return it }
+        return null
     }
     private fun containsText(view: android.view.View, expected: String): Boolean {
         if (view is TextView && view.text.toString() == expected) return true
