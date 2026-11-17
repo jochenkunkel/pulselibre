@@ -35,6 +35,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private var configuration5050Baseline = 0
     private var configurationAckBaseline = 0
     private var configuration5037Baseline = 0
+    private var configurationRejectedBaseline = 0
     private var configuration5037ObservationStarted = false
     private var post5050Evidence = Cirqa5050PostWriteEvidence()
     private var bootstrapAckSent = false
@@ -196,6 +197,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         configuration5050Baseline = 0
         configurationAckBaseline = 0
         configuration5037Baseline = 0
+        configurationRejectedBaseline = 0
         configuration5037ObservationStarted = false
         post5050Evidence = Cirqa5050PostWriteEvidence()
         configurationResponseConfirmed = false
@@ -417,6 +419,13 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     historyRouted++
                     fileListProbe.observeMlPayload(bytes.copyOfRange(1, bytes.size))
                     if (configurationTestMode) post5050Evidence.observe(fileListProbe.frameTypes)
+                    if (configurationTestMode && configurationResponseQueued &&
+                        Cirqa5050MalformedFrameGuard.shouldAbort(
+                            configurationRejectedBaseline, fileListProbe.rejectedFrames
+                        )) {
+                        finish("Sicherheitsabbruch: mindestens drei neue ungültige GFDI-Frames nach 5050.", g)
+                        return
+                    }
                     // A negative protocol response must stop the existing zero-mask
                     // configuration diagnostic immediately, not only FileList probes.
                     // This does not enable the experimental SYNC capability.
@@ -463,6 +472,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                         (fileListProbe.frameTypes["gfdi-5050"] ?: 0) > 0) {
                         configuration5050Baseline = fileListProbe.frameTypes["gfdi-5050"] ?: 0
                         configurationAckBaseline = Cirqa5050AckEvidence.count(fileListProbe.responseStatuses)
+                        configurationRejectedBaseline = fileListProbe.rejectedFrames
                         configurationResponseQueued = true
                         val handle = historyHandle
                         if (handle != null) {
