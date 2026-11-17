@@ -33,6 +33,8 @@
 - Experimentelle, ausdrücklich vom Nutzer gestartete GATT-Dienstsuche und ML-Probe einschließlich Vordergrunddienst für wiederholte Versuche. Die Existenz dieses Codes belegt keine erfolgreich ausgelesenen CIRQA-Gesundheitswerte; mögliche Wechselwirkungen mit Garmin Connect müssen am Gerät geprüft werden.
 - Offline-Datenmodell, lokale SQLite-Ablage mit Transaktionen und CSV-Export für künftig **validierte** Messwerte. Noch keine echte CIRQA-Datenquelle angebunden.
 - Offline-Inspektion von GFDI-Headern und CRC-16-Prüfung sowie ein begrenzter Offline-FIT-Decoder (`FitHistoricalObservations`) für ausgewählte Standardfelder mit zugehörigen Unit-Tests. Dies belegt weder einen CIRQA-Historiendownload noch einen Geräteimport oder einen erfolgreichen CI-Lauf.
+- CIRQA-Testlabor mit passivem Scan, Android-Verbindungsstatus, begrenzter read-only GATT-Dienstsuche, ausdrücklich bestätigter vorhandener Live-Messwertprobe und datensparsamem Testbericht. Historischer CIRQA-Download ist gesperrt.
+- Offline FIT-Envelope-/CRC-Prüfung und begrenzte Dekodierung ausgewählter Garmin-Profilfelder. SAF-Dateiauswahl, keine allgemeine Dateiberechtigung, keine Kopie oder Datenbankübernahme. Dies bestätigt weder CIRQA-Herkunft noch einen CIRQA-Dateidownload.
 
 ## Sicherheitsgrenzen
 
@@ -50,7 +52,7 @@ Der GitHub-Workflow `.github/workflows/android.yml` führt bei Pushes auf `main`
 
 ## Ausblick
 
-Die nächsten Schritte sind die Absicherung und Gerätevalidierung der bereits implementierten experimentellen GATT-/ML-Pfade, die Behebung der dokumentierten Risiken sowie ein belastbarer Offline-FIT-Parser. Vor produktiver CIRQA-Kommunikation sind Interoperabilität und ausdrückliche Nutzerfreigabe zu prüfen.
+Die nächsten Schritte sind die Gerätevalidierung der bestehenden Stufe-1-Funktionen und die Auswertung zulässiger passiver CIRQA-Evidenz. Der Stufe-2-Vorschlag bleibt gesperrt, bis die CIRQA-spezifischen Protokoll- und Sicherheitsvoraussetzungen erfüllt und der konkrete Test ausdrücklich freigegeben sind.
 
 **Aktuelle Aufgaben:** [GitHub-Issues](https://github.com/jochenkunkel/pulselibre/issues) · [Audit und Reparaturplan (Draft-PR #1)](https://github.com/jochenkunkel/pulselibre/pull/1). Die Architektur-Review-Datei enthält historische Befunde und ist noch nicht vollständig aktualisiert.
 
@@ -59,4 +61,3 @@ Die nächsten Schritte sind die Absicherung und Gerätevalidierung der bereits i
 ## Lizenz und Drittanbieter-Provenienz
 
 Eigenständige PulsLibre-Beiträge stehen unter der [Apache License 2.0](LICENSE). Diese Lizenz ändert keine Rechte an Fremdcode. Die vorläufige Prüfung der AGPLv3-Protokollreferenzen und die noch offenen Herkunftsfragen stehen in [LICENSE_AGPL_AUDIT_2026-11-16.md](docs/LICENSE_AGPL_AUDIT_2026-11-16.md). **Die Prüfung ist noch keine vollständige rechtliche Freigabe.**
-

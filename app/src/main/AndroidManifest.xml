@@ -12,6 +12,7 @@
     <application android:name=".PulseLibreApplication" android:icon="@mipmap/ic_launcher" android:roundIcon="@mipmap/ic_launcher_round" android:allowBackup="false" android:label="PulseLibre" android:theme="@style/Theme.AppCompat.DayNight.NoActionBar" android:supportsRtl="true">
         <service android:name=".CirqaOvernightService" android:exported="false" android:foregroundServiceType="connectedDevice"/>
         <activity android:name=".ExportActivity" android:exported="false"/>
+        <activity android:name=".CirqaTestLaboratoryActivity" android:exported="false"/>
         <activity android:name=".MainActivity" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>

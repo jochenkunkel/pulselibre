@@ -1,0 +1,871 @@
+package de.pulselibre
+
+import android.Manifest
+import android.annotation.SuppressLint
+import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothManager
+import android.bluetooth.BluetoothProfile
+import android.bluetooth.le.ScanCallback
+import android.bluetooth.le.ScanResult
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
+import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.view.Gravity
+import android.view.View
+import android.widget.Button
+import android.widget.LinearLayout
+import android.widget.ScrollView
+import android.widget.TextView
+import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.util.Locale
+import java.util.concurrent.Executors
+
+/**
+ * User-facing safe laboratory. It deliberately does not expose experimental FileSync,
+ * handshake, bootstrap, raw-frame, or motion-command probes.
+ */
+class CirqaTestLaboratoryActivity : AppCompatActivity() {
+    private val handler = Handler(Looper.getMainLooper())
+    private val io = Executors.newSingleThreadExecutor()
+    private val preferences by lazy { getSharedPreferences("cirqa_test_laboratory", MODE_PRIVATE) }
+    private val records = CirqaTestLaboratory.initialRecords().associateBy { it.test }.toMutableMap()
+    private val statusViews = mutableMapOf<CirqaTestLaboratory.TestId, TextView>()
+    private lateinit var adapter: BluetoothAdapter
+    private lateinit var statusOutput: TextView
+    private lateinit var scanOutput: TextView
+    private lateinit var discoveryOutput: TextView
+    private lateinit var liveOutput: TextView
+    private lateinit var fitOutput: TextView
+    private lateinit var storedReadingsOutput: TextView
+    private lateinit var root: LinearLayout
+    private var permissionAction: (() -> Unit)? = null
+    private var scanCallback: ScanCallback? = null
+    private var scanning = false
+    private var scanEvents = 0
+    private var matchedBondAdvertisement = false
+    private var garminHintEvents = 0
+    private val rssiSamples = ArrayList<Int>()
+    private var gattProbe: CirqaGattProbe? = null
+    private var mlProbe: CirqaMlHandshakeProbe? = null
+    private var liveReadingCount = 0
+    private val liveKinds = mutableSetOf<String>()
+    private var destroyed = false
+    private var monitorRunning = false
+    private var monitorStartedAt = 0L
+    private var connectedMillis = 0L
+    private var connectedSince: Long? = null
+    private var connectionTransitions = 0
+    private var lastConnectionState: CirqaConnectionHistory.State? = null
+    private val scanTimeout = Runnable { finishPassiveScan() }
+    private val connectionPoll = Runnable { sampleConnectionState() }
+
+    private fun dp(value: Int) =
+        (value * resources.displayMetrics.density + 0.5f).toInt()
+
+    private val permissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { grants ->
+        val action = permissionAction
+        permissionAction = null
+        if (grants.isNotEmpty() && grants.values.all { it }) action?.invoke()
+        else Toast.makeText(this, "Bluetooth-Berechtigung nicht erteilt; kein Test gestartet.", Toast.LENGTH_LONG).show()
+    }
+
+    private val fitPicker = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri != null) inspectFit(uri)
+    }
+
+    private val reportPicker = registerForActivityResult(
+        ActivityResultContracts.CreateDocument("text/plain")
+    ) { uri ->
+        if (uri != null) try {
+            contentResolver.openOutputStream(uri)?.bufferedWriter(Charsets.UTF_8)?.use {
+                it.write(CirqaTestLaboratory.report(records.values.toList(), System.currentTimeMillis()))
+            } ?: error("No output stream")
+            Toast.makeText(this, "Datensparsamer Testbericht gespeichert.", Toast.LENGTH_LONG).show()
+        } catch (_: Exception) {
+            Toast.makeText(this, "Bericht konnte nicht gespeichert werden.", Toast.LENGTH_LONG).show()
+        }
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        adapter = (getSystemService(BLUETOOTH_SERVICE) as BluetoothManager).adapter
+        loadRecords()
+        buildScreen()
+        refreshStatusRows()
+        refreshStoredReadings()
+    }
+
+    private fun buildScreen() {
+        val palette = AppPalette.of(this)
+        fun card() = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(16), dp(14), dp(16), dp(14))
+            setBackgroundColor(palette.card)
+        }
+        fun label(text: String, size: Float = 14f, bold: Boolean = false) = TextView(this).apply {
+            this.text = text
+            textSize = size
+            setTextColor(if (bold) palette.ink else palette.muted)
+            if (bold) setTypeface(null, android.graphics.Typeface.BOLD)
+            setTextIsSelectable(true)
+        }
+        fun button(text: String, action: () -> Unit) = Button(this).apply {
+            this.text = text
+            minHeight = dp(52)
+            isAllCaps = false
+            setOnClickListener { action() }
+        }
+
+        root = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(16), dp(16), dp(16), dp(24))
+            setBackgroundColor(palette.background)
+        }
+        root.addView(label("CIRQA-Testlabor", 24f, true))
+        root.addView(label(
+            "Sichere Banddiagnostik · passive Beobachtung · Offline-FIT",
+            14f
+        ), LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(6); bottomMargin = dp(16) })
+
+        val warning = card()
+        warning.addView(label("Historischer CIRQA-Download NICHT FREIGEGEBEN", 17f, true))
+        warning.addView(label(
+            "Dieses Labor sendet keine 5007-, 5031-, 5002- oder 5004-Kommandos. " +
+                "0x8A39 wird nicht verwendet. Keine Datei wird vom Band gelesen, archiviert, gelöscht oder verändert.",
+            14f
+        ), LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) })
+        addCard(warning)
+
+        val legend = card()
+        legend.addView(label("Evidenz richtig einordnen", 16f, true))
+        legend.addView(label(
+            "Am CIRQA-Gerät bestätigt · Passiv beobachtet · Offline validiert · Unbewiesen\n" +
+                "Ergebnis separat: Bestanden / Fehlgeschlagen / Nicht getestet / Nicht unterstützt.\n" +
+                "Android-Kopplung, Name oder GATT-Status sind kein kryptographischer Identitätsnachweis.",
+            13f
+        ), LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) })
+        addCard(legend)
+
+        val statusCard = card()
+        statusCard.addView(label("Android- und Verbindungsstatus", 16f, true))
+        statusOutput = label("Noch nicht abgefragt.")
+        statusCard.addView(statusOutput, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) })
+        statusCard.addView(button("Bluetoothstatus einmal abfragen") {
+            withBluetoothPermissions(needsScan = false) { captureAndroidStatus() }
+        })
+        statusCard.addView(button("Verbindungswechsel 30 Sekunden beobachten") {
+            withBluetoothPermissions(needsScan = false) { startConnectionMonitor() }
+        })
+        addRecordView(statusCard, CirqaTestLaboratory.TestId.ANDROID_STATUS)
+        addCard(statusCard)
+
+        val scanCard = card()
+        scanCard.addView(label("Passiver BLE-Scan", 16f, true))
+        scanOutput = label("Noch kein Scan. Es wird nicht verbunden.")
+        scanCard.addView(scanOutput, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) })
+        scanCard.addView(button("Passiv 15 Sekunden scannen") {
+            withBluetoothPermissions(needsScan = true) { startPassiveScan() }
+        })
+        scanCard.addView(button("Scan stoppen") { stopPassiveScan(userStopped = true) })
+        addRecordView(scanCard, CirqaTestLaboratory.TestId.PASSIVE_SCAN)
+        addCard(scanCard)
+
+        val discoveryCard = card()
+        discoveryCard.addView(label("GATT-Dienst-/Characteristic-Erkennung", 16f, true))
+        discoveryOutput = label(
+            "Nutzt ausschließlich die vorhandene zeitbegrenzte, lesefreie CirqaGattProbe. " +
+                "Sie verbindet sich kurz, liest nur Strukturmetadaten und trennt wieder; keine GATT-Lese-/Schreibbefehle oder Notifications."
+        )
+        discoveryCard.addView(discoveryOutput, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) })
+        discoveryCard.addView(button("Vorhandene Read-only-Dienstsuche starten") {
+            withBluetoothPermissions(needsScan = false) { confirmGattDiscovery() }
+        })
+        addRecordView(discoveryCard, CirqaTestLaboratory.TestId.GATT_DISCOVERY)
+        addCard(discoveryCard)
+
+        val liveCard = card()
+        liveCard.addView(label("Bereits unterstützte Live-Messwerte", 16f, true))
+        liveOutput = label(
+            "Nur die vorhandene Puls-/Schritte-Echtzeitprobe; nicht die erweiterten oder experimentellen Probes. " +
+                "Empfangene Live-Werte werden wie bisher lokal gespeichert."
+        )
+        liveCard.addView(liveOutput, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) })
+        liveCard.addView(button("Vorhandene Live-Messwertprobe starten") {
+            withBluetoothPermissions(needsScan = false) { confirmLiveProbe() }
+        })
+        addRecordView(liveCard, CirqaTestLaboratory.TestId.LIVE_READINGS)
+        addCard(liveCard)
+
+        val storedCard = card()
+        storedCard.addView(label("Passiv beobachtete Protokolle und lokale Logs", 16f, true))
+        storedReadingsOutput = label("Wird lokal gelesen …")
+        storedCard.addView(storedReadingsOutput, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) })
+        storedCard.addView(label(
+            "PulsLibre speichert derzeit keine passiven CIRQA-Rohframes. Die folgende SQLite-Statistik " +
+                "umfasst vorhandene App-Ereignisse (z. B. aus aktiven Live-Proben) und ist kein passiver Mitschnitt.",
+            13f
+        ), LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) })
+        addRecordView(storedCard, CirqaTestLaboratory.TestId.PASSIVE_PROTOCOL)
+        storedCard.addView(button("Lokale Statistik aktualisieren") { refreshStoredReadings() })
+        addCard(storedCard)
+
+        val fitCard = card()
+        fitCard.addView(label("FIT-Datei lokal prüfen", 16f, true))
+        fitOutput = label(
+            "Dateiauswahl über Android Storage Access Framework; maximal ${FitFileHeader.MAX_FILE_BYTES / (1024 * 1024)} MiB. " +
+                "Keine allgemeine Dateiberechtigung, keine Kopie, kein Import in SQLite."
+        )
+        fitCard.addView(fitOutput, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) })
+        fitCard.addView(button("FIT-Datei auswählen und offline analysieren") {
+            AlertDialog.Builder(this)
+                .setTitle("FIT-Datei lokal prüfen")
+                .setMessage(
+                    "FIT-Dateien können Gesundheits- und Aktivitätsdaten enthalten. " +
+                        "Die ausgewählte Datei wird lokal und begrenzt geprüft, nicht kopiert, hochgeladen oder in PulsLibre importiert. " +
+                        "Wähle nur eine Datei, die du prüfen möchtest."
+                )
+                .setNegativeButton("Abbrechen", null)
+                .setPositiveButton("Datei auswählen") { _, _ ->
+                    fitPicker.launch(arrayOf("application/octet-stream", "application/vnd.ant.fit", "*/*"))
+                }
+                .show()
+        })
+        addRecordView(fitCard, CirqaTestLaboratory.TestId.FIT_FILE)
+        addCard(fitCard)
+
+        val historyCard = card()
+        historyCard.addView(label("Historischer Download", 16f, true))
+        historyCard.addView(label(
+            "Nicht getestet · Unbewiesen · Gesperrt. CIRQA-Capabilities und erfolgreiche Dateiantworten " +
+                "sind nicht belegt. Hier gibt es absichtlich keinen Download-Button.",
+            14f
+        ), LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) })
+        addRecordView(historyCard, CirqaTestLaboratory.TestId.HISTORICAL_DOWNLOAD)
+        addCard(historyCard)
+
+        root.addView(button("Datensparsamen Testbericht speichern") {
+            AlertDialog.Builder(this)
+                .setTitle("Testbericht lokal speichern")
+                .setMessage(
+                    "Der Standardbericht enthält keine Gerätekennung, Rohpayloads, FIT-Dateinamen oder Messwerte. " +
+                        "Der Android-Dateidialog kann auch Cloud-Ziele anbieten; wähle nur einen Speicherort, dem du vertraust."
+                )
+                .setNegativeButton("Abbrechen", null)
+                .setPositiveButton("Speicherort wählen") { _, _ ->
+                    reportPicker.launch("pulselibre-cirqa-testbericht.txt")
+                }
+                .show()
+        })
+        root.addView(button("Zurück") { finish() })
+
+        val scroll = ScrollView(this).apply {
+            isFillViewport = true
+            addView(root)
+        }
+        setContentView(scroll)
+    }
+
+    private fun addCard(card: LinearLayout) {
+        root.addView(card, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(12) })
+    }
+
+    private fun addRecordView(card: LinearLayout, test: CirqaTestLaboratory.TestId) {
+        val text = TextView(this).apply {
+            textSize = 12f
+            setTextColor(AppPalette.of(this@CirqaTestLaboratoryActivity).muted)
+            setPadding(0, 12, 0, 0)
+            isFocusable = true
+        }
+        statusViews[test] = text
+        card.addView(text)
+    }
+
+    private fun loadRecords() {
+        for ((test, initial) in records.toMap()) {
+            val verdict = runCatching {
+                CirqaTestLaboratory.Verdict.valueOf(preferences.getString("${test.name}.verdict", null) ?: "")
+            }.getOrDefault(initial.verdict)
+            val evidence = runCatching {
+                CirqaTestLaboratory.EvidenceLevel.valueOf(preferences.getString("${test.name}.evidence", null) ?: "")
+            }.getOrDefault(initial.evidence)
+            val checkedAt = preferences.getLong("${test.name}.time", -1L).takeIf { it >= 0 }
+            val summary = preferences.getString("${test.name}.summary", null) ?: initial.safeSummary
+            records[test] = initial.copy(
+                verdict = verdict,
+                evidence = evidence,
+                checkedAtEpochMillis = checkedAt,
+                safeSummary = summary
+            )
+        }
+        // History is a release gate, never an enabled action or a user-editable pass result.
+        records[CirqaTestLaboratory.TestId.HISTORICAL_DOWNLOAD] =
+            CirqaTestLaboratory.initialRecords().first {
+                it.test == CirqaTestLaboratory.TestId.HISTORICAL_DOWNLOAD
+            }
+        records[CirqaTestLaboratory.TestId.PASSIVE_PROTOCOL] =
+            CirqaTestLaboratory.initialRecords().first {
+                it.test == CirqaTestLaboratory.TestId.PASSIVE_PROTOCOL
+            }
+    }
+
+    private fun saveRecord(
+        test: CirqaTestLaboratory.TestId,
+        verdict: CirqaTestLaboratory.Verdict,
+        evidence: CirqaTestLaboratory.EvidenceLevel,
+        safeSummary: String
+    ) {
+        if (test == CirqaTestLaboratory.TestId.HISTORICAL_DOWNLOAD) return
+        val now = System.currentTimeMillis()
+        val record = CirqaTestLaboratory.Record(test, verdict, evidence, now, safeSummary)
+        records[test] = record
+        preferences.edit()
+            .putString("${test.name}.verdict", verdict.name)
+            .putString("${test.name}.evidence", evidence.name)
+            .putLong("${test.name}.time", now)
+            .putString("${test.name}.summary", safeSummary.take(240))
+            .apply()
+        refreshRecordView(test)
+    }
+
+    private fun refreshStatusRows() {
+        CirqaTestLaboratory.TestId.values().forEach(::refreshRecordView)
+    }
+
+    private fun refreshRecordView(test: CirqaTestLaboratory.TestId) {
+        val record = records[test] ?: return
+        val view = statusViews[test] ?: return
+        val time = record.checkedAtEpochMillis?.let {
+            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss", Locale.ROOT)
+                .withZone(ZoneId.systemDefault()).format(Instant.ofEpochMilli(it))
+        } ?: "–"
+        view.text = "Status: ${record.verdict.label} · ${record.evidence.label}\nZeit: $time\n${record.safeSummary}"
+        view.contentDescription = "${test.label}. ${view.text}"
+    }
+
+    private fun requiredPermissions(needsScan: Boolean): Array<String> = if (Build.VERSION.SDK_INT >= 31) {
+        if (needsScan) arrayOf(Manifest.permission.BLUETOOTH_SCAN, Manifest.permission.BLUETOOTH_CONNECT)
+        else arrayOf(Manifest.permission.BLUETOOTH_CONNECT)
+    } else arrayOf(Manifest.permission.ACCESS_FINE_LOCATION)
+
+    private fun withBluetoothPermissions(needsScan: Boolean, action: () -> Unit) {
+        val required = requiredPermissions(needsScan)
+        val missing = required.filter {
+            ActivityCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
+        }
+        if (missing.isEmpty()) action()
+        else {
+            permissionAction = action
+            permissionLauncher.launch(missing.toTypedArray())
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun findBondedCirqa() = try {
+        adapter.bondedDevices.orEmpty().firstOrNull {
+            it.name?.contains("CIRQA", ignoreCase = true) == true
+        }
+    } catch (_: SecurityException) {
+        null
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun captureAndroidStatus() {
+        val device = findBondedCirqa()
+        if (device == null) {
+            statusOutput.text = "Kein gekoppeltes Gerät mit CIRQA-Bezeichnung gefunden. Es wurde keine Verbindung aufgebaut."
+            saveRecord(
+                CirqaTestLaboratory.TestId.ANDROID_STATUS,
+                CirqaTestLaboratory.Verdict.PASSED,
+                CirqaTestLaboratory.EvidenceLevel.PASSIVELY_OBSERVED,
+                "Abfrage abgeschlossen; kein gekoppeltes CIRQA-Gerät gefunden."
+            )
+            return
+        }
+        val enabled = runCatching { adapter.isEnabled }.getOrDefault(false)
+        val state = runCatching {
+            (getSystemService(BLUETOOTH_SERVICE) as BluetoothManager)
+                .getConnectionState(device, BluetoothProfile.GATT)
+        }.getOrDefault(BluetoothProfile.STATE_DISCONNECTED)
+        val label = when (state) {
+            BluetoothProfile.STATE_CONNECTED -> "GATT verbunden"
+            BluetoothProfile.STATE_CONNECTING -> "GATT verbindet"
+            BluetoothProfile.STATE_DISCONNECTING -> "GATT trennt"
+            else -> "GATT nicht verbunden"
+        }
+        statusOutput.text = "Bluetooth: ${if (enabled) "an" else "aus"} · $label\n" +
+            "Android-Systemstatus; die verantwortliche App ist unbekannt. Keine Verbindung gestartet."
+        saveRecord(
+            CirqaTestLaboratory.TestId.ANDROID_STATUS,
+            CirqaTestLaboratory.Verdict.PASSED,
+            CirqaTestLaboratory.EvidenceLevel.PASSIVELY_OBSERVED,
+            "Android-Systemstatus abgefragt; Bluetooth ${if (enabled) "an" else "aus"}; $label."
+        )
+    }
+
+    private fun startConnectionMonitor() {
+        if (monitorRunning) {
+            Toast.makeText(this, "Verbindungsbeobachtung läuft bereits.", Toast.LENGTH_SHORT).show()
+            return
+        }
+        if (findBondedCirqa() == null) {
+            statusOutput.text = "Kein gekoppeltes CIRQA-Gerät für den Android-Statusmonitor gefunden."
+            saveRecord(
+                CirqaTestLaboratory.TestId.ANDROID_STATUS,
+                CirqaTestLaboratory.Verdict.NOT_TESTED,
+                CirqaTestLaboratory.EvidenceLevel.UNPROVEN,
+                "Statusmonitor nicht gestartet; CIRQA-Kopplung fehlt."
+            )
+            return
+        }
+        monitorRunning = true
+        monitorStartedAt = System.currentTimeMillis()
+        connectedMillis = 0
+        connectedSince = null
+        connectionTransitions = 0
+        lastConnectionState = null
+        statusOutput.text = "Beobachte Android-GATT-Status für 30 Sekunden; keine Verbindung wird gestartet."
+        sampleConnectionState()
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun sampleConnectionState() {
+        if (!monitorRunning || destroyed) return
+        val device = findBondedCirqa()
+        val state = if (device == null) CirqaConnectionHistory.State.NOT_PAIRED else try {
+            when ((getSystemService(BLUETOOTH_SERVICE) as BluetoothManager)
+                .getConnectionState(device, BluetoothProfile.GATT)) {
+                BluetoothProfile.STATE_CONNECTED -> CirqaConnectionHistory.State.CONNECTED
+                BluetoothProfile.STATE_CONNECTING -> CirqaConnectionHistory.State.CONNECTING
+                BluetoothProfile.STATE_DISCONNECTING -> CirqaConnectionHistory.State.DISCONNECTING
+                else -> CirqaConnectionHistory.State.DISCONNECTED
+            }
+        } catch (_: SecurityException) {
+            CirqaConnectionHistory.State.PERMISSION_DENIED
+        } catch (_: IllegalArgumentException) {
+            CirqaConnectionHistory.State.UNKNOWN
+        }
+        val now = System.currentTimeMillis()
+        if (state != lastConnectionState) {
+            connectionTransitions++
+            lastConnectionState = state
+        }
+        if (state == CirqaConnectionHistory.State.CONNECTED) {
+            if (connectedSince == null) connectedSince = now
+        } else {
+            connectedSince?.let { connectedMillis += now - it }
+            connectedSince = null
+        }
+        if (now - monitorStartedAt >= 30_000L) {
+            connectedSince?.let { connectedMillis += now - it }
+            connectedSince = null
+            monitorRunning = false
+            val seconds = connectedMillis / 1_000L
+            statusOutput.text = "Beobachtung abgeschlossen: Statuswechsel=$connectionTransitions · " +
+                "Android meldete GATT verbunden für ${seconds}s der 30s.\nVerbundene App unbekannt."
+            saveRecord(
+                CirqaTestLaboratory.TestId.ANDROID_STATUS,
+                CirqaTestLaboratory.Verdict.PASSED,
+                CirqaTestLaboratory.EvidenceLevel.PASSIVELY_OBSERVED,
+                "30-s-Statusbeobachtung abgeschlossen; Statuswechsel=$connectionTransitions; verbunden=${seconds}s."
+            )
+            return
+        }
+        handler.postDelayed(connectionPoll, 1_000L)
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun startPassiveScan() {
+        if (scanning) return
+        if (!runCatching { adapter.isEnabled }.getOrDefault(false)) {
+            scanOutput.text = "Bluetooth ist aus. Bitte selbst in den Android-Einstellungen aktivieren; kein Test gestartet."
+            saveRecord(
+                CirqaTestLaboratory.TestId.PASSIVE_SCAN,
+                CirqaTestLaboratory.Verdict.NOT_TESTED,
+                CirqaTestLaboratory.EvidenceLevel.UNPROVEN,
+                "Scan nicht gestartet; Bluetooth ausgeschaltet."
+            )
+            return
+        }
+        val scanner = adapter.bluetoothLeScanner
+        if (scanner == null) {
+            scanOutput.text = "Android-BLE-Scanner nicht verfügbar."
+            saveRecord(
+                CirqaTestLaboratory.TestId.PASSIVE_SCAN,
+                CirqaTestLaboratory.Verdict.NOT_SUPPORTED,
+                CirqaTestLaboratory.EvidenceLevel.UNPROVEN,
+                "Android-BLE-Scanner nicht verfügbar."
+            )
+            return
+        }
+        scanEvents = 0
+        matchedBondAdvertisement = false
+        garminHintEvents = 0
+        rssiSamples.clear()
+        val bondedAddress = findBondedCirqa()?.address
+        val callback = object : ScanCallback() {
+            override fun onScanResult(callbackType: Int, result: ScanResult) {
+                if (!scanning || destroyed) return
+                scanEvents++
+                if (rssiSamples.size < 500) rssiSamples += result.rssi
+                if (bondedAddress != null &&
+                    CirqaAddressMatch.matches(bondedAddress, result.device.address)) {
+                    matchedBondAdvertisement = true
+                }
+                val record = result.scanRecord
+                val companyIds = (0 until (record?.manufacturerSpecificData?.size() ?: 0))
+                    .mapNotNull { record?.manufacturerSpecificData?.keyAt(it) }
+                val serviceIds = record?.serviceUuids.orEmpty().map { it.uuid.toString() }
+                val name = record?.deviceName
+                if (BleAdvertisementIdentity.isGarminHint(name, companyIds, serviceIds)) garminHintEvents++
+                scanOutput.text = "Passiver Scan läuft · Ereignisse=$scanEvents · " +
+                    "Garmin-Hinweise=$garminHintEvents · Adressabgleich=${if (matchedBondAdvertisement) "ja" else "nein"}"
+            }
+
+            override fun onScanFailed(errorCode: Int) {
+                runOnUiThread {
+                    scanning = false
+                    scanCallback = null
+                    scanOutput.text = "Android-Scan fehlgeschlagen (Code $errorCode); keine Gerätekennung gespeichert."
+                    saveRecord(
+                        CirqaTestLaboratory.TestId.PASSIVE_SCAN,
+                        CirqaTestLaboratory.Verdict.FAILED,
+                        CirqaTestLaboratory.EvidenceLevel.UNPROVEN,
+                        "Android-Scan fehlgeschlagen; keine Gerätekennung gespeichert."
+                    )
+                }
+            }
+        }
+        try {
+            scanner.startScan(callback)
+            scanCallback = callback
+            scanning = true
+            scanOutput.text = "Passiver BLE-Scan gestartet; keine Verbindung oder GATT-Aktion."
+            handler.postDelayed(scanTimeout, 15_000L)
+        } catch (_: SecurityException) {
+            scanOutput.text = "Bluetooth-Berechtigung fehlt; Scan nicht gestartet."
+        } catch (_: IllegalStateException) {
+            scanOutput.text = "Android-Scanner nicht bereit; Scan nicht gestartet."
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun finishPassiveScan() {
+        if (!scanning) return
+        val callback = scanCallback
+        try { if (callback != null) adapter.bluetoothLeScanner?.stopScan(callback) }
+        catch (_: SecurityException) { }
+        catch (_: IllegalStateException) { }
+        scanning = false
+        scanCallback = null
+        val median = rssiSamples.sorted().let { values ->
+            if (values.isEmpty()) null else values[values.size / 2]
+        }
+        val summary = "Scan abgeschlossen; Werbeereignisse=$scanEvents; Garmin-Hinweise=$garminHintEvents; " +
+            "Adressabgleich=${if (matchedBondAdvertisement) "ja" else "nein"}; " +
+            "RSSI-Messpunkte=${rssiSamples.size}" + (median?.let { "; Median=${it}dBm" } ?: "")
+        scanOutput.text = summary + "\nGarmin-/Adresshinweise sind kein Identitätsnachweis."
+        val observed = scanEvents > 0
+        saveRecord(
+            CirqaTestLaboratory.TestId.PASSIVE_SCAN,
+            CirqaTestLaboratory.Verdict.PASSED,
+            if (observed) CirqaTestLaboratory.EvidenceLevel.PASSIVELY_OBSERVED
+            else CirqaTestLaboratory.EvidenceLevel.UNPROVEN,
+            summary.replace(Regex("; Median=-?\\d+dBm"), "")
+        )
+    }
+
+    private fun stopPassiveScan(userStopped: Boolean) {
+        if (!scanning) return
+        if (userStopped) handler.removeCallbacks(scanTimeout)
+        finishPassiveScan()
+        if (userStopped) scanOutput.append("\nVom Nutzer vor Ablauf gestoppt.")
+    }
+
+    private fun confirmGattDiscovery() {
+        AlertDialog.Builder(this)
+            .setTitle("Read-only GATT-Dienstsuche")
+            .setMessage(
+                "Es wird eine temporäre Verbindung zum gekoppelten Gerät mit CIRQA-Bezeichnung aufgebaut. " +
+                    "Die vorhandene CirqaGattProbe sucht nur Dienst-/Characteristic-Metadaten, führt keine GATT-Lese-/Schreibbefehle aus, " +
+                    "abonniert keine Notifications und trennt nach Abschluss oder spätestens 15 Sekunden. Garmin Connect kann die Verbindung verlieren. Fortfahren?"
+            )
+            .setNegativeButton("Abbrechen", null)
+            .setPositiveButton("Dienstsuche starten") { _, _ -> runGattDiscovery() }
+            .show()
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun runGattDiscovery() {
+        if (findBondedCirqa() == null) {
+            discoveryOutput.text = "Kein gekoppeltes Gerät mit CIRQA-Bezeichnung; keine Verbindung aufgebaut."
+            saveRecord(
+                CirqaTestLaboratory.TestId.GATT_DISCOVERY,
+                CirqaTestLaboratory.Verdict.NOT_TESTED,
+                CirqaTestLaboratory.EvidenceLevel.UNPROVEN,
+                "Dienstsuche nicht gestartet; CIRQA-Kopplung fehlt."
+            )
+            return
+        }
+        discoveryOutput.text = "Read-only GATT-Dienstsuche läuft …"
+        if (gattProbe == null) gattProbe = CirqaGattProbe(this, adapter)
+        gattProbe?.start { message ->
+            runOnUiThread {
+                val complete = message.startsWith("GATT-Dienstsuche abgeschlossen")
+                discoveryOutput.text = message
+                saveRecord(
+                    CirqaTestLaboratory.TestId.GATT_DISCOVERY,
+                    if (complete) CirqaTestLaboratory.Verdict.PASSED else CirqaTestLaboratory.Verdict.FAILED,
+                    if (complete) CirqaTestLaboratory.EvidenceLevel.DEVICE_CONFIRMED
+                    else CirqaTestLaboratory.EvidenceLevel.UNPROVEN,
+                    if (complete) "Read-only Dienst-/Characteristic-Metadaten erfolgreich ermittelt."
+                    else "Read-only GATT-Dienstsuche nicht erfolgreich; keine Rohdaten im Testbericht."
+                )
+            }
+        }
+    }
+
+    private fun confirmLiveProbe() {
+        AlertDialog.Builder(this)
+            .setTitle("Vorhandene Live-Messwertprobe")
+            .setMessage(
+                "Startet ausschließlich die bereits implementierte Puls-/Schritte-Echtzeitprobe. " +
+                    "Sie verbindet sich, aktiviert Notifications und sendet die dafür vorhandenen Garmin-Service-Registrierungen. " +
+                    "Das kann Garmin Connect unterbrechen. Empfangene echte Werte werden wie bisher lokal gespeichert. " +
+                    "Kein historischer Download, keine Dateiliste, kein Archivieren/Löschen/Flagändern und kein 0x8A39. " +
+                    "Nur starten, wenn du diesen bestehenden Live-Test jetzt bewusst ausführen willst."
+            )
+            .setNegativeButton("Abbrechen", null)
+            .setPositiveButton("Live-Test starten") { _, _ -> runExistingLiveProbe() }
+            .show()
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun runExistingLiveProbe() {
+        if (findBondedCirqa() == null) {
+            liveOutput.text = "Kein gekoppeltes Gerät mit CIRQA-Bezeichnung; keine Live-Probe gestartet."
+            saveRecord(
+                CirqaTestLaboratory.TestId.LIVE_READINGS,
+                CirqaTestLaboratory.Verdict.NOT_TESTED,
+                CirqaTestLaboratory.EvidenceLevel.UNPROVEN,
+                "Live-Probe nicht gestartet; CIRQA-Kopplung fehlt."
+            )
+            return
+        }
+        liveReadingCount = 0
+        liveKinds.clear()
+        liveOutput.text = "Vorhandene Puls-/Schritte-Probe läuft; höchstens 20 Sekunden."
+        if (mlProbe == null) mlProbe = CirqaMlHandshakeProbe(this, adapter)
+        mlProbe?.onReading = { service, reading ->
+            liveReadingCount++
+            liveKinds += when (reading) {
+                is GarminRealtime.Reading.HeartRate -> "Puls"
+                is GarminRealtime.Reading.Steps -> "Schritte"
+                else -> "anderer"
+            }
+            CirqaLocalLog(this).reading(service, reading)
+        }
+        mlProbe?.startRealtime { message ->
+            runOnUiThread {
+                liveOutput.text = message
+                if (message.startsWith("CIRQA Echtzeit-Test:")) {
+                    val received = liveReadingCount
+                    val types = liveKinds.sorted().joinToString(", ").ifEmpty { "keine" }
+                    saveRecord(
+                        CirqaTestLaboratory.TestId.LIVE_READINGS,
+                        if (received > 0) CirqaTestLaboratory.Verdict.PASSED
+                        else CirqaTestLaboratory.Verdict.FAILED,
+                        if (received > 0) CirqaTestLaboratory.EvidenceLevel.DEVICE_CONFIRMED
+                        else CirqaTestLaboratory.EvidenceLevel.UNPROVEN,
+                        "Empfangene Messpakete=$received; Messwerttypen=$types; lokal gespeichert."
+                    )
+                    refreshStoredReadings()
+                } else if (!message.startsWith("ML-Test: Verbinde")) {
+                    saveRecord(
+                        CirqaTestLaboratory.TestId.LIVE_READINGS,
+                        CirqaTestLaboratory.Verdict.FAILED,
+                        CirqaTestLaboratory.EvidenceLevel.UNPROVEN,
+                        "Vorhandene Live-Probe konnte nicht vollständig gestartet oder abgeschlossen werden."
+                    )
+                }
+            }
+        }
+    }
+
+    private fun refreshStoredReadings() {
+        try {
+            val (count, bytes) = CirqaDatabase(this).use { it.eventCount() to it.eventBytes() }
+            storedReadingsOutput.text =
+                "Lokal gespeicherte Protokollereignisse: $count · Protokollgröße: $bytes Bytes.\n" +
+                    "Diese Daten können aus früheren aktiven Live-Proben stammen. Das ist kein passiver Frame-Mitschnitt und kein FIT-Import."
+        } catch (_: Exception) {
+            storedReadingsOutput.text = "Lokale Statistik momentan nicht lesbar."
+        }
+    }
+
+    private fun inspectFit(uri: android.net.Uri) {
+        fitOutput.text = "FIT-Datei wird lokal geprüft …"
+        io.execute {
+            val result = try {
+                val bytes = contentResolver.openInputStream(uri)?.use {
+                    BoundedFitInput.read(it)
+                }
+                when {
+                    bytes == null -> FitCheck.TooLarge
+                    FitFileHeader.inspectVerified(bytes) == null -> FitCheck.Invalid(bytes.size)
+                    else -> FitHistoricalObservations.decode(bytes)?.let { FitCheck.Valid(bytes.size, it) }
+                        ?: FitCheck.Invalid(bytes.size)
+                }
+            } catch (_: Exception) {
+                FitCheck.Invalid(null)
+            }
+            runOnUiThread {
+                if (destroyed) return@runOnUiThread
+                when (result) {
+                    FitCheck.TooLarge -> {
+                        fitOutput.text = "Abgelehnt: FIT-Datei überschreitet 8 MiB. Keine Datei wurde gespeichert."
+                        saveRecord(
+                            CirqaTestLaboratory.TestId.FIT_FILE,
+                            CirqaTestLaboratory.Verdict.FAILED,
+                            CirqaTestLaboratory.EvidenceLevel.OFFLINE_VALIDATED,
+                            "Datei wegen Größenlimit abgelehnt; keine Kopie gespeichert."
+                        )
+                    }
+                    is FitCheck.Invalid -> {
+                        fitOutput.text = "FIT-Datei ungültig, beschädigt oder nicht unterstützte Struktur. " +
+                            "Header-/Datei-CRC oder Parserprüfung fehlgeschlagen; keine Daten importiert."
+                        saveRecord(
+                            CirqaTestLaboratory.TestId.FIT_FILE,
+                            CirqaTestLaboratory.Verdict.FAILED,
+                            CirqaTestLaboratory.EvidenceLevel.OFFLINE_VALIDATED,
+                            "Offline-Prüfung abgelehnt; CRC/Struktur ungültig oder nicht unterstützt."
+                        )
+                    }
+                    is FitCheck.Valid -> renderFitResult(result.bytes, result.result)
+                }
+            }
+        }
+    }
+
+    private sealed class FitCheck {
+        data object TooLarge : FitCheck()
+        data class Invalid(val bytes: Int?) : FitCheck()
+        data class Valid(val bytes: Int, val result: FitHistoricalObservations.Result) : FitCheck()
+    }
+
+    private fun renderFitResult(bytes: Int, result: FitHistoricalObservations.Result) {
+        val counts = FitHistoricalObservations.Metric.values().associateWith { metric ->
+            result.observations.count { it.metric == metric }
+        }
+        val duplicateGroups = result.potentialDuplicates()
+        val missingTimestamps = result.observations.count {
+            it.quality == FitHistoricalObservations.Quality.MISSING_TIMESTAMP
+        }
+        val outsideRange = result.observations.count {
+            it.quality == FitHistoricalObservations.Quality.OUTSIDE_DISPLAY_RANGE
+        }
+        val timestamped = result.observations.mapNotNull { it.timestampEpochMillis }
+        val formatter = DateTimeFormatter.ISO_OFFSET_DATE_TIME.withZone(ZoneId.systemDefault())
+        val summary = buildString {
+            appendLine("FIT envelope + CRC: gültig · ${bytes} Bytes · offline")
+            appendLine("Mess-/Monitoring-Datensätze: ${result.dataRecordCount}")
+            appendLine("Unterstützte Felder:")
+            for (metric in FitHistoricalObservations.Metric.values()) {
+                appendLine("  ${metric.name}: ${counts.getValue(metric)} Beobachtungen (${metric.unit})")
+            }
+            appendLine("Zeitstempel: ${timestamped.size}/${result.observations.size} vorhanden" +
+                (if (timestamped.isEmpty()) "" else " · ${formatter.format(Instant.ofEpochMilli(timestamped.minOrNull()!!))} … ${formatter.format(Instant.ofEpochMilli(timestamped.maxOrNull()!!))}"))
+            appendLine("Qualität: ohne Zeitstempel=$missingTimestamps · außerhalb HR-Anzeigebereich=$outsideRange")
+            appendLine("Mögliche Duplikatgruppen=${duplicateGroups.size}; keine automatische Zusammenführung.")
+            appendLine("Fehlerhafte/unerwartete unterstützte Feldtypen=${result.unsupportedMeasurementFieldCount}")
+            appendLine("Kein Datenbankimport; unbekannte Felder wurden nicht geraten.")
+            appendLine()
+            appendLine("Beobachtungen (maximal 80 angezeigt):")
+            result.observations.take(80).forEach { observation ->
+                val time = observation.timestampEpochMillis?.let {
+                    formatter.format(Instant.ofEpochMilli(it))
+                } ?: "Zeitstempel fehlt"
+                appendLine("${observation.metric.name} · $time · " +
+                    "${String.format(Locale.ROOT, "%.3f", observation.value)} ${observation.unit} · ${observation.quality}")
+            }
+            if (result.observations.size > 80) {
+                appendLine("… ${result.observations.size - 80} weitere Beobachtungen nicht einzeln dargestellt.")
+            }
+        }
+        fitOutput.text = summary
+        saveRecord(
+            CirqaTestLaboratory.TestId.FIT_FILE,
+            CirqaTestLaboratory.Verdict.PASSED,
+            CirqaTestLaboratory.EvidenceLevel.OFFLINE_VALIDATED,
+            "FIT-CRC/Struktur gültig; Datensätze=${result.dataRecordCount}; " +
+                "unterstützte Beobachtungen=${result.observations.size}; mögliche Duplikatgruppen=${duplicateGroups.size}; lokal, kein DB-Import."
+        )
+    }
+
+    override fun onStop() {
+        if (scanning) {
+            handler.removeCallbacks(scanTimeout)
+            val callback = scanCallback
+            try { if (callback != null) adapter.bluetoothLeScanner?.stopScan(callback) }
+            catch (_: SecurityException) { }
+            catch (_: IllegalStateException) { }
+            scanning = false
+            scanCallback = null
+        }
+        if (monitorRunning) {
+            monitorRunning = false
+            handler.removeCallbacks(connectionPoll)
+            saveRecord(
+                CirqaTestLaboratory.TestId.ANDROID_STATUS,
+                CirqaTestLaboratory.Verdict.NOT_TESTED,
+                CirqaTestLaboratory.EvidenceLevel.UNPROVEN,
+                "30-s-Statusbeobachtung vor Abschluss beendet; Ergebnis nicht gewertet."
+            )
+        }
+        if (gattProbe != null && discoveryOutput.text.toString().contains("läuft", ignoreCase = true)) {
+            saveRecord(
+                CirqaTestLaboratory.TestId.GATT_DISCOVERY,
+                CirqaTestLaboratory.Verdict.NOT_TESTED,
+                CirqaTestLaboratory.EvidenceLevel.UNPROVEN,
+                "GATT-Dienstsuche beim Verlassen beendet; Ergebnis nicht gewertet."
+            )
+        }
+        gattProbe?.close()
+        gattProbe = null
+        if (mlProbe != null) {
+            mlProbe?.close()
+            mlProbe = null
+            if (liveOutput.text.toString().contains("läuft", ignoreCase = true)) {
+                liveOutput.text = "Live-Probe beim Verlassen des Testlabors beendet."
+                saveRecord(
+                    CirqaTestLaboratory.TestId.LIVE_READINGS,
+                    CirqaTestLaboratory.Verdict.NOT_TESTED,
+                    CirqaTestLaboratory.EvidenceLevel.UNPROVEN,
+                    "Live-Probe vor Abschluss beendet; Ergebnis nicht gewertet."
+                )
+            }
+        }
+        super.onStop()
+    }
+
+    override fun onDestroy() {
+        destroyed = true
+        monitorRunning = false
+        handler.removeCallbacksAndMessages(null)
+        gattProbe?.close()
+        mlProbe?.close()
+        io.shutdownNow()
+        super.onDestroy()
+    }
+}

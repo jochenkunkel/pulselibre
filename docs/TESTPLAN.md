@@ -91,3 +91,45 @@ Der Status wird bei App-Wiederaufnahme und anschließend jede Sekunde neu aus de
 Der Tester meldet: **„bis auf 16 ist alles ok“**. Daher werden **T01–T15 als vom Benutzer bestanden gemeldet** erfasst (kein unabhängiger Hardware-Nachweis durch CI). **T16 ist offen:** Noch nicht klar, ob TalkBack/Barrierefreiheit fehlgeschlagen oder lediglich nicht getestet wurde. Diese Unterscheidung vor einer Freigabe nachfragen. Kein vollständiger Release-Gate; Historien-FileSync weiterhin unbewiesen.
 
 **T07-Hardwareabnahme bleibt offen:** Die historische manuelle Meldung „bis auf 16 ist alles ok“ bezog sich auf den früheren Testbuild ohne Verbindungsrand und gilt nicht als Test dieses Features.
+
+## CIRQA-Testlabor – Issue #20
+
+Diese Schritte sind ein **noch auszuführender** S25-Testplan. Automatisierte JVM-/Emulatortests ersetzen keine CIRQA-Hardwareprüfung. Testlabor öffnen über den Tab **Testlabor**. Es gibt keinen Historien-Downloadbutton.
+
+### Vorbedingungen und Stufen
+
+- Sicherstellen, dass die installierte APK aus vertrauenswürdigem Build stammt. Bei Update-Signaturkonflikt abbrechen und **nicht deinstallieren**.
+- Garmin Connect nicht entkoppeln; CIRQA nicht zurücksetzen. Vor dem bestehenden aktiven Live-Messwerttest Garmin Connect schließen.
+- Stufe 1 umfasst passiven Scan, Android-Statusbeobachtung, vorhandene read-only GATT-Dienstsuche, vorhandene Puls-/Schritte-Liveprobe und lokale SAF-FIT-Analyse.
+- Stufe 2 hat **keine Freigabe**: Der Vorschlag zu GFDI 5007 ist nur Dokumentation; insbesondere keine FileSync-Aktion im Labor starten. Stufe 3 (Archivieren/Löschen/Reset/Firmware/Flags) ist gesperrt.
+- Bei unerwartetem BLE-Verhalten, Garmin-Connect-Abbruch oder sichtbaren Daten-/Berechtigungsproblemen sofort abbrechen. Keine Gerätekennungen oder Messwerte in öffentliche Tickets/Chats kopieren.
+
+### Testfälle
+
+| ID | Durchführung | Erwartetes Ergebnis / Einordnung |
+|---|---|---|
+| T17 | Testlabor öffnen, Dunkelmodus und große Schrift prüfen | Keine automatische Verbindung/Anfrage. Download-NO-GO ist sichtbar; Status nennt Ergebnis und Evidenzklasse getrennt. Buttons sind mit TalkBack bedienbar. |
+| T18 | Bluetoothstatus einmal abfragen; optional den 30-s-Monitor starten | Nur Androids Bond-/GATT-Systemstatus und Statuswechsel; kein Verbindungsaufbau. Verantwortliche App bleibt unbekannt. |
+| T19 | Passiven 15-s-Scan starten und optional stoppen | Keine GATT-Verbindung. Nur Zähler, Garmin-Hinweis, flüchtiger Bond-Adressabgleich und begrenzter RSSI-Überblick; kein Identitäts-/Entfernungsbeweis. |
+| T20 | Read-only-GATT-Dienstsuche nach separater Dialogbestätigung | Vorhandene `CirqaGattProbe` verbindet temporär, sucht nur Services/Characteristics und trennt spätestens nach 15 s. Keine GATT-Lese-/Schreiboperation oder Notifications. Garmin Connect kann getrennt werden. |
+| T21 | Bestehende Puls-/Schritte-Liveprobe nur nach eigenem Bestätigungsdialog | Bestehender unterstützter Livepfad; keine neue Protokolloperation. Echte empfangene Werte können lokal gespeichert werden. Das ist weder Historienimport noch Stufe-2-FileSync. |
+| T22 | FIT-Datei über SAF auswählen (nur autorisierte Testdatei) | Lokal: Envelope-/CRC-Validierung und ausgewählte unterstützte Felder, Zeitstempel, Einheiten, Qualitätsflags, fehlende Werte und mögliche Duplikate prüfen. Max. 8 MiB/50.000 Beobachtungen, max. 80 Einzelzeilen in der Anzeige. Keine Kopie und kein SQLite-Import. |
+| T23 | Standard-Testbericht speichern und Datei vor Weitergabe prüfen | Export enthält Status, Zeitpunkt und sichere Zähler/Ergebniszusammenfassungen, keine Gerätekennung, Dateinamen, Rohpayloads oder Messwerte. SAF kann Cloud-Ziele anbieten; nur vertrauenswürdigen Speicherort wählen. |
+| T24 | Im Labor nach historischem Download / `0x8A39` suchen | Kein Download-Button und kein `0x8A39`; Historienstatus bleibt „Nicht getestet / Unbewiesen / gesperrt“. 5007/5031/5002/5004 werden nicht vom Gerät angefordert. |
+| T25 | Bereich „Passiv beobachtete Protokolle und lokale Logs“ ansehen | Das Labor sagt ausdrücklich, dass keine passiven CIRQA-Rohframes gespeichert sind. SQLite-Zähler sind App-Ereignisse und kein passiver Protokollmitschnitt. |
+
+**Stufe-2-Vorschlag:** siehe [CIRQA_TEST_LAB_STAGE2_PROPOSAL_2026-11-17.md](CIRQA_TEST_LAB_STAGE2_PROPOSAL_2026-11-17.md). Er ist derzeit wegen fehlender CIRQA-Evidenz und äußerer Requestbytes nicht ausführbar. Jede Ausführung benötigt einen neuen Auftrag, der genau diesen vervollständigten Plan ausdrücklich freigibt.
+
+```text
+Testlabor APK/Version:
+T17: NICHT GETESTET
+T18: NICHT GETESTET
+T19: NICHT GETESTET
+T20: NICHT GETESTET
+T21: NICHT GETESTET
+T22: NICHT GETESTET
+T23: NICHT GETESTET
+T24: NICHT GETESTET
+T25: NICHT GETESTET
+Abbruch / beobachtete Nebenwirkung:
+```

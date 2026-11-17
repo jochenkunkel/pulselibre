@@ -11,6 +11,7 @@ import java.security.MessageDigest
  */
 object FitHistoricalObservations {
     private const val FIT_EPOCH_UNIX_SECONDS = 631_065_600L
+    const val MAX_OBSERVATIONS = 50_000
     private const val GLOBAL_RECORD = 20
     private const val GLOBAL_MONITORING = 55
 
@@ -182,6 +183,7 @@ object FitHistoricalObservations {
                         else -> if (timestampMillis == null) Quality.MISSING_TIMESTAMP else Quality.PROFILE_VALID
                     }
                     val semanticKey = "${mapped.metric.name}:${timestampMillis ?: "missing"}:${value.toBits()}"
+                    if (observations.size >= MAX_OBSERVATIONS) return null
                     observations += Observation(
                         metric = mapped.metric,
                         timestampEpochMillis = timestampMillis,
