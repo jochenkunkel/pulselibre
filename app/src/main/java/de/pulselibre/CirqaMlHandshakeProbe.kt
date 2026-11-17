@@ -32,6 +32,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private var configurationResponseConfirmed = false
     private var configurationChunksOutstanding = 0
     private var configurationAckReceived = false
+    private var configurationObservationExtended = false
     private var post5050Evidence = Cirqa5050PostWriteEvidence()
     private var bootstrapAckSent = false
     private var bootstrapAckConfirmed = false
@@ -188,6 +189,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         bootstrapAckSent = false
         configurationResponseQueued = false
         configurationAckReceived = false
+        configurationObservationExtended = false
         post5050Evidence = Cirqa5050PostWriteEvidence()
         configurationResponseConfirmed = false
         configurationChunksOutstanding = 0
@@ -309,6 +311,14 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                             if (configurationResponseQueued && bootstrapAckChunks.isEmpty()) {
                                 configurationResponseConfirmed = true
                                 post5050Evidence.onWriteConfirmed(fileListProbe.frameTypes)
+                                // Allow a full 10 seconds after the last confirmed write.
+                                // This replaces, rather than duplicates, the original timeout.
+                                if (configurationTestMode && !configurationObservationExtended) {
+                                    configurationObservationExtended = true
+                                    main.removeCallbacks(configurationTimeout)
+                                    main.postDelayed(configurationTimeout, 10_000L)
+                                }
+                                mark("5050-Test: Schreibfolge bestätigt; beobachte Antworten 10 Sekunden")
                             }
                         }
                         if (bootstrapAckMode && bootstrapAckSent && bootstrapAckChunks.isNotEmpty()) {
@@ -319,9 +329,15 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     }
                 }
             }, BluetoothDevice.TRANSPORT_LE)
-            main.postDelayed({ if (active) finish(if (historyDiagnosticMode) "CIRQA Historien-Diagnose: Beobachtungsfenster beendet." else if (realtimeMode) realtimeSummary("Zeitlimit (20 Sekunden)") else "ML-Handshake: Zeitlimit (20 Sekunden). Letzte Phase: $phase; Notifications: $notificationsReceived; GATT-Schreiben bestätigt: $writeConfirmed; Protokollzustand: ${session?.stage}; Antwortformen: ${notificationShapes.joinToString(" | ")}.", gatt) }, 20_000)
+            if (configurationTestMode) main.postDelayed(configurationTimeout, 20_000L)
+            /* Legacy timeout for non-configuration modes. */
+            if (!configurationTestMode) main.postDelayed({ if (active) finish(if (historyDiagnosticMode) "CIRQA Historien-Diagnose: Beobachtungsfenster beendet." else if (realtimeMode) realtimeSummary("Zeitlimit (20 Sekunden)") else "ML-Handshake: Zeitlimit (20 Sekunden). Letzte Phase: $phase; Notifications: $notificationsReceived; GATT-Schreiben bestätigt: $writeConfirmed; Protokollzustand: ${session?.stage}; Antwortformen: ${notificationShapes.joinToString(" | ")}.", gatt) }, 20_000)
         } catch (_: SecurityException) { finish("Bluetooth-Berechtigung fehlt.", gatt) }
         catch (e: IllegalArgumentException) { finish("Verbindungsfehler: ${e.javaClass.simpleName}", gatt) }
+    }
+
+    private val configurationTimeout = Runnable {
+        if (active) finish("CIRQA Historien-Diagnose: Beobachtungsfenster nach 5050-Schreibbestätigung beendet.", gatt)
     }
 
     private fun sendNextBootstrapAckChunk(g: BluetoothGatt) {
@@ -572,7 +588,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         "Protokollzustand: ${session?.stage}\n" +
         "Transportanalyse: ${historyTransport.summary()}\n" +
         "Passiver GFDI/COBS/FileSync-Decoder: ${fileListProbe.summary()}\n" +
-        (if (configurationTestMode) "Hinweis: Der passive Decoder meldet seinen eigenen 5050-Sendestatus; die aktive Testsequenz wird oben separat ausgewiesen. Ein 5000-ACK bestätigt keine Historienfreigabe.\\n" else "") +
+        (if (configurationTestMode) "Hinweis: Der passive Decoder meldet seinen eigenen 5050-Sendestatus; die aktive Testsequenz wird oben separat ausgewiesen. Ein 5000-ACK bestätigt keine Historienfreigabe.\n" else "") +
         "GFDI-Handle: ${historyHandle ?: "unbekannt"}; zugeordnete Pakete: $historyRouted; übrige Pakete: $historyUnrouted\n" +
         "Paketlängen (ohne Registrierung): ${historyLengths.summary()}\n" +
         (if (rawCaptureMode) fileListProbe.rawCaptureReport() + "\n" else "") +
