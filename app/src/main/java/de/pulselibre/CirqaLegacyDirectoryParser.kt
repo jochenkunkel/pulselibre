@@ -16,6 +16,9 @@ object CirqaLegacyDirectoryParser {
         val fieldA: Long,
         val fieldB: Long
     ) {
+        /** Identified by Connect's k7h model; still not validated on CIRQA. */
+        val size: Long get() = fieldA
+        val timestamp: Long get() = fieldB
         val subtype: Int get() = subtypeBytes[0]
         val readable: Boolean get() = attributes and 0x80 != 0
     }
