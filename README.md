@@ -12,7 +12,7 @@
 
 ## Dokumentation nach Fachbereichen
 
-**[Dokumentationswegweiser](docs/README.md)** · [UI-Konzept](docs/ui/README.md) · [CIRQA-Protokollentwicklung](docs/protocol/README.md) · [Wissenschaftliche Messwerte und Berechnungen](docs/science/README.md). Ältere Dokumentpfade bleiben vorerst als Weiterleitungen erhalten.
+**[Dokumentationswegweiser](docs/README.md)** · [UI-Konzept](docs/ui/README.md) · [CIRQA-Protokollentwicklung](docs/protocol/README.md) · [Wissenschaftliche Messwerte und Berechnungen](docs/science/README.md). Die früheren Markdown-Weiterleitungen wurden nach der Linkmigration entfernt; maßgeblich sind die kanonischen Pfade im Dokumentationswegweiser.
 
 ## Einstieg und Dokumentation
 
