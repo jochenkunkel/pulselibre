@@ -9,7 +9,6 @@ import android.view.View
 /** Compact, code-drawn profile portrait; independent of emoji fonts and user-entered sex. */
 internal class BodyProfileAvatarView(context: Context) : View(context) {
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
-    private val density = resources.displayMetrics.density
 
     init {
         contentDescription = "Illustration eines bärtigen Mannes"
