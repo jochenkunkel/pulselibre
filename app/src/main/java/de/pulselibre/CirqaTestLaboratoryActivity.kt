@@ -147,8 +147,8 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
         val warning = card()
         warning.addView(label("Historischer CIRQA-Download bleibt gesperrt", 17f, true))
         warning.addView(label(
-            "Nur der separat freigegebene einmalige GFDI-5007-Kompatibilitätstest ist verfügbar. " +
-                "5031, 5002, 5004 und 0x8A39 bleiben gesperrt. Keine Datei wird angefordert, archiviert, gelöscht oder verändert.",
+            "Separat freigegeben ist genau ein Bootstrap→5007→5031-Test; er stoppt vor jeder Verzeichnis- oder Datei-Anfrage. " +
+                "5002, 5004 und 0x8A39 bleiben gesperrt. Kein Dateiabruf, keine Archivierung, Löschung oder Änderung.",
             14f
         ), LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) })
         addCard(warning)
