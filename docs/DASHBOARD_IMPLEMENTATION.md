@@ -188,3 +188,8 @@ Systemdialoge und Eingaben verwenden das bestehende AppCompat-DayNight-Theme.
 Theme- und Gauge-Modelle haben JVM-Tests; Android-Tests prüfen Light/Dark in beiden
 Activities, Rückkehr zum Systemmodus, leere Gauge, manuelle Auswahl und Zeichnung in
 beiden Paletten. Tatsächliche Build-/CI-Ergebnisse stehen im Übergabestatus bzw. GitHub.
+
+
+## Wissenschaftlicher Kachelbauplan (2026-11-17)
+
+Der ausführliche, quellenbasierte Forschungs- und Implementierungsplan für Messwerte, abgeleitete Kennzahlen, Referenzbereiche, wissenschaftliche Grenzen, Kachelverträge und Tests liegt unter [SCIENTIFIC_DASHBOARD_TILE_BLUEPRINT.md](SCIENTIFIC_DASHBOARD_TILE_BLUEPRINT.md). Er ist ein **Plan**, keine Freigabe zusätzlicher Gesundheitsberechnungen oder CIRQA-Datenquellen. Für neue Kacheln gelten weiterhin die Evidenz- und KDoc-Regeln aus [ENGINEERING_SCIENTIFIC_STANDARDS.md](ENGINEERING_SCIENTIFIC_STANDARDS.md).
