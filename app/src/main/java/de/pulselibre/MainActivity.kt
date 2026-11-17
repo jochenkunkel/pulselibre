@@ -831,7 +831,7 @@ class MainActivity : AppCompatActivity() {
             val item = LinearLayout(this).apply {
                 orientation = LinearLayout.VERTICAL
                 gravity = android.view.Gravity.CENTER
-                minHeight = dp(52)
+                minimumHeight = dp(52)
                 setPadding(dp(2), dp(3), dp(2), dp(3))
                 isClickable = true
                 isFocusable = true
