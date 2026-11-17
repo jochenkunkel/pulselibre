@@ -14,7 +14,7 @@ import androidx.core.view.ViewCompat
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
-/** Local-only scatter plots; each mark is a stored observation and no samples are connected. */
+/** Local-only summaries of stored observations; no missing windows are filled or connected. */
 class HistoryOverviewView(
     context: Context,
     private val load: (HistoryRange) -> HistorySnapshot
@@ -64,10 +64,11 @@ class HistoryOverviewView(
             rangeRow.addView(button, LayoutParams(0, -2, 1f).apply { marginEnd = dp(6) })
         }
         addView(rangeRow, LayoutParams(-1, -2).apply { bottomMargin = dp(10) })
-        addView(label("Zeit = Empfang auf dem Telefon. Jeder Punkt ist ein gespeicherter Wert; Lücken bleiben leer, es gibt keine Verbindung oder Interpolation.",
+        val resolution = HistoryResolution.forRange(snapshot.range)
+        addView(label("Zeit = Empfang auf dem Telefon. Werte werden je Zeitfenster als Median und beobachtete Spanne zusammengefasst; leere Fenster bleiben leer.",
             12f, palette.muted), LayoutParams(-1, -2).apply { bottomMargin = dp(14) })
-        metricCard("Herzfrequenz", "bpm", snapshot.heartRate, snapshot, 240, palette.pulse)
-        metricCard("Sauerstoffsättigung · SpO₂", "%", snapshot.oxygen, snapshot, 100, palette.oxygen)
+        metricCard("Herzfrequenz", "bpm", snapshot.heartRate, snapshot, 240, palette.pulse, resolution)
+        metricCard("Sauerstoffsättigung · SpO₂", "%", snapshot.oxygen, snapshot, 100, palette.oxygen, resolution)
     }
 
     private fun metricCard(
@@ -76,8 +77,10 @@ class HistoryOverviewView(
         points: List<HistoryPoint>,
         snapshot: HistorySnapshot,
         axisMaximum: Int,
-        accent: Int
+        accent: Int,
+        resolution: HistoryResolution
     ) {
+        val buckets = aggregateHistoryPoints(points, snapshot.start, snapshot.end, resolution)
         val card = LinearLayout(context).apply {
             orientation = VERTICAL
             setPadding(dp(14), dp(14), dp(14), dp(12))
@@ -91,7 +94,10 @@ class HistoryOverviewView(
             orientation = HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
         }
-        heading.addView(label(title, 16f, palette.ink, true), LayoutParams(0, -2, 1f))
+        heading.addView(DashboardMetricIconView(context, title, accent), LayoutParams(dp(20), dp(20)).apply {
+            marginEnd = dp(7)
+        })
+        heading.addView(label(title, 15f, palette.ink, true).apply { maxLines = 2 }, LayoutParams(0, -2, 1f))
         heading.addView(TextView(context).apply {
             text = "ⓘ"
             textSize = 20f
@@ -105,14 +111,14 @@ class HistoryOverviewView(
             setOnClickListener { showMetricInfo(title, unit) }
         }, LayoutParams(dp(48), dp(48)))
         card.addView(heading)
-        card.addView(label("${points.size} Messpunkte · Skala 0–$axisMaximum $unit",
+        card.addView(label("${points.size} Werte · ${buckets.size} belegte Fenster · ${resolution.label} · Skala 0–$axisMaximum $unit",
             12f, palette.muted), LayoutParams(-1, -2).apply { topMargin = dp(4) })
         if (points.isEmpty()) {
             card.addView(label("Keine Messdaten in diesem Zeitraum", 14f, palette.muted),
                 LayoutParams(-1, -2).apply { topMargin = dp(18); bottomMargin = dp(18) })
         } else {
-            card.addView(HistoryScatterChartView(context, points, snapshot.start, snapshot.end,
-                axisMaximum, accent, snapshot.range), LayoutParams(-1, dp(210)))
+            card.addView(HistoryScatterChartView(context, buckets, points.size, snapshot.start, snapshot.end,
+                axisMaximum, accent, snapshot.range, resolution), LayoutParams(-1, dp(210)))
         }
         addView(card, LayoutParams(-1, -2).apply { bottomMargin = dp(12) })
     }
@@ -171,12 +177,14 @@ class HistoryOverviewView(
 
 private class HistoryScatterChartView(
     context: Context,
-    private val points: List<HistoryPoint>,
+    private val buckets: List<HistoryBucket>,
+    private val storedPointCount: Int,
     private val start: java.time.Instant,
     private val end: java.time.Instant,
     private val axisMaximum: Int,
     private val accent: Int,
-    range: HistoryRange
+    range: HistoryRange,
+    resolution: HistoryResolution
 ) : View(context) {
     private val palette = AppPalette.of(context)
     private val density = resources.displayMetrics.density
@@ -187,9 +195,10 @@ private class HistoryScatterChartView(
 
     init {
         importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_YES
-        contentDescription = "${points.size} tatsächliche Messpunkte. Vertikale Achse 0 bis $axisMaximum. " +
+        contentDescription = "$storedPointCount gespeicherte Messwerte in ${buckets.size} belegten Zeitfenstern, Auflösung ${resolution.label}. " +
+            "Markierung ist der Median; Strich zeigt beobachtetes Minimum bis Maximum. Vertikale Achse 0 bis $axisMaximum. " +
             "Horizontale Achse ${timeFormatter.format(start)} bis ${timeFormatter.format(end)}. " +
-            "Messpunkte sind nicht verbunden; Zwischenwerte werden nicht dargestellt."
+            "Leere Fenster bleiben leer. Es gibt keine Verbindung oder Interpolation zwischen Fenstern."
     }
 
     override fun onDraw(canvas: Canvas) {
@@ -232,14 +241,20 @@ private class HistoryScatterChartView(
         canvas.drawText(timeFormatter.format(end.atZone(zone)), plot.right, h - 7f * density, paint)
 
         val span = java.time.Duration.between(start, end).toMillis().coerceAtLeast(1L)
-        paint.color = accent
-        points.forEach { point ->
-            val xFraction = (java.time.Duration.between(start, point.receivedAt).toMillis().toDouble() / span)
+        buckets.forEach { bucket ->
+            val center = bucket.start.plusMillis(java.time.Duration.between(bucket.start, bucket.end).toMillis() / 2L)
+            val xFraction = (java.time.Duration.between(start, center).toMillis().toDouble() / span)
                 .toFloat().coerceIn(0f, 1f)
-            val yFraction = (point.value.toFloat() / axisMaximum).coerceIn(0f, 1f)
             val x = plot.left + xFraction * plot.width()
-            val y = plot.bottom - yFraction * plot.height()
-            canvas.drawCircle(x, y, 3.2f * density, paint)
+            val minY = plot.bottom - (bucket.minimum.toFloat() / axisMaximum).coerceIn(0f, 1f) * plot.height()
+            val medianY = plot.bottom - (bucket.median.toFloat() / axisMaximum).coerceIn(0f, 1f) * plot.height()
+            val maxY = plot.bottom - (bucket.maximum.toFloat() / axisMaximum).coerceIn(0f, 1f) * plot.height()
+            paint.color = accent
+            paint.strokeWidth = 1.5f * density
+            canvas.drawLine(x, maxY, x, minY, paint)
+            canvas.drawLine(x - 2f * density, maxY, x + 2f * density, maxY, paint)
+            canvas.drawLine(x - 2f * density, minY, x + 2f * density, minY, paint)
+            canvas.drawCircle(x, medianY, 2.5f * density, paint)
         }
     }
 }

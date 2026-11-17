@@ -23,6 +23,66 @@ data class HistorySnapshot(
     val oxygen: List<HistoryPoint>
 )
 
+/** Fixed display resolutions sized to keep selected ranges readable on a phone chart. */
+enum class HistoryResolution(val label: String, val duration: Duration) {
+    FIFTEEN_MINUTES("15 min", Duration.ofMinutes(15)),
+    TWO_HOURS("2 Std.", Duration.ofHours(2)),
+    SIX_HOURS("6 Std.", Duration.ofHours(6));
+
+    companion object {
+        fun forRange(range: HistoryRange): HistoryResolution = when (range) {
+            HistoryRange.DAY -> FIFTEEN_MINUTES
+            HistoryRange.WEEK -> TWO_HOURS
+            HistoryRange.MONTH -> SIX_HOURS
+        }
+    }
+}
+
+/** Actual observations summarized within one time bucket; empty buckets are omitted. */
+data class HistoryBucket(
+    val start: Instant,
+    val end: Instant,
+    val minimum: Int,
+    val median: Double,
+    val maximum: Int,
+    val count: Int
+)
+
+/**
+ * Groups in-range stored reception snapshots into fixed elapsed-time windows.
+ * Median and min/max are calculated only from observations in each bucket; missing
+ * windows are not filled, and no value is interpolated between buckets.
+ */
+fun aggregateHistoryPoints(
+    points: List<HistoryPoint>,
+    start: Instant,
+    end: Instant,
+    resolution: HistoryResolution
+): List<HistoryBucket> {
+    if (end <= start) return emptyList()
+    val windowMillis = Duration.between(start, end).toMillis()
+    if (windowMillis <= 0L) return emptyList()
+    val bucketMillis = resolution.duration.toMillis()
+    val bucketCount = ((windowMillis + bucketMillis - 1L) / bucketMillis).coerceAtLeast(1L)
+    val grouped = sortedMapOf<Long, MutableList<Int>>()
+    points.forEach { point ->
+        if (point.receivedAt < start || point.receivedAt > end) return@forEach
+        val offset = Duration.between(start, point.receivedAt).toMillis()
+        val index = if (point.receivedAt == end) bucketCount - 1L
+            else (offset / bucketMillis).coerceIn(0L, bucketCount - 1L)
+        grouped.getOrPut(index) { mutableListOf() }.add(point.value)
+    }
+    return grouped.map { (index, values) ->
+        val sorted = values.sorted()
+        val first = (sorted.size - 1) / 2
+        val middle = if (sorted.size % 2 == 1) sorted[first].toDouble()
+            else (sorted[first].toDouble() + sorted[first + 1].toDouble()) / 2.0
+        val bucketStart = start.plusMillis(index * bucketMillis)
+        val bucketEnd = minOf(end, bucketStart.plusMillis(bucketMillis))
+        HistoryBucket(bucketStart, bucketEnd, sorted.first(), middle, sorted.last(), sorted.size)
+    }
+}
+
 /** Plot position only; values outside the selected time range are excluded. */
 fun historyTimeFraction(time: Instant, start: Instant, end: Instant): Float? {
     if (end <= start || time < start || time > end) return null

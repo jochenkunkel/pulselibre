@@ -32,6 +32,10 @@ class DashboardOverviewViewTest {
             assertEquals("dashboard_metric_Herzfrequenz", cards[0].tag)
             assertEquals("dashboard_metric_Sauerstoffsättigung · SpO₂", cards[1].tag)
             assertEquals("dashboard_metric_Schlaf", cards[2].tag)
+            cards.forEach { card ->
+                val title = card.tag.toString().removePrefix("dashboard_metric_")
+                assertNotNull(card.findViewWithTag<View>("dashboard_metric_icon_$title"))
+            }
             assertEquals(LinearLayout.HORIZONTAL, (cards[0].parent as LinearLayout).orientation)
             cards.forEach { card ->
                 val indicator = descendants(card).single { it.tag?.toString()?.startsWith("reception_indicator_") == true }

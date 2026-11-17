@@ -23,4 +23,45 @@ class HistorySeriesTest {
         assertNull(historyTimeFraction(end.plusSeconds(1), start, end))
         assertNull(historyTimeFraction(start, end, start))
     }
+
+    @Test fun resolutionGetsCoarserForLongerRanges() {
+        assertEquals(15 * 60, HistoryResolution.forRange(HistoryRange.DAY).duration.seconds)
+        assertEquals(2 * 60 * 60, HistoryResolution.forRange(HistoryRange.WEEK).duration.seconds)
+        assertEquals(6 * 60 * 60, HistoryResolution.forRange(HistoryRange.MONTH).duration.seconds)
+    }
+
+    @Test fun aggregationKeepsObservedRangeAndMedianWithoutCreatingEmptyWindows() {
+        val start = end.minusSeconds(3600)
+        val points = listOf(
+            HistoryPoint(start, 60),
+            HistoryPoint(start.plusSeconds(30), 100),
+            HistoryPoint(start.plusSeconds(60), 80),
+            HistoryPoint(start.plusSeconds(900), 70),
+            HistoryPoint(start.minusSeconds(1), 250),
+            HistoryPoint(end.plusSeconds(1), 250)
+        )
+
+        val buckets = aggregateHistoryPoints(points, start, end, HistoryResolution.FIFTEEN_MINUTES)
+
+        assertEquals(2, buckets.size)
+        assertEquals(3, buckets[0].count)
+        assertEquals(60, buckets[0].minimum)
+        assertEquals(80.0, buckets[0].median, 0.0)
+        assertEquals(100, buckets[0].maximum)
+        assertEquals(1, buckets[1].count)
+        assertEquals(70.0, buckets[1].median, 0.0)
+        assertEquals(start, buckets[0].start)
+        assertEquals(start.plusSeconds(900), buckets[1].start)
+    }
+
+    @Test fun aSampleExactlyAtRangeEndIsKeptInTheLastWindow() {
+        val start = end.minusSeconds(3600)
+        val buckets = aggregateHistoryPoints(
+            listOf(HistoryPoint(end, 75)), start, end, HistoryResolution.FIFTEEN_MINUTES
+        )
+        assertEquals(1, buckets.size)
+        assertEquals(start.plusSeconds(2700), buckets.single().start)
+        assertEquals(end, buckets.single().end)
+        assertEquals(75.0, buckets.single().median, 0.0)
+    }
 }

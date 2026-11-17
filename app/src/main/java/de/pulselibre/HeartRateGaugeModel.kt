@@ -19,6 +19,13 @@ data class HeartRateGaugeModel(val bpm: Int?) {
         const val SCALE_MAX = 180
         const val ARC_START_DEGREES = 170f
         const val ARC_SWEEP_DEGREES = 200f
+        const val GAUGE_HEIGHT_PER_WIDTH = 0.90f
+        const val DIAL_CENTER_Y_PER_HEIGHT = 0.43f
+        const val DIAL_RADIUS_PER_WIDTH = 0.27f
+        const val MAJOR_LABEL_OUTSET_PER_WIDTH = 0.075f
+        const val MODE_Y_PER_HEIGHT = 0.59f
+        const val VALUE_Y_PER_HEIGHT = 0.73f
+        const val UNIT_Y_PER_HEIGHT = 0.85f
 
         fun needleAngle(fraction: Float): Float = ARC_START_DEGREES + fraction.coerceIn(0f, 1f) * ARC_SWEEP_DEGREES
         fun pivotOffsetFromCircleCenter(radius: Float): Float =

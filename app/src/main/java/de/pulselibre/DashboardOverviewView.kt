@@ -116,12 +116,27 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
     private fun header(metric: DashboardMetric) = LinearLayout(context).apply {
         orientation = HORIZONTAL
         gravity = Gravity.CENTER_VERTICAL
-        addView(label(metric.title, 13f, muted, true), LayoutParams(0, -2, 1f))
+        addView(DashboardMetricIconView(context, metric.title, iconColor(metric.title)).apply {
+            tag = "dashboard_metric_icon_${metric.title}"
+        }, LayoutParams(dp(20), dp(20)).apply { marginEnd = dp(6) })
+        addView(label(metric.title, 12f, muted, true).apply {
+            maxLines = 2
+            ellipsize = android.text.TextUtils.TruncateAt.END
+            contentDescription = metric.title
+        }, LayoutParams(0, -2, 1f))
         addView(ReceptionIndicatorView(context, metric, stepGoal).apply {
             tag = "reception_indicator_${metric.title}"
             minimumWidth = dp(48)
             minimumHeight = dp(48)
         }, LayoutParams(dp(48), dp(48)))
+    }
+
+    private fun iconColor(title: String) = when {
+        title.contains("Herzfrequenz", true) || title.contains("Ruhepuls", true) -> palette.pulse
+        title.contains("SpO₂", true) || title.contains("Sauerstoff", true) -> palette.oxygen
+        title.contains("Schritt", true) -> palette.indicator
+        title.contains("Schlaf", true) -> palette.accent
+        else -> palette.accent
     }
 
     private fun heading(title: String) {
