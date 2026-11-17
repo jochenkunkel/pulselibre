@@ -44,3 +44,14 @@ Quelltext erneut geprüft (öffentlich, MIT-basierter Referenzpfad):
 ### Offline-Encoder verbessert (17.11.2026)
 
 `GarminFileListRequest.gfdi(sequence, counter)` und `mlChunks(handle, sequence, counter, mtuPayload)` erlauben nun explizite Session-IDs. Bisherige Signaturen bleiben kompatibel; neue Unit-Tests prüfen Legacy-Gleichheit, Little-Endian-Encoding und ungültige Werte. **Kein BLE-Sendepfad geändert.** Die HRM600-Startwerte `0x01EF`/`0x0A` sind keine CIRQA-Nachweise und dürfen nicht blind verwendet werden. Der alte FileList-Request blieb `UNSUPPORTED`; als nächste Evidenz benötigt die Untersuchung die CIRQA-spezifische Session-/Bootstrap-Sequenz oder einen belegten alternativen FileSync-Modus.
+
+
+## Garmin Connect 5.31: neue Offline-Evidenz (17.11.2026)
+
+OpenCode untersuchte die vom Nutzer bereitgestellte Garmin Connect 5.31 (versionCode 11761), primärer DEX, JADX 1.5.6; Arbeitsnotiz `GARMIN_CONNECT_531_HANDSHAKE_TEST_NOTES.md` wurde im Chat bereitgestellt. Der proprietäre APK-/JADX-Code bleibt außerhalb des Repositories.
+
+- `HandshakeHandler` (JADX `defpackage.zxl`) behandelt 5024, 5050 und 5027. 5024 wird mit Hostmetadaten beantwortet; der exakte CIRQA-spezifische Payload ist noch nicht rekonstruiert.
+- Bei 5050 wird die Capability-Bitmap anhand des ersten Längenbytes abgegrenzt. Bei gültiger Konfiguration ACKt Connect die empfangene Nachricht und sendet danach eine **separate Host-5050-Antwort**. Die Completion dieser Antwort bestimmt den Handshake-Abschluss; GATT-Write und GFDI-ACK sind keine hinreichenden Ersatzbelege.
+- Ein 5030-Event ist im untersuchten Handler keine nachgewiesene Voraussetzung. Die nächste FileSync-Startnachricht bleibt unbekannt.
+
+Implementiert: `Cirqa5050BodyParser` und `CirqaConnect531HandshakeModel` mit JVM-Tests, offline-only. Der neue Zustandsautomat ist **nicht** mit dem BLE-Laufzeitpfad verdrahtet und darf nicht als aktiver CIRQA-Handshake ausgegeben werden. Der bisherige Diagnosepfad bleibt unverändert. Offene Aufgaben: reale 5024-Antwortstruktur vergleichen; 5050-HostConfiguration aus echten Geräteeigenschaften herleiten; Completion-Callback auf Android getrennt nachweisen; FileSync-Start im Connect-Code zurückverfolgen.
