@@ -117,7 +117,7 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
             val valueLayer = android.widget.FrameLayout(context).apply {
                 contentDescription = metric.value
             }
-            valueLayer.addView(SpO2LungView(context, percent, palette.indicator, palette.muted, palette.track),
+            valueLayer.addView(SpO2LungView(context, percent, SpO2DisplaySettings.read(context).colorFor(percent, palette), palette.track),
                 android.widget.FrameLayout.LayoutParams(-1, dp(76), Gravity.CENTER))
             valueLayer.addView(label(metric.value, 22f, accent, true).apply {
                 gravity = Gravity.CENTER
@@ -195,27 +195,24 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
     private fun dp(value: Int) = (value * resources.displayMetrics.density + 0.5f).toInt()
 }
 
-/** Decorative oxygen-fill silhouette. It conveys only the received percent, never a diagnosis.
- * Blueprint O01: 95–100% is reference context for a finger oximeter only. No CIRQA wrist-device
- * clinical bands are defined below 95%; the requested 90% green boundary is a product visual
- * convention, not a medical threshold. Thus readings below 90% use a neutral fill color.
+/** Subdued oxygen-fill silhouette. It conveys only the received percent, never signal quality or a diagnosis.
+ * Blueprint O01 defines finger-oximeter context, not clinical bands for CIRQA wrist readings.
  */
 @SuppressLint("ViewConstructor")
 internal class SpO2LungView(
     context: Context,
     percent: Int?,
     private val neutralColor: Int,
-    private val greenColor: Int,
     private val trackColor: Int
 ) : View(context) {
     val fillFraction: Float? = percent?.takeIf { it in 1..100 }?.div(100f)
-    val fillColor: Int = if (percent != null && percent >= 90) greenColor else neutralColor
+    val fillColor: Int = neutralColor
     private val density = resources.displayMetrics.density
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val lung = android.graphics.Path()
 
     init {
-        contentDescription = "Dekorative Lungengrafik${fillFraction?.let { ", Füllstand ${percent}%" } ?: ", keine Messdaten"}; keine medizinische Bewertung"
+        contentDescription = "Dezente Lungengrafik${fillFraction?.let { ", Füllstand ${percent}%" } ?: ", keine Messdaten"}; Farbe nach konfigurierbarer SpO₂-Skala, keine Signalqualitätsanzeige"
         importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO
     }
 
@@ -245,23 +242,25 @@ internal class SpO2LungView(
         lung.close()
         paint.style = Paint.Style.FILL
         paint.color = trackColor
+        paint.alpha = 38
         canvas.drawPath(lung, paint)
+        paint.alpha = 255
         fillFraction?.let { fraction ->
             val fillSave = canvas.save()
             canvas.clipPath(lung)
             canvas.clipRect(0f, 76f * (1f - fraction), 64f, 76f)
             paint.color = fillColor
-            paint.alpha = 175
+            paint.alpha = 74
             canvas.drawRect(0f, 0f, 64f, 76f, paint)
             paint.alpha = 255
             canvas.restoreToCount(fillSave)
         }
         paint.style = Paint.Style.STROKE
-        paint.strokeWidth = 1.6f
+        paint.strokeWidth = 1.2f
         paint.strokeCap = Paint.Cap.ROUND
         paint.strokeJoin = Paint.Join.ROUND
         paint.color = fillColor
-        paint.alpha = 210
+        paint.alpha = 88
         canvas.drawPath(lung, paint)
         canvas.restoreToCount(save)
     }
@@ -363,6 +362,13 @@ private class ReceptionIndicatorView(
                 row("▰", "${profile.referenceMinimum}–${profile.referenceMaximum} ${profile.unit}  ·  ${profile.referenceLabel}", palette.muted)
             }
             profile.sourceName?.let { row("↗", "Quelle  $it", palette.accent, profile.sourceUrl) }
+            if (metric.title == "Sauerstoffsättigung · SpO₂") {
+                val displayBands = SpO2DisplaySettings.read(context)
+                row("▰", "Anzeige  🟢 ≥${displayBands.greenFrom}%  🟠 ${displayBands.orangeFrom}–${displayBands.greenFrom - 1}%  🔴 <${displayBands.orangeFrom}%  ⚪ kein gültiger Wert", palette.muted)
+                row("⚠", "Konfigurierbare Farbskala, keine CIRQA-Signalqualität oder medizinische Bewertung.", palette.muted)
+                row("↗", "Quelle  NHS-Fingerpulsoximeter-Kontext; nicht für CIRQA validiert", palette.accent,
+                    "https://www.england.nhs.uk/coronavirus/documents/c0445-pulse-oximetry-to-detect-early-deterioration-of-patients-with-covid-19-in-primary-and-community-care-settings-12-january-2021/")
+            }
             row("⚠", profile.caveat, palette.muted)
         } else if (metric.title == "Moderate Intensitätsminuten" || metric.title == "Intensive Intensitätsminuten") {
             row("▱", "WHO: 150–300 min moderat oder 75–150 min intensiv/Woche", palette.muted)

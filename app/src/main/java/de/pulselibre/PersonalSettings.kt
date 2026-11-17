@@ -88,6 +88,18 @@ object PersonalSettings {
         val activityWindow = field("Auswertefenster in Minuten", "activity_window_minutes", true).apply {
             setText(activitySettings.windowMinutes.toString())
         }
+        heading("SpO₂-Farbanzeige")
+        val spo2Settings = SpO2DisplaySettings.read(context)
+        layout.addView(TextView(context).apply {
+            text = "Konfigurierbare Anzeige: Grün ab %, Orange ab %, darunter Rot. Ohne gültigen Wert Grau. Diese Farben zeigen nur den Messwertbereich, keine CIRQA-Signalqualität oder medizinische Bewertung."
+            textSize = 12f
+        })
+        val spo2Green = field("Grün ab SpO₂ (%)", "spo2_display_green_from", true).apply {
+            setText(spo2Settings.greenFrom.toString())
+        }
+        val spo2Orange = field("Orange ab SpO₂ (%)", "spo2_display_orange_from", true).apply {
+            setText(spo2Settings.orangeFrom.toString())
+        }
         heading("Persönliches Profil")
         val name = field("Anzeigename (optional)", "display_name")
         val genderOptions = listOf("Keine Angabe", "Männlich", "Weiblich", "Divers / andere")
@@ -140,14 +152,20 @@ object PersonalSettings {
                     restSteps.text.toString().toIntOrNull()?.let { it !in 0..99 } != false ||
                     sportSteps.text.toString().toIntOrNull()?.let { it !in 1..300 } != false ||
                     activityWindow.text.toString().toIntOrNull()?.let { it !in 2..15 } != false ||
-                    (restSteps.text.toString().toIntOrNull() ?: 100) >= (sportSteps.text.toString().toIntOrNull() ?: 0)) {
-                    Toast.makeText(context, "Bitte die Zahlen prüfen (Größe, Gewicht, Alter, Ziele).", Toast.LENGTH_LONG).show()
+                    (restSteps.text.toString().toIntOrNull() ?: 100) >= (sportSteps.text.toString().toIntOrNull() ?: 0) ||
+                    spo2Green.text.toString().toIntOrNull()?.let { it !in 2..100 } != false ||
+                    spo2Orange.text.toString().toIntOrNull()?.let { it !in 1 until (spo2Green.text.toString().toIntOrNull() ?: 0) } != false) {
+                    Toast.makeText(context, "Bitte die Zahlen prüfen (Größe, Gewicht, Alter, Ziele und SpO₂-Farbbereiche).", Toast.LENGTH_LONG).show()
                     return@setOnClickListener
                 }
                 ActivityDetectionPreference.save(context, ActivityDetectionSettings(
                     restBelowStepsPerMinute = restSteps.text.toString().toInt(),
                     sportAboveStepsPerMinute = sportSteps.text.toString().toInt(),
                     windowMinutes = activityWindow.text.toString().toInt()
+                ))
+                SpO2DisplaySettings.save(context, SpO2DisplaySettings(
+                    greenFrom = spo2Green.text.toString().toInt(),
+                    orangeFrom = spo2Orange.text.toString().toInt()
                 ))
                 val edit = p.edit()
                 fun save(key: String, value: String) { edit.putString(key, value) }
