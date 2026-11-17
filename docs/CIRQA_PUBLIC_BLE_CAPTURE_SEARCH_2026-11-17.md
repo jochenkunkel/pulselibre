@@ -13,7 +13,11 @@ Vorhandene **eigene** Evidenz in `docs/CIRQA_GARMIN_CONNECT_SYNC_EVIDENCE_2026-1
 - [Garmin-Bridge](https://github.com/wh1le/garmin-bridge): Referenz für Session-/Handshake-Struktur, kein belegter CIRQA-Dump.
 - [Android-HCI-Capture-Anleitung](https://github.com/eigger/hass-omron/blob/master/docs/capturing-bluetooth-logs.md): vollständigen `btsnoop_hci.log` via Android-Entwickleroptionen + `adb bugreport` sichern; `btsnooz` ohne ACL reicht nicht.
 
-## Einmaliger entscheidender Referenztest (noch NICHT durchgeführt)
+## Historischer Versuch: bereits durchgeführt, derzeit blockiert
+
+**Korrektur nach Rückmeldung des Projektverantwortlichen (17.11.2026):** Der Android-HCI-/Bugreport-Weg wurde bereits am Vortag ausprobiert; Zugriff auf die erforderlichen Bluetooth-Socket-/ACL-Daten war nicht möglich. Die erneute Empfehlung war redundant. **Diesen Test nicht erneut als nächsten Schritt anfordern**, solange keine konkrete neue Zugriffsmöglichkeit nachgewiesen ist. Priorität stattdessen: öffentlich dokumentierte GFDI-/Garmin-Handshake-Implementierungen, nicht-invasive Offline-Fixtures und Abgleich des 5024-/5050-Bootstrap.
+
+## Archivierter Aufnahmeplan (derzeit blockiert; nicht erneut anfordern)
 
 1. Android-Entwickleroptionen: **Bluetooth HCI-Snoop-Protokoll / Bluetooth-Stack-Protokollierung = vollständig/aktiviert**, nicht nur gefiltert. Bluetooth nach Bedarf neu starten. Keine Geräteentkopplung.
 2. PulsLibre vollständig beenden. Garmin Connect verbinden und **eine** manuelle Synchronisation ausführen, während der HCI-Snoop aktiv ist. Zeitstempel und Erfolg notieren.
