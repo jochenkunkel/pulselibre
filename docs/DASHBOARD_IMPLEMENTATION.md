@@ -51,9 +51,20 @@ und [CIRQA_DASHBOARD_GROUND_RULES.md](CIRQA_DASHBOARD_GROUND_RULES.md).
   unveränderte Empfangsnotizen und Erhalt zusätzlicher Kennzahlen.
 - Android-Tests: echte Activity-Sektionen, leere Karten, Reihenfolge, erhaltene
   Werte/Notizen, schmale Darstellung, Schriftfaktor 2 und Entfernen alter Werte.
-- Lokaler Android-/JVM-Build bislang nicht ausgeführt: Gradle und Android SDK fehlen.
-- Aktueller CI-Nachweis wird im Pull Request dokumentiert. PR-Schnellprüfung führt
-  keine Instrumentierungstests aus; Full-CI und visuelle Geräteprüfung bleiben nötig.
+- [PR #9](https://github.com/jochenkunkel/pulselibre/pull/9), Commit `a99536e`:
+  [schneller CI-Lauf #558](https://github.com/jochenkunkel/pulselibre/actions/runs/44053469919)
+  erfolgreich; Python-Tests, JVM-Tests und Debug-Build.
+- Lokale Zusatzprüfung desselben Code-Stands am 2026-11-17 mit Gradle 8.13,
+  JDK 17 und Android SDK 35, isolierte Werkzeuge/Caches unter `/tmp`:
+  `:app:testDebugUnitTest :app:assembleDebug :app:lintDebug :app:assembleDebugAndroidTest`
+  **BUILD SUCCESSFUL**. 208 JVM-Tests in 53 Suites, keine Fehler oder übersprungenen Tests.
+- Lint: keine Fehler, 60 Warnungen (u. a. Übersetzbarkeit, Abhängigkeiten und
+  bestehende Manifest-/Protokollstellen). Keine Änderungen an diesen fremden Bereichen.
+- Android-Test-APK erfolgreich kompiliert; Instrumentierungstests **nicht ausgeführt**.
+  `/dev/kvm` fehlt lokal; kein beschleunigter Emulator für UI-/TalkBack-Abnahme.
+  Full-CI und visuelle Geräteprüfung bleiben offen.
+- SSH-Schreibzugang zum separaten Dashboard-Branch per Push-Trockenlauf bestätigt.
+  Keine Änderungen an globaler Git-Konfiguration oder gemeinsamem Build/Workflow.
 - Keine Geräteaktionen, keine Installations- oder Produktionsfreigabe.
 
 ## Nächste Schritte
