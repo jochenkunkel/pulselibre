@@ -12,18 +12,20 @@ class CirqaLegacy5007AttemptGateTest {
         assertEquals(2, CirqaLegacy5007AttemptGate.nextAttempt(0, legacyAttempted = true))
     }
 
-    @Test fun freshInstallationAllowsTwoAttemptsButNeverAThird() {
+    @Test fun freshInstallationAllowsThreeAttemptsButNeverAFourth() {
         assertEquals(0, CirqaLegacy5007AttemptGate.consumedAttempts(0, legacyAttempted = false))
         assertEquals(1, CirqaLegacy5007AttemptGate.nextAttempt(0, legacyAttempted = false))
         assertTrue(CirqaLegacy5007AttemptGate.canAttempt(1, legacyAttempted = false))
         assertEquals(2, CirqaLegacy5007AttemptGate.nextAttempt(1, legacyAttempted = false))
-        assertFalse(CirqaLegacy5007AttemptGate.canAttempt(2, legacyAttempted = false))
-        assertEquals(null, CirqaLegacy5007AttemptGate.nextAttempt(2, legacyAttempted = false))
+        assertTrue(CirqaLegacy5007AttemptGate.canAttempt(2, legacyAttempted = false))
+        assertEquals(3, CirqaLegacy5007AttemptGate.nextAttempt(2, legacyAttempted = false))
+        assertFalse(CirqaLegacy5007AttemptGate.canAttempt(3, legacyAttempted = false))
+        assertEquals(null, CirqaLegacy5007AttemptGate.nextAttempt(3, legacyAttempted = false))
     }
 
     @Test fun legacyBooleanCannotLowerANewerStoredCount() {
-        assertEquals(2, CirqaLegacy5007AttemptGate.consumedAttempts(2, legacyAttempted = false))
-        assertEquals(2, CirqaLegacy5007AttemptGate.consumedAttempts(9, legacyAttempted = false))
+        assertEquals(3, CirqaLegacy5007AttemptGate.consumedAttempts(3, legacyAttempted = false))
+        assertEquals(3, CirqaLegacy5007AttemptGate.consumedAttempts(9, legacyAttempted = false))
         assertEquals(2, CirqaLegacy5007AttemptGate.consumedAttempts(0, legacyAttempted = true).let {
             CirqaLegacy5007AttemptGate.consumedAttempts(it + 1, legacyAttempted = true)
         })

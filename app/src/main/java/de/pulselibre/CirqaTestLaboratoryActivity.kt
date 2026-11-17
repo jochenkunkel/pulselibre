@@ -414,7 +414,11 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
             return
         }
         val nextAttempt = attempts + 1
-        val attemptOrdinal = if (nextAttempt == 1) "ersten" else "zweiten"
+        val attemptOrdinal = when (nextAttempt) {
+            1 -> "ersten"
+            2 -> "zweiten"
+            else -> "dritten"
+        }
         AlertDialog.Builder(this)
             .setTitle("$attemptOrdinal freigegebenen GFDI-5007-Test starten?")
             .setMessage(
@@ -487,6 +491,15 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
                 val safeSummary = when {
                     supported -> "Eine CRC-validierte GFDI-5000-Antwort zu 5007 meldete Status 0; nur Kompatibilität dieses Filters beobachtet, kein Historienabruf."
                     notSupported -> "Eine CRC-validierte GFDI-5000-Antwort zu 5007 meldete einen negativen Status; keine Folgeanfrage gesendet."
+                    message.contains("5007-Request gesendet: false") -> {
+                        val reason = message.lineSequence()
+                            .firstOrNull { it.startsWith("Ergebnis: ") }
+                            ?.removePrefix("Ergebnis: ")
+                            ?.take(160)
+                            ?: "Verbindung oder Protokoll vor dem Filter-Write abgebrochen"
+                        "Vor dem 5007-Write abgebrochen ($reason); kein GFDI-5007-Write gesendet. " +
+                            "Dieser ausdrücklich freigegebene Testlauf ist verbraucht."
+                    }
                     message.contains("Fünf-Sekunden") -> "Einmaliger 5007-Request gesendet; innerhalb von fünf Sekunden keine passende Antwort beobachtet."
                     message.contains("nicht gesendet") -> "Test vor dem Request abgebrochen; kein 5007-Request gesendet."
                     else -> "Einmaliger Test abgebrochen; keine Folgeanfrage oder Wiederholung."
@@ -515,6 +528,7 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
         legacy5007Button.text = when {
             remaining <= 0 -> "Freigegebene 5007-Tests verbraucht"
             consumed == 1 -> "Freigegebenen zweiten 5007-Test starten"
+            consumed == 2 -> "Freigegebenen dritten 5007-Test starten"
             else -> "Einmaligen 5007-Test starten"
         }
         legacy5007Button.contentDescription =
