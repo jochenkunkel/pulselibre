@@ -417,7 +417,8 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
         val attemptOrdinal = when (nextAttempt) {
             1 -> "ersten"
             2 -> "zweiten"
-            else -> "dritten"
+            3 -> "dritten"
+            else -> "vierten"
         }
         AlertDialog.Builder(this)
             .setTitle("$attemptOrdinal freigegebenen GFDI-5007-Test starten?")
@@ -529,6 +530,7 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
             remaining <= 0 -> "Freigegebene 5007-Tests verbraucht"
             consumed == 1 -> "Freigegebenen zweiten 5007-Test starten"
             consumed == 2 -> "Freigegebenen dritten 5007-Test starten"
+            consumed == 3 -> "Freigegebenen vierten 5007-Test starten"
             else -> "Einmaligen 5007-Test starten"
         }
         legacy5007Button.contentDescription =

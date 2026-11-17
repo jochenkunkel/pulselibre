@@ -68,6 +68,10 @@ Falls ein späterer, ausdrücklich freigegebener Versuch nach vollständigem Rev
 
 Das Fünf-Sekunden-Limit ist ein konservativer Implementierungswert; Connects konkreter Timeout wurde aus dem analysierten Callgraph nicht gesichert. Der Scope ist kein Nachweis, dass ein 5007-Write risikofrei oder CIRQA-kompatibel ist. Nach Freigabe enthält die App einen eigenen Bestätigungsdialog und einen persistenten Gate mit maximal drei Testläufen über die Lebensdauer der Installation. Der bisherige Boolean wird als verbrauchter erster Versuch migriert; nach dem fehlgeschlagenen zweiten Lauf erlaubt die neue ausdrückliche Freigabe genau noch Lauf 3. Pro Lauf registriert der Sendepfad nur den GFDI-ML-Service, sendet höchstens einen 5007-Write, validiert ausschließlich eine passende CRC-geprüfte GFDI-5000-Antwort und beendet bei unerwarteten/malformed Daten oder Timeout. Keine Retry- oder Folgekommandos.
 
+### Erneute eng begrenzte Freigabe (2026-11-17)
+
+Nach Verbrauch der ursprünglichen drei Läufe hat der Nutzer genau **einen vierten** 5007-Test autorisiert, um die korrigierte ML-Characteristic-Erkennung zu prüfen. Das App-Gate wird dafür einmalig auf vier Gesamtversuche angehoben; das ist keine Dauerfreigabe. Der vierte Lauf bleibt auf höchstens einen 5007-Write begrenzt, ohne Retry oder Folgekommando. Vor dem Request müssen persistierter Zähler `3`, gestoppter Recorder, beendetes Garmin Connect und freie BLE-Sitzung geprüft sein. Ist eine Voraussetzung nicht erfüllt, wird vor dem Write abgebrochen; danach bleibt das Gate endgültig geschlossen.
+
 Der letzte Hardwarelauf scheiterte beim BLE-Verbindungsaufbau; Bluetooth meldete `CONNECTION_FAILED_ESTABLISHMENT (0x3e)`. `CirqaMlHandshakeProbe` nutzt bereits `BluetoothDevice.TRANSPORT_LE`, und es gab keine automatischen Wiederholungen. Das ist ein Link-Layer-/Geräteverbindungsfehler, kein belegter 5007-Protokollfehler. Die Testoberfläche speichert für künftige Läufe den GATT-Abbruchgrund sowie ausdrücklich, ob der 5007-Write vor dem Abbruch gesendet wurde. Keine Änderung am Request-Bytekandidaten und keine automatische Reconnect-Schleife.
 
 ## Ergebnis und Freigabeschwelle
