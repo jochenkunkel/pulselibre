@@ -42,6 +42,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private var configurationNotificationBaseline = 0
     private var configuration5037ObservationStarted = false
     private var post5050Evidence = Cirqa5050PostWriteEvidence()
+    private var passive5050Session = Cirqa5050PassiveSession()
     private var bootstrapAckSent = false
     private var bootstrapAckConfirmed = false
     private var bootstrapAckPending = false
@@ -208,6 +209,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         configurationNotificationBaseline = 0
         configuration5037ObservationStarted = false
         post5050Evidence = Cirqa5050PostWriteEvidence()
+        passive5050Session = Cirqa5050PassiveSession()
         configurationResponseConfirmed = false
         bootstrapAckConfirmed = false
         bootstrapAckPending = false
@@ -326,6 +328,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                             if (bootstrapAckChunks.isEmpty()) bootstrapAckConfirmed = true
                             if (configurationResponseQueued && bootstrapAckChunks.isEmpty()) {
                                 configurationResponseConfirmed = true
+                                passive5050Session.writeConfirmed()
                                 // ACK can arrive before the final GATT callback.
                                 // Re-evaluate existing evidence at write completion.
                                 if (Cirqa5050AckGate.isConfirmed(
@@ -333,6 +336,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                                         configurationResponseConfirmed,
                                         Cirqa5050AckEvidence.isNewAck(configurationAckBaseline, fileListProbe.responseStatuses)
                                     )) {
+                                    if (!configurationAckReceived) passive5050Session.freshAck()
                                     configurationAckReceived = true
                                     if (!configuration5037ObservationStarted) {
                                         configuration5037Baseline = fileListProbe.validSynchronizationShapes
@@ -435,6 +439,11 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     historyRouted++
                     fileListProbe.observeMlPayload(bytes.copyOfRange(1, bytes.size))
                     if (configurationTestMode) post5050Evidence.observe(fileListProbe.frameTypes)
+                    if (configurationTestMode && configuration5037ObservationStarted &&
+                        Cirqa5037SyncEvidenceGate.isPostHandshakeSignal(
+                            configuration5037Baseline, fileListProbe.validSynchronizationShapes,
+                            configurationResponseConfirmed, configurationAckReceived
+                        )) passive5050Session.valid5037()
                     if (configurationTestMode && configurationResponseQueued &&
                         Cirqa5050Malformed5037Guard.shouldAbort(
                             configurationMalformed5037Baseline, fileListProbe.malformedSynchronizationShapes
@@ -473,6 +482,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                             configurationResponseConfirmed,
                             Cirqa5050AckEvidence.isNewAck(configurationAckBaseline, fileListProbe.responseStatuses)
                         )) {
+                        if (!configurationAckReceived) passive5050Session.freshAck()
                         configurationAckReceived = true
                         if (!configuration5037ObservationStarted) {
                             configuration5037Baseline = fileListProbe.validSynchronizationShapes
@@ -505,6 +515,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                         configurationErrorBaseline = fileListProbe.responseErrors
                         configurationNotificationBaseline = notificationsReceived
                         configurationResponseQueued = true
+                        passive5050Session.queued()
                         val handle = historyHandle
                         if (handle != null) {
                             val candidates = listOf(
@@ -665,6 +676,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         (if (bootstrapAckMode) "Bootstrap-ACK-Test: Kandidat gesendet=$bootstrapAckSent; GATT bestätigt=$bootstrapAckConfirmed; GFDI-Frames nach ACK-Start=${(fileListProbe.frames - bootstrapBaselineFrames).coerceAtLeast(0)}; Dateibefehle=0\n" else "") +
         (if (configurationTestMode) "5050-Konfigurationstest: Antwort eingeplant=$configurationResponseQueued; GATT-Schreibfolge bestätigt=$configurationResponseConfirmed; GFDI-5000-ACK für 5050 empfangen=$configurationAckReceived; Hostmaske=15 Bytes/alle Bits 0; Dateibefehle=0\n" else "") +
         (if (configurationTestMode) "5050-Evidenzstatus: ${Cirqa5050Outcome.classify(configurationResponseQueued, configurationResponseConfirmed, configurationAckReceived, configuration5037ObservationStarted && Cirqa5037SyncEvidenceGate.isPostHandshakeSignal(configuration5037Baseline, fileListProbe.validSynchronizationShapes, configurationResponseConfirmed, configurationAckReceived))}; kein Beleg für Dateiliste oder Historien-Download.\n" else "") +
+        (if (configurationTestMode) "5050-Passivzustand: ${passive5050Session.state}; 5037-Signal beobachtet=${passive5050Session.signalObserved}; keine aktive SYNC-Freigabe.\n" else "") +
         (if (configurationTestMode) post5050Evidence.summary() + "\n" else "") +
         (if (configurationTestMode) "Passiv beobachtete 5037-Frames: ${fileListProbe.frameTypes["gfdi-5037"] ?: 0}; gültige 5037-Strukturen: ${fileListProbe.validSynchronizationShapes}; ungültige 5037-Strukturen: ${fileListProbe.malformedSynchronizationShapes}; frisches 5037-Signal nach bestätigtem 5050: ${(configuration5037ObservationStarted && Cirqa5037SyncEvidenceGate.isPostHandshakeSignal(configuration5037Baseline, fileListProbe.validSynchronizationShapes, configurationResponseConfirmed, configurationAckReceived))}; keine aktive Sync-Anforderung.\n" else "") +
         "GFDI-Registrierung: ${if (historyRegistered) "bestätigt" else "nicht bestätigt"}\n" +
@@ -701,6 +713,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private fun finish(message: String, g: BluetoothGatt?) {
         if (!active || terminationRequested) return
         terminationRequested = true
+        passive5050Session.stop()
         main.post {
             if (!active) return@post
             active = false
