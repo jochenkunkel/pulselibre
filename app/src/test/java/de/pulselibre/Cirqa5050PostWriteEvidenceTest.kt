@@ -22,4 +22,16 @@ class Cirqa5050PostWriteEvidenceTest {
         observer.observe(mapOf("gfdi-5000" to 1))
         assertTrue(observer.summary().contains("Historienfreigabe=nicht nachgewiesen"))
     }
+
+    @Test fun resetOrMissingTypeDoesNotLeavePhantomPostWriteFrames() {
+        val observer = Cirqa5050PostWriteEvidence()
+        observer.onWriteConfirmed(mapOf("gfdi-5050" to 1))
+        observer.observe(mapOf("gfdi-5050" to 3, "gfdi-5000" to 1))
+        assertTrue(observer.summary().contains("nachfolgende GFDI-Frames=3"))
+        observer.observe(mapOf("gfdi-5050" to 1))
+        assertTrue(observer.summary().contains("nachfolgende GFDI-Frames=0"))
+        assertTrue(observer.summary().contains("5000-Statusframes=0"))
+        observer.observe(mapOf("gfdi-5050" to 2))
+        assertTrue(observer.summary().contains("nachfolgende GFDI-Frames=1"))
+    }
 }
