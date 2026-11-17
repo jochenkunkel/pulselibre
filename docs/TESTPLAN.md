@@ -86,3 +86,9 @@ Weitere Beobachtungen:
 Wichtig: Ein sichtbares BLE-Advertisement, eine gespeicherte Kopplung oder ein laufender Scan zählen **nicht** als aktive Verbindung. Der Rand muss bei Connect, Disconnect, Bluetooth-Off und App-Wiederaufnahme korrekt aktualisiert werden. Grün darf nicht nur wegen alter/gespeicherter Statusdaten angezeigt werden. Bei dunklem Design muss der schwarze Rand weiterhin klar sichtbar sein (z. B. mit zusätzlicher heller Kontur). Das Icon bleibt als Einstellungsbutton bedienbar.
 
 **Erweiterter T07-Abnahmetest:** Bluetooth aus → schwarzer Rand; Bluetooth an ohne CIRQA-Verbindung → schwarz; CIRQA tatsächlich verbunden → grün; Verbindung trennen oder außer Reichweite → wieder schwarz. Den Befund als OK/FEHLER/NICHT GETESTET dokumentieren. **Im derzeitigen Testbuild nicht vorhanden**, daher zunächst als Featureanforderung und nicht als Testfehler behandeln.
+
+## Manuelle Rückmeldung Galaxy S25 – 2026-11-17
+
+Der Tester meldet: **„bis auf 16 ist alles ok“**. Daher werden **T01–T15 als vom Benutzer bestanden gemeldet** erfasst (kein unabhängiger Hardware-Nachweis durch CI). **T16 ist offen:** Noch nicht klar, ob TalkBack/Barrierefreiheit fehlgeschlagen oder lediglich nicht getestet wurde. Diese Unterscheidung vor einer Freigabe nachfragen. Kein vollständiger Release-Gate; Historien-FileSync weiterhin unbewiesen.
+
+**Offener UI-Wunsch:** T07 grüner Rahmen um das Oberarmbruch-Icon bei aktiver CIRQA-BLE-Verbindung, schwarzer Rahmen bei Offline-Status. Bereits als Folgeanforderung notiert, **nicht** Bestandteil des bestandenen T07-Basistests.
