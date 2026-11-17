@@ -15,12 +15,14 @@ import android.widget.*
 import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
+import android.graphics.drawable.LayerDrawable
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 
 class MainActivity : AppCompatActivity() {
     private val handler = Handler(Looper.getMainLooper())
     private var dashboardRefresh: (() -> Unit)? = null
+    private var connectionIndicatorRefresh: (() -> Unit)? = null
     private var historyRefresh: (() -> Unit)? = null
     private var dashboardVisible = true
     private var historyVisible = false
@@ -33,6 +35,7 @@ class MainActivity : AppCompatActivity() {
     private val dashboardPoll = object : Runnable {
         override fun run() {
             if (!dashboardPolling || destroyed) return
+            connectionIndicatorRefresh?.invoke()
             recorderRefresh?.invoke()
             if (dashboardVisible || historyVisible) {
                 try {
@@ -65,6 +68,7 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         startDashboardPolling()
+        connectionIndicatorRefresh?.invoke()
         if (::adapter.isInitialized && ::status.isInitialized && !adapter.isEnabled) {
             status.text = "Bluetooth ist ausgeschaltet – CIRQA-Messwerte können nicht empfangen werden."
         }
@@ -163,8 +167,7 @@ class MainActivity : AppCompatActivity() {
         val avatarButton = android.widget.ImageView(this).apply {
             setImageResource(R.drawable.ic_humerus_settings)
             scaleType = android.widget.ImageView.ScaleType.FIT_CENTER
-            contentDescription = "Einstellungen und persönliches Profil öffnen"
-            setPadding(dp(2), dp(2), dp(2), dp(2))
+            setPadding(dp(8), dp(8), dp(8), dp(8))
             isClickable = true
             isFocusable = true
             setOnClickListener {
@@ -174,6 +177,54 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+        fun refreshAvatarConnectionBorder() {
+            val connectPermissionGranted = Build.VERSION.SDK_INT < 31 ||
+                ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED
+            var bluetoothEnabled = false
+            var bondedCirqaFound = false
+            var gattConnected = false
+            if (connectPermissionGranted) try {
+                bluetoothEnabled = adapter.isEnabled
+                if (bluetoothEnabled) {
+                    val cirqa = adapter.bondedDevices.orEmpty().firstOrNull {
+                        it.name?.contains("CIRQA", ignoreCase = true) == true
+                    }
+                    bondedCirqaFound = cirqa != null
+                    if (cirqa != null) {
+                        gattConnected = manager.getConnectionState(cirqa, BluetoothProfile.GATT) ==
+                            BluetoothProfile.STATE_CONNECTED
+                    }
+                }
+            } catch (_: SecurityException) {
+                bluetoothEnabled = false
+                bondedCirqaFound = false
+                gattConnected = false
+            } catch (_: IllegalArgumentException) {
+                gattConnected = false
+            }
+            val connected = CirqaConnectionIndicator.isConnected(
+                bluetoothEnabled, connectPermissionGranted, bondedCirqaFound, gattConnected
+            )
+            val statusColor = if (connected) Color.rgb(31, 190, 112) else Color.BLACK
+            val outerOutline = GradientDrawable().apply {
+                shape = GradientDrawable.OVAL
+                setColor(Color.TRANSPARENT)
+                setStroke(dp(2), Color.WHITE)
+            }
+            val statusOutline = GradientDrawable().apply {
+                shape = GradientDrawable.OVAL
+                setColor(Color.TRANSPARENT)
+                setStroke(dp(3), statusColor)
+            }
+            avatarButton.background = LayerDrawable(arrayOf(outerOutline, statusOutline)).apply {
+                setLayerInset(1, dp(3), dp(3), dp(3), dp(3))
+            }
+            avatarButton.contentDescription = CirqaConnectionIndicator.contentDescription(
+                connected, connectPermissionGranted
+            )
+        }
+        connectionIndicatorRefresh = { refreshAvatarConnectionBorder() }
+        refreshAvatarConnectionBorder()
         headerRow.addView(avatarButton, LinearLayout.LayoutParams(dp(48), dp(48)))
         header.addView(headerRow)
         header.addView(text("Deine Daten. Deine Kontrolle. · Offline", 13f, Color.WHITE))
@@ -862,6 +913,7 @@ class MainActivity : AppCompatActivity() {
             status.text = if (granted) "Bluetooth-Berechtigung erteilt · Scan erneut starten"
                 else "Bluetooth-Berechtigung abgelehnt · Einstellungen → Apps → PulseLibre → Berechtigungen → Geräte in der Nähe"
             lastScanDiagnostic = status.text.toString()
+            connectionIndicatorRefresh?.invoke()
         }
     }
 
@@ -1018,6 +1070,7 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         stopDashboardPolling()
         dashboardRefresh = null
+        connectionIndicatorRefresh = null
         destroyed = true
         cirqaGattProbe?.close()
         cirqaMlProbe?.close()
