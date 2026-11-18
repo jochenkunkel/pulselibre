@@ -451,7 +451,7 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
                     probe.startHistoricalSyncV1MultiPhaseTest(userConfirmed = true, maxPhase = maxPhase) { message ->
                         runOnUiThread {
                             statusOutput.text = message
-                            if (message.startsWith("Historical Sync V1")) {
+                            if (message.startsWith("HistoricalSyncV1MultiPhase") || message.startsWith("Historical Sync V1")) {
                                 preferences.edit().putString("historicalSyncV1Summary", message.take(900)).apply()
                             }
                         }
