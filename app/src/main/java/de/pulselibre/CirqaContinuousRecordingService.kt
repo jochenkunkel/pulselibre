@@ -27,6 +27,7 @@ class CirqaContinuousRecordingService : Service() {
         const val ACTION_STOP = "de.pulselibre.STOP_OVERNIGHT"
         const val PREFS = "cirqa_recorder_state"
         const val KEY_RUNNING = "running"
+        const val KEY_LAST_READING_MS = "last_reading_ms"
         private const val CHANNEL = "cirqa_collection"
         private const val ID = 1401
     }
@@ -38,6 +39,7 @@ class CirqaContinuousRecordingService : Service() {
     private var attempts = 0
     private var readings = 0
     private var generation = 0
+    private var lastReadingPersistedMs = 0L
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -103,6 +105,11 @@ class CirqaContinuousRecordingService : Service() {
         current.onReading = readingCallback@{ service, reading ->
             if (!running || token != generation) return@readingCallback
             readings++
+            val nowMs = System.currentTimeMillis()
+            if (nowMs - lastReadingPersistedMs >= 5_000L) { // throttled liveness marker for the UI status
+                lastReadingPersistedMs = nowMs
+                getSharedPreferences(PREFS, MODE_PRIVATE).edit().putLong(KEY_LAST_READING_MS, nowMs).apply()
+            }
             if (!log.reading(service, reading)) stopCollection("storage_limit")
             else updateNotification("Lokal: $readings Messwerte · CIRQA-Daten empfangen")
         }

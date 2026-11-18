@@ -23,6 +23,7 @@ class MainActivity : AppCompatActivity() {
     private val handler = Handler(Looper.getMainLooper())
     private var dashboardRefresh: (() -> Unit)? = null
     private var connectionIndicatorRefresh: (() -> Unit)? = null
+    private var cirqaLink = CirqaLinkStatus.Result(CirqaLinkStatus.Kind.UNAVAILABLE, false, "")
     private var historyRefresh: (() -> Unit)? = null
     private var dashboardVisible = true
     private var historyVisible = false
@@ -212,12 +213,14 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
-        var lastHeaderState: CirqaConnectionHistory.State? = null
+        var lastHeaderStatus: CirqaLinkStatus.Result? = null
         fun refreshAvatarConnectionBorder() {
-            val state = refreshCirqaCard()
-            if (state == lastHeaderState) return
-            lastHeaderState = state
-            val connected = CirqaConnectionIndicator.isConnected(state)
+            refreshCirqaCard()
+            val link = cirqaLink
+            avatarButton.contentDescription = CirqaLinkStatus.contentDescription(link)
+            if (link.online == lastHeaderStatus?.online) { lastHeaderStatus = link; return }
+            lastHeaderStatus = link
+            val connected = link.online
             val statusColor = if (connected) Color.rgb(31, 190, 112) else Color.BLACK
             val outerOutline = GradientDrawable().apply {
                 shape = GradientDrawable.OVAL
@@ -232,7 +235,6 @@ class MainActivity : AppCompatActivity() {
             avatarButton.background = LayerDrawable(arrayOf(outerOutline, statusOutline)).apply {
                 setLayerInset(1, dp(3), dp(3), dp(3), dp(3))
             }
-            avatarButton.contentDescription = CirqaConnectionIndicator.contentDescription(state)
         }
         connectionIndicatorRefresh = { refreshAvatarConnectionBorder() }
         headerRow.addView(avatarButton, LinearLayout.LayoutParams(dp(48), dp(48)))
@@ -993,6 +995,13 @@ class MainActivity : AppCompatActivity() {
             CirqaConnectionHistory.State.UNKNOWN
         }
         cirqaGattState = CirqaStateMapping.label(state)
+        val prefs = getSharedPreferences(CirqaContinuousRecordingService.PREFS, MODE_PRIVATE)
+        val link = CirqaLinkStatus.evaluate(
+            prefs.getBoolean(CirqaContinuousRecordingService.KEY_RUNNING, false), state,
+            prefs.getLong(CirqaContinuousRecordingService.KEY_LAST_READING_MS, -1L).takeIf { it >= 0 },
+            System.currentTimeMillis()
+        )
+        cirqaLink = link
         cirqaConnectionHistory.observe(System.currentTimeMillis(), state)
         val message = buildString {
             appendLine("CIRQA Smart Band")
@@ -1000,7 +1009,8 @@ class MainActivity : AppCompatActivity() {
                 appendLine("Mit Android gekoppelt")
                 if (cirqaScanMatch) appendLine("Gleiche BLE-Adresse im Scan erkannt")
             }
-            append(cirqaGattState)
+            appendLine(cirqaGattState)
+            append(link.label)
         }
         if (cirqaCard.text.toString() != message) cirqaCard.text = message
         return state
