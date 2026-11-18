@@ -81,6 +81,17 @@ erfolgreichen Legacy-Lauf) – der Blocker ist das Ausbleiben der 5043-Quittung.
 
 Gate V6 (freigegeben) quittiert die 5043-Chunks mit genau diesem Format über
 eine serialisierte ACK-Warteschlange; kein 5044, keine Geräteänderung.
+Ergebnis V6/V7: ACK wird akzeptiert (Request-ID 2705 → 2706 → 2707, nur noch
+**ein** 5043 pro Verbindung), der 5004-Stream bleibt aber bei 32 B stehen.
+Verschachtelte Protobuf-Struktur (V7): `13:2[14:2]` = `Smart.core_service`
+→ CoreService-Feld 14 = **`connection_ready_notification`**. Connect
+(`vxk.java`, ConnectionReadyListener) behandelt das als reine Benachrichtigung
+ohne 5044-Antwort. Damit ist die 5043-Hypothese widerlegt; der Blocker liegt
+im 5004-Fortgang selbst.
+
+Unabhängige Referenzen bestätigen unser 5004-ACK-Format byte-genau:
+`tenover/gfdi.rs build_ack(5004, 0, [status,u32 nextOffset])` und
+`wristbeam/GFDIFiles.swift GFDIFileReceiver.responsePayload`.
 
 ## Nächster Schritt
 Ergebnis von Gate V6 auslesen. Bei vollständiger Directory: FIT-Einträge
