@@ -4,7 +4,7 @@
 
 ## Umfang und Herkunft der Erkenntnisse
 
-Die vorhandenen PulsLibre-Berichte beschreiben die Analyse von Garmin Connect **5.31** und obfuskierten DEX-Klassen. Sie belegen technische Erkenntnisse, dokumentieren aber hier **nicht vollständig**, aus welcher konkreten APK-Datei/Quelle die untersuchte Version stammt, welchen Hash sie hatte, mit welchen Werkzeugen gearbeitet wurde und welche Schritte genau durchgeführt wurden. Diese Metadaten sind **offen** und dürfen nicht nachträglich erfunden werden. Ein dokumentierter Befund bedeutet nicht, dass alle Codepfade auf dem CIRQA funktionieren.
+Die vorhandenen PulsLibre-Berichte beschreiben die Analyse von Garmin Connect **5.31** und obfuskierten DEX-Klassen. Der ältere [detaillierte Reverse-Engineering-Bericht](GARMIN_CONNECT_531_FILESYNC_REVERSE_ENGINEERING.md) dokumentiert **versionCode 11761**, APK-Bundle-SHA-256 `a7cbd2bdde76d4fb804c2a07cee908adb0f9e4846a05f082e92b01f8dea1e4a5` sowie lokale JADX-/DEX- und `dexdump`-Analysen. **Nicht belegt** sind dort die rechtmäßige Bezugsquelle des konkreten APK-Bundles und eine vollständige, reproduzierbare Werkzeug-/Untersuchungschronik. Die Hashangabe stammt aus dem Projektbericht; sie wurde bei dieser redaktionellen Prüfung nicht gegen eine APK-Datei nachgerechnet. Ein dokumentierter Befund bedeutet nicht, dass alle Codepfade auf dem CIRQA funktionieren.
 
 ## Dokumentierte technische Befunde
 
@@ -37,7 +37,7 @@ Die vorhandenen PulsLibre-Berichte beschreiben die Analyse von Garmin Connect **
 
 ## Offene Dokumentationsaufgaben
 
-- Untersuchte APK-Herkunft, Version/Build, Prüfsumme, Untersuchungsdatum und Werkzeuge **soweit rechtmäßig und tatsächlich belegbar** ergänzen.
+- Bereits dokumentierte Version 5.31 / versionCode 11761, SHA-256 und JADX-/DEX-Hinweise aus dem [detaillierten Bericht](GARMIN_CONNECT_531_FILESYNC_REVERSE_ENGINEERING.md) übernehmen; konkrete Bezugsquelle und vollständige Reproduktionsschritte **soweit rechtmäßig und tatsächlich belegbar** nachtragen.
 - Für Handshake, 5002/5004 und RFCOMM die jeweils notwendigen Methodenaufrufe als **eigene** abstrakte Ablaufdiagramme darstellen; keine dekompilierten Textblöcke.
 - Vor jeder Codeübernahme Lizenz und Herkunft der externen Open-Source-Referenz getrennt prüfen.
 - Hardware-Evidenz und tatsächlichen `main`-Quellstand nach jedem neuen Gerätetest mit dem [kanonischen Forschungsstand](CIRQA_HISTORICAL_RESEARCH_STATUS_2026-11-18.md) abgleichen.
