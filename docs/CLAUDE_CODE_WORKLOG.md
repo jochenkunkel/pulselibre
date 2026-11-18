@@ -155,3 +155,9 @@ Noch sichtbar offen (P3): Nacht-Insights erste Spalte „22–6 Uhr / 22331 / We
 - Werteblock mit festen Spalten (Symbol 22 dp | Label 58 dp | Wert) und 30 dp Abstand zum Avatar (≈ 16 dp weiter rechts), 3 dp Zeilenabstand, BMI-Kategorie klein darunter bündig zur Wertspalte; kompakt/groß: Label über Wert.
 - Avatar mit Basecap (gewölbte Krone, Nähte, Knopf, nach vorn zeigender Schirm mit Schatten, Haare seitlich), Halsschatten entfernt (wirkte wie Bart). Beschreibung „Person mit Basecap und violettem Hoodie“.
 - Im Emulator (API 35, `-gpu guest` läuft stabil, swiftshader nicht) mit synthetischen Daten angesehen: 1080×2340/Schrift 1,0 und 960×2080/Schrift 1,3. Beim zweiten Fall wurde „· Offline“ im Claim abgeschnitten → bei großer Schrift/schmal jetzt eigene Zeile.
+
+## 2026-11-18 – Abschlussrunde #124/#122/#41 (Branch `claude/final-pass`)
+- Am Emulator (1080×2340, `-gpu guest`, synthetische Daten) geprüft: Header/Profil, Kachel-Rahmen, Kennzahlen, Gerät-Reiter, Schrittekachel.
+- **Fehler gefunden:** `StepBarsView` zeichnete schwarz auf dunklem Grund (Konstruktorparameter `color` wurde im `Paint.apply` vom Paint-Attribut überdeckt) → Balken waren praktisch unsichtbar. Das erklärt „ich sehe keine vertikalen Balken“. Behoben (`barColor`).
+- Kachel-Kennzahlen: Einheit nur einmal, „Heute 61 bpm (1 Wert)“ statt „61–61“, Zähler ohne doppelte Zeile, Sparkline nur ab 2 Stunden mit Daten, kürzere Wochenschnitt-Zeile, Herzfrequenz-Kachel ebenfalls mit Kennzahlen.
+- #41 Drilldown: Tippen auf die Trendzeilen Ruhepuls/Schritte öffnet `DailyBarsView` (90 Tageswerte, Lücken leer, gestrichelte Mediane 7/28 T).
