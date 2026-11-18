@@ -944,6 +944,21 @@ class MainActivity : AppCompatActivity() {
         setContentView(screen)
         selectMainTab(savedInstanceState?.getInt("main_tab") ?: intent.getIntExtra(MainNavigationView.EXTRA_TAB, 0))
         requestBluetoothPermissionOnFirstLaunch()
+        if (savedInstanceState == null) autoStartRecordingIfEnabled()
+    }
+
+    /** Opt-in from the settings: start the recording service on a fresh launch if everything is already in place. */
+    private fun autoStartRecordingIfEnabled() {
+        val granted = permissions().all { ActivityCompat.checkSelfPermission(this, it) == PackageManager.PERMISSION_GRANTED }
+        val running = RecorderStatus.isRunning(getSharedPreferences(CirqaContinuousRecordingService.PREFS, MODE_PRIVATE))
+        val btOn = try { adapter.isEnabled } catch (_: Exception) { false }
+        if (!AutoStartRecording.shouldStart(AutoStartRecording.isEnabled(this), true, granted, btOn, running)) return
+        try {
+            androidx.core.content.ContextCompat.startForegroundService(this,
+                Intent(this, CirqaContinuousRecordingService::class.java).setAction(CirqaContinuousRecordingService.ACTION_START))
+        } catch (_: Exception) {
+            // Android may refuse (background restrictions); the manual start button stays available.
+        }
     }
 
     private var selectedMainTab = 0
