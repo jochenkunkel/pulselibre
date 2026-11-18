@@ -174,7 +174,7 @@ class DashboardOverviewViewTest {
             assertTrue((0 until bitmap.height).any { y ->
                 (0 until bitmap.width).any { x -> android.graphics.Color.alpha(bitmap.getPixel(x, y)) > 0 }
             })
-            assertTrue(portrait.contentDescription.contains("bärtigen Mann"))
+            assertTrue(portrait.contentDescription.contains("Illustration"))
         }
     }
 }
