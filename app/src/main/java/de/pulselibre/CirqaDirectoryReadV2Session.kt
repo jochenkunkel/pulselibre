@@ -30,7 +30,10 @@ class CirqaDirectoryReadV2Session(val token: Any = Any()) {
         private set
     var controlFrameTypes = ""
         private set
+    var protobufDiag = ""
+        private set
     private val controlTypes = LinkedHashMap<Int, Int>()
+    private val protobufReassembler = GarminProtobufReassembler()
     private val encoded = ArrayList<Byte>()
     private var collecting = false
     var directoryEntries = 0
@@ -92,6 +95,7 @@ class CirqaDirectoryReadV2Session(val token: Any = Any()) {
             controlTypes[h.type] = (controlTypes[h.type] ?: 0) + 1
             controlFrameTypes = controlTypes.entries.sortedBy { it.key }
                 .joinToString(",") { "${it.key}x${it.value}" }
+            if (h.type == 5043) inspectProtobuf(frame)
             return Result.DUPLICATE
         }
         dataFramesProcessed++
@@ -169,7 +173,8 @@ class CirqaDirectoryReadV2Session(val token: Any = Any()) {
     @Synchronized fun summary(): String =
         "DirectoryReadV2: phase=$phase; reason=$reason; size=$expectedSize/$receivedBytes; chunks=$chunkCount; " +
             "notifs=$notificationsSeen; frames=$framesSeen; dataFrames=$dataFramesProcessed; " +
-            "control=$controlFrameTypes; entries=$directoryEntries; fitCandidates=$fitCandidates; $redactedEntryReport"
+            "control=$controlFrameTypes; protobuf=$protobufDiag; " +
+            "entries=$directoryEntries; fitCandidates=$fitCandidates; $redactedEntryReport"
 
     private fun complete(): Result {
         val data = bytes.toByteArray()
@@ -194,6 +199,31 @@ class CirqaDirectoryReadV2Session(val token: Any = Any()) {
         reason = "directory-complete-fit-candidates=$fitCandidates"
         return Result.COMPLETE
     }
+
+    /** Read-only: record 5043 transport framing and redacted protobuf field shapes. */
+    private fun inspectProtobuf(frame: ByteArray) {
+        val body = frame.copyOfRange(4, frame.size - 2)
+        if (body.size >= 14) {
+            val id = u16(body, 0)
+            val offset = u32(body, 2)
+            val total = u32(body, 6)
+            val chunk = u32(body, 10)
+            appendProtobufDiag("5043[id=$id,off=$offset,total=$total,chunk=$chunk];")
+        }
+        protobufReassembler.accept(frame)?.let { msg ->
+            appendProtobufDiag("complete[len=${msg.size},shape=${CirqaProtobufShapeInspector.shape(msg)}];")
+        }
+    }
+
+    private fun appendProtobufDiag(part: String) {
+        protobufDiag = (protobufDiag + part).take(600)
+    }
+
+    private fun u16(bytes: ByteArray, i: Int): Int =
+        (bytes[i].toInt() and 255) or ((bytes[i + 1].toInt() and 255) shl 8)
+
+    private fun u32(bytes: ByteArray, i: Int): Long =
+        (0..3).fold(0L) { n, k -> n or ((bytes[i + k].toLong() and 255L) shl (8 * k)) }
 
     private companion object { const val MAX_ENCODED_BYTES = 32 * 1024 }
 
