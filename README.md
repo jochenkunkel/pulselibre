@@ -12,6 +12,8 @@
 
 **Für neue Mitwirkende:** [Leitfaden zur Mitarbeit](docs/CONTRIBUTING_GUIDE.md) – Einstieg, Arbeitsbereiche, Qualitätsanforderungen und Sicherheitsregeln.
 
+**Technische Abläufe als Bilder:** [Vier illustrierte Diagramme zu BLE, Transportforschung, FIT und Architektur](docs/diagrams/README.md).
+
 ## Dokumentation nach Fachbereichen
 
 **[Dokumentationswegweiser](docs/README.md)** · [UI-Konzept](docs/ui/README.md) · [CIRQA-Protokollentwicklung](docs/protocol/README.md) · [Wissenschaftliche Messwerte und Berechnungen](docs/science/README.md). Die früheren Markdown-Weiterleitungen wurden nach der Linkmigration entfernt; maßgeblich sind die kanonischen Pfade im Dokumentationswegweiser.
