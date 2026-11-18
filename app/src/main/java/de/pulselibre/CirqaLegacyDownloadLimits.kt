@@ -22,6 +22,7 @@ object CirqaLegacyDownloadLimits {
         entry = entry,
         reason = when {
             entry.type != 128 -> "not-fit-type"
+            entry.fileIndex !in 1..65535 -> "reserved-or-invalid-index"
             !entry.readable -> "not-readable"
             (entry.type to entry.subtype) !in supportedTypes -> "unsupported-subtype"
             entry.size !in 1..MAX_FIT_FILE_BYTES.toLong() -> "size-out-of-range"

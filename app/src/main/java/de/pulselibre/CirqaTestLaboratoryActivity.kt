@@ -61,6 +61,7 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
     private val rssiSamples = ArrayList<Int>()
     private var gattProbe: CirqaGattProbe? = null
     private var mlProbe: CirqaMlHandshakeProbe? = null
+    private var systemEventProbe: CirqaMlHandshakeProbe? = null
     private var liveReadingCount = 0
     private val liveKinds = mutableSetOf<String>()
     private var destroyed = false
@@ -344,6 +345,18 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
             )
         })
         addCard(boundedDownloadCard)
+        val systemEventCard = card()
+        systemEventCard.addView(label("5030-only · Freigabe ausstehend", 18f))
+        systemEventCard.addView(label(
+            "Vorbereitet: frischer Bootstrap und genau ein HANDSHAKE_COMPLETE-Event. " +
+                "Nur äußerer Status, Ergebnislänge und erstes Ergebnisbyte werden festgehalten. " +
+                "Keine Erfolgswert-Annahme, kein 5007/5031/5002. Bis zur gesonderten Freigabe gesperrt.",
+            13f
+        ))
+        systemEventCard.addView(button("5030-only-Test (noch gesperrt)") {
+            confirmLegacy5030OnlyTest()
+        }.apply { isEnabled = CirqaLegacy5030AttemptGate.RELEASED_FOR_DEVICE_TEST })
+        addCard(systemEventCard)
 
         root.addView(button("Datensparsamen Testbericht speichern") {
             AlertDialog.Builder(this)
@@ -599,6 +612,38 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
         }
         legacy5007Button.contentDescription =
             "Noch $remaining freigegebener Bootstrap-/5007-Testversuch; 5007 nur nach bestätigtem 5024/5050-Handshake."
+    }
+
+    private fun confirmLegacy5030OnlyTest() {
+        if (!CirqaLegacy5030AttemptGate.RELEASED_FOR_DEVICE_TEST) return
+        AlertDialog.Builder(this)
+            .setTitle("Einmaliger 5030-only-Test?")
+            .setMessage(
+                "Recorder und Garmin Connect müssen beendet sein. Genau ein frischer " +
+                    "5024/5050-Bootstrap mit unveränderter Nullmaske, danach höchstens ein " +
+                    "5030 HANDSHAKE_COMPLETE. Stopp nach einer Antwort, Fehler, Trennung oder " +
+                    "5 Sekunden ohne vollständige Antwort/Write; insgesamt maximal 30 Sekunden. " +
+                    "Kein Retry, 5007/5031/5002, CLOSE_ALL, Flag-/Archiv-/Löschkommando. " +
+                    "Das separate Einmal-Gate wird vor Verbindung dauerhaft verbraucht. " +
+                    "Unbekannte Systemevent-Nebenwirkungen sind nicht ausgeschlossen."
+            )
+            .setNegativeButton("Abbrechen", null)
+            .setPositiveButton("Einmal ausführen") { _, _ ->
+                withBluetoothPermissions(needsScan = false) {
+                    val probe = CirqaMlHandshakeProbe(this, adapter)
+                    systemEventProbe = probe
+                    probe.startLegacy5030OnlyTest(userConfirmed = true) { message ->
+                        runOnUiThread {
+                            statusOutput.text = message
+                            if (message.startsWith("5030-only: phase=")) {
+                                getSharedPreferences("cirqa_5030_only", MODE_PRIVATE).edit()
+                                    .putString("summary", message.take(600)).apply()
+                            }
+                        }
+                    }
+                }
+            }
+            .show()
     }
 
     private fun confirmLegacy5031Test() {
@@ -1366,6 +1411,7 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
+        systemEventProbe?.close()
         destroyed = true
         monitorRunning = false
         handler.removeCallbacksAndMessages(null)

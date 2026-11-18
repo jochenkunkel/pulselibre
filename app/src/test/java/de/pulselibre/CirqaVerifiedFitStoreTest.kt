@@ -60,4 +60,28 @@ class CirqaVerifiedFitStoreTest {
             root.delete()
         }
     }
+
+    @Test fun concurrentStoreInstancesPublishOnceWithoutOverwritingOrTempFiles() {
+        val root = Files.createTempDirectory("fit-store-concurrent").toFile()
+        val start = java.util.concurrent.CountDownLatch(1)
+        val pool = java.util.concurrent.Executors.newFixedThreadPool(8)
+        try {
+            val futures = (1..8).map {
+                pool.submit<CirqaVerifiedFitStore.Saved> {
+                    start.await()
+                    CirqaVerifiedFitStore(root).saveVerified(valid)
+                }
+            }
+            start.countDown()
+            val saved = futures.map { it.get(10, java.util.concurrent.TimeUnit.SECONDS) }
+            assertEquals(1, saved.count { it.outcome == CirqaVerifiedFitStore.Outcome.CREATED })
+            assertEquals(1, saved.map { it.sha256 }.toSet().size)
+            assertEquals(1, root.listFiles()!!.size)
+            assertArrayEquals(valid, root.listFiles()!!.single().readBytes())
+        } finally {
+            pool.shutdownNow()
+            root.listFiles()?.forEach { it.delete() }
+            root.delete()
+        }
+    }
 }

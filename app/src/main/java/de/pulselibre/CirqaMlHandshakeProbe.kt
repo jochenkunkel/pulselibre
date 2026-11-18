@@ -36,6 +36,9 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private var continuousRecordingMode = false
     private var historyDiagnosticMode = false
     private var legacy5007TestMode = false
+    private var legacy5030Only: CirqaLegacy5030OnlySession? = null
+    @Volatile private var legacy5030WriteOutstanding = false
+    @Volatile private var callbackGeneration: Any = Any()
     private var legacy5007WriteClaimed = false
     private var legacy5007RequestSent = false
     private var legacy5007Response = CirqaLegacy5007ResponseObserver()
@@ -191,6 +194,55 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         }
     }
 
+    /**
+     * Prepared but release-locked. New probe instance, dedicated persistent gate,
+     * one system event and no file/filter command. Never invoked by a recorder.
+     */
+    @SuppressLint("MissingPermission")
+    fun startLegacy5030OnlyTest(userConfirmed: Boolean, result: (String) -> Unit) {
+        if (!CirqaLegacy5030AttemptGate.RELEASED_FOR_DEVICE_TEST || !userConfirmed) {
+            result("5030-only gesperrt: gesonderte Gerätefreigabe ausstehend; keine Verbindung.")
+            return
+        }
+        if (active || sessionStartedNanos != 0L || legacy5030Only != null ||
+            legacy5007TestMode || legacy5031TestMode || legacyHistoryDownloadMode ||
+            realtimeMode || continuousRecordingMode || rawCaptureMode) {
+            result("5030-only benötigt eine neue, unbenutzte Probeinstanz; keine Verbindung.")
+            return
+        }
+        val uniqueTarget = try {
+            adapter.isEnabled && adapter.bondedDevices.orEmpty().count {
+                it.name?.contains("CIRQA", ignoreCase = true) == true
+            } == 1
+        } catch (_: SecurityException) { false }
+        if (!uniqueTarget || CirqaBleSessionGate.isBusy()) {
+            result("5030-only: Bluetooth aus, Ziel nicht eindeutig oder Sitzung belegt; kein Gate-Verbrauch.")
+            return
+        }
+        val prefs = context.getSharedPreferences("cirqa_5030_only", Context.MODE_PRIVATE)
+        if (!CirqaLegacy5030AttemptGate.consume(
+                CirqaLegacy5030AttemptGate.RELEASED_FOR_DEVICE_TEST, userConfirmed,
+                { prefs.getBoolean(CirqaLegacy5030AttemptGate.PREFERENCE_KEY, false) },
+                { prefs.edit().putBoolean(CirqaLegacy5030AttemptGate.PREFERENCE_KEY, true).commit() }
+            )) {
+            result("5030-only: Gate verbraucht oder Persistierung fehlgeschlagen; keine Verbindung.")
+            return
+        }
+        val model = CirqaLegacy5030OnlySession()
+        legacy5030Only = model
+        model.begin(true, android.os.SystemClock.elapsedRealtime())
+        bootstrapAckMode = true
+        configurationTestMode = true
+        historyDiagnosticMode = true
+        start(false, result)
+        if (active) main.postDelayed({
+            if (active) {
+                model.tick(model.token, android.os.SystemClock.elapsedRealtime())
+                finish("5030-only: Gesamtlaufzeit beendet.", gatt)
+            }
+        }, CirqaLegacy5030OnlySession.SESSION_MILLIS)
+    }
+
     /** Fresh bootstrap and one directory transfer plus strictly bounded supported FIT files. */
     fun startLegacyDirectoryAndFitsTest(
         supportedTypes: Set<Pair<Int, Int>>,
@@ -332,6 +384,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         } catch (_: SecurityException) { result("Bluetooth-Berechtigung fehlt."); return }
         if (device == null) { result("CIRQA nicht in Android-Kopplungen gefunden."); return }
         if (!CirqaBleSessionGate.acquire(this)) { result("CIRQA Bluetooth belegt: Bitte laufende Messung abwarten und erneut versuchen."); return }
+        val generation = Any()
+        callbackGeneration = generation
         terminationRequested = false
         active = true
         sessionStartedNanos = System.nanoTime()
@@ -431,6 +485,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         try {
             gatt = device.connectGatt(context, false, object : BluetoothGattCallback() {
                 override fun onConnectionStateChange(g: BluetoothGatt, status: Int, state: Int) {
+                    if (callbackGeneration !== generation) { safeClose(g); return }
                     if (!active || terminationRequested) { safeClose(g); return }
                     if (status != BluetoothGatt.GATT_SUCCESS || state == BluetoothProfile.STATE_DISCONNECTED) {
                         finish("ML-Verbindung beendet (GATT $status, Zustand $state). Letzte Phase: $phase; Notifications: $notificationsReceived; GATT-Schreiben bestätigt: $writeConfirmed; Protokollzustand: ${session?.stage}; Antwortformen: ${notificationShapes.joinToString(" | ")}.", g)
@@ -441,6 +496,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     }
                 }
                 override fun onServicesDiscovered(g: BluetoothGatt, status: Int) {
+                    if (callbackGeneration !== generation) return
                     if (!active || terminationRequested) return
                     if (status != BluetoothGatt.GATT_SUCCESS) { finish("Dienstsuche fehlgeschlagen: $status", g); return }
                     val service = g.services.orEmpty().firstOrNull {
@@ -498,6 +554,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     } catch (_: SecurityException) { finish("Bluetooth-Berechtigung beim CCCD fehlt.", g) }
                 }
                 override fun onDescriptorWrite(g: BluetoothGatt, descriptor: BluetoothGattDescriptor, status: Int) {
+                    if (callbackGeneration !== generation) return
                     if (!active || descriptor.uuid != cccd) return
                     if (status != BluetoothGatt.GATT_SUCCESS) { finish("CCCD-Fehler: $status", g); return }
                     mark("CCCD bestätigt; erster ML-Befehl wird gesendet")
@@ -505,15 +562,27 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                 }
                 @Deprecated("Android compatibility callback")
                 override fun onCharacteristicChanged(g: BluetoothGatt, characteristic: BluetoothGattCharacteristic) {
+                    if (callbackGeneration !== generation) return
                     @Suppress("DEPRECATION")
                     receive(g, characteristic.value?.clone() ?: byteArrayOf())
                 }
                 override fun onCharacteristicChanged(g: BluetoothGatt, characteristic: BluetoothGattCharacteristic, value: ByteArray) {
+                    if (callbackGeneration !== generation) return
                     receive(g, value)
                 }
                 override fun onCharacteristicWrite(g: BluetoothGatt, characteristic: BluetoothGattCharacteristic, status: Int) {
+                    if (callbackGeneration !== generation) return
                     if (!active || terminationRequested) return
                     txTrace.completePendingCallback(status)
+                    val eventSession = legacy5030Only
+                    if (eventSession != null && legacy5030WriteOutstanding) {
+                        legacy5030WriteOutstanding = false
+                        mlWritePending = false
+                        eventSession.writeCompleted(eventSession.token,
+                            status == BluetoothGatt.GATT_SUCCESS, android.os.SystemClock.elapsedRealtime())
+                        finish5030IfTerminal(g)
+                        return
+                    }
                     if (status != BluetoothGatt.GATT_SUCCESS) finish("ML-Schreibfehler: $status", g)
                     else {
                         writeConfirmed = true
@@ -558,6 +627,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                                 if (active && legacyHistoryDownloadMode) completeLegacyTransferAndContinue(g)
                             }
                         } else {
+                            maybeSendLegacy5030AfterBootstrap(g)
                             maybeSendLegacy5007AfterBootstrap(g)
                             maybeSendLegacy5002AfterBootstrap(g)
                             if (!legacy5007WriteClaimed) mark("ML-Schreiben bestätigt; warte auf Protokollantwort")
@@ -674,6 +744,13 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                 val first = bytes.firstOrNull()?.toInt()?.and(255)
                 if (first != null && first == historyHandle) {
                     historyRouted++
+                    val eventSession = legacy5030Only
+                    if (eventSession?.phase == CirqaLegacy5030OnlySession.Phase.WAITING) {
+                        eventSession.receive(eventSession.token, bytes.copyOfRange(1, bytes.size),
+                            android.os.SystemClock.elapsedRealtime())
+                        finish5030IfTerminal(g)
+                        return
+                    }
                     if (legacyHistoryDownloadMode && legacy5002RequestSent) {
                         receiveLegacyDirectoryOrFitData(g, bytes.copyOfRange(1, bytes.size))
                         return
@@ -770,6 +847,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                             configuration5037ObservationStarted = true
                         }
                         phase = "GFDI-5000-ACK für 5050 empfangen; beobachte weitere Antworten"
+                        maybeSendLegacy5030AfterBootstrap(g)
                         maybeSendLegacy5007AfterBootstrap(g)
                         maybeSendLegacy5002AfterBootstrap(g)
                     }
@@ -948,6 +1026,50 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             GarminMlHandshake.Stage.FAILED ->
                 finish("Garmin ML: GFDI-Registrierung vom Gerät abgelehnt.", g)
             else -> Unit
+        }
+    }
+
+    private fun maybeSendLegacy5030AfterBootstrap(g: BluetoothGatt) {
+        val model = legacy5030Only ?: return
+        if (model.phase != CirqaLegacy5030OnlySession.Phase.BOOTSTRAP) return
+        val ready = CirqaLegacy5007BootstrapGate.maySend5007(
+            bootstrapAckSent, bootstrapAckConfirmed, configurationResponseQueued,
+            configurationResponseConfirmed, configurationAckReceived, mlWritePending,
+            bootstrapAckChunks.isNotEmpty()
+        )
+        val now = android.os.SystemClock.elapsedRealtime()
+        if (!model.bootstrapReady(model.token, ready, now)) {
+            finish5030IfTerminal(g)
+            return
+        }
+        val handle = historyHandle
+        if (handle == null || handle !in 1..127 || mlWritePending) {
+            model.abort(model.token)
+            finish("5030-only: kein eindeutiger sendefreier GFDI-Transport.", g)
+            return
+        }
+        if (!model.claimRequest(model.token, now)) {
+            finish5030IfTerminal(g)
+            return
+        }
+        main.removeCallbacks(configurationTimeout)
+        legacy5030WriteOutstanding = true
+        val value = byteArrayOf(handle.toByte()) +
+            GarminFileListRequest.cobs(CirqaLegacy5030RequestCandidate.gfdiFrame())
+        main.postDelayed({
+            if (active && legacy5030Only === model) {
+                model.tick(model.token, android.os.SystemClock.elapsedRealtime())
+                finish("5030-only: Antwort-/Write-Zeitlimit, kein Retry.", g)
+            }
+        }, CirqaLegacy5030OnlySession.RESPONSE_MILLIS)
+        send(g, value)
+    }
+
+    private fun finish5030IfTerminal(g: BluetoothGatt) {
+        val model = legacy5030Only ?: return
+        if (model.phase == CirqaLegacy5030OnlySession.Phase.OBSERVED ||
+            model.phase == CirqaLegacy5030OnlySession.Phase.STOPPED) {
+            finish("5030-only abgeschlossen; Stopp vor 5007/5031/5002.", g)
         }
     }
 
@@ -1152,7 +1274,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         legacyCurrentTransferCompleted = false
 
         if (index == 0) {
-            val directory = CirqaLegacyDirectoryParser.parse(bytes) ?: run {
+            val directory = CirqaLegacyDirectoryParser.parseForDownload(bytes) ?: run {
                 finish("Directory-Index 0 vollständig übertragen, aber strikt nicht parsebar; FIT-Requests gestoppt.", g)
                 return
             }
@@ -1377,6 +1499,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private fun finish(message: String, g: BluetoothGatt?) {
         if (!active || terminationRequested) return
         terminationRequested = true
+        legacy5030Only?.let { it.abort(it.token) }
         passive5050Session.stop()
         main.post {
             if (!active) return@post
@@ -1413,7 +1536,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             }
             gatt = null
             callback?.invoke(
-                if (legacyHistoryDownloadMode) legacyHistoryDownloadReport(message)
+                if (legacy5030Only != null) legacy5030Only!!.summary()
+                else if (legacyHistoryDownloadMode) legacyHistoryDownloadReport(message)
                 else if (legacy5007TestMode) legacy5007Report(message)
                 else if (historyDiagnosticMode) historyReport(message)
                 else message

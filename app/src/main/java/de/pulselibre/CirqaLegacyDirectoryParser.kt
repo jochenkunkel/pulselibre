@@ -26,7 +26,8 @@ object CirqaLegacyDirectoryParser {
     data class Directory(val header: ByteArray, val entries: List<Entry>)
 
     fun parse(bytes: ByteArray): Directory? {
-        if (bytes.size < 16 || (bytes.size - 16) % 16 != 0) return null
+        if (bytes.size !in 16..CirqaLegacyDownloadLimits.MAX_DIRECTORY_BYTES ||
+            (bytes.size - 16) % 16 != 0) return null
         fun u8(i: Int) = bytes[i].toInt() and 255
         fun u16(i: Int) = u8(i) or (u8(i + 1) shl 8)
         fun u32(i: Int): Long =
@@ -44,5 +45,13 @@ object CirqaLegacyDirectoryParser {
             )
         }
         return Directory(bytes.copyOfRange(0, 16), entries)
+    }
+
+    /** A structural parser may retain duplicate rows for analysis; a downloader must not. */
+    fun parseForDownload(bytes: ByteArray): Directory? {
+        val directory = parse(bytes) ?: return null
+        return directory.takeIf {
+            it.entries.map(Entry::fileIndex).toSet().size == it.entries.size
+        }
     }
 }
