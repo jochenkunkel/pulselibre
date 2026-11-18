@@ -78,6 +78,12 @@ Aus der Binary extrahierte Felder für den Download:
 `ItemListResponse{status=1, session_id=2, next_transaction_id=3, items=4}`,
 `ItemReference{uid=1, data_type=2, data_size=3, flags=4, transaction_id=5}`,
 `Service.pull_item_request=1`, `PullItemDataRequest{item=1, priority=2, supported_transports=3, offset=4}`.
+**Korrektur V23:** Die erste Feldnummer ist `status=1`, nicht der Erfolgs-Enumwert.
+Der unabhängige Codec weist `ItemListStatus.SUCCESS=0` und
+`FAIL_UNKNOWN_SESSION_ID=1` aus. V23 (Build 1087) erhielt am Gerät Status 0,
+behandelte ihn irrtümlich als Fehler und stoppte vor jedem Pull. Keine Datei
+wurde in diesem Lauf gespeichert oder importiert; das V23-Einmal-Gate ist
+verbraucht. Der korrigierte nächste Lauf verwendet ein frisches V24-Gate.
 
 Die UID muss nicht interpretiert werden; ihre rohen Bytes werden unverändert
 in den Pull-Request übernommen. Parser und Pull-Builder sind offline getestet.

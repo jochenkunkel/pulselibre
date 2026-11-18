@@ -1,6 +1,6 @@
 # PulsLibre – zentraler Projektstatus und Chat-Übergabe
 
-> **Aktueller CIRQA-Historienstand (18.11.2026):** [Kanonischer Forschungs- und Evidenzstand](protocol/research/CIRQA_HISTORICAL_RESEARCH_STATUS_2026-11-18.md). Zusätzlich ist nun über Protobuf sync_request/MLR **eine** exakt CRC-validierte FIT-Datei am CIRQA empfangen, privat gespeichert und mit 32 Messwerten in SQLite importiert worden (Build 1081, V21). Das ist **kein vollständiger historischer Backfill**: weitere Einträge, Paginierung und Vollständigkeit sind offen. RFCOMM bleibt für dieses Gerät unbestätigt/nicht gangbar.
+> **Aktueller CIRQA-Historienstand (18.11.2026):** [Kanonischer Forschungs- und Evidenzstand](protocol/research/CIRQA_HISTORICAL_RESEARCH_STATUS_2026-11-18.md). Build 1081/V21 empfing eine exakt CRC-validierte FIT-Datei, speicherte sie privat und importierte 32 Messwerte. V23 (Build 1087) erreichte am Gerät eine Item-List-Antwort mit `status=0` (SUCCESS), wurde aber wegen eines fehlerhaften Enumvergleichs sicher vor dem Pull gestoppt; keine neue Datei wurde gespeichert/importiert. V24 korrigiert SUCCESS auf 0 und nutzt ein neues Einmal-Gate. Mehrdatei-Paginierung bleibt unbewiesen; kein vollständiger historischer Backfill. RFCOMM ist für dieses Gerät nicht gangbar.
 
 **Stand:** 2026-11-18 (CIRQA-Download-Fortschritt; historische Einträge bleiben datiert) · **maßgeblicher Codezweig:** `main` · **Status:** aktive Entwicklung, keine Produktionsfreigabe.
 

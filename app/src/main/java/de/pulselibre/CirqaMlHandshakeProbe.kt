@@ -2370,8 +2370,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     companion object {
         private const val MAX_DIRECTORY_DIAGNOSTIC_ENTRIES = 12
         private const val MAX_SYNC_ITEM_LIST_PAGES = 64
-        // CIRQA 5.31 item_list_response success was observed as enum value 1.
-        private const val ITEM_LIST_SUCCESS_STATUS = 1L
+        // ItemListStatus.SUCCESS is 0; 1 means FAIL_UNKNOWN_SESSION_ID.
+        private const val ITEM_LIST_SUCCESS_STATUS = 0L
     }
 
     private fun legacy5007Report(reason: String): String =
