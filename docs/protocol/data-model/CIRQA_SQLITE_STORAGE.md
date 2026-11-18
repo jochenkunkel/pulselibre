@@ -58,7 +58,7 @@ rows. Do not manually copy a live SQLite main file without its journal.
 
 GitHub full CI run 44410139935 passed for commit `bd973cd` (prior to schema-v3
 consolidation work). Current local verification after the schema-v3 copy stage:
-JVM tests, debug APK, lint, Android-test APK, 56/56 API-35 emulator tests, and
+JVM tests, debug APK, lint, Android-test APK, 57/57 API-35 emulator tests, and
 19/19 Python tests pass. Instrumentation covers v2→v3 event preservation,
 repeatable/incremental history copying, source preservation, FK integrity, and
 fail-closed rollback on a conflicting destination key. These newer changes have
