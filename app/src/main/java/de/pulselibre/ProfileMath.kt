@@ -80,3 +80,23 @@ internal object Bmi {
         }
     }
 }
+
+/** Weight stepping for the quick-weight dialog: ±0.1 kg, one decimal, clamped to the plausible range. */
+internal object WeightStepper {
+    const val MIN_KG = 15.0
+    const val MAX_KG = 400.0
+    const val STEP_KG = 0.1
+    /** Only a starting point inside the editor when nothing is stored; it is saved solely if the user confirms. */
+    const val START_KG = 70.0
+
+    fun parse(text: String?): Double? = text?.trim()?.replace(',', '.')?.toDoubleOrNull()?.takeIf { it.isFinite() }
+
+    fun step(text: String?, deltaKg: Double): Double {
+        val base = parse(text)?.coerceIn(MIN_KG, MAX_KG) ?: START_KG
+        val raw = Math.round((base + deltaKg) * 10.0) / 10.0
+        return raw.coerceIn(MIN_KG, MAX_KG)
+    }
+
+    /** "80" for whole numbers is shown as "80,0" so the decimal step is visible; German decimal comma. */
+    fun format(kg: Double): String = String.format(java.util.Locale.GERMANY, "%.1f", kg)
+}

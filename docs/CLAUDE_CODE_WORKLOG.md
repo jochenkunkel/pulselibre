@@ -134,3 +134,7 @@ Noch sichtbar offen (P3): Nacht-Insights erste Spalte „22–6 Uhr / 22331 / We
 
 ## 2026-11-18 – #124 Premium-Redesign (Branch `claude/premium-redesign`)
 - Umgebung: eigener Emulator (`~/Android/Sdk`, AVD `s25`, API 35, 1080×2340) – adb-Aufrufe nur mit `-s emulator-5554`, echtes Handy unberührt. Synthetische Daten per Skript eingespielt. Details und Grenzen: `docs/test-evidence/REDESIGN_2026-11-18.md`.
+
+## 2026-11-18 – Rückmeldungen zum Redesign (Branch `claude/avatar-v2`)
+1. Avatar neu gezeichnet (Gesicht mit Brauen/Augenlichtern/Nase/Wangen, Haare, Kapuzenpullover, Dämmerungs-Berge); 2. Waagen-Button unter der Karte entfernt – Tippen auf die Gewichtszeile öffnet die Schnelleingabe mit − / + in 0,1-kg-Schritten (`WeightStepper`, Halten wiederholt); 3. Hinweis zum violetten Rand von der Übersicht in die Konfiguration verschoben; 4. Entwicklerangabe „Jochen Kunkel“ in der Konfiguration; 5. Reiter „Geräte“ → „Gerät“, Überschrift „Gerät · CIRQA“.
+- Emulator-Hinweis: Der lokale Software-GPU-Emulator ist sehr langsam (wiederholt „System UI isn't responding“); er läuft nur als Hintergrundaufgabe stabil. Visuelle Prüfung dort eingeschränkt.

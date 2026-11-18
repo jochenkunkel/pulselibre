@@ -43,24 +43,6 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
         val overview = dashboardOverview(metrics)
         addView(label("Deine Messwerte · lokal gespeichert", 12f, muted),
             LayoutParams(-1, -2).apply { bottomMargin = dp(12) })
-        // Calm info bar (mint info icon, violet outline) that keeps the full validation warning (#124).
-        addView(LinearLayout(context).apply {
-            orientation = HORIZONTAL
-            gravity = Gravity.CENTER_VERTICAL
-            setPadding(dp(14), dp(10), dp(14), dp(10))
-            background = GradientDrawable().apply {
-                setColor(if (palette.dark) 0xFF1E1A3A.toInt() else 0xFFF1EBFF.toInt())
-                cornerRadius = dp(16).toFloat()
-                setStroke(dp(1), UnvalidatedFeatures.color(palette.dark))
-            }
-            tag = "dashboard_unvalidated_legend"
-            contentDescription = UnvalidatedFeatures.LEGEND
-            addView(label("ⓘ", 18f, DesignTokens.MINT, true).apply { importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO },
-                LayoutParams(-2, -2).apply { marginEnd = dp(10) })
-            addView(label(UnvalidatedFeatures.LEGEND, 12f, if (palette.dark) 0xFFD6CBE7.toInt() else palette.ink).apply {
-                importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
-            }, LayoutParams(0, -2, 1f))
-        }, LayoutParams(-1, -2).apply { bottomMargin = dp(12) })
         addCardPair(overview.vitalSigns) { metric ->
             if (metric.title == "Herzfrequenz") pulseCard(metric, activity)
             else metricCard(metric, palette.oxygen)

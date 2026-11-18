@@ -121,6 +121,31 @@ object PersonalSettings {
             }
         })
 
+        layout.addView(TextView(context).apply {
+            text = "👨‍💻  Entwickelt von Jochen Kunkel"
+            textSize = 13f
+            setTextColor(palette.muted)
+            tag = "settings_developer"
+            contentDescription = "Entwickler: Jochen Kunkel"
+            setPadding(dp(4), dp(8), dp(4), 0)
+        })
+        // Explanation of the violet tile border (moved here from the dashboard): calm info bar, full wording kept.
+        layout.addView(LinearLayout(context).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(dp(12), dp(10), dp(12), dp(10))
+            background = android.graphics.drawable.GradientDrawable().apply {
+                setColor(palette.tinted); cornerRadius = dp(14).toFloat()
+                setStroke(dp(1), UnvalidatedFeatures.color(palette.dark))
+            }
+            tag = "settings_unvalidated_note"
+            contentDescription = UnvalidatedFeatures.LEGEND
+            addView(TextView(context).apply { text = "ⓘ"; textSize = 18f; setTextColor(DesignTokens.MINT)
+                importantForAccessibility = android.view.View.IMPORTANT_FOR_ACCESSIBILITY_NO; setPadding(0, 0, dp(10), 0) })
+            addView(TextView(context).apply { text = UnvalidatedFeatures.LEGEND; textSize = 12f; setTextColor(palette.ink)
+                importantForAccessibility = android.view.View.IMPORTANT_FOR_ACCESSIBILITY_NO }, LinearLayout.LayoutParams(0, -2, 1f))
+        }, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) })
+
         heading("🎨", "Darstellung")
         val themeChoice = Spinner(context).apply {
             adapter = ArrayAdapter(context, android.R.layout.simple_spinner_dropdown_item,

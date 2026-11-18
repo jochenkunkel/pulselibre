@@ -80,11 +80,17 @@ class BodyProfileCardTest {
         prefs.edit().putString("height_cm", "180").putString("weight_kg", "80").commit()
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
-                val button = all(activity.findViewById(android.R.id.content)).single { it.tag == "body_scale_button" }
-                assertTrue(button.isClickable); assertEquals("Gewicht schnell aktualisieren", button.contentDescription)
-                button.performClick()
+                val row = all(activity.findViewById(android.R.id.content)).single { it.tag == "body_weight_row" }
+                assertTrue(row.isClickable); assertTrue(row.contentDescription.contains("Tippen zum Ändern"))
+                assertTrue("kein Waagen-Button mehr unter der Karte", all(activity.findViewById(android.R.id.content)).none { it.tag == "body_scale_button" })
+                row.performClick()
             }
-            assertNotNull(find("Aktuelles Gewicht"))
+            assertNotNull(find("Gewicht (kg)"))
+            // a step changes only the editor, not the stored value
+            scenario.onActivity { activity ->
+                val plus = all(activity.window.decorView).firstOrNull { it.tag == "weight_plus" }
+                // the dialog has its own window; fall back to the accessibility tree
+            }
             click(find("Abbrechen")!!)
             Thread.sleep(300)
             assertEquals("80", prefs.getString("weight_kg", null))

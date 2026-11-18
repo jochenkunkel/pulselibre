@@ -5,6 +5,7 @@ import android.graphics.Canvas
 import android.graphics.LinearGradient
 import android.graphics.Paint
 import android.graphics.Path
+import android.graphics.RadialGradient
 import android.graphics.RectF
 import android.graphics.Shader
 import android.view.View
@@ -41,44 +42,73 @@ internal class BodyProfileAvatarView(context: Context) : View(context) {
         canvas.translate(cx - r, cy - r)
         val s = 2f * r / 100f
         canvas.scale(s, s)
-        // sunset sky
-        paint.shader = LinearGradient(0f, 0f, 0f, 70f, intArrayOf(0xFF3A1B66.toInt(), 0xFFB45A9A.toInt(), 0xFFF3A58A.toInt()),
-            floatArrayOf(0f, 0.65f, 1f), Shader.TileMode.CLAMP)
+        // --- background: dusk sky, glow, two mountain layers ---
+        paint.shader = LinearGradient(0f, 0f, 0f, 80f, intArrayOf(0xFF2A1458.toInt(), 0xFF7A3F9E.toInt(), 0xFFE58FA0.toInt(), 0xFFFFC9A0.toInt()),
+            floatArrayOf(0f, 0.45f, 0.8f, 1f), Shader.TileMode.CLAMP)
         canvas.drawRect(0f, 0f, 100f, 100f, paint)
+        paint.shader = RadialGradient(74f, 56f, 30f, intArrayOf(0xAAFFE1B5.toInt(), 0x00FFE1B5), null, Shader.TileMode.CLAMP)
+        canvas.drawCircle(74f, 56f, 30f, paint)
         paint.shader = null
-        // sun
-        paint.color = 0xFFFFD2A1.toInt(); canvas.drawCircle(70f, 52f, 9f, paint)
-        // mountains
-        paint.color = 0xFF6A3B9B.toInt()
-        figure.reset(); figure.moveTo(0f, 100f); figure.lineTo(0f, 62f); figure.lineTo(20f, 50f); figure.lineTo(38f, 63f)
-        figure.lineTo(58f, 46f); figure.lineTo(80f, 62f); figure.lineTo(100f, 52f); figure.lineTo(100f, 100f); figure.close()
+        paint.color = 0xFFFFE2B8.toInt(); canvas.drawCircle(76f, 57f, 6f, paint)           // sun
+        paint.color = 0xFF7440A8.toInt()
+        figure.reset(); figure.moveTo(0f, 100f); figure.lineTo(0f, 60f); figure.lineTo(18f, 48f); figure.lineTo(34f, 60f)
+        figure.lineTo(52f, 44f); figure.lineTo(70f, 62f); figure.lineTo(86f, 52f); figure.lineTo(100f, 60f); figure.lineTo(100f, 100f); figure.close()
         canvas.drawPath(figure, paint)
-        paint.color = 0xFF4A2A78.toInt()
-        figure.reset(); figure.moveTo(0f, 100f); figure.lineTo(0f, 76f); figure.lineTo(26f, 64f); figure.lineTo(50f, 78f)
-        figure.lineTo(76f, 66f); figure.lineTo(100f, 76f); figure.lineTo(100f, 100f); figure.close()
+        paint.color = 0xFF4B2A82.toInt()
+        figure.reset(); figure.moveTo(0f, 100f); figure.lineTo(0f, 74f); figure.lineTo(24f, 64f); figure.lineTo(48f, 76f)
+        figure.lineTo(74f, 66f); figure.lineTo(100f, 76f); figure.lineTo(100f, 100f); figure.close()
         canvas.drawPath(figure, paint)
-        // hoodie shoulders
-        paint.shader = LinearGradient(0f, 66f, 0f, 100f, 0xFF7B4FD8.toInt(), 0xFF4A2A9E.toInt(), Shader.TileMode.CLAMP)
-        figure.reset(); figure.moveTo(14f, 100f); figure.quadTo(16f, 72f, 40f, 68f); figure.lineTo(60f, 68f)
-        figure.quadTo(84f, 72f, 86f, 100f); figure.close()
+
+        // --- person: broad shoulders in a violet hoodie, hood behind the neck ---
+        paint.shader = LinearGradient(0f, 60f, 0f, 100f, 0xFF6C3FD0.toInt(), 0xFF3C2290.toInt(), Shader.TileMode.CLAMP)
+        figure.reset(); figure.moveTo(50f, 62f); figure.cubicTo(30f, 62f, 20f, 70f, 14f, 100f); figure.lineTo(86f, 100f)
+        figure.cubicTo(80f, 70f, 70f, 62f, 50f, 62f); figure.close()
         canvas.drawPath(figure, paint)
         paint.shader = null
-        // hood rim and neck
-        paint.color = 0xFF5A33B8.toInt(); oval.set(32f, 58f, 68f, 78f); canvas.drawOval(oval, paint)
-        paint.shader = LinearGradient(0f, 34f, 0f, 70f, 0xFFF4C9A5.toInt(), 0xFFD79A78.toInt(), Shader.TileMode.CLAMP)
-        oval.set(36f, 30f, 64f, 68f); canvas.drawOval(oval, paint)   // head
+        paint.color = 0xFF54309F.toInt()                                                   // hood (back rim)
+        figure.reset(); figure.moveTo(34f, 66f); figure.cubicTo(36f, 56f, 64f, 56f, 66f, 66f); figure.cubicTo(60f, 72f, 40f, 72f, 34f, 66f); figure.close()
+        canvas.drawPath(figure, paint)
+        paint.color = 0xFFD9A07F.toInt()                                                   // neck
+        figure.reset(); figure.moveTo(43f, 56f); figure.lineTo(57f, 56f); figure.lineTo(59f, 70f); figure.quadTo(50f, 77f, 41f, 70f); figure.close()
+        canvas.drawPath(figure, paint)
+        paint.color = 0x33000000; oval.set(42f, 62f, 58f, 70f); canvas.drawOval(oval, paint) // neck shadow under the chin
+        paint.color = 0xFF7448DA.toInt()                                                   // hoodie front opening
+        figure.reset(); figure.moveTo(40f, 68f); figure.quadTo(50f, 80f, 60f, 68f); figure.quadTo(50f, 74f, 40f, 68f); figure.close()
+        canvas.drawPath(figure, paint)
+        paint.color = 0xFFE9DFFF.toInt(); paint.style = Paint.Style.STROKE; paint.strokeWidth = 0.9f; paint.strokeCap = Paint.Cap.ROUND
+        canvas.drawLine(46f, 74f, 45f, 84f, paint); canvas.drawLine(54f, 74f, 55f, 84f, paint)   // drawstrings
+        paint.style = Paint.Style.FILL
+
+        // --- head ---
+        paint.shader = LinearGradient(0f, 26f, 0f, 62f, 0xFFF8D2B0.toInt(), 0xFFE2A98A.toInt(), Shader.TileMode.CLAMP)
+        figure.reset(); figure.moveTo(50f, 26f)
+        figure.cubicTo(62f, 26f, 66f, 36f, 65f, 46f)
+        figure.cubicTo(64f, 56f, 58f, 62f, 50f, 63f)
+        figure.cubicTo(42f, 62f, 36f, 56f, 35f, 46f)
+        figure.cubicTo(34f, 36f, 38f, 26f, 50f, 26f); figure.close()
+        canvas.drawPath(figure, paint)
         paint.shader = null
-        // hair cap (neutral short style)
-        paint.color = 0xFF3B2A4E.toInt()
-        figure.reset(); figure.moveTo(35f, 46f); figure.quadTo(33f, 26f, 50f, 25f); figure.quadTo(67f, 26f, 65f, 46f)
-        figure.quadTo(58f, 36f, 50f, 36f); figure.quadTo(42f, 36f, 35f, 46f); figure.close()
+        paint.color = 0xFFE6B08F.toInt()                                                   // ears
+        oval.set(32.5f, 43f, 37.5f, 53f); canvas.drawOval(oval, paint); oval.set(62.5f, 43f, 67.5f, 53f); canvas.drawOval(oval, paint)
+        // hair: soft volume, side part, highlight
+        paint.color = 0xFF2E2147.toInt()
+        figure.reset(); figure.moveTo(34f, 46f); figure.cubicTo(30f, 30f, 38f, 20f, 52f, 20f); figure.cubicTo(66f, 20f, 71f, 32f, 66f, 46f)
+        figure.cubicTo(64f, 40f, 62f, 35f, 56f, 33f); figure.cubicTo(48f, 36f, 40f, 34f, 37f, 42f); figure.close()
         canvas.drawPath(figure, paint)
-        // friendly face: eyes and a soft smile
-        paint.color = 0xFF3A2A3A.toInt()
-        canvas.drawCircle(44.5f, 49f, 1.5f, paint); canvas.drawCircle(55.5f, 49f, 1.5f, paint)
-        paint.style = Paint.Style.STROKE; paint.strokeWidth = 1.4f; paint.strokeCap = Paint.Cap.ROUND
-        figure.reset(); figure.moveTo(45f, 57f); figure.quadTo(50f, 61f, 55f, 57f)
-        canvas.drawPath(figure, paint)
+        paint.color = 0x55A58AD8
+        figure.reset(); figure.moveTo(42f, 27f); figure.quadTo(50f, 22f, 59f, 26f); figure.quadTo(50f, 25f, 42f, 27f); figure.close()
+        paint.style = Paint.Style.STROKE; paint.strokeWidth = 1.3f; canvas.drawPath(figure, paint); paint.style = Paint.Style.FILL
+        // face: brows, eyes with highlight, nose, cheeks, smile
+        paint.color = 0xFF3B2A4E.toInt(); paint.style = Paint.Style.STROKE; paint.strokeWidth = 1.2f
+        canvas.drawLine(41.5f, 42.5f, 47f, 41.8f, paint); canvas.drawLine(53f, 41.8f, 58.5f, 42.5f, paint)
+        paint.style = Paint.Style.FILL
+        paint.color = 0xFF2B1F36.toInt(); oval.set(42.3f, 45.3f, 46.7f, 50f); canvas.drawOval(oval, paint); oval.set(53.3f, 45.3f, 57.7f, 50f); canvas.drawOval(oval, paint)
+        paint.color = 0xFFFFFFFF.toInt(); canvas.drawCircle(45.4f, 46.5f, 0.8f, paint); canvas.drawCircle(56.4f, 46.5f, 0.8f, paint)
+        paint.color = 0x55D9806E; canvas.drawCircle(42f, 54f, 3f, paint); canvas.drawCircle(58f, 54f, 3f, paint)   // cheeks
+        paint.color = 0xFFC98B6F.toInt(); paint.style = Paint.Style.STROKE; paint.strokeWidth = 1f; paint.strokeCap = Paint.Cap.ROUND
+        figure.reset(); figure.moveTo(50f, 48f); figure.quadTo(48.5f, 53f, 50.5f, 54f); canvas.drawPath(figure, paint)   // nose
+        paint.color = 0xFFA85A55.toInt(); paint.strokeWidth = 1.5f
+        figure.reset(); figure.moveTo(44.5f, 57f); figure.quadTo(50f, 61.5f, 55.5f, 57f); canvas.drawPath(figure, paint)   // smile
         paint.style = Paint.Style.FILL
         canvas.restore()
         // light ring and a short mint accent arc bottom right

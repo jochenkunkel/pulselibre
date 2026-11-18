@@ -11,7 +11,7 @@ import org.junit.runner.RunWith
 /** The shared tab strip must exist, label all five areas and mark the current one (#64). */
 @RunWith(AndroidJUnit4::class)
 class MainNavigationViewTest {
-    private val labels = listOf("Übersicht", "Verlauf", "Geräte", "Testlabor", "Daten")
+    private val labels = listOf("Übersicht", "Verlauf", "Gerät", "Testlabor", "Daten")
 
     private fun all(view: View, out: MutableList<View> = mutableListOf()): List<View> {
         out += view
