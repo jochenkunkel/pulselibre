@@ -192,3 +192,8 @@ Noch sichtbar offen (P3): Nacht-Insights erste Spalte „22–6 Uhr / 22331 / We
 ## 2026-11-19 · #164 Header-Bergpanorama Eiger–Mönch–Jungfrau
 - `HeaderBackdropDrawable` neu: Punktdaten aus der eigenen SVG-Studie (`HeaderMountainData`), gleichmäßige Skalierung ohne Verzerrung, Trio horizontal zentriert, Kanten deterministisch aufgeraut, Felsrippen, Schattenrinnen, dezente Lavendel-Schneekappen, zwei Vorberg-Ebenen, Abendlicht-Sonne hinter der Jungfrau-Seite. Farbwelt (Pflaume/Violett, Rosé-Saum) beibehalten.
 - Emulator geprüft: 320/360/393/430 dp, dunkel/hell, Schrift 200 %, Querformat. Nicht geprüft: S25 (ohne Freigabe), Scroll-Performance gemessen, Foto-Vergleich (Foto nicht verfügbar).
+## 2026-11-18 · Config: Aufzeichnung beim App-Start (Autostart)
+- Neuer Schalter „Beim App-Start automatisch aufzeichnen“ (Standard **aus**), eigener Prefs-Store `recording_settings` (wird von „Profil löschen“ nicht berührt).
+- `AutoStartRecording.shouldStart(...)`: nur bei frischem Start (nicht bei Rotation), Berechtigungen schon erteilt, Bluetooth schon an, Dienst nicht bereits aktiv. App schaltet Bluetooth nie selbst ein und fragt hier keine Berechtigungen ab.
+- Der Aufzeichnungsdienst selbst (OpenCode) wurde nicht verändert; es wird nur der bestehende START-Intent ausgelöst.
+- Tests: Unit `AutoStartRecordingTest` (6 Fälle), Instrumentation `autoStartSwitchDefaultsToOffAndIsPersistedOnSave`. Nicht getestet: realer Start am S25 mit Band.

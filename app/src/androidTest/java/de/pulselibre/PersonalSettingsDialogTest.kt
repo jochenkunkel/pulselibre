@@ -62,4 +62,22 @@ class PersonalSettingsDialogTest {
         }
         prefs.edit().remove("spo2_display_green_from").remove("spo2_display_red_below").commit()
     }
+
+    @Test fun autoStartSwitchDefaultsToOffAndIsPersistedOnSave() {
+        val store = instrumentation.targetContext.getSharedPreferences("recording_settings", 0)
+        store.edit().clear().commit()
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            scenario.onActivity { PersonalSettings.show(it) }
+            val settings = DialogTestSupport.awaitDialog("Speichern")
+            assertTrue(DialogTestSupport.containsText(settings, "Beim App-Start automatisch aufzeichnen"))
+            var sw: androidx.appcompat.widget.SwitchCompat? = null
+            instrumentation.runOnMainSync { sw = settings.window!!.decorView.findViewWithTag("settings_auto_start") }
+            assertFalse("Standard muss aus sein", sw!!.isChecked)
+            instrumentation.runOnMainSync { sw!!.isChecked = true }
+            DialogTestSupport.clickText(settings, "Speichern")
+            Thread.sleep(500)
+            assertTrue(store.getBoolean("auto_start_on_app_launch", false))
+        }
+        store.edit().clear().commit()
+    }
 }
