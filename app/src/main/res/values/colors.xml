@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Mirrors AppPalette (light); dialogs follow the PulsLibre palette instead of the grey AppCompat default. -->
+<resources>
+    <color name="pl_card">#FFFFFF</color>
+    <color name="pl_ink">#231D3B</color>
+    <color name="pl_muted">#6D687F</color>
+    <color name="pl_accent">#5127C9</color>
+</resources>

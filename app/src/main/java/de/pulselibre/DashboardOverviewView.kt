@@ -208,8 +208,8 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
             contentDescription = "$title: $value"
             importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_YES
             addView(label(icon, 18f, color, true), LayoutParams(-2, -2))
-            addView(label(title, 9f, muted, true), LayoutParams(-2, -2))
-            addView(label(value, 9f, color), LayoutParams(-1, -2))
+            addView(label(title, 11f, muted, true).apply { gravity = Gravity.CENTER }, LayoutParams(-1, -2))
+            addView(label(value, 12f, ink).apply { gravity = Gravity.CENTER }, LayoutParams(-1, -2).apply { topMargin = dp(2) })
         }
         parent.addView(cell, LayoutParams(0, -2, 1f))
     }
@@ -243,7 +243,8 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
             row.addView(view,
                 if (stacked || metrics.size == 1) LayoutParams(-1, -2).apply {
                     if (index != metrics.lastIndex) bottomMargin = dp(8)
-                } else LayoutParams(0, -2, 1f).apply {
+                } else LayoutParams(0, LayoutParams.MATCH_PARENT, 1f).apply {
+                    // Tiles of one row share the row height (tallest wins) instead of ragged heights.
                     if (index != metrics.lastIndex) marginEnd = dp(8)
                 })
         }
@@ -318,7 +319,7 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
     private fun header(metric: DashboardMetric) = LinearLayout(context).apply {
         orientation = HORIZONTAL
         gravity = Gravity.CENTER_VERTICAL
-        setPaddingRelative(0, 0, dp(28), 0)
+        setPaddingRelative(0, 0, dp(18), 0)
         addView(DashboardMetricIconView(context, metric.title, iconColor(metric.title)).apply {
             tag = "dashboard_metric_icon_${metric.title}"
         }, LayoutParams(dp(20), dp(20)).apply { marginEnd = dp(6) })
@@ -335,8 +336,8 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
     /** Short visible names; long words broke mid-word in half-width cards. The full title stays the accessibility name. */
     private fun displayTitle(title: String) = when (title) {
         "Sauerstoffsättigung · SpO₂" -> "SpO₂"
-        "Moderate Intensitätsminuten" -> "Intensität · moderat"
-        "Intensive Intensitätsminuten" -> "Intensität · hoch"
+        "Moderate Intensitätsminuten" -> "Intensität moderat"
+        "Intensive Intensitätsminuten" -> "Intensität hoch"
         "Kalorien gesamt (Gerätewert)" -> "Kalorien gesamt"
         "Kalorien aktiv (Gerätewert)" -> "Kalorien aktiv"
         else -> title

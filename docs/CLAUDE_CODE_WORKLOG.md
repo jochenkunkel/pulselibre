@@ -90,3 +90,14 @@ Fortlaufend, neueste Einträge unten. Jeder Eintrag: Datum, Änderung, Nachweis 
 - `docs/TEST_INVENTORY_2026-11-18.md`: statischer Abgleich Produktionsdateien ↔ Tests (13 von 169 ohne Testbezug) mit Zuordnung und Folgen. Keine Zeilenabdeckung.
 - Neue Tests: `MainNavigationViewTest` (5 Tabs, Auswahl, Wechsel), `PersonalSettingsDialogTest` (Versionszeile, zweistufige Löschbestätigung, Abbruch behält Profil; per UiAutomation, nur Emulator), `NightOxygenWindowTest` (Nachtfenster inkl. Sommerzeit).
 - Geräte-Hinweis: Auf dem S25 liefen währenddessen Testlabor-Sitzungen anderer Agenten (Build 1034, Testlabor im Vordergrund); ich habe **nicht** installiert oder getippt, um diese nicht zu stören.
+
+## 2026-11-18 – GUI-Korrekturen aus dem Qualitätstest (Branch `claude/gui-fixes`; Issues #99–#106)
+Ohne Gerätezugriff umgesetzt (Handy gesperrt); Wirkung **nicht** auf dem S25 gesehen, nur CI/Emulator.
+- #99: Verlauf-Y-Achse passt sich den Daten an (`AxisScale`, 6 Unit-Tests), Caption in zwei Zeilen („Skala a–b Einheit“ in eigener Zeile → keine Waise).
+- #100: Profilkarte kompakt bei < 340 dp Breite oder Schrift ≥ 1,5 (Label über Wert, kleinere Figur); Navigationslabels einzeilig mit Auto-Verkleinerung 8–11 sp; Speichern-Button nur Text.
+- #101: Kacheln einer Zeile gleich hoch (MATCH_PARENT), Titel „Intensität moderat/hoch“, reservierter Titelrand 28 → 18 dp.
+- #102 (teilweise): Dialoge im App-Design (Theme `Theme.PulsLibre`, abgerundeter Kartenhintergrund, Akzentfarbe, Buttons ohne Versalien). Offen: Diagramm im Tagesdialog nach oben, Y-Achsenwerte, abgeschnittener Button.
+- #103 (teilweise): Nacht-Insights Titel 11 sp / Wert 12 sp zentriert. Offen: ODI als eigene Kennzahl, Leerraum.
+- #104 (teilweise): Info-Symbol Profilkarte 48 dp, Legendenchips 11 sp, Navigation 11 sp. Offen: Eingabefelder 45 → 48 dp.
+- #105 (teilweise): Caption. Offen: gleichmäßige X-Ticks, Datumsnavigation.
+- #106 offen.

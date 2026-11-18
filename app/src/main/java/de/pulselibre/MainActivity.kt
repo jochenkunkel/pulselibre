@@ -301,15 +301,17 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
-        bodyHeader.addView(healthInfo, LinearLayout.LayoutParams(dp(32), dp(32)))
+        bodyHeader.addView(healthInfo, LinearLayout.LayoutParams(dp(48), dp(48)))
         bodyCard.addView(bodyHeader)
 
         val bodyRow = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = android.view.Gravity.CENTER_VERTICAL
         }
+        // Narrow screens or very large system fonts: smaller figure and label above value, so values never wrap per character.
+        val compactProfile = resources.configuration.screenWidthDp < 340 || resources.configuration.fontScale >= 1.5f
         val bodyFigure = BodyProfileAvatarView(this)
-        bodyRow.addView(bodyFigure, LinearLayout.LayoutParams(dp(112), dp(120)).apply {
+        bodyRow.addView(bodyFigure, LinearLayout.LayoutParams(dp(if (compactProfile) 80 else 112), dp(if (compactProfile) 88 else 120)).apply {
             marginEnd = dp(12)
         })
         val bodyValues = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
@@ -329,14 +331,25 @@ class MainActivity : AppCompatActivity() {
                     gravity = android.view.Gravity.CENTER_VERTICAL
                 }
                 row.addView(text(icon + "  ", 17f, violet, true))
-                row.addView(text(title + "  ", 12f, muted))
-                row.addView(text(value, 15f, ink, true))
+                if (compactProfile) {
+                    val stack = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+                    stack.addView(text(title, 12f, muted))
+                    stack.addView(text(value, 15f, ink, true))
+                    row.addView(stack, LinearLayout.LayoutParams(0, -2, 1f))
+                } else {
+                    row.addView(text(title + "  ", 12f, muted))
+                    row.addView(text(value, 15f, ink, true))
+                }
                 bodyValues.addView(row, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(8) })
             }
             bodyCard.contentDescription = "Mein Körperprofil. " +
                 (0 until bodyValues.childCount).joinToString(", ") { i ->
-                    val row = bodyValues.getChildAt(i) as LinearLayout
-                    (0 until row.childCount).joinToString(" ") { j -> (row.getChildAt(j) as TextView).text }
+                    fun collect(v: android.view.View): String = when (v) {
+                        is TextView -> v.text.toString()
+                        is android.view.ViewGroup -> (0 until v.childCount).joinToString(" ") { collect(v.getChildAt(it)) }
+                        else -> ""
+                    }
+                    collect(bodyValues.getChildAt(i))
                 }
         }
         refreshBodyCard()

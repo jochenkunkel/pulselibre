@@ -98,3 +98,39 @@ fun historyTimeFraction(time: Instant, start: Instant, end: Instant): Float? {
     if (span <= 0L) return null
     return (Duration.between(start, time).toMillis().toDouble() / span).toFloat().coerceIn(0f, 1f)
 }
+
+/** Vertical chart range chosen from the observed data; labels land on round numbers, values are never altered. */
+data class AxisScale(val minimum: Int, val maximum: Int) {
+    val span: Int get() = maximum - minimum
+
+    companion object {
+        private val STEPS = intArrayOf(1, 2, 5, 10, 20, 25, 50, 100, 200)
+
+        /**
+         * Smallest range containing [dataMin]..[dataMax] with a little margin, at least [minSpan] wide,
+         * clamped to [hardMin]..[hardMax], divisible into 4 equal intervals of a round step.
+         */
+        fun forData(dataMin: Int, dataMax: Int, hardMin: Int, hardMax: Int, minSpan: Int): AxisScale {
+            require(hardMax > hardMin && minSpan in 4..(hardMax - hardMin))
+            val lo = dataMin.coerceIn(hardMin, hardMax)
+            val hi = dataMax.coerceIn(hardMin, hardMax)
+            val margin = maxOf(1, (hi - lo) / 10)
+            var wantedMin = (lo - margin).coerceAtLeast(hardMin)
+            var wantedMax = (hi + margin).coerceAtMost(hardMax)
+            if (wantedMax - wantedMin < minSpan) {
+                val extra = minSpan - (wantedMax - wantedMin)
+                wantedMin = (wantedMin - extra / 2).coerceAtLeast(hardMin)
+                wantedMax = (wantedMin + minSpan).coerceAtMost(hardMax)
+                wantedMin = (wantedMax - minSpan).coerceAtLeast(hardMin)
+            }
+            val needed = wantedMax - wantedMin
+            val step = STEPS.firstOrNull { it * 4 >= needed } ?: STEPS.last()
+            var min = Math.floorDiv(wantedMin, step) * step
+            var max = min + step * 4
+            while (max < wantedMax) { min += step; max += step }   // shift up until the data fits
+            if (max > hardMax) { max = hardMax; min = (max - step * 4).coerceAtLeast(hardMin) }
+            if (min < hardMin) { min = hardMin; max = (min + step * 4).coerceAtMost(hardMax) }
+            return AxisScale(min, max)
+        }
+    }
+}
