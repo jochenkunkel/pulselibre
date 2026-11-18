@@ -817,15 +817,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                                 CirqaHistoricalSyncV1MultiPhaseSession.Phase.WAITING_5007_WRITE,
                                 CirqaHistoricalSyncV1MultiPhaseSession.Phase.WAITING_5031_WRITE,
                                 CirqaHistoricalSyncV1MultiPhaseSession.Phase.WAITING_DIR_WRITE)) {
-                            val now = android.os.SystemClock.elapsedRealtime()
-                            val claimed = when (nextPhase) {
-                                CirqaHistoricalSyncV1MultiPhaseSession.Phase.WAITING_5007_WRITE ->
-                                    hsv1.claim5007(hsv1.token, now)
-                                CirqaHistoricalSyncV1MultiPhaseSession.Phase.WAITING_5031_WRITE ->
-                                    hsv1.claim5031(hsv1.token, now)
-                                else -> hsv1.claimDirectory(hsv1.token, now)
-                            }
-                            if (claimed) sendHsv1Frame(g, nextPhase)
+                            claimAndSendHsv1(g, hsv1, nextPhase)
                         }
                         finishHsv1IfTerminal(g)
                         return
@@ -1216,6 +1208,21 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         }
     }
 
+    private fun claimAndSendHsv1(
+        g: BluetoothGatt,
+        s: CirqaHistoricalSyncV1MultiPhaseSession,
+        writePhase: CirqaHistoricalSyncV1MultiPhaseSession.Phase
+    ) {
+        val now = android.os.SystemClock.elapsedRealtime()
+        val claimed = when (writePhase) {
+            CirqaHistoricalSyncV1MultiPhaseSession.Phase.WAITING_5007_WRITE -> s.claim5007(s.token, now)
+            CirqaHistoricalSyncV1MultiPhaseSession.Phase.WAITING_5031_WRITE -> s.claim5031(s.token, now)
+            CirqaHistoricalSyncV1MultiPhaseSession.Phase.WAITING_DIR_WRITE -> s.claimDirectory(s.token, now)
+            else -> false
+        }
+        if (claimed) sendHsv1Frame(g, writePhase)
+    }
+
     private fun finishHsv1IfTerminal(g: BluetoothGatt) {
         val s = historicalSyncV1 ?: return
         if (s.phase == CirqaHistoricalSyncV1MultiPhaseSession.Phase.PHASE_A_COMPLETED) {
@@ -1223,7 +1230,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                 finish("Historical Sync V1 Phase A abgeschlossen; Stopp vor 5031. ${s.summary()}", g); return
             }
             if (s.resumeToPhaseB(s.token, android.os.SystemClock.elapsedRealtime())) {
-                sendHsv1Frame(g, s.phase)
+                claimAndSendHsv1(g, s, CirqaHistoricalSyncV1MultiPhaseSession.Phase.WAITING_5031_WRITE)
             }
             return
         }
@@ -1232,7 +1239,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                 finish("Historical Sync V1 Phase B abgeschlossen; Stopp vor Directory. ${s.summary()}", g); return
             }
             if (s.resumeToPhaseC(s.token, android.os.SystemClock.elapsedRealtime())) {
-                sendHsv1Frame(g, s.phase)
+                claimAndSendHsv1(g, s, CirqaHistoricalSyncV1MultiPhaseSession.Phase.WAITING_DIR_WRITE)
             }
             return
         }
