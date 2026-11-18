@@ -37,8 +37,18 @@ einer Verbindung. CIRQA sendet zusätzlich einen 5043-Protobuf-Frame
 - Fehlende `claim*()` Calls für 5007/5031/Directory (zentralisiert).
 - Doppelter Sendeweg über `finishHsv1IfTerminal` und receive-Block.
 
+### Phase C – ERFOLGREICH (Build 1030+)
+```
+phase=PHASE_C_COMPLETED; reason=phase-c-completed-directory-size-obtained;
+5030(outer=0,res=0); 5007=0; 5031(status=0,types=12); dirSize=8192;
+diag(notifs=6,frames=5,lastType=5000,lastTo=5002,outer=0,payloadLen=5,
+     cobsErr=0,crcErr=0,discarded=0,protobuf=1,writeCb=true,writeOk=true)
+```
+Erstmals volle Sequenz 5024/5050→5030→5007→5031→5002 in EINER Verbindung.
+Directory-Index 0 meldet **8192 Bytes** (statt des früheren leeren 1-Eintrags).
+Die 8192 Bytes wurden in V1 noch nicht gelesen/gespeichert (nur Size ausgelesen).
+
 ## Nächster Schritt
-Phase C: Directory-Index-0 lesen, Einträge analysieren. Offen: früherer
-Directory-Test lieferte nur `idx=0,type=0,read=false,size=0`. Zu klären:
-weitere Indizes, Full-Sync-Voraussetzungen, Protobuf-FileAccess-Kanal.
-Kein FIT-Download ohne identifizierten gültigen FIT-Eintrag.
+Directory-Index 0 (8192 Bytes) per 5004 lesen, FIT-Header/CRC validieren und
+Einträge (Index/Typ/Subtyp/READ/Größe) datensparsam protokollieren. Erst nach
+identifiziertem gültigen FIT-Eintrag-download. Kein Löschen/Archivieren/Flags.
