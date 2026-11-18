@@ -16,6 +16,8 @@ import java.util.UUID
  * The separately gated legacy-5007 mode sends at most one filter request and
  * never performs a file request, sync follow-up, health persistence or retry.
  */
+private const val MLR_SERVICE_ID = 8216 // 0x2018, Connect MLRTransportPipe.ML_SERVICE_IDS
+
 class CirqaMlHandshakeProbe(private val context: Context, private val adapter: BluetoothAdapter) {
     private val main = Handler(Looper.getMainLooper())
     private val cccd = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")
@@ -63,6 +65,11 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private var syncPullSent = false
     private var syncItemSummary = ""
     private var syncPullDiag = ""
+    private var mlrHandle: Int? = null
+    private var mlrRegisterSent = false
+    private var mlrDiag = ""
+    private var mlrChunks = 0
+    private var mlrBytes = 0
     private var syncFinalReport = ""
     private var fileAccessRequestClaimed = false
     private val fileAccessFramer = CirqaRfcommStreamFramer()
@@ -372,6 +379,11 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             syncPullSent = false
             syncItemSummary = ""
             syncPullDiag = ""
+            mlrHandle = null
+            mlrRegisterSent = false
+            mlrDiag = ""
+            mlrChunks = 0
+            mlrBytes = 0
             fileAccessRequestClaimed = false
             bootstrapAckMode = false
             configurationTestMode = false
@@ -412,6 +424,11 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             syncPullSent = false
             syncItemSummary = ""
             syncPullDiag = ""
+            mlrHandle = null
+            mlrRegisterSent = false
+            mlrDiag = ""
+            mlrChunks = 0
+            mlrBytes = 0
             fileAccessRequestClaimed = false
             bootstrapAckMode = false
             configurationTestMode = false
@@ -917,13 +934,23 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         if (historyDiagnosticMode) {
             historyTransport.observe(bytes)
             val registration = GarminMlOffline.inspectRegisterResponse(bytes)
-            if (registration?.serviceId == GarminMlHandshake.GFDI_SERVICE && registration.accepted) {
+            if (registration?.accepted == true && registration.serviceId == MLR_SERVICE_ID) {
+                mlrHandle = registration.handle
+                mlrDiag = "mlrService=$MLR_SERVICE_ID,handle=${registration.handle}"
+                main.post { mark("MLR-Transfer-Service registriert: $mlrDiag") }
+            } else if (registration?.serviceId == GarminMlHandshake.GFDI_SERVICE && registration.accepted) {
                 historyHandle = registration.handle
                 // The dynamic handle only exists after the ML register response;
                 // trigger the one-shot FileAccess request here, not from earlier writes.
                 maybeSendFileAccessList(g)
             } else {
                 val first = bytes.firstOrNull()?.toInt()?.and(255)
+                if (first != null && first == mlrHandle && syncRequestMode) {
+                    // Raw MLR transfer bytes on the dedicated service handle.
+                    mlrChunks++
+                    mlrBytes += maxOf(0, bytes.size - 1)
+                    return
+                }
                 if (first != null && first == historyHandle) {
                     historyRouted++
                     val hsv1 = historicalSyncV1
@@ -1465,7 +1492,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                         .joinToString(",") { "${it.key}x${it.value}" }
                     syncFinalReport = "Sync-Beobachtung: 60-s-Zeitlimit; accepted=$syncAccepted; " +
                         "itemListSent=$syncItemListSent; pullSent=$syncPullSent; " +
-                        "items=[$syncItemSummary]; $syncPullDiag; frames=$counts; " +
+                        "items=[$syncItemSummary]; $syncPullDiag; $mlrDiag; " +
+                        "mlr=[chunks=$mlrChunks,bytes=$mlrBytes]; frames=$counts; " +
                         "proto=[$syncProtoShapes]; other=[$syncOtherLengths]." +
                         fileAccessDiag
                     finish(syncFinalReport, gatt)
@@ -1594,6 +1622,13 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                         syncPullDiag = "pull[result=${pull.resultCode},transport=${pull.transport}," +
                             "handle=${pull.transferHandle},path=${pull.hasFilePath}," +
                             "window=${pull.compressionWindow}]"
+                        if (pull.resultCode == 0L && pull.transport == 0L && !mlrRegisterSent) {
+                            mlrRegisterSent = true
+                            // Connect registers one of its MLR services (0x2018) to
+                            // receive the raw transfer bytes for this handle.
+                            queueAck(g, GarminMlHandshake.registerRequest(MLR_SERVICE_ID))
+                            main.post { mark("MLR-Service 0x2018 angefordert") }
+                        }
                     }
                     val items = CirqaFileAccessItemListParser.parse(msg)
                     if (items.isNotEmpty() && !syncPullSent) {
@@ -2239,6 +2274,11 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             syncPullSent = false
             syncItemSummary = ""
             syncPullDiag = ""
+            mlrHandle = null
+            mlrRegisterSent = false
+            mlrDiag = ""
+            mlrChunks = 0
+            mlrBytes = 0
             fileAccessRequestClaimed = false
             bootstrapAckMode = false
             configurationTestMode = false
