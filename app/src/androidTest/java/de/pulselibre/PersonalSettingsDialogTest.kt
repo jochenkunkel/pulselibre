@@ -37,6 +37,8 @@ class PersonalSettingsDialogTest {
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
             scenario.onActivity { PersonalSettings.show(it) }
             assertNotNull("Versionszeile fehlt", find("Build"))
+            assertNotNull("Entwicklerangabe fehlt", find("Jochen Kunkel"))
+            assertNotNull("Hinweis zum violetten Rand fehlt", find("Violetter Rand"))
             assertNotNull("Speichern fehlt", find("Speichern"))
             assertNotNull("Schließen fehlt", find("Schließen"))
             // Step 1 of 2

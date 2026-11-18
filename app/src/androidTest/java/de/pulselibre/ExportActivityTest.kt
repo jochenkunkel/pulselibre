@@ -18,7 +18,7 @@ class ExportActivityTest {
         ActivityScenario.launch(ExportActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
                 val root = activity.findViewById<ViewGroup>(android.R.id.content)
-                for (label in listOf("Übersicht", "Verlauf", "Geräte", "Testlabor", "Daten")) {
+                for (label in listOf("Übersicht", "Verlauf", "Gerät", "Testlabor", "Daten")) {
                     val item = root.findViewWithTag<View>("navigation_item_$label")
                     assertNotNull(item)
                     assertTrue(item.isShown && item.isClickable)

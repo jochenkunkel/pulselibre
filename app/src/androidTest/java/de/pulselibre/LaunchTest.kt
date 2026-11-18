@@ -25,7 +25,7 @@ class LaunchTest {
         ActivityScenario.launch(MainActivity::class.java).use {
             it.onActivity { activity ->
                 val root = activity.findViewById<android.view.ViewGroup>(android.R.id.content)
-                listOf("Übersicht", "Verlauf", "Geräte", "Testlabor", "Daten").forEach { label ->
+                listOf("Übersicht", "Verlauf", "Gerät", "Testlabor", "Daten").forEach { label ->
                     val item = root.findViewWithTag<View>("navigation_item_$label")
                     assertNotNull(item)
                     assertEquals(label, item.contentDescription)
