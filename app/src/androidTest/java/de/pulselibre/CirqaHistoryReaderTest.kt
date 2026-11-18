@@ -94,6 +94,8 @@ class CirqaHistoryReaderTest {
             val series = reader.read(metric, day, now)
             assertEquals(5, series.count)
             assertEquals(2, series.minutesObserved)
+            assertEquals(17, series.availableMinutes)
+            assertEquals(1, series.duplicate)
             assertEquals(1, series.invalid)
             assertEquals(listOf(65L, 113L, 82L, 72L), series.points.map { it.value })
         } finally {

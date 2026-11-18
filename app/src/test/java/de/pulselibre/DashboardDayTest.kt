@@ -22,6 +22,17 @@ class DashboardDayTest {
         assertEquals(1f / 25, second - first, 0.00001f)
     }
 
+    @Test fun availableMinutesRespectDaylightSavingAndDoNotIncludeFutureBuckets() {
+        val spring = DashboardDay(LocalDate.of(2026, 3, 29), berlin)
+        val autumn = DashboardDay(LocalDate.of(2026, 10, 25), berlin)
+        assertEquals(0, spring.availableMinutes(spring.start.minusNanos(1)))
+        assertEquals(1, spring.availableMinutes(spring.start))
+        assertEquals(1, spring.availableMinutes(spring.start.plusSeconds(59)))
+        assertEquals(2, spring.availableMinutes(spring.start.plusSeconds(60)))
+        assertEquals(1380, spring.availableMinutes(spring.end))
+        assertEquals(1500, autumn.availableMinutes(autumn.end.plusSeconds(60)))
+    }
+
     @Test fun localDayExcludesFutureAndNextMidnightAndDependsOnZone() {
         val date = LocalDate.of(2026, 11, 18)
         val local = DashboardDay(date, berlin)

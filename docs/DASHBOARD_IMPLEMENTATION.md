@@ -248,9 +248,14 @@ zeigt den UTC-Offset, um wiederholte Uhrzeiten zu unterscheiden.
 Die Ansicht zeichnet Originalpunkte bis zum Abfragezeitpunkt. Pro Minute
 bleiben Minimum, Maximum und letzter Punkt mit Zeitstempel erhalten.
 Wiederholungen desselben Werts zum selben Zeitpunkt zählen einmal.
-Minuten mit gültigem Empfang und verworfene Feldwerte werden separat
-angegeben. Die Empfangsminuten belegen weder kontinuierliche Messung noch
-Sensorqualität. Für null oder einen gültigen Wert erscheint ein Leerzustand
+Die Detailansicht nennt eindeutige gültige Werte, Duplikate und verworfene
+Feldwerte getrennt. Für die Empfangsabdeckung zählt jede Minute mit mindestens
+einem gültigen Wert einmal. Der Nenner umfasst alle Minuten des gewählten Tags
+bis zur laufenden Minute oder bis zum Tagesende, je nachdem, was früher liegt.
+Die laufende Minute zählt als angefangen. Die 23- und 25-Stunden-Tage bei
+Zeitumstellung enthalten 1380 bzw. 1500 Minuten. Die Anzeige beschreibt die
+Verteilung empfangener Werte. Kontinuierliche Messung und Sensorqualität
+lassen sich daraus nicht ableiten. Für null oder einen gültigen Wert erscheint ein Leerzustand
 für den Verlauf, bei einem Wert ergänzt um den beobachteten Einzelwert.
 Die Schrittansicht zeigt kumulative Zählerstände mit dem gültigen Tagesziel der letzten Beobachtung als Referenz. Proprietäre Indizes sind als Geräteskalen beschriftet.
 Schlaf benötigt validierte Historie. Nachtgrenzen, Signalqualitätsflags und
