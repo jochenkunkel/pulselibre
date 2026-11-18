@@ -1701,7 +1701,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             }
             gatt = null
             callback?.invoke(
-                if (historicalSyncV1 != null) historicalSyncV1!!.summary()
+                if (historicalSyncV1 != null) historicalSyncV1!!.summary() + " [finish=$message]"
                 else if (legacy5030Only != null) legacy5030Only!!.summary()
                 else if (legacyHistoryDownloadMode) legacyHistoryDownloadReport(message)
                 else if (legacy5007TestMode) legacy5007Report(message)
