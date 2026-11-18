@@ -19,8 +19,8 @@ Diese Datei gilt repositoryweit. **GitHub ist die verbindliche, versionierte Wis
 ## Gemeinsamer Git-Workflow
 
 - **Mehrere Agenten arbeiten niemals ungeprüft am selben Checkout oder denselben Dateien.** Für parallele Arbeit getrennte lokale Worktrees/Branches verwenden; vor Änderungen auf aktuellem `main` aufbauen.
-- **Bei ausdrücklich zur Prüfung bestellten Änderungen**: eigener Branch, kleiner nachvollziehbarer Commit, Pull Request gegen `main`, Review abwarten. **Nicht selbst mergen.**
-- Für spätere Entwicklungsaufträge gilt die dokumentierte Nutzerpräferenz zu kleinen direkten `main`-Commits **nur soweit der konkrete Auftrag keine Prüfung/PR verlangt**. Vor jedem Push prüfen, ob ein anderer Agent dieselbe Datei inzwischen geändert hat; niemals Force-Push.
+- **Nach erfolgreichem CI-Build und positiven Tests**: Änderungen nach erfolgreichem Review/Test selbständig über PR nach `main` mergen, um Branch-Fragmentierung zu vermeiden. `docs/PROJECT_STATUS.md` bei Statusänderungen aktualisieren.
+- Vor jedem Push prüfen, ob ein anderer Agent dieselbe Datei inzwischen geändert hat; niemals Force-Push.
 - Konflikte nicht blind auflösen. Nicht in fremden Worktrees, nicht in fremden uncommitted Änderungen arbeiten.
 - Issue-/PR-Verweise und Evidenz in Commits/PRs dokumentieren. `docs/PROJECT_STATUS.md` bei tatsächlichen Statusänderungen aktualisieren; keine redundanten Statuskopien schaffen.
 - Nur nachgewiesene Erfolge behaupten: `implementiert`, `CI grün`, `Full-CI grün`, `S25 getestet`, `Release freigegeben` sind verschiedene Aussagen.
@@ -37,7 +37,7 @@ Diese Datei gilt repositoryweit. **GitHub ist die verbindliche, versionierte Wis
 
 - Android-App `de.pulselibre`; JDK 21 im CI, Gradle 8.13, Kotlin/JVM-Bytecode-Ziel 17, Android SDK 35. Gradle-Wrapper laut README nicht vorhanden.
 - Schnellprüfung: `gradle :app:testDebugUnitTest :app:assembleDebug`; Python-HCI-Tests: `python3 -m unittest discover -s tools -p 'test_*.py' -v`.
-- Vollprüfung: `gradle :app:lintDebug :app:assembleDebugAndroidTest` plus API-35-Emulator. Die GitHub-CI startet ausschließlich manuell. Für den vollständigen Lauf `gh workflow run android.yml --ref main -f full_tests=true` verwenden.
+- Vollprüfung: `gradle :app:lintDebug :app:assembleDebugAndroidTest` plus API-35-Emulator. Die aktuelle `.github/workflows/android.yml` führt Full-Gates bei `v*`-Tags oder manuell mit `full_tests=true` aus; gewöhnliche Pushes/PRs erhalten nur den schnellen CI-Gate. Ein grüner schneller CI-Lauf ist **keine** vollständige Installationsfreigabe.
 - Signierte Update-APK nur bei korrekt konfigurierten Secrets und nach überprüfter Zertifikat-/Versionskontinuität; keine Secrets anzeigen. Hardwaretests ausschließlich nach expliziter Zustimmung und mit klaren Stop-Kriterien.
 
 ## Wo Entscheidungen stehen
