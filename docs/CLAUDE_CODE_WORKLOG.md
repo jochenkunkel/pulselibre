@@ -161,3 +161,7 @@ Noch sichtbar offen (P3): Nacht-Insights erste Spalte „22–6 Uhr / 22331 / We
 - **Fehler gefunden:** `StepBarsView` zeichnete schwarz auf dunklem Grund (Konstruktorparameter `color` wurde im `Paint.apply` vom Paint-Attribut überdeckt) → Balken waren praktisch unsichtbar. Das erklärt „ich sehe keine vertikalen Balken“. Behoben (`barColor`).
 - Kachel-Kennzahlen: Einheit nur einmal, „Heute 61 bpm (1 Wert)“ statt „61–61“, Zähler ohne doppelte Zeile, Sparkline nur ab 2 Stunden mit Daten, kürzere Wochenschnitt-Zeile, Herzfrequenz-Kachel ebenfalls mit Kennzahlen.
 - #41 Drilldown: Tippen auf die Trendzeilen Ruhepuls/Schritte öffnet `DailyBarsView` (90 Tageswerte, Lücken leer, gestrichelte Mediane 7/28 T).
+
+## 2026-11-18 – #6 Teil 2 (Branch `claude/audit-6b`)
+- `docs/AUDIT_TEIL2_2026-11-18.md`: JaCoCo-Unit-Abdeckung (Zeilen 31,1 %, untere Schranke ohne Emulator-Tests), Manifest/Gradle/Workflow-Prüfung, MASVS-Kurzabgleich. Wichtigster Befund: die verteilte „Update-APK“ ist ein **debuggbarer Debug-Build** (run-as konnte die Datenbank lesen).
+- `enableUnitTestCoverage = true` im Debug-Build (JaCoCo-Bericht lokal mit `:app:createDebugUnitTestCoverageReport`).
