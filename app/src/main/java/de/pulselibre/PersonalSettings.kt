@@ -161,6 +161,18 @@ object PersonalSettings {
         val handedness = choice("Trageseite", "wrist", listOf("Nicht angegeben", "Links", "Rechts"))
         val units = choice("Einheiten", "units", listOf("Metrisch (kg, cm)", "Imperial (Anzeige später)"))
         val notes = field("Notiz (nur lokal)", "profile_note")
+        heading(PlIcon.RECORD_START, "Aufzeichnung",
+            "Wenn aktiv, startet PulsLibre beim Öffnen der App den Aufzeichnungsdienst automatisch und verbindet sich mit dem CIRQA-Armband. Das passiert nur, wenn Bluetooth bereits eingeschaltet ist und die Berechtigungen schon erteilt wurden; PulsLibre schaltet Bluetooth nie selbst ein. Standard: aus. Laufende Aufzeichnungen werden nicht doppelt gestartet. Stoppen geht weiterhin in der App oder über die Benachrichtigung.")
+        val autoStart = androidx.appcompat.widget.SwitchCompat(context).apply {
+            text = "Beim App-Start automatisch aufzeichnen"
+            isChecked = AutoStartRecording.isEnabled(context)
+            tag = "settings_auto_start"
+            setTextColor(palette.ink)
+            minimumHeight = dp(48)
+            contentDescription = "Aufzeichnung beim App-Start automatisch starten, ein oder aus"
+            layout.addView(this, LinearLayout.LayoutParams(-1, -2))
+        }
+
         heading(PlIcon.OVERVIEW, "Darstellung")
         val themeChoice = Spinner(context).apply {
             adapter = ArrayAdapter(context, android.R.layout.simple_spinner_dropdown_item,
@@ -312,6 +324,7 @@ object PersonalSettings {
                     Toast.makeText(context, "Bitte die Zahlen prüfen (Größe, Gewicht, Ziele und SpO₂-Orientierungsbereiche).", Toast.LENGTH_LONG).show()
                     return@setOnClickListener
                 }
+                AutoStartRecording.save(context, autoStart.isChecked)
                 ActivityDetectionPreference.save(context, ActivityDetectionSettings(
                     restBelowStepsPerMinute = restSteps.text.toString().toInt(),
                     sportAboveStepsPerMinute = sportSteps.text.toString().toInt(),
