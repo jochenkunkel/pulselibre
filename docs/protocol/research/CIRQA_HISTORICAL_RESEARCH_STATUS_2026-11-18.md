@@ -14,6 +14,7 @@
 | 5043 | Als `Smart.core_service.connection_ready_notification` interpretiert; Transport-ACK untersucht | Keine Begründung für spekulatives 5044 |
 | Filter 3 versus 0 | V11: gleicher Platzhalter | Filterwechsel allein löst Blocker nicht |
 | Bluetooth Classic / RFCOMM | Zwei gegatterte Läufe: V1 `io-error`, V2 präzise `accept-timeout` mit SDP-UUID-Liste `[00000000-0000-0000-0000-000000000000]` | **Hypothese für dieses Gerät widerlegt:** keine Gegenverbindung, SPP-UUID `DEAB91E4-…` wird nicht angeboten. Kein FIT-Transfer; beide Gates verbraucht, kein Reset |
+| Protobuf FileAccess (5043/5044) | V2: 5043-Item-List gesendet (`requestSent=true`), keine 5044-Antwort in 20 s | **Auch dieser Weg erfolglos**; kein FIT-Transfer. Gates V1/V2 verbraucht |
 
 Primärnachweise: [Historical Sync V1](../experiments/CIRQA_HISTORICAL_SYNC_V1_2026-11-18.md), [bounded Directory/FIT](../experiments/CIRQA_BOUNDED_DIRECTORY_FIT_TRANSFER_2026-11-18.md), [RFCOMM-Vorbereitung](../experiments/CIRQA_RFCOMM_PREPARATION_2026-11-18.md). Frühe Berichte sind historische Snapshots, keine aktuellen Testanweisungen.
 
@@ -35,8 +36,13 @@ plausible, bislang nicht getestete Fehlerquelle.
 `CirqaFileAccessListRequest` baut jetzt denselben `Smart`-Inhalt in einem
 ordnungsgemäßen 5043-Transportframe (requestId, offset=0, total/chunk, CRC).
 Rein lesende Item-List-Anfrage; keine Archiv-/Flag-/Lösch-/Reset-Operation.
-**Offline getestet, nicht an BLE angebunden, nicht gesendet.** Ein Gerätelauf
-braucht eine neue, ausdrückliche Freigabe und ein neues Gate.
+
+**Gerätebefund:** V1 scheiterte an einem zu frühen Trigger (kein GFDI-Handle);
+nach Fix lief V2 mit `requestSent=true`, aber ohne jede 5044-Antwort
+(`Protobuf-Übertragungen vollständig: 0; verworfen: 0`) im 20-s-Fenster.
+Damit ist auch der FileAccess-Protobuf-Weg auf diesem CIRQA erfolglos.
+Beide Gates sind verbraucht; kein Reset. Offen bleibt, ob das Gerät eine
+5000-Ablehnung auf unsere 5043 sandte (bisher nicht protokolliert).
 
 Vorhandener Code: `CirqaRfcommTransport`, `CirqaRfcommRunner`, `CirqaRfcommDirectorySession`, `CirqaRfcommStreamFramer`, `CirqaDirectoryReadV2Session`. Vor Hardwarelauf prüfen: terminaler Abbruch bei ungültiger 5002-Größe, ungültigen Frames/Sessionfehlern, vollständige Timeout-/Cancel-Semantik und Race-Tests; keine automatische Verbindung oder ungefragte Kommandos. Nutzerbestätigung und persistenter Einmal-Gate bleiben erforderlich.
 
