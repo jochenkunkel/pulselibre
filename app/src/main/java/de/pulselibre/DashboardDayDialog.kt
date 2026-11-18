@@ -5,9 +5,9 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.view.MotionEvent
 import android.view.View
+import android.view.ViewConfiguration
 import android.widget.Button
 import android.widget.LinearLayout
-import android.view.Gravity
 import android.widget.ScrollView
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
@@ -16,6 +16,7 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.concurrent.Executor
+import kotlin.math.abs
 
 internal fun showDashboardDay(
     activity: MainActivity,
@@ -97,6 +98,9 @@ internal fun showDashboardDay(
                     append(" · ${series.invalid} ohne gültigen Wert")
                     if (series.duplicate > 0) append(" · ${series.duplicate} Duplikate")
                     append("\nMinuten mit gültigem Empfang: ${series.minutesObserved} von ${series.availableMinutes}")
+                    if (series.count > points.size) {
+                        append("\nDiagramm: Minimum, Maximum und letzter Wert je Empfangsminute.")
+                    }
                     append(context)
                     if (date == today && points.isNotEmpty()) {
                         val age = java.time.Duration.between(points.last().time, now).toMinutes()
@@ -110,17 +114,7 @@ internal fun showDashboardDay(
                 if (points.size == 1) return@runOnUiThread
                 val fixedScale = metric == DashboardMeasurement.STRESS || metric == DashboardMeasurement.BODY_BATTERY
                 val chart = DayChart(activity, day, points, series.goal,
-                    fixedScale, palette.indicator, palette.track)
-                val axis = LinearLayout(activity).apply {
-                    orientation = LinearLayout.HORIZONTAL
-                    listOf("00:00", "24:00").forEachIndexed { i, time ->
-                        addView(TextView(activity).apply {
-                            text = time
-                            setTextColor(palette.ink)
-                            gravity = if (i == 0) Gravity.START else Gravity.END
-                        }, LinearLayout.LayoutParams(0, -2, 1f))
-                    }
-                }
+                    fixedScale, palette.indicator, palette.track, palette.ink)
                 chartHolder.addView(TextView(activity).apply {
                     text = "Skala · ${chart.min}–${chart.max} $suffix"
                     setTextColor(palette.ink)
@@ -135,7 +129,6 @@ internal fun showDashboardDay(
                 chart.onSelect = ::select
                 chartHolder.addView(chart, LinearLayout.LayoutParams(-1,
                     (160 * activity.resources.displayMetrics.density).toInt()))
-                chartHolder.addView(axis)
                 previous.visibility = View.VISIBLE
                 next.visibility = View.VISIBLE
                 previous.setOnClickListener { select(index - 1) }
@@ -161,17 +154,32 @@ private fun labelLatest(label: TextView, point: DayObservation, unit: String, ti
     label.text = "${time.format(point.time)} · ${point.value} $unit"
 }
 
-private class DayChart(
-    activity: MainActivity,
-    private val day: DashboardDay,
+internal class DayChart(
+    activity: android.content.Context,
+    day: DashboardDay,
     private val points: List<DayObservation>,
     private val goal: Long?,
     fixedScale: Boolean,
     private val ink: Int,
-    private val track: Int
+    private val track: Int,
+    private val labelColor: Int
 ) : View(activity) {
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
-    private val margin = 8 * resources.displayMetrics.density
+    private val density = resources.displayMetrics.density
+    private val margin = 8 * density
+    private val labelPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = labelColor
+        textSize = android.util.TypedValue.applyDimension(
+            android.util.TypedValue.COMPLEX_UNIT_SP, 12f, resources.displayMetrics)
+    }
+    private val tickFractions = day.axisFractions()
+    private val tickLabels = listOf("00:00", "06:00", "12:00", "18:00", "24:00")
+    private val pointFractions = points.map { day.fraction(it.time) }
+    private val touchSlop = ViewConfiguration.get(activity).scaledTouchSlop
+    private var downX = 0f
+    private var downY = 0f
+    private var dragging = false
+    private var scrollGesture = false
     val min = if (fixedScale || goal != null) 0L else points.minOf { it.value }
     val max = if (fixedScale) 100L else maxOf(goal ?: min, points.maxOf { it.value }, if (min == Long.MAX_VALUE) min else min + 1)
     var onSelect: (Int) -> Unit = {}
@@ -182,28 +190,73 @@ private class DayChart(
         importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO
     }
 
-    private fun x(point: DayObservation) = margin + (width - 2 * margin) * day.fraction(point.time)
-    private fun y(value: Long) = height - margin - (height - 2 * margin) *
+    private val plotBottom: Float
+        get() = (height - 2 * margin - (labelPaint.descent() - labelPaint.ascent())).coerceAtLeast(margin)
+
+    private fun x(fraction: Float) = margin + (width - 2 * margin) * fraction
+    private fun y(value: Long) = plotBottom - (plotBottom - margin) *
         ((value.toDouble() - min) / (max.toDouble() - min).coerceAtLeast(1.0)).toFloat()
 
     override fun onDraw(canvas: Canvas) {
         paint.color = track
-        for (i in 0..4) {
-            val column = margin + (width - 2 * margin) * i / 4
-            canvas.drawLine(column, margin, column, height - margin, paint)
+        val labelBaseline = height - margin - labelPaint.descent()
+        val showIntermediateLabels = width >= 5 * (labelPaint.measureText("00:00") + margin)
+        tickFractions.forEachIndexed { index, fraction ->
+            val column = x(fraction)
+            canvas.drawLine(column, margin, column, plotBottom, paint)
+            if (showIntermediateLabels || index == 0 || index == tickLabels.lastIndex) {
+                labelPaint.textAlign = when (index) {
+                    0 -> Paint.Align.LEFT
+                    tickLabels.lastIndex -> Paint.Align.RIGHT
+                    else -> Paint.Align.CENTER
+                }
+                canvas.drawText(tickLabels[index], column, labelBaseline, labelPaint)
+            }
         }
         goal?.let { canvas.drawLine(margin, y(it), width - margin, y(it), paint) }
         paint.color = ink
-        points.forEachIndexed { i, point ->
-            canvas.drawCircle(x(point), y(point.value), if (selected == i) margin * 0.75f else margin * 0.25f, paint)
+        points.forEachIndexed { index, point ->
+            canvas.drawCircle(x(pointFractions[index]), y(point.value), margin * 0.25f, paint)
         }
+        canvas.drawCircle(x(pointFractions[selected]), y(points[selected].value), margin * 0.75f, paint)
+    }
+
+    private fun selectNearest(event: MotionEvent) {
+        val index = points.indices.minBy {
+            abs(event.x - x(pointFractions[it])) + abs(event.y - y(points[it].value)) * 0.1f
+        }
+        if (index != selected) onSelect(index)
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
-        if (event.action == MotionEvent.ACTION_UP) {
-            performClick()
-            onSelect(points.indices.minBy { kotlin.math.abs(event.x - x(points[it])) +
-                kotlin.math.abs(event.y - y(points[it].value)) * 0.1f })
+        when (event.actionMasked) {
+            MotionEvent.ACTION_DOWN -> {
+                downX = event.x
+                downY = event.y
+                dragging = false
+                scrollGesture = false
+            }
+            MotionEvent.ACTION_MOVE -> {
+                if (!dragging && !scrollGesture) {
+                    val horizontal = abs(event.x - downX)
+                    val vertical = abs(event.y - downY)
+                    if (horizontal > touchSlop && horizontal > vertical) {
+                        dragging = true
+                        parent.requestDisallowInterceptTouchEvent(true)
+                    } else if (vertical > touchSlop) {
+                        scrollGesture = true
+                    }
+                }
+                if (dragging) selectNearest(event)
+            }
+            MotionEvent.ACTION_UP -> {
+                if (!scrollGesture) {
+                    if (!dragging) performClick()
+                    selectNearest(event)
+                }
+                parent.requestDisallowInterceptTouchEvent(false)
+            }
+            MotionEvent.ACTION_CANCEL -> parent.requestDisallowInterceptTouchEvent(false)
         }
         return true
     }

@@ -14,6 +14,10 @@ internal data class DashboardDay(val date: LocalDate, val zone: ZoneId) {
     fun fraction(time: Instant): Float =
         if (seconds == 0L) 0f else (Duration.between(start, time).toMillis() / (seconds * 1000.0)).toFloat()
 
+    fun axisFractions(): List<Float> = listOf(0f) +
+        listOf(6, 12, 18).map { hour -> fraction(date.atTime(hour, 0).atZone(zone).toInstant()) } +
+        1f
+
     /** Minute buckets that could contain an observation at or before now. */
     fun availableMinutes(now: Instant): Int {
         if (now < start || start >= end) return 0

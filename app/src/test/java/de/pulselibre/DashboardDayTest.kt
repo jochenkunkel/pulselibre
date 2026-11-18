@@ -22,6 +22,15 @@ class DashboardDayTest {
         assertEquals(1f / 25, second - first, 0.00001f)
     }
 
+    @Test fun axisTicksKeepLocalClockLabelsAcrossTimeChanges() {
+        val spring = DashboardDay(LocalDate.of(2026, 3, 29), berlin)
+        val autumn = DashboardDay(LocalDate.of(2026, 10, 25), berlin)
+        val normal = DashboardDay(LocalDate.of(2026, 11, 18), berlin)
+        assertEquals(listOf(0f, 5f / 23, 11f / 23, 17f / 23, 1f), spring.axisFractions())
+        assertEquals(listOf(0f, 7f / 25, 13f / 25, 19f / 25, 1f), autumn.axisFractions())
+        assertEquals(listOf(0f, 0.25f, 0.5f, 0.75f, 1f), normal.axisFractions())
+    }
+
     @Test fun availableMinutesRespectDaylightSavingAndDoNotIncludeFutureBuckets() {
         val spring = DashboardDay(LocalDate.of(2026, 3, 29), berlin)
         val autumn = DashboardDay(LocalDate.of(2026, 10, 25), berlin)

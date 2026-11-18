@@ -271,3 +271,23 @@ gemeldete GATT-Verbindung. Android meldet dabei keine besitzende App. Der Record
 zeigt separat den Dienststatus, der während eines Verbindungsabbruchs aktiv bleiben
 kann. Die lokale Diagnose hält bis zu 32 beobachtete Statuswechsel fest.
 Die Ursache der Verbindungsabbrüche ist am Gerät zu klären.
+
+## Tagesverläufe und Grundlage für Trendanalysen
+
+- Die Zeitachse folgt dem lokalen Kalendertag. Die Zeitmarken 06:00, 12:00
+  und 18:00 entsprechen auch an Tagen mit 23 oder 25 Stunden der lokalen
+  Uhrzeit. In der Punktauswahl kennzeichnet der UTC-Offset die wiederholte
+  Stunde beim Wechsel zur Winterzeit.
+- Tippen und horizontales Ziehen wählen einen gespeicherten Punkt. Die
+  Schaltflächen für den vorherigen und nächsten Punkt bieten denselben
+  Zugriff ohne Berührung der Grafik. Vertikale Bewegungen scrollen den Dialog.
+- Für spätere Analysen nach #40 und #41 dient die lokale SQLite-Zeitreihe
+  als Ausgangspunkt. Die Anzeige reduziert dichte Minuten auf Minimum,
+  Maximum und letzten Empfang. Analysen müssen die geeigneten zeitlich
+  zugeordneten Originalwerte lesen: Die Auswahl im Diagramm übergewichtet
+  Extremwerte und eignet sich deshalb beispielsweise nicht als Stichprobe
+  für einen Mittelwert.
+- Für einen Ruhepulstrend ist das Gerätefeld erforderlich. Vor einem
+  Schritttrend sind Rücksprünge des Tageszählers und die Abdeckung um den
+  Tageswechsel zu prüfen. Empfangsminuten dokumentieren Telefonempfang.
+  Sie liefern keinen Nachweis über die Tragedauer.
