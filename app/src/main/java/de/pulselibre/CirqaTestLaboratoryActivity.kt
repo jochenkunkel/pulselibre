@@ -346,14 +346,18 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
         })
         addCard(boundedDownloadCard)
         val systemEventCard = card()
-        systemEventCard.addView(label("5030-only · Freigabe ausstehend", 18f))
+        systemEventCard.addView(label(
+            if (CirqaLegacy5030AttemptGate.RELEASED_FOR_DEVICE_TEST)
+                "5030-only · einmalig freigegeben" else "5030-only · Freigabe ausstehend", 18f
+        ))
         systemEventCard.addView(label(
             "Vorbereitet: frischer Bootstrap und genau ein HANDSHAKE_COMPLETE-Event. " +
                 "Nur äußerer Status, Ergebnislänge und erstes Ergebnisbyte werden festgehalten. " +
-                "Keine Erfolgswert-Annahme, kein 5007/5031/5002. Bis zur gesonderten Freigabe gesperrt.",
+                "Keine Erfolgswert-Annahme, kein 5007/5031/5002. " +
+                "Separates Einmal-Gate und ausdrückliche Bestätigung vor Verbindung.",
             13f
         ))
-        systemEventCard.addView(button("5030-only-Test (noch gesperrt)") {
+        systemEventCard.addView(button("Einmaligen 5030-only-Test bestätigen") {
             confirmLegacy5030OnlyTest()
         }.apply { isEnabled = CirqaLegacy5030AttemptGate.RELEASED_FOR_DEVICE_TEST })
         addCard(systemEventCard)
