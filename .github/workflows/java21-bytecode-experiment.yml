@@ -1,9 +1,5 @@
 name: Java 21 bytecode compatibility experiment
 on:
-  push:
-    branches: [main]
-    paths:
-      - '.github/workflows/java21-bytecode-experiment.yml'
   workflow_dispatch:
 permissions:
   contents: read
