@@ -98,7 +98,9 @@ internal fun showDashboardDay(
                     append(" · ${series.invalid} ohne gültigen Wert")
                     if (series.duplicate > 0) append(" · ${series.duplicate} Duplikate")
                     append("\nMinuten mit gültigem Empfang: ${series.minutesObserved} von ${series.availableMinutes}")
-                    if (points.isNotEmpty()) append("\n" + DayDataQuality.assess(points.map { it.time }, day, now).summary())
+                    val quality = DayDataQuality.assess(points.map { it.time }, day, now)
+                    if (points.isNotEmpty()) append("\n" + quality.summary())
+                    append("\nDatenstatus: " + MetricAvailability.of(metric, quality, series.count).label)
                     if (series.count > points.size) {
                         append("\nDiagramm: Minimum, Maximum und letzter Wert je Empfangsminute.")
                     }
