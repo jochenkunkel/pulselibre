@@ -75,3 +75,19 @@ class BucketStatsTest {
         assertEquals(BucketStats.of(listOf(60, 70, 130))!!.mean, bucket.mean, 1e-9)
     }
 }
+
+class HistoryDatePickTest {
+    private val today = java.time.LocalDate.of(2026, 11, 18)
+    @Test fun dayRangeUsesWholeDaysAndClampsToTheCache() {
+        assertEquals(0, HistoryRange.DAY.offsetForDate(today, today))
+        assertEquals(5, HistoryRange.DAY.offsetForDate(today.minusDays(5), today))
+        assertEquals(29, HistoryRange.DAY.offsetForDate(today.minusDays(200), today))
+        assertEquals(0, HistoryRange.DAY.offsetForDate(today.plusDays(3), today))      // future never moves forward
+    }
+    @Test fun weekRangeUsesWholeWeeksAndMonthNeverMoves() {
+        assertEquals(1, HistoryRange.WEEK.offsetForDate(today.minusDays(8), today))
+        assertEquals(3, HistoryRange.WEEK.offsetForDate(today.minusDays(28), today))
+        assertEquals(3, HistoryRange.WEEK.offsetForDate(today.minusDays(100), today))
+        assertEquals(0, HistoryRange.MONTH.offsetForDate(today.minusDays(10), today))
+    }
+}

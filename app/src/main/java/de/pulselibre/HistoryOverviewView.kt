@@ -95,6 +95,24 @@ class HistoryOverviewView(
         }, LayoutParams(0, -2, 1f))
         row.addView(step("›", "Späteres Zeitfenster", selectedOffset > 0, selectedOffset - 1, "history_window_next"),
             LayoutParams(dp(48), dp(48)))
+        // free date choice inside the cached 30 days
+        row.addView(label("📅", 18f, palette.accent, true).apply {
+            gravity = Gravity.CENTER; tag = "history_window_date"
+            contentDescription = "Datum wählen"
+            isClickable = true; isFocusable = true
+            background = GradientDrawable().apply { setColor(palette.tinted); cornerRadius = dp(12).toFloat() }
+            setOnClickListener {
+                val today = java.time.LocalDate.now(zone)
+                val current = snapshot.end.atZone(zone).toLocalDate()
+                android.app.DatePickerDialog(context, { _, y, m, d ->
+                    selectedOffset = selectedRange.offsetForDate(java.time.LocalDate.of(y, m + 1, d), today)
+                    showLoading(); refresh()
+                }, current.year, current.monthValue - 1, current.dayOfMonth).apply {
+                    datePicker.maxDate = System.currentTimeMillis()
+                    datePicker.minDate = System.currentTimeMillis() - java.time.Duration.ofDays(29).toMillis()
+                }.show()
+            }
+        }, LayoutParams(dp(48), dp(48)).apply { marginStart = dp(6) })
         addView(row, LayoutParams(-1, -2).apply { bottomMargin = dp(10) })
     }
 
