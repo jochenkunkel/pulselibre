@@ -309,7 +309,7 @@ class ExportActivity : AppCompatActivity() {
                     databaseFeedback.text = "Datenbank wird wiederhergestellt …"
                     executor.execute {
                         try {
-                            DatabaseBackup.restore(this, plan)
+                            DatabaseBackup.restore(this, plan); HistoryDataCache.invalidate()
                             runOnUiThread { databaseFeedback.text = "Datenbank aus Backup wiederhergestellt." }
                         } catch (_: Exception) {
                             runOnUiThread { databaseFeedback.text = "Wiederherstellung fehlgeschlagen. Bitte Datenbank prüfen." }
@@ -337,7 +337,7 @@ class ExportActivity : AppCompatActivity() {
                     databaseFeedback.text = "Datenbank wird zurückgesetzt …"
                     executor.execute {
                         try {
-                            DatabaseBackup.reset(this)
+                            DatabaseBackup.reset(this); HistoryDataCache.invalidate()
                             runOnUiThread { databaseFeedback.text = "Lokale Datenbank wurde geleert." }
                         } catch (_: Exception) {
                             runOnUiThread { databaseFeedback.text = "Reset fehlgeschlagen. Datenbank bitte prüfen." }

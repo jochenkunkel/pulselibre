@@ -52,7 +52,8 @@ data class HistoryBucket(
     val minimum: Int,
     val median: Double,
     val maximum: Int,
-    val count: Int
+    val count: Int,
+    val mean: Double = 0.0
 )
 
 /**
@@ -86,7 +87,7 @@ fun aggregateHistoryPoints(
             else (sorted[first].toDouble() + sorted[first + 1].toDouble()) / 2.0
         val bucketStart = start.plusMillis(index * bucketMillis)
         val bucketEnd = minOf(end, bucketStart.plusMillis(bucketMillis))
-        HistoryBucket(bucketStart, bucketEnd, sorted.first(), middle, sorted.last(), sorted.size)
+        HistoryBucket(bucketStart, bucketEnd, sorted.first(), middle, sorted.last(), sorted.size, sorted.sumOf { it.toLong() }.toDouble() / sorted.size)
     }
 }
 
