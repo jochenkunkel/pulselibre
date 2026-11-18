@@ -113,4 +113,23 @@ class HistoryOverviewViewTest {
         assertTrue("view must have rendered", view.childCount > 0)
         assertTrue("loading must not run on the main thread", loadThreads.isNotEmpty() && loadThreads.none { it })
     }
+
+    @Test fun windowNavigationStepsBackAndForthAndDisablesTheNewestEnd() {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val now = Instant.parse("2026-11-18T12:00:00Z")
+        val requested = mutableListOf<Int>()
+        InstrumentationRegistry.getInstrumentation().runOnMainSync {
+            val view = HistoryOverviewView(context) { range, offset ->
+                requested += offset
+                val end = range.windowEnd(now, offset)
+                HistorySnapshot(range, range.startAt(end), end, emptyList(), emptyList())
+            }
+            view.refreshSynchronously()
+            val prev = descendants(view).single { it.tag == "history_window_previous" }
+            val next = descendants(view).single { it.tag == "history_window_next" }
+            assertTrue(prev.isEnabled); assertFalse("newest window has no later one", next.isEnabled)
+            assertTrue(descendants(view).single { it.tag == "history_window_title" }.contentDescription.contains("Aktuell"))
+            assertEquals(listOf(0), requested)
+        }
+    }
 }

@@ -17,10 +17,15 @@ import java.time.format.DateTimeFormatter
 /** Local-only summaries of stored observations; no missing windows are filled or connected. */
 class HistoryOverviewView(
     context: Context,
-    private val load: (HistoryRange) -> HistorySnapshot
+    private val load: (HistoryRange, Int) -> HistorySnapshot
 ) : LinearLayout(context) {
+    /** Loader without window navigation (always the newest window). */
+    constructor(context: Context, load: (HistoryRange) -> HistorySnapshot) : this(context, { range, _ -> load(range) })
+
     private val palette = AppPalette.of(context)
     private var selectedRange = HistoryRange.DAY
+    /** 0 = newest window; n = n windows (of the selected range) back (#110). */
+    private var selectedOffset = 0
 
     init { orientation = VERTICAL }
 
@@ -36,8 +41,9 @@ class HistoryOverviewView(
     fun refresh() {
         val token = ++generation
         val range = selectedRange
+        val offset = selectedOffset
         worker.execute {
-            val snapshot = try { load(range) } catch (_: Exception) { null }
+            val snapshot = try { load(range, offset) } catch (_: Exception) { null }
             mainHandler.post {
                 if (token != generation || !attached) return@post
                 if (snapshot == null) showFailure() else render(snapshot)
@@ -48,12 +54,49 @@ class HistoryOverviewView(
     /** Same result as [refresh] but on the caller's thread; for deterministic tests only. */
     internal fun refreshSynchronously() {
         generation++
-        val snapshot = try { load(selectedRange) } catch (_: Exception) { null }
+        val snapshot = try { load(selectedRange, selectedOffset) } catch (_: Exception) { null }
         if (snapshot == null) showFailure() else render(snapshot)
     }
 
     override fun onAttachedToWindow() { super.onAttachedToWindow(); attached = true }
     override fun onDetachedFromWindow() { attached = false; super.onDetachedFromWindow() }
+
+    /** Previous/next window of the selected range; limited to the locally cached 30 days. */
+    private fun addWindowNavigation(snapshot: HistorySnapshot) {
+        val maxOffset = selectedRange.maxOffset()
+        if (maxOffset == 0 && selectedOffset == 0) return // 30 days: nothing to navigate
+        val zone = ZoneId.systemDefault()
+        val fmt = DateTimeFormatter.ofPattern(if (selectedRange == HistoryRange.DAY) "dd.MM. HH:mm" else "dd.MM.")
+        fun step(label: String, description: String, enabled: Boolean, target: Int, tagName: String) =
+            label(label, 20f, if (enabled) palette.accent else palette.muted, true).apply {
+                gravity = Gravity.CENTER
+                tag = tagName
+                contentDescription = description
+                isEnabled = enabled
+                alpha = if (enabled) 1f else 0.4f
+                isClickable = enabled
+                isFocusable = enabled
+                background = GradientDrawable().apply { setColor(palette.tinted); cornerRadius = dp(12).toFloat() }
+                if (enabled) setOnClickListener {
+                    selectedOffset = target
+                    showLoading()
+                    refresh()
+                }
+            }
+        val row = LinearLayout(context).apply { orientation = HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
+        row.addView(step("‹", "Früheres Zeitfenster", selectedOffset < maxOffset, selectedOffset + 1, "history_window_previous"),
+            LayoutParams(dp(48), dp(48)))
+        val title = if (selectedOffset == 0) "Aktuell · bis ${fmt.format(snapshot.end.atZone(zone))}"
+            else "${fmt.format(snapshot.start.atZone(zone))} – ${fmt.format(snapshot.end.atZone(zone))}"
+        row.addView(label(title, 13f, palette.ink, true).apply {
+            gravity = Gravity.CENTER
+            tag = "history_window_title"
+            contentDescription = "Zeitfenster $title"
+        }, LayoutParams(0, -2, 1f))
+        row.addView(step("›", "Späteres Zeitfenster", selectedOffset > 0, selectedOffset - 1, "history_window_next"),
+            LayoutParams(dp(48), dp(48)))
+        addView(row, LayoutParams(-1, -2).apply { bottomMargin = dp(10) })
+    }
 
     private fun showLoading() {
         // Keep the previous charts visible; only mark the selection and the pending state immediately.
@@ -90,6 +133,7 @@ class HistoryOverviewView(
                 setOnClickListener {
                     if (selectedRange != range) {
                         selectedRange = range
+                        selectedOffset = 0 // a new range starts at the newest window
                         showLoading()
                         refresh()
                     }
@@ -98,6 +142,7 @@ class HistoryOverviewView(
             rangeRow.addView(button, LayoutParams(0, -2, 1f).apply { marginEnd = dp(6) })
         }
         addView(rangeRow, LayoutParams(-1, -2).apply { bottomMargin = dp(10) })
+        addWindowNavigation(snapshot)
         val resolution = HistoryResolution.forRange(snapshot.range)
         addLegend()
         metricCard("Herzfrequenz", "bpm", snapshot.heartRate, snapshot, 240, palette.pulse, resolution)

@@ -10,6 +10,16 @@ enum class HistoryRange(val label: String, val duration: Duration) {
     MONTH("30 Tage", Duration.ofDays(30));
 
     fun startAt(end: Instant): Instant = end.minus(duration)
+
+    /**
+     * How many whole windows one can step back and still lie inside the cached horizon (30 days):
+     * 24 h → 29, 7 d → 3, 30 d → 0.
+     */
+    fun maxOffset(horizon: Duration = Duration.ofDays(30)): Int =
+        (horizon.toMillis() / duration.toMillis() - 1).toInt().coerceAtLeast(0)
+
+    /** End of the window shown [offset] windows before [now]. */
+    fun windowEnd(now: Instant, offset: Int): Instant = now.minus(duration.multipliedBy(offset.toLong()))
 }
 
 /** One locally received original observation; timestamp is phone reception time. */

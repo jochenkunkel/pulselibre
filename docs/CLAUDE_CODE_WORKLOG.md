@@ -124,3 +124,10 @@ Noch sichtbar offen (P3): Nacht-Insights erste Spalte „22–6 Uhr / 22331 / We
 - #113: `RecorderStatus` – „läuft“ = Flag **und** frischer Herzschlag (Dienst schreibt alle 20 s `heartbeat_ms`, veraltet nach 65 s); UI (Gerätetab, Kopfstatus) und Export-Recorderstopp nutzen es. Test `RecorderStatusTest`.
 - #114: gemeinsame `CirqaDatabase`-Instanz für den 1-s-Poll der Übersicht, Legacy-Bereinigung in `onOpen` unverändert (ein `stat()`; läuft dank gemeinsamer Instanz nicht mehr jede Sekunde). Weitere Aufrufstellen (einmalige Lesevorgänge) unverändert.
 - #115: material-Abhängigkeit und viewBinding entfernt, ungenutzte Ressource gelöscht, Schreibweise „PulsLibre“ in Label/Benachrichtigung/Dialogen/Diagnose, `dataExtractionRules`/`fullBackupContent` (alles ausgeschlossen), Pfade in `BodyProfileAvatarView` nicht mehr pro Frame allokiert. Offen: `ObsoleteSdkInt` in `CirqaMlHandshakeProbe` (BLE, OpenCode), `!!`/stille catch-Blöcke.
+
+## 2026-11-18 – #110 Datumsnavigation im Verlauf und P3-Restpunkte (Branch `claude/history-nav`)
+- #110: Verlauf hat Fensternavigation ‹ Titel › für 24 h (bis 29 Fenster zurück) und 7 d (bis 3); begrenzt auf den lokal gecachten 30-Tage-Horizont (`HistoryRange.maxOffset`), 30 d ohne Navigation. Das Fenster liegt immer in Vielfachen der Fensterlänge vor „jetzt“ (kein freier Datumswähler). Cache-Synchronisation bleibt an der echten Zeit, nur das Fensterende wandert. Tests: `HistoryRangeWindowTest`, Instrumentation `windowNavigationStepsBack…`.
+- Nacht-Insights: erste Spalte kürzer („22–6 Uhr“ / „22.331“), Beschreibung bleibt vollständig. Tagesdialog: Datum-/Navigationsbuttons im App-Stil.
+
+## 2026-11-18 – #122 Schrittbalken im Hintergrund der Schrittekachel (Branch `claude/history-nav`, mit #110)
+- `StepIntervals` (Differenzen des kumulativen Zählers, 15-Minuten-Intervalle, Lücken statt Nullen, Reset-/Duplikat-/Sommerzeit-Behandlung), `StepBarsView` (dezente Säulen hinter dem Text, geclippt), Kachel lädt im Hintergrund (60 s Cache). Doku `docs/science/STEP_INTERVAL_BARS.md`. Tests `StepIntervalsTest` (8). **Am Gerät nicht betrachtet.**

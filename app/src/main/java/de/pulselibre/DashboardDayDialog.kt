@@ -39,9 +39,15 @@ internal fun showDashboardDay(
         textSize = 15f
         content.addView(this)
     }
-    fun button(title: String) = Button(activity).apply {
-        text = title
+    fun styled(button: Button) = button.apply {
         isAllCaps = false
+        setTextColor(palette.accent)
+        background = android.graphics.drawable.GradientDrawable().apply {
+            setColor(palette.tinted); cornerRadius = 12 * resources.displayMetrics.density
+        }
+    }
+    fun button(title: String) = styled(Button(activity)).apply {
+        text = title
         content.addView(this)
     }
     // Order: date, chart, selected value, point navigation (side by side), then the statistics text.
@@ -51,7 +57,7 @@ internal fun showDashboardDay(
     val selected = label()
     selected.accessibilityLiveRegion = View.ACCESSIBILITY_LIVE_REGION_POLITE
     val navRow = LinearLayout(activity).apply { orientation = LinearLayout.HORIZONTAL }
-    fun navButton(title: String) = Button(activity).apply { text = title; isAllCaps = false }
+    fun navButton(title: String) = styled(Button(activity)).apply { text = title }
     val previous = navButton("‹ Vorheriger")
     val next = navButton("Nächster ›")
     previous.contentDescription = "Vorheriger Datenpunkt"
