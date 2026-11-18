@@ -30,7 +30,23 @@ internal class BodyProfileAvatarView(context: Context) : View(context) {
         importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_YES
     }
 
+    private var cache: android.graphics.Bitmap? = null
+
+    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+        super.onSizeChanged(w, h, oldw, oldh)
+        cache?.recycle(); cache = null
+    }
+
+    /** The illustration is static: render it once per size and just blit it afterwards (no gradient/path work per frame). */
     override fun onDraw(canvas: Canvas) {
+        if (width <= 0 || height <= 0) return
+        val bmp = cache ?: android.graphics.Bitmap.createBitmap(width, height, android.graphics.Bitmap.Config.ARGB_8888).also {
+            drawIllustration(Canvas(it)); cache = it
+        }
+        canvas.drawBitmap(bmp, 0f, 0f, null)
+    }
+
+    private fun drawIllustration(canvas: Canvas) {
         val size = minOf(width, height).toFloat()
         if (size <= 0f) return
         val ringW = size * 0.03f

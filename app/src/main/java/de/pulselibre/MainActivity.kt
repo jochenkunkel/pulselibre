@@ -247,9 +247,10 @@ class MainActivity : AppCompatActivity() {
         }
         taglineRow.addView(text("Deine Daten. Deine Kontrolle.", 13f, Color.parseColor("#E9E1F7")))
         // "Offline" = no cloud, no network permission: true for this app at all times.
-        taglineRow.addView(android.view.View(this).apply {
-            background = GradientDrawable().apply { shape = GradientDrawable.OVAL; setColor(DesignTokens.MINT) }
-        }, LinearLayout.LayoutParams(dp(8), dp(8)).apply { marginStart = dp(12); marginEnd = dp(6) })
+        // The former green dot looked like a connection status; it only meant "no cloud". A lock says that directly.
+        taglineRow.addView(text("🔒", 12f, Color.parseColor("#E9E1F7")).apply {
+            importantForAccessibility = android.view.View.IMPORTANT_FOR_ACCESSIBILITY_NO
+        }, LinearLayout.LayoutParams(-2, -2).apply { marginStart = dp(12); marginEnd = dp(4) })
         taglineRow.addView(text("Offline", 13f, Color.parseColor("#E9E1F7")))
         taglineRow.contentDescription = "Deine Daten. Deine Kontrolle. Offline: keine Cloud, keine Netzwerkverbindung."
         header.addView(taglineRow, LinearLayout.LayoutParams(-2, -2).apply { topMargin = dp(8); marginStart = dp(60) })
@@ -418,6 +419,8 @@ class MainActivity : AppCompatActivity() {
                 dashboardLastRefreshAt = 0L
             }
         }
+        // Privacy line at the very top of the overview (moved from below "Gesundheit · CIRQA").
+        overviewView(text("Deine Messwerte · lokal gespeichert", 12f, muted).apply { tag = "dashboard_local_note" }, 8)
         overviewView(bodyCard, 14)
         // One compact dashboard heading; privacy details remain accessible via the info button.
         overviewView(LinearLayout(this).apply {

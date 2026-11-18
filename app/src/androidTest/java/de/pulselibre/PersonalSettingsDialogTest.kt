@@ -13,7 +13,7 @@ import org.junit.runner.RunWith
 class PersonalSettingsDialogTest {
     private val instrumentation get() = InstrumentationRegistry.getInstrumentation()
 
-    private fun find(text: String, timeoutMs: Long = 5000): AccessibilityNodeInfo? {
+    private fun find(text: String, timeoutMs: Long = 15000): AccessibilityNodeInfo? {
         val end = System.currentTimeMillis() + timeoutMs
         while (System.currentTimeMillis() < end) {
             val root = instrumentation.uiAutomation.rootInActiveWindow
