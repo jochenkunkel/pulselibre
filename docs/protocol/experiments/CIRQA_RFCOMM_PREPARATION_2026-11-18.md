@@ -1,6 +1,6 @@
 # CIRQA: Classic-RFCOMM-Pfad (18.11.2026)
 
-> **Quellen-/Statushinweis (18.11.2026):** Der Bericht dokumentiert die RFCOMM-Vorbereitung, **keinen** erfolgreichen Gerätelauf. Einzelne nachträglich ergänzte Angaben zu Freigabekonstanten/SDP und die ältere Tabelle mit `Gate (false)` sind untereinander nicht vollständig synchron. Vor dem nächsten Gerätetest **tatsächliche Konstanten, Aufrufpfad, Berechtigungen und Build auf `main` prüfen**; die Tabelle ist keine verbindliche Aussage über den Live-Gate. Siehe [kanonischen Forschungsstand](../research/CIRQA_HISTORICAL_RESEARCH_STATUS_2026-11-18.md).
+> **Quellen-/Statushinweis (18.11.2026):** Der Bericht dokumentiert die RFCOMM-Vorbereitung, **keinen** erfolgreichen Gerätelauf. Die Releasekonstante wurde in `CirqaRfcommSpec.kt` auf `true` geprüft und die untenstehende Tabelle entsprechend berichtigt. Die Datei enthält weiterhin einen älteren Kommentar „prepared, NOT active“; die **Laufzeitfreigabe bleibt zusätzlich an den persistenten Einmal-Gate und die ausdrückliche App-Bestätigung gebunden**. Vor dem nächsten Gerätetest Aufrufpfad, Berechtigungen und Build auf `main` erneut prüfen. Siehe [kanonischen Forschungsstand](../research/CIRQA_HISTORICAL_RESEARCH_STATUS_2026-11-18.md).
 
 ## Status: AKTIVIERUNG IMPLEMENTIERT – GERÄTELAUF NOCH NICHT BESTÄTIGT
 
@@ -51,7 +51,7 @@ GFDI/COBS-Protokoll wie über BLE.
 
 | Datei | Zweck |
 | --- | --- |
-| `CirqaRfcommSpec.kt` | UUID/Service-Name, Zeitlimits, Gate (false) |
+| `CirqaRfcommSpec.kt` | UUID/Service-Name, Zeitlimits, Gate (**true auf geprüftem main**) |
 | `CirqaRfcommStreamFramer.kt` | Inkrementeller COBS-Framer für einen kontinuierlichen Socket-Stream |
 | `CirqaRfcommDirectorySession.kt` | Wiederverwendet `CirqaDirectoryReadV2Session`; baut 5004-/5043-ACK-Frames |
 | `CirqaRfcommTransport.kt` | `BluetoothServerSocket`-Wrapper, nur für explizit erwartete, gepaarte Adresse |
