@@ -65,3 +65,7 @@ Fortlaufend, neueste Einträge unten. Jeder Eintrag: Datum, Änderung, Nachweis 
 ## 2026-11-18 – Einstellungen: Schaltflächen und Löschschutz (Branch `claude/settings-buttons`)
 - Eigene feste Schaltflächenleiste unten im Dialog („Schließen“ | „Speichern“, volle Breite, 48 dp) statt der drei AlertDialog-Buttons, die untereinander lagen und abgeschnitten waren.
 - „Profil löschen“ ist von Speichern getrennt (eigener Abschnitt am Ende, dezent umrandet) und verlangt **zwei Bestätigungen** (1. Umfang erklären → „Weiter“, 2. „Wirklich endgültig löschen?“ → „Endgültig löschen“). Gelöscht werden nur die Profil-Einstellungen, keine Messdaten.
+
+## 2026-11-18 – Fehler: Nacht-Insights blieben bei „Nachtserie wird gelesen …“ (Branch `claude/night-fix`)
+- Auf dem S25 entdeckt (Build 1014): Die Übersicht wird bei jedem neuen Messwert neu aufgebaut; die Hintergrundabfrage aktualisierte jeweils die bereits ersetzte Karte und startete pro Neuaufbau einen weiteren Thread. Ergebnis: Anzeige blieb im Ladezustand.
+- Behebung: Ergebnis wird 5 min zwischengespeichert und sofort angezeigt, höchstens ein Ladevorgang gleichzeitig, das Ergebnis aktualisiert die aktuell sichtbare Karte.
