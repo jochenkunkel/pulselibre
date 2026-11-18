@@ -445,6 +445,7 @@ class ExportActivity : AppCompatActivity() {
      */
     private fun readUnifiedExport(window: ExportWindow): List<RawExportRecord> {
         val legacy = CirqaDatabase(this).use { db ->
+            db.ensureHistoricalStoreCopied()
             db.importLegacyReadings()
             db.legacyLines().mapNotNull { line ->
                 try {

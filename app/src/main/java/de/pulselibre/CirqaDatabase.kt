@@ -12,7 +12,7 @@ import java.security.MessageDigest
  * New events are written here directly; obsolete JSONL recordings are no longer imported.
  * UNIQUE SHA-256 of each full line makes repeated imports idempotent.
  */
-class CirqaDatabase(private val contextRef: Context) : SQLiteOpenHelper(contextRef, "cirqa_measurements.db", null, 2) {
+class CirqaDatabase(private val contextRef: Context) : SQLiteOpenHelper(contextRef, "cirqa_measurements.db", null, 3) {
 
     override fun onConfigure(db: SQLiteDatabase) {
         super.onConfigure(db)
@@ -32,25 +32,79 @@ class CirqaDatabase(private val contextRef: Context) : SQLiteOpenHelper(contextR
         db.execSQL("CREATE INDEX events_service_time ON events(service, received_at_utc)")
         createDashboardIndex(db)
         db.execSQL("CREATE INDEX events_kind_time ON events(kind, received_at_utc)")
+        createHistoricalSchema(db)
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-        require(oldVersion == 1 && newVersion == 2)
-        db.execSQL("ALTER TABLE events ADD COLUMN dashboard_time TEXT")
-        var lastId = 0L
-        while (true) {
-            val batch = ArrayList<Pair<Long, String>>()
-            db.rawQuery("SELECT id, received_at_utc FROM events WHERE id > ? AND kind = 'reading' ORDER BY id LIMIT 512",
-                arrayOf(lastId.toString())).use { rows ->
-                while (rows.moveToNext()) batch.add(rows.getLong(0) to rows.getString(1))
+        require(oldVersion in 1..2 && newVersion == 3)
+        if (oldVersion == 1) {
+            db.execSQL("ALTER TABLE events ADD COLUMN dashboard_time TEXT")
+            var lastId = 0L
+            while (true) {
+                val batch = ArrayList<Pair<Long, String>>()
+                db.rawQuery("SELECT id, received_at_utc FROM events WHERE id > ? AND kind = 'reading' ORDER BY id LIMIT 512",
+                    arrayOf(lastId.toString())).use { rows ->
+                    while (rows.moveToNext()) batch.add(rows.getLong(0) to rows.getString(1))
+                }
+                if (batch.isEmpty()) break
+                for ((id, timestamp) in batch) {
+                    db.execSQL("UPDATE events SET dashboard_time = ? WHERE id = ?", arrayOf(timeKey(timestamp), id))
+                }
+                lastId = batch.last().first
             }
-            if (batch.isEmpty()) break
-            for ((id, timestamp) in batch) {
-                db.execSQL("UPDATE events SET dashboard_time = ? WHERE id = ?", arrayOf(timeKey(timestamp), id))
-            }
-            lastId = batch.last().first
+            createDashboardIndex(db)
         }
-        createDashboardIndex(db)
+        createHistoricalSchema(db)
+    }
+
+    private fun createHistoricalSchema(db: SQLiteDatabase) {
+        db.execSQL("""CREATE TABLE storage_migrations (
+            migration_key TEXT PRIMARY KEY NOT NULL,
+            source_readings INTEGER NOT NULL,
+            source_cursors INTEGER NOT NULL,
+            source_fit_sources INTEGER NOT NULL,
+            source_fit_provenance INTEGER NOT NULL,
+            completed_at_ms INTEGER NOT NULL
+        )""")
+        db.execSQL("""CREATE TABLE observations (
+            device_id TEXT NOT NULL,
+            metric TEXT NOT NULL,
+            measured_at_ms INTEGER NOT NULL CHECK(measured_at_ms >= 0),
+            value REAL NOT NULL,
+            unit TEXT NOT NULL,
+            sample_id TEXT NOT NULL DEFAULT '',
+            received_at_ms INTEGER,
+            PRIMARY KEY(device_id, metric, measured_at_ms, sample_id)
+        )""")
+        db.execSQL("CREATE INDEX observations_by_time ON observations(measured_at_ms)")
+        db.execSQL("""CREATE TABLE sync_cursors (
+            device_id TEXT PRIMARY KEY NOT NULL,
+            last_committed_ms INTEGER NOT NULL CHECK(last_committed_ms >= 0)
+        )""")
+        db.execSQL("""CREATE TABLE fit_sources (
+            source_sha256 TEXT PRIMARY KEY NOT NULL CHECK(length(source_sha256) = 64),
+            file_bytes INTEGER NOT NULL CHECK(file_bytes > 0),
+            relative_path TEXT NOT NULL,
+            validated_at_ms INTEGER NOT NULL CHECK(validated_at_ms >= 0),
+            decoder_version TEXT NOT NULL,
+            profile_version TEXT NOT NULL
+        )""")
+        db.execSQL("""CREATE TABLE fit_observation_provenance (
+            sample_id TEXT PRIMARY KEY NOT NULL,
+            device_id TEXT NOT NULL,
+            metric TEXT NOT NULL,
+            measured_at_ms INTEGER NOT NULL CHECK(measured_at_ms >= 0),
+            source_sha256 TEXT NOT NULL REFERENCES fit_sources(source_sha256) ON DELETE RESTRICT,
+            record_ordinal INTEGER NOT NULL CHECK(record_ordinal >= 0),
+            global_message_number INTEGER NOT NULL CHECK(global_message_number >= 0),
+            field_number INTEGER NOT NULL CHECK(field_number >= 0),
+            quality TEXT NOT NULL CHECK(quality = 'PROFILE_VALID'),
+            decoder_version TEXT NOT NULL,
+            FOREIGN KEY(device_id, metric, measured_at_ms, sample_id)
+                REFERENCES observations(device_id, metric, measured_at_ms, sample_id) ON DELETE CASCADE
+        )""")
+        db.execSQL("CREATE INDEX fit_provenance_by_source ON fit_observation_provenance(source_sha256, record_ordinal)")
+        db.execSQL("CREATE INDEX fit_provenance_by_metric_time ON fit_observation_provenance(metric, measured_at_ms)")
     }
 
     private fun createDashboardIndex(db: SQLiteDatabase) {
@@ -69,6 +123,201 @@ class CirqaDatabase(private val contextRef: Context) : SQLiteOpenHelper(contextR
         // One stat() call when nothing is left; with the shared poll helper this runs once per open, not once per second.
         LegacyNightRecording.remove(contextRef.filesDir)
     }
+
+    /**
+     * Idempotently copies legacy historical rows into this canonical store and
+     * verifies exact row equality. The source SQLite file remains untouched.
+     */
+    @Synchronized fun ensureHistoricalStoreCopied() {
+        LocalReadingStore(contextRef).use { sourceStore ->
+            val source = sourceStore.readableDatabase
+            val destination = writableDatabase
+            val sourceCounts = listOf(
+                rowCount(source, "readings"),
+                rowCount(source, "sync_cursors"),
+                rowCount(source, "fit_sources"),
+                rowCount(source, "fit_observation_provenance")
+            )
+            val priorCopy = destination.rawQuery(
+                """SELECT source_readings, source_cursors, source_fit_sources, source_fit_provenance
+                   FROM storage_migrations WHERE migration_key = 'historical-v1-v2-copy'""", null
+            ).use { row ->
+                if (!row.moveToFirst()) null else (0..3).map { row.getLong(it) }
+            }
+            if (priorCopy == sourceCounts) return
+
+            source.beginTransactionNonExclusive()
+            try {
+                destination.beginTransaction()
+                try {
+                val readingInsert = destination.compileStatement(
+                    """INSERT OR IGNORE INTO observations
+                       (device_id, metric, measured_at_ms, value, unit, sample_id, received_at_ms)
+                       VALUES(?, ?, ?, ?, ?, ?, ?)"""
+                )
+                source.rawQuery(
+                    """SELECT device_id, metric, measured_at_ms, value, unit, sample_id, received_at_ms
+                       FROM readings ORDER BY device_id, metric, measured_at_ms, sample_id""", null
+                ).use { rows ->
+                    while (rows.moveToNext()) {
+                        readingInsert.clearBindings()
+                        readingInsert.bindString(1, rows.getString(0))
+                        readingInsert.bindString(2, rows.getString(1))
+                        readingInsert.bindLong(3, rows.getLong(2))
+                        readingInsert.bindDouble(4, rows.getDouble(3))
+                        readingInsert.bindString(5, rows.getString(4))
+                        readingInsert.bindString(6, rows.getString(5))
+                        if (rows.isNull(6)) readingInsert.bindNull(7) else readingInsert.bindLong(7, rows.getLong(6))
+                        readingInsert.executeInsert()
+                        destination.rawQuery(
+                            """SELECT value, unit, received_at_ms FROM observations
+                               WHERE device_id = ? AND metric = ? AND measured_at_ms = ? AND sample_id = ?""",
+                            arrayOf(rows.getString(0), rows.getString(1), rows.getLong(2).toString(), rows.getString(5))
+                        ).use { copied ->
+                            check(copied.moveToFirst() &&
+                                copied.getDouble(0).toBits() == rows.getDouble(3).toBits() &&
+                                copied.getString(1) == rows.getString(4) &&
+                                copied.isNull(2) == rows.isNull(6) &&
+                                (rows.isNull(6) || copied.getLong(2) == rows.getLong(6))) {
+                                "Historical reading key conflicts with a canonical row"
+                            }
+                        }
+                    }
+                }
+
+                val cursorInsert = destination.compileStatement(
+                    """INSERT INTO sync_cursors(device_id, last_committed_ms) VALUES(?, ?)
+                       ON CONFLICT(device_id) DO UPDATE SET
+                       last_committed_ms = MAX(last_committed_ms, excluded.last_committed_ms)"""
+                )
+                source.rawQuery("SELECT device_id, last_committed_ms FROM sync_cursors ORDER BY device_id", null)
+                    .use { rows ->
+                        while (rows.moveToNext()) {
+                            cursorInsert.clearBindings()
+                            cursorInsert.bindString(1, rows.getString(0))
+                            cursorInsert.bindLong(2, rows.getLong(1))
+                            cursorInsert.executeInsert()
+                            destination.rawQuery(
+                                "SELECT last_committed_ms FROM sync_cursors WHERE device_id = ?",
+                                arrayOf(rows.getString(0))
+                            ).use { copied ->
+                                check(copied.moveToFirst() && copied.getLong(0) >= rows.getLong(1)) {
+                                    "Canonical cursor is behind the historical cursor"
+                                }
+                            }
+                        }
+                    }
+
+                val sourceInsert = destination.compileStatement(
+                    """INSERT OR IGNORE INTO fit_sources
+                       (source_sha256, file_bytes, relative_path, validated_at_ms, decoder_version, profile_version)
+                       VALUES(?, ?, ?, ?, ?, ?)"""
+                )
+                source.rawQuery(
+                    """SELECT source_sha256, file_bytes, relative_path, validated_at_ms, decoder_version, profile_version
+                       FROM fit_sources ORDER BY source_sha256""", null
+                ).use { rows ->
+                    while (rows.moveToNext()) {
+                        sourceInsert.clearBindings()
+                        sourceInsert.bindString(1, rows.getString(0))
+                        sourceInsert.bindLong(2, rows.getLong(1))
+                        sourceInsert.bindString(3, rows.getString(2))
+                        sourceInsert.bindLong(4, rows.getLong(3))
+                        sourceInsert.bindString(5, rows.getString(4))
+                        sourceInsert.bindString(6, rows.getString(5))
+                        sourceInsert.executeInsert()
+                        destination.rawQuery(
+                            """SELECT file_bytes, relative_path, validated_at_ms, decoder_version, profile_version
+                               FROM fit_sources WHERE source_sha256 = ?""",
+                            arrayOf(rows.getString(0))
+                        ).use { copied ->
+                            check(copied.moveToFirst() &&
+                                copied.getLong(0) == rows.getLong(1) &&
+                                copied.getString(1) == rows.getString(2) &&
+                                copied.getLong(2) == rows.getLong(3) &&
+                                copied.getString(3) == rows.getString(4) &&
+                                copied.getString(4) == rows.getString(5)) {
+                                "Historical FIT source conflicts with a canonical source"
+                            }
+                        }
+                    }
+                }
+
+                val provenanceInsert = destination.compileStatement(
+                    """INSERT OR IGNORE INTO fit_observation_provenance
+                       (sample_id, device_id, metric, measured_at_ms, source_sha256, record_ordinal,
+                        global_message_number, field_number, quality, decoder_version)
+                       VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"""
+                )
+                source.rawQuery(
+                    """SELECT sample_id, device_id, metric, measured_at_ms, source_sha256, record_ordinal,
+                              global_message_number, field_number, quality, decoder_version
+                       FROM fit_observation_provenance ORDER BY sample_id""", null
+                ).use { rows ->
+                    while (rows.moveToNext()) {
+                        provenanceInsert.clearBindings()
+                        for (index in 0..9) {
+                            when (index) {
+                                3, 5, 6, 7 -> provenanceInsert.bindLong(index + 1, rows.getLong(index))
+                                else -> provenanceInsert.bindString(index + 1, rows.getString(index))
+                            }
+                        }
+                        provenanceInsert.executeInsert()
+                        destination.rawQuery(
+                            """SELECT device_id, metric, measured_at_ms, source_sha256, record_ordinal,
+                                      global_message_number, field_number, quality, decoder_version
+                               FROM fit_observation_provenance WHERE sample_id = ?""",
+                            arrayOf(rows.getString(0))
+                        ).use { copied ->
+                            check(copied.moveToFirst() &&
+                                (0..8).all { column ->
+                                    when (column) {
+                                        2, 4, 5, 6 -> copied.getLong(column) == rows.getLong(column + 1)
+                                        else -> copied.getString(column) == rows.getString(column + 1)
+                                    }
+                                }) { "Historical FIT provenance conflicts with a canonical row" }
+                        }
+                    }
+                }
+
+                checkCountsMatch(source, destination, "readings", "observations")
+                checkCountsMatch(source, destination, "sync_cursors", "sync_cursors")
+                checkCountsMatch(source, destination, "fit_sources", "fit_sources")
+                checkCountsMatch(
+                    source, destination, "fit_observation_provenance", "fit_observation_provenance"
+                )
+                destination.execSQL(
+                    """INSERT OR REPLACE INTO storage_migrations
+                       (migration_key, source_readings, source_cursors, source_fit_sources,
+                        source_fit_provenance, completed_at_ms)
+                       VALUES('historical-v1-v2-copy', ?, ?, ?, ?, ?)""",
+                    arrayOf(
+                        sourceCounts[0], sourceCounts[1], sourceCounts[2], sourceCounts[3],
+                        System.currentTimeMillis()
+                    )
+                )
+                destination.setTransactionSuccessful()
+                } finally {
+                    destination.endTransaction()
+                }
+                source.setTransactionSuccessful()
+            } finally {
+                source.endTransaction()
+            }
+        }
+    }
+
+    private fun checkCountsMatch(source: SQLiteDatabase, destination: SQLiteDatabase, sourceTable: String, targetTable: String) {
+        val sourceCount = rowCount(source, sourceTable)
+        val targetCount = destination.rawQuery("SELECT COUNT(*) FROM $targetTable", null)
+            .use { it.moveToFirst(); it.getLong(0) }
+        check(sourceCount == targetCount) {
+            "Historical migration verification failed for $sourceTable: source=$sourceCount target=$targetCount"
+        }
+    }
+
+    private fun rowCount(db: SQLiteDatabase, table: String): Long =
+        db.rawQuery("SELECT COUNT(*) FROM $table", null).use { it.moveToFirst(); it.getLong(0) }
 
     /** Store a single locally generated JSONL event immediately, without a second BLE path. */
     @Synchronized fun insertLine(line: String): Boolean {
@@ -174,6 +423,11 @@ class CirqaDatabase(private val contextRef: Context) : SQLiteOpenHelper(contextR
         db.beginTransaction()
         try {
             db.execSQL("DELETE FROM main.events")
+            db.execSQL("DELETE FROM main.fit_observation_provenance")
+            db.execSQL("DELETE FROM main.observations")
+            db.execSQL("DELETE FROM main.fit_sources")
+            db.execSQL("DELETE FROM main.sync_cursors")
+            db.execSQL("DELETE FROM main.storage_migrations")
             db.execSQL("DELETE FROM legacy.fit_observation_provenance")
             db.execSQL("DELETE FROM legacy.readings")
             db.execSQL("DELETE FROM legacy.fit_sources")

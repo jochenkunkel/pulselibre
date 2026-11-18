@@ -8,10 +8,12 @@ Stand: 2026-11-18. `CirqaDatabase` uses Android `SQLiteOpenHelper`; no cloud or
 There are currently two physical databases; the target architecture is not yet
 migrated:
 
-- `cirqa_measurements.db`, schema version 2:
+- `cirqa_measurements.db`, schema version 3:
   `events(id, line_sha256 UNIQUE, received_at_utc, dashboard_time, kind,
-  service, payload_json)`. Indexes cover service/time, kind/time, and a partial
-  dashboard-time index. Raw observed event details remain JSON by design.
+  service, payload_json)` plus normalized `observations`, `sync_cursors`,
+  `fit_sources`, and `fit_observation_provenance`. Indexes cover event
+  service/time, kind/time, dashboard-time, observation time and FIT provenance.
+  Raw observed event details remain JSON by design.
 - `pulselibre_readings.db`, schema version 2:
   `readings(device_id, metric, measured_at_ms, value, unit, sample_id,
   received_at_ms)` with composite primary key
@@ -54,14 +56,18 @@ FIT provenance absent from that older archive. It is not encrypted and does not
 include FIT/raw original bytes. Restore validates the archive before changing
 rows. Do not manually copy a live SQLite main file without its journal.
 
-GitHub full CI run 44405895254 passed on commit `a9a979c` (prior to the
-provenance changes). Current provenance changes pass local JVM tests, APK and
-Android-test APK builds, lint, and 52/52 API-35 emulator tests. Targeted
-provenance/backup tests additionally cover v1→v2 preservation, transactional
-FIT replay, backup v2 round-trip, v1 restore compatibility, FK checks and
-rejection of orphaned provenance before restore confirmation.
+GitHub full CI run 44410139935 passed for commit `bd973cd` (prior to schema-v3
+consolidation work). Current local verification after the schema-v3 copy stage:
+JVM tests, debug APK, lint, Android-test APK, 57/57 API-35 emulator tests, and
+19/19 Python tests pass. Instrumentation covers v2→v3 event preservation,
+repeatable/incremental history copying, source preservation, FK integrity, and
+fail-closed rollback on a conflicting destination key. These newer changes have
+not yet been run in GitHub CI.
 
-Open: physical-store consolidation, migration of existing rows into an eventual
-canonical database, provenance recovery for older FIT readings, bounded/
-paginated large-history queries, and source-file backup/retention policy. No
-unknown FIT field or clinical interpretation is inferred.
+The schema-v3 destination and restartable `ensureHistoricalStoreCopied()` copy
+path are implemented, but this is a **copy-only migration stage**: the source
+file remains intact, FIT writes have not moved to the canonical database, and
+dashboard readers do not yet query normalized observations. Full store
+consolidation, write-path cutover, backup/restore coverage of canonical rows,
+provenance recovery for older FIT readings, bounded/paginated large-history
+queries, and source-file backup/retention policy remain open.
