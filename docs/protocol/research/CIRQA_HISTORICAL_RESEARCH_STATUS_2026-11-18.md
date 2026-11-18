@@ -4,6 +4,18 @@
 
 **Visueller Überblick:** [Bestätigte BLE-Sequenz und offene Transportpfade](../../diagrams/README.md).
 
+## Aktueller Referenzstand und Feldinventur (V25)
+
+**Aktueller technischer Befund:** Der historische Mehrdateiabruf ist am echten CIRQA nachgewiesen, nicht mehr nur eine Protokollhypothese. V24/V25 übertrugen 33/33 gelistete Dateien (146.293 B); privat vorhanden: 31 FIT (126.089 B) und 2 Rohdateien (20.204 B). 31/31 FIT-Dateien bestanden unabhängige Längen-, Magic-, Header-/Datei-CRC- und SHA-256-Prüfungen. V25 bestätigte idempotente Speicherung/SQLite-Importe: 294 Zeilen (`heart_rate=129`, `distance=129`, `speed=36`), `integrity_check=ok`, keine doppelten Primärschlüssel.
+
+**Listenabschluss:** V25 beobachtete eine terminale Item-List-Seite mit 33 Einträgen ohne `session_id`. `next_transaction_id` ist hier Transaktionskontext, **kein** Cursor für weitere Seiten. Die Anzahl 33 beweist **keine vollständige historische Abdeckung**.
+
+**Feldkenntnis:** Der Parser `FitHistoricalObservations.kt` unterstützt Record (global 20): `heart_rate` Feld 3, `cadence` 4, `distance` 5, `speed` 6, `power` 7, `enhanced_speed` 73; Monitoring (global 55): `cumulative_steps` 9 und `heart_rate` 27; Timestamp 253. Nur `heart_rate`, `distance` und `speed` sind bislang als SQLite-Metriken nachgewiesen. Eine vollständige Feldinventur der privaten Originaldateien fehlt; die unterstützten Decoderfelder sind **keine** Bestätigung ihrer Präsenz. Die Connect-Dateitypen `MONITORING_B`, `SLEEP_DATA`, `BIOMETRIC` und `TRUE_UP` sind beobachtet, aber noch nicht verlässlich den 33 gespeicherten Dateien zugeordnet. Schlafphasen, Schlaf-Score und HRV sind nicht als importierte Daten nachgewiesen.
+
+**Nächster Auftrag:** [Issue #141 – Offline-Feldinventur aller 31 FIT- und 2 Rohdateien](https://github.com/jochenkunkel/pulselibre/issues/141). Originalbytes bleiben privat; nur anonymisierte Inventur veröffentlichen. Kein neuer Geräteversuch, keine Gate-Resets; V24/V25-Gates verbraucht.
+
+**Leseführung:** Die folgende Tabelle enthält bewusst **historische Zwischenstände**. Aussagen wie „kein FIT-Transfer“ in frühen Zeilen beschreiben ausschließlich den damaligen Versuch und dürfen nicht als heutiger Gesamtstatus interpretiert werden. Aktuelle Primärbelege: [V24](../device-tests/CIRQA_SYNC_V24_DEVICE_RESULT_2026-11-18.md) und [V25](../device-tests/CIRQA_SYNC_V25_DEVICE_RESULT_2026-11-18.md).
+
 ## Nachweisstand am CIRQA
 
 | Schritt | Evidenz | Grenze |
