@@ -17,11 +17,7 @@ internal class MainNavigationView(
 ) : LinearLayout(activity) {
     private val palette = AppPalette.of(activity)
     private val labels = listOf("Übersicht", "Verlauf", "Gerät", "Testlabor", "Daten")
-    private val icons = listOf(
-        DashboardInfoIconView.Kind.HOME, DashboardInfoIconView.Kind.HISTORY,
-        DashboardInfoIconView.Kind.DEVICES, DashboardInfoIconView.Kind.LAB,
-        DashboardInfoIconView.Kind.DATA
-    )
+    private val icons = listOf(PlIcon.OVERVIEW, PlIcon.HISTORY, PlIcon.DEVICE, PlIcon.TESTLAB, PlIcon.DATA)
     private var selectedTab = initialTab
     private fun dp(value: Int) = (value * resources.displayMetrics.density + 0.5f).toInt()
 
@@ -39,10 +35,9 @@ internal class MainNavigationView(
                 contentDescription = label
                 tag = "navigation_item_$label"
                 setOnClickListener { navigate(index) }
-                addView(DashboardInfoIconView(activity, icons[index], palette.accent).apply {
+                addView(PlIcon.view(activity, icons[index], 24, palette.muted).apply {
                     tag = "navigation_icon_$label"
-                    importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
-                }, LayoutParams(dp(18), dp(18)))
+                }, LayoutParams(dp(24), dp(24)))
                 addView(TextView(activity).apply {
                     text = label
                     textSize = 10f
@@ -69,6 +64,7 @@ internal class MainNavigationView(
                 cornerRadius = dp(12).toFloat()
             } else null
             (item.getChildAt(1) as TextView).setTextColor(if (item.isSelected) palette.accent else palette.muted)
+            (item.getChildAt(0) as android.widget.ImageView).setColorFilter(if (item.isSelected) palette.accent else palette.muted)
         }
     }
 

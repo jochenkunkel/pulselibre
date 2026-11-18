@@ -614,21 +614,19 @@ private class ReceptionIndicatorView(
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-        // Quiet info glyph only; reception age is shown by the tile frame colour.
-        val x = if (layoutDirection == View.LAYOUT_DIRECTION_RTL) 14f * density else width - 14f * density
-        val y = 14f * density
-        paint.style = Paint.Style.STROKE
-        paint.strokeWidth = 1f * density
-        paint.color = palette.muted
-        paint.alpha = 160
-        canvas.drawCircle(x, y, 6.5f * density, paint)
-        paint.style = Paint.Style.FILL
-        paint.textAlign = Paint.Align.CENTER
-        paint.textSize = 9f * density
-        paint.typeface = android.graphics.Typeface.DEFAULT_BOLD
-        canvas.drawText("i", x, y + 3.2f * density, paint)
-        paint.alpha = 255
+        // Quiet info icon only (PulsLibre icon system); reception age is shown by the tile frame colour.
+        val d = icon ?: androidx.core.content.ContextCompat.getDrawable(context, PlIcon.INFO.res)!!.mutate().also {
+            androidx.core.graphics.drawable.DrawableCompat.setTint(it, palette.muted); icon = it
+        }
+        val size = (16f * density).toInt()
+        val left = if (layoutDirection == View.LAYOUT_DIRECTION_RTL) (6f * density).toInt() else width - size - (6f * density).toInt()
+        val top = (6f * density).toInt()
+        d.setBounds(left, top, left + size, top + size)
+        d.alpha = 190
+        d.draw(canvas)
     }
+
+    private var icon: android.graphics.drawable.Drawable? = null
 
     private fun showDetails() {
         val now = Instant.now()

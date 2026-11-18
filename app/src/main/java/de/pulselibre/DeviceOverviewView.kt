@@ -6,6 +6,7 @@ import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.view.Gravity
 import android.view.View
+import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
 import java.time.Instant
@@ -56,10 +57,11 @@ internal class DeviceOverviewView(context: Context) : LinearLayout(context) {
             }
         }
         val top = LinearLayout(context).apply { orientation = HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
-        top.addView(label(if (online) "📶" else if (recorderRunning) "🔄" else "⌚", 26f, Color.WHITE).apply {
-            gravity = Gravity.CENTER
+        // CIRQA is a fitness band, not a watch: the band icon sits in a ring whose colour is the link state.
+        top.addView(FrameLayout(context).apply {
             background = GradientDrawable().apply { shape = GradientDrawable.OVAL; setColor(0x33000000); setStroke(dp(3), tone) }
-        }, LayoutParams(dp(58), dp(58)).apply { marginEnd = dp(14) })
+            addView(PlIcon.view(context, PlIcon.CIRQA_BAND, 34), FrameLayout.LayoutParams(dp(34), dp(34), Gravity.CENTER))
+        }, LayoutParams(dp(62), dp(62)).apply { marginEnd = dp(14) })
         val texts = LinearLayout(context).apply { orientation = VERTICAL }
         val heroText = DesignTokens.heroText(palette.dark)
         texts.addView(label("CIRQA", 12f, DesignTokens.heroSecondary(palette.dark), true))
@@ -81,10 +83,10 @@ internal class DeviceOverviewView(context: Context) : LinearLayout(context) {
         val s = stats
         // --- facts as icon chips (2 per row) ---
         val chips = listOf(
-            Triple("📥", "Empfang · 1 Std.", s?.let { DeviceFormat.count(it.readingsLastHour.toLong()) + " Messwerte" } ?: "…"),
-            Triple("🗄", "Speicher", s?.let { DeviceFormat.count(it.totalEvents) + " Einträge · " + DeviceFormat.bytes(it.databaseBytes) } ?: "…"),
-            Triple("🔁", "Sitzungen heute", s?.let { "${it.sessionsToday} Starts · ${it.reconnectsToday} Wiederverbindungen" } ?: "…"),
-            Triple("📅", "Aufzeichnung seit", s?.firstReading?.let { DateTimeFormatter.ofPattern("dd.MM.yyyy").withZone(ZoneId.systemDefault()).format(it) } ?: "–")
+            Triple(PlIcon.SIGNAL, "Empfang · 1 Std.", s?.let { DeviceFormat.count(it.readingsLastHour.toLong()) + " Messwerte" } ?: "…"),
+            Triple(PlIcon.STORAGE, "Speicher", s?.let { DeviceFormat.count(it.totalEvents) + " Einträge · " + DeviceFormat.bytes(it.databaseBytes) } ?: "…"),
+            Triple(PlIcon.SESSIONS, "Sitzungen heute", s?.let { "${it.sessionsToday} Starts · ${it.reconnectsToday} Wiederverbindungen" } ?: "…"),
+            Triple(PlIcon.CALENDAR, "Aufzeichnung seit", s?.firstReading?.let { DateTimeFormatter.ofPattern("dd.MM.yyyy").withZone(ZoneId.systemDefault()).format(it) } ?: "–")
         )
         chips.chunked(2).forEach { pair ->
             val row = LinearLayout(context).apply { orientation = HORIZONTAL }
@@ -106,7 +108,7 @@ internal class DeviceOverviewView(context: Context) : LinearLayout(context) {
                 ReceptionFreshness.DELAYED -> Color.rgb(228, 112, 30); else -> palette.muted
             }
             val row = LinearLayout(context).apply { orientation = HORIZONTAL; gravity = Gravity.CENTER_VERTICAL; minimumHeight = dp(34) }
-            row.addView(label(src.icon, 15f, palette.ink), LayoutParams(dp(28), -2))
+            row.addView(PlIcon.view(context, src.icon, 22), LayoutParams(dp(28), dp(22)))
             row.addView(label(src.title, 13f, palette.ink), LayoutParams(0, -2, 1f))
             row.addView(label(if (s == null) "…" else DeviceFormat.age(last, now), 12f, col, true).apply {
                 setPadding(dp(10), dp(4), dp(10), dp(4))
@@ -122,9 +124,9 @@ internal class DeviceOverviewView(context: Context) : LinearLayout(context) {
         meta.addView(label("Bandinformationen", 14f, palette.ink, true))
         meta.addView(label("Werden angezeigt, sobald das Band sie nachweislich liefert und OpenCode sie decodiert (#126).", 11f, palette.muted),
             LayoutParams(-1, -2).apply { topMargin = dp(2) })
-        listOf("🔋" to "Akku", "⚙" to "Firmware", "⌚" to "Uhrzeit der Uhr", "🏷" to "Modell / Seriennummer").forEach { (icon, name) ->
+        listOf(PlIcon.BATTERY to "Akku", PlIcon.FIRMWARE to "Firmware", PlIcon.BAND_TIME to "Uhrzeit des Bands", PlIcon.IDENTITY to "Modell / Seriennummer").forEach { (icon, name) ->
             val row = LinearLayout(context).apply { orientation = HORIZONTAL; gravity = Gravity.CENTER_VERTICAL; minimumHeight = dp(34) }
-            row.addView(label(icon, 15f, palette.ink).apply { alpha = 0.5f }, LayoutParams(dp(28), -2))
+            row.addView(PlIcon.view(context, icon, 22).apply { alpha = 0.55f }, LayoutParams(dp(28), dp(22)))
             row.addView(label(name, 13f, palette.ink), LayoutParams(0, -2, 1f))
             row.addView(label("noch nicht gelesen", 12f, palette.muted))
             row.contentDescription = "$name: noch nicht gelesen"
@@ -133,12 +135,12 @@ internal class DeviceOverviewView(context: Context) : LinearLayout(context) {
         addView(meta, LayoutParams(-1, -2).apply { bottomMargin = dp(12) })
     }
 
-    private fun chip(icon: String, title: String, value: String): View = LinearLayout(context).apply {
+    private fun chip(icon: PlIcon, title: String, value: String): View = LinearLayout(context).apply {
         orientation = VERTICAL
         setPadding(dp(12), dp(10), dp(12), dp(10))
         background = GradientDrawable().apply { setColor(palette.card); cornerRadius = dp(16).toFloat(); setStroke(dp(1), palette.track) }
         val head = LinearLayout(context).apply { orientation = HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
-        head.addView(label(icon, 15f, palette.ink), LayoutParams(-2, -2).apply { marginEnd = dp(6) })
+        head.addView(PlIcon.view(context, icon, 20), LayoutParams(dp(20), dp(20)).apply { marginEnd = dp(6) })
         head.addView(label(title, 11f, palette.muted, true))
         addView(head)
         addView(label(value, 13f, palette.ink, true), LayoutParams(-1, -2).apply { topMargin = dp(6) })

@@ -323,11 +323,8 @@ class MainActivity : AppCompatActivity() {
         titleColumn.addView(text("Mein Körperprofil", if (largeText) 16f else 18f, heroText, true))
         titleColumn.addView(text("Tippen zum Bearbeiten", 13f, heroSecondary).apply { setPadding(0, dp(2), 0, 0); maxLines = 2 })
         bodyHeader.addView(titleColumn, LinearLayout.LayoutParams(0, -2, 1f))
-        val healthInfo = TextView(this).apply {
-            text = "ⓘ"
-            textSize = 17f
-            gravity = android.view.Gravity.CENTER
-            setTextColor(DesignTokens.MINT)
+        val healthInfo = android.widget.FrameLayout(this).apply {
+            addView(PlIcon.view(this@MainActivity, PlIcon.INFO, 22), android.widget.FrameLayout.LayoutParams(dp(22), dp(22), android.view.Gravity.CENTER))
             contentDescription = "Informationen zu empfangenen Messungen und lokaler Speicherung"
             isClickable = true
             isFocusable = true
@@ -482,9 +479,17 @@ class MainActivity : AppCompatActivity() {
         deviceView(text("Garmin CIRQA · Passive Diagnose ohne Verbindungsaufbau", 13f, muted))
         status = text("Offline · bereit", 14f, muted)
         deviceView(status)
-        fun actionButton(label: String, primary: Boolean = true, action: () -> Unit) =
+        fun actionButton(label: String, primary: Boolean = true, icon: PlIcon? = null, action: () -> Unit) =
             TextView(this).apply {
                 text = label
+                if (icon != null) {
+                    val d = androidx.core.content.ContextCompat.getDrawable(this@MainActivity, icon.res)!!.mutate()
+                    androidx.core.graphics.drawable.DrawableCompat.setTint(d, if (primary) Color.WHITE else violet)
+                    val size = dp(22); d.setBounds(0, 0, size, size)
+                    setCompoundDrawablesRelative(d, null, null, null)
+                    compoundDrawablePadding = dp(8)
+                    contentDescription = icon.label
+                }
                 textSize = 15f
                 setTypeface(null, Typeface.BOLD)
                 gravity = android.view.Gravity.CENTER
@@ -514,8 +519,8 @@ class MainActivity : AppCompatActivity() {
         val recorderState = text("○  Aufzeichnung aus", 15f, muted, true)
         deviceView(recorderState, 8)
         val recorderRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        val playButton = actionButton("▶  Starten") { /* Click handler installed below. */ }
-        val stopButton = actionButton("■  Stoppen", false) {
+        val playButton = actionButton("Starten", true, PlIcon.RECORD_START) { /* Click handler installed below. */ }
+        val stopButton = actionButton("Stoppen", false, PlIcon.RECORD_STOP) {
             try {
                 startService(Intent(this, CirqaContinuousRecordingService::class.java)
                     .setAction(CirqaContinuousRecordingService.ACTION_STOP))

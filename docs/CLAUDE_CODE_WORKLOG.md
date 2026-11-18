@@ -169,3 +169,8 @@ Noch sichtbar offen (P3): Nacht-Insights erste Spalte „22–6 Uhr / 22331 / We
 ## 2026-11-18 – Stabile Dialog-Tests (Branch `claude/test-probe`)
 - Die UiAutomation-basierten Dialogtests (`PersonalSettingsDialogTest`, `BodyProfileCardTest`) fielen auf frisch gebooteten CI-Emulatoren sporadisch aus (aktives Fenster nicht der Dialog), lokal liefen sie. Umstellung auf `DialogProbe` (zuletzt gezeigter Dialog) + `DialogTestSupport`: Dialoginhalt und Buttons werden direkt geprüft, ohne UiAutomation. Zusätzlich prüft der Gewichtstest jetzt, dass „+“ den Editor auf 80,1 setzt, aber nichts speichert.
 - Lokal: 49/49 Instrumentationstests im Emulator grün (5,5 min).
+
+## 2026-11-18 · #157 Designsystem-Icons
+- 32 SVGs → VectorDrawables (`tools/svg_icons_to_vector.py`), `PlIcon`-Helper, Theme-Farben hell/dunkel.
+- Integriert: Navigation, Gerät (CIRQA-Band statt Uhr, Metadaten, Empfang), Trends, Info-Buttons, Starten/Stoppen.
+- Geprüft: Build + Lint lokal grün, Emulator (synthetisch, dunkel) Gerät-Tab. Offen: Hellmodus-/Großschrift-Screenshots, TalkBack, S25.
