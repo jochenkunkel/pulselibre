@@ -144,3 +144,23 @@ data class AxisScale(val minimum: Int, val maximum: Int) {
         }
     }
 }
+
+/**
+ * Composable aggregate of a time bucket (#79): min, max, sum and count combine exactly; the mean is always sum/count,
+ * never an unweighted mean of partial means. The median is *not* composable and is deliberately absent here.
+ */
+data class BucketStats(val minimum: Long, val maximum: Long, val sum: Long, val count: Int) {
+    init { require(count > 0) }
+    val mean: Double get() = sum.toDouble() / count
+
+    operator fun plus(other: BucketStats) = BucketStats(
+        minOf(minimum, other.minimum), maxOf(maximum, other.maximum), sum + other.sum, count + other.count)
+
+    companion object {
+        fun of(values: List<Int>): BucketStats? =
+            if (values.isEmpty()) null else BucketStats(values.min().toLong(), values.max().toLong(), values.sumOf { it.toLong() }, values.size)
+
+        /** Empty input stays empty (no invented bucket). */
+        fun combine(parts: List<BucketStats>): BucketStats? = parts.reduceOrNull { a, b -> a + b }
+    }
+}

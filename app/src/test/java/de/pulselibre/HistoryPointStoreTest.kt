@@ -51,3 +51,27 @@ class HistoryRangeWindowTest {
         assertEquals(Instant.parse("2026-11-04T12:00:00Z"), HistoryRange.WEEK.windowEnd(now, 2))
     }
 }
+
+class BucketStatsTest {
+    @Test fun combiningUnequalBucketsUsesWeightedMeanNotMeanOfMeans() {
+        val a = BucketStats.of(listOf(60, 60, 60, 60, 60, 60, 60, 60, 60))!!   // 9 samples, mean 60
+        val b = BucketStats.of(listOf(100))!!                                  // 1 sample, mean 100
+        val c = BucketStats.combine(listOf(a, b))!!
+        assertEquals(64.0, c.mean, 1e-9)            // not (60+100)/2 = 80
+        assertEquals(60L, c.minimum); assertEquals(100L, c.maximum); assertEquals(10, c.count); assertEquals(640L, c.sum)
+    }
+    @Test fun combiningIsAssociativeAndOrderIndependent() {
+        val parts = listOf(listOf(70, 72), listOf(90), listOf(55, 56, 57)).map { BucketStats.of(it)!! }
+        assertEquals(BucketStats.combine(parts), BucketStats.combine(parts.reversed()))
+        assertEquals(BucketStats.of(listOf(70, 72, 90, 55, 56, 57)), BucketStats.combine(parts))
+    }
+    @Test fun emptyWindowsStayEmpty() {
+        assertNull(BucketStats.of(emptyList())); assertNull(BucketStats.combine(emptyList()))
+    }
+    @Test fun meanOfAggregatedBucketMatchesTheBucketBuilder() {
+        val start = Instant.parse("2026-11-18T00:00:00Z")
+        val pts = listOf(60, 70, 130).mapIndexed { i, v -> HistoryPoint(start.plusSeconds(i * 60L), v) }
+        val bucket = aggregateHistoryPoints(pts, start, start.plusSeconds(3600), HistoryResolution.ONE_HOUR).single()
+        assertEquals(BucketStats.of(listOf(60, 70, 130))!!.mean, bucket.mean, 1e-9)
+    }
+}

@@ -144,3 +144,6 @@ Noch sichtbar offen (P3): Nacht-Insights erste Spalte „22–6 Uhr / 22331 / We
 - `TileInsights` (reine Logik, 8 Tests) + `SparkView`: Kacheln zeigen „Heute Ø · min–max“, 24-h-Sparkline und **Wochenschnitt zur gleichen Uhrzeit** (Ø der letzten 7 Tage ±30 min, Mindestens 3 Tage; bei Zählern wie Kalorien/Intensität der Zählerstand zu dieser Uhrzeit) mit Abweichung ▲▼. SpO₂ zusätzlich Anteilsband (≥95 / 90–94 / <90 %).
 - Schritte: auf dem Handy (Build 1083) liegen nur ~170 Schrittereignisse/Tag in kurzen Sitzungen; die meisten Schritte fallen in Pausen > 10 min → es gab fast keine gemessenen Balken. Jetzt zusätzlich blasse **Umrissbalken** für Pausen bis 12 h („ungefähr, Zeitpunkt unbekannt“), nie als gemessen gezählt; gemessene Balken kräftiger (≈ 33 %).
 - Reiter Gerät: `DeviceOverviewView` – Statuskarte mit Ring, Fakten-Chips (Empfang 1 Std., Speicher, Sitzungen heute, seit wann), letzter Empfang je Messgröße mit Farbpille, Bandinformationen (Akku, Firmware, Uhrzeit, Modell) als „noch nicht gelesen“ (#126). Nur echte lokale Daten.
+
+## 2026-11-18 – #79 Abschluss Phase A (Branch `claude/history-mean`)
+- Mittelwert im Verlauf-Diagramm (Ring neben Median-Punkt), `BucketStats` mit Tests, Messung und Query-Plan in `docs/HISTORY_PERFORMANCE_2026-11-18.md`; Rollup-Tabellen bewusst zurückgestellt (kein nachgewiesener Nutzen, Schemaabstimmung nötig).
