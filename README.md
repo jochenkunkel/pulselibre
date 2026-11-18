@@ -8,9 +8,9 @@
 
 ![PulsLibre – Deine Gesundheitsdaten. Deine Kontrolle. Unsere Philosophie und Vision](design/pulselibre-vision-poster-2026.svg)
 
-*Unsere Vision: Selbstbestimmung, Offline-first, Transparenz, Wissenschaft und Sicherheit. [Poster als SVG ansehen](design/pulselibre-vision-poster-2026.svg). Der historische FIT-Download ist weiterhin nicht nachgewiesen.*
+*Unsere Vision: Selbstbestimmung, Offline-first, Transparenz, Wissenschaft und Sicherheit. [Poster als SVG ansehen](design/pulselibre-vision-poster-2026.svg). Der begrenzte historische Mehrdateiabruf ist durch V24/V25 nachgewiesen; die vollständige historische Abdeckung bleibt offen.*
 
-**Projektstatus (18.11.2026):** Die CIRQA-Bootstrap-/Handshake-Kette bis zur Legacy-Directory-Abfrage wurde am Gerät nachgewiesen. Über BLE erscheint bislang lediglich ein 32-Byte-Platzhalterverzeichnis; ein vollständiger historischer FIT-Download ist **nicht** bestätigt. Ein erster begrenzter RFCOMM-Versuch erhielt keine Gegenverbindung. Die App enthält experimentelle, ausdrücklich gestartete Bluetooth-Testpfade und ist **keine produktionsreife Garmin-Connect-Alternative**. Details und Grenzen: [aktueller Forschungsstand](docs/protocol/research/CIRQA_HISTORICAL_RESEARCH_STATUS_2026-11-18.md).
+**Projektstatus (18.11.2026):** Die CIRQA-Synchronisation und der begrenzte Mehrdateiabruf sind am Gerät nachgewiesen: V24/V25 übertrugen jeweils 33 gelistete Dateien (31 FIT, 2 Nicht-FIT). Die 31 FIT-Dateien wurden auf Länge, Header, CRC und SHA-256 geprüft; der SQLite-Import enthält 294 Metrikzeilen und wurde bei V25 ohne Duplikate wiederholt. **Nicht nachgewiesen** sind die vollständige historische Abdeckung, eine vollständige Feldinventur und die Validierung weiterer Gesundheitsmetriken. Frühere Legacy-Directory- und RFCOMM-Fehlversuche sind historische Zwischenstände. Die App ist **keine produktionsreife Garmin-Connect-Alternative**. Details und Grenzen: [aktueller Forschungsstand](docs/protocol/research/CIRQA_HISTORICAL_RESEARCH_STATUS_2026-11-18.md).
 
 **Für Codex in VSCodium und weitere Coding-Agenten:** [AGENTS.md](AGENTS.md) beschreibt die gemeinsamen Arbeitsregeln, Branch-/Review-Absprachen und Sicherheitsgrenzen. Für die aktuelle CIRQA-Evidenz gilt [PROJECT_STATUS.md](docs/PROJECT_STATUS.md); ältere Protokollnotizen sind historische Beobachtungen.
 
@@ -43,9 +43,9 @@
 - Nur lesende Android-Abfrage zu CIRQA-Kopplung und Android-GATT-Status; die verbundene App ist **unbekannt**.
 - Export einer Diagnose **nur nach ausdrücklicher Teilen-Aktion**. Vorsicht: Der Text kann Gerätebezeichnungen enthalten; rohe BLE-Service-Daten werden im Standardbericht nicht mitgeteilt.
 - Experimentelle, ausdrücklich vom Nutzer gestartete GATT-Dienstsuche und ML-Probe einschließlich Vordergrunddienst für wiederholte Versuche. Die Existenz dieses Codes belegt keine erfolgreich ausgelesenen CIRQA-Gesundheitswerte; mögliche Wechselwirkungen mit Garmin Connect müssen am Gerät geprüft werden.
-- Offline-Datenmodell, lokale SQLite-Ablage mit Transaktionen und CSV-Export für künftig **validierte** Messwerte. Noch keine echte CIRQA-Datenquelle angebunden.
+- Offline-Datenmodell, lokale SQLite-Ablage mit Transaktionen und CSV-Export. V24/V25 haben einen begrenzten CIRQA-Dateiimport mit 294 SQLite-Metrikzeilen nachgewiesen; daraus folgt keine vollständige historische Abdeckung oder medizinische Validierung.
 - Offline-Inspektion von GFDI-Headern und CRC-16-Prüfung sowie ein begrenzter Offline-FIT-Decoder (`FitHistoricalObservations`) für ausgewählte Standardfelder mit zugehörigen Unit-Tests. Dies belegt weder einen CIRQA-Historiendownload noch einen Geräteimport oder einen erfolgreichen CI-Lauf.
-- CIRQA-Testlabor mit passivem Scan, Android-Verbindungsstatus, begrenzter read-only GATT-Dienstsuche, ausdrücklich bestätigter vorhandener Live-Messwertprobe und datensparsamem Testbericht. Ein erfolgreicher historischer CIRQA-Download ist nicht nachgewiesen; aktive Testpfade unterliegen gesonderten Freigaben und Einmal-Gates.
+- CIRQA-Testlabor mit passivem Scan, Android-Verbindungsstatus, begrenzter read-only GATT-Dienstsuche, ausdrücklich bestätigter vorhandener Live-Messwertprobe und datensparsamem Testbericht. V24/V25 belegen einen begrenzten historischen Mehrdateiabruf; aktive Testpfade unterliegen gesonderten Freigaben und Einmal-Gates.
 - Offline FIT-Envelope-/CRC-Prüfung und begrenzte Dekodierung ausgewählter Garmin-Profilfelder. SAF-Dateiauswahl, keine allgemeine Dateiberechtigung, keine Kopie oder Datenbankübernahme. Dies bestätigt weder CIRQA-Herkunft noch einen CIRQA-Dateidownload.
 
 ## Sicherheitsgrenzen
