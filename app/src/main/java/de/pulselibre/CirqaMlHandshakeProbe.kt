@@ -1507,15 +1507,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         } else {
             main.postDelayed({
                 if (active && fileAccessListMode) {
-                    val counts = syncFrameCounts.entries.sortedBy { it.key }
-                        .joinToString(",") { "${it.key}x${it.value}" }
-                    syncFinalReport = "Sync-Beobachtung: 60-s-Zeitlimit; accepted=$syncAccepted; " +
-                        "itemListSent=$syncItemListSent; pullSent=$syncPullSent; " +
-                        "items=[$syncItemSummary]; $syncPullDiag; $mlrDiag; " +
-                        "mlr=[chunks=$mlrChunks,bytes=$mlrBytes]; frames=$counts; " +
-                        "proto=[$syncProtoShapes]; other=[$syncOtherLengths]." +
-                        fileAccessDiag
-                    finish(syncFinalReport, gatt)
+                    // finish() builds the single canonical report (including validation).
+                    finish("60-s-Zeitlimit; $fileAccessDiag", gatt)
                 }
             }, 60_000L)
         }
