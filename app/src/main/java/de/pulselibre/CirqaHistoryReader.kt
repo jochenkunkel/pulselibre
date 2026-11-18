@@ -20,6 +20,8 @@ internal class HistoryPointStore {
     fun slice(startMs: Long, endMs: Long): List<HistoryPoint> {
         val out = ArrayList<HistoryPoint>()
         for (i in 0 until size) if (times[i] in startMs..endMs) out.add(HistoryPoint(Instant.ofEpochMilli(times[i]), values[i]))
+        // Chronological order (stable: equal times keep insertion order); skip sorting when already ordered.
+        for (i in 1 until out.size) if (out[i].receivedAt < out[i - 1].receivedAt) return out.sortedBy { it.receivedAt }
         return out
     }
 
@@ -97,5 +99,5 @@ internal object HistoryDataCache {
 /** Read-only, time-bounded projection of stored CIRQA heart-rate and SpO₂ readings (served from [HistoryDataCache]). */
 class CirqaHistoryReader(private val context: Context) {
     fun read(range: HistoryRange, now: Instant = Instant.now()): HistorySnapshot =
-        HistoryDataCache.snapshot(context.applicationContext, range, now)
+        HistoryDataCache.snapshot(context, range, now)
 }
