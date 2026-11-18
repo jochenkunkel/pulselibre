@@ -298,6 +298,9 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
         syncCard.addView(button("Phase C freigeben und ausführen") {
             confirmHistoricalSyncV1(3)
         })
+        syncCard.addView(button("Verzeichnis lesen (8192 B, read-only)") {
+            confirmDirectoryReadV2()
+        })
         syncCard.addView(button("Status der historischen Synchronisation") {
             statusOutput.text = "Historische Synchronisation:\n" +
                 "Gates: A=${preferences.getBoolean(CirqaHistoricalSyncV1MultiPhaseAttemptGate.keyForPhase(1), false)}" +
@@ -427,6 +430,38 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
             permissionAction = action
             permissionLauncher.launch(missing.toTypedArray())
         }
+    }
+
+    private fun confirmDirectoryReadV2() {
+        if (!CirqaDirectoryReadV2AttemptGate.RELEASED_FOR_DEVICE_TEST) return
+        if (preferences.getBoolean(CirqaDirectoryReadV2AttemptGate.PREFERENCE_KEY, false)) {
+            statusOutput.text = "Verzeichnis-Lesen ist bereits verbraucht."
+            return
+        }
+        AlertDialog.Builder(this)
+            .setTitle("Verzeichnis read-only lesen?")
+            .setMessage(
+                "Frischer Bootstrap, dann Directory-Index 0 per 5002 anfordern und die " +
+                    "Dateidaten per 5004 CRC-/Offset-validiert lesen. Danach sofortiger Stopp " +
+                    "vor jedem FIT-Download. Keine Lösch-, Archiv-, Flag- oder Reset-Befehle. " +
+                    "Nur lesend, Einmal-Gate wird vor dem Verbinden verbraucht."
+            )
+            .setNegativeButton("Abbrechen", null)
+            .setPositiveButton("Lesen und ausführen") { _, _ ->
+                withBluetoothPermissions(needsScan = false) {
+                    val probe = CirqaMlHandshakeProbe(this, adapter)
+                    systemEventProbe = probe
+                    probe.startDirectoryReadV2Test(userConfirmed = true) { message ->
+                        runOnUiThread {
+                            statusOutput.text = message
+                            if (message.startsWith("Directory gelesen")) {
+                                preferences.edit().putString("directoryReadV2Summary", message.take(1200)).apply()
+                            }
+                        }
+                    }
+                }
+            }
+            .show()
     }
 
     private fun confirmHistoricalSyncV1(maxPhase: Int) {

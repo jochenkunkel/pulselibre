@@ -50,6 +50,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private var legacy5031RequestSent = false
     private var legacy5031Response = CirqaLegacy5031ResponseObserver()
     private var legacyHistoryDownloadMode = false
+    private var directoryReadV2Mode = false
     private var legacy5002RequestWriteClaimed = false
     private var legacy5002RequestSent = false
     private var legacy5002Response = CirqaLegacy5002ResponseObserver()
@@ -293,6 +294,61 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         }, CirqaHistoricalSyncV1MultiPhaseSession.SESSION_MILLIS)
     }
 
+    /**
+     * Bounded READ-ONLY directory inspection: bootstrap -> 5002 index 0 ->
+     * CRC/offset-validated 5004 chunks with ACK -> parse and report entries.
+     * Stops before any FIT file request. Separate persistent one-shot gate.
+     */
+    @SuppressLint("MissingPermission")
+    fun startDirectoryReadV2Test(userConfirmed: Boolean, result: (String) -> Unit) {
+        if (!CirqaDirectoryReadV2AttemptGate.RELEASED_FOR_DEVICE_TEST || !userConfirmed) {
+            result("Directory-Lesen gesperrt; keine Verbindung.")
+            return
+        }
+        if (active || sessionStartedNanos != 0L || directoryReadV2Mode ||
+            historicalSyncV1 != null || legacy5030Only != null ||
+            legacy5007TestMode || legacy5031TestMode || legacyHistoryDownloadMode ||
+            realtimeMode || continuousRecordingMode || rawCaptureMode) {
+            result("Directory-Lesen benötigt eine neue Probeinstanz; keine Verbindung.")
+            return
+        }
+        val uniqueTarget = try {
+            adapter.isEnabled && adapter.bondedDevices.orEmpty().count {
+                it.name?.contains("CIRQA", ignoreCase = true) == true
+            } == 1
+        } catch (_: SecurityException) { false }
+        if (!uniqueTarget || CirqaBleSessionGate.isBusy()) {
+            result("Directory-Lesen: Bluetooth aus, Ziel nicht eindeutig oder Sitzung belegt.")
+            return
+        }
+        val prefs = context.getSharedPreferences("cirqa_directory_read_v2", Context.MODE_PRIVATE)
+        if (!CirqaDirectoryReadV2AttemptGate.consume(
+                CirqaDirectoryReadV2AttemptGate.RELEASED_FOR_DEVICE_TEST, userConfirmed,
+                { prefs.getBoolean(CirqaDirectoryReadV2AttemptGate.PREFERENCE_KEY, false) },
+                { prefs.edit().putBoolean(CirqaDirectoryReadV2AttemptGate.PREFERENCE_KEY, true).commit() }
+            )) {
+            result("Directory-Lesen: Gate verbraucht oder Persistierung fehlgeschlagen.")
+            return
+        }
+        directoryReadV2Mode = true
+        legacyHistoryDownloadMode = true
+        legacySupportedTypes = emptySet()
+        bootstrapAckMode = true
+        configurationTestMode = true
+        historyDiagnosticMode = true
+        realtimeMode = false
+        continuousRecordingMode = false
+        start(false, result)
+        if (!active) {
+            directoryReadV2Mode = false
+            legacyHistoryDownloadMode = false
+            directoryReadV2Mode = false
+            bootstrapAckMode = false
+            configurationTestMode = false
+            historyDiagnosticMode = false
+        }
+    }
+
     /** Fresh bootstrap and one directory transfer plus strictly bounded supported FIT files. */
     fun startLegacyDirectoryAndFitsTest(
         supportedTypes: Set<Pair<Int, Int>>,
@@ -313,6 +369,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         start(false, result)
         if (!active) {
             legacyHistoryDownloadMode = false
+            directoryReadV2Mode = false
             bootstrapAckMode = false
             configurationTestMode = false
             historyDiagnosticMode = false
@@ -1502,6 +1559,14 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             legacyHistoryDirectoryEntryDiagnostics =
                 "reasonCounts=$reasonCounts; ${rows.joinToString("; ")}" +
                     if (remainingEntries > 0) "; weitere=$remainingEntries" else ""
+            if (directoryReadV2Mode) {
+                legacyHistoryReportStatus =
+                    "Directory gelesen (${directory.entries.size} Einträge, " +
+                        "${bounded.size} FIT-Kandidaten). Stopp vor FIT-Download. " +
+                        legacyHistoryDirectoryEntryDiagnostics
+                finish(legacyHistoryReportStatus, g)
+                return
+            }
             legacyFileQueue.clear()
             bounded.forEach(legacyFileQueue::addLast)
             if (legacyFileQueue.isEmpty()) {
@@ -1738,6 +1803,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             legacy5007TestMode = false
             legacy5031TestMode = false
             legacyHistoryDownloadMode = false
+            directoryReadV2Mode = false
             bootstrapAckMode = false
             configurationTestMode = false
             rawCaptureMode = false
