@@ -44,14 +44,22 @@ internal fun showDashboardDay(
         isAllCaps = false
         content.addView(this)
     }
+    // Order: date, chart, selected value, point navigation (side by side), then the statistics text.
     val dateButton = button("")
-    val overview = label()
     val chartHolder = LinearLayout(activity).apply { orientation = LinearLayout.VERTICAL }
     content.addView(chartHolder)
     val selected = label()
     selected.accessibilityLiveRegion = View.ACCESSIBILITY_LIVE_REGION_POLITE
-    val previous = button("Vorheriger Datenpunkt")
-    val next = button("Nächster Datenpunkt")
+    val navRow = LinearLayout(activity).apply { orientation = LinearLayout.HORIZONTAL }
+    fun navButton(title: String) = Button(activity).apply { text = title; isAllCaps = false }
+    val previous = navButton("‹ Vorheriger")
+    val next = navButton("Nächster ›")
+    previous.contentDescription = "Vorheriger Datenpunkt"
+    next.contentDescription = "Nächster Datenpunkt"
+    navRow.addView(previous, LinearLayout.LayoutParams(0, -2, 1f))
+    navRow.addView(next, LinearLayout.LayoutParams(0, -2, 1f))
+    content.addView(navRow)
+    val overview = label().apply { textSize = 13f; setTextColor(palette.muted) }
     val dialog = AlertDialog.Builder(activity).setTitle(title)
         .setView(ScrollView(activity).apply { addView(content) })
         .setPositiveButton("Schließen", null).create()
@@ -170,6 +178,7 @@ internal class DayChart(
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val density = resources.displayMetrics.density
     private val margin = 8 * density
+    private val left = 36 * density // room for the value axis labels
     private val labelPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = labelColor
         textSize = android.util.TypedValue.applyDimension(
@@ -196,7 +205,8 @@ internal class DayChart(
     private val plotBottom: Float
         get() = (height - 2 * margin - (labelPaint.descent() - labelPaint.ascent())).coerceAtLeast(margin)
 
-    private fun x(fraction: Float) = margin + (width - 2 * margin) * fraction
+    private fun x(fraction: Float) = left + (width - left - margin) * fraction
+    internal fun xAt(fraction: Float) = x(fraction)
     private fun y(value: Long) = plotBottom - (plotBottom - margin) *
         ((value.toDouble() - min) / (max.toDouble() - min).coerceAtLeast(1.0)).toFloat()
 
@@ -216,7 +226,12 @@ internal class DayChart(
                 canvas.drawText(tickLabels[index], column, labelBaseline, labelPaint)
             }
         }
-        goal?.let { canvas.drawLine(margin, y(it), width - margin, y(it), paint) }
+        goal?.let { canvas.drawLine(left, y(it), width - margin, y(it), paint) }
+        // Value axis: lowest, middle and highest value of the scale, right-aligned left of the plot.
+        labelPaint.textAlign = Paint.Align.RIGHT
+        for (value in longArrayOf(min, (min + max) / 2, max).distinct()) {
+            canvas.drawText(value.toString(), left - 4 * density, y(value) + labelPaint.textSize * 0.35f, labelPaint)
+        }
         paint.color = ink
         points.forEachIndexed { index, point ->
             canvas.drawCircle(x(pointFractions[index]), y(point.value), margin * 0.25f, paint)

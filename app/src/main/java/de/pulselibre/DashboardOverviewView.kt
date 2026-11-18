@@ -131,7 +131,8 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
                 LayoutParams(dp(24), dp(24)).apply { marginEnd = dp(8) })
             addView(label("Nacht-Insights", 15f, ink, true), LayoutParams(0, -2, 1f))
             addView(label("⏳", 17f, palette.muted, true).apply {
-                contentDescription = "Analyse nicht verfügbar"
+                contentDescription = "Nachtserie wird gelesen"
+                tag = "night_status_icon"
             }, LayoutParams(-2, -2))
         }
         card.addView(titleRow)
@@ -149,14 +150,16 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
                 return
             }
             val nf = java.text.NumberFormat.getNumberInstance(java.util.Locale.GERMANY).apply { maximumFractionDigits = 1 }
-            addNightIndicator(insightRow, "◉", "SpO₂ (22–6 Uhr)", "${night.samples} Messwerte", palette.muted)
+            addNightIndicator(insightRow, "◉", "22–6 Uhr", "${night.samples} Werte", palette.muted)
             addNightIndicator(insightRow, "◷", "Abdeckung",
                 night.coveragePercent?.let { "${nf.format(it)} %" } ?: "nicht berechenbar", palette.muted)
-            addNightIndicator(insightRow, "⌁", "T90 · ODI3/ODI4",
+            addNightIndicator(insightRow, "⌁", "T90",
+                if (!night.computable) "nicht berechenbar" else "${nf.format(night.minutesBelow90)} min", palette.muted)
+            addNightIndicator(insightRow, "↧", "ODI3 / ODI4",
                 if (!night.computable) "nicht berechenbar"
-                else "${nf.format(night.minutesBelow90)} min" +
-                    (night.odi3?.let { " · ${nf.format(it)}/${nf.format(night.odi4)} je h" } ?: " · ODI nicht berechenbar"),
-                palette.muted)
+                else night.odi3?.let { "${nf.format(it)} / ${nf.format(night.odi4)} je h" } ?: "nicht berechenbar", palette.muted)
+            // The hourglass only belongs to the loading state.
+            findViewWithTag<TextView>("night_status_icon")?.apply { text = ""; contentDescription = null }
             if (night.reason != "ok") nightReason.text = night.reason
         }
         // The overview re-renders whenever readings arrive; show the cached result at once and let the
@@ -469,7 +472,7 @@ private class ReceptionIndicatorView(
             ReceptionFreshness.FRESH -> Color.rgb(31, 166, 113)
             ReceptionFreshness.RECENT -> Color.rgb(207, 166, 19)
             ReceptionFreshness.DELAYED -> Color.rgb(228, 112, 30)
-            ReceptionFreshness.OLD -> Color.rgb(205, 57, 65)
+            ReceptionFreshness.OLD -> palette.muted // no alarm red: this only says how old the last reception is
             ReceptionFreshness.UNKNOWN -> palette.muted
         }
         paint.style = Paint.Style.STROKE

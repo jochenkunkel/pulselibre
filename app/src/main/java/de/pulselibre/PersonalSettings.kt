@@ -71,6 +71,7 @@ object PersonalSettings {
                     else InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
                 setText(p.getString(key, "").orEmpty())
                 hint = unitHint.orEmpty()
+                minimumHeight = dp(48)
                 contentDescription = label
             }
             box.addView(edit)

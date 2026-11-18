@@ -293,7 +293,7 @@ private class HistoryScatterChartView(
         val h = height.toFloat()
         if (w <= 0f || h <= 0f) return
         val left = 42f * density
-        val right = w - 8f * density
+        val right = w - 18f * density
         val top = 12f * density
         val bottom = h - 31f * density
         if (right <= left || bottom <= top) return
@@ -338,11 +338,7 @@ private class HistoryScatterChartView(
                 paint.style = Paint.Style.FILL
                 paint.textSize = 10f * density
                 paint.color = palette.muted
-                paint.textAlign = when (index) {
-                    0 -> Paint.Align.LEFT
-                    tickCount -> Paint.Align.RIGHT
-                    else -> Paint.Align.CENTER
-                }
+                paint.textAlign = Paint.Align.CENTER // all labels centred on their tick: uniform spacing
                 canvas.drawText(timeFormatter.format(time), x, h - 7f * density, paint)
                 paint.style = Paint.Style.STROKE
             }
