@@ -147,3 +147,6 @@ Noch sichtbar offen (P3): Nacht-Insights erste Spalte „22–6 Uhr / 22331 / We
 
 ## 2026-11-18 – #79 Abschluss Phase A (Branch `claude/history-mean`)
 - Mittelwert im Verlauf-Diagramm (Ring neben Median-Punkt), `BucketStats` mit Tests, Messung und Query-Plan in `docs/HISTORY_PERFORMANCE_2026-11-18.md`; Rollup-Tabellen bewusst zurückgestellt (kein nachgewiesener Nutzen, Schemaabstimmung nötig).
+
+## 2026-11-18 – #110 Datumswahl im Verlauf (Branch `claude/history-datepick`)
+- 📅-Knopf neben ‹ › öffnet die Datumsauswahl (nur die letzten 30 Tage = Cache-Horizont); 24 h springt auf den Tag, 7 d auf die Woche (`HistoryRange.offsetForDate`, geklemmt). Fenster bleiben Vielfache der Fensterlänge vor „jetzt“, keine Kalender-Wochen. Wischgeste nicht umgesetzt.

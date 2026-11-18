@@ -18,6 +18,16 @@ enum class HistoryRange(val label: String, val duration: Duration) {
     fun maxOffset(horizon: Duration = Duration.ofDays(30)): Int =
         (horizon.toMillis() / duration.toMillis() - 1).toInt().coerceAtLeast(0)
 
+    /**
+     * Window offset that shows the window containing the start of local day [selected], clamped to what the cache holds.
+     * 24 h: whole days back; 7 d: whole weeks back; 30 d: always 0.
+     */
+    fun offsetForDate(selected: java.time.LocalDate, today: java.time.LocalDate): Int {
+        val days = java.time.temporal.ChronoUnit.DAYS.between(selected, today).coerceAtLeast(0)
+        val windows = (days * 24L * 3600L * 1000L) / duration.toMillis()
+        return windows.toInt().coerceIn(0, maxOffset())
+    }
+
     /** End of the window shown [offset] windows before [now]. */
     fun windowEnd(now: Instant, offset: Int): Instant = now.minus(duration.multipliedBy(offset.toLong()))
 }
