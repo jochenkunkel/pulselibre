@@ -13,6 +13,16 @@
 
 **Start und Übergabe:** `AGENTS.md` enthält die verbindliche Arbeitsteilung; der kopierbare Codex-Willkommensauftrag steht in `docs/CHAT_START_HERE.md`. GitHub ist gemeinsame Wahrheit. Codex wird erst durch einen Auftrag in VSCodium tatsächlich aktiv. Gemeinsame Dateien/SQLite-Schema/CI nur koordiniert ändern; getrennte Worktrees/Branches und PRs für parallele Änderungen. **Diese Aufgabenverteilung ist kein Nachweis, dass Codex bereits arbeitet oder dass historische Daten heruntergeladen werden können.**
 
+## Dashboard, GUI und Analysen – Stand 2026-11-18 (Claude Code, Nachfolger von Codex in diesem Bereich)
+
+Ausführliches Protokoll mit Nachweisen: `docs/CLAUDE_CODE_WORKLOG.md`. Alle Aussagen „CI grün“ beziehen sich auf volle Läufe inkl. Emulator, **kein S25-Gerätetest**.
+
+- **Geschlossen:** #61 (Schrittkachel), #62 (24-h-Tagesgraphen), #64 (Navigation in allen fünf Bereichen).
+- **Teilweise umgesetzt, offen:** #63 (Statusmodell `CirqaLinkStatus`; Ursache der GATT-Abbrüche offen, S25-Langzeittest nötig), #40 (Abdeckung, Verfügbarkeitszustände), #41 (7/28/90-Tage-Trends), #42 (Fitnessübersicht ohne Gesamtscore), #44/#45 (explorative Korrelation mit Streudiagramm), #39 (nächtliche SpO₂-Auswertung).
+- **Blockiert:** #43, #46, #47 (keine verifizierte Schlaf-/HRV-/Belastungsquelle).
+- **Validierungsgates:** vom Nutzer am 2026-11-18 akzeptiert. Betroffene Kacheln sind **nicht validiert** und tragen einen roten Rand (`UnvalidatedFeatures`).
+- **CI:** nur manuell/`v*`-Tags; Lauftitel nennen Branch und Testumfang.
+
 ## Aktueller CIRQA- und Teamstatus (2026-11-17)
 
 - **18.11., Nutzerfreigabe 5030-only:** Nach PR #67 und der dokumentierten Entscheidungsvorlage hat der Nutzer genau einen Bootstrap→5030-only-Lauf ausdrücklich freigegeben. Keine Freigabe für nachfolgende 5007/5031/5002- oder Retry-Läufe. `origin/main=49318ec` enthält PR #66/#67; neuer isolierter Freigabebranch `fix/cirqa-5030-authorized-once`. Nur Releasekonstante und passende Testlabor-Texte werden aktiviert; separater persistenter Einmal-Gate und App-Bestätigung bleiben verpflichtend. ADB-Vorprüfung leer: noch keine Installation oder Geräteverbindung, kein Gate-Verbrauch. Bestehende alte Gates bleiben unverändert.
