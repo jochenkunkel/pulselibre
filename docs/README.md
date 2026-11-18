@@ -4,6 +4,8 @@
 
 **Neu im Projekt?** [Leitfaden für externe Entwickler](CONTRIBUTING_GUIDE.md) mit Einstieg, Beitragsregeln und Sicherheitsgrenzen.
 
+**Technische Grafiken:** [Ablaufdiagramme und Architekturübersichten](diagrams/README.md) mit Quellen und Evidenzstatus.
+
 ## Fachbereiche
 
 | Bereich | Wofür? | Verbindlicher Einstieg |
