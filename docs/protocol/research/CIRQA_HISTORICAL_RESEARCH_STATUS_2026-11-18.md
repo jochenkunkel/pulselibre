@@ -80,7 +80,22 @@ Aus der Binary extrahierte Felder für den Download:
 `Service.pull_item_request=1`, `PullItemDataRequest{item=1, priority=2, supported_transports=3, offset=4}`.
 
 Die UID muss nicht interpretiert werden; ihre rohen Bytes werden unverändert
-in den Pull-Request übernommen. Parser und Pull-Builder entstehen offline.
+in den Pull-Request übernommen. Parser und Pull-Builder sind offline getestet.
+
+**Gate V8 (Build 1060) – Dateiliste real gelesen:**
+```
+items=31; sizes=4841,5115,2399,4230,3373,1500,3714,4210,456,19975,2028,4651,...
+proto=[13:2[2:2]; 43:2[10:2]; 43:2[2:2];]
+```
+Die 19975 B entsprechen genau dem GDXml aus der Connect-Geräteevidenz. Der
+Pull-Request für den ersten Eintrag wurde beantwortet (`Service.pull_item_response`,
+Feld 2). Damit ist die Dateiverfügbarkeit am CIRQA zweifelsfrei belegt.
+
+Connect verarbeitet die Pull-Antwort zu `(transferHandle, transport, compressionWindow)`
+(`com.garmin.device.filetransfer.b`, `lh80`) und liest die Bytes anschließend
+über den **MLR-Transport** (`com.garmin.device.filetransfer.mlr.MLRTransportPipe`,
+MultiLink-Service-IDs `8216/0x2018, 16408, …`). Gate V9 protokolliert vorerst
+Ergebnis/Transport/Handle der Pull-Antwort, danach folgt der MLR-Kanal.
 
 ## Wichtigste Transporthypothese
 
