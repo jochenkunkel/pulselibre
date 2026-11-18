@@ -29,6 +29,7 @@ class HistoryOverviewView(
     }
 
     private var generation = 0
+    private val mainHandler = android.os.Handler(android.os.Looper.getMainLooper())
     private var attached = true
 
     /** Loads off the UI thread; only the newest request may render (#79). */
@@ -37,7 +38,7 @@ class HistoryOverviewView(
         val range = selectedRange
         worker.execute {
             val snapshot = try { load(range) } catch (_: Exception) { null }
-            post {
+            mainHandler.post {
                 if (token != generation || !attached) return@post
                 if (snapshot == null) showFailure() else render(snapshot)
             }
