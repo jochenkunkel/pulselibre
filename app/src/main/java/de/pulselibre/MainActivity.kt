@@ -189,17 +189,17 @@ class MainActivity : AppCompatActivity() {
         }
         val header = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(dp(20), dp(18), dp(20), dp(18))
-            background = GradientDrawable(
-                GradientDrawable.Orientation.TL_BR,
-                intArrayOf(palette.header, palette.headerEnd)
-            )
+            // Extra bottom space shows the mountain ridges of the backdrop (#124).
+            setPadding(dp(20), dp(16), dp(20), dp(52))
+            minimumHeight = dp(170)
+            background = HeaderBackdropDrawable(palette.dark)
         }
         val headerRow = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = android.view.Gravity.CENTER_VERTICAL
         }
-        headerRow.addView(text("PulsLibre", 28f, Color.WHITE, true), LinearLayout.LayoutParams(0, -2, 1f))
+        headerRow.addView(PulseLogoView(this), LinearLayout.LayoutParams(dp(48), dp(48)).apply { marginEnd = dp(12) })
+        headerRow.addView(text("PulsLibre", 30f, Color.WHITE, true), LinearLayout.LayoutParams(0, -2, 1f))
         // Personal Easter egg: the dedicated humerus SVG-matched vector replaces the gear.
         // Keep a 48dp touch target and an explicit accessibility label.
         val avatarButton = android.widget.ImageView(this).apply {
@@ -241,7 +241,18 @@ class MainActivity : AppCompatActivity() {
         connectionIndicatorRefresh = { refreshAvatarConnectionBorder() }
         headerRow.addView(avatarButton, LinearLayout.LayoutParams(dp(48), dp(48)))
         header.addView(headerRow)
-        header.addView(text("Deine Daten. Deine Kontrolle. · Offline", 13f, Color.WHITE))
+        val taglineRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = android.view.Gravity.CENTER_VERTICAL
+        }
+        taglineRow.addView(text("Deine Daten. Deine Kontrolle.", 13f, Color.parseColor("#E9E1F7")))
+        // "Offline" = no cloud, no network permission: true for this app at all times.
+        taglineRow.addView(android.view.View(this).apply {
+            background = GradientDrawable().apply { shape = GradientDrawable.OVAL; setColor(DesignTokens.MINT) }
+        }, LinearLayout.LayoutParams(dp(8), dp(8)).apply { marginStart = dp(12); marginEnd = dp(6) })
+        taglineRow.addView(text("Offline", 13f, Color.parseColor("#E9E1F7")))
+        taglineRow.contentDescription = "Deine Daten. Deine Kontrolle. Offline: keine Cloud, keine Netzwerkverbindung."
+        header.addView(taglineRow, LinearLayout.LayoutParams(-2, -2).apply { topMargin = dp(8); marginStart = dp(60) })
         screen.addView(header)
         val root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
@@ -271,22 +282,38 @@ class MainActivity : AppCompatActivity() {
             view.visibility = android.view.View.GONE
         }
         // Compact personal body card: user-entered profile, not measured BLE data.
+        // Large fonts / narrow screens: drop the pictogram and use a smaller title so words never break.
+        val largeText = resources.configuration.screenWidthDp < 340 || resources.configuration.fontScale >= 1.3f
+        val heroText = DesignTokens.heroText(palette.dark)
+        val heroSecondary = DesignTokens.heroSecondary(palette.dark)
+        val heroAccent = DesignTokens.heroAccent(palette.dark)
         val bodyCard = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(dp(16), dp(12), dp(16), dp(14))
-            background = rounded(palette.card)
+            setPadding(dp(18), dp(14), dp(18), dp(16))
+            background = GradientDrawable(GradientDrawable.Orientation.TL_BR, DesignTokens.heroColors(palette.dark)).apply {
+                cornerRadius = dp(28).toFloat()
+                setStroke(dp(1), DesignTokens.heroStroke(palette.dark))
+            }
+            elevation = dp(2).toFloat()
         }
         val bodyHeader = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = android.view.Gravity.CENTER_VERTICAL
         }
-        bodyHeader.addView(text("MEIN KÖRPERPROFIL · Tippen zum Bearbeiten", 12f, violet, true),
-            LinearLayout.LayoutParams(0, -2, 1f))
+        if (!largeText) bodyHeader.addView(TextView(this).apply {
+            text = "👤"; textSize = 17f; gravity = android.view.Gravity.CENTER
+            background = rounded(DesignTokens.BRAND_PURPLE, 11)
+            importantForAccessibility = android.view.View.IMPORTANT_FOR_ACCESSIBILITY_NO
+        }, LinearLayout.LayoutParams(dp(38), dp(38)).apply { marginEnd = dp(12) })
+        val titleColumn = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+        titleColumn.addView(text("Mein Körperprofil", if (largeText) 17f else 21f, heroText, true))
+        titleColumn.addView(text("Tippen zum Bearbeiten", 13f, heroSecondary).apply { setPadding(0, dp(2), 0, 0); maxLines = 2 })
+        bodyHeader.addView(titleColumn, LinearLayout.LayoutParams(0, -2, 1f))
         val healthInfo = TextView(this).apply {
             text = "ⓘ"
             textSize = 17f
             gravity = android.view.Gravity.CENTER
-            setTextColor(AppPalette.of(this@MainActivity).indicator)
+            setTextColor(DesignTokens.MINT)
             contentDescription = "Informationen zu empfangenen Messungen und lokaler Speicherung"
             isClickable = true
             isFocusable = true
@@ -306,26 +333,28 @@ class MainActivity : AppCompatActivity() {
         bodyHeader.addView(healthInfo, LinearLayout.LayoutParams(dp(48), dp(48)))
         bodyCard.addView(bodyHeader)
 
+        // Narrow screens or large system fonts: avatar centred above the values (never cut off, never wrapped per character).
+        val compactProfile = resources.configuration.screenWidthDp < 340 || resources.configuration.fontScale >= 1.3f
         val bodyRow = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = android.view.Gravity.CENTER_VERTICAL
+            orientation = if (compactProfile) LinearLayout.VERTICAL else LinearLayout.HORIZONTAL
+            gravity = if (compactProfile) android.view.Gravity.CENTER_HORIZONTAL else android.view.Gravity.CENTER_VERTICAL
+            setPadding(0, dp(10), 0, 0)
         }
-        // Narrow screens or very large system fonts: smaller figure and label above value, so values never wrap per character.
-        val compactProfile = resources.configuration.screenWidthDp < 340 || resources.configuration.fontScale >= 1.5f
         val bodyFigure = BodyProfileAvatarView(this)
-        bodyRow.addView(bodyFigure, LinearLayout.LayoutParams(dp(if (compactProfile) 80 else 112), dp(if (compactProfile) 88 else 120)).apply {
-            marginEnd = dp(12)
+        val avatarSize = if (compactProfile) 112 else if (resources.configuration.screenWidthDp >= 400) 150 else 130
+        bodyRow.addView(bodyFigure, LinearLayout.LayoutParams(dp(avatarSize), dp(avatarSize)).apply {
+            if (compactProfile) bottomMargin = dp(12) else marginEnd = dp(16)
         })
         val bodyValues = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
-        bodyRow.addView(bodyValues, LinearLayout.LayoutParams(0, -2, 1f))
+        bodyRow.addView(bodyValues, if (compactProfile) LinearLayout.LayoutParams(-1, -2) else LinearLayout.LayoutParams(0, -2, 1f))
         bodyCard.addView(bodyRow)
         val scaleButton = TextView(this).apply {
             text = "⚖"
             textSize = 22f
             gravity = android.view.Gravity.CENTER
-            setTextColor(violet)
+            setTextColor(Color.WHITE)
             minWidth = dp(48); minHeight = dp(48)
-            background = rounded(palette.tinted)
+            background = rounded(DesignTokens.BRAND_PURPLE, 14)
             contentDescription = "Gewicht schnell aktualisieren"
             tag = "body_scale_button"
             isClickable = true
@@ -340,43 +369,46 @@ class MainActivity : AppCompatActivity() {
         fun refreshBodyCard() {
             val p = getSharedPreferences("local_personal_profile", MODE_PRIVATE)
             bodyValues.removeAllViews()
-            bodyFigure.contentDescription = "Illustration eines bärtigen Mannes. Profilwerte sind daneben aufgeführt."
+            bodyFigure.contentDescription = "Illustration einer Person im violetten Kapuzenpullover. Profilwerte sind daneben aufgeführt."
             val heightText = p.getString("height_cm", "").orEmpty()
             val weightText = p.getString("weight_kg", "").orEmpty()
             // Age is derived from the birth date for today; a legacy stored age is only a fallback (#117).
             val age = AgeCalculator.currentAge(p.getString("birth_date", ""), p.getString("age_years", ""), java.time.LocalDate.now())
             val bmi = Bmi.assess(weightText.replace(',', '.').toDoubleOrNull(), heightText.replace(',', '.').toDoubleOrNull(), age)
             val germanOne = java.text.NumberFormat.getNumberInstance(java.util.Locale.GERMANY).apply { maximumFractionDigits = 1; minimumFractionDigits = 1 }
-            fun add(icon: String, title: String, value: String, valueColor: Int = ink, extra: String? = null, onClick: (() -> Unit)? = null) {
+            val bmiTone = when (bmi.category?.tone) {
+                Bmi.Tone.GREEN -> DesignTokens.MINT
+                Bmi.Tone.YELLOW -> android.graphics.Color.rgb(240, 196, 40)
+                Bmi.Tone.RED -> android.graphics.Color.rgb(255, 107, 120)
+                null -> heroSecondary
+            }
+            fun add(icon: String, title: String, value: String, valueColor: Int = heroText, extra: String? = null, onClick: (() -> Unit)? = null) {
                 val row = LinearLayout(this).apply {
                     orientation = LinearLayout.HORIZONTAL
                     gravity = android.view.Gravity.CENTER_VERTICAL
                 }
-                row.addView(text(icon + "  ", 17f, violet, true))
+                row.addView(text(icon + "   ", 18f, heroAccent, true))
                 val stack = LinearLayout(this).apply { orientation = if (compactProfile) LinearLayout.VERTICAL else LinearLayout.HORIZONTAL
                     gravity = android.view.Gravity.CENTER_VERTICAL }
-                stack.addView(text(if (compactProfile) title else "$title  ", 12f, muted))
-                stack.addView(text(value, 15f, valueColor, true))
+                stack.addView(text(if (compactProfile) title else "$title   ", 14f, heroSecondary))
+                stack.addView(text(value, 17f, valueColor, true))
                 row.addView(stack, LinearLayout.LayoutParams(0, -2, 1f))
                 if (extra != null) bodyValues.addView(row, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(2) })
                 else bodyValues.addView(row, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(8) })
                 if (extra != null) {
-                    bodyValues.addView(text(extra, 12f, valueColor, true).apply { contentDescription = extra },
-                        LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(8); marginStart = dp(30) })
+                    val dotColor = bmiTone
+                    val span = android.text.SpannableString(extra)
+                    if (extra.startsWith("●")) span.setSpan(android.text.style.ForegroundColorSpan(dotColor), 0, 1, android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                    bodyValues.addView(text("", 13f, heroText, true).apply { this.text = span; contentDescription = extra.removePrefix("● ") },
+                        LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(8); marginStart = dp(32) })
                 }
                 if (onClick != null) { row.isClickable = true; row.isFocusable = true; row.setOnClickListener { onClick() } }
             }
             add("↕", "Größe", if (heightText.isBlank()) "–" else "$heightText cm")
             add("⚖", "Gewicht", if (weightText.isBlank()) "–" else "$weightText kg")
             add("◷", "Alter", age?.let { "$it Jahre" } ?: "–")
-            val tone = when (bmi.category?.tone) {
-                Bmi.Tone.GREEN -> palette.indicator
-                Bmi.Tone.YELLOW -> android.graphics.Color.rgb(207, 166, 19)
-                Bmi.Tone.RED -> android.graphics.Color.rgb(205, 57, 65)
-                null -> muted
-            }
             // BMI: value + written category (colour is never the only signal); tap explains reference and limits.
-            add("▣", "BMI", bmi.value?.let { germanOne.format(it) + " kg/m²" } ?: "–", ink,
+            add("▣", "BMI", bmi.value?.let { germanOne.format(it) + " kg/m²" } ?: "–", heroText,
                 extra = bmi.category?.let { "● ${it.label}" } ?: bmi.note) { showBmiInfo(bmi) }
             bodyCard.contentDescription = "Mein Körperprofil. " +
                 (0 until bodyValues.childCount).joinToString(", ") { i ->
@@ -401,7 +433,16 @@ class MainActivity : AppCompatActivity() {
         }
         overviewView(bodyCard, 14)
         // One compact dashboard heading; privacy details remain accessible via the info button.
-        overviewView(text("Gesundheit · CIRQA", 17f, ink, true), 6)
+        overviewView(LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = android.view.Gravity.CENTER_VERTICAL
+            addView(TextView(this@MainActivity).apply {
+                text = "📡"; textSize = 15f; gravity = android.view.Gravity.CENTER
+                background = GradientDrawable().apply { shape = GradientDrawable.OVAL; setColor(DesignTokens.BRAND_PURPLE) }
+                importantForAccessibility = android.view.View.IMPORTANT_FOR_ACCESSIBILITY_NO
+            }, LinearLayout.LayoutParams(dp(32), dp(32)).apply { marginEnd = dp(10) })
+            addView(text("Gesundheit · CIRQA", 19f, ink, true))
+        }, 6)
         val cirqaDashboard = DashboardOverviewView(this).apply {
             openDay = { title -> showDashboardDay(this@MainActivity, title, dashboardWorker) }
         }
