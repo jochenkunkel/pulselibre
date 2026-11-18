@@ -264,9 +264,10 @@ wissenschaftliche Trendberechnungen sind weiterhin offen.
 
 ## Verbindungsanzeige (#63)
 
-Der Kopfbereich fragt Androids GATT-Status des gekoppelten CIRQA ab. Android
-meldet dabei keine besitzende App. Die Recorder-Zeile liest separat den
-Dienststatus, der während eines Verbindungsabbruchs aktiv bleiben kann.
-Sie benennt jetzt den Aufzeichnungsdienst und verweist auf die
-GATT-Anzeige. Die Ursache der beobachteten Abbrüche bleibt am Gerät zu
-klären.
+Kopfbereich und Gerätekarte werden im Vordergrund aus derselben Android-GATT-Abfrage
+aktualisiert. Die Gerätekarte und TalkBack unterscheiden Aufbau, Trennung,
+fehlende Berechtigung und unbekannten Status. Grün steht für eine von Android
+gemeldete GATT-Verbindung. Android meldet dabei keine besitzende App. Der Recorder
+zeigt separat den Dienststatus, der während eines Verbindungsabbruchs aktiv bleiben
+kann. Die lokale Diagnose hält bis zu 32 beobachtete Statuswechsel fest.
+Die Ursache der Verbindungsabbrüche ist am Gerät zu klären.

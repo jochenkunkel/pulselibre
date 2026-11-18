@@ -1,26 +1,20 @@
 package de.pulselibre
 
+import de.pulselibre.CirqaConnectionHistory.State
 import org.junit.Assert.*
 import org.junit.Test
 
 class CirqaConnectionIndicatorTest {
-    @Test fun greenStateRequiresBluetoothPermissionBondAndLiveGattConnection() {
-        assertTrue(CirqaConnectionIndicator.isConnected(true, true, true, true))
-        assertFalse(CirqaConnectionIndicator.isConnected(false, true, true, true))
-        assertFalse(CirqaConnectionIndicator.isConnected(true, false, true, true))
-        assertFalse(CirqaConnectionIndicator.isConnected(true, true, false, true))
-        assertFalse(CirqaConnectionIndicator.isConnected(true, true, true, false))
+    @Test fun onlyAConnectedGattStateShowsGreen() {
+        for (state in State.entries) {
+            assertEquals(state == State.CONNECTED, CirqaConnectionIndicator.isConnected(state))
+        }
     }
 
-    @Test fun accessibleGreenLabelDoesNotClaimPulsLibreOwnsTheLink() {
-        val label = CirqaConnectionIndicator.contentDescription(true, true)
-        assertTrue(label.contains("Android meldet GATT verbunden"))
-        assertTrue(label.contains("verbundene App unbekannt"))
-        assertFalse(label.contains("PulsLibre verbunden"))
-    }
-
-    @Test fun missingPermissionStaysOfflineAndExplainsWhyStatusCannotBeRead() {
-        assertTrue(CirqaConnectionIndicator.contentDescription(false, false).contains("mangels Berechtigung"))
-        assertFalse(CirqaConnectionIndicator.isConnected(true, false, true, true))
+    @Test fun accessibleLabelsDistinguishTransitionsAndUnknownOwnership() {
+        assertTrue(CirqaConnectionIndicator.contentDescription(State.CONNECTED).contains("App unbekannt"))
+        assertTrue(CirqaConnectionIndicator.contentDescription(State.CONNECTING).contains("GATT: verbindet"))
+        assertTrue(CirqaConnectionIndicator.contentDescription(State.DISCONNECTING).contains("GATT: trennt"))
+        assertTrue(CirqaConnectionIndicator.contentDescription(State.PERMISSION_DENIED).contains("Berechtigung fehlt"))
     }
 }

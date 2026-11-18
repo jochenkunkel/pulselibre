@@ -1,20 +1,13 @@
 package de.pulselibre
 
-/**
- * The header may show green only when Android freshly reports a connected GATT link
- * for a bonded device whose Android name identifies it as CIRQA.
- */
-object CirqaConnectionIndicator {
-    fun isConnected(
-        bluetoothEnabled: Boolean,
-        connectPermissionGranted: Boolean,
-        bondedCirqaFound: Boolean,
-        gattConnected: Boolean
-    ): Boolean = bluetoothEnabled && connectPermissionGranted && bondedCirqaFound && gattConnected
+import de.pulselibre.CirqaConnectionHistory.State
 
-    fun contentDescription(connected: Boolean, permissionGranted: Boolean): String = when {
-        connected -> "CIRQA-Verbindungsstatus: grüner Rand. Android meldet GATT verbunden; verbundene App unbekannt. Einstellungen öffnen."
-        !permissionGranted -> "CIRQA-Verbindungsstatus: schwarzer Rand; Verbindung mangels Berechtigung nicht bestätigt. Einstellungen öffnen."
-        else -> "CIRQA-Verbindungsstatus: schwarzer Rand; keine aktive Android-GATT-Verbindung bestätigt. Einstellungen öffnen."
+/** The header shows green only when Android reports a connected GATT link. */
+object CirqaConnectionIndicator {
+    fun isConnected(state: State): Boolean = state == State.CONNECTED
+
+    fun contentDescription(state: State): String {
+        val outline = if (isConnected(state)) "grüner Rand" else "schwarzer Rand"
+        return "CIRQA-Verbindungsstatus: $outline. ${CirqaStateMapping.label(state)}. Einstellungen öffnen."
     }
 }
