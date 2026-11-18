@@ -1,5 +1,5 @@
 name: Android CI
-run-name: "Android CI · ${{ github.ref_name }} · ${{ inputs.full_tests && 'voll (mit Emulator)' || 'schnell (Build + Unit-Tests)' }} · ${{ github.sha }}"
+run-name: "Android CI · ${{ github.ref_name }} · ${{ inputs.full_tests && 'voll (mit Emulator)' || 'schnell (Build + Unit-Tests)' }} · ${{ substr(github.sha, 0, 7) }}"
 on:
   workflow_dispatch:
     inputs:
