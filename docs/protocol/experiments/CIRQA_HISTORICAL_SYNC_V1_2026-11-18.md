@@ -48,7 +48,41 @@ Erstmals volle Sequenz 5024/5050→5030→5007→5031→5002 in EINER Verbindung
 Directory-Index 0 meldet **8192 Bytes** (statt des früheren leeren 1-Eintrags).
 Die 8192 Bytes wurden in V1 noch nicht gelesen/gespeichert (nur Size ausgelesen).
 
+## Directory-Body nach voller Kette (V2–V6)
+
+Der 5004-Body-Read startet zuverlässig mit `size=8192/32; chunks=1`, stoppt aber
+nach dem ersten 32-Byte-Chunk. Frühere Ursachen und Fixes:
+- Stale 5-s-Response-Timer des 5002-Requests beendete den Lauf nach Chunk 1 →
+  beim Body-Start abgebrochen (Gate V2).
+- Nicht-5004-Kontrollframes brachen den Stream ab (`unexpected-type`) →
+  zählen/ignorieren (Gate V3).
+- Nur das **erste** COBS-Frame pro Notification wurde dekodiert; der bewährte
+  Legacy-Pfad `CirqaLegacy5004ResponseObserver` verarbeitet dagegen **alle**
+  Frames und über Notification-Grenzen hinweg → V2 übernimmt das (Gate V4).
+
+### Entscheidender Befund (Gate V5, Build 1028)
+```
+notifs=3; frames=3; dataFrames=1; control=5043x2;
+protobuf=5043[id=2705,off=0,total=4,chunk=4];complete[len=4,shape=13:2];
+         5043[id=2705,off=0,total=4,chunk=4];complete[len=4,shape=13:2];
+```
+Nach dem ersten 5004-Chunk sendet das Gerät **zwei identische, vollständige
+4-Byte-Protobuf-Nachrichten** (Request-ID 2705, `Smart`-Feld 13, wire type 2)
+und verstummt dann. Der 5004-ACK ist byte-korrekt (identisch mit dem
+erfolgreichen Legacy-Lauf) – der Blocker ist das Ausbleiben der 5043-Quittung.
+
+### Connect-Referenz (5.31, dekompiliert)
+- `t3z.ProtobufHandler.onMessageReceived` (5043/5044) sendet **für jeden Chunk**
+  ein GFDI-5000-ACK mit `ly00.ACK=0`, `responseTo=5043`, Payload
+  `[requestId u16LE | receivedOffset u32LE | successFlag u8 | status u8]`,
+  `c4z.NO_ERROR=0` – unabhängig vom Protobuf-Inhalt, sogar bei Parse-Fehlern.
+- `v3z`/`t3z.h(5044, …)` ist die separat davon erfolgende Protobuf-Antwort;
+  sie wird **nicht** gesendet (nur Transport-ACK, wie freigegeben).
+
+Gate V6 (freigegeben) quittiert die 5043-Chunks mit genau diesem Format über
+eine serialisierte ACK-Warteschlange; kein 5044, keine Geräteänderung.
+
 ## Nächster Schritt
-Directory-Index 0 (8192 Bytes) per 5004 lesen, FIT-Header/CRC validieren und
-Einträge (Index/Typ/Subtyp/READ/Größe) datensparsam protokollieren. Erst nach
-identifiziertem gültigen FIT-Eintrag-download. Kein Löschen/Archivieren/Flags.
+Ergebnis von Gate V6 auslesen. Bei vollständiger Directory: FIT-Einträge
+klassifizieren und nächsten begrenzten FIT-Download vorbereiten. Kein
+Löschen/Archivieren/Flags, kein CLOSE_ALL, kein Retry.
