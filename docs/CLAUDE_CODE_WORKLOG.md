@@ -128,3 +128,6 @@ Noch sichtbar offen (P3): Nacht-Insights erste Spalte „22–6 Uhr / 22331 / We
 ## 2026-11-18 – #110 Datumsnavigation im Verlauf und P3-Restpunkte (Branch `claude/history-nav`)
 - #110: Verlauf hat Fensternavigation ‹ Titel › für 24 h (bis 29 Fenster zurück) und 7 d (bis 3); begrenzt auf den lokal gecachten 30-Tage-Horizont (`HistoryRange.maxOffset`), 30 d ohne Navigation. Das Fenster liegt immer in Vielfachen der Fensterlänge vor „jetzt“ (kein freier Datumswähler). Cache-Synchronisation bleibt an der echten Zeit, nur das Fensterende wandert. Tests: `HistoryRangeWindowTest`, Instrumentation `windowNavigationStepsBack…`.
 - Nacht-Insights: erste Spalte kürzer („22–6 Uhr“ / „22.331“), Beschreibung bleibt vollständig. Tagesdialog: Datum-/Navigationsbuttons im App-Stil.
+
+## 2026-11-18 – #122 Schrittbalken im Hintergrund der Schrittekachel (Branch `claude/history-nav`, mit #110)
+- `StepIntervals` (Differenzen des kumulativen Zählers, 15-Minuten-Intervalle, Lücken statt Nullen, Reset-/Duplikat-/Sommerzeit-Behandlung), `StepBarsView` (dezente Säulen hinter dem Text, geclippt), Kachel lädt im Hintergrund (60 s Cache). Doku `docs/science/STEP_INTERVAL_BARS.md`. Tests `StepIntervalsTest` (8). **Am Gerät nicht betrachtet.**
