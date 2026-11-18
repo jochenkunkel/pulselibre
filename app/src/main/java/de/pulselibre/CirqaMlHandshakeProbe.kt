@@ -1189,6 +1189,9 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                 finish("Historical Sync V1: Antwort-Timeout, kein Retry.", g)
             }
         }, 5_000L)
+        // The preceding 5050 write is already confirmed at this point; clear the
+        // generic pending flag so send() cannot reject this request as overlapping.
+        mlWritePending = false
         send(g, frame)
         // With WRITE_TYPE_NO_RESPONSE Android delivers no onCharacteristicWrite callback.
         // Treat the accepted API call as write-confirmed, exactly like the working 5030-only path.
