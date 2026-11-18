@@ -1,0 +1,2576 @@
+{
+  "profile_version": {
+    "major": 21,
+    "minor": 222,
+    "patch": 0,
+    "type": "Release"
+  },
+  "files": [
+    {
+      "file_alias": "076e8ad17e6d",
+      "format": "FIT",
+      "size": 4154,
+      "message_counts": [
+        {
+          "global": 0,
+          "name": "file_id",
+          "record_count": 1
+        },
+        {
+          "global": 2,
+          "name": "device_settings",
+          "record_count": 1
+        },
+        {
+          "global": 3,
+          "name": "user_profile",
+          "record_count": 1
+        },
+        {
+          "global": 7,
+          "name": "zones_target",
+          "record_count": 1
+        },
+        {
+          "global": 12,
+          "name": "sport",
+          "record_count": 1
+        },
+        {
+          "global": 13,
+          "name": "training_settings",
+          "record_count": 1
+        },
+        {
+          "global": 18,
+          "name": "session",
+          "record_count": 1
+        },
+        {
+          "global": 19,
+          "name": "lap",
+          "record_count": 1
+        },
+        {
+          "global": 20,
+          "name": "record",
+          "record_count": 1
+        },
+        {
+          "global": 21,
+          "name": "event",
+          "record_count": 2
+        },
+        {
+          "global": 22,
+          "name": null,
+          "record_count": 1
+        },
+        {
+          "global": 23,
+          "name": "device_info",
+          "record_count": 5
+        },
+        {
+          "global": 34,
+          "name": "activity",
+          "record_count": 1
+        },
+        {
+          "global": 49,
+          "name": "file_creator",
+          "record_count": 1
+        },
+        {
+          "global": 79,
+          "name": null,
+          "record_count": 1
+        },
+        {
+          "global": 140,
+          "name": null,
+          "record_count": 1
+        },
+        {
+          "global": 162,
+          "name": "timestamp_correlation",
+          "record_count": 1
+        },
+        {
+          "global": 216,
+          "name": "time_in_zone",
+          "record_count": 2
+        },
+        {
+          "global": 233,
+          "name": null,
+          "record_count": 1
+        },
+        {
+          "global": 288,
+          "name": null,
+          "record_count": 1
+        }
+      ],
+      "field_row_count": 599,
+      "record_count": 26,
+      "first_month": "2026-11",
+      "last_month": "2026-11",
+      "monitoring_hr_timestamp16_records": 0,
+      "monitoring_hr_full_timestamp_records": 0
+    },
+    {
+      "file_alias": "13af97181a28",
+      "format": "FIT",
+      "size": 812,
+      "message_counts": [
+        {
+          "global": 0,
+          "name": "file_id",
+          "record_count": 1
+        },
+        {
+          "global": 23,
+          "name": "device_info",
+          "record_count": 1
+        },
+        {
+          "global": 49,
+          "name": "file_creator",
+          "record_count": 1
+        },
+        {
+          "global": 241,
+          "name": null,
+          "record_count": 1
+        },
+        {
+          "global": 284,
+          "name": null,
+          "record_count": 1
+        },
+        {
+          "global": 330,
+          "name": null,
+          "record_count": 1
+        },
+        {
+          "global": 369,
+          "name": null,
+          "record_count": 1
+        },
+        {
+          "global": 384,
+          "name": null,
+          "record_count": 1
+        },
+        {
+          "global": 410,
+          "name": null,
+          "record_count": 3
+        },
+        {
+          "global": 506,
+          "name": null,
+          "record_count": 1
+        }
+      ],
+      "field_row_count": 129,
+      "record_count": 12,
+      "first_month": "2026-11",
+      "last_month": "2026-11",
+      "monitoring_hr_timestamp16_records": 0,
+      "monitoring_hr_full_timestamp_records": 0
+    },
+    {
+      "file_alias": "166e92aab6a3",
+      "format": "FIT",
+      "size": 4210,
+      "message_counts": [
+        {
+          "global": 0,
+          "name": "file_id",
+          "record_count": 1
+        },
+        {
+          "global": 2,
+          "name": "device_settings",
+          "record_count": 1
+        },
+        {
+          "global": 3,
+          "name": "user_profile",
+          "record_count": 1
+        },
+        {
+          "global": 7,
+          "name": "zones_target",
+          "record_count": 1
+        },
+        {
+          "global": 12,
+          "name": "sport",
+          "record_count": 1
+        },
+        {
+          "global": 13,
+          "name": "training_settings",
+          "record_count": 1
+        },
+        {
+          "global": 18,
+          "name": "session",
+          "record_count": 1
+        },
+        {
+          "global": 19,
+          "name": "lap",
+          "record_count": 1
+        },
+        {
+          "global": 20,
+          "name": "record",
+          "record_count": 3
+        },
+        {
+          "global": 21,
+          "name": "event",
+          "record_count": 2
+        },
+        {
+          "global": 22,
+          "name": null,
+          "record_count": 1
+        },
+        {
+          "global": 23,
+          "name": "device_info",
+          "record_count": 5
+        },
+        {
+          "global": 34,
+          "name": "activity",
+          "record_count": 1
+        },
+        {
+          "global": 49,
+          "name": "file_creator",
+          "record_count": 1
+        },
+        {
+          "global": 79,
+          "name": null,
+          "record_count": 1
+        },
+        {
+          "global": 140,
+          "name": null,
+          "record_count": 1
+        },
+        {
+          "global": 162,
+          "name": "timestamp_correlation",
+          "record_count": 1
+        },
+        {
+          "global": 216,
+          "name": "time_in_zone",
+          "record_count": 2
+        },
+        {
+          "global": 233,
+          "name": null,
+          "record_count": 3
+        },
+        {
+          "global": 288,
+          "name": null,
+          "record_count": 1
+        }
+      ],
+      "field_row_count": 600,
+      "record_count": 30,
+      "first_month": "2026-11",
+      "last_month": "2026-11",
+      "monitoring_hr_timestamp16_records": 0,
+      "monitoring_hr_full_timestamp_records": 0
+    },
+    {
+      "file_alias": "1b9171123e8b",
+      "format": "FIT",
+      "size": 13525,
+      "message_counts": [
+        {
+          "global": 0,
+          "name": "file_id",
+          "record_count": 1
+        },
+        {
+          "global": 23,
+          "name": "device_info",
+          "record_count": 1
+        },
+        {
+          "global": 49,
+          "name": "file_creator",
+          "record_count": 1
+        },
+        {
+          "global": 162,
+          "name": "timestamp_correlation",
+          "record_count": 2
+        },
+        {
+          "global": 397,
+          "name": null,
+          "record_count": 1459
+        },
+        {
+          "global": 398,
+          "name": "skin_temp_overnight",
+          "record_count": 1
+        }
+      ],
+      "field_row_count": 51,
+      "record_count": 1465,
+      "first_month": "2026-11",
+      "last_month": "2026-11",
+      "monitoring_hr_timestamp16_records": 0,
+      "monitoring_hr_full_timestamp_records": 0
+    },
+    {
+      "file_alias": "206698213089",
+      "format": "FIT",
+      "size": 2231,
+      "message_counts": [
+        {
+          "global": 0,
+          "name": "file_id",
+          "record_count": 1
+        },
+        {
+          "global": 23,
+          "name": "device_info",
+          "record_count": 1
+        },
+        {
+          "global": 49,
+          "name": "file_creator",
+          "record_count": 1
+        },
+        {
+          "global": 79,
+          "name": null,
+          "record_count": 1
+        },
+        {
+          "global": 282,
+          "name": null,
+          "record_count": 2
+        },
+        {
+          "global": 383,
+          "name": null,
+          "record_count": 1
+        },
+        {
+          "global": 384,
+          "name": null,
+          "record_count": 4
+        },
+        {
+          "global": 391,
+          "name": null,
+          "record_count": 8
+        },
+        {
+          "global": 401,
+          "name": null,
+          "record_count": 1
+        },
+        {
+          "global": 411,
+          "name": null,
+          "record_count": 4
+        },
+        {
+          "global": 412,
+          "name": "nap_event",
+          "record_count": 8
+        },
+        {
+          "global": 413,
+          "name": null,
+          "record_count": 1
+        },
+        {
+          "global": 430,
+          "name": null,
+          "record_count": 1
+        },
+        {
+          "global": 431,
+          "name": null,
+          "record_count": 1
+        },
+        {
+          "global": 507,
+          "name": null,
+          "record_count": 1
+        },
+        {
+          "global": 545,
+          "name": null,
+          "record_count": 3
+        }
+      ],
+      "field_row_count": 205,
+      "record_count": 39,
+      "first_month": "2026-11",
+      "last_month": "2026-11",
+      "monitoring_hr_timestamp16_records": 0,
+      "monitoring_hr_full_timestamp_records": 0
+    },
+    {
+      "file_alias": "349ffcf90069",
+      "format": "FIT",
+      "size": 395,
+      "message_counts": [
+        {
+          "global": 0,
+          "name": "file_id",
+          "record_count": 1
+        },
+        {
+          "global": 23,
+          "name": "device_info",
+          "record_count": 1
+        },
+        {
+          "global": 49,
+          "name": "file_creator",
+          "record_count": 1
+        },
+        {
+          "global": 241,
+          "name": null,
+          "record_count": 1
+        },
+        {
+          "global": 356,
+          "name": null,
+          "record_count": 1
+        }
+      ],
+      "field_row_count": 57,
+      "record_count": 5,
+      "first_month": "2026-11",
+      "last_month": "2026-11",
+      "monitoring_hr_timestamp16_records": 0,
+      "monitoring_hr_full_timestamp_records": 0
+    },
+    {
+      "file_alias": "3c82eb172ecf",
+      "format": "FIT",
+      "size": 4765,
+      "message_counts": [
+        {
+          "global": 0,
+          "name": "file_id",
+          "record_count": 1
+        },
+        {
+          "global": 2,
+          "name": "device_settings",
+          "record_count": 1
+        },
+        {
+          "global": 3,
+          "name": "user_profile",
+          "record_count": 1
+        },
+        {
+          "global": 7,
+          "name": "zones_target",
+          "record_count": 1
+        },
+        {
+          "global": 12,
+          "name": "sport",
+          "record_count": 1
+        },
+        {
+          "global": 13,
+          "name": "training_settings",
+          "record_count": 1
+        },
+        {
+          "global": 18,
+          "name": "session",
+          "record_count": 1
+        },
+        {
+          "global": 19,
+          "name": "lap",
+          "record_count": 1
+        },
+        {
+          "global": 20,
+          "name": "record",
+          "record_count": 24
+        },
+        {
+          "global": 21,
+          "name": "event",
+          "record_count": 2
+        },
+        {
+          "global": 22,
+          "name": null,
+          "record_count": 1
+        },
+        {
+          "global": 23,
+          "name": "device_info",
+          "record_count": 5
+        },
+        {
+          "global": 34,
+          "name": "activity",
+          "record_count": 1
+        },
+        {
+          "global": 49,
+          "name": "file_creator",
+          "record_count": 1
+        },
+        {
+          "global": 79,
+          "name": null,
+          "record_count": 1
+        },
+        {
+          "global": 140,
+          "name": null,
+          "record_count": 1
+        },
+        {
+          "global": 162,
+          "name": "timestamp_correlation",
+          "record_count": 1
+        },
+        {
+          "global": 216,
+          "name": "time_in_zone",
+          "record_count": 2
+        },
+        {
+          "global": 233,
+          "name": null,
+          "record_count": 24
+        },
+        {
+          "global": 288,
+          "name": null,
+          "record_count": 2
+        }
+      ],
+      "field_row_count": 600,
+      "record_count": 73,
+      "first_month": "2026-11",
+      "last_month": "2026-11",
+      "monitoring_hr_timestamp16_records": 0,
+      "monitoring_hr_full_timestamp_records": 0
+    },
+    {
+      "file_alias": "4667def19a0e",
+      "format": "FIT",
+      "size": 5779,
+      "message_counts": [
+        {
+          "global": 0,
+          "name": "file_id",
+          "record_count": 1
+        },
+        {
+          "global": 21,
+          "name": "event",
+          "record_count": 4
+        },
+        {
+          "global": 23,
+          "name": "device_info",
+          "record_count": 1
+        },
+        {
+          "global": 24,
+          "name": null,
+          "record_count": 34
+        },
+        {
+          "global": 35,
+          "name": "software",
+          "record_count": 1
+        },
+        {
+          "global": 55,
+          "name": "monitoring",
+          "record_count": 141
+        },
+        {
+          "global": 103,
+          "name": "monitoring_info",
+          "record_count": 1
+        },
+        {
+          "global": 188,
+          "name": "ohr_settings",
+          "record_count": 1
+        },
+        {
+          "global": 211,
+          "name": "monitoring_hr_data",
+          "record_count": 2
+        },
+        {
+          "global": 227,
+          "name": "stress_level",
+          "record_count": 105
+        },
+        {
+          "global": 233,
+          "name": null,
+          "record_count": 105
+        },
+        {
+          "global": 269,
+          "name": "spo2_data",
+          "record_count": 101
+        },
+        {
+          "global": 297,
+          "name": "respiration_rate",
+          "record_count": 105
+        },
+        {
+          "global": 355,
+          "name": null,
+          "record_count": 1
+        },
+        {
+          "global": 408,
+          "name": null,
+          "record_count": 1
+        },
+        {
+          "global": 484,
+          "name": null,
+          "record_count": 1
+        }
+      ],
+      "field_row_count": 63,
+      "record_count": 605,
+      "first_month": "2026-11",
+      "last_month": "2026-11",
+      "monitoring_hr_timestamp16_records": 91,
+      "monitoring_hr_full_timestamp_records": 0
+    },
+    {
+      "file_alias": "47ce97d915af",
+      "format": "FIT",
+      "size": 2399,
+      "message_counts": [
+        {
+          "global": 0,
+          "name": "file_id",
+          "record_count": 1
+        },
+        {
+          "global": 26,
+          "name": "workout",
+          "record_count": 1
+        },
+        {
+          "global": 27,
+          "name": "workout_step",
+          "record_count": 6
+        },
+        {
+          "global": 49,
+          "name": "file_creator",
+          "record_count": 1
+        },
+        {
+          "global": 145,
+          "name": "memo_glob",
+          "record_count": 2
+        }
+      ],
+      "field_row_count": 54,
+      "record_count": 11,
+      "first_month": "",
+      "last_month": "",
+      "monitoring_hr_timestamp16_records": 0,
+      "monitoring_hr_full_timestamp_records": 0
+    },
+    {
+      "file_alias": "55b498402150",
+      "format": "FIT",
+      "size": 4841,
+      "message_counts": [
+        {
+          "global": 0,
+          "name": "file_id",
+          "record_count": 1
+        },
+        {
+          "global": 2,
+          "name": "device_settings",
+          "record_count": 1
+        },
+        {
+          "global": 3,
+          "name": "user_profile",
+          "record_count": 1
+        },
+        {
+          "global": 7,
+          "name": "zones_target",
+          "record_count": 1
+        },
+        {
+          "global": 12,
+          "name": "sport",
+          "record_count": 1
+        },
+        {
+          "global": 13,
+          "name": "training_settings",
+          "record_count": 1
+        },
+        {
+          "global": 18,
+          "name": "session",
+          "record_count": 1
+        },
+        {
+          "global": 19,
+          "name": "lap",
+          "record_count": 1
+        },
+        {
+          "global": 20,
+          "name": "record",
+          "record_count": 11
+        },
+        {
+          "global": 21,
+          "name": "event",
+          "record_count": 2
+        },
+        {
+          "global": 22,
+          "name": null,
+          "record_count": 2
+        },
+        {
+          "global": 23,
+          "name": "device_info",
+          "record_count": 8
+        },
+        {
+          "global": 34,
+          "name": "activity",
+          "record_count": 1
+        },
+        {
+          "global": 49,
+          "name": "file_creator",
+          "record_count": 1
+        },
+        {
+          "global": 79,
+          "name": null,
+          "record_count": 1
+        },
+        {
+          "global": 140,
+          "name": null,
+          "record_count": 1
+        },
+        {
+          "global": 162,
+          "name": "timestamp_correlation",
+          "record_count": 1
+        },
+        {
+          "global": 216,
+          "name": "time_in_zone",
+          "record_count": 2
+        },
+        {
+          "global": 233,
+          "name": null,
+          "record_count": 11
+        },
+        {
+          "global": 288,
+          "name": null,
+          "record_count": 2
+        }
+      ],
+      "field_row_count": 602,
+      "record_count": 51,
+      "first_month": "2026-11",
+      "last_month": "2026-11",
+      "monitoring_hr_timestamp16_records": 0,
+      "monitoring_hr_full_timestamp_records": 0
+    },
+    {
+      "file_alias": "597c089f6fba",
+      "format": "FIT",
+      "size": 456,
+      "message_counts": [
+        {
+          "global": 0,
+          "name": "file_id",
+          "record_count": 1
+        },
+        {
+          "global": 23,
+          "name": "device_info",
+          "record_count": 1
+        },
+        {
+          "global": 49,
+          "name": "file_creator",
+          "record_count": 1
+        },
+        {
+          "global": 241,
+          "name": null,
+          "record_count": 1
+        },
+        {
+          "global": 369,
+          "name": null,
+          "record_count": 1
+        }
+      ],
+      "field_row_count": 73,
+      "record_count": 5,
+      "first_month": "2026-11",
+      "last_month": "2026-11",
+      "monitoring_hr_timestamp16_records": 0,
+      "monitoring_hr_full_timestamp_records": 0
+    },
+    {
+      "file_alias": "709be116b41e",
+      "format": "FIT",
+      "size": 19163,
+      "message_counts": [
+        {
+          "global": 0,
+          "name": "file_id",
+          "record_count": 1
+        },
+        {
+          "global": 21,
+          "name": "event",
+          "record_count": 2
+        },
+        {
+          "global": 23,
+          "name": "device_info",
+          "record_count": 1
+        },
+        {
+          "global": 24,
+          "name": null,
+          "record_count": 51
+        },
+        {
+          "global": 35,
+          "name": "software",
+          "record_count": 1
+        },
+        {
+          "global": 55,
+          "name": "monitoring",
+          "record_count": 506
+        },
+        {
+          "global": 103,
+          "name": "monitoring_info",
+          "record_count": 1
+        },
+        {
+          "global": 188,
+          "name": "ohr_settings",
+          "record_count": 2
+        },
+        {
+          "global": 211,
+          "name": "monitoring_hr_data",
+          "record_count": 1
+        },
+        {
+          "global": 227,
+          "name": "stress_level",
+          "record_count": 471
+        },
+        {
+          "global": 233,
+          "name": null,
+          "record_count": 475
+        },
+        {
+          "global": 269,
+          "name": "spo2_data",
+          "record_count": 475
+        },
+        {
+          "global": 297,
+          "name": "respiration_rate",
+          "record_count": 471
+        },
+        {
+          "global": 355,
+          "name": null,
+          "record_count": 1
+        },
+        {
+          "global": 408,
+          "name": null,
+          "record_count": 4
+        },
+        {
+          "global": 484,
+          "name": null,
+          "record_count": 1
+        }
+      ],
+      "field_row_count": 65,
+      "record_count": 2464,
+      "first_month": "2026-11",
+      "last_month": "2026-11",
+      "monitoring_hr_timestamp16_records": 376,
+      "monitoring_hr_full_timestamp_records": 0
+    },
+    {
+      "file_alias": "85efbba758d0",
+      "format": "FIT",
+      "size": 3714,
+      "message_counts": [
+        {
+          "global": 0,
+          "name": "file_id",
+          "record_count": 1
+        },
+        {
+          "global": 26,
+          "name": "workout",
+          "record_count": 1
+        },
+        {
+          "global": 27,
+          "name": "workout_step",
+          "record_count": 11
+        },
+        {
+          "global": 49,
+          "name": "file_creator",
+          "record_count": 1
+        },
+        {
+          "global": 145,
+          "name": "memo_glob",
+          "record_count": 2
+        }
+      ],
+      "field_row_count": 54,
+      "record_count": 16,
+      "first_month": "",
+      "last_month": "",
+      "monitoring_hr_timestamp16_records": 0,
+      "monitoring_hr_full_timestamp_records": 0
+    },
+    {
+      "file_alias": "94af73b2cf14",
+      "format": "FIT",
+      "size": 5115,
+      "message_counts": [
+        {
+          "global": 0,
+          "name": "file_id",
+          "record_count": 1
+        },
+        {
+          "global": 2,
+          "name": "device_settings",
+          "record_count": 1
+        },
+        {
+          "global": 3,
+          "name": "user_profile",
+          "record_count": 1
+        },
+        {
+          "global": 7,
+          "name": "zones_target",
+          "record_count": 1
+        },
+        {
+          "global": 12,
+          "name": "sport",
+          "record_count": 1
+        },
+        {
+          "global": 13,
+          "name": "training_settings",
+          "record_count": 1
+        },
+        {
+          "global": 18,
+          "name": "session",
+          "record_count": 1
+        },
+        {
+          "global": 19,
+          "name": "lap",
+          "record_count": 1
+        },
+        {
+          "global": 20,
+          "name": "record",
+          "record_count": 24
+        },
+        {
+          "global": 21,
+          "name": "event",
+          "record_count": 2
+        },
+        {
+          "global": 22,
+          "name": null,
+          "record_count": 2
+        },
+        {
+          "global": 23,
+          "name": "device_info",
+          "record_count": 8
+        },
+        {
+          "global": 34,
+          "name": "activity",
+          "record_count": 1
+        },
+        {
+          "global": 49,
+          "name": "file_creator",
+          "record_count": 1
+        },
+        {
+          "global": 79,
+          "name": null,
+          "record_count": 1
+        },
+        {
+          "global": 140,
+          "name": null,
+          "record_count": 1
+        },
+        {
+          "global": 162,
+          "name": "timestamp_correlation",
+          "record_count": 1
+        },
+        {
+          "global": 216,
+          "name": "time_in_zone",
+          "record_count": 2
+        },
+        {
+          "global": 233,
+          "name": null,
+          "record_count": 24
+        },
+        {
+          "global": 288,
+          "name": null,
+          "record_count": 2
+        }
+      ],
+      "field_row_count": 602,
+      "record_count": 77,
+      "first_month": "2026-11",
+      "last_month": "2026-11",
+      "monitoring_hr_timestamp16_records": 0,
+      "monitoring_hr_full_timestamp_records": 0
+    },
+    {
+      "file_alias": "9e8ea4fe6762",
+      "format": "FIT",
+      "size": 4651,
+      "message_counts": [
+        {
+          "global": 0,
+          "name": "file_id",
+          "record_count": 1
+        },
+        {
+          "global": 2,
+          "name": "device_settings",
+          "record_count": 1
+        },
+        {
+          "global": 3,
+          "name": "user_profile",
+          "record_count": 1
+        },
+        {
+          "global": 7,
+          "name": "zones_target",
+          "record_count": 1
+        },
+        {
+          "global": 12,
+          "name": "sport",
+          "record_count": 1
+        },
+        {
+          "global": 13,
+          "name": "training_settings",
+          "record_count": 1
+        },
+        {
+          "global": 18,
+          "name": "session",
+          "record_count": 1
+        },
+        {
+          "global": 19,
+          "name": "lap",
+          "record_count": 1
+        },
+        {
+          "global": 20,
+          "name": "record",
+          "record_count": 6
+        },
+        {
+          "global": 21,
+          "name": "event",
+          "record_count": 2
+        },
+        {
+          "global": 22,
+          "name": null,
+          "record_count": 2
+        },
+        {
+          "global": 23,
+          "name": "device_info",
+          "record_count": 8
+        },
+        {
+          "global": 34,
+          "name": "activity",
+          "record_count": 1
+        },
+        {
+          "global": 49,
+          "name": "file_creator",
+          "record_count": 1
+        },
+        {
+          "global": 79,
+          "name": null,
+          "record_count": 1
+        },
+        {
+          "global": 140,
+          "name": null,
+          "record_count": 1
+        },
+        {
+          "global": 162,
+          "name": "timestamp_correlation",
+          "record_count": 1
+        },
+        {
+          "global": 216,
+          "name": "time_in_zone",
+          "record_count": 2
+        },
+        {
+          "global": 233,
+          "name": null,
+          "record_count": 7
+        },
+        {
+          "global": 288,
+          "name": null,
+          "record_count": 1
+        }
+      ],
+      "field_row_count": 602,
+      "record_count": 41,
+      "first_month": "2026-11",
+      "last_month": "2026-11",
+      "monitoring_hr_timestamp16_records": 0,
+      "monitoring_hr_full_timestamp_records": 0
+    },
+    {
+      "file_alias": "a8bc5c45a665",
+      "format": "FIT",
+      "size": 4976,
+      "message_counts": [
+        {
+          "global": 0,
+          "name": "file_id",
+          "record_count": 1
+        },
+        {
+          "global": 2,
+          "name": "device_settings",
+          "record_count": 1
+        },
+        {
+          "global": 3,
+          "name": "user_profile",
+          "record_count": 1
+        },
+        {
+          "global": 7,
+          "name": "zones_target",
+          "record_count": 1
+        },
+        {
+          "global": 12,
+          "name": "sport",
+          "record_count": 1
+        },
+        {
+          "global": 13,
+          "name": "training_settings",
+          "record_count": 1
+        },
+        {
+          "global": 18,
+          "name": "session",
+          "record_count": 1
+        },
+        {
+          "global": 19,
+          "name": "lap",
+          "record_count": 1
+        },
+        {
+          "global": 20,
+          "name": "record",
+          "record_count": 18
+        },
+        {
+          "global": 21,
+          "name": "event",
+          "record_count": 2
+        },
+        {
+          "global": 22,
+          "name": null,
+          "record_count": 2
+        },
+        {
+          "global": 23,
+          "name": "device_info",
+          "record_count": 7
+        },
+        {
+          "global": 34,
+          "name": "activity",
+          "record_count": 1
+        },
+        {
+          "global": 49,
+          "name": "file_creator",
+          "record_count": 1
+        },
+        {
+          "global": 79,
+          "name": null,
+          "record_count": 1
+        },
+        {
+          "global": 140,
+          "name": null,
+          "record_count": 1
+        },
+        {
+          "global": 162,
+          "name": "timestamp_correlation",
+          "record_count": 1
+        },
+        {
+          "global": 216,
+          "name": "time_in_zone",
+          "record_count": 2
+        },
+        {
+          "global": 233,
+          "name": null,
+          "record_count": 18
+        },
+        {
+          "global": 288,
+          "name": null,
+          "record_count": 2
+        }
+      ],
+      "field_row_count": 602,
+      "record_count": 64,
+      "first_month": "2026-11",
+      "last_month": "2026-11",
+      "monitoring_hr_timestamp16_records": 0,
+      "monitoring_hr_full_timestamp_records": 0
+    },
+    {
+      "file_alias": "b1423d2f38c4",
+      "format": "FIT",
+      "size": 4210,
+      "message_counts": [
+        {
+          "global": 0,
+          "name": "file_id",
+          "record_count": 1
+        },
+        {
+          "global": 2,
+          "name": "device_settings",
+          "record_count": 1
+        },
+        {
+          "global": 3,
+          "name": "user_profile",
+          "record_count": 1
+        },
+        {
+          "global": 7,
+          "name": "zones_target",
+          "record_count": 1
+        },
+        {
+          "global": 12,
+          "name": "sport",
+          "record_count": 1
+        },
+        {
+          "global": 13,
+          "name": "training_settings",
+          "record_count": 1
+        },
+        {
+          "global": 18,
+          "name": "session",
+          "record_count": 1
+        },
+        {
+          "global": 19,
+          "name": "lap",
+          "record_count": 1
+        },
+        {
+          "global": 20,
+          "name": "record",
+          "record_count": 3
+        },
+        {
+          "global": 21,
+          "name": "event",
+          "record_count": 2
+        },
+        {
+          "global": 22,
+          "name": null,
+          "record_count": 1
+        },
+        {
+          "global": 23,
+          "name": "device_info",
+          "record_count": 5
+        },
+        {
+          "global": 34,
+          "name": "activity",
+          "record_count": 1
+        },
+        {
+          "global": 49,
+          "name": "file_creator",
+          "record_count": 1
+        },
+        {
+          "global": 79,
+          "name": null,
+          "record_count": 1
+        },
+        {
+          "global": 140,
+          "name": null,
+          "record_count": 1
+        },
+        {
+          "global": 162,
+          "name": "timestamp_correlation",
+          "record_count": 1
+        },
+        {
+          "global": 216,
+          "name": "time_in_zone",
+          "record_count": 2
+        },
+        {
+          "global": 233,
+          "name": null,
+          "record_count": 3
+        },
+        {
+          "global": 288,
+          "name": null,
+          "record_count": 1
+        }
+      ],
+      "field_row_count": 600,
+      "record_count": 30,
+      "first_month": "2026-11",
+      "last_month": "2026-11",
+      "monitoring_hr_timestamp16_records": 0,
+      "monitoring_hr_full_timestamp_records": 0
+    },
+    {
+      "file_alias": "b6c918576b28",
+      "format": "FIT",
+      "size": 4314,
+      "message_counts": [
+        {
+          "global": 0,
+          "name": "file_id",
+          "record_count": 1
+        },
+        {
+          "global": 2,
+          "name": "device_settings",
+          "record_count": 1
+        },
+        {
+          "global": 3,
+          "name": "user_profile",
+          "record_count": 1
+        },
+        {
+          "global": 7,
+          "name": "zones_target",
+          "record_count": 1
+        },
+        {
+          "global": 12,
+          "name": "sport",
+          "record_count": 1
+        },
+        {
+          "global": 13,
+          "name": "training_settings",
+          "record_count": 1
+        },
+        {
+          "global": 18,
+          "name": "session",
+          "record_count": 1
+        },
+        {
+          "global": 19,
+          "name": "lap",
+          "record_count": 1
+        },
+        {
+          "global": 20,
+          "name": "record",
+          "record_count": 7
+        },
+        {
+          "global": 21,
+          "name": "event",
+          "record_count": 2
+        },
+        {
+          "global": 22,
+          "name": null,
+          "record_count": 1
+        },
+        {
+          "global": 23,
+          "name": "device_info",
+          "record_count": 5
+        },
+        {
+          "global": 34,
+          "name": "activity",
+          "record_count": 1
+        },
+        {
+          "global": 49,
+          "name": "file_creator",
+          "record_count": 1
+        },
+        {
+          "global": 79,
+          "name": null,
+          "record_count": 1
+        },
+        {
+          "global": 140,
+          "name": null,
+          "record_count": 1
+        },
+        {
+          "global": 162,
+          "name": "timestamp_correlation",
+          "record_count": 1
+        },
+        {
+          "global": 216,
+          "name": "time_in_zone",
+          "record_count": 2
+        },
+        {
+          "global": 233,
+          "name": null,
+          "record_count": 7
+        },
+        {
+          "global": 288,
+          "name": null,
+          "record_count": 1
+        }
+      ],
+      "field_row_count": 600,
+      "record_count": 38,
+      "first_month": "2026-11",
+      "last_month": "2026-11",
+      "monitoring_hr_timestamp16_records": 0,
+      "monitoring_hr_full_timestamp_records": 0
+    },
+    {
+      "file_alias": "c4dead5cd732",
+      "format": "FIT",
+      "size": 4210,
+      "message_counts": [
+        {
+          "global": 0,
+          "name": "file_id",
+          "record_count": 1
+        },
+        {
+          "global": 2,
+          "name": "device_settings",
+          "record_count": 1
+        },
+        {
+          "global": 3,
+          "name": "user_profile",
+          "record_count": 1
+        },
+        {
+          "global": 7,
+          "name": "zones_target",
+          "record_count": 1
+        },
+        {
+          "global": 12,
+          "name": "sport",
+          "record_count": 1
+        },
+        {
+          "global": 13,
+          "name": "training_settings",
+          "record_count": 1
+        },
+        {
+          "global": 18,
+          "name": "session",
+          "record_count": 1
+        },
+        {
+          "global": 19,
+          "name": "lap",
+          "record_count": 1
+        },
+        {
+          "global": 20,
+          "name": "record",
+          "record_count": 3
+        },
+        {
+          "global": 21,
+          "name": "event",
+          "record_count": 2
+        },
+        {
+          "global": 22,
+          "name": null,
+          "record_count": 1
+        },
+        {
+          "global": 23,
+          "name": "device_info",
+          "record_count": 5
+        },
+        {
+          "global": 34,
+          "name": "activity",
+          "record_count": 1
+        },
+        {
+          "global": 49,
+          "name": "file_creator",
+          "record_count": 1
+        },
+        {
+          "global": 79,
+          "name": null,
+          "record_count": 1
+        },
+        {
+          "global": 140,
+          "name": null,
+          "record_count": 1
+        },
+        {
+          "global": 162,
+          "name": "timestamp_correlation",
+          "record_count": 1
+        },
+        {
+          "global": 216,
+          "name": "time_in_zone",
+          "record_count": 2
+        },
+        {
+          "global": 233,
+          "name": null,
+          "record_count": 3
+        },
+        {
+          "global": 288,
+          "name": null,
+          "record_count": 1
+        }
+      ],
+      "field_row_count": 600,
+      "record_count": 30,
+      "first_month": "2026-11",
+      "last_month": "2026-11",
+      "monitoring_hr_timestamp16_records": 0,
+      "monitoring_hr_full_timestamp_records": 0
+    },
+    {
+      "file_alias": "c611a5e83e41",
+      "format": "FIT",
+      "size": 4229,
+      "message_counts": [
+        {
+          "global": 0,
+          "name": "file_id",
+          "record_count": 1
+        },
+        {
+          "global": 2,
+          "name": "device_settings",
+          "record_count": 1
+        },
+        {
+          "global": 3,
+          "name": "user_profile",
+          "record_count": 1
+        },
+        {
+          "global": 7,
+          "name": "zones_target",
+          "record_count": 1
+        },
+        {
+          "global": 12,
+          "name": "sport",
+          "record_count": 1
+        },
+        {
+          "global": 13,
+          "name": "training_settings",
+          "record_count": 1
+        },
+        {
+          "global": 18,
+          "name": "session",
+          "record_count": 1
+        },
+        {
+          "global": 19,
+          "name": "lap",
+          "record_count": 1
+        },
+        {
+          "global": 20,
+          "name": "record",
+          "record_count": 4
+        },
+        {
+          "global": 21,
+          "name": "event",
+          "record_count": 2
+        },
+        {
+          "global": 22,
+          "name": null,
+          "record_count": 1
+        },
+        {
+          "global": 23,
+          "name": "device_info",
+          "record_count": 5
+        },
+        {
+          "global": 34,
+          "name": "activity",
+          "record_count": 1
+        },
+        {
+          "global": 49,
+          "name": "file_creator",
+          "record_count": 1
+        },
+        {
+          "global": 79,
+          "name": null,
+          "record_count": 1
+        },
+        {
+          "global": 140,
+          "name": null,
+          "record_count": 1
+        },
+        {
+          "global": 162,
+          "name": "timestamp_correlation",
+          "record_count": 1
+        },
+        {
+          "global": 216,
+          "name": "time_in_zone",
+          "record_count": 2
+        },
+        {
+          "global": 233,
+          "name": null,
+          "record_count": 4
+        },
+        {
+          "global": 288,
+          "name": null,
+          "record_count": 1
+        }
+      ],
+      "field_row_count": 599,
+      "record_count": 32,
+      "first_month": "2026-11",
+      "last_month": "2026-11",
+      "monitoring_hr_timestamp16_records": 0,
+      "monitoring_hr_full_timestamp_records": 0
+    },
+    {
+      "file_alias": "cf172de85ff6",
+      "format": "FIT",
+      "size": 4236,
+      "message_counts": [
+        {
+          "global": 0,
+          "name": "file_id",
+          "record_count": 1
+        },
+        {
+          "global": 2,
+          "name": "device_settings",
+          "record_count": 1
+        },
+        {
+          "global": 3,
+          "name": "user_profile",
+          "record_count": 1
+        },
+        {
+          "global": 7,
+          "name": "zones_target",
+          "record_count": 1
+        },
+        {
+          "global": 12,
+          "name": "sport",
+          "record_count": 1
+        },
+        {
+          "global": 13,
+          "name": "training_settings",
+          "record_count": 1
+        },
+        {
+          "global": 18,
+          "name": "session",
+          "record_count": 1
+        },
+        {
+          "global": 19,
+          "name": "lap",
+          "record_count": 1
+        },
+        {
+          "global": 20,
+          "name": "record",
+          "record_count": 4
+        },
+        {
+          "global": 21,
+          "name": "event",
+          "record_count": 2
+        },
+        {
+          "global": 22,
+          "name": null,
+          "record_count": 1
+        },
+        {
+          "global": 23,
+          "name": "device_info",
+          "record_count": 5
+        },
+        {
+          "global": 34,
+          "name": "activity",
+          "record_count": 1
+        },
+        {
+          "global": 49,
+          "name": "file_creator",
+          "record_count": 1
+        },
+        {
+          "global": 79,
+          "name": null,
+          "record_count": 1
+        },
+        {
+          "global": 140,
+          "name": null,
+          "record_count": 1
+        },
+        {
+          "global": 162,
+          "name": "timestamp_correlation",
+          "record_count": 1
+        },
+        {
+          "global": 216,
+          "name": "time_in_zone",
+          "record_count": 2
+        },
+        {
+          "global": 233,
+          "name": null,
+          "record_count": 4
+        },
+        {
+          "global": 288,
+          "name": null,
+          "record_count": 1
+        }
+      ],
+      "field_row_count": 600,
+      "record_count": 32,
+      "first_month": "2026-11",
+      "last_month": "2026-11",
+      "monitoring_hr_timestamp16_records": 0,
+      "monitoring_hr_full_timestamp_records": 0
+    },
+    {
+      "file_alias": "d31ae437240e",
+      "format": "FIT",
+      "size": 404,
+      "message_counts": [
+        {
+          "global": 0,
+          "name": "file_id",
+          "record_count": 1
+        },
+        {
+          "global": 23,
+          "name": "device_info",
+          "record_count": 1
+        },
+        {
+          "global": 49,
+          "name": "file_creator",
+          "record_count": 1
+        },
+        {
+          "global": 162,
+          "name": "timestamp_correlation",
+          "record_count": 1
+        },
+        {
+          "global": 470,
+          "name": "sleep_disruption_severity_period",
+          "record_count": 6
+        },
+        {
+          "global": 471,
+          "name": "sleep_disruption_overnight_severity",
+          "record_count": 1
+        }
+      ],
+      "field_row_count": 48,
+      "record_count": 11,
+      "first_month": "2026-11",
+      "last_month": "2026-11",
+      "monitoring_hr_timestamp16_records": 0,
+      "monitoring_hr_full_timestamp_records": 0
+    },
+    {
+      "file_alias": "d87554954875",
+      "format": "FIT",
+      "size": 980,
+      "message_counts": [
+        {
+          "global": 0,
+          "name": "file_id",
+          "record_count": 1
+        },
+        {
+          "global": 21,
+          "name": "event",
+          "record_count": 2
+        },
+        {
+          "global": 23,
+          "name": "device_info",
+          "record_count": 1
+        },
+        {
+          "global": 49,
+          "name": "file_creator",
+          "record_count": 1
+        },
+        {
+          "global": 273,
+          "name": null,
+          "record_count": 1
+        },
+        {
+          "global": 275,
+          "name": "sleep_level",
+          "record_count": 27
+        },
+        {
+          "global": 346,
+          "name": "sleep_assessment",
+          "record_count": 1
+        },
+        {
+          "global": 382,
+          "name": null,
+          "record_count": 1
+        },
+        {
+          "global": 521,
+          "name": null,
+          "record_count": 1
+        }
+      ],
+      "field_row_count": 89,
+      "record_count": 36,
+      "first_month": "2026-11",
+      "last_month": "2026-11",
+      "monitoring_hr_timestamp16_records": 0,
+      "monitoring_hr_full_timestamp_records": 0
+    },
+    {
+      "file_alias": "da5957214d47",
+      "format": "FIT",
+      "size": 4889,
+      "message_counts": [
+        {
+          "global": 0,
+          "name": "file_id",
+          "record_count": 1
+        },
+        {
+          "global": 2,
+          "name": "device_settings",
+          "record_count": 1
+        },
+        {
+          "global": 3,
+          "name": "user_profile",
+          "record_count": 1
+        },
+        {
+          "global": 7,
+          "name": "zones_target",
+          "record_count": 1
+        },
+        {
+          "global": 12,
+          "name": "sport",
+          "record_count": 1
+        },
+        {
+          "global": 13,
+          "name": "training_settings",
+          "record_count": 1
+        },
+        {
+          "global": 18,
+          "name": "session",
+          "record_count": 1
+        },
+        {
+          "global": 19,
+          "name": "lap",
+          "record_count": 1
+        },
+        {
+          "global": 20,
+          "name": "record",
+          "record_count": 15
+        },
+        {
+          "global": 21,
+          "name": "event",
+          "record_count": 2
+        },
+        {
+          "global": 22,
+          "name": null,
+          "record_count": 2
+        },
+        {
+          "global": 23,
+          "name": "device_info",
+          "record_count": 8
+        },
+        {
+          "global": 34,
+          "name": "activity",
+          "record_count": 1
+        },
+        {
+          "global": 49,
+          "name": "file_creator",
+          "record_count": 1
+        },
+        {
+          "global": 79,
+          "name": null,
+          "record_count": 1
+        },
+        {
+          "global": 140,
+          "name": null,
+          "record_count": 1
+        },
+        {
+          "global": 162,
+          "name": "timestamp_correlation",
+          "record_count": 1
+        },
+        {
+          "global": 216,
+          "name": "time_in_zone",
+          "record_count": 2
+        },
+        {
+          "global": 233,
+          "name": null,
+          "record_count": 15
+        },
+        {
+          "global": 288,
+          "name": null,
+          "record_count": 2
+        }
+      ],
+      "field_row_count": 602,
+      "record_count": 59,
+      "first_month": "2026-11",
+      "last_month": "2026-11",
+      "monitoring_hr_timestamp16_records": 0,
+      "monitoring_hr_full_timestamp_records": 0
+    },
+    {
+      "file_alias": "dd1341c9d5cb",
+      "format": "FIT",
+      "size": 4230,
+      "message_counts": [
+        {
+          "global": 0,
+          "name": "file_id",
+          "record_count": 1
+        },
+        {
+          "global": 26,
+          "name": "workout",
+          "record_count": 1
+        },
+        {
+          "global": 27,
+          "name": "workout_step",
+          "record_count": 13
+        },
+        {
+          "global": 49,
+          "name": "file_creator",
+          "record_count": 1
+        },
+        {
+          "global": 145,
+          "name": "memo_glob",
+          "record_count": 2
+        }
+      ],
+      "field_row_count": 54,
+      "record_count": 18,
+      "first_month": "",
+      "last_month": "",
+      "monitoring_hr_timestamp16_records": 0,
+      "monitoring_hr_full_timestamp_records": 0
+    },
+    {
+      "file_alias": "dfb28a63ac85",
+      "format": "FIT",
+      "size": 3373,
+      "message_counts": [
+        {
+          "global": 0,
+          "name": "file_id",
+          "record_count": 1
+        },
+        {
+          "global": 26,
+          "name": "workout",
+          "record_count": 1
+        },
+        {
+          "global": 27,
+          "name": "workout_step",
+          "record_count": 10
+        },
+        {
+          "global": 49,
+          "name": "file_creator",
+          "record_count": 1
+        },
+        {
+          "global": 145,
+          "name": "memo_glob",
+          "record_count": 1
+        }
+      ],
+      "field_row_count": 54,
+      "record_count": 14,
+      "first_month": "",
+      "last_month": "",
+      "monitoring_hr_timestamp16_records": 0,
+      "monitoring_hr_full_timestamp_records": 0
+    },
+    {
+      "file_alias": "e9d64a29fe03",
+      "format": "FIT",
+      "size": 2028,
+      "message_counts": [
+        {
+          "global": 0,
+          "name": "file_id",
+          "record_count": 1
+        },
+        {
+          "global": 23,
+          "name": "device_info",
+          "record_count": 1
+        },
+        {
+          "global": 49,
+          "name": "file_creator",
+          "record_count": 1
+        },
+        {
+          "global": 79,
+          "name": null,
+          "record_count": 1
+        },
+        {
+          "global": 140,
+          "name": null,
+          "record_count": 6
+        },
+        {
+          "global": 545,
+          "name": null,
+          "record_count": 3
+        }
+      ],
+      "field_row_count": 180,
+      "record_count": 13,
+      "first_month": "2026-11",
+      "last_month": "2026-11",
+      "monitoring_hr_timestamp16_records": 0,
+      "monitoring_hr_full_timestamp_records": 0
+    },
+    {
+      "file_alias": "ead1b0f7fc64",
+      "format": "FIT",
+      "size": 4599,
+      "message_counts": [
+        {
+          "global": 0,
+          "name": "file_id",
+          "record_count": 1
+        },
+        {
+          "global": 2,
+          "name": "device_settings",
+          "record_count": 1
+        },
+        {
+          "global": 3,
+          "name": "user_profile",
+          "record_count": 1
+        },
+        {
+          "global": 7,
+          "name": "zones_target",
+          "record_count": 1
+        },
+        {
+          "global": 12,
+          "name": "sport",
+          "record_count": 1
+        },
+        {
+          "global": 13,
+          "name": "training_settings",
+          "record_count": 1
+        },
+        {
+          "global": 18,
+          "name": "session",
+          "record_count": 1
+        },
+        {
+          "global": 19,
+          "name": "lap",
+          "record_count": 1
+        },
+        {
+          "global": 20,
+          "name": "record",
+          "record_count": 6
+        },
+        {
+          "global": 21,
+          "name": "event",
+          "record_count": 2
+        },
+        {
+          "global": 22,
+          "name": null,
+          "record_count": 2
+        },
+        {
+          "global": 23,
+          "name": "device_info",
+          "record_count": 8
+        },
+        {
+          "global": 34,
+          "name": "activity",
+          "record_count": 1
+        },
+        {
+          "global": 49,
+          "name": "file_creator",
+          "record_count": 1
+        },
+        {
+          "global": 79,
+          "name": null,
+          "record_count": 1
+        },
+        {
+          "global": 140,
+          "name": null,
+          "record_count": 1
+        },
+        {
+          "global": 162,
+          "name": "timestamp_correlation",
+          "record_count": 1
+        },
+        {
+          "global": 216,
+          "name": "time_in_zone",
+          "record_count": 2
+        },
+        {
+          "global": 288,
+          "name": null,
+          "record_count": 1
+        }
+      ],
+      "field_row_count": 601,
+      "record_count": 34,
+      "first_month": "2026-11",
+      "last_month": "2026-11",
+      "monitoring_hr_timestamp16_records": 0,
+      "monitoring_hr_full_timestamp_records": 0
+    },
+    {
+      "file_alias": "f1bef66b749b",
+      "format": "FIT",
+      "size": 628,
+      "message_counts": [
+        {
+          "global": 0,
+          "name": "file_id",
+          "record_count": 1
+        },
+        {
+          "global": 23,
+          "name": "device_info",
+          "record_count": 1
+        },
+        {
+          "global": 49,
+          "name": "file_creator",
+          "record_count": 1
+        },
+        {
+          "global": 241,
+          "name": null,
+          "record_count": 1
+        },
+        {
+          "global": 284,
+          "name": null,
+          "record_count": 1
+        },
+        {
+          "global": 356,
+          "name": null,
+          "record_count": 1
+        },
+        {
+          "global": 369,
+          "name": null,
+          "record_count": 1
+        },
+        {
+          "global": 410,
+          "name": null,
+          "record_count": 1
+        }
+      ],
+      "field_row_count": 104,
+      "record_count": 8,
+      "first_month": "2026-11",
+      "last_month": "2026-11",
+      "monitoring_hr_timestamp16_records": 0,
+      "monitoring_hr_full_timestamp_records": 0
+    },
+    {
+      "file_alias": "f7466f9e68ae",
+      "format": "FIT",
+      "size": 1073,
+      "message_counts": [
+        {
+          "global": 0,
+          "name": "file_id",
+          "record_count": 1
+        },
+        {
+          "global": 22,
+          "name": null,
+          "record_count": 1
+        },
+        {
+          "global": 23,
+          "name": "device_info",
+          "record_count": 2
+        },
+        {
+          "global": 49,
+          "name": "file_creator",
+          "record_count": 1
+        },
+        {
+          "global": 162,
+          "name": "timestamp_correlation",
+          "record_count": 2
+        },
+        {
+          "global": 370,
+          "name": "hrv_status_summary",
+          "record_count": 1
+        },
+        {
+          "global": 371,
+          "name": "hrv_value",
+          "record_count": 75
+        }
+      ],
+      "field_row_count": 64,
+      "record_count": 83,
+      "first_month": "2026-11",
+      "last_month": "2026-11",
+      "monitoring_hr_timestamp16_records": 0,
+      "monitoring_hr_full_timestamp_records": 0
+    },
+    {
+      "file_alias": "fc09b4596c6d",
+      "format": "FIT",
+      "size": 1500,
+      "message_counts": [
+        {
+          "global": 0,
+          "name": "file_id",
+          "record_count": 1
+        },
+        {
+          "global": 1,
+          "name": "capabilities",
+          "record_count": 1
+        },
+        {
+          "global": 35,
+          "name": "software",
+          "record_count": 42
+        },
+        {
+          "global": 37,
+          "name": "file_capabilities",
+          "record_count": 25
+        },
+        {
+          "global": 38,
+          "name": "mesg_capabilities",
+          "record_count": 16
+        },
+        {
+          "global": 39,
+          "name": "field_capabilities",
+          "record_count": 3
+        },
+        {
+          "global": 49,
+          "name": "file_creator",
+          "record_count": 1
+        }
+      ],
+      "field_row_count": 31,
+      "record_count": 89,
+      "first_month": "",
+      "last_month": "",
+      "monitoring_hr_timestamp16_records": 0,
+      "monitoring_hr_full_timestamp_records": 0
+    },
+    {
+      "file_alias": "9940465a7d75",
+      "format": "XML",
+      "size": 19975,
+      "message_counts": [],
+      "field_row_count": 0,
+      "record_count": 0,
+      "first_month": "",
+      "last_month": "",
+      "monitoring_hr_timestamp16_records": 0,
+      "monitoring_hr_full_timestamp_records": 0,
+      "xml_root_tag": "Device",
+      "xml_element_counts": {
+        "BaseName": 4,
+        "DataType": 34,
+        "Description": 1,
+        "Device": 1,
+        "DeviceExtension": 1,
+        "Documentation": 1,
+        "Extensions": 1,
+        "File": 51,
+        "FileExtension": 51,
+        "FileName": 41,
+        "Id": 1,
+        "Identifier": 51,
+        "Location": 51,
+        "Major": 41,
+        "MassStorageMode": 1,
+        "Minor": 41,
+        "Model": 1,
+        "Name": 34,
+        "PartNumber": 42,
+        "Path": 92,
+        "SoftwareVersion": 1,
+        "Specification": 51,
+        "TransferDirection": 51,
+        "UpdateFile": 41,
+        "Version": 41
+      },
+      "xml_element_count": 726,
+      "xml_attribute_names": [
+        "schemaLocation"
+      ]
+    },
+    {
+      "file_alias": "b0f9e0fc4169",
+      "format": "protobuf_schema_unknown",
+      "size": 229,
+      "message_counts": [],
+      "field_row_count": 0,
+      "record_count": 0,
+      "first_month": "",
+      "last_month": "",
+      "monitoring_hr_timestamp16_records": 0,
+      "monitoring_hr_full_timestamp_records": 0,
+      "protobuf_fields": [
+        {
+          "path": "root",
+          "field_shapes": [
+            {
+              "field_number": 1,
+              "wire_type": 2,
+              "occurrences": 1,
+              "lengths_bytes": [
+                226
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "sqlite_summary": {
+    "integrity_check": "ok",
+    "metric_counts": {
+      "distance": 129,
+      "heart_rate": 129,
+      "speed": 36
+    },
+    "reading_count": 294,
+    "duplicate_primary_keys": 0,
+    "decoder_candidate_keys": 294,
+    "decoder_candidate_keys_in_sqlite": 294
+  }
+}
