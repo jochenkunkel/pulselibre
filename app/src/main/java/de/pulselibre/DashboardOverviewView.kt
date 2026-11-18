@@ -159,10 +159,13 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
                 palette.muted)
             if (night.reason != "ok") nightReason.text = night.reason
         }
-        fill(null)
+        // The overview re-renders whenever readings arrive; show the cached result at once and let the
+        // single background load update whichever card is currently on screen.
+        fill(cachedNight)
         card.addView(insightRow)
         card.addView(nightReason, LayoutParams(-1, -2).apply { topMargin = dp(6) })
-        loadNight(::fill)
+        nightFill = ::fill
+        if (cachedNight == null || System.currentTimeMillis() - cachedNightAt > NIGHT_CACHE_MS) loadNight()
         card.addView(label("Nur Originalpunkte · keine Diagnose", 10f, muted).apply {
             gravity = Gravity.END
             contentDescription = "Nur gespeicherte Originalmessungen; keine Diagnose"
@@ -172,15 +175,29 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
         addView(card, LayoutParams(-1, -2).apply { bottomMargin = dp(16) })
     }
 
-    private fun loadNight(show: (NocturnalOxygen.Summary?) -> Unit) {
+    private var nightFill: ((NocturnalOxygen.Summary?) -> Unit)? = null
+
+    private fun loadNight() {
+        if (nightLoading) return
+        nightLoading = true
         val app = context.applicationContext
         Thread {
             val summary = try {
                 val night = NightOxygenReader(app).read(java.time.Instant.now(), java.time.ZoneId.systemDefault())
                 NocturnalOxygen.summarize(night.samples, night.start, night.end)
-            } catch (_: Exception) { null }
-            post { if (isAttachedToWindow) show(summary ?: NocturnalOxygen.Summary(false, "Nachtserie nicht lesbar.", 0, null, null, null, null)) }
+            } catch (_: Exception) { NocturnalOxygen.Summary(false, "Nachtserie nicht lesbar.", 0, null, null, null, null) }
+            cachedNight = summary
+            cachedNightAt = System.currentTimeMillis()
+            nightLoading = false
+            post { if (isAttachedToWindow) nightFill?.invoke(summary) }
         }.start()
+    }
+
+    private companion object {
+        const val NIGHT_CACHE_MS = 5 * 60_000L
+        @Volatile var cachedNight: NocturnalOxygen.Summary? = null
+        @Volatile var cachedNightAt = 0L
+        @Volatile var nightLoading = false
     }
 
     private fun addNightIndicator(parent: LinearLayout, icon: String, title: String, value: String, color: Int) {
