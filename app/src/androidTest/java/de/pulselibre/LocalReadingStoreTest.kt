@@ -56,7 +56,7 @@ class LocalReadingStoreTest {
                 assertEquals(2, first.filesSeen)
                 assertEquals(1, first.filesImported)
                 assertEquals(1, first.invalidFiles)
-                assertEquals(1, first.observationsDecoded)
+                assertEquals(1, first.importableObservations)
                 assertEquals(first, repeated)
                 val records = store.readWindow(ExportWindow(0, Long.MAX_VALUE))
                 assertEquals(1, records.size)

@@ -19,7 +19,7 @@ class CirqaFitBackfill(
         val filesSeen: Int,
         val filesImported: Int,
         val invalidFiles: Int,
-        val observationsDecoded: Int
+        val importableObservations: Int
     )
 
     init {
