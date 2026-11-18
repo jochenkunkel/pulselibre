@@ -89,4 +89,19 @@ class DashboardDayReaderTest {
             db.rawQuery("SELECT COUNT(*) FROM events", null).use { c -> c.moveToFirst(); assertEquals(1, c.getInt(0)) }
         }
     }
+
+    @Test fun dailyValuesUseDeviceRestingFieldOnlyAndCompleteDays() = withContext { ctx ->
+        fun resting(at: String, v: Int) =
+            """{"schema":1,"type":"reading","received_at_utc":"$at","service":6,"resting_bpm":$v}"""
+        CirqaDatabase(ctx).use { db ->
+            db.insertLine(resting("2026-11-16T09:00:00Z", 58))
+            db.insertLine(resting("2026-11-16T10:00:00Z", 62))
+            db.insertLine(pulse(Instant.parse("2026-11-16T11:00:00Z"), 45)) // plain pulse must not count
+            db.insertLine(resting("2026-11-18T09:00:00Z", 50)) // today: incomplete, excluded
+        }
+        val zone = ZoneId.of("UTC")
+        val v = DailyValueReader(ctx).read(DashboardMeasurement.RESTING_PULSE,
+            LocalDate.of(2026, 11, 1), LocalDate.of(2026, 11, 18), zone)
+        assertEquals(mapOf(LocalDate.of(2026, 11, 16) to 60.0), v)
+    }
 }
