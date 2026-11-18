@@ -71,10 +71,10 @@ class CirqaFileAccessItemListParserTest {
     }
 
     @Test fun parsesPageContextValuesWithoutLoggingOpaqueIds() {
-        val response = scalarField(1, 1) + scalarField(2, 7) + scalarField(3, 42)
+        val response = scalarField(1, 0) + scalarField(2, 7) + scalarField(3, 42)
         val smart = field(43, field(10, response))
         val page = CirqaFileAccessItemListParser.parsePage(smart)!!
-        assertEquals(1L, page.status)
+        assertEquals(0L, page.status)
         assertEquals(7L, page.sessionId)
         assertEquals(42L, page.nextTransactionId)
         assertTrue(page.items.isEmpty())
@@ -97,7 +97,7 @@ class CirqaFileAccessItemListParserTest {
         val uid = ByteArray(16) { (it + 10).toByte() }
         val dataType = scalarField(1, 0) + scalarField(3, 9)
         val ref = field(1, uid) + field(2, dataType) + scalarField(3, 100)
-        val response = scalarField(1, 1) +
+        val response = scalarField(1, 0) +
             field(4, ref) +
             scalarField(2, 22)
         val directType = scalarField(1, 0) + field(2, "FIT_TYPE_49".toByteArray()) +
