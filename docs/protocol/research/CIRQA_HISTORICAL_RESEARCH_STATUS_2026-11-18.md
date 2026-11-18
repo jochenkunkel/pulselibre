@@ -11,13 +11,13 @@
 | 5004 Directory-Body über BLE | Nur ein 32-Byte-Chunk; strukturell Platzhalter-Eintrag idx=0, type=0; CRC/ACK geprüft | Kein echtes Dateiverzeichnis; kein FIT-Download |
 | 5043 | Als `Smart.core_service.connection_ready_notification` interpretiert; Transport-ACK untersucht | Keine Begründung für spekulatives 5044 |
 | Filter 3 versus 0 | V11: gleicher Platzhalter | Filterwechsel allein löst Blocker nicht |
-| Bluetooth Classic / RFCOMM | Vorbereitung und UI-Gate laut datiertem Dokument implementiert | **Kein bestätigter CIRQA-RFCOMM-Gerätelauf oder FIT-Transfer** |
+| Bluetooth Classic / RFCOMM | Code/UI-Gate implementiert; **ein** gegatterter Lauf (Gate V1) mit lesender SDP-Query: keine Gegenverbindung, `io-error` nach 20 s | **Kein FIT-Transfer**; V1-Gate verbraucht, kein Reset. Gate V2 mit SDP-UUID-Auslese und präziser Fehlerunterscheidung vorbereitet |
 
 Primärnachweise: [Historical Sync V1](../experiments/CIRQA_HISTORICAL_SYNC_V1_2026-11-18.md), [bounded Directory/FIT](../experiments/CIRQA_BOUNDED_DIRECTORY_FIT_TRANSFER_2026-11-18.md), [RFCOMM-Vorbereitung](../experiments/CIRQA_RFCOMM_PREPARATION_2026-11-18.md). Frühe Berichte sind historische Snapshots, keine aktuellen Testanweisungen.
 
 ## Wichtigste Transporthypothese
 
-Die dokumentierte Connect-5.31-Analyse zeigt einen Bluetooth-Classic-Server mit Garmin-SPP-UUID `DEAB91E4-670F-11E1-9ACE-30BC4824019B`, `listenUsingRfcommWithServiceRecord` und GFDI/COBS auf Streams. Der externe Gadgetbridge-Vergleich berichtet ebenfalls 8192-Byte-5002-Antwort bei 32-Byte-BLE-Platzhalter. **Hypothese:** Die echten Dateien werden auf dem getesteten CIRQA erst über Classic-RFCOMM angeboten. Das ist noch nicht am eigenen Gerät bewiesen.
+Die dokumentierte Connect-5.31-Analyse zeigt einen Bluetooth-Classic-Server mit Garmin-SPP-UUID `DEAB91E4-670F-11E1-9ACE-30BC4824019B`, `listenUsingRfcommWithServiceRecord` und GFDI/COBS auf Streams. Der externe Gadgetbridge-Vergleich berichtet ebenfalls 8192-Byte-5002-Antwort bei 32-Byte-BLE-Platzhalter. **Hypothese:** Die echten Dateien werden auf dem getesteten CIRQA erst über Classic-RFCOMM angeboten. Das ist noch nicht am eigenen Gerät bewiesen: Der erste begrenzte Lauf sah trotz SDP-Query keine Gegenverbindung. Offen ist, ob die CIRQA den SPP-Dienst überhaupt anbietet (Gate V2 liesst die SDP-UUID-Liste aus) und ob eine aktive BLE-Sitzung zur Initiierung nötig ist.
 
 Vorhandener Code: `CirqaRfcommTransport`, `CirqaRfcommRunner`, `CirqaRfcommDirectorySession`, `CirqaRfcommStreamFramer`, `CirqaDirectoryReadV2Session`. Vor Hardwarelauf prüfen: terminaler Abbruch bei ungültiger 5002-Größe, ungültigen Frames/Sessionfehlern, vollständige Timeout-/Cancel-Semantik und Race-Tests; keine automatische Verbindung oder ungefragte Kommandos. Nutzerbestätigung und persistenter Einmal-Gate bleiben erforderlich.
 
