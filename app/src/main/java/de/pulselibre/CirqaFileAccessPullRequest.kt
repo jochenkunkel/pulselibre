@@ -14,7 +14,9 @@ object CirqaFileAccessPullRequest {
     fun smart(item: CirqaFileAccessItemListParser.Item): ByteArray {
         val ref = bytesField(1, item.uid) + bytesField(2, item.dataType) +
             varintField(3, item.dataSize)
-        val pull = bytesField(1, ref) + varintField(2, 0) + varintField(4, 0)
+        // GDIFileAccess.TransportProtocol.MULTILINK_TRANSPORT_PIPE = 0xC0 0x80 0x00
+        // (value 64). Without it the device answers NO_SUPPORTED_TRANSPORT (2).
+        val pull = bytesField(1, ref) + varintField(2, 0) + varintField(3, 64) + varintField(4, 0)
         return bytesField(43, bytesField(1, pull))
     }
 
