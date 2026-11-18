@@ -52,6 +52,7 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
     private lateinit var legacy5031Button: Button
     private lateinit var legacyHistoryDownloadButton: Button
     private lateinit var legacyHistoryFollowUpButton: Button
+    private var historicalSyncProbe: CirqaMlHandshakeProbe? = null
     private var permissionAction: (() -> Unit)? = null
     private var scanCallback: ScanCallback? = null
     private var scanning = false
@@ -279,6 +280,33 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
         }.apply { isEnabled = CirqaLegacy5030To5007AttemptGate.RELEASED_FOR_DEVICE_TEST })
         addCard(systemEventCard)
 
+        val syncCard = card()
+        syncCard.addView(label("CIRQA Historische Synchronisation · Test V1", 18f))
+        syncCard.addView(label(
+            "Eine Testfunktion, drei freigabepflichtige Phasen: A = Handshake (5030+5007), " +
+                "B = Dateitypen (5031), C = Verzeichnis (5002). Jede Phase hat ein eigenes " +
+                "persistentes Einmal-Gate. Phase A erlaubt nicht automatisch B oder C. " +
+                "Strikter Stopp nach jeder Phase, keine Retries, kein Download.",
+            13f
+        ))
+        syncCard.addView(button("Phase A freigeben und ausführen") {
+            confirmHistoricalSyncV1(1)
+        })
+        syncCard.addView(button("Phase B freigeben und ausführen") {
+            confirmHistoricalSyncV1(2)
+        })
+        syncCard.addView(button("Phase C freigeben und ausführen") {
+            confirmHistoricalSyncV1(3)
+        })
+        syncCard.addView(button("Status der historischen Synchronisation") {
+            statusOutput.text = "Historische Synchronisation:\n" +
+                "Gates: A=${preferences.getBoolean(CirqaHistoricalSyncV1MultiPhaseAttemptGate.keyForPhase(1), false)}" +
+                " B=${preferences.getBoolean(CirqaHistoricalSyncV1MultiPhaseAttemptGate.keyForPhase(2), false)}" +
+                " C=${preferences.getBoolean(CirqaHistoricalSyncV1MultiPhaseAttemptGate.keyForPhase(3), false)}\n" +
+                (preferences.getString("historicalSyncV1Summary", null) ?: "Noch kein Lauf.")
+        })
+        addCard(syncCard)
+
         root.addView(button("Datensparsamen Testbericht speichern") {
             AlertDialog.Builder(this)
                 .setTitle("Testbericht lokal speichern")
@@ -399,6 +427,38 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
             permissionAction = action
             permissionLauncher.launch(missing.toTypedArray())
         }
+    }
+
+    private fun confirmHistoricalSyncV1(maxPhase: Int) {
+        if (!CirqaHistoricalSyncV1MultiPhaseAttemptGate.RELEASED_FOR_DEVICE_TEST) return
+        if (preferences.getBoolean(CirqaHistoricalSyncV1MultiPhaseAttemptGate.keyForPhase(maxPhase), false)) {
+            statusOutput.text = "Phase $maxPhase ist bereits verbraucht."
+            return
+        }
+        AlertDialog.Builder(this)
+            .setTitle("Historische Synchronisation · Phase $maxPhase ausführen?")
+            .setMessage(
+                "Frischer Bootstrap, danach genau die freigegebenen Schritte bis Phase $maxPhase. " +
+                    "Stopp unmittelbar nach der Phase, kein Retry, kein FIT-Download. " +
+                    "Recorder und Garmin Connect müssen beendet sein. Das separate Einmal-Gate " +
+                    "für Phase $maxPhase wird vor dem Verbinden dauerhaft verbraucht."
+            )
+            .setNegativeButton("Abbrechen", null)
+            .setPositiveButton("Ausführen") { _, _ ->
+                withBluetoothPermissions(needsScan = false) {
+                    val probe = CirqaMlHandshakeProbe(this, adapter)
+                    historicalSyncProbe = probe
+                    probe.startHistoricalSyncV1MultiPhaseTest(userConfirmed = true, maxPhase = maxPhase) { message ->
+                        runOnUiThread {
+                            statusOutput.text = message
+                            if (message.startsWith("Historical Sync V1")) {
+                                preferences.edit().putString("historicalSyncV1Summary", message.take(900)).apply()
+                            }
+                        }
+                    }
+                }
+            }
+            .show()
     }
 
     private fun confirmLegacy5007Test() {

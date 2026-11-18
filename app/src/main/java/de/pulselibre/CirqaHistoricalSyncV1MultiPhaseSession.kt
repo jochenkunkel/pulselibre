@@ -6,7 +6,7 @@ package de.pulselibre
  * Phase B (-> 5031 Supported File Types)
  * Phase C (-> Directory Index 0 Read Request & Header/Size Inspection)
  */
-class CirqaHistoricalSyncV1MultiPhaseSession(val token: Any = Any()) {
+class CirqaHistoricalSyncV1MultiPhaseSession(val token: Any = Any(), val maxPhase: Int = 3) {
     enum class Phase {
         NEW, BOOTSTRAP,
         WAITING_5030_WRITE, WAITING_5030_RESPONSE,
@@ -185,6 +185,22 @@ class CirqaHistoricalSyncV1MultiPhaseSession(val token: Any = Any()) {
                 encoded += b
             }
         }
+        return true
+    }
+
+    @Synchronized fun resumeToPhaseB(callbackToken: Any, now: Long): Boolean {
+        if (callbackToken !== token || phase != Phase.PHASE_A_COMPLETED || maxPhase < 2) return false
+        lastMillis = maxOf(lastMillis, now)
+        phase = Phase.WAITING_5031_WRITE
+        reason = "resumed-to-phase-b"
+        return true
+    }
+
+    @Synchronized fun resumeToPhaseC(callbackToken: Any, now: Long): Boolean {
+        if (callbackToken !== token || phase != Phase.PHASE_B_COMPLETED || maxPhase < 3) return false
+        lastMillis = maxOf(lastMillis, now)
+        phase = Phase.WAITING_DIR_WRITE
+        reason = "resumed-to-phase-c"
         return true
     }
 
