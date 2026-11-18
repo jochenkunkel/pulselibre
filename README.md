@@ -52,7 +52,7 @@ JDK 17, Android SDK 35, Gradle 8.13. Beispiel:
 gradle :app:testDebugUnitTest :app:lintDebug :app:assembleDebug :app:assembleDebugAndroidTest
 ```
 
-Der GitHub-Workflow `.github/workflows/android.yml` führt bei Pushes auf `main` und bei Pull Requests **Build und JVM-Unit-Tests** aus. **Vollständiges Lint, Instrumentation-APK und API-35-Emulatortests** laufen nur bei `v*`-Tags oder manuell mit `full_tests=true`. Ein grüner Beta-Build ist daher **kein** bestandenes Full-Quality-Gate. Der tatsächliche Erfolg muss für jeden Commit separat geprüft werden. Eine erfolgreiche CI ist **kein** Ersatz für einen echten CIRQA-Test auf dem S25. Der Workflow lädt Debug-APKs als zeitlich begrenzte Artifacts hoch. Derzeit ist kein Gradle-Wrapper im Repository.
+Starte **Android CI** in GitHub unter **Actions → Android CI → Run workflow** oder per `gh workflow run android.yml --ref main`. Der manuelle Schnelllauf baut die App und führt die JVM-Unit-Tests aus. Aktiviere `full_tests` für Lint, die Instrumentation-APK und API-35-Emulatortests. Pushes, Pull Requests und Tags lösen keinen CI-Lauf aus. Die Android-CI lädt APKs als zeitlich begrenzte Artifacts hoch.
 
 ## Ausblick
 
