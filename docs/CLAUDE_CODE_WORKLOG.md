@@ -61,3 +61,7 @@ Fortlaufend, neueste Einträge unten. Jeder Eintrag: Datum, Änderung, Nachweis 
 - Neu: `AppVersionInfo` – Version und Build (aus versionName/versionCode, Debug-Kennzeichnung) als erste Zeile der Einstellungen (Avatar oben rechts → Einstellungen). Test `AppVersionInfoTest`.
 - Einstellungen kompakter: Abschnittsüberschriften mit Symbol, Zahlenfelder nebeneinander (Größe/Gewicht, Schrittziel/Schlafziel, Geburtsjahr/Alter, Ruhe/Sport/Fenster, SpO₂ grün/orange), lange Erklärtexte hinter ⓘ-Dialogen (Aktivität, SpO₂, Profil). Alle Felder, Schlüssel und Validierungen unverändert.
 - Verlauf (#79) Gerätemessung auf dem S25 (Build 996, adb-Screenshot-Polling, grob): Wechsel zwischen 24 h/7 d/30 d ≈ 1 s bis stabiles Bild (Messfloor ≈ 0,9 s), vorher 1,5–12 s. Die Messung war nicht sauber kontrolliert (ein Ausreißer 3,8 s, Fehltipp-Störungen); Aussagekraft: deutliche Verbesserung, kein exakter Wert.
+
+## 2026-11-18 – Einstellungen: Schaltflächen und Löschschutz (Branch `claude/settings-buttons`)
+- Eigene feste Schaltflächenleiste unten im Dialog („Schließen“ | „Speichern“, volle Breite, 48 dp) statt der drei AlertDialog-Buttons, die untereinander lagen und abgeschnitten waren.
+- „Profil löschen“ ist von Speichern getrennt (eigener Abschnitt am Ende, dezent umrandet) und verlangt **zwei Bestätigungen** (1. Umfang erklären → „Weiter“, 2. „Wirklich endgültig löschen?“ → „Endgültig löschen“). Gelöscht werden nur die Profil-Einstellungen, keine Messdaten.
