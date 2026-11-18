@@ -32,6 +32,8 @@ internal class TrendCardView(context: Context) : LinearLayout(context) {
         body.apply { textSize = 13f; setTextColor(palette.ink); setLineSpacing(0f, 1.15f) }
         addView(body, LayoutParams(-1, -2).apply { topMargin = dp(8) })
         body.text = "Trends werden berechnet …"
+        isClickable = true
+        setOnClickListener { showScatter() }
     }
 
     override fun onAttachedToWindow() {
@@ -47,22 +49,23 @@ internal class TrendCardView(context: Context) : LinearLayout(context) {
         val token = ++generation
         val app = context.applicationContext
         worker.execute {
-            val text = try { compute(app) } catch (_: Exception) { "Trends konnten nicht berechnet werden." }
+            val (text, scatter) = try { compute(app) } catch (_: Exception) { "Trends konnten nicht berechnet werden." to emptyList() }
             Handler(Looper.getMainLooper()).post {
                 if (token != generation) return@post
-                cachedText = text; cachedAt = System.currentTimeMillis()
+                cachedText = text; cachedScatter = scatter; cachedAt = System.currentTimeMillis()
                 body.text = text
             }
         }
     }
 
-    private fun compute(app: Context): String {
+    private fun compute(app: Context): Pair<String, List<Pair<Double, Double>>> {
         val zone = ZoneId.systemDefault()
         val today = LocalDate.now(zone)
         val first = today.minusDays(180)
         val reader = DailyValueReader(app)
         val nf = NumberFormat.getNumberInstance(Locale.GERMANY).apply { maximumFractionDigits = 1 }
-        return buildString {
+        var scatter: List<Pair<Double, Double>> = emptyList()
+        val text = buildString {
             val rest = reader.read(DashboardMeasurement.RESTING_PULSE, first, today, zone)
             val steps = reader.read(DashboardMeasurement.STEPS, first, today, zone)
             val overview = FitnessOverview.assess(
@@ -75,12 +78,30 @@ internal class TrendCardView(context: Context) : LinearLayout(context) {
             section("Schritte pro Tag", steps, today, 500.0, nf)
             append("\n\nZusammenhang (explorativ, 1 vorab festgelegte Hypothese)\nSchritte eines Tages ↔ Geräte-Ruhepuls am Folgetag: ")
             val c = PairedCorrelation.analyze(steps, rest, 1)
+            scatter = PairedCorrelation.pair(steps, rest, 1).map { it.second to it.third }
             if (c.rho == null) append("${c.verdict.label} · ${c.note}")
             else append("${c.verdict.label} · ρ=${nf.format(c.rho)} (95 %: ${nf.format(c.ciLow)} bis ${nf.format(c.ciHigh)}) · n=${c.pairs} Tage. ${c.note}")
             append("\n\nMedian vollständiger Tage gegen den gleich langen Zeitraum davor. Tage ohne Daten werden nicht aufgefüllt; ")
             append("zu wenige Tage ergeben „nicht bewertbar“. Der Ruhepuls ist der vom Gerät gemeldete Wert, seine Messbedingungen sind ungeprüft. ")
             append("Schritte sind Aktivitätsvolumen, kein Maß für Fitness. Keine Diagnose.")
+            if (scatter.isNotEmpty()) append("\n\nTippen für das Streudiagramm.")
         }
+        return text to scatter
+    }
+
+    private fun showScatter() {
+        val pairs = cachedScatter
+        if (pairs.isEmpty()) return
+        val view = ScatterView(context, pairs, "Schritte (Tag)", "Ruhepuls Folgetag (bpm)", palette.ink, palette.accent, palette.muted)
+        val note = TextView(context).apply {
+            setTextColor(palette.ink); textSize = 12f
+            text = "${pairs.size} Wertepaare, jeder Punkt = ein Tag. Ohne Trendlinie. " +
+                "Ein Zusammenhang in den Punkten sagt nichts über Ursache und Wirkung."
+            setPadding(0, dp(8), 0, 0)
+        }
+        val box = LinearLayout(context).apply { orientation = VERTICAL; setPadding(dp(16), dp(12), dp(16), 0); addView(view); addView(note) }
+        androidx.appcompat.app.AlertDialog.Builder(context).setTitle("Schritte ↔ Ruhepuls am Folgetag")
+            .setView(box).setPositiveButton("Schließen", null).show()
     }
 
     private fun StringBuilder.section(title: String, values: Map<LocalDate, Double>, today: LocalDate, floor: Double, nf: NumberFormat) {
@@ -103,6 +124,7 @@ internal class TrendCardView(context: Context) : LinearLayout(context) {
         val worker = Executors.newSingleThreadExecutor()
         const val CACHE_MS = 10 * 60_000L
         @Volatile var cachedText: String? = null
+        @Volatile var cachedScatter: List<Pair<Double, Double>> = emptyList()
         @Volatile var cachedAt = 0L
     }
 }
