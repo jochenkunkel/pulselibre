@@ -32,6 +32,9 @@ class CirqaDirectoryReadV2Session(val token: Any = Any()) {
         private set
     var protobufDiag = ""
         private set
+    var eventLog = ""
+        private set
+    private var startedAtMs = 0L
     private val controlTypes = LinkedHashMap<Int, Int>()
     private val protobufReassembler = GarminProtobufReassembler()
     private val pendingProtobufAcks = ArrayList<Pair<Int, Long>>()
@@ -54,6 +57,7 @@ class CirqaDirectoryReadV2Session(val token: Any = Any()) {
         if (phase != Phase.NEW || size !in 16..CirqaLegacyDownloadLimits.MAX_DIRECTORY_BYTES ||
             size % 16 != 0) return stop("invalid-size")
         expectedSize = size
+        startedAtMs = System.nanoTime() / 1_000_000L
         phase = Phase.RECEIVING
         reason = "receiving-directory"
         return true
@@ -96,6 +100,7 @@ class CirqaDirectoryReadV2Session(val token: Any = Any()) {
             controlTypes[h.type] = (controlTypes[h.type] ?: 0) + 1
             controlFrameTypes = controlTypes.entries.sortedBy { it.key }
                 .joinToString(",") { "${it.key}x${it.value}" }
+            appendEvent("${h.type}")
             if (h.type == 5043) inspectProtobuf(frame)
             return Result.DUPLICATE
         }
@@ -104,6 +109,7 @@ class CirqaDirectoryReadV2Session(val token: Any = Any()) {
         val body = frame.copyOfRange(4, frame.size - 2)
         val chunk = CirqaLegacyTransferDecoder.plainChunk(body)
             ?: return fail("bad-chunk-header", Result.MALFORMED)
+        appendEvent("5004[ts=${chunk.transferStatus},crc=${chunk.crc16},off=${chunk.offset},len=${chunk.payload.size}]")
         if (chunk.transferStatus != 0) return fail("transfer-status", Result.MALFORMED)
 
         // Duplicate chunk (retry): same offset/payload as the last accepted one,
@@ -181,7 +187,7 @@ class CirqaDirectoryReadV2Session(val token: Any = Any()) {
     @Synchronized fun summary(): String =
         "DirectoryReadV2: phase=$phase; reason=$reason; size=$expectedSize/$receivedBytes; chunks=$chunkCount; " +
             "notifs=$notificationsSeen; frames=$framesSeen; dataFrames=$dataFramesProcessed; " +
-            "control=$controlFrameTypes; protobuf=$protobufDiag; " +
+            "control=$controlFrameTypes; events=$eventLog; protobuf=$protobufDiag; " +
             "entries=$directoryEntries; fitCandidates=$fitCandidates; $redactedEntryReport"
 
     private fun complete(): Result {
@@ -226,6 +232,11 @@ class CirqaDirectoryReadV2Session(val token: Any = Any()) {
 
     private fun appendProtobufDiag(part: String) {
         protobufDiag = (protobufDiag + part).take(600)
+    }
+
+    private fun appendEvent(part: String) {
+        val ms = System.nanoTime() / 1_000_000L - startedAtMs
+        eventLog = (eventLog + "$part@${ms}ms;").take(600)
     }
 
     private fun u16(bytes: ByteArray, i: Int): Int =
