@@ -73,8 +73,7 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
             val targetText = target?.let { "Tagesziel · ${integers.format(it)} Schritte" }
                 ?: "Kein gültiges Geräte-Schrittziel verfügbar"
             content.addView(label(targetText, 14f, muted))
-            contentDescription = "${metric.title}. ${metric.value}. $targetText. " +
-                "Kumulativer Gerätezähler. Messpunkte werden nicht addiert."
+            contentDescription = "${metric.title}. ${metric.value}. $targetText."
             if (progress != null) {
                 val percentValue = progress
                 val percent = NumberFormat.getNumberInstance(Locale.GERMANY).apply {
@@ -163,6 +162,27 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
             addView(label(value, 9f, color), LayoutParams(-1, -2))
         }
         parent.addView(cell, LayoutParams(0, -2, 1f))
+    }
+
+    private fun addStepContextChip() {
+        val chip = LinearLayout(context).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(dp(8), dp(5), dp(10), dp(5))
+            background = GradientDrawable().apply {
+                setColor(palette.tinted)
+                cornerRadius = dp(12).toFloat()
+            }
+            isFocusable = true
+            contentDescription = "Tagesstand. Kumulativer Gerätezähler; Messpunkte werden nicht addiert."
+            importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_YES
+            val stepIconParams = LinearLayout.LayoutParams(dp(18), dp(18)).apply { rightMargin = dp(5) }
+            addView(DashboardMetricIconView(context, "Schritte", palette.indicator), stepIconParams)
+            addView(label("Tagesstand", 11f, muted, true), LinearLayout.LayoutParams(-2, -2))
+        }
+        chip.getChildAt(0).importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+        chip.getChildAt(1).importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+        addView(chip, LinearLayout.LayoutParams(-2, -2).apply { bottomMargin = dp(12) })
     }
 
     private fun addCardPair(metrics: List<DashboardMetric>, create: (DashboardMetric) -> View) {
