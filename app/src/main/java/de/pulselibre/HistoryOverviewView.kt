@@ -68,6 +68,7 @@ class HistoryOverviewView(
         addLegend()
         metricCard("Herzfrequenz", "bpm", snapshot.heartRate, snapshot, 240, palette.pulse, resolution)
         metricCard("Sauerstoffsättigung · SpO₂", "%", snapshot.oxygen, snapshot, 100, palette.oxygen, resolution)
+        addView(TrendCardView(context), LayoutParams(-1, -2).apply { topMargin = dp(12) })
     }
 
     private fun addLegend() {
