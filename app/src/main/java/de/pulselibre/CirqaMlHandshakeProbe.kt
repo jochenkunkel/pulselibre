@@ -38,6 +38,9 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private var legacy5007TestMode = false
     private var legacy5030Only: CirqaLegacy5030OnlySession? = null
     @Volatile private var legacy5030WriteOutstanding = false
+    private var historicalSyncV1: CirqaHistoricalSyncV1MultiPhaseSession? = null
+    @Volatile private var hsv1WriteOutstanding = false
+    private var hsv1Type = -1
     @Volatile private var callbackGeneration: Any = Any()
     private var legacy5007WriteClaimed = false
     private var legacy5007RequestSent = false
@@ -241,6 +244,53 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                 finish("5030-only: Gesamtlaufzeit beendet.", gatt)
             }
         }, CirqaLegacy5030OnlySession.SESSION_MILLIS)
+    }
+
+    @SuppressLint("MissingPermission")
+    fun startHistoricalSyncV1MultiPhaseTest(userConfirmed: Boolean, maxPhase: Int, result: (String) -> Unit) {
+        if (!CirqaHistoricalSyncV1MultiPhaseAttemptGate.RELEASED_FOR_DEVICE_TEST || !userConfirmed) {
+            result("Historical Sync V1 gesperrt; keine Verbindung.")
+            return
+        }
+        if (active || sessionStartedNanos != 0L || historicalSyncV1 != null ||
+            legacy5030Only != null || legacy5007TestMode || legacy5031TestMode ||
+            legacyHistoryDownloadMode || realtimeMode || continuousRecordingMode || rawCaptureMode) {
+            result("Historical Sync V1 benötigt eine neue Probeinstanz; keine Verbindung.")
+            return
+        }
+        val uniqueTarget = try {
+            adapter.isEnabled && adapter.bondedDevices.orEmpty().count {
+                it.name?.contains("CIRQA", ignoreCase = true) == true
+            } == 1
+        } catch (_: SecurityException) { false }
+        if (!uniqueTarget || CirqaBleSessionGate.isBusy()) {
+            result("Historical Sync V1: Bluetooth aus, Ziel nicht eindeutig oder Sitzung belegt.")
+            return
+        }
+        require(maxPhase in 1..3)
+        val prefs = context.getSharedPreferences("cirqa_historical_sync_v1", Context.MODE_PRIVATE)
+        val gateKey = CirqaHistoricalSyncV1MultiPhaseAttemptGate.keyForPhase(maxPhase)
+        if (!CirqaHistoricalSyncV1MultiPhaseAttemptGate.consume(
+                CirqaHistoricalSyncV1MultiPhaseAttemptGate.RELEASED_FOR_DEVICE_TEST, userConfirmed,
+                { prefs.getBoolean(gateKey, false) },
+                { prefs.edit().putBoolean(gateKey, true).commit() }
+            )) {
+            result("Historical Sync V1: Gate verbraucht oder Persistierung fehlgeschlagen.")
+            return
+        }
+        val model = CirqaHistoricalSyncV1MultiPhaseSession(maxPhase = maxPhase)
+        historicalSyncV1 = model
+        model.begin(true, android.os.SystemClock.elapsedRealtime())
+        bootstrapAckMode = true
+        configurationTestMode = true
+        historyDiagnosticMode = true
+        start(false, result)
+        if (active) main.postDelayed({
+            if (active) {
+                model.tick(model.token, android.os.SystemClock.elapsedRealtime())
+                finish("Historical Sync V1: Gesamtlaufzeit beendet.", gatt)
+            }
+        }, CirqaHistoricalSyncV1MultiPhaseSession.SESSION_MILLIS)
     }
 
     /** Fresh bootstrap and one directory transfer plus strictly bounded supported FIT files. */
@@ -574,6 +624,15 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     if (callbackGeneration !== generation) return
                     if (!active || terminationRequested) return
                     txTrace.completePendingCallback(status)
+                    val hsv1 = historicalSyncV1
+                    if (hsv1 != null && hsv1WriteOutstanding) {
+                        hsv1WriteOutstanding = false
+                        mlWritePending = false
+                        hsv1.writeCompleted(hsv1.token, hsv1Type, status == BluetoothGatt.GATT_SUCCESS,
+                            android.os.SystemClock.elapsedRealtime())
+                        finishHsv1IfTerminal(g)
+                        return
+                    }
                     val eventSession = legacy5030Only
                     if (eventSession != null && legacy5030WriteOutstanding) {
                         legacy5030WriteOutstanding = false
@@ -630,6 +689,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                             maybeSendLegacy5030AfterBootstrap(g)
                             maybeSendLegacy5007AfterBootstrap(g)
                             maybeSendLegacy5002AfterBootstrap(g)
+                            maybeAdvanceHistoricalSyncV1(g)
                             if (!legacy5007WriteClaimed) mark("ML-Schreiben bestätigt; warte auf Protokollantwort")
                         }
                     }
@@ -744,6 +804,23 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                 val first = bytes.firstOrNull()?.toInt()?.and(255)
                 if (first != null && first == historyHandle) {
                     historyRouted++
+                    val hsv1 = historicalSyncV1
+                    if (hsv1 != null && hsv1.phase in setOf(
+                            CirqaHistoricalSyncV1MultiPhaseSession.Phase.WAITING_5030_RESPONSE,
+                            CirqaHistoricalSyncV1MultiPhaseSession.Phase.WAITING_5007_RESPONSE,
+                            CirqaHistoricalSyncV1MultiPhaseSession.Phase.WAITING_5031_RESPONSE,
+                            CirqaHistoricalSyncV1MultiPhaseSession.Phase.WAITING_DIR_RESPONSE)) {
+                        hsv1.receive(hsv1.token, bytes.copyOfRange(1, bytes.size),
+                            android.os.SystemClock.elapsedRealtime())
+                        if (hsv1.phase in setOf(
+                                CirqaHistoricalSyncV1MultiPhaseSession.Phase.WAITING_5007_WRITE,
+                                CirqaHistoricalSyncV1MultiPhaseSession.Phase.WAITING_5031_WRITE,
+                                CirqaHistoricalSyncV1MultiPhaseSession.Phase.WAITING_DIR_WRITE)) {
+                            sendHsv1Frame(g, hsv1.phase)
+                        }
+                        finishHsv1IfTerminal(g)
+                        return
+                    }
                     val eventSession = legacy5030Only
                     if (eventSession?.phase == CirqaLegacy5030OnlySession.Phase.WAITING) {
                         eventSession.receive(eventSession.token, bytes.copyOfRange(1, bytes.size),
@@ -1063,6 +1140,82 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             }
         }, CirqaLegacy5030OnlySession.RESPONSE_MILLIS)
         send(g, value)
+    }
+
+    private fun maybeAdvanceHistoricalSyncV1(g: BluetoothGatt) {
+        val s = historicalSyncV1 ?: return
+        val now = android.os.SystemClock.elapsedRealtime()
+        val ready = CirqaLegacy5007BootstrapGate.maySend5007(
+            bootstrapAckSent, bootstrapAckConfirmed, configurationResponseQueued,
+            configurationResponseConfirmed, configurationAckReceived, mlWritePending,
+            bootstrapAckChunks.isNotEmpty())
+        when (s.phase) {
+            CirqaHistoricalSyncV1MultiPhaseSession.Phase.BOOTSTRAP -> {
+                if (!s.bootstrapReady(s.token, ready, now)) { finishHsv1IfTerminal(g); return }
+            }
+            CirqaHistoricalSyncV1MultiPhaseSession.Phase.WAITING_5030_WRITE -> {
+                if (!s.claim5030(s.token, now)) { finishHsv1IfTerminal(g); return }
+            }
+            else -> return
+        }
+        sendHsv1Frame(g, s.phase)
+    }
+
+    private fun sendHsv1Frame(g: BluetoothGatt, phase: CirqaHistoricalSyncV1MultiPhaseSession.Phase) {
+        val s = historicalSyncV1 ?: return
+        val handle = historyHandle
+        if (handle == null || handle !in 1..127 || mlWritePending) {
+            s.abort(s.token); finish("Historical Sync V1: Transport nicht bereit.", g); return
+        }
+        val (frame, type) = when (phase) {
+            CirqaHistoricalSyncV1MultiPhaseSession.Phase.WAITING_5030_WRITE ->
+                CirqaHistoricalSyncV1Wire.systemEventComplete(handle) to 5030
+            CirqaHistoricalSyncV1MultiPhaseSession.Phase.WAITING_5007_WRITE ->
+                CirqaHistoricalSyncV1Wire.filterPendingUploads(handle) to 5007
+            CirqaHistoricalSyncV1MultiPhaseSession.Phase.WAITING_5031_WRITE ->
+                CirqaHistoricalSyncV1Wire.supportedFileTypes(handle) to 5031
+            CirqaHistoricalSyncV1MultiPhaseSession.Phase.WAITING_DIR_WRITE ->
+                CirqaHistoricalSyncV1Wire.directoryRead(handle, 0) to 5002
+            else -> { finish("Historical Sync V1: unerwartete Sendephase $phase.", g); return }
+        }
+        main.removeCallbacks(configurationTimeout)
+        hsv1WriteOutstanding = true
+        hsv1Type = type
+        main.postDelayed({
+            if (active && historicalSyncV1 === s) {
+                s.tick(s.token, android.os.SystemClock.elapsedRealtime())
+                finish("Historical Sync V1: Antwort-Timeout, kein Retry.", g)
+            }
+        }, 5_000L)
+        send(g, frame)
+    }
+
+    private fun finishHsv1IfTerminal(g: BluetoothGatt) {
+        val s = historicalSyncV1 ?: return
+        if (s.phase == CirqaHistoricalSyncV1MultiPhaseSession.Phase.PHASE_A_COMPLETED) {
+            if (s.maxPhase <= 1) {
+                finish("Historical Sync V1 Phase A abgeschlossen; Stopp vor 5031. ${s.summary()}", g); return
+            }
+            if (s.resumeToPhaseB(s.token, android.os.SystemClock.elapsedRealtime())) {
+                sendHsv1Frame(g, s.phase)
+            }
+            return
+        }
+        if (s.phase == CirqaHistoricalSyncV1MultiPhaseSession.Phase.PHASE_B_COMPLETED) {
+            if (s.maxPhase <= 2) {
+                finish("Historical Sync V1 Phase B abgeschlossen; Stopp vor Directory. ${s.summary()}", g); return
+            }
+            if (s.resumeToPhaseC(s.token, android.os.SystemClock.elapsedRealtime())) {
+                sendHsv1Frame(g, s.phase)
+            }
+            return
+        }
+        if (s.phase == CirqaHistoricalSyncV1MultiPhaseSession.Phase.PHASE_C_COMPLETED) {
+            finish("Historical Sync V1 Phase C abgeschlossen. ${s.summary()}", g); return
+        }
+        if (s.phase == CirqaHistoricalSyncV1MultiPhaseSession.Phase.STOPPED) {
+            finish("Historical Sync V1 abgebrochen. ${s.summary()}", g)
+        }
     }
 
     private fun finish5030IfTerminal(g: BluetoothGatt) {
@@ -1536,7 +1689,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             }
             gatt = null
             callback?.invoke(
-                if (legacy5030Only != null) legacy5030Only!!.summary()
+                if (historicalSyncV1 != null) historicalSyncV1!!.summary()
+                else if (legacy5030Only != null) legacy5030Only!!.summary()
                 else if (legacyHistoryDownloadMode) legacyHistoryDownloadReport(message)
                 else if (legacy5007TestMode) legacy5007Report(message)
                 else if (historyDiagnosticMode) historyReport(message)
