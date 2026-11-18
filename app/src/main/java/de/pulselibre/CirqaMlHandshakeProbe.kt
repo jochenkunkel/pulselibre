@@ -2208,6 +2208,14 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     }
     private fun finish(message: String, g: BluetoothGatt?) {
         if (!active || terminationRequested) return
+        if (syncRequestMode && syncFinalReport.isEmpty()) {
+            val counts = syncFrameCounts.entries.sortedBy { it.key }
+                .joinToString(",") { "${it.key}x${it.value}" }
+            syncFinalReport = "Sync-Beobachtung: $message; accepted=$syncAccepted; " +
+                "itemListSent=$syncItemListSent; pullSent=$syncPullSent; items=[$syncItemSummary]; " +
+                "$syncPullDiag; $mlrDiag; mlr=[chunks=$mlrChunks,bytes=$mlrBytes]; " +
+                "frames=$counts; proto=[$syncProtoShapes]"
+        }
         terminationRequested = true
         legacy5030Only?.let { it.abort(it.token) }
         passive5050Session.stop()
