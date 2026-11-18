@@ -10,10 +10,10 @@ import android.view.View
  * Decorative background of the step tile: one faint vertical bar per 15-minute interval, time left to right.
  * No axes, numbers or legend; unobserved intervals draw nothing. The tile itself carries the accessible summary.
  */
-internal class StepBarsView(context: Context, private val color: Int) : View(context) {
-    private val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply { this.color = color; alpha = 84 } // ≈ 33 %
+internal class StepBarsView(context: Context, barColor: Int) : View(context) {
+    private val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = barColor; alpha = 84 } // ≈ 33 %
     private val approxPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        this.color = color; alpha = 60; style = Paint.Style.STROKE
+        color = barColor; alpha = 60; style = Paint.Style.STROKE
     }
     private val rect = RectF()
     private var series: StepIntervals.Series? = null

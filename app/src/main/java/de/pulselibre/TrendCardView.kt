@@ -29,7 +29,10 @@ internal class TrendCardView(context: Context) : LinearLayout(context) {
         val rest: List<TrendAnalysis.Result>,
         val steps: List<TrendAnalysis.Result>,
         val correlation: PairedCorrelation.Result,
-        val scatter: List<Pair<Double, Double>>
+        val scatter: List<Pair<Double, Double>>,
+        val restDaily: Map<LocalDate, Double> = emptyMap(),
+        val stepsDaily: Map<LocalDate, Double> = emptyMap(),
+        val today: LocalDate = LocalDate.now()
     )
 
     init {
@@ -77,7 +80,7 @@ internal class TrendCardView(context: Context) : LinearLayout(context) {
         val stepTrends = windows.map { TrendAnalysis.analyze(steps, today, it, 500.0) }
         return Data(FitnessOverview.assess(stepTrends[1], restTrends[1]), restTrends, stepTrends,
             PairedCorrelation.analyze(steps, rest, 1),
-            PairedCorrelation.pair(steps, rest, 1).map { it.second to it.third })
+            PairedCorrelation.pair(steps, rest, 1).map { it.second to it.third }, rest, steps, today)
     }
 
     private fun showMessage(text: String) {
@@ -130,8 +133,14 @@ internal class TrendCardView(context: Context) : LinearLayout(context) {
         }
         // Trend table: rows = metric, columns = 7 / 28 / 90 days.
         content.addView(tableRow(null, listOf("7 T", "28 T", "90 T")), LayoutParams(-1, -2).apply { topMargin = dp(12) })
-        content.addView(tableRow("💓 Ruhepuls", d.rest.map { cell(it) }))
-        content.addView(tableRow("👣 Schritte", d.steps.map { cell(it) }))
+        content.addView(tableRow("💓 Ruhepuls", d.rest.map { cell(it) }).apply {
+            tag = "trend_row_rest"; isClickable = true; isFocusable = true; minimumHeight = dp(48)
+            setOnClickListener { showDaily(d, "Geräte-Ruhepuls (bpm)", d.restDaily, d.rest, palette.pulse, zeroBased = false) }
+        })
+        content.addView(tableRow("👣 Schritte", d.steps.map { cell(it) }).apply {
+            tag = "trend_row_steps"; isClickable = true; isFocusable = true; minimumHeight = dp(48)
+            setOnClickListener { showDaily(d, "Schritte pro Tag", d.stepsDaily, d.steps, palette.indicator) }
+        })
         // Pre-specified hypothesis, one compact line; tap opens the scatter plot.
         val c = d.correlation
         val corr = if (c.rho == null) "⏳ ${c.pairs}/${PairedCorrelation.MIN_PAIRS} Tage"
@@ -152,7 +161,11 @@ internal class TrendCardView(context: Context) : LinearLayout(context) {
 
     private fun cell(r: TrendAnalysis.Result): String =
         if (r.direction == TrendAnalysis.Direction.UNKNOWN) "–\n${r.current.validDays}/${r.windowDays}"
-        else "${nf.format(r.current.median)} ${r.direction.arrow}\n${r.current.validDays}/${r.windowDays}"
+        else "${compact(r.current.median!!)} ${r.direction.arrow}\n${r.current.validDays}/${r.windowDays}"
+
+    /** Whole numbers from 100 up (7.762 steps), one decimal below (62,5 bpm) – keeps the 70 dp column single-line. */
+    private fun compact(v: Double): String =
+        if (Math.abs(v) >= 100) NumberFormat.getIntegerInstance(Locale.GERMANY).format(Math.round(v)) else nf.format(v)
 
     private fun tableRow(label: String?, cells: List<String>): View = LinearLayout(context).apply {
         orientation = HORIZONTAL
@@ -160,7 +173,7 @@ internal class TrendCardView(context: Context) : LinearLayout(context) {
         addView(TextView(context).apply { text = label.orEmpty(); textSize = 13f; setTextColor(palette.ink) }, LayoutParams(0, -2, 1.3f))
         cells.forEach { c ->
             addView(TextView(context).apply {
-                text = c; textSize = if (label == null) 11f else 13f
+                text = c; textSize = if (label == null) 11f else 12f
                 setTextColor(if (label == null || c.startsWith("–")) palette.muted else palette.ink)
                 gravity = Gravity.CENTER
                 if (label == null) setTypeface(null, Typeface.BOLD)
@@ -168,6 +181,21 @@ internal class TrendCardView(context: Context) : LinearLayout(context) {
                     "$label ${c.replace("\n", ", Tage mit Daten ")}"
             }, LayoutParams(0, -2, 1f))
         }
+    }
+
+    /** Drilldown: daily values of the last 90 days with the 7/28-day medians (#41). */
+    private fun showDaily(d: Data, title: String, values: Map<LocalDate, Double>, trends: List<TrendAnalysis.Result>, color: Int, zeroBased: Boolean = true) {
+        val box = LinearLayout(context).apply { orientation = VERTICAL; setPadding(dp(16), dp(8), dp(16), 0) }
+        val present = (1..90).count { values.containsKey(d.today.minusDays(it.toLong())) }
+        box.addView(DailyBarsView(context, values, d.today, 90, color, palette.ink, palette.track,
+            listOf("Median 7 T" to trends[0].current.median, "Median 28 T" to trends[1].current.median), zeroBased),
+            LayoutParams(-1, -2))
+        box.addView(TextView(context).apply {
+            setTextColor(palette.muted); textSize = 12f; setPadding(0, dp(8), 0, 0)
+            text = "$present von 90 Tagen mit Daten · leere Tage = keine Messung (nicht 0). " +
+                "Gestrichelt: Median der letzten 7 bzw. 28 vollständigen Tage. Der heutige Tag ist nicht enthalten. Keine Diagnose."
+        })
+        androidx.appcompat.app.AlertDialog.Builder(context).setTitle(title).setView(box).setPositiveButton("Schließen", null).show()
     }
 
     /** Full explanation moved out of the card body. */

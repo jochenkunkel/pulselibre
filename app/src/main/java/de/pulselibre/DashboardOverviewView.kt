@@ -166,6 +166,7 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
         card.content.addView(gauge, LayoutParams(-1, -2))
         card.content.addView(label(activity.caption, 11f, muted),
             LayoutParams(-1, -2).apply { topMargin = dp(2) })
+        attachInsights(card, metric.copy(title = DashboardMeasurement.PULSE.title), card.content.let { palette.pulse })
         if (previous?.bpm != null && model.bpm != null && previous.bpm != model.bpm) {
             gauge.post { if (gauge.isAttachedToWindow) gauge.show(model, activity, previous.fraction) }
         }
@@ -360,10 +361,15 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
             if (i.count == 0) { box.visibility = View.GONE; return }
             val unit = if (measurement.unit.startsWith("Geräteskala")) "" else measurement.unit
             val nf = TileInsightCalc
-            val range = if (i.cumulative) "Heute ${nf.format(i.current ?: 0.0, unit)}"
-                else "Heute Ø ${nf.format(i.average ?: 0.0, unit)} · ${nf.format(i.min ?: 0.0, "")}–${nf.format(i.max ?: 0.0, unit)}"
-            box.addView(label(range, 11f, muted), LayoutParams(-1, -2))
-            box.addView(SparkView(context, accent, palette.track).apply {
+            val range = when {
+                i.cumulative -> "Heute ${nf.format(i.current ?: 0.0, unit)}"
+                i.min == i.max -> "Heute ${nf.format(i.average ?: 0.0, unit)} (${i.count} ${if (i.count == 1) "Wert" else "Werte"})"
+                else -> "Heute Ø ${nf.format(i.average ?: 0.0, "")} · ${nf.format(i.min ?: 0.0, "")}–${nf.format(i.max ?: 0.0, "")}" +
+                    if (unit.isBlank()) "" else " $unit"
+            }
+            if (!i.cumulative) box.addView(label(range, 11f, muted), LayoutParams(-1, -2))   // counters: the big value already says it
+            // a line needs at least two hours with data; otherwise it would only be an empty axis
+            if (i.hourly.count { it != null } >= 2) box.addView(SparkView(context, accent, palette.track).apply {
                 show(i.hourly, java.time.LocalTime.now().hour)
             }, LayoutParams(-1, dp(34)).apply { topMargin = dp(4) })
             i.bands?.let { (hi, mid, lo) ->
@@ -380,15 +386,15 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
                     }
                 }.apply { importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO },
                     LayoutParams(-1, dp(7)).apply { topMargin = dp(8) })
-                box.addView(label("Heute: ≥95 % ${hi.toInt()} % · 90–94 % ${mid.toInt()} % · <90 % ${lo.toInt()} %", 10f, muted),
+                box.addView(label("≥95 %: ${hi.toInt()} · 90–94 %: ${mid.toInt()} · <90 %: ${lo.toInt()}  (Anteil heute in %)", 10f, muted),
                     LayoutParams(-1, -2).apply { topMargin = dp(3) })
             }
             val week = i.weekAtThisTime
             val delta = i.deltaToWeek
-            val weekText = if (week == null) "Wochenschnitt folgt (${i.weekDays}/${TileInsightCalc.MIN_WEEK_DAYS} Tage)"
-                else "Ø 7 Tage zu dieser Uhrzeit: ${nf.format(week, unit)}" +
+            val weekText = if (week == null) "Ø 7 Tage: folgt (${i.weekDays}/${TileInsightCalc.MIN_WEEK_DAYS})"
+                else "Ø 7 Tage jetzt: ${nf.format(week, unit)}" +
                     (delta?.let { d -> "  ${if (d > 0.05) "▲" else if (d < -0.05) "▼" else "●"} ${if (d > 0) "+" else ""}${nf.format(d, "")}" } ?: "")
-            box.addView(label(weekText, 11f, ink, true).apply { contentDescription = weekText },
+            box.addView(label(weekText, 11f, if (week == null) muted else ink, week != null).apply { contentDescription = weekText.replace("Ø 7 Tage jetzt", "Durchschnitt der letzten 7 Tage zu dieser Uhrzeit") },
                 LayoutParams(-1, -2).apply { topMargin = dp(6) })
             box.visibility = View.VISIBLE
         }
