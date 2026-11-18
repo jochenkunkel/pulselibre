@@ -38,3 +38,9 @@ Der implementierte Follow-up-Pfad ergänzt deshalb ausschließlich redigierte Di
 ### Follow-up-Codeprüfung
 
 Commit `a27e59b` ergänzt begrenzte Auswahlgründe und den separaten Follow-up-Gate. Lokale Verifikation mit SDK `/tmp/pulselibre-build-tools/sdk` und Gradle 8.13: `:app:testDebugUnitTest` sowie `:app:assembleDebug` erfolgreich; Debug-APK erzeugt. Der CI-Dispatch `44199029802` für diesen Commit wurde vor Jobstart wegen GitHub-Billing-/Ausgabenlimit abgebrochen. ADB zeigte bei der erneuten Prüfung keine angeschlossenen Geräte; der Follow-up wurde daher nicht ausgeführt und es wird kein neues Geräteergebnis behauptet.
+
+### In-Place-Updateversuch und Datenbankschemaabweichung
+
+Am 2026-11-18 wurde nach erfolgreichem CI-Run `44254317525` Build 946 installiert. Zertifikatsfingerabdruck entsprach dem installierten Build 942 (`36e7f3b664fedb04f175a97a45079a845d781a1769db1a4b02b1c8bf51439177`), `firstInstallTime` blieb unverändert; es war ein In-Place-Update ohne Deinstallation. Beim App-Start crashte `MainActivity`, bevor das Testlabor erreichbar war: `SQLiteException: Can't downgrade database from version 2 to 1`. Der CIRQA-Follow-up wurde **nicht** gestartet und es gingen keine BLE-Requests ab. Es wurde keine Datenbankdatei gelöscht oder verändert; der Fehler entsteht beim Öffnen des DB-Helpers vor `onOpen`.
+
+Ursache: Der Historien-Branch basierte auf einem älteren `main` mit `CirqaDatabase`-Schema-Version 1, während die installierte App-Version 942 Schema-Version 2 besitzt. `origin/main` enthält die additive 1→2-Migration und die aktuellen App-Dateien. Diese Basis wurde lokal in den Historien-Branch gemergt (Merge-Commit `1ad3e3e`); danach liefen `:app:testDebugUnitTest` und `:app:assembleDebug` lokal erfolgreich. Vor einem weiteren Gerätezugriff ist ein neuer kompatibel signierter CI-Build von dieser aktualisierten Basis erforderlich. Keine Deinstallation, kein DB-Rollback und kein manuelles Schema-Umschreiben.
