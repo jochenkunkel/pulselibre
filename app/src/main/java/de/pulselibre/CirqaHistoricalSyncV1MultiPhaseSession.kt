@@ -65,6 +65,10 @@ class CirqaHistoricalSyncV1MultiPhaseSession(val token: Any = Any(), val maxPhas
         private set
     var timeoutAtMs: Long? = null
         private set
+    var writeCallbackSeen = false
+        private set
+    var writeOk: Boolean? = null
+        private set
 
     private var lastMillis = 0L
     private var deadline = 0L
@@ -100,6 +104,8 @@ class CirqaHistoricalSyncV1MultiPhaseSession(val token: Any = Any(), val maxPhas
         phase = Phase.WAITING_5030_RESPONSE
         reason = "awaiting-5030"
         writeAtMs = now
+        writeCallbackSeen = false
+        writeOk = null
         return true
     }
 
@@ -133,6 +139,8 @@ class CirqaHistoricalSyncV1MultiPhaseSession(val token: Any = Any(), val maxPhas
     @Synchronized fun writeCompleted(callbackToken: Any, type: Int, success: Boolean, now: Long): Boolean {
         if (!current(callbackToken, now)) return false
         if (!success) return stop("write-failed-$type")
+        writeCallbackSeen = true
+        writeOk = success
         val expected = when (phase) {
             Phase.WAITING_5030_RESPONSE -> 5030
             Phase.WAITING_5007_RESPONSE -> 5007
@@ -251,7 +259,7 @@ class CirqaHistoricalSyncV1MultiPhaseSession(val token: Any = Any(), val maxPhas
             "outer=$lastOuterStatus,payloadLen=$lastPayloadLength,cobsErr=$cobsErrors,crcErr=$crcErrors," +
             "discarded=$discardedResponses,phaseAtRx=$phaseAtLastReceive," +
             "relAck=${ackAtMs?.let { it - (writeAtMs ?: it) }},relWrite=${writeAtMs?.let { it - (ackAtMs ?: it) }}," +
-            "timeout=$timeoutAtMs)."
+            "writeCb=$writeCallbackSeen,writeOk=$writeOk,timeout=$timeoutAtMs)."
 
     private fun current(callbackToken: Any, now: Long): Boolean {
         if (callbackToken !== token || phase == Phase.STOPPED ||
