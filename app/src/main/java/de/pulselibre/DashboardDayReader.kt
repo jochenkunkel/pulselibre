@@ -10,7 +10,9 @@ internal data class DashboardDaySeries(
     val count: Int,
     val minutesObserved: Int,
     val invalid: Int,
-    val goal: Long?
+    val goal: Long?,
+    val availableMinutes: Int,
+    val duplicate: Int
 )
 
 /** Streams the indexed day window; keeps original extrema and the latest point per observed minute. */
@@ -19,6 +21,7 @@ internal class DashboardDayReader(private val context: Context) {
         val buckets = linkedMapOf<Long, List<DayObservation>>()
         var invalid = 0
         var count = 0
+        var duplicate = 0
         var goal: Long? = null
         var sameTime: Instant? = null
         val valuesAtTime = mutableSetOf<Long>()
@@ -44,7 +47,10 @@ internal class DashboardDayReader(private val context: Context) {
                         sameTime = time
                         valuesAtTime.clear()
                     }
-                    if (!valuesAtTime.add(value)) continue
+                    if (!valuesAtTime.add(value)) {
+                        duplicate++
+                        continue
+                    }
                     count++
                     val minute = Duration.between(day.start, time).toMinutes()
                     val point = DayObservation(time, value)
@@ -54,6 +60,9 @@ internal class DashboardDayReader(private val context: Context) {
                 }
             }
         }
-        return DashboardDaySeries(buckets.values.flatten(), count, buckets.size, invalid, goal)
+        return DashboardDaySeries(
+            buckets.values.flatten(), count, buckets.size, invalid, goal,
+            day.availableMinutes(now), duplicate
+        )
     }
 }

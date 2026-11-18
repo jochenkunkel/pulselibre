@@ -93,8 +93,10 @@ internal fun showDashboardDay(
                 }
                 overview.text = buildString {
                     if (points.size < 2) append("Noch kein Tagesverlauf verfügbar.\n")
-                    append("Empfangszeit · ${zone.id}\n${series.count} Messwerte in ${series.minutesObserved} Minuten mit Empfang")
+                    append("Empfangszeit · ${zone.id}\n${series.count} gültige Messwerte")
                     append(" · ${series.invalid} ohne gültigen Wert")
+                    if (series.duplicate > 0) append(" · ${series.duplicate} Duplikate")
+                    append("\nMinuten mit gültigem Empfang: ${series.minutesObserved} von ${series.availableMinutes}")
                     append(context)
                     if (date == today && points.isNotEmpty()) {
                         val age = java.time.Duration.between(points.last().time, now).toMinutes()
