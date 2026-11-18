@@ -1035,26 +1035,17 @@ class MainActivity : AppCompatActivity() {
 
     private fun shareDiagnostics() {
         refreshCirqaCard()
-        val report = buildString {
-            appendLine("PulseLibre · BLE-Scan-Diagnose (aktive Probes separat)")
-            appendLine("Gefundene Werbegeräte: ${diagnosticRows.size}")
-            appendLine("Scan-Status: $lastScanDiagnostic")
-            appendLine("CIRQA GATT (Android-Systemstatus; verantwortliche App unbekannt): $cirqaGattState")
-            appendLine("CIRQA-Statuswechsel (in der App beobachtet): ${cirqaConnectionHistory.snapshot().size}")
-            cirqaConnectionHistory.snapshot().forEach { entry ->
-                appendLine("  ${entry.timestampMillis} · ${entry.state}")
-            }
-            appendLine("CIRQA-Kopplung: " + if (cirqaBondAddress != null) "vorhanden" else "nicht bestätigt")
-            appendLine("CIRQA-Adressabgleich: " + if (cirqaScanMatch) "Treffer (lokal geprüft; Adresse nicht exportiert)" else "Kein bestätigter Treffer; wechselnde BLE-Adressen möglich")
-            appendLine(cirqaScanEvidence.summary())
-            appendLine()
-            appendLine(passiveRssiTracker.summary())
-            // Never share raw BLE names, MAC addresses, UUID payloads or bond rows.
-            // The detailed device list remains visible locally for diagnosis.
-            appendLine("BLE-Geräteeinträge (nur Anzahl): ${diagnosticRows.size}")
-            appendLine("Android-Kopplungsliste: " + if (bondedRows.isEmpty()) "nicht abgefragt oder leer" else "lokal abgefragt (Einträge nicht exportiert)")
-            appendLine("\nDieser passive Scan baut keine Verbindung auf. Separate, manuell gestartete CIRQA-Probes können aktive Verbindungen, Benachrichtigungsregistrierung und Schreiboperationen verwenden.")
-        }
+        val report = DiagnosticReport.build(
+            advertisingDevices = diagnosticRows.size,
+            scanStatus = lastScanDiagnostic,
+            gattLabel = cirqaGattState,
+            transitions = cirqaConnectionHistory.snapshot(),
+            bonded = cirqaBondAddress != null,
+            addressMatch = cirqaScanMatch,
+            evidenceSummary = cirqaScanEvidence.summary(),
+            rssiSummary = passiveRssiTracker.summary(),
+            bondListQueried = bondedRows.isNotEmpty()
+        )
         startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).apply {
             type = "text/plain"
             putExtra(Intent.EXTRA_TEXT, report)
