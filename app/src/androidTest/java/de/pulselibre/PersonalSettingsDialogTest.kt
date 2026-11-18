@@ -51,4 +51,15 @@ class PersonalSettingsDialogTest {
         }
         prefs.edit().remove("display_name").commit()
     }
+
+    /** Regression: SpO2 scale keys are stored as Int; opening Config after saving them crashed (ClassCastException). */
+    @Test fun opensWithIntegerStoredSpo2ThresholdsWithoutCrashing() {
+        SpO2DisplaySettings.save(instrumentation.targetContext, SpO2DisplaySettings(96, 91))
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            scenario.onActivity { PersonalSettings.show(it) }
+            val settings = DialogTestSupport.awaitDialog("Speichern")
+            assertTrue(DialogTestSupport.containsText(settings, "SpO"))
+        }
+        prefs.edit().remove("spo2_display_green_from").remove("spo2_display_red_below").commit()
+    }
 }
