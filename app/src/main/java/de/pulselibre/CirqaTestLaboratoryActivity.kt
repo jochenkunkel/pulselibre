@@ -517,7 +517,7 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
                     CirqaRfcommAttemptGate.consume(preferences)
                     val runner = CirqaRfcommRunner()
                     rfcommRunner = runner
-                    runner.start(address) { message ->
+                    runner.start(this@CirqaTestLaboratoryActivity, address) { message ->
                         runOnUiThread {
                             statusOutput.text = message
                             preferences.edit().putString(

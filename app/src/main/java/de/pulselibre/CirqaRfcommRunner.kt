@@ -2,8 +2,15 @@ package de.pulselibre
 
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothDevice
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.os.Handler
 import android.os.Looper
+import android.os.ParcelUuid
+import androidx.core.content.ContextCompat
 import java.io.IOException
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -17,19 +24,23 @@ class CirqaRfcommRunner {
     private val main = Handler(Looper.getMainLooper())
     private val stopped = AtomicBoolean(false)
     @Volatile private var connected = false
+    @Volatile private var sdpSeen = ""
+    private var sdpReceiver: BroadcastReceiver? = null
 
     fun stop() { stopped.set(true); transport.cancel() }
 
-    fun start(expectedAddress: String, result: (String) -> Unit) {
+    fun start(context: Context, expectedAddress: String, result: (String) -> Unit) {
         if (!CirqaRfcommGate.RELEASED_FOR_DEVICE_TEST) {
             result("RFCOMM gesperrt: keine Freigabe.")
             return
         }
         stopped.set(false)
         connected = false
+        sdpSeen = ""
+        registerSdpReceiver(context, expectedAddress, result)
         Thread {
             var report = "RFCOMM: kein Ergebnis."
-            val acceptCancel = Runnable { transport.cancel() }
+            val acceptCancel = Runnable { transport.timeout() }
             main.postDelayed(acceptCancel, CirqaRfcommSpec.ACCEPT_TIMEOUT_MS)
             try {
                 report = when (val connected = transport.accept(expectedAddress)) {
@@ -48,13 +59,41 @@ class CirqaRfcommRunner {
             } finally {
                 main.removeCallbacks(acceptCancel)
                 transport.cancel()
-                val finalReport = report
-                main.post { result(finalReport) }
+                val sdpSuffix = if (sdpSeen.isEmpty()) "" else " sdp=[${sdpSeen.take(160)}]"
+                val finalReport = report + sdpSuffix
+                main.post {
+                    sdpReceiver?.let { runCatching { context.unregisterReceiver(it) } }
+                    sdpReceiver = null
+                    result(finalReport)
+                }
             }
         }.apply { isDaemon = true; name = "cirqa-rfcomm" }.start()
         // Give the acceptor thread time to register the SPP server socket, then
         // ask the paired device (read-only SDP) to initiate the RFCOMM link.
         main.postDelayed({ requestSdp(expectedAddress, result) }, 1_000L)
+    }
+
+    private fun registerSdpReceiver(context: Context, address: String, progress: (String) -> Unit) {
+        val receiver = object : BroadcastReceiver() {
+            override fun onReceive(ctx: Context, intent: Intent) {
+                val device: BluetoothDevice? = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
+                if (device?.address?.equals(address, ignoreCase = true) != true) return
+                val uuids = intent.getParcelableArrayExtra(BluetoothDevice.EXTRA_UUID)
+                    ?.mapNotNull { (it as? ParcelUuid)?.uuid?.toString() } ?: emptyList()
+                sdpSeen = uuids.joinToString(",")
+                val offersSpp = uuids.any {
+                    it.equals(CirqaRfcommSpec.SERVICE_UUID.toString(), ignoreCase = true)
+                }
+                main.post {
+                    progress("RFCOMM: SDP ${uuids.size} UUIDs; SPP angeboten=$offersSpp")
+                }
+            }
+        }
+        sdpReceiver = receiver
+        ContextCompat.registerReceiver(
+            context, receiver, IntentFilter(BluetoothDevice.ACTION_UUID),
+            ContextCompat.RECEIVER_EXPORTED
+        )
     }
 
     @SuppressLint("MissingPermission")

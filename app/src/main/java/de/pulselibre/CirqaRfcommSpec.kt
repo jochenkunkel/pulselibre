@@ -34,7 +34,7 @@ object CirqaRfcommGate {
 
 /** Fresh persistent one-shot gate for the RFCOMM device attempt. */
 object CirqaRfcommAttemptGate {
-    const val PREFERENCE_KEY = "cirqaRfcommAttemptedV1"
+    const val PREFERENCE_KEY = "cirqaRfcommAttemptedV2"
     const val SUMMARY_KEY = "cirqaRfcommSummary"
 
     fun available(preferences: android.content.SharedPreferences): Boolean =

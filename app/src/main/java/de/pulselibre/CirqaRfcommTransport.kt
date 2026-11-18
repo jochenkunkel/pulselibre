@@ -25,32 +25,43 @@ class CirqaRfcommTransport {
 
     @Volatile private var serverSocket: BluetoothServerSocket? = null
     @Volatile private var socket: BluetoothSocket? = null
+    @Volatile private var timedOut = false
 
     @SuppressLint("MissingPermission")
     fun accept(expectedAddress: String?): Result {
         if (!CirqaRfcommGate.RELEASED_FOR_DEVICE_TEST) return Result.GateBlocked
         if (expectedAddress.isNullOrBlank()) return Result.Failed("no-expected-address")
+        timedOut = false
         val adapter = BluetoothAdapter.getDefaultAdapter() ?: return Result.Failed("no-adapter")
         if (!adapter.isEnabled) return Result.Failed("adapter-off")
-        return try {
-            val server = adapter.listenUsingRfcommWithServiceRecord(
+        val server = try {
+            adapter.listenUsingRfcommWithServiceRecord(
                 CirqaRfcommSpec.SERVICE_NAME, CirqaRfcommSpec.SERVICE_UUID
             )
-            serverSocket = server
-            val accepted = server.accept()
-            socket = accepted
-            val remote = accepted.remoteDevice?.address
-            if (remote == null || !remote.equals(expectedAddress, ignoreCase = true)) {
-                cancel()
-                return Result.Failed("unexpected-device")
-            }
-            Result.Connected(accepted.inputStream, accepted.outputStream, remote)
         } catch (_: SecurityException) {
-            Result.Failed("permission-denied")
-        } catch (_: IOException) {
-            Result.Failed("io-error")
+            return Result.Failed("permission-denied")
+        } catch (e: IOException) {
+            return Result.Failed("listen-failed:${e.javaClass.simpleName}")
         }
+        serverSocket = server
+        val accepted = try {
+            server.accept()
+        } catch (_: SecurityException) {
+            return Result.Failed("permission-denied")
+        } catch (e: IOException) {
+            return Result.Failed(if (timedOut) "accept-timeout" else "accept-io:${e.message}")
+        }
+        socket = accepted
+        val remote = accepted.remoteDevice?.address
+        if (remote == null || !remote.equals(expectedAddress, ignoreCase = true)) {
+            cancel()
+            return Result.Failed("unexpected-device")
+        }
+        return Result.Connected(accepted.inputStream, accepted.outputStream, remote)
     }
+
+    /** Timeout path: marks the accept as timed out before unblocking it. */
+    fun timeout() { timedOut = true; cancel() }
 
     /** Unblocks a pending [accept] and closes all sockets. Idempotent. */
     @Synchronized fun cancel() {

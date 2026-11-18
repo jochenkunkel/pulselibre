@@ -1,6 +1,31 @@
 # CIRQA Reverse Engineering – offene Fragen und widerlegte Hypothesen
 
-**Stand:** 2026-11-17. Diese Liste priorisiert Fakten, die einen sicheren historischen Abruf blockieren. Keine Frage in dieser Datei ist eine Erlaubnis für neue BLE-Kommandos.
+**Stand:** 2026-11-17 (Grundliste); **Update 2026-11-18 unten**. Diese Liste priorisiert Fakten, die einen sicheren historischen Abruf blockieren. Keine Frage in dieser Datei ist eine Erlaubnis für neue BLE-Kommandos.
+
+## Update 2026-11-18 – inzwischen geklärt / verschoben
+
+Folgende Punkte der Grundliste sind **nicht mehr offen**; die aktuellen
+Gerätebefunde stehen in `docs/protocol/experiments/CIRQA_HISTORICAL_SYNC_V1_2026-11-18.md`
+und `CIRQA_RFCOMM_PREPARATION_2026-11-18.md`:
+
+- **Ob CIRQA 5007/5031/5002/5004 unterstützt:** bejaht für die GFDI-Antworten;
+  5030/5007/5031/5002 liefern CRC-validierte Status-0-Antworten in einer Verbindung.
+- **5004-Outer-ACK:** byte-genau rekonstruiert (`[len][5000][5004][0][status][u32 offset][CRC]`),
+  von drei unabhängigen Referenzen bestätigt und im Gerätelauf sofort gesendet.
+- **5004-Fortgang:** das Gerät sendet nach dem ACK keinen zweiten Chunk. Der erste
+  Chunk ist bereits ein vollständiger 32-Byte-Platzhalter (`idx=0,type=0`, CRC `0x5001`),
+  obwohl 5002 die Größe 8192 meldet. Filter 0 und 3 sind identisch.
+- **5043 nach 5007/5031:** `Smart.core_service` → CoreService-Feld 14 =
+  `connection_ready_notification` (reine Benachrichtigung, kein 5044 nötig);
+  der GFDI-Transport-ACK wird gesendet.
+- **Größeninterpretation der 5002-Antwort:** u32LE 8192 ist geräteseitig bestätigt,
+  die Diskrepanz zum 32-Byte-Chunk bleibt_device-seitig_ unerklärt.
+- **RFCOMM/SPP:** Connect 5.31 besitzt den passenden `BluetoothClassicAcceptor`
+  (UUID `DEAB91E4-…`); der erste gegatterte Lauf blieb ohne Gegenverbindung.
+  Ein präziserer Lauf mit SDP-UUID-Auslese ist vorbereitet (Gate V2).
+
+Weiterhin offen: echte FIT-Verfügbarkeit auf dem CIRQA, CIRQA-Subtype-Map,
+Bedeutung der 16 Headerbytes und die über RFCOMM tatsächlich angebotenen Dienste.
 
 ## CRC-DEX-Nachtrag (2026-11-17)
 
