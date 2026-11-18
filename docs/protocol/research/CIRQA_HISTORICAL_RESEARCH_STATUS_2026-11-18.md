@@ -14,7 +14,8 @@
 | 5043 | Als `Smart.core_service.connection_ready_notification` interpretiert; Transport-ACK untersucht | Keine Begründung für spekulatives 5044 |
 | Filter 3 versus 0 | V11: gleicher Platzhalter | Filterwechsel allein löst Blocker nicht |
 | Bluetooth Classic / RFCOMM | Zwei gegatterte Läufe: V1 `io-error`, V2 präzise `accept-timeout` mit SDP-UUID-Liste `[00000000-0000-0000-0000-000000000000]` | **Hypothese für dieses Gerät widerlegt:** keine Gegenverbindung, SPP-UUID `DEAB91E4-…` wird nicht angeboten. Kein FIT-Transfer; beide Gates verbraucht, kein Reset |
-| Protobuf FileAccess (5043/5044) | V2: 5043-Item-List gesendet (`requestSent=true`), keine 5044-Antwort in 20 s | **Auch dieser Weg erfolglos**; kein FIT-Transfer. Gates V1/V2 verbraucht |
+| Protobuf FileAccess (5043/5044) | V2: 5043-Item-List gesendet, keine 5044-Antwort in 20 s | Kein FIT-Transfer; Gates verbraucht |
+| Protobuf **sync_request** (5043/5044) | V1: GFDI-ACK Status 0 + vollständige 5044 `sync_response` (`13:2[2:2]`) | **Positiv!** Gerät akzeptiert den Connect-Sync. V2-Beobachtungslauf nach `sync_response` läuft |
 
 Primärnachweise: [Historical Sync V1](../experiments/CIRQA_HISTORICAL_SYNC_V1_2026-11-18.md), [bounded Directory/FIT](../experiments/CIRQA_BOUNDED_DIRECTORY_FIT_TRANSFER_2026-11-18.md), [RFCOMM-Vorbereitung](../experiments/CIRQA_RFCOMM_PREPARATION_2026-11-18.md). Frühe Berichte sind historische Snapshots, keine aktuellen Testanweisungen.
 
@@ -51,10 +52,21 @@ liefern. Unsere bisherigen 5043-Versuche waren `file_access_service`, nicht
 `CirqaSyncRequestCandidate` baut diesen 4-Byte-Smart-Inhalt
 (`Smart` Feld 13 → `CoreService` Feld 1, leeres `SyncRequest`, da proto3 den
 Default-false-Bool auslässt) und kapselt ihn in einen gültigen 5043-Frame.
-**Offline getestet, nicht gesendet.** Achtung: ein Sync-Request kann beim Gerät
-eigene Ablagen (z. B. Archivierung nach erfolgreichem Upload) auslösen; wir
-senden selbst keine Archiv-/Flag-Befehle. Aktivierung braucht ausdrückliche
-Freigabe und ein neues Gate.
+
+**Gerätebefund (Gate V1, Build 1049) – positive Reaktion:**
+```
+5000[to=5043,status=0,payloadLen=8]        ← GFDI-ACK, Status 0 = akzeptiert
+5044 vollständig, len=6, shape=13:2[2:2]  ← Smart.core_service.sync_response
+requestSent=true
+```
+Damit ist bestätigt: Das CIRQA akzeptiert den Connect-kompatiblen Sync-Request
+und antwortet mit `sync_response`. Die früheren `file_access_service`-Requests
+blieben ohne Antwort, weil der Sync nicht angestoßen wurde.
+
+**Nächster Schritt (Gate V2):** Connect trennt erst **nach** der `sync_response`
+nicht – das Gerät beginnt danach, gepufferte Dateien zu liefern. Die Session
+hält die Verbindung jetzt 60 s offen und zählt alle eingehenden GFDI-Frame-Typen
+(redigiert). Kein FIT-Download, keine Archiv-/Flag-Befehle.
 
 ## Wichtigste Transporthypothese
 
