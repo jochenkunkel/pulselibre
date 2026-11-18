@@ -10,13 +10,7 @@ import java.time.ZoneId
 internal class NightOxygenReader(private val context: Context) {
     data class Night(val start: Instant, val end: Instant, val samples: List<NocturnalOxygen.Sample>)
 
-    fun lastNightWindow(now: Instant, zone: ZoneId): Pair<Instant, Instant> {
-        val today = now.atZone(zone).toLocalDate()
-        val endDay = if (now.atZone(zone).toLocalTime() >= LocalTime.of(6, 0)) today else today.minusDays(1)
-        val end = endDay.atTime(6, 0).atZone(zone).toInstant()
-        val start = endDay.minusDays(1).atTime(22, 0).atZone(zone).toInstant()
-        return start to end
-    }
+    fun lastNightWindow(now: Instant, zone: ZoneId): Pair<Instant, Instant> = window(now, zone)
 
     fun read(now: Instant, zone: ZoneId): Night {
         val (start, end) = lastNightWindow(now, zone)
@@ -38,5 +32,16 @@ internal class NightOxygenReader(private val context: Context) {
             }
         }
         return Night(start, end, out)
+    }
+
+    companion object {
+        /** Last completed clock night 22:00–06:00 local time; real elapsed time across daylight-saving changes. */
+        fun window(now: Instant, zone: ZoneId): Pair<Instant, Instant> {
+            val today = now.atZone(zone).toLocalDate()
+            val endDay = if (now.atZone(zone).toLocalTime() >= LocalTime.of(6, 0)) today else today.minusDays(1)
+            val end = endDay.atTime(6, 0).atZone(zone).toInstant()
+            val start = endDay.minusDays(1).atTime(22, 0).atZone(zone).toInstant()
+            return start to end
+        }
     }
 }
