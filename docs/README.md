@@ -2,6 +2,8 @@
 
 **Einstieg:** [Projektstatus](PROJECT_STATUS.md) · [Chat-/Agentenübergabe](CHAT_START_HERE.md) · [Entwicklungsplan](DEVELOPMENT_PLAN.md) · [Agentenregeln](../AGENTS.md).
 
+**Neu im Projekt?** [Leitfaden für externe Entwickler](CONTRIBUTING_GUIDE.md) mit Einstieg, Beitragsregeln und Sicherheitsgrenzen.
+
 ## Fachbereiche
 
 | Bereich | Wofür? | Verbindlicher Einstieg |
