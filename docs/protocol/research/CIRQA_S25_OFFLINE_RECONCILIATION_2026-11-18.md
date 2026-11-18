@@ -39,6 +39,35 @@ The private inputs remain under `/tmp/opencode/issue-141-private/` and
   226-byte payload. Without its schema, it remains opaque; neither its field
   semantics nor any alleged battery, firmware, or sensor information is claimed.
 
+## Privacy-limited device-metadata coverage
+
+The accompanying structural inventory was rechecked against FIT Profile
+21.222.0. The figures below count valid encoded elements, not distinct devices
+or proof that a value describes CIRQA itself. FIT `device_info` records can
+describe multiple attached sensors. Actual values, record timestamps, serials,
+and filenames remain private.
+
+| Candidate | Observed structural coverage | Source / freshness | Interpretation |
+| --- | ---: | --- | --- |
+| FIT device-info timestamp | 100/100 records valid, across 26 files | Timestamp field in the record; exact times withheld | Per-record time evidence exists; not a current/live clock reading |
+| Device type | 60/98 values valid, across 24 files | FIT `device_info`; capture time represented by its timestamp | Profile-coded type only; not independently identified as the band |
+| Manufacturer / product | 36/100 / 40/100 values valid, across 26 files | FIT `device_info`; record timestamp | Numeric profile identifiers; values withheld and not presented as a user-facing name |
+| Software version | 68/100 values valid, across 26 files | FIT `device_info`; record timestamp | Encoded version values exist; no claim that they are the latest firmware |
+| Serial number | 40/100 values structurally valid, across 26 files | FIT `device_info`; record timestamp | Sensitive identifier deliberately neither copied nor persisted by this inventory |
+| Battery voltage / status / level | 0/98 valid values for each, across 24 files | FIT `device_info`; records have timestamps | No usable battery evidence in this sample |
+| Device name / firmware text | Schema fields only, no value evidence published | XML `Device` schema; snapshot time private | Not established from the privacy-filtered material |
+| Sync status / band clock | No validated current-state value | XML has file-transfer schema fields; FIT has historical timestamps | Transfer capability/schema is not evidence of current sync state or clock accuracy |
+| Unknown protobuf metadata | One length-delimited field, 226-byte payload | Raw file; snapshot time private | Schema unknown; opaque and not decoded |
+
+The XML inventory establishes a `Device` root, 726 elements, 51 file-entry
+groups, and schema fields including `Model`, `SoftwareVersion`,
+`MassStorageMode`, and `TransferDirection`. This is schema/structure evidence
+only: the private values were not promoted into repository documentation or
+application storage. Existing BLE/GFDI evidence is limited to protocol
+structure and statuses documented in the dated experiment reports; no
+read-only live metadata query is established. No additional device request was
+made.
+
 ## Evidence boundary and remaining work
 
 The official profile source was fetched from Garmin's `garmin/fit-python-sdk`
@@ -51,4 +80,6 @@ The S25 database checks establish the observed stored data only. They do not
 prove that 33 transferred files exhaust the CIRQA archive. Supported-key
 reconciliation does not establish semantic value parity for every FIT field;
 unsupported and unknown fields remain inventory-only. Battery metadata is
-documented separately and no additional hardware query was made.
+not available from these FIT `device_info` records. No production metadata
+repository currently stores these candidates; implementing a privacy-filtered,
+timestamped metadata store and fixture-backed offline extraction remains open.
