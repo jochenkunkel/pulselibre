@@ -33,3 +33,9 @@ Alle 23 zuvor noch vollständig unter `docs/CIRQA_*.md` liegenden Fachtexte wurd
 - [experiments/](experiments/) – 4 weitere Versuchsvorbereitungen, Filelist- und Testlabor-Analysen.
 
 Die bisherigen Weiterleitungen unter `docs/CIRQA_*.md` wurden gelöscht. Für neue Links ausschließlich die kanonischen Unterordner verwenden; eine automatische Vollprüfung aller nicht-Markdown-Verweise steht gesondert aus.
+
+## Aktueller Einstieg für den historischen CIRQA-Download (18.11.2026)
+
+**Zuerst lesen:** [Kanonischer Forschungs- und Evidenzstand](research/CIRQA_HISTORICAL_RESEARCH_STATUS_2026-11-18.md). Er unterscheidet bestätigte CIRQA-Hardwarebefunde, Offline-Code und RFCOMM-Hypothesen und verweist auf die datierten Primärberichte. Ältere Dokumente bleiben als Evidenz erhalten und sind **keine aktuellen Handlungsanweisungen**.
+
+**Navigationsregel:** Neue Erkenntnisse zunächst in diesem Forschungsstand mit Quellen-/Gerätenachweis zusammenfassen; detaillierte Experimente weiterhin unter `experiments/`, Gerätetests unter `device-tests/`, stabile Formate unter `specifications/`, Sync-Zielarchitektur unter `sync/`. Keine parallelen, widersprüchlichen „aktueller Stand“-Dokumente anlegen.
