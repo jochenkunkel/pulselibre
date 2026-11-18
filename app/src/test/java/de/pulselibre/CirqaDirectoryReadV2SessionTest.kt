@@ -82,6 +82,24 @@ class CirqaDirectoryReadV2SessionTest {
         assertEquals(dir.size, s.receivedBytes)
     }
 
+    @Test fun queuesTransportAckForInterleaved5043Chunk() {
+        val dir = directoryBytes(listOf(Triple(1, 128, 1000)))
+        val s = CirqaDirectoryReadV2Session()
+        assertTrue(s.begin(dir.size))
+        val protobuf = byteArrayOf(0x6a, 0x02, 0x08, 0x01) // field 13 wire 2
+        val body = byteArrayOf(
+            0x91.toByte(), 0x0a,                   // request id 2705
+            0, 0, 0, 0,                             // offset 0
+            protobuf.size.toByte(), 0, 0, 0,        // total 4
+            protobuf.size.toByte(), 0, 0, 0         // chunk 4
+        ) + protobuf
+        val frame = GarminFileListRequest.cobs(gfdiFrame(5043, body))
+        assertEquals(CirqaDirectoryReadV2Session.Result.DUPLICATE, s.onNotification(frame))
+        assertEquals(listOf(2705 to 0L), s.drainProtobufAcks())
+        assertTrue(s.drainProtobufAcks().isEmpty())
+        assertEquals(0, s.receivedBytes)
+    }
+
     @Test fun rejectsBadCrcAndWrongOffset() {
         val dir = directoryBytes(listOf(Triple(1, 128, 1000)))
         val s = CirqaDirectoryReadV2Session()

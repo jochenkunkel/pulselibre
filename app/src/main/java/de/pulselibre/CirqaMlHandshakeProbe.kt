@@ -709,6 +709,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     else {
                         writeConfirmed = true
                         mlWritePending = false
+                        drainDeferredAcks(g)
                         if (bootstrapAckPending) {
                             bootstrapAckPending = false
                             if (bootstrapAckChunks.isEmpty()) bootstrapAckConfirmed = true
@@ -784,6 +785,20 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         bootstrapAckPending = true
         mark(if (configurationResponseQueued) "5050-Test: sende konfigurierte Antwortfolge" else "Bootstrap-Test: sende einmaliges DeviceInformation-ACK")
         send(g, bootstrapAckChunks.removeFirst())
+    }
+
+    /** Serializes transport ACKs (5004 chunks and 5043 protobuf chunks). */
+    private val deferredAckWrites = java.util.ArrayDeque<ByteArray>()
+
+    private fun queueAck(g: BluetoothGatt, bytes: ByteArray) {
+        deferredAckWrites.addLast(bytes)
+        drainDeferredAcks(g)
+        main.postDelayed({ if (active) drainDeferredAcks(g) }, 80L)
+    }
+
+    private fun drainDeferredAcks(g: BluetoothGatt) {
+        if (mlWritePending || deferredAckWrites.isEmpty()) return
+        send(g, deferredAckWrites.removeFirst())
     }
 
     @SuppressLint("MissingPermission")
@@ -895,17 +910,25 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     // Full-chain directory-body read: route 5004 chunks to the dedicated session.
                     dirReadSession?.let { d ->
                         val beforeDataFrames = d.dataFramesProcessed
-                        when (d.onNotification(bytes.copyOfRange(1, bytes.size))) {
+                        val result = d.onNotification(bytes.copyOfRange(1, bytes.size))
+                        val pbAcks = d.drainProtobufAcks()
+                        val handle = historyHandle
+                        if (handle == null) { finish("Directory-Body: Handle fehlt.", g); return }
+                        // Connect acknowledges every 5043 transport chunk with a 5000 ACK
+                        // (responseTo=5043). This is a transport ACK only, not a 5044 answer
+                        // and not a device mutation. Explicitly released for this bounded run.
+                        for ((requestId, offset) in pbAcks) {
+                            queueAck(g, CirqaLegacy5043AckCandidate.mlGattValueCandidate(handle, requestId, offset))
+                        }
+                        when (result) {
                             CirqaDirectoryReadV2Session.Result.ACCEPTED,
                             CirqaDirectoryReadV2Session.Result.DUPLICATE -> {
-                                // Control-only notifications need no ACK. Re-ACK only for a
-                                // real 5004 data frame (accepted or retry) so a stray control
-                                // frame cannot disturb the device's stream state.
-                                if (d.dataFramesProcessed == beforeDataFrames) return
-                                val ackOffset = d.nextAckOffset() ?: return
-                                val handle = historyHandle
-                                if (handle == null) { finish("Directory-Body: Handle fehlt.", g); return }
-                                send(g, CirqaLegacy5004AckCandidate.mlGattValueCandidate(handle, ackOffset))
+                                // Control-only notifications need no 5004 ACK. Re-ACK only for a
+                                // real 5004 data frame (accepted or retry).
+                                if (d.dataFramesProcessed != beforeDataFrames) {
+                                    val ackOffset = d.nextAckOffset() ?: return
+                                    queueAck(g, CirqaLegacy5004AckCandidate.mlGattValueCandidate(handle, ackOffset))
+                                }
                                 return
                             }
                             CirqaDirectoryReadV2Session.Result.COMPLETE -> {

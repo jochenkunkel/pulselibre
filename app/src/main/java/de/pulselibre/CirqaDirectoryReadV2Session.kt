@@ -34,6 +34,7 @@ class CirqaDirectoryReadV2Session(val token: Any = Any()) {
         private set
     private val controlTypes = LinkedHashMap<Int, Int>()
     private val protobufReassembler = GarminProtobufReassembler()
+    private val pendingProtobufAcks = ArrayList<Pair<Int, Long>>()
     private val encoded = ArrayList<Byte>()
     private var collecting = false
     var directoryEntries = 0
@@ -161,6 +162,13 @@ class CirqaDirectoryReadV2Session(val token: Any = Any()) {
     }
 
     /** Next ACK offset; null when not receiving. */
+    /** RequestId/receivedOffset pairs for transport ACKs to interleaved 5043 chunks. */
+    @Synchronized fun drainProtobufAcks(): List<Pair<Int, Long>> {
+        val out = pendingProtobufAcks.toList()
+        pendingProtobufAcks.clear()
+        return out
+    }
+
     @Synchronized fun nextAckOffset(): Int? = if (phase == Phase.RECEIVING) receivedBytes else null
 
     @Synchronized fun completedBytes(): ByteArray? = if (phase == Phase.COMPLETED) bytes.toByteArray() else null
@@ -209,6 +217,7 @@ class CirqaDirectoryReadV2Session(val token: Any = Any()) {
             val total = u32(body, 6)
             val chunk = u32(body, 10)
             appendProtobufDiag("5043[id=$id,off=$offset,total=$total,chunk=$chunk];")
+            if (pendingProtobufAcks.size < 16) pendingProtobufAcks.add(id to offset)
         }
         protobufReassembler.accept(frame)?.let { msg ->
             appendProtobufDiag("complete[len=${msg.size},shape=${CirqaProtobufShapeInspector.shape(msg)}];")
