@@ -927,6 +927,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                         maybeSendLegacy5030AfterBootstrap(g)
                         maybeSendLegacy5007AfterBootstrap(g)
                         maybeSendLegacy5002AfterBootstrap(g)
+                        maybeAdvanceHistoricalSyncV1(g)
                     }
                     if (bootstrapAckMode && historyRegistered && !bootstrapAckSent &&
                         fileListProbe.bootstrap.deviceInformationFrames > 0 &&
