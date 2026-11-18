@@ -16,10 +16,10 @@ internal data class DeviceStats(
     val firstReading: Instant?
 )
 
-internal enum class DeviceSource(val title: String, val icon: String, val service: Int) {
-    PULSE("Herzfrequenz", "💓", 6), OXYGEN("SpO₂", "🫁", 19), STEPS("Schritte", "👣", 7), STRESS("Stress", "🧠", 13),
-    BATTERY("Body Battery", "🔋", 20), RR("RR-Intervall", "〰", 12), BREATH("Atmung", "🌬", 21),
-    CALORIES("Kalorien", "🔥", 8), INTENSITY("Intensität", "⏱", 10)
+internal enum class DeviceSource(val title: String, val icon: PlIcon, val service: Int) {
+    PULSE("Herzfrequenz", PlIcon.HEART, 6), OXYGEN("SpO₂", PlIcon.OXYGEN, 19), STEPS("Schritte", PlIcon.STEPS, 7), STRESS("Stress", PlIcon.STRESS, 13),
+    BATTERY("Body Battery", PlIcon.BODY_BATTERY, 20), RR("RR-Intervall", PlIcon.RR_INTERVAL, 12), BREATH("Atmung", PlIcon.BREATHING, 21),
+    CALORIES("Kalorien", PlIcon.CALORIES, 8), INTENSITY("Intensität", PlIcon.INTENSITY, 10)
 }
 
 internal object DeviceFormat {

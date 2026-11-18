@@ -7,6 +7,7 @@ import android.os.Handler
 import android.os.Looper
 import android.view.Gravity
 import android.view.View
+import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
 import java.text.NumberFormat
@@ -92,24 +93,23 @@ internal class TrendCardView(context: Context) : LinearLayout(context) {
     private fun titleRow(info: (() -> Unit)?): View = LinearLayout(context).apply {
         orientation = HORIZONTAL
         gravity = Gravity.CENTER_VERTICAL
-        addView(TextView(context).apply { text = "📈"; textSize = 18f; setPadding(0, 0, dp(8), 0) })
+        addView(PlIcon.view(context, PlIcon.TRENDS, 24), LayoutParams(dp(24), dp(24)).apply { marginEnd = dp(8) })
         addView(TextView(context).apply {
             text = "Trends"; textSize = 16f; setTypeface(null, Typeface.BOLD); setTextColor(palette.ink)
         }, LayoutParams(0, -2, 1f))
-        if (info != null) addView(TextView(context).apply {
-            text = "ⓘ"; textSize = 20f; setTextColor(palette.accent); gravity = Gravity.CENTER
-            minWidth = dp(48); minHeight = dp(48)
+        if (info != null) addView(FrameLayout(context).apply {
             contentDescription = "Methode und Einschränkungen der Trends"
             isClickable = true; isFocusable = true
             setOnClickListener { info() }
-        })
+            addView(PlIcon.view(context, PlIcon.INFO, 22), FrameLayout.LayoutParams(dp(22), dp(22), Gravity.CENTER))
+        }, LayoutParams(dp(48), dp(48)))
     }
 
-    private fun stateIcon(s: FitnessOverview.State) = when (s) {
-        FitnessOverview.State.POSITIVE -> "✅"
-        FitnessOverview.State.NEUTRAL -> "➖"
-        FitnessOverview.State.MIXED -> "⚠️"
-        FitnessOverview.State.NOT_ASSESSABLE -> "⏳"
+    /** Dimension icons identify *what* is assessed; the state is written text only (no status via icon). */
+    private fun dimensionIcon(name: String) = when (name) {
+        "Fitnessentwicklung" -> PlIcon.FITNESS
+        "Regeneration" -> PlIcon.RECOVERY
+        else -> PlIcon.CONSISTENCY
     }
 
     private fun render(d: Data) {
@@ -123,8 +123,7 @@ internal class TrendCardView(context: Context) : LinearLayout(context) {
                 minimumHeight = dp(32)
                 contentDescription = "${dim.name}: ${dim.state.label}. ${dim.sentence}"
                 isFocusable = true
-                addView(TextView(context).apply { text = stateIcon(dim.state); textSize = 15f; setPadding(0, 0, dp(8), 0)
-                    importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO })
+                addView(PlIcon.view(context, dimensionIcon(dim.name), 22), LayoutParams(dp(22), dp(22)).apply { marginEnd = dp(8) })
                 addView(TextView(context).apply { text = dim.name; textSize = 13f; setTextColor(palette.ink)
                     importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO }, LayoutParams(0, -2, 1f))
                 addView(TextView(context).apply { text = dim.state.label; textSize = 12f; setTextColor(palette.muted)
@@ -133,11 +132,11 @@ internal class TrendCardView(context: Context) : LinearLayout(context) {
         }
         // Trend table: rows = metric, columns = 7 / 28 / 90 days.
         content.addView(tableRow(null, listOf("7 T", "28 T", "90 T")), LayoutParams(-1, -2).apply { topMargin = dp(12) })
-        content.addView(tableRow("💓 Ruhepuls", d.rest.map { cell(it) }).apply {
+        content.addView(tableRow("Ruhepuls", d.rest.map { cell(it) }, PlIcon.HEART).apply {
             tag = "trend_row_rest"; isClickable = true; isFocusable = true; minimumHeight = dp(48)
             setOnClickListener { showDaily(d, "Geräte-Ruhepuls (bpm)", d.restDaily, d.rest, palette.pulse, zeroBased = false) }
         })
-        content.addView(tableRow("👣 Schritte", d.steps.map { cell(it) }).apply {
+        content.addView(tableRow("Schritte", d.steps.map { cell(it) }, PlIcon.STEPS).apply {
             tag = "trend_row_steps"; isClickable = true; isFocusable = true; minimumHeight = dp(48)
             setOnClickListener { showDaily(d, "Schritte pro Tag", d.stepsDaily, d.steps, palette.indicator) }
         })
@@ -152,10 +151,19 @@ internal class TrendCardView(context: Context) : LinearLayout(context) {
             isClickable = true; isFocusable = true
             contentDescription = "Zusammenhang Schritte und Ruhepuls am Folgetag: ${c.verdict.label}, ${c.note}. Tippen für das Streudiagramm."
             setOnClickListener { showScatter() }
-            addView(TextView(context).apply { text = "🔗"; textSize = 15f; setPadding(0, 0, dp(8), 0) })
-            addView(TextView(context).apply { text = "👣 → 💓 Folgetag"; textSize = 13f; setTextColor(palette.ink) }, LayoutParams(0, -2, 1f))
-            addView(TextView(context).apply { text = corr; textSize = 12f; setTextColor(palette.muted); setPadding(0, 0, dp(8), 0) })
-            addView(TextView(context).apply { text = if (d.scatter.size >= 2) "📊" else ""; textSize = 16f })
+            addView(PlIcon.view(context, PlIcon.TREND_LINK, 22), LayoutParams(dp(22), dp(22)).apply { marginEnd = dp(8) })
+            addView(LinearLayout(context).apply {
+                orientation = HORIZONTAL; gravity = Gravity.CENTER_VERTICAL
+                addView(PlIcon.view(context, PlIcon.STEPS, 18), LayoutParams(dp(18), dp(18)))
+                addView(TextView(context).apply { text = " → "; textSize = 13f; setTextColor(palette.ink) })
+                addView(PlIcon.view(context, PlIcon.HEART, 18), LayoutParams(dp(18), dp(18)))
+                addView(TextView(context).apply { text = "  Folgetag"; textSize = 13f; setTextColor(palette.ink) })
+            }, LayoutParams(0, -2, 1f))
+            if (c.rho == null) {
+                addView(PlIcon.view(context, PlIcon.HOURGLASS, 18), LayoutParams(dp(18), dp(18)).apply { marginEnd = dp(4) })
+                addView(TextView(context).apply { text = "${c.pairs}/${PairedCorrelation.MIN_PAIRS} Tage"; textSize = 12f; setTextColor(palette.muted); setPadding(0, 0, dp(8), 0) })
+            } else addView(TextView(context).apply { text = corr; textSize = 12f; setTextColor(palette.muted); setPadding(0, 0, dp(8), 0) })
+            if (d.scatter.size >= 2) addView(PlIcon.view(context, PlIcon.TRENDS, 22), LayoutParams(dp(22), dp(22)))
         }, LayoutParams(-1, -2).apply { topMargin = dp(4) })
     }
 
@@ -167,10 +175,14 @@ internal class TrendCardView(context: Context) : LinearLayout(context) {
     private fun compact(v: Double): String =
         if (Math.abs(v) >= 100) NumberFormat.getIntegerInstance(Locale.GERMANY).format(Math.round(v)) else nf.format(v)
 
-    private fun tableRow(label: String?, cells: List<String>): View = LinearLayout(context).apply {
+    private fun tableRow(label: String?, cells: List<String>, icon: PlIcon? = null): View = LinearLayout(context).apply {
         orientation = HORIZONTAL
         gravity = Gravity.CENTER_VERTICAL
-        addView(TextView(context).apply { text = label.orEmpty(); textSize = 13f; setTextColor(palette.ink) }, LayoutParams(0, -2, 1.3f))
+        addView(LinearLayout(context).apply {
+            orientation = HORIZONTAL; gravity = Gravity.CENTER_VERTICAL
+            if (icon != null) addView(PlIcon.view(context, icon, 20), LayoutParams(dp(20), dp(20)).apply { marginEnd = dp(6) })
+            addView(TextView(context).apply { text = label.orEmpty(); textSize = 13f; setTextColor(palette.ink) })
+        }, LayoutParams(0, -2, 1.3f))
         cells.forEach { c ->
             addView(TextView(context).apply {
                 text = c; textSize = if (label == null) 11f else 12f

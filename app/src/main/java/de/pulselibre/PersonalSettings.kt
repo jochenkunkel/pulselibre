@@ -52,13 +52,12 @@ object PersonalSettings {
                 text = label; textSize = 16f; setTypeface(null, android.graphics.Typeface.BOLD)
                 setTextColor(palette.accent)
             }, LinearLayout.LayoutParams(0, -2, 1f))
-            if (info != null) row.addView(TextView(context).apply {
-                text = "ⓘ"; textSize = 20f; setTextColor(palette.accent); gravity = Gravity.CENTER
-                minWidth = dp(48); minHeight = dp(48)
+            if (info != null) row.addView(FrameLayout(context).apply {
                 contentDescription = "Erklärung zu $label"
                 isClickable = true; isFocusable = true
                 setOnClickListener { showInfo(label, info) }
-            }, LinearLayout.LayoutParams(-2, -2))
+                addView(PlIcon.view(context, PlIcon.INFO, 22), FrameLayout.LayoutParams(dp(22), dp(22), Gravity.CENTER))
+            }, LinearLayout.LayoutParams(dp(48), dp(48)))
             layout.addView(row)
         }
         val compactRows = context.resources.configuration.screenWidthDp < 340 || context.resources.configuration.fontScale >= 1.3f

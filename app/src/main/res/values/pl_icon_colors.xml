@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- PulsLibre icon system v1: line / accent / soft fill. Light variants keep ≥ 4.5:1 on white cards. -->
+<resources>
+    <color name="pl_icon_line">#6E3FD0</color>
+    <color name="pl_icon_accent">#0E9F86</color>
+    <color name="pl_icon_fill">#2E6334A8</color>
+</resources>
