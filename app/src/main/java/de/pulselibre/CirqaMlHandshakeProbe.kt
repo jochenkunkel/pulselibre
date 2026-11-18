@@ -789,6 +789,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
 
     /** Serializes transport ACKs (5004 chunks and 5043 protobuf chunks). */
     private val deferredAckWrites = java.util.ArrayDeque<ByteArray>()
+    private var acks5004Queued = 0
+    private var acks5043Queued = 0
 
     private fun queueAck(g: BluetoothGatt, bytes: ByteArray) {
         deferredAckWrites.addLast(bytes)
@@ -918,6 +920,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                         // (responseTo=5043). This is a transport ACK only, not a 5044 answer
                         // and not a device mutation. Explicitly released for this bounded run.
                         for ((requestId, offset) in pbAcks) {
+                            acks5043Queued++
                             queueAck(g, CirqaLegacy5043AckCandidate.mlGattValueCandidate(handle, requestId, offset))
                         }
                         when (result) {
@@ -927,6 +930,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                                 // real 5004 data frame (accepted or retry).
                                 if (d.dataFramesProcessed != beforeDataFrames) {
                                     val ackOffset = d.nextAckOffset() ?: return
+                                    acks5004Queued++
                                     queueAck(g, CirqaLegacy5004AckCandidate.mlGattValueCandidate(handle, ackOffset))
                                 }
                                 return
@@ -1334,6 +1338,9 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         val session = CirqaDirectoryReadV2Session()
         if (!session.begin(size)) return false
         dirReadSession = session
+        acks5004Queued = 0
+        acks5043Queued = 0
+        deferredAckWrites.clear()
         configurationTestMode = false
         // Cancel the stale 5 s response timer from the 5002 request; the body stream
         // has its own 20 s budget below.
@@ -1926,7 +1933,10 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             }
             gatt = null
             callback?.invoke(
-                if (dirReadSession != null) dirReadSession!!.summary() + " [finish=$message]"
+                if (dirReadSession != null) dirReadSession!!.summary() +
+                    " [acks5004=$acks5004Queued,acks5043=$acks5043Queued," +
+                    "pendingWrites=${deferredAckWrites.size},writePending=$mlWritePending]" +
+                    " [finish=$message]"
                 else if (historicalSyncV1 != null) historicalSyncV1!!.summary() + " [finish=$message]"
                 else if (legacy5030Only != null) legacy5030Only!!.summary()
                 else if (legacyHistoryDownloadMode) legacyHistoryDownloadReport(message)
