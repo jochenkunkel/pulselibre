@@ -6,7 +6,7 @@ import org.junit.Test
 class DashboardOverviewTest {
     @Test fun emptySourceHasTruthfulEmptyStates() {
         val overview = dashboardOverview(emptyList())
-        assertTrue((overview.vitalSigns + overview.sleep + overview.today).all { it.value == "Keine Messdaten" })
+        assertTrue((overview.vitalSigns + overview.sleep + overview.steps + overview.stepGoal).all { it.value == "Keine Messdaten" })
         assertTrue(overview.details.isEmpty())
     }
 
@@ -20,8 +20,8 @@ class DashboardOverviewTest {
         val overview = dashboardOverview(listOf(rr, goal, oxygen, steps, sleep, pulse))
         assertEquals(listOf(pulse, oxygen), overview.vitalSigns)
         assertEquals(sleep, overview.sleep)
-        assertEquals(listOf(steps, goal), overview.today.take(2))
-        assertEquals("Keine Messdaten", overview.today[2].value)
+        assertEquals(steps, overview.steps)
+        assertEquals(goal, overview.stepGoal)
         assertEquals(listOf(rr), overview.details)
     }
 
@@ -31,23 +31,16 @@ class DashboardOverviewTest {
         assertEquals(pulse, overview.vitalSigns[0])
         assertEquals("Keine Messdaten", overview.vitalSigns[1].value)
     }
-    @Test fun stepGoalProgressUsesDeviceGoalAndRetainsOverachievement() {
-        val steps = DashboardMetric("Schritte (Tageszähler)", "12000", "Tageszähler")
-        val goal = DashboardMetric("Schrittziel", "10000", "Geräteziel")
-        val metric = stepGoalProgressMetric(steps, goal)
-        assertEquals("120 %", metric.value)
-        assertTrue(metric.note.contains("keine Gesundheitsbewertung"))
+    @Test fun stepGoalProgressUsesValidDeviceValuesAndRetainsOverachievement() {
+        val goal = DashboardMetric("Schrittziel", "9330", "")
+        fun progress(count: String, target: DashboardMetric = goal) =
+            stepGoalProgress(DashboardMetric("Schritte (Tageszähler)", count, ""), target)
+        assertEquals(100.0 * 136 / 9330, progress("136")!!, 0.0001)
+        assertEquals(0.0, progress("0")!!, 0.0)
+        assertEquals(100.0, progress("9330")!!, 0.0)
+        assertEquals(200.0, progress("18660")!!, 0.0)
+        assertNull(progress("Keine Messdaten"))
+        assertNull(progress("-1"))
+        assertNull(progress("136", goal.copy(value = "0")))
     }
-
-    @Test fun stepGoalProgressRequiresValidStepCountAndPositiveDeviceGoal() {
-        assertEquals("Keine Messdaten", stepGoalProgressMetric(
-            DashboardMetric("Schritte (Tageszähler)", "Keine Messdaten", ""),
-            DashboardMetric("Schrittziel", "10000", "")
-        ).value)
-        assertEquals("Keine Messdaten", stepGoalProgressMetric(
-            DashboardMetric("Schritte (Tageszähler)", "1000", ""),
-            DashboardMetric("Schrittziel", "0", "")
-        ).value)
-    }
-
 }

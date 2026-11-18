@@ -13,6 +13,8 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.core.view.ViewCompat
+import java.text.NumberFormat
+import java.util.Locale
 import java.time.Duration
 import java.time.Instant
 import java.time.ZoneId
@@ -49,12 +51,43 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
         addNightOxygenCard()
         heading("Heute auf einen Blick")
         addStepContextChip()
-        addCardPair(overview.today) { metric ->
-            metricCard(metric, if (metric.title == "Tagesziel Schritte") palette.indicator else ink)
-        }
+        addView(stepCard(overview.steps, overview.stepGoal),
+            LayoutParams(-1, -2).apply { bottomMargin = dp(8) })
         heading("Weitere Gesundheitswerte")
         overview.details.chunked(2).forEach { pair ->
             addCardPair(pair) { metric -> metricCard(metric, ink) }
+        }
+    }
+
+    private fun stepCard(steps: DashboardMetric, goal: DashboardMetric): View {
+        val integers = NumberFormat.getIntegerInstance(Locale.GERMANY)
+        val count = steps.value.toLongOrNull()?.takeIf { it >= 0 }
+        val target = goal.value.toLongOrNull()?.takeIf { it > 0 }
+        val progress = stepGoalProgress(steps, goal)
+        val metric = steps.copy(title = "Schritte heute",
+            value = count?.let { "${integers.format(it)} Schritte" } ?: "Keine Messdaten")
+        return card(metric).apply {
+            content.addView(header(metric))
+            content.addView(label(metric.value, 22f, ink, true))
+            val targetText = target?.let { "Tagesziel · ${integers.format(it)} Schritte" }
+                ?: "Kein gültiges Geräte-Schrittziel verfügbar"
+            content.addView(label(targetText, 14f, muted))
+            contentDescription = "${metric.title}. ${metric.value}. $targetText."
+            if (progress != null) {
+                val percentValue = progress
+                val percent = NumberFormat.getNumberInstance(Locale.GERMANY).apply {
+                    maximumFractionDigits = 1
+                }.format(progress)
+                contentDescription = "$contentDescription $percent % des Tagesziels."
+                content.addView(label("$percent % des Tagesziels", 14f, ink, true))
+                content.addView(android.widget.ProgressBar(context, null, android.R.attr.progressBarStyleHorizontal).apply {
+                    tag = "dashboard_step_progress"
+                    max = 1000
+                    this.progress = (percentValue.coerceIn(0.0, 100.0) * 10).toInt()
+                    progressTintList = android.content.res.ColorStateList.valueOf(palette.indicator)
+                    importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+                }, LayoutParams(-1, dp(12)))
+            }
         }
     }
 
@@ -229,8 +262,10 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
             tag = "dashboard_metric_icon_${metric.title}"
         }, LayoutParams(dp(20), dp(20)).apply { marginEnd = dp(6) })
         addView(label(metric.title, 12f, muted, true).apply {
-            maxLines = 2
-            ellipsize = android.text.TextUtils.TruncateAt.END
+            if (metric.title != "Schritte heute") {
+                maxLines = 2
+                ellipsize = android.text.TextUtils.TruncateAt.END
+            }
             contentDescription = metric.title
         }, LayoutParams(0, -2, 1f))
     }
