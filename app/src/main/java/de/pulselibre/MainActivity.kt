@@ -212,34 +212,12 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+        var lastHeaderState: CirqaConnectionHistory.State? = null
         fun refreshAvatarConnectionBorder() {
-            val connectPermissionGranted = Build.VERSION.SDK_INT < 31 ||
-                ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED
-            var bluetoothEnabled = false
-            var bondedCirqaFound = false
-            var gattConnected = false
-            if (connectPermissionGranted) try {
-                bluetoothEnabled = adapter.isEnabled
-                if (bluetoothEnabled) {
-                    val cirqa = adapter.bondedDevices.orEmpty().firstOrNull {
-                        it.name?.contains("CIRQA", ignoreCase = true) == true
-                    }
-                    bondedCirqaFound = cirqa != null
-                    if (cirqa != null) {
-                        gattConnected = manager.getConnectionState(cirqa, BluetoothProfile.GATT) ==
-                            BluetoothProfile.STATE_CONNECTED
-                    }
-                }
-            } catch (_: SecurityException) {
-                bluetoothEnabled = false
-                bondedCirqaFound = false
-                gattConnected = false
-            } catch (_: IllegalArgumentException) {
-                gattConnected = false
-            }
-            val connected = CirqaConnectionIndicator.isConnected(
-                bluetoothEnabled, connectPermissionGranted, bondedCirqaFound, gattConnected
-            )
+            val state = refreshCirqaCard()
+            if (state == lastHeaderState) return
+            lastHeaderState = state
+            val connected = CirqaConnectionIndicator.isConnected(state)
             val statusColor = if (connected) Color.rgb(31, 190, 112) else Color.BLACK
             val outerOutline = GradientDrawable().apply {
                 shape = GradientDrawable.OVAL
@@ -254,12 +232,9 @@ class MainActivity : AppCompatActivity() {
             avatarButton.background = LayerDrawable(arrayOf(outerOutline, statusOutline)).apply {
                 setLayerInset(1, dp(3), dp(3), dp(3), dp(3))
             }
-            avatarButton.contentDescription = CirqaConnectionIndicator.contentDescription(
-                connected, connectPermissionGranted
-            )
+            avatarButton.contentDescription = CirqaConnectionIndicator.contentDescription(state)
         }
         connectionIndicatorRefresh = { refreshAvatarConnectionBorder() }
-        refreshAvatarConnectionBorder()
         headerRow.addView(avatarButton, LinearLayout.LayoutParams(dp(48), dp(48)))
         header.addView(headerRow)
         header.addView(text("Deine Daten. Deine Kontrolle. · Offline", 13f, Color.WHITE))
@@ -841,7 +816,7 @@ class MainActivity : AppCompatActivity() {
                 historyRefresh?.invoke()
             }
             if (index == 2) recorderRefresh?.invoke()
-            if (index == 2) refreshCirqaCard()
+            connectionIndicatorRefresh?.invoke()
             scroll.scrollTo(0, 0)
         }
         screen.addView(nav)
@@ -989,44 +964,46 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    /** Reads Android bond metadata only; no GATT connection or bond changes. */
+    /** Observes Android's system GATT state for display and diagnostics. */
     @SuppressLint("MissingPermission")
-    private fun refreshCirqaCard() {
-        if (Build.VERSION.SDK_INT >= 31 && ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
-            cirqaBondAddress = null
-            cirqaGattState = CirqaStateMapping.label(CirqaConnectionHistory.State.PERMISSION_DENIED)
-            cirqaConnectionHistory.observe(System.currentTimeMillis(), CirqaConnectionHistory.State.PERMISSION_DENIED)
-            cirqaCard.text = "CIRQA Smart Band\nBluetooth-Berechtigung erforderlich"
-            return
-        }
-        try {
+    private fun refreshCirqaCard(): CirqaConnectionHistory.State {
+        val permissionGranted = Build.VERSION.SDK_INT < 31 ||
+            ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) ==
+            PackageManager.PERMISSION_GRANTED
+        cirqaBondAddress = null
+        val state = if (!permissionGranted) {
+            CirqaConnectionHistory.State.PERMISSION_DENIED
+        } else try {
             val matched = adapter.bondedDevices.orEmpty().firstOrNull {
                 it.name?.contains("CIRQA", ignoreCase = true) == true
             }
             cirqaBondAddress = matched?.address
-            val observedState = if (matched == null) CirqaConnectionHistory.State.NOT_PAIRED else try {
-                val manager = getSystemService(BLUETOOTH_SERVICE) as BluetoothManager
-                CirqaStateMapping.fromAndroidState(manager.getConnectionState(matched, BluetoothProfile.GATT))
-            } catch (_: SecurityException) {
-                CirqaConnectionHistory.State.PERMISSION_DENIED
-            } catch (_: IllegalArgumentException) {
-                CirqaConnectionHistory.State.UNKNOWN
+            when {
+                matched == null -> CirqaConnectionHistory.State.NOT_PAIRED
+                !adapter.isEnabled -> CirqaConnectionHistory.State.DISCONNECTED
+                else -> {
+                    val manager = getSystemService(BLUETOOTH_SERVICE) as BluetoothManager
+                    CirqaStateMapping.fromAndroidState(manager.getConnectionState(matched, BluetoothProfile.GATT))
+                }
             }
-            cirqaGattState = CirqaStateMapping.label(observedState)
-            cirqaConnectionHistory.observe(System.currentTimeMillis(), observedState)
-            val message = if (matched != null)
-                "CIRQA Smart Band\n✓ Mit Android gekoppelt\n" +
-                (if (cirqaScanMatch) "✓ Gleiche BLE-Adresse im Scan erkannt\n" else "BLE-Werbeadresse nicht bestätigt (wechselnde Adressen möglich)\n") +
-                "${cirqaGattState}\nGarmin Connect bleibt unverändert\nKeine PulseLibre-Verbindung aufgebaut"
-            else "CIRQA Smart Band\nNicht in Android-Kopplungen gefunden\nKeine Verbindung hergestellt"
-            cirqaCard.text = message
-            cirqaCard.contentDescription = message
         } catch (_: SecurityException) {
             cirqaBondAddress = null
-            cirqaGattState = CirqaStateMapping.label(CirqaConnectionHistory.State.PERMISSION_DENIED)
-            cirqaConnectionHistory.observe(System.currentTimeMillis(), CirqaConnectionHistory.State.PERMISSION_DENIED)
-            cirqaCard.text = "CIRQA Smart Band\nBluetooth-Berechtigung fehlt"
+            CirqaConnectionHistory.State.PERMISSION_DENIED
+        } catch (_: IllegalArgumentException) {
+            CirqaConnectionHistory.State.UNKNOWN
         }
+        cirqaGattState = CirqaStateMapping.label(state)
+        cirqaConnectionHistory.observe(System.currentTimeMillis(), state)
+        val message = buildString {
+            appendLine("CIRQA Smart Band")
+            if (cirqaBondAddress != null) {
+                appendLine("Mit Android gekoppelt")
+                if (cirqaScanMatch) appendLine("Gleiche BLE-Adresse im Scan erkannt")
+            }
+            append(cirqaGattState)
+        }
+        if (cirqaCard.text.toString() != message) cirqaCard.text = message
+        return state
     }
 
     @SuppressLint("MissingPermission")
@@ -1053,7 +1030,7 @@ class MainActivity : AppCompatActivity() {
             appendLine("Gefundene Werbegeräte: ${diagnosticRows.size}")
             appendLine("Scan-Status: $lastScanDiagnostic")
             appendLine("CIRQA GATT (Android-Systemstatus; verantwortliche App unbekannt): $cirqaGattState")
-            appendLine("CIRQA-Statuswechsel (nur bei manuellen Abfragen): ${cirqaConnectionHistory.snapshot().size}")
+            appendLine("CIRQA-Statuswechsel (in der App beobachtet): ${cirqaConnectionHistory.snapshot().size}")
             cirqaConnectionHistory.snapshot().forEach { entry ->
                 appendLine("  ${entry.timestampMillis} · ${entry.state}")
             }

@@ -1,5 +1,6 @@
 package de.pulselibre
 
+import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
@@ -23,11 +24,11 @@ class DashboardTest {
             }
         }
     }
-    @Test fun dashboardHasPulseLibreHeading() {
+    @Test fun dashboardHasPulsLibreHeading() {
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
                 val root = activity.findViewById<ViewGroup>(android.R.id.content)
-                assertTrue(containsText(root, "PulseLibre"))
+                assertTrue(containsText(root, "PulsLibre"))
             }
         }
     }
@@ -55,18 +56,19 @@ class DashboardTest {
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
                 val root = activity.findViewById<ViewGroup>(android.R.id.content)
-                val historyTab = findText(root, "Verlauf") ?: error("Verlauf-Reiter fehlt")
-                historyTab.performClick()
+                val historyTab = root.findViewWithTag<View>("navigation_item_Verlauf")
+                assertNotNull("Verlauf-Reiter fehlt", historyTab)
+                assertTrue(historyTab.performClick())
+                assertTrue(historyTab.isSelected)
                 assertTrue(containsText(root, "Verlauf · lokal gespeicherte Messpunkte"))
-                assertTrue(containsText(root, "Zeit = Empfang auf dem Telefon."))
+                assertTrue(containsDescription(root, "Zeitpunkt: Empfang auf dem Telefon."))
             }
         }
     }
-    private fun findText(view: android.view.View, expected: String): TextView? {
-        if (view is TextView && view.text.toString() == expected) return view
-        if (view is ViewGroup) for (i in 0 until view.childCount) findText(view.getChildAt(i), expected)?.let { return it }
-        return null
-    }
+    private fun containsDescription(view: View, expected: String): Boolean =
+        view.contentDescription?.contains(expected) == true ||
+            (view is ViewGroup && (0 until view.childCount).any { containsDescription(view.getChildAt(it), expected) })
+
     private fun containsText(view: android.view.View, expected: String): Boolean {
         if (view is TextView && view.text.toString() == expected) return true
         if (view is ViewGroup) for (i in 0 until view.childCount) {

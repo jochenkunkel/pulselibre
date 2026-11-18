@@ -116,7 +116,7 @@ class DashboardOverviewViewTest {
             val view = DashboardOverviewView(context(1f, 400))
             view.render(emptyList())
             val chip = descendants(view).single { it.contentDescription?.startsWith("Tagesstand.") == true }
-            assertTrue(chip.contentDescription.contains("kumulativer Gerätezähler"))
+            assertTrue(chip.contentDescription.contains("Kumulativer Gerätezähler"))
             assertTrue(chip.contentDescription.contains("nicht addiert"))
             assertTrue(descendants(chip).any { it is DashboardMetricIconView })
             assertFalse(descendants(view).filterIsInstance<android.widget.TextView>()
