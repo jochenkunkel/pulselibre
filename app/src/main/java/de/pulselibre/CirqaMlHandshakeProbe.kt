@@ -1309,7 +1309,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             CirqaHistoricalSyncV1MultiPhaseSession.Phase.WAITING_5030_WRITE ->
                 CirqaHistoricalSyncV1Wire.systemEventComplete(handle) to 5030
             CirqaHistoricalSyncV1MultiPhaseSession.Phase.WAITING_5007_WRITE ->
-                CirqaHistoricalSyncV1Wire.filterPendingUploads(handle) to 5007
+                CirqaHistoricalSyncV1Wire.filter(handle, CirqaHistoricalSyncV1Wire.DIRECTORY_FILTER) to 5007
             CirqaHistoricalSyncV1MultiPhaseSession.Phase.WAITING_5031_WRITE ->
                 CirqaHistoricalSyncV1Wire.supportedFileTypes(handle) to 5031
             CirqaHistoricalSyncV1MultiPhaseSession.Phase.WAITING_DIR_WRITE ->
@@ -1941,7 +1941,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                 if (dirReadSession != null) dirReadSession!!.summary() +
                     " [acks5004=$acks5004Queued,acks5043=$acks5043Queued," +
                     "pendingWrites=${deferredAckWrites.size},writePending=$mlWritePending," +
-                    "ack5004=$ack5004Hex]" +
+                    "ack5004=$ack5004Hex,filter=${CirqaHistoricalSyncV1Wire.DIRECTORY_FILTER}]" +
                     " [finish=$message]"
                 else if (historicalSyncV1 != null) historicalSyncV1!!.summary() + " [finish=$message]"
                 else if (legacy5030Only != null) legacy5030Only!!.summary()

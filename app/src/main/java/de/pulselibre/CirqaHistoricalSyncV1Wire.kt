@@ -18,7 +18,20 @@ object CirqaHistoricalSyncV1Wire {
     }
 
     fun systemEventComplete(handle: Int): ByteArray = mlValue(handle, 5030, byteArrayOf(8, 0))
-    fun filterPendingUploads(handle: Int): ByteArray = mlValue(handle, 5007, byteArrayOf(3))
+    // Connect 5.31 filter enum zgd: NO_FILTER=0, DEFAULT=1, PENDING_UPLOADS_ONLY=3.
+    const val NO_FILTER = 0
+    const val DEFAULT_FILTER = 1
+    const val PENDING_UPLOADS_ONLY = 3
+
+    fun filter(handle: Int, value: Int): ByteArray {
+        require(value in 0..255)
+        return mlValue(handle, 5007, byteArrayOf(value.toByte()))
+    }
+
+    /** Historical filter used by the current gated combined run. */
+    const val DIRECTORY_FILTER = NO_FILTER
+
+    fun filterPendingUploads(handle: Int): ByteArray = filter(handle, PENDING_UPLOADS_ONLY)
     fun supportedFileTypes(handle: Int): ByteArray = mlValue(handle, 5031, byteArrayOf())
     fun directoryRead(handle: Int, index: Int = 0): ByteArray {
         val body = byteArrayOf(
