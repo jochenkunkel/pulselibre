@@ -290,7 +290,7 @@ class MainActivity : AppCompatActivity() {
         val heroAccent = DesignTokens.heroAccent(palette.dark)
         val bodyCard = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(dp(18), dp(14), dp(18), dp(16))
+            setPadding(dp(16), dp(10), dp(16), dp(10))
             background = GradientDrawable(GradientDrawable.Orientation.TL_BR, DesignTokens.heroColors(palette.dark)).apply {
                 cornerRadius = dp(28).toFloat()
                 setStroke(dp(1), DesignTokens.heroStroke(palette.dark))
@@ -305,9 +305,9 @@ class MainActivity : AppCompatActivity() {
             text = "👤"; textSize = 17f; gravity = android.view.Gravity.CENTER
             background = rounded(DesignTokens.BRAND_PURPLE, 11)
             importantForAccessibility = android.view.View.IMPORTANT_FOR_ACCESSIBILITY_NO
-        }, LinearLayout.LayoutParams(dp(38), dp(38)).apply { marginEnd = dp(12) })
+        }, LinearLayout.LayoutParams(dp(32), dp(32)).apply { marginEnd = dp(10) })
         val titleColumn = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
-        titleColumn.addView(text("Mein Körperprofil", if (largeText) 17f else 21f, heroText, true))
+        titleColumn.addView(text("Mein Körperprofil", if (largeText) 16f else 18f, heroText, true))
         titleColumn.addView(text("Tippen zum Bearbeiten", 13f, heroSecondary).apply { setPadding(0, dp(2), 0, 0); maxLines = 2 })
         bodyHeader.addView(titleColumn, LinearLayout.LayoutParams(0, -2, 1f))
         val healthInfo = TextView(this).apply {
@@ -339,12 +339,12 @@ class MainActivity : AppCompatActivity() {
         val bodyRow = LinearLayout(this).apply {
             orientation = if (compactProfile) LinearLayout.VERTICAL else LinearLayout.HORIZONTAL
             gravity = if (compactProfile) android.view.Gravity.CENTER_HORIZONTAL else android.view.Gravity.CENTER_VERTICAL
-            setPadding(0, dp(10), 0, 0)
+            setPadding(0, dp(4), 0, 0)
         }
         val bodyFigure = BodyProfileAvatarView(this)
-        val avatarSize = if (compactProfile) 112 else if (resources.configuration.screenWidthDp >= 400) 150 else 130
+        val avatarSize = if (compactProfile) 88 else 104   // the profile is only background information: keep the card small
         bodyRow.addView(bodyFigure, LinearLayout.LayoutParams(dp(avatarSize), dp(avatarSize)).apply {
-            if (compactProfile) bottomMargin = dp(12) else marginEnd = dp(16)
+            if (compactProfile) bottomMargin = dp(6) else marginEnd = dp(14)
         })
         val bodyValues = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         bodyRow.addView(bodyValues, if (compactProfile) LinearLayout.LayoutParams(-1, -2) else LinearLayout.LayoutParams(0, -2, 1f))
@@ -370,24 +370,24 @@ class MainActivity : AppCompatActivity() {
                     orientation = LinearLayout.HORIZONTAL
                     gravity = android.view.Gravity.CENTER_VERTICAL
                 }
-                row.addView(text(icon + "   ", 18f, heroAccent, true))
+                row.addView(text(icon + "  ", 15f, heroAccent, true))
                 val stack = LinearLayout(this).apply { orientation = if (compactProfile) LinearLayout.VERTICAL else LinearLayout.HORIZONTAL
                     gravity = android.view.Gravity.CENTER_VERTICAL }
-                stack.addView(text(if (compactProfile) title else "$title   ", 14f, heroSecondary))
-                stack.addView(text(value, 17f, valueColor, true))
+                stack.addView(text(if (compactProfile) title else "$title  ", 12f, heroSecondary))
+                stack.addView(text(value, 15f, valueColor, true))
                 row.addView(stack, LinearLayout.LayoutParams(0, -2, 1f))
-                if (extra != null) bodyValues.addView(row, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(2) })
-                else bodyValues.addView(row, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(8) })
+                if (extra != null) bodyValues.addView(row, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(0) })
+                else bodyValues.addView(row, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(2) })
                 if (extra != null) {
                     val dotColor = bmiTone
                     val span = android.text.SpannableString(extra)
                     if (extra.startsWith("●")) span.setSpan(android.text.style.ForegroundColorSpan(dotColor), 0, 1, android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-                    bodyValues.addView(text("", 13f, heroText, true).apply { this.text = span; contentDescription = extra.removePrefix("● ") },
-                        LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(8); marginStart = dp(32) })
+                    bodyValues.addView(text("", 12f, heroText, true).apply { this.text = span; contentDescription = extra.removePrefix("● ") },
+                        LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(2); marginStart = dp(26) })
                 }
                 if (onClick != null) {
                     row.isClickable = true; row.isFocusable = true; row.setOnClickListener { onClick() }
-                    row.minimumHeight = dp(48)
+                    row.minimumHeight = dp(40)
                     if (tagName != null) row.tag = tagName
                     if (description != null) row.contentDescription = description
                 }
