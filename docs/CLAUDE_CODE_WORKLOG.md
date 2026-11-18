@@ -80,3 +80,8 @@ Fortlaufend, neueste Einträge unten. Jeder Eintrag: Datum, Änderung, Nachweis 
 ## 2026-11-18 – ODI-Artefaktfilter und kürzere Kachelnamen (Branch `claude/odi-and-titles`)
 - **Befund auf dem S25 (Build 1021):** Nacht-Insights zeigen jetzt echte Werte (22 331 Messwerte, Abdeckung 85,4 %, T90 1,5 min), aber ODI3/ODI4 = 10,9/5,6 je Stunde – für Handgelenk-PPG sehr wahrscheinlich durch Einzelmesswert-Artefakte aufgebläht (die Abtastung ist dicht, ~1 Wert/1,3 s). Behandlung: ein Ereignis zählt nur, wenn der Abfall ≥ N Punkte **mindestens 10 s** anhält; Einzelwert-Ausreißer zählen nicht. Weiterhin nicht klinisch validiert, violetter Rand bleibt. Tests ergänzt (Einzelwert-Dips, 8 s vs. 12 s).
 - Kacheln: kürzere sichtbare Namen („Intensität · moderat/hoch“, „Kalorien gesamt/aktiv“, „SpO₂“) gegen Umbrüche mitten im Wort bzw. Auslassungspunkte; Barrierefreiheitsname bleibt der volle Titel.
+
+## 2026-11-18 – Oberflächenkontrolle auf dem S25 (Build 1025), Texte (Branch `claude/dialog-texts`)
+- Geprüft auf dem Gerät: Übersicht (Kopf, Profilkarte, Legende, SpO₂-/Pulskachel, Nacht-Insights), Info-Dialoge (ⓘ Körperprofil, Herzfrequenz, SpO₂). Dann ging die USB-Verbindung verloren und das Telefon wurde anderweitig benutzt (Kamera im Vordergrund); Verlauf/Konfig/weitere Info-Dialoge konnten in diesem Durchgang **nicht** erneut geprüft werden (Konfig zuvor mit Build 1005 gesehen).
+- Gefunden und behoben: (1) „Deine Messdaten“-Dialog und die HCI-Snoop-Anleitung zeigten literal `\n` statt Zeilenumbrüchen (doppelt maskiert in `MainActivity`). (2) SpO₂-Info-Dialog redundant (zwei Quellenzeilen, zwei Validierungshinweise) → zusammengeführt.
+- Nicht angefasst: `GarminFileListProbe` enthält dasselbe `\\n`-Muster in Diagnosetext (BLE-Bereich, OpenCode).
