@@ -93,6 +93,31 @@ Unabhängige Referenzen bestätigen unser 5004-ACK-Format byte-genau:
 `tenover/gfdi.rs build_ack(5004, 0, [status,u32 nextOffset])` und
 `wristbeam/GFDIFiles.swift GFDIFileReceiver.responsePayload`.
 
+Gate V10 (Build 1033) lieferte den finalen Beweis:
+```
+events=5004[ts=0,crc=20481,off=0,len=32]@2ms;5043@4813ms;
+firstChunk=entries=1; idx0=0; type0=0;
+acks5004=1;acks5043=1;pendingWrites=0;writePending=false;
+ack5004=4100020e0588138c1301022001010397d100
+```
+Der 32-Byte-Chunk ist bereits ein vollständiges Directory (Platzhalter
+`idx=0,type=0`), identisch mit dem alten Lauf ohne Kette. Unser ACK ist
+byte-perfect (dekodiert `[14][5000][5004][0][0][32][CRC]`) und wurde sofort
+gesendet. Das Gerät sendet danach keine weiteren Chunks.
+
+### Filter-Variante (Gate V11, freigegeben)
+Connect-Enum `zgd` (`com.garmin.gfdi.file.a.applyDirectoryFilter`):
+`NO_FILTER=0`, `DEFAULT=1`, `PENDING_UPLOADS_ONLY=3` (unser bisheriger Wert).
+Gate V11 testet `NO_FILTER=0` in derselben gated Kette.
+
+### Weiterer Connect-Befund (nicht umgesetzt)
+Connect 5.31 enthält `BluetoothClassicAcceptor`/`ph4` mit der SPP-UUID
+`DEAB91E4-670F-11E1-9ACE-30BC4824019B`. Ein öffentliches Gadgetbridge-Issue
+(#6879) beschreibt genau dieses Bild: leeres Platzhalter-Directory über BLE,
+echte Dateien nur über Classic-RFCOMM. Das ist ein möglicher Grund für die
+8192/32-Diskrepanz, aber eine separate, deutlich größere Änderung und nicht
+Teil der aktuellen Freigabe.
+
 ## Nächster Schritt
 Ergebnis von Gate V6 auslesen. Bei vollständiger Directory: FIT-Einträge
 klassifizieren und nächsten begrenzten FIT-Download vorbereiten. Kein
