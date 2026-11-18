@@ -7,7 +7,7 @@
 2. Zwischen zwei **aufeinanderfolgenden** Beobachtungen wird die Differenz als Schritte im Zeitraum dazwischen gewertet – nur wenn der Abstand ≤ 10 min ist (sonst ist unbekannt, *wann* die Schritte entstanden; Lücke).
 3. Negative Differenzen (Zähler-Reset) werden übersprungen.
 4. Die Differenz wird zeitproportional auf die überdeckten 15-Minuten-Intervalle verteilt (kein künstliches Zuschlagen zu einem Intervall).
-5. **Intervalle ohne Beobachtung bleiben `null` (Lücke) und werden nicht als 0 Schritte gezeichnet**; 0 Schritte gibt es nur bei bestätigt unverändertem Zähler.
+5. Längere Pausen (10 min–12 h) mit Zuwachs werden gleichmäßig über die Pause verteilt, aber nur als **helle Umrissbalken („ungefähr, Zeitpunkt unbekannt“)** gezeichnet und zählen nie als gemessen. **Intervalle ohne Beobachtung bleiben `null` (Lücke) und werden nicht als 0 Schritte gezeichnet**; 0 Schritte gibt es nur bei bestätigt unverändertem Zähler.
 
 **Intervalle pro Tag:** 96 (24 h), 92 (23 h Sommerzeit), 100 (25 h) – tatsächliche lokale Tagesdauer.
 

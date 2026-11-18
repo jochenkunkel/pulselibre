@@ -11,7 +11,10 @@ import android.view.View
  * No axes, numbers or legend; unobserved intervals draw nothing. The tile itself carries the accessible summary.
  */
 internal class StepBarsView(context: Context, private val color: Int) : View(context) {
-    private val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply { this.color = color; alpha = 40 } // ≈ 16 %
+    private val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply { this.color = color; alpha = 84 } // ≈ 33 %
+    private val approxPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        this.color = color; alpha = 60; style = Paint.Style.STROKE
+    }
     private val rect = RectF()
     private var series: StepIntervals.Series? = null
 
@@ -28,7 +31,15 @@ internal class StepBarsView(context: Context, private val color: Int) : View(con
         val bar = slot * 0.72f
         val radius = bar / 2f
         val maxHeight = height * 0.55f
-        val base = height - height * 0.30f      // bars grow from a baseline above the goal bar
+        val base = height - height * 0.30f
+        approxPaint.strokeWidth = 1.2f * resources.displayMetrics.density
+        s.approx.forEachIndexed { i, v ->                       // pale outlines: steps counted while no data arrived
+            if (v == null || v <= 0.0) return@forEachIndexed
+            val h = maxOf(bar, (v / max).toFloat() * maxHeight)
+            val left = i * slot + (slot - bar) / 2f
+            rect.set(left, base - h, left + bar, base)
+            canvas.drawRoundRect(rect, radius, radius, approxPaint)
+        }      // bars grow from a baseline above the goal bar
         s.values.forEachIndexed { i, v ->
             if (v == null) return@forEachIndexed   // gap: no data, draw nothing
             val h = if (v <= 0.0) bar else maxOf(bar, (v / max).toFloat() * maxHeight)   // zero activity = small dot
