@@ -62,6 +62,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private var syncItemListSent = false
     private var syncPullSent = false
     private var syncItemSummary = ""
+    private var syncPullDiag = ""
     private var syncFinalReport = ""
     private var fileAccessRequestClaimed = false
     private val fileAccessFramer = CirqaRfcommStreamFramer()
@@ -370,6 +371,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             syncItemListSent = false
             syncPullSent = false
             syncItemSummary = ""
+            syncPullDiag = ""
             fileAccessRequestClaimed = false
             bootstrapAckMode = false
             configurationTestMode = false
@@ -409,6 +411,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             syncItemListSent = false
             syncPullSent = false
             syncItemSummary = ""
+            syncPullDiag = ""
             fileAccessRequestClaimed = false
             bootstrapAckMode = false
             configurationTestMode = false
@@ -1439,6 +1442,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         syncItemListSent = false
         syncPullSent = false
         syncItemSummary = ""
+        syncPullDiag = ""
         syncFrameCounts.clear()
         fileAccessListMode = true
         fileAccessRequestClaimed = false
@@ -1461,7 +1465,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                         .joinToString(",") { "${it.key}x${it.value}" }
                     syncFinalReport = "Sync-Beobachtung: 60-s-Zeitlimit; accepted=$syncAccepted; " +
                         "itemListSent=$syncItemListSent; pullSent=$syncPullSent; " +
-                        "items=[$syncItemSummary]; frames=$counts; " +
+                        "items=[$syncItemSummary]; $syncPullDiag; frames=$counts; " +
                         "proto=[$syncProtoShapes]; other=[$syncOtherLengths]." +
                         fileAccessDiag
                     finish(syncFinalReport, gatt)
@@ -1586,6 +1590,11 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     syncProtoShapes = (syncProtoShapes + "${CirqaProtobufShapeInspector.nestedShape(msg)};").take(400)
                     // An item_list_response carries real, readable items. Parse it and
                     // request the first one; UIDs stay in memory and are never reported.
+                    CirqaFileAccessItemListParser.parsePullResult(msg)?.let { pull ->
+                        syncPullDiag = "pull[result=${pull.resultCode},transport=${pull.transport}," +
+                            "handle=${pull.transferHandle},path=${pull.hasFilePath}," +
+                            "window=${pull.compressionWindow}]"
+                    }
                     val items = CirqaFileAccessItemListParser.parse(msg)
                     if (items.isNotEmpty() && !syncPullSent) {
                         syncPullSent = true
@@ -2229,6 +2238,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             syncItemListSent = false
             syncPullSent = false
             syncItemSummary = ""
+            syncPullDiag = ""
             fileAccessRequestClaimed = false
             bootstrapAckMode = false
             configurationTestMode = false

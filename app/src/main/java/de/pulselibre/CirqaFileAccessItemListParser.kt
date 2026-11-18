@@ -71,6 +71,29 @@ object CirqaFileAccessItemListParser {
         }
     }
 
+    data class PullResult(
+        val resultCode: Long,
+        val transport: Long,
+        val transferHandle: Long,
+        val hasFilePath: Boolean,
+        val compressionWindow: Long?
+    )
+
+    /** Extract Service.pull_item_response(2) -> PullItemDataResponse from a Smart message. */
+    fun parsePullResult(smart: ByteArray): PullResult? {
+        val service = fields(smart).firstOrNull { it.number == 43 && it.wire == 2 }?.bytes ?: return null
+        val response = fields(service).firstOrNull { it.number == 2 && it.wire == 2 }?.bytes ?: return null
+        val f = fields(response)
+        fun v(number: Int) = f.firstOrNull { it.number == number && it.wire == 0 }?.varint
+        return PullResult(
+            resultCode = v(1) ?: return null,
+            transport = v(2) ?: return null,
+            transferHandle = v(3) ?: return null,
+            hasFilePath = f.any { it.number == 4 && it.wire == 2 },
+            compressionWindow = v(8)
+        )
+    }
+
     fun redactedSummary(items: List<Item>): String =
         "items=${items.size}; sizes=${items.take(12).joinToString(",") { it.dataSize.toString() }}"
 
