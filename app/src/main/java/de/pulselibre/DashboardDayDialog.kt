@@ -1,0 +1,210 @@
+package de.pulselibre
+
+import android.app.DatePickerDialog
+import android.graphics.Canvas
+import android.graphics.Paint
+import android.view.MotionEvent
+import android.view.View
+import android.widget.Button
+import android.widget.LinearLayout
+import android.view.Gravity
+import android.widget.ScrollView
+import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.util.concurrent.Executor
+
+internal fun showDashboardDay(
+    activity: MainActivity,
+    title: String,
+    worker: Executor
+) {
+    val zone = ZoneId.systemDefault()
+    val palette = AppPalette.of(activity)
+    val today = LocalDate.now(zone)
+    val metric = DashboardMeasurement.entries.firstOrNull {
+        it.title == title || it == DashboardMeasurement.STEPS && title == "Schritte heute"
+    }
+    val content = LinearLayout(activity).apply {
+        orientation = LinearLayout.VERTICAL
+        val padding = (16 * resources.displayMetrics.density).toInt()
+        setPadding(padding, padding, padding, padding)
+    }
+    fun label() = TextView(activity).apply {
+        setTextColor(palette.ink)
+        textSize = 15f
+        content.addView(this)
+    }
+    fun button(title: String) = Button(activity).apply {
+        text = title
+        isAllCaps = false
+        content.addView(this)
+    }
+    val dateButton = button("")
+    val overview = label()
+    val chartHolder = LinearLayout(activity).apply { orientation = LinearLayout.VERTICAL }
+    content.addView(chartHolder)
+    val selected = label()
+    selected.accessibilityLiveRegion = View.ACCESSIBILITY_LIVE_REGION_POLITE
+    val previous = button("Vorheriger Datenpunkt")
+    val next = button("Nächster Datenpunkt")
+    val dialog = AlertDialog.Builder(activity).setTitle(title)
+        .setView(ScrollView(activity).apply { addView(content) })
+        .setPositiveButton("Schließen", null).create()
+    var request = 0
+    val dateFormat = DateTimeFormatter.ofPattern("dd.MM.uuuu")
+    val timeFormat = DateTimeFormatter.ofPattern("HH:mm:ss XXX").withZone(zone)
+    fun load(date: LocalDate) {
+        val generation = ++request
+        dateButton.text = date.format(dateFormat)
+        overview.text = "Daten werden gelesen …"
+        chartHolder.removeAllViews()
+        selected.text = ""
+        previous.visibility = View.GONE
+        next.visibility = View.GONE
+        val now = Instant.now()
+        val day = DashboardDay(date, zone)
+        if (metric == null) {
+            overview.text = "Noch kein Tagesverlauf verfügbar. Validierte Schlafdaten fehlen."
+            return
+        }
+        worker.execute {
+            val series = try { DashboardDayReader(activity.applicationContext).read(metric, day, now) }
+                catch (_: android.database.sqlite.SQLiteException) { null }
+            activity.runOnUiThread {
+                if (!dialog.isShowing || generation != request || activity.isDestroyed) return@runOnUiThread
+                if (series == null) {
+                    overview.text = "Lokale Messdaten konnten nicht gelesen werden."
+                    return@runOnUiThread
+                }
+                val points = series.points
+                val suffix = when (metric) {
+                    DashboardMeasurement.STEPS -> "Schritte"
+                    DashboardMeasurement.CALORIES_TOTAL, DashboardMeasurement.CALORIES_ACTIVE -> "Geräteeinheit ungeprüft"
+                    else -> metric.unit
+                }
+                val context = when (metric) {
+                    DashboardMeasurement.OXYGEN -> " · CIRQA-Sensor nicht validiert"
+                    DashboardMeasurement.RESTING_PULSE -> " · Gerätefeld, Messbedingungen ungeprüft"
+                    else -> ""
+                }
+                overview.text = buildString {
+                    if (points.size < 2) append("Noch kein Tagesverlauf verfügbar.\n")
+                    append("Empfangszeit · ${zone.id}\n${series.count} Messwerte in ${series.minutesObserved} Minuten mit Empfang")
+                    append(" · ${series.invalid} ohne gültigen Wert")
+                    append(context)
+                    if (date == today && points.isNotEmpty()) {
+                        val age = java.time.Duration.between(points.last().time, now).toMinutes()
+                        append("\nLetzter Empfang heute vor $age min")
+                    }
+                    series.goal?.let { append("\nLetztes Geräte-Schrittziel: $it") }
+                }
+                if (points.isEmpty()) return@runOnUiThread
+                var index = points.lastIndex
+                labelLatest(selected, points.last(), suffix, timeFormat)
+                if (points.size == 1) return@runOnUiThread
+                val fixedScale = metric == DashboardMeasurement.STRESS || metric == DashboardMeasurement.BODY_BATTERY
+                val chart = DayChart(activity, day, points, series.goal,
+                    fixedScale, palette.indicator, palette.track)
+                val axis = LinearLayout(activity).apply {
+                    orientation = LinearLayout.HORIZONTAL
+                    listOf("00:00", "24:00").forEachIndexed { i, time ->
+                        addView(TextView(activity).apply {
+                            text = time
+                            setTextColor(palette.ink)
+                            gravity = if (i == 0) Gravity.START else Gravity.END
+                        }, LinearLayout.LayoutParams(0, -2, 1f))
+                    }
+                }
+                chartHolder.addView(TextView(activity).apply {
+                    text = "Skala · ${chart.min}–${chart.max} $suffix"
+                    setTextColor(palette.ink)
+                })
+                fun select(pointIndex: Int) {
+                    index = pointIndex
+                    chart.selected = index
+                    labelLatest(selected, points[index], suffix, timeFormat)
+                    previous.isEnabled = index > 0
+                    next.isEnabled = index < points.lastIndex
+                }
+                chart.onSelect = ::select
+                chartHolder.addView(chart, LinearLayout.LayoutParams(-1,
+                    (160 * activity.resources.displayMetrics.density).toInt()))
+                chartHolder.addView(axis)
+                previous.visibility = View.VISIBLE
+                next.visibility = View.VISIBLE
+                previous.setOnClickListener { select(index - 1) }
+                next.setOnClickListener { select(index + 1) }
+                select(index)
+            }
+        }
+    }
+    var day = today
+    dateButton.setOnClickListener {
+        DatePickerDialog(activity, { _, year, month, date ->
+            day = LocalDate.of(year, month + 1, date)
+            load(day)
+        }, day.year, day.monthValue - 1, day.dayOfMonth).apply {
+            datePicker.maxDate = System.currentTimeMillis()
+        }.show()
+    }
+    dialog.show()
+    load(day)
+}
+
+private fun labelLatest(label: TextView, point: DayObservation, unit: String, time: DateTimeFormatter) {
+    label.text = "${time.format(point.time)} · ${point.value} $unit"
+}
+
+private class DayChart(
+    activity: MainActivity,
+    private val day: DashboardDay,
+    private val points: List<DayObservation>,
+    private val goal: Long?,
+    fixedScale: Boolean,
+    private val ink: Int,
+    private val track: Int
+) : View(activity) {
+    private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val margin = 8 * resources.displayMetrics.density
+    val min = if (fixedScale || goal != null) 0L else points.minOf { it.value }
+    val max = if (fixedScale) 100L else maxOf(goal ?: min, points.maxOf { it.value }, if (min == Long.MAX_VALUE) min else min + 1)
+    var onSelect: (Int) -> Unit = {}
+    var selected = points.lastIndex
+        set(value) { field = value; invalidate() }
+
+    init {
+        importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO
+    }
+
+    private fun x(point: DayObservation) = margin + (width - 2 * margin) * day.fraction(point.time)
+    private fun y(value: Long) = height - margin - (height - 2 * margin) *
+        ((value.toDouble() - min) / (max.toDouble() - min).coerceAtLeast(1.0)).toFloat()
+
+    override fun onDraw(canvas: Canvas) {
+        paint.color = track
+        for (i in 0..4) {
+            val column = margin + (width - 2 * margin) * i / 4
+            canvas.drawLine(column, margin, column, height - margin, paint)
+        }
+        goal?.let { canvas.drawLine(margin, y(it), width - margin, y(it), paint) }
+        paint.color = ink
+        points.forEachIndexed { i, point ->
+            canvas.drawCircle(x(point), y(point.value), if (selected == i) margin * 0.75f else margin * 0.25f, paint)
+        }
+    }
+
+    override fun onTouchEvent(event: MotionEvent): Boolean {
+        if (event.action == MotionEvent.ACTION_UP) {
+            performClick()
+            onSelect(points.indices.minBy { kotlin.math.abs(event.x - x(points[it])) +
+                kotlin.math.abs(event.y - y(points[it].value)) * 0.1f })
+        }
+        return true
+    }
+
+    override fun performClick(): Boolean = super.performClick()
+}

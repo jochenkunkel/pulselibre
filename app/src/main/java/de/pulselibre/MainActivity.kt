@@ -375,7 +375,9 @@ class MainActivity : AppCompatActivity() {
         overviewView(bodyCard, 14)
         // One compact dashboard heading; privacy details remain accessible via the info button.
         overviewView(text("Gesundheit · CIRQA", 17f, ink, true), 6)
-        val cirqaDashboard = DashboardOverviewView(this)
+        val cirqaDashboard = DashboardOverviewView(this).apply {
+            openDay = { title -> showDashboardDay(this@MainActivity, title, dashboardWorker) }
+        }
         fun updateCirqaDashboard() {
             readDashboard { summary -> cirqaDashboard.render(summary.metrics, summary.activity) }
         }
@@ -467,8 +469,8 @@ class MainActivity : AppCompatActivity() {
         recorderRefresh = {
             val running = getSharedPreferences(CirqaContinuousRecordingService.PREFS, MODE_PRIVATE)
                 .getBoolean(CirqaContinuousRecordingService.KEY_RUNNING, false)
-            recorderState.text = if (running) "●  CIRQA-Sammlung läuft · lokale Messwerte" else "○  Aufzeichnung aus"
-            recorderState.setTextColor(if (running) AppPalette.of(this@MainActivity).indicator else muted)
+            recorderState.text = if (running) "◌  Aufzeichnungsdienst aktiv · GATT-Status im Kopfbereich" else "○  Aufzeichnung aus"
+            recorderState.setTextColor(muted)
             playButton.alpha = if (running) 0.45f else 1f
             stopButton.alpha = if (running) 1f else 0.45f
             playButton.isEnabled = !running

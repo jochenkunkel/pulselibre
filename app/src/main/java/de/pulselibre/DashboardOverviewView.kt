@@ -26,6 +26,7 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
     private val ink = palette.ink
     private val muted = palette.muted
     private val violet = palette.accent
+    internal var openDay: ((String) -> Unit)? = null
     private var lastPulse: HeartRateGaugeModel? = null
     private var stepGoal: Int? = null
 
@@ -243,6 +244,12 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
             contentDescription = "${metric.title}: ${metric.value}"
             ViewCompat.setScreenReaderFocusable(this, false)
             importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+            val show = openDay
+            if (show != null && metric.title != "Ground Rules") {
+                importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_YES
+                isFocusable = true
+                setOnClickListener { show(metric.title) }
+            }
             addView(content, android.widget.FrameLayout.LayoutParams(-1, -2))
             val indicator = ReceptionIndicatorView(context, metric, stepGoal).apply {
                 tag = "reception_indicator_${metric.title}"

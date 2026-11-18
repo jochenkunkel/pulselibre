@@ -72,6 +72,35 @@ class CirqaHistoryReaderTest {
         }
     }
 
+    @Test fun dailyReaderRetainsExtremaAndCountsOnlyObservedMinutes() {
+        val base = ApplicationProvider.getApplicationContext<Context>()
+        val root = Files.createTempDirectory(base.cacheDir.toPath(), "daily-reader-").toFile()
+        val context = isolatedContext(base, root)
+        val day = DashboardDay(java.time.LocalDate.of(2026, 11, 18), java.time.ZoneId.of("UTC"))
+        fun row(seconds: Long, value: Int) =
+            """{"schema":1,"type":"reading","received_at_utc":"${day.start.plusSeconds(seconds)}","service":6,"bpm":$value}"""
+        try {
+            val reader = DashboardDayReader(context)
+            val metric = DashboardMeasurement.PULSE
+            val now = day.start.plusSeconds(1_000)
+            assertTrue(reader.read(metric, day, now).points.isEmpty())
+            CirqaDatabase(context).use { db ->
+                db.insertLine(row(0, 80))
+                assertEquals(1, reader.read(metric, day, now).count)
+                listOf(row(-1, 100), row(1, 65), row(2, 113), row(3, 82),
+                    row(3, 82).replace("{", "{ "), row(600, 0), row(900, 72), row(1001, 94))
+                    .forEach { assertTrue(db.insertLine(it)) }
+            }
+            val series = reader.read(metric, day, now)
+            assertEquals(5, series.count)
+            assertEquals(2, series.minutesObserved)
+            assertEquals(1, series.invalid)
+            assertEquals(listOf(65L, 113L, 82L, 72L), series.points.map { it.value })
+        } finally {
+            root.deleteRecursively()
+        }
+    }
+
     private fun isolatedContext(base: Context, root: File) = object : ContextWrapper(base) {
         override fun getFilesDir(): File = root
         override fun getDatabasePath(name: String): File = File(root, name)

@@ -64,29 +64,19 @@ class CirqaDashboardReader(private val context: Context) {
             }
             if (latest[service]?.first?.isBefore(time) != false) latest[service] = time to item
         }
-        fun metric(service: Int, title: String, key: String, unit: String, valid: (Long) -> Boolean): DashboardMetric {
-            val pair = latest[service]
-            val value = pair?.second?.takeIf { it.has(key) && !it.isNull(key) }?.optLong(key, Long.MIN_VALUE)
-            val good = value?.takeIf(valid)
-            val receivedAt = pair?.takeIf { it.second.has(key) && !it.second.isNull(key) }?.first
-            return DashboardMetric(title, good?.let { "$it $unit".trim() } ?: "Keine Messdaten",
-                if (good == null) "Nicht gemessen oder ungültig" else "Quelle: CIRQA-Service $service",
+        val result = DashboardMeasurement.entries.map { measurement ->
+            val pair = latest[measurement.service]
+            val good = pair?.second?.let(measurement::value)
+            val receivedAt = pair?.takeIf { !it.second.isNull(measurement.key) }?.first
+            val unit = when (measurement) {
+                DashboardMeasurement.STRESS, DashboardMeasurement.BODY_BATTERY -> "/ 100"
+                DashboardMeasurement.RESPIRATION -> "/ min"
+                else -> measurement.unit
+            }
+            DashboardMetric(measurement.title, good?.let { "$it $unit".trim() } ?: "Keine Messdaten",
+                if (good == null) "Nicht gemessen oder ungültig" else "Quelle: CIRQA-Service ${measurement.service}",
                 receivedAt)
-        }
-        val result = listOf(
-            metric(6, "Herzfrequenz", "bpm", "bpm") { it in 1..240 },
-            metric(6, "Ruhepuls", "resting_bpm", "bpm") { it in 1..240 },
-            metric(7, "Schritte (Tageszähler)", "steps", "") { it >= 0 },
-            metric(7, "Schrittziel", "goal", "") { it > 0 },
-            metric(19, "Sauerstoffsättigung · SpO₂", "spo2_percent", "%") { it in 1..100 },
-            metric(12, "RR-Intervall (kein RMSSD)", "rr_ms", "ms") { it > 0 },
-            metric(13, "Stress (Geräteskala)", "stress", "/ 100") { it in 0..100 },
-            metric(20, "Body Battery (Geräteskala)", "body_battery", "/ 100") { it in 0..100 },
-            metric(21, "Atemfrequenz", "breaths_per_min", "/ min") { it in 1..100 },
-            metric(8, "Kalorien gesamt (Gerätewert)", "total", "") { it >= 0 },
-            metric(8, "Kalorien aktiv (Gerätewert)", "active", "") { it >= 0 },
-            metric(10, "Moderate Intensitätsminuten", "moderate", "min") { it >= 0 },
-            metric(10, "Intensive Intensitätsminuten", "vigorous", "min") { it >= 0 },
+        } + listOf(
             DashboardMetric("Schlaf", "Keine Messdaten", "Schlafphasen/-dauer erfordern validierte FIT-Historie"),
             DashboardMetric("Ground Rules", "Quellen & Grenzen", "Keine Diagnosen; keine geschätzten Werte; kein RR→RMSSD ohne Zeitreihe")
         )
