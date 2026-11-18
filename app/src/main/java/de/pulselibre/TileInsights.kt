@@ -1,0 +1,102 @@
+package de.pulselibre
+
+import android.content.Context
+import java.time.Duration
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
+
+/** What a tile shows beyond its current value: today's range, a 24-hour sparkline and the 7-day same-time average. */
+internal data class TileInsight(
+    val metric: DashboardMeasurement,
+    val cumulative: Boolean,
+    val count: Int,
+    val current: Double?,
+    val min: Double?,
+    val max: Double?,
+    val average: Double?,
+    /** 24 hourly values of the local day (hourly mean, or last counter value for cumulative metrics); null = no data. */
+    val hourly: List<Double?>,
+    /** Mean (or counter value) at this time of day over the previous days that have data. */
+    val weekAtThisTime: Double?,
+    val weekDays: Int,
+    /** SpO₂ only: share of today's readings in the orientation bands (≥95, 90–94, <90), percent; else null. */
+    val bands: Triple<Double, Double, Double>?
+) {
+    val deltaToWeek: Double? get() = if (current != null && weekAtThisTime != null) current - weekAtThisTime else null
+}
+
+internal object TileInsightCalc {
+    val CUMULATIVE = setOf(DashboardMeasurement.STEPS, DashboardMeasurement.CALORIES_TOTAL,
+        DashboardMeasurement.CALORIES_ACTIVE, DashboardMeasurement.MODERATE, DashboardMeasurement.VIGOROUS)
+
+    /** Minimum number of past days with data before a same-time average is shown. */
+    const val MIN_WEEK_DAYS = 3
+
+    fun summarize(metric: DashboardMeasurement, points: List<DayObservation>, day: DashboardDay, now: Instant,
+                  weekValues: List<Double>): TileInsight {
+        val cumulative = metric in CUMULATIVE
+        val valid = points.filter { day.includes(it.time, now) }.sortedBy { it.time }
+        val values = valid.map { it.value.toDouble() }
+        val hourly = arrayOfNulls<Double>(24)
+        val zone = day.zone
+        val byHour = valid.groupBy { it.time.atZone(zone).hour }
+        for ((h, list) in byHour) hourly[h] = if (cumulative) list.maxOf { it.value }.toDouble() else list.map { it.value.toDouble() }.average()
+        val bands = if (metric == DashboardMeasurement.OXYGEN && values.isNotEmpty()) {
+            val n = values.size.toDouble()
+            Triple(100.0 * values.count { it >= 95 } / n, 100.0 * values.count { it in 90.0..94.999 } / n, 100.0 * values.count { it < 90 } / n)
+        } else null
+        val week = if (weekValues.size >= MIN_WEEK_DAYS) weekValues.average() else null
+        return TileInsight(metric, cumulative, values.size, values.lastOrNull(), values.minOrNull(), values.maxOrNull(),
+            if (values.isEmpty()) null else if (cumulative) values.last() else values.average(),
+            hourly.toList(), week, weekValues.size, bands)
+    }
+
+    /** Whole local days before [today] (1..[days]) with the time-of-day window around [now]. */
+    fun pastWindows(now: Instant, zone: ZoneId, days: Int = 7, halfWidth: Duration = Duration.ofMinutes(30)): List<Pair<Instant, Instant>> {
+        val local = now.atZone(zone)
+        return (1..days).map { d ->
+            val center = local.minusDays(d.toLong()).toInstant()
+            center.minus(halfWidth) to center.plus(halfWidth)
+        }
+    }
+
+    fun format(value: Double, unit: String): String {
+        val text = if (value >= 100 || value == Math.rint(value)) String.format(java.util.Locale.GERMANY, "%,.0f", value)
+            else String.format(java.util.Locale.GERMANY, "%.1f", value)
+        return if (unit.isBlank()) text else "$text $unit"
+    }
+}
+
+internal class TileInsightReader(private val context: Context) {
+    fun read(metric: DashboardMeasurement, zone: ZoneId, now: Instant): TileInsight {
+        val day = DashboardDay(LocalDate.ofEpochDay(now.atZone(zone).toLocalDate().toEpochDay()), zone)
+        val today = DashboardDayReader(context).read(metric, day, now).points
+        val cumulative = metric in TileInsightCalc.CUMULATIVE
+        val weekValues = ArrayList<Double>()
+        CirqaDatabase(context).use { db ->
+            for ((from, to) in TileInsightCalc.pastWindows(now, zone)) {
+                val values = ArrayList<Double>()
+                val sql = if (cumulative) {
+                    // counter value at this time of day = last reading of that day up to the window end
+                    val dayStart = from.atZone(zone).toLocalDate().atStartOfDay(zone).toInstant()
+                    """SELECT payload_json FROM events WHERE kind = 'reading' AND service = ? AND dashboard_time >= ? AND dashboard_time <= ?
+                       AND payload_json LIKE ? ORDER BY dashboard_time DESC LIMIT 1""" to arrayOf(metric.service.toString(),
+                        CirqaDatabase.timeKey(dayStart), CirqaDatabase.timeKey(to), "%\"${metric.key}\"%")
+                } else {
+                    """SELECT payload_json FROM events WHERE kind = 'reading' AND service = ? AND dashboard_time >= ? AND dashboard_time <= ?
+                       AND payload_json LIKE ?""" to arrayOf(metric.service.toString(), CirqaDatabase.timeKey(from),
+                        CirqaDatabase.timeKey(to), "%\"${metric.key}\"%")
+                }
+                db.readableDatabase.rawQuery(sql.first, sql.second).use { c ->
+                    while (c.moveToNext()) {
+                        val json = runCatching { org.json.JSONObject(c.getString(0)) }.getOrNull() ?: continue
+                        metric.value(json)?.let { values.add(it.toDouble()) }
+                    }
+                }
+                if (values.isNotEmpty()) weekValues.add(if (cumulative) values.last() else values.average())
+            }
+        }
+        return TileInsightCalc.summarize(metric, today, day, now, weekValues)
+    }
+}

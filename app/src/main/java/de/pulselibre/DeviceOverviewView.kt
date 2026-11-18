@@ -1,0 +1,147 @@
+package de.pulselibre
+
+import android.content.Context
+import android.graphics.Color
+import android.graphics.Typeface
+import android.graphics.drawable.GradientDrawable
+import android.view.Gravity
+import android.view.View
+import android.widget.LinearLayout
+import android.widget.TextView
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+
+/** Modern device overview: link hero, facts as icon chips, per-source reception, band metadata placeholders (#126). */
+internal class DeviceOverviewView(context: Context) : LinearLayout(context) {
+    private val palette = AppPalette.of(context)
+    private val d = resources.displayMetrics.density
+    private fun dp(v: Int) = (v * d + 0.5f).toInt()
+    private var link: CirqaLinkStatus.Result? = null
+    private var stats: DeviceStats? = null
+    private var recorderRunning = false
+
+    init { orientation = VERTICAL; tag = "device_overview"; render() }
+
+    fun update(link: CirqaLinkStatus.Result, running: Boolean) {
+        val changed = this.link?.kind != link.kind || this.link?.online != link.online || recorderRunning != running
+        this.link = link; recorderRunning = running
+        if (changed) render() else heroSubtitle?.text = link.label
+    }
+
+    fun showStats(stats: DeviceStats) { this.stats = stats; render() }
+
+    private var heroSubtitle: TextView? = null
+
+    private fun label(text: String, size: Float, color: Int, bold: Boolean = false) = TextView(context).apply {
+        this.text = text; textSize = size; setTextColor(color); includeFontPadding = false
+        if (bold) setTypeface(null, Typeface.BOLD)
+    }
+
+    private fun card(): LinearLayout = LinearLayout(context).apply {
+        orientation = VERTICAL
+        setPadding(dp(14), dp(14), dp(14), dp(14))
+        background = GradientDrawable().apply { setColor(palette.card); cornerRadius = dp(20).toFloat(); setStroke(dp(1), palette.track) }
+    }
+
+    private fun render() {
+        removeAllViews()
+        val l = link
+        // --- hero ---
+        val online = l?.online == true
+        val tone = when { online -> Color.rgb(31, 190, 112); recorderRunning -> Color.rgb(228, 112, 30); else -> palette.muted }
+        val hero = card().apply {
+            background = GradientDrawable(GradientDrawable.Orientation.TL_BR, DesignTokens.heroColors(palette.dark)).apply {
+                cornerRadius = dp(24).toFloat(); setStroke(dp(1), DesignTokens.heroStroke(palette.dark))
+            }
+        }
+        val top = LinearLayout(context).apply { orientation = HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
+        top.addView(label(if (online) "📶" else if (recorderRunning) "🔄" else "⌚", 26f, Color.WHITE).apply {
+            gravity = Gravity.CENTER
+            background = GradientDrawable().apply { shape = GradientDrawable.OVAL; setColor(0x33000000); setStroke(dp(3), tone) }
+        }, LayoutParams(dp(58), dp(58)).apply { marginEnd = dp(14) })
+        val texts = LinearLayout(context).apply { orientation = VERTICAL }
+        val heroText = DesignTokens.heroText(palette.dark)
+        texts.addView(label("CIRQA", 12f, DesignTokens.heroSecondary(palette.dark), true))
+        texts.addView(label(when {
+            l == null -> "Status wird gelesen …"
+            online -> "Verbunden"
+            recorderRunning -> "Wiederverbindung"
+            l.kind == CirqaLinkStatus.Kind.UNAVAILABLE -> "Nicht gekoppelt"
+            else -> "Nicht verbunden"
+        }, 22f, heroText, true))
+        heroSubtitle = label(l?.label ?: "", 12f, DesignTokens.heroSecondary(palette.dark)).apply { setPadding(0, dp(2), 0, 0) }
+        texts.addView(heroSubtitle)
+        top.addView(texts, LayoutParams(0, -2, 1f))
+        hero.addView(top)
+        hero.contentDescription = "CIRQA ${if (online) "verbunden" else "nicht verbunden"}. ${l?.label.orEmpty()}"
+        hero.isFocusable = true
+        addView(hero, LayoutParams(-1, -2).apply { bottomMargin = dp(12) })
+
+        val s = stats
+        // --- facts as icon chips (2 per row) ---
+        val chips = listOf(
+            Triple("📥", "Empfang · 1 Std.", s?.let { DeviceFormat.count(it.readingsLastHour.toLong()) + " Messwerte" } ?: "…"),
+            Triple("🗄", "Speicher", s?.let { DeviceFormat.count(it.totalEvents) + " Einträge · " + DeviceFormat.bytes(it.databaseBytes) } ?: "…"),
+            Triple("🔁", "Sitzungen heute", s?.let { "${it.sessionsToday} Starts · ${it.reconnectsToday} Wiederverbindungen" } ?: "…"),
+            Triple("📅", "Aufzeichnung seit", s?.firstReading?.let { DateTimeFormatter.ofPattern("dd.MM.yyyy").withZone(ZoneId.systemDefault()).format(it) } ?: "–")
+        )
+        chips.chunked(2).forEach { pair ->
+            val row = LinearLayout(context).apply { orientation = HORIZONTAL }
+            pair.forEachIndexed { i, (icon, title, value) ->
+                row.addView(chip(icon, title, value), LayoutParams(0, -1, 1f).apply { if (i == 0) marginEnd = dp(8) })
+            }
+            addView(row, LayoutParams(-1, -2).apply { bottomMargin = dp(8) })
+        }
+
+        // --- reception per source ---
+        val reception = card()
+        reception.addView(label("Letzter Empfang je Messgröße", 14f, palette.ink, true))
+        val now = Instant.now()
+        DeviceSource.entries.forEach { src ->
+            val last = s?.lastBySource?.get(src)
+            val fresh = ReceptionFreshness.of(last, now)
+            val col = when (fresh) {
+                ReceptionFreshness.FRESH -> Color.rgb(31, 166, 113); ReceptionFreshness.RECENT -> Color.rgb(207, 166, 19)
+                ReceptionFreshness.DELAYED -> Color.rgb(228, 112, 30); else -> palette.muted
+            }
+            val row = LinearLayout(context).apply { orientation = HORIZONTAL; gravity = Gravity.CENTER_VERTICAL; minimumHeight = dp(34) }
+            row.addView(label(src.icon, 15f, palette.ink), LayoutParams(dp(28), -2))
+            row.addView(label(src.title, 13f, palette.ink), LayoutParams(0, -2, 1f))
+            row.addView(label(if (s == null) "…" else DeviceFormat.age(last, now), 12f, col, true).apply {
+                setPadding(dp(10), dp(4), dp(10), dp(4))
+                background = GradientDrawable().apply { setColor(palette.tinted); cornerRadius = dp(12).toFloat(); setStroke(dp(1), col) }
+            })
+            row.contentDescription = "${src.title}: ${if (s == null) "wird gelesen" else DeviceFormat.age(last, now)}"
+            reception.addView(row, LayoutParams(-1, -2).apply { topMargin = dp(4) })
+        }
+        addView(reception, LayoutParams(-1, -2).apply { bottomMargin = dp(12) })
+
+        // --- band metadata (not read yet) ---
+        val meta = card()
+        meta.addView(label("Bandinformationen", 14f, palette.ink, true))
+        meta.addView(label("Werden angezeigt, sobald das Band sie nachweislich liefert und OpenCode sie decodiert (#126).", 11f, palette.muted),
+            LayoutParams(-1, -2).apply { topMargin = dp(2) })
+        listOf("🔋" to "Akku", "⚙" to "Firmware", "⌚" to "Uhrzeit der Uhr", "🏷" to "Modell / Seriennummer").forEach { (icon, name) ->
+            val row = LinearLayout(context).apply { orientation = HORIZONTAL; gravity = Gravity.CENTER_VERTICAL; minimumHeight = dp(34) }
+            row.addView(label(icon, 15f, palette.ink).apply { alpha = 0.5f }, LayoutParams(dp(28), -2))
+            row.addView(label(name, 13f, palette.ink), LayoutParams(0, -2, 1f))
+            row.addView(label("noch nicht gelesen", 12f, palette.muted))
+            row.contentDescription = "$name: noch nicht gelesen"
+            meta.addView(row, LayoutParams(-1, -2).apply { topMargin = dp(4) })
+        }
+        addView(meta, LayoutParams(-1, -2).apply { bottomMargin = dp(12) })
+    }
+
+    private fun chip(icon: String, title: String, value: String): View = LinearLayout(context).apply {
+        orientation = VERTICAL
+        setPadding(dp(12), dp(10), dp(12), dp(10))
+        background = GradientDrawable().apply { setColor(palette.card); cornerRadius = dp(16).toFloat(); setStroke(dp(1), palette.track) }
+        val head = LinearLayout(context).apply { orientation = HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
+        head.addView(label(icon, 15f, palette.ink), LayoutParams(-2, -2).apply { marginEnd = dp(6) })
+        head.addView(label(title, 11f, palette.muted, true))
+        addView(head)
+        addView(label(value, 13f, palette.ink, true), LayoutParams(-1, -2).apply { topMargin = dp(6) })
+        contentDescription = "$title: $value"
+    }
+}

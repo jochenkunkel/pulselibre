@@ -27,6 +27,8 @@ class MainActivity : AppCompatActivity() {
     private var connectionIndicatorRefresh: (() -> Unit)? = null
     private var cirqaLink = CirqaLinkStatus.Result(CirqaLinkStatus.Kind.UNAVAILABLE, false, "")
     private var historyRefresh: (() -> Unit)? = null
+    private var deviceOverviewRef: DeviceOverviewView? = null
+    private var deviceStatsLoadedAt = 0L
     private var dashboardVisible = true
     private var historyVisible = false
     private var devicesVisible = false
@@ -219,6 +221,18 @@ class MainActivity : AppCompatActivity() {
         fun refreshAvatarConnectionBorder() {
             refreshCirqaCard()
             val link = cirqaLink
+            deviceOverviewRef?.let { overviewView ->
+                val running = RecorderStatus.isRunning(getSharedPreferences(CirqaContinuousRecordingService.PREFS, MODE_PRIVATE))
+                overviewView.update(link, running)
+                val now = System.currentTimeMillis()
+                if (overviewView.isShown && now - deviceStatsLoadedAt > 20_000L) {
+                    deviceStatsLoadedAt = now
+                    Thread {
+                        val stats = try { DeviceStatsReader(applicationContext).read(java.time.Instant.now(), java.time.ZoneId.systemDefault()) } catch (_: Exception) { null }
+                        if (stats != null) runOnUiThread { if (!destroyed) overviewView.showStats(stats) }
+                    }.start()
+                }
+            }
             avatarButton.contentDescription = CirqaLinkStatus.contentDescription(link)
             if (link.online == lastHeaderStatus?.online) { lastHeaderStatus = link; return }
             lastHeaderStatus = link
@@ -481,6 +495,10 @@ class MainActivity : AppCompatActivity() {
             setPadding(dp(16), dp(16), dp(16), dp(16))
             background = rounded(palette.card)
         }
+        // Modern device overview on top (link hero, facts, reception per source, band metadata placeholders).
+        val deviceOverview = DeviceOverviewView(this)
+        deviceView(deviceOverview, 8)
+        deviceOverviewRef = deviceOverview
         deviceView(cirqaCard)
         cirqaEvidenceView = text(cirqaScanEvidence.summary(), 13f, muted).apply {
             setPadding(dp(16), dp(12), dp(16), dp(12))

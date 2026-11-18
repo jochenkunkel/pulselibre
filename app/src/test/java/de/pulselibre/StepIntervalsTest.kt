@@ -30,9 +30,15 @@ class StepIntervalsTest {
         assertEquals(0.0, s.values[bucket(9, 0)]!!, 0.0)
         assertNull(s.values[bucket(9, 15)]); assertNull(s.values[bucket(3, 0)])
     }
-    @Test fun longSilenceIsAGapNotAGuess() {
+    @Test fun longSilenceNeverCountsAsMeasuredButIsKeptAsApproximateOutline() {
         val s = StepIntervals.compute(listOf(o(8, 0, 100), o(11, 0, 2100)), day)
-        assertEquals(0, s.observed); assertEquals(0.0, s.total, 0.0)
+        assertEquals(0, s.observed); assertEquals(0.0, s.total, 0.0)      // certain data: none
+        assertTrue(s.approxObserved >= 12)                                // 3 h spread over the silence
+        assertEquals(2000.0, s.approx.sumOf { it ?: 0.0 }, 1e-6)
+    }
+    @Test fun silenceLongerThanTwelveHoursOrWithoutStepsDrawsNothing() {
+        assertEquals(0, StepIntervals.compute(listOf(o(1, 0, 0), o(15, 0, 900)), day).approxObserved)
+        assertEquals(0, StepIntervals.compute(listOf(o(8, 0, 500), o(11, 0, 500)), day).approxObserved)
     }
     @Test fun counterResetAndDuplicatesAreIgnored() {
         val s = StepIntervals.compute(listOf(o(8, 0, 900), o(8, 5, 900), o(8, 5, 900), o(8, 6, 20), o(8, 8, 80)), day)

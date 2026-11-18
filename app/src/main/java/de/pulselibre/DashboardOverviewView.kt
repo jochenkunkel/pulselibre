@@ -259,6 +259,8 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
     }
 
     private companion object {
+        const val INSIGHT_CACHE_MS = 60_000L
+        val insightCache = java.util.concurrent.ConcurrentHashMap<String, Pair<TileInsight, Long>>()
         const val STEP_CACHE_MS = 60_000L
         @Volatile var cachedStepSeries: StepIntervals.Series? = null
         @Volatile var cachedStepAt = 0L
@@ -345,9 +347,70 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
             content.addView(MetricReferenceScaleView(context, profile, value, accent, ink, muted,
                 palette.track, palette.muted), LayoutParams(-1, dp(40)).apply { topMargin = dp(8) })
         }
+        attachInsights(this, metric, accent)
+    }
+
+    /** Extra information under the value: today's range, 24 h sparkline, 7-day same-time average (loaded in the background). */
+    private fun attachInsights(card: MetricCard, metric: DashboardMetric, accent: Int) {
+        val measurement = DashboardMeasurement.entries.firstOrNull { it.title == metric.title } ?: return
+        val box = LinearLayout(context).apply { orientation = VERTICAL; visibility = View.GONE; tag = "tile_insights_${metric.title}" }
+        card.content.addView(box, LayoutParams(-1, -2).apply { topMargin = dp(8) })
+        fun render(i: TileInsight) {
+            box.removeAllViews()
+            if (i.count == 0) { box.visibility = View.GONE; return }
+            val unit = if (measurement.unit.startsWith("Geräteskala")) "" else measurement.unit
+            val nf = TileInsightCalc
+            val range = if (i.cumulative) "Heute ${nf.format(i.current ?: 0.0, unit)}"
+                else "Heute Ø ${nf.format(i.average ?: 0.0, unit)} · ${nf.format(i.min ?: 0.0, "")}–${nf.format(i.max ?: 0.0, unit)}"
+            box.addView(label(range, 11f, muted), LayoutParams(-1, -2))
+            box.addView(SparkView(context, accent, palette.track).apply {
+                show(i.hourly, java.time.LocalTime.now().hour)
+            }, LayoutParams(-1, dp(34)).apply { topMargin = dp(4) })
+            i.bands?.let { (hi, mid, lo) ->
+                box.addView(object : View(context) {
+                    private val p = Paint(Paint.ANTI_ALIAS_FLAG)
+                    private val r = android.graphics.RectF()
+                    override fun onDraw(c: Canvas) {
+                        val w = width.toFloat(); var x = 0f
+                        listOf(hi to palette.indicator, mid to palette.oxygen, lo to Color.rgb(205, 57, 65)).forEach { (share, col) ->
+                            if (share <= 0.0) return@forEach
+                            val seg = (share / 100.0).toFloat() * w
+                            p.color = col; p.alpha = 200; r.set(x, 0f, x + seg, height.toFloat()); c.drawRoundRect(r, height / 2f, height / 2f, p); x += seg
+                        }
+                    }
+                }.apply { importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO },
+                    LayoutParams(-1, dp(7)).apply { topMargin = dp(8) })
+                box.addView(label("Heute: ≥95 % ${hi.toInt()} % · 90–94 % ${mid.toInt()} % · <90 % ${lo.toInt()} %", 10f, muted),
+                    LayoutParams(-1, -2).apply { topMargin = dp(3) })
+            }
+            val week = i.weekAtThisTime
+            val delta = i.deltaToWeek
+            val weekText = if (week == null) "Wochenschnitt folgt (${i.weekDays}/${TileInsightCalc.MIN_WEEK_DAYS} Tage)"
+                else "Ø 7 Tage zu dieser Uhrzeit: ${nf.format(week, unit)}" +
+                    (delta?.let { d -> "  ${if (d > 0.05) "▲" else if (d < -0.05) "▼" else "●"} ${if (d > 0) "+" else ""}${nf.format(d, "")}" } ?: "")
+            box.addView(label(weekText, 11f, ink, true).apply { contentDescription = weekText },
+                LayoutParams(-1, -2).apply { topMargin = dp(6) })
+            box.visibility = View.VISIBLE
+        }
+        val key = metric.title
+        insightCache[key]?.takeIf { System.currentTimeMillis() - it.second < INSIGHT_CACHE_MS }?.let { render(it.first); return }
+        Thread {
+            val insight = try { TileInsightReader(context.applicationContext).read(measurement, java.time.ZoneId.systemDefault(), java.time.Instant.now()) }
+                catch (_: Exception) { null }
+            if (insight != null) insightCache[key] = insight to System.currentTimeMillis()
+            if (insight != null) post { if (isAttachedToWindow) render(insight) }
+        }.start()
     }
 
     private fun card(metric: DashboardMetric) = MetricCard(metric)
+
+    private fun receptionLabel(f: ReceptionFreshness) = when (f) {
+        ReceptionFreshness.UNKNOWN -> "kein Empfangszeitpunkt"
+        ReceptionFreshness.FRESH -> "frisch"
+        ReceptionFreshness.RECENT -> "wenige Minuten alt"
+        ReceptionFreshness.DELAYED -> "verzögert"
+        ReceptionFreshness.OLD -> "lange ohne neuen Empfang"
+    }
 
     private inner class MetricCard(metric: DashboardMetric) : android.widget.FrameLayout(context) {
         val content = LinearLayout(context).apply {
@@ -356,16 +419,29 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
         }
 
         init {
-            background = GradientDrawable().apply {
-                setColor(palette.card)
-                cornerRadius = dp(18).toFloat()
+            // Thin frame instead of a dot: its colour is the age of the last reception; tiles whose source is
+            // not validated get a second, violet frame inside it.
+            val freshness = ReceptionFreshness.of(metric.receivedAt, Instant.now())
+            val frameColor = when (freshness) {
+                ReceptionFreshness.FRESH -> Color.rgb(31, 166, 113)
+                ReceptionFreshness.RECENT -> Color.rgb(207, 166, 19)
+                ReceptionFreshness.DELAYED -> Color.rgb(228, 112, 30)
+                else -> palette.track
             }
+            val base = GradientDrawable().apply {
+                setColor(palette.card); cornerRadius = dp(18).toFloat(); setStroke(dp(1) + 1, frameColor)
+            }
+            val unvalidated = UnvalidatedFeatures.isUnvalidated(metric.title)
+            background = if (unvalidated) {
+                val inner = GradientDrawable().apply {
+                    setColor(Color.TRANSPARENT); cornerRadius = dp(15).toFloat()
+                    setStroke(dp(1) + 1, UnvalidatedFeatures.color(palette.dark))
+                }
+                android.graphics.drawable.LayerDrawable(arrayOf(base, inner)).apply { setLayerInset(1, dp(4), dp(4), dp(4), dp(4)) }
+            } else base
             tag = "dashboard_metric_${metric.title}"
-            contentDescription = "${metric.title}: ${metric.value}"
-            if (UnvalidatedFeatures.isUnvalidated(metric.title)) {
-                (background as GradientDrawable).let { UnvalidatedFeatures.mark(it, resources.displayMetrics.density, palette.dark) }
-                contentDescription = contentDescription.toString() + UnvalidatedFeatures.ACCESSIBILITY_SUFFIX
-            }
+            contentDescription = "${metric.title}: ${metric.value}. Letzter Empfang: ${receptionLabel(freshness)}."
+            if (unvalidated) contentDescription = contentDescription.toString() + UnvalidatedFeatures.ACCESSIBILITY_SUFFIX
             ViewCompat.setScreenReaderFocusable(this, false)
             importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
             val show = openDay
@@ -532,21 +608,20 @@ private class ReceptionIndicatorView(
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-        val x = if (layoutDirection == View.LAYOUT_DIRECTION_RTL) 8f * density else width - 8f * density
-        val y = 8f * density
-        val color = when (state) {
-            ReceptionFreshness.FRESH -> Color.rgb(31, 166, 113)
-            ReceptionFreshness.RECENT -> Color.rgb(207, 166, 19)
-            ReceptionFreshness.DELAYED -> Color.rgb(228, 112, 30)
-            ReceptionFreshness.OLD -> palette.muted // no alarm red: this only says how old the last reception is
-            ReceptionFreshness.UNKNOWN -> palette.muted
-        }
+        // Quiet info glyph only; reception age is shown by the tile frame colour.
+        val x = if (layoutDirection == View.LAYOUT_DIRECTION_RTL) 14f * density else width - 14f * density
+        val y = 14f * density
         paint.style = Paint.Style.STROKE
-        paint.strokeWidth = 1.5f * density
-        paint.color = color
-        canvas.drawCircle(x, y, 6f * density, paint)
+        paint.strokeWidth = 1f * density
+        paint.color = palette.muted
+        paint.alpha = 160
+        canvas.drawCircle(x, y, 6.5f * density, paint)
         paint.style = Paint.Style.FILL
-        canvas.drawCircle(x, y, 3.1f * density, paint)
+        paint.textAlign = Paint.Align.CENTER
+        paint.textSize = 9f * density
+        paint.typeface = android.graphics.Typeface.DEFAULT_BOLD
+        canvas.drawText("i", x, y + 3.2f * density, paint)
+        paint.alpha = 255
     }
 
     private fun showDetails() {
@@ -630,7 +705,7 @@ private class ReceptionIndicatorView(
 
     private fun dp(value: Int) = (value * resources.displayMetrics.density + 0.5f).toInt()
 
-    private fun ReceptionFreshness.label() = when (this) {
+    fun ReceptionFreshness.label() = when (this) {
         ReceptionFreshness.UNKNOWN -> "kein Empfangszeitpunkt"
         ReceptionFreshness.FRESH -> "frisch"
         ReceptionFreshness.RECENT -> "wenige Minuten alt"
