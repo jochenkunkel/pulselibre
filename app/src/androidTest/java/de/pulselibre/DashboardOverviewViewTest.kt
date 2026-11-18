@@ -115,10 +115,9 @@ class DashboardOverviewViewTest {
         InstrumentationRegistry.getInstrumentation().runOnMainSync {
             val view = DashboardOverviewView(context(1f, 400))
             view.render(emptyList())
-            val chip = descendants(view).single { it.contentDescription?.startsWith("Tagesstand.") == true }
-            assertTrue(chip.contentDescription.contains("kumulativer Gerätezähler"))
-            assertTrue(chip.contentDescription.contains("nicht addiert"))
-            assertTrue(descendants(chip).any { it is DashboardMetricIconView })
+            val card = cards(view).single { it.contentDescription?.startsWith("Schritte heute.") == true }
+            assertTrue(card.contentDescription.contains("Kumulativer Gerätezähler"))
+            assertTrue(card.contentDescription.contains("nicht addiert"))
             assertFalse(descendants(view).filterIsInstance<android.widget.TextView>()
                 .any { it.text.toString().contains("kumulativer Tageszähler, keine Summe") })
         }

@@ -26,10 +26,17 @@ class HistoryOverviewViewTest {
             }
             view.refresh()
             assertTrue(containsText(view, "Keine Messdaten in diesem Zeitraum"))
-            assertEquals(3, descendants(view).filter { it.contentDescription?.contains("ausgewählt") == true }.size)
+            val controls = descendants(view).filter { candidate ->
+                HistoryRange.entries.any { range ->
+                    candidate.contentDescription?.toString()?.substringBefore(",") == range.label
+                }
+            }
+            assertEquals(3, controls.size)
+            assertEquals(HistoryRange.DAY.label, (controls.single { it.isSelected } as TextView).text)
             val week = descendants(view).single { it.contentDescription?.startsWith("7 Tage") == true }
             week.performClick()
             assertEquals(HistoryRange.WEEK, requested)
+            assertTrue(descendants(view).single { it.contentDescription?.startsWith("7 Tage") == true }.isSelected)
             assertTrue(containsText(view, "Keine Messdaten in diesem Zeitraum"))
         }
     }
@@ -61,7 +68,7 @@ class HistoryOverviewViewTest {
                     listOf(HistoryPoint(end.minusSeconds(60), 72)), emptyList())
             }
             view.refresh()
-            val chart = descendants(view).single { it.contentDescription?.contains("Messpunkte") == true }
+            val chart = descendants(view).single { it.contentDescription?.startsWith("1 gespeicherte Messwerte") == true }
             assertTrue(chart.contentDescription.contains("1 gespeicherte Messwerte in 1 belegten Zeitfenstern"))
             assertTrue(chart.contentDescription.contains("Markierung ist der Median"))
             assertTrue(chart.contentDescription.contains("keine Verbindung oder Interpolation"))
