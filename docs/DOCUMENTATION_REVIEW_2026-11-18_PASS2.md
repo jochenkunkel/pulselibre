@@ -2,7 +2,7 @@
 
 ## Umfang und Prüfmethode
 
-Bestandsaufnahme des GitHub-`main`-Baums: **505 Repository-Einträge**, darunter **105 Markdown-Dateien** (Zählung anhand der aktuellen GitHub-Tree-API; dieser Bericht ist beim Anlegen noch nicht enthalten). Die **13 zentralen Einstiegs- und Fachindexdateien** wurden vollständig auf lokale Markdown-Linkziele geprüft. Existierende Verzeichnisse gelten als gültige Linkziele. Die Prüfung umfasst nicht automatisch alle Anker, externen URLs, Grafiken, nicht-Markdown-Referenzen oder die Inhalte aller 105 Dateien.
+Bestandsaufnahme des GitHub-`main`-Baums: **505 Repository-Einträge**, darunter **111 Markdown-Dateien** (Zählung anhand der aktuellen GitHub-Tree-API; dieser Bericht ist beim Anlegen noch nicht enthalten). Die **13 zentralen Einstiegs- und Fachindexdateien** wurden vollständig auf lokale Markdown-Linkziele geprüft. Existierende Verzeichnisse gelten als gültige Linkziele. Die Prüfung umfasst nicht automatisch alle Anker, externen URLs, Grafiken, nicht-Markdown-Referenzen oder die Inhalte aller 111 Dateien.
 
 Zusätzlich wurden die tatsächliche [Android-CI-Konfiguration](../.github/workflows/android.yml), [README](../README.md), [AGENTS.md](../AGENTS.md) und der ausführliche [Garmin-Connect-5.31-Forschungsbericht](protocol/research/GARMIN_CONNECT_531_FILESYNC_REVERSE_ENGINEERING.md) abgeglichen.
 
