@@ -49,7 +49,7 @@ internal class MainNavigationView(
                     maxLines = 1
                     // Shrinks long labels at large fonts / narrow widths instead of breaking words ("Übersich/t").
                     androidx.core.widget.TextViewCompat.setAutoSizeTextTypeUniformWithConfiguration(
-                        this, 8, 10, 1, android.util.TypedValue.COMPLEX_UNIT_SP)
+                        this, 7, 11, 1, android.util.TypedValue.COMPLEX_UNIT_DIP) // dp: stays inside its slot even at 200 % font
                     gravity = Gravity.CENTER
                     setTypeface(null, Typeface.BOLD)
                     importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
