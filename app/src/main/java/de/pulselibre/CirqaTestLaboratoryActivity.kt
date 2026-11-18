@@ -317,6 +317,14 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
                 (preferences.getString(CirqaRfcommAttemptGate.SUMMARY_KEY, null) ?: "Noch kein Lauf.") +
                 "\nGate=${preferences.getBoolean(CirqaRfcommAttemptGate.PREFERENCE_KEY, false)}"
         })
+        syncCard.addView(button("FileAccess-Dateiliste (read-only)") {
+            confirmFileAccessList()
+        })
+        syncCard.addView(button("FileAccess-Status") {
+            statusOutput.text = "FileAccess:\n" +
+                (preferences.getString(CirqaFileAccessAttemptGate.SUMMARY_KEY, null) ?: "Noch kein Lauf.") +
+                "\nGate=${preferences.getBoolean(CirqaFileAccessAttemptGate.PREFERENCE_KEY, false)}"
+        })
         syncCard.addView(button("Status der historischen Synchronisation") {
             statusOutput.text = "Historische Synchronisation:\n" +
                 "Gates: A=${preferences.getBoolean(CirqaHistoricalSyncV1MultiPhaseAttemptGate.keyForPhase(1), false)}" +
@@ -473,6 +481,38 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
                             val persisted = (preferences.getString("directoryAfterChainSummary", null).orEmpty() + "\n" + message)
                                 .trim().takeLast(5000)
                             preferences.edit().putString("directoryAfterChainSummary", persisted).apply()
+                        }
+                    }
+                }
+            }
+            .show()
+    }
+
+    private fun confirmFileAccessList() {
+        val prefs = getSharedPreferences(CirqaFileAccessAttemptGate.PREFS_NAME, MODE_PRIVATE)
+        if (!CirqaFileAccessAttemptGate.RELEASED_FOR_DEVICE_TEST ||
+            !CirqaFileAccessAttemptGate.available(prefs)) {
+            statusOutput.text = "FileAccess-Liste nicht freigegeben oder Gate bereits verbraucht."
+            return
+        }
+        AlertDialog.Builder(this)
+            .setTitle("FileAccess-Dateiliste lesen?")
+            .setMessage(
+                "Ein Leselauf über den Protobuf-Kanal: genau eine 5043-Item-List-Anfrage " +
+                    "nach frischem Bootstrap, CRC-validierte 5044-Antwort, danach sofortiger " +
+                    "Stopp. Rein lesend – kein Archivieren, Löschen, SetFlags, Reset oder " +
+                    "FIT-Download. 20-s-Budget, kein Retry. Der Einmal-Gate wird vor dem " +
+                    "Verbinden verbraucht."
+            )
+            .setNegativeButton("Abbrechen", null)
+            .setPositiveButton("Ausführen") { _, _ ->
+                withBluetoothPermissions(needsScan = false) {
+                    val probe = CirqaMlHandshakeProbe(this, adapter)
+                    systemEventProbe = probe
+                    probe.startFileAccessListTest(userConfirmed = true) { message ->
+                        runOnUiThread {
+                            statusOutput.text = message
+                            prefs.edit().putString(CirqaFileAccessAttemptGate.SUMMARY_KEY, message).apply()
                         }
                     }
                 }

@@ -53,6 +53,10 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private var directoryReadV2Mode = false
     private var directoryReadAfterChain = false
     private var dirReadSession: CirqaDirectoryReadV2Session? = null
+    private var fileAccessListMode = false
+    private var fileAccessRequestClaimed = false
+    private val fileAccessFramer = CirqaRfcommStreamFramer()
+    private val fileAccessReassembler = GarminProtobufReassembler()
     private var legacy5002RequestWriteClaimed = false
     private var legacy5002RequestSent = false
     private var legacy5002Response = CirqaLegacy5002ResponseObserver()
@@ -347,6 +351,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             directoryReadV2Mode = false
             directoryReadAfterChain = false
             dirReadSession = null
+            fileAccessListMode = false
+            fileAccessRequestClaimed = false
             bootstrapAckMode = false
             configurationTestMode = false
             historyDiagnosticMode = false
@@ -376,6 +382,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             directoryReadV2Mode = false
             directoryReadAfterChain = false
             dirReadSession = null
+            fileAccessListMode = false
+            fileAccessRequestClaimed = false
             bootstrapAckMode = false
             configurationTestMode = false
             historyDiagnosticMode = false
@@ -752,6 +760,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                         } else {
                             maybeSendLegacy5030AfterBootstrap(g)
                             maybeSendLegacy5007AfterBootstrap(g)
+                            maybeSendFileAccessList(g)
                             maybeSendLegacy5002AfterBootstrap(g)
                             maybeAdvanceHistoricalSyncV1(g)
                             if (!legacy5007WriteClaimed) mark("ML-Schreiben bestätigt; warte auf Protokollantwort")
@@ -910,6 +919,10 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                         finish5030IfTerminal(g)
                         return
                     }
+                    if (fileAccessListMode) {
+                        handleFileAccessResponse(g, bytes.copyOfRange(1, bytes.size))
+                        return
+                    }
                     // Full-chain directory-body read: route 5004 chunks to the dedicated session.
                     dirReadSession?.let { d ->
                         val beforeDataFrames = d.dataFramesProcessed
@@ -1057,6 +1070,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                         phase = "GFDI-5000-ACK für 5050 empfangen; beobachte weitere Antworten"
                         maybeSendLegacy5030AfterBootstrap(g)
                         maybeSendLegacy5007AfterBootstrap(g)
+                        maybeSendFileAccessList(g)
                         maybeSendLegacy5002AfterBootstrap(g)
                         maybeAdvanceHistoricalSyncV1(g)
                     }
@@ -1358,6 +1372,83 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         }, 20_000L)
         mark("Directory-Body: warte auf CRC-validierte 5004-Chunks (${size} B)")
         return true
+    }
+
+    /** One read-only 5043 FileAccess item-list request after a fresh bootstrap. */
+    @SuppressLint("MissingPermission")
+    fun startFileAccessListTest(userConfirmed: Boolean, result: (String) -> Unit) {
+        if (!CirqaFileAccessAttemptGate.RELEASED_FOR_DEVICE_TEST || !userConfirmed) {
+            result("FileAccess-Liste gesperrt; keine Verbindung.")
+            return
+        }
+        if (active || sessionStartedNanos != 0L || historicalSyncV1 != null || dirReadSession != null ||
+            directoryReadAfterChain || directoryReadV2Mode || legacy5030Only != null ||
+            legacy5007TestMode || legacy5031TestMode || legacyHistoryDownloadMode ||
+            realtimeMode || continuousRecordingMode || rawCaptureMode) {
+            result("FileAccess-Liste benötigt eine neue Probeinstanz; keine Verbindung.")
+            return
+        }
+        val uniqueTarget = try {
+            adapter.isEnabled && adapter.bondedDevices.orEmpty().count {
+                it.name?.contains("CIRQA", ignoreCase = true) == true
+            } == 1
+        } catch (_: SecurityException) { false }
+        if (!uniqueTarget || CirqaBleSessionGate.isBusy()) {
+            result("FileAccess-Liste: Bluetooth aus, Ziel nicht eindeutig oder Sitzung belegt.")
+            return
+        }
+        val prefs = context.getSharedPreferences(CirqaFileAccessAttemptGate.PREFS_NAME, Context.MODE_PRIVATE)
+        if (!CirqaFileAccessAttemptGate.consume(prefs)) {
+            result("FileAccess-Liste: Gate verbraucht oder Persistierung fehlgeschlagen.")
+            return
+        }
+        fileAccessListMode = true
+        fileAccessRequestClaimed = false
+        fileAccessFramer.reset()
+        bootstrapAckMode = true
+        configurationTestMode = true
+        historyDiagnosticMode = true
+        start(false, result)
+        if (!active) {
+            fileAccessListMode = false
+            bootstrapAckMode = false
+            configurationTestMode = false
+            historyDiagnosticMode = false
+        } else {
+            main.postDelayed({
+                if (active && fileAccessListMode) {
+                    finish("FileAccess-Liste: 20-s-Zeitlimit ohne vollständige 5044-Antwort.", gatt)
+                }
+            }, 20_000L)
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun maybeSendFileAccessList(g: BluetoothGatt) {
+        if (!fileAccessListMode || fileAccessRequestClaimed || mlWritePending) return
+        val handle = historyHandle
+        if (handle == null) {
+            finish("FileAccess-Liste: Bootstrap bestätigt, aber kein dynamischer GFDI-Handle.", g)
+            return
+        }
+        fileAccessRequestClaimed = true
+        configurationTestMode = false
+        main.removeCallbacks(configurationTimeout)
+        mark("FileAccess-Liste: sende genau eine 5043-Item-List-Anfrage (read-only)")
+        send(g, CirqaFileAccessListRequest.mlValue(handle, 1))
+    }
+
+    private fun handleFileAccessResponse(g: BluetoothGatt, payload: ByteArray) {
+        for (frame in fileAccessFramer.accept(payload)) {
+            val verified = GarminFrameValidator.inspectVerified(frame) ?: continue
+            if (verified.messageType != 5044) continue
+            fileAccessReassembler.accept(frame)?.let { msg ->
+                val report = "FileAccess ItemList: 5044 vollständig, len=${msg.size}, " +
+                    "shape=${CirqaProtobufShapeInspector.nestedShape(msg)}"
+                finish("$report. ${fileAccessReassembler.summary()}", g)
+                return
+            }
+        }
     }
 
     @SuppressLint("MissingPermission")
@@ -1938,7 +2029,9 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             }
             gatt = null
             callback?.invoke(
-                if (dirReadSession != null) dirReadSession!!.summary() +
+                if (fileAccessListMode) "FileAccess-ItemList: $message; ${fileAccessReassembler.summary()}; " +
+                    "requestSent=$fileAccessRequestClaimed"
+                else if (dirReadSession != null) dirReadSession!!.summary() +
                     " [acks5004=$acks5004Queued,acks5043=$acks5043Queued," +
                     "pendingWrites=${deferredAckWrites.size},writePending=$mlWritePending," +
                     "ack5004=$ack5004Hex,filter=${CirqaHistoricalSyncV1Wire.DIRECTORY_FILTER}]" +
@@ -1962,6 +2055,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             directoryReadV2Mode = false
             directoryReadAfterChain = false
             dirReadSession = null
+            fileAccessListMode = false
+            fileAccessRequestClaimed = false
             bootstrapAckMode = false
             configurationTestMode = false
             rawCaptureMode = false
