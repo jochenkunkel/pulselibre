@@ -29,6 +29,15 @@ The private inputs remain under `/tmp/opencode/issue-141-private/` and
 - The non-FIT files are structurally classified as one XML file and one
   unrecognized protobuf/schema-like binary. Their contents are not published;
   no device metadata meaning is inferred from the unknown binary.
+- The XML has root element `Device` and includes schema fields for device-level
+  `Model`, `SoftwareVersion`, `MassStorageMode`, `DeviceExtension`, and 51
+  file-entry groups (`FileName`, `Path`, `Location`, `DataType`, `Identifier`,
+  `Specification`, `TransferDirection`, and related version/name fields).
+  Only field names and counts are evidence in this report: actual text values,
+  identifiers, and paths remain private and were not inferred or reproduced.
+- The second raw file contains one top-level protobuf wire-type-2 field with a
+  226-byte payload. Without its schema, it remains opaque; neither its field
+  semantics nor any alleged battery, firmware, or sensor information is claimed.
 
 ## Evidence boundary and remaining work
 
