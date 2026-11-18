@@ -59,6 +59,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private val syncFrameCounts = LinkedHashMap<Int, Int>()
     private var syncProtoShapes = ""
     private var syncOtherLengths = ""
+    private var syncItemListSent = false
     private var syncFinalReport = ""
     private var fileAccessRequestClaimed = false
     private val fileAccessFramer = CirqaRfcommStreamFramer()
@@ -364,6 +365,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             syncFrameCounts.clear()
             syncProtoShapes = ""
             syncOtherLengths = ""
+            syncItemListSent = false
             fileAccessRequestClaimed = false
             bootstrapAckMode = false
             configurationTestMode = false
@@ -400,6 +402,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             syncFrameCounts.clear()
             syncProtoShapes = ""
             syncOtherLengths = ""
+            syncItemListSent = false
             fileAccessRequestClaimed = false
             bootstrapAckMode = false
             configurationTestMode = false
@@ -1427,6 +1430,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         syncProtoShapes = ""
         syncOtherLengths = ""
         syncFinalReport = ""
+        syncItemListSent = false
         syncFrameCounts.clear()
         fileAccessListMode = true
         fileAccessRequestClaimed = false
@@ -1448,7 +1452,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     val counts = syncFrameCounts.entries.sortedBy { it.key }
                         .joinToString(",") { "${it.key}x${it.value}" }
                     syncFinalReport = "Sync-Beobachtung: 60-s-Zeitlimit; accepted=$syncAccepted; " +
-                        "frames=$counts; proto=[$syncProtoShapes]; other=[$syncOtherLengths]." +
+                        "itemListSent=$syncItemListSent; frames=$counts; " +
+                        "proto=[$syncProtoShapes]; other=[$syncOtherLengths]." +
                         fileAccessDiag
                     finish(syncFinalReport, gatt)
                 }
@@ -1529,8 +1534,12 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             if (syncRequestMode) {
                 syncFrameCounts[verified.messageType] = (syncFrameCounts[verified.messageType] ?: 0) + 1
                 if (verified.messageType != 5044 && verified.messageType != 5000 &&
-                    syncOtherLengths.length < 220) {
-                    syncOtherLengths += "${verified.messageType}:${frame.size},"
+                    syncOtherLengths.length < 260) {
+                    val chunk = CirqaLegacyTransferDecoder.plainChunk(
+                        frame.copyOfRange(4, frame.size - 2)
+                    )
+                    val detail = if (chunk != null) "[off=${chunk.offset},len=${chunk.payload.size}]" else ""
+                    syncOtherLengths += "${verified.messageType}:${frame.size}$detail,"
                 }
             }
             if (verified.messageType == 5000) {
@@ -1566,7 +1575,15 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     // begins delivering buffered files only afterwards.
                     syncAccepted = true
                     syncProtoShapes = (syncProtoShapes + "${CirqaProtobufShapeInspector.nestedShape(msg)};").take(400)
-                    main.post { mark("Sync akzeptiert ($report); beobachte weitere Frames") }
+                    // Connect requests the pending file list only AFTER sync_response.
+                    val handle = historyHandle
+                    if (handle != null && !syncItemListSent) {
+                        syncItemListSent = true
+                        queueAck(g, CirqaFileAccessListRequest.mlValue(handle, 2))
+                        main.post { mark("Sync akzeptiert; FileAccess-Item-List nachgesendet") }
+                    } else {
+                        main.post { mark("Sync akzeptiert ($report); beobachte weitere Frames") }
+                    }
                 } else {
                     finish("FileAccess ItemList: $report. ${fileAccessReassembler.summary()}", g)
                     return
@@ -2188,6 +2205,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             syncFrameCounts.clear()
             syncProtoShapes = ""
             syncOtherLengths = ""
+            syncItemListSent = false
             fileAccessRequestClaimed = false
             bootstrapAckMode = false
             configurationTestMode = false
