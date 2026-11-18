@@ -69,7 +69,10 @@ class DashboardOverviewViewTest {
             val night = descendants(view).single { it.tag == "dashboard_night_oxygen_insights" }
             assertTrue(night.contentDescription.contains("nicht validiert"))
             assertTrue(night.contentDescription.contains("Keine Diagnose"))
-            assertTrue(descendants(night).any { it.contentDescription?.startsWith("SpO₂") == true })
+            // loading state ("SpO₂: Nachtserie …") or, if a previous test already cached a result, the loaded cells
+            assertTrue(descendants(night).any {
+                it.contentDescription?.startsWith("SpO₂") == true || it.contentDescription?.startsWith("22–6 Uhr") == true
+            })
             assertNotNull(descendants(view).singleOrNull { it.tag == "dashboard_unvalidated_legend" })
             assertTrue(cards[1].contentDescription.contains("violetter Rand"))
             assertTrue(cards[2].contentDescription.contains("violetter Rand"))
