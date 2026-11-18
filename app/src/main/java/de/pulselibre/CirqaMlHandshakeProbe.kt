@@ -71,6 +71,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private var mlrChunks = 0
     private var mlrBytes = 0
     private var syncTransferHandle = 0L
+    private var syncExpectedSize = 0L
+    private val mlrData = java.io.ByteArrayOutputStream()
     private var syncFinalReport = ""
     private var fileAccessRequestClaimed = false
     private val fileAccessFramer = CirqaRfcommStreamFramer()
@@ -386,6 +388,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             mlrChunks = 0
             mlrBytes = 0
             syncTransferHandle = 0L
+            syncExpectedSize = 0L
+            mlrData.reset()
             fileAccessRequestClaimed = false
             bootstrapAckMode = false
             configurationTestMode = false
@@ -432,6 +436,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             mlrChunks = 0
             mlrBytes = 0
             syncTransferHandle = 0L
+            syncExpectedSize = 0L
+            mlrData.reset()
             fileAccessRequestClaimed = false
             bootstrapAckMode = false
             configurationTestMode = false
@@ -957,8 +963,11 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                 val first = bytes.firstOrNull()?.toInt()?.and(255)
                 if (first != null && first == mlrHandle && syncRequestMode) {
                     // Raw MLR transfer bytes on the dedicated service handle.
+                    val payload = bytes.copyOfRange(1, bytes.size)
                     mlrChunks++
-                    mlrBytes += maxOf(0, bytes.size - 1)
+                    mlrBytes += payload.size
+                    val limit = if (syncExpectedSize > 0) syncExpectedSize + 64 else 8 * 1024 * 1024
+                    if (mlrData.size() + payload.size <= limit.toInt()) mlrData.write(payload)
                     return
                 }
                 if (first != null && first == historyHandle) {
@@ -1645,6 +1654,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     if (items.isNotEmpty() && !syncPullSent) {
                         syncPullSent = true
                         syncItemSummary = CirqaFileAccessItemListParser.redactedSummary(items)
+                        syncExpectedSize = items.first().dataSize
                         val pullHandle = historyHandle
                         if (pullHandle != null) {
                             queueAck(g, CirqaFileAccessPullRequest.mlValue(pullHandle, 3, items.first()))
@@ -2200,6 +2210,18 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         "GATT-Merkmale: RX=$selectedRxUuid; TX=$selectedTxUuid; TX-Properties=$selectedTxProperties; MTU nicht aktiv ausgehandelt.\n" +
         txTrace.summary()
 
+    /** Redacted integrity summary of the received MLR transfer. */
+    private fun mlrValidation(): String {
+        val data = mlrData.toByteArray()
+        if (data.isEmpty()) return "no-data"
+        val magic = data.copyOfRange(0, minOf(4, data.size))
+            .joinToString("") { "%02x".format(it) }
+        val fit = FitFileHeader.inspectVerified(data) != null
+        val digest = java.security.MessageDigest.getInstance("SHA-256").digest(data)
+        val sha = digest.copyOfRange(0, 6).joinToString("") { "%02x".format(it) }
+        return "len=${data.size};expected=$syncExpectedSize;magic=$magic;fitHeader=$fit;sha256=$sha"
+    }
+
     @SuppressLint("MissingPermission")
     private fun safeClose(g: BluetoothGatt?) {
         if (g == null) return
@@ -2214,7 +2236,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             syncFinalReport = "Sync-Beobachtung: $message; accepted=$syncAccepted; " +
                 "itemListSent=$syncItemListSent; pullSent=$syncPullSent; items=[$syncItemSummary]; " +
                 "$syncPullDiag; $mlrDiag; mlr=[chunks=$mlrChunks,bytes=$mlrBytes]; " +
-                "frames=$counts; proto=[$syncProtoShapes]"
+                "validate=[${mlrValidation()}]; frames=$counts; proto=[$syncProtoShapes]"
         }
         terminationRequested = true
         legacy5030Only?.let { it.abort(it.token) }
@@ -2299,6 +2321,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             mlrChunks = 0
             mlrBytes = 0
             syncTransferHandle = 0L
+            syncExpectedSize = 0L
+            mlrData.reset()
             fileAccessRequestClaimed = false
             bootstrapAckMode = false
             configurationTestMode = false
