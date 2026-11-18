@@ -39,6 +39,23 @@ diesem gepaarten Gerät (lokal privat, keine Rohdaten in Git). Erst danach die
 beobachteten Kommandos als eigene Regression-Fixtures nachbauen. Das ist die in
 der Geräteevidenz priorisierte Aufgabe 3.
 
+**Neuer Nutzerbefund (18.11., abends):** Garmin Connect war den ganzen Tag
+deaktiviert; direkt nach dem Start wurden **alle Daten des Tages** synchronisiert.
+Das belegt einen aktiven, host-initiierten Sync beim App-Start. In Connect
+(`p860.SyncMessageManager.syncNow()`) geht dem Dateiabruf zwingend ein
+`Smart{core_service{sync_request{use_this_connection=false}}}` über 5043 voraus;
+danach erst antwortet das Gerät mit `sync_response` und beginnt Dateien zu
+liefern. Unsere bisherigen 5043-Versuche waren `file_access_service`, nicht
+`sync_request` – das ist die plausibelste Erklärung für die leeren Antworten.
+
+`CirqaSyncRequestCandidate` baut diesen 4-Byte-Smart-Inhalt
+(`Smart` Feld 13 → `CoreService` Feld 1, leeres `SyncRequest`, da proto3 den
+Default-false-Bool auslässt) und kapselt ihn in einen gültigen 5043-Frame.
+**Offline getestet, nicht gesendet.** Achtung: ein Sync-Request kann beim Gerät
+eigene Ablagen (z. B. Archivierung nach erfolgreichem Upload) auslösen; wir
+senden selbst keine Archiv-/Flag-Befehle. Aktivierung braucht ausdrückliche
+Freigabe und ein neues Gate.
+
 ## Wichtigste Transporthypothese
 
 Die dokumentierte Connect-5.31-Analyse zeigt einen Bluetooth-Classic-Server mit Garmin-SPP-UUID `DEAB91E4-670F-11E1-9ACE-30BC4824019B`, `listenUsingRfcommWithServiceRecord` und GFDI/COBS auf Streams. Der externe Gadgetbridge-Vergleich berichtet ebenfalls 8192-Byte-5002-Antwort bei 32-Byte-BLE-Platzhalter. **Hypothese:** Die echten Dateien werden auf dem getesteten CIRQA erst über Classic-RFCOMM angeboten. Das ist noch nicht am eigenen Gerät bewiesen: Der erste begrenzte Lauf sah trotz SDP-Query keine Gegenverbindung. Gate V2 hat das geklärt: Die SDP-Antwort enthält nur die Null-UUID, nicht `DEAB91E4-…`; die CIRQA bietet den Garmin-SPP-Dienst nicht an. RFCOMM ist damit kein gangbarer Weg zu den FIT-Dateien dieses Geräts. Ein verbleibender, separater Forschungsweg wäre der Protobuf-FileAccess-Kanal (`0x2018`/`GDIFileAccess`), der früher als kompakter `0x8A39`-Kandidat `UNSUPPORTED` lieferte.
