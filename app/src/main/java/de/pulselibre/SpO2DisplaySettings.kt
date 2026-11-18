@@ -25,6 +25,11 @@ internal data class SpO2DisplaySettings(
         "🟢 $greenFrom–100 %   🟠 $redBelow–${greenFrom - 1} %   🔴 < $redBelow %   ⚪ kein gültiger Wert"
 
     companion object {
+        /**
+         * Owner decision 2026-11-18: the validation gate is accepted, bands are shown by default.
+         * The sensor is still NOT validated; affected tiles carry a red border (UnvalidatedFeatures).
+         */
+        const val OWNER_ACCEPTED_UNVALIDATED = true
         private const val STORE = "local_personal_profile"
         private const val GREEN_FROM_KEY = "spo2_display_green_from"
         private const val RED_BELOW_KEY = "spo2_display_red_below"
@@ -37,7 +42,7 @@ internal data class SpO2DisplaySettings(
             val prefs = context.getSharedPreferences(STORE, Context.MODE_PRIVATE)
             val green = prefs.getInt(GREEN_FROM_KEY, 95).coerceIn(2, 100)
             val red = prefs.getInt(RED_BELOW_KEY, 90).coerceIn(1, green)
-            return SpO2DisplaySettings(green, red, prefs.getBoolean(VALIDATION_GATE_KEY, false))
+            return SpO2DisplaySettings(green, red, prefs.getBoolean(VALIDATION_GATE_KEY, OWNER_ACCEPTED_UNVALIDATED))
         }
 
         /** The gate is deliberately inaccessible from ordinary preferences. */

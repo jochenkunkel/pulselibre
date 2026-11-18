@@ -88,10 +88,10 @@ object PersonalSettings {
         val activityWindow = field("Auswertefenster in Minuten", "activity_window_minutes", true).apply {
             setText(activitySettings.windowMinutes.toString())
         }
-        heading("SpO₂-Orientierung · Validierung ausstehend")
+        heading("SpO₂-Orientierung · Sensor nicht validiert")
         val spo2Settings = SpO2DisplaySettings.read(context)
         layout.addView(TextView(context).apply {
-            text = "Vorschau ${spo2Settings.bandLabel()}\n⏳ Farbskala bleibt neutral, bis der CIRQA-Handgelenksensor gerätespezifisch validiert ist. Keine Diagnose oder Alarmfunktion; Signalqualität wird nicht übertragen."
+            text = "Vorschau ${spo2Settings.bandLabel()}\n⏳ ${if (spo2Settings.colorBandsEnabled) "Farbskala aktiv (vom Nutzer akzeptiert), roter Kartenrand kennzeichnet die fehlende Validierung" else "Farbskala bleibt neutral"}; der CIRQA-Handgelenksensor ist nicht gerätespezifisch validiert. Keine Diagnose oder Alarmfunktion; Signalqualität wird nicht übertragen."
             textSize = 12f
         })
         val spo2Green = field("Vorschau: Grün ab SpO₂ (%)", "spo2_display_green_from", true).apply {
