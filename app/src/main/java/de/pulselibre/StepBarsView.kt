@@ -27,12 +27,13 @@ internal class StepBarsView(context: Context, private val color: Int) : View(con
         val slot = width.toFloat() / n
         val bar = slot * 0.72f
         val radius = bar / 2f
-        val maxHeight = height * 0.62f
+        val maxHeight = height * 0.55f
+        val base = height - height * 0.30f      // bars grow from a baseline above the goal bar
         s.values.forEachIndexed { i, v ->
-            if (v == null || v <= 0.0) return@forEachIndexed
-            val h = (v / max).toFloat() * maxHeight
+            if (v == null) return@forEachIndexed   // gap: no data, draw nothing
+            val h = if (v <= 0.0) bar else maxOf(bar, (v / max).toFloat() * maxHeight)   // zero activity = small dot
             val left = i * slot + (slot - bar) / 2f
-            rect.set(left, height - h - height * 0.06f, left + bar, height - height * 0.06f)
+            rect.set(left, base - h, left + bar, base)
             canvas.drawRoundRect(rect, radius, radius, paint)
         }
     }

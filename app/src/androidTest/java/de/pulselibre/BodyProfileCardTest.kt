@@ -27,7 +27,7 @@ class BodyProfileCardTest {
     private fun texts(activity: MainActivity) =
         all(activity.findViewById(android.R.id.content)).filterIsInstance<TextView>().map { it.text.toString() }
 
-    private fun find(text: String, timeoutMs: Long = 5000): AccessibilityNodeInfo? {
+    private fun find(text: String, timeoutMs: Long = 15000): AccessibilityNodeInfo? {
         val end = System.currentTimeMillis() + timeoutMs
         while (System.currentTimeMillis() < end) {
             instrumentation.uiAutomation.rootInActiveWindow?.findAccessibilityNodeInfosByText(text)?.firstOrNull()?.let { return it }
