@@ -70,7 +70,7 @@ object PersonalSettings {
                     (if (decimal) InputType.TYPE_NUMBER_FLAG_DECIMAL else 0)
                     else InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
                 setText(p.getString(key, "").orEmpty())
-                hint = unitHint ?: label
+                hint = unitHint.orEmpty()
                 contentDescription = label
             }
             box.addView(edit)
@@ -128,8 +128,8 @@ object PersonalSettings {
             "Aus kumulativen CIRQA-Schrittständen der letzten Minuten. Der Modus ist eine grobe Anzeige-Heuristik: Schritte belegen weder Sitzen noch eine bestimmte Sportart. Bei zu wenigen oder veralteten Werten bleibt er unbekannt.")
         val activitySettings = ActivityDetectionPreference.read(context)
         val (restSteps, sportSteps, activityWindow) = fieldRow(
-            Triple("Ruhe < Schr./min", "activity_rest_below", null),
-            Triple("Sport > Schr./min", "activity_sport_above", null),
+            Triple("Ruhe (/min)", "activity_rest_below", null),
+            Triple("Sport (/min)", "activity_sport_above", null),
             Triple("Fenster (min)", "activity_window_minutes", null))
         restSteps.setText(activitySettings.restBelowStepsPerMinute.toString())
         sportSteps.setText(activitySettings.sportAboveStepsPerMinute.toString())
