@@ -25,4 +25,4 @@ Bewertung: **hoch** = Datenverlust/Fehlverhalten möglich, **mittel** = Inkonsis
 Konfig-Absturz (#161), Profilkarte nach Speichern über Header-Button (#162), Config-Icons/-Reihenfolge/Autostart (#163), Header-Berge (#164, PR #166, CI wegen Billing offen), Untertitel-Umbruch (eigener PR).
 
 ## Zusätzliche Beobachtung (Vorfall, nicht Code)
-Auf dem S25 stand nach einem App-Absturz „Datenbank aus Backup wiederhergestellt“ (DB danach 6,7 MB). Ursache der Auslösung unklar (Nutzer oder Fehlbedienung); daher: Daten-Tab-Restore sollte **vor** dem Überschreiben eine Bestätigung mit Datum/Größe der Quelle zeigen (Prüfung offen, nicht verifiziert, ob dies schon so ist).
+Auf dem S25 stand nach einem App-Absturz „Datenbank aus Backup wiederhergestellt“ (DB danach 6,7 MB). Geprüft: `ExportActivity.confirmRestore` zeigt vor dem Überschreiben einen Dialog mit Backup-Datum und Zählern und verlangt „Ersetzen“; die Wiederherstellung musste also ausdrücklich bestätigt werden (nicht durch einen unbeabsichtigten Einzel-Tap möglich). Code ist hier in Ordnung; wer bestätigt hat, ist aus den Logs nicht ersichtlich.
