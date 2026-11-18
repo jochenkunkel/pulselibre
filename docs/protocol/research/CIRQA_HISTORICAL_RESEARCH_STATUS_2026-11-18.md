@@ -99,12 +99,17 @@ Primärschlüssel.
 
 Die anschließende Listenfortsetzung lieferte wiederholt leere Item-Listen,
 behielt aber `next_transaction_id` bei. Der sichere 64-Seiten-Grenzwert
-beendete den Lauf; Gate V24 ist verbraucht. Der Mehrdateiabruf und der
-sequenzielle MLR-Datentransfer sind damit am Gerät demonstriert. **Nicht**
-bewiesen sind vollständige oder lückenlose historische Abdeckung, korrekte
-Semantik dieser wiederholten Fortsetzung oder ob weitere Seiten mit Daten
-existieren. Es wurden keine Archiv-, Flag-, Lösch-, Reset- oder `CLOSE_ALL`-
-Befehle gesendet. Vollständiger Bericht:
+beendete den Lauf; Gate V24 ist verbraucht. Eine erneute Connect-5.31-Prüfung
+der Listing-Coroutine zeigt: Die aktuelle Liste wird nur fortgesetzt, solange
+die Antwort `session_id` enthält. Ohne `session_id` gibt Connect die erhaltenen
+Einträge zusammen mit `next_transaction_id` als Transaktionskontext zurück;
+dieser Wert ist kein Cursor für weitere Seiten derselben Liste. V24 hat daher
+unnötige leere Folgeanfragen mit diesem Transaktionskontext gesendet. Der
+Mehrdateiabruf und der sequenzielle MLR-Datentransfer sind am Gerät demonstriert;
+V25 ändert die Listenfortsetzung ausschließlich auf `session_id`; ein frisches V25-Gate
+bleibt für einen weiteren Gerätesitzungslauf erforderlich. Ob die erste 33er-
+Liste alle historischen Einträge darstellt, bleibt unbewiesen. Es wurden keine
+Archiv-, Flag-, Lösch-, Reset- oder `CLOSE_ALL`-Befehle gesendet. Vollständiger Bericht:
 [V24-Geräteergebnis](../../device-tests/CIRQA_SYNC_V24_DEVICE_RESULT_2026-11-18.md).
 
 Die UID muss nicht interpretiert werden; ihre rohen Bytes werden unverändert

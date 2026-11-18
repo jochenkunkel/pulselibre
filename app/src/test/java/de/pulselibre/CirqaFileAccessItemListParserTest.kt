@@ -80,6 +80,17 @@ class CirqaFileAccessItemListParserTest {
         assertTrue(page.items.isEmpty())
     }
 
+    @Test fun nextTransactionIdDoesNotContinueCurrentHistoricalListing() {
+        val page = CirqaFileAccessItemListParser.ItemListPage(
+            items = emptyList(),
+            status = 0,
+            sessionId = null,
+            nextTransactionId = 42,
+            gdxmlStrings = emptyMap()
+        )
+        assertNull(CirqaFileAccessListRequest.nextPageSessionId(page))
+    }
+
     @Test fun buildsSessionOrTransactionContinuationWithVerifiedFieldNumbers() {
         val initial = CirqaFileAccessListRequest.smartRequest()
         val session = CirqaFileAccessListRequest.smartRequest(sessionId = 0x1234)

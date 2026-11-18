@@ -974,8 +974,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             return
         }
         val sessionId = syncPageSessionId
-        val transactionId = if (sessionId == null) syncPageNextTransactionId else null
-        if (sessionId == null && transactionId == null) {
+        if (sessionId == null) {
             finish("Item-List vollständig; Datei-Queue abgearbeitet.", g)
             return
         }
@@ -989,18 +988,18 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         syncPageNextTransactionId = null
         syncPullDiag = (syncPullDiag + "|list#$requestId:continuation=true").take(1000)
         queueAck(g, CirqaFileAccessListRequest.mlValue(
-            handle, requestId, sessionId = sessionId, transactionId = transactionId
+            handle, requestId, sessionId = sessionId
         ))
         main.post { mark("FileAccess-Item-List-Fortsetzung angefordert (read-only)") }
     }
 
     private fun appendSyncItemListPage(g: BluetoothGatt, page: CirqaFileAccessItemListParser.ItemListPage) {
-        if (page.status != null && page.status != ITEM_LIST_SUCCESS_STATUS) {
-            finish("Item-List meldete Status ${page.status}; Fortsetzung gestoppt.", g)
+        if (page.status != ITEM_LIST_SUCCESS_STATUS) {
+            finish("Item-List meldete Status ${page.status ?: "fehlt"}; Fortsetzung gestoppt.", g)
             return
         }
         syncListPageCount++
-        syncPageSessionId = page.sessionId
+        syncPageSessionId = CirqaFileAccessListRequest.nextPageSessionId(page)
         syncPageNextTransactionId = page.nextTransactionId
         syncHasPaginationSession = page.sessionId != null
         syncHasNextTransactionId = page.nextTransactionId != null
