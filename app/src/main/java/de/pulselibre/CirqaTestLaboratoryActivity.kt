@@ -364,7 +364,13 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
             isFillViewport = true
             addView(root)
         }
-        setContentView(scroll)
+        setContentView(LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            fitsSystemWindows = true
+            setBackgroundColor(palette.background)
+            addView(scroll, LinearLayout.LayoutParams(-1, 0, 1f))
+            addView(MainNavigationView(this@CirqaTestLaboratoryActivity, 3))
+        })
     }
 
     private fun addCard(card: LinearLayout) {

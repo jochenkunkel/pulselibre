@@ -291,3 +291,25 @@ Die folgenden Referenzen sind **Belege für die jeweils genannte Aussage**, kein
 - Wie werden persönliche Quantile/Trendgrenzen bei Datenlücken und saisonalen Änderungen validiert? Erst **deskriptiv**, keine klinischen Alerts.
 
 **Entscheidung:** Ein modernes Dashboard wird nicht durch möglichst viele rote/grüne Scores besser, sondern durch mehr *belegbare*, *nützliche*, *verständliche* Erkenntnisse – einschließlich einer ehrlichen Aussage, wenn die Daten nicht reichen.
+
+### SpO₂-Darstellung und Nachtanalyse (#39)
+
+Der Tagesverlauf zeigt gespeicherte Service-19-Beobachtungen neutral und weist
+auf die fehlende Validierung des CIRQA-Sensors hin. Die bestehende
+Farborientierung 95–100 %, 90–94 % und unter 90 % ist ein Produktentwurf
+mit deaktivierter Freigabe. Die FDA beschreibt Grenzen der Pulsoximetrie
+und untersucht u. a. Genauigkeitsunterschiede in Abhängigkeit von der
+Hautpigmentierung. Die [FDA-Übersicht](https://www.fda.gov/medical-devices/products-and-medical-procedures/pulse-oximeters)
+beschreibt den Leitfaden vom Januar 2025 als Entwurf für Medizinprodukte.
+Der Geltungsbereich liefert keine Validierung für CIRQA.
+
+Für nächtliche Zeitanteile und Desaturationsindizes fehlen eine validierte
+Nachtgrenze, eine belastbare Messzeitachse, eine bekannte Abtastung und
+Artefaktkennzeichen. Die öffentlich zugängliche
+[AASM-Übersicht zum Scoring Manual](https://aasm.org/clinical-resources/scoring-manual/)
+beschreibt polysomnografisches Scoring. Sie liefert hier keine direkt
+übertragbare Ereignisdefinition für die CIRQA-Empfangsdaten. Vor einer
+Implementierung sind Referenzmessung, Basiswert, minimale Ereignisdauer,
+Entsättigungstiefe und Erholung, auswertbare Zeit als Nenner und der Umgang
+mit Datenlücken festzulegen. Einzelpunkte gestatten keine Zeitanteils- oder
+ODI-Berechnung.

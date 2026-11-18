@@ -1,0 +1,34 @@
+package de.pulselibre
+
+import java.time.Duration
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
+import org.junit.Assert.*
+import org.junit.Test
+
+class DashboardDayTest {
+    private val berlin = ZoneId.of("Europe/Berlin")
+
+    @Test fun springAndAutumnUseActualElapsedTime() {
+        val spring = DashboardDay(LocalDate.of(2026, 3, 29), berlin)
+        val autumn = DashboardDay(LocalDate.of(2026, 10, 25), berlin)
+        assertEquals(23L, Duration.between(spring.start, spring.end).toHours())
+        assertEquals(25L, Duration.between(autumn.start, autumn.end).toHours())
+        assertEquals(0f, spring.fraction(spring.start), 0f)
+        assertEquals(1f, spring.fraction(spring.end), 0f)
+        val first = autumn.fraction(Instant.parse("2026-10-25T00:30:00Z"))
+        val second = autumn.fraction(Instant.parse("2026-10-25T01:30:00Z"))
+        assertEquals(1f / 25, second - first, 0.00001f)
+    }
+
+    @Test fun localDayExcludesFutureAndNextMidnightAndDependsOnZone() {
+        val date = LocalDate.of(2026, 11, 18)
+        val local = DashboardDay(date, berlin)
+        val utc = DashboardDay(date, ZoneId.of("UTC"))
+        assertTrue(local.includes(local.start, local.start))
+        assertFalse(utc.includes(local.start, utc.end))
+        assertFalse(local.includes(local.start.plusSeconds(1), local.start))
+        assertFalse(local.includes(local.end, local.end))
+    }
+}

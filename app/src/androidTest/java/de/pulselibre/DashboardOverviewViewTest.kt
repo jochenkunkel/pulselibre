@@ -64,7 +64,7 @@ class DashboardOverviewViewTest {
             val view = DashboardOverviewView(context(1f, 400))
             view.render(emptyList())
             val cards = cards(view)
-            assertEquals(5, cards.size)
+            assertEquals(4, cards.size)
             assertTrue(cards.all { it.contentDescription.contains("Keine Messdaten") })
             val night = descendants(view).single { it.tag == "dashboard_night_oxygen_insights" }
             assertTrue(night.contentDescription.contains("nicht validiert"))
@@ -83,9 +83,31 @@ class DashboardOverviewViewTest {
                 val indicator = descendants(card).single { it.tag?.toString()?.startsWith("reception_indicator_") == true }
                 assertTrue(indicator.isClickable)
                 assertTrue(indicator.isFocusable)
-                assertTrue(indicator.minimumWidth >= (48 * view.resources.displayMetrics.density).toInt())
+                val params = indicator.layoutParams as android.widget.FrameLayout.LayoutParams
+                assertEquals((48 * view.resources.displayMetrics.density + 0.5f).toInt(), params.width)
+                assertEquals((48 * view.resources.displayMetrics.density + 0.5f).toInt(), params.height)
+                assertEquals(android.view.Gravity.END,
+                    params.gravity and android.view.Gravity.RELATIVE_HORIZONTAL_GRAVITY_MASK)
+                assertEquals(android.view.Gravity.TOP,
+                    params.gravity and android.view.Gravity.VERTICAL_GRAVITY_MASK)
                 assertTrue(indicator.contentDescription.contains("Antippen"))
             }
+        }
+    }
+
+    @Test fun stepCardShowsOneProgressBarWithLargeTextOnNarrowScreens() {
+        InstrumentationRegistry.getInstrumentation().runOnMainSync {
+            val view = DashboardOverviewView(context(2f, 320))
+            view.render(listOf(
+                DashboardMetric("Schritte (Tageszähler)", "136", ""),
+                DashboardMetric("Schrittziel", "9330", "")
+            ))
+            val card = cards(view).single { it.tag == "dashboard_metric_Schritte heute" }
+            val labels = descendants(card).filterIsInstance<android.widget.TextView>().map { it.text.toString() }
+            assertTrue("136 Schritte" in labels)
+            assertTrue("Tagesziel · 9.330 Schritte" in labels)
+            assertTrue("1,5 % des Tagesziels" in labels)
+            assertEquals(1, descendants(view).count { it.tag == "dashboard_step_progress" })
         }
     }
 
@@ -149,4 +171,4 @@ class DashboardOverviewViewTest {
             assertTrue(portrait.contentDescription.contains("bärtigen Mann"))
         }
     }
-\n}\n
+}

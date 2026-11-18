@@ -35,6 +35,21 @@ class LaunchTest {
         }
     }
 
+    @Test fun selectedMainTabSurvivesRecreation() {
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            scenario.onActivity {
+                it.findViewById<View>(android.R.id.content)
+                    .findViewWithTag<View>("navigation_item_Verlauf").performClick()
+            }
+            scenario.recreate()
+            scenario.onActivity {
+                val tab = it.findViewById<View>(android.R.id.content)
+                    .findViewWithTag<View>("navigation_item_Verlauf")
+                org.junit.Assert.assertTrue(tab.isSelected)
+            }
+        }
+    }
+
     @Test fun noInternetPermission() {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         assertEquals(android.content.pm.PackageManager.PERMISSION_DENIED,

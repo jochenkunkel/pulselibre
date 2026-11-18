@@ -30,25 +30,60 @@ class MainActivity : AppCompatActivity() {
     private var debugDevicesVisible = false
     private var recorderRefresh: (() -> Unit)? = null
     private var dashboardPolling = false
-    private var dashboardLastCount = -1L
+    private var dashboardLastEventId = -1L
     private var dashboardLastRefreshAt = 0L
+    private val dashboardWorker = java.util.concurrent.Executors.newSingleThreadExecutor()
+
+    private var pollInFlight = false
+    private var readingDashboard = false
+    private var pendingDashboard: ((CirqaDashboardReader.Summary) -> Unit)? = null
+
+    private fun readDashboard(includeTotals: Boolean = false, show: (CirqaDashboardReader.Summary) -> Unit) {
+        if (dashboardWorker.isShutdown) return
+        if (!includeTotals && readingDashboard) {
+            pendingDashboard = show
+            return
+        }
+        if (!includeTotals) readingDashboard = true
+        dashboardWorker.execute {
+            val summary = try { CirqaDashboardReader(applicationContext).read(includeTotals = includeTotals) }
+                catch (_: android.database.sqlite.SQLiteException) { null }
+            handler.post {
+                if (!includeTotals) readingDashboard = false
+                if (!isFinishing && !isDestroyed) {
+                    if (summary != null) show(summary)
+                    if (!includeTotals) {
+                        val pending = pendingDashboard
+                        pendingDashboard = null
+                        if (pending != null) readDashboard(show = pending)
+                    }
+                }
+            }
+        }
+    }
+
     private val dashboardPoll = object : Runnable {
         override fun run() {
             if (!dashboardPolling || destroyed) return
             connectionIndicatorRefresh?.invoke()
             recorderRefresh?.invoke()
-            if (dashboardVisible || historyVisible) {
-                try {
-                    val count = CirqaDatabase(this@MainActivity).use { it.eventCount() }
-                    val now = System.currentTimeMillis()
-                    if (count != dashboardLastCount || now - dashboardLastRefreshAt >= 30_000L) {
-                        if (dashboardVisible) dashboardRefresh?.invoke()
-                        if (historyVisible) historyRefresh?.invoke()
-                        dashboardLastCount = count
-                        dashboardLastRefreshAt = now
+            if ((dashboardVisible || historyVisible) && !pollInFlight) {
+                pollInFlight = true
+                dashboardWorker.execute {
+                    val latest = try { CirqaDatabase(applicationContext).use { it.latestEventId() } }
+                        catch (_: android.database.sqlite.SQLiteException) { null }
+                    handler.post {
+                        pollInFlight = false
+                        if (dashboardPolling && !destroyed && latest != null) {
+                            val now = android.os.SystemClock.elapsedRealtime()
+                            if (latest != dashboardLastEventId || now - dashboardLastRefreshAt >= 30_000L) {
+                                dashboardLastEventId = latest
+                                dashboardLastRefreshAt = now
+                                if (dashboardVisible) dashboardRefresh?.invoke()
+                                if (historyVisible) historyRefresh?.invoke()
+                            }
+                        }
                     }
-                } catch (_: Exception) {
-                    // A temporary database read error must not crash the dashboard.
                 }
             }
             if (dashboardPolling && !destroyed) handler.postDelayed(this, 1000L)
@@ -57,7 +92,7 @@ class MainActivity : AppCompatActivity() {
     private fun startDashboardPolling() {
         if (dashboardPolling) return
         dashboardPolling = true
-        dashboardLastCount = -1L
+        dashboardLastEventId = -1L
         dashboardLastRefreshAt = 0L
         handler.post(dashboardPoll)
     }
@@ -172,7 +207,7 @@ class MainActivity : AppCompatActivity() {
             isFocusable = true
             setOnClickListener {
                 PersonalSettings.show(this@MainActivity) {
-                    dashboardLastCount = -1L
+                    dashboardLastEventId = -1L
                     dashboardLastRefreshAt = 0L
                 }
             }
@@ -277,7 +312,7 @@ class MainActivity : AppCompatActivity() {
             isClickable = true
             isFocusable = true
             setOnClickListener {
-                val summary = CirqaDashboardReader(this@MainActivity).read()
+                readDashboard(includeTotals = true) { summary ->
                 androidx.appcompat.app.AlertDialog.Builder(this@MainActivity)
                     .setTitle("Deine Messdaten")
                     .setMessage("${summary.samples} empfangene Messungen\\n" +
@@ -286,6 +321,7 @@ class MainActivity : AppCompatActivity() {
                         "Messzeit = Empfangszeit. Keine medizinische Diagnose.")
                     .setPositiveButton("Schließen", null)
                     .show()
+                }
             }
         }
         bodyHeader.addView(healthInfo, LinearLayout.LayoutParams(dp(32), dp(32)))
@@ -332,17 +368,18 @@ class MainActivity : AppCompatActivity() {
         bodyCard.setOnClickListener {
             PersonalSettings.show(this) {
                 refreshBodyCard()
-                dashboardLastCount = -1L
+                dashboardLastEventId = -1L
                 dashboardLastRefreshAt = 0L
             }
         }
         overviewView(bodyCard, 14)
         // One compact dashboard heading; privacy details remain accessible via the info button.
         overviewView(text("Gesundheit · CIRQA", 17f, ink, true), 6)
-        val cirqaDashboard = DashboardOverviewView(this)
+        val cirqaDashboard = DashboardOverviewView(this).apply {
+            openDay = { title -> showDashboardDay(this@MainActivity, title, dashboardWorker) }
+        }
         fun updateCirqaDashboard() {
-            val summary = CirqaDashboardReader(this).read()
-            cirqaDashboard.render(summary.metrics, summary.activity)
+            readDashboard { summary -> cirqaDashboard.render(summary.metrics, summary.activity) }
         }
         updateCirqaDashboard()
         dashboardRefresh = { updateCirqaDashboard() }
@@ -432,8 +469,8 @@ class MainActivity : AppCompatActivity() {
         recorderRefresh = {
             val running = getSharedPreferences(CirqaContinuousRecordingService.PREFS, MODE_PRIVATE)
                 .getBoolean(CirqaContinuousRecordingService.KEY_RUNNING, false)
-            recorderState.text = if (running) "●  CIRQA-Sammlung läuft · lokale Messwerte" else "○  Aufzeichnung aus"
-            recorderState.setTextColor(if (running) AppPalette.of(this@MainActivity).indicator else muted)
+            recorderState.text = if (running) "◌  Aufzeichnungsdienst aktiv · GATT-Status im Kopfbereich" else "○  Aufzeichnung aus"
+            recorderState.setTextColor(muted)
             playButton.alpha = if (running) 0.45f else 1f
             stopButton.alpha = if (running) 1f else 0.45f
             playButton.isEnabled = !running
@@ -784,78 +821,48 @@ class MainActivity : AppCompatActivity() {
             setTextIsSelectable(true)
         }
         deviceView(output)
-        val nav = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            setPadding(dp(8), dp(8), dp(8), dp(8))
-            setBackgroundColor(palette.card)
-        }
-        val tabs = mutableListOf<TextView>()
-        val tabViews = mutableListOf<LinearLayout>()
-        fun selectTab(index: Int) {
+        val nav = MainNavigationView(this) { selectMainTab(it) }
+        selectMainTab = { index ->
+            selectedMainTab = index
+            nav.select(index)
             dashboardVisible = index == 0
             historyVisible = index == 1
             devicesVisible = index == 2
             if (dashboardVisible) {
-                dashboardLastCount = -1L
+                dashboardLastEventId = -1L
                 dashboardLastRefreshAt = 0L
             }
             overview.forEach { it.visibility = if (index == 0) android.view.View.VISIBLE else android.view.View.GONE }
             historyViews.forEach { it.visibility = if (index == 1) android.view.View.VISIBLE else android.view.View.GONE }
             deviceViews.forEach { it.visibility = if (index == 2 && (debugDevicesVisible || it !in debugDeviceViews)) android.view.View.VISIBLE else android.view.View.GONE }
             if (index == 1) {
-                dashboardLastCount = -1L
+                dashboardLastEventId = -1L
                 dashboardLastRefreshAt = 0L
                 historyRefresh?.invoke()
             }
             if (index == 2) recorderRefresh?.invoke()
-            tabs.forEachIndexed { i, tab ->
-                tab.setTextColor(if (i == index) violet else muted)
-                tabViews[i].background = if (i == index) rounded(palette.tinted, 12) else null
-            }
             if (index == 2) refreshCirqaCard()
             scroll.scrollTo(0, 0)
         }
-        listOf("Übersicht", "Verlauf", "Geräte", "Testlabor", "Daten").forEachIndexed { index, label ->
-            val iconKind = when (index) {
-                0 -> DashboardInfoIconView.Kind.HOME
-                1 -> DashboardInfoIconView.Kind.HISTORY
-                2 -> DashboardInfoIconView.Kind.DEVICES
-                3 -> DashboardInfoIconView.Kind.LAB
-                else -> DashboardInfoIconView.Kind.DATA
-            }
-            val tab = text(label, 10f, muted, true).apply {
-                gravity = android.view.Gravity.CENTER
-                importantForAccessibility = android.view.View.IMPORTANT_FOR_ACCESSIBILITY_NO
-            }
-            val item = LinearLayout(this).apply {
-                orientation = LinearLayout.VERTICAL
-                gravity = android.view.Gravity.CENTER
-                minimumHeight = dp(52)
-                setPadding(dp(2), dp(3), dp(2), dp(3))
-                isClickable = true
-                isFocusable = true
-                contentDescription = label
-                tag = "navigation_item_$label"
-                setOnClickListener {
-                    when (index) {
-                        3 -> startActivity(Intent(this@MainActivity, CirqaTestLaboratoryActivity::class.java))
-                        4 -> startActivity(Intent(this@MainActivity, ExportActivity::class.java))
-                        else -> selectTab(index)
-                    }
-                }
-            }
-            item.addView(DashboardInfoIconView(this, iconKind, violet).apply {
-                tag = "navigation_icon_$label"
-            }, LinearLayout.LayoutParams(dp(18), dp(18)))
-            item.addView(tab, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(2) })
-            nav.addView(item, LinearLayout.LayoutParams(0, -2, 1f))
-            tabs.add(tab)
-            tabViews.add(item)
-        }
         screen.addView(nav)
         setContentView(screen)
-        selectTab(0)
+        selectMainTab(savedInstanceState?.getInt("main_tab") ?: intent.getIntExtra(MainNavigationView.EXTRA_TAB, 0))
         requestBluetoothPermissionOnFirstLaunch()
+    }
+
+    private var selectedMainTab = 0
+    private lateinit var selectMainTab: (Int) -> Unit
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.putInt("main_tab", selectedMainTab)
+        super.onSaveInstanceState(outState)
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        if (intent.hasExtra(MainNavigationView.EXTRA_TAB)) {
+            selectMainTab(intent.getIntExtra(MainNavigationView.EXTRA_TAB, 0))
+        }
     }
 
     private fun permissions(): Array<String> = if (Build.VERSION.SDK_INT >= 31)
@@ -1068,6 +1075,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
+        dashboardWorker.shutdownNow()
         stopDashboardPolling()
         dashboardRefresh = null
         connectionIndicatorRefresh = null

@@ -58,7 +58,7 @@ Der GitHub-Workflow `.github/workflows/android.yml` führt bei Pushes auf `main`
 
 Die nächsten Schritte sind die Gerätevalidierung der bestehenden Stufe-1-Funktionen und die Auswertung zulässiger passiver CIRQA-Evidenz. Der Stufe-2-Vorschlag bleibt gesperrt, bis die CIRQA-spezifischen Protokoll- und Sicherheitsvoraussetzungen erfüllt und der konkrete Test ausdrücklich freigegeben sind.
 
-**Aktuelle Aufgaben:** [GitHub-Issues](https://github.com/jochenkunkel/pulselibre/issues) · [Audit und Reparaturplan (Draft-PR #1)](https://github.com/jochenkunkel/pulselibre/pull/1). Die Architektur-Review-Datei enthält historische Befunde und ist noch nicht vollständig aktualisiert.
+**Aktuelle Aufgaben:** [GitHub-Issues](https://github.com/jochenkunkel/pulselibre/issues) · [Historischer Audit und Reparaturplan (geschlossener, nicht gemergter PR #1)](https://github.com/jochenkunkel/pulselibre/pull/1). Die Architektur-Review-Datei enthält historische Befunde und ist noch nicht vollständig aktualisiert.
 
 [Projektposter](design/pulselibre-poster.svg)
 

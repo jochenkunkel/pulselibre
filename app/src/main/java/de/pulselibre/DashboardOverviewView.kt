@@ -13,6 +13,8 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.core.view.ViewCompat
+import java.text.NumberFormat
+import java.util.Locale
 import java.time.Duration
 import java.time.Instant
 import java.time.ZoneId
@@ -24,6 +26,7 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
     private val ink = palette.ink
     private val muted = palette.muted
     private val violet = palette.accent
+    internal var openDay: ((String) -> Unit)? = null
     private var lastPulse: HeartRateGaugeModel? = null
     private var stepGoal: Int? = null
 
@@ -49,25 +52,56 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
         addNightOxygenCard()
         heading("Heute auf einen Blick")
         addStepContextChip()
-        addCardPair(overview.today) { metric ->
-            metricCard(metric, if (metric.title == "Tagesziel Schritte") palette.indicator else ink)
-        }
+        addView(stepCard(overview.steps, overview.stepGoal),
+            LayoutParams(-1, -2).apply { bottomMargin = dp(8) })
         heading("Weitere Gesundheitswerte")
         overview.details.chunked(2).forEach { pair ->
             addCardPair(pair) { metric -> metricCard(metric, ink) }
         }
     }
 
-    private fun pulseCard(metric: DashboardMetric, activity: StepActivityEstimate): LinearLayout {
+    private fun stepCard(steps: DashboardMetric, goal: DashboardMetric): View {
+        val integers = NumberFormat.getIntegerInstance(Locale.GERMANY)
+        val count = steps.value.toLongOrNull()?.takeIf { it >= 0 }
+        val target = goal.value.toLongOrNull()?.takeIf { it > 0 }
+        val progress = stepGoalProgress(steps, goal)
+        val metric = steps.copy(title = "Schritte heute",
+            value = count?.let { "${integers.format(it)} Schritte" } ?: "Keine Messdaten")
+        return card(metric).apply {
+            content.addView(header(metric))
+            content.addView(label(metric.value, 22f, ink, true))
+            val targetText = target?.let { "Tagesziel · ${integers.format(it)} Schritte" }
+                ?: "Kein gültiges Geräte-Schrittziel verfügbar"
+            content.addView(label(targetText, 14f, muted))
+            contentDescription = "${metric.title}. ${metric.value}. $targetText."
+            if (progress != null) {
+                val percentValue = progress
+                val percent = NumberFormat.getNumberInstance(Locale.GERMANY).apply {
+                    maximumFractionDigits = 1
+                }.format(progress)
+                contentDescription = "$contentDescription $percent % des Tagesziels."
+                content.addView(label("$percent % des Tagesziels", 14f, ink, true))
+                content.addView(android.widget.ProgressBar(context, null, android.R.attr.progressBarStyleHorizontal).apply {
+                    tag = "dashboard_step_progress"
+                    max = 1000
+                    this.progress = (percentValue.coerceIn(0.0, 100.0) * 10).toInt()
+                    progressTintList = android.content.res.ColorStateList.valueOf(palette.indicator)
+                    importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+                }, LayoutParams(-1, dp(12)))
+            }
+        }
+    }
+
+    private fun pulseCard(metric: DashboardMetric, activity: StepActivityEstimate): MetricCard {
         val model = HeartRateGaugeModel.from(metric)
         val previous = lastPulse
         lastPulse = model
         val card = card(metric)
-        card.addView(header(metric))
+        card.content.addView(header(metric))
         val gauge = HeartRateGaugeView(context)
         gauge.show(model, activity)
-        card.addView(gauge, LayoutParams(-1, -2))
-        card.addView(label(activity.caption, 11f, muted),
+        card.content.addView(gauge, LayoutParams(-1, -2))
+        card.content.addView(label(activity.caption, 11f, muted),
             LayoutParams(-1, -2).apply { topMargin = dp(2) })
         if (previous?.bpm != null && model.bpm != null && previous.bpm != model.bpm) {
             gauge.post { if (gauge.isAttachedToWindow) gauge.show(model, activity, previous.fraction) }
@@ -151,7 +185,7 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
         addView(chip, LinearLayout.LayoutParams(-2, -2).apply { bottomMargin = dp(12) })
     }
 
-    private fun addCardPair(metrics: List<DashboardMetric>, create: (DashboardMetric) -> LinearLayout) {
+    private fun addCardPair(metrics: List<DashboardMetric>, create: (DashboardMetric) -> View) {
         val stacked = resources.configuration.fontScale >= 1.3f
         val row = LinearLayout(context).apply { orientation = if (stacked) VERTICAL else HORIZONTAL }
         metrics.forEachIndexed { index, metric ->
@@ -167,7 +201,7 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
     }
 
     private fun metricCard(metric: DashboardMetric, accent: Int) = card(metric).apply {
-        addView(header(metric))
+        content.addView(header(metric))
         if (metric.title == "Sauerstoffsättigung · SpO₂") {
             val percent = Regex("^[0-9]+(?= %$)").find(metric.value)?.value?.toIntOrNull()
             val valueLayer = android.widget.FrameLayout(context).apply {
@@ -180,48 +214,67 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
                 gravity = Gravity.CENTER
                 tag = "spo2_value"
             }, android.widget.FrameLayout.LayoutParams(-1, -1))
-            addView(valueLayer, LayoutParams(-1, dp(76)).apply { topMargin = dp(4) })
+            content.addView(valueLayer, LayoutParams(-1, dp(76)).apply { topMargin = dp(4) })
         } else {
-            addView(label(metric.value, 22f, accent, true),
+            content.addView(label(metric.value, 22f, accent, true),
                 LayoutParams(-1, -2).apply { topMargin = dp(6) })
         }
         val profile = MetricReferenceProfile.forMetric(metric, stepGoal)
         val value = Regex("-?[0-9]+") .find(metric.value)?.value?.toIntOrNull()
         if (profile != null && value != null) {
-            addView(MetricReferenceScaleView(context, profile, value, accent, ink, muted,
+            content.addView(MetricReferenceScaleView(context, profile, value, accent, ink, muted,
                 palette.track, palette.muted), LayoutParams(-1, dp(40)).apply { topMargin = dp(8) })
         }
     }
 
-    private fun card(metric: DashboardMetric) = LinearLayout(context).apply {
-        orientation = VERTICAL
-        setPadding(dp(10), dp(10), dp(10), dp(10))
-        background = GradientDrawable().apply {
-            setColor(palette.card)
-            cornerRadius = dp(18).toFloat()
+    private fun card(metric: DashboardMetric) = MetricCard(metric)
+
+    private inner class MetricCard(metric: DashboardMetric) : android.widget.FrameLayout(context) {
+        val content = LinearLayout(context).apply {
+            orientation = VERTICAL
+            setPadding(dp(10), dp(10), dp(10), dp(10))
         }
-        tag = "dashboard_metric_${metric.title}"
-        contentDescription = "${metric.title}: ${metric.value}"
-        ViewCompat.setScreenReaderFocusable(this, false)
-        importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+
+        init {
+            background = GradientDrawable().apply {
+                setColor(palette.card)
+                cornerRadius = dp(18).toFloat()
+            }
+            tag = "dashboard_metric_${metric.title}"
+            contentDescription = "${metric.title}: ${metric.value}"
+            ViewCompat.setScreenReaderFocusable(this, false)
+            importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+            val show = openDay
+            if (show != null && metric.title != "Ground Rules") {
+                importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_YES
+                isFocusable = true
+                setOnClickListener { show(metric.title) }
+            }
+            addView(content, android.widget.FrameLayout.LayoutParams(-1, -2))
+            val indicator = ReceptionIndicatorView(context, metric, stepGoal).apply {
+                tag = "reception_indicator_${metric.title}"
+            }
+            addView(indicator, android.widget.FrameLayout.LayoutParams(dp(48), dp(48), Gravity.TOP or Gravity.END).apply {
+                topMargin = dp(4)
+                marginEnd = dp(4)
+            })
+        }
     }
 
     private fun header(metric: DashboardMetric) = LinearLayout(context).apply {
         orientation = HORIZONTAL
         gravity = Gravity.CENTER_VERTICAL
+        setPaddingRelative(0, 0, dp(28), 0)
         addView(DashboardMetricIconView(context, metric.title, iconColor(metric.title)).apply {
             tag = "dashboard_metric_icon_${metric.title}"
         }, LayoutParams(dp(20), dp(20)).apply { marginEnd = dp(6) })
         addView(label(metric.title, 12f, muted, true).apply {
-            maxLines = 2
-            ellipsize = android.text.TextUtils.TruncateAt.END
+            if (metric.title != "Schritte heute") {
+                maxLines = 2
+                ellipsize = android.text.TextUtils.TruncateAt.END
+            }
             contentDescription = metric.title
         }, LayoutParams(0, -2, 1f))
-        addView(ReceptionIndicatorView(context, metric, stepGoal).apply {
-            tag = "reception_indicator_${metric.title}"
-            minimumWidth = dp(48)
-            minimumHeight = dp(48)
-        }, LayoutParams(dp(48), dp(48)))
     }
 
     private fun iconColor(title: String) = when {
@@ -344,8 +397,8 @@ private class ReceptionIndicatorView(
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-        val x = width / 2f
-        val y = height / 2f
+        val x = if (layoutDirection == View.LAYOUT_DIRECTION_RTL) 8f * density else width - 8f * density
+        val y = 8f * density
         val color = when (state) {
             ReceptionFreshness.FRESH -> Color.rgb(31, 166, 113)
             ReceptionFreshness.RECENT -> Color.rgb(207, 166, 19)

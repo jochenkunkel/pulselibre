@@ -218,3 +218,50 @@ Die Prüfung gegen `docs/science/SCIENTIFIC_DASHBOARD_TILE_BLUEPRINT.md` ergibt 
 - **Noch keine zusätzliche Gesundheitsauswertung:** Schrittfrequenz/Belastungstrends, Stress/Body Battery, RR→HRV, Aktivitätsminuten gegen WHO-Wochenziele, Schlafdauer/-stadien, Sitzzeit und Kalorieninterpretationen benötigen bestätigte Service-Semantik, ausreichend dichte Daten oder Historien-/Sensorzugriff. Die vorhandenen Roh-/Gerätewerte bleiben entsprechend gekennzeichnet; daraus wird kein weiterer Score abgeleitet.
 
 Jede Messwertkachel erhält ein thematisches Icon. Skalenfüllungen verwenden die jeweilige Akzentfarbe; neutrale Referenzbereiche bleiben getrennt davon. Farbbänder mit medizinischer Bedeutung werden nur mit belastbarer, auf Messmethode und Kontext anwendbarer Evidenz ergänzt. Für die Schrittziel-Kachel testet die JVM-Suite gültige Prozentberechnung, Überschreitung, fehlende Eingaben und den nicht-klinischen Skalenvertrag.
+
+## Hauptnavigation und Tagesstand
+
+„Daten“ und „Testlabor“ hatten eigene Activities ohne Tab-Leiste. Die drei
+Activities verwenden jetzt dieselbe Tab-Komponente. Die Leiste steht außerhalb
+der Scrollfläche. Android zieht vorhandene Hauptseiten beim Tabwechsel nach vorne,
+sodass beispielsweise das Exportformular erhalten bleibt. Android-Zurück folgt
+der Reihenfolge der Activities. Die Übersicht speichert die Auswahl ihrer drei
+internen Tabs bei Neuerstellung der Activity.
+
+„Schritte heute“ zeigt in einer Kachel den kumulativen Tageszähler und das gültige Geräte-Schrittziel
+des letzten Ereignisses. Der Prozentwert folgt
+`100 × Tageszähler / Geräte-Schrittziel`, gerundet auf höchstens eine
+Nachkommastelle. Der Balken endet bei 100 %, der Text zeigt auch höhere Werte.
+Fehlende Schritte und fehlende Ziele bleiben getrennt erkennbar. Das
+Empfangssymbol zeigt das Alter der gespeicherten Beobachtung.
+
+## Messwertdetails und erste Qualitätsmerkmale
+
+Die Kachelfläche öffnet eine Tagesansicht. Das Empfangssymbol bleibt ein eigener
+Zugang zu Herkunft und Aktualität. Die Datumsauswahl liest gespeicherte
+Echtzeitereignisse offline aus dem nach Dienst und Empfangszeit indizierten
+SQLite-Fenster. Anfang und Ende sind zwei aufeinanderfolgende lokale
+Mitternächte in der beim Öffnen geltenden Telefonzeitzone. An Tagen mit
+Zeitumstellung beträgt die reale Achse 23 bzw. 25 Stunden. Die Wertauswahl
+zeigt den UTC-Offset, um wiederholte Uhrzeiten zu unterscheiden.
+
+Die Ansicht zeichnet Originalpunkte bis zum Abfragezeitpunkt. Pro Minute
+bleiben Minimum, Maximum und letzter Punkt mit Zeitstempel erhalten.
+Wiederholungen desselben Werts zum selben Zeitpunkt zählen einmal.
+Minuten mit gültigem Empfang und verworfene Feldwerte werden separat
+angegeben. Die Empfangsminuten belegen weder kontinuierliche Messung noch
+Sensorqualität. Für null oder einen gültigen Wert erscheint ein Leerzustand
+für den Verlauf, bei einem Wert ergänzt um den beobachteten Einzelwert.
+Die Schrittansicht zeigt kumulative Zählerstände mit dem gültigen Tagesziel der letzten Beobachtung als Referenz. Proprietäre Indizes sind als Geräteskalen beschriftet.
+Schlaf benötigt validierte Historie. Nachtgrenzen, Signalqualitätsflags und
+wissenschaftliche Trendberechnungen sind weiterhin offen.
+
+
+## Verbindungsanzeige (#63)
+
+Der Kopfbereich fragt Androids GATT-Status des gekoppelten CIRQA ab. Android
+meldet dabei keine besitzende App. Die Recorder-Zeile liest separat den
+Dienststatus, der während eines Verbindungsabbruchs aktiv bleiben kann.
+Sie benennt jetzt den Aufzeichnungsdienst und verweist auf die
+GATT-Anzeige. Die Ursache der beobachteten Abbrüche bleibt am Gerät zu
+klären.
