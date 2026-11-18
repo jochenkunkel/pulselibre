@@ -1,7 +1,7 @@
 # Historical BLE sync – offline-first design
 
 ## Why
-The wearable is not continuously connected. Measurements made while out of Bluetooth range should appear under their original timestamps once a supported historical-data transfer becomes available. Do not imply that an unsupported Garmin protocol can already supply history.
+The wearable is not continuously connected. Measurements made while out of Bluetooth range should appear under their original timestamps through the now verified CIRQA historical transfer. The V24/V25 device runs prove successful transfer of the listed files, **not** complete coverage of the device's entire historical archive.
 
 ## Contract
 - Distinguish measurement timestamp from receive/import timestamp; show last successful sync in UI.
@@ -14,8 +14,16 @@ The wearable is not continuously connected. Measurements made while out of Bluet
 - Reconnection must be bounded and battery-aware; Android background BLE restrictions and permissions must be considered. Do not promise guaranteed background sync.
 - Never reset/unpair the band or interfere with existing Garmin Connect pairing.
 
-## Implementation state
-`HistorySync.kt` is a **pure in-memory merge/checkpoint model**, not a production database or Garmin sync implementation. Its tests cover chronology, replay, sample identity, invalid readings and cursor monotonicity. Production work requires a Room database, transactional DAO, a device-protocol adapter, integration tests and real-device verification with consent.
+## Implementation state (verified V24/V25, 2026-11-18)
+- Verified read-only device sequence: Connect-style `sync_request` (5043/5044), Item-List, PullItem, transfer-handle configuration and MLR data pipe (0x2018).
+- 33/33 listed files transferred; 31 FIT (126,089 B) + 2 non-FIT raw files (20,204 B) privately stored. All FIT files independently pass size, header, CRC and SHA-256 checks.
+- The same list is continued **only if `session_id` is present**; `next_transaction_id` is not a page cursor in this observed exchange. V25 ended after one page with 33 items.
+- SQLite has 294 imported observations (`heart_rate=129`, `distance=129`, `speed=36`); `integrity_check=ok`, no duplicate primary keys, and V25 replay was idempotent.
+- The pure `HistorySync.kt` merge/checkpoint helper is **not** the entire production sync implementation. Do not describe the proven file-store/SQLite import pipeline as absent; do not infer that all intended transactional checkpoint, reconnect, background, retention or history-completeness guarantees are proven.
+- The 33 listed files **do not prove** exhaustive history. The two raw files are not yet semantically decoded. The current FIT parser supports a restricted set of Record/Monitoring fields; other fields and sleep-related content require the [offline field inventory](https://github.com/jochenkunkel/pulselibre/issues/141).
+- No new device run is authorized by this document. V24/V25 one-shot gates consumed; no reset, archive, flag, delete or CLOSE_ALL commands.
+
+Primary evidence: [V24](../device-tests/CIRQA_SYNC_V24_DEVICE_RESULT_2026-11-18.md), [V25](../device-tests/CIRQA_SYNC_V25_DEVICE_RESULT_2026-11-18.md), [historical data scope](../../HISTORICAL_DATA_SCOPE.md).
 
 ## Acceptance tests planned
 1. Band out of range for 24h, then reconnect and backfill original timestamps.
