@@ -39,9 +39,15 @@ Item-List-Antwort mit Enum `status=0` wurde korrekt als `SUCCESS` verarbeitet
 Nach Abarbeitung der ersten Seite setzte die Item-List-Fortsetzung weitere
 Requests ab. Die Antworten enthielten jeweils `items=[]`, aber weiterhin ein
 `next_transaction_id`. Nach 64 Seiten stoppte der Lauf am implementierten
-Seitenlimit. Damit ist die sichere Mehrdatei-Übertragung demonstriert, **nicht**
-aber die Korrektheit der Paginierung oder die Vollständigkeit des Archivs.
-Der exakte Fortsetzungswert wird absichtlich nicht in den Bericht geschrieben.
+Seitenlimit. Eine erneute Prüfung der Connect-5.31-Listing-Coroutine ergab, dass
+Connect nur mit `session_id` dieselbe Liste fortsetzt. Fehlt diese, liefert
+Connect `next_transaction_id` als Transaktionskontext zurück; V24 behandelte
+diesen fälschlich als Seiten-Cursor. Der exakte Wert wird absichtlich nicht in
+den Bericht geschrieben.
+
+Damit ist die sichere Mehrdatei-Übertragung demonstriert. Der V24-Lauf belegt
+keine weiteren Seiten nach der ersten terminalen 33er-Liste und **nicht** die
+Vollständigkeit des historischen Archivs.
 
 Der Lauf erreichte das Zeitlimit nicht und speicherte keine Teil-Dateien.
 Weitere Hardwareläufe benötigen ein neues Build-Gate und eine ausdrückliche

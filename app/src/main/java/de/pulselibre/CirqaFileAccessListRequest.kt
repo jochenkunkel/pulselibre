@@ -13,6 +13,14 @@ package de.pulselibre
 object CirqaFileAccessListRequest {
     const val MESSAGE_TYPE = 5043
 
+    /**
+     * Connect's listing loop continues only while a response has session_id.
+     * next_transaction_id is returned as transaction context for a later
+     * listing/sync; it is not the cursor for the current item-list session.
+     */
+    fun nextPageSessionId(page: CirqaFileAccessItemListParser.ItemListPage): Long? =
+        page.sessionId
+
     /** Connect FileAccess ItemListRequest fields: session_id=1, transaction_id=2. */
     fun smartRequest(sessionId: Long? = null, transactionId: Long? = null): ByteArray {
         require(sessionId == null || transactionId == null) {
