@@ -192,7 +192,7 @@ class MainActivity : AppCompatActivity() {
         val header = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             // Extra bottom space shows the mountain ridges of the backdrop (#124).
-            setPadding(dp(20), dp(16), dp(20), dp(52))
+            setPadding(dp(20), dp(16), dp(20), dp(46))
             minimumHeight = dp(170)
             background = HeaderBackdropDrawable(palette.dark)
         }
@@ -262,16 +262,13 @@ class MainActivity : AppCompatActivity() {
         taglineRow.addView(text("Deine Daten. Deine Kontrolle.", 13f, Color.parseColor("#E9E1F7")))
         // "Offline" = no cloud, no network permission: true for this app at all times.
         // The former green dot looked like a connection status; it only meant "no cloud". A lock says that directly.
-        taglineRow.addView(text("🔒", 12f, Color.parseColor("#E9E1F7")).apply {
-            importantForAccessibility = android.view.View.IMPORTANT_FOR_ACCESSIBILITY_NO
-        }, LinearLayout.LayoutParams(-2, -2).apply { marginStart = dp(12); marginEnd = dp(4) })
-        taglineRow.addView(text("Offline", 13f, Color.parseColor("#E9E1F7")))
+        taglineRow.addView(text("· Offline", 13f, Color.parseColor("#C9BEE0")), LinearLayout.LayoutParams(-2, -2).apply { marginStart = dp(6) })
         taglineRow.contentDescription = "Deine Daten. Deine Kontrolle. Offline: keine Cloud, keine Netzwerkverbindung."
         header.addView(taglineRow, LinearLayout.LayoutParams(-2, -2).apply { topMargin = dp(8); marginStart = dp(60) })
         screen.addView(header)
         val root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(dp(16), dp(18), dp(16), dp(24))
+            setPadding(dp(16), dp(4), dp(16), dp(24))
         }
         val scroll = ScrollView(this).apply {
             isFillViewport = true
@@ -304,7 +301,7 @@ class MainActivity : AppCompatActivity() {
         val heroAccent = DesignTokens.heroAccent(palette.dark)
         val bodyCard = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(dp(16), dp(10), dp(16), dp(10))
+            setPadding(dp(14), dp(6), dp(14), dp(8))
             background = GradientDrawable(GradientDrawable.Orientation.TL_BR, DesignTokens.heroColors(palette.dark)).apply {
                 cornerRadius = dp(28).toFloat()
                 setStroke(dp(1), DesignTokens.heroStroke(palette.dark))
@@ -345,7 +342,7 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
-        bodyHeader.addView(healthInfo, LinearLayout.LayoutParams(dp(48), dp(48)))
+        bodyHeader.addView(healthInfo, LinearLayout.LayoutParams(dp(40), dp(40)))
         bodyCard.addView(bodyHeader)
 
         // Narrow screens or large system fonts: avatar centred above the values (never cut off, never wrapped per character).
@@ -353,10 +350,10 @@ class MainActivity : AppCompatActivity() {
         val bodyRow = LinearLayout(this).apply {
             orientation = if (compactProfile) LinearLayout.VERTICAL else LinearLayout.HORIZONTAL
             gravity = if (compactProfile) android.view.Gravity.CENTER_HORIZONTAL else android.view.Gravity.CENTER_VERTICAL
-            setPadding(0, dp(4), 0, 0)
+            setPadding(0, 0, 0, 0)
         }
         val bodyFigure = BodyProfileAvatarView(this)
-        val avatarSize = if (compactProfile) 88 else 104   // the profile is only background information: keep the card small
+        val avatarSize = if (compactProfile) 72 else 88   // the profile is only background information: keep the card small
         bodyRow.addView(bodyFigure, LinearLayout.LayoutParams(dp(avatarSize), dp(avatarSize)).apply {
             if (compactProfile) bottomMargin = dp(6) else marginEnd = dp(14)
         })
@@ -391,17 +388,17 @@ class MainActivity : AppCompatActivity() {
                 stack.addView(text(value, 15f, valueColor, true))
                 row.addView(stack, LinearLayout.LayoutParams(0, -2, 1f))
                 if (extra != null) bodyValues.addView(row, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(0) })
-                else bodyValues.addView(row, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(2) })
+                else bodyValues.addView(row, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(4) })
                 if (extra != null) {
                     val dotColor = bmiTone
                     val span = android.text.SpannableString(extra)
                     if (extra.startsWith("●")) span.setSpan(android.text.style.ForegroundColorSpan(dotColor), 0, 1, android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-                    bodyValues.addView(text("", 12f, heroText, true).apply { this.text = span; contentDescription = extra.removePrefix("● ") },
-                        LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(2); marginStart = dp(26) })
+                    bodyValues.addView(text("", 11f, heroSecondary).apply { this.text = span; contentDescription = extra.removePrefix("● ") },
+                        LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(1); bottomMargin = dp(0); marginStart = dp(22) })
                 }
                 if (onClick != null) {
                     row.isClickable = true; row.isFocusable = true; row.setOnClickListener { onClick() }
-                    row.minimumHeight = dp(40)
+                    row.minimumHeight = dp(34)
                     if (tagName != null) row.tag = tagName
                     if (description != null) row.contentDescription = description
                 }
@@ -434,8 +431,9 @@ class MainActivity : AppCompatActivity() {
             }
         }
         // Privacy line at the very top of the overview (moved from below "Gesundheit · CIRQA").
-        overviewView(text("Deine Messwerte · lokal gespeichert", 12f, muted).apply { tag = "dashboard_local_note" }, 8)
-        overviewView(bodyCard, 14)
+        // Privacy line sits right under the header panorama (4–8 dp), not as a separate block.
+        overviewView(text("Deine Messwerte · lokal gespeichert", 12f, muted).apply { tag = "dashboard_local_note" }, 6)
+        overviewView(bodyCard, 12)
         // One compact dashboard heading; privacy details remain accessible via the info button.
         overviewView(LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
