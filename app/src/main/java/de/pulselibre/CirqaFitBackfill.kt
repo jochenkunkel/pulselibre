@@ -50,6 +50,8 @@ class CirqaFitBackfill(
     }
 
     companion object {
+        private const val MAX_FIT_FILE_BYTES = 64L * 1024L * 1024L
+
         /**
          * Imports one already-persisted content-addressed FIT file. Returns null
          * for invalid FIT bytes; SQLite exceptions are allowed to propagate.
@@ -60,7 +62,8 @@ class CirqaFitBackfill(
             deviceKey: String = "cirqa-fit"
         ): Int? {
             require(deviceKey.isNotBlank())
-            if (!file.isFile || java.nio.file.Files.isSymbolicLink(file.toPath())) return null
+            if (!file.isFile || file.length() !in 1..MAX_FIT_FILE_BYTES ||
+                java.nio.file.Files.isSymbolicLink(file.toPath())) return null
             val bytes = file.readBytes()
             if (file.name != expectedFileName(bytes)) return null
             val result = FitHistoricalObservations.decode(bytes) ?: return null
@@ -78,7 +81,8 @@ class CirqaFitBackfill(
                         measuredAtEpochMillis = requireNotNull(it.timestampEpochMillis),
                         value = it.value,
                         unit = it.unit,
-                        sampleId = it.idempotencyKey
+                        sampleId = it.idempotencyKey,
+                        receivedAtEpochMillis = System.currentTimeMillis()
                     )
                 }.toList()
             readings.commitBatch(deviceKey, batch)
