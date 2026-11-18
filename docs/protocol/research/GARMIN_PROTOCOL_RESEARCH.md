@@ -1,5 +1,7 @@
 # Garmin protocol research — offline-only phase
 
+> **Historischer Standhinweis (18.11.2026):** Dieser Bericht dokumentiert ausdrücklich die Offline-/frühe BLE-Phase vom 15.11. und ist kein aktueller Implementierungsstatus. Inzwischen existieren der begrenzte FIT-Felddecoder `FitHistoricalObservations`, bestätigte CIRQA-Bootstrap-/Directory-Versuche und ein vorbereiteter Classic-RFCOMM-Testpfad. Siehe [aktuellen kanonischen Forschungsstand](CIRQA_HISTORICAL_RESEARCH_STATUS_2026-11-18.md). Die ursprünglichen Beobachtungen bleiben unverändert.
+
 Source inspected: Freeyourgadget/Gadgetbridge, master branch, `GFDIMessage.java`,
 `ProtobufMessage.java`, and `ProtocolBufferHandler.java` under
 `app/src/main/java/nodomain/freeyourgadget/gadgetbridge/service/devices/garmin/`.

@@ -129,7 +129,7 @@ class HistoryOverviewView(
                 importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
                 addView(DashboardInfoIconView(context, kind, palette.accent),
                     LayoutParams(dp(15), dp(15)).apply { marginEnd = dp(3) })
-                addView(label(text, 9f, palette.muted, true), LayoutParams(-2, -2))
+                addView(label(text, 11f, palette.muted, true), LayoutParams(-2, -2))
             }
             row.addView(chip, LayoutParams(0, -2, 1f).apply {
                 if (index < 2) marginEnd = dp(4)
@@ -143,11 +143,15 @@ class HistoryOverviewView(
         unit: String,
         points: List<HistoryPoint>,
         snapshot: HistorySnapshot,
-        axisMaximum: Int,
+        hardMaximum: Int,
         accent: Int,
         resolution: HistoryResolution
     ) {
         val buckets = aggregateHistoryPoints(points, snapshot.start, snapshot.end, resolution)
+        // Fit the vertical range to the observed data (e.g. SpO₂ 89–100 % no longer squeezed into the top of 0–100).
+        val scale = if (buckets.isEmpty()) AxisScale(0, hardMaximum)
+            else AxisScale.forData(buckets.minOf { it.minimum }, buckets.maxOf { it.maximum }, 0, hardMaximum,
+                if (hardMaximum <= 100) 10 else 40)
         val card = LinearLayout(context).apply {
             orientation = VERTICAL
             setPadding(dp(14), dp(14), dp(14), dp(12))
@@ -178,14 +182,14 @@ class HistoryOverviewView(
         }
         heading.addView(infoButton, LayoutParams(dp(48), dp(48)))
         card.addView(heading)
-        card.addView(label("${points.size} Werte · ${buckets.size} belegte Fenster · ${resolution.label} · Skala 0–$axisMaximum $unit",
+        card.addView(label("${points.size} Werte · ${buckets.size} belegte Fenster · ${resolution.label}\nSkala ${scale.minimum}–${scale.maximum} $unit",
             12f, palette.muted), LayoutParams(-1, -2).apply { topMargin = dp(4) })
         if (points.isEmpty()) {
             card.addView(label("Keine Messdaten in diesem Zeitraum", 14f, palette.muted),
                 LayoutParams(-1, -2).apply { topMargin = dp(18); bottomMargin = dp(18) })
         } else {
             card.addView(HistoryScatterChartView(context, buckets, points.size, snapshot.start, snapshot.end,
-                axisMaximum, accent, snapshot.range, resolution), LayoutParams(-1, dp(210)))
+                scale, accent, snapshot.range, resolution), LayoutParams(-1, dp(210)))
         }
         addView(card, LayoutParams(-1, -2).apply { bottomMargin = dp(12) })
     }
@@ -263,7 +267,7 @@ private class HistoryScatterChartView(
     private val storedPointCount: Int,
     private val start: java.time.Instant,
     private val end: java.time.Instant,
-    private val axisMaximum: Int,
+    private val axis: AxisScale,
     private val accent: Int,
     range: HistoryRange,
     private val resolution: HistoryResolution
@@ -278,7 +282,7 @@ private class HistoryScatterChartView(
     init {
         importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_YES
         contentDescription = "$storedPointCount gespeicherte Messwerte in ${buckets.size} belegten Zeitfenstern, Auflösung ${resolution.label}. " +
-            "Markierung ist der Median; Strich zeigt beobachtetes Minimum bis Maximum. Vertikale Achse 0 bis $axisMaximum. " +
+            "Markierung ist der Median; Strich zeigt beobachtetes Minimum bis Maximum. Vertikale Achse ${axis.minimum} bis ${axis.maximum}. " +
             "Horizontale Achse ${timeFormatter.format(start)} bis ${timeFormatter.format(end)}. " +
             "Leere Fenster bleiben leer. Es gibt keine Verbindung oder Interpolation zwischen Fenstern."
     }
@@ -306,7 +310,7 @@ private class HistoryScatterChartView(
             paint.typeface = Typeface.create("sans-serif", Typeface.NORMAL)
             paint.textAlign = Paint.Align.RIGHT
             paint.color = palette.muted
-            canvas.drawText((axisMaximum * fraction).toInt().toString(), plot.left - 5f * density,
+            canvas.drawText((axis.minimum + axis.span * fraction).toInt().toString(), plot.left - 5f * density,
                 y + 3.5f * density, paint)
             paint.style = Paint.Style.STROKE
             paint.color = palette.track
@@ -349,9 +353,9 @@ private class HistoryScatterChartView(
             val xFraction = (java.time.Duration.between(start, center).toMillis().toDouble() / span)
                 .toFloat().coerceIn(0f, 1f)
             val x = plot.left + xFraction * plot.width()
-            val minY = plot.bottom - (bucket.minimum.toFloat() / axisMaximum).coerceIn(0f, 1f) * plot.height()
-            val medianY = plot.bottom - (bucket.median.toFloat() / axisMaximum).coerceIn(0f, 1f) * plot.height()
-            val maxY = plot.bottom - (bucket.maximum.toFloat() / axisMaximum).coerceIn(0f, 1f) * plot.height()
+            val minY = plot.bottom - ((bucket.minimum.toFloat() - axis.minimum) / axis.span).coerceIn(0f, 1f) * plot.height()
+            val medianY = plot.bottom - ((bucket.median.toFloat() - axis.minimum) / axis.span).coerceIn(0f, 1f) * plot.height()
+            val maxY = plot.bottom - ((bucket.maximum.toFloat() - axis.minimum) / axis.span).coerceIn(0f, 1f) * plot.height()
             paint.color = accent
             paint.style = Paint.Style.STROKE
             paint.strokeWidth = 1.1f * density

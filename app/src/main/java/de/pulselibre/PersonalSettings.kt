@@ -188,7 +188,7 @@ object PersonalSettings {
             }
         }
         val closeButton = barButton("Schließen", false)
-        val saveButton = barButton("💾  Speichern", true)
+        val saveButton = barButton("Speichern", true)
         val bar = LinearLayout(context).apply {
             orientation = LinearLayout.HORIZONTAL
             setPadding(dp(16), dp(8), dp(16), dp(12))

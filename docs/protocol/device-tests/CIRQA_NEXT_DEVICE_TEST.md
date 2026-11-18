@@ -1,5 +1,7 @@
 # CIRQA: Nächster sicherer Gerätetest (vollständige historische Daten)
 
+> **ARCHIV / VERALTETE TESTANWEISUNG (Stand 16.11.2026):** Dies ist **nicht** mehr der nächste CIRQA-Gerätetest. Die damalige FileSync-V2-UNSUPPORTED-Situation wurde durch spätere erfolgreiche Legacy-GFDI-5030/5007/5031/5002-Tests und die BLE-32-Byte-Platzhalterdiagnose ergänzt. Der derzeitige RFCOMM-Forschungsstand und die Freigabegrenzen stehen [hier](../research/CIRQA_HISTORICAL_RESEARCH_STATUS_2026-11-18.md). Den unten beschriebenen alten Test nicht als aktuelle Anweisung ausführen.
+
 Stand: 2026-11-16. Ziel: **alle zugänglichen historischen Daten**, unabhängig von Dateityp oder Messgröße.
 
 ## Warum jetzt ein Gerätetest nötig ist

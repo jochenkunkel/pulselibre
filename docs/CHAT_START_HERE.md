@@ -1,5 +1,7 @@
 # PulsLibre – CHAT_START_HERE
 
+> **Historischer CIRQA-Download – aktueller Einstieg (18.11.2026):** Vor allen 5050-/FileSync-/Directory-/FIT-Arbeiten [den kanonischen Forschungsstand](protocol/research/CIRQA_HISTORICAL_RESEARCH_STATUS_2026-11-18.md) und die dort verlinkten datierten Geräteberichte lesen. Der BLE-Handshake bis 5002 wurde am Gerät erfolgreich nachgewiesen; der BLE-5004-Body blieb beim 32-Byte-Platzhalter, RFCOMM ist der nächste *unbestätigte* Transportkandidat. Die älteren „nächsten Schritte“ weiter unten sind historische Momentaufnahmen. Keine unbelegten Hardware- oder Download-Erfolge behaupten.
+
 **Letzte redaktionelle Prüfung: 2026-11-17 (Codex-Übergabe).** **GitHub-Repository:** `jochenkunkel/pulselibre` (privat). **Verbindlicher Zweig:** `main`.
 
 > Diese Datei ist der **Copy-&-Paste-Einstiegspunkt für neue Chats und Entwicklungsagenten**. Sie bewahrt den im Repository dokumentierten Projektkontext, ersetzt aber weder den tatsächlichen aktuellen Git-Stand noch automatisch synchronisierte Chatverläufe. Vor jeder Änderung den aktuellen `main`-Stand und die Issues erneut lesen.
