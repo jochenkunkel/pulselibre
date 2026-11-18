@@ -13,6 +13,21 @@ package de.pulselibre
 object CirqaFileAccessListRequest {
     const val MESSAGE_TYPE = 5043
 
+    /** Connect FileAccess ItemListRequest fields: session_id=1, transaction_id=2. */
+    fun smartRequest(sessionId: Long? = null, transactionId: Long? = null): ByteArray {
+        require(sessionId == null || transactionId == null) {
+            "Use the active session ID or the next transaction ID, never both"
+        }
+        require(sessionId == null || sessionId in 0..0xffff_ffffL)
+        require(transactionId == null || transactionId in 0..0xffff_ffffL)
+        val request = when {
+            sessionId != null -> varintField(1, sessionId)
+            transactionId != null -> varintField(2, transactionId)
+            else -> byteArrayOf()
+        }
+        return bytesField(43, bytesField(9, request))
+    }
+
     /** One complete, unfragmented Smart protobuf in a 5043 transport frame. */
     fun gfdiFrame(requestId: Int, smart: ByteArray = GarminFileListPagination.smartRequest()): ByteArray {
         require(requestId in 0..0xffff)
@@ -34,9 +49,39 @@ object CirqaFileAccessListRequest {
         return prefix + byteArrayOf(crc.toByte(), (crc ushr 8).toByte())
     }
 
-    fun mlValue(handle: Int, requestId: Int): ByteArray {
+    fun mlValue(
+        handle: Int,
+        requestId: Int,
+        sessionId: Long? = null,
+        transactionId: Long? = null
+    ): ByteArray {
         require(handle in 1..127)
         return byteArrayOf(handle.toByte()) +
-            GarminFileListRequest.cobs(gfdiFrame(requestId))
+            GarminFileListRequest.cobs(gfdiFrame(requestId, smartRequest(sessionId, transactionId)))
+    }
+
+    private fun varintField(number: Int, value: Long): ByteArray {
+        require(number in 1..15 && value >= 0)
+        val out = java.io.ByteArrayOutputStream()
+        writeVarint(out, (number shl 3).toLong())
+        writeVarint(out, value)
+        return out.toByteArray()
+    }
+
+    private fun bytesField(number: Int, value: ByteArray): ByteArray {
+        val out = java.io.ByteArrayOutputStream()
+        writeVarint(out, ((number shl 3) or 2).toLong())
+        writeVarint(out, value.size.toLong())
+        out.write(value)
+        return out.toByteArray()
+    }
+
+    private fun writeVarint(out: java.io.ByteArrayOutputStream, value: Long) {
+        var remaining = value
+        while (remaining and 0x7f.inv().toLong() != 0L) {
+            out.write((remaining.toInt() and 0x7f) or 0x80)
+            remaining = remaining ushr 7
+        }
+        out.write(remaining.toInt())
     }
 }

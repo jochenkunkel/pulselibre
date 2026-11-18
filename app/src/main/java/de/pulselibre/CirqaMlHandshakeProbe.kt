@@ -73,6 +73,14 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private var syncFileResults = ""
     private var syncHasPaginationSession = false
     private var syncHasNextTransactionId = false
+    private var syncPageSessionId: Long? = null
+    private var syncPageNextTransactionId: Long? = null
+    private var syncListPageCount = 0
+    private var syncQueuedFiles = 0
+    private var syncQueuedBytes = 0L
+    private var syncSkippedFiles = 0
+    private val syncGdxmlStrings = linkedMapOf<Long, String>()
+    private val syncSeenItemUids = hashSetOf<String>()
     private var mlrHandle: Int? = null
     private var mlrRegisterSent = false
     private var mlrDiag = ""
@@ -80,6 +88,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private var mlrBytes = 0
     private var mlrConfigureResponseSeen = false
     private var mlrTransferActive = false
+    private var syncMlrRegistrationPending = false
     private var syncTransferHandle = 0L
     private var syncExpectedSize = 0L
     private val mlrData = java.io.ByteArrayOutputStream()
@@ -904,11 +913,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         }
         val item = syncPendingItems.pollFirst()
         if (item == null) {
-            finish(if (syncHasPaginationSession) {
-                "aktuelle Seite abgearbeitet; Paginierungskontext erkannt, Fortsetzung nicht spekulativ gesendet"
-            } else {
-                "Datei-Queue abgearbeitet."
-            }, g)
+            requestNextSyncItemListPage(g)
             return
         }
         if (item.dataSize !in 1..CirqaVerifiedRawFileStore.MAX_FILE_BYTES) {
@@ -930,7 +935,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         queueAck(g, CirqaFileAccessPullRequest.mlValue(handle, requestId, item))
         main.post {
             mark("FileAccess-Pull $requestId gesendet; Größe=${item.dataSize}, Typ=" +
-                CirqaFileAccessItemListParser.safeTypeLabel(item))
+                CirqaFileAccessItemListParser.safeTypeLabel(item, syncGdxmlStrings))
         }
     }
 
@@ -943,22 +948,93 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             result.contains("privateRaw=ALREADY_PRESENT")
         if (successful) syncCompletedFiles++ else syncFailedFiles++
         syncFileResults = (syncFileResults + "file${syncCompletedFiles + syncFailedFiles}[" +
-            CirqaFileAccessItemListParser.safeTypeLabel(item) + ":$result];")
+            CirqaFileAccessItemListParser.safeTypeLabel(item, syncGdxmlStrings) + ":$result];")
             .take(1800)
         syncCurrentItem = null
         syncExpectedSize = 0L
         mlrData.reset()
         mlrTransferActive = false
         mlrConfigureResponseSeen = false
-        if (syncPendingItems.isEmpty()) {
-            finish(if (syncHasPaginationSession) {
-                "aktuelle Seite abgearbeitet; Paginierungskontext erkannt, Fortsetzung nicht spekulativ gesendet"
-            } else {
-                "Datei-Queue abgearbeitet."
-            }, g)
-        } else {
-            sendNextSyncFile(g)
+        mlrHandle = null
+        mlrRegisterSent = false
+        syncMlrRegistrationPending = false
+        if (syncPendingItems.isEmpty()) requestNextSyncItemListPage(g) else sendNextSyncFile(g)
+    }
+
+    private fun requestNextSyncItemListPage(g: BluetoothGatt) {
+        if (!active || terminationRequested) return
+        if (syncQueuedFiles >= CirqaSyntheticDownloadLimits.MAX_FILES ||
+            syncQueuedBytes >= CirqaSyntheticDownloadLimits.MAX_TOTAL_BYTES
+        ) {
+            finish("Downloadlimit erreicht; keine Vollständigkeit behauptet.", g)
+            return
         }
+        if (syncListPageCount >= MAX_SYNC_ITEM_LIST_PAGES) {
+            finish("Item-List-Seitenlimit erreicht; keine Vollständigkeit behauptet.", g)
+            return
+        }
+        val sessionId = syncPageSessionId
+        val transactionId = if (sessionId == null) syncPageNextTransactionId else null
+        if (sessionId == null && transactionId == null) {
+            finish("Item-List vollständig; Datei-Queue abgearbeitet.", g)
+            return
+        }
+        val handle = historyHandle ?: run {
+            finish("GFDI-Handle fehlt vor der Item-List-Fortsetzung.", g)
+            return
+        }
+        val requestId = syncNextRequestId
+        syncNextRequestId = if (syncNextRequestId >= 0xffff) 1 else syncNextRequestId + 1
+        syncPageSessionId = null
+        syncPageNextTransactionId = null
+        syncPullDiag = (syncPullDiag + "|list#$requestId:continuation=true").take(1000)
+        queueAck(g, CirqaFileAccessListRequest.mlValue(
+            handle, requestId, sessionId = sessionId, transactionId = transactionId
+        ))
+        main.post { mark("FileAccess-Item-List-Fortsetzung angefordert (read-only)") }
+    }
+
+    private fun appendSyncItemListPage(g: BluetoothGatt, page: CirqaFileAccessItemListParser.ItemListPage) {
+        if (page.status != null && page.status != ITEM_LIST_SUCCESS_STATUS) {
+            finish("Item-List meldete Status ${page.status}; Fortsetzung gestoppt.", g)
+            return
+        }
+        syncListPageCount++
+        syncPageSessionId = page.sessionId
+        syncPageNextTransactionId = page.nextTransactionId
+        syncHasPaginationSession = page.sessionId != null
+        syncHasNextTransactionId = page.nextTransactionId != null
+        syncGdxmlStrings.putAll(page.gdxmlStrings)
+        val maxTotal = CirqaSyntheticDownloadLimits.MAX_TOTAL_BYTES
+        var queuedNow = 0
+        var bytesNow = 0L
+        for (item in page.items) {
+            val uidKey = java.security.MessageDigest.getInstance("SHA-256")
+                .digest(item.uid).joinToString("") { "%02x".format(it.toInt() and 255) }
+            if (!syncSeenItemUids.add(uidKey)) {
+                syncSkippedFiles++
+                continue
+            }
+            if (syncQueuedFiles >= CirqaSyntheticDownloadLimits.MAX_FILES ||
+                item.dataSize !in 1..CirqaVerifiedRawFileStore.MAX_FILE_BYTES ||
+                item.dataSize > maxTotal - syncQueuedBytes
+            ) {
+                syncSkippedFiles++
+                continue
+            }
+            syncPendingItems.addLast(item)
+            syncQueuedFiles++
+            syncQueuedBytes += item.dataSize
+            queuedNow++
+            bytesNow += item.dataSize
+        }
+        val pageSummary = CirqaFileAccessItemListParser.redactedSummary(page.items, syncGdxmlStrings) +
+            "; queued=$queuedNow; bytes=$bytesNow; session=${page.sessionId != null};" +
+            "nextTransaction=${page.nextTransactionId != null}"
+        syncItemSummary = (if (syncItemSummary.isEmpty()) "" else "$syncItemSummary|") +
+            pageSummary
+        syncItemSummary = syncItemSummary.take(1800)
+        if (syncPendingItems.isEmpty()) requestNextSyncItemListPage(g) else sendNextSyncFile(g)
     }
 
     private fun drainDeferredAcks(g: BluetoothGatt) {
@@ -1043,8 +1119,12 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             val registration = GarminMlOffline.inspectRegisterResponse(bytes)
             if (registration?.accepted == true && registration.serviceId == MLR_SERVICE_ID) {
                 mlrHandle = registration.handle
+                syncMlrRegistrationPending = false
                 mlrDiag = "mlrService=$MLR_SERVICE_ID,handle=${registration.handle}"
                 configureMlrTransfer(g, registration.handle)
+            } else if (registration?.serviceId == MLR_SERVICE_ID && syncRequestMode) {
+                finish("MLR-Service-Registrierung abgelehnt; weitere Transfers gestoppt.", g)
+                return
             } else if (registration?.serviceId == GarminMlHandshake.GFDI_SERVICE && registration.accepted) {
                 historyHandle = registration.handle
                 // The dynamic handle only exists after the ML register response;
@@ -1613,6 +1693,17 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         syncFileResults = ""
         syncHasPaginationSession = false
         syncHasNextTransactionId = false
+        syncPageSessionId = null
+        syncPageNextTransactionId = null
+        syncListPageCount = 0
+        syncQueuedFiles = 0
+        syncQueuedBytes = 0L
+        syncSkippedFiles = 0
+        syncGdxmlStrings.clear()
+        syncSeenItemUids.clear()
+        mlrHandle = null
+        mlrRegisterSent = false
+        syncMlrRegistrationPending = false
         syncFrameCounts.clear()
         fileAccessListMode = true
         fileAccessRequestClaimed = false
@@ -1765,10 +1856,14 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                             syncFailedFiles++
                             syncFileResults = (syncFileResults + "pull-rejected;").take(1800)
                             finish("Pull-Antwort nicht erfolgreich; weitere Abrufe gestoppt.", g)
+                        } else if (syncMlrRegistrationPending || mlrConfigureResponseSeen) {
+                            // Duplicate pull responses must not allocate/configure a
+                            // second MLR pipe while the current transfer is active.
                         } else if (!mlrRegisterSent) {
                             mlrRegisterSent = true
+                            syncMlrRegistrationPending = true
                             // Connect registers one of its MLR services (0x2018) to
-                            // receive the raw transfer bytes for this handle.
+                            // receive the raw transfer bytes for each transfer pipe.
                             queueAck(g, GarminMlHandshake.registerRequest(MLR_SERVICE_ID))
                             main.post { mark("MLR-Service 0x2018 angefordert") }
                         } else {
@@ -1780,37 +1875,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                             }
                         }
                     }
-                    val page = CirqaFileAccessItemListParser.parsePage(msg)
-                    val items = page?.items.orEmpty()
-                    if (items.isNotEmpty() && !syncPullSent) {
-                        syncHasPaginationSession = page?.hasSessionId == true
-                        syncHasNextTransactionId = page?.hasNextTransactionId == true
-                        val maxTotal = CirqaSyntheticDownloadLimits.MAX_TOTAL_BYTES
-                        var selected = 0
-                        var selectedBytes = 0L
-                        var skipped = 0
-                        for (item in items) {
-                            if (selected >= CirqaSyntheticDownloadLimits.MAX_FILES ||
-                                item.dataSize !in 1..CirqaVerifiedRawFileStore.MAX_FILE_BYTES ||
-                                item.dataSize > maxTotal - selectedBytes
-                            ) {
-                                skipped++
-                                continue
-                            }
-                            syncPendingItems.addLast(item)
-                            selected++
-                            selectedBytes += item.dataSize
-                        }
-                        syncItemSummary = CirqaFileAccessItemListParser.redactedSummary(items) +
-                            "; queued=$selected; skipped=$skipped; bytes=$selectedBytes;" +
-                            "sessionIdPresent=$syncHasPaginationSession;" +
-                            "nextTransactionIdPresent=$syncHasNextTransactionId"
-                        if (syncPendingItems.isEmpty()) {
-                            finish("Keine Einträge innerhalb der sicheren Größenlimits.", g)
-                        } else {
-                            sendNextSyncFile(g)
-                        }
-                        main.post { mark("FileAccess-Dateien gefunden: $syncItemSummary; sequenzielle Queue gestartet") }
+                    CirqaFileAccessItemListParser.parsePage(msg)?.let { page ->
+                        appendSyncItemListPage(g, page)
                     }
                     // Connect requests the pending file list only AFTER sync_response.
                     val handle = historyHandle
@@ -2303,6 +2369,9 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
 
     companion object {
         private const val MAX_DIRECTORY_DIAGNOSTIC_ENTRIES = 12
+        private const val MAX_SYNC_ITEM_LIST_PAGES = 64
+        // CIRQA 5.31 item_list_response success was observed as enum value 1.
+        private const val ITEM_LIST_SUCCESS_STATUS = 1L
     }
 
     private fun legacy5007Report(reason: String): String =
@@ -2366,7 +2435,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         val data = mlrData.toByteArray()
         if (data.isEmpty()) return "no-data"
         val item = syncCurrentItem
-        val label = item?.let(CirqaFileAccessItemListParser::safeTypeLabel) ?: "unknown"
+        val label = item?.let { CirqaFileAccessItemListParser.safeTypeLabel(it, syncGdxmlStrings) }
+            ?: "unknown"
         val magic = data.copyOfRange(0, minOf(4, data.size))
             .joinToString("") { "%02x".format(it) }
         if (item == null || data.size.toLong() != syncExpectedSize ||
@@ -2446,7 +2516,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                 "itemListSent=$syncItemListSent; pullSent=$syncPullSent; items=[$syncItemSummary]; " +
                 "$syncPullDiag; $mlrDiag; mlr=[chunks=$mlrChunks,bytes=$mlrBytes]; " +
                 "files=[completed=$syncCompletedFiles,failed=$syncFailedFiles,queued=${syncPendingItems.size}," +
-                "currentBytes=${mlrData.size()},details=$syncFileResults]; " +
+                "selected=$syncQueuedFiles,selectedBytes=$syncQueuedBytes,skipped=$syncSkippedFiles," +
+                "pages=$syncListPageCount,currentBytes=${mlrData.size()},details=$syncFileResults]; " +
                 "validate=[${if (syncCurrentItem != null) mlrValidation() else "complete"}]; " +
                 "frames=$counts; proto=[$syncProtoShapes]"
         }
@@ -2535,6 +2606,15 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             syncFileResults = ""
             syncHasPaginationSession = false
             syncHasNextTransactionId = false
+            syncPageSessionId = null
+            syncPageNextTransactionId = null
+            syncListPageCount = 0
+            syncQueuedFiles = 0
+            syncQueuedBytes = 0L
+            syncSkippedFiles = 0
+            syncGdxmlStrings.clear()
+            syncSeenItemUids.clear()
+            syncMlrRegistrationPending = false
             mlrHandle = null
             mlrRegisterSent = false
             mlrDiag = ""

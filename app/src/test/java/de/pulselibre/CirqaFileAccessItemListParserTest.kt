@@ -23,6 +23,9 @@ class CirqaFileAccessItemListParserTest {
         return out.toByteArray()
     }
 
+    private fun scalarField(number: Int, value: Long): ByteArray =
+        varint(number.toLong() shl 3) + varint(value)
+
     @Test fun parsesItemListFromSmartEnvelope() {
         val uid = ByteArray(16) { (it + 1).toByte() }
         val dataType = byteArrayOf(0x08, 0x01)
@@ -67,12 +70,45 @@ class CirqaFileAccessItemListParserTest {
         assertFalse(summary.contains(uid.joinToString("") { "%02x".format(it) }))
     }
 
-    @Test fun reportsPageContextPresenceWithoutExposingOpaqueIds() {
-        val response = byteArrayOf(0x10, 0x07, 0x18, 0x2a)
+    @Test fun parsesPageContextValuesWithoutLoggingOpaqueIds() {
+        val response = scalarField(1, 1) + scalarField(2, 7) + scalarField(3, 42)
         val smart = field(43, field(10, response))
         val page = CirqaFileAccessItemListParser.parsePage(smart)!!
-        assertTrue(page.hasSessionId)
-        assertTrue(page.hasNextTransactionId)
+        assertEquals(1L, page.status)
+        assertEquals(7L, page.sessionId)
+        assertEquals(42L, page.nextTransactionId)
         assertTrue(page.items.isEmpty())
+    }
+
+    @Test fun buildsSessionOrTransactionContinuationWithVerifiedFieldNumbers() {
+        val initial = CirqaFileAccessListRequest.smartRequest()
+        val session = CirqaFileAccessListRequest.smartRequest(sessionId = 0x1234)
+        val transaction = CirqaFileAccessListRequest.smartRequest(transactionId = 0x5678)
+        assertArrayEquals(field(43, field(9, byteArrayOf())), initial)
+        assertArrayEquals(field(43, field(9, scalarField(1, 0x1234))), session)
+        assertArrayEquals(field(43, field(9, scalarField(2, 0x5678))), transaction)
+        try {
+            CirqaFileAccessListRequest.smartRequest(sessionId = 1, transactionId = 2)
+            fail("Session and transaction context must not be combined")
+        } catch (_: IllegalArgumentException) { }
+    }
+
+    @Test fun resolvesGdxmlStringKeysAndKeepsLabelsSafe() {
+        val uid = ByteArray(16) { (it + 10).toByte() }
+        val dataType = scalarField(1, 0) + scalarField(3, 9)
+        val ref = field(1, uid) + field(2, dataType) + scalarField(3, 100)
+        val response = scalarField(1, 1) +
+            field(4, ref) +
+            scalarField(2, 22)
+        val directType = scalarField(1, 0) + field(2, "FIT_TYPE_49".toByteArray()) +
+            scalarField(3, 9)
+        val directRef = field(1, uid) + field(2, directType) + scalarField(3, 200)
+        val smart = field(43, field(10, response + field(4, directRef)))
+        val page = CirqaFileAccessItemListParser.parsePage(smart)!!
+        assertEquals("FIT_TYPE_49", CirqaFileAccessItemListParser.safeTypeLabel(page.items[0], page.gdxmlStrings))
+        assertEquals("FIT_TYPE_49", CirqaFileAccessItemListParser.safeTypeLabel(page.items[1], page.gdxmlStrings))
+        assertFalse(CirqaFileAccessItemListParser.redactedSummary(page.items).contains(
+            uid.joinToString("") { "%02x".format(it) }
+        ))
     }
 }

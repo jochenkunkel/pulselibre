@@ -19,8 +19,10 @@ object CirqaFileAccessItemListParser {
     )
     data class ItemListPage(
         val items: List<Item>,
-        val hasSessionId: Boolean,
-        val hasNextTransactionId: Boolean
+        val status: Long?,
+        val sessionId: Long?,
+        val nextTransactionId: Long?,
+        val gdxmlStrings: Map<Long, String>
     )
 
     fun fields(bytes: ByteArray): List<Field> {
@@ -70,18 +72,26 @@ object CirqaFileAccessItemListParser {
         val service = fields(smart).firstOrNull { it.number == 43 && it.wire == 2 }?.bytes ?: return null
         val response = fields(service).firstOrNull { it.number == 10 && it.wire == 2 }?.bytes ?: return null
         val responseFields = fields(response)
+        val gdxmlStrings = linkedMapOf<Long, String>()
         val items = responseFields.filter { it.number == 4 && it.wire == 2 }.mapNotNull { entry ->
             val f = fields(entry.bytes ?: return@mapNotNull null)
             val uid = f.firstOrNull { it.number == 1 && it.wire == 2 }?.bytes ?: return@mapNotNull null
             val dataType = f.firstOrNull { it.number == 2 && it.wire == 2 }?.bytes ?: byteArrayOf()
+            val dataTypeFields = fields(dataType)
+            val typeLabel = dataTypeFields.firstOrNull { it.number == 2 && it.wire == 2 }
+                ?.bytes?.toString(Charsets.UTF_8)
+            val stringKey = dataTypeFields.firstOrNull { it.number == 3 && it.wire == 0 }?.varint
+            if (typeLabel != null && stringKey != null) gdxmlStrings[stringKey] = typeLabel
             val size = f.firstOrNull { it.number == 3 && it.wire == 0 }?.varint ?: 0L
             val flags = f.firstOrNull { it.number == 4 && it.wire == 0 }?.varint ?: 0L
             Item(uid, dataType, size, flags)
         }
         return ItemListPage(
             items = items,
-            hasSessionId = responseFields.any { it.number == 2 && it.wire == 0 },
-            hasNextTransactionId = responseFields.any { it.number == 3 && it.wire == 0 }
+            status = responseFields.firstOrNull { it.number == 1 && it.wire == 0 }?.varint,
+            sessionId = responseFields.firstOrNull { it.number == 2 && it.wire == 0 }?.varint,
+            nextTransactionId = responseFields.firstOrNull { it.number == 3 && it.wire == 0 }?.varint,
+            gdxmlStrings = gdxmlStrings
         )
     }
 
@@ -109,17 +119,22 @@ object CirqaFileAccessItemListParser {
         )
     }
 
-    fun redactedSummary(items: List<Item>): String =
-        "items=${items.size}; types=${items.groupingBy(::safeTypeLabel).eachCount()
+    fun redactedSummary(
+        items: List<Item>,
+        gdxmlStrings: Map<Long, String> = emptyMap()
+    ): String =
+        "items=${items.size}; types=${items.groupingBy { safeTypeLabel(it, gdxmlStrings) }.eachCount()
             .entries.joinToString(",") { "${it.key}:${it.value}" }}; " +
             "sizes=${items.take(12).joinToString(",") { it.dataSize.toString() }}"
 
     /** Returns only a schema-like GDXML label; never emits UIDs or arbitrary strings. */
-    fun safeTypeLabel(item: Item): String {
+    fun safeTypeLabel(item: Item, gdxmlStrings: Map<Long, String> = emptyMap()): String {
         val dataTypeFields = fields(item.dataType)
         val format = dataTypeFields.firstOrNull { it.number == 1 && it.wire == 0 }?.varint
-        val rawLabel = dataTypeFields.firstOrNull { it.number == 2 && it.wire == 2 }
+        val directLabel = dataTypeFields.firstOrNull { it.number == 2 && it.wire == 2 }
             ?.bytes?.toString(Charsets.UTF_8)
+        val stringKey = dataTypeFields.firstOrNull { it.number == 3 && it.wire == 0 }?.varint
+        val rawLabel = directLabel ?: stringKey?.let(gdxmlStrings::get)
         val label = rawLabel?.takeIf { it.matches(Regex("[A-Z0-9_]{1,48}")) }
         return when {
             label != null -> label
