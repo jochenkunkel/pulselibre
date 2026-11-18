@@ -118,3 +118,9 @@ Noch sichtbar offen (P3): Nacht-Insights erste Spalte „22–6 Uhr / 22331 / We
 ## 2026-11-18 – #117 Geburtsdatum, #118 Gewicht-Schnelleingabe und BMI (Branch `claude/profile-bmi`)
 - `AgeCalculator`, `Bmi` (reine Logik, `ProfileMathTest`), Einstellungen mit Datumsauswahl (kein Zukunftsdatum, Altwerte bleiben erhalten), Profilkarte mit abgeleitetem Alter, BMI-Zeile (Wert + Kategorietext + Farbe, Tippen = Erklärung), Waagen-Button (48 dp) → Gewichtsdialog (Prefill, Plausibilität 15–400 kg, Abbrechen ändert nichts). Dokumentation: `docs/science/BMI_CLASSIFICATION.md`.
 - Tests: `AgeCalculatorTest`, `BmiTest`, Instrumentation `BodyProfileCardTest`. Nicht am Gerät betrachtet (CI/Emulator).
+
+## 2026-11-18 – Code-Review-Befunde #112–#115 (Branch `claude/service-fixes`)
+- #112: `POST_NOTIFICATIONS` im Manifest; beim Start der Aufzeichnung (Android 13+) wird die Berechtigung angefragt; bei Ablehnung Hinweis „Beenden über Stoppen in der App“. Aufzeichnung startet unabhängig vom Ergebnis. **Am Gerät nicht geprüft.**
+- #113: `RecorderStatus` – „läuft“ = Flag **und** frischer Herzschlag (Dienst schreibt alle 20 s `heartbeat_ms`, veraltet nach 65 s); UI (Gerätetab, Kopfstatus) und Export-Recorderstopp nutzen es. Test `RecorderStatusTest`.
+- #114: gemeinsame `CirqaDatabase`-Instanz für den 1-s-Poll der Übersicht, Legacy-Bereinigung in `onOpen` unverändert (ein `stat()`; läuft dank gemeinsamer Instanz nicht mehr jede Sekunde). Weitere Aufrufstellen (einmalige Lesevorgänge) unverändert.
+- #115: material-Abhängigkeit und viewBinding entfernt, ungenutzte Ressource gelöscht, Schreibweise „PulsLibre“ in Label/Benachrichtigung/Dialogen/Diagnose, `dataExtractionRules`/`fullBackupContent` (alles ausgeschlossen), Pfade in `BodyProfileAvatarView` nicht mehr pro Frame allokiert. Offen: `ObsoleteSdkInt` in `CirqaMlHandshakeProbe` (BLE, OpenCode), `!!`/stille catch-Blöcke.

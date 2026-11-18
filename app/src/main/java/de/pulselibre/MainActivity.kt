@@ -21,6 +21,8 @@ import androidx.core.app.ActivityCompat
 
 class MainActivity : AppCompatActivity() {
     private val handler = Handler(Looper.getMainLooper())
+    /** One long-lived helper for the 1-second change poll instead of opening/closing the database every second (#114). */
+    private val pollDatabase by lazy { CirqaDatabase(applicationContext) }
     private var dashboardRefresh: (() -> Unit)? = null
     private var connectionIndicatorRefresh: (() -> Unit)? = null
     private var cirqaLink = CirqaLinkStatus.Result(CirqaLinkStatus.Kind.UNAVAILABLE, false, "")
@@ -71,7 +73,7 @@ class MainActivity : AppCompatActivity() {
             if ((dashboardVisible || historyVisible) && !pollInFlight) {
                 pollInFlight = true
                 dashboardWorker.execute {
-                    val latest = try { CirqaDatabase(applicationContext).use { it.latestEventId() } }
+                    val latest = try { pollDatabase.latestEventId() }
                         catch (_: android.database.sqlite.SQLiteException) { null }
                     handler.post {
                         pollInFlight = false
@@ -473,9 +475,14 @@ class MainActivity : AppCompatActivity() {
             if (scanning) stopScan()
             androidx.appcompat.app.AlertDialog.Builder(this@MainActivity)
                 .setTitle("CIRQA-Sammlung starten")
-                .setMessage("PulsLibre verbindet sich aktiv per Bluetooth mit dem CIRQA-Armband und empfängt verfügbare Echtzeitmesswerte über eine laufende Verbindung. Bei Verbindungsabbrüchen versucht die App die Verbindung erneut. Die Messwerte werden lokal auf diesem Gerät gespeichert. Es werden keine historischen FIT-Daten geladen. Android zeigt währenddessen eine dauerhafte Benachrichtigung; das System kann den Dienst dennoch beenden. Garmin Connect kann die Bluetooth-Verbindung beeinflussen. Jetzt starten?")
+                .setMessage("PulsLibre verbindet sich aktiv per Bluetooth mit dem CIRQA-Armband und empfängt verfügbare Echtzeitmesswerte über eine laufende Verbindung. Bei Verbindungsabbrüchen versucht die App die Verbindung erneut. Die Messwerte werden lokal auf diesem Gerät gespeichert. Es werden keine historischen FIT-Daten geladen. Android zeigt währenddessen eine dauerhafte Benachrichtigung mit Stopp-Taste (Android 13+: Benachrichtigungen müssen erlaubt sein); das System kann den Dienst dennoch beenden. Garmin Connect kann die Bluetooth-Verbindung beeinflussen. Jetzt starten?")
                 .setNegativeButton("Abbrechen", null)
                 .setPositiveButton("Starten") { _, _ ->
+                    // Android 13+: without this permission the ongoing notification (with its stop action) stays hidden.
+                    if (Build.VERSION.SDK_INT >= 33 && ActivityCompat.checkSelfPermission(this@MainActivity,
+                            Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                        ActivityCompat.requestPermissions(this@MainActivity, arrayOf(Manifest.permission.POST_NOTIFICATIONS), 11)
+                    }
                     try {
                         androidx.core.content.ContextCompat.startForegroundService(
                             this@MainActivity,
@@ -492,8 +499,7 @@ class MainActivity : AppCompatActivity() {
         recorderRow.addView(stopButton, LinearLayout.LayoutParams(0, -2, 1f))
         deviceView(recorderRow, 12)
         recorderRefresh = {
-            val running = getSharedPreferences(CirqaContinuousRecordingService.PREFS, MODE_PRIVATE)
-                .getBoolean(CirqaContinuousRecordingService.KEY_RUNNING, false)
+            val running = RecorderStatus.isRunning(getSharedPreferences(CirqaContinuousRecordingService.PREFS, MODE_PRIVATE))
             recorderState.text = if (running) "◌  Aufzeichnungsdienst aktiv · GATT-Status im Kopfbereich" else "○  Aufzeichnung aus"
             recorderState.setTextColor(muted)
             playButton.alpha = if (running) 0.45f else 1f
@@ -510,7 +516,7 @@ class MainActivity : AppCompatActivity() {
             if (scanning) stopScan()
             androidx.appcompat.app.AlertDialog.Builder(this)
                 .setTitle("Aktiver CIRQA-Verbindungstest")
-                .setMessage("Garmin Connect vorher beenden. PulseLibre verbindet sich kurz mit dem gekoppelten CIRQA, liest nur die GATT-Dienststruktur und trennt die Verbindung wieder. Keine Schreibbefehle, kein CLOSE_ALL. Fortfahren?")
+                .setMessage("Garmin Connect vorher beenden. PulsLibre verbindet sich kurz mit dem gekoppelten CIRQA, liest nur die GATT-Dienststruktur und trennt die Verbindung wieder. Keine Schreibbefehle, kein CLOSE_ALL. Fortfahren?")
                 .setNegativeButton("Abbrechen", null)
                 .setPositiveButton("Verbinden") { _, _ ->
                     if (cirqaGattProbe == null) cirqaGattProbe = CirqaGattProbe(this, adapter)
@@ -740,7 +746,7 @@ class MainActivity : AppCompatActivity() {
             if (scanning) stopScan()
             androidx.appcompat.app.AlertDialog.Builder(this)
                 .setTitle("CIRQA Echtzeit-Messwerte")
-                .setMessage("Garmin Connect vorher beenden. PulseLibre registriert GFDI, Puls und Schritte ohne CLOSE_ALL, wartet maximal 20 Sekunden auf echte Messwerte und trennt die Verbindung. Empfangene Messwerte werden lokal für die Übersicht gespeichert. Keine Kopplungsänderung. Fortfahren?")
+                .setMessage("Garmin Connect vorher beenden. PulsLibre registriert GFDI, Puls und Schritte ohne CLOSE_ALL, wartet maximal 20 Sekunden auf echte Messwerte und trennt die Verbindung. Empfangene Messwerte werden lokal für die Übersicht gespeichert. Keine Kopplungsänderung. Fortfahren?")
                 .setNegativeButton("Abbrechen", null)
                 .setPositiveButton("Live-Test starten") { _, _ ->
                     if (cirqaMlProbe == null) cirqaMlProbe = CirqaMlHandshakeProbe(this, adapter)
@@ -758,7 +764,7 @@ class MainActivity : AppCompatActivity() {
             if (scanning) stopScan()
             androidx.appcompat.app.AlertDialog.Builder(this)
                 .setTitle("CIRQA: Weitere Messwerte")
-                .setMessage("Garmin Connect vorher beenden. PulseLibre versucht zusätzlich SpO₂, Atmung, HRV, Stress, Body Battery, Kalorien und Intensitätsminuten einzeln zu registrieren. Nicht unterstützte Dienste werden gemeldet. Maximal 20 Sekunden, kein CLOSE_ALL. Empfangene Messwerte werden lokal für die Übersicht gespeichert.")
+                .setMessage("Garmin Connect vorher beenden. PulsLibre versucht zusätzlich SpO₂, Atmung, HRV, Stress, Body Battery, Kalorien und Intensitätsminuten einzeln zu registrieren. Nicht unterstützte Dienste werden gemeldet. Maximal 20 Sekunden, kein CLOSE_ALL. Empfangene Messwerte werden lokal für die Übersicht gespeichert.")
                 .setNegativeButton("Abbrechen", null)
                 .setPositiveButton("Messwerte prüfen") { _, _ ->
                     if (cirqaMlProbe == null) cirqaMlProbe = CirqaMlHandshakeProbe(this, adapter)
@@ -791,7 +797,7 @@ class MainActivity : AppCompatActivity() {
             if (scanning) stopScan()
             androidx.appcompat.app.AlertDialog.Builder(this)
                 .setTitle("CIRQA · MousePods-Vergleichstest")
-                .setMessage("Garmin Connect vorher vollständig beenden. Anders als beim normalen Service-16-Test registriert PulseLibre den Dienst und sendet anschließend das Startkommando 0x01 auf dem bestätigten Handle. Maximal 20 Sekunden; Paketanzahl wird angezeigt, keine Rohbewegungsdaten gespeichert. Beim Beenden wird 0x00 zum Stoppen versucht. Kein CLOSE_ALL, keine Kopplungsänderung. Jetzt testen?")
+                .setMessage("Garmin Connect vorher vollständig beenden. Anders als beim normalen Service-16-Test registriert PulsLibre den Dienst und sendet anschließend das Startkommando 0x01 auf dem bestätigten Handle. Maximal 20 Sekunden; Paketanzahl wird angezeigt, keine Rohbewegungsdaten gespeichert. Beim Beenden wird 0x00 zum Stoppen versucht. Kein CLOSE_ALL, keine Kopplungsänderung. Jetzt testen?")
                 .setNegativeButton("Abbrechen", null)
                 .setPositiveButton("MousePods-Test starten") { _, _ ->
                     if (cirqaMlProbe == null) cirqaMlProbe = CirqaMlHandshakeProbe(this, adapter)
@@ -940,10 +946,17 @@ class MainActivity : AppCompatActivity() {
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == 11) {
+            val granted = grantResults.isNotEmpty() && grantResults.all { it == PackageManager.PERMISSION_GRANTED }
+            if (!granted && ::output.isInitialized) {
+                output.text = "Benachrichtigungen sind aus: Die Aufzeichnung läuft, die Benachrichtigung mit Stopp-Taste ist aber unsichtbar. " +
+                    "Beenden über „Stoppen“ in der App oder Benachrichtigungen in den Android-Einstellungen erlauben."
+            }
+        }
         if (requestCode == 10 && ::status.isInitialized) {
             val granted = grantResults.isNotEmpty() && grantResults.all { it == PackageManager.PERMISSION_GRANTED }
             status.text = if (granted) "Bluetooth-Berechtigung erteilt · Scan erneut starten"
-                else "Bluetooth-Berechtigung abgelehnt · Einstellungen → Apps → PulseLibre → Berechtigungen → Geräte in der Nähe"
+                else "Bluetooth-Berechtigung abgelehnt · Einstellungen → Apps → PulsLibre → Berechtigungen → Geräte in der Nähe"
             lastScanDiagnostic = status.text.toString()
             connectionIndicatorRefresh?.invoke()
         }
@@ -1045,7 +1058,7 @@ class MainActivity : AppCompatActivity() {
         cirqaGattState = CirqaStateMapping.label(state)
         val prefs = getSharedPreferences(CirqaContinuousRecordingService.PREFS, MODE_PRIVATE)
         val link = CirqaLinkStatus.evaluate(
-            prefs.getBoolean(CirqaContinuousRecordingService.KEY_RUNNING, false), state,
+            RecorderStatus.isRunning(prefs), state,
             prefs.getLong(CirqaContinuousRecordingService.KEY_LAST_READING_MS, -1L).takeIf { it >= 0 },
             System.currentTimeMillis()
         )
@@ -1155,6 +1168,7 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         dashboardWorker.shutdownNow()
         stopDashboardPolling()
+        runCatching { pollDatabase.close() }
         dashboardRefresh = null
         connectionIndicatorRefresh = null
         destroyed = true
