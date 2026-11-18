@@ -812,11 +812,20 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                             CirqaHistoricalSyncV1MultiPhaseSession.Phase.WAITING_DIR_RESPONSE)) {
                         hsv1.receive(hsv1.token, bytes.copyOfRange(1, bytes.size),
                             android.os.SystemClock.elapsedRealtime())
-                        if (hsv1.phase in setOf(
+                        val nextPhase = hsv1.phase
+                        if (nextPhase in setOf(
                                 CirqaHistoricalSyncV1MultiPhaseSession.Phase.WAITING_5007_WRITE,
                                 CirqaHistoricalSyncV1MultiPhaseSession.Phase.WAITING_5031_WRITE,
                                 CirqaHistoricalSyncV1MultiPhaseSession.Phase.WAITING_DIR_WRITE)) {
-                            sendHsv1Frame(g, hsv1.phase)
+                            val now = android.os.SystemClock.elapsedRealtime()
+                            val claimed = when (nextPhase) {
+                                CirqaHistoricalSyncV1MultiPhaseSession.Phase.WAITING_5007_WRITE ->
+                                    hsv1.claim5007(hsv1.token, now)
+                                CirqaHistoricalSyncV1MultiPhaseSession.Phase.WAITING_5031_WRITE ->
+                                    hsv1.claim5031(hsv1.token, now)
+                                else -> hsv1.claimDirectory(hsv1.token, now)
+                            }
+                            if (claimed) sendHsv1Frame(g, nextPhase)
                         }
                         finishHsv1IfTerminal(g)
                         return
