@@ -1153,6 +1153,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         when (s.phase) {
             CirqaHistoricalSyncV1MultiPhaseSession.Phase.BOOTSTRAP -> {
                 if (!s.bootstrapReady(s.token, ready, now)) { finishHsv1IfTerminal(g); return }
+                if (!s.claim5030(s.token, now)) { finishHsv1IfTerminal(g); return }
             }
             CirqaHistoricalSyncV1MultiPhaseSession.Phase.WAITING_5030_WRITE -> {
                 if (!s.claim5030(s.token, now)) { finishHsv1IfTerminal(g); return }
