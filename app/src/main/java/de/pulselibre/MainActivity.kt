@@ -255,14 +255,16 @@ class MainActivity : AppCompatActivity() {
         connectionIndicatorRefresh = { refreshAvatarConnectionBorder() }
         headerRow.addView(avatarButton, LinearLayout.LayoutParams(dp(48), dp(48)))
         header.addView(headerRow)
+        // Large fonts / narrow screens: "· Offline" moves to its own line instead of being cut off.
+        val taglineWraps = resources.configuration.screenWidthDp < 340 || resources.configuration.fontScale >= 1.3f
         val taglineRow = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = android.view.Gravity.CENTER_VERTICAL
+            orientation = if (taglineWraps) LinearLayout.VERTICAL else LinearLayout.HORIZONTAL
+            gravity = if (taglineWraps) android.view.Gravity.START else android.view.Gravity.CENTER_VERTICAL
         }
         taglineRow.addView(text("Deine Daten. Deine Kontrolle.", 13f, Color.parseColor("#E9E1F7")))
         // "Offline" = no cloud, no network permission: true for this app at all times.
         // The former green dot looked like a connection status; it only meant "no cloud". A lock says that directly.
-        taglineRow.addView(text("· Offline", 13f, Color.parseColor("#C9BEE0")), LinearLayout.LayoutParams(-2, -2).apply { marginStart = dp(6) })
+        taglineRow.addView(text(if (taglineWraps) "Offline" else "· Offline", 13f, Color.parseColor("#C9BEE0")), LinearLayout.LayoutParams(-2, -2).apply { if (!taglineWraps) marginStart = dp(6) })
         taglineRow.contentDescription = "Deine Daten. Deine Kontrolle. Offline: keine Cloud, keine Netzwerkverbindung."
         header.addView(taglineRow, LinearLayout.LayoutParams(-2, -2).apply { topMargin = dp(8); marginStart = dp(60) })
         screen.addView(header)
@@ -301,7 +303,7 @@ class MainActivity : AppCompatActivity() {
         val heroAccent = DesignTokens.heroAccent(palette.dark)
         val bodyCard = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(dp(14), dp(6), dp(14), dp(8))
+            setPadding(dp(14), dp(6), dp(16), dp(8))
             background = GradientDrawable(GradientDrawable.Orientation.TL_BR, DesignTokens.heroColors(palette.dark)).apply {
                 cornerRadius = dp(28).toFloat()
                 setStroke(dp(1), DesignTokens.heroStroke(palette.dark))
@@ -355,7 +357,7 @@ class MainActivity : AppCompatActivity() {
         val bodyFigure = BodyProfileAvatarView(this)
         val avatarSize = if (compactProfile) 72 else 88   // the profile is only background information: keep the card small
         bodyRow.addView(bodyFigure, LinearLayout.LayoutParams(dp(avatarSize), dp(avatarSize)).apply {
-            if (compactProfile) bottomMargin = dp(6) else marginEnd = dp(14)
+            if (compactProfile) bottomMargin = dp(6) else marginEnd = dp(30)
         })
         val bodyValues = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         bodyRow.addView(bodyValues, if (compactProfile) LinearLayout.LayoutParams(-1, -2) else LinearLayout.LayoutParams(0, -2, 1f))
@@ -363,7 +365,7 @@ class MainActivity : AppCompatActivity() {
         fun refreshBodyCard() {
             val p = getSharedPreferences("local_personal_profile", MODE_PRIVATE)
             bodyValues.removeAllViews()
-            bodyFigure.contentDescription = "Illustration einer Person im violetten Kapuzenpullover. Profilwerte sind daneben aufgeführt."
+            bodyFigure.contentDescription = "Illustration einer Person mit Basecap und violettem Hoodie. Profilwerte sind daneben aufgeführt."
             val heightText = p.getString("height_cm", "").orEmpty()
             val weightText = p.getString("weight_kg", "").orEmpty()
             // Age is derived from the birth date for today; a legacy stored age is only a fallback (#117).
@@ -381,20 +383,25 @@ class MainActivity : AppCompatActivity() {
                     orientation = LinearLayout.HORIZONTAL
                     gravity = android.view.Gravity.CENTER_VERTICAL
                 }
-                row.addView(text(icon + "  ", 15f, heroAccent, true))
-                val stack = LinearLayout(this).apply { orientation = if (compactProfile) LinearLayout.VERTICAL else LinearLayout.HORIZONTAL
-                    gravity = android.view.Gravity.CENTER_VERTICAL }
-                stack.addView(text(if (compactProfile) title else "$title  ", 12f, heroSecondary))
-                stack.addView(text(value, 15f, valueColor, true))
-                row.addView(stack, LinearLayout.LayoutParams(0, -2, 1f))
+                // fixed columns: icon | label | value, identical edges in all four rows
+                row.addView(text(icon, 15f, heroAccent, true).apply { gravity = android.view.Gravity.CENTER },
+                    LinearLayout.LayoutParams(dp(22), -2))
+                if (compactProfile) {
+                    val stack = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; gravity = android.view.Gravity.CENTER_VERTICAL }
+                    stack.addView(text(title, 12f, heroSecondary)); stack.addView(text(value, 15f, valueColor, true))
+                    row.addView(stack, LinearLayout.LayoutParams(0, -2, 1f).apply { marginStart = dp(6) })
+                } else {
+                    row.addView(text(title, 12f, heroSecondary), LinearLayout.LayoutParams(dp(58), -2).apply { marginStart = dp(4) })
+                    row.addView(text(value, 15f, valueColor, true), LinearLayout.LayoutParams(0, -2, 1f))
+                }
                 if (extra != null) bodyValues.addView(row, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(0) })
-                else bodyValues.addView(row, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(4) })
+                else bodyValues.addView(row, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(3) })
                 if (extra != null) {
                     val dotColor = bmiTone
                     val span = android.text.SpannableString(extra)
                     if (extra.startsWith("●")) span.setSpan(android.text.style.ForegroundColorSpan(dotColor), 0, 1, android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
                     bodyValues.addView(text("", 11f, heroSecondary).apply { this.text = span; contentDescription = extra.removePrefix("● ") },
-                        LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(1); bottomMargin = dp(0); marginStart = dp(22) })
+                        LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(2); bottomMargin = dp(0); marginStart = dp(if (compactProfile) 28 else 84) })
                 }
                 if (onClick != null) {
                     row.isClickable = true; row.isFocusable = true; row.setOnClickListener { onClick() }
