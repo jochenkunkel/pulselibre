@@ -2479,19 +2479,9 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                 it.timestampEpochMillis != null
         }
         val imported = try {
-            val readings = importable.map { observation ->
-                RawExportRecord(
-                    deviceId = "cirqa-fit",
-                    metric = observation.metric.name.lowercase(),
-                    measuredAtEpochMillis = observation.timestampEpochMillis!!,
-                    value = observation.value,
-                    unit = observation.unit,
-                    sampleId = observation.idempotencyKey,
-                    receivedAtEpochMillis = System.currentTimeMillis()
-                )
+            LocalReadingStore(context).use { store ->
+                "ok:${CirqaFitBackfill.importVerifiedFile(saved.file, store) ?: 0}"
             }
-            LocalReadingStore(context).use { it.commitBatch("cirqa-fit", readings) }
-            "ok:${readings.size}"
         } catch (e: Exception) {
             "failed:${e.javaClass.simpleName}"
         }

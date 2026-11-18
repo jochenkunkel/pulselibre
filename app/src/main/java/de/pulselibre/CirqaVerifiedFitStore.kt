@@ -10,7 +10,7 @@ import java.util.concurrent.ConcurrentHashMap
 /**
  * Offline-only, content-addressed FIT persistence. Caller MUST pass an app-private
  * directory (e.g. File(context.filesDir, "verified_fit")). No BLE or device writes.
- * No completion cursor is advanced; files are never parsed into health readings.
+ * FIT decoding/import is performed separately by [CirqaFitBackfill].
  */
 class CirqaVerifiedFitStore(private val root: File) {
     enum class Outcome { CREATED, ALREADY_PRESENT }
