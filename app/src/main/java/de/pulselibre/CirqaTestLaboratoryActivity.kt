@@ -317,6 +317,14 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
                 (preferences.getString(CirqaRfcommAttemptGate.SUMMARY_KEY, null) ?: "Noch kein Lauf.") +
                 "\nGate=${preferences.getBoolean(CirqaRfcommAttemptGate.PREFERENCE_KEY, false)}"
         })
+        syncCard.addView(button("Sync anfordern (read-only)") {
+            confirmSyncRequest()
+        })
+        syncCard.addView(button("Sync-Status") {
+            statusOutput.text = "Sync-Request:\n" +
+                (preferences.getString(CirqaSyncAttemptGate.SUMMARY_KEY, null) ?: "Noch kein Lauf.") +
+                "\nGate=${preferences.getBoolean(CirqaSyncAttemptGate.PREFERENCE_KEY, false)}"
+        })
         syncCard.addView(button("FileAccess-Dateiliste (read-only)") {
             confirmFileAccessList()
         })
@@ -481,6 +489,38 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
                             val persisted = (preferences.getString("directoryAfterChainSummary", null).orEmpty() + "\n" + message)
                                 .trim().takeLast(5000)
                             preferences.edit().putString("directoryAfterChainSummary", persisted).apply()
+                        }
+                    }
+                }
+            }
+            .show()
+    }
+
+    private fun confirmSyncRequest() {
+        val prefs = getSharedPreferences(CirqaSyncAttemptGate.PREFS_NAME, MODE_PRIVATE)
+        if (!CirqaSyncAttemptGate.RELEASED_FOR_DEVICE_TEST ||
+            !CirqaSyncAttemptGate.available(prefs)) {
+            statusOutput.text = "Sync-Request nicht freigegeben oder Gate bereits verbraucht."
+            return
+        }
+        AlertDialog.Builder(this)
+            .setTitle("Garmin-Sync anfordern?")
+            .setMessage(
+                "Ein Connect-kompatibler 5043-sync_request nach frischem Bootstrap. " +
+                    "Das Gerät kann daraufhin gepufferte Daten liefern und diese " +
+                    "geräteseitig als übertragen markieren. Wir senden selbst KEINE " +
+                    "Archiv-, Flag-, Lösch- oder Reset-Befehle und laden keine FIT-Datei " +
+                    "herunter. 20-s-Budget, kein Retry, Einmal-Gate wird vor dem Verbinden verbraucht."
+            )
+            .setNegativeButton("Abbrechen", null)
+            .setPositiveButton("Ausführen") { _, _ ->
+                withBluetoothPermissions(needsScan = false) {
+                    val probe = CirqaMlHandshakeProbe(this, adapter)
+                    systemEventProbe = probe
+                    probe.startSyncRequestTest(userConfirmed = true) { message ->
+                        runOnUiThread {
+                            statusOutput.text = message
+                            prefs.edit().putString(CirqaSyncAttemptGate.SUMMARY_KEY, message).apply()
                         }
                     }
                 }

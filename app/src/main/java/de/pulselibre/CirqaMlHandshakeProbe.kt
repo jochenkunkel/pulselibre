@@ -54,6 +54,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private var directoryReadAfterChain = false
     private var dirReadSession: CirqaDirectoryReadV2Session? = null
     private var fileAccessListMode = false
+    private var syncRequestMode = false
     private var fileAccessRequestClaimed = false
     private val fileAccessFramer = CirqaRfcommStreamFramer()
     private val fileAccessReassembler = GarminProtobufReassembler()
@@ -353,6 +354,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             directoryReadAfterChain = false
             dirReadSession = null
             fileAccessListMode = false
+            syncRequestMode = false
             fileAccessRequestClaimed = false
             bootstrapAckMode = false
             configurationTestMode = false
@@ -384,6 +386,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             directoryReadAfterChain = false
             dirReadSession = null
             fileAccessListMode = false
+            syncRequestMode = false
             fileAccessRequestClaimed = false
             bootstrapAckMode = false
             configurationTestMode = false
@@ -1378,6 +1381,58 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         return true
     }
 
+    /** One Connect-style 5043 sync_request after a fresh bootstrap. */
+    @SuppressLint("MissingPermission")
+    fun startSyncRequestTest(userConfirmed: Boolean, result: (String) -> Unit) {
+        if (!CirqaSyncAttemptGate.RELEASED_FOR_DEVICE_TEST || !userConfirmed) {
+            result("Sync-Request gesperrt; keine Verbindung.")
+            return
+        }
+        if (active || sessionStartedNanos != 0L || historicalSyncV1 != null || dirReadSession != null ||
+            directoryReadAfterChain || directoryReadV2Mode || legacy5030Only != null ||
+            legacy5007TestMode || legacy5031TestMode || legacyHistoryDownloadMode ||
+            realtimeMode || continuousRecordingMode || rawCaptureMode) {
+            result("Sync-Request benötigt eine neue Probeinstanz; keine Verbindung.")
+            return
+        }
+        val uniqueTarget = try {
+            adapter.isEnabled && adapter.bondedDevices.orEmpty().count {
+                it.name?.contains("CIRQA", ignoreCase = true) == true
+            } == 1
+        } catch (_: SecurityException) { false }
+        if (!uniqueTarget || CirqaBleSessionGate.isBusy()) {
+            result("Sync-Request: Bluetooth aus, Ziel nicht eindeutig oder Sitzung belegt.")
+            return
+        }
+        val prefs = context.getSharedPreferences(CirqaSyncAttemptGate.PREFS_NAME, Context.MODE_PRIVATE)
+        if (!CirqaSyncAttemptGate.consume(prefs)) {
+            result("Sync-Request: Gate verbraucht oder Persistierung fehlgeschlagen.")
+            return
+        }
+        syncRequestMode = true
+        fileAccessListMode = true
+        fileAccessRequestClaimed = false
+        fileAccessDiag = ""
+        fileAccessFramer.reset()
+        bootstrapAckMode = true
+        configurationTestMode = true
+        historyDiagnosticMode = true
+        start(false, result)
+        if (!active) {
+            syncRequestMode = false
+            fileAccessListMode = false
+            bootstrapAckMode = false
+            configurationTestMode = false
+            historyDiagnosticMode = false
+        } else {
+            main.postDelayed({
+                if (active && fileAccessListMode) {
+                    finish("Sync-Request: 20-s-Zeitlimit ohne vollständige 5044-Antwort.$fileAccessDiag", gatt)
+                }
+            }, 20_000L)
+        }
+    }
+
     /** One read-only 5043 FileAccess item-list request after a fresh bootstrap. */
     @SuppressLint("MissingPermission")
     fun startFileAccessListTest(userConfirmed: Boolean, result: (String) -> Unit) {
@@ -1436,8 +1491,13 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         fileAccessRequestClaimed = true
         configurationTestMode = false
         main.removeCallbacks(configurationTimeout)
-        mark("FileAccess-Liste: sende genau eine 5043-Item-List-Anfrage (read-only)")
-        send(g, CirqaFileAccessListRequest.mlValue(handle, 1))
+        if (syncRequestMode) {
+            mark("Sync-Request: sende genau einen Connect-kompatiblen 5043-sync_request")
+            send(g, CirqaSyncRequestCandidate.mlValue(handle, 1))
+        } else {
+            mark("FileAccess-Liste: sende genau eine 5043-Item-List-Anfrage (read-only)")
+            send(g, CirqaFileAccessListRequest.mlValue(handle, 1))
+        }
     }
 
     private fun handleFileAccessResponse(g: BluetoothGatt, payload: ByteArray) {
@@ -2042,8 +2102,9 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             }
             gatt = null
             callback?.invoke(
-                if (fileAccessListMode) "FileAccess-ItemList: $message; ${fileAccessReassembler.summary()}; " +
-                    "requestSent=$fileAccessRequestClaimed; response=$fileAccessDiag"
+                if (fileAccessListMode) "${if (syncRequestMode) "SyncRequest" else "FileAccess-ItemList"}: $message; " +
+                    "${fileAccessReassembler.summary()}; requestSent=$fileAccessRequestClaimed; " +
+                    "response=$fileAccessDiag"
                 else if (dirReadSession != null) dirReadSession!!.summary() +
                     " [acks5004=$acks5004Queued,acks5043=$acks5043Queued," +
                     "pendingWrites=${deferredAckWrites.size},writePending=$mlWritePending," +
@@ -2069,6 +2130,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             directoryReadAfterChain = false
             dirReadSession = null
             fileAccessListMode = false
+            syncRequestMode = false
             fileAccessRequestClaimed = false
             bootstrapAckMode = false
             configurationTestMode = false
