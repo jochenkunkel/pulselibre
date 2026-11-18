@@ -269,7 +269,9 @@ class MainActivity : AppCompatActivity() {
         // The former green dot looked like a connection status; it only meant "no cloud". A lock says that directly.
         taglineRow.addView(text(if (taglineWraps) "Offline" else "· Offline", 13f, Color.parseColor("#C9BEE0")), LinearLayout.LayoutParams(-2, -2).apply { if (!taglineWraps) marginStart = dp(6) })
         taglineRow.contentDescription = "Deine Daten. Deine Kontrolle. Offline: keine Cloud, keine Netzwerkverbindung."
-        header.addView(taglineRow, LinearLayout.LayoutParams(-2, -2).apply { topMargin = dp(8); marginStart = dp(60) })
+        // Full width (not wrap_content) so that long text wraps over the real available width instead of being clipped to one line;
+        // when it has to wrap, it also uses the space under the logo (no 60 dp indent).
+        header.addView(taglineRow, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8); marginStart = if (taglineWraps) 0 else dp(60) })
         screen.addView(header)
         val root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
