@@ -101,3 +101,11 @@ Ohne Gerätezugriff umgesetzt (Handy gesperrt); Wirkung **nicht** auf dem S25 ge
 - #104 (teilweise): Info-Symbol Profilkarte 48 dp, Legendenchips 11 sp, Navigation 11 sp. Offen: Eingabefelder 45 → 48 dp.
 - #105 (teilweise): Caption. Offen: gleichmäßige X-Ticks, Datumsnavigation.
 - #106 offen.
+
+## 2026-11-18 – GUI-Korrekturen Teil 2 (Branch `claude/gui-fixes-2`)
+Ohne Gerätezugriff; nur CI/Emulator-Nachweis.
+- #102: Tagesdialog neu geordnet (Datum, Diagramm, gewählter Wert, „‹ Vorheriger | Nächster ›“ nebeneinander, Statistik zuletzt und gedämpft); Wertachse mit Min/Mitte/Max links vom Diagramm (`DayChart.left`), Touch-Test an die neue Geometrie angepasst (`xAt`).
+- #103: Nacht-Insights mit vier Spalten (22–6 Uhr · Abdeckung · T90 · ODI3/ODI4), ⏳ nur noch im Ladezustand.
+- #104: Eingabefelder der Config mindestens 48 dp.
+- #105: Verlauf-X-Beschriftung einheitlich zentriert (rechter Rand 18 dp), Caption bereits zweizeilig. **Datumsnavigation nicht umgesetzt** (eigenes Feature-Issue).
+- #106: Empfangspunkt „alt“ nicht mehr rot, sondern gedämpftes Grau-Violett.

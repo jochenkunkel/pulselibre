@@ -31,19 +31,19 @@ class DayChartTest {
             }
         }
 
-        send(MotionEvent.ACTION_DOWN, 100f, 150f)
-        send(MotionEvent.ACTION_UP, 100f, 150f)
+        send(MotionEvent.ACTION_DOWN, chart.xAt(0.25f), 150f)
+        send(MotionEvent.ACTION_UP, chart.xAt(0.25f), 150f)
         assertEquals(0, chart.selected)
 
-        send(MotionEvent.ACTION_DOWN, 100f, 150f)
-        send(MotionEvent.ACTION_MOVE, 200f, 150f)
+        send(MotionEvent.ACTION_DOWN, chart.xAt(0.25f), 150f)
+        send(MotionEvent.ACTION_MOVE, chart.xAt(0.5f), 150f)
         assertEquals(1, chart.selected)
-        send(MotionEvent.ACTION_UP, 300f, 150f)
+        send(MotionEvent.ACTION_UP, chart.xAt(0.75f), 150f)
         assertEquals(2, chart.selected)
 
-        send(MotionEvent.ACTION_DOWN, 100f, 100f)
-        send(MotionEvent.ACTION_MOVE, 100f, 200f)
-        send(MotionEvent.ACTION_UP, 100f, 250f)
+        send(MotionEvent.ACTION_DOWN, chart.xAt(0.25f), 100f)
+        send(MotionEvent.ACTION_MOVE, chart.xAt(0.25f), 200f)
+        send(MotionEvent.ACTION_UP, chart.xAt(0.25f), 250f)
         assertEquals(2, chart.selected)
     }
 }
