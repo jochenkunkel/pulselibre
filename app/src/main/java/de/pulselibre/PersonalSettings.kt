@@ -73,7 +73,9 @@ object PersonalSettings {
                 inputType = if (numeric) InputType.TYPE_CLASS_NUMBER or
                     (if (decimal) InputType.TYPE_NUMBER_FLAG_DECIMAL else 0)
                     else InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
-                setText(p.getString(key, "").orEmpty())
+                // Some keys (SpO2 scale, activity thresholds) are stored as Int by their own settings classes;
+                // getString would throw ClassCastException once they were saved (crash on opening Config).
+                setText(p.all[key]?.toString().orEmpty())
                 hint = unitHint.orEmpty()
                 minimumHeight = dp(48)
                 contentDescription = label

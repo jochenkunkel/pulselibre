@@ -174,3 +174,7 @@ Noch sichtbar offen (P3): Nacht-Insights erste Spalte „22–6 Uhr / 22331 / We
 - 32 SVGs → VectorDrawables (`tools/svg_icons_to_vector.py`), `PlIcon`-Helper, Theme-Farben hell/dunkel.
 - Integriert: Navigation, Gerät (CIRQA-Band statt Uhr, Metadaten, Empfang), Trends, Info-Buttons, Starten/Stoppen.
 - Geprüft: Build + Lint lokal grün, Emulator (synthetisch, dunkel) Gerät-Tab. Offen: Hellmodus-/Großschrift-Screenshots, TalkBack, S25.
+
+## 2026-11-18 · Absturz beim Öffnen der Konfig (Fund am S25)
+- Ursache (logcat S25): `ClassCastException Integer→String` in `PersonalSettings.newField` (`getString`), weil SpO₂-Schwellen als Int im gleichen Prefs-Store liegen. Tritt auf, sobald die SpO₂-Skala einmal gespeichert wurde.
+- Fix: Wert über `prefs.all[key]?.toString()` lesen; Regressionstest `opensWithIntegerStoredSpo2ThresholdsWithoutCrashing`.
