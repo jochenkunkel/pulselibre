@@ -65,3 +65,7 @@ Fortlaufend, neueste Einträge unten. Jeder Eintrag: Datum, Änderung, Nachweis 
 ## 2026-11-18 – Einstellungen: Schaltflächen und Löschschutz (Branch `claude/settings-buttons`)
 - Eigene feste Schaltflächenleiste unten im Dialog („Schließen“ | „Speichern“, volle Breite, 48 dp) statt der drei AlertDialog-Buttons, die untereinander lagen und abgeschnitten waren.
 - „Profil löschen“ ist von Speichern getrennt (eigener Abschnitt am Ende, dezent umrandet) und verlangt **zwei Bestätigungen** (1. Umfang erklären → „Weiter“, 2. „Wirklich endgültig löschen?“ → „Endgültig löschen“). Gelöscht werden nur die Profil-Einstellungen, keine Messdaten.
+
+## 2026-11-18 – Trendkarte kompakt, SpO₂-Titel (Branch `claude/trend-compact`)
+- Trendkarte statt Textwand: Zeile je Dimension mit Zustandssymbol (✅ ➖ ⚠️ ⏳), Tabelle 💓 Ruhepuls / 👣 Schritte × 7/28/90 Tage (Median + Pfeil + Tage mit Daten), eine Zeile 🔗 für die vorab festgelegte Hypothese (Tippen → 📊 Streudiagramm). Methode, Sätze und Einschränkungen im ⓘ-Dialog; Barrierefreiheitstexte enthalten die vollen Sätze. Berechnung unverändert (`TrendAnalysis`, `FitnessOverview`, `PairedCorrelation`).
+- Kachel „Sauerstoffsättigung · SpO₂“ zeigt sichtbar nur „SpO₂“ (Wortumbruch mitten im Wort behoben); Tag/Accessibility-Name unverändert.
