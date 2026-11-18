@@ -39,6 +39,39 @@ object CirqaProtobufShapeInspector {
         return out.joinToString(",")
     }
 
+    /** Like [shape], but descends one level into length-delimited fields. */
+    fun nestedShape(bytes: ByteArray, maxFields: Int = 16): String {
+        require(maxFields in 1..64)
+        val out = ArrayList<String>()
+        var i = 0
+        var steps = 0
+        loop@ while (i < bytes.size && out.size < maxFields && steps++ < 1024) {
+            val key = readVarint(bytes, i) ?: break
+            i = key.second
+            val field = (key.first ushr 3).toInt()
+            val wire = (key.first and 7).toInt()
+            if (field == 0 || wire !in 0..5 || wire == 3 || wire == 4) break
+            var nested = ""
+            i = when (wire) {
+                0 -> readVarint(bytes, i)?.second ?: break@loop
+                1 -> i + 8
+                2 -> {
+                    val len = readVarint(bytes, i) ?: break@loop
+                    val start = len.second
+                    val end = start + len.first.toInt()
+                    if (end > bytes.size) break@loop
+                    nested = "[${shape(bytes.copyOfRange(start, end), 8)}]"
+                    end
+                }
+                5 -> i + 4
+                else -> break@loop
+            }
+            if (i < 0 || i > bytes.size) break
+            out.add("$field:$wire$nested")
+        }
+        return out.joinToString(",")
+    }
+
     private fun readVarint(bytes: ByteArray, start: Int): Pair<Long, Int>? {
         var result = 0L
         var shift = 0

@@ -220,7 +220,7 @@ class CirqaDirectoryReadV2Session(val token: Any = Any()) {
             if (pendingProtobufAcks.size < 16) pendingProtobufAcks.add(id to offset)
         }
         protobufReassembler.accept(frame)?.let { msg ->
-            appendProtobufDiag("complete[len=${msg.size},shape=${CirqaProtobufShapeInspector.shape(msg)}];")
+            appendProtobufDiag("complete[len=${msg.size},shape=${CirqaProtobufShapeInspector.nestedShape(msg)}];")
         }
     }
 

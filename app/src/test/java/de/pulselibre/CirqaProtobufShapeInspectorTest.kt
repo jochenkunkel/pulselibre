@@ -14,6 +14,12 @@ class CirqaProtobufShapeInspectorTest {
         assertEquals("1:2,4:0,9:5", CirqaProtobufShapeInspector.shape(bytes))
     }
 
+    @Test fun descendsIntoLengthDelimitedCoreServiceShape() {
+        // Smart{ field13 = CoreService{ field1 = empty SyncRequest } }
+        val bytes = byteArrayOf(0x6a, 0x02, 0x0a, 0x00)
+        assertEquals("13:2[1:2]", CirqaProtobufShapeInspector.nestedShape(bytes))
+    }
+
     @Test fun toleratesTruncatedAndUnknownWireTypes() {
         assertEquals("", CirqaProtobufShapeInspector.shape(byteArrayOf()))
         assertEquals("", CirqaProtobufShapeInspector.shape(byteArrayOf(0x0b)))
