@@ -317,31 +317,65 @@ class MainActivity : AppCompatActivity() {
         val bodyValues = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         bodyRow.addView(bodyValues, LinearLayout.LayoutParams(0, -2, 1f))
         bodyCard.addView(bodyRow)
+        val scaleButton = TextView(this).apply {
+            text = "⚖"
+            textSize = 22f
+            gravity = android.view.Gravity.CENTER
+            setTextColor(violet)
+            minWidth = dp(48); minHeight = dp(48)
+            background = rounded(palette.tinted)
+            contentDescription = "Gewicht schnell aktualisieren"
+            tag = "body_scale_button"
+            isClickable = true
+            isFocusable = true
+        }
+        val bodyFooter = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = android.view.Gravity.END
+        }
+        bodyFooter.addView(scaleButton, LinearLayout.LayoutParams(dp(48), dp(48)))
+        bodyCard.addView(bodyFooter)
         fun refreshBodyCard() {
             val p = getSharedPreferences("local_personal_profile", MODE_PRIVATE)
             bodyValues.removeAllViews()
             bodyFigure.contentDescription = "Illustration eines bärtigen Mannes. Profilwerte sind daneben aufgeführt."
-            listOf(
-                Triple("↕", "Größe", p.getString("height_cm", "").orEmpty().let { if (it.isBlank()) "–" else it + " cm" }),
-                Triple("⚖", "Gewicht", p.getString("weight_kg", "").orEmpty().let { if (it.isBlank()) "–" else it + " kg" }),
-                Triple("◷", "Alter", p.getString("age_years", "").orEmpty().let { if (it.isBlank()) "–" else it + " Jahre" })
-            ).forEach { (icon, title, value) ->
+            val heightText = p.getString("height_cm", "").orEmpty()
+            val weightText = p.getString("weight_kg", "").orEmpty()
+            // Age is derived from the birth date for today; a legacy stored age is only a fallback (#117).
+            val age = AgeCalculator.currentAge(p.getString("birth_date", ""), p.getString("age_years", ""), java.time.LocalDate.now())
+            val bmi = Bmi.assess(weightText.replace(',', '.').toDoubleOrNull(), heightText.replace(',', '.').toDoubleOrNull(), age)
+            val germanOne = java.text.NumberFormat.getNumberInstance(java.util.Locale.GERMANY).apply { maximumFractionDigits = 1; minimumFractionDigits = 1 }
+            fun add(icon: String, title: String, value: String, valueColor: Int = ink, extra: String? = null, onClick: (() -> Unit)? = null) {
                 val row = LinearLayout(this).apply {
                     orientation = LinearLayout.HORIZONTAL
                     gravity = android.view.Gravity.CENTER_VERTICAL
                 }
                 row.addView(text(icon + "  ", 17f, violet, true))
-                if (compactProfile) {
-                    val stack = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
-                    stack.addView(text(title, 12f, muted))
-                    stack.addView(text(value, 15f, ink, true))
-                    row.addView(stack, LinearLayout.LayoutParams(0, -2, 1f))
-                } else {
-                    row.addView(text(title + "  ", 12f, muted))
-                    row.addView(text(value, 15f, ink, true))
+                val stack = LinearLayout(this).apply { orientation = if (compactProfile) LinearLayout.VERTICAL else LinearLayout.HORIZONTAL
+                    gravity = android.view.Gravity.CENTER_VERTICAL }
+                stack.addView(text(if (compactProfile) title else "$title  ", 12f, muted))
+                stack.addView(text(value, 15f, valueColor, true))
+                row.addView(stack, LinearLayout.LayoutParams(0, -2, 1f))
+                if (extra != null) bodyValues.addView(row, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(2) })
+                else bodyValues.addView(row, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(8) })
+                if (extra != null) {
+                    bodyValues.addView(text(extra, 12f, valueColor, true).apply { contentDescription = extra },
+                        LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(8); marginStart = dp(30) })
                 }
-                bodyValues.addView(row, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(8) })
+                if (onClick != null) { row.isClickable = true; row.isFocusable = true; row.setOnClickListener { onClick() } }
             }
+            add("↕", "Größe", if (heightText.isBlank()) "–" else "$heightText cm")
+            add("⚖", "Gewicht", if (weightText.isBlank()) "–" else "$weightText kg")
+            add("◷", "Alter", age?.let { "$it Jahre" } ?: "–")
+            val tone = when (bmi.category?.tone) {
+                Bmi.Tone.GREEN -> palette.indicator
+                Bmi.Tone.YELLOW -> android.graphics.Color.rgb(207, 166, 19)
+                Bmi.Tone.RED -> android.graphics.Color.rgb(205, 57, 65)
+                null -> muted
+            }
+            // BMI: value + written category (colour is never the only signal); tap explains reference and limits.
+            add("▣", "BMI", bmi.value?.let { germanOne.format(it) + " kg/m²" } ?: "–", ink,
+                extra = bmi.category?.let { "● ${it.label}" } ?: bmi.note) { showBmiInfo(bmi) }
             bodyCard.contentDescription = "Mein Körperprofil. " +
                 (0 until bodyValues.childCount).joinToString(", ") { i ->
                     fun collect(v: android.view.View): String = when (v) {
@@ -353,6 +387,7 @@ class MainActivity : AppCompatActivity() {
                 }
         }
         refreshBodyCard()
+        scaleButton.setOnClickListener { showQuickWeight { refreshBodyCard() } }
         bodyCard.isClickable = true
         bodyCard.isFocusable = true
         bodyCard.setOnClickListener {
@@ -1063,6 +1098,58 @@ class MainActivity : AppCompatActivity() {
             type = "text/plain"
             putExtra(Intent.EXTRA_TEXT, report)
         }, "BLE-Diagnose teilen"))
+    }
+
+    /** One-tap weight update from the overview (#118); cancel changes nothing. */
+    private fun showQuickWeight(onSaved: () -> Unit) {
+        val p = getSharedPreferences("local_personal_profile", MODE_PRIVATE)
+        val input = android.widget.EditText(this).apply {
+            inputType = android.text.InputType.TYPE_CLASS_NUMBER or android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL
+            setSingleLine(true)
+            setText(p.getString("weight_kg", "").orEmpty())
+            setSelectAllOnFocus(true)
+            hint = "Gewicht in kg"
+            contentDescription = "Aktuelles Gewicht in Kilogramm"
+        }
+        val box = LinearLayout(this).apply {
+            val d = resources.displayMetrics.density
+            setPadding((24 * d).toInt(), (8 * d).toInt(), (24 * d).toInt(), 0)
+            addView(input, LinearLayout.LayoutParams(-1, -2))
+        }
+        val dialog = androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("⚖ Aktuelles Gewicht (kg)")
+            .setView(box)
+            .setNegativeButton("Abbrechen", null)
+            .setPositiveButton("Speichern", null)
+            .create()
+        dialog.setOnShowListener {
+            dialog.getButton(androidx.appcompat.app.AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+                val value = input.text.toString().trim().replace(',', '.').toDoubleOrNull()
+                if (value == null || value !in 15.0..400.0) {
+                    Toast.makeText(this, "Bitte ein Gewicht zwischen 15 und 400 kg eingeben.", Toast.LENGTH_LONG).show()
+                } else {
+                    p.edit().putString("weight_kg", input.text.toString().trim().replace(',', '.')).apply()
+                    onSaved()
+                    dialog.dismiss()
+                }
+            }
+            input.requestFocus()
+        }
+        dialog.show()
+    }
+
+    private fun showBmiInfo(bmi: Bmi.Assessment) {
+        val text = buildString {
+            append("BMI = Gewicht (kg) / Größe (m)². Er ist ein Screening-Hinweis, keine Diagnose.\n\n")
+            append("Einordnung für Erwachsene ab 20 Jahren nach WHO (gleiche Grenzen für Frauen und Männer):\n")
+            append("unter 18,5 Untergewicht · 18,5–24,9 Normalgewicht · 25–29,9 Präadipositas · 30–34,9 Adipositas Grad I · 35–39,9 Grad II · ab 40 Grad III.\n\n")
+            append("Grenzen: Muskelmasse, Körperbau, Schwangerschaft und Alter beeinflussen die Aussagekraft. ")
+            append("Für Menschen unter 20 Jahren gibt es hier keine Bewertung (BMI-für-Alter-Referenzen nicht umgesetzt). ")
+            append("Für ältere Erwachsene werden keine Sondergrenzen angewandt.")
+            bmi.note?.let { append("\n\nHinweis: ").append(it) }
+        }
+        androidx.appcompat.app.AlertDialog.Builder(this).setTitle("BMI · Einordnung").setMessage(text)
+            .setPositiveButton("Schließen", null).show()
     }
 
     override fun onDestroy() {

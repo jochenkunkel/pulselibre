@@ -151,12 +151,47 @@ object PersonalSettings {
         spo2Orange.setText(spo2Settings.redBelow.toString())
 
         heading("👤", "Profil",
-            "Der Körperprofil-Avatar richtet sich nach der freiwilligen Geschlechtsauswahl: Mann, Frau oder ein kleiner Jedi für Divers / andere. Ohne Angabe bleibt die neutrale Figur. Kein Benutzerkonto und keine Cloud. Die Angaben sind noch nicht mit medizinischen oder kalorischen Schätzformeln verknüpft. Das Geburtsjahr dient nur als Profilangabe; das Alter wird nicht automatisch daraus berechnet.")
+            "Der Körperprofil-Avatar richtet sich nach der freiwilligen Geschlechtsauswahl: Mann, Frau oder ein kleiner Jedi für Divers / andere. Ohne Angabe bleibt die neutrale Figur. Kein Benutzerkonto und keine Cloud. Die Angaben sind noch nicht mit medizinischen oder kalorischen Schätzformeln verknüpft. Aus dem Geburtsdatum wird das Alter für den jeweiligen Tag berechnet; es bleibt lokal gespeichert.")
         val name = field("Anzeigename", "display_name")
         val genderOptions = listOf("Keine Angabe", "Männlich", "Weiblich", "Divers / andere")
         val gender = choice("Geschlecht (optional)", "gender", genderOptions)
-        val (birthYear, age) = fieldRow(
-            Triple("Geburtsjahr", "birth_year", null), Triple("Alter (Jahre)", "age_years", null))
+        // Birth date instead of a static age (#117): the age is derived for today and never stored.
+        var birthDate: java.time.LocalDate? = AgeCalculator.parse(p.getString("birth_date", ""))
+        val dateFormat = java.time.format.DateTimeFormatter.ofPattern("dd.MM.uuuu")
+        layout.addView(TextView(context).apply { text = "Geburtsdatum (optional)"; textSize = 12f; setTextColor(palette.muted) })
+        val birthButton = Button(context).apply {
+            isAllCaps = false
+            minHeight = dp(48)
+            setTextColor(palette.ink)
+            background = android.graphics.drawable.GradientDrawable().apply {
+                setColor(Color.TRANSPARENT); setStroke(dp(1), palette.muted); cornerRadius = dp(12).toFloat()
+            }
+            tag = "settings_birth_date"
+        }
+        val legacyAge = p.getString("age_years", "").orEmpty().trim()
+        val legacyNote = TextView(context).apply {
+            textSize = 12f; setTextColor(palette.muted)
+            text = "Bisher gespeichertes Alter: $legacyAge Jahre. Bitte Geburtsdatum ergänzen; es wird nicht aus dem Alter geschätzt."
+        }
+        fun refreshBirth() {
+            val today = java.time.LocalDate.now()
+            val b = birthDate
+            birthButton.text = if (b == null) "🎂  Geburtsdatum wählen"
+                else "🎂  ${b.format(dateFormat)}  ·  ${AgeCalculator.ageOn(b, today)?.let { "$it Jahre" } ?: "ungültig"}"
+            birthButton.contentDescription = if (b == null) "Geburtsdatum wählen" else "Geburtsdatum ${b.format(dateFormat)} ändern"
+            legacyNote.visibility = if (b == null && legacyAge.toIntOrNull() != null) android.view.View.VISIBLE else android.view.View.GONE
+        }
+        birthButton.setOnClickListener {
+            val start = birthDate ?: java.time.LocalDate.now().minusYears(30) // picker start only, nothing is stored until confirmed
+            android.app.DatePickerDialog(context, { _, y, m, d ->
+                birthDate = java.time.LocalDate.of(y, m + 1, d); refreshBirth()
+            }, start.year, start.monthValue - 1, start.dayOfMonth).apply {
+                datePicker.maxDate = System.currentTimeMillis() // no future dates
+            }.show()
+        }
+        layout.addView(birthButton, LinearLayout.LayoutParams(-1, -2))
+        layout.addView(legacyNote)
+        refreshBirth()
 
         heading("📏", "Körper & Ziele")
         val (height, weight) = fieldRow(
@@ -237,7 +272,6 @@ object PersonalSettings {
                 fun decimalValue(v: EditText, min: Double, max: Double): Boolean =
                     v.text.isBlank() || v.text.toString().replace(',', '.').toDoubleOrNull()?.let { it in min..max } == true
                 if (!intValue(height, 50, 250) || !decimalValue(weight, 15.0, 400.0) ||
-                    !intValue(age, 1, 120) || !intValue(birthYear, 1900, 2100) ||
                     !intValue(stepGoal, 100, 100000) || !decimalValue(sleepGoal, 1.0, 16.0) ||
                     !intValue(resting, 25, 220) ||
                     restSteps.text.toString().toIntOrNull()?.let { it !in 0..99 } != false ||
@@ -246,7 +280,7 @@ object PersonalSettings {
                     (restSteps.text.toString().toIntOrNull() ?: 100) >= (sportSteps.text.toString().toIntOrNull() ?: 0) ||
                     spo2Green.text.toString().toIntOrNull()?.let { it !in 2..100 } != false ||
                     spo2Orange.text.toString().toIntOrNull()?.let { it !in 1 until (spo2Green.text.toString().toIntOrNull() ?: 0) } != false) {
-                    Toast.makeText(context, "Bitte die Zahlen prüfen (Größe, Gewicht, Alter, Ziele und SpO₂-Orientierungsbereiche).", Toast.LENGTH_LONG).show()
+                    Toast.makeText(context, "Bitte die Zahlen prüfen (Größe, Gewicht, Ziele und SpO₂-Orientierungsbereiche).", Toast.LENGTH_LONG).show()
                     return@setOnClickListener
                 }
                 ActivityDetectionPreference.save(context, ActivityDetectionSettings(
@@ -262,8 +296,8 @@ object PersonalSettings {
                 fun save(key: String, value: String) { edit.putString(key, value) }
                 save("display_name", name.text.toString().trim().take(60))
                 save("gender", gender.selectedItem.toString())
-                save("birth_year", birthYear.text.toString().trim())
-                save("age_years", age.text.toString().trim())
+                // age_years / birth_year of older versions stay untouched; only a chosen birth date is written.
+                birthDate?.let { save("birth_date", it.toString()) }
                 save("height_cm", height.text.toString().trim())
                 save("weight_kg", weight.text.toString().trim().replace(',', '.'))
                 save("step_goal", stepGoal.text.toString().trim())
