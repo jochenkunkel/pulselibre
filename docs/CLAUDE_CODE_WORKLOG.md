@@ -85,3 +85,8 @@ Fortlaufend, neueste Einträge unten. Jeder Eintrag: Datum, Änderung, Nachweis 
 - Geprüft auf dem Gerät: Übersicht (Kopf, Profilkarte, Legende, SpO₂-/Pulskachel, Nacht-Insights), Info-Dialoge (ⓘ Körperprofil, Herzfrequenz, SpO₂). Dann ging die USB-Verbindung verloren und das Telefon wurde anderweitig benutzt (Kamera im Vordergrund); Verlauf/Konfig/weitere Info-Dialoge konnten in diesem Durchgang **nicht** erneut geprüft werden (Konfig zuvor mit Build 1005 gesehen).
 - Gefunden und behoben: (1) „Deine Messdaten“-Dialog und die HCI-Snoop-Anleitung zeigten literal `\n` statt Zeilenumbrüchen (doppelt maskiert in `MainActivity`). (2) SpO₂-Info-Dialog redundant (zwei Quellenzeilen, zwei Validierungshinweise) → zusammengeführt.
 - Nicht angefasst: `GarminFileListProbe` enthält dasselbe `\\n`-Muster in Diagnosetext (BLE-Bereich, OpenCode).
+
+## 2026-11-18 – #6 Testinventur Teil 1 (Branch `claude/test-inventory`)
+- `docs/TEST_INVENTORY_2026-11-18.md`: statischer Abgleich Produktionsdateien ↔ Tests (13 von 169 ohne Testbezug) mit Zuordnung und Folgen. Keine Zeilenabdeckung.
+- Neue Tests: `MainNavigationViewTest` (5 Tabs, Auswahl, Wechsel), `PersonalSettingsDialogTest` (Versionszeile, zweistufige Löschbestätigung, Abbruch behält Profil; per UiAutomation, nur Emulator), `NightOxygenWindowTest` (Nachtfenster inkl. Sommerzeit).
+- Geräte-Hinweis: Auf dem S25 liefen währenddessen Testlabor-Sitzungen anderer Agenten (Build 1034, Testlabor im Vordergrund); ich habe **nicht** installiert oder getippt, um diese nicht zu stören.
