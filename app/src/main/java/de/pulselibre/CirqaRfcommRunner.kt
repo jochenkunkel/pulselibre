@@ -1,5 +1,7 @@
 package de.pulselibre
 
+import android.annotation.SuppressLint
+import android.bluetooth.BluetoothAdapter
 import android.os.Handler
 import android.os.Looper
 import java.io.IOException
@@ -14,6 +16,7 @@ class CirqaRfcommRunner {
     private val transport = CirqaRfcommTransport()
     private val main = Handler(Looper.getMainLooper())
     private val stopped = AtomicBoolean(false)
+    @Volatile private var connected = false
 
     fun stop() { stopped.set(true); transport.cancel() }
 
@@ -23,6 +26,7 @@ class CirqaRfcommRunner {
             return
         }
         stopped.set(false)
+        connected = false
         Thread {
             var report = "RFCOMM: kein Ergebnis."
             val acceptCancel = Runnable { transport.cancel() }
@@ -32,7 +36,10 @@ class CirqaRfcommRunner {
                     CirqaRfcommTransport.Result.GateBlocked -> "RFCOMM: Gate gesperrt."
                     is CirqaRfcommTransport.Result.Failed ->
                         "RFCOMM: Verbindung abgelehnt (${connected.reason})."
-                    is CirqaRfcommTransport.Result.Connected -> runDirectory(connected, result)
+                    is CirqaRfcommTransport.Result.Connected -> {
+                        this@CirqaRfcommRunner.connected = true
+                        runDirectory(connected, result)
+                    }
                 }
             } catch (_: IOException) {
                 report = "RFCOMM: Socket-I/O beendet."
@@ -45,6 +52,27 @@ class CirqaRfcommRunner {
                 main.post { result(finalReport) }
             }
         }.apply { isDaemon = true; name = "cirqa-rfcomm" }.start()
+        // Give the acceptor thread time to register the SPP server socket, then
+        // ask the paired device (read-only SDP) to initiate the RFCOMM link.
+        main.postDelayed({ requestSdp(expectedAddress, result) }, 1_000L)
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun requestSdp(address: String, progress: (String) -> Unit) {
+        if (stopped.get() || connected) return
+        try {
+            val device = BluetoothAdapter.getDefaultAdapter()?.getRemoteDevice(address)
+            if (device == null) {
+                main.post { progress("RFCOMM: kein Bluetooth-Adapter für SDP.") }
+                return
+            }
+            val started = device.fetchUuidsWithSdp()
+            main.post {
+                progress("RFCOMM: SDP-Query ${if (started) "gestartet" else "abgelehnt"}; warte auf Verbindung.")
+            }
+        } catch (_: SecurityException) {
+            main.post { progress("RFCOMM: SDP-Query ohne Berechtigung.") }
+        }
     }
 
     private fun runDirectory(
