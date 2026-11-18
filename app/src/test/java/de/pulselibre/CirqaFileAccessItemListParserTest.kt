@@ -53,4 +53,26 @@ class CirqaFileAccessItemListParserTest {
         val body = frame.copyOfRange(4, frame.size - 2)
         assertArrayEquals(smart, body.copyOfRange(14, body.size))
     }
+
+    @Test fun redactedSummaryClassifiesKnownFitTypesWithoutUid() {
+        val uid = ByteArray(16) { (it + 1).toByte() }
+        val typeText = "FIT_TYPE_72".toByteArray(Charsets.UTF_8)
+        val dataType = byteArrayOf(0x08, 0x01) + field(2, typeText)
+        val ref = field(1, uid) + field(2, dataType) +
+            java.io.ByteArrayOutputStream().apply { write(0x18); write(varint(4321)) }.toByteArray()
+        val item = CirqaFileAccessItemListParser.parse(field(43, field(10, field(4, ref)))).single()
+        assertEquals("FIT_TYPE_72", CirqaFileAccessItemListParser.safeTypeLabel(item))
+        val summary = CirqaFileAccessItemListParser.redactedSummary(listOf(item))
+        assertTrue(summary.contains("FIT_TYPE_72:1"))
+        assertFalse(summary.contains(uid.joinToString("") { "%02x".format(it) }))
+    }
+
+    @Test fun reportsPageContextPresenceWithoutExposingOpaqueIds() {
+        val response = byteArrayOf(0x10, 0x07, 0x18, 0x2a)
+        val smart = field(43, field(10, response))
+        val page = CirqaFileAccessItemListParser.parsePage(smart)!!
+        assertTrue(page.hasSessionId)
+        assertTrue(page.hasNextTransactionId)
+        assertTrue(page.items.isEmpty())
+    }
 }

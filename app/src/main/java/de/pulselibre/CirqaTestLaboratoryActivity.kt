@@ -510,8 +510,10 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
                 "Ein Connect-kompatibler 5043-sync_request nach frischem Bootstrap. " +
                     "Das Gerät kann daraufhin gepufferte Daten liefern und diese " +
                     "geräteseitig als übertragen markieren. Wir senden selbst KEINE " +
-                    "Archiv-, Flag-, Lösch- oder Reset-Befehle. Nur exakte Dateien mit gültigem FIT-CRC " +
-                    "werden privat gespeichert und unterstützte Messwerte importiert. 60-s-Budget, kein Retry; " +
+                    "Archiv-, Flag-, Lösch- oder Reset-Befehle. Dateien werden nur vollständig " +
+                    "und größenvalidiert privat gespeichert; FIT-Dateien zusätzlich nur mit gültigem " +
+                    "FIT-CRC. Unterstützte Messwerte werden importiert. " +
+                    "120-s-Budget, maximal 256 Dateien/64 MiB, kein Retry; " +
                     "Einmal-Gate wird vor dem Verbinden verbraucht."
             )
             .setNegativeButton("Abbrechen", null)
