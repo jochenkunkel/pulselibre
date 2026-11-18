@@ -36,3 +36,8 @@ Fortlaufend, neueste Einträge unten. Jeder Eintrag: Datum, Änderung, Nachweis 
 ## 2026-11-18 – Drilldown Streudiagramm (#44/#45, Branch `claude/scatter`)
 - `ScatterView`: Streudiagramm der echten Wertepaare (Schritte Tag ↔ Geräte-Ruhepuls Folgetag), Achsenbeschriftung, **keine** Trendlinie, Screenreader-Beschreibung mit Anzahl und Wertebereich. Öffnet per Tippen auf die Trendkarte, Hinweis „keine Ursache-Wirkung-Aussage“.
 - Test: `ScatterViewTest` (Instrumentation: Punkte werden gezeichnet; identische Werte ohne Absturz). Optik auf dem S25 ungeprüft.
+
+## 2026-11-18 – #39 SpO₂ (Branch `claude/spo2`)
+- Ist-Stand: Orientierungsskala 95/90 % mit Feature-Gate (`SpO2DisplaySettings`, Standard AUS, neutrale Farbe ohne Geräte-Validierung) bereits von Codex umgesetzt und getestet; unverändert.
+- Neu: `NocturnalOxygen` (reine Logik, **nicht in die UI eingebunden**): Zeit < 90 % und ODI3/ODI4 je Stunde über ein vom Aufrufer gelieferte Uhrzeit-Fenster (keine Schlafphasen). Gates: Fenster ≥ 4 h, Abdeckung ≥ 70 % (jeder Wert gilt höchstens 120 s), ODI nur bei Median-Abstand ≤ 30 s, Werte 50–100 % gültig, keine Interpolation. Ereignis = Abfall ≥ N Punkte gegen das Maximum der vorangehenden 120 s, Wiederbewaffnung nach Erholung auf ≤ 1 Punkt. Sonst „nicht berechenbar“ ohne Zahlen.
+- Tests: `NocturnalOxygenTest` (8). **Blocker:** Geräte-Validierung des CIRQA-Sensors, tatsächliche Abtastrate der SpO₂-Messung und fachliche ODI-Definition (AASM-Version) sind nicht geprüft; die Auswertung bleibt bis dahin unsichtbar und ist keine Diagnose (keine Schlafapnoe-Aussage).
