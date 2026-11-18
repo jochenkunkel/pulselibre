@@ -94,8 +94,20 @@ Feld 2). Damit ist die Dateiverfügbarkeit am CIRQA zweifelsfrei belegt.
 Connect verarbeitet die Pull-Antwort zu `(transferHandle, transport, compressionWindow)`
 (`com.garmin.device.filetransfer.b`, `lh80`) und liest die Bytes anschließend
 über den **MLR-Transport** (`com.garmin.device.filetransfer.mlr.MLRTransportPipe`,
-MultiLink-Service-IDs `8216/0x2018, 16408, …`). Gate V9 protokolliert vorerst
-Ergebnis/Transport/Handle der Pull-Antwort, danach folgt der MLR-Kanal.
+MultiLink-Service-IDs `8216/0x2018, 16408, …`).
+
+**Gate V12 (Build 1067) – Pull erfolgreich:**
+```
+pull[result=0, transport=0, handle=264, path=false, window=null]
+```
+`SUCCESS` + `MULTILINK_TRANSPORT_PIPE` + `transfer_handle=264`. Erstmals auch
+`5043x3`-Frames. Der letzte fehlende Schritt ist der MLR-Datenkanal: Service
+registrieren, `transfer_handle` zuordnen, Rohbytes CRC-/größenvalidiert
+zusammensetzen. Kein FIT-Download und keine Speicherung bisher.
+
+Wichtig: Der Connect-Enum-Wert `MULTILINK_TRANSPORT_PIPE` ist **0** (die DEX
+MUTF-8-Bytes `C0 80` kodieren ein NUL-Byte, nicht 64) – aus der generierten
+Klasse `GDIFileAccess$TransportProtocol` direkt bestätigt.
 
 ## Wichtigste Transporthypothese
 
