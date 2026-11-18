@@ -5,7 +5,7 @@ import android.content.SharedPreferences
 /** Fresh persistent one-shot gate for the Connect-style sync_request test. */
 object CirqaSyncAttemptGate {
     const val RELEASED_FOR_DEVICE_TEST = true
-    const val PREFERENCE_KEY = "cirqaSyncAttemptedV2"
+    const val PREFERENCE_KEY = "cirqaSyncAttemptedV3"
     const val SUMMARY_KEY = "cirqaSyncSummary"
     const val PREFS_NAME = "cirqa_sync_attempt"
 

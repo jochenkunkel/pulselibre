@@ -57,6 +57,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private var syncRequestMode = false
     private var syncAccepted = false
     private val syncFrameCounts = LinkedHashMap<Int, Int>()
+    private var syncProtoShapes = ""
+    private var syncOtherLengths = ""
     private var fileAccessRequestClaimed = false
     private val fileAccessFramer = CirqaRfcommStreamFramer()
     private val fileAccessReassembler = GarminProtobufReassembler()
@@ -359,6 +361,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             syncRequestMode = false
             syncAccepted = false
             syncFrameCounts.clear()
+            syncProtoShapes = ""
+            syncOtherLengths = ""
             fileAccessRequestClaimed = false
             bootstrapAckMode = false
             configurationTestMode = false
@@ -393,6 +397,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             syncRequestMode = false
             syncAccepted = false
             syncFrameCounts.clear()
+            syncProtoShapes = ""
+            syncOtherLengths = ""
             fileAccessRequestClaimed = false
             bootstrapAckMode = false
             configurationTestMode = false
@@ -1417,6 +1423,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         }
         syncRequestMode = true
         syncAccepted = false
+        syncProtoShapes = ""
+        syncOtherLengths = ""
         syncFrameCounts.clear()
         fileAccessListMode = true
         fileAccessRequestClaimed = false
@@ -1438,7 +1446,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     val counts = syncFrameCounts.entries.sortedBy { it.key }
                         .joinToString(",") { "${it.key}x${it.value}" }
                     finish("Sync-Beobachtung: 60-s-Zeitlimit; accepted=$syncAccepted; " +
-                        "frames=$counts.$fileAccessDiag", gatt)
+                        "frames=$counts; proto=[$syncProtoShapes]; other=[$syncOtherLengths]." +
+                        fileAccessDiag, gatt)
                 }
             }, 60_000L)
         }
@@ -1516,6 +1525,10 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             val verified = GarminFrameValidator.inspectVerified(frame) ?: continue
             if (syncRequestMode) {
                 syncFrameCounts[verified.messageType] = (syncFrameCounts[verified.messageType] ?: 0) + 1
+                if (verified.messageType != 5044 && verified.messageType != 5000 &&
+                    syncOtherLengths.length < 220) {
+                    syncOtherLengths += "${verified.messageType}:${frame.size},"
+                }
             }
             if (verified.messageType == 5000) {
                 // The device may reject our 5043 with a GFDI response (e.g. status 2 =
@@ -1536,6 +1549,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     // Connect keeps the connection open after sync_response: the device
                     // begins delivering buffered files only afterwards.
                     syncAccepted = true
+                    syncProtoShapes = (syncProtoShapes + "${CirqaProtobufShapeInspector.nestedShape(msg)};").take(400)
                     main.post { mark("Sync akzeptiert ($report); beobachte weitere Frames") }
                 } else {
                     finish("FileAccess ItemList: $report. ${fileAccessReassembler.summary()}", g)
@@ -2125,7 +2139,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             callback?.invoke(
                 if (fileAccessListMode) "${if (syncRequestMode) "SyncRequest" else "FileAccess-ItemList"}: $message; " +
                     "${fileAccessReassembler.summary()}; requestSent=$fileAccessRequestClaimed; " +
-                    "accepted=$syncAccepted; response=$fileAccessDiag"
+                    "accepted=$syncAccepted; proto=[$syncProtoShapes]; other=[$syncOtherLengths]; " +
+                    "response=$fileAccessDiag"
                 else if (dirReadSession != null) dirReadSession!!.summary() +
                     " [acks5004=$acks5004Queued,acks5043=$acks5043Queued," +
                     "pendingWrites=${deferredAckWrites.size},writePending=$mlWritePending," +
@@ -2154,6 +2169,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             syncRequestMode = false
             syncAccepted = false
             syncFrameCounts.clear()
+            syncProtoShapes = ""
+            syncOtherLengths = ""
             fileAccessRequestClaimed = false
             bootstrapAckMode = false
             configurationTestMode = false
