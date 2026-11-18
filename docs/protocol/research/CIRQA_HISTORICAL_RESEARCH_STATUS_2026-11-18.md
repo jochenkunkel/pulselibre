@@ -100,10 +100,18 @@ MultiLink-Service-IDs `8216/0x2018, 16408, …`).
 ```
 pull[result=0, transport=0, handle=264, path=false, window=null]
 ```
-`SUCCESS` + `MULTILINK_TRANSPORT_PIPE` + `transfer_handle=264`. Erstmals auch
-`5043x3`-Frames. Der letzte fehlende Schritt ist der MLR-Datenkanal: Service
-registrieren, `transfer_handle` zuordnen, Rohbytes CRC-/größenvalidiert
-zusammensetzen. Kein FIT-Download und keine Speicherung bisher.
+`SUCCESS` + `MULTILINK_TRANSPORT_PIPE` + `transfer_handle=264`.
+
+**Gate V16 (Build 1073) – MLR-Daten empfangen:**
+Nach Registrierung von Service `8216/0x2018` (Handle 105) und Connect's
+Konfigurationsframe `[0x00, DIRECTION_READ, u32LE transferHandle]` lieferte das
+Gerät **35 Chunks / 4844 Bytes** – passend zur ersten Datei (4841 B + Overhead).
+Die komplette Kette ist damit am echten CIRQA nachgebaut:
+`sync_request → sync_response → item_list_request → item_list_response(31 Dateien)
+→ pull_item_request → pull_item_response(SUCCESS, handle) → MLR-Service → Rohbytes`.
+
+Gate V17 ergänzt Integritätsdiagnostik (Länge, Magic, FIT-Header, SHA-256),
+aber noch keine Speicherung. Kein Archiv-/Flag-/Löschbefehl gesendet.
 
 Wichtig: Der Connect-Enum-Wert `MULTILINK_TRANSPORT_PIPE` ist **0** (die DEX
 MUTF-8-Bytes `C0 80` kodieren ein NUL-Byte, nicht 64) – aus der generierten
