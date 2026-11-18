@@ -51,3 +51,8 @@ Fortlaufend, neueste Einträge unten. Jeder Eintrag: Datum, Änderung, Nachweis 
 
 ## 2026-11-18 – Revalidierung R01–R12 (#5, Branch `claude/audit-5`)
 - Ergebnis in `docs/AUDIT_REVALIDATION_2026-11-18.md`. Nur Code-Lektüre, keine neuen Tests. Offen: Test „Diagnoseexport ohne Rohdaten“, Herkunft `device_id` im CSV; R06/R07/R10 → OpenCode; R09 dokumentiert.
+
+## 2026-11-18 – #79 Verlauf-Moduswechsel (Branch `claude/history-perf`)
+- **Messung vorher (S25, Build 989, 112 311 Ereignisse, ~16 000 Pulswerte/24 h):** Wechsel 24 h/7 d/30 d dauerte bis zum stabilen Bild ca. 1,5–12 s (grobe adb-Screenshot-Messung, Schwankungen durch Messmethode). Ursachen im Code: synchroner Lesevorgang auf dem UI-Thread, `julianday()`-Filter ohne Indexnutzung, JSON-Parsing aller Zeilen bei jedem Wechsel.
+- **Änderung:** `HistoryDataCache` (einmalige indizierte Abfrage der letzten 30 Tage in primitive Arrays, danach nur neue Ereignisse nach `id`; alle Bereiche sind Ausschnitte), Laden im Hintergrund mit Generations-Token (nur die neueste Anfrage rendert), Lade-Hinweis, Invalidierung bei Backup-Wiederherstellung/Reset und bei Datenbankwechsel. `HistoryBucket` enthält jetzt zusätzlich den arithmetischen Mittelwert (Min/Max/Median/Mittel/Anzahl).
+- Tests: `HistoryPointStoreTest` (4), Instrumentationstest für asynchrones Rendern. **Nicht erledigt:** Phase B/C des Issues (persistente Rollup-Tabellen), Mittelwert noch nicht in der Anzeige.
