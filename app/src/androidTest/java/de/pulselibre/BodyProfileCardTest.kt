@@ -76,7 +76,7 @@ class BodyProfileCardTest {
         }
     }
 
-    @Test fun quickWeightCancelKeepsValueAndInvalidInputIsRejected() = withProfile {
+    @Test fun quickWeightCancelKeepsValueAndStepsChangeOnlyTheEditor() = withProfile {
         prefs.edit().putString("height_cm", "180").putString("weight_kg", "80").commit()
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
@@ -85,14 +85,16 @@ class BodyProfileCardTest {
                 assertTrue("kein Waagen-Button mehr unter der Karte", all(activity.findViewById(android.R.id.content)).none { it.tag == "body_scale_button" })
                 row.performClick()
             }
-            instrumentation.waitForIdleSync()
-            assertNotNull(find("Gewicht (kg)"))
-            // a step changes only the editor, not the stored value
-            scenario.onActivity { activity ->
-                val plus = all(activity.window.decorView).firstOrNull { it.tag == "weight_plus" }
-                // the dialog has its own window; fall back to the accessibility tree
+            val dialog = DialogTestSupport.awaitDialog("Gewicht (kg)")
+            // + raises the editor by 0.1 kg but stores nothing
+            var shown = ""
+            instrumentation.runOnMainSync {
+                val plus = all(dialog.window!!.decorView).first { it.tag == "weight_plus" }
+                plus.performClick()
+                shown = all(dialog.window!!.decorView).filterIsInstance<android.widget.EditText>().first().text.toString()
             }
-            click(find("Abbrechen")!!)
+            assertEquals("80,1", shown)
+            DialogTestSupport.clickButton(dialog, androidx.appcompat.app.AlertDialog.BUTTON_NEGATIVE)
             Thread.sleep(300)
             assertEquals("80", prefs.getString("weight_kg", null))
         }

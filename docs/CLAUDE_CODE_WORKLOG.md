@@ -165,3 +165,7 @@ Noch sichtbar offen (P3): Nacht-Insights erste Spalte „22–6 Uhr / 22331 / We
 ## 2026-11-18 – #6 Teil 2 (Branch `claude/audit-6b`)
 - `docs/AUDIT_TEIL2_2026-11-18.md`: JaCoCo-Unit-Abdeckung (Zeilen 31,1 %, untere Schranke ohne Emulator-Tests), Manifest/Gradle/Workflow-Prüfung, MASVS-Kurzabgleich. Wichtigster Befund: die verteilte „Update-APK“ ist ein **debuggbarer Debug-Build** (run-as konnte die Datenbank lesen).
 - `enableUnitTestCoverage = true` im Debug-Build (JaCoCo-Bericht lokal mit `:app:createDebugUnitTestCoverageReport`).
+
+## 2026-11-18 – Stabile Dialog-Tests (Branch `claude/test-probe`)
+- Die UiAutomation-basierten Dialogtests (`PersonalSettingsDialogTest`, `BodyProfileCardTest`) fielen auf frisch gebooteten CI-Emulatoren sporadisch aus (aktives Fenster nicht der Dialog), lokal liefen sie. Umstellung auf `DialogProbe` (zuletzt gezeigter Dialog) + `DialogTestSupport`: Dialoginhalt und Buttons werden direkt geprüft, ohne UiAutomation. Zusätzlich prüft der Gewichtstest jetzt, dass „+“ den Editor auf 80,1 setzt, aber nichts speichert.
+- Lokal: 49/49 Instrumentationstests im Emulator grün (5,5 min).

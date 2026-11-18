@@ -275,12 +275,12 @@ object PersonalSettings {
         dialog.setOnShowListener {
             deleteButton.setOnClickListener {
                 // Two separate confirmations: scope first, then the irreversible final step.
-                AlertDialog.Builder(context)
+                DialogProbe.track(AlertDialog.Builder(context)
                     .setTitle("Profil löschen?")
                     .setMessage("Alle Profilangaben (Name, Körperdaten, Ziele, Einstellungen) werden entfernt. Messdaten bleiben erhalten.")
                     .setNegativeButton("Abbrechen", null)
                     .setPositiveButton("Weiter") { _, _ ->
-                        AlertDialog.Builder(context)
+                        DialogProbe.track(AlertDialog.Builder(context)
                             .setTitle("Wirklich endgültig löschen?")
                             .setMessage("Das Löschen kann nicht rückgängig gemacht werden.")
                             .setNegativeButton("Abbrechen", null)
@@ -288,8 +288,8 @@ object PersonalSettings {
                                 p.edit().clear().apply()
                                 onSaved()
                                 dialog.dismiss()
-                            }.show()
-                    }.show()
+                            }.create()).show()
+                    }.create()).show()
             }
             saveButton.setOnClickListener {
                 fun intValue(v: EditText, min: Int, max: Int): Boolean =
@@ -338,6 +338,6 @@ object PersonalSettings {
                 AppAppearance.save(context, ThemePreference.entries[themeChoice.selectedItemPosition])
             }
         }
-        dialog.show()
+        DialogProbe.track(dialog).show()
     }
 }
