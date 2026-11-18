@@ -791,6 +791,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private val deferredAckWrites = java.util.ArrayDeque<ByteArray>()
     private var acks5004Queued = 0
     private var acks5043Queued = 0
+    private var ack5004Hex = ""
 
     private fun queueAck(g: BluetoothGatt, bytes: ByteArray) {
         deferredAckWrites.addLast(bytes)
@@ -931,7 +932,10 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                                 if (d.dataFramesProcessed != beforeDataFrames) {
                                     val ackOffset = d.nextAckOffset() ?: return
                                     acks5004Queued++
-                                    queueAck(g, CirqaLegacy5004AckCandidate.mlGattValueCandidate(handle, ackOffset))
+                                    val ack = CirqaLegacy5004AckCandidate.mlGattValueCandidate(handle, ackOffset)
+                                    if (ack5004Hex.isEmpty()) ack5004Hex =
+                                        ack.joinToString("") { "%02x".format(it) }
+                                    queueAck(g, ack)
                                 }
                                 return
                             }
@@ -1340,6 +1344,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         dirReadSession = session
         acks5004Queued = 0
         acks5043Queued = 0
+        ack5004Hex = ""
         deferredAckWrites.clear()
         configurationTestMode = false
         // Cancel the stale 5 s response timer from the 5002 request; the body stream
@@ -1935,7 +1940,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             callback?.invoke(
                 if (dirReadSession != null) dirReadSession!!.summary() +
                     " [acks5004=$acks5004Queued,acks5043=$acks5043Queued," +
-                    "pendingWrites=${deferredAckWrites.size},writePending=$mlWritePending]" +
+                    "pendingWrites=${deferredAckWrites.size},writePending=$mlWritePending," +
+                    "ack5004=$ack5004Hex]" +
                     " [finish=$message]"
                 else if (historicalSyncV1 != null) historicalSyncV1!!.summary() + " [finish=$message]"
                 else if (legacy5030Only != null) legacy5030Only!!.summary()

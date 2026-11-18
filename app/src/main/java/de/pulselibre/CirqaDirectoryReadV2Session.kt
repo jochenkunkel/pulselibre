@@ -34,6 +34,8 @@ class CirqaDirectoryReadV2Session(val token: Any = Any()) {
         private set
     var eventLog = ""
         private set
+    var firstChunkParse = ""
+        private set
     private var startedAtMs = 0L
     private val controlTypes = LinkedHashMap<Int, Int>()
     private val protobufReassembler = GarminProtobufReassembler()
@@ -123,6 +125,12 @@ class CirqaDirectoryReadV2Session(val token: Any = Any()) {
         if (chunk.payload.isEmpty() || receivedBytes + chunk.payload.size > expectedSize) {
             return fail("size-error", Result.MALFORMED)
         }
+        if (chunkCount == 0) {
+            val parsed = CirqaLegacyDirectoryParser.parse(chunk.payload)
+            firstChunkParse = if (parsed == null) "parse-null" else
+                "entries=${parsed.entries.size}; idx0=${parsed.entries.firstOrNull()?.fileIndex}" +
+                    "; type0=${parsed.entries.firstOrNull()?.type}"
+        }
         bytes.write(chunk.payload)
         prevCrc = crc
         crc = updated
@@ -187,8 +195,8 @@ class CirqaDirectoryReadV2Session(val token: Any = Any()) {
     @Synchronized fun summary(): String =
         "DirectoryReadV2: phase=$phase; reason=$reason; size=$expectedSize/$receivedBytes; chunks=$chunkCount; " +
             "notifs=$notificationsSeen; frames=$framesSeen; dataFrames=$dataFramesProcessed; " +
-            "control=$controlFrameTypes; events=$eventLog; protobuf=$protobufDiag; " +
-            "entries=$directoryEntries; fitCandidates=$fitCandidates; $redactedEntryReport"
+            "control=$controlFrameTypes; events=$eventLog; firstChunk=$firstChunkParse; " +
+            "protobuf=$protobufDiag; entries=$directoryEntries; fitCandidates=$fitCandidates; $redactedEntryReport"
 
     private fun complete(): Result {
         val data = bytes.toByteArray()
