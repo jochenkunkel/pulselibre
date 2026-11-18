@@ -85,6 +85,7 @@ class BodyProfileCardTest {
                 assertTrue("kein Waagen-Button mehr unter der Karte", all(activity.findViewById(android.R.id.content)).none { it.tag == "body_scale_button" })
                 row.performClick()
             }
+            instrumentation.waitForIdleSync()
             assertNotNull(find("Gewicht (kg)"))
             // a step changes only the editor, not the stored value
             scenario.onActivity { activity ->

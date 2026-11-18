@@ -36,6 +36,7 @@ class PersonalSettingsDialogTest {
         prefs.edit().putString("display_name", "Testperson").commit()
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
             scenario.onActivity { PersonalSettings.show(it) }
+            instrumentation.waitForIdleSync()
             assertNotNull("Versionszeile fehlt", find("Build"))
             assertNotNull("Entwicklerangabe fehlt", find("Jochen Kunkel"))
             assertNotNull("Hinweis zum violetten Rand fehlt", find("Violetter Rand"))
@@ -59,6 +60,7 @@ class PersonalSettingsDialogTest {
         prefs.edit().putString("display_name", "Testperson").commit()
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
             scenario.onActivity { PersonalSettings.show(it) }
+            instrumentation.waitForIdleSync()
             click(find("Profil löschen …")!!)
             assertNotNull(find("Profil löschen?"))
             click(find("Abbrechen")!!)
