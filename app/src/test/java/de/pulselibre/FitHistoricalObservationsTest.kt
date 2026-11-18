@@ -72,6 +72,50 @@ class FitHistoricalObservationsTest {
         assertEquals("steps", steps.unit)
     }
 
+    @Test fun scalesDistanceAndSpeedAndRetainsPowerInProfileUnits() {
+        val data = byteArrayOf(
+            0x40, 0, 0, 20, 0, 4,
+            253.toByte(), 4, 0x86.toByte(),
+            5, 4, 0x86.toByte(),
+            6, 2, 0x84.toByte(),
+            7, 2, 0x84.toByte(),
+            0
+        ) + u32(210_000) + u32(12_345) + byteArrayOf(0x29, 0x09, 0x41, 0x01)
+        val observations = FitHistoricalObservations.decode(fit(data))!!.observations
+        assertEquals(123.45, observations.single {
+            it.metric == FitHistoricalObservations.Metric.DISTANCE
+        }.value, 0.0001)
+        assertEquals(2.345, observations.single {
+            it.metric == FitHistoricalObservations.Metric.SPEED
+        }.value, 0.0001)
+        assertEquals(321.0, observations.single {
+            it.metric == FitHistoricalObservations.Metric.POWER
+        }.value, 0.0)
+        assertTrue(observations.all {
+            it.timestampEpochMillis == (210_000L + 631_065_600L) * 1_000L
+        })
+    }
+
+    @Test fun recordsMissingTimestampAndOutOfDisplayRangeHeartRateExplicitly() {
+        val missingTimestamp = byteArrayOf(
+            0x40, 0, 0, 20, 0, 1,
+            3, 1, 2,
+            0, 72
+        )
+        val missing = FitHistoricalObservations.decode(fit(missingTimestamp))!!.observations.single()
+        assertNull(missing.timestampEpochMillis)
+        assertEquals(FitHistoricalObservations.Quality.MISSING_TIMESTAMP, missing.quality)
+
+        val outOfRangeData = byteArrayOf(
+            0x40, 0, 0, 20, 0, 2,
+            253.toByte(), 4, 0x86.toByte(),
+            3, 1, 2,
+            0
+        ) + u32(220_000) + byteArrayOf(250.toByte())
+        val outOfRange = FitHistoricalObservations.decode(fit(outOfRangeData))!!.observations.single()
+        assertEquals(FitHistoricalObservations.Quality.OUTSIDE_DISPLAY_RANGE, outOfRange.quality)
+    }
+
     @Test fun developerFieldsAreSkippedUsingTheirDeclaredLengths() {
         val data = byteArrayOf(
             0x60, 0, 0, 20, 0, 2,
