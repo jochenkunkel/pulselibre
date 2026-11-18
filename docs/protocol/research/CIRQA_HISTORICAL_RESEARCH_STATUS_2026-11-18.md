@@ -63,10 +63,24 @@ Damit ist bestätigt: Das CIRQA akzeptiert den Connect-kompatiblen Sync-Request
 und antwortet mit `sync_response`. Die früheren `file_access_service`-Requests
 blieben ohne Antwort, weil der Sync nicht angestoßen wurde.
 
-**Nächster Schritt (Gate V2):** Connect trennt erst **nach** der `sync_response`
-nicht – das Gerät beginnt danach, gepufferte Dateien zu liefern. Die Session
-hält die Verbindung jetzt 60 s offen und zählt alle eingehenden GFDI-Frame-Typen
-(redigiert). Kein FIT-Download, keine Archiv-/Flag-Befehle.
+**Gate V6/V7 – weiterer Durchbruch:** Das ACK der eingehenden 5044 (wie Connect)
+reduzierte die 3 Wiederholungen auf eine. Das anschließende
+`file_access_service`-Item-List-Request (nach `sync_response`) wurde beantwortet:
+```
+accepted=true; itemListSent=true; 5044x4;
+proto=[13:2[2:2]; 43:2[10:2];]
+```
+Die zweite Antwort ist **`Smart.file_access_service(43) → Service.item_list_response(10)`**
+– das Gerät besitzt also sehr wohl abrufbare Dateien. Die 12×5024 sind
+Device-Info (keine File-Chunks; unplausible Offsets).
+
+Aus der Binary extrahierte Felder für den Download:
+`ItemListResponse{status=1, session_id=2, next_transaction_id=3, items=4}`,
+`ItemReference{uid=1, data_type=2, data_size=3, flags=4, transaction_id=5}`,
+`Service.pull_item_request=1`, `PullItemDataRequest{item=1, priority=2, supported_transports=3, offset=4}`.
+
+Die UID muss nicht interpretiert werden; ihre rohen Bytes werden unverändert
+in den Pull-Request übernommen. Parser und Pull-Builder entstehen offline.
 
 ## Wichtigste Transporthypothese
 

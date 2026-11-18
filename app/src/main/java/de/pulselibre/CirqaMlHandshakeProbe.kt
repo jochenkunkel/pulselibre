@@ -60,6 +60,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private var syncProtoShapes = ""
     private var syncOtherLengths = ""
     private var syncItemListSent = false
+    private var syncPullSent = false
+    private var syncItemSummary = ""
     private var syncFinalReport = ""
     private var fileAccessRequestClaimed = false
     private val fileAccessFramer = CirqaRfcommStreamFramer()
@@ -366,6 +368,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             syncProtoShapes = ""
             syncOtherLengths = ""
             syncItemListSent = false
+            syncPullSent = false
+            syncItemSummary = ""
             fileAccessRequestClaimed = false
             bootstrapAckMode = false
             configurationTestMode = false
@@ -403,6 +407,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             syncProtoShapes = ""
             syncOtherLengths = ""
             syncItemListSent = false
+            syncPullSent = false
+            syncItemSummary = ""
             fileAccessRequestClaimed = false
             bootstrapAckMode = false
             configurationTestMode = false
@@ -1431,6 +1437,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         syncOtherLengths = ""
         syncFinalReport = ""
         syncItemListSent = false
+        syncPullSent = false
+        syncItemSummary = ""
         syncFrameCounts.clear()
         fileAccessListMode = true
         fileAccessRequestClaimed = false
@@ -1452,7 +1460,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     val counts = syncFrameCounts.entries.sortedBy { it.key }
                         .joinToString(",") { "${it.key}x${it.value}" }
                     syncFinalReport = "Sync-Beobachtung: 60-s-Zeitlimit; accepted=$syncAccepted; " +
-                        "itemListSent=$syncItemListSent; frames=$counts; " +
+                        "itemListSent=$syncItemListSent; pullSent=$syncPullSent; " +
+                        "items=[$syncItemSummary]; frames=$counts; " +
                         "proto=[$syncProtoShapes]; other=[$syncOtherLengths]." +
                         fileAccessDiag
                     finish(syncFinalReport, gatt)
@@ -1575,6 +1584,18 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     // begins delivering buffered files only afterwards.
                     syncAccepted = true
                     syncProtoShapes = (syncProtoShapes + "${CirqaProtobufShapeInspector.nestedShape(msg)};").take(400)
+                    // An item_list_response carries real, readable items. Parse it and
+                    // request the first one; UIDs stay in memory and are never reported.
+                    val items = CirqaFileAccessItemListParser.parse(msg)
+                    if (items.isNotEmpty() && !syncPullSent) {
+                        syncPullSent = true
+                        syncItemSummary = CirqaFileAccessItemListParser.redactedSummary(items)
+                        val pullHandle = historyHandle
+                        if (pullHandle != null) {
+                            queueAck(g, CirqaFileAccessPullRequest.mlValue(pullHandle, 3, items.first()))
+                        }
+                        main.post { mark("FileAccess-Dateien gefunden: $syncItemSummary; pull gesendet") }
+                    }
                     // Connect requests the pending file list only AFTER sync_response.
                     val handle = historyHandle
                     if (handle != null && !syncItemListSent) {
@@ -2206,6 +2227,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             syncProtoShapes = ""
             syncOtherLengths = ""
             syncItemListSent = false
+            syncPullSent = false
+            syncItemSummary = ""
             fileAccessRequestClaimed = false
             bootstrapAckMode = false
             configurationTestMode = false
