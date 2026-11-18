@@ -97,5 +97,5 @@ internal object HistoryDataCache {
 /** Read-only, time-bounded projection of stored CIRQA heart-rate and SpO₂ readings (served from [HistoryDataCache]). */
 class CirqaHistoryReader(private val context: Context) {
     fun read(range: HistoryRange, now: Instant = Instant.now()): HistorySnapshot =
-        HistoryDataCache.snapshot(context.applicationContext, range, now)
+        HistoryDataCache.snapshot(context, range, now)
 }

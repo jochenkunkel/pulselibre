@@ -35,8 +35,19 @@ class HistoryOverviewViewTest {
             assertEquals(HistoryRange.DAY.label, (controls.single { it.isSelected } as TextView).text)
             val week = descendants(view).single { it.contentDescription?.startsWith("7 Tage") == true }
             week.performClick()
+        }
+        // The range switch now loads off the UI thread; wait for the newest request to render.
+        val deadline = System.currentTimeMillis() + 5000
+        var selected = false
+        while (System.currentTimeMillis() < deadline && !selected) {
+            Thread.sleep(50)
+            InstrumentationRegistry.getInstrumentation().runOnMainSync {
+                selected = descendants(view).singleOrNull { it.contentDescription?.startsWith("7 Tage") == true }?.isSelected == true
+            }
+        }
+        InstrumentationRegistry.getInstrumentation().runOnMainSync {
             assertEquals(HistoryRange.WEEK, requested)
-            assertTrue(descendants(view).single { it.contentDescription?.startsWith("7 Tage") == true }.isSelected)
+            assertTrue(selected)
             assertTrue(containsText(view, "Keine Messdaten in diesem Zeitraum"))
         }
     }
