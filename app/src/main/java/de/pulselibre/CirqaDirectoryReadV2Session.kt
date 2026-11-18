@@ -20,6 +20,8 @@ class CirqaDirectoryReadV2Session(val token: Any = Any()) {
         private set
     var chunkCount = 0
         private set
+    var nonDataFrames = 0
+        private set
     var directoryEntries = 0
         private set
     var fitCandidates = 0
@@ -49,7 +51,14 @@ class CirqaDirectoryReadV2Session(val token: Any = Any()) {
         val frame = decodeSingleFrame(payload) ?: return fail("bad-cobs", Result.MALFORMED)
         if (GarminFrameValidator.inspectVerified(frame) == null) return fail("gfdi-crc-error", Result.MALFORMED)
         val h = GarminGfdiHeader.inspect(frame) ?: return fail("bad-envelope", Result.MALFORMED)
-        if (h.type != 5004 || h.compact) return fail("unexpected-type", Result.MALFORMED)
+        // Control/status frames (GFDI 5000 responses incl. our ACK, and device
+        // protobuf messages) may interleave the data stream. Count and ignore them;
+        // only 5004 frames carry directory bytes.
+        if (h.type != 5004) {
+            nonDataFrames++
+            return Result.DUPLICATE
+        }
+        if (h.compact) return fail("compact-frame", Result.MALFORMED)
         val body = frame.copyOfRange(4, frame.size - 2)
         val chunk = CirqaLegacyTransferDecoder.plainChunk(body)
             ?: return fail("bad-chunk-header", Result.MALFORMED)
