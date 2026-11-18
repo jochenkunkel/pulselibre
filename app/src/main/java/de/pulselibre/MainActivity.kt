@@ -28,6 +28,8 @@ class MainActivity : AppCompatActivity() {
     private var cirqaLink = CirqaLinkStatus.Result(CirqaLinkStatus.Kind.UNAVAILABLE, false, "")
     private var historyRefresh: (() -> Unit)? = null
     private var deviceOverviewRef: DeviceOverviewView? = null
+    /** Re-reads the profile into the overview card; also needed after saving via the header settings button. */
+    private var refreshBodyCardRef: (() -> Unit)? = null
     private var deviceStatsLoadedAt = 0L
     private var dashboardVisible = true
     private var historyVisible = false
@@ -212,6 +214,7 @@ class MainActivity : AppCompatActivity() {
             isFocusable = true
             setOnClickListener {
                 PersonalSettings.show(this@MainActivity) {
+                    refreshBodyCardRef?.invoke()
                     dashboardLastEventId = -1L
                     dashboardLastRefreshAt = 0L
                 }
@@ -425,6 +428,7 @@ class MainActivity : AppCompatActivity() {
                 }
         }
         refreshBodyCard()
+        refreshBodyCardRef = ::refreshBodyCard
         bodyCard.isClickable = true
         bodyCard.isFocusable = true
         bodyCard.setOnClickListener {

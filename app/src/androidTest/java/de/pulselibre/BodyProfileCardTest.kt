@@ -99,4 +99,28 @@ class BodyProfileCardTest {
             assertEquals("80", prefs.getString("weight_kg", null))
         }
     }
+
+    /** Regression: saving via the header settings button must refresh the profile card (height/weight stayed "–"). */
+    @Test fun savingViaHeaderSettingsButtonRefreshesProfileCard() {
+        prefs.edit().remove("height_cm").remove("weight_kg").commit()
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            scenario.onActivity { activity ->
+                // values appear in the dialog fields only; the card still shows "–" until saved via the header button
+                prefs.edit().putString("height_cm", "196").putString("weight_kg", "99.2").commit()
+                val button = all(activity.findViewById(android.R.id.content)).filterIsInstance<android.widget.ImageView>()
+                    .first { it.contentDescription?.toString()?.startsWith("CIRQA-Verbindungsstatus:") == true }
+                button.performClick()
+            }
+            val settings = DialogTestSupport.awaitDialog("Speichern")
+            DialogTestSupport.clickText(settings, "Speichern")
+            val end = System.currentTimeMillis() + 10000
+            var ok = false
+            while (System.currentTimeMillis() < end && !ok) {
+                scenario.onActivity { ok = texts(it).contains("196 cm") && texts(it).contains("99.2 kg") }
+                Thread.sleep(200)
+            }
+            assertTrue("Profilkarte zeigt Größe/Gewicht nach Speichern nicht", ok)
+        }
+        prefs.edit().remove("height_cm").remove("weight_kg").commit()
+    }
 }

@@ -178,3 +178,8 @@ Noch sichtbar offen (P3): Nacht-Insights erste Spalte „22–6 Uhr / 22331 / We
 ## 2026-11-18 · Absturz beim Öffnen der Konfig (Fund am S25)
 - Ursache (logcat S25): `ClassCastException Integer→String` in `PersonalSettings.newField` (`getString`), weil SpO₂-Schwellen als Int im gleichen Prefs-Store liegen. Tritt auf, sobald die SpO₂-Skala einmal gespeichert wurde.
 - Fix: Wert über `prefs.all[key]?.toString()` lesen; Regressionstest `opensWithIntegerStoredSpo2ThresholdsWithoutCrashing`.
+
+## 2026-11-18 · Profilkarte nach Speichern über Header-Button
+- Fund am S25: Größe/Gewicht in der Konfig gespeichert (Prefs enthalten 196 / 99.2), Übersicht zeigte „–“.
+- Ursache: Der Config-Button im Header übergab beim Speichern keinen Refresh der Profilkarte (nur der Tap auf die Karte tat es).
+- Fix: `refreshBodyCardRef` wird auch aus dem Header-Callback aufgerufen; Regressionstest `savingViaHeaderSettingsButtonRefreshesProfileCard`.
