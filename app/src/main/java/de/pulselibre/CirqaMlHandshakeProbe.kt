@@ -59,6 +59,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private val syncFrameCounts = LinkedHashMap<Int, Int>()
     private var syncProtoShapes = ""
     private var syncOtherLengths = ""
+    private var syncFinalReport = ""
     private var fileAccessRequestClaimed = false
     private val fileAccessFramer = CirqaRfcommStreamFramer()
     private val fileAccessReassembler = GarminProtobufReassembler()
@@ -1425,6 +1426,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         syncAccepted = false
         syncProtoShapes = ""
         syncOtherLengths = ""
+        syncFinalReport = ""
         syncFrameCounts.clear()
         fileAccessListMode = true
         fileAccessRequestClaimed = false
@@ -1445,9 +1447,10 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                 if (active && fileAccessListMode) {
                     val counts = syncFrameCounts.entries.sortedBy { it.key }
                         .joinToString(",") { "${it.key}x${it.value}" }
-                    finish("Sync-Beobachtung: 60-s-Zeitlimit; accepted=$syncAccepted; " +
+                    syncFinalReport = "Sync-Beobachtung: 60-s-Zeitlimit; accepted=$syncAccepted; " +
                         "frames=$counts; proto=[$syncProtoShapes]; other=[$syncOtherLengths]." +
-                        fileAccessDiag, gatt)
+                        fileAccessDiag
+                    finish(syncFinalReport, gatt)
                 }
             }, 60_000L)
         }
@@ -2150,7 +2153,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             }
             gatt = null
             callback?.invoke(
-                if (fileAccessListMode) "${if (syncRequestMode) "SyncRequest" else "FileAccess-ItemList"}: $message; " +
+                if (syncFinalReport.isNotEmpty()) syncFinalReport
+                else if (fileAccessListMode) "${if (syncRequestMode) "SyncRequest" else "FileAccess-ItemList"}: $message; " +
                     "${fileAccessReassembler.summary()}; requestSent=$fileAccessRequestClaimed; " +
                     "accepted=$syncAccepted; proto=[$syncProtoShapes]; other=[$syncOtherLengths]; " +
                     "response=$fileAccessDiag"
