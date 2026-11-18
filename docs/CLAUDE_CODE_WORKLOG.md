@@ -48,3 +48,6 @@ Fortlaufend, neueste Einträge unten. Jeder Eintrag: Datum, Änderung, Nachweis 
 - SpO₂-Farbskala 95/90 % jetzt standardmäßig aktiv (`OWNER_ACCEPTED_UNVALIDATED`); Texte in Karte und Einstellungen benennen den Zustand („vom Nutzer akzeptiert, Sensor NICHT validiert“).
 - Nacht-Insights zeigen jetzt echte Werte aus `NocturnalOxygen` für die letzte Uhrzeit-Nacht 22–6 Uhr (`NightOxygenReader`); die mathematischen Gates (Abdeckung ≥ 70 %, ODI nur bei dichter Abtastung) bleiben bewusst bestehen, sonst „nicht berechenbar“ – das sind Rechengrenzen, keine Validierungsgates.
 - Weiterhin nicht umsetzbar ohne Datenquelle: Schlaf/Regeneration (#43), VO₂max/Fitnessalter (#46/#47).
+
+## 2026-11-18 – Revalidierung R01–R12 (#5, Branch `claude/audit-5`)
+- Ergebnis in `docs/AUDIT_REVALIDATION_2026-11-18.md`. Nur Code-Lektüre, keine neuen Tests. Offen: Test „Diagnoseexport ohne Rohdaten“, Herkunft `device_id` im CSV; R06/R07/R10 → OpenCode; R09 dokumentiert.
