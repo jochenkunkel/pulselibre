@@ -71,6 +71,27 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
         val metric = steps.copy(title = "Schritte heute",
             value = count?.let { "${integers.format(it)} Schritte" } ?: "Keine Messdaten")
         return card(metric).apply {
+            // Background layer: faint 15-minute bars behind all texts, clipped to the rounded tile (#122).
+            val bars = StepBarsView(context, palette.accent)
+            addView(bars, 0, android.widget.FrameLayout.LayoutParams(-1, -1))
+            clipToOutline = true
+            val trendNote = label("", 11f, muted).apply { tag = "dashboard_step_trend_note"; visibility = View.GONE }
+            fun showSteps(series: StepIntervals.Series?) {
+                bars.show(series)
+                val base = contentDescription.toString().substringBefore(" Aktivitätsverlauf").substringBefore(" Tagesverlauf noch")
+                if (series == null) return
+                if (series.observed > 0) {
+                    contentDescription = "$base Aktivitätsverlauf in 15-Minuten-Intervallen, teilweise verfügbar (${series.observed} von ${series.values.size} Intervallen)."
+                    trendNote.visibility = View.GONE
+                } else {
+                    contentDescription = "$base Tagesverlauf noch nicht verfügbar."
+                    trendNote.text = "Tagesverlauf noch nicht verfügbar"
+                    trendNote.visibility = View.VISIBLE
+                }
+            }
+            stepBarsTarget = ::showSteps
+            if (cachedStepSeries != null) showSteps(cachedStepSeries)
+            if (cachedStepSeries == null || System.currentTimeMillis() - cachedStepAt > STEP_CACHE_MS) loadStepSeries()
             content.addView(header(metric))
             content.addView(label(metric.value, 22f, ink, true))
             val targetText = target?.let { "Tagesziel · ${integers.format(it)} Schritte" }
@@ -92,7 +113,30 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
                     importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
                 }, LayoutParams(-1, dp(12)))
             }
+            content.addView(trendNote, LayoutParams(-1, -2).apply { topMargin = dp(4) })
         }
+    }
+
+    private var stepBarsTarget: ((StepIntervals.Series?) -> Unit)? = null
+
+    /** Reads today's step counter observations once (cached) and fills whichever step tile is on screen. */
+    private fun loadStepSeries() {
+        if (stepLoading) return
+        stepLoading = true
+        val app = context.applicationContext
+        Thread {
+            val series = try {
+                val zone = java.time.ZoneId.systemDefault()
+                val now = java.time.Instant.now()
+                val day = DashboardDay(java.time.LocalDate.now(zone), zone)
+                val read = DashboardDayReader(app).read(DashboardMeasurement.STEPS, day, now)
+                StepIntervals.compute(read.points, day)
+            } catch (_: Exception) { null }
+            cachedStepSeries = series
+            cachedStepAt = System.currentTimeMillis()
+            stepLoading = false
+            post { if (isAttachedToWindow) stepBarsTarget?.invoke(series) }
+        }.start()
     }
 
     private fun pulseCard(metric: DashboardMetric, activity: StepActivityEstimate): MetricCard {
@@ -150,7 +194,9 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
                 return
             }
             val nf = java.text.NumberFormat.getNumberInstance(java.util.Locale.GERMANY).apply { maximumFractionDigits = 1 }
-            addNightIndicator(insightRow, "◉", "22–6 Uhr", "${night.samples} Werte", palette.muted)
+            addNightIndicator(insightRow, "◉", "22–6 Uhr",
+                java.text.NumberFormat.getIntegerInstance(java.util.Locale.GERMANY).format(night.samples), palette.muted,
+                description = "Nacht 22 bis 6 Uhr: ${night.samples} Messwerte")
             addNightIndicator(insightRow, "◷", "Abdeckung",
                 night.coveragePercent?.let { "${nf.format(it)} %" } ?: "nicht berechenbar", palette.muted)
             addNightIndicator(insightRow, "⌁", "T90",
@@ -197,18 +243,22 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
     }
 
     private companion object {
+        const val STEP_CACHE_MS = 60_000L
+        @Volatile var cachedStepSeries: StepIntervals.Series? = null
+        @Volatile var cachedStepAt = 0L
+        @Volatile var stepLoading = false
         const val NIGHT_CACHE_MS = 5 * 60_000L
         @Volatile var cachedNight: NocturnalOxygen.Summary? = null
         @Volatile var cachedNightAt = 0L
         @Volatile var nightLoading = false
     }
 
-    private fun addNightIndicator(parent: LinearLayout, icon: String, title: String, value: String, color: Int) {
+    private fun addNightIndicator(parent: LinearLayout, icon: String, title: String, value: String, color: Int, description: String? = null) {
         val cell = LinearLayout(context).apply {
             orientation = VERTICAL
             gravity = Gravity.CENTER
             setPadding(dp(4), dp(3), dp(4), dp(3))
-            contentDescription = "$title: $value"
+            contentDescription = description ?: "$title: $value"
             importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_YES
             addView(label(icon, 18f, color, true), LayoutParams(-2, -2))
             addView(label(title, 11f, muted, true).apply { gravity = Gravity.CENTER }, LayoutParams(-1, -2))

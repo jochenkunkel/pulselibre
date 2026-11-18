@@ -39,3 +39,15 @@ class HistoryPointStoreOrderTest {
         assertEquals(listOf(1, 2, 9, 3), s.slice(0, 5000).map { it.value })
     }
 }
+
+class HistoryRangeWindowTest {
+    @Test fun offsetsStayInsideThirtyDays() {
+        assertEquals(29, HistoryRange.DAY.maxOffset()); assertEquals(3, HistoryRange.WEEK.maxOffset()); assertEquals(0, HistoryRange.MONTH.maxOffset())
+    }
+    @Test fun windowEndMovesBackByWholeWindows() {
+        val now = Instant.parse("2026-11-18T12:00:00Z")
+        assertEquals(now, HistoryRange.DAY.windowEnd(now, 0))
+        assertEquals(Instant.parse("2026-11-16T12:00:00Z"), HistoryRange.DAY.windowEnd(now, 2))
+        assertEquals(Instant.parse("2026-11-04T12:00:00Z"), HistoryRange.WEEK.windowEnd(now, 2))
+    }
+}

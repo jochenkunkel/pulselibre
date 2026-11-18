@@ -411,7 +411,7 @@ class MainActivity : AppCompatActivity() {
         updateCirqaDashboard()
         dashboardRefresh = { updateCirqaDashboard() }
         overviewView(cirqaDashboard)
-        val cirqaHistory = HistoryOverviewView(this) { range -> CirqaHistoryReader(this).read(range) }
+        val cirqaHistory = HistoryOverviewView(this) { range, offset -> CirqaHistoryReader(this).read(range, offset = offset) }
         historyRefresh = { cirqaHistory.refresh() }
         cirqaHistory.refresh()
         historyView(cirqaHistory)

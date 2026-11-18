@@ -71,7 +71,7 @@ class DashboardOverviewViewTest {
             assertTrue(night.contentDescription.contains("Keine Diagnose"))
             // loading state ("SpO₂: Nachtserie …") or, if a previous test already cached a result, the loaded cells
             assertTrue(descendants(night).any {
-                it.contentDescription?.startsWith("SpO₂") == true || it.contentDescription?.startsWith("22–6 Uhr") == true
+                it.contentDescription?.startsWith("SpO₂") == true || it.contentDescription?.startsWith("Nacht 22 bis 6 Uhr") == true
             })
             assertNotNull(descendants(view).singleOrNull { it.tag == "dashboard_unvalidated_legend" })
             assertTrue(cards[1].contentDescription.contains("violetter Rand"))
