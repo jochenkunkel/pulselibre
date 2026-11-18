@@ -70,6 +70,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private var mlrDiag = ""
     private var mlrChunks = 0
     private var mlrBytes = 0
+    private var mlrConfigureResponseSeen = false
     private var syncTransferHandle = 0L
     private var syncExpectedSize = 0L
     private val mlrData = java.io.ByteArrayOutputStream()
@@ -387,6 +388,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             mlrDiag = ""
             mlrChunks = 0
             mlrBytes = 0
+            mlrConfigureResponseSeen = false
             syncTransferHandle = 0L
             syncExpectedSize = 0L
             mlrData.reset()
@@ -435,6 +437,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             mlrDiag = ""
             mlrChunks = 0
             mlrBytes = 0
+            mlrConfigureResponseSeen = false
             syncTransferHandle = 0L
             syncExpectedSize = 0L
             mlrData.reset()
@@ -962,12 +965,32 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             } else {
                 val first = bytes.firstOrNull()?.toInt()?.and(255)
                 if (first != null && first == mlrHandle && syncRequestMode) {
-                    // Raw MLR transfer bytes on the dedicated service handle.
+                    // Connect's MLRTransportPipe consumes the first MLR callback
+                    // as [response-kind, general-status, configure-status], not
+                    // as file data. Never append this control response to the file.
                     val payload = bytes.copyOfRange(1, bytes.size)
+                    if (!mlrConfigureResponseSeen) {
+                        if (!CirqaMlrConfigureResponse.isSuccessful(payload)) {
+                            mlrDiag += ";configureResponse=invalid"
+                            finish("MLR-Konfigurationsantwort ungültig; Transfer gestoppt.", g)
+                            return
+                        }
+                        mlrConfigureResponseSeen = true
+                        mlrDiag += ";configureResponse=success"
+                        return
+                    }
+                    // Subsequent callbacks are raw transfer bytes, passed
+                    // unchanged by Connect's MLRTransportPipe to its data sink.
                     mlrChunks++
                     mlrBytes += payload.size
-                    val limit = if (syncExpectedSize > 0) syncExpectedSize + 64 else 8 * 1024 * 1024
-                    if (mlrData.size() + payload.size <= limit.toInt()) mlrData.write(payload)
+                    if (syncExpectedSize <= 0 ||
+                        mlrData.size().toLong() + payload.size > syncExpectedSize
+                    ) {
+                        mlrDiag += ";dataOverflow=true"
+                        finish("MLR-Daten überschreiten die erwartete Dateigröße; Transfer gestoppt.", g)
+                        return
+                    }
+                    mlrData.write(payload)
                     return
                 }
                 if (first != null && first == historyHandle) {
@@ -2209,10 +2232,45 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         if (data.isEmpty()) return "no-data"
         val magic = data.copyOfRange(0, minOf(4, data.size))
             .joinToString("") { "%02x".format(it) }
-        val fit = FitFileHeader.inspectVerified(data) != null
+        if (data.size.toLong() != syncExpectedSize || FitFileHeader.inspectVerified(data) == null) {
+            return "len=${data.size};expected=$syncExpectedSize;magic=$magic;fitHeader=false"
+        }
         val digest = java.security.MessageDigest.getInstance("SHA-256").digest(data)
         val sha = digest.copyOfRange(0, 6).joinToString("") { "%02x".format(it) }
-        return "len=${data.size};expected=$syncExpectedSize;magic=$magic;fitHeader=$fit;sha256=$sha"
+        val saved = try {
+            CirqaVerifiedFitStore(java.io.File(context.filesDir, "verified_fit"))
+                .saveVerified(data)
+        } catch (e: Exception) {
+            return "len=${data.size};expected=$syncExpectedSize;fitHeader=true;" +
+                "sha256=$sha;privateSaveFailed=${e.javaClass.simpleName}"
+        }
+        val decoded = FitHistoricalObservations.decode(data)
+            ?: return "len=${data.size};expected=$syncExpectedSize;fitHeader=true;" +
+                "sha256=$sha;privateFit=${saved.outcome};decode=unsupported"
+        val importable = decoded.observations.filter {
+            it.quality == FitHistoricalObservations.Quality.PROFILE_VALID &&
+                it.timestampEpochMillis != null
+        }
+        val imported = try {
+            val readings = importable.map { observation ->
+                RawExportRecord(
+                    deviceId = "cirqa-fit",
+                    metric = observation.metric.name.lowercase(),
+                    measuredAtEpochMillis = observation.timestampEpochMillis!!,
+                    value = observation.value,
+                    unit = observation.unit,
+                    sampleId = observation.idempotencyKey,
+                    receivedAtEpochMillis = System.currentTimeMillis()
+                )
+            }
+            LocalReadingStore(context).use { it.commitBatch("cirqa-fit", readings) }
+            "ok:${readings.size}"
+        } catch (e: Exception) {
+            "failed:${e.javaClass.simpleName}"
+        }
+        return "len=${data.size};expected=$syncExpectedSize;fitHeader=true;" +
+            "sha256=$sha;privateFit=${saved.outcome};observations=${decoded.observations.size};" +
+            "importable=${importable.size};sqlite=$imported"
     }
 
     @SuppressLint("MissingPermission")
@@ -2313,6 +2371,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             mlrDiag = ""
             mlrChunks = 0
             mlrBytes = 0
+            mlrConfigureResponseSeen = false
             syncTransferHandle = 0L
             syncExpectedSize = 0L
             mlrData.reset()
