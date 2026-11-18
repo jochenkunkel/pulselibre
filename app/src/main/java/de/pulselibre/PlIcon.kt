@@ -40,6 +40,15 @@ internal enum class PlIcon(@DrawableRes val res: Int, val label: String) {
     TRENDS(R.drawable.ic_pl_trends, "Trends");
 
     companion object {
+        /** Icon as a sized drawable for compound drawables (text rows); [tint] flattens colours, null keeps the theme colours. */
+        fun drawable(context: Context, icon: PlIcon, sizeDp: Int, tint: Int? = null): android.graphics.drawable.Drawable {
+            val px = (sizeDp * context.resources.displayMetrics.density + 0.5f).toInt()
+            val d = androidx.core.content.ContextCompat.getDrawable(context, icon.res)!!.mutate()
+            d.setBounds(0, 0, px, px)
+            if (tint != null) d.setTint(tint)
+            return d
+        }
+
         /** Icon as a view. [tint] flattens all colours (navigation states); null keeps the two-tone theme colours. */
         fun view(context: Context, icon: PlIcon, sizeDp: Int, tint: Int? = null, describe: Boolean = false): ImageView =
             ImageView(context).apply {
