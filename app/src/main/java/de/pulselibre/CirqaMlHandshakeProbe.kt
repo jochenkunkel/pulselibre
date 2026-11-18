@@ -1308,6 +1308,9 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         if (!session.begin(size)) return false
         dirReadSession = session
         configurationTestMode = false
+        // Cancel the stale 5 s response timer from the 5002 request; the body stream
+        // has its own 20 s budget below.
+        historicalSyncV1 = null
         main.removeCallbacks(configurationTimeout)
         main.postDelayed({
             if (active && dirReadSession === session && session.phase == CirqaDirectoryReadV2Session.Phase.RECEIVING) {

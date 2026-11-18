@@ -2,7 +2,7 @@ package de.pulselibre
 
 /** Persistent one-shot gate for full-chain + directory-body read in one connection. */
 object CirqaDirectoryAfterChainGate {
-    const val PREFERENCE_KEY = "cirqaDirectoryAfterChainAttempted"
+    const val PREFERENCE_KEY = "cirqaDirectoryAfterChainAttemptedV2"
     const val RELEASED_FOR_DEVICE_TEST = true
 
     fun consume(
