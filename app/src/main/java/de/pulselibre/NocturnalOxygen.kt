@@ -59,15 +59,32 @@ internal object NocturnalOxygen {
         return Summary(true, "ok", s.size, coverage, minutesBelow, countEvents(s, 3) / hours, countEvents(s, 4) / hours)
     }
 
-    /** Event = value falls at least [drop] points below the maximum of the preceding lookback; re-armed after recovery to within 1 point. */
+    /** A dip must last at least this long (consecutive readings below the threshold); shorter dips count as artifacts. */
+    val MIN_EVENT_DURATION: Duration = Duration.ofSeconds(10)
+
+    /**
+     * Event = readings stay at least [drop] points below the maximum of the preceding lookback for
+     * at least [MIN_EVENT_DURATION]. Single-sample dips (typical wrist-PPG motion artifacts) do not count.
+     * The event is re-armed after recovery to within 1 point of the baseline.
+     */
     internal fun countEvents(s: List<Sample>, drop: Int): Int {
         var events = 0
         var armed = true
+        var dipStart: Instant? = null
+        var dipCounted = false
         for (i in s.indices) {
             val from = s[i].time - BASELINE_LOOKBACK
             val baseline = s.subList(0, i).filter { it.time >= from }.maxOfOrNull { it.percent } ?: s[i].percent
-            if (armed && baseline - s[i].percent >= drop) { events++; armed = false }
-            else if (!armed && baseline - s[i].percent <= 1) armed = true
+            val below = baseline - s[i].percent >= drop
+            if (below) {
+                if (dipStart == null) { dipStart = s[i].time; dipCounted = false }
+                if (armed && !dipCounted && Duration.between(dipStart, s[i].time) >= MIN_EVENT_DURATION) {
+                    events++; dipCounted = true; armed = false
+                }
+            } else {
+                dipStart = null
+                if (!armed && baseline - s[i].percent <= 1) armed = true
+            }
         }
         return events
     }

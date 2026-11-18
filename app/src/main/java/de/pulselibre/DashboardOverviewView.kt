@@ -323,13 +323,23 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
             tag = "dashboard_metric_icon_${metric.title}"
         }, LayoutParams(dp(20), dp(20)).apply { marginEnd = dp(6) })
         // The long SpO₂ title broke mid-word in a half-width card; show the short name, keep the full one for accessibility.
-        addView(label(if (metric.title == "Sauerstoffsättigung · SpO₂") "SpO₂" else metric.title, 12f, muted, true).apply {
+        addView(label(displayTitle(metric.title), 12f, muted, true).apply {
             if (metric.title != "Schritte heute") {
                 maxLines = 2
                 ellipsize = android.text.TextUtils.TruncateAt.END
             }
             contentDescription = metric.title
         }, LayoutParams(0, -2, 1f))
+    }
+
+    /** Short visible names; long words broke mid-word in half-width cards. The full title stays the accessibility name. */
+    private fun displayTitle(title: String) = when (title) {
+        "Sauerstoffsättigung · SpO₂" -> "SpO₂"
+        "Moderate Intensitätsminuten" -> "Intensität · moderat"
+        "Intensive Intensitätsminuten" -> "Intensität · hoch"
+        "Kalorien gesamt (Gerätewert)" -> "Kalorien gesamt"
+        "Kalorien aktiv (Gerätewert)" -> "Kalorien aktiv"
+        else -> title
     }
 
     private fun iconColor(title: String) = when {
