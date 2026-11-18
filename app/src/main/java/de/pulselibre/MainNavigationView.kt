@@ -45,11 +45,11 @@ internal class MainNavigationView(
                 }, LayoutParams(dp(18), dp(18)))
                 addView(TextView(activity).apply {
                     text = label
-                    textSize = 11f
+                    textSize = 10f
                     maxLines = 1
                     // Shrinks long labels at large fonts / narrow widths instead of breaking words ("Übersich/t").
                     androidx.core.widget.TextViewCompat.setAutoSizeTextTypeUniformWithConfiguration(
-                        this, 8, 11, 1, android.util.TypedValue.COMPLEX_UNIT_SP)
+                        this, 8, 10, 1, android.util.TypedValue.COMPLEX_UNIT_SP)
                     gravity = Gravity.CENTER
                     setTypeface(null, Typeface.BOLD)
                     importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO

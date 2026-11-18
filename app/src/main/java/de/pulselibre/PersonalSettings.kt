@@ -61,9 +61,14 @@ object PersonalSettings {
             }, LinearLayout.LayoutParams(-2, -2))
             layout.addView(row)
         }
+        val compactRows = context.resources.configuration.screenWidthDp < 340 || context.resources.configuration.fontScale >= 1.3f
         fun newField(label: String, key: String, numeric: Boolean, decimal: Boolean, unitHint: String?): Pair<LinearLayout, EditText> {
             val box = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL }
-            box.addView(TextView(context).apply { text = label; textSize = 12f; setTextColor(palette.muted) })
+            box.addView(TextView(context).apply {
+                text = label; textSize = 12f; setTextColor(palette.muted)
+                // Fields in one row keep their inputs aligned even if a label wraps (narrow width / large font).
+                if (compactRows) minLines = 2
+            })
             val edit = EditText(context).apply {
                 setSingleLine(true)
                 inputType = if (numeric) InputType.TYPE_CLASS_NUMBER or

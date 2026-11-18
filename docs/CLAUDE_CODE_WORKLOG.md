@@ -109,3 +109,8 @@ Ohne Gerätezugriff; nur CI/Emulator-Nachweis.
 - #104: Eingabefelder der Config mindestens 48 dp.
 - #105: Verlauf-X-Beschriftung einheitlich zentriert (rechter Rand 18 dp), Caption bereits zweizeilig. **Datumsnavigation nicht umgesetzt** (eigenes Feature-Issue).
 - #106: Empfangspunkt „alt“ nicht mehr rot, sondern gedämpftes Grau-Violett.
+
+## 2026-11-18 – Gerätekontrolle der GUI-Korrekturen (Build 1046) und Teil 3 (Branch `claude/gui-fixes-3`)
+Am S25 geprüft (Build 1046): Übersicht – gleiche Kachelhöhen, Titel „Intensität moderat/hoch“, „Kalorien gesamt“ einzeilig, Nacht-Insights vierspaltig, Empfangspunkte grün (Live-Daten), Kopfring grün. Verlauf – SpO₂-Skala 80–100 % lesbar, X-Beschriftung gleichmäßig, Caption zweizeilig. Tagesdialog – App-Design, Diagramm oben, Wertachse (66/103/140), Vorheriger/Nächster nebeneinander. 300 dp + Schrift 1,3: Profilkarte gestapelt und lesbar, Navigation einzeilig, Config ohne abgeschnittenen Spinner.
+Verbleibend gefunden und hier behoben: Config-Eingabefelder in einer Zeile waren bei umbrochenen Labels versetzt (Labels jetzt zweizeilig reserviert bei schmaler Breite/großer Schrift); Navigationslabels uneinheitliche Größe (max. 10 sp statt 11 sp).
+Noch sichtbar offen (P3): Nacht-Insights erste Spalte „22–6 Uhr / 22331 / Werte“ dreizeilig; Kacheln mit viel Leerraum bei gleicher Zeilenhöhe; Datum-/Navigationsbuttons im Tagesdialog noch Standard-Grau.
