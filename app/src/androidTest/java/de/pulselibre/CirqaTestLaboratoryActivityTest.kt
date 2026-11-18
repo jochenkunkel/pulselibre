@@ -12,7 +12,7 @@ import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 class CirqaTestLaboratoryActivityTest {
-    @Test fun labClearlyBlocksHistoryAndExposesOnlyOfflineOrExistingTests() {
+    @Test fun labShowsUnprovenTransferStatusAndSeparateTestControls() {
         ActivityScenario.launch(CirqaTestLaboratoryActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
                 val views = mutableListOf<View>()
@@ -25,11 +25,11 @@ class CirqaTestLaboratoryActivityTest {
                 visit(activity.findViewById(android.R.id.content))
                 val labels = views.filterIsInstance<TextView>().map { it.text.toString() }
                 assertTrue(labels.any { it.contains("CIRQA-Testlabor") })
-                assertTrue(labels.any { it.contains("Historischer CIRQA-Download bleibt gesperrt") })
+                assertTrue(labels.any { it.contains("Historischer Downloadstatus") })
+                assertTrue(labels.any { it.contains("begrenzten Einmaltransfer: unbewiesen") })
                 assertTrue(labels.any { it.contains("GFDI 5007") })
                 assertTrue(labels.any { it.contains("07 00 8F 13 03 C9 1A") })
                 assertTrue(labels.any { it.contains("CIRQA-GFDI-Antworttyp") && it.contains("nicht bestätigt") })
-                assertTrue(labels.any { it.contains("Gesperrt") && it.contains("Unbewiesen") })
                 assertTrue(labels.any { it.contains("Offline-FIT") || it.contains("FIT-Datei") })
                 assertTrue(views.filterIsInstance<TextView>().none {
                     it.text.toString().contains("Dateiliste anfragen") ||
@@ -41,7 +41,8 @@ class CirqaTestLaboratoryActivityTest {
                         it.text.toString().contains("FIT-Datei auswählen")
                 })
                 val oneShotTest = views.filterIsInstance<Button>().single {
-                    it.text.toString().contains("5007-Test") || it.text.toString().contains("5007-Tests")
+                    it.text.toString().endsWith("5007-Test starten") ||
+                        it.text.toString() == "Freigegebene 5007-Tests verbraucht"
                 }
                 val consumed = CirqaLegacy5007AttemptGate.consumedAttempts(
                     activity.getSharedPreferences("cirqa_test_laboratory", 0)

@@ -82,8 +82,13 @@ class AppearanceAndGaugeTest {
                         android.graphics.Color.green(it) > android.graphics.Color.blue(it) * 1.2f })
                     assertTrue(pixels.any { android.graphics.Color.red(it) > android.graphics.Color.green(it) * 1.35f &&
                         android.graphics.Color.green(it) > android.graphics.Color.blue(it) * 1.1f })
-                    // The needle has an uninterrupted dark stroke above the lower text readout.
-                    assertEquals(palette.ink, bitmap.getPixel(450, (900 * 0.72f).toInt()))
+                    // At 110 bpm the needle points upward from the pivot along the centreline.
+                    val radius = gauge.width * HeartRateGaugeModel.DIAL_RADIUS_PER_WIDTH
+                    val centre = gauge.height * HeartRateGaugeModel.DIAL_CENTER_Y_PER_HEIGHT
+                    val pivot = centre + HeartRateGaugeModel.pivotOffsetFromCircleCenter(radius)
+                    val tip = centre - radius + gauge.width * 0.025f
+                    val midpoint = ((tip + pivot) / 2f).toInt()
+                    assertEquals("Zeigermitte", palette.ink, bitmap.getPixel(gauge.width / 2, midpoint))
                     bitmap.recycle()
                 }
             }
