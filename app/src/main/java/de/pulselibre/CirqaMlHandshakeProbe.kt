@@ -55,6 +55,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private var dirReadSession: CirqaDirectoryReadV2Session? = null
     private var fileAccessListMode = false
     private var syncRequestMode = false
+    private var syncAccepted = false
+    private val syncFrameCounts = LinkedHashMap<Int, Int>()
     private var fileAccessRequestClaimed = false
     private val fileAccessFramer = CirqaRfcommStreamFramer()
     private val fileAccessReassembler = GarminProtobufReassembler()
@@ -355,6 +357,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             dirReadSession = null
             fileAccessListMode = false
             syncRequestMode = false
+            syncAccepted = false
+            syncFrameCounts.clear()
             fileAccessRequestClaimed = false
             bootstrapAckMode = false
             configurationTestMode = false
@@ -387,6 +391,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             dirReadSession = null
             fileAccessListMode = false
             syncRequestMode = false
+            syncAccepted = false
+            syncFrameCounts.clear()
             fileAccessRequestClaimed = false
             bootstrapAckMode = false
             configurationTestMode = false
@@ -1410,6 +1416,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             return
         }
         syncRequestMode = true
+        syncAccepted = false
+        syncFrameCounts.clear()
         fileAccessListMode = true
         fileAccessRequestClaimed = false
         fileAccessDiag = ""
@@ -1427,9 +1435,12 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         } else {
             main.postDelayed({
                 if (active && fileAccessListMode) {
-                    finish("Sync-Request: 20-s-Zeitlimit ohne vollständige 5044-Antwort.$fileAccessDiag", gatt)
+                    val counts = syncFrameCounts.entries.sortedBy { it.key }
+                        .joinToString(",") { "${it.key}x${it.value}" }
+                    finish("Sync-Beobachtung: 60-s-Zeitlimit; accepted=$syncAccepted; " +
+                        "frames=$counts.$fileAccessDiag", gatt)
                 }
-            }, 20_000L)
+            }, 60_000L)
         }
     }
 
@@ -1503,6 +1514,9 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private fun handleFileAccessResponse(g: BluetoothGatt, payload: ByteArray) {
         for (frame in fileAccessFramer.accept(payload)) {
             val verified = GarminFrameValidator.inspectVerified(frame) ?: continue
+            if (syncRequestMode) {
+                syncFrameCounts[verified.messageType] = (syncFrameCounts[verified.messageType] ?: 0) + 1
+            }
             if (verified.messageType == 5000) {
                 // The device may reject our 5043 with a GFDI response (e.g. status 2 =
                 // UNKNOWN_OR_NOT_SUPPORTED). Record status and payload length only.
@@ -1516,10 +1530,17 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             }
             if (verified.messageType != 5044) continue
             fileAccessReassembler.accept(frame)?.let { msg ->
-                val report = "FileAccess ItemList: 5044 vollständig, len=${msg.size}, " +
+                val report = "5044 vollständig, len=${msg.size}, " +
                     "shape=${CirqaProtobufShapeInspector.nestedShape(msg)}"
-                finish("$report. ${fileAccessReassembler.summary()}", g)
-                return
+                if (syncRequestMode) {
+                    // Connect keeps the connection open after sync_response: the device
+                    // begins delivering buffered files only afterwards.
+                    syncAccepted = true
+                    main.post { mark("Sync akzeptiert ($report); beobachte weitere Frames") }
+                } else {
+                    finish("FileAccess ItemList: $report. ${fileAccessReassembler.summary()}", g)
+                    return
+                }
             }
         }
     }
@@ -2104,7 +2125,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             callback?.invoke(
                 if (fileAccessListMode) "${if (syncRequestMode) "SyncRequest" else "FileAccess-ItemList"}: $message; " +
                     "${fileAccessReassembler.summary()}; requestSent=$fileAccessRequestClaimed; " +
-                    "response=$fileAccessDiag"
+                    "accepted=$syncAccepted; response=$fileAccessDiag"
                 else if (dirReadSession != null) dirReadSession!!.summary() +
                     " [acks5004=$acks5004Queued,acks5043=$acks5043Queued," +
                     "pendingWrites=${deferredAckWrites.size},writePending=$mlWritePending," +
@@ -2131,6 +2152,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             dirReadSession = null
             fileAccessListMode = false
             syncRequestMode = false
+            syncAccepted = false
+            syncFrameCounts.clear()
             fileAccessRequestClaimed = false
             bootstrapAckMode = false
             configurationTestMode = false
