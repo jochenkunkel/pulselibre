@@ -60,9 +60,21 @@ class DashboardTest {
                 assertNotNull("Verlauf-Reiter fehlt", historyTab)
                 assertTrue(historyTab.performClick())
                 assertTrue(historyTab.isSelected)
-                assertTrue(containsText(root, "Verlauf · lokal gespeicherte Messpunkte"))
-                assertTrue(containsDescription(root, "Zeitpunkt: Empfang auf dem Telefon."))
             }
+            // The series is loaded off the UI thread (#79): wait for it instead of expecting a synchronous render.
+            val deadline = System.currentTimeMillis() + 8000
+            var rendered = false
+            while (System.currentTimeMillis() < deadline && !rendered) {
+                androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().runOnMainSync {
+                    scenario.onActivity { activity ->
+                        val root = activity.findViewById<ViewGroup>(android.R.id.content)
+                        rendered = containsText(root, "Verlauf · lokal gespeicherte Messpunkte") &&
+                            containsDescription(root, "Zeitpunkt: Empfang auf dem Telefon.")
+                    }
+                }
+                if (!rendered) Thread.sleep(100)
+            }
+            assertTrue("Verlauf muss nach dem Laden dargestellt sein", rendered)
         }
     }
     private fun containsDescription(view: View, expected: String): Boolean =
