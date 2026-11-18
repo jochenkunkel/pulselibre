@@ -52,6 +52,15 @@ class CirqaRfcommDirectorySessionTest {
         assertArrayEquals(dir, s.completedBytes)
     }
 
+    @Test fun beginsDirectoryFrom5002Response() {
+        val s = CirqaRfcommDirectorySession()
+        val body = byteArrayOf(0x8A.toByte(), 0x13, 0, 0, 32, 0, 0, 0) // responseTo=5002, status 0, size 32
+        val frame = GarminFileListRequest.cobs(gfdiFrame(5000, body))
+        assertTrue(s.acceptStream(frame).isEmpty())
+        assertEquals(CirqaDirectoryReadV2Session.Phase.RECEIVING, s.phase)
+        assertEquals(32, s.expectedSize)
+    }
+
     @Test fun acknowledgesInterleavedProtobufChunk() {
         val s = CirqaRfcommDirectorySession()
         assertTrue(s.begin(32))

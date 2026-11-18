@@ -15,6 +15,8 @@ class CirqaRfcommDirectorySession {
         private set
     var ackFramesBuilt = 0
         private set
+    var sizeError = ""
+        private set
 
     fun begin(size: Int): Boolean {
         val session = CirqaDirectoryReadV2Session()
@@ -40,6 +42,20 @@ class CirqaRfcommDirectorySession {
             if (GarminFrameValidator.inspectVerified(frame) == null) continue
             val h = GarminGfdiHeader.inspect(frame) ?: continue
             when (h.type) {
+                5000 -> {
+                    controlFrames++
+                    // The 5002 response carries the bounded file size; start the
+                    // strict directory session from it instead of trusting a guess.
+                    if (h.responseTo == 5002 && h.responseStatus == 0 && phase == null) {
+                        val payload = frame.copyOfRange(7, frame.size - 2)
+                        val size = CirqaLegacy5002Codec.response(payload)?.let { parsed ->
+                            if (parsed.status == CirqaLegacyTransferDecoder.ReadStatus.SUCCESS)
+                                parsed.unsignedValue?.takeIf { it in 16..CirqaLegacyDownloadLimits.MAX_DIRECTORY_BYTES.toLong() }?.toInt()
+                            else null
+                        }
+                        if (size == null) sizeError = "invalid-5002-size" else begin(size)
+                    }
+                }
                 5004 -> {
                     val d = directory ?: continue
                     val result = d.onNotification(GarminFileListRequest.cobs(frame))

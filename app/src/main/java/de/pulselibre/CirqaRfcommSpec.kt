@@ -28,6 +28,20 @@ object CirqaRfcommSpec {
 }
 
 object CirqaRfcommGate {
-    /** Deliberately false: preparing code is not permission to open a socket. */
-    const val RELEASED_FOR_DEVICE_TEST = false
+    /** Activation explicitly released by the user; the one-shot gate still applies. */
+    const val RELEASED_FOR_DEVICE_TEST = true
+}
+
+/** Fresh persistent one-shot gate for the RFCOMM device attempt. */
+object CirqaRfcommAttemptGate {
+    const val PREFERENCE_KEY = "cirqaRfcommAttemptedV1"
+    const val SUMMARY_KEY = "cirqaRfcommSummary"
+
+    fun available(preferences: android.content.SharedPreferences): Boolean =
+        !preferences.getBoolean(PREFERENCE_KEY, false)
+
+    /** Consume before any socket is opened. Never reset an already used gate. */
+    fun consume(preferences: android.content.SharedPreferences) {
+        preferences.edit().putBoolean(PREFERENCE_KEY, true).apply()
+    }
 }

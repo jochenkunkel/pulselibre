@@ -27,7 +27,7 @@ class CirqaRfcommTransport {
     @Volatile private var socket: BluetoothSocket? = null
 
     @SuppressLint("MissingPermission")
-    @Synchronized fun accept(expectedAddress: String?): Result {
+    fun accept(expectedAddress: String?): Result {
         if (!CirqaRfcommGate.RELEASED_FOR_DEVICE_TEST) return Result.GateBlocked
         if (expectedAddress.isNullOrBlank()) return Result.Failed("no-expected-address")
         val adapter = BluetoothAdapter.getDefaultAdapter() ?: return Result.Failed("no-adapter")

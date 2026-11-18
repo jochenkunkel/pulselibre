@@ -1,10 +1,22 @@
-# CIRQA: Classic-RFCOMM-Pfad vorbereitet (18.11.2026)
+# CIRQA: Classic-RFCOMM-Pfad (18.11.2026)
 
-## Status: VORBEREITET – NICHT AKTIV
+## Status: AKTIVIERUNG IMPLEMENTIERT – GERÄTELAUF NOCH NICHT BESTÄTIGT
 
-Es wird **kein** Socket geöffnet, keine SDP-Anfrage gesendet und keine
-Datei angefordert. `CirqaRfcommGate.RELEASED_FOR_DEVICE_TEST = false`.
-Eine Aktivierung braucht eine neue, ausdrückliche Nutzerfreigabe.
+Die Aktivierung ist freigegeben und umgesetzt
+(`CirqaRfcommGate.RELEASED_FOR_DEVICE_TEST = true`), aber der eigentliche
+Gerätelauf benötigt weiterhin die ausdrückliche Bestätigung im Testlabor.
+Es wird automatisch **kein** Socket geöffnet und keine SDP-Anfrage gesendet.
+Der neue persistente Einmal-Gate `cirqaRfcommAttemptedV1` wird erst beim
+Bestätigen des Dialogs verbraucht.
+
+### Neu seit Vorbereitung
+- `CirqaRfcommAttemptGate`: frischer Einmal-Gate + Berichtsschlüssel.
+- `CirqaRfcommRunner`: 20 s Annahme / 60 s Transfer, genau ein 5002-Request,
+  ACKs aus der Directory-Session, kein Retry, sauberes Schließen.
+- `CirqaRfcommDirectorySession` startet die strikte Session jetzt selbst aus
+  der CRC-validen 5002-Antwort (statt einen Size-Wert zu raten).
+- Testlabor-Buttons „RFCOMM-Verzeichnis lesen (read-only)" und
+  „RFCOMM-Lesestatus" mit Bestätigungsdialog und Adresseindizität.
 
 ## Warum
 

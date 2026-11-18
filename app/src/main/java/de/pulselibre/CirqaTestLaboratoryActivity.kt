@@ -63,6 +63,7 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
     private var gattProbe: CirqaGattProbe? = null
     private var mlProbe: CirqaMlHandshakeProbe? = null
     private var systemEventProbe: CirqaMlHandshakeProbe? = null
+    private var rfcommRunner: CirqaRfcommRunner? = null
     private var liveReadingCount = 0
     private val liveKinds = mutableSetOf<String>()
     private var destroyed = false
@@ -308,6 +309,14 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
         syncCard.addView(button("Kette + Verzeichnis lesen (ein Lauf)") {
             confirmDirectoryAfterChain()
         })
+        syncCard.addView(button("RFCOMM-Verzeichnis lesen (read-only)") {
+            confirmRfcomm()
+        })
+        syncCard.addView(button("RFCOMM-Lesestatus") {
+            statusOutput.text = "RFCOMM:\n" +
+                (preferences.getString(CirqaRfcommAttemptGate.SUMMARY_KEY, null) ?: "Noch kein Lauf.") +
+                "\nGate=${preferences.getBoolean(CirqaRfcommAttemptGate.PREFERENCE_KEY, false)}"
+        })
         syncCard.addView(button("Status der historischen Synchronisation") {
             statusOutput.text = "Historische Synchronisation:\n" +
                 "Gates: A=${preferences.getBoolean(CirqaHistoricalSyncV1MultiPhaseAttemptGate.keyForPhase(1), false)}" +
@@ -464,6 +473,56 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
                             val persisted = (preferences.getString("directoryAfterChainSummary", null).orEmpty() + "\n" + message)
                                 .trim().takeLast(5000)
                             preferences.edit().putString("directoryAfterChainSummary", persisted).apply()
+                        }
+                    }
+                }
+            }
+            .show()
+    }
+
+    private fun confirmRfcomm() {
+        if (!CirqaRfcommGate.RELEASED_FOR_DEVICE_TEST) {
+            statusOutput.text = "RFCOMM-Pfad ist nicht freigegeben."
+            return
+        }
+        if (!CirqaRfcommAttemptGate.available(preferences)) {
+            statusOutput.text = "RFCOMM-Einmal-Gate ist bereits verbraucht."
+            return
+        }
+        val matching = try {
+            adapter.bondedDevices.orEmpty().filter {
+                it.name?.contains("CIRQA", ignoreCase = true) == true
+            }
+        } catch (_: SecurityException) { emptyList() }
+        if (matching.size != 1) {
+            Toast.makeText(this,
+                if (matching.isEmpty()) "Kein gekoppeltes CIRQA-Gerät gefunden; kein Socket geöffnet."
+                else "Mehrere gekoppelte CIRQA-Geräte; Ziel nicht eindeutig.", Toast.LENGTH_LONG).show()
+            return
+        }
+        val address = matching.first().address
+        AlertDialog.Builder(this)
+            .setTitle("RFCOMM-Verzeichnis lesen?")
+            .setMessage(
+                "Ein begrenzter, lesender Lauf über den Garmin-SPP-Dienst " +
+                    "(${CirqaRfcommSpec.SERVICE_UUID}). Der erwartete, gepaarte CIRQA darf sich " +
+                    "verbinden; unbekannt Adressen werden abgelehnt. Genau ein 5002-Request, " +
+                    "CRC-/Offset-validierte 5004-Chunks, danach Stopp vor FIT-Download. " +
+                    "20 s Annahme, 60 s Transfer, kein Retry, keine Lösch-/Archiv-/Flag-Befehle. " +
+                    "Das Einmal-Gate wird vor dem Öffnen des Sockets verbraucht."
+            )
+            .setNegativeButton("Abbrechen", null)
+            .setPositiveButton("Ausführen") { _, _ ->
+                withBluetoothPermissions(needsScan = false) {
+                    CirqaRfcommAttemptGate.consume(preferences)
+                    val runner = CirqaRfcommRunner()
+                    rfcommRunner = runner
+                    runner.start(address) { message ->
+                        runOnUiThread {
+                            statusOutput.text = message
+                            preferences.edit().putString(
+                                CirqaRfcommAttemptGate.SUMMARY_KEY, message
+                            ).apply()
                         }
                     }
                 }
@@ -1466,6 +1525,7 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
+        rfcommRunner?.stop()
         systemEventProbe?.close()
         destroyed = true
         monitorRunning = false
