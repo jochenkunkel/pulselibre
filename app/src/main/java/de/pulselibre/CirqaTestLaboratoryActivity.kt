@@ -301,6 +301,10 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
         syncCard.addView(button("Verzeichnis lesen (8192 B, read-only)") {
             confirmDirectoryReadV2()
         })
+        syncCard.addView(button("Verzeichnis-Lesestatus") {
+            statusOutput.text = "Verzeichnis-Lesen:\n" +
+                (preferences.getString("directoryReadV2Summary", null) ?: "Noch kein Lauf.")
+        })
         syncCard.addView(button("Status der historischen Synchronisation") {
             statusOutput.text = "Historische Synchronisation:\n" +
                 "Gates: A=${preferences.getBoolean(CirqaHistoricalSyncV1MultiPhaseAttemptGate.keyForPhase(1), false)}" +
@@ -454,9 +458,9 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
                     probe.startDirectoryReadV2Test(userConfirmed = true) { message ->
                         runOnUiThread {
                             statusOutput.text = message
-                            if (message.startsWith("Directory gelesen")) {
-                                preferences.edit().putString("directoryReadV2Summary", message.take(1200)).apply()
-                            }
+                            val persisted = (preferences.getString("directoryReadV2Summary", null).orEmpty() + "\n" + message)
+                                .trim().takeLast(4000)
+                            preferences.edit().putString("directoryReadV2Summary", persisted).apply()
                         }
                     }
                 }
