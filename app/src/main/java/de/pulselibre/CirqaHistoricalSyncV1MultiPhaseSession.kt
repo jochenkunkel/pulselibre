@@ -38,6 +38,34 @@ class CirqaHistoricalSyncV1MultiPhaseSession(val token: Any = Any(), val maxPhas
     var directorySize: Int? = null
         private set
 
+    // Redacted diagnostics: counts and structural metadata only, no payloads.
+    var notificationsSeen = 0
+        private set
+    var framesDecoded = 0
+        private set
+    var lastFrameType: Int? = null
+        private set
+    var lastResponseTo: Int? = null
+        private set
+    var lastOuterStatus: Int? = null
+        private set
+    var lastPayloadLength = 0
+        private set
+    var cobsErrors = 0
+        private set
+    var crcErrors = 0
+        private set
+    var discardedResponses = 0
+        private set
+    var phaseAtLastReceive = "none"
+        private set
+    var ackAtMs: Long? = null
+        private set
+    var writeAtMs: Long? = null
+        private set
+    var timeoutAtMs: Long? = null
+        private set
+
     private var lastMillis = 0L
     private var deadline = 0L
     private var writeConfirmed = false
@@ -61,6 +89,7 @@ class CirqaHistoricalSyncV1MultiPhaseSession(val token: Any = Any(), val maxPhas
         if (phase != Phase.BOOTSTRAP || !confirmed) return false
         phase = Phase.WAITING_5030_WRITE
         reason = "ready-for-5030"
+        ackAtMs = now
         return true
     }
 
@@ -70,6 +99,7 @@ class CirqaHistoricalSyncV1MultiPhaseSession(val token: Any = Any(), val maxPhas
         writeConfirmed = false
         phase = Phase.WAITING_5030_RESPONSE
         reason = "awaiting-5030"
+        writeAtMs = now
         return true
     }
 
@@ -122,15 +152,22 @@ class CirqaHistoricalSyncV1MultiPhaseSession(val token: Any = Any(), val maxPhas
                 Phase.WAITING_5031_RESPONSE, Phase.WAITING_DIR_RESPONSE
             )) return stop("unexpected-data")
 
+        notificationsSeen++
+        phaseAtLastReceive = phase.name
         if (payload.size > MAX_TOTAL_BYTES - totalBytes) return stop("rx-budget")
         totalBytes += payload.size
 
         for (b in payload) {
             if (b == 0.toByte()) {
                 if (collecting && encoded.isNotEmpty()) {
-                    val frame = decode(encoded.toByteArray()) ?: return stop("bad-cobs")
+                    val frame = decode(encoded.toByteArray()) ?: run { cobsErrors++; return stop("bad-cobs") }
+                    framesDecoded++
                     encoded.clear()
-                    val h = GarminGfdiHeader.inspect(frame) ?: return stop("bad-envelope")
+                    val h = GarminGfdiHeader.inspect(frame) ?: run { crcErrors++; return stop("bad-envelope") }
+                    lastFrameType = h.type
+                    lastResponseTo = h.responseTo
+                    lastOuterStatus = h.responseStatus
+                    lastPayloadLength = maxOf(0, frame.size - 9)
                     if (h.compact || h.type != 5000 || h.responseStatus == null) return stop("bad-frame")
 
                     when (phase) {
@@ -209,7 +246,12 @@ class CirqaHistoricalSyncV1MultiPhaseSession(val token: Any = Any(), val maxPhas
 
     @Synchronized fun summary(): String =
         "HistoricalSyncV1MultiPhase: phase=$phase; reason=$reason; 5030(outer=$s5030Outer,res=$s5030ResultByte); " +
-            "5007=$s5007Status; 5031(status=$s5031Status,types=$supportedTypesCount); dirSize=$directorySize."
+            "5007=$s5007Status; 5031(status=$s5031Status,types=$supportedTypesCount); dirSize=$directorySize; " +
+            "diag(notifs=$notificationsSeen,frames=$framesDecoded,lastType=$lastFrameType,lastTo=$lastResponseTo," +
+            "outer=$lastOuterStatus,payloadLen=$lastPayloadLength,cobsErr=$cobsErrors,crcErr=$crcErrors," +
+            "discarded=$discardedResponses,phaseAtRx=$phaseAtLastReceive," +
+            "relAck=${ackAtMs?.let { it - (writeAtMs ?: it) }},relWrite=${writeAtMs?.let { it - (ackAtMs ?: it) }}," +
+            "timeout=$timeoutAtMs)."
 
     private fun current(callbackToken: Any, now: Long): Boolean {
         if (callbackToken !== token || phase == Phase.STOPPED ||
@@ -224,6 +266,7 @@ class CirqaHistoricalSyncV1MultiPhaseSession(val token: Any = Any(), val maxPhas
     }
 
     private fun stop(value: String): Boolean {
+        if (value == "timeout") timeoutAtMs = deadline
         if (phase !in setOf(Phase.STOPPED, Phase.PHASE_A_COMPLETED, Phase.PHASE_B_COMPLETED, Phase.PHASE_C_COMPLETED)) {
             reason = value
             phase = Phase.STOPPED
