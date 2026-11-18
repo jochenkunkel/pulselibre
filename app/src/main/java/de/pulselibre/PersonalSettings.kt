@@ -34,38 +34,87 @@ object PersonalSettings {
             setPadding(d, d / 2, d, d)
         }
         scroll.addView(layout)
-        fun heading(label: String) {
-            layout.addView(TextView(context).apply {
-                text = label
-                textSize = 18f
-                setTextColor(AppPalette.of(context).accent)
-                setPadding(0, 18, 0, 8)
-            })
+        val palette = AppPalette.of(context)
+        fun dp(v: Int) = (v * context.resources.displayMetrics.density + 0.5f).toInt()
+        fun showInfo(title: String, text: String) {
+            AlertDialog.Builder(context).setTitle(title).setMessage(text).setPositiveButton("OK", null).show()
         }
-        fun field(label: String, key: String, numeric: Boolean = false, decimal: Boolean = false): EditText {
-            layout.addView(TextView(context).apply { text = label; textSize = 14f })
-            return EditText(context).apply {
+        /** Compact section header: icon + title, optional ⓘ opening the long explanation. */
+        fun heading(icon: String, label: String, info: String? = null) {
+            val row = LinearLayout(context).apply {
+                orientation = LinearLayout.HORIZONTAL
+                gravity = Gravity.CENTER_VERTICAL
+                setPadding(0, dp(14), 0, dp(4))
+            }
+            row.addView(TextView(context).apply { text = icon; textSize = 18f; setPadding(0, 0, dp(8), 0) })
+            row.addView(TextView(context).apply {
+                text = label; textSize = 16f; setTypeface(null, android.graphics.Typeface.BOLD)
+                setTextColor(palette.accent)
+            }, LinearLayout.LayoutParams(0, -2, 1f))
+            if (info != null) row.addView(TextView(context).apply {
+                text = "ⓘ"; textSize = 20f; setTextColor(palette.accent); gravity = Gravity.CENTER
+                minWidth = dp(48); minHeight = dp(48)
+                contentDescription = "Erklärung zu $label"
+                isClickable = true; isFocusable = true
+                setOnClickListener { showInfo(label, info) }
+            }, LinearLayout.LayoutParams(-2, -2))
+            layout.addView(row)
+        }
+        fun newField(label: String, key: String, numeric: Boolean, decimal: Boolean, unitHint: String?): Pair<LinearLayout, EditText> {
+            val box = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL }
+            box.addView(TextView(context).apply { text = label; textSize = 12f; setTextColor(palette.muted) })
+            val edit = EditText(context).apply {
                 setSingleLine(true)
                 inputType = if (numeric) InputType.TYPE_CLASS_NUMBER or
                     (if (decimal) InputType.TYPE_NUMBER_FLAG_DECIMAL else 0)
                     else InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
                 setText(p.getString(key, "").orEmpty())
-                hint = label
-                layout.addView(this)
+                hint = unitHint ?: label
+                contentDescription = label
             }
+            box.addView(edit)
+            return box to edit
         }
+        /** Puts several fields side by side so the dialog stays short. */
+        fun fieldRow(vararg specs: Triple<String, String, String?>, numeric: Boolean = true, decimal: Boolean = false): List<EditText> {
+            val row = LinearLayout(context).apply { orientation = LinearLayout.HORIZONTAL }
+            val edits = ArrayList<EditText>()
+            specs.forEachIndexed { i, (label, key, unit) ->
+                val (box, edit) = newField(label, key, numeric, decimal && i == specs.lastIndex, unit)
+                edits += edit
+                row.addView(box, LinearLayout.LayoutParams(0, -2, 1f).apply { if (i < specs.lastIndex) marginEnd = dp(8) })
+            }
+            layout.addView(row)
+            return edits
+        }
+        fun field(label: String, key: String, numeric: Boolean = false, decimal: Boolean = false): EditText =
+            fieldRow(Triple(label, key, null), numeric = numeric, decimal = decimal)[0]
         fun choice(label: String, key: String, options: List<String>): Spinner {
-            layout.addView(TextView(context).apply { text = label; textSize = 14f })
+            layout.addView(TextView(context).apply { text = label; textSize = 12f; setTextColor(palette.muted) })
             return Spinner(context).apply {
                 adapter = ArrayAdapter(context, android.R.layout.simple_spinner_dropdown_item, options)
                 setSelection(options.indexOf(p.getString(key, options[0])).coerceAtLeast(0))
+                contentDescription = label
                 layout.addView(this)
             }
         }
-        heading("Darstellung")
+
+        // Version / build: first thing in the settings so installed builds can be told apart.
+        val versionInfo = AppVersionInfo.read(context)
         layout.addView(TextView(context).apply {
-            text = "Design: automatisch nach Android oder dauerhaft überschreiben"
+            text = "🏷  ${versionInfo.detail()}"
+            textSize = 14f
+            setTextColor(palette.ink)
+            setTypeface(null, android.graphics.Typeface.BOLD)
+            tag = "settings_version"
+            contentDescription = "App-Version ${versionInfo.detail()}"
+            setPadding(dp(12), dp(10), dp(12), dp(10))
+            background = android.graphics.drawable.GradientDrawable().apply {
+                setColor(palette.tinted); cornerRadius = dp(12).toFloat()
+            }
         })
+
+        heading("🎨", "Darstellung")
         val themeChoice = Spinner(context).apply {
             adapter = ArrayAdapter(context, android.R.layout.simple_spinner_dropdown_item,
                 ThemePreference.entries.map { it.label })
@@ -73,56 +122,48 @@ object PersonalSettings {
             contentDescription = "App-Design auswählen"
             layout.addView(this)
         }
-        heading("Automatische Aktivität aus Schritten")
+
+        heading("👣", "Aktivität aus Schritten",
+            "Aus kumulativen CIRQA-Schrittständen der letzten Minuten. Der Modus ist eine grobe Anzeige-Heuristik: Schritte belegen weder Sitzen noch eine bestimmte Sportart. Bei zu wenigen oder veralteten Werten bleibt er unbekannt.")
         val activitySettings = ActivityDetectionPreference.read(context)
-        layout.addView(TextView(context).apply {
-            text = "Aus kumulativen CIRQA-Schrittständen der letzten Minuten. Der Modus ist eine grobe Anzeige-Heuristik: Schritte belegen weder Sitzen noch eine bestimmte Sportart. Bei zu wenigen oder veralteten Werten bleibt er unbekannt."
-            textSize = 12f
-        })
-        val restSteps = field("Ruhe unter Schritte/min", "activity_rest_below", true).apply {
-            setText(activitySettings.restBelowStepsPerMinute.toString())
-        }
-        val sportSteps = field("Sport über Schritte/min", "activity_sport_above", true).apply {
-            setText(activitySettings.sportAboveStepsPerMinute.toString())
-        }
-        val activityWindow = field("Auswertefenster in Minuten", "activity_window_minutes", true).apply {
-            setText(activitySettings.windowMinutes.toString())
-        }
-        heading("SpO₂-Orientierung · Sensor nicht validiert")
+        val (restSteps, sportSteps, activityWindow) = fieldRow(
+            Triple("Ruhe < Schr./min", "activity_rest_below", null),
+            Triple("Sport > Schr./min", "activity_sport_above", null),
+            Triple("Fenster (min)", "activity_window_minutes", null))
+        restSteps.setText(activitySettings.restBelowStepsPerMinute.toString())
+        sportSteps.setText(activitySettings.sportAboveStepsPerMinute.toString())
+        activityWindow.setText(activitySettings.windowMinutes.toString())
+
         val spo2Settings = SpO2DisplaySettings.read(context)
-        layout.addView(TextView(context).apply {
-            text = "Vorschau ${spo2Settings.bandLabel()}\n⏳ ${if (spo2Settings.colorBandsEnabled) "Farbskala aktiv (vom Nutzer akzeptiert), violetter Kartenrand kennzeichnet die fehlende Validierung" else "Farbskala bleibt neutral"}; der CIRQA-Handgelenksensor ist nicht gerätespezifisch validiert. Keine Diagnose oder Alarmfunktion; Signalqualität wird nicht übertragen."
-            textSize = 12f
-        })
-        val spo2Green = field("Vorschau: Grün ab SpO₂ (%)", "spo2_display_green_from", true).apply {
-            setText(spo2Settings.greenFrom.toString())
-        }
-        val spo2Orange = field("Vorschau: Orange ab SpO₂ (%)", "spo2_display_red_below", true).apply {
-            setText(spo2Settings.redBelow.toString())
-        }
-        heading("Persönliches Profil")
-        val name = field("Anzeigename (optional)", "display_name")
+        heading("🫁", "SpO₂-Skala · nicht validiert",
+            "Vorschau ${spo2Settings.bandLabel()}\n\n${if (spo2Settings.colorBandsEnabled) "Farbskala aktiv (vom Nutzer akzeptiert); der violette Kartenrand kennzeichnet die fehlende Validierung." else "Farbskala bleibt neutral."} Der CIRQA-Handgelenksensor ist nicht gerätespezifisch validiert. Keine Diagnose oder Alarmfunktion; Signalqualität wird nicht übertragen.")
+        val (spo2Green, spo2Orange) = fieldRow(
+            Triple("🟢 ab (%)", "spo2_display_green_from", null),
+            Triple("🟠 ab (%)", "spo2_display_red_below", null))
+        spo2Green.setText(spo2Settings.greenFrom.toString())
+        spo2Orange.setText(spo2Settings.redBelow.toString())
+
+        heading("👤", "Profil",
+            "Der Körperprofil-Avatar richtet sich nach der freiwilligen Geschlechtsauswahl: Mann, Frau oder ein kleiner Jedi für Divers / andere. Ohne Angabe bleibt die neutrale Figur. Kein Benutzerkonto und keine Cloud. Die Angaben sind noch nicht mit medizinischen oder kalorischen Schätzformeln verknüpft. Das Geburtsjahr dient nur als Profilangabe; das Alter wird nicht automatisch daraus berechnet.")
+        val name = field("Anzeigename", "display_name")
         val genderOptions = listOf("Keine Angabe", "Männlich", "Weiblich", "Divers / andere")
-        val gender = choice("Geschlecht (optional; nur für geeignete Schätzformeln)", "gender", genderOptions)
-        val birthYear = field("Geburtsjahr (optional)", "birth_year", true)
-        val age = field("Alter in Jahren (optional)", "age_years", true)
-        heading("Körperdaten")
-        val height = field("Größe in cm", "height_cm", true)
-        val weight = field("Gewicht in kg", "weight_kg", true, true)
-        val stepGoal = field("Tägliches Schrittziel", "step_goal", true)
-        heading("Persönliche Einstellungen")
+        val gender = choice("Geschlecht (optional)", "gender", genderOptions)
+        val (birthYear, age) = fieldRow(
+            Triple("Geburtsjahr", "birth_year", null), Triple("Alter (Jahre)", "age_years", null))
+
+        heading("📏", "Körper & Ziele")
+        val (height, weight) = fieldRow(
+            Triple("Größe (cm)", "height_cm", null), Triple("Gewicht (kg)", "weight_kg", null), decimal = true)
+        val (stepGoal, sleepGoal) = fieldRow(
+            Triple("Schrittziel/Tag", "step_goal", null), Triple("Schlafziel (h)", "sleep_goal_hours", null), decimal = true)
+        val resting = field("Bekannter Ruhepuls (bpm)", "resting_hr", true)
+
+        heading("⌚", "Sonstiges")
         val handedness = choice("Trageseite", "wrist", listOf("Nicht angegeben", "Links", "Rechts"))
         val units = choice("Einheiten", "units", listOf("Metrisch (kg, cm)", "Imperial (Anzeige später)"))
-        val sleepGoal = field("Schlafziel in Stunden (optional)", "sleep_goal_hours", true, true)
-        val resting = field("Manuell bekannter Ruhepuls (optional, bpm)", "resting_hr", true)
-        val notes = field("Notiz (optional, nur lokal)", "profile_note")
-        layout.addView(TextView(context).apply {
-            text = "Der Körperprofil-Avatar richtet sich nach der freiwilligen Geschlechtsauswahl: Mann, Frau oder ein kleiner Jedi für Divers / andere. Ohne Angabe bleibt die neutrale Figur. Kein Benutzerkonto und keine Cloud. Die Angaben sind noch nicht mit medizinischen oder kalorischen Schätzformeln verknüpft. Das Geburtsjahr dient nur als Profilangabe; das Alter wird nicht automatisch daraus berechnet."
-            textSize = 12f
-            setPadding(0, 20, 0, 0)
-        })
+        val notes = field("Notiz (nur lokal)", "profile_note")
         val dialog = AlertDialog.Builder(context)
-            .setTitle("⚙ Einstellungen · Mein Profil")
+            .setTitle("⚙ Einstellungen")
             .setView(scroll)
             .setNegativeButton("Schließen", null)
             .setNeutralButton("Profil löschen", null)
