@@ -29,7 +29,7 @@ device/app presentation.
 | Time coverage | For FIT records with a complete timestamp, observed coverage is November 2026 at month precision. Five files had no complete timestamp for their records. No individual timestamp is included. |
 | XML raw file | 19,975 bytes; well-formed XML, `Device` root, 726 elements. This structure is consistent with the previously noted GDXml hypothesis; no schema-level content interpretation was attempted. Element counts and attribute names are included; text and attribute values are not. |
 | Protobuf raw file | 229 bytes; protobuf wire framing validates. Schema and semantic meaning remain unknown; only field numbers, wire types, occurrence counts and length distributions are recorded. Recursively parsed length-delimited shapes are structural candidates, not asserted submessage semantics. |
-| SQLite import | Read-only `integrity_check=ok`; 294 rows: 129 `heart_rate`, 129 `distance`, 36 `speed`; zero duplicate primary keys. All 294 locally reconstructed decoder-candidate idempotency keys match SQLite exactly. |
+| SQLite import | Read-only `integrity_check=ok`; 294 rows: 129 `heart_rate`, 129 `distance`, 36 `speed`; zero duplicate primary keys. The Kotlin decoder emits 761 supported-profile candidates; after timestamp/quality filters, all 294 importable candidate keys match SQLite exactly. |
 
 The FIT inventory contains message families with health-sensitive semantics,
 including monitoring, monitoring heart rate, stress, SpO₂, respiration rate,
@@ -88,8 +88,11 @@ and `last_timestamp` contain `YYYY-MM` only.
 
 The `currently_imported` / `imported_value_count` columns mean matching
 idempotency keys were found in the existing SQLite copy for candidates emitted
-by the current decoder mapping. They do not mean the field is fully imported
-or presented by the application. No values are copied from SQLite.
+by the current decoder mapping and eligible for import after timestamp/quality
+filters. The decoder also reports 467 monitoring-heart-rate candidates without
+an eligible full FIT timestamp; they are excluded from import. These counts do
+not mean a field is fully represented or presented by the application. No
+values are copied from SQLite.
 
 ## Reproduction
 
