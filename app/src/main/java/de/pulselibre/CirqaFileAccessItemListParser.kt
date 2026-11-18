@@ -17,6 +17,11 @@ object CirqaFileAccessItemListParser {
         val dataSize: Long,
         val flags: Long
     )
+    data class ItemListPage(
+        val items: List<Item>,
+        val hasSessionId: Boolean,
+        val hasNextTransactionId: Boolean
+    )
 
     fun fields(bytes: ByteArray): List<Field> {
         val out = ArrayList<Field>()
@@ -58,10 +63,14 @@ object CirqaFileAccessItemListParser {
     }
 
     /** Extract the item list from a complete reassembled Smart protobuf. */
-    fun parse(smart: ByteArray): List<Item> {
-        val service = fields(smart).firstOrNull { it.number == 43 && it.wire == 2 }?.bytes ?: return emptyList()
-        val response = fields(service).firstOrNull { it.number == 10 && it.wire == 2 }?.bytes ?: return emptyList()
-        return fields(response).filter { it.number == 4 && it.wire == 2 }.mapNotNull { entry ->
+    fun parse(smart: ByteArray): List<Item> = parsePage(smart)?.items.orEmpty()
+
+    /** Page context is exposed only as presence bits; opaque IDs stay unreported. */
+    fun parsePage(smart: ByteArray): ItemListPage? {
+        val service = fields(smart).firstOrNull { it.number == 43 && it.wire == 2 }?.bytes ?: return null
+        val response = fields(service).firstOrNull { it.number == 10 && it.wire == 2 }?.bytes ?: return null
+        val responseFields = fields(response)
+        val items = responseFields.filter { it.number == 4 && it.wire == 2 }.mapNotNull { entry ->
             val f = fields(entry.bytes ?: return@mapNotNull null)
             val uid = f.firstOrNull { it.number == 1 && it.wire == 2 }?.bytes ?: return@mapNotNull null
             val dataType = f.firstOrNull { it.number == 2 && it.wire == 2 }?.bytes ?: byteArrayOf()
@@ -69,6 +78,11 @@ object CirqaFileAccessItemListParser {
             val flags = f.firstOrNull { it.number == 4 && it.wire == 0 }?.varint ?: 0L
             Item(uid, dataType, size, flags)
         }
+        return ItemListPage(
+            items = items,
+            hasSessionId = responseFields.any { it.number == 2 && it.wire == 0 },
+            hasNextTransactionId = responseFields.any { it.number == 3 && it.wire == 0 }
+        )
     }
 
     data class PullResult(
@@ -96,7 +110,23 @@ object CirqaFileAccessItemListParser {
     }
 
     fun redactedSummary(items: List<Item>): String =
-        "items=${items.size}; sizes=${items.take(12).joinToString(",") { it.dataSize.toString() }}"
+        "items=${items.size}; types=${items.groupingBy(::safeTypeLabel).eachCount()
+            .entries.joinToString(",") { "${it.key}:${it.value}" }}; " +
+            "sizes=${items.take(12).joinToString(",") { it.dataSize.toString() }}"
+
+    /** Returns only a schema-like GDXML label; never emits UIDs or arbitrary strings. */
+    fun safeTypeLabel(item: Item): String {
+        val dataTypeFields = fields(item.dataType)
+        val format = dataTypeFields.firstOrNull { it.number == 1 && it.wire == 0 }?.varint
+        val rawLabel = dataTypeFields.firstOrNull { it.number == 2 && it.wire == 2 }
+            ?.bytes?.toString(Charsets.UTF_8)
+        val label = rawLabel?.takeIf { it.matches(Regex("[A-Z0-9_]{1,48}")) }
+        return when {
+            label != null -> label
+            format != null -> "format_$format"
+            else -> "unknown"
+        }
+    }
 
     private fun readVarint(bytes: ByteArray, start: Int): Pair<Long, Int>? {
         var result = 0L
