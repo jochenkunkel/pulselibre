@@ -890,6 +890,9 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             val registration = GarminMlOffline.inspectRegisterResponse(bytes)
             if (registration?.serviceId == GarminMlHandshake.GFDI_SERVICE && registration.accepted) {
                 historyHandle = registration.handle
+                // The dynamic handle only exists after the ML register response;
+                // trigger the one-shot FileAccess request here, not from earlier writes.
+                maybeSendFileAccessList(g)
             } else {
                 val first = bytes.firstOrNull()?.toInt()?.and(255)
                 if (first != null && first == historyHandle) {
@@ -1427,10 +1430,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private fun maybeSendFileAccessList(g: BluetoothGatt) {
         if (!fileAccessListMode || fileAccessRequestClaimed || mlWritePending) return
         val handle = historyHandle
-        if (handle == null) {
-            finish("FileAccess-Liste: Bootstrap bestätigt, aber kein dynamischer GFDI-Handle.", g)
-            return
-        }
+        if (handle == null) return // wait for the ML register response
         fileAccessRequestClaimed = true
         configurationTestMode = false
         main.removeCallbacks(configurationTimeout)

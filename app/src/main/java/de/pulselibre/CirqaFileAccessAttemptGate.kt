@@ -5,7 +5,7 @@ import android.content.SharedPreferences
 /** Fresh persistent one-shot gate for the 5043 FileAccess item-list test. */
 object CirqaFileAccessAttemptGate {
     const val RELEASED_FOR_DEVICE_TEST = true
-    const val PREFERENCE_KEY = "cirqaFileAccessAttemptedV1"
+    const val PREFERENCE_KEY = "cirqaFileAccessAttemptedV2"
     const val SUMMARY_KEY = "cirqaFileAccessSummary"
     const val PREFS_NAME = "cirqa_file_access"
 
