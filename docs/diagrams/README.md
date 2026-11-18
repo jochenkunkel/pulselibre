@@ -2,6 +2,8 @@
 
 Diese Grafiken sind **editierbare SVG-Dateien**, anhand der Kotlin-Implementierung und der datierten Forschungsberichte vom 18.11.2026 erstellt. Sie enthalten keine Garmin-Binary, keine privaten Gerätedaten und keine dekompilierten Codeauszüge.
 
+**Neu – Berechnungen:** [Neun grafisch erklärte Messwertberechnungen](BERECHNUNGEN.md), einschließlich Schrittziel, Protein, FIT-Skalierung, HRV-Konzept und Datenqualität.
+
 ## 1. Bestätigte CIRQA-BLE-Sequenz
 
 ![Bestätigte CIRQA-BLE-Sequenz mit 5030, 5007, 5031, 5002 und BLE-Platzhalter](cirqa-ble-sequenz.svg)

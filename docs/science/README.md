@@ -2,6 +2,8 @@
 
 **Kanonischer Kachelbauplan:** [Wissenschaftlicher Dashboard-Kachelbauplan](SCIENTIFIC_DASHBOARD_TILE_BLUEPRINT.md) – Metrik-ID, Rohsignal, Formel, Grenzen, Datenqualität, Tests, Quellen.
 
+**Grafisch erklärt:** [Neun Berechnungs- und Datenqualitätsdiagramme](../diagrams/BERECHNUNGEN.md) mit Formeln, Codequellen und Freigabestatus.
+
 ## Wissenschaftliche Grundlagen (weitere Dokumente noch unter docs/)
 
 - [Wissenschaftliche Referenzen](../SCIENTIFIC_REFERENCES.md)

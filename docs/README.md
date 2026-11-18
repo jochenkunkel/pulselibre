@@ -6,6 +6,8 @@
 
 **Technische Grafiken:** [Ablaufdiagramme und Architekturübersichten](diagrams/README.md) mit Quellen und Evidenzstatus.
 
+**Werte und Formeln als Grafiken:** [Illustrierter Berechnungsleitfaden](diagrams/BERECHNUNGEN.md).
+
 ## Fachbereiche
 
 | Bereich | Wofür? | Verbindlicher Einstieg |

@@ -2,6 +2,8 @@
 
 **Zweck:** Aktueller, nach Quellenstatus getrennter Einstieg für alle Agenten. GitHub-`main` und die jeweils datierten Geräteberichte bleiben maßgeblich. Dies ist keine Freigabe für neue Hardwareaktionen.
 
+**Visueller Überblick:** [Bestätigte BLE-Sequenz und offene Transportpfade](../../diagrams/README.md).
+
 ## Nachweisstand am CIRQA
 
 | Schritt | Evidenz | Grenze |
