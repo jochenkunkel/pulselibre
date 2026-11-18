@@ -1150,7 +1150,10 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             bootstrapAckSent, bootstrapAckConfirmed, configurationResponseQueued,
             configurationResponseConfirmed, configurationAckReceived, mlWritePending,
             bootstrapAckChunks.isNotEmpty())
-        when (s.phase) {
+        // Capture the phase BEFORE claim: claim5030() advances the state to
+        // WAITING_5030_RESPONSE, but sendHsv1Frame needs the request phase.
+        val requestPhase = s.phase
+        when (requestPhase) {
             CirqaHistoricalSyncV1MultiPhaseSession.Phase.BOOTSTRAP -> {
                 if (!s.bootstrapReady(s.token, ready, now)) { finishHsv1IfTerminal(g); return }
                 if (!s.claim5030(s.token, now)) { finishHsv1IfTerminal(g); return }
@@ -1158,9 +1161,11 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             CirqaHistoricalSyncV1MultiPhaseSession.Phase.WAITING_5030_WRITE -> {
                 if (!s.claim5030(s.token, now)) { finishHsv1IfTerminal(g); return }
             }
+            // Already awaiting a response (e.g. a second trigger from the write callback)
+            // or a later phase -> nothing to send now.
             else -> return
         }
-        sendHsv1Frame(g, s.phase)
+        sendHsv1Frame(g, CirqaHistoricalSyncV1MultiPhaseSession.Phase.WAITING_5030_WRITE)
     }
 
     private fun sendHsv1Frame(g: BluetoothGatt, phase: CirqaHistoricalSyncV1MultiPhaseSession.Phase) {
