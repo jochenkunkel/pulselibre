@@ -76,3 +76,7 @@ Fortlaufend, neueste Einträge unten. Jeder Eintrag: Datum, Änderung, Nachweis 
 ## 2026-11-18 – #5 Abschluss (Branch `claude/audit-5-tests`)
 - `DiagnosticReport` extrahiert (Parameter nur Zählwerte/Flags/Aggregat-Zusammenfassungen) und `DiagnosticReportPrivacyTest` ergänzt: nach realen Beobachtungen mit MAC/Namen darf keine Adresse/kein Name/keine Payload im geteilten Text stehen.
 - `device_id` im CSV: Konstante `CIRQA`; Legacy-Datenbank auf dem Testgerät leer. Details in `docs/AUDIT_REVALIDATION_2026-11-18.md`.
+
+## 2026-11-18 – ODI-Artefaktfilter und kürzere Kachelnamen (Branch `claude/odi-and-titles`)
+- **Befund auf dem S25 (Build 1021):** Nacht-Insights zeigen jetzt echte Werte (22 331 Messwerte, Abdeckung 85,4 %, T90 1,5 min), aber ODI3/ODI4 = 10,9/5,6 je Stunde – für Handgelenk-PPG sehr wahrscheinlich durch Einzelmesswert-Artefakte aufgebläht (die Abtastung ist dicht, ~1 Wert/1,3 s). Behandlung: ein Ereignis zählt nur, wenn der Abfall ≥ N Punkte **mindestens 10 s** anhält; Einzelwert-Ausreißer zählen nicht. Weiterhin nicht klinisch validiert, violetter Rand bleibt. Tests ergänzt (Einzelwert-Dips, 8 s vs. 12 s).
+- Kacheln: kürzere sichtbare Namen („Intensität · moderat/hoch“, „Kalorien gesamt/aktiv“, „SpO₂“) gegen Umbrüche mitten im Wort bzw. Auslassungspunkte; Barrierefreiheitsname bleibt der volle Titel.

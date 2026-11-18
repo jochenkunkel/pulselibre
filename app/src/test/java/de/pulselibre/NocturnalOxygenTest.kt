@@ -50,4 +50,14 @@ class NocturnalOxygenTest {
         val r = NocturnalOxygen.summarize(s, start, end)
         assertTrue(r.computable); assertEquals(0.0, r.minutesBelow90!!, 1e-9)
     }
+    @Test fun singleSampleDipsAreArtifactsNotEvents() {
+        // 10 s sampling: a one-sample drop of 6 points every 10 minutes must not count
+        val s = series(10) { t -> if (t % 600 == 0L && t > 0) 90 else 96 }
+        assertEquals(0.0, NocturnalOxygen.summarize(s, start, end).odi3!!, 1e-9)
+    }
+    @Test fun dipShorterThanTenSecondsIsIgnoredAndLongerCounts() {
+        fun withDip(durationSec: Int) = series(1) { t -> if (t in 3600 until 3600 + durationSec) 90 else 96 }
+        assertEquals(0.0, NocturnalOxygen.summarize(withDip(8), start, end).odi3!!, 1e-9)
+        assertEquals(1.0 / 8.0, NocturnalOxygen.summarize(withDip(12), start, end).odi3!!, 1e-9)
+    }
 }
