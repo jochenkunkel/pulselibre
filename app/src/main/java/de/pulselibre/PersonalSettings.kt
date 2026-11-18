@@ -41,13 +41,13 @@ object PersonalSettings {
             AlertDialog.Builder(context).setTitle(title).setMessage(text).setPositiveButton("OK", null).show()
         }
         /** Compact section header: icon + title, optional ⓘ opening the long explanation. */
-        fun heading(icon: String, label: String, info: String? = null) {
+        fun heading(icon: PlIcon, label: String, info: String? = null) {
             val row = LinearLayout(context).apply {
                 orientation = LinearLayout.HORIZONTAL
                 gravity = Gravity.CENTER_VERTICAL
                 setPadding(0, dp(14), 0, dp(4))
             }
-            row.addView(TextView(context).apply { text = icon; textSize = 18f; setPadding(0, 0, dp(8), 0) })
+            row.addView(PlIcon.view(context, icon, 24), LinearLayout.LayoutParams(dp(24), dp(24)).apply { marginEnd = dp(10) })
             row.addView(TextView(context).apply {
                 text = label; textSize = 16f; setTypeface(null, android.graphics.Typeface.BOLD)
                 setTextColor(palette.accent)
@@ -107,76 +107,7 @@ object PersonalSettings {
             }
         }
 
-        // Version / build: first thing in the settings so installed builds can be told apart.
-        val versionInfo = AppVersionInfo.read(context)
-        layout.addView(TextView(context).apply {
-            text = "🏷  ${versionInfo.detail()}"
-            textSize = 14f
-            setTextColor(palette.ink)
-            setTypeface(null, android.graphics.Typeface.BOLD)
-            tag = "settings_version"
-            contentDescription = "App-Version ${versionInfo.detail()}"
-            setPadding(dp(12), dp(10), dp(12), dp(10))
-            background = android.graphics.drawable.GradientDrawable().apply {
-                setColor(palette.tinted); cornerRadius = dp(12).toFloat()
-            }
-        })
-
-        layout.addView(TextView(context).apply {
-            text = "👨‍💻  Entwickelt von Jochen Kunkel"
-            textSize = 13f
-            setTextColor(palette.muted)
-            tag = "settings_developer"
-            contentDescription = "Entwickler: Jochen Kunkel"
-            setPadding(dp(4), dp(8), dp(4), 0)
-        })
-        // Explanation of the violet tile border (moved here from the dashboard): calm info bar, full wording kept.
-        layout.addView(LinearLayout(context).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER_VERTICAL
-            setPadding(dp(12), dp(10), dp(12), dp(10))
-            background = android.graphics.drawable.GradientDrawable().apply {
-                setColor(palette.tinted); cornerRadius = dp(14).toFloat()
-                setStroke(dp(1), UnvalidatedFeatures.color(palette.dark))
-            }
-            tag = "settings_unvalidated_note"
-            contentDescription = UnvalidatedFeatures.LEGEND
-            addView(TextView(context).apply { text = "ⓘ"; textSize = 18f; setTextColor(DesignTokens.MINT)
-                importantForAccessibility = android.view.View.IMPORTANT_FOR_ACCESSIBILITY_NO; setPadding(0, 0, dp(10), 0) })
-            addView(TextView(context).apply { text = UnvalidatedFeatures.LEGEND; textSize = 12f; setTextColor(palette.ink)
-                importantForAccessibility = android.view.View.IMPORTANT_FOR_ACCESSIBILITY_NO }, LinearLayout.LayoutParams(0, -2, 1f))
-        }, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) })
-
-        heading("🎨", "Darstellung")
-        val themeChoice = Spinner(context).apply {
-            adapter = ArrayAdapter(context, android.R.layout.simple_spinner_dropdown_item,
-                ThemePreference.entries.map { it.label })
-            setSelection(AppAppearance.preference(context).ordinal)
-            contentDescription = "App-Design auswählen"
-            layout.addView(this)
-        }
-
-        heading("👣", "Aktivität aus Schritten",
-            "Aus kumulativen CIRQA-Schrittständen der letzten Minuten. Der Modus ist eine grobe Anzeige-Heuristik: Schritte belegen weder Sitzen noch eine bestimmte Sportart. Bei zu wenigen oder veralteten Werten bleibt er unbekannt.")
-        val activitySettings = ActivityDetectionPreference.read(context)
-        val (restSteps, sportSteps, activityWindow) = fieldRow(
-            Triple("Ruhe (/min)", "activity_rest_below", null),
-            Triple("Sport (/min)", "activity_sport_above", null),
-            Triple("Fenster (min)", "activity_window_minutes", null))
-        restSteps.setText(activitySettings.restBelowStepsPerMinute.toString())
-        sportSteps.setText(activitySettings.sportAboveStepsPerMinute.toString())
-        activityWindow.setText(activitySettings.windowMinutes.toString())
-
-        val spo2Settings = SpO2DisplaySettings.read(context)
-        heading("🫁", "SpO₂-Skala · nicht validiert",
-            "Vorschau ${spo2Settings.bandLabel()}\n\n${if (spo2Settings.colorBandsEnabled) "Farbskala aktiv (vom Nutzer akzeptiert); der violette Kartenrand kennzeichnet die fehlende Validierung." else "Farbskala bleibt neutral."} Der CIRQA-Handgelenksensor ist nicht gerätespezifisch validiert. Keine Diagnose oder Alarmfunktion; Signalqualität wird nicht übertragen.")
-        val (spo2Green, spo2Orange) = fieldRow(
-            Triple("🟢 ab (%)", "spo2_display_green_from", null),
-            Triple("🟠 ab (%)", "spo2_display_red_below", null))
-        spo2Green.setText(spo2Settings.greenFrom.toString())
-        spo2Orange.setText(spo2Settings.redBelow.toString())
-
-        heading("👤", "Profil",
+        heading(PlIcon.IDENTITY, "Profil",
             "Der Körperprofil-Avatar richtet sich nach der freiwilligen Geschlechtsauswahl: Mann, Frau oder ein kleiner Jedi für Divers / andere. Ohne Angabe bleibt die neutrale Figur. Kein Benutzerkonto und keine Cloud. Die Angaben sind noch nicht mit medizinischen oder kalorischen Schätzformeln verknüpft. Aus dem Geburtsdatum wird das Alter für den jeweiligen Tag berechnet; es bleibt lokal gespeichert.")
         val name = field("Anzeigename", "display_name")
         val genderOptions = listOf("Keine Angabe", "Männlich", "Weiblich", "Divers / andere")
@@ -202,8 +133,8 @@ object PersonalSettings {
         fun refreshBirth() {
             val today = java.time.LocalDate.now()
             val b = birthDate
-            birthButton.text = if (b == null) "🎂  Geburtsdatum wählen"
-                else "🎂  ${b.format(dateFormat)}  ·  ${AgeCalculator.ageOn(b, today)?.let { "$it Jahre" } ?: "ungültig"}"
+            birthButton.text = if (b == null) "Geburtsdatum wählen"
+                else "${b.format(dateFormat)}  ·  ${AgeCalculator.ageOn(b, today)?.let { "$it Jahre" } ?: "ungültig"}"
             birthButton.contentDescription = if (b == null) "Geburtsdatum wählen" else "Geburtsdatum ${b.format(dateFormat)} ändern"
             legacyNote.visibility = if (b == null && legacyAge.toIntOrNull() != null) android.view.View.VISIBLE else android.view.View.GONE
         }
@@ -219,19 +150,91 @@ object PersonalSettings {
         layout.addView(legacyNote)
         refreshBirth()
 
-        heading("📏", "Körper & Ziele")
+        heading(PlIcon.FITNESS, "Körper & Ziele")
         val (height, weight) = fieldRow(
             Triple("Größe (cm)", "height_cm", null), Triple("Gewicht (kg)", "weight_kg", null), decimal = true)
         val (stepGoal, sleepGoal) = fieldRow(
             Triple("Schrittziel/Tag", "step_goal", null), Triple("Schlafziel (h)", "sleep_goal_hours", null), decimal = true)
         val resting = field("Bekannter Ruhepuls (bpm)", "resting_hr", true)
 
-        heading("⌚", "Sonstiges")
+        heading(PlIcon.CIRQA_BAND, "Sonstiges")
         val handedness = choice("Trageseite", "wrist", listOf("Nicht angegeben", "Links", "Rechts"))
         val units = choice("Einheiten", "units", listOf("Metrisch (kg, cm)", "Imperial (Anzeige später)"))
         val notes = field("Notiz (nur lokal)", "profile_note")
+        heading(PlIcon.OVERVIEW, "Darstellung")
+        val themeChoice = Spinner(context).apply {
+            adapter = ArrayAdapter(context, android.R.layout.simple_spinner_dropdown_item,
+                ThemePreference.entries.map { it.label })
+            setSelection(AppAppearance.preference(context).ordinal)
+            contentDescription = "App-Design auswählen"
+            layout.addView(this)
+        }
+
+        heading(PlIcon.STEPS, "Aktivität aus Schritten",
+            "Aus kumulativen CIRQA-Schrittständen der letzten Minuten. Der Modus ist eine grobe Anzeige-Heuristik: Schritte belegen weder Sitzen noch eine bestimmte Sportart. Bei zu wenigen oder veralteten Werten bleibt er unbekannt.")
+        val activitySettings = ActivityDetectionPreference.read(context)
+        val (restSteps, sportSteps, activityWindow) = fieldRow(
+            Triple("Ruhe (/min)", "activity_rest_below", null),
+            Triple("Sport (/min)", "activity_sport_above", null),
+            Triple("Fenster (min)", "activity_window_minutes", null))
+        restSteps.setText(activitySettings.restBelowStepsPerMinute.toString())
+        sportSteps.setText(activitySettings.sportAboveStepsPerMinute.toString())
+        activityWindow.setText(activitySettings.windowMinutes.toString())
+
+        val spo2Settings = SpO2DisplaySettings.read(context)
+        heading(PlIcon.OXYGEN, "SpO₂-Skala · nicht validiert",
+            "Vorschau ${spo2Settings.bandLabel()}\n\n${if (spo2Settings.colorBandsEnabled) "Farbskala aktiv (vom Nutzer akzeptiert); der violette Kartenrand kennzeichnet die fehlende Validierung." else "Farbskala bleibt neutral."} Der CIRQA-Handgelenksensor ist nicht gerätespezifisch validiert. Keine Diagnose oder Alarmfunktion; Signalqualität wird nicht übertragen.")
+        val (spo2Green, spo2Orange) = fieldRow(
+            Triple("Grün ab (%)", "spo2_display_green_from", null),
+            Triple("Orange ab (%)", "spo2_display_red_below", null))
+        spo2Green.setText(spo2Settings.greenFrom.toString())
+        spo2Orange.setText(spo2Settings.redBelow.toString())
+
+        // Version / build: first thing in the settings so installed builds can be told apart.
+        val versionInfo = AppVersionInfo.read(context)
+        layout.addView(TextView(context).apply {
+            text = versionInfo.detail()
+            compoundDrawablePadding = dp(10)
+            setCompoundDrawablesRelativeWithIntrinsicBounds(PlIcon.drawable(context, PlIcon.FIRMWARE, 22), null, null, null)
+            textSize = 14f
+            setTextColor(palette.ink)
+            setTypeface(null, android.graphics.Typeface.BOLD)
+            tag = "settings_version"
+            contentDescription = "App-Version ${versionInfo.detail()}"
+            setPadding(dp(12), dp(10), dp(12), dp(10))
+            background = android.graphics.drawable.GradientDrawable().apply {
+                setColor(palette.tinted); cornerRadius = dp(12).toFloat()
+            }
+        })
+
+        layout.addView(TextView(context).apply {
+            text = "Entwickelt von Jochen Kunkel"
+            compoundDrawablePadding = dp(8)
+            setCompoundDrawablesRelativeWithIntrinsicBounds(PlIcon.drawable(context, PlIcon.IDENTITY, 18, palette.muted), null, null, null)
+            textSize = 13f
+            setTextColor(palette.muted)
+            tag = "settings_developer"
+            contentDescription = "Entwickler: Jochen Kunkel"
+            setPadding(dp(4), dp(8), dp(4), 0)
+        })
+        // Explanation of the violet tile border (moved here from the dashboard): calm info bar, full wording kept.
+        layout.addView(LinearLayout(context).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(dp(12), dp(10), dp(12), dp(10))
+            background = android.graphics.drawable.GradientDrawable().apply {
+                setColor(palette.tinted); cornerRadius = dp(14).toFloat()
+                setStroke(dp(1), UnvalidatedFeatures.color(palette.dark))
+            }
+            tag = "settings_unvalidated_note"
+            contentDescription = UnvalidatedFeatures.LEGEND
+            addView(PlIcon.view(context, PlIcon.INFO, 22), LinearLayout.LayoutParams(dp(22), dp(22)).apply { marginEnd = dp(10) })
+            addView(TextView(context).apply { text = UnvalidatedFeatures.LEGEND; textSize = 12f; setTextColor(palette.ink)
+                importantForAccessibility = android.view.View.IMPORTANT_FOR_ACCESSIBILITY_NO }, LinearLayout.LayoutParams(0, -2, 1f))
+        }, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) })
+
         // Destructive action sits apart at the end of the scrolling content, never next to "Speichern".
-        heading("🗑", "Profil löschen")
+        heading(PlIcon.STORAGE, "Profil löschen")
         val deleteButton = Button(context).apply {
             text = "Profil löschen …"
             isAllCaps = false
@@ -269,7 +272,7 @@ object PersonalSettings {
             layoutParams = ViewGroup.LayoutParams(-1, (context.resources.displayMetrics.heightPixels * 0.78f).toInt())
         }
         val dialog = AlertDialog.Builder(context)
-            .setTitle("⚙ Einstellungen")
+            .setTitle("Einstellungen")
             .setView(container)
             .create()
         closeButton.setOnClickListener { dialog.dismiss() }

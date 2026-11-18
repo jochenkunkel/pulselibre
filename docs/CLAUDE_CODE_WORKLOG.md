@@ -183,3 +183,8 @@ Noch sichtbar offen (P3): Nacht-Insights erste Spalte „22–6 Uhr / 22331 / We
 - Fund am S25: Größe/Gewicht in der Konfig gespeichert (Prefs enthalten 196 / 99.2), Übersicht zeigte „–“.
 - Ursache: Der Config-Button im Header übergab beim Speichern keinen Refresh der Profilkarte (nur der Tap auf die Karte tat es).
 - Fix: `refreshBodyCardRef` wird auch aus dem Header-Callback aufgerufen; Regressionstest `savingViaHeaderSettingsButtonRefreshesProfileCard`.
+
+## 2026-11-18 · Config-Menü: neue Icons und Reihenfolge
+- Überschriften nutzen jetzt die PulsLibre-Icons (Profil=Identität, Körper & Ziele=Fitness, Sonstiges=CIRQA-Band, Darstellung=Übersicht, Aktivität=Schritte, SpO₂=Lunge, Löschen=Speicher); Emojis in Version, Entwickler, Info-Hinweis, Geburtsdatum, SpO₂-Feldern entfernt.
+- Reihenfolge: Profil (Name, Geschlecht, Geburtsdatum) → Körper & Ziele (Größe, Gewicht, Ziele, Ruhepuls) → Sonstiges → Darstellung → Aktivität → SpO₂-Grenzwerte → Version/Entwickler/Hinweis → Profil löschen.
+- Nicht geprüft: Hellmodus/große Schrift der neuen Anordnung am Gerät.
