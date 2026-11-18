@@ -4,6 +4,8 @@
 
 > **S25 Offline-Abgleich (18.11.2026):** Die bereits gespeicherten 33 Dateien wurden read-only gegen S25-Dateihashes und Datenbank-Snapshots geprüft; 294/294 aktuelle Decoder-Kandidaten stimmen schlüsselbasiert mit den vorhandenen historischen Messwerten überein. Details und Grenzen: [Reconciliation-Bericht](protocol/research/CIRQA_S25_OFFLINE_RECONCILIATION_2026-11-18.md). Garmin FIT SDK Profil 21.222.0 und 11 Inventurtests wurden verwendet. Kein erneuter CIRQA-Download oder Hardwaretest.
 
+> **Persistenz / Issue #144:** Aktuelle IST-Schemas, Backup-Grenzen und ein vorgeschlagenes normalisiertes SOLL-Modell samt Mermaid-ERDs/Migrationsstufen stehen im [Storage-ADR](protocol/data-model/CIRQA_STORAGE_ARCHITECTURE_ADR_2026-11-18.md). Die physische DB-Konsolidierung und Migration bleiben offen; keine vorhandene DB oder Originaldatei wurde gelöscht.
+
 **Stand:** 2026-11-18 (CIRQA-Download-Fortschritt; historische Einträge bleiben datiert) · **maßgeblicher Codezweig:** `main` · **Status:** aktive Entwicklung, keine Produktionsfreigabe.
 
 > **Arbeitsregel für alle Chats und Entwicklungsagenten:** Dieses Dokument und der aktuelle GitHub-`main` sind der gemeinsame, versionierte Übergabepunkt. Ein Chatverlauf wird **nicht automatisch** in andere Chats übertragen. Zu Beginn jeder Arbeit zuerst `main`, diese Datei, die offenen Issues und die CI-Ergebnisse lesen. Widersprüche gegen den aktuellen Code prüfen; nicht ungeprüft aus älteren Chatantworten übernehmen.

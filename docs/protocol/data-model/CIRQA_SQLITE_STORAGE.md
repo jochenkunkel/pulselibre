@@ -1,46 +1,60 @@
-# CIRQA local SQLite storage v1
+# CIRQA local SQLite storage (current schema and target)
 
-Stand: 2026-11-17, Bereinigungs-PR. `CirqaDatabase` verwendet Androids
-`SQLiteOpenHelper`, ohne Cloud und ohne INTERNET-Berechtigung.
+Stand: 2026-11-18. `CirqaDatabase` uses Android `SQLiteOpenHelper`; no cloud or
+`INTERNET` permission is involved.
 
-## Schema
+## Current persisted stores
 
-`events(id INTEGER PRIMARY KEY, line_sha256 TEXT UNIQUE NOT NULL, received_at_utc TEXT NOT NULL, kind TEXT NOT NULL, service INTEGER, payload_json TEXT NOT NULL)`
+There are currently two physical databases; the target architecture is not yet
+migrated:
 
-Indizes: `(service, received_at_utc)` und `(kind, received_at_utc)`.
-Messfelder bleiben als JSON in `payload_json`; SHA-256 dedupliziert identische Ereignisse.
-Schema und vorhandene SQLite-Ereignisse werden durch die Bereinigung nicht verändert.
+- `cirqa_measurements.db`, schema version 2:
+  `events(id, line_sha256 UNIQUE, received_at_utc, dashboard_time, kind,
+  service, payload_json)`. Indexes cover service/time, kind/time, and a partial
+  dashboard-time index. Raw observed event details remain JSON by design.
+- `pulselibre_readings.db`, schema version 1:
+  `readings(device_id, metric, measured_at_ms, value, unit, sample_id,
+  received_at_ms)` with composite primary key
+  `(device_id, metric, measured_at_ms, sample_id)`, plus
+  `sync_cursors(device_id, last_committed_ms)`.
 
-## Schreib-/Lesepfade
+The stores, observed source-file relationship, proposed normalized schema, and
+additive no-delete migration stages are described in the
+[storage architecture ADR](CIRQA_STORAGE_ARCHITECTURE_ADR_2026-11-18.md).
 
-`CirqaLocalLog.append()/reading()` schreibt unmittelbar SQLite. Dashboard, Statistik,
-CSV und nutzergesteuerter JSONL-Export lesen SQLite. Es gibt kein zusätzliches
-JSONL-Aufzeichnungsjournal mehr.
+## Writers, readers and retained legacy data
 
-Auf ausdrücklichen Nutzerwunsch wird die frühere private `cirqa_overnight.jsonl`
-nicht mehr importiert. Beim Öffnen der Datenbank wird nur diese Datei bestmöglich
-entfernt, ohne Verzeichnisse rekursiv zu löschen. Bereits importierte Ereignisse
-bleiben erhalten; alte, noch nicht importierte Dateiinhalte werden verworfen.
-Andere Dateien und Exporte werden nicht gelöscht. Die Bereinigung erfolgt erst,
-wenn eine App-Version mit dieser Änderung auf dem Gerät die Datenbank öffnet.
+`CirqaLocalLog.append()/reading()` write realtime events to `events`. Dashboard,
+statistics and JSONL/CSV exports read the canonical event database. CSV export
+also imports rows from `pulselibre_readings.db` as `legacy_record`; the legacy
+database is retained. FIT history currently writes validated observations to
+`pulselibre_readings.db` through `LocalReadingStore.commitBatch`. The reusable
+offline `CirqaFitBackfill` uses the same validated/idempotent batch contract.
 
-Der separate Import aus `pulselibre_readings.db` beim CSV-Export bleibt erhalten.
-Siehe [einheitliche Speicherung](../../UNIFIED_LOCAL_STORAGE_2026-11-16.md).
+The former private `cirqa_overnight.jsonl` is removed on database open according
+to the earlier explicit user decision. This is separate from the health-data
+SQLite databases and user-triggered JSONL exports.
 
-## Tests und Grenzen
+Verified FIT/raw files remain separate app-private originals, content-addressed
+by SHA-256 and published atomically after integrity/size checks. They are not
+currently included in database backup archives and do not have relational
+foreign keys in SQLite.
 
-JVM-Tests prüfen gezielte Dateientfernung, Wiederholung, Erhalt anderer Dateien
-und Ablehnung rekursiver Verzeichnislöschung. Ein Android-Test mit isoliertem
-Datenbank-/Dateiverzeichnis prüft zusätzlich Öffnen/Wiederöffnen, Erhalt vorhandener
-SQLite-Ereignisse und ausbleibenden JSONL-Import. Tatsächliche Prüfergebnisse stehen
-im Pull Request; Testcode allein ist kein Nachweis eines erfolgreichen Laufs.
+## Backup, tests and limitations
 
-Lokale Prüfung dieses Bereinigungsstands (2026-11-17, Gradle 8.13/JDK 17/SDK 35):
-227 JVM-Tests bestanden, App-APK und Android-Test-APK gebaut, `lintDebug` erfolgreich.
-Der Android-Integrationstest wurde kompiliert, aber nicht ausgeführt; kein
-Emulator-/S25-Nachweis und keine Installationsfreigabe.
+Database backup format v1 serializes events, legacy readings and sync cursors
+into checksummed JSONL archive entries. It is not encrypted and does not include
+FIT/raw originals. Restore validates the archive before changing rows. Do not
+manually copy a live SQLite main file without its journal.
 
-Offen bleiben Hintergrundausführung und begrenzte Abfragen für große Bestände,
-Aufbewahrung, additive Schema-Migrationen und vollständige Persistenztests.
-Keine Schlafstadien, kein RMSSD aus einzelnen RR-Werten, keine Addition kumulativer
-Schrittzähler und keine unbelegten Einheiten oder klinischen Aussagen.
+Current local verification for the FIT-backfill change: JVM tests, debug APK,
+`lintDebug`, Android-test APK, and API-35 emulator instrumentation passed (50/50).
+An all-attached-device test invocation also saw the physical S25 and correctly
+failed to install a lower version code; no package install was committed on the
+phone. Emulator-only instrumentation passed. GitHub full CI status is tracked
+in issue #149.
+
+Open: additive normalized provenance schema, physical-store consolidation,
+legacy backup compatibility during migration, bounded/paginated large-history
+queries, and policy for source-file backup/retention. No unknown FIT field or
+clinical interpretation is inferred.
