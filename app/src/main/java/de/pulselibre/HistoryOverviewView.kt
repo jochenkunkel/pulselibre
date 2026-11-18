@@ -155,12 +155,12 @@ class HistoryOverviewView(
             orientation = HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
             isFocusable = true
-            contentDescription = "Verlaufslegende. Zeitpunkt: Empfang auf dem Telefon. Punkt: Median; Strich: beobachtetes Minimum bis Maximum. Leere Fenster enthalten keine Messdaten."
+            contentDescription = "Verlaufslegende. Zeitpunkt: Empfang auf dem Telefon. Gefüllter Punkt: Median; Ring: arithmetischer Mittelwert; Strich: beobachtetes Minimum bis Maximum. Leere Fenster enthalten keine Messdaten."
             importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_YES
         }
         listOf(
             DashboardInfoIconView.Kind.TIME to "Telefonzeit",
-            DashboardInfoIconView.Kind.RANGE to "Median · Min–Max",
+            DashboardInfoIconView.Kind.RANGE to "Median ● Mittel ○ Min–Max",
             DashboardInfoIconView.Kind.WINDOW to "Leer = keine Daten"
         ).forEachIndexed { index, (kind, text) ->
             val chip = LinearLayout(context).apply {
@@ -327,7 +327,7 @@ private class HistoryScatterChartView(
     init {
         importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_YES
         contentDescription = "$storedPointCount gespeicherte Messwerte in ${buckets.size} belegten Zeitfenstern, Auflösung ${resolution.label}. " +
-            "Markierung ist der Median; Strich zeigt beobachtetes Minimum bis Maximum. Vertikale Achse ${axis.minimum} bis ${axis.maximum}. " +
+            "Gefüllter Punkt ist der Median, der Ring der arithmetische Mittelwert; der Strich zeigt beobachtetes Minimum bis Maximum. Vertikale Achse ${axis.minimum} bis ${axis.maximum}. " +
             "Horizontale Achse ${timeFormatter.format(start)} bis ${timeFormatter.format(end)}. " +
             "Leere Fenster bleiben leer. Es gibt keine Verbindung oder Interpolation zwischen Fenstern."
     }
@@ -405,6 +405,13 @@ private class HistoryScatterChartView(
             canvas.drawLine(x - 1.5f * density, minY, x + 1.5f * density, minY, paint)
             paint.style = Paint.Style.FILL
             canvas.drawCircle(x, medianY, 2f * density, paint)
+            // arithmetic mean as a small ring: where it differs from the median the distribution is skewed (#79)
+            if (bucket.count > 1) {
+                val meanY = plot.bottom - ((bucket.mean.toFloat() - axis.minimum) / axis.span).coerceIn(0f, 1f) * plot.height()
+                paint.style = Paint.Style.STROKE; paint.strokeWidth = 1f * density
+                canvas.drawCircle(x, meanY, 3.4f * density, paint)
+                paint.style = Paint.Style.FILL
+            }
         }
     }
 }

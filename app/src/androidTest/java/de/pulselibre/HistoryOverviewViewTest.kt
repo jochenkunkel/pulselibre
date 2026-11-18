@@ -81,7 +81,7 @@ class HistoryOverviewViewTest {
             view.refreshSynchronously()
             val chart = descendants(view).single { it.contentDescription?.startsWith("1 gespeicherte Messwerte") == true }
             assertTrue(chart.contentDescription.contains("1 gespeicherte Messwerte in 1 belegten Zeitfenstern"))
-            assertTrue(chart.contentDescription.contains("Markierung ist der Median"))
+            assertTrue(chart.contentDescription.contains("Gefüllter Punkt ist der Median"))
             assertTrue(chart.contentDescription.contains("keine Verbindung oder Interpolation"))
             assertTrue(containsText(view, "Keine Messdaten in diesem Zeitraum"))
         }
