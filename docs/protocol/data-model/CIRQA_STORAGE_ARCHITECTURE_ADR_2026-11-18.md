@@ -29,6 +29,11 @@ deleting or rewriting its existing data.
 ```mermaid
 erDiagram
     CIRQA_DB ||--o{ EVENTS : stores
+    CIRQA_DB ||--o{ OBSERVATIONS : stores
+    CIRQA_DB ||--o{ SYNC_CURSORS : stores
+    CIRQA_DB ||--o{ FIT_SOURCES : indexes
+    FIT_SOURCES ||--o{ FIT_PROVENANCE : identifies
+    OBSERVATIONS ||--o| FIT_PROVENANCE : explains
     HISTORY_DB ||--o{ READINGS : stores
     HISTORY_DB ||--o{ SYNC_CURSORS : stores
     HISTORY_DB ||--o{ FIT_SOURCES : indexes
@@ -38,7 +43,7 @@ erDiagram
     APP_FILES ||--o{ VERIFIED_RAW : contains
 
     CIRQA_DB {
-      integer schema_version "2"
+      integer schema_version "3"
     }
     EVENTS {
       integer id PK
@@ -48,6 +53,20 @@ erDiagram
       text kind
       integer service
       text payload_json
+    }
+    STORAGE_MIGRATIONS {
+      text migration_key PK
+      integer source_counts
+      integer completed_at_ms
+    }
+    OBSERVATIONS {
+      text device_id PK
+      text metric PK
+      integer measured_at_ms PK
+      real value
+      text unit
+      text sample_id PK
+      integer received_at_ms
     }
     HISTORY_DB {
       integer schema_version "2"
@@ -103,6 +122,13 @@ is the primary key. Historical DB schema v2 adds `fit_sources` and
 composite key. The v1→v2 migration creates only new tables/indexes; it preserves
 existing readings and cursors. Existing v1 rows have no fabricated provenance;
 replaying a verified original can add provenance by stable sample ID.
+
+Canonical `cirqa_measurements.db` schema v3 now has corresponding normalized
+tables. `ensureHistoricalStoreCopied()` copies historical rows in a destination
+transaction, verifies every copied key/value/provenance and table counts, and
+can be rerun without duplicating rows. A count marker skips unchanged source
+snapshots and is cleared by database restore. The source DB and original files
+are preserved. The CSV export path invokes this copy stage.
 
 Backup format v2 includes events, readings, cursors, FIT-source metadata and
 provenance. The restore reader accepts format v1; v1 restore necessarily
@@ -248,14 +274,15 @@ the app does not need to copy the entire external profile into each database.
 3. Decoder emits only explicitly supported profile fields. Unknown fields remain
    skipped/recorded as inventory evidence, not guessed.
 4. Validation filters missing timestamps and non-importable quality values.
-5. Current schema v2 writes each FIT file's normalized readings, source
+5. Historical schema v2 writes each FIT file's normalized readings, source
    metadata, field provenance and per-device cursor in one transaction.
    Replays use stable source/record/field keys; conflicting decoder output fails
    closed rather than silently overwriting an earlier observation.
-6. Current dashboard/history paths primarily query `events`; the normalized FIT
-   readings are used by the local reading/export path and are not yet a shared
-   dashboard repository. Backup v2 serializes both stores and verifies hashes,
-   counts and FK integrity on restore. It does not embed original FIT bytes.
+6. Current dashboard/history paths primarily query `events`; normalized FIT
+   observations are copied into schema v3 during historical CSV export, but
+   dashboard readers and FIT write paths have not yet cut over. Backup v2 still
+   serializes the retained historical source store and clears the derived
+   canonical copy on restore; it does not embed original FIT bytes.
 
 `measured_at_ms` is the device/FIT measurement clock. `received_at_ms` is the
 local transfer/import clock and must not replace a missing measurement time.
@@ -272,19 +299,19 @@ identifier is not a committed SQLite cursor.
    and cursor. New FIT batches now write readings, provenance and cursor in one
    transaction. A verified original can add provenance to a matching existing
    reading by its stable sample key.
-3. **Remaining consolidation step:** add target tables/indexes to
-   `CirqaDatabase` with a monotonic version upgrade. Copy historical readings,
-   FIT source metadata and cursors with exact values and stable keys. Use
-   `INSERT OR IGNORE` only where the destination key exactly matches the source
-   identity; verify source/destination count and key coverage before marking the
-   migration complete. Keep the old database intact and read-only as rollback.
-4. Make migration restartable: a marker is written only after successful
-   validation. Interrupted transactions roll back; a subsequent open retries.
-5. Route new FIT imports through the canonical repository only after that
-   migration has completed. Backup v2 now includes FIT source/provenance metadata
-   and reads v1 archives; keep this compatibility when the physical stores are
-   consolidated. Do not rely on restored metadata implying that original bytes
-   were backed up.
+3. **Implemented copy stage:** add normalized tables/indexes to `CirqaDatabase`
+   schema v3 and copy historical readings, FIT source metadata and cursors in a
+   transaction. The copy verifies matching keys/values and source/destination
+   counts; conflicting destination rows fail closed and roll back. The old DB
+   remains intact as rollback evidence.
+4. Make migration restartable: a source-count marker is written only after
+   successful validation. Interrupted transactions roll back; a later export
+   retries if the historical source row counts have changed.
+5. **Remaining:** route new FIT imports through the canonical repository only
+   after backup v3 includes canonical rows and v1/v2 compatibility tests pass.
+   Backup v2 currently preserves the historical source store, not the derived
+   schema-v3 copy. Do not rely on restored metadata implying original bytes were
+   backed up.
 6. Run backup→restore round trips against both pre-migration and migrated
    fixtures. Compare counts, stable keys, cursors, event hashes and file hashes.
    Retire neither legacy DB nor original files as part of this migration.
@@ -311,7 +338,8 @@ not a valid backup procedure.
 ## Remaining acceptance work
 
 The diagrams and target/migration decision are architecture artifacts. The
-historical DB now has FIT-source/provenance FKs and backup v2 has backward-read
-support. Physical DB consolidation, metadata observations, file-byte backup/
-restore, migration verification over populated legacy DB fixtures, and shared
+historical DB and canonical DB now have normalized FIT tables, and backup v2
+has backward-read support. The current migration is copy-only and is triggered
+by the CSV export path. Write-path cutover, backup of canonical rows, physical
+consolidation, metadata observations, file-byte backup/restore and shared
 dashboard repository remain open before closing issue #144.
