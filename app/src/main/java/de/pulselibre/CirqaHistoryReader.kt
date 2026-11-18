@@ -49,12 +49,13 @@ internal object HistoryDataCache {
 
     @Synchronized fun invalidate() { pulse.clear(); oxygen.clear(); lastEventId = 0L; loadedAtMs = 0L }
 
-    @Synchronized fun snapshot(context: Context, range: HistoryRange, now: Instant): HistorySnapshot {
+    /** [now] drives the cache (horizon, new events); the window itself ends at [windowEnd] (earlier for navigation). */
+    @Synchronized fun snapshot(context: Context, range: HistoryRange, now: Instant, windowEnd: Instant = now): HistorySnapshot {
         try { sync(context, now) } catch (e: Exception) { invalidate(); throw e }
-        val start = range.startAt(now)
-        return HistorySnapshot(range, start, now,
-            pulse.slice(start.toEpochMilli(), now.toEpochMilli()),
-            oxygen.slice(start.toEpochMilli(), now.toEpochMilli()))
+        val start = range.startAt(windowEnd)
+        return HistorySnapshot(range, start, windowEnd,
+            pulse.slice(start.toEpochMilli(), windowEnd.toEpochMilli()),
+            oxygen.slice(start.toEpochMilli(), windowEnd.toEpochMilli()))
     }
 
     private fun sync(context: Context, now: Instant) {
@@ -98,6 +99,6 @@ internal object HistoryDataCache {
 
 /** Read-only, time-bounded projection of stored CIRQA heart-rate and SpO₂ readings (served from [HistoryDataCache]). */
 class CirqaHistoryReader(private val context: Context) {
-    fun read(range: HistoryRange, now: Instant = Instant.now()): HistorySnapshot =
-        HistoryDataCache.snapshot(context, range, now)
+    fun read(range: HistoryRange, now: Instant = Instant.now(), offset: Int = 0): HistorySnapshot =
+        HistoryDataCache.snapshot(context, range, now, range.windowEnd(now, offset.coerceIn(0, range.maxOffset())))
 }

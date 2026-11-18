@@ -150,7 +150,9 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
                 return
             }
             val nf = java.text.NumberFormat.getNumberInstance(java.util.Locale.GERMANY).apply { maximumFractionDigits = 1 }
-            addNightIndicator(insightRow, "◉", "22–6 Uhr", "${night.samples} Werte", palette.muted)
+            addNightIndicator(insightRow, "◉", "22–6 Uhr",
+                java.text.NumberFormat.getIntegerInstance(java.util.Locale.GERMANY).format(night.samples), palette.muted,
+                description = "Nacht 22 bis 6 Uhr: ${night.samples} Messwerte")
             addNightIndicator(insightRow, "◷", "Abdeckung",
                 night.coveragePercent?.let { "${nf.format(it)} %" } ?: "nicht berechenbar", palette.muted)
             addNightIndicator(insightRow, "⌁", "T90",
@@ -203,12 +205,12 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
         @Volatile var nightLoading = false
     }
 
-    private fun addNightIndicator(parent: LinearLayout, icon: String, title: String, value: String, color: Int) {
+    private fun addNightIndicator(parent: LinearLayout, icon: String, title: String, value: String, color: Int, description: String? = null) {
         val cell = LinearLayout(context).apply {
             orientation = VERTICAL
             gravity = Gravity.CENTER
             setPadding(dp(4), dp(3), dp(4), dp(3))
-            contentDescription = "$title: $value"
+            contentDescription = description ?: "$title: $value"
             importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_YES
             addView(label(icon, 18f, color, true), LayoutParams(-2, -2))
             addView(label(title, 11f, muted, true).apply { gravity = Gravity.CENTER }, LayoutParams(-1, -2))
