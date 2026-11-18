@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Color
 import android.text.InputType
 import android.view.Gravity
+import android.view.ViewGroup
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
 
@@ -162,26 +163,69 @@ object PersonalSettings {
         val handedness = choice("Trageseite", "wrist", listOf("Nicht angegeben", "Links", "Rechts"))
         val units = choice("Einheiten", "units", listOf("Metrisch (kg, cm)", "Imperial (Anzeige später)"))
         val notes = field("Notiz (nur lokal)", "profile_note")
+        // Destructive action sits apart at the end of the scrolling content, never next to "Speichern".
+        heading("🗑", "Profil löschen")
+        val deleteButton = Button(context).apply {
+            text = "Profil löschen …"
+            isAllCaps = false
+            contentDescription = "Profil löschen, erfordert zwei Bestätigungen"
+            setTextColor(palette.ink)
+            background = android.graphics.drawable.GradientDrawable().apply {
+                setColor(Color.TRANSPARENT); setStroke(dp(1), palette.muted); cornerRadius = dp(12).toFloat()
+            }
+            minHeight = dp(48)
+        }
+        layout.addView(deleteButton, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(4); bottomMargin = dp(8) })
+
+        fun barButton(label: String, filled: Boolean) = Button(context).apply {
+            text = label
+            isAllCaps = false
+            textSize = 15f
+            minHeight = dp(48)
+            setTextColor(if (filled) Color.WHITE else palette.accent)
+            background = android.graphics.drawable.GradientDrawable().apply {
+                setColor(if (filled) palette.primary else palette.tinted); cornerRadius = dp(12).toFloat()
+            }
+        }
+        val closeButton = barButton("Schließen", false)
+        val saveButton = barButton("💾  Speichern", true)
+        val bar = LinearLayout(context).apply {
+            orientation = LinearLayout.HORIZONTAL
+            setPadding(dp(16), dp(8), dp(16), dp(12))
+            addView(closeButton, LinearLayout.LayoutParams(0, -2, 1f).apply { marginEnd = dp(8) })
+            addView(saveButton, LinearLayout.LayoutParams(0, -2, 1f))
+        }
+        val container = LinearLayout(context).apply {
+            orientation = LinearLayout.VERTICAL
+            addView(scroll, LinearLayout.LayoutParams(-1, 0, 1f))
+            addView(bar, LinearLayout.LayoutParams(-1, -2))
+            layoutParams = ViewGroup.LayoutParams(-1, (context.resources.displayMetrics.heightPixels * 0.78f).toInt())
+        }
         val dialog = AlertDialog.Builder(context)
             .setTitle("⚙ Einstellungen")
-            .setView(scroll)
-            .setNegativeButton("Schließen", null)
-            .setNeutralButton("Profil löschen", null)
-            .setPositiveButton("Speichern", null)
+            .setView(container)
             .create()
+        closeButton.setOnClickListener { dialog.dismiss() }
         dialog.setOnShowListener {
-            dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener {
+            deleteButton.setOnClickListener {
+                // Two separate confirmations: scope first, then the irreversible final step.
                 AlertDialog.Builder(context)
-                    .setTitle("Profil wirklich löschen?")
-                    .setMessage("Nur deine Profilangaben werden entfernt. Messdaten bleiben erhalten.")
+                    .setTitle("Profil löschen?")
+                    .setMessage("Alle Profilangaben (Name, Körperdaten, Ziele, Einstellungen) werden entfernt. Messdaten bleiben erhalten.")
                     .setNegativeButton("Abbrechen", null)
-                    .setPositiveButton("Profil löschen") { _, _ ->
-                        p.edit().clear().apply()
-                        onSaved()
-                        dialog.dismiss()
+                    .setPositiveButton("Weiter") { _, _ ->
+                        AlertDialog.Builder(context)
+                            .setTitle("Wirklich endgültig löschen?")
+                            .setMessage("Das Löschen kann nicht rückgängig gemacht werden.")
+                            .setNegativeButton("Abbrechen", null)
+                            .setPositiveButton("Endgültig löschen") { _, _ ->
+                                p.edit().clear().apply()
+                                onSaved()
+                                dialog.dismiss()
+                            }.show()
                     }.show()
             }
-            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+            saveButton.setOnClickListener {
                 fun intValue(v: EditText, min: Int, max: Int): Boolean =
                     v.text.isBlank() || v.text.toString().toIntOrNull()?.let { it in min..max } == true
                 fun decimalValue(v: EditText, min: Double, max: Double): Boolean =
