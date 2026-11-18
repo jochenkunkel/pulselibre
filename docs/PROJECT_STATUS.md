@@ -1,8 +1,8 @@
 # PulsLibre – zentraler Projektstatus und Chat-Übergabe
 
-> **Aktueller CIRQA-Historienstand (18.11.2026):** [Kanonischer Forschungs- und Evidenzstand](protocol/research/CIRQA_HISTORICAL_RESEARCH_STATUS_2026-11-18.md). Die nachstehenden datierten 5030-/5007-/5031-/Directory-Abschnitte dokumentieren ihre jeweilige Entwicklungsphase und dürfen nicht als neueste Testanweisung verstanden werden. Bestätigt: vollständige Bootstrap→5030→5007→5031→5002-Kette, 5002 meldet 8192 Bytes, 5004 über BLE liefert nur 32-Byte-Platzhalter. Classic-RFCOMM ist vorbereitet, aber **kein erfolgreicher CIRQA-RFCOMM-Gerätelauf/FIT-Download nachgewiesen**. Keine weiteren Geräteaktionen ohne gesonderte Freigabe.
+> **Aktueller CIRQA-Historienstand (18.11.2026):** [Kanonischer Forschungs- und Evidenzstand](protocol/research/CIRQA_HISTORICAL_RESEARCH_STATUS_2026-11-18.md). Zusätzlich ist nun über Protobuf sync_request/MLR **eine** exakt CRC-validierte FIT-Datei am CIRQA empfangen, privat gespeichert und mit 32 Messwerten in SQLite importiert worden (Build 1081, V21). Das ist **kein vollständiger historischer Backfill**: weitere Einträge, Paginierung und Vollständigkeit sind offen. RFCOMM bleibt für dieses Gerät unbestätigt/nicht gangbar.
 
-**Stand:** 2026-11-17 (Codex-Übergabe; historische Einträge bleiben datiert) · **maßgeblicher Codezweig:** `main` · **Status:** aktive Entwicklung, keine Produktionsfreigabe.
+**Stand:** 2026-11-18 (CIRQA-Download-Fortschritt; historische Einträge bleiben datiert) · **maßgeblicher Codezweig:** `main` · **Status:** aktive Entwicklung, keine Produktionsfreigabe.
 
 > **Arbeitsregel für alle Chats und Entwicklungsagenten:** Dieses Dokument und der aktuelle GitHub-`main` sind der gemeinsame, versionierte Übergabepunkt. Ein Chatverlauf wird **nicht automatisch** in andere Chats übertragen. Zu Beginn jeder Arbeit zuerst `main`, diese Datei, die offenen Issues und die CI-Ergebnisse lesen. Widersprüche gegen den aktuellen Code prüfen; nicht ungeprüft aus älteren Chatantworten übernehmen.
 

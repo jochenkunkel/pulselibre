@@ -15,7 +15,7 @@
 | Filter 3 versus 0 | V11: gleicher Platzhalter | Filterwechsel allein löst Blocker nicht |
 | Bluetooth Classic / RFCOMM | Zwei gegatterte Läufe: V1 `io-error`, V2 präzise `accept-timeout` mit SDP-UUID-Liste `[00000000-0000-0000-0000-000000000000]` | **Hypothese für dieses Gerät widerlegt:** keine Gegenverbindung, SPP-UUID `DEAB91E4-…` wird nicht angeboten. Kein FIT-Transfer; beide Gates verbraucht, kein Reset |
 | Protobuf FileAccess (5043/5044) | V2: 5043-Item-List gesendet, keine 5044-Antwort in 20 s | Kein FIT-Transfer; Gates verbraucht |
-| Protobuf **sync_request** (5043/5044) | V1: GFDI-ACK Status 0 + vollständige 5044 `sync_response` (`13:2[2:2]`) | **Positiv!** Gerät akzeptiert den Connect-Sync. V2-Beobachtungslauf nach `sync_response` läuft |
+| Protobuf **sync_request** (5043/5044) | V21: GFDI-ACK Status 0, `sync_response`, Item-Liste mit 33 Einträgen, erster Pull und MLR-Transfer erfolgreich | **Eine** FIT-Datei mit exakter Größe und gültigen CRCs gespeichert; Vollständigkeit/weitere Dateien noch offen |
 
 Primärnachweise: [Historical Sync V1](../experiments/CIRQA_HISTORICAL_SYNC_V1_2026-11-18.md), [bounded Directory/FIT](../experiments/CIRQA_BOUNDED_DIRECTORY_FIT_TRANSFER_2026-11-18.md), [RFCOMM-Vorbereitung](../experiments/CIRQA_RFCOMM_PREPARATION_2026-11-18.md). Frühe Berichte sind historische Snapshots, keine aktuellen Testanweisungen.
 
@@ -112,6 +112,24 @@ Die komplette Kette ist damit am echten CIRQA nachgebaut:
 
 Gate V17 ergänzt Integritätsdiagnostik (Länge, Magic, FIT-Header, SHA-256),
 aber noch keine Speicherung. Kein Archiv-/Flag-/Löschbefehl gesendet.
+
+**Gate V21 (Build 1081, Commit `8092171`) – erste FIT-Datei vollständig gespeichert und importiert:**
+```
+accepted=true; items=33; pull[result=0,transport=0,handle=271];
+mlrService=8216; configureResponse=success; chunks=34; bytes=4841;
+FIT header/file CRC valid; privateFit=CREATED; observations=32;
+importable=32; sqlite=ok:32
+```
+Die private Datei wurde unabhängig mit exakter Länge 4841, FIT-Magic,
+Header-/Datei-CRC und SHA-256 gegen den content-addressierten Dateinamen
+geprüft. SQLite enthält 32 idempotente Messwertzeilen (11 `distance`,
+11 `heart_rate`, 10 `speed`; 11 Zeitpunkte). Die vorherige Android-
+`AccessDeniedException` beim Hardlink-Publishing wurde durch atomisches Rename
+im app-privaten Verzeichnis behoben. Unit-Tests/Build lokal erfolgreich;
+CI-Run [44361690905](https://github.com/jochenkunkel/pulselibre/actions/runs/44361690905)
+erfolgreich. Kein eigener Archiv-, Flag-, Lösch-, Reset- oder `CLOSE_ALL`-
+Befehl. **Begrenzt:** nur ein Eintrag wurde abgerufen; die übrigen Einträge,
+Paginierung und Vollständigkeit sind noch nicht belegt. V21-Gate ist verbraucht.
 
 Wichtig: Der Connect-Enum-Wert `MULTILINK_TRANSPORT_PIPE` ist **0** (die DEX
 MUTF-8-Bytes `C0 80` kodieren ein NUL-Byte, nicht 64) – aus der generierten
