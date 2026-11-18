@@ -43,6 +43,9 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
         val overview = dashboardOverview(metrics)
         addView(label("Deine Messwerte · lokal gespeichert", 12f, muted),
             LayoutParams(-1, -2).apply { bottomMargin = dp(12) })
+        addView(label(UnvalidatedFeatures.LEGEND, 11f, UnvalidatedFeatures.RED).apply {
+            tag = "dashboard_unvalidated_legend"
+        }, LayoutParams(-1, -2).apply { bottomMargin = dp(10) })
         addCardPair(overview.vitalSigns) { metric ->
             if (metric.title == "Herzfrequenz") pulseCard(metric, activity)
             else metricCard(metric, palette.oxygen)
@@ -116,6 +119,7 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
             background = GradientDrawable().apply {
                 setColor(palette.card)
                 cornerRadius = dp(18).toFloat()
+                UnvalidatedFeatures.mark(this, resources.displayMetrics.density)
             }
             tag = "dashboard_night_oxygen_insights"
             contentDescription = "Nacht-Insights. SpO₂-Auswertung noch nicht berechenbar: Sampling und Signalqualität für CIRQA sind nicht validiert. Keine Diagnose."
@@ -137,10 +141,28 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
             orientation = HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
         }
-        addNightIndicator(insightRow, "◉", "SpO₂", "Keine verifizierte Nachtserie", palette.muted)
-        addNightIndicator(insightRow, "◷", "Abdeckung", "Sampling unbekannt", palette.muted)
-        addNightIndicator(insightRow, "⌁", "ODI / T90", "Nicht berechenbar", palette.muted)
+        val nightReason = label("", 10f, muted)
+        fun fill(night: NocturnalOxygen.Summary?) {
+            insightRow.removeAllViews()
+            if (night == null) {
+                addNightIndicator(insightRow, "◉", "SpO₂", "Nachtserie wird gelesen …", palette.muted)
+                return
+            }
+            val nf = java.text.NumberFormat.getNumberInstance(java.util.Locale.GERMANY).apply { maximumFractionDigits = 1 }
+            addNightIndicator(insightRow, "◉", "SpO₂ (22–6 Uhr)", "${night.samples} Messwerte", palette.muted)
+            addNightIndicator(insightRow, "◷", "Abdeckung",
+                night.coveragePercent?.let { "${nf.format(it)} %" } ?: "nicht berechenbar", palette.muted)
+            addNightIndicator(insightRow, "⌁", "T90 · ODI3/ODI4",
+                if (!night.computable) "nicht berechenbar"
+                else "${nf.format(night.minutesBelow90)} min" +
+                    (night.odi3?.let { " · ${nf.format(it)}/${nf.format(night.odi4)} je h" } ?: " · ODI nicht berechenbar"),
+                palette.muted)
+            if (night.reason != "ok") nightReason.text = night.reason
+        }
+        fill(null)
         card.addView(insightRow)
+        card.addView(nightReason, LayoutParams(-1, -2).apply { topMargin = dp(6) })
+        loadNight(::fill)
         card.addView(label("Nur Originalpunkte · keine Diagnose", 10f, muted).apply {
             gravity = Gravity.END
             contentDescription = "Nur gespeicherte Originalmessungen; keine Diagnose"
@@ -148,6 +170,17 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
         card.isFocusable = true
         card.importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_YES
         addView(card, LayoutParams(-1, -2).apply { bottomMargin = dp(16) })
+    }
+
+    private fun loadNight(show: (NocturnalOxygen.Summary?) -> Unit) {
+        val app = context.applicationContext
+        Thread {
+            val summary = try {
+                val night = NightOxygenReader(app).read(java.time.Instant.now(), java.time.ZoneId.systemDefault())
+                NocturnalOxygen.summarize(night.samples, night.start, night.end)
+            } catch (_: Exception) { null }
+            post { if (isAttachedToWindow) show(summary ?: NocturnalOxygen.Summary(false, "Nachtserie nicht lesbar.", 0, null, null, null, null)) }
+        }.start()
     }
 
     private fun addNightIndicator(parent: LinearLayout, icon: String, title: String, value: String, color: Int) {
@@ -242,6 +275,10 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
             }
             tag = "dashboard_metric_${metric.title}"
             contentDescription = "${metric.title}: ${metric.value}"
+            if (UnvalidatedFeatures.isUnvalidated(metric.title)) {
+                (background as GradientDrawable).let { UnvalidatedFeatures.mark(it, resources.displayMetrics.density) }
+                contentDescription = contentDescription.toString() + UnvalidatedFeatures.ACCESSIBILITY_SUFFIX
+            }
             ViewCompat.setScreenReaderFocusable(this, false)
             importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
             val show = openDay
@@ -475,7 +512,7 @@ private class ReceptionIndicatorView(
             if (metric.title == "Sauerstoffsättigung · SpO₂") {
                 val displayBands = SpO2DisplaySettings.read(context)
                 row("▰", "Vorschau  ${displayBands.bandLabel()}", palette.muted)
-                row("⏳", "Orientierung deaktiviert · CIRQA-Handgelenksensor nicht gerätespezifisch validiert.", palette.muted)
+                row("⏳", if (displayBands.colorBandsEnabled) "Farbskala aktiv (vom Nutzer akzeptiert) · CIRQA-Handgelenksensor NICHT gerätespezifisch validiert, keine Diagnose." else "Orientierung deaktiviert · CIRQA-Handgelenksensor nicht gerätespezifisch validiert.", palette.muted)
                 row("⚠", "Keine Signalqualität verfügbar; keine Diagnose oder Alarmfunktion.", palette.muted)
                 row("↗", "Quelle  NHS-Fingerpulsoximeter-Kontext; nicht für CIRQA validiert", palette.accent,
                     "https://www.england.nhs.uk/coronavirus/documents/c0445-pulse-oximetry-to-detect-early-deterioration-of-patients-with-covid-19-in-primary-and-community-care-settings-12-january-2021/")

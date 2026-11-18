@@ -69,8 +69,11 @@ class DashboardOverviewViewTest {
             val night = descendants(view).single { it.tag == "dashboard_night_oxygen_insights" }
             assertTrue(night.contentDescription.contains("nicht validiert"))
             assertTrue(night.contentDescription.contains("Keine Diagnose"))
-            assertTrue(descendants(night).any { it.contentDescription?.contains("ODI / T90: Nicht berechenbar") == true })
-            assertTrue(descendants(night).any { it.contentDescription?.contains("Abdeckung: Sampling unbekannt") == true })
+            assertTrue(descendants(night).any { it.contentDescription?.startsWith("SpO₂") == true })
+            assertNotNull(descendants(view).singleOrNull { it.tag == "dashboard_unvalidated_legend" })
+            assertTrue(cards[1].contentDescription.contains("roter Rand"))
+            assertTrue(cards[2].contentDescription.contains("roter Rand"))
+            assertFalse(cards[0].contentDescription.contains("roter Rand"))
             assertEquals("dashboard_metric_Herzfrequenz", cards[0].tag)
             assertEquals("dashboard_metric_Sauerstoffsättigung · SpO₂", cards[1].tag)
             assertEquals("dashboard_metric_Schlaf", cards[2].tag)
