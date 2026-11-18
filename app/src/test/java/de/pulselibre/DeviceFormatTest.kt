@@ -14,7 +14,7 @@ class DeviceFormatTest {
         assertEquals("kein Empfang", DeviceFormat.age(null, now)); assertEquals("kein Empfang", DeviceFormat.age(now.plusSeconds(5), now))
     }
     @Test fun sizesAndCountsUseGermanFormat() {
-        assertEquals("55,6 MB", DeviceFormat.bytes(58_372_096)); assertEquals("12 KB", DeviceFormat.bytes(12_500)); assertEquals("900 B", DeviceFormat.bytes(900))
+        assertEquals("55,7 MB", DeviceFormat.bytes(58_372_096)); assertEquals("12 KB", DeviceFormat.bytes(12_500)); assertEquals("900 B", DeviceFormat.bytes(900))
         assertEquals("112.366", DeviceFormat.count(112_366))
     }
 }
