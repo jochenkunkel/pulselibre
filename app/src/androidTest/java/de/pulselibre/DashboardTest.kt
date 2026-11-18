@@ -17,7 +17,7 @@ class DashboardTest {
             scenario.onActivity { activity ->
                 val root = activity.findViewById<ViewGroup>(android.R.id.content)
                 assertTrue(containsText(root, "Herzfrequenz"))
-                assertTrue(containsText(root, "Sauerstoffsättigung · SpO₂"))
+                assertTrue(containsText(root, "SpO₂"))
                 assertTrue(containsText(root, "Schlaf"))
                 assertTrue(containsText(root, "Heute auf einen Blick"))
                 assertTrue(containsText(root, "Weitere Gesundheitswerte"))

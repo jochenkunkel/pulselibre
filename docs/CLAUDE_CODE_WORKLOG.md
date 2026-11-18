@@ -69,3 +69,6 @@ Fortlaufend, neueste Einträge unten. Jeder Eintrag: Datum, Änderung, Nachweis 
 ## 2026-11-18 – Fehler: Nacht-Insights blieben bei „Nachtserie wird gelesen …“ (Branch `claude/night-fix`)
 - Auf dem S25 entdeckt (Build 1014): Die Übersicht wird bei jedem neuen Messwert neu aufgebaut; die Hintergrundabfrage aktualisierte jeweils die bereits ersetzte Karte und startete pro Neuaufbau einen weiteren Thread. Ergebnis: Anzeige blieb im Ladezustand.
 - Behebung: Ergebnis wird 5 min zwischengespeichert und sofort angezeigt, höchstens ein Ladevorgang gleichzeitig, das Ergebnis aktualisiert die aktuell sichtbare Karte.
+## 2026-11-18 – Trendkarte kompakt, SpO₂-Titel (Branch `claude/trend-compact`)
+- Trendkarte statt Textwand: Zeile je Dimension mit Zustandssymbol (✅ ➖ ⚠️ ⏳), Tabelle 💓 Ruhepuls / 👣 Schritte × 7/28/90 Tage (Median + Pfeil + Tage mit Daten), eine Zeile 🔗 für die vorab festgelegte Hypothese (Tippen → 📊 Streudiagramm). Methode, Sätze und Einschränkungen im ⓘ-Dialog; Barrierefreiheitstexte enthalten die vollen Sätze. Berechnung unverändert (`TrendAnalysis`, `FitnessOverview`, `PairedCorrelation`).
+- Kachel „Sauerstoffsättigung · SpO₂“ zeigt sichtbar nur „SpO₂“ (Wortumbruch mitten im Wort behoben); Tag/Accessibility-Name unverändert.
