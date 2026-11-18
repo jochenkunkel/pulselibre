@@ -19,6 +19,23 @@ Primärnachweise: [Historical Sync V1](../experiments/CIRQA_HISTORICAL_SYNC_V1_2
 
 Die dokumentierte Connect-5.31-Analyse zeigt einen Bluetooth-Classic-Server mit Garmin-SPP-UUID `DEAB91E4-670F-11E1-9ACE-30BC4824019B`, `listenUsingRfcommWithServiceRecord` und GFDI/COBS auf Streams. Der externe Gadgetbridge-Vergleich berichtet ebenfalls 8192-Byte-5002-Antwort bei 32-Byte-BLE-Platzhalter. **Hypothese:** Die echten Dateien werden auf dem getesteten CIRQA erst über Classic-RFCOMM angeboten. Das ist noch nicht am eigenen Gerät bewiesen: Der erste begrenzte Lauf sah trotz SDP-Query keine Gegenverbindung. Gate V2 hat das geklärt: Die SDP-Antwort enthält nur die Null-UUID, nicht `DEAB91E4-…`; die CIRQA bietet den Garmin-SPP-Dienst nicht an. RFCOMM ist damit kein gangbarer Weg zu den FIT-Dateien dieses Geräts. Ein verbleibender, separater Forschungsweg wäre der Protobuf-FileAccess-Kanal (`0x2018`/`GDIFileAccess`), der früher als kompakter `0x8A39`-Kandidat `UNSUPPORTED` lieferte.
 
+### Protobuf-FileAccess-Kandidat (offline, nicht gesendet)
+
+Connect 5.31 (`com.garmin.device.filetransfer.b.i`) packt
+`GDIFileAccess.Service.item_list_request` (Feld 9) in
+`GDISmartProto.Smart.file_access_service` (Feld 43) und sendet es über den
+Protobuf-Messenger (GFDI 5043), **nicht** über den kompakten Transport. Aus der
+Binary extrahierte Feldnummern: `file_access_service = 43`, `item_list_request = 9`.
+Der frühere `0x8A39`-Fehlschlag nutzte genau diese Protobuf-Struktur, aber einen
+kompakten Rahmen mit fremden HRM600-Sequenz-/Counter-Werten – das ist eine
+plausible, bislang nicht getestete Fehlerquelle.
+
+`CirqaFileAccessListRequest` baut jetzt denselben `Smart`-Inhalt in einem
+ordnungsgemäßen 5043-Transportframe (requestId, offset=0, total/chunk, CRC).
+Rein lesende Item-List-Anfrage; keine Archiv-/Flag-/Lösch-/Reset-Operation.
+**Offline getestet, nicht an BLE angebunden, nicht gesendet.** Ein Gerätelauf
+braucht eine neue, ausdrückliche Freigabe und ein neues Gate.
+
 Vorhandener Code: `CirqaRfcommTransport`, `CirqaRfcommRunner`, `CirqaRfcommDirectorySession`, `CirqaRfcommStreamFramer`, `CirqaDirectoryReadV2Session`. Vor Hardwarelauf prüfen: terminaler Abbruch bei ungültiger 5002-Größe, ungültigen Frames/Sessionfehlern, vollständige Timeout-/Cancel-Semantik und Race-Tests; keine automatische Verbindung oder ungefragte Kommandos. Nutzerbestätigung und persistenter Einmal-Gate bleiben erforderlich.
 
 **Garmin-Connect-Binary-Analyse:** [Zentraler Befund- und Interoperabilitätsbericht](GARMIN_CONNECT_BINARY_ANALYSIS.md) bündelt DEX-/RFCOMM-Erkenntnisse, offene Herkunftsmetadaten und rechtliche Leitplanken; keine dekompilierten Garmin-Dateien ins Repository übernehmen.
