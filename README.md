@@ -6,9 +6,9 @@
 
 ![PulsLibre-Logo](design/pulselibre-icon.svg)
 
-![PulsLibre-Webposter: Offline-first-Architektur, CIRQA-BLE-Protokoll und aktueller Forschungsstand](design/pulselibre-webposter.svg)
+![PulsLibre – Deine Gesundheitsdaten. Deine Kontrolle. Unsere Philosophie und Vision](design/pulselibre-vision-poster-2026.svg)
 
-*Projektüberblick als [skalierbare SVG-Grafik](design/pulselibre-webposter.svg). Bestätigte Gerätebefunde und noch offene Funktionen sind ausdrücklich getrennt.*
+*Unsere Vision: Selbstbestimmung, Offline-first, Transparenz, Wissenschaft und Sicherheit. [Poster als SVG ansehen](design/pulselibre-vision-poster-2026.svg). Der historische FIT-Download ist weiterhin nicht nachgewiesen.*
 
 **Projektstatus (18.11.2026):** Die CIRQA-Bootstrap-/Handshake-Kette bis zur Legacy-Directory-Abfrage wurde am Gerät nachgewiesen. Über BLE erscheint bislang lediglich ein 32-Byte-Platzhalterverzeichnis; ein vollständiger historischer FIT-Download ist **nicht** bestätigt. Ein erster begrenzter RFCOMM-Versuch erhielt keine Gegenverbindung. Die App enthält experimentelle, ausdrücklich gestartete Bluetooth-Testpfade und ist **keine produktionsreife Garmin-Connect-Alternative**. Details und Grenzen: [aktueller Forschungsstand](docs/protocol/research/CIRQA_HISTORICAL_RESEARCH_STATUS_2026-11-18.md).
 
@@ -68,7 +68,7 @@ Nächster Forschungsschwerpunkt ist die abgesicherte Klärung des Bluetooth-Clas
 
 **Aktuelle Aufgaben:** [GitHub-Issues](https://github.com/jochenkunkel/pulselibre/issues) · [Historischer Audit und Reparaturplan (geschlossener, nicht gemergter PR #1)](https://github.com/jochenkunkel/pulselibre/pull/1). Die Architektur-Review-Datei enthält historische Befunde und ist noch nicht vollständig aktualisiert.
 
-[Projektposter](design/pulselibre-poster.svg)
+[Aktuelles Visionsposter](design/pulselibre-vision-poster-2026.svg) · [Historisches Projektposter](design/pulselibre-poster.svg)
 
 ## Lizenz und Drittanbieter-Provenienz
 
