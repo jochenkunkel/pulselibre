@@ -8,7 +8,12 @@ package de.pulselibre
  * Unlike Connect's completion/finally path, errors never release the next step.
  * No live caller is attached until response semantics and transport are reviewed.
  */
-class CirqaConnectDirectoryTransition {
+class CirqaConnectDirectoryTransition(
+    // Empty in production: no HANDSHAKE_COMPLETE success mapping is proven.
+    // Nonempty maps are used only by synthetic tests until evidence is available.
+    innerSuccessEvidence: Map<Int, Set<Int>> = emptyMap()
+) {
+    private val innerSuccessEvidence = innerSuccessEvidence.mapValues { it.value.toSet() }
     enum class Stage {
         NEW, BOOTSTRAP, SYSTEM_EVENT_READY, SYSTEM_EVENT_PENDING,
         FILTER_READY, FILTER_PENDING, DIRECTORY_READY, DIRECTORY_CLAIMED, STOPPED
@@ -20,6 +25,7 @@ class CirqaConnectDirectoryTransition {
         private set
     private var startedAtMillis = 0L
     private var deadlineMillis = 0L
+    private var lastClockMillis = 0L
     private var expectedType: Int? = null
     private var writeConfirmed = false
     private var acceptedResponse = false
@@ -31,6 +37,7 @@ class CirqaConnectDirectoryTransition {
             return stop("invalid-clock")
         }
         startedAtMillis = nowMillis
+        lastClockMillis = nowMillis
         deadlineMillis = nowMillis + MAX_SESSION_MILLIS
         stage = Stage.BOOTSTRAP
         return true
@@ -91,7 +98,10 @@ class CirqaConnectDirectoryTransition {
         }
         if (header.responseStatus != 0) return stop("outer-status-error")
         if (frame.size != 10) return stop("unknown-result-shape")
-        if (frame[7] != 0.toByte()) return stop("inner-result-error")
+        val value = frame[7].toInt() and 255
+        if (value !in innerSuccessEvidence[expectedType].orEmpty()) {
+            return stop("unproven-inner-result")
+        }
         acceptedResponse = true
         advanceIfConfirmed()
         return true
@@ -131,7 +141,8 @@ class CirqaConnectDirectoryTransition {
     private fun withinDeadline(nowMillis: Long): Boolean {
         if (stage == Stage.STOPPED) return false
         if (stage == Stage.NEW) return stop("not-started")
-        if (nowMillis < startedAtMillis) return stop("invalid-clock")
+        if (nowMillis < lastClockMillis) return stop("invalid-clock")
+        lastClockMillis = nowMillis
         if (nowMillis >= deadlineMillis) return stop("timeout")
         return true
     }

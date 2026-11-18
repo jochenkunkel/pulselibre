@@ -1,5 +1,9 @@
 # CIRQA: Vorbereitung des 5030→5007→Directory-Übergangs
 
+> Nachtrag Jour fixe: Die Null-Erfolgshypothese ist überholt. Der Modell-Default
+> akzeptiert jetzt keinen inneren Erfolgswert; nur synthetische Tests injizieren
+> eine Abbildung. Siehe [5030-Evidenz und Freigabevorlage](CIRQA_5030_ONLY_RELEASE_PROPOSAL_2026-11-18.md).
+
 ## Ausgangspunkt und Reichweite
 
 Der einmalige Directory-Nachlauf mit Build 949 ergab einen Eintrag:

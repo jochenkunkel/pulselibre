@@ -13,7 +13,10 @@ class CirqaConnectDirectoryTransitionTest {
         return prefix + byteArrayOf(crc.toByte(), (crc ushr 8).toByte())
     }
 
-    private fun ready(): CirqaConnectDirectoryTransition = CirqaConnectDirectoryTransition().apply {
+    private fun ready(): CirqaConnectDirectoryTransition = CirqaConnectDirectoryTransition(
+        // Synthetic evidence, not a claim about the CIRQA or Connect values.
+        mapOf(5030 to setOf(0), 5007 to setOf(0))
+    ).apply {
         assertTrue(begin(true, true, 0))
         assertTrue(bootstrapCompleted(true, true, true, true, true, false, false, 1))
     }
@@ -134,5 +137,17 @@ class CirqaConnectDirectoryTransitionTest {
         val backdated = CirqaConnectDirectoryTransition()
         assertTrue(backdated.begin(true, true, 100))
         assertFalse(backdated.checkDeadline(99))
+    }
+
+    @Test fun productionDefaultDoesNotGuessSuccessForAnyByte() {
+        for (value in 0..255) {
+            val m = CirqaConnectDirectoryTransition()
+            assertTrue(m.begin(true, true, 0))
+            assertTrue(m.bootstrapCompleted(true, true, true, true, true, false, false, 1))
+            assertTrue(m.claimSystemEvent(2))
+            assertTrue(m.writeCompleted(5030, true, 3))
+            assertFalse(m.response(response(5030, inner = value), 4))
+            assertFalse(m.claimFilter(5))
+        }
     }
 }
