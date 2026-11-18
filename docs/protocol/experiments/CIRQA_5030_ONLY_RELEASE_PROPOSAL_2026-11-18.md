@@ -173,3 +173,13 @@ emulieren. Das Gate schützt vor Wiederholung, nicht vor jeder Gerätewirkung.
 **Angefragte spätere Freigabe:** einmaliger Bootstrap→5030-only mit den obigen
 Grenzen, ausdrücklich Stop vor 5007/5031/5002. Eine Zustimmung gilt nicht
 für anschließende FileSync-Schritte. Heute wurde kein Gerätetest ausgeführt.
+
+## Offline-Prüfung
+
+Lokale Unit-Suite, Debug-APK, Lint und Instrumentation-APK-Build erfolgreich.
+Die 5030-Tests prüfen Request-Golden-Bytes/COBS, alle 256 Rohwerte,
+Fragmentierung, beide Callback-Reihenfolgen, fehlenden/mehrbyteigen Payload,
+negative und unerwartete Antworten, CRC-/COBS-Fehler, Limits, Duplikate,
+Sessiontoken, Clock-Regression und persistentes Gate (Erfolg/Fehler/gesperrt).
+Es wurden keine Instrumentation-Tests auf dem S25 ausgeführt. GitHub-CI wird
+separat manuell gestartet; lokale Ergebnisse sind kein CI-Nachweis.

@@ -4,6 +4,12 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class CirqaLegacy5030OnlyTest {
+    @Test fun requestGoldenVectorIncludesBothCrcAndCobsDelimiters() {
+        val expected = byteArrayOf(8, 0, 0xa6.toByte(), 0x13, 8, 0, 0xd5.toByte(), 0xc5.toByte())
+        assertArrayEquals(expected, CirqaLegacy5030RequestCandidate.gfdiFrame())
+        assertArrayEquals(byteArrayOf(0, 2, 8, 4, 0xa6.toByte(), 0x13, 8, 3,
+            0xd5.toByte(), 0xc5.toByte(), 0), GarminFileListRequest.cobs(expected))
+    }
     private fun frame(outer: Int = 0, inner: ByteArray = byteArrayOf(0), type: Int = 5030): ByteArray {
         val prefix = byteArrayOf((9 + inner.size).toByte(), 0, 0x88.toByte(), 0x13,
             type.toByte(), (type ushr 8).toByte(), outer.toByte()) + inner

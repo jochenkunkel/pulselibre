@@ -7,7 +7,7 @@ package de.pulselibre
  */
 class CirqaLegacy5030OnlySession(val token: Any = Any()) {
     enum class Phase { NEW, BOOTSTRAP, READY, WAITING, OBSERVED, STOPPED }
-    var phase = Phase.NEW
+    @Volatile var phase = Phase.NEW
         private set
     var reason = "not-started"
         private set

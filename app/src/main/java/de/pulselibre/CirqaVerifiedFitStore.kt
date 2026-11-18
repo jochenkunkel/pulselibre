@@ -3,7 +3,6 @@ package de.pulselibre
 import java.io.File
 import java.io.FileOutputStream
 import java.nio.file.Files
-import java.nio.file.StandardCopyOption
 import java.security.MessageDigest
 
 /**
@@ -18,7 +17,8 @@ class CirqaVerifiedFitStore(private val root: File) {
     /**
      * Requires a completed, independently FIT-CRC-verified file. The content hash
      * is an idempotency key; filenames contain no device ID, timestamps or health data.
-     * Uses an atomic same-directory rename; fails closed when unsupported.
+     * Publishes an fsynced same-directory temporary inode via atomic no-replace
+     * hard link. Fails closed when unsupported; never overwrites a racing target.
      */
     fun saveVerified(fileBytes: ByteArray): Saved {
         require(FitFileHeader.inspectVerified(fileBytes) != null) { "Invalid FIT envelope or CRC" }
@@ -41,9 +41,10 @@ class CirqaVerifiedFitStore(private val root: File) {
                 stream.write(fileBytes)
                 stream.fd.sync()
             }
-            // Do not silently fall back to non-atomic copy or expose partial FIT.
+            // ATOMIC_MOVE may overwrite an existing target on Unix even without
+            // REPLACE_EXISTING. A no-replace link closes that concurrent-writer race.
             try {
-                Files.move(temp.toPath(), target.toPath(), StandardCopyOption.ATOMIC_MOVE)
+                Files.createLink(target.toPath(), temp.toPath())
             } catch (e: java.nio.file.FileAlreadyExistsException) {
                 return existing() ?: throw e
             }

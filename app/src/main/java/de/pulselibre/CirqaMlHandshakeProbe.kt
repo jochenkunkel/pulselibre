@@ -37,7 +37,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private var historyDiagnosticMode = false
     private var legacy5007TestMode = false
     private var legacy5030Only: CirqaLegacy5030OnlySession? = null
-    private var legacy5030WriteOutstanding = false
+    @Volatile private var legacy5030WriteOutstanding = false
     @Volatile private var callbackGeneration: Any = Any()
     private var legacy5007WriteClaimed = false
     private var legacy5007RequestSent = false
@@ -1274,7 +1274,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         legacyCurrentTransferCompleted = false
 
         if (index == 0) {
-            val directory = CirqaLegacyDirectoryParser.parse(bytes) ?: run {
+            val directory = CirqaLegacyDirectoryParser.parseForDownload(bytes) ?: run {
                 finish("Directory-Index 0 vollständig übertragen, aber strikt nicht parsebar; FIT-Requests gestoppt.", g)
                 return
             }
