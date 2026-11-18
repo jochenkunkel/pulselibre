@@ -27,7 +27,7 @@ device/app presentation.
 | Developer fields | None observed in the 31 FIT files. |
 | Profile mapping | Garmin FIT Profile 21.222.0. There are 69 observed global message numbers; 31 had no message name in that profile and remain explicitly unknown. Of the file/message/field rows, 2,496 have no profile field name; these are retained by number/type without guessed names. |
 | Time coverage | For FIT records with a complete timestamp, observed coverage is November 2026 at month precision. Five files had no complete timestamp for their records. No individual timestamp is included. |
-| XML raw file | 19,975 bytes; well-formed XML, `Device` root, 726 elements. Element counts and attribute names are included; text and attribute values are not. |
+| XML raw file | 19,975 bytes; well-formed XML, `Device` root, 726 elements. This structure is consistent with the previously noted GDXml hypothesis; no schema-level content interpretation was attempted. Element counts and attribute names are included; text and attribute values are not. |
 | Protobuf raw file | 229 bytes; protobuf wire framing validates. Schema and semantic meaning remain unknown; only field numbers, wire types, occurrence counts and length distributions are recorded. Recursively parsed length-delimited shapes are structural candidates, not asserted submessage semantics. |
 | SQLite import | Read-only `integrity_check=ok`; 294 rows: 129 `heart_rate`, 129 `distance`, 36 `speed`; zero duplicate primary keys. All 294 locally reconstructed decoder-candidate idempotency keys match SQLite exactly. |
 
@@ -117,6 +117,9 @@ aggregate artifacts are the reviewed, privacy-filtered outputs.
 - No unknown global message, field, or protobuf meaning is inferred.
 - The two non-FIT file contents were not decoded as health data.
 - The 33-file transfer does not establish complete historical coverage.
-- Follow-up work should independently validate safe `timestamp_16`
-  reconstruction and assess support for health fields not currently imported.
-  Neither is part of this inventory.
+1. First, independently validate bounded `timestamp_16` reconstruction against
+   a trusted reference before considering those 467 monitoring-heart-rate
+   records for timestamped import.
+2. Then assess profile-valid health fields not currently imported (sleep,
+   HRV, SpO₂, respiration, stress and skin temperature) with separate
+   provenance/quality criteria. Neither item is part of this inventory.
