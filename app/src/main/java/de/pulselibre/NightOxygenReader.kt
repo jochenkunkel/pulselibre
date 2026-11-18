@@ -3,7 +3,6 @@ package de.pulselibre
 import android.content.Context
 import org.json.JSONObject
 import java.time.Instant
-import java.time.LocalDate
 import java.time.LocalTime
 import java.time.ZoneId
 
@@ -12,7 +11,7 @@ internal class NightOxygenReader(private val context: Context) {
     data class Night(val start: Instant, val end: Instant, val samples: List<NocturnalOxygen.Sample>)
 
     fun lastNightWindow(now: Instant, zone: ZoneId): Pair<Instant, Instant> {
-        val today = LocalDate.ofInstant(now, zone)
+        val today = now.atZone(zone).toLocalDate()
         val endDay = if (now.atZone(zone).toLocalTime() >= LocalTime.of(6, 0)) today else today.minusDays(1)
         val end = endDay.atTime(6, 0).atZone(zone).toInstant()
         val start = endDay.minusDays(1).atTime(22, 0).atZone(zone).toInstant()
