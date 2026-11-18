@@ -540,10 +540,7 @@ private class ReceptionIndicatorView(
             if (metric.title == "Sauerstoffsättigung · SpO₂") {
                 val displayBands = SpO2DisplaySettings.read(context)
                 row("▰", "Vorschau  ${displayBands.bandLabel()}", palette.muted)
-                row("⏳", if (displayBands.colorBandsEnabled) "Farbskala aktiv (vom Nutzer akzeptiert) · CIRQA-Handgelenksensor NICHT gerätespezifisch validiert, keine Diagnose." else "Orientierung deaktiviert · CIRQA-Handgelenksensor nicht gerätespezifisch validiert.", palette.muted)
-                row("⚠", "Keine Signalqualität verfügbar; keine Diagnose oder Alarmfunktion.", palette.muted)
-                row("↗", "Quelle  NHS-Fingerpulsoximeter-Kontext; nicht für CIRQA validiert", palette.accent,
-                    "https://www.england.nhs.uk/coronavirus/documents/c0445-pulse-oximetry-to-detect-early-deterioration-of-patients-with-covid-19-in-primary-and-community-care-settings-12-january-2021/")
+                row("⏳", if (displayBands.colorBandsEnabled) "Farbskala aktiv (vom Nutzer akzeptiert) · Sensor NICHT validiert, keine Signalqualität, keine Diagnose oder Alarmfunktion." else "Orientierung deaktiviert · Sensor nicht validiert.", palette.muted)
             }
             row("⚠", profile.caveat, palette.muted)
         } else if (metric.title == "Moderate Intensitätsminuten" || metric.title == "Intensive Intensitätsminuten") {
