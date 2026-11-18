@@ -27,9 +27,6 @@ class CirqaTestLaboratoryActivityTest {
                 assertTrue(labels.any { it.contains("CIRQA-Testlabor") })
                 assertTrue(labels.any { it.contains("Historischer Downloadstatus") })
                 assertTrue(labels.any { it.contains("begrenzten Einmaltransfer: unbewiesen") })
-                assertTrue(labels.any { it.contains("GFDI 5007") })
-                assertTrue(labels.any { it.contains("07 00 8F 13 03 C9 1A") })
-                assertTrue(labels.any { it.contains("CIRQA-GFDI-Antworttyp") && it.contains("nicht bestätigt") })
                 assertTrue(labels.any { it.contains("Offline-FIT") || it.contains("FIT-Datei") })
                 assertTrue(views.filterIsInstance<TextView>().none {
                     it.text.toString().contains("Dateiliste anfragen") ||
@@ -40,18 +37,20 @@ class CirqaTestLaboratoryActivityTest {
                     it.isClickable && it.isFocusable &&
                         it.text.toString().contains("FIT-Datei auswählen")
                 })
-                val oneShotTest = views.filterIsInstance<Button>().single {
+                // The separate GFDI-5007 compatibility card was removed from the laboratory
+                // (commit eb5cdf6); if a 5007 button still exists its enabled state must follow the attempt gate.
+                views.filterIsInstance<Button>().firstOrNull {
                     it.text.toString().endsWith("5007-Test starten") ||
                         it.text.toString() == "Freigegebene 5007-Tests verbraucht"
+                }?.let { oneShotTest ->
+                    val prefs = activity.getSharedPreferences("cirqa_test_laboratory", 0)
+                    val consumed = CirqaLegacy5007AttemptGate.consumedAttempts(
+                        prefs.getInt("legacy5007TestAttemptCount", 0),
+                        prefs.getBoolean("legacy5007TestAttempted", false)
+                    )
+                    assertEquals(consumed < CirqaLegacy5007AttemptGate.MAX_AUTHORIZED_ATTEMPTS, oneShotTest.isEnabled)
+                    assertTrue(oneShotTest.isClickable)
                 }
-                val consumed = CirqaLegacy5007AttemptGate.consumedAttempts(
-                    activity.getSharedPreferences("cirqa_test_laboratory", 0)
-                        .getInt("legacy5007TestAttemptCount", 0),
-                    activity.getSharedPreferences("cirqa_test_laboratory", 0)
-                        .getBoolean("legacy5007TestAttempted", false)
-                )
-                assertEquals(consumed < CirqaLegacy5007AttemptGate.MAX_AUTHORIZED_ATTEMPTS, oneShotTest.isEnabled)
-                assertTrue(oneShotTest.isClickable)
             }
         }
     }
