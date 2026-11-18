@@ -18,6 +18,27 @@
 
 Primärnachweise: [Historical Sync V1](../experiments/CIRQA_HISTORICAL_SYNC_V1_2026-11-18.md), [bounded Directory/FIT](../experiments/CIRQA_BOUNDED_DIRECTORY_FIT_TRANSFER_2026-11-18.md), [RFCOMM-Vorbereitung](../experiments/CIRQA_RFCOMM_PREPARATION_2026-11-18.md). Frühe Berichte sind historische Snapshots, keine aktuellen Testanweisungen.
 
+## Wichtige Korrektur (2026-11-18)
+
+Die negativen Ergebnisse dürfen **nicht** als „CIRQA hat keine FIT-Daten" gelesen
+werden. [Eigene Connect-Geräteevidenz](../../device-tests/CIRQA_GARMIN_CONNECT_SYNC_EVIDENCE_2026-11-16.md)
+belegt echte Syncs dieses CIRQA (UPLOAD `MONITORING_B`, `SLEEP_DATA`,
+`BIOMETRIC`; DOWNLOAD `TRUE_UP`, `BIOMETRIC`, teils ACKED). Das Gerät besitzt
+also abrufbare Daten; unsere drei getesteten Wege waren unvollständig.
+
+Der bisherige HCI-Mitschnitt eines Connect-Syncs enthielt **6990 HCI-Records,
+aber null ACL-Datenpakete** – er kann den GFDI/ATT-Kommandopath nicht zeigen.
+Führende Hypothese für den fehlenden Schritt: die in Connect vor der
+Datei-Verarbeitung zwingend abgeschlossene **Garmin-Authentifizierung
+(5101–5112, `AuthManager mr2`, 15-s-Gate vor `FileManager`-Setup)**, die unsere
+Kette nicht ausführt. Alternativ ein anderer Transport/Pfad.
+
+**Nächster entscheidender Schritt (nicht spekulativ):** genau **ein** vollständiger,
+bidirektionaler ACL/ATT-HCI-Mitschnitt eines echten Garmin-Connect-Syncs mit
+diesem gepaarten Gerät (lokal privat, keine Rohdaten in Git). Erst danach die
+beobachteten Kommandos als eigene Regression-Fixtures nachbauen. Das ist die in
+der Geräteevidenz priorisierte Aufgabe 3.
+
 ## Wichtigste Transporthypothese
 
 Die dokumentierte Connect-5.31-Analyse zeigt einen Bluetooth-Classic-Server mit Garmin-SPP-UUID `DEAB91E4-670F-11E1-9ACE-30BC4824019B`, `listenUsingRfcommWithServiceRecord` und GFDI/COBS auf Streams. Der externe Gadgetbridge-Vergleich berichtet ebenfalls 8192-Byte-5002-Antwort bei 32-Byte-BLE-Platzhalter. **Hypothese:** Die echten Dateien werden auf dem getesteten CIRQA erst über Classic-RFCOMM angeboten. Das ist noch nicht am eigenen Gerät bewiesen: Der erste begrenzte Lauf sah trotz SDP-Query keine Gegenverbindung. Gate V2 hat das geklärt: Die SDP-Antwort enthält nur die Null-UUID, nicht `DEAB91E4-…`; die CIRQA bietet den Garmin-SPP-Dienst nicht an. RFCOMM ist damit kein gangbarer Weg zu den FIT-Dateien dieses Geräts. Ein verbleibender, separater Forschungsweg wäre der Protobuf-FileAccess-Kanal (`0x2018`/`GDIFileAccess`), der früher als kompakter `0x8A39`-Kandidat `UNSUPPORTED` lieferte.

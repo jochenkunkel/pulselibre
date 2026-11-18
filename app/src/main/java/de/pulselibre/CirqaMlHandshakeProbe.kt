@@ -57,6 +57,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private var fileAccessRequestClaimed = false
     private val fileAccessFramer = CirqaRfcommStreamFramer()
     private val fileAccessReassembler = GarminProtobufReassembler()
+    private var fileAccessDiag = ""
     private var legacy5002RequestWriteClaimed = false
     private var legacy5002RequestSent = false
     private var legacy5002Response = CirqaLegacy5002ResponseObserver()
@@ -1407,6 +1408,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         }
         fileAccessListMode = true
         fileAccessRequestClaimed = false
+        fileAccessDiag = ""
         fileAccessFramer.reset()
         bootstrapAckMode = true
         configurationTestMode = true
@@ -1420,7 +1422,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         } else {
             main.postDelayed({
                 if (active && fileAccessListMode) {
-                    finish("FileAccess-Liste: 20-s-Zeitlimit ohne vollständige 5044-Antwort.", gatt)
+                    finish("FileAccess-Liste: 20-s-Zeitlimit ohne vollständige 5044-Antwort.$fileAccessDiag", gatt)
                 }
             }, 20_000L)
         }
@@ -1441,6 +1443,17 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private fun handleFileAccessResponse(g: BluetoothGatt, payload: ByteArray) {
         for (frame in fileAccessFramer.accept(payload)) {
             val verified = GarminFrameValidator.inspectVerified(frame) ?: continue
+            if (verified.messageType == 5000) {
+                // The device may reject our 5043 with a GFDI response (e.g. status 2 =
+                // UNKNOWN_OR_NOT_SUPPORTED). Record status and payload length only.
+                val h = GarminGfdiHeader.inspect(frame)
+                if (h?.responseTo == 5043) {
+                    fileAccessDiag = "5000[to=5043,status=${h.responseStatus}," +
+                        "payloadLen=${maxOf(0, frame.size - 9)}]"
+                    main.post { mark("FileAccess: $fileAccessDiag") }
+                }
+                continue
+            }
             if (verified.messageType != 5044) continue
             fileAccessReassembler.accept(frame)?.let { msg ->
                 val report = "FileAccess ItemList: 5044 vollständig, len=${msg.size}, " +
@@ -2030,7 +2043,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             gatt = null
             callback?.invoke(
                 if (fileAccessListMode) "FileAccess-ItemList: $message; ${fileAccessReassembler.summary()}; " +
-                    "requestSent=$fileAccessRequestClaimed"
+                    "requestSent=$fileAccessRequestClaimed; response=$fileAccessDiag"
                 else if (dirReadSession != null) dirReadSession!!.summary() +
                     " [acks5004=$acks5004Queued,acks5043=$acks5043Queued," +
                     "pendingWrites=${deferredAckWrites.size},writePending=$mlWritePending," +
