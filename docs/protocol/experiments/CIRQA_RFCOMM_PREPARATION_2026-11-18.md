@@ -1,5 +1,7 @@
 # CIRQA: Classic-RFCOMM-Pfad (18.11.2026)
 
+> **Quellen-/Statushinweis (18.11.2026):** Der Bericht dokumentiert die RFCOMM-Vorbereitung, **keinen** erfolgreichen Gerätelauf. Einzelne nachträglich ergänzte Angaben zu Freigabekonstanten/SDP und die ältere Tabelle mit `Gate (false)` sind untereinander nicht vollständig synchron. Vor dem nächsten Gerätetest **tatsächliche Konstanten, Aufrufpfad, Berechtigungen und Build auf `main` prüfen**; die Tabelle ist keine verbindliche Aussage über den Live-Gate. Siehe [kanonischen Forschungsstand](../research/CIRQA_HISTORICAL_RESEARCH_STATUS_2026-11-18.md).
+
 ## Status: AKTIVIERUNG IMPLEMENTIERT – GERÄTELAUF NOCH NICHT BESTÄTIGT
 
 Die Aktivierung ist freigegeben und umgesetzt
