@@ -16,6 +16,7 @@
 | Bluetooth Classic / RFCOMM | Zwei gegatterte Läufe: V1 `io-error`, V2 präzise `accept-timeout` mit SDP-UUID-Liste `[00000000-0000-0000-0000-000000000000]` | **Hypothese für dieses Gerät widerlegt:** keine Gegenverbindung, SPP-UUID `DEAB91E4-…` wird nicht angeboten. Kein FIT-Transfer; beide Gates verbraucht, kein Reset |
 | Protobuf FileAccess (5043/5044) | V2: 5043-Item-List gesendet, keine 5044-Antwort in 20 s | Kein FIT-Transfer; Gates verbraucht |
 | Protobuf **sync_request** (5043/5044) | V21: GFDI-ACK Status 0, `sync_response`, Item-Liste mit 33 Einträgen, erster Pull und MLR-Transfer erfolgreich | **Eine** FIT-Datei mit exakter Größe und gültigen CRCs gespeichert; Vollständigkeit/weitere Dateien noch offen |
+| Begrenzter Protobuf-Mehrdateiabruf | V24 / Build 1090: 33 Transfers vollständig; 31 FIT-Dateien und 2 Rohdateien privat gespeichert | 64 Item-List-Antworten; nach der ersten 33er-Liste waren `items` leer, aber `next_transaction_id` blieb gesetzt; Seitenlimit erreicht, Vollständigkeit nicht belegt |
 
 Primärnachweise: [Historical Sync V1](../experiments/CIRQA_HISTORICAL_SYNC_V1_2026-11-18.md), [bounded Directory/FIT](../experiments/CIRQA_BOUNDED_DIRECTORY_FIT_TRANSFER_2026-11-18.md), [RFCOMM-Vorbereitung](../experiments/CIRQA_RFCOMM_PREPARATION_2026-11-18.md). Frühe Berichte sind historische Snapshots, keine aktuellen Testanweisungen.
 
@@ -84,6 +85,27 @@ Der unabhängige Codec weist `ItemListStatus.SUCCESS=0` und
 behandelte ihn irrtümlich als Fehler und stoppte vor jedem Pull. Keine Datei
 wurde in diesem Lauf gespeichert oder importiert; das V23-Einmal-Gate ist
 verbraucht. Der korrigierte nächste Lauf verwendet ein frisches V24-Gate.
+
+**V24-Geräteergebnis (Build 1090):** Nach Korrektur auf `SUCCESS=0` lieferte die
+erste Item-List 33 Einträge (146,293 angeforderte Bytes). Alle 33 Pulls wurden
+mit exakter Länge abgeschlossen. Im app-privaten Speicher liegen 31 FIT-Dateien
+(126,089 B) und 2 vollständig größenvalidierte Nicht-FIT-Dateien (20,204 B).
+Alle 31 FIT-Dateien wurden nach dem Lauf unabhängig mit FIT-Magic, exaktem
+Header-/Dateilängenabgleich, CRC-16 und SHA-256/Dateiname geprüft; kein Fehler.
+Die vorhandene erste FIT-Datei war bereits vorhanden; die übrigen 30 FIT-Dateien
+wurden neu angelegt. Die SQLite-Datenbank besteht `integrity_check`, enthält
+294 Zeilen (`distance=129`, `heart_rate=129`, `speed=36`) und keine doppelten
+Primärschlüssel.
+
+Die anschließende Listenfortsetzung lieferte wiederholt leere Item-Listen,
+behielt aber `next_transaction_id` bei. Der sichere 64-Seiten-Grenzwert
+beendete den Lauf; Gate V24 ist verbraucht. Der Mehrdateiabruf und der
+sequenzielle MLR-Datentransfer sind damit am Gerät demonstriert. **Nicht**
+bewiesen sind vollständige oder lückenlose historische Abdeckung, korrekte
+Semantik dieser wiederholten Fortsetzung oder ob weitere Seiten mit Daten
+existieren. Es wurden keine Archiv-, Flag-, Lösch-, Reset- oder `CLOSE_ALL`-
+Befehle gesendet. Vollständiger Bericht:
+[V24-Geräteergebnis](../../device-tests/CIRQA_SYNC_V24_DEVICE_RESULT_2026-11-18.md).
 
 Die UID muss nicht interpretiert werden; ihre rohen Bytes werden unverändert
 in den Pull-Request übernommen. Parser und Pull-Builder sind offline getestet.
