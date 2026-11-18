@@ -76,6 +76,9 @@ Darstellung oder ein aktueller App-Import dieser Daten.
 - [`CIRQA_FIT_INVENTORY_MATRICES_2026-11-18.md`](CIRQA_FIT_INVENTORY_MATRICES_2026-11-18.md):
   readable per-file and per-message/field Markdown matrices, plus the import
   coverage summary.
+- [`CIRQA_FIT_BASE_TYPES.md`](CIRQA_FIT_BASE_TYPES.md):
+  explanation of FIT base-type IDs, widths, byte-order flags, sentinel values,
+  arrays, and how to read the inventory counts.
 
 `record_count` counts data records in which the field is present. Value counts
 are counts of encoded scalar elements, not decoded values. The invalid/missing

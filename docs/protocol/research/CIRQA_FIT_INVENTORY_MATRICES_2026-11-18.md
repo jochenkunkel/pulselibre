@@ -51,16 +51,16 @@ One row per observed message/field signature. Unmapped profile entries retain th
 | 0 | file_id | 0 | type | — | enum | 1 | 1 | 0 | — | 31 | 31 | 31 | 31 | 0 | 0 | 31 | 0 | Garmin FIT Profile 21.222.0; not imported in observed SQLite rows |
 | 0 | file_id | 1 | manufacturer | — | uint16 | 2 | 1 | 0 | — | 31 | 31 | 31 | 31 | 0 | 0 | 31 | 0 | Garmin FIT Profile 21.222.0; not imported in observed SQLite rows |
 | 0 | file_id | 2 | product | — | uint16 | 2 | 1 | 0 | — | 31 | 31 | 31 | 31 | 0 | 0 | 31 | 0 | Garmin FIT Profile 21.222.0; not imported in observed SQLite rows |
-| 0 | file_id | 3 | serial_number | — | uint16z | 4 | 1 | 0 | — | 31 | 31 | 31 | 62 | 0 | 0 | 31 | 0 | Garmin FIT Profile 21.222.0; not imported in observed SQLite rows |
+| 0 | file_id | 3 | serial_number | — | uint32z | 4 | 1 | 0 | — | 31 | 31 | 31 | 31 | 0 | 0 | 31 | 0 | Garmin FIT Profile 21.222.0; not imported in observed SQLite rows |
 | 0 | file_id | 4 | time_created | — | uint32 | 4 | 1 | 0 | — | 31 | 31 | 31 | 30 | 1 | 0 | 31 | 0 | Garmin FIT Profile 21.222.0; not imported in observed SQLite rows |
 | 0 | file_id | 5 | number | — | uint16 | 2 | 1 | 0 | — | 31 | 31 | 31 | 6 | 25 | 0 | 31 | 0 | Garmin FIT Profile 21.222.0; not imported in observed SQLite rows |
 | 0 | file_id | 6 | — | — | uint16 | 2 | — | — | — | 2 | 2 | 2 | 0 | 2 | 0 | 2 | 0 | unmapped; not imported in observed SQLite rows |
 | 0 | file_id | 7 | — | — | uint32 | 4 | — | — | — | 29 | 29 | 29 | 0 | 29 | 0 | 29 | 0 | unmapped; not imported in observed SQLite rows |
 | 1 | capabilities | 1 | sports | — | uint8z | 1 | 1 | 0 | — | 1 | 1 | 1 | 1 | 0 | 0 | 1 | 0 | Garmin FIT Profile 21.222.0; not imported in observed SQLite rows |
-| 1 | capabilities | 21 | workouts_supported | — | uint16z | 4 | 1 | 0 | — | 1 | 1 | 1 | 1 | 1 | 0 | 1 | 0 | Garmin FIT Profile 21.222.0; not imported in observed SQLite rows |
+| 1 | capabilities | 21 | workouts_supported | — | uint32z | 4 | 1 | 0 | — | 1 | 1 | 1 | 1 | 0 | 0 | 1 | 0 | Garmin FIT Profile 21.222.0; not imported in observed SQLite rows |
 | 1 | capabilities | 22 | — | — | enum | 1 | — | — | — | 1 | 1 | 1 | 1 | 0 | 0 | 1 | 0 | unmapped; not imported in observed SQLite rows |
-| 1 | capabilities | 23 | connectivity_supported | — | uint16z | 4 | 1 | 0 | — | 1 | 1 | 1 | 2 | 0 | 0 | 1 | 0 | Garmin FIT Profile 21.222.0; not imported in observed SQLite rows |
-| 1 | capabilities | 26 | — | — | uint16z | 4 | — | — | — | 1 | 1 | 1 | 1 | 1 | 0 | 1 | 0 | unmapped; not imported in observed SQLite rows |
+| 1 | capabilities | 23 | connectivity_supported | — | uint32z | 4 | 1 | 0 | — | 1 | 1 | 1 | 1 | 0 | 0 | 1 | 0 | Garmin FIT Profile 21.222.0; not imported in observed SQLite rows |
+| 1 | capabilities | 26 | — | — | uint32z | 4 | — | — | — | 1 | 1 | 1 | 1 | 0 | 0 | 1 | 0 | unmapped; not imported in observed SQLite rows |
 | 2 | device_settings | 0 | active_time_zone | — | uint8 | 1 | 1 | 0 | — | 14 | 14 | 14 | 14 | 0 | 0 | 14 | 0 | Garmin FIT Profile 21.222.0; not imported in observed SQLite rows |
 | 2 | device_settings | 1 | utc_offset | — | uint32 | 4 | 1 | 0 | — | 14 | 14 | 14 | 14 | 0 | 0 | 14 | 0 | Garmin FIT Profile 21.222.0; not imported in observed SQLite rows |
 | 2 | device_settings | 2 | time_offset | — | uint32 | 4 | 1 | 0 | s | 14 | 14 | 14 | 14 | 0 | 0 | 14 | 0 | Garmin FIT Profile 21.222.0; not imported in observed SQLite rows |
@@ -166,7 +166,7 @@ One row per observed message/field signature. Unmapped profile entries retain th
 | 2 | device_settings | 239 | — | — | enum | 1 | — | — | — | 14 | 14 | 14 | 14 | 0 | 0 | 14 | 0 | unmapped; not imported in observed SQLite rows |
 | 2 | device_settings | 243 | — | — | enum | 1 | — | — | — | 14 | 14 | 14 | 0 | 14 | 0 | 14 | 0 | unmapped; not imported in observed SQLite rows |
 | 2 | device_settings | 244 | — | — | enum | 1 | — | — | — | 14 | 14 | 14 | 14 | 0 | 0 | 14 | 0 | unmapped; not imported in observed SQLite rows |
-| 3 | user_profile | 0 | friendly_name | — | string | 25 | 1 | 0 | — | 14 | 14 | 14 | 14 | 0 | 0 | 14 | 0 | Garmin FIT Profile 21.222.0; not imported in observed SQLite rows |
+| 3 | user_profile | 0 | friendly_name | — | string | 25 | 1 | 0 | — | 14 | 14 | 14 | 0 | 14 | 0 | 14 | 0 | Garmin FIT Profile 21.222.0; not imported in observed SQLite rows |
 | 3 | user_profile | 1 | gender | — | enum | 1 | 1 | 0 | — | 14 | 14 | 14 | 14 | 0 | 0 | 14 | 0 | Garmin FIT Profile 21.222.0; not imported in observed SQLite rows |
 | 3 | user_profile | 3 | height | — | uint8 | 1 | 100 | 0 | m | 14 | 14 | 14 | 14 | 0 | 0 | 14 | 0 | Garmin FIT Profile 21.222.0; not imported in observed SQLite rows |
 | 3 | user_profile | 4 | weight | — | uint16 | 2 | 10 | 0 | kg | 14 | 14 | 14 | 14 | 0 | 0 | 14 | 0 | Garmin FIT Profile 21.222.0; not imported in observed SQLite rows |
@@ -205,7 +205,7 @@ One row per observed message/field signature. Unmapped profile entries retain th
 | 3 | user_profile | 64 | — | — | uint16 | 2 | — | — | — | 14 | 14 | 14 | 0 | 14 | 0 | 14 | 0 | unmapped; not imported in observed SQLite rows |
 | 3 | user_profile | 65 | — | — | enum | 1 | — | — | — | 14 | 14 | 14 | 14 | 0 | 0 | 14 | 0 | unmapped; not imported in observed SQLite rows |
 | 3 | user_profile | 66 | — | — | enum | 1 | — | — | — | 14 | 14 | 14 | 14 | 0 | 0 | 14 | 0 | unmapped; not imported in observed SQLite rows |
-| 3 | user_profile | 67 | — | — | string | 252 | — | — | — | 14 | 14 | 14 | 14 | 0 | 0 | 14 | 0 | unmapped; not imported in observed SQLite rows |
+| 3 | user_profile | 67 | — | — | string | 252 | — | — | — | 14 | 14 | 14 | 0 | 14 | 0 | 14 | 0 | unmapped; not imported in observed SQLite rows |
 | 3 | user_profile | 69 | — | — | enum | 1 | — | — | — | 14 | 14 | 14 | 14 | 0 | 0 | 14 | 0 | unmapped; not imported in observed SQLite rows |
 | 3 | user_profile | 70 | — | — | uint8 | 1 | — | — | — | 14 | 14 | 14 | 14 | 0 | 0 | 14 | 0 | unmapped; not imported in observed SQLite rows |
 | 7 | zones_target | 1 | max_heart_rate | — | uint8 | 1 | 1 | 0 | — | 14 | 14 | 14 | 14 | 0 | 0 | 14 | 0 | Garmin FIT Profile 21.222.0; not imported in observed SQLite rows |
@@ -473,7 +473,7 @@ One row per observed message/field signature. Unmapped profile entries retain th
 | 23 | device_info | 0 | device_index | — | uint8 | 1 | 1 | 0 | — | 24 | 24 | 98 | 89 | 9 | 98 | 0 | 0 | Garmin FIT Profile 21.222.0; not imported in observed SQLite rows |
 | 23 | device_info | 1 | device_type | — | uint8 | 1 | 1 | 0 | — | 24 | 24 | 98 | 60 | 38 | 98 | 0 | 0 | Garmin FIT Profile 21.222.0; not imported in observed SQLite rows |
 | 23 | device_info | 2 | manufacturer | — | uint16 | 2 | 1 | 0 | — | 26 | 26 | 100 | 36 | 64 | 100 | 0 | 0 | Garmin FIT Profile 21.222.0; not imported in observed SQLite rows |
-| 23 | device_info | 3 | serial_number | — | uint16z | 4 | 1 | 0 | — | 26 | 26 | 100 | 80 | 120 | 100 | 0 | 0 | Garmin FIT Profile 21.222.0; not imported in observed SQLite rows |
+| 23 | device_info | 3 | serial_number | — | uint32z | 4 | 1 | 0 | — | 26 | 26 | 100 | 40 | 60 | 100 | 0 | 0 | Garmin FIT Profile 21.222.0; not imported in observed SQLite rows |
 | 23 | device_info | 4 | product | — | uint16 | 2 | 1 | 0 | — | 26 | 26 | 100 | 40 | 60 | 100 | 0 | 0 | Garmin FIT Profile 21.222.0; not imported in observed SQLite rows |
 | 23 | device_info | 5 | software_version | — | uint16 | 2 | 100 | 0 | — | 26 | 26 | 100 | 68 | 32 | 100 | 0 | 0 | Garmin FIT Profile 21.222.0; not imported in observed SQLite rows |
 | 23 | device_info | 6 | hardware_version | — | uint8 | 1 | 1 | 0 | — | 24 | 24 | 98 | 0 | 98 | 98 | 0 | 0 | Garmin FIT Profile 21.222.0; not imported in observed SQLite rows |
@@ -485,22 +485,22 @@ One row per observed message/field signature. Unmapped profile entries retain th
 | 23 | device_info | 13 | — | — | uint16 | 2 | — | — | — | 24 | 24 | 98 | 0 | 98 | 98 | 0 | 0 | unmapped; not imported in observed SQLite rows |
 | 23 | device_info | 15 | — | — | uint32 | 4 | — | — | — | 24 | 24 | 98 | 0 | 98 | 98 | 0 | 0 | unmapped; not imported in observed SQLite rows |
 | 23 | device_info | 16 | — | — | uint32 | 4 | — | — | — | 24 | 24 | 98 | 0 | 98 | 98 | 0 | 0 | unmapped; not imported in observed SQLite rows |
-| 23 | device_info | 17 | — | — | string | 32 | — | — | — | 24 | 24 | 98 | 98 | 0 | 98 | 0 | 0 | unmapped; not imported in observed SQLite rows |
+| 23 | device_info | 17 | — | — | string | 32 | — | — | — | 24 | 24 | 98 | 0 | 98 | 98 | 0 | 0 | unmapped; not imported in observed SQLite rows |
 | 23 | device_info | 18 | sensor_position | — | enum | 1 | 1 | 0 | — | 24 | 24 | 98 | 0 | 98 | 98 | 0 | 0 | Garmin FIT Profile 21.222.0; not imported in observed SQLite rows |
 | 23 | device_info | 20 | ant_transmission_type | — | uint8z | 1 | 1 | 0 | — | 24 | 24 | 98 | 0 | 98 | 98 | 0 | 0 | Garmin FIT Profile 21.222.0; not imported in observed SQLite rows |
-| 23 | device_info | 21 | ant_device_number | — | byte | 2 | 1 | 0 | — | 24 | 24 | 98 | 196 | 0 | 98 | 0 | 0 | Garmin FIT Profile 21.222.0; not imported in observed SQLite rows |
+| 23 | device_info | 21 | ant_device_number | — | uint16z | 2 | 1 | 0 | — | 24 | 24 | 98 | 0 | 98 | 98 | 0 | 0 | Garmin FIT Profile 21.222.0; not imported in observed SQLite rows |
 | 23 | device_info | 22 | ant_network | — | enum | 1 | 1 | 0 | — | 24 | 24 | 98 | 0 | 98 | 98 | 0 | 0 | Garmin FIT Profile 21.222.0; not imported in observed SQLite rows |
 | 23 | device_info | 23 | — | — | uint8 | 1 | — | — | — | 24 | 24 | 98 | 0 | 98 | 98 | 0 | 0 | unmapped; not imported in observed SQLite rows |
-| 23 | device_info | 24 | — | — | uint16z | 4 | — | — | — | 24 | 24 | 98 | 0 | 196 | 98 | 0 | 0 | unmapped; not imported in observed SQLite rows |
+| 23 | device_info | 24 | — | — | uint32z | 4 | — | — | — | 24 | 24 | 98 | 0 | 98 | 98 | 0 | 0 | unmapped; not imported in observed SQLite rows |
 | 23 | device_info | 25 | source_type | — | enum | 1 | 1 | 0 | — | 24 | 24 | 98 | 89 | 9 | 98 | 0 | 0 | Garmin FIT Profile 21.222.0; not imported in observed SQLite rows |
 | 23 | device_info | 29 | — | — | uint8 | 6 | — | — | — | 24 | 24 | 98 | 0 | 588 | 98 | 0 | 0 | unmapped; not imported in observed SQLite rows |
 | 23 | device_info | 30 | — | — | uint8 | 1 | — | — | — | 24 | 24 | 98 | 0 | 98 | 98 | 0 | 0 | unmapped; not imported in observed SQLite rows |
 | 23 | device_info | 31 | — | — | uint32 | 4 | — | — | — | 24 | 24 | 98 | 0 | 98 | 98 | 0 | 0 | unmapped; not imported in observed SQLite rows |
 | 23 | device_info | 32 | battery_level | — | uint8 | 1 | 1 | 0 | % | 24 | 24 | 98 | 0 | 98 | 98 | 0 | 0 | Garmin FIT Profile 21.222.0; not imported in observed SQLite rows |
 | 23 | device_info | 253 | timestamp | — | uint32 | 4 | 1 | 0 | s | 26 | 26 | 100 | 100 | 0 | 100 | 0 | 0 | Garmin FIT Profile 21.222.0; not imported in observed SQLite rows |
-| 24 | — | 2 | — | — | uint32z | 27 | — | — | — | 2 | 10 | 85 | 0 | 85 | 0 | 85 | 0 | unmapped; not imported in observed SQLite rows |
+| 24 | — | 2 | — | — | byte | 27 | — | — | — | 2 | 10 | 85 | 2295 | 0 | 0 | 85 | 0 | unmapped; not imported in observed SQLite rows |
 | 26 | workout | 4 | sport | — | enum | 1 | 1 | 0 | — | 4 | 4 | 4 | 4 | 0 | 0 | 4 | 0 | Garmin FIT Profile 21.222.0; not imported in observed SQLite rows |
-| 26 | workout | 5 | capabilities | — | uint16z | 4 | 1 | 0 | — | 4 | 4 | 4 | 0 | 8 | 0 | 4 | 0 | Garmin FIT Profile 21.222.0; not imported in observed SQLite rows |
+| 26 | workout | 5 | capabilities | — | uint32z | 4 | 1 | 0 | — | 4 | 4 | 4 | 0 | 4 | 0 | 4 | 0 | Garmin FIT Profile 21.222.0; not imported in observed SQLite rows |
 | 26 | workout | 6 | num_valid_steps | — | uint16 | 2 | 1 | 0 | — | 4 | 4 | 4 | 4 | 0 | 0 | 4 | 0 | Garmin FIT Profile 21.222.0; not imported in observed SQLite rows |
 | 26 | workout | 7 | — | — | uint16 | 2 | — | — | — | 4 | 4 | 4 | 0 | 4 | 0 | 4 | 0 | unmapped; not imported in observed SQLite rows |
 | 26 | workout | 8 | wkt_name | — | string | 32 | 1 | 0 | — | 4 | 4 | 4 | 4 | 0 | 0 | 4 | 0 | Garmin FIT Profile 21.222.0; not imported in observed SQLite rows |
@@ -511,12 +511,12 @@ One row per observed message/field signature. Unmapped profile entries retain th
 | 26 | workout | 13 | — | — | enum | 1 | — | — | — | 4 | 4 | 4 | 0 | 4 | 0 | 4 | 0 | unmapped; not imported in observed SQLite rows |
 | 26 | workout | 14 | pool_length | — | uint16 | 2 | 100 | 0 | m | 4 | 4 | 4 | 0 | 4 | 0 | 4 | 0 | Garmin FIT Profile 21.222.0; not imported in observed SQLite rows |
 | 26 | workout | 15 | pool_length_unit | — | enum | 1 | 1 | 0 | — | 4 | 4 | 4 | 0 | 4 | 0 | 4 | 0 | Garmin FIT Profile 21.222.0; not imported in observed SQLite rows |
-| 26 | workout | 16 | — | — | uint32z | 16 | — | — | — | 4 | 4 | 4 | 16 | 0 | 0 | 4 | 0 | unmapped; not imported in observed SQLite rows |
+| 26 | workout | 16 | — | — | byte | 16 | — | — | — | 4 | 4 | 4 | 0 | 4 | 0 | 4 | 0 | unmapped; not imported in observed SQLite rows |
 | 26 | workout | 17 | wkt_description | — | string | 160 | 1 | 0 | — | 4 | 4 | 4 | 4 | 0 | 0 | 4 | 0 | Garmin FIT Profile 21.222.0; not imported in observed SQLite rows |
 | 26 | workout | 19 | — | — | enum | 1 | — | — | — | 4 | 4 | 4 | 0 | 4 | 0 | 4 | 0 | unmapped; not imported in observed SQLite rows |
 | 26 | workout | 20 | — | — | uint16 | 2 | — | — | — | 4 | 4 | 4 | 0 | 4 | 0 | 4 | 0 | unmapped; not imported in observed SQLite rows |
 | 26 | workout | 29 | — | — | string | 9 | — | — | — | 4 | 4 | 4 | 4 | 0 | 0 | 4 | 0 | unmapped; not imported in observed SQLite rows |
-| 27 | workout_step | 0 | wkt_step_name | — | string | 25 | 1 | 0 | — | 4 | 4 | 40 | 40 | 0 | 0 | 40 | 0 | Garmin FIT Profile 21.222.0; not imported in observed SQLite rows |
+| 27 | workout_step | 0 | wkt_step_name | — | string | 25 | 1 | 0 | — | 4 | 4 | 40 | 0 | 40 | 0 | 40 | 0 | Garmin FIT Profile 21.222.0; not imported in observed SQLite rows |
 | 27 | workout_step | 1 | duration_type | — | enum | 1 | 1 | 0 | — | 4 | 4 | 40 | 40 | 0 | 0 | 40 | 0 | Garmin FIT Profile 21.222.0; not imported in observed SQLite rows |
 | 27 | workout_step | 2 | duration_value | — | uint32 | 4 | 1 | 0 | — | 4 | 4 | 40 | 40 | 0 | 0 | 40 | 0 | Garmin FIT Profile 21.222.0; not imported in observed SQLite rows |
 | 27 | workout_step | 3 | target_type | — | enum | 1 | 1 | 0 | — | 4 | 4 | 40 | 27 | 13 | 0 | 40 | 0 | Garmin FIT Profile 21.222.0; not imported in observed SQLite rows |
@@ -524,7 +524,7 @@ One row per observed message/field signature. Unmapped profile entries retain th
 | 27 | workout_step | 5 | custom_target_value_low | — | uint32 | 4 | 1 | 0 | — | 4 | 4 | 40 | 0 | 40 | 0 | 40 | 0 | Garmin FIT Profile 21.222.0; not imported in observed SQLite rows |
 | 27 | workout_step | 6 | custom_target_value_high | — | uint32 | 4 | 1 | 0 | — | 4 | 4 | 40 | 0 | 40 | 0 | 40 | 0 | Garmin FIT Profile 21.222.0; not imported in observed SQLite rows |
 | 27 | workout_step | 7 | intensity | — | enum | 1 | 1 | 0 | — | 4 | 4 | 40 | 31 | 9 | 0 | 40 | 0 | Garmin FIT Profile 21.222.0; not imported in observed SQLite rows |
-| 27 | workout_step | 8 | notes | — | string | 200 | 1 | 0 | — | 4 | 4 | 40 | 40 | 0 | 0 | 40 | 0 | Garmin FIT Profile 21.222.0; not imported in observed SQLite rows |
+| 27 | workout_step | 8 | notes | — | string | 200 | 1 | 0 | — | 4 | 4 | 40 | 0 | 40 | 0 | 40 | 0 | Garmin FIT Profile 21.222.0; not imported in observed SQLite rows |
 | 27 | workout_step | 9 | equipment | — | enum | 1 | 1 | 0 | — | 4 | 4 | 40 | 0 | 40 | 0 | 40 | 0 | Garmin FIT Profile 21.222.0; not imported in observed SQLite rows |
 | 27 | workout_step | 10 | exercise_category | — | uint16 | 2 | 1 | 0 | — | 4 | 4 | 40 | 0 | 40 | 0 | 40 | 0 | Garmin FIT Profile 21.222.0; not imported in observed SQLite rows |
 | 27 | workout_step | 11 | exercise_name | — | uint16 | 2 | 1 | 0 | — | 4 | 4 | 40 | 0 | 40 | 0 | 40 | 0 | Garmin FIT Profile 21.222.0; not imported in observed SQLite rows |
@@ -544,13 +544,13 @@ One row per observed message/field signature. Unmapped profile entries retain th
 | 34 | activity | 5 | local_timestamp | — | uint32 | 4 | 1 | 0 | — | 14 | 14 | 14 | 14 | 0 | 14 | 0 | 0 | Garmin FIT Profile 21.222.0; not imported in observed SQLite rows |
 | 34 | activity | 6 | event_group | — | uint8 | 1 | 1 | 0 | — | 14 | 14 | 14 | 0 | 14 | 14 | 0 | 0 | Garmin FIT Profile 21.222.0; not imported in observed SQLite rows |
 | 34 | activity | 7 | — | — | uint8 | 1 | — | — | — | 14 | 14 | 14 | 0 | 14 | 14 | 0 | 0 | unmapped; not imported in observed SQLite rows |
-| 34 | activity | 8 | — | — | string | 64 | — | — | — | 14 | 14 | 14 | 14 | 0 | 14 | 0 | 0 | unmapped; not imported in observed SQLite rows |
+| 34 | activity | 8 | — | — | string | 64 | — | — | — | 14 | 14 | 14 | 0 | 14 | 14 | 0 | 0 | unmapped; not imported in observed SQLite rows |
 | 34 | activity | 253 | timestamp | — | uint32 | 4 | 1 | 0 | — | 14 | 14 | 14 | 14 | 0 | 14 | 0 | 0 | Garmin FIT Profile 21.222.0; not imported in observed SQLite rows |
 | 35 | software | 3 | version | — | uint16 | 2 | 100 | 0 | — | 3 | 3 | 44 | 44 | 0 | 0 | 44 | 0 | Garmin FIT Profile 21.222.0; not imported in observed SQLite rows |
-| 35 | software | 5 | part_number | — | string | 12 | 1 | 0 | — | 1 | 1 | 42 | 0 | 42 | 0 | 42 | 0 | Garmin FIT Profile 21.222.0; not imported in observed SQLite rows |
+| 35 | software | 5 | part_number | — | string | 12 | 1 | 0 | — | 1 | 1 | 42 | 42 | 0 | 0 | 42 | 0 | Garmin FIT Profile 21.222.0; not imported in observed SQLite rows |
 | 37 | file_capabilities | 0 | type | — | enum | 1 | 1 | 0 | — | 1 | 1 | 25 | 25 | 0 | 0 | 25 | 0 | Garmin FIT Profile 21.222.0; not imported in observed SQLite rows |
 | 37 | file_capabilities | 1 | flags | — | uint8z | 1 | 1 | 0 | — | 1 | 1 | 25 | 25 | 0 | 0 | 25 | 0 | Garmin FIT Profile 21.222.0; not imported in observed SQLite rows |
-| 37 | file_capabilities | 2 | directory | — | string | 16 | 1 | 0 | — | 1 | 1 | 25 | 25 | 0 | 0 | 25 | 0 | Garmin FIT Profile 21.222.0; not imported in observed SQLite rows |
+| 37 | file_capabilities | 2 | directory | — | string | 16 | 1 | 0 | — | 1 | 1 | 25 | 24 | 1 | 0 | 25 | 0 | Garmin FIT Profile 21.222.0; not imported in observed SQLite rows |
 | 37 | file_capabilities | 3 | max_count | — | uint16 | 2 | 1 | 0 | — | 1 | 1 | 25 | 25 | 0 | 0 | 25 | 0 | Garmin FIT Profile 21.222.0; not imported in observed SQLite rows |
 | 38 | mesg_capabilities | 0 | file | — | enum | 1 | 1 | 0 | — | 1 | 1 | 16 | 16 | 0 | 0 | 16 | 0 | Garmin FIT Profile 21.222.0; not imported in observed SQLite rows |
 | 38 | mesg_capabilities | 1 | mesg_num | — | uint16 | 2 | 1 | 0 | — | 1 | 1 | 16 | 16 | 0 | 0 | 16 | 0 | Garmin FIT Profile 21.222.0; not imported in observed SQLite rows |
@@ -562,7 +562,7 @@ One row per observed message/field signature. Unmapped profile entries retain th
 | 39 | field_capabilities | 3 | count | — | uint16 | 2 | 1 | 0 | — | 1 | 1 | 3 | 3 | 0 | 0 | 3 | 0 | Garmin FIT Profile 21.222.0; not imported in observed SQLite rows |
 | 49 | file_creator | 0 | software_version | — | uint16 | 2 | 1 | 0 | — | 29 | 29 | 29 | 29 | 0 | 0 | 29 | 0 | Garmin FIT Profile 21.222.0; not imported in observed SQLite rows |
 | 49 | file_creator | 1 | hardware_version | — | uint8 | 1 | 1 | 0 | — | 29 | 29 | 29 | 0 | 29 | 0 | 29 | 0 | Garmin FIT Profile 21.222.0; not imported in observed SQLite rows |
-| 49 | file_creator | 2 | — | — | string | 20 | — | — | — | 29 | 29 | 29 | 29 | 0 | 0 | 29 | 0 | unmapped; not imported in observed SQLite rows |
+| 49 | file_creator | 2 | — | — | string | 20 | — | — | — | 29 | 29 | 29 | 0 | 29 | 0 | 29 | 0 | unmapped; not imported in observed SQLite rows |
 | 49 | file_creator | 3 | — | — | enum | 1 | — | — | — | 29 | 29 | 29 | 0 | 29 | 0 | 29 | 0 | unmapped; not imported in observed SQLite rows |
 | 49 | file_creator | 4 | — | — | enum | 1 | — | — | — | 29 | 29 | 29 | 0 | 29 | 0 | 29 | 0 | unmapped; not imported in observed SQLite rows |
 | 55 | monitoring | 2 | distance | — | uint32 | 4 | 100 | 0 | m | 2 | 3 | 6 | 6 | 641 | 6 | 0 | 0 | Garmin FIT Profile 21.222.0; not imported in observed SQLite rows |
@@ -570,7 +570,7 @@ One row per observed message/field signature. Unmapped profile entries retain th
 | 55 | monitoring | 4 | active_time | — | uint32 | 4 | 1000 | 0 | s | 2 | 10 | 41 | 41 | 606 | 6 | 35 | 0 | Garmin FIT Profile 21.222.0; not imported in observed SQLite rows |
 | 55 | monitoring | 5 | activity_type | — | enum | 1 | 1 | 0 | — | 2 | 3 | 6 | 6 | 641 | 6 | 0 | 0 | Garmin FIT Profile 21.222.0; not imported in observed SQLite rows |
 | 55 | monitoring | 19 | active_calories | — | uint16 | 2 | 1 | 0 | kcal | 2 | 10 | 41 | 41 | 606 | 6 | 35 | 0 | Garmin FIT Profile 21.222.0; not imported in observed SQLite rows |
-| 55 | monitoring | 24 | current_activity_type_intensity | — | uint32z | 1 | 1\|1 | 0\|0 | \| | 2 | 15 | 166 | 0 | 647 | 131 | 35 | 0 | Garmin FIT Profile 21.222.0; not imported in observed SQLite rows |
+| 55 | monitoring | 24 | current_activity_type_intensity | — | byte | 1 | 1\|1 | 0\|0 | \| | 2 | 15 | 166 | 166 | 481 | 131 | 35 | 0 | Garmin FIT Profile 21.222.0; not imported in observed SQLite rows |
 | 55 | monitoring | 26 | timestamp_16 | — | uint16 | 2 | 1 | 0 | s | 2 | 18 | 506 | 506 | 141 | 0 | 506 | 0 | Garmin FIT Profile 21.222.0; not imported in observed SQLite rows |
 | 55 | monitoring | 27 | heart_rate | — | uint8 | 1 | 1 | 0 | bpm | 2 | 8 | 467 | 467 | 180 | 0 | 467 | 0 | Garmin FIT Profile 21.222.0; not imported in observed SQLite rows |
 | 55 | monitoring | 29 | duration_min | — | uint16 | 2 | 1 | 0 | min | 2 | 3 | 6 | 6 | 641 | 6 | 0 | 0 | Garmin FIT Profile 21.222.0; not imported in observed SQLite rows |
@@ -743,7 +743,7 @@ One row per observed message/field signature. Unmapped profile entries retain th
 | 227 | stress_level | 2 | — | — | sint8 | 1 | — | — | — | 2 | 8 | 576 | 576 | 0 | 0 | 576 | 0 | unmapped; not imported in observed SQLite rows |
 | 227 | stress_level | 3 | — | — | sint8 | 1 | — | — | — | 2 | 8 | 576 | 576 | 0 | 0 | 576 | 0 | unmapped; not imported in observed SQLite rows |
 | 227 | stress_level | 4 | — | — | sint8 | 1 | — | — | — | 2 | 8 | 576 | 576 | 0 | 0 | 576 | 0 | unmapped; not imported in observed SQLite rows |
-| 233 | — | 2 | — | — | uint32z | 4 | — | — | — | 15 | 22 | 704 | 704 | 0 | 0 | 704 | 0 | unmapped; not imported in observed SQLite rows |
+| 233 | — | 2 | — | — | byte | 4 | — | — | — | 15 | 22 | 704 | 2816 | 0 | 0 | 704 | 0 | unmapped; not imported in observed SQLite rows |
 | 241 | — | 0 | — | — | uint32 | 4 | — | — | — | 4 | 4 | 4 | 4 | 0 | 4 | 0 | 0 | unmapped; not imported in observed SQLite rows |
 | 241 | — | 1 | — | — | enum | 1 | — | — | — | 4 | 4 | 4 | 4 | 0 | 4 | 0 | 0 | unmapped; not imported in observed SQLite rows |
 | 241 | — | 253 | — | — | uint32 | 4 | — | — | — | 4 | 4 | 4 | 4 | 0 | 4 | 0 | 0 | unmapped; not imported in observed SQLite rows |

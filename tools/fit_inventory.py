@@ -23,13 +23,19 @@ FIT_EPOCH = 631_065_600
 BASE_TYPES = {
     0: "enum", 1: "sint8", 2: "uint8", 3: "sint16", 4: "uint16",
     5: "sint32", 6: "uint32", 7: "string", 8: "float32",
-    9: "reserved", 10: "uint8z", 11: "byte", 12: "uint16z",
-    13: "uint32z", 14: "sint64", 15: "uint64", 16: "uint64z",
+    9: "float64", 10: "uint8z", 11: "uint16z", 12: "uint32z",
+    13: "byte", 14: "sint64", 15: "uint64", 16: "uint64z",
 }
 INVALIDS = {
     0: {0xFF}, 1: {0x7F}, 2: {0xFF}, 3: {0x7FFF}, 4: {0xFFFF},
     5: {0x7FFFFFFF}, 6: {0xFFFFFFFF}, 8: {0xFFFFFFFF},
-    10: {0}, 12: {0}, 13: {0},
+    9: {0xFFFFFFFFFFFFFFFF}, 10: {0}, 11: {0}, 12: {0},
+    13: {0xFF}, 14: {0x7FFFFFFFFFFFFFFF},
+    15: {0xFFFFFFFFFFFFFFFF}, 16: {0},
+}
+BASE_TYPE_SIZES = {
+    0: 1, 1: 1, 2: 1, 3: 2, 4: 2, 5: 4, 6: 4, 7: 1,
+    8: 4, 9: 8, 10: 1, 11: 2, 12: 4, 13: 1, 14: 8, 15: 8, 16: 8,
 }
 
 
@@ -82,16 +88,9 @@ def _month(raw: bytes, big: bool) -> str | None:
 
 
 def _decode_scalar(raw: bytes, base: int, big: bool) -> int | None:
-    if base == 7:
-        return 1 if raw and b"\0" in raw else None
-    if base in (8, 9):
-        return None if not raw or all(byte == 0xFF for byte in raw) else 1
-    if base == 11:
-        return len(raw) if raw else None
-    if not raw or base not in (0, 1, 2, 3, 4, 5, 6, 10, 12, 13, 14, 15, 16):
+    if not raw or base not in (0, 1, 2, 3, 4, 5, 6, 10, 11, 12, 14, 15, 16):
         return None
-    width = {0: 1, 1: 1, 2: 1, 3: 2, 4: 2, 5: 4, 6: 4,
-             10: 1, 12: 2, 13: 4, 14: 8, 15: 8, 16: 8}[base]
+    width = BASE_TYPE_SIZES[base]
     if len(raw) % width:
         return None
     # Counts refer to records with a fully readable, non-sentinel value.
@@ -110,11 +109,13 @@ def _decode_scalar(raw: bytes, base: int, big: bool) -> int | None:
 def _value_counts(raw: bytes, base: int, big: bool) -> tuple[int, int]:
     """Return valid and invalid scalar-element counts without retaining values."""
     if base == 7:
-        return (1, 0) if raw and b"\0" in raw else (0, 1)
-    if base == 11:
+        text = raw.split(b"\0", 1)[0]
+        return (1, 0) if text else (0, 1)
+    if base == 13:
+        if not raw or all(byte == 0xFF for byte in raw):
+            return 0, 1
         return len(raw), 0
-    width = {0: 1, 1: 1, 2: 1, 3: 2, 4: 2, 5: 4, 6: 4,
-             8: 4, 9: 8, 10: 1, 12: 2, 13: 4, 14: 8, 15: 8, 16: 8}.get(base)
+    width = BASE_TYPE_SIZES.get(base)
     if width is None or not raw or len(raw) % width:
         return 0, 1
     valid = invalid = 0
@@ -403,8 +404,7 @@ def _profile_attr(field: dict[str, Any] | None, key: str) -> str:
 
 
 def _decode_single(raw: bytes, base: int, big: bool):
-    width = {0: 1, 1: 1, 2: 1, 3: 2, 4: 2, 5: 4, 6: 4,
-             10: 1, 12: 2, 13: 4, 14: 8, 15: 8, 16: 8}.get(base)
+    width = BASE_TYPE_SIZES.get(base)
     if width is None or len(raw) != width:
         return None
     return int.from_bytes(raw, "big" if big else "little",

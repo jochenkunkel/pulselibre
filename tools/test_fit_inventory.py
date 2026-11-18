@@ -34,6 +34,34 @@ def profile():
 
 
 class FitInventoryTests(unittest.TestCase):
+    def test_all_fit_base_type_ids_widths_and_names(self):
+        expected = {
+            0: ("enum", 1), 1: ("sint8", 1), 2: ("uint8", 1),
+            3: ("sint16", 2), 4: ("uint16", 2), 5: ("sint32", 4),
+            6: ("uint32", 4), 7: ("string", 1), 8: ("float32", 4),
+            9: ("float64", 8), 10: ("uint8z", 1), 11: ("uint16z", 2),
+            12: ("uint32z", 4), 13: ("byte", 1), 14: ("sint64", 8),
+            15: ("uint64", 8), 16: ("uint64z", 8),
+        }
+        for base, (name, width) in expected.items():
+            self.assertEqual(inventory.BASE_TYPES[base], name)
+            self.assertEqual(inventory.BASE_TYPE_SIZES[base], width)
+
+    def test_fit_invalid_sentinels_follow_base_type(self):
+        examples = {
+            0: b"\xff", 1: b"\x7f", 2: b"\xff", 3: b"\xff\x7f",
+            4: b"\xff\xff", 5: b"\xff\xff\xff\x7f",
+            6: b"\xff\xff\xff\xff", 8: b"\xff" * 4,
+            9: b"\xff" * 8, 10: b"\0", 11: b"\0\0",
+            12: b"\0" * 4, 13: b"\xff", 14: b"\xff" * 7 + b"\x7f",
+            15: b"\xff" * 8, 16: b"\0" * 8,
+        }
+        for base, raw in examples.items():
+            with self.subTest(base=base):
+                self.assertEqual(inventory._value_counts(raw, base, False), (0, 1))
+        self.assertEqual(inventory._value_counts(b"ok\0", 7, False), (1, 0))
+        self.assertEqual(inventory._value_counts(b"\0", 7, False), (0, 1))
+
     def test_compressed_timestamps_and_developer_fields_are_counted(self):
         data = bytes([
             0x60, 0, 0, 20, 0, 2,       # definition local 0, global record
