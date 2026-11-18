@@ -1541,7 +1541,20 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                 }
                 continue
             }
-            if (verified.messageType != 5044) continue
+            if (verified.messageType != 5044) {
+                continue
+            }
+            if (syncRequestMode) {
+                // Connect's ProtobufHandler ACKs incoming 5044 chunks exactly like
+                // 5043 chunks. Without this the device retries three times and stops.
+                val handle = historyHandle
+                val body = frame.copyOfRange(4, frame.size - 2)
+                if (handle != null && body.size >= 14) {
+                    val id = (body[0].toInt() and 255) or ((body[1].toInt() and 255) shl 8)
+                    val offset = (0..3).fold(0L) { n, k -> n or ((body[2 + k].toLong() and 255L) shl (8 * k)) }
+                    queueAck(g, CirqaLegacy5043AckCandidate.mlGattValueCandidate(handle, id, offset, 5044))
+                }
+            }
             fileAccessReassembler.accept(frame)?.let { msg ->
                 val report = "5044 vollständig, len=${msg.size}, " +
                     "shape=${CirqaProtobufShapeInspector.nestedShape(msg)}"

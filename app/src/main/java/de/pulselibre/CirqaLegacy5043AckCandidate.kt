@@ -13,12 +13,16 @@ object CirqaLegacy5043AckCandidate {
     const val MESSAGE_TYPE = 5000
     const val RESPONSE_TO = 5043
 
-    fun gfdiFrame(requestId: Int, receivedOffset: Long, ok: Boolean = true, status: Int = 0): ByteArray {
+    fun gfdiFrame(
+        requestId: Int, receivedOffset: Long, ok: Boolean = true, status: Int = 0,
+        responseTo: Int = RESPONSE_TO
+    ): ByteArray {
+        require(responseTo in 0..0xffff)
         require(requestId in 0..0xffff)
         require(receivedOffset in 0L..0xffffffffL)
         require(status in 0..255)
         val body = byteArrayOf(
-            RESPONSE_TO.toByte(), (RESPONSE_TO ushr 8).toByte(),
+            responseTo.toByte(), (responseTo ushr 8).toByte(),
             0, // GFDI status = ly00.ACK
             requestId.toByte(), (requestId ushr 8).toByte(),
             receivedOffset.toByte(), (receivedOffset ushr 8).toByte(),
@@ -34,10 +38,12 @@ object CirqaLegacy5043AckCandidate {
         return prefix + byteArrayOf(crc.toByte(), (crc ushr 8).toByte())
     }
 
-    fun mlGattValueCandidate(dynamicHandle: Int, requestId: Int, receivedOffset: Long): ByteArray {
+    fun mlGattValueCandidate(
+        dynamicHandle: Int, requestId: Int, receivedOffset: Long, responseTo: Int = RESPONSE_TO
+    ): ByteArray {
         require(dynamicHandle in 1..127)
         return byteArrayOf(dynamicHandle.toByte()) + GarminFileListRequest.cobs(
-            gfdiFrame(requestId, receivedOffset)
+            gfdiFrame(requestId, receivedOffset, responseTo = responseTo)
         )
     }
 }

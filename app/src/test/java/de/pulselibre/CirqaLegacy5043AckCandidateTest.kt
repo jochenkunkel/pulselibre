@@ -22,6 +22,14 @@ class CirqaLegacy5043AckCandidateTest {
         catch (_: IllegalArgumentException) { }
     }
 
+    @Test fun canAckIncoming5044Chunks() {
+        val frame = CirqaLegacy5043AckCandidate.gfdiFrame(9, 4, responseTo = 5044)
+        val h = GarminGfdiHeader.inspect(frame)!!
+        assertEquals(5044, h.responseTo)
+        assertEquals(0, h.responseStatus)
+        assertNotNull(GarminFrameValidator.inspectVerified(frame))
+    }
+
     @Test fun rejectsOutOfRangeArguments() {
         expectIae { CirqaLegacy5043AckCandidate.gfdiFrame(-1, 0) }
         expectIae { CirqaLegacy5043AckCandidate.gfdiFrame(1, -1) }
