@@ -695,7 +695,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     }
                 }
             }, BluetoothDevice.TRANSPORT_LE)
-            if (configurationTestMode) main.postDelayed(configurationTimeout, 20_000L)
+            if (configurationTestMode && historicalSyncV1 == null) main.postDelayed(configurationTimeout, 20_000L)
             /* Legacy timeout for non-configuration modes. */
             if (!configurationTestMode && !continuousRecordingMode) main.postDelayed({ if (active) finish(if (historyDiagnosticMode) "CIRQA Historien-Diagnose: Beobachtungsfenster beendet." else if (realtimeMode) realtimeSummary("Zeitlimit (20 Sekunden)") else "ML-Handshake: Zeitlimit (20 Sekunden). Letzte Phase: $phase; Notifications: $notificationsReceived; GATT-Schreiben bestätigt: $writeConfirmed; Protokollzustand: ${session?.stage}; Antwortformen: ${notificationShapes.joinToString(" | ")}.", gatt) }, 20_000)
         } catch (_: SecurityException) { finish("Bluetooth-Berechtigung fehlt.", gatt) }
