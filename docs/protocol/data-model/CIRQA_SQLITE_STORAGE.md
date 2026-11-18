@@ -49,25 +49,24 @@ in database backup archives.
 
 ## Backup, tests and limitations
 
-Database backup format v2 serializes events, readings, cursors, FIT-source
-metadata and field-level provenance into checksummed JSONL entries. Restore also
-accepts version-1 archives; restoring one replaces current rows and supplies no
-FIT provenance absent from that older archive. It is not encrypted and does not
-include FIT/raw original bytes. Restore validates the archive before changing
-rows. Do not manually copy a live SQLite main file without its journal.
+Database backup format v3 serializes events, both historical and canonical
+observations/cursors, FIT-source metadata and field-level provenance into
+checksummed JSONL entries. Restore accepts v1 and v2 archives as well; those
+versions have no canonical normalized snapshot, so restore rebuilds the
+copy-stage marker only for v3. The archive is not encrypted and excludes FIT/raw
+original bytes. Restore validates checksums, record schemas and FIT foreign-key
+relationships before confirmation. Do not manually copy a live SQLite main
+file without its journal.
 
-GitHub full CI run 44410139935 passed for commit `bd973cd` (prior to schema-v3
-consolidation work). Current local verification after the schema-v3 copy stage:
-JVM tests, debug APK, lint, Android-test APK, 57/57 API-35 emulator tests, and
-19/19 Python tests pass. Instrumentation covers v2→v3 event preservation,
-repeatable/incremental history copying, source preservation, FK integrity, and
-fail-closed rollback on a conflicting destination key. These newer changes have
-not yet been run in GitHub CI.
+GitHub full CI run 44414867187 is for schema-v3 copy work before canonical
+write/backup v3 changes. Current canonical write/backup changes pass JVM tests,
+debug APK, lint, Android-test APK, 59/59 API-35 emulator tests and 19/19 Python
+tests. GitHub CI for these latest changes is still pending.
 
-The schema-v3 destination and restartable `ensureHistoricalStoreCopied()` copy
-path are implemented, but this is a **copy-only migration stage**: the source
-file remains intact, FIT writes have not moved to the canonical database, and
-dashboard readers do not yet query normalized observations. Full store
-consolidation, write-path cutover, backup/restore coverage of canonical rows,
-provenance recovery for older FIT readings, bounded/paginated large-history
-queries, and source-file backup/retention policy remain open.
+Schema-v3 `ensureHistoricalStoreCopied()` copies and verifies the old history
+without deleting it. New FIT backfill writes target the canonical DB after this
+copy; backup v3 includes both stores and can restore older v1/v2 archives.
+Remaining: physical retirement of the old DB after a verified transition,
+dashboard readers/repository integration, broader migration/restore fixtures,
+provenance recovery for old FIT rows, bounded/paginated history queries, and
+original-file backup/retention policy.

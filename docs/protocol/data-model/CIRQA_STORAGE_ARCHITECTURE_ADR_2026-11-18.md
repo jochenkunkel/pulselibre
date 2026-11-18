@@ -130,9 +130,10 @@ can be rerun without duplicating rows. A count marker skips unchanged source
 snapshots and is cleared by database restore. The source DB and original files
 are preserved. The CSV export path invokes this copy stage.
 
-Backup format v2 includes events, readings, cursors, FIT-source metadata and
-provenance. The restore reader accepts format v1; v1 restore necessarily
-contains no FIT provenance. Original file bytes remain outside both formats.
+Backup format v3 includes events, both historical and canonical readings,
+cursors, FIT-source metadata and provenance. The restore reader accepts format
+v1 and v2; those versions contain no canonical snapshot. Original file bytes
+remain outside all backup formats.
 
 The 18 Nov 2026 S25 snapshots passed SQLite `integrity_check`. Observed counts
 and privacy-limited reconciliation are in
@@ -278,11 +279,11 @@ the app does not need to copy the entire external profile into each database.
    metadata, field provenance and per-device cursor in one transaction.
    Replays use stable source/record/field keys; conflicting decoder output fails
    closed rather than silently overwriting an earlier observation.
-6. Current dashboard/history paths primarily query `events`; normalized FIT
-   observations are copied into schema v3 during historical CSV export, but
-   dashboard readers and FIT write paths have not yet cut over. Backup v2 still
-   serializes the retained historical source store and clears the derived
-   canonical copy on restore; it does not embed original FIT bytes.
+6. Dashboard/history paths primarily query `events`; normalized observations
+   are copied into schema v3 during FIT import, CSV export or backup creation.
+   FIT imports now write to canonical schema v3 after that copy. Dashboard
+   readers have not yet cut over. Backup v3 serializes both stores and supports
+   restore from v1/v2; it does not embed original FIT bytes.
 
 `measured_at_ms` is the device/FIT measurement clock. `received_at_ms` is the
 local transfer/import clock and must not replace a missing measurement time.
@@ -307,11 +308,11 @@ identifier is not a committed SQLite cursor.
 4. Make migration restartable: a source-count marker is written only after
    successful validation. Interrupted transactions roll back; a later export
    retries if the historical source row counts have changed.
-5. **Remaining:** route new FIT imports through the canonical repository only
-   after backup v3 includes canonical rows and v1/v2 compatibility tests pass.
-   Backup v2 currently preserves the historical source store, not the derived
-   schema-v3 copy. Do not rely on restored metadata implying original bytes were
-   backed up.
+5. **Implemented write/backup stage:** new FIT imports write to canonical
+   observations after the history copy. Backup v3 serializes canonical and
+   historical rows/provenance/cursors; its restore accepts v1/v2 and v3, validates
+   both provenance relationships before confirmation, and marks the copy stage
+   complete only for v3 restores. Original bytes remain excluded.
 6. Run backup→restore round trips against both pre-migration and migrated
    fixtures. Compare counts, stable keys, cursors, event hashes and file hashes.
    Retire neither legacy DB nor original files as part of this migration.
@@ -324,7 +325,7 @@ not a valid backup procedure.
 ## Operational/privacy decisions
 
 - Keep the database and original files app-private. No cloud, telemetry, or
-  committed health data. Backup v2 is checksummed but **not encrypted**; do not
+  committed health data. Backup v3 is checksummed but **not encrypted**; do not
   claim encryption. Encryption-at-rest for user-selected backups requires a
   separate key-management decision.
 - Keep content-addressed originals immutable. Quotas/orphan cleanup require
@@ -338,8 +339,9 @@ not a valid backup procedure.
 ## Remaining acceptance work
 
 The diagrams and target/migration decision are architecture artifacts. The
-historical DB and canonical DB now have normalized FIT tables, and backup v2
-has backward-read support. The current migration is copy-only and is triggered
-by the CSV export path. Write-path cutover, backup of canonical rows, physical
-consolidation, metadata observations, file-byte backup/restore and shared
-dashboard repository remain open before closing issue #144.
+historical DB and canonical DB have normalized FIT tables; new FIT writes and
+backup v3 now target/preserve canonical rows with v1/v2 restore support. The
+historical DB remains as a rollback source. Dashboard readers, physical
+retirement of the old store, metadata observations, file-byte backup/restore
+and a broad populated-device migration rehearsal remain open before closing
+issue #144.

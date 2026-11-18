@@ -1,23 +1,27 @@
-# Lokale Speicherung: Ereignisse und historische FIT-Messwerte
+# Lokale Speicherung: CIRQA-Ereignisse und FIT-Messwerte
 
-Stand: 2026-11-18. Die frühere Bezeichnung „einheitlich“ beschreibt den
-Realtime-/Dashboardpfad, aber nicht mehr alle aktiven Schreibpfade:
+Stand: 2026-11-18. Der Realtime-/Dashboardpfad und FIT-Historienpfad benutzen
+jetzt dieselbe kanonische DB, während die alte Historien-DB als Übergangsquelle
+erhalten bleibt:
 
-- `cirqa_measurements.db` / `CirqaDatabase` speichert Realtime-Ereignisse.
-  `CirqaLocalLog.append()/reading()` und der Nacht-Dienst schreiben in `events`.
-- `pulselibre_readings.db` / `LocalReadingStore` speichert FIT-Historienmesswerte,
-  Sync-Cursor und seit Schema v2 FIT-Quell-/Feldprovenienz. `commitFitFile`
-  schreibt pro Datei Messwerte, Quellenbezug und Cursor in einer Transaktion.
-- Die beiden physischen SQLite-Dateien bleiben vorerst erhalten. Die additive
-  v1→v2-Migration verändert keine bestehenden Messwert- oder Cursorzeilen.
-  Eine spätere physische Konsolidierung ist im
+- `cirqa_measurements.db` / `CirqaDatabase` speichert Realtime-Ereignisse sowie
+  normalisierte FIT-Beobachtungen, Cursor, Quellmetadaten und Feldprovenienz.
+  V25-FIT-Dateien schreiben nach einem verifizierten Kopierschritt pro Datei
+  Messwerte, Provenienz und Cursor atomar in diesen Store.
+- `pulselibre_readings.db` / `LocalReadingStore` bleibt als historische
+  Quell-/Rollback-DB erhalten. Schema v2 ergänzt die Quellen-/Feldprovenienz
+  additiv, ohne vorhandene Messwert- oder Cursorzeilen zu verändern.
+- Die beiden physischen SQLite-Dateien bleiben vorerst erhalten. Schema v3 der
+  kanonischen DB erhält einen transaktionalen, wiederholbaren Kopierpfad; die
+  FIT-Originale und die Historien-Quell-DB werden nicht gelöscht. Die physische
+  Konsolidierung ist im
   [Storage-ADR](protocol/data-model/CIRQA_STORAGE_ARCHITECTURE_ADR_2026-11-18.md)
   beschrieben und noch nicht umgesetzt.
 
-Dashboard/Statistik lesen den Ereignisspeicher. CSV kann historische Messwerte
-aus dem zweiten Store lesen bzw. idempotent als `legacy_record` in `events`
-importieren. FIT-Importzeit und Gerätemesszeit bleiben getrennt. Es werden nur
-beobachtete, validierte Werte gespeichert.
+Dashboard/Statistik lesen weiterhin den Ereignisspeicher. CSV bezieht alte
+`legacy_record`-Ereignisse, den normalisierten kanonischen Store und rohe CIRQA-
+Ereignisse dedupliziert ein. FIT-Importzeit und Gerätemesszeit bleiben getrennt.
+Es werden nur beobachtete, validierte Werte gespeichert.
 
 ## Migration und Rückwärtskompatibilität
 **Nutzerentscheidung vom 2026-11-17 (im Bereinigungs-PR):** Die frühere
@@ -37,7 +41,7 @@ bleiben verfügbar.
 
 ## Grenzen
 
-Die FIT-Originalbytes bleiben separat und werden nicht in Backup v2 kopiert;
+Die FIT-Originalbytes bleiben separat und werden nicht in Backup v3 kopiert;
 Backup enthält SHA-/Dateimetadaten und Feldherkunft. Dashboard-Repositories
 greifen noch nicht direkt auf den normalisierten FIT-Store zu. Eine physische
 DB-Konsolidierung, historische Geräteabdeckung und ein CIRQA-Hardwaretest sind

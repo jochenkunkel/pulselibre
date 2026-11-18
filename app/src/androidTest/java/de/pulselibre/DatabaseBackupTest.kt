@@ -54,6 +54,28 @@ class DatabaseBackupTest {
                     observations = listOf(fitObservation)
                 )
             }
+            val canonicalSha = "b".repeat(64)
+            val canonicalObservation = fitObservation.copy(
+                timestampEpochMillis = 6_000,
+                value = 67.0,
+                sourceFileSha256 = canonicalSha,
+                recordOrdinal = 2,
+                globalMessageNumber = 21,
+                idempotencyKey = "canonical-only-sample",
+                duplicateFingerprint = "canonical-only-fingerprint"
+            )
+            CirqaDatabase(context).use { database ->
+                database.ensureHistoricalStoreCopied()
+                database.commitFitFile(
+                    sourceSha256 = canonicalSha,
+                    fileBytes = 101,
+                    relativePath = "verified_fit/$canonicalSha.fit",
+                    validatedAtEpochMillis = 7_000,
+                    decoderVersion = FitHistoricalObservations.DECODER_VERSION,
+                    profileVersion = FitHistoricalObservations.PROFILE_VERSION,
+                    observations = listOf(canonicalObservation)
+                )
+            }
 
             val bytes = ByteArrayOutputStream()
             val report = DatabaseBackup.write(context, bytes)
@@ -62,6 +84,9 @@ class DatabaseBackupTest {
             assertEquals(2L, report.syncCursors)
             assertEquals(1L, report.fitSources)
             assertEquals(1L, report.fitProvenance)
+            assertEquals(3L, report.canonicalReadings)
+            assertEquals(2L, report.canonicalFitSources)
+            assertEquals(2L, report.canonicalFitProvenance)
 
             DatabaseBackup.reset(context)
             CirqaDatabase(context).use { assertEquals(0L, it.eventCount()) }
@@ -72,6 +97,8 @@ class DatabaseBackupTest {
 
             val plan = DatabaseBackup.prepareRestore(context, ByteArrayInputStream(bytes.toByteArray()))
             try {
+                assertEquals(3, plan.version)
+                assertEquals(3L, plan.canonicalReadings)
                 DatabaseBackup.restore(context, plan)
             } finally { plan.close() }
 
@@ -93,6 +120,26 @@ class DatabaseBackupTest {
                 assertEquals(1, db.rawQuery("SELECT COUNT(*) FROM fit_observation_provenance WHERE sample_id = 'fit-sample'", null).use {
                     it.moveToFirst(); it.getInt(0)
                 })
+                assertEquals(0, db.rawQuery("PRAGMA foreign_key_check", null).use {
+                    var violations = 0
+                    while (it.moveToNext()) violations++
+                    violations
+                })
+            }
+            CirqaDatabase(context).use { database ->
+                val db = database.readableDatabase
+                assertEquals(3, db.rawQuery("SELECT COUNT(*) FROM observations", null).use {
+                    it.moveToFirst(); it.getInt(0)
+                })
+                assertEquals(2, db.rawQuery("SELECT COUNT(*) FROM fit_sources", null).use {
+                    it.moveToFirst(); it.getInt(0)
+                })
+                assertEquals(2, db.rawQuery("SELECT COUNT(*) FROM fit_observation_provenance", null).use {
+                    it.moveToFirst(); it.getInt(0)
+                })
+                assertTrue(db.rawQuery(
+                    "SELECT value FROM observations WHERE sample_id = 'canonical-only-sample'", null
+                ).use { it.moveToFirst() && it.getDouble(0) == 67.0 })
                 assertEquals(0, db.rawQuery("PRAGMA foreign_key_check", null).use {
                     var violations = 0
                     while (it.moveToNext()) violations++
@@ -174,6 +221,28 @@ class DatabaseBackupTest {
         }
     }
 
+    @Test fun version2BackupRemainsRestorableAfterCanonicalWriteCutover() {
+        val base = ApplicationProvider.getApplicationContext<Context>()
+        val root = Files.createTempDirectory(base.cacheDir.toPath(), "database-backup-v2-test-").toFile()
+        val context = isolatedContext(base, root)
+        try {
+            val plan = DatabaseBackup.prepareRestore(context, ByteArrayInputStream(emptyVersion2Backup()))
+            try {
+                assertEquals(2, plan.version)
+                assertEquals(0L, plan.canonicalReadings)
+                DatabaseBackup.restore(context, plan)
+            } finally { plan.close() }
+
+            CirqaDatabase(context).use { database ->
+                assertEquals(0, database.readableDatabase.rawQuery(
+                    "SELECT COUNT(*) FROM observations", null
+                ).use { it.moveToFirst(); it.getInt(0) })
+            }
+        } finally {
+            root.deleteRecursively()
+        }
+    }
+
     private fun emptyVersion1Backup(): ByteArray {
         val dataEntries = listOf("cirqa_events.jsonl", "legacy_readings.jsonl", "sync_cursors.jsonl")
         val emptySha = MessageDigest.getInstance("SHA-256").digest(byteArrayOf())
@@ -185,6 +254,35 @@ class DatabaseBackupTest {
         val manifest = JSONObject()
             .put("format", "de.pulselibre.local-database-backup")
             .put("version", 1)
+            .put("app_id", "de.pulselibre")
+            .put("created_at", "2026-11-18T00:00:00Z")
+            .put("encryption", "none")
+            .put("entries", entries)
+        return ByteArrayOutputStream().also { bytes ->
+            ZipOutputStream(bytes).use { zip ->
+                (dataEntries + "manifest.json").forEach { name ->
+                    zip.putNextEntry(ZipEntry(name))
+                    if (name == "manifest.json") zip.write(manifest.toString().toByteArray(Charsets.UTF_8))
+                    zip.closeEntry()
+                }
+            }
+        }.toByteArray()
+    }
+
+    private fun emptyVersion2Backup(): ByteArray {
+        val dataEntries = listOf(
+            "cirqa_events.jsonl", "legacy_readings.jsonl", "sync_cursors.jsonl",
+            "fit_sources.jsonl", "fit_observation_provenance.jsonl"
+        )
+        val emptySha = MessageDigest.getInstance("SHA-256").digest(byteArrayOf())
+            .joinToString("") { "%02x".format(it.toInt() and 255) }
+        val entries = JSONObject()
+        dataEntries.forEach { name ->
+            entries.put(name, JSONObject().put("records", 0).put("bytes", 0).put("sha256", emptySha))
+        }
+        val manifest = JSONObject()
+            .put("format", "de.pulselibre.local-database-backup")
+            .put("version", 2)
             .put("app_id", "de.pulselibre")
             .put("created_at", "2026-11-18T00:00:00Z")
             .put("encryption", "none")

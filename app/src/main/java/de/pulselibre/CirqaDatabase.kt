@@ -12,7 +12,8 @@ import java.security.MessageDigest
  * New events are written here directly; obsolete JSONL recordings are no longer imported.
  * UNIQUE SHA-256 of each full line makes repeated imports idempotent.
  */
-class CirqaDatabase(private val contextRef: Context) : SQLiteOpenHelper(contextRef, "cirqa_measurements.db", null, 3) {
+class CirqaDatabase(private val contextRef: Context) :
+    SQLiteOpenHelper(contextRef, "cirqa_measurements.db", null, 3), FitObservationStore {
 
     override fun onConfigure(db: SQLiteDatabase) {
         super.onConfigure(db)
@@ -319,6 +320,23 @@ class CirqaDatabase(private val contextRef: Context) : SQLiteOpenHelper(contextR
     private fun rowCount(db: SQLiteDatabase, table: String): Long =
         db.rawQuery("SELECT COUNT(*) FROM $table", null).use { it.moveToFirst(); it.getLong(0) }
 
+    override fun commitFitFile(
+        sourceSha256: String,
+        fileBytes: Long,
+        relativePath: String,
+        validatedAtEpochMillis: Long,
+        decoderVersion: String,
+        profileVersion: String,
+        observations: List<FitHistoricalObservations.Observation>,
+        deviceKey: String
+    ): Int {
+        ensureHistoricalStoreCopied()
+        return FitObservationCommitter.commit(
+            writableDatabase, "observations", sourceSha256, fileBytes, relativePath,
+            validatedAtEpochMillis, decoderVersion, profileVersion, observations, deviceKey
+        )
+    }
+
     /** Store a single locally generated JSONL event immediately, without a second BLE path. */
     @Synchronized fun insertLine(line: String): Boolean {
         return insertLine(writableDatabase, line)
@@ -335,6 +353,26 @@ class CirqaDatabase(private val contextRef: Context) : SQLiteOpenHelper(contextR
         }
         return result
     }
+
+    fun historicalObservationWindow(window: ExportWindow): List<RawExportRecord> =
+        readableDatabase.rawQuery(
+            """SELECT device_id, metric, measured_at_ms, value, unit, sample_id, received_at_ms
+               FROM observations WHERE measured_at_ms >= ? AND measured_at_ms < ?
+               ORDER BY measured_at_ms, device_id, metric, sample_id""",
+            arrayOf(window.startInclusiveEpochMillis.toString(), window.endExclusiveEpochMillis.toString())
+        ).use { rows ->
+            buildList {
+                while (rows.moveToNext()) add(RawExportRecord(
+                    deviceId = rows.getString(0),
+                    metric = rows.getString(1),
+                    measuredAtEpochMillis = rows.getLong(2),
+                    value = rows.getDouble(3),
+                    unit = rows.getString(4),
+                    sampleId = rows.getString(5).ifEmpty { null },
+                    receivedAtEpochMillis = if (rows.isNull(6)) null else rows.getLong(6)
+                ))
+            }
+        }
 
     /**
      * One-time, idempotent import of the former generic readings database.
@@ -418,7 +456,12 @@ class CirqaDatabase(private val contextRef: Context) : SQLiteOpenHelper(contextR
         readings: Sequence<RawExportRecord>,
         cursors: Sequence<LocalSyncCursor>,
         fitSources: Sequence<StoredFitSource> = emptySequence(),
-        fitProvenance: Sequence<StoredFitProvenance> = emptySequence()
+        fitProvenance: Sequence<StoredFitProvenance> = emptySequence(),
+        canonicalObservations: Sequence<RawExportRecord> = emptySequence(),
+        canonicalCursors: Sequence<LocalSyncCursor> = emptySequence(),
+        canonicalFitSources: Sequence<StoredFitSource> = emptySequence(),
+        canonicalFitProvenance: Sequence<StoredFitProvenance> = emptySequence(),
+        markHistoricalCopyComplete: Boolean = false
     ) = withLegacyDatabase { db ->
         db.beginTransaction()
         try {
@@ -530,6 +573,107 @@ class CirqaDatabase(private val contextRef: Context) : SQLiteOpenHelper(contextR
                 cursorInsert.bindString(1, value.deviceId)
                 cursorInsert.bindLong(2, value.lastCommittedEpochMillis)
                 cursorInsert.executeInsert()
+            }
+
+            val canonicalReadingInsert = db.compileStatement(
+                """INSERT INTO main.observations
+                   (device_id, metric, measured_at_ms, value, unit, sample_id, received_at_ms)
+                   VALUES(?, ?, ?, ?, ?, ?, ?)"""
+            )
+            canonicalObservations.forEach { record ->
+                require(isValidStoredReading(record)) { "Ungültiger kanonischer Messwert im Backup" }
+                canonicalReadingInsert.clearBindings()
+                canonicalReadingInsert.bindString(1, record.deviceId)
+                canonicalReadingInsert.bindString(2, record.metric)
+                canonicalReadingInsert.bindLong(3, record.measuredAtEpochMillis)
+                canonicalReadingInsert.bindDouble(4, record.value)
+                canonicalReadingInsert.bindString(5, record.unit)
+                canonicalReadingInsert.bindString(6, record.sampleId ?: "")
+                if (record.receivedAtEpochMillis == null) canonicalReadingInsert.bindNull(7)
+                else canonicalReadingInsert.bindLong(7, record.receivedAtEpochMillis)
+                canonicalReadingInsert.executeInsert()
+            }
+
+            val canonicalCursorInsert = db.compileStatement(
+                "INSERT INTO main.sync_cursors(device_id, last_committed_ms) VALUES(?, ?)"
+            )
+            canonicalCursors.forEach { value ->
+                require(value.deviceId.isNotBlank() && value.lastCommittedEpochMillis >= 0) {
+                    "Ungültiger kanonischer Synchronisationsstand im Backup"
+                }
+                canonicalCursorInsert.clearBindings()
+                canonicalCursorInsert.bindString(1, value.deviceId)
+                canonicalCursorInsert.bindLong(2, value.lastCommittedEpochMillis)
+                canonicalCursorInsert.executeInsert()
+            }
+
+            val canonicalSourceInsert = db.compileStatement(
+                """INSERT INTO main.fit_sources
+                   (source_sha256, file_bytes, relative_path, validated_at_ms, decoder_version, profile_version)
+                   VALUES(?, ?, ?, ?, ?, ?)"""
+            )
+            canonicalFitSources.forEach { source ->
+                require(source.sha256.matches(Regex("[0-9a-f]{64}")) && source.fileBytes > 0 &&
+                    source.validatedAtEpochMillis >= 0 &&
+                    source.relativePath == "verified_fit/${source.sha256}.fit" &&
+                    source.decoderVersion.isNotBlank() && source.profileVersion.isNotBlank()) {
+                    "Ungültige kanonische FIT-Quellmetadaten im Backup"
+                }
+                canonicalSourceInsert.clearBindings()
+                canonicalSourceInsert.bindString(1, source.sha256)
+                canonicalSourceInsert.bindLong(2, source.fileBytes)
+                canonicalSourceInsert.bindString(3, source.relativePath)
+                canonicalSourceInsert.bindLong(4, source.validatedAtEpochMillis)
+                canonicalSourceInsert.bindString(5, source.decoderVersion)
+                canonicalSourceInsert.bindString(6, source.profileVersion)
+                canonicalSourceInsert.executeInsert()
+            }
+
+            val canonicalProvenanceInsert = db.compileStatement(
+                """INSERT INTO main.fit_observation_provenance
+                   (sample_id, device_id, metric, measured_at_ms, source_sha256, record_ordinal,
+                    global_message_number, field_number, quality, decoder_version)
+                   VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"""
+            )
+            canonicalFitProvenance.forEach { item ->
+                require(item.sampleId.isNotBlank() && item.deviceId.isNotBlank() && item.metric.isNotBlank() &&
+                    item.measuredAtEpochMillis >= 0 && item.sourceSha256.matches(Regex("[0-9a-f]{64}")) &&
+                    item.recordOrdinal >= 0 && item.globalMessageNumber >= 0 && item.fieldNumber >= 0 &&
+                    item.quality == "PROFILE_VALID" && item.decoderVersion.isNotBlank()) {
+                    "Ungültige kanonische FIT-Feldherkunft im Backup"
+                }
+                canonicalProvenanceInsert.clearBindings()
+                canonicalProvenanceInsert.bindString(1, item.sampleId)
+                canonicalProvenanceInsert.bindString(2, item.deviceId)
+                canonicalProvenanceInsert.bindString(3, item.metric)
+                canonicalProvenanceInsert.bindLong(4, item.measuredAtEpochMillis)
+                canonicalProvenanceInsert.bindString(5, item.sourceSha256)
+                canonicalProvenanceInsert.bindLong(6, item.recordOrdinal.toLong())
+                canonicalProvenanceInsert.bindLong(7, item.globalMessageNumber.toLong())
+                canonicalProvenanceInsert.bindLong(8, item.fieldNumber.toLong())
+                canonicalProvenanceInsert.bindString(9, item.quality)
+                canonicalProvenanceInsert.bindString(10, item.decoderVersion)
+                canonicalProvenanceInsert.executeInsert()
+            }
+            if (markHistoricalCopyComplete) {
+                val historicalCounts = listOf(
+                    "readings", "sync_cursors", "fit_sources", "fit_observation_provenance"
+                ).map { table ->
+                    db.rawQuery("SELECT COUNT(*) FROM legacy.$table", null).use {
+                        it.moveToFirst()
+                        it.getLong(0)
+                    }
+                }
+                db.execSQL(
+                    """INSERT OR REPLACE INTO main.storage_migrations
+                       (migration_key, source_readings, source_cursors, source_fit_sources,
+                        source_fit_provenance, completed_at_ms)
+                       VALUES('historical-v1-v2-copy', ?, ?, ?, ?, ?)""",
+                    arrayOf(
+                        historicalCounts[0], historicalCounts[1], historicalCounts[2],
+                        historicalCounts[3], System.currentTimeMillis()
+                    )
+                )
             }
             db.setTransactionSuccessful()
         } finally {

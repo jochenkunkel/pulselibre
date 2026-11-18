@@ -24,7 +24,7 @@ import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
 
 private const val BACKUP_FORMAT = "de.pulselibre.local-database-backup"
-private const val BACKUP_VERSION = 2
+private const val BACKUP_VERSION = 3
 private const val MAX_ARCHIVE_BYTES = 128L * 1024L * 1024L
 private const val MAX_ENTRY_BYTES = 120L * 1024L * 1024L
 private const val MAX_LINE_BYTES = 2 * 1024 * 1024
@@ -35,10 +35,18 @@ private const val READINGS_ENTRY = "legacy_readings.jsonl"
 private const val CURSORS_ENTRY = "sync_cursors.jsonl"
 private const val FIT_SOURCES_ENTRY = "fit_sources.jsonl"
 private const val FIT_PROVENANCE_ENTRY = "fit_observation_provenance.jsonl"
+private const val CANONICAL_READINGS_ENTRY = "canonical_observations.jsonl"
+private const val CANONICAL_CURSORS_ENTRY = "canonical_sync_cursors.jsonl"
+private const val CANONICAL_FIT_SOURCES_ENTRY = "canonical_fit_sources.jsonl"
+private const val CANONICAL_FIT_PROVENANCE_ENTRY = "canonical_fit_observation_provenance.jsonl"
 private const val MANIFEST_ENTRY = "manifest.json"
 private val BACKUP_V1_ENTRIES = setOf(EVENTS_ENTRY, READINGS_ENTRY, CURSORS_ENTRY)
 private val BACKUP_V2_ENTRIES =
     BACKUP_V1_ENTRIES + setOf(FIT_SOURCES_ENTRY, FIT_PROVENANCE_ENTRY)
+private val BACKUP_V3_ENTRIES = BACKUP_V2_ENTRIES + setOf(
+    CANONICAL_READINGS_ENTRY, CANONICAL_CURSORS_ENTRY,
+    CANONICAL_FIT_SOURCES_ENTRY, CANONICAL_FIT_PROVENANCE_ENTRY
+)
 
 data class DatabaseBackupReport(
     val createdAt: String,
@@ -46,7 +54,11 @@ data class DatabaseBackupReport(
     val legacyReadings: Long,
     val syncCursors: Long,
     val fitSources: Long = 0,
-    val fitProvenance: Long = 0
+    val fitProvenance: Long = 0,
+    val canonicalReadings: Long = 0,
+    val canonicalSyncCursors: Long = 0,
+    val canonicalFitSources: Long = 0,
+    val canonicalFitProvenance: Long = 0
 )
 
 /** A validated backup staged privately before any local database can be changed. */
@@ -58,7 +70,11 @@ class PreparedDatabaseRestore internal constructor(
     val syncCursors: Long,
     internal val version: Int,
     val fitSources: Long,
-    val fitProvenance: Long
+    val fitProvenance: Long,
+    val canonicalReadings: Long,
+    val canonicalSyncCursors: Long,
+    val canonicalFitSources: Long,
+    val canonicalFitProvenance: Long
 ) : Closeable {
     override fun close() { directory.deleteRecursively() }
 }
@@ -102,7 +118,8 @@ object DatabaseBackup {
             val version = manifest.optInt("version", -1)
             val dataEntries = when (version) {
                 1 -> BACKUP_V1_ENTRIES
-                BACKUP_VERSION -> BACKUP_V2_ENTRIES
+                2 -> BACKUP_V2_ENTRIES
+                BACKUP_VERSION -> BACKUP_V3_ENTRIES
                 else -> throw IllegalArgumentException("Backup-Version wird nicht unterstützt")
             }
             require(extracted.keys == dataEntries + MANIFEST_ENTRY) {
@@ -125,7 +142,15 @@ object DatabaseBackup {
                 require(count == metadata.getLong("records")) { "Backup-Datensatzanzahl stimmt nicht: $name" }
                 recordCounts[name] = count
             }
-            if (version >= 2) validateFitReferences(directory)
+            if (version >= 2) {
+                validateFitReferences(directory, READINGS_ENTRY, FIT_SOURCES_ENTRY, FIT_PROVENANCE_ENTRY)
+            }
+            if (version >= 3) {
+                validateFitReferences(
+                    directory, CANONICAL_READINGS_ENTRY, CANONICAL_FIT_SOURCES_ENTRY,
+                    CANONICAL_FIT_PROVENANCE_ENTRY
+                )
+            }
             return PreparedDatabaseRestore(
                 directory = directory,
                 createdAt = createdAt,
@@ -134,7 +159,11 @@ object DatabaseBackup {
                 syncCursors = recordCounts.getValue(CURSORS_ENTRY),
                 version = version,
                 fitSources = recordCounts[FIT_SOURCES_ENTRY] ?: 0,
-                fitProvenance = recordCounts[FIT_PROVENANCE_ENTRY] ?: 0
+                fitProvenance = recordCounts[FIT_PROVENANCE_ENTRY] ?: 0,
+                canonicalReadings = recordCounts[CANONICAL_READINGS_ENTRY] ?: 0,
+                canonicalSyncCursors = recordCounts[CANONICAL_CURSORS_ENTRY] ?: 0,
+                canonicalFitSources = recordCounts[CANONICAL_FIT_SOURCES_ENTRY] ?: 0,
+                canonicalFitProvenance = recordCounts[CANONICAL_FIT_PROVENANCE_ENTRY] ?: 0
             )
         } catch (error: Exception) {
             directory.deleteRecursively()
@@ -157,7 +186,7 @@ object DatabaseBackup {
                         readingReader.lineSequence().map(::parseReading),
                         cursorReader.lineSequence().map(::parseCursor)
                     )
-                } else {
+                } else if (plan.version == 2) {
                     sourcesFile.bufferedReader(Charsets.UTF_8).use { sourceReader ->
                         provenanceFile.bufferedReader(Charsets.UTF_8).use { provenanceReader ->
                             database.replaceAllStoredRows(
@@ -167,6 +196,31 @@ object DatabaseBackup {
                                 sourceReader.lineSequence().map(::parseFitSource),
                                 provenanceReader.lineSequence().map(::parseFitProvenance)
                             )
+                        }
+                    }
+                } else {
+                    sourcesFile.bufferedReader(Charsets.UTF_8).use { sourceReader ->
+                        provenanceFile.bufferedReader(Charsets.UTF_8).use { provenanceReader ->
+                            File(plan.directory, CANONICAL_READINGS_ENTRY).bufferedReader(Charsets.UTF_8).use { canonicalReadings ->
+                                File(plan.directory, CANONICAL_CURSORS_ENTRY).bufferedReader(Charsets.UTF_8).use { canonicalCursors ->
+                                    File(plan.directory, CANONICAL_FIT_SOURCES_ENTRY).bufferedReader(Charsets.UTF_8).use { canonicalSources ->
+                                        File(plan.directory, CANONICAL_FIT_PROVENANCE_ENTRY).bufferedReader(Charsets.UTF_8).use { canonicalProvenance ->
+                                            database.replaceAllStoredRows(
+                                                eventReader.lineSequence(),
+                                                readingReader.lineSequence().map(::parseReading),
+                                                cursorReader.lineSequence().map(::parseCursor),
+                                                sourceReader.lineSequence().map(::parseFitSource),
+                                                provenanceReader.lineSequence().map(::parseFitProvenance),
+                                                canonicalReadings.lineSequence().map(::parseReading),
+                                                canonicalCursors.lineSequence().map(::parseCursor),
+                                                canonicalSources.lineSequence().map(::parseFitSource),
+                                                canonicalProvenance.lineSequence().map(::parseFitProvenance),
+                                                markHistoricalCopyComplete = true
+                                            )
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -187,8 +241,13 @@ object DatabaseBackup {
         var cursorCount = 0L
         var fitSourceCount = 0L
         var fitProvenanceCount = 0L
+        var canonicalReadingCount = 0L
+        var canonicalCursorCount = 0L
+        var canonicalFitSourceCount = 0L
+        var canonicalFitProvenanceCount = 0L
         ZipOutputStream(BufferedOutputStream(FileOutputStream(target))).use { zip ->
             CirqaDatabase(context).use { database ->
+                database.ensureHistoricalStoreCopied()
                 database.readStoredSnapshot { db ->
                     val events = writeJsonLines(zip, EVENTS_ENTRY) { emit ->
                         db.rawQuery("SELECT payload_json FROM main.events ORDER BY received_at_utc, id", null).use { rows ->
@@ -260,7 +319,74 @@ object DatabaseBackup {
                     }
                     fitProvenanceCount = provenance.records
                     metadata.put(FIT_PROVENANCE_ENTRY, entryMetadata(provenance))
-                    require(events.bytes + readings.bytes + cursors.bytes + sources.bytes + provenance.bytes <= MAX_ARCHIVE_BYTES) {
+
+                    val canonicalReadings = writeJsonLines(zip, CANONICAL_READINGS_ENTRY) { emit ->
+                        db.rawQuery(
+                            """SELECT device_id, metric, measured_at_ms, value, unit, sample_id, received_at_ms
+                               FROM main.observations ORDER BY measured_at_ms, device_id, metric, sample_id""", null
+                        ).use { rows ->
+                            while (rows.moveToNext()) emit(encodeReading(RawExportRecord(
+                                deviceId = rows.getString(0), metric = rows.getString(1),
+                                measuredAtEpochMillis = rows.getLong(2), value = rows.getDouble(3),
+                                unit = rows.getString(4), sampleId = rows.getString(5).ifEmpty { null },
+                                receivedAtEpochMillis = if (rows.isNull(6)) null else rows.getLong(6)
+                            )))
+                        }
+                    }
+                    canonicalReadingCount = canonicalReadings.records
+                    metadata.put(CANONICAL_READINGS_ENTRY, entryMetadata(canonicalReadings))
+
+                    val canonicalCursors = writeJsonLines(zip, CANONICAL_CURSORS_ENTRY) { emit ->
+                        db.rawQuery(
+                            "SELECT device_id, last_committed_ms FROM main.sync_cursors ORDER BY device_id", null
+                        ).use { rows ->
+                            while (rows.moveToNext()) emit(encodeCursor(
+                                LocalSyncCursor(rows.getString(0), rows.getLong(1))
+                            ))
+                        }
+                    }
+                    canonicalCursorCount = canonicalCursors.records
+                    metadata.put(CANONICAL_CURSORS_ENTRY, entryMetadata(canonicalCursors))
+
+                    val canonicalSources = writeJsonLines(zip, CANONICAL_FIT_SOURCES_ENTRY) { emit ->
+                        db.rawQuery(
+                            """SELECT source_sha256, file_bytes, relative_path, validated_at_ms,
+                                      decoder_version, profile_version
+                               FROM main.fit_sources ORDER BY source_sha256""", null
+                        ).use { rows ->
+                            while (rows.moveToNext()) emit(encodeFitSource(StoredFitSource(
+                                sha256 = rows.getString(0), fileBytes = rows.getLong(1),
+                                relativePath = rows.getString(2), validatedAtEpochMillis = rows.getLong(3),
+                                decoderVersion = rows.getString(4), profileVersion = rows.getString(5)
+                            )))
+                        }
+                    }
+                    canonicalFitSourceCount = canonicalSources.records
+                    metadata.put(CANONICAL_FIT_SOURCES_ENTRY, entryMetadata(canonicalSources))
+
+                    val canonicalProvenance = writeJsonLines(zip, CANONICAL_FIT_PROVENANCE_ENTRY) { emit ->
+                        db.rawQuery(
+                            """SELECT sample_id, device_id, metric, measured_at_ms, source_sha256,
+                                      record_ordinal, global_message_number, field_number, quality, decoder_version
+                               FROM main.fit_observation_provenance
+                               ORDER BY source_sha256, record_ordinal, global_message_number, field_number""", null
+                        ).use { rows ->
+                            while (rows.moveToNext()) emit(encodeFitProvenance(StoredFitProvenance(
+                                sampleId = rows.getString(0), deviceId = rows.getString(1), metric = rows.getString(2),
+                                measuredAtEpochMillis = rows.getLong(3), sourceSha256 = rows.getString(4),
+                                recordOrdinal = rows.getInt(5), globalMessageNumber = rows.getInt(6),
+                                fieldNumber = rows.getInt(7), quality = rows.getString(8),
+                                decoderVersion = rows.getString(9)
+                            )))
+                        }
+                    }
+                    canonicalFitProvenanceCount = canonicalProvenance.records
+                    metadata.put(CANONICAL_FIT_PROVENANCE_ENTRY, entryMetadata(canonicalProvenance))
+                    require(
+                        events.bytes + readings.bytes + cursors.bytes + sources.bytes + provenance.bytes +
+                            canonicalReadings.bytes + canonicalCursors.bytes + canonicalSources.bytes +
+                            canonicalProvenance.bytes <= MAX_ARCHIVE_BYTES
+                    ) {
                         "Lokale Datenbank ist zu groß für ein Backup"
                     }
                 }
@@ -277,7 +403,10 @@ object DatabaseBackup {
             zip.closeEntry()
         }
         require(target.length() <= MAX_ARCHIVE_BYTES) { "Backup-Datei überschreitet das Größenlimit" }
-        return DatabaseBackupReport(now, eventCount, readingCount, cursorCount, fitSourceCount, fitProvenanceCount)
+        return DatabaseBackupReport(
+            now, eventCount, readingCount, cursorCount, fitSourceCount, fitProvenanceCount,
+            canonicalReadingCount, canonicalCursorCount, canonicalFitSourceCount, canonicalFitProvenanceCount
+        )
     }
 
     private data class JsonLinesMetadata(val records: Long, val bytes: Long, val sha256: String)
@@ -309,7 +438,7 @@ object DatabaseBackup {
         .put("sha256", value.sha256)
 
     private fun extractArchive(source: InputStream, directory: File): Map<String, File> {
-        val allowed = BACKUP_V2_ENTRIES + MANIFEST_ENTRY
+        val allowed = BACKUP_V3_ENTRIES + MANIFEST_ENTRY
         val files = linkedMapOf<String, File>()
         var totalBytes = 0L
         ZipInputStream(BufferedInputStream(source)).use { zip ->
@@ -354,6 +483,10 @@ object DatabaseBackup {
                     CURSORS_ENTRY -> parseCursor(line)
                     FIT_SOURCES_ENTRY -> parseFitSource(line)
                     FIT_PROVENANCE_ENTRY -> parseFitProvenance(line)
+                    CANONICAL_READINGS_ENTRY -> parseReading(line)
+                    CANONICAL_CURSORS_ENTRY -> parseCursor(line)
+                    CANONICAL_FIT_SOURCES_ENTRY -> parseFitSource(line)
+                    CANONICAL_FIT_PROVENANCE_ENTRY -> parseFitProvenance(line)
                 }
                 count++
                 require(count <= MAX_RECORDS) { "Zu viele Einträge in $name" }
@@ -363,7 +496,12 @@ object DatabaseBackup {
     }
 
     /** Validate source/reading foreign-key relationships before restore confirmation. */
-    private fun validateFitReferences(directory: File) {
+    private fun validateFitReferences(
+        directory: File,
+        readingsEntry: String,
+        sourcesEntry: String,
+        provenanceEntry: String
+    ) {
         val stagingFile = File(directory, ".fit-reference-validation.db")
         val db = SQLiteDatabase.openOrCreateDatabase(stagingFile, null)
         try {
@@ -390,13 +528,13 @@ object DatabaseBackup {
             )
             db.beginTransaction()
             try {
-                File(directory, FIT_SOURCES_ENTRY).bufferedReader(Charsets.UTF_8).useLines { lines ->
+                File(directory, sourcesEntry).bufferedReader(Charsets.UTF_8).useLines { lines ->
                     lines.forEach { line ->
                         val source = parseFitSource(line)
                         db.execSQL("INSERT INTO sources(source_sha256) VALUES(?)", arrayOf(source.sha256))
                     }
                 }
-                File(directory, READINGS_ENTRY).bufferedReader(Charsets.UTF_8).useLines { lines ->
+                File(directory, readingsEntry).bufferedReader(Charsets.UTF_8).useLines { lines ->
                     lines.forEach { line ->
                         val reading = parseReading(line)
                         db.execSQL(
@@ -407,7 +545,7 @@ object DatabaseBackup {
                         )
                     }
                 }
-                File(directory, FIT_PROVENANCE_ENTRY).bufferedReader(Charsets.UTF_8).useLines { lines ->
+                File(directory, provenanceEntry).bufferedReader(Charsets.UTF_8).useLines { lines ->
                     lines.forEach { line ->
                         val item = parseFitProvenance(line)
                         db.execSQL(

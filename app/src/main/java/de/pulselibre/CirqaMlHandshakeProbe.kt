@@ -2479,7 +2479,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                 it.timestampEpochMillis != null
         }
         val imported = try {
-            LocalReadingStore(context).use { store ->
+            CirqaDatabase(context).use { store ->
                 "ok:${CirqaFitBackfill.importVerifiedFile(saved.file, store) ?: 0}"
             }
         } catch (e: Exception) {

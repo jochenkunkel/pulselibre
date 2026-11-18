@@ -12,7 +12,7 @@ import java.security.MessageDigest
  */
 class CirqaFitBackfill(
     private val fitDirectory: File,
-    private val readings: LocalReadingStore,
+    private val readings: FitObservationStore,
     private val deviceKey: String = "cirqa-fit"
 ) {
     data class Result(
@@ -58,7 +58,7 @@ class CirqaFitBackfill(
          */
         fun importVerifiedFile(
             file: File,
-            readings: LocalReadingStore,
+            readings: FitObservationStore,
             deviceKey: String = "cirqa-fit"
         ): Int? {
             require(deviceKey.isNotBlank())

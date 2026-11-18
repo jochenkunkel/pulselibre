@@ -56,7 +56,10 @@ class ExportActivity : AppCompatActivity() {
                     runOnUiThread {
                         databaseFeedback.text = "Backup gespeichert: ${report.events} Ereignisse, " +
                             "${report.legacyReadings} historische Messwerte, " +
-                            "${report.fitSources} FIT-Quellen und ${report.fitProvenance} Herkunftszeilen. " +
+                            "${report.fitSources} historische FIT-Quellen/${report.fitProvenance} Herkunftszeilen; " +
+                            "${report.canonicalReadings} kanonische Messwerte, " +
+                            "${report.canonicalFitSources} kanonische FIT-Quellen/" +
+                            "${report.canonicalFitProvenance} Herkunftszeilen. " +
                             "FIT-Originaldateien sind nicht enthalten."
                     }
                 } catch (_: Exception) {
@@ -300,6 +303,9 @@ class ExportActivity : AppCompatActivity() {
                 "Das Backup vom ${plan.createdAt} enthält ${plan.events} Ereignisse, " +
                     "${plan.legacyReadings} historische Messwerte, ${plan.syncCursors} Synchronisationsstände, " +
                     "${plan.fitSources} FIT-Quellen und ${plan.fitProvenance} FIT-Herkunftszeilen. " +
+                    "${plan.canonicalReadings} kanonische Messwerte und " +
+                    "${plan.canonicalFitSources} kanonische FIT-Quellen/" +
+                    "${plan.canonicalFitProvenance} Herkunftszeilen. " +
                     "FIT-Originaldateien sind nicht enthalten.\n\n" +
                     "Alle aktuell gespeicherten Datenbankeinträge werden ersetzt. " +
                     "App-Einstellungen bleiben erhalten. Nur mit einem Backup aus vertrauenswürdiger Quelle fortfahren."
@@ -444,10 +450,10 @@ class ExportActivity : AppCompatActivity() {
      * No invented device identifier, history or sensor values.
      */
     private fun readUnifiedExport(window: ExportWindow): List<RawExportRecord> {
-        val legacy = CirqaDatabase(this).use { db ->
+        val (legacy, normalized) = CirqaDatabase(this).use { db ->
             db.ensureHistoricalStoreCopied()
             db.importLegacyReadings()
-            db.legacyLines().mapNotNull { line ->
+            val legacyRows = db.legacyLines().mapNotNull { line ->
                 try {
                     val item = JSONObject(line)
                     val time = item.getLong("measured_at_ms")
@@ -465,8 +471,12 @@ class ExportActivity : AppCompatActivity() {
                     )
                 } catch (_: Exception) { null }
             }
+            legacyRows to db.historicalObservationWindow(window)
         }
-        return legacy + readCirqaExport(window)
+        return (legacy + normalized + readCirqaExport(window)).distinctBy {
+            listOf(it.deviceId, it.metric, it.measuredAtEpochMillis.toString(), it.sampleId.orEmpty())
+                .joinToString("\u0000")
+        }
     }
 
     private fun readCirqaExport(window: ExportWindow): List<RawExportRecord> {
