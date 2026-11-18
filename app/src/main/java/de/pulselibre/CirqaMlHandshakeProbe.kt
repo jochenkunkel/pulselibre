@@ -70,6 +70,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private var mlrDiag = ""
     private var mlrChunks = 0
     private var mlrBytes = 0
+    private var syncTransferHandle = 0L
     private var syncFinalReport = ""
     private var fileAccessRequestClaimed = false
     private val fileAccessFramer = CirqaRfcommStreamFramer()
@@ -384,6 +385,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             mlrDiag = ""
             mlrChunks = 0
             mlrBytes = 0
+            syncTransferHandle = 0L
             fileAccessRequestClaimed = false
             bootstrapAckMode = false
             configurationTestMode = false
@@ -429,6 +431,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             mlrDiag = ""
             mlrChunks = 0
             mlrBytes = 0
+            syncTransferHandle = 0L
             fileAccessRequestClaimed = false
             bootstrapAckMode = false
             configurationTestMode = false
@@ -937,7 +940,14 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             if (registration?.accepted == true && registration.serviceId == MLR_SERVICE_ID) {
                 mlrHandle = registration.handle
                 mlrDiag = "mlrService=$MLR_SERVICE_ID,handle=${registration.handle}"
-                main.post { mark("MLR-Transfer-Service registriert: $mlrDiag") }
+                // Connect's MLRTransportPipe: [0, DIRECTION_READ, u32LE transferHandle].
+                val config = byteArrayOf(
+                    registration.handle.toByte(), 0, 0,
+                    syncTransferHandle.toByte(), (syncTransferHandle ushr 8).toByte(),
+                    (syncTransferHandle ushr 16).toByte(), (syncTransferHandle ushr 24).toByte()
+                )
+                queueAck(g, config)
+                main.post { mark("MLR-Pipe konfiguriert: handle=$syncTransferHandle") }
             } else if (registration?.serviceId == GarminMlHandshake.GFDI_SERVICE && registration.accepted) {
                 historyHandle = registration.handle
                 // The dynamic handle only exists after the ML register response;
@@ -1622,6 +1632,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                         syncPullDiag = "pull[result=${pull.resultCode},transport=${pull.transport}," +
                             "handle=${pull.transferHandle},path=${pull.hasFilePath}," +
                             "window=${pull.compressionWindow}]"
+                        syncTransferHandle = pull.transferHandle
                         if (pull.resultCode == 0L && pull.transport == 0L && !mlrRegisterSent) {
                             mlrRegisterSent = true
                             // Connect registers one of its MLR services (0x2018) to
@@ -2279,6 +2290,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             mlrDiag = ""
             mlrChunks = 0
             mlrBytes = 0
+            syncTransferHandle = 0L
             fileAccessRequestClaimed = false
             bootstrapAckMode = false
             configurationTestMode = false
