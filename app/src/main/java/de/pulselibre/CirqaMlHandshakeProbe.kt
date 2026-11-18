@@ -894,11 +894,15 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     }
                     // Full-chain directory-body read: route 5004 chunks to the dedicated session.
                     dirReadSession?.let { d ->
-                        val before = d.receivedBytes
+                        val beforeDataFrames = d.dataFramesProcessed
                         when (d.onNotification(bytes.copyOfRange(1, bytes.size))) {
                             CirqaDirectoryReadV2Session.Result.ACCEPTED,
                             CirqaDirectoryReadV2Session.Result.DUPLICATE -> {
-                                val ackOffset = d.nextAckOffset() ?: before
+                                // Control-only notifications need no ACK. Re-ACK only for a
+                                // real 5004 data frame (accepted or retry) so a stray control
+                                // frame cannot disturb the device's stream state.
+                                if (d.dataFramesProcessed == beforeDataFrames) return
+                                val ackOffset = d.nextAckOffset() ?: return
                                 val handle = historyHandle
                                 if (handle == null) { finish("Directory-Body: Handle fehlt.", g); return }
                                 send(g, CirqaLegacy5004AckCandidate.mlGattValueCandidate(handle, ackOffset))

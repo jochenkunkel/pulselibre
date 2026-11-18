@@ -22,6 +22,17 @@ class CirqaDirectoryReadV2Session(val token: Any = Any()) {
         private set
     var nonDataFrames = 0
         private set
+    var notificationsSeen = 0
+        private set
+    var framesSeen = 0
+        private set
+    var dataFramesProcessed = 0
+        private set
+    var controlFrameTypes = ""
+        private set
+    private val controlTypes = LinkedHashMap<Int, Int>()
+    private val encoded = ArrayList<Byte>()
+    private var collecting = false
     var directoryEntries = 0
         private set
     var fitCandidates = 0
@@ -47,17 +58,43 @@ class CirqaDirectoryReadV2Session(val token: Any = Any()) {
     /** Feed one ML characteristic notification (handle already stripped). */
     @Synchronized fun onNotification(payload: ByteArray): Result {
         if (phase != Phase.RECEIVING) return Result.STOPPED
-        // Decode one COBS-delimited 5004 frame from the notification.
-        val frame = decodeSingleFrame(payload) ?: return fail("bad-cobs", Result.MALFORMED)
+        notificationsSeen++
+        // The device may interleave control/status frames (5000 ACK echoes, 5043
+        // protobuf) with the 5004 data stream, and a COBS frame may span two
+        // notifications. Decode every complete frame, like the proven legacy
+        // CirqaLegacy5004ResponseObserver does; never drop a later 5004 frame just
+        // because a control frame came first.
+        val frames = extractFrames(payload)
+        if (frames.isEmpty()) return Result.ACCEPTED // partial frame; keep accumulating
+        var dataSeen = false
+        for (frame in frames) {
+            if (phase != Phase.RECEIVING) break
+            framesSeen++
+            val result = processFrame(frame)
+            if (result == Result.ACCEPTED || result == Result.DUPLICATE) {
+                if (result == Result.ACCEPTED) dataSeen = true
+                continue
+            }
+            return result
+        }
+        controlFrameTypes = controlTypes.entries.sortedBy { it.key }
+            .joinToString(",") { "${it.key}x${it.value}" }
+        return if (dataSeen) Result.ACCEPTED else Result.DUPLICATE
+    }
+
+    private fun processFrame(frame: ByteArray): Result {
         if (GarminFrameValidator.inspectVerified(frame) == null) return fail("gfdi-crc-error", Result.MALFORMED)
         val h = GarminGfdiHeader.inspect(frame) ?: return fail("bad-envelope", Result.MALFORMED)
-        // Control/status frames (GFDI 5000 responses incl. our ACK, and device
-        // protobuf messages) may interleave the data stream. Count and ignore them;
+        // Control/status frames may interleave the data stream. Count and ignore them;
         // only 5004 frames carry directory bytes.
         if (h.type != 5004) {
             nonDataFrames++
+            controlTypes[h.type] = (controlTypes[h.type] ?: 0) + 1
+            controlFrameTypes = controlTypes.entries.sortedBy { it.key }
+                .joinToString(",") { "${it.key}x${it.value}" }
             return Result.DUPLICATE
         }
+        dataFramesProcessed++
         if (h.compact) return fail("compact-frame", Result.MALFORMED)
         val body = frame.copyOfRange(4, frame.size - 2)
         val chunk = CirqaLegacyTransferDecoder.plainChunk(body)
@@ -86,6 +123,39 @@ class CirqaDirectoryReadV2Session(val token: Any = Any()) {
         return if (receivedBytes == expectedSize) complete() else Result.ACCEPTED
     }
 
+    /** Extract all complete COBS frames; keep a partial frame for the next notification. */
+    private fun extractFrames(payload: ByteArray): List<ByteArray> {
+        val out = ArrayList<ByteArray>()
+        for (byte in payload) {
+            if (byte == 0.toByte()) {
+                if (collecting && encoded.isNotEmpty()) {
+                    decodeCobs(encoded.toByteArray())?.let { out.add(it) }
+                    encoded.clear()
+                }
+                collecting = true
+            } else if (collecting) {
+                if (encoded.size >= MAX_ENCODED_BYTES) {
+                    fail("rx-budget", Result.MALFORMED)
+                    return emptyList()
+                }
+                encoded += byte
+            }
+        }
+        return out
+    }
+
+    private fun decodeCobs(bytes: ByteArray): ByteArray? {
+        val output = ArrayList<Byte>(bytes.size)
+        var index = 0
+        while (index < bytes.size) {
+            val code = bytes[index++].toInt() and 255
+            if (code == 0 || index + code - 1 > bytes.size) return null
+            repeat(code - 1) { output += bytes[index++] }
+            if (code != 0xff && index < bytes.size) output += 0
+        }
+        return output.toByteArray()
+    }
+
     /** Next ACK offset; null when not receiving. */
     @Synchronized fun nextAckOffset(): Int? = if (phase == Phase.RECEIVING) receivedBytes else null
 
@@ -98,7 +168,8 @@ class CirqaDirectoryReadV2Session(val token: Any = Any()) {
 
     @Synchronized fun summary(): String =
         "DirectoryReadV2: phase=$phase; reason=$reason; size=$expectedSize/$receivedBytes; chunks=$chunkCount; " +
-            "entries=$directoryEntries; fitCandidates=$fitCandidates; $redactedEntryReport"
+            "notifs=$notificationsSeen; frames=$framesSeen; dataFrames=$dataFramesProcessed; " +
+            "control=$controlFrameTypes; entries=$directoryEntries; fitCandidates=$fitCandidates; $redactedEntryReport"
 
     private fun complete(): Result {
         val data = bytes.toByteArray()
@@ -124,24 +195,7 @@ class CirqaDirectoryReadV2Session(val token: Any = Any()) {
         return Result.COMPLETE
     }
 
-    private fun decodeSingleFrame(payload: ByteArray): ByteArray? {
-        // Expect [0, code, ... , 0] COBS framing; strip delimiters.
-        if (payload.size < 4 || payload[0] != 0.toByte()) return null
-        var start = 1
-        var end = -1
-        for (i in 1 until payload.size) if (payload[i] == 0.toByte()) { end = i; break }
-        if (end <= start) return null
-        val encoded = payload.copyOfRange(start, end)
-        val out = java.io.ByteArrayOutputStream()
-        var i = 0
-        while (i < encoded.size) {
-            val n = encoded[i++].toInt() and 255
-            if (n == 0 || i + n - 1 > encoded.size) return null
-            repeat(n - 1) { out.write(encoded[i++].toInt()) }
-            if (n != 255 && i < encoded.size) out.write(0)
-        }
-        return out.toByteArray()
-    }
+    private companion object { const val MAX_ENCODED_BYTES = 32 * 1024 }
 
     private fun fail(reason: String, result: Result): Result {
         this.reason = reason

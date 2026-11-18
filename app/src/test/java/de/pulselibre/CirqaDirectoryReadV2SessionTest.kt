@@ -53,6 +53,35 @@ class CirqaDirectoryReadV2SessionTest {
         assertArrayEquals(dir, s.completedBytes())
     }
 
+    @Test fun ignoresInterleavedControlFrameBeforeDataInSameNotification() {
+        val dir = directoryBytes(listOf(Triple(1, 128, 1000)))
+        val s = CirqaDirectoryReadV2Session()
+        assertTrue(s.begin(dir.size))
+        val control = GarminFileListRequest.cobs(gfdiFrame(5000, byteArrayOf(0, 0, 0)))
+        val crc = CirqaLegacyCrc16.compute(dir)
+        val data = GarminFileListRequest.cobs(chunkFrame(dir, 0, crc))
+        // Device may place a 5000 ACK/protobuf control frame before the 5004 chunk.
+        val combined = control.copyOfRange(0, control.size - 1) + data
+        assertEquals(CirqaDirectoryReadV2Session.Result.COMPLETE, s.onNotification(combined))
+        assertEquals(1, s.nonDataFrames)
+        assertEquals(1, s.dataFramesProcessed)
+        assertEquals("5000x1", s.controlFrameTypes)
+        assertEquals(dir.size, s.receivedBytes)
+    }
+
+    @Test fun reassemblesCobsFrameSplitAcrossNotifications() {
+        val dir = directoryBytes(listOf(Triple(1, 128, 1000)))
+        val s = CirqaDirectoryReadV2Session()
+        assertTrue(s.begin(dir.size))
+        val crc = CirqaLegacyCrc16.compute(dir)
+        val encoded = GarminFileListRequest.cobs(chunkFrame(dir, 0, crc))
+        val cut = encoded.size / 2
+        assertEquals(CirqaDirectoryReadV2Session.Result.ACCEPTED, s.onNotification(encoded.copyOfRange(0, cut)))
+        assertEquals(0, s.receivedBytes)
+        assertEquals(CirqaDirectoryReadV2Session.Result.COMPLETE, s.onNotification(encoded.copyOfRange(cut, encoded.size)))
+        assertEquals(dir.size, s.receivedBytes)
+    }
+
     @Test fun rejectsBadCrcAndWrongOffset() {
         val dir = directoryBytes(listOf(Triple(1, 128, 1000)))
         val s = CirqaDirectoryReadV2Session()
