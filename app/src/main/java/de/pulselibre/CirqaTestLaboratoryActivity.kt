@@ -347,7 +347,7 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
         addCard(boundedDownloadCard)
         val systemEventCard = card()
         systemEventCard.addView(label(
-            if (CirqaLegacy5030AttemptGate.RELEASED_FOR_DEVICE_TEST)
+            if (CirqaLegacy5030To5007AttemptGate.RELEASED_FOR_DEVICE_TEST)
                 "5030-only · einmalig freigegeben" else "5030-only · Freigabe ausstehend", 18f
         ))
         systemEventCard.addView(label(
@@ -359,7 +359,7 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
         ))
         systemEventCard.addView(button("Einmaligen 5030-only-Test bestätigen") {
             confirmLegacy5030OnlyTest()
-        }.apply { isEnabled = CirqaLegacy5030AttemptGate.RELEASED_FOR_DEVICE_TEST })
+        }.apply { isEnabled = CirqaLegacy5030To5007AttemptGate.RELEASED_FOR_DEVICE_TEST })
         addCard(systemEventCard)
 
         root.addView(button("Datensparsamen Testbericht speichern") {
@@ -619,7 +619,7 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
     }
 
     private fun confirmLegacy5030OnlyTest() {
-        if (!CirqaLegacy5030AttemptGate.RELEASED_FOR_DEVICE_TEST) return
+        if (!CirqaLegacy5030To5007AttemptGate.RELEASED_FOR_DEVICE_TEST) return
         AlertDialog.Builder(this)
             .setTitle("Einmaliger 5030-only-Test?")
             .setMessage(
