@@ -85,10 +85,11 @@ object CirqaFileAccessItemListParser {
         val response = fields(service).firstOrNull { it.number == 2 && it.wire == 2 }?.bytes ?: return null
         val f = fields(response)
         fun v(number: Int) = f.firstOrNull { it.number == number && it.wire == 0 }?.varint
+        // proto3 omits default values, so SUCCESS=0 / transport=0 may be absent.
         return PullResult(
-            resultCode = v(1) ?: return null,
-            transport = v(2) ?: return null,
-            transferHandle = v(3) ?: return null,
+            resultCode = v(1) ?: 0,
+            transport = v(2) ?: 0,
+            transferHandle = v(3) ?: 0,
             hasFilePath = f.any { it.number == 4 && it.wire == 2 },
             compressionWindow = v(8)
         )
