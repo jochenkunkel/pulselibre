@@ -23,7 +23,7 @@ internal class TrendCardView(context: Context) : LinearLayout(context) {
     init {
         orientation = VERTICAL
         setPadding(dp(14), dp(14), dp(14), dp(14))
-        background = GradientDrawable().apply { setColor(palette.card); cornerRadius = dp(16).toFloat(); UnvalidatedFeatures.mark(this, resources.displayMetrics.density) }
+        background = GradientDrawable().apply { setColor(palette.card); cornerRadius = dp(16).toFloat(); UnvalidatedFeatures.mark(this, resources.displayMetrics.density, palette.dark) }
         contentDescription = "Trends. Enthält ungeprüften Geräte-Ruhepuls." + UnvalidatedFeatures.ACCESSIBILITY_SUFFIX
         tag = "trend_card"
         addView(TextView(context).apply {
