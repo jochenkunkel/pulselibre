@@ -48,4 +48,17 @@ class CirqaHistoricalSyncV1MultiPhaseSessionTest {
         bad.forEach { b -> s.receive(s.token, byteArrayOf(b), t++) }
         assertEquals(CirqaHistoricalSyncV1MultiPhaseSession.Phase.STOPPED, s.phase)
     }
+
+    @Test fun wireBuildersProduceVerifiedFrames() {
+        val handle = 100
+        val sysFrame = CirqaHistoricalSyncV1Wire.gfdiFrame(5030, byteArrayOf(8, 0))
+        assertNotNull(GarminFrameValidator.inspectVerified(sysFrame))
+        assertEquals(5030, GarminGfdiHeader.inspect(sysFrame)?.type)
+        assertEquals(12, CirqaHistoricalSyncV1Wire.systemEventComplete(handle).size)
+        assertTrue(CirqaHistoricalSyncV1Wire.filterPendingUploads(handle).size > 0)
+        assertTrue(CirqaHistoricalSyncV1Wire.supportedFileTypes(handle).size > 0)
+        val dirFrame = CirqaHistoricalSyncV1Wire.gfdiFrame(5002, ByteArray(14))
+        assertNotNull(GarminFrameValidator.inspectVerified(dirFrame))
+        assertTrue(CirqaHistoricalSyncV1Wire.directoryRead(handle, 0).size > 0)
+    }
 }
