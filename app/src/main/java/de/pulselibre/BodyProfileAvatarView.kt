@@ -9,6 +9,22 @@ import android.view.View
 /** Compact, code-drawn profile portrait; independent of emoji fonts and user-entered sex. */
 internal class BodyProfileAvatarView(context: Context) : View(context) {
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
+    // Constant geometry built once instead of allocating paths on every draw.
+    private val shouldersPath = Path().apply {
+            moveTo(22f, 105f); quadTo(24f, 78f, 48f, 76f)
+            lineTo(64f, 76f); quadTo(89f, 79f, 91f, 105f); close()
+    }
+    private val hairPath = Path().apply {
+            moveTo(33f, 43f); quadTo(28f, 18f, 54f, 14f)
+            quadTo(79f, 13f, 80f, 40f); lineTo(75f, 32f)
+            quadTo(62f, 25f, 49f, 31f); quadTo(42f, 34f, 36f, 42f); close()
+    }
+    private val beardPath = Path().apply {
+            moveTo(35f, 51f); quadTo(39f, 60f, 43f, 57f)
+            quadTo(55f, 63f, 68f, 56f); quadTo(74f, 60f, 78f, 50f)
+            lineTo(75f, 68f); quadTo(68f, 82f, 56f, 83f)
+            quadTo(43f, 81f, 37f, 68f); close()
+    }
 
     init {
         contentDescription = "Illustration eines bärtigen Mannes"
@@ -32,10 +48,7 @@ internal class BodyProfileAvatarView(context: Context) : View(context) {
         paint.color = 0xFFE9B992.toInt()
         canvas.drawRoundRect(47f, 68f, 65f, 88f, 7f, 7f, paint)
         paint.color = 0xFF66528D.toInt()
-        canvas.drawPath(Path().apply {
-            moveTo(22f, 105f); quadTo(24f, 78f, 48f, 76f)
-            lineTo(64f, 76f); quadTo(89f, 79f, 91f, 105f); close()
-        }, paint)
+        canvas.drawPath(shouldersPath, paint)
 
         // Head, ears, hair and beard: a clear, friendly masculine portrait.
         paint.color = 0xFFE9B992.toInt()
@@ -44,17 +57,8 @@ internal class BodyProfileAvatarView(context: Context) : View(context) {
         canvas.drawOval(74f, 43f, 83f, 57f, paint)
 
         paint.color = 0xFF594033.toInt()
-        canvas.drawPath(Path().apply {
-            moveTo(33f, 43f); quadTo(28f, 18f, 54f, 14f)
-            quadTo(79f, 13f, 80f, 40f); lineTo(75f, 32f)
-            quadTo(62f, 25f, 49f, 31f); quadTo(42f, 34f, 36f, 42f); close()
-        }, paint)
-        canvas.drawPath(Path().apply {
-            moveTo(35f, 51f); quadTo(39f, 60f, 43f, 57f)
-            quadTo(55f, 63f, 68f, 56f); quadTo(74f, 60f, 78f, 50f)
-            lineTo(75f, 68f); quadTo(68f, 82f, 56f, 83f)
-            quadTo(43f, 81f, 37f, 68f); close()
-        }, paint)
+        canvas.drawPath(hairPath, paint)
+        canvas.drawPath(beardPath, paint)
 
         // Eyes and nose remain visible above the beard.
         paint.color = 0xFF382B27.toInt()

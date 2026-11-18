@@ -61,6 +61,7 @@ class CirqaDatabase(private val contextRef: Context) : SQLiteOpenHelper(contextR
         super.onOpen(db)
         // Explicit user decision: discard the former JSONL night recording.
         // SQLite events are preserved. Retry on a later open if deletion fails.
+        // One stat() call when nothing is left; with the shared poll helper this runs once per open, not once per second.
         LegacyNightRecording.remove(contextRef.filesDir)
     }
 
