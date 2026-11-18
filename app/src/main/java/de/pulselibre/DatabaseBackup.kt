@@ -24,7 +24,7 @@ import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
 
 private const val BACKUP_FORMAT = "de.pulselibre.local-database-backup"
-private const val BACKUP_VERSION = 1
+private const val BACKUP_VERSION = 2
 private const val MAX_ARCHIVE_BYTES = 128L * 1024L * 1024L
 private const val MAX_ENTRY_BYTES = 120L * 1024L * 1024L
 private const val MAX_LINE_BYTES = 2 * 1024 * 1024
@@ -33,13 +33,20 @@ private const val MAX_MANIFEST_BYTES = 64 * 1024
 private const val EVENTS_ENTRY = "cirqa_events.jsonl"
 private const val READINGS_ENTRY = "legacy_readings.jsonl"
 private const val CURSORS_ENTRY = "sync_cursors.jsonl"
+private const val FIT_SOURCES_ENTRY = "fit_sources.jsonl"
+private const val FIT_PROVENANCE_ENTRY = "fit_observation_provenance.jsonl"
 private const val MANIFEST_ENTRY = "manifest.json"
+private val BACKUP_V1_ENTRIES = setOf(EVENTS_ENTRY, READINGS_ENTRY, CURSORS_ENTRY)
+private val BACKUP_V2_ENTRIES =
+    BACKUP_V1_ENTRIES + setOf(FIT_SOURCES_ENTRY, FIT_PROVENANCE_ENTRY)
 
 data class DatabaseBackupReport(
     val createdAt: String,
     val events: Long,
     val legacyReadings: Long,
-    val syncCursors: Long
+    val syncCursors: Long,
+    val fitSources: Long = 0,
+    val fitProvenance: Long = 0
 )
 
 /** A validated backup staged privately before any local database can be changed. */
@@ -48,15 +55,16 @@ class PreparedDatabaseRestore internal constructor(
     val createdAt: String,
     val events: Long,
     val legacyReadings: Long,
-    val syncCursors: Long
+    val syncCursors: Long,
+    internal val version: Int,
+    val fitSources: Long,
+    val fitProvenance: Long
 ) : Closeable {
     override fun close() { directory.deleteRecursively() }
 }
 
 /** Versioned, checksummed archive for both local SQLite stores. The archive is not encrypted. */
 object DatabaseBackup {
-    private val dataEntries = setOf(EVENTS_ENTRY, READINGS_ENTRY, CURSORS_ENTRY)
-
     /** Stream a consistent snapshot into a temporary archive, then copy it to the chosen SAF file. */
     fun write(context: Context, destination: OutputStream): DatabaseBackupReport {
         val temp = File.createTempFile("pulselibre-backup-", ".zip", context.cacheDir)
@@ -91,7 +99,15 @@ object DatabaseBackup {
             require(manifestBytes.size <= MAX_MANIFEST_BYTES) { "Backup-Manifest ist zu groß" }
             val manifest = JSONObject(manifestBytes.toString(Charsets.UTF_8))
             require(manifest.optString("format") == BACKUP_FORMAT) { "Das ist kein PulsLibre-Datenbankbackup" }
-            require(manifest.optInt("version", -1) == BACKUP_VERSION) { "Backup-Version wird nicht unterstützt" }
+            val version = manifest.optInt("version", -1)
+            val dataEntries = when (version) {
+                1 -> BACKUP_V1_ENTRIES
+                BACKUP_VERSION -> BACKUP_V2_ENTRIES
+                else -> throw IllegalArgumentException("Backup-Version wird nicht unterstützt")
+            }
+            require(extracted.keys == dataEntries + MANIFEST_ENTRY) {
+                "Backup-Einträge passen nicht zur Versionsnummer"
+            }
             require(manifest.optString("app_id") == "de.pulselibre") { "Backup gehört zu einer anderen App" }
             val createdAt = manifest.getString("created_at")
             Instant.parse(createdAt)
@@ -109,12 +125,16 @@ object DatabaseBackup {
                 require(count == metadata.getLong("records")) { "Backup-Datensatzanzahl stimmt nicht: $name" }
                 recordCounts[name] = count
             }
+            if (version >= 2) validateFitReferences(directory)
             return PreparedDatabaseRestore(
                 directory = directory,
                 createdAt = createdAt,
                 events = recordCounts.getValue(EVENTS_ENTRY),
                 legacyReadings = recordCounts.getValue(READINGS_ENTRY),
-                syncCursors = recordCounts.getValue(CURSORS_ENTRY)
+                syncCursors = recordCounts.getValue(CURSORS_ENTRY),
+                version = version,
+                fitSources = recordCounts[FIT_SOURCES_ENTRY] ?: 0,
+                fitProvenance = recordCounts[FIT_PROVENANCE_ENTRY] ?: 0
             )
         } catch (error: Exception) {
             directory.deleteRecursively()
@@ -127,13 +147,29 @@ object DatabaseBackup {
         val events = File(plan.directory, EVENTS_ENTRY).bufferedReader(Charsets.UTF_8)
         val readings = File(plan.directory, READINGS_ENTRY).bufferedReader(Charsets.UTF_8)
         val cursors = File(plan.directory, CURSORS_ENTRY).bufferedReader(Charsets.UTF_8)
+        val sourcesFile = File(plan.directory, FIT_SOURCES_ENTRY)
+        val provenanceFile = File(plan.directory, FIT_PROVENANCE_ENTRY)
         events.use { eventReader -> readings.use { readingReader -> cursors.use { cursorReader ->
             CirqaDatabase(context).use { database ->
-                database.replaceAllStoredRows(
-                    eventReader.lineSequence(),
-                    readingReader.lineSequence().map(::parseReading),
-                    cursorReader.lineSequence().map(::parseCursor)
-                )
+                if (plan.version == 1) {
+                    database.replaceAllStoredRows(
+                        eventReader.lineSequence(),
+                        readingReader.lineSequence().map(::parseReading),
+                        cursorReader.lineSequence().map(::parseCursor)
+                    )
+                } else {
+                    sourcesFile.bufferedReader(Charsets.UTF_8).use { sourceReader ->
+                        provenanceFile.bufferedReader(Charsets.UTF_8).use { provenanceReader ->
+                            database.replaceAllStoredRows(
+                                eventReader.lineSequence(),
+                                readingReader.lineSequence().map(::parseReading),
+                                cursorReader.lineSequence().map(::parseCursor),
+                                sourceReader.lineSequence().map(::parseFitSource),
+                                provenanceReader.lineSequence().map(::parseFitProvenance)
+                            )
+                        }
+                    }
+                }
             }
         } } }
     }
@@ -149,6 +185,8 @@ object DatabaseBackup {
         var eventCount = 0L
         var readingCount = 0L
         var cursorCount = 0L
+        var fitSourceCount = 0L
+        var fitProvenanceCount = 0L
         ZipOutputStream(BufferedOutputStream(FileOutputStream(target))).use { zip ->
             CirqaDatabase(context).use { database ->
                 database.readStoredSnapshot { db ->
@@ -187,7 +225,42 @@ object DatabaseBackup {
                     }
                     cursorCount = cursors.records
                     metadata.put(CURSORS_ENTRY, entryMetadata(cursors))
-                    require(events.bytes + readings.bytes + cursors.bytes <= MAX_ARCHIVE_BYTES) {
+
+                    val sources = writeJsonLines(zip, FIT_SOURCES_ENTRY) { emit ->
+                        db.rawQuery(
+                            """SELECT source_sha256, file_bytes, relative_path, validated_at_ms,
+                                      decoder_version, profile_version
+                               FROM legacy.fit_sources ORDER BY source_sha256""", null
+                        ).use { rows ->
+                            while (rows.moveToNext()) emit(encodeFitSource(StoredFitSource(
+                                sha256 = rows.getString(0), fileBytes = rows.getLong(1),
+                                relativePath = rows.getString(2), validatedAtEpochMillis = rows.getLong(3),
+                                decoderVersion = rows.getString(4), profileVersion = rows.getString(5)
+                            )))
+                        }
+                    }
+                    fitSourceCount = sources.records
+                    metadata.put(FIT_SOURCES_ENTRY, entryMetadata(sources))
+
+                    val provenance = writeJsonLines(zip, FIT_PROVENANCE_ENTRY) { emit ->
+                        db.rawQuery(
+                            """SELECT sample_id, device_id, metric, measured_at_ms, source_sha256,
+                                      record_ordinal, global_message_number, field_number, quality, decoder_version
+                               FROM legacy.fit_observation_provenance
+                               ORDER BY source_sha256, record_ordinal, global_message_number, field_number""", null
+                        ).use { rows ->
+                            while (rows.moveToNext()) emit(encodeFitProvenance(StoredFitProvenance(
+                                sampleId = rows.getString(0), deviceId = rows.getString(1), metric = rows.getString(2),
+                                measuredAtEpochMillis = rows.getLong(3), sourceSha256 = rows.getString(4),
+                                recordOrdinal = rows.getInt(5), globalMessageNumber = rows.getInt(6),
+                                fieldNumber = rows.getInt(7), quality = rows.getString(8),
+                                decoderVersion = rows.getString(9)
+                            )))
+                        }
+                    }
+                    fitProvenanceCount = provenance.records
+                    metadata.put(FIT_PROVENANCE_ENTRY, entryMetadata(provenance))
+                    require(events.bytes + readings.bytes + cursors.bytes + sources.bytes + provenance.bytes <= MAX_ARCHIVE_BYTES) {
                         "Lokale Datenbank ist zu groß für ein Backup"
                     }
                 }
@@ -204,7 +277,7 @@ object DatabaseBackup {
             zip.closeEntry()
         }
         require(target.length() <= MAX_ARCHIVE_BYTES) { "Backup-Datei überschreitet das Größenlimit" }
-        return DatabaseBackupReport(now, eventCount, readingCount, cursorCount)
+        return DatabaseBackupReport(now, eventCount, readingCount, cursorCount, fitSourceCount, fitProvenanceCount)
     }
 
     private data class JsonLinesMetadata(val records: Long, val bytes: Long, val sha256: String)
@@ -236,7 +309,7 @@ object DatabaseBackup {
         .put("sha256", value.sha256)
 
     private fun extractArchive(source: InputStream, directory: File): Map<String, File> {
-        val allowed = dataEntries + MANIFEST_ENTRY
+        val allowed = BACKUP_V2_ENTRIES + MANIFEST_ENTRY
         val files = linkedMapOf<String, File>()
         var totalBytes = 0L
         ZipInputStream(BufferedInputStream(source)).use { zip ->
@@ -263,7 +336,7 @@ object DatabaseBackup {
                 files[entry.name] = target
             }
         }
-        require(files.keys == allowed) { "Backup ist unvollständig" }
+        require(MANIFEST_ENTRY in files) { "Backup-Manifest fehlt" }
         require(files.getValue(MANIFEST_ENTRY).length() <= MAX_MANIFEST_BYTES) { "Backup-Manifest ist zu groß" }
         return files
     }
@@ -279,12 +352,82 @@ object DatabaseBackup {
                     EVENTS_ENTRY -> require(CirqaDatabase.isValidStoredLine(line)) { "Ungültiger Ereigniseintrag im Backup" }
                     READINGS_ENTRY -> parseReading(line)
                     CURSORS_ENTRY -> parseCursor(line)
+                    FIT_SOURCES_ENTRY -> parseFitSource(line)
+                    FIT_PROVENANCE_ENTRY -> parseFitProvenance(line)
                 }
                 count++
                 require(count <= MAX_RECORDS) { "Zu viele Einträge in $name" }
             }
         }
         return count
+    }
+
+    /** Validate source/reading foreign-key relationships before restore confirmation. */
+    private fun validateFitReferences(directory: File) {
+        val stagingFile = File(directory, ".fit-reference-validation.db")
+        val db = SQLiteDatabase.openOrCreateDatabase(stagingFile, null)
+        try {
+            db.setForeignKeyConstraintsEnabled(true)
+            db.execSQL(
+                """CREATE TABLE sources (
+                   source_sha256 TEXT PRIMARY KEY NOT NULL
+                )"""
+            )
+            db.execSQL(
+                """CREATE TABLE readings (
+                   device_id TEXT NOT NULL, metric TEXT NOT NULL, measured_at_ms INTEGER NOT NULL,
+                   sample_id TEXT NOT NULL, PRIMARY KEY(device_id, metric, measured_at_ms, sample_id)
+                )"""
+            )
+            db.execSQL(
+                """CREATE TABLE provenance (
+                   sample_id TEXT PRIMARY KEY NOT NULL, device_id TEXT NOT NULL, metric TEXT NOT NULL,
+                   measured_at_ms INTEGER NOT NULL, source_sha256 TEXT NOT NULL,
+                   FOREIGN KEY(source_sha256) REFERENCES sources(source_sha256),
+                   FOREIGN KEY(device_id, metric, measured_at_ms, sample_id)
+                       REFERENCES readings(device_id, metric, measured_at_ms, sample_id)
+                )"""
+            )
+            db.beginTransaction()
+            try {
+                File(directory, FIT_SOURCES_ENTRY).bufferedReader(Charsets.UTF_8).useLines { lines ->
+                    lines.forEach { line ->
+                        val source = parseFitSource(line)
+                        db.execSQL("INSERT INTO sources(source_sha256) VALUES(?)", arrayOf(source.sha256))
+                    }
+                }
+                File(directory, READINGS_ENTRY).bufferedReader(Charsets.UTF_8).useLines { lines ->
+                    lines.forEach { line ->
+                        val reading = parseReading(line)
+                        db.execSQL(
+                            """INSERT INTO readings(device_id, metric, measured_at_ms, sample_id)
+                               VALUES(?, ?, ?, ?)""",
+                            arrayOf(reading.deviceId, reading.metric, reading.measuredAtEpochMillis,
+                                reading.sampleId ?: "")
+                        )
+                    }
+                }
+                File(directory, FIT_PROVENANCE_ENTRY).bufferedReader(Charsets.UTF_8).useLines { lines ->
+                    lines.forEach { line ->
+                        val item = parseFitProvenance(line)
+                        db.execSQL(
+                            """INSERT INTO provenance
+                               (sample_id, device_id, metric, measured_at_ms, source_sha256)
+                               VALUES(?, ?, ?, ?, ?)""",
+                            arrayOf(item.sampleId, item.deviceId, item.metric, item.measuredAtEpochMillis,
+                                item.sourceSha256)
+                        )
+                    }
+                }
+                db.setTransactionSuccessful()
+            } finally {
+                db.endTransaction()
+            }
+        } finally {
+            db.close()
+            stagingFile.delete()
+            File(stagingFile.path + "-journal").delete()
+        }
     }
 
     private fun parseReading(line: String): RawExportRecord {
@@ -309,6 +452,50 @@ object DatabaseBackup {
         return cursor
     }
 
+    private fun parseFitSource(line: String): StoredFitSource {
+        val item = JSONObject(line)
+        val source = StoredFitSource(
+            sha256 = item.getString("sha256"),
+            fileBytes = item.getLong("file_bytes"),
+            relativePath = item.getString("relative_path"),
+            validatedAtEpochMillis = item.getLong("validated_at_ms"),
+            decoderVersion = item.getString("decoder_version"),
+            profileVersion = item.getString("profile_version")
+        )
+        require(source.sha256.matches(Regex("[0-9a-f]{64}")) && source.fileBytes > 0 &&
+            source.validatedAtEpochMillis >= 0 &&
+            source.relativePath == "verified_fit/${source.sha256}.fit" &&
+            source.decoderVersion.isNotBlank() && source.profileVersion.isNotBlank()) {
+            "Ungültige FIT-Quellmetadaten im Backup"
+        }
+        return source
+    }
+
+    private fun parseFitProvenance(line: String): StoredFitProvenance {
+        val item = JSONObject(line)
+        val provenance = StoredFitProvenance(
+            sampleId = item.getString("sample_id"),
+            deviceId = item.getString("device_id"),
+            metric = item.getString("metric"),
+            measuredAtEpochMillis = item.getLong("measured_at_ms"),
+            sourceSha256 = item.getString("source_sha256"),
+            recordOrdinal = item.getInt("record_ordinal"),
+            globalMessageNumber = item.getInt("global_message_number"),
+            fieldNumber = item.getInt("field_number"),
+            quality = item.getString("quality"),
+            decoderVersion = item.getString("decoder_version")
+        )
+        require(provenance.sampleId.isNotBlank() && provenance.deviceId.isNotBlank() &&
+            provenance.metric.isNotBlank() && provenance.measuredAtEpochMillis >= 0 &&
+            provenance.sourceSha256.matches(Regex("[0-9a-f]{64}")) &&
+            provenance.recordOrdinal >= 0 && provenance.globalMessageNumber >= 0 &&
+            provenance.fieldNumber >= 0 && provenance.quality == "PROFILE_VALID" &&
+            provenance.decoderVersion.isNotBlank()) {
+            "Ungültige FIT-Feldherkunft im Backup"
+        }
+        return provenance
+    }
+
     private fun encodeReading(record: RawExportRecord): String = JSONObject()
         .put("device_id", record.deviceId)
         .put("metric", record.metric)
@@ -322,6 +509,28 @@ object DatabaseBackup {
     private fun encodeCursor(cursor: LocalSyncCursor): String = JSONObject()
         .put("device_id", cursor.deviceId)
         .put("last_committed_ms", cursor.lastCommittedEpochMillis)
+        .toString()
+
+    private fun encodeFitSource(source: StoredFitSource): String = JSONObject()
+        .put("sha256", source.sha256)
+        .put("file_bytes", source.fileBytes)
+        .put("relative_path", source.relativePath)
+        .put("validated_at_ms", source.validatedAtEpochMillis)
+        .put("decoder_version", source.decoderVersion)
+        .put("profile_version", source.profileVersion)
+        .toString()
+
+    private fun encodeFitProvenance(value: StoredFitProvenance): String = JSONObject()
+        .put("sample_id", value.sampleId)
+        .put("device_id", value.deviceId)
+        .put("metric", value.metric)
+        .put("measured_at_ms", value.measuredAtEpochMillis)
+        .put("source_sha256", value.sourceSha256)
+        .put("record_ordinal", value.recordOrdinal)
+        .put("global_message_number", value.globalMessageNumber)
+        .put("field_number", value.fieldNumber)
+        .put("quality", value.quality)
+        .put("decoder_version", value.decoderVersion)
         .toString()
 
     private fun sha256(file: File): String {

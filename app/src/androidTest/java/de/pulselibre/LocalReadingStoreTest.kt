@@ -1,6 +1,7 @@
 package de.pulselibre
 
 import android.content.Context
+import android.database.sqlite.SQLiteDatabase
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import java.io.File
@@ -58,16 +59,80 @@ class LocalReadingStoreTest {
                 assertEquals(1, first.invalidFiles)
                 assertEquals(1, first.importableObservations)
                 assertEquals(first, repeated)
+                val originalObservation = FitHistoricalObservations.decode(bytes)!!.observations.single()
+                val conflictingBatch = listOf(
+                    originalObservation.copy(
+                        timestampEpochMillis = originalObservation.timestampEpochMillis!! + 1_000,
+                        recordOrdinal = 2,
+                        idempotencyKey = "pending-before-conflict"
+                    ),
+                    originalObservation.copy(value = 73.0)
+                )
+                assertThrows(IllegalStateException::class.java) {
+                    store.commitFitFile(
+                        sourceSha256 = valid.name.removeSuffix(".fit"),
+                        fileBytes = bytes.size.toLong(),
+                        relativePath = "verified_fit/${valid.name}",
+                        validatedAtEpochMillis = System.currentTimeMillis(),
+                        decoderVersion = FitHistoricalObservations.DECODER_VERSION,
+                        profileVersion = FitHistoricalObservations.PROFILE_VERSION,
+                        observations = conflictingBatch
+                    )
+                }
                 val records = store.readWindow(ExportWindow(0, Long.MAX_VALUE))
                 assertEquals(1, records.size)
                 assertEquals(72.0, records.single().value, 0.0)
                 assertEquals((100_000L + 631_065_600L) * 1_000L,
                     store.cursorFor("cirqa-fit").lastCommittedEpochMillis)
+                val db = store.readableDatabase
+                assertEquals(1, db.rawQuery("SELECT COUNT(*) FROM fit_sources", null).use {
+                    it.moveToFirst(); it.getInt(0)
+                })
+                assertEquals(1, db.rawQuery("SELECT COUNT(*) FROM fit_observation_provenance", null).use {
+                    it.moveToFirst(); it.getInt(0)
+                })
+                assertEquals(0, db.rawQuery("PRAGMA foreign_key_check", null).use {
+                    var violations = 0
+                    while (it.moveToNext()) violations++
+                    violations
+                })
             }
         } finally {
             root.listFiles()?.forEach { it.delete() }
             root.delete()
             context.deleteDatabase("pulselibre_readings.db")
+        }
+    }
+
+    @Test fun schemaV1UpgradePreservesRowsAndAddsProvenanceTables() {
+        context.deleteDatabase("pulselibre_readings.db")
+        val path = context.getDatabasePath("pulselibre_readings.db")
+        path.parentFile?.mkdirs()
+        SQLiteDatabase.openOrCreateDatabase(path, null).use { db ->
+            db.execSQL("""CREATE TABLE readings (
+                device_id TEXT NOT NULL, metric TEXT NOT NULL, measured_at_ms INTEGER NOT NULL,
+                value REAL NOT NULL, unit TEXT NOT NULL, sample_id TEXT NOT NULL DEFAULT '',
+                received_at_ms INTEGER,
+                PRIMARY KEY(device_id, metric, measured_at_ms, sample_id)
+            )""")
+            db.execSQL("""CREATE TABLE sync_cursors (
+                device_id TEXT PRIMARY KEY NOT NULL, last_committed_ms INTEGER NOT NULL
+            )""")
+            db.execSQL("CREATE INDEX readings_by_time ON readings(measured_at_ms)")
+            db.execSQL(
+                "INSERT INTO readings VALUES('legacy-device','heart_rate',1234,77,'bpm','old-sample',2345)"
+            )
+            db.execSQL("INSERT INTO sync_cursors VALUES('legacy-device',1234)")
+            db.version = 1
+        }
+
+        LocalReadingStore(context).use { store ->
+            assertEquals(1, store.readWindow(ExportWindow(0, 2000)).size)
+            assertEquals("old-sample", store.readWindow(ExportWindow(0, 2000)).single().sampleId)
+            assertEquals(1234L, store.cursorFor("legacy-device").lastCommittedEpochMillis)
+            assertEquals(0, store.readableDatabase.rawQuery("SELECT COUNT(*) FROM fit_sources", null).use {
+                it.moveToFirst(); it.getInt(0)
+            })
         }
     }
 

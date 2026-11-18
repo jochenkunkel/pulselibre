@@ -14,6 +14,11 @@ import java.security.MessageDigest
  */
 class CirqaDatabase(private val contextRef: Context) : SQLiteOpenHelper(contextRef, "cirqa_measurements.db", null, 2) {
 
+    override fun onConfigure(db: SQLiteDatabase) {
+        super.onConfigure(db)
+        db.setForeignKeyConstraintsEnabled(true)
+    }
+
     override fun onCreate(db: SQLiteDatabase) {
         db.execSQL("""CREATE TABLE events (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -162,12 +167,16 @@ class CirqaDatabase(private val contextRef: Context) : SQLiteOpenHelper(contextR
     @Synchronized fun replaceAllStoredRows(
         events: Sequence<String>,
         readings: Sequence<RawExportRecord>,
-        cursors: Sequence<LocalSyncCursor>
+        cursors: Sequence<LocalSyncCursor>,
+        fitSources: Sequence<StoredFitSource> = emptySequence(),
+        fitProvenance: Sequence<StoredFitProvenance> = emptySequence()
     ) = withLegacyDatabase { db ->
         db.beginTransaction()
         try {
             db.execSQL("DELETE FROM main.events")
+            db.execSQL("DELETE FROM legacy.fit_observation_provenance")
             db.execSQL("DELETE FROM legacy.readings")
+            db.execSQL("DELETE FROM legacy.fit_sources")
             db.execSQL("DELETE FROM legacy.sync_cursors")
 
             val eventInsert = db.compileStatement(
@@ -205,6 +214,55 @@ class CirqaDatabase(private val contextRef: Context) : SQLiteOpenHelper(contextR
                 if (record.receivedAtEpochMillis == null) readingInsert.bindNull(7)
                 else readingInsert.bindLong(7, record.receivedAtEpochMillis)
                 readingInsert.executeInsert()
+            }
+
+            val sourceInsert = db.compileStatement(
+                """INSERT INTO legacy.fit_sources
+                   (source_sha256, file_bytes, relative_path, validated_at_ms, decoder_version, profile_version)
+                   VALUES(?, ?, ?, ?, ?, ?)"""
+            )
+            fitSources.forEach { source ->
+                require(source.sha256.matches(Regex("[0-9a-f]{64}")) && source.fileBytes > 0 &&
+                    source.validatedAtEpochMillis >= 0 &&
+                    source.relativePath == "verified_fit/${source.sha256}.fit" &&
+                    source.decoderVersion.isNotBlank() && source.profileVersion.isNotBlank()) {
+                    "Ungültige FIT-Quellmetadaten im Backup"
+                }
+                sourceInsert.clearBindings()
+                sourceInsert.bindString(1, source.sha256)
+                sourceInsert.bindLong(2, source.fileBytes)
+                sourceInsert.bindString(3, source.relativePath)
+                sourceInsert.bindLong(4, source.validatedAtEpochMillis)
+                sourceInsert.bindString(5, source.decoderVersion)
+                sourceInsert.bindString(6, source.profileVersion)
+                sourceInsert.executeInsert()
+            }
+
+            val provenanceInsert = db.compileStatement(
+                """INSERT INTO legacy.fit_observation_provenance
+                   (sample_id, device_id, metric, measured_at_ms, source_sha256, record_ordinal,
+                    global_message_number, field_number, quality, decoder_version)
+                   VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"""
+            )
+            fitProvenance.forEach { item ->
+                require(item.sampleId.isNotBlank() && item.deviceId.isNotBlank() && item.metric.isNotBlank() &&
+                    item.measuredAtEpochMillis >= 0 && item.sourceSha256.matches(Regex("[0-9a-f]{64}")) &&
+                    item.recordOrdinal >= 0 && item.globalMessageNumber >= 0 && item.fieldNumber >= 0 &&
+                    item.quality == "PROFILE_VALID" && item.decoderVersion.isNotBlank()) {
+                    "Ungültige FIT-Feldherkunft im Backup"
+                }
+                provenanceInsert.clearBindings()
+                provenanceInsert.bindString(1, item.sampleId)
+                provenanceInsert.bindString(2, item.deviceId)
+                provenanceInsert.bindString(3, item.metric)
+                provenanceInsert.bindLong(4, item.measuredAtEpochMillis)
+                provenanceInsert.bindString(5, item.sourceSha256)
+                provenanceInsert.bindLong(6, item.recordOrdinal.toLong())
+                provenanceInsert.bindLong(7, item.globalMessageNumber.toLong())
+                provenanceInsert.bindLong(8, item.fieldNumber.toLong())
+                provenanceInsert.bindString(9, item.quality)
+                provenanceInsert.bindString(10, item.decoderVersion)
+                provenanceInsert.executeInsert()
             }
 
             val cursorInsert = db.compileStatement(

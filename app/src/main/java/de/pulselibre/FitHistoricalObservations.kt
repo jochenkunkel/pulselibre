@@ -12,6 +12,8 @@ import java.security.MessageDigest
 object FitHistoricalObservations {
     private const val FIT_EPOCH_UNIX_SECONDS = 631_065_600L
     const val MAX_OBSERVATIONS = 50_000
+    const val DECODER_VERSION = "1"
+    const val PROFILE_VERSION = "21.222.0"
     private const val GLOBAL_RECORD = 20
     private const val GLOBAL_MONITORING = 55
 

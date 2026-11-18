@@ -20,16 +20,20 @@ in typed relational tables. Future aggregate/rollup data for #140 belongs in the
 same database, keyed by metric, time bucket, aggregation method/version, and
 source range; no separate aggregate database is warranted at current scale.
 
-This decision is **not yet a completed migration**. The app currently has two
-SQLite files. The legacy file must not be deleted or rewritten automatically.
+This decision is **not yet a completed consolidation**. The app still has two
+SQLite files; the historical store is being additively normalized without
+deleting or rewriting its existing data.
 
 ## Verified current state
 
 ```mermaid
 erDiagram
     CIRQA_DB ||--o{ EVENTS : stores
-    LEGACY_DB ||--o{ READINGS : stores
-    LEGACY_DB ||--o{ SYNC_CURSORS : stores
+    HISTORY_DB ||--o{ READINGS : stores
+    HISTORY_DB ||--o{ SYNC_CURSORS : stores
+    HISTORY_DB ||--o{ FIT_SOURCES : indexes
+    FIT_SOURCES ||--o{ FIT_PROVENANCE : identifies
+    READINGS ||--o| FIT_PROVENANCE : explains
     APP_FILES ||--o{ VERIFIED_FIT : contains
     APP_FILES ||--o{ VERIFIED_RAW : contains
 
@@ -45,8 +49,8 @@ erDiagram
       integer service
       text payload_json
     }
-    LEGACY_DB {
-      integer schema_version "1"
+    HISTORY_DB {
+      integer schema_version "2"
     }
     READINGS {
       text device_id PK
@@ -60,6 +64,23 @@ erDiagram
     SYNC_CURSORS {
       text device_id PK
       integer last_committed_ms
+    }
+    FIT_SOURCES {
+      text source_sha256 PK
+      integer file_bytes
+      text relative_path
+      integer validated_at_ms
+      text decoder_version
+      text profile_version
+    }
+    FIT_PROVENANCE {
+      text sample_id PK,FK
+      text source_sha256 FK
+      integer record_ordinal
+      integer global_message_number
+      integer field_number
+      text quality
+      text decoder_version
     }
     VERIFIED_FIT {
       text sha256 PK
@@ -77,10 +98,15 @@ Observed constraints/indexes: `events.line_sha256` is unique;
 `events_dashboard_time(service, dashboard_time DESC, id ASC)` are indexed.
 `readings` has composite primary key `(device_id, metric, measured_at_ms,
 sample_id)` and `readings_by_time(measured_at_ms)`. `sync_cursors.device_id`
-is the primary key. Current schemas do not declare relational FKs between
-readings and source FIT files. FIT source hash and record/field coordinates
-exist in the decoder result and are reduced to a stable `sample_id` in the
-current SQLite import.
+is the primary key. Historical DB schema v2 adds `fit_sources` and
+`fit_observation_provenance` with FKs to source hash and the exact readings
+composite key. The v1→v2 migration creates only new tables/indexes; it preserves
+existing readings and cursors. Existing v1 rows have no fabricated provenance;
+replaying a verified original can add provenance by stable sample ID.
+
+Backup format v2 includes events, readings, cursors, FIT-source metadata and
+provenance. The restore reader accepts format v1; v1 restore necessarily
+contains no FIT provenance. Original file bytes remain outside both formats.
 
 The 18 Nov 2026 S25 snapshots passed SQLite `integrity_check`. Observed counts
 and privacy-limited reconciliation are in
@@ -222,12 +248,14 @@ the app does not need to copy the entire external profile into each database.
 3. Decoder emits only explicitly supported profile fields. Unknown fields remain
    skipped/recorded as inventory evidence, not guessed.
 4. Validation filters missing timestamps and non-importable quality values.
-5. A transaction inserts a file's observation batch and advances only its
-   applicable cursor after successful commit. Replaying the file uses stable
-   source/record/field keys and does not create duplicates.
-6. Dashboard/statistics/export query normalized observations; raw protocol
-   evidence remains separate. Backups serialize both observations and events
-   and verify counts/checksums before restore confirmation.
+5. Current schema v2 writes each FIT file's normalized readings, source
+   metadata, field provenance and per-device cursor in one transaction.
+   Replays use stable source/record/field keys; conflicting decoder output fails
+   closed rather than silently overwriting an earlier observation.
+6. Current dashboard/history paths primarily query `events`; the normalized FIT
+   readings are used by the local reading/export path and are not yet a shared
+   dashboard repository. Backup v2 serializes both stores and verifies hashes,
+   counts and FK integrity on restore. It does not embed original FIT bytes.
 
 `measured_at_ms` is the device/FIT measurement clock. `received_at_ms` is the
 local transfer/import clock and must not replace a missing measurement time.
@@ -239,18 +267,24 @@ identifier is not a committed SQLite cursor.
 1. Create an app-private backup and record old schema versions, row counts,
    primary-key uniqueness, cursor values, and original file hash/size manifest.
    Do not reset, rename, or delete either database/file store.
-2. Add target tables/indexes using a monotonic `CirqaDatabase` version upgrade.
-   The upgrade is additive and runs in one transaction.
-3. Copy legacy readings and cursors with exact values and stable keys. Use
+2. **Implemented additive step:** upgrade `pulselibre_readings.db` v1→v2 by
+   adding FIT source/provenance tables and indexes; preserve every existing row
+   and cursor. New FIT batches now write readings, provenance and cursor in one
+   transaction. A verified original can add provenance to a matching existing
+   reading by its stable sample key.
+3. **Remaining consolidation step:** add target tables/indexes to
+   `CirqaDatabase` with a monotonic version upgrade. Copy historical readings,
+   FIT source metadata and cursors with exact values and stable keys. Use
    `INSERT OR IGNORE` only where the destination key exactly matches the source
    identity; verify source/destination count and key coverage before marking the
    migration complete. Keep the old database intact and read-only as rollback.
 4. Make migration restartable: a marker is written only after successful
    validation. Interrupted transactions roll back; a subsequent open retries.
-5. Route new FIT imports through the canonical repository only after migration
-   has completed. Preserve version-1 backup restore compatibility and extend the
-   backup manifest/version to include source files/observations before relying
-   on the consolidated store.
+5. Route new FIT imports through the canonical repository only after that
+   migration has completed. Backup v2 now includes FIT source/provenance metadata
+   and reads v1 archives; keep this compatibility when the physical stores are
+   consolidated. Do not rely on restored metadata implying that original bytes
+   were backed up.
 6. Run backup→restore round trips against both pre-migration and migrated
    fixtures. Compare counts, stable keys, cursors, event hashes and file hashes.
    Retire neither legacy DB nor original files as part of this migration.
@@ -263,7 +297,7 @@ not a valid backup procedure.
 ## Operational/privacy decisions
 
 - Keep the database and original files app-private. No cloud, telemetry, or
-  committed health data. Backup v1 is checksummed but **not encrypted**; do not
+  committed health data. Backup v2 is checksummed but **not encrypted**; do not
   claim encryption. Encryption-at-rest for user-selected backups requires a
   separate key-management decision.
 - Keep content-addressed originals immutable. Quotas/orphan cleanup require
@@ -276,6 +310,8 @@ not a valid backup procedure.
 
 ## Remaining acceptance work
 
-The diagrams and target/migration decision are architecture artifacts. They do
-not themselves implement migration, provenance FKs, metadata observations, or
-backup-format v2. Those remain required before closing issue #144.
+The diagrams and target/migration decision are architecture artifacts. The
+historical DB now has FIT-source/provenance FKs and backup v2 has backward-read
+support. Physical DB consolidation, metadata observations, file-byte backup/
+restore, migration verification over populated legacy DB fixtures, and shared
+dashboard repository remain open before closing issue #144.

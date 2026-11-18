@@ -55,7 +55,9 @@ class ExportActivity : AppCompatActivity() {
                     val report = output.use { DatabaseBackup.write(this, it) }
                     runOnUiThread {
                         databaseFeedback.text = "Backup gespeichert: ${report.events} Ereignisse, " +
-                            "${report.legacyReadings} historische Messwerte."
+                            "${report.legacyReadings} historische Messwerte, " +
+                            "${report.fitSources} FIT-Quellen und ${report.fitProvenance} Herkunftszeilen. " +
+                            "FIT-Originaldateien sind nicht enthalten."
                     }
                 } catch (_: Exception) {
                     runOnUiThread { databaseFeedback.text = "Backup fehlgeschlagen. Bitte Speicherort prüfen." }
@@ -296,7 +298,9 @@ class ExportActivity : AppCompatActivity() {
             .setTitle("Datenbank ersetzen?")
             .setMessage(
                 "Das Backup vom ${plan.createdAt} enthält ${plan.events} Ereignisse, " +
-                    "${plan.legacyReadings} historische Messwerte und ${plan.syncCursors} Synchronisationsstände.\n\n" +
+                    "${plan.legacyReadings} historische Messwerte, ${plan.syncCursors} Synchronisationsstände, " +
+                    "${plan.fitSources} FIT-Quellen und ${plan.fitProvenance} FIT-Herkunftszeilen. " +
+                    "FIT-Originaldateien sind nicht enthalten.\n\n" +
                     "Alle aktuell gespeicherten Datenbankeinträge werden ersetzt. " +
                     "App-Einstellungen bleiben erhalten. Nur mit einem Backup aus vertrauenswürdiger Quelle fortfahren."
             )

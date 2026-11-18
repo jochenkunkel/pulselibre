@@ -68,25 +68,21 @@ class CirqaFitBackfill(
             if (file.name != expectedFileName(bytes)) return null
             val result = FitHistoricalObservations.decode(bytes) ?: return null
             // Only timestamped, profile-valid values are importable. Invalid
-            // quality values remain available through the source FIT file.
-            val batch = result.observations.asSequence()
-                .filter {
-                    it.timestampEpochMillis != null &&
-                        it.quality == FitHistoricalObservations.Quality.PROFILE_VALID
-                }
-                .map {
-                    RawExportRecord(
-                        deviceId = deviceKey,
-                        metric = it.metric.name.lowercase(),
-                        measuredAtEpochMillis = requireNotNull(it.timestampEpochMillis),
-                        value = it.value,
-                        unit = it.unit,
-                        sampleId = it.idempotencyKey,
-                        receivedAtEpochMillis = System.currentTimeMillis()
-                    )
-                }.toList()
-            readings.commitBatch(deviceKey, batch)
-            return batch.size
+            // quality values remain in the immutable original, not SQLite.
+            val importable = result.observations.filter {
+                it.timestampEpochMillis != null &&
+                    it.quality == FitHistoricalObservations.Quality.PROFILE_VALID
+            }
+            return readings.commitFitFile(
+                sourceSha256 = file.name.removeSuffix(".fit"),
+                fileBytes = bytes.size.toLong(),
+                relativePath = "verified_fit/${file.name}",
+                validatedAtEpochMillis = System.currentTimeMillis(),
+                decoderVersion = FitHistoricalObservations.DECODER_VERSION,
+                profileVersion = FitHistoricalObservations.PROFILE_VERSION,
+                observations = importable,
+                deviceKey = deviceKey
+            )
         }
 
         /** Content-addressed stores use this exact lowercase SHA-256 filename. */
