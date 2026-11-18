@@ -6,6 +6,10 @@
 
 ![PulsLibre-Logo](design/pulselibre-icon.svg)
 
+![PulsLibre-Webposter: Offline-first-Architektur, CIRQA-BLE-Protokoll und aktueller Forschungsstand](design/pulselibre-webposter.svg)
+
+*Projektüberblick als [skalierbare SVG-Grafik](design/pulselibre-webposter.svg). Bestätigte Gerätebefunde und noch offene Funktionen sind ausdrücklich getrennt.*
+
 **Projektstatus (18.11.2026):** Die CIRQA-Bootstrap-/Handshake-Kette bis zur Legacy-Directory-Abfrage wurde am Gerät nachgewiesen. Über BLE erscheint bislang lediglich ein 32-Byte-Platzhalterverzeichnis; ein vollständiger historischer FIT-Download ist **nicht** bestätigt. Ein erster begrenzter RFCOMM-Versuch erhielt keine Gegenverbindung. Die App enthält experimentelle, ausdrücklich gestartete Bluetooth-Testpfade und ist **keine produktionsreife Garmin-Connect-Alternative**. Details und Grenzen: [aktueller Forschungsstand](docs/protocol/research/CIRQA_HISTORICAL_RESEARCH_STATUS_2026-11-18.md).
 
 **Für Codex in VSCodium und weitere Coding-Agenten:** [AGENTS.md](AGENTS.md) beschreibt die gemeinsamen Arbeitsregeln, Branch-/Review-Absprachen und Sicherheitsgrenzen. Für die aktuelle CIRQA-Evidenz gilt [PROJECT_STATUS.md](docs/PROJECT_STATUS.md); ältere Protokollnotizen sind historische Beobachtungen.
