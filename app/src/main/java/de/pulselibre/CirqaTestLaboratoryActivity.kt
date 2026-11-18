@@ -305,6 +305,9 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
             statusOutput.text = "Verzeichnis-Lesen:\n" +
                 (preferences.getString("directoryReadV2Summary", null) ?: "Noch kein Lauf.")
         })
+        syncCard.addView(button("Kette + Verzeichnis lesen (ein Lauf)") {
+            confirmDirectoryAfterChain()
+        })
         syncCard.addView(button("Status der historischen Synchronisation") {
             statusOutput.text = "Historische Synchronisation:\n" +
                 "Gates: A=${preferences.getBoolean(CirqaHistoricalSyncV1MultiPhaseAttemptGate.keyForPhase(1), false)}" +
@@ -434,6 +437,38 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
             permissionAction = action
             permissionLauncher.launch(missing.toTypedArray())
         }
+    }
+
+    private fun confirmDirectoryAfterChain() {
+        if (!CirqaDirectoryAfterChainGate.RELEASED_FOR_DEVICE_TEST) return
+        if (preferences.getBoolean(CirqaDirectoryAfterChainGate.PREFERENCE_KEY, false)) {
+            statusOutput.text = "Kette+Verzeichnis ist bereits verbraucht."
+            return
+        }
+        AlertDialog.Builder(this)
+            .setTitle("Vollkette + Verzeichnis-Body lesen?")
+            .setMessage(
+                "Ein Lauf: Bootstrap → 5030 → 5007 → 5031 → 5002 (Größe) → 5004-Body " +
+                    "CRC-/Offset-validiert lesen, Einträge protokollieren. Danach Stopp vor " +
+                    "FIT-Download. Read-only, kein Löschen/Archiv/Flags, kein Retry. " +
+                    "Einmal-Gate wird vor dem Verbinden verbraucht."
+            )
+            .setNegativeButton("Abbrechen", null)
+            .setPositiveButton("Ausführen") { _, _ ->
+                withBluetoothPermissions(needsScan = false) {
+                    val probe = CirqaMlHandshakeProbe(this, adapter)
+                    systemEventProbe = probe
+                    probe.startDirectoryAfterChainTest(userConfirmed = true) { message ->
+                        runOnUiThread {
+                            statusOutput.text = message
+                            val persisted = (preferences.getString("directoryAfterChainSummary", null).orEmpty() + "\n" + message)
+                                .trim().takeLast(5000)
+                            preferences.edit().putString("directoryAfterChainSummary", persisted).apply()
+                        }
+                    }
+                }
+            }
+            .show()
     }
 
     private fun confirmDirectoryReadV2() {

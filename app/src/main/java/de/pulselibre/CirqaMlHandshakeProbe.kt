@@ -51,6 +51,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private var legacy5031Response = CirqaLegacy5031ResponseObserver()
     private var legacyHistoryDownloadMode = false
     private var directoryReadV2Mode = false
+    private var directoryReadAfterChain = false
+    private var dirReadSession: CirqaDirectoryReadV2Session? = null
     private var legacy5002RequestWriteClaimed = false
     private var legacy5002RequestSent = false
     private var legacy5002Response = CirqaLegacy5002ResponseObserver()
@@ -343,6 +345,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             directoryReadV2Mode = false
             legacyHistoryDownloadMode = false
             directoryReadV2Mode = false
+            directoryReadAfterChain = false
+            dirReadSession = null
             bootstrapAckMode = false
             configurationTestMode = false
             historyDiagnosticMode = false
@@ -370,6 +374,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         if (!active) {
             legacyHistoryDownloadMode = false
             directoryReadV2Mode = false
+            directoryReadAfterChain = false
+            dirReadSession = null
             bootstrapAckMode = false
             configurationTestMode = false
             historyDiagnosticMode = false
@@ -886,6 +892,38 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                         finish5030IfTerminal(g)
                         return
                     }
+                    // Full-chain directory-body read: route 5004 chunks to the dedicated session.
+                    dirReadSession?.let { d ->
+                        val before = d.receivedBytes
+                        when (d.onNotification(bytes.copyOfRange(1, bytes.size))) {
+                            CirqaDirectoryReadV2Session.Result.ACCEPTED,
+                            CirqaDirectoryReadV2Session.Result.DUPLICATE -> {
+                                val ackOffset = d.nextAckOffset() ?: before
+                                val handle = historyHandle
+                                if (handle == null) { finish("Directory-Body: Handle fehlt.", g); return }
+                                send(g, CirqaLegacy5004AckCandidate.mlGattValueCandidate(handle, ackOffset))
+                                return
+                            }
+                            CirqaDirectoryReadV2Session.Result.COMPLETE -> {
+                                val report = d.summary()
+                                val dir = d.completedBytes()?.let(CirqaLegacyDirectoryParser::parseForDownload)
+                                val detail = dir?.let { parsed ->
+                                    val rows = parsed.entries.take(24).map { e ->
+                                        "idx=${e.fileIndex},type=${e.type},sub=${e.subtype},read=${e.readable}," +
+                                            "flags=0x${e.attributes.toString(16).padStart(2, '0')},size=${e.size}"
+                                    }
+                                    "entries=${parsed.entries.size}; [${rows.joinToString("; ")}]" +
+                                        if (parsed.entries.size > 24) "; more=${parsed.entries.size - 24}" else ""
+                                } ?: "directory-parse-failed"
+                                finish("Directory vollständig gelesen (read-only). $report; $detail", g)
+                                return
+                            }
+                            else -> {
+                                finish("Directory-Body abgebrochen: ${d.summary()}", g)
+                                return
+                            }
+                        }
+                    }
                     if (legacyHistoryDownloadMode && legacy5002RequestSent) {
                         receiveLegacyDirectoryOrFitData(g, bytes.copyOfRange(1, bytes.size))
                         return
@@ -1265,6 +1303,68 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         }
     }
 
+    private fun startDirectoryBodyRead(g: BluetoothGatt, size: Int): Boolean {
+        val session = CirqaDirectoryReadV2Session()
+        if (!session.begin(size)) return false
+        dirReadSession = session
+        configurationTestMode = false
+        main.removeCallbacks(configurationTimeout)
+        main.postDelayed({
+            if (active && dirReadSession === session && session.phase == CirqaDirectoryReadV2Session.Phase.RECEIVING) {
+                finish("Directory-Body Zeitlimit; kein Retry. ${session.summary()}", g)
+            }
+        }, 20_000L)
+        mark("Directory-Body: warte auf CRC-validierte 5004-Chunks (${size} B)")
+        return true
+    }
+
+    @SuppressLint("MissingPermission")
+    fun startDirectoryAfterChainTest(userConfirmed: Boolean, result: (String) -> Unit) {
+        if (!CirqaDirectoryAfterChainGate.RELEASED_FOR_DEVICE_TEST || !userConfirmed) {
+            result("Directory-nach-Kette gesperrt; keine Verbindung.")
+            return
+        }
+        if (active || sessionStartedNanos != 0L || historicalSyncV1 != null || dirReadSession != null ||
+            directoryReadAfterChain || directoryReadV2Mode || legacy5030Only != null ||
+            legacy5007TestMode || legacy5031TestMode || legacyHistoryDownloadMode ||
+            realtimeMode || continuousRecordingMode || rawCaptureMode) {
+            result("Directory-nach-Kette benötigt eine neue Probeinstanz; keine Verbindung.")
+            return
+        }
+        val uniqueTarget = try {
+            adapter.isEnabled && adapter.bondedDevices.orEmpty().count {
+                it.name?.contains("CIRQA", ignoreCase = true) == true
+            } == 1
+        } catch (_: SecurityException) { false }
+        if (!uniqueTarget || CirqaBleSessionGate.isBusy()) {
+            result("Directory-nach-Kette: Bluetooth aus, Ziel nicht eindeutig oder Sitzung belegt.")
+            return
+        }
+        val prefs = context.getSharedPreferences("cirqa_directory_after_chain", Context.MODE_PRIVATE)
+        if (!CirqaDirectoryAfterChainGate.consume(
+                CirqaDirectoryAfterChainGate.RELEASED_FOR_DEVICE_TEST, userConfirmed,
+                { prefs.getBoolean(CirqaDirectoryAfterChainGate.PREFERENCE_KEY, false) },
+                { prefs.edit().putBoolean(CirqaDirectoryAfterChainGate.PREFERENCE_KEY, true).commit() }
+            )) {
+            result("Directory-nach-Kette: Gate verbraucht oder Persistierung fehlgeschlagen.")
+            return
+        }
+        directoryReadAfterChain = true
+        val model = CirqaHistoricalSyncV1MultiPhaseSession(maxPhase = 3)
+        historicalSyncV1 = model
+        model.begin(true, android.os.SystemClock.elapsedRealtime())
+        bootstrapAckMode = true
+        configurationTestMode = true
+        historyDiagnosticMode = true
+        start(false, result)
+        if (active) main.postDelayed({
+            if (active) {
+                model.tick(model.token, android.os.SystemClock.elapsedRealtime())
+                finish("Directory-nach-Kette: Gesamtlaufzeit beendet.", gatt)
+            }
+        }, CirqaHistoricalSyncV1MultiPhaseSession.SESSION_MILLIS)
+    }
+
     private fun claimAndSendHsv1(
         g: BluetoothGatt,
         s: CirqaHistoricalSyncV1MultiPhaseSession,
@@ -1301,6 +1401,15 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             return
         }
         if (s.phase == CirqaHistoricalSyncV1MultiPhaseSession.Phase.PHASE_C_COMPLETED) {
+            if (directoryReadAfterChain) {
+                // The 5002 directory size is known; start reading its bytes via 5004 in the SAME connection.
+                val size = s.directorySize
+                if (size == null || size !in 16..CirqaLegacyDownloadLimits.MAX_DIRECTORY_BYTES ||
+                    !startDirectoryBodyRead(g, size)) {
+                    finish("Directory-Body-Lese konnte nicht gestartet werden. ${s.summary()}", g)
+                }
+                return
+            }
             finish("Historical Sync V1 Phase C abgeschlossen. ${s.summary()}", g); return
         }
         if (s.phase == CirqaHistoricalSyncV1MultiPhaseSession.Phase.STOPPED) {
@@ -1787,7 +1896,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             }
             gatt = null
             callback?.invoke(
-                if (historicalSyncV1 != null) historicalSyncV1!!.summary() + " [finish=$message]"
+                if (dirReadSession != null) dirReadSession!!.summary() + " [finish=$message]"
+                else if (historicalSyncV1 != null) historicalSyncV1!!.summary() + " [finish=$message]"
                 else if (legacy5030Only != null) legacy5030Only!!.summary()
                 else if (legacyHistoryDownloadMode) legacyHistoryDownloadReport(message)
                 else if (legacy5007TestMode) legacy5007Report(message)
@@ -1804,6 +1914,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             legacy5031TestMode = false
             legacyHistoryDownloadMode = false
             directoryReadV2Mode = false
+            directoryReadAfterChain = false
+            dirReadSession = null
             bootstrapAckMode = false
             configurationTestMode = false
             rawCaptureMode = false
