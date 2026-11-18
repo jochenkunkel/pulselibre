@@ -69,6 +69,8 @@ class CirqaHistoricalSyncV1MultiPhaseSession(val token: Any = Any(), val maxPhas
         private set
     var writeOk: Boolean? = null
         private set
+    var protobufMessagesSeen = 0
+        private set
 
     private var lastMillis = 0L
     private var deadline = 0L
@@ -176,7 +178,15 @@ class CirqaHistoricalSyncV1MultiPhaseSession(val token: Any = Any(), val maxPhas
                     lastResponseTo = h.responseTo
                     lastOuterStatus = h.responseStatus
                     lastPayloadLength = maxOf(0, frame.size - 9)
-                    if (h.compact || h.type != 5000 || h.responseStatus == null) return stop("bad-frame")
+                    if (h.compact || h.type != 5000 || h.responseStatus == null) {
+                        // A device-originated protobuf message (5043) after 5007 is protocol
+                        // evidence, not an error: record it and keep waiting for the 5000 response.
+                        if (h.type == 5043) {
+                            protobufMessagesSeen++
+                            return true
+                        }
+                        return stop("bad-frame")
+                    }
 
                     when (phase) {
                         Phase.WAITING_5030_RESPONSE -> {
@@ -259,7 +269,7 @@ class CirqaHistoricalSyncV1MultiPhaseSession(val token: Any = Any(), val maxPhas
             "outer=$lastOuterStatus,payloadLen=$lastPayloadLength,cobsErr=$cobsErrors,crcErr=$crcErrors," +
             "discarded=$discardedResponses,phaseAtRx=$phaseAtLastReceive," +
             "relAck=${ackAtMs?.let { it - (writeAtMs ?: it) }},relWrite=${writeAtMs?.let { it - (ackAtMs ?: it) }}," +
-            "writeCb=$writeCallbackSeen,writeOk=$writeOk,timeout=$timeoutAtMs)."
+            "protobuf=$protobufMessagesSeen,writeCb=$writeCallbackSeen,writeOk=$writeOk,timeout=$timeoutAtMs)."
 
     private fun current(callbackToken: Any, now: Long): Boolean {
         if (callbackToken !== token || phase == Phase.STOPPED ||
