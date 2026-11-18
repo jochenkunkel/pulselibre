@@ -31,3 +31,11 @@ class HistoryPointStoreTest {
         assertEquals((60 + 70 + 130) / 3.0, b.mean, 1e-9); assertEquals(3, b.count)
     }
 }
+
+class HistoryPointStoreOrderTest {
+    @Test fun sliceIsChronologicalEvenWhenInsertedOutOfOrder() {
+        val s = HistoryPointStore()
+        s.add(3000, 3); s.add(1000, 1); s.add(2000, 2); s.add(2000, 9)
+        assertEquals(listOf(1, 2, 9, 3), s.slice(0, 5000).map { it.value })
+    }
+}

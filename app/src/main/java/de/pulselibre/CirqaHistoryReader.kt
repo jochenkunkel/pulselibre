@@ -20,6 +20,8 @@ internal class HistoryPointStore {
     fun slice(startMs: Long, endMs: Long): List<HistoryPoint> {
         val out = ArrayList<HistoryPoint>()
         for (i in 0 until size) if (times[i] in startMs..endMs) out.add(HistoryPoint(Instant.ofEpochMilli(times[i]), values[i]))
+        // Chronological order (stable: equal times keep insertion order); skip sorting when already ordered.
+        for (i in 1 until out.size) if (out[i].receivedAt < out[i - 1].receivedAt) return out.sortedBy { it.receivedAt }
         return out
     }
 
