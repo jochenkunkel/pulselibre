@@ -12,7 +12,10 @@ Bestätigen des Dialogs verbraucht.
 ### Neu seit Vorbereitung
 - `CirqaRfcommAttemptGate`: frischer Einmal-Gate + Berichtsschlüssel.
 - `CirqaRfcommRunner`: 20 s Annahme / 60 s Transfer, genau ein 5002-Request,
-  ACKs aus der Directory-Session, kein Retry, sauberes Schließen.
+  ACKs aus der Directory-Session, kein Retry, sauberes Schließen. Vor dem
+  Lauschen wird eine **lesende** `fetchUuidsWithSdp()`-Abfrage an die erwartete
+  gepaarte Adresse gesendet; laut Referenz ist das der Auslöser für die
+  RFCOMM-Gegenverbindung des Geräts.
 - `CirqaRfcommDirectorySession` startet die strikte Session jetzt selbst aus
   der CRC-validen 5002-Antwort (statt einen Size-Wert zu raten).
 - Testlabor-Buttons „RFCOMM-Verzeichnis lesen (read-only)" und
