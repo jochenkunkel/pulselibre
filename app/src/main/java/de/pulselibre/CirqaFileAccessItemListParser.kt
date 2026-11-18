@@ -91,7 +91,7 @@ object CirqaFileAccessItemListParser {
             transport = v(2) ?: 0,
             transferHandle = v(3) ?: 0,
             hasFilePath = f.any { it.number == 4 && it.wire == 2 },
-            compressionWindow = v(8)
+            compressionWindow = v(7)
         )
     }
 

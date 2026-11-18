@@ -14,9 +14,10 @@ object CirqaFileAccessPullRequest {
     fun smart(item: CirqaFileAccessItemListParser.Item): ByteArray {
         val ref = bytesField(1, item.uid) + bytesField(2, item.dataType) +
             varintField(3, item.dataSize)
-        // GDIFileAccess.TransportProtocol.MULTILINK_TRANSPORT_PIPE = 0xC0 0x80 0x00
-        // (value 64). Without it the device answers NO_SUPPORTED_TRANSPORT (2).
-        val pull = bytesField(1, ref) + varintField(2, 0) + varintField(3, 64) + varintField(4, 0)
+        // TransportProtocol.MULTILINK_TRANSPORT_PIPE = 0 (the DEX MUTF-8 bytes
+        // C0 80 encode a NUL byte, not the integer 64). Repeated enum fields keep
+        // explicit zeroes on the wire. Without it: NO_SUPPORTED_TRANSPORT (2).
+        val pull = bytesField(1, ref) + varintField(2, 0) + varintField(3, 0) + varintField(4, 0)
         return bytesField(43, bytesField(1, pull))
     }
 
