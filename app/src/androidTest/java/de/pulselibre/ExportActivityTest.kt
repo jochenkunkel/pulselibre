@@ -18,6 +18,15 @@ class ExportActivityTest {
         ActivityScenario.launch(ExportActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
                 val root = activity.findViewById<ViewGroup>(android.R.id.content)
+                for (label in listOf("Übersicht", "Verlauf", "Geräte", "Testlabor", "Daten")) {
+                    val item = root.findViewWithTag<View>("navigation_item_$label")
+                    assertNotNull(item)
+                    assertTrue(item.isShown && item.isClickable)
+                    assertEquals(label == "Daten", item.isSelected)
+                }
+                val nav = root.findViewWithTag<View>("navigation_item_Daten").parent as View
+                val scroll = (nav.parent as ViewGroup).getChildAt(1) as android.widget.ScrollView
+                assertTrue(scroll.bottom <= nav.top)
                 val fields = mutableListOf<TextView>()
                 fun visit(view: View) {
                     if (view is TextView) fields += view

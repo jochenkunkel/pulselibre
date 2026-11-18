@@ -819,14 +819,10 @@ class MainActivity : AppCompatActivity() {
             setTextIsSelectable(true)
         }
         deviceView(output)
-        val nav = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            setPadding(dp(8), dp(8), dp(8), dp(8))
-            setBackgroundColor(palette.card)
-        }
-        val tabs = mutableListOf<TextView>()
-        val tabViews = mutableListOf<LinearLayout>()
-        fun selectTab(index: Int) {
+        val nav = MainNavigationView(this) { selectMainTab(it) }
+        selectMainTab = { index ->
+            selectedMainTab = index
+            nav.select(index)
             dashboardVisible = index == 0
             historyVisible = index == 1
             devicesVisible = index == 2
@@ -843,54 +839,28 @@ class MainActivity : AppCompatActivity() {
                 historyRefresh?.invoke()
             }
             if (index == 2) recorderRefresh?.invoke()
-            tabs.forEachIndexed { i, tab ->
-                tab.setTextColor(if (i == index) violet else muted)
-                tabViews[i].background = if (i == index) rounded(palette.tinted, 12) else null
-            }
             if (index == 2) refreshCirqaCard()
             scroll.scrollTo(0, 0)
         }
-        listOf("Übersicht", "Verlauf", "Geräte", "Testlabor", "Daten").forEachIndexed { index, label ->
-            val iconKind = when (index) {
-                0 -> DashboardInfoIconView.Kind.HOME
-                1 -> DashboardInfoIconView.Kind.HISTORY
-                2 -> DashboardInfoIconView.Kind.DEVICES
-                3 -> DashboardInfoIconView.Kind.LAB
-                else -> DashboardInfoIconView.Kind.DATA
-            }
-            val tab = text(label, 10f, muted, true).apply {
-                gravity = android.view.Gravity.CENTER
-                importantForAccessibility = android.view.View.IMPORTANT_FOR_ACCESSIBILITY_NO
-            }
-            val item = LinearLayout(this).apply {
-                orientation = LinearLayout.VERTICAL
-                gravity = android.view.Gravity.CENTER
-                minimumHeight = dp(52)
-                setPadding(dp(2), dp(3), dp(2), dp(3))
-                isClickable = true
-                isFocusable = true
-                contentDescription = label
-                tag = "navigation_item_$label"
-                setOnClickListener {
-                    when (index) {
-                        3 -> startActivity(Intent(this@MainActivity, CirqaTestLaboratoryActivity::class.java))
-                        4 -> startActivity(Intent(this@MainActivity, ExportActivity::class.java))
-                        else -> selectTab(index)
-                    }
-                }
-            }
-            item.addView(DashboardInfoIconView(this, iconKind, violet).apply {
-                tag = "navigation_icon_$label"
-            }, LinearLayout.LayoutParams(dp(18), dp(18)))
-            item.addView(tab, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(2) })
-            nav.addView(item, LinearLayout.LayoutParams(0, -2, 1f))
-            tabs.add(tab)
-            tabViews.add(item)
-        }
         screen.addView(nav)
         setContentView(screen)
-        selectTab(0)
+        selectMainTab(savedInstanceState?.getInt("main_tab") ?: intent.getIntExtra(MainNavigationView.EXTRA_TAB, 0))
         requestBluetoothPermissionOnFirstLaunch()
+    }
+
+    private var selectedMainTab = 0
+    private lateinit var selectMainTab: (Int) -> Unit
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.putInt("main_tab", selectedMainTab)
+        super.onSaveInstanceState(outState)
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        if (intent.hasExtra(MainNavigationView.EXTRA_TAB)) {
+            selectMainTab(intent.getIntExtra(MainNavigationView.EXTRA_TAB, 0))
+        }
     }
 
     private fun permissions(): Array<String> = if (Build.VERSION.SDK_INT >= 31)

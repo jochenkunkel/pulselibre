@@ -154,7 +154,7 @@ class ExportActivity : AppCompatActivity() {
         headerRow.getChildAt(0).apply {
             isClickable = true
             isFocusable = true
-            contentDescription = "Zurück zur Übersicht"
+            contentDescription = "Zurück"
             setOnClickListener { finish() }
         }
         headerRow.addView(label("Daten", 22f, Color.WHITE, true),
@@ -287,6 +287,7 @@ class ExportActivity : AppCompatActivity() {
         databaseFeedback = label("App-Einstellungen bleiben bei Wiederherstellung und Reset erhalten.", 12f, muted)
         dataPanel.addView(databaseFeedback, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(10) })
         updateLabels()
+        screen.addView(MainNavigationView(this, 4))
         setContentView(screen)
     }
 
