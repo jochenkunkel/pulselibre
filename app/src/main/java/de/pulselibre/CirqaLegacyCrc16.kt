@@ -2,9 +2,9 @@ package de.pulselibre
 
 /**
  * CRC-16/ARC as reconstructed from Garmin Connect 5.31 u45.a.
- * Pure algorithm only. DEX inspection confirms yw40 compares the updated
- * accumulator after the final payload byte. This is Connect evidence only,
- * not proof of CIRQA support; do not wire to a live 5004 path without that gate.
+ * DEX inspection confirms yw40 compares the updated accumulator after the final
+ * payload byte. This is Connect evidence, not proof of CIRQA support. The bounded
+ * live reader uses it only behind its explicit one-shot device-test gate.
  */
 object CirqaLegacyCrc16 {
     fun compute(bytes: ByteArray, initial: Int = 0): Int {
