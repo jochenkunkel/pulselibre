@@ -34,6 +34,8 @@ Alle 23 zuvor noch vollständig unter `docs/CIRQA_*.md` liegenden Fachtexte wurd
 
 Die bisherigen Weiterleitungen unter `docs/CIRQA_*.md` wurden gelöscht. Für neue Links ausschließlich die kanonischen Unterordner verwenden; eine automatische Vollprüfung aller nicht-Markdown-Verweise steht gesondert aus.
 
+**Garmin-Connect-APK/DEX-Analyse und rechtliche Leitplanken:** [Binary-Analyse zur Interoperabilität](research/GARMIN_CONNECT_BINARY_ANALYSIS.md). Technische Befunde und die Voraussetzungen aus §§ 69d/69e UrhG sind getrennt dokumentiert; keine proprietären Garmin-Binärdateien einchecken.
+
 ## Aktueller Einstieg für den historischen CIRQA-Download (18.11.2026)
 
 **Zuerst lesen:** [Kanonischer Forschungs- und Evidenzstand](research/CIRQA_HISTORICAL_RESEARCH_STATUS_2026-11-18.md). Er unterscheidet bestätigte CIRQA-Hardwarebefunde, Offline-Code und RFCOMM-Hypothesen und verweist auf die datierten Primärberichte. Ältere Dokumente bleiben als Evidenz erhalten und sind **keine aktuellen Handlungsanweisungen**.

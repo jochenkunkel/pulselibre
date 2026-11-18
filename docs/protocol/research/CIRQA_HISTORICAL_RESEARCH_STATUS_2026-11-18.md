@@ -21,6 +21,8 @@ Die dokumentierte Connect-5.31-Analyse zeigt einen Bluetooth-Classic-Server mit 
 
 Vorhandener Code: `CirqaRfcommTransport`, `CirqaRfcommRunner`, `CirqaRfcommDirectorySession`, `CirqaRfcommStreamFramer`, `CirqaDirectoryReadV2Session`. Vor Hardwarelauf prüfen: terminaler Abbruch bei ungültiger 5002-Größe, ungültigen Frames/Sessionfehlern, vollständige Timeout-/Cancel-Semantik und Race-Tests; keine automatische Verbindung oder ungefragte Kommandos. Nutzerbestätigung und persistenter Einmal-Gate bleiben erforderlich.
 
+**Garmin-Connect-Binary-Analyse:** [Zentraler Befund- und Interoperabilitätsbericht](GARMIN_CONNECT_BINARY_ANALYSIS.md) bündelt DEX-/RFCOMM-Erkenntnisse, offene Herkunftsmetadaten und rechtliche Leitplanken; keine dekompilierten Garmin-Dateien ins Repository übernehmen.
+
 ## Externe Quellen – Nutzen und Grenzen
 
 1. [gwerneckp/garmin-ble](https://github.com/gwerneckp/garmin-ble): unabhängige GFDI-/COBS-/CRC-/Protobuf-Referenz, Simulator/Replay und [FileSync-Proto](https://github.com/gwerneckp/garmin-ble/blob/main/proto/gdi_file_sync_service.proto). **Dateitransfer FIT/GPX laut Roadmap v0.6 geplant, nicht als funktionierend belegt.** AGPL-3.0; keine ungeprüfte Codeübernahme.
