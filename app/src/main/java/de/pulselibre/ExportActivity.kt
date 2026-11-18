@@ -351,7 +351,7 @@ class ExportActivity : AppCompatActivity() {
     /** Stop the explicit background recorder before a destructive database operation. */
     private fun stopRecorderThen(onCancel: () -> Unit = {}, action: () -> Unit) {
         val prefs = getSharedPreferences(CirqaContinuousRecordingService.PREFS, MODE_PRIVATE)
-        if (!prefs.getBoolean(CirqaContinuousRecordingService.KEY_RUNNING, false)) {
+        if (!RecorderStatus.isRunning(prefs)) {
             action()
             return
         }
@@ -371,7 +371,7 @@ class ExportActivity : AppCompatActivity() {
                 val deadline = SystemClock.elapsedRealtime() + 10_000L
                 val wait = object : Runnable {
                     override fun run() {
-                        if (!prefs.getBoolean(CirqaContinuousRecordingService.KEY_RUNNING, false)) action()
+                        if (!RecorderStatus.isRunning(prefs)) action()
                         else if (SystemClock.elapsedRealtime() >= deadline) {
                             databaseFeedback.text = "Aufzeichnung läuft noch; Datenbank blieb unverändert."
                             onCancel()

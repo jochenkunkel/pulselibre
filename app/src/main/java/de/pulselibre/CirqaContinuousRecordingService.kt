@@ -28,6 +28,7 @@ class CirqaContinuousRecordingService : Service() {
         const val PREFS = "cirqa_recorder_state"
         const val KEY_RUNNING = "running"
         const val KEY_LAST_READING_MS = "last_reading_ms"
+        const val KEY_HEARTBEAT_MS = "heartbeat_ms"
         private const val CHANNEL = "cirqa_collection"
         private const val ID = 1401
     }
@@ -76,13 +77,22 @@ class CirqaContinuousRecordingService : Service() {
             return START_NOT_STICKY
         }
         running = true
-        getSharedPreferences(PREFS, MODE_PRIVATE).edit().putBoolean(KEY_RUNNING, true).apply()
+        getSharedPreferences(PREFS, MODE_PRIVATE).edit().putBoolean(KEY_RUNNING, true)
+            .putLong(KEY_HEARTBEAT_MS, System.currentTimeMillis()).apply()
+        heartbeat()
         if (!log.append("session_start", mapOf("mode" to "continuous_notifications"))) {
             stopCollection("storage_limit")
             return START_NOT_STICKY
         }
         sample()
         return START_NOT_STICKY
+    }
+
+    /** Liveness marker for the UI; stops with the service (a killed process stops writing it). */
+    private fun heartbeat() {
+        if (!running) return
+        getSharedPreferences(PREFS, MODE_PRIVATE).edit().putLong(KEY_HEARTBEAT_MS, System.currentTimeMillis()).apply()
+        handler.postDelayed({ heartbeat() }, RecorderStatus.HEARTBEAT_INTERVAL_MS)
     }
 
     @SuppressLint("MissingPermission")
@@ -169,7 +179,7 @@ class CirqaContinuousRecordingService : Service() {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
         return Notification.Builder(this, CHANNEL)
             .setSmallIcon(android.R.drawable.stat_sys_data_bluetooth)
-            .setContentTitle("PulseLibre · Kontinuierliche Aufzeichnung")
+            .setContentTitle("PulsLibre · Kontinuierliche Aufzeichnung")
             .setContentText(message)
             .setOngoing(true)
             .addAction(Notification.Action.Builder(null, "Sammlung beenden", stop).build())

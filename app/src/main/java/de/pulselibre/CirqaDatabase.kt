@@ -61,7 +61,8 @@ class CirqaDatabase(private val contextRef: Context) : SQLiteOpenHelper(contextR
         super.onOpen(db)
         // Explicit user decision: discard the former JSONL night recording.
         // SQLite events are preserved. Retry on a later open if deletion fails.
-        LegacyNightRecording.remove(contextRef.filesDir)
+        // Once per process is enough (and avoids file-system work on every open); retried if deletion failed.
+        if (!legacyCleanupDone && LegacyNightRecording.remove(contextRef.filesDir)) legacyCleanupDone = true
     }
 
     /** Store a single locally generated JSONL event immediately, without a second BLE path. */
@@ -248,6 +249,7 @@ class CirqaDatabase(private val contextRef: Context) : SQLiteOpenHelper(contextR
     }
 
     companion object {
+        @Volatile private var legacyCleanupDone = false
         private val keyFormat = java.time.format.DateTimeFormatterBuilder().appendInstant(9).toFormatter()
         internal fun timeKey(time: java.time.Instant): String = keyFormat.format(time)
         private fun timeKey(timestamp: String): String? = try { timeKey(java.time.Instant.parse(timestamp)) }

@@ -17,7 +17,7 @@ internal object DiagnosticReport {
         rssiSummary: String,
         bondListQueried: Boolean
     ): String = buildString {
-        appendLine("PulseLibre · BLE-Scan-Diagnose (aktive Probes separat)")
+        appendLine("PulsLibre · BLE-Scan-Diagnose (aktive Probes separat)")
         appendLine("Gefundene Werbegeräte: $advertisingDevices")
         appendLine("Scan-Status: $scanStatus")
         appendLine("CIRQA GATT (Android-Systemstatus; verantwortliche App unbekannt): $gattLabel")
