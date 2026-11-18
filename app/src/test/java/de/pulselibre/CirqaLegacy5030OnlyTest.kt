@@ -119,8 +119,8 @@ class CirqaLegacy5030OnlyTest {
         assertFalse(budget.receive(budget.token, ByteArray(257), 3))
     }
 
-    @Test fun newGateIsUnreleasedAtomicOneShotAndFailsClosedOnPersistenceFailure() {
-        assertFalse(CirqaLegacy5030AttemptGate.RELEASED_FOR_DEVICE_TEST)
+    @Test fun authorizedGateIsStillAtomicOneShotAndFailsClosedOnPersistenceFailure() {
+        assertTrue(CirqaLegacy5030AttemptGate.RELEASED_FOR_DEVICE_TEST)
         var consumed = false
         var writes = 0
         fun attempt(released: Boolean, confirmed: Boolean, persistOk: Boolean) =

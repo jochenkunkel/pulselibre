@@ -3,6 +3,24 @@
 **Status: technisch vorbereitet, nicht freigegeben, nicht am CIRQA ausgeführt.**
 Bezug: Issues #2, #7, #20, #22. Keine neuen BLE-Kommandos im Jour-fixe-Auftrag.
 
+> **Nachtrag 18.11.2026 – gesonderte Nutzerfreigabe:** Nach Vorlage dieses
+> Plans bestätigte der Nutzer ausdrücklich „ok wird freigegeben“. Freigegeben
+> ist ausschließlich **ein** Bootstrap→5030-only-Lauf mit den hier beschriebenen
+> Grenzen und Stop vor 5007/5031/5002. Die Releasekonstante wird auf true
+> gesetzt; der persistente Einmal-Gate und App-Dialog bleiben erforderlich.
+> Das ist keine Freigabe eines kombinierten Downloadtests oder eines Retries.
+> Bei der anschließenden Vorprüfung war ADB leer, daher bislang keine
+> Installation/Verbindung, kein Gate-Verbrauch und kein neues Geräteergebnis.
+> Die folgenden „gesperrt“-Angaben beschreiben den ursprünglichen
+> Vorbereitungssnapshot; dieser datierte Nachtrag hat Vorrang.
+
+Nach erneuter Nutzermeldung war das S25 wieder erreichbar (installiert Build
+949). Vorprüfung: alter JSONL-Pfad und neues 5030-Gatefile fehlen, kein
+Recorder-Service und kein laufender Garmin-Connect-Prozess gefunden. Lokale
+Unit-Suite, Build, Lint und Instrumentation-APK-Build des Freigabecodes
+erfolgreich. Vor Geräteausführung bleibt der signierte CI-Update-Build
+einschließlich Zertifikats-/Versionsprüfung erforderlich.
+
 ## Integrationsprüfung
 
 Zu Beginn `origin/main=7e78376`; `7d0af92` und `39d15f5` waren nur auf
