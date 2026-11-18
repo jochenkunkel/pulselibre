@@ -2,6 +2,8 @@
 
 **Kanonische Hauptspezifikation:** [CIRQA_PROTOCOL_SPEC.md](CIRQA_PROTOCOL_SPEC.md).
 
+**Grafischer Einstieg:** [CIRQA-BLE-Sequenz, Transportentscheidung, FIT-Pipeline und Architektur](../diagrams/README.md).
+
 ## Fachliche Unterbereiche
 
 | Ordner | Zuständigkeit | Beispiele |
