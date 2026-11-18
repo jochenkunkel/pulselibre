@@ -503,14 +503,16 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
             statusOutput.text = "Sync-Request nicht freigegeben oder Gate bereits verbraucht."
             return
         }
+        prefs.edit().remove(CirqaSyncAttemptGate.SUMMARY_KEY).commit()
         AlertDialog.Builder(this)
             .setTitle("Garmin-Sync anfordern?")
             .setMessage(
                 "Ein Connect-kompatibler 5043-sync_request nach frischem Bootstrap. " +
                     "Das Gerät kann daraufhin gepufferte Daten liefern und diese " +
                     "geräteseitig als übertragen markieren. Wir senden selbst KEINE " +
-                    "Archiv-, Flag-, Lösch- oder Reset-Befehle und laden keine FIT-Datei " +
-                    "herunter. 20-s-Budget, kein Retry, Einmal-Gate wird vor dem Verbinden verbraucht."
+                    "Archiv-, Flag-, Lösch- oder Reset-Befehle. Nur exakte Dateien mit gültigem FIT-CRC " +
+                    "werden privat gespeichert und unterstützte Messwerte importiert. 60-s-Budget, kein Retry; " +
+                    "Einmal-Gate wird vor dem Verbinden verbraucht."
             )
             .setNegativeButton("Abbrechen", null)
             .setPositiveButton("Ausführen") { _, _ ->
