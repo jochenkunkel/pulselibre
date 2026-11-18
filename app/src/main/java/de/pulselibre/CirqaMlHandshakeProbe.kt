@@ -1190,6 +1190,13 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             }
         }, 5_000L)
         send(g, frame)
+        // With WRITE_TYPE_NO_RESPONSE Android delivers no onCharacteristicWrite callback.
+        // Treat the accepted API call as write-confirmed, exactly like the working 5030-only path.
+        if (tx?.properties?.and(BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE) != 0) {
+            hsv1WriteOutstanding = false
+            s.writeCompleted(s.token, type, true, android.os.SystemClock.elapsedRealtime())
+            finishHsv1IfTerminal(g)
+        }
     }
 
     private fun finishHsv1IfTerminal(g: BluetoothGatt) {
