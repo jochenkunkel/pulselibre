@@ -17,6 +17,7 @@
 | Protobuf FileAccess (5043/5044) | V2: 5043-Item-List gesendet, keine 5044-Antwort in 20 s | Kein FIT-Transfer; Gates verbraucht |
 | Protobuf **sync_request** (5043/5044) | V21: GFDI-ACK Status 0, `sync_response`, Item-Liste mit 33 Einträgen, erster Pull und MLR-Transfer erfolgreich | **Eine** FIT-Datei mit exakter Größe und gültigen CRCs gespeichert; Vollständigkeit/weitere Dateien noch offen |
 | Begrenzter Protobuf-Mehrdateiabruf | V24 / Build 1090: 33 Transfers vollständig; 31 FIT-Dateien und 2 Rohdateien privat gespeichert | 64 Item-List-Antworten; nach der ersten 33er-Liste waren `items` leer, aber `next_transaction_id` blieb gesetzt; Seitenlimit erreicht, Vollständigkeit nicht belegt |
+| Item-List-Abschluss und idempotente Wiederholung | V25 / Build 1091: Liste nach 1 Seite mit 33 Einträgen terminal; alle 33 Dateien erneut vollständig übertragen, alle bereits vorhanden | Kein neuer Datenbestand; 33 Einträge sind keine Garantie historischer Vollständigkeit |
 
 Primärnachweise: [Historical Sync V1](../experiments/CIRQA_HISTORICAL_SYNC_V1_2026-11-18.md), [bounded Directory/FIT](../experiments/CIRQA_BOUNDED_DIRECTORY_FIT_TRANSFER_2026-11-18.md), [RFCOMM-Vorbereitung](../experiments/CIRQA_RFCOMM_PREPARATION_2026-11-18.md). Frühe Berichte sind historische Snapshots, keine aktuellen Testanweisungen.
 
@@ -106,11 +107,18 @@ Einträge zusammen mit `next_transaction_id` als Transaktionskontext zurück;
 dieser Wert ist kein Cursor für weitere Seiten derselben Liste. V24 hat daher
 unnötige leere Folgeanfragen mit diesem Transaktionskontext gesendet. Der
 Mehrdateiabruf und der sequenzielle MLR-Datentransfer sind am Gerät demonstriert;
-V25 ändert die Listenfortsetzung ausschließlich auf `session_id`; ein frisches V25-Gate
-bleibt für einen weiteren Gerätesitzungslauf erforderlich. Ob die erste 33er-
-Liste alle historischen Einträge darstellt, bleibt unbewiesen. Es wurden keine
-Archiv-, Flag-, Lösch-, Reset- oder `CLOSE_ALL`-Befehle gesendet. Vollständiger Bericht:
+V25 setzt die Listenfortsetzung ausschließlich mit `session_id` fort. Am Gerät
+kam in V25 keine `session_id`, sondern nur `next_transaction_id`; die Liste
+endete daher nach einer Seite. Die 33 Transfers wurden wiederholt, sämtlich
+content-adressiert als bereits vorhanden erkannt und ohne SQLite-Duplikate
+verarbeitet. Die private FIT-Ablage blieb bei 31 CRC-validierten Dateien und
+die private Rohablage bei 2 Dateien. SQLite blieb bei 294 Zeilen und bestand
+erneut `integrity_check`. Das bestätigt Idempotenz und die terminale
+Ein-Seiten-Interpretation am Gerät. Ob diese 33 Einträge alle historischen
+Einträge darstellen, bleibt unbewiesen. Es wurden keine Archiv-, Flag-, Lösch-,
+Reset- oder `CLOSE_ALL`-Befehle gesendet. Vollständiger Bericht:
 [V24-Geräteergebnis](../../device-tests/CIRQA_SYNC_V24_DEVICE_RESULT_2026-11-18.md).
+[V25-Geräteergebnis](../../device-tests/CIRQA_SYNC_V25_DEVICE_RESULT_2026-11-18.md).
 
 Die UID muss nicht interpretiert werden; ihre rohen Bytes werden unverändert
 in den Pull-Request übernommen. Parser und Pull-Builder sind offline getestet.
