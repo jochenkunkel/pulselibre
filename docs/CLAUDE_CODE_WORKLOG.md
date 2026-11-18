@@ -72,3 +72,7 @@ Fortlaufend, neueste Einträge unten. Jeder Eintrag: Datum, Änderung, Nachweis 
 ## 2026-11-18 – Trendkarte kompakt, SpO₂-Titel (Branch `claude/trend-compact`)
 - Trendkarte statt Textwand: Zeile je Dimension mit Zustandssymbol (✅ ➖ ⚠️ ⏳), Tabelle 💓 Ruhepuls / 👣 Schritte × 7/28/90 Tage (Median + Pfeil + Tage mit Daten), eine Zeile 🔗 für die vorab festgelegte Hypothese (Tippen → 📊 Streudiagramm). Methode, Sätze und Einschränkungen im ⓘ-Dialog; Barrierefreiheitstexte enthalten die vollen Sätze. Berechnung unverändert (`TrendAnalysis`, `FitnessOverview`, `PairedCorrelation`).
 - Kachel „Sauerstoffsättigung · SpO₂“ zeigt sichtbar nur „SpO₂“ (Wortumbruch mitten im Wort behoben); Tag/Accessibility-Name unverändert.
+
+## 2026-11-18 – #5 Abschluss (Branch `claude/audit-5-tests`)
+- `DiagnosticReport` extrahiert (Parameter nur Zählwerte/Flags/Aggregat-Zusammenfassungen) und `DiagnosticReportPrivacyTest` ergänzt: nach realen Beobachtungen mit MAC/Namen darf keine Adresse/kein Name/keine Payload im geteilten Text stehen.
+- `device_id` im CSV: Konstante `CIRQA`; Legacy-Datenbank auf dem Testgerät leer. Details in `docs/AUDIT_REVALIDATION_2026-11-18.md`.

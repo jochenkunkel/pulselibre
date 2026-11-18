@@ -4,7 +4,7 @@ Stand 2026-11-18, `main` 166e7a4+, durch Code-Lektüre (Claude Code). Kein Gerä
 
 | ID | Status | Nachweis (aktueller Code) |
 |---|---|---|
-| R01 Diagnoseexport | **behoben** | `MainActivity.shareDiagnostics` exportiert nur Zählwerte („nur Anzahl“), Verbindungsstatus-Metadaten und eine Kopplungs-Ja/Nein-Angabe; keine MAC, keine Namen, keine UUID-/Service-Rohdaten (siehe Kommentar im Code). Offen: automatischer Test gegen Rohdaten im Export. |
+| R01 Diagnoseexport | **behoben** | `MainActivity.shareDiagnostics` exportiert nur Zählwerte („nur Anzahl“), Verbindungsstatus-Metadaten und eine Kopplungs-Ja/Nein-Angabe; keine MAC, keine Namen, keine UUID-/Service-Rohdaten (siehe Kommentar im Code). Seit 2026-11-18 als `DiagnosticReport` (nur Zählwerte/Flags als Parameter) mit Test `DiagnosticReportPrivacyTest` abgesichert (MAC, Name, Payload dürfen nicht im Text vorkommen). |
 | R02 onScanFailed-Cleanup | **behoben** | `onScanFailed` ruft `stopScan` best-effort mit Exception-Schutz auf. |
 | R03 Mehrfachstart | **teilweise** | `if (scanning) return` existiert, steht aber nach Berechtigungs-/Adaptercheck; praktisch folgenlos. |
 | R04 Evidenz monoton | **behoben** (laut Issue #5, `CirqaScanEvidence`) | nicht erneut per Test nachvollzogen. |
@@ -17,4 +17,4 @@ Stand 2026-11-18, `main` 166e7a4+, durch Code-Lektüre (Claude Code). Kein Gerä
 | R11 Versionsnummern | **behoben** | `versionCode` aus Gradle-Property (Standard 2), `versionName` „2.0.0_build…“. Release-Pipeline siehe `docs/APK_SIGNING_AND_UPDATES.md`. |
 | R12 README | **behoben** | bereits im Review-Update vermerkt. |
 
-Weitere Datenschutzprüfung: Manifest enthält keine `INTERNET`-Berechtigung (Offline-first bestätigt). CSV-Export enthält `device_id` als Spalte (vom Nutzer ausgelöst, lokaler Speicherort) – die Herkunft von `device_id` im Standardexport sollte vor einer Weitergabe von Exporten geprüft werden (offen).
+Weitere Datenschutzprüfung: Manifest enthält keine `INTERNET`-Berechtigung (Offline-first bestätigt). CSV-Export: `device_id` ist für aktuelle Ereignisse die Konstante `CIRQA` (`ExportActivity`, kein Geräte- oder Adressbezug); die Legacy-Tabelle `pulselibre_readings.db` ist auf dem Testgerät leer (0 Messwerte, 0 Geräte-IDs, Stand 2026-11-18). Ältere Installationen mit Legacy-Daten könnten dort andere `device_id`-Werte enthalten; unbewiesen, Herkunft dort nicht geprüft.
