@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="pl_card">#171E30</color>
+    <color name="pl_ink">#F4F2FB</color>
+    <color name="pl_muted">#B9B4CB</color>
+    <color name="pl_accent">#C0A0FF</color>
+</resources>
