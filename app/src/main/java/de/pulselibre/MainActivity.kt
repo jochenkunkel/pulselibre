@@ -348,24 +348,6 @@ class MainActivity : AppCompatActivity() {
         val bodyValues = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         bodyRow.addView(bodyValues, if (compactProfile) LinearLayout.LayoutParams(-1, -2) else LinearLayout.LayoutParams(0, -2, 1f))
         bodyCard.addView(bodyRow)
-        val scaleButton = TextView(this).apply {
-            text = "⚖"
-            textSize = 22f
-            gravity = android.view.Gravity.CENTER
-            setTextColor(Color.WHITE)
-            minWidth = dp(48); minHeight = dp(48)
-            background = rounded(DesignTokens.BRAND_PURPLE, 14)
-            contentDescription = "Gewicht schnell aktualisieren"
-            tag = "body_scale_button"
-            isClickable = true
-            isFocusable = true
-        }
-        val bodyFooter = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = android.view.Gravity.END
-        }
-        bodyFooter.addView(scaleButton, LinearLayout.LayoutParams(dp(48), dp(48)))
-        bodyCard.addView(bodyFooter)
         fun refreshBodyCard() {
             val p = getSharedPreferences("local_personal_profile", MODE_PRIVATE)
             bodyValues.removeAllViews()
@@ -382,7 +364,7 @@ class MainActivity : AppCompatActivity() {
                 Bmi.Tone.RED -> android.graphics.Color.rgb(255, 107, 120)
                 null -> heroSecondary
             }
-            fun add(icon: String, title: String, value: String, valueColor: Int = heroText, extra: String? = null, onClick: (() -> Unit)? = null) {
+            fun add(icon: String, title: String, value: String, valueColor: Int = heroText, extra: String? = null, tagName: String? = null, description: String? = null, onClick: (() -> Unit)? = null) {
                 val row = LinearLayout(this).apply {
                     orientation = LinearLayout.HORIZONTAL
                     gravity = android.view.Gravity.CENTER_VERTICAL
@@ -402,10 +384,16 @@ class MainActivity : AppCompatActivity() {
                     bodyValues.addView(text("", 13f, heroText, true).apply { this.text = span; contentDescription = extra.removePrefix("● ") },
                         LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(8); marginStart = dp(32) })
                 }
-                if (onClick != null) { row.isClickable = true; row.isFocusable = true; row.setOnClickListener { onClick() } }
+                if (onClick != null) {
+                    row.isClickable = true; row.isFocusable = true; row.setOnClickListener { onClick() }
+                    row.minimumHeight = dp(48)
+                    if (tagName != null) row.tag = tagName
+                    if (description != null) row.contentDescription = description
+                }
             }
             add("↕", "Größe", if (heightText.isBlank()) "–" else "$heightText cm")
-            add("⚖", "Gewicht", if (weightText.isBlank()) "–" else "$weightText kg")
+            add("⚖", "Gewicht", if (weightText.isBlank()) "–" else "$weightText kg", tagName = "body_weight_row",
+                description = "Gewicht ${if (weightText.isBlank()) "nicht angegeben" else "$weightText Kilogramm"}. Tippen zum Ändern.") { showQuickWeight { refreshBodyCard() } }
             add("◷", "Alter", age?.let { "$it Jahre" } ?: "–")
             // BMI: value + written category (colour is never the only signal); tap explains reference and limits.
             add("▣", "BMI", bmi.value?.let { germanOne.format(it) + " kg/m²" } ?: "–", heroText,
@@ -421,7 +409,6 @@ class MainActivity : AppCompatActivity() {
                 }
         }
         refreshBodyCard()
-        scaleButton.setOnClickListener { showQuickWeight { refreshBodyCard() } }
         bodyCard.isClickable = true
         bodyCard.isFocusable = true
         bodyCard.setOnClickListener {
@@ -456,7 +443,7 @@ class MainActivity : AppCompatActivity() {
         historyRefresh = { cirqaHistory.refresh() }
         cirqaHistory.refresh()
         historyView(cirqaHistory)
-        val deviceHeading = text("Bluetooth · Geräte", 22f, ink, true)
+        val deviceHeading = text("Gerät · CIRQA", 22f, ink, true)
         deviceView(deviceHeading)
         val debugDeviceViews = mutableListOf<android.view.View>()
         fun debugView(view: android.view.View, margin: Int = 12) {
@@ -1154,35 +1141,67 @@ class MainActivity : AppCompatActivity() {
         }, "BLE-Diagnose teilen"))
     }
 
-    /** One-tap weight update from the overview (#118); cancel changes nothing. */
+    /** Weight quick edit (#118): tap on the weight value; − / + change in 0.1 kg steps, cancel changes nothing. */
     private fun showQuickWeight(onSaved: () -> Unit) {
         val p = getSharedPreferences("local_personal_profile", MODE_PRIVATE)
+        val d = resources.displayMetrics.density
+        val palette = AppPalette.of(this)
         val input = android.widget.EditText(this).apply {
             inputType = android.text.InputType.TYPE_CLASS_NUMBER or android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL
             setSingleLine(true)
-            setText(p.getString("weight_kg", "").orEmpty())
+            gravity = android.view.Gravity.CENTER
+            textSize = 26f
+            setText(p.getString("weight_kg", "").orEmpty().replace('.', ','))
             setSelectAllOnFocus(true)
-            hint = "Gewicht in kg"
+            hint = "kg"
             contentDescription = "Aktuelles Gewicht in Kilogramm"
         }
+        fun stepButton(label: String, delta: Double, description: String) = TextView(this).apply {
+            text = label; textSize = 26f; gravity = android.view.Gravity.CENTER
+            setTextColor(android.graphics.Color.WHITE)
+            background = GradientDrawable().apply { setColor(DesignTokens.BRAND_PURPLE); cornerRadius = 14 * d }
+            contentDescription = description
+            isClickable = true; isFocusable = true
+            setOnClickListener { input.setText(WeightStepper.format(WeightStepper.step(input.text.toString(), delta))); input.setSelection(input.text.length) }
+            // press-and-hold repeats the step
+            val repeat = object : Runnable {
+                override fun run() { performClick(); postDelayed(this, 120L) }
+            }
+            setOnLongClickListener { post(repeat); true }
+            setOnTouchListener { v, e ->
+                if (e.actionMasked == android.view.MotionEvent.ACTION_UP || e.actionMasked == android.view.MotionEvent.ACTION_CANCEL) v.removeCallbacks(repeat)
+                false
+            }
+        }
+        val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = android.view.Gravity.CENTER_VERTICAL }
+        row.addView(stepButton("−", -WeightStepper.STEP_KG, "Gewicht um 0,1 Kilogramm verringern").apply { tag = "weight_minus" },
+            LinearLayout.LayoutParams((56 * d).toInt(), (56 * d).toInt()))
+        row.addView(input, LinearLayout.LayoutParams(0, -2, 1f).apply { marginStart = (8 * d).toInt(); marginEnd = (8 * d).toInt() })
+        row.addView(stepButton("+", WeightStepper.STEP_KG, "Gewicht um 0,1 Kilogramm erhöhen").apply { tag = "weight_plus" },
+            LinearLayout.LayoutParams((56 * d).toInt(), (56 * d).toInt()))
         val box = LinearLayout(this).apply {
-            val d = resources.displayMetrics.density
-            setPadding((24 * d).toInt(), (8 * d).toInt(), (24 * d).toInt(), 0)
-            addView(input, LinearLayout.LayoutParams(-1, -2))
+            orientation = LinearLayout.VERTICAL
+            setPadding((20 * d).toInt(), (8 * d).toInt(), (20 * d).toInt(), 0)
+            addView(row, LinearLayout.LayoutParams(-1, -2))
+            addView(TextView(this@MainActivity).apply {
+                text = "Schritt: 0,1 kg · gedrückt halten für schnelleres Ändern"; textSize = 12f; setTextColor(palette.muted)
+                gravity = android.view.Gravity.CENTER; setPadding(0, (8 * d).toInt(), 0, 0)
+            })
         }
         val dialog = androidx.appcompat.app.AlertDialog.Builder(this)
-            .setTitle("⚖ Aktuelles Gewicht (kg)")
+            .setTitle("Gewicht (kg)")
             .setView(box)
             .setNegativeButton("Abbrechen", null)
             .setPositiveButton("Speichern", null)
             .create()
         dialog.setOnShowListener {
             dialog.getButton(androidx.appcompat.app.AlertDialog.BUTTON_POSITIVE).setOnClickListener {
-                val value = input.text.toString().trim().replace(',', '.').toDoubleOrNull()
-                if (value == null || value !in 15.0..400.0) {
+                val value = WeightStepper.parse(input.text.toString())
+                if (value == null || value !in WeightStepper.MIN_KG..WeightStepper.MAX_KG) {
                     Toast.makeText(this, "Bitte ein Gewicht zwischen 15 und 400 kg eingeben.", Toast.LENGTH_LONG).show()
                 } else {
-                    p.edit().putString("weight_kg", input.text.toString().trim().replace(',', '.')).apply()
+                    // stored with one decimal and a dot, like the settings field
+                    p.edit().putString("weight_kg", String.format(java.util.Locale.ROOT, "%.1f", value).removeSuffix(".0")).apply()
                     onSaved()
                     dialog.dismiss()
                 }

@@ -81,3 +81,23 @@ class BmiTest {
         assertNotNull(a.value); assertNull(a.category); assertTrue(a.note!!.contains("Geburtsdatum"))
     }
 }
+
+class WeightStepperTest {
+    @Test fun stepsInTenthsWithoutFloatingPointDrift() {
+        var t = "80"
+        repeat(10) { t = WeightStepper.format(WeightStepper.step(t, 0.1)) }
+        assertEquals("81,0", t)
+        repeat(30) { t = WeightStepper.format(WeightStepper.step(t, -0.1)) }
+        assertEquals("78,0", t)
+    }
+    @Test fun acceptsCommaAndDotAndClampsToTheRange() {
+        assertEquals(80.1, WeightStepper.step("80,0", 0.1), 1e-9); assertEquals(79.9, WeightStepper.step("80.0", -0.1), 1e-9)
+        assertEquals(WeightStepper.MAX_KG, WeightStepper.step("400", 0.1), 0.0)
+        assertEquals(WeightStepper.MIN_KG, WeightStepper.step("15", -0.1), 0.0)
+    }
+    @Test fun blankOrGarbageStartsFromTheEditorStartValue() {
+        assertEquals(70.1, WeightStepper.step("", 0.1), 1e-9); assertEquals(69.9, WeightStepper.step("abc", -0.1), 1e-9)
+        assertNull(WeightStepper.parse("")); assertNull(WeightStepper.parse("NaN"))
+    }
+    @Test fun formatUsesGermanDecimalComma() = assertEquals("24,7", WeightStepper.format(24.7))
+}

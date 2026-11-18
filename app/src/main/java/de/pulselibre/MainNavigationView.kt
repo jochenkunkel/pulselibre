@@ -16,7 +16,7 @@ internal class MainNavigationView(
     private val showMainTab: (Int) -> Unit = {}
 ) : LinearLayout(activity) {
     private val palette = AppPalette.of(activity)
-    private val labels = listOf("Übersicht", "Verlauf", "Geräte", "Testlabor", "Daten")
+    private val labels = listOf("Übersicht", "Verlauf", "Gerät", "Testlabor", "Daten")
     private val icons = listOf(
         DashboardInfoIconView.Kind.HOME, DashboardInfoIconView.Kind.HISTORY,
         DashboardInfoIconView.Kind.DEVICES, DashboardInfoIconView.Kind.LAB,
