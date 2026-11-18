@@ -63,9 +63,16 @@ internal class TrendCardView(context: Context) : LinearLayout(context) {
         val reader = DailyValueReader(app)
         val nf = NumberFormat.getNumberInstance(Locale.GERMANY).apply { maximumFractionDigits = 1 }
         return buildString {
-            section("Geräte-Ruhepuls (bpm)", reader.read(DashboardMeasurement.RESTING_PULSE, first, today, zone), today, 1.0, nf)
+            val rest = reader.read(DashboardMeasurement.RESTING_PULSE, first, today, zone)
+            val steps = reader.read(DashboardMeasurement.STEPS, first, today, zone)
+            val overview = FitnessOverview.assess(
+                TrendAnalysis.analyze(steps, today, 28, 500.0), TrendAnalysis.analyze(rest, today, 28, 1.0))
+            append("Übersicht (28 Tage, ohne Gesamtpunktzahl)")
+            overview.dimensions.forEach { append("\n• ${it.name}: ${it.state.label} – ${it.sentence}") }
+            append("\n\n")
+            section("Geräte-Ruhepuls (bpm)", rest, today, 1.0, nf)
             append("\n")
-            section("Schritte pro Tag", reader.read(DashboardMeasurement.STEPS, first, today, zone), today, 500.0, nf)
+            section("Schritte pro Tag", steps, today, 500.0, nf)
             append("\n\nMedian vollständiger Tage gegen den gleich langen Zeitraum davor. Tage ohne Daten werden nicht aufgefüllt; ")
             append("zu wenige Tage ergeben „nicht bewertbar“. Der Ruhepuls ist der vom Gerät gemeldete Wert, seine Messbedingungen sind ungeprüft. ")
             append("Schritte sind Aktivitätsvolumen, kein Maß für Fitness. Keine Diagnose.")
