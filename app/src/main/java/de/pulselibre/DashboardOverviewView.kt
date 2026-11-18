@@ -43,7 +43,7 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
         val overview = dashboardOverview(metrics)
         addView(label("Deine Messwerte · lokal gespeichert", 12f, muted),
             LayoutParams(-1, -2).apply { bottomMargin = dp(12) })
-        addView(label(UnvalidatedFeatures.LEGEND, 11f, UnvalidatedFeatures.RED).apply {
+        addView(label(UnvalidatedFeatures.LEGEND, 11f, UnvalidatedFeatures.color(palette.dark)).apply {
             tag = "dashboard_unvalidated_legend"
         }, LayoutParams(-1, -2).apply { bottomMargin = dp(10) })
         addCardPair(overview.vitalSigns) { metric ->
@@ -119,7 +119,7 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
             background = GradientDrawable().apply {
                 setColor(palette.card)
                 cornerRadius = dp(18).toFloat()
-                UnvalidatedFeatures.mark(this, resources.displayMetrics.density)
+                UnvalidatedFeatures.mark(this, resources.displayMetrics.density, palette.dark)
             }
             tag = "dashboard_night_oxygen_insights"
             contentDescription = "Nacht-Insights. SpO₂-Auswertung noch nicht berechenbar: Sampling und Signalqualität für CIRQA sind nicht validiert. Keine Diagnose."
@@ -276,7 +276,7 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
             tag = "dashboard_metric_${metric.title}"
             contentDescription = "${metric.title}: ${metric.value}"
             if (UnvalidatedFeatures.isUnvalidated(metric.title)) {
-                (background as GradientDrawable).let { UnvalidatedFeatures.mark(it, resources.displayMetrics.density) }
+                (background as GradientDrawable).let { UnvalidatedFeatures.mark(it, resources.displayMetrics.density, palette.dark) }
                 contentDescription = contentDescription.toString() + UnvalidatedFeatures.ACCESSIBILITY_SUFFIX
             }
             ViewCompat.setScreenReaderFocusable(this, false)

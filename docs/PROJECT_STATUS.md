@@ -20,7 +20,7 @@ Ausführliches Protokoll mit Nachweisen: `docs/CLAUDE_CODE_WORKLOG.md`. Alle Aus
 - **Geschlossen:** #61 (Schrittkachel), #62 (24-h-Tagesgraphen), #64 (Navigation in allen fünf Bereichen).
 - **Teilweise umgesetzt, offen:** #63 (Statusmodell `CirqaLinkStatus`; Ursache der GATT-Abbrüche offen, S25-Langzeittest nötig), #40 (Abdeckung, Verfügbarkeitszustände), #41 (7/28/90-Tage-Trends), #42 (Fitnessübersicht ohne Gesamtscore), #44/#45 (explorative Korrelation mit Streudiagramm), #39 (nächtliche SpO₂-Auswertung).
 - **Blockiert:** #43, #46, #47 (keine verifizierte Schlaf-/HRV-/Belastungsquelle).
-- **Validierungsgates:** vom Nutzer am 2026-11-18 akzeptiert. Betroffene Kacheln sind **nicht validiert** und tragen einen roten Rand (`UnvalidatedFeatures`).
+- **Validierungsgates:** vom Nutzer am 2026-11-18 akzeptiert. Betroffene Kacheln sind **nicht validiert** und tragen einen dunkelvioletten Rand (`UnvalidatedFeatures`).
 - **CI:** nur manuell/`v*`-Tags; Lauftitel nennen Branch und Testumfang.
 
 ## Aktueller CIRQA- und Teamstatus (2026-11-17)
