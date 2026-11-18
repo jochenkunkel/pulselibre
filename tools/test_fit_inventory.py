@@ -1,4 +1,5 @@
 import importlib.util
+import sqlite3
 import tempfile
 import unittest
 from pathlib import Path
@@ -72,6 +73,39 @@ class FitInventoryTests(unittest.TestCase):
         with self.assertRaises(inventory.FitError):
             inventory.inventory_fit(Path("private.fit"), bytes(raw), profile())
 
+    def test_big_endian_definition_and_data_are_counted(self):
+        data = bytes([
+            0x40, 0, 1, 0, 20, 2,       # big-endian global message 20
+            253, 4, 0x86, 3, 1, 2,
+            0,
+        ]) + (100_000_000).to_bytes(4, "big") + bytes([72])
+        result = inventory.inventory_fit(Path("private.fit"), fit_file(data), profile())
+        hr = next(r for r in result["fields"] if r["field_number"] == 3)
+        self.assertEqual(hr["valid_value_count"], 1)
+        self.assertEqual(hr["first_timestamp"], "1993-03")
+
+    def test_missing_timestamp_is_explicit(self):
+        data = bytes([0x40, 0, 0, 20, 0, 1, 3, 1, 2, 0, 72])
+        result = inventory.inventory_fit(Path("private.fit"), fit_file(data), profile())
+        hr = next(r for r in result["fields"] if r["field_number"] == 3)
+        self.assertEqual(hr["timestamped_record_count"], 0)
+        self.assertEqual(hr["missing_timestamp_record_count"], 1)
+        self.assertEqual(hr["first_timestamp"], "")
+
+    def test_unknown_message_and_field_are_retained_without_guessed_names(self):
+        data = bytes([
+            0x40, 0, 0, 0x58, 0x02, 1,  # unknown global message 600
+            99, 1, 2,                   # unknown field 99, uint8
+            0, 42,
+        ])
+        result = inventory.inventory_fit(Path("private.fit"), fit_file(data), profile())
+        self.assertEqual(result["message_counts"][0]["global"], 600)
+        self.assertIsNone(result["message_counts"][0]["name"])
+        field = result["fields"][0]
+        self.assertEqual(field["field_number"], 99)
+        self.assertIsNone(field["field_name"])
+        self.assertEqual(field["base_type"], "uint8")
+
     def test_nonfit_xml_inventory_contains_no_text_or_attribute_values(self):
         raw = b'<?xml version="1.0"?><Device><Name>private-name</Name><File id="secret"/></Device>'
         result = inventory.inventory_nonfit(Path("private.xml"), raw)
@@ -91,6 +125,27 @@ class FitInventoryTests(unittest.TestCase):
             )
             self.assertEqual(inventory.profile_from_python(source)["messages"], {})
             self.assertFalse(marker.exists())
+
+    def test_sqlite_duplicate_key_audit_is_read_only_and_reports_duplicates(self):
+        with tempfile.TemporaryDirectory() as temp:
+            db = Path(temp) / "readings.db"
+            connection = sqlite3.connect(db)
+            connection.execute(
+                """CREATE TABLE readings (
+                    device_id TEXT, metric TEXT, measured_at_ms INTEGER,
+                    sample_id TEXT, value REAL, unit TEXT, received_at_ms INTEGER
+                )"""
+            )
+            row = ("device", "heart_rate", 1, "candidate")
+            connection.executemany(
+                "INSERT INTO readings(device_id,metric,measured_at_ms,sample_id) VALUES (?,?,?,?)",
+                (row, row),
+            )
+            connection.commit()
+            connection.close()
+            summary, _ = inventory.sqlite_imported(db)
+            self.assertEqual(summary["duplicate_primary_keys"], 1)
+            self.assertEqual(summary["reading_count"], 2)
 
 
 if __name__ == "__main__":
