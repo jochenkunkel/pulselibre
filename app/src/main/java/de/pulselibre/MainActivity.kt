@@ -292,9 +292,9 @@ class MainActivity : AppCompatActivity() {
                 readDashboard(includeTotals = true) { summary ->
                 androidx.appcompat.app.AlertDialog.Builder(this@MainActivity)
                     .setTitle("Deine Messdaten")
-                    .setMessage("${summary.samples} empfangene Messungen\\n" +
-                        "Originalprotokoll: ${summary.bytes / 1024} KiB\\n\\n" +
-                        "Deine Werte bleiben auf diesem Gerät. Keine Cloud.\\n" +
+                    .setMessage("${summary.samples} empfangene Messungen\n" +
+                        "Originalprotokoll: ${summary.bytes / 1024} KiB\n\n" +
+                        "Deine Werte bleiben auf diesem Gerät. Keine Cloud.\n" +
                         "Messzeit = Empfangszeit. Keine medizinische Diagnose.")
                     .setPositiveButton("Schließen", null)
                     .show()
@@ -539,12 +539,12 @@ class MainActivity : AppCompatActivity() {
             androidx.appcompat.app.AlertDialog.Builder(this)
                 .setTitle("CIRQA · Referenz-Handshake aufzeichnen")
                 .setMessage(
-                    "1. Android-Einstellungen > Über das Telefon > Buildnummer siebenmal antippen, falls Entwickleroptionen fehlen.\\n\\n" +
-                    "2. Entwickleroptionen öffnen und \"Bluetooth-HCI-Snoop-Protokoll aktivieren\" einschalten. Die Bezeichnung hängt vom Gerät ab.\\n\\n" +
-                    "3. PulsLibre-Aufzeichnung und BLE-Diagnose beenden. Garmin Connect in Android > Apps wieder aktivieren.\\n\\n" +
-                    "4. Garmin Connect starten und CIRQA genau einmal synchronisieren.\\n\\n" +
-                    "5. HCI-Snoop sofort wieder ausschalten; Garmin Connect bei Bedarf deaktivieren.\\n\\n" +
-                    "6. Über Android-Fehlerbericht oder ADB den Bluetooth-HCI-Snoop-Log sichern und lokal in Wireshark auf die Garmin-GATT-Schreibvorgänge prüfen.\\n\\n" +
+                    "1. Android-Einstellungen > Über das Telefon > Buildnummer siebenmal antippen, falls Entwickleroptionen fehlen.\n\n" +
+                    "2. Entwickleroptionen öffnen und \"Bluetooth-HCI-Snoop-Protokoll aktivieren\" einschalten. Die Bezeichnung hängt vom Gerät ab.\n\n" +
+                    "3. PulsLibre-Aufzeichnung und BLE-Diagnose beenden. Garmin Connect in Android > Apps wieder aktivieren.\n\n" +
+                    "4. Garmin Connect starten und CIRQA genau einmal synchronisieren.\n\n" +
+                    "5. HCI-Snoop sofort wieder ausschalten; Garmin Connect bei Bedarf deaktivieren.\n\n" +
+                    "6. Über Android-Fehlerbericht oder ADB den Bluetooth-HCI-Snoop-Log sichern und lokal in Wireshark auf die Garmin-GATT-Schreibvorgänge prüfen.\n\n" +
                     "WICHTIG: HCI-Logs können Gerätekennungen, Gesundheitsdaten und andere Bluetooth-Verbindungen enthalten. Vor dem Teilen bereinigen. PulsLibre kann die systemgeschützte HCI-Datei nicht selbst auslesen. Keine Kopplung löschen oder zurücksetzen."
                 )
                 .setNegativeButton("Schließen", null)
