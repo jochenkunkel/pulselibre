@@ -1234,7 +1234,7 @@ class MainActivity : AppCompatActivity() {
             }
             input.requestFocus()
         }
-        dialog.show()
+        DialogProbe.track(dialog).show()
     }
 
     private fun showBmiInfo(bmi: Bmi.Assessment) {
