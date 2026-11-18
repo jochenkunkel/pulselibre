@@ -24,7 +24,7 @@ class HistoryOverviewViewTest {
                 requested = range
                 HistorySnapshot(range, range.startAt(end), end, emptyList(), emptyList())
             }
-            view.refresh()
+            view.refreshSynchronously()
             assertTrue(containsText(view, "Keine Messdaten in diesem Zeitraum"))
             val controls = descendants(view).filter { candidate ->
                 HistoryRange.entries.any { range ->
@@ -48,7 +48,7 @@ class HistoryOverviewViewTest {
             val view = HistoryOverviewView(context) { range ->
                 HistorySnapshot(range, range.startAt(end), end, emptyList(), emptyList())
             }
-            view.refresh()
+            view.refreshSynchronously()
             val legend = descendants(view).single { it.contentDescription?.startsWith("Verlaufslegende.") == true }
             assertTrue(legend.contentDescription.contains("Empfang auf dem Telefon"))
             assertTrue(legend.contentDescription.contains("Median"))
@@ -67,7 +67,7 @@ class HistoryOverviewViewTest {
                 HistorySnapshot(range, start, end,
                     listOf(HistoryPoint(end.minusSeconds(60), 72)), emptyList())
             }
-            view.refresh()
+            view.refreshSynchronously()
             val chart = descendants(view).single { it.contentDescription?.startsWith("1 gespeicherte Messwerte") == true }
             assertTrue(chart.contentDescription.contains("1 gespeicherte Messwerte in 1 belegten Zeitfenstern"))
             assertTrue(chart.contentDescription.contains("Markierung ist der Median"))
@@ -82,4 +82,24 @@ class HistoryOverviewViewTest {
 
     private fun descendants(view: View): List<View> = listOf(view) +
         if (view is ViewGroup) (0 until view.childCount).flatMap { descendants(view.getChildAt(it)) } else emptyList()
+
+    @Test fun asyncRefreshRendersOffTheUiThreadAndOnlyNewestRequestWins() {
+        val context = androidx.test.core.app.ApplicationProvider.getApplicationContext<android.content.Context>()
+            .let { androidx.appcompat.view.ContextThemeWrapper(it, androidx.appcompat.R.style.Theme_AppCompat) }
+        val loadThreads = java.util.Collections.synchronizedList(mutableListOf<Boolean>())
+        lateinit var view: HistoryOverviewView
+        InstrumentationRegistry.getInstrumentation().runOnMainSync {
+            view = HistoryOverviewView(context) { range ->
+                loadThreads += (android.os.Looper.myLooper() == android.os.Looper.getMainLooper())
+                val now = java.time.Instant.parse("2026-11-18T12:00:00Z")
+                HistorySnapshot(range, range.startAt(now), now, emptyList(), emptyList())
+            }
+            view.refresh(); view.refresh()
+        }
+        val deadline = System.currentTimeMillis() + 5000
+        while (System.currentTimeMillis() < deadline && view.childCount == 0) Thread.sleep(50)
+        InstrumentationRegistry.getInstrumentation().waitForIdleSync()
+        assertTrue("view must have rendered", view.childCount > 0)
+        assertTrue("loading must not run on the main thread", loadThreads.isNotEmpty() && loadThreads.none { it })
+    }
 }

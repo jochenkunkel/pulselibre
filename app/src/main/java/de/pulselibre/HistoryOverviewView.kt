@@ -24,12 +24,44 @@ class HistoryOverviewView(
 
     init { orientation = VERTICAL }
 
+    private companion object {
+        val worker: java.util.concurrent.ExecutorService = java.util.concurrent.Executors.newSingleThreadExecutor()
+    }
+
+    private var generation = 0
+    private var attached = true
+
+    /** Loads off the UI thread; only the newest request may render (#79). */
     fun refresh() {
-        val snapshot = try { load(selectedRange) } catch (_: Exception) {
-            showFailure()
-            return
+        val token = ++generation
+        val range = selectedRange
+        worker.execute {
+            val snapshot = try { load(range) } catch (_: Exception) { null }
+            post {
+                if (token != generation || !attached) return@post
+                if (snapshot == null) showFailure() else render(snapshot)
+            }
         }
-        render(snapshot)
+    }
+
+    /** Same result as [refresh] but on the caller's thread; for deterministic tests only. */
+    internal fun refreshSynchronously() {
+        generation++
+        val snapshot = try { load(selectedRange) } catch (_: Exception) { null }
+        if (snapshot == null) showFailure() else render(snapshot)
+    }
+
+    override fun onAttachedToWindow() { super.onAttachedToWindow(); attached = true }
+    override fun onDetachedFromWindow() { attached = false; super.onDetachedFromWindow() }
+
+    private fun showLoading() {
+        // Keep the previous charts visible; only mark the selection and the pending state immediately.
+        for (i in 0 until childCount) {
+            val v = getChildAt(i)
+            if (v is TextView && v.tag == "history_loading") return
+        }
+        addView(label("Daten für ${selectedRange.label} werden geladen …", 12f, palette.muted).apply { tag = "history_loading" },
+            0, LayoutParams(-1, -2).apply { bottomMargin = dp(8) })
     }
 
     private fun render(snapshot: HistorySnapshot) {
@@ -57,6 +89,7 @@ class HistoryOverviewView(
                 setOnClickListener {
                     if (selectedRange != range) {
                         selectedRange = range
+                        showLoading()
                         refresh()
                     }
                 }
