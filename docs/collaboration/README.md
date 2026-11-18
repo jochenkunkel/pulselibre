@@ -4,7 +4,7 @@ Hier finden Entwickler, Codex und andere Agenten die **Arbeitsvereinbarungen, Qu
 
 ## Verbindliche Einstiege
 - [AGENTS.md](../../AGENTS.md): zentrale Repository-Regeln für Coding-Agenten.
-- [Autonomer Entwicklungsagent](../AUTONOMOUS_DEVELOPMENT_AGENT.md): historischer Grundauftrag; der aktuelle stündliche Reinigungsauftrag hat bis zur erneuten Freigabe Vorrang.
+- [Autonomer Entwicklungsagent](../AUTONOMOUS_DEVELOPMENT_AGENT.md): historischer Grundauftrag; keine wiederkehrende Ausführung ohne tatsächlich eingerichtete Automation oder ausdrücklich gestarteten Agentenlauf.
 - [Chat-/Agentenübergabe](../CHAT_START_HERE.md): Einstieg ohne lange Chat-Historie.
 - [Entwicklungsplan](../DEVELOPMENT_PLAN.md): Aufgaben, Prioritäten, Risiken.
 - [Projektstatus](../PROJECT_STATUS.md): datierter aktueller Stand.
