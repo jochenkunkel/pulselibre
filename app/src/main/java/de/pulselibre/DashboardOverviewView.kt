@@ -41,8 +41,6 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
         removeAllViews()
         stepGoal = metrics.firstOrNull { it.title == "Schrittziel" }?.value?.toIntOrNull()
         val overview = dashboardOverview(metrics)
-        addView(label("Deine Messwerte · lokal gespeichert", 12f, muted),
-            LayoutParams(-1, -2).apply { bottomMargin = dp(12) })
         addCardPair(overview.vitalSigns) { metric ->
             if (metric.title == "Herzfrequenz") pulseCard(metric, activity)
             else metricCard(metric, palette.oxygen)
@@ -89,11 +87,32 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
             stepBarsTarget = ::showSteps
             if (cachedStepSeries != null) showSteps(cachedStepSeries)
             if (cachedStepSeries == null || System.currentTimeMillis() - cachedStepAt > STEP_CACHE_MS) loadStepSeries()
-            content.addView(header(metric))
-            content.addView(label(metric.value, 22f, ink, true))
-            val targetText = target?.let { "Tagesziel · ${integers.format(it)} Schritte" }
+            // Layout after design/step-tile-background-bars-mockup.svg: title row with a mint percent pill,
+            // big number with a smaller unit, thin goal bar, goal line.
+            val titleRow = LinearLayout(context).apply { orientation = HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
+            titleRow.addView(header(metric), LayoutParams(0, -2, 1f))
+            val percentText = progress?.let {
+                "≈ " + NumberFormat.getNumberInstance(Locale.GERMANY).apply { maximumFractionDigits = 0 }.format(it) + " %"
+            }
+            if (percentText != null) titleRow.addView(label(percentText, 13f, if (palette.dark) 0xFF0E3B33.toInt() else 0xFF0E5A49.toInt(), true).apply {
+                tag = "dashboard_step_percent"
+                gravity = Gravity.CENTER
+                setPadding(dp(12), dp(6), dp(12), dp(6))
+                background = GradientDrawable().apply { setColor(DesignTokens.MINT); cornerRadius = dp(16).toFloat() }
+                contentDescription = null
+            }, LayoutParams(-2, -2).apply { marginEnd = dp(34) })
+            content.addView(titleRow)
+            val big = android.text.SpannableString(count?.let { integers.format(it) + " Schritte" } ?: "Keine Messdaten")
+            if (count != null) {
+                val split = integers.format(count).length
+                big.setSpan(android.text.style.AbsoluteSizeSpan(38, true), 0, split, android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                big.setSpan(android.text.style.AbsoluteSizeSpan(16, true), split, big.length, android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                big.setSpan(android.text.style.ForegroundColorSpan(muted), split, big.length, android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            }
+            content.addView(label("", 22f, ink, true).apply { text = big; tag = "dashboard_step_value" },
+                LayoutParams(-1, -2).apply { topMargin = dp(10) })
+            val targetText = target?.let { "Ziel (Gerät): ${integers.format(it)} Schritte" }
                 ?: "Kein gültiges Geräte-Schrittziel verfügbar"
-            content.addView(label(targetText, 14f, muted))
             contentDescription = "${metric.title}. ${metric.value}. $targetText."
             if (progress != null) {
                 val percentValue = progress
@@ -101,15 +120,15 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
                     maximumFractionDigits = 1
                 }.format(progress)
                 contentDescription = "$contentDescription $percent % des Tagesziels."
-                content.addView(label("$percent % des Tagesziels", 14f, ink, true))
                 content.addView(android.widget.ProgressBar(context, null, android.R.attr.progressBarStyleHorizontal).apply {
                     tag = "dashboard_step_progress"
                     max = 1000
                     this.progress = (percentValue.coerceIn(0.0, 100.0) * 10).toInt()
                     progressTintList = android.content.res.ColorStateList.valueOf(palette.indicator)
                     importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
-                }, LayoutParams(-1, dp(12)))
+                }, LayoutParams(-1, dp(10)).apply { topMargin = dp(10) })
             }
+            content.addView(label(targetText, 13f, muted), LayoutParams(-1, -2).apply { topMargin = dp(6) })
             content.addView(trendNote, LayoutParams(-1, -2).apply { topMargin = dp(4) })
         }
     }

@@ -111,8 +111,8 @@ class DashboardOverviewViewTest {
             val card = cards(view).single { it.tag == "dashboard_metric_Schritte heute" }
             val labels = descendants(card).filterIsInstance<android.widget.TextView>().map { it.text.toString() }
             assertTrue("136 Schritte" in labels)
-            assertTrue("Tagesziel · 9.330 Schritte" in labels)
-            assertTrue("1,5 % des Tagesziels" in labels)
+            assertTrue("Ziel (Gerät): 9.330 Schritte" in labels)
+            assertTrue("≈ 1 %" in labels)
             assertEquals(1, descendants(view).count { it.tag == "dashboard_step_progress" })
         }
     }
