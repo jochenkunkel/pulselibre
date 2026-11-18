@@ -37,7 +37,7 @@ Diese Datei gilt repositoryweit. **GitHub ist die verbindliche, versionierte Wis
 
 - Android-App `de.pulselibre`; JDK 21 im CI, Gradle 8.13, Kotlin/JVM-Bytecode-Ziel 17, Android SDK 35. Gradle-Wrapper laut README nicht vorhanden.
 - Schnellprüfung: `gradle :app:testDebugUnitTest :app:assembleDebug`; Python-HCI-Tests: `python3 -m unittest discover -s tools -p 'test_*.py' -v`.
-- Vollprüfung: `gradle :app:lintDebug :app:assembleDebugAndroidTest` plus API-35-Emulator. Die aktuelle `.github/workflows/android.yml` führt Full-Gates bei `v*`-Tags oder manuell mit `full_tests=true` aus; gewöhnliche Pushes/PRs erhalten nur den schnellen CI-Gate. Ein grüner schneller CI-Lauf ist **keine** vollständige Installationsfreigabe.
+- Vollprüfung: `gradle :app:lintDebug :app:assembleDebugAndroidTest` plus API-35-Emulator. Die am 18.11.2026 geprüfte `.github/workflows/android.yml` startet **ausschließlich manuell** (`workflow_dispatch`). Ein Schnelllauf führt Python-HCI- und JVM-Tests sowie den Debug-Build aus; mit `full_tests=true` kommen Lint, Instrumentation-APK und API-35-Emulator hinzu. **Pushes, PRs und Tags lösen diesen Workflow derzeit nicht automatisch aus.** Ein grüner schneller CI-Lauf ist **keine** vollständige Installationsfreigabe.
 - Signierte Update-APK nur bei korrekt konfigurierten Secrets und nach überprüfter Zertifikat-/Versionskontinuität; keine Secrets anzeigen. Hardwaretests ausschließlich nach expliziter Zustimmung und mit klaren Stop-Kriterien.
 
 ## Wo Entscheidungen stehen
