@@ -217,6 +217,12 @@ class HistoryOverviewView(
         if (points.isEmpty()) {
             card.addView(label("Keine Messdaten in diesem Zeitraum", 14f, palette.muted),
                 LayoutParams(-1, -2).apply { topMargin = dp(18); bottomMargin = dp(18) })
+            // The explanatory caption stays even without data (consistent per card, see #182).
+            card.addView(label(
+                "Zeitachse: Telefonzeit · Punkt: Median · Ring: Mittelwert (bei mehreren Werten) · Linie: Min–Max · Lücken: keine Messdaten",
+                11f, palette.muted
+            ).apply { tag = "history_chart_legend"; importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_YES },
+                LayoutParams(-1, -2).apply { topMargin = dp(8) })
         } else {
             // #219: switch between the existing points view and the density ("Verteilung") view.
             val scatter = HistoryScatterChartView(context, buckets, points.size, snapshot.start, snapshot.end,
