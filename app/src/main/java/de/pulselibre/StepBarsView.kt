@@ -11,9 +11,11 @@ import android.view.View
  * No axes, numbers or legend; unobserved intervals draw nothing. The tile itself carries the accessible summary.
  */
 internal class StepBarsView(context: Context, barColor: Int) : View(context) {
-    private val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = barColor; alpha = 84 } // ≈ 33 %
-    private val approxPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = barColor; alpha = 60; style = Paint.Style.STROKE
+    // Explicit `it.alpha` (Paint, Int 0..255): inside `apply` in a View subclass, `alpha` can resolve to View.alpha
+    // (Float 0..1) and Lint flags it (Range) under newer Kotlin versions.
+    private val paint = Paint(Paint.ANTI_ALIAS_FLAG).also { it.color = barColor; it.alpha = 84 } // ≈ 33 %
+    private val approxPaint = Paint(Paint.ANTI_ALIAS_FLAG).also {
+        it.color = barColor; it.alpha = 60; it.style = Paint.Style.STROKE
     }
     private val rect = RectF()
     private var series: StepIntervals.Series? = null
