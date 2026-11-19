@@ -251,7 +251,10 @@ class ExportActivity : AppCompatActivity() {
             }
         }
         panel.addView(exportButton)
-        panel.addView(label("🔒  Nur auf deinem Gerät · Keine Cloud · Keine Anmeldung", 12f, muted),
+        panel.addView(label("Nur auf deinem Gerät · Keine Cloud · Keine Anmeldung", 12f, muted).apply {
+            setCompoundDrawablesRelative(PlIcon.drawable(this@ExportActivity, PlIcon.STORAGE, 16, muted), null, null, null)
+            compoundDrawablePadding = (8 * resources.displayMetrics.density).toInt()
+        },
             LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(14) })
 
         val dataPanel = LinearLayout(this).apply {

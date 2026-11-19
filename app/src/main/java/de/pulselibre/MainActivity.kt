@@ -448,8 +448,9 @@ class MainActivity : AppCompatActivity() {
         overviewView(LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = android.view.Gravity.CENTER_VERTICAL
-            addView(TextView(this@MainActivity).apply {
-                text = "📡"; textSize = 15f; gravity = android.view.Gravity.CENTER
+            addView(android.widget.ImageView(this@MainActivity).apply {
+                setImageDrawable(PlIcon.drawable(this@MainActivity, PlIcon.CIRQA_BAND, 20, android.graphics.Color.WHITE))
+                scaleType = android.widget.ImageView.ScaleType.CENTER
                 background = GradientDrawable().apply { shape = GradientDrawable.OVAL; setColor(DesignTokens.BRAND_PURPLE) }
                 importantForAccessibility = android.view.View.IMPORTANT_FOR_ACCESSIBILITY_NO
             }, LinearLayout.LayoutParams(dp(32), dp(32)).apply { marginEnd = dp(10) })

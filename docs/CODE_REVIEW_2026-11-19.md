@@ -33,3 +33,4 @@ Auf dem S25 stand nach einem App-Absturz „Datenbank aus Backup wiederhergestel
 - **#6:** ungenutzte `avatar()`/`bodyAvatar()` entfernt.
 - **#9:** Schlägt der automatische Start fehl, erscheint ein Hinweis (Toast) statt stillem Scheitern. Test am Band weiter offen.
 - Offen bewusst: #1/#168 (Emoji→Icon, größerer Umbau), #3, #5, #7, #8, #12, #13, CI-Billing.
+- **#1 teilweise (zu #168):** „Gesundheit · CIRQA“ (CIRQA_BAND, weiß auf Violett), Verlauf-Datumsknopf (CALENDAR) und Datenschutzzeile im Daten-Tab (STORAGE) nutzen jetzt `PlIcon`. Emulator-Sichtprüfung der Übersicht ok. **Offen:** Profilkarte (Person/Größe/Gewicht/Alter/BMI) – dafür fehlen passende Icons im Set v1, es braucht neue Entwürfe; Info-Dialogzeilen und Statusglyphen.
