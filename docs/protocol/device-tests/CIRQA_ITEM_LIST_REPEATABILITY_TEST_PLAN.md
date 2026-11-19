@@ -125,6 +125,18 @@ Registrierung nicht grundsätzlich verhindert; ein transienter Konflikt als
 Erklärung für Versuch 8 ist damit nicht ausgeschlossen. Gemeinsamer Zähler:
 13/15.
 
+Danach wurde in Garmin Connect „Gerät synchronisieren“ ausgelöst. Im Anschluss
+lieferte Lauf 14 zwei Listen mit je 25 unveränderten UID-/Metadatenpaaren;
+Lauf 15 lieferte zwei Listen mit je 26 unveränderten Paaren. Beide Läufe
+hatten 0 geändert, neu, fehlend oder doppelt und keine MLR-Chunks/-Bytes,
+Datei-Pulls oder Importe. Der sitzungsübergreifende Verlauf 27 → 25 → 26
+zeigt, dass der Listenbestand nicht stabil blieb; ein kausaler Effekt der
+Connect-Synchronisierung lässt sich daraus nicht isolieren. Auch die
+geräte-seitige Wirkung des jeweils gesendeten `sync_request` bleibt als
+Störfaktor bestehen. Das gemeinsame Limit von 15 bestätigten Läufen ist
+ausgeschöpft; keine weiteren Live-Läufe ohne neues, separat bestätigtes
+Versuchsbudget.
+
 ## Separater Folgeversuch nach Transport-ACK ohne Item-List-Antwort
 
 Die ersten direkten Item-List-Anfragen erhielten einen CRC-geprüften
