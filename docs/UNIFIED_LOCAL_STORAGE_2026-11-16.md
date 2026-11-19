@@ -4,7 +4,7 @@ Stand: 2026-11-18. Der Realtime-/Dashboardpfad und FIT-Historienpfad benutzen
 jetzt dieselbe kanonische DB, während die alte Historien-DB als Übergangsquelle
 erhalten bleibt:
 
-- `cirqa_measurements.db` / `CirqaDatabase` (Schema v4) speichert
+- `cirqa_measurements.db` / `CirqaDatabase` (Schema v5) speichert
   Realtime-Ereignisse sowie normalisierte FIT-Beobachtungen, Cursor,
   Quellmetadaten, Feldprovenienz und ausgewählte FIT-`device_info`-Metadaten.
   V25-FIT-Dateien schreiben nach einem verifizierten Kopierschritt pro Datei
@@ -42,7 +42,7 @@ bleiben verfügbar.
 
 ## Grenzen
 
-Die FIT-Originalbytes bleiben separat und werden nicht in Backup v4 kopiert;
+Die FIT-/Raw-Originalbytes bleiben separat und werden nicht in Backup v5 kopiert;
 Backup enthält SHA-/Dateimetadaten, Feldherkunft und privacy-gefilterte
 FIT-`device_info`-Felder. Seriennummern und Geräteindizes werden ausgelassen.
 Dashboard-Repositories

@@ -24,7 +24,7 @@ import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
 
 private const val BACKUP_FORMAT = "de.pulselibre.local-database-backup"
-private const val BACKUP_VERSION = 4
+private const val BACKUP_VERSION = 5
 private const val MAX_ARCHIVE_BYTES = 128L * 1024L * 1024L
 private const val MAX_ENTRY_BYTES = 120L * 1024L * 1024L
 private const val MAX_LINE_BYTES = 2 * 1024 * 1024
@@ -40,6 +40,7 @@ private const val CANONICAL_CURSORS_ENTRY = "canonical_sync_cursors.jsonl"
 private const val CANONICAL_FIT_SOURCES_ENTRY = "canonical_fit_sources.jsonl"
 private const val CANONICAL_FIT_PROVENANCE_ENTRY = "canonical_fit_observation_provenance.jsonl"
 private const val CANONICAL_DEVICE_METADATA_ENTRY = "canonical_fit_device_metadata.jsonl"
+private const val RAW_DEVICE_METADATA_ENTRY = "raw_device_metadata.jsonl"
 private const val MANIFEST_ENTRY = "manifest.json"
 private val BACKUP_V1_ENTRIES = setOf(EVENTS_ENTRY, READINGS_ENTRY, CURSORS_ENTRY)
 private val BACKUP_V2_ENTRIES =
@@ -49,6 +50,7 @@ private val BACKUP_V3_ENTRIES = BACKUP_V2_ENTRIES + setOf(
     CANONICAL_FIT_SOURCES_ENTRY, CANONICAL_FIT_PROVENANCE_ENTRY
 )
 private val BACKUP_V4_ENTRIES = BACKUP_V3_ENTRIES + CANONICAL_DEVICE_METADATA_ENTRY
+private val BACKUP_V5_ENTRIES = BACKUP_V4_ENTRIES + RAW_DEVICE_METADATA_ENTRY
 
 data class DatabaseBackupReport(
     val createdAt: String,
@@ -61,7 +63,8 @@ data class DatabaseBackupReport(
     val canonicalSyncCursors: Long = 0,
     val canonicalFitSources: Long = 0,
     val canonicalFitProvenance: Long = 0,
-    val canonicalDeviceMetadata: Long = 0
+    val canonicalDeviceMetadata: Long = 0,
+    val rawDeviceMetadata: Long = 0
 )
 
 /** A validated backup staged privately before any local database can be changed. */
@@ -78,7 +81,8 @@ class PreparedDatabaseRestore internal constructor(
     val canonicalSyncCursors: Long,
     val canonicalFitSources: Long,
     val canonicalFitProvenance: Long,
-    val canonicalDeviceMetadata: Long
+    val canonicalDeviceMetadata: Long,
+    val rawDeviceMetadata: Long
 ) : Closeable {
     override fun close() { directory.deleteRecursively() }
 }
@@ -124,7 +128,8 @@ object DatabaseBackup {
                 1 -> BACKUP_V1_ENTRIES
                 2 -> BACKUP_V2_ENTRIES
                 3 -> BACKUP_V3_ENTRIES
-                BACKUP_VERSION -> BACKUP_V4_ENTRIES
+                4 -> BACKUP_V4_ENTRIES
+                BACKUP_VERSION -> BACKUP_V5_ENTRIES
                 else -> throw IllegalArgumentException("Backup-Version wird nicht unterstützt")
             }
             require(extracted.keys == dataEntries + MANIFEST_ENTRY) {
@@ -159,6 +164,9 @@ object DatabaseBackup {
             if (version >= 4) {
                 validateDeviceMetadataReferences(directory)
             }
+            if (version >= 5) {
+                validateRawDeviceMetadataReferences(directory)
+            }
             return PreparedDatabaseRestore(
                 directory = directory,
                 createdAt = createdAt,
@@ -172,7 +180,8 @@ object DatabaseBackup {
                 canonicalSyncCursors = recordCounts[CANONICAL_CURSORS_ENTRY] ?: 0,
                 canonicalFitSources = recordCounts[CANONICAL_FIT_SOURCES_ENTRY] ?: 0,
                 canonicalFitProvenance = recordCounts[CANONICAL_FIT_PROVENANCE_ENTRY] ?: 0,
-                canonicalDeviceMetadata = recordCounts[CANONICAL_DEVICE_METADATA_ENTRY] ?: 0
+                canonicalDeviceMetadata = recordCounts[CANONICAL_DEVICE_METADATA_ENTRY] ?: 0,
+                rawDeviceMetadata = recordCounts[RAW_DEVICE_METADATA_ENTRY] ?: 0
             )
         } catch (error: Exception) {
             directory.deleteRecursively()
@@ -214,7 +223,10 @@ object DatabaseBackup {
                                 File(plan.directory, CANONICAL_CURSORS_ENTRY).bufferedReader(Charsets.UTF_8).use { canonicalCursors ->
                                     File(plan.directory, CANONICAL_FIT_SOURCES_ENTRY).bufferedReader(Charsets.UTF_8).use { canonicalSources ->
                                         File(plan.directory, CANONICAL_FIT_PROVENANCE_ENTRY).bufferedReader(Charsets.UTF_8).use { canonicalProvenance ->
-                                            val replace: (Sequence<FitHistoricalObservations.DeviceMetadata>) -> Unit = { metadata ->
+                                            val replace: (
+                                                Sequence<FitHistoricalObservations.DeviceMetadata>,
+                                                Sequence<RawDeviceMetadataRecord>
+                                            ) -> Unit = { metadata, rawMetadata ->
                                                 database.replaceAllStoredRows(
                                                     eventReader.lineSequence(),
                                                     readingReader.lineSequence().map(::parseReading),
@@ -226,16 +238,30 @@ object DatabaseBackup {
                                                     canonicalSources.lineSequence().map(::parseFitSource),
                                                     canonicalProvenance.lineSequence().map(::parseFitProvenance),
                                                     canonicalDeviceMetadata = metadata,
+                                                    canonicalRawDeviceMetadata = rawMetadata,
                                                     markHistoricalCopyComplete = true
                                                 )
                                             }
                                             if (plan.version >= 4) {
                                                 File(plan.directory, CANONICAL_DEVICE_METADATA_ENTRY)
                                                     .bufferedReader(Charsets.UTF_8).use { metadataReader ->
-                                                        replace(metadataReader.lineSequence().map(::parseDeviceMetadata))
+                                                        if (plan.version >= 5) {
+                                                            File(plan.directory, RAW_DEVICE_METADATA_ENTRY)
+                                                                .bufferedReader(Charsets.UTF_8).use { rawReader ->
+                                                                    replace(
+                                                                        metadataReader.lineSequence().map(::parseDeviceMetadata),
+                                                                        rawReader.lineSequence().map(::parseRawDeviceMetadata)
+                                                                    )
+                                                                }
+                                                        } else {
+                                                            replace(
+                                                                metadataReader.lineSequence().map(::parseDeviceMetadata),
+                                                                emptySequence()
+                                                            )
+                                                        }
                                                     }
                                             } else {
-                                                replace(emptySequence())
+                                                replace(emptySequence(), emptySequence())
                                             }
                                         }
                                     }
@@ -266,6 +292,7 @@ object DatabaseBackup {
         var canonicalFitSourceCount = 0L
         var canonicalFitProvenanceCount = 0L
         var canonicalDeviceMetadataCount = 0L
+        var rawDeviceMetadataCount = 0L
         ZipOutputStream(BufferedOutputStream(FileOutputStream(target))).use { zip ->
             CirqaDatabase(context).use { database ->
                 database.ensureHistoricalStoreCopied()
@@ -428,10 +455,31 @@ object DatabaseBackup {
                     }
                     canonicalDeviceMetadataCount = canonicalDeviceMetadata.records
                     metadata.put(CANONICAL_DEVICE_METADATA_ENTRY, entryMetadata(canonicalDeviceMetadata))
+                    val rawDeviceMetadata = writeJsonLines(zip, RAW_DEVICE_METADATA_ENTRY) { emit ->
+                        db.rawQuery(
+                            """SELECT source_sha256, file_bytes, verified_at_ms, parser_version,
+                                      software_version, mass_storage_mode, transfer_direction_count
+                               FROM main.raw_device_metadata ORDER BY verified_at_ms, source_sha256""",
+                            null
+                        ).use { rows ->
+                            while (rows.moveToNext()) emit(encodeRawDeviceMetadata(RawDeviceMetadataRecord(
+                                sourceSha256 = rows.getString(0),
+                                fileBytes = rows.getLong(1),
+                                verifiedAtEpochMillis = rows.getLong(2),
+                                parserVersion = rows.getString(3),
+                                softwareVersion = if (rows.isNull(4)) null else rows.getString(4),
+                                massStorageMode = if (rows.isNull(5)) null else rows.getInt(5) == 1,
+                                transferDirectionElementCount = rows.getInt(6)
+                            )))
+                        }
+                    }
+                    rawDeviceMetadataCount = rawDeviceMetadata.records
+                    metadata.put(RAW_DEVICE_METADATA_ENTRY, entryMetadata(rawDeviceMetadata))
                     require(
                         events.bytes + readings.bytes + cursors.bytes + sources.bytes + provenance.bytes +
                             canonicalReadings.bytes + canonicalCursors.bytes + canonicalSources.bytes +
-                            canonicalProvenance.bytes + canonicalDeviceMetadata.bytes <= MAX_ARCHIVE_BYTES
+                            canonicalProvenance.bytes + canonicalDeviceMetadata.bytes +
+                            rawDeviceMetadata.bytes <= MAX_ARCHIVE_BYTES
                     ) {
                         "Lokale Datenbank ist zu groß für ein Backup"
                     }
@@ -452,7 +500,7 @@ object DatabaseBackup {
         return DatabaseBackupReport(
             now, eventCount, readingCount, cursorCount, fitSourceCount, fitProvenanceCount,
             canonicalReadingCount, canonicalCursorCount, canonicalFitSourceCount,
-            canonicalFitProvenanceCount, canonicalDeviceMetadataCount
+            canonicalFitProvenanceCount, canonicalDeviceMetadataCount, rawDeviceMetadataCount
         )
     }
 
@@ -485,7 +533,7 @@ object DatabaseBackup {
         .put("sha256", value.sha256)
 
     private fun extractArchive(source: InputStream, directory: File): Map<String, File> {
-        val allowed = BACKUP_V4_ENTRIES + MANIFEST_ENTRY
+        val allowed = BACKUP_V5_ENTRIES + MANIFEST_ENTRY
         val files = linkedMapOf<String, File>()
         var totalBytes = 0L
         ZipInputStream(BufferedInputStream(source)).use { zip ->
@@ -535,6 +583,7 @@ object DatabaseBackup {
                     CANONICAL_FIT_SOURCES_ENTRY -> parseFitSource(line)
                     CANONICAL_FIT_PROVENANCE_ENTRY -> parseFitProvenance(line)
                     CANONICAL_DEVICE_METADATA_ENTRY -> parseDeviceMetadata(line)
+                    RAW_DEVICE_METADATA_ENTRY -> parseRawDeviceMetadata(line)
                 }
                 count++
                 require(count <= MAX_RECORDS) { "Zu viele Einträge in $name" }
@@ -659,6 +708,30 @@ object DatabaseBackup {
         }
     }
 
+    private fun validateRawDeviceMetadataReferences(directory: File) {
+        val stagingFile = File(directory, ".raw-device-metadata-validation.db")
+        val db = SQLiteDatabase.openOrCreateDatabase(stagingFile, null)
+        try {
+            db.execSQL("CREATE TABLE metadata(source_sha256 TEXT PRIMARY KEY NOT NULL)")
+            db.beginTransaction()
+            try {
+                File(directory, RAW_DEVICE_METADATA_ENTRY).bufferedReader(Charsets.UTF_8).useLines { lines ->
+                    lines.forEach { line ->
+                        val item = parseRawDeviceMetadata(line)
+                        db.execSQL("INSERT INTO metadata(source_sha256) VALUES(?)", arrayOf(item.sourceSha256))
+                    }
+                }
+                db.setTransactionSuccessful()
+            } finally {
+                db.endTransaction()
+            }
+        } finally {
+            db.close()
+            stagingFile.delete()
+            File(stagingFile.path + "-journal").delete()
+        }
+    }
+
     private fun parseReading(line: String): RawExportRecord {
         val item = JSONObject(line)
         val record = RawExportRecord(
@@ -751,6 +824,25 @@ object DatabaseBackup {
         return metadata
     }
 
+    private fun parseRawDeviceMetadata(line: String): RawDeviceMetadataRecord {
+        val item = JSONObject(line)
+        val metadata = RawDeviceMetadataRecord(
+            sourceSha256 = item.getString("source_sha256"),
+            fileBytes = item.getLong("file_bytes"),
+            verifiedAtEpochMillis = item.getLong("verified_at_ms"),
+            parserVersion = item.getString("parser_version"),
+            softwareVersion = if (!item.has("software_version") || item.isNull("software_version"))
+                null else item.getString("software_version"),
+            massStorageMode = if (!item.has("mass_storage_mode") || item.isNull("mass_storage_mode"))
+                null else item.getBoolean("mass_storage_mode"),
+            transferDirectionElementCount = item.getInt("transfer_direction_count")
+        )
+        require(CirqaDatabase.isValidRawDeviceMetadata(metadata)) {
+            "Ungültige Raw-Gerätemetadaten im Backup"
+        }
+        return metadata
+    }
+
     private fun encodeReading(record: RawExportRecord): String = JSONObject()
         .put("device_id", record.deviceId)
         .put("metric", record.metric)
@@ -799,6 +891,16 @@ object DatabaseBackup {
         .put("battery_voltage_volts", value.batteryVoltageVolts ?: JSONObject.NULL)
         .put("battery_status_code", value.batteryStatusCode ?: JSONObject.NULL)
         .put("battery_level_percent", value.batteryLevelPercent ?: JSONObject.NULL)
+        .toString()
+
+    private fun encodeRawDeviceMetadata(value: RawDeviceMetadataRecord): String = JSONObject()
+        .put("source_sha256", value.sourceSha256)
+        .put("file_bytes", value.fileBytes)
+        .put("verified_at_ms", value.verifiedAtEpochMillis)
+        .put("parser_version", value.parserVersion)
+        .put("software_version", value.softwareVersion ?: JSONObject.NULL)
+        .put("mass_storage_mode", value.massStorageMode ?: JSONObject.NULL)
+        .put("transfer_direction_count", value.transferDirectionElementCount)
         .toString()
 
     private fun sha256(file: File): String {

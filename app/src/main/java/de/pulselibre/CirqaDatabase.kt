@@ -13,7 +13,7 @@ import java.security.MessageDigest
  * UNIQUE SHA-256 of each full line makes repeated imports idempotent.
  */
 class CirqaDatabase(private val contextRef: Context) :
-    SQLiteOpenHelper(contextRef, "cirqa_measurements.db", null, 4), FitObservationStore {
+    SQLiteOpenHelper(contextRef, "cirqa_measurements.db", null, 5), FitObservationStore {
 
     override fun onConfigure(db: SQLiteDatabase) {
         super.onConfigure(db)
@@ -35,10 +35,11 @@ class CirqaDatabase(private val contextRef: Context) :
         db.execSQL("CREATE INDEX events_kind_time ON events(kind, received_at_utc)")
         createHistoricalSchema(db)
         createFitDeviceMetadataSchema(db)
+        createRawDeviceMetadataSchema(db)
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-        require(oldVersion in 1..3 && newVersion == 4)
+        require(oldVersion in 1..4 && newVersion == 5)
         if (oldVersion <= 2) {
             if (oldVersion == 1) {
             db.execSQL("ALTER TABLE events ADD COLUMN dashboard_time TEXT")
@@ -59,9 +60,10 @@ class CirqaDatabase(private val contextRef: Context) :
             }
             createHistoricalSchema(db)
             createFitDeviceMetadataSchema(db)
-        } else {
+        } else if (oldVersion == 3) {
             createFitDeviceMetadataSchema(db)
         }
+        createRawDeviceMetadataSchema(db)
     }
 
     private fun createHistoricalSchema(db: SQLiteDatabase) {
@@ -129,6 +131,19 @@ class CirqaDatabase(private val contextRef: Context) :
             PRIMARY KEY(source_sha256, record_ordinal)
         )""")
         db.execSQL("CREATE INDEX fit_device_metadata_by_time ON fit_device_metadata(observed_at_ms)")
+    }
+
+    private fun createRawDeviceMetadataSchema(db: SQLiteDatabase) {
+        db.execSQL("""CREATE TABLE raw_device_metadata (
+            source_sha256 TEXT PRIMARY KEY NOT NULL CHECK(length(source_sha256) = 64),
+            file_bytes INTEGER NOT NULL CHECK(file_bytes > 0),
+            verified_at_ms INTEGER NOT NULL CHECK(verified_at_ms >= 0),
+            parser_version TEXT NOT NULL CHECK(length(parser_version) BETWEEN 1 AND 32),
+            software_version TEXT CHECK(software_version IS NULL OR length(software_version) BETWEEN 1 AND 128),
+            mass_storage_mode INTEGER CHECK(mass_storage_mode IS NULL OR mass_storage_mode IN (0, 1)),
+            transfer_direction_count INTEGER NOT NULL CHECK(transfer_direction_count BETWEEN 0 AND 10000)
+        )""")
+        db.execSQL("CREATE INDEX raw_device_metadata_by_verified_time ON raw_device_metadata(verified_at_ms)")
     }
 
     private fun createDashboardIndex(db: SQLiteDatabase) {
@@ -385,6 +400,63 @@ class CirqaDatabase(private val contextRef: Context) :
             }
         }
 
+    /** Persist metadata from verified Device XML only; filenames, paths and XML identifiers are excluded. */
+    @Synchronized fun storeRawDeviceMetadata(record: RawDeviceMetadataRecord) {
+        require(isValidRawDeviceMetadata(record)) { "Invalid whitelisted raw device metadata" }
+        val db = writableDatabase
+        db.beginTransaction()
+        try {
+            db.execSQL(
+                """INSERT OR IGNORE INTO raw_device_metadata
+                   (source_sha256, file_bytes, verified_at_ms, parser_version, software_version,
+                    mass_storage_mode, transfer_direction_count)
+                   VALUES (?, ?, ?, ?, ?, ?, ?)""",
+                arrayOf(
+                    record.sourceSha256, record.fileBytes, record.verifiedAtEpochMillis, record.parserVersion,
+                    record.softwareVersion, record.massStorageMode?.let { if (it) 1 else 0 },
+                    record.transferDirectionElementCount
+                )
+            )
+            db.rawQuery(
+                """SELECT file_bytes, parser_version, software_version, mass_storage_mode,
+                          transfer_direction_count
+                   FROM raw_device_metadata WHERE source_sha256 = ?""",
+                arrayOf(record.sourceSha256)
+            ).use { row ->
+                check(row.moveToFirst() && row.getLong(0) == record.fileBytes &&
+                    row.getString(1) == record.parserVersion &&
+                    nullableStringMatches(row, 2, record.softwareVersion) &&
+                    nullableBooleanMatches(row, 3, record.massStorageMode) &&
+                    row.getInt(4) == record.transferDirectionElementCount) {
+                    "Raw metadata conflicts with previously indexed content hash"
+                }
+            }
+            db.setTransactionSuccessful()
+        } finally {
+            db.endTransaction()
+        }
+    }
+
+    fun rawDeviceMetadata(): List<RawDeviceMetadataRecord> =
+        readableDatabase.rawQuery(
+            """SELECT source_sha256, file_bytes, verified_at_ms, parser_version, software_version,
+                      mass_storage_mode, transfer_direction_count
+               FROM raw_device_metadata ORDER BY verified_at_ms, source_sha256""",
+            null
+        ).use { rows ->
+            buildList {
+                while (rows.moveToNext()) add(RawDeviceMetadataRecord(
+                    sourceSha256 = rows.getString(0),
+                    fileBytes = rows.getLong(1),
+                    verifiedAtEpochMillis = rows.getLong(2),
+                    parserVersion = rows.getString(3),
+                    softwareVersion = if (rows.isNull(4)) null else rows.getString(4),
+                    massStorageMode = if (rows.isNull(5)) null else rows.getInt(5) == 1,
+                    transferDirectionElementCount = rows.getInt(6)
+                ))
+            }
+        }
+
     /** Store a single locally generated JSONL event immediately, without a second BLE path. */
     @Synchronized fun insertLine(line: String): Boolean {
         return insertLine(writableDatabase, line)
@@ -510,6 +582,7 @@ class CirqaDatabase(private val contextRef: Context) :
         canonicalFitSources: Sequence<StoredFitSource> = emptySequence(),
         canonicalFitProvenance: Sequence<StoredFitProvenance> = emptySequence(),
         canonicalDeviceMetadata: Sequence<FitHistoricalObservations.DeviceMetadata> = emptySequence(),
+        canonicalRawDeviceMetadata: Sequence<RawDeviceMetadataRecord> = emptySequence(),
         markHistoricalCopyComplete: Boolean = false
     ) = withLegacyDatabase { db ->
         db.beginTransaction()
@@ -517,6 +590,7 @@ class CirqaDatabase(private val contextRef: Context) :
             db.execSQL("DELETE FROM main.events")
             db.execSQL("DELETE FROM main.fit_observation_provenance")
             db.execSQL("DELETE FROM main.fit_device_metadata")
+            db.execSQL("DELETE FROM main.raw_device_metadata")
             db.execSQL("DELETE FROM main.observations")
             db.execSQL("DELETE FROM main.fit_sources")
             db.execSQL("DELETE FROM main.sync_cursors")
@@ -710,6 +784,27 @@ class CirqaDatabase(private val contextRef: Context) :
                 deviceMetadataInsert.executeInsert()
             }
 
+            val rawDeviceMetadataInsert = db.compileStatement(
+                """INSERT INTO main.raw_device_metadata
+                   (source_sha256, file_bytes, verified_at_ms, parser_version, software_version,
+                    mass_storage_mode, transfer_direction_count)
+                   VALUES(?, ?, ?, ?, ?, ?, ?)"""
+            )
+            canonicalRawDeviceMetadata.forEach { item ->
+                require(isValidRawDeviceMetadata(item)) { "Ungültige Raw-Gerätemetadaten im Backup" }
+                rawDeviceMetadataInsert.clearBindings()
+                rawDeviceMetadataInsert.bindString(1, item.sourceSha256)
+                rawDeviceMetadataInsert.bindLong(2, item.fileBytes)
+                rawDeviceMetadataInsert.bindLong(3, item.verifiedAtEpochMillis)
+                rawDeviceMetadataInsert.bindString(4, item.parserVersion)
+                if (item.softwareVersion == null) rawDeviceMetadataInsert.bindNull(5)
+                else rawDeviceMetadataInsert.bindString(5, item.softwareVersion)
+                if (item.massStorageMode == null) rawDeviceMetadataInsert.bindNull(6)
+                else rawDeviceMetadataInsert.bindLong(6, if (item.massStorageMode) 1 else 0)
+                rawDeviceMetadataInsert.bindLong(7, item.transferDirectionElementCount.toLong())
+                rawDeviceMetadataInsert.executeInsert()
+            }
+
             val canonicalProvenanceInsert = db.compileStatement(
                 """INSERT INTO main.fit_observation_provenance
                    (sample_id, device_id, metric, measured_at_ms, source_sha256, record_ordinal,
@@ -811,6 +906,22 @@ class CirqaDatabase(private val contextRef: Context) :
                 (item.batteryVoltageVolts == null || item.batteryVoltageVolts.isFinite() && item.batteryVoltageVolts in 0.0..20.0) &&
                 (item.batteryStatusCode == null || item.batteryStatusCode in 0..254) &&
                 (item.batteryLevelPercent == null || item.batteryLevelPercent in 0..100)
+
+        internal fun isValidRawDeviceMetadata(item: RawDeviceMetadataRecord): Boolean =
+            item.sourceSha256.matches(Regex("[0-9a-f]{64}")) && item.fileBytes > 0 &&
+                item.verifiedAtEpochMillis >= 0 &&
+                item.parserVersion.matches(Regex("[A-Za-z0-9._+-]{1,32}")) &&
+                (item.softwareVersion == null ||
+                    item.softwareVersion.matches(Regex("[A-Za-z0-9._+-]{1,128}"))) &&
+                item.transferDirectionElementCount in 0..10_000
+
+        private fun nullableStringMatches(cursor: android.database.Cursor, column: Int, value: String?): Boolean =
+            if (value == null) cursor.isNull(column)
+            else !cursor.isNull(column) && cursor.getString(column) == value
+
+        private fun nullableBooleanMatches(cursor: android.database.Cursor, column: Int, value: Boolean?): Boolean =
+            if (value == null) cursor.isNull(column)
+            else !cursor.isNull(column) && (cursor.getInt(column) == 1) == value
 
         private fun lineSha256(line: String): String = MessageDigest.getInstance("SHA-256")
             .digest(line.toByteArray(Charsets.UTF_8))
