@@ -50,7 +50,7 @@ class HeaderAndDeviceCleanupTest {
             scenario.onActivity { activity ->
                 val root = activity.findViewById<View>(android.R.id.content)
                 assertNull("Testlabor-Reiter darf nicht sichtbar sein", root.findViewWithTag<View>("navigation_item_Testlabor"))
-                listOf("Übersicht", "Verlauf", "Gerät", "Daten").forEach {
+                listOf("Übersicht", "Verlauf", "Analysen", "Gerät", "Daten").forEach {
                     assertNotNull("Reiter $it fehlt", root.findViewWithTag<View>("navigation_item_$it"))
                 }
             }

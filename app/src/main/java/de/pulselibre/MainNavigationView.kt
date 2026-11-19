@@ -16,11 +16,11 @@ internal class MainNavigationView(
     private val showMainTab: (Int) -> Unit = {}
 ) : LinearLayout(activity) {
     private val palette = AppPalette.of(activity)
-    private val labels = listOf("Übersicht", "Verlauf", "Gerät", "Testlabor", "Daten")
-    private val icons = listOf(PlIcon.OVERVIEW, PlIcon.HISTORY, PlIcon.DEVICE, PlIcon.TESTLAB, PlIcon.DATA)
+    private val labels = listOf("Übersicht", "Verlauf", "Gerät", "Testlabor", "Daten", "Analysen")
+    private val icons = listOf(PlIcon.OVERVIEW, PlIcon.HISTORY, PlIcon.DEVICE, PlIcon.TESTLAB, PlIcon.DATA, PlIcon.FITNESS)
     private var selectedTab = initialTab
     /** Tab indexes shown in the strip. The test laboratory (index 3) is no longer a visible tab (#172): it opens by a 3 s long press on the CIRQA heading. */
-    private val visibleTabs = listOf(0, 1, 2, 4)
+    private val visibleTabs = listOf(0, 1, 5, 2, 4)   // Übersicht, Verlauf, Analysen (#227), Gerät, Daten
     private fun dp(value: Int) = (value * resources.displayMetrics.density + 0.5f).toInt()
 
     init {
@@ -73,7 +73,7 @@ internal class MainNavigationView(
 
     private fun navigate(index: Int) {
         if (index == selectedTab) return
-        if (index < 3 && activity is MainActivity) {
+        if ((index < 3 || index == ANALYSEN) && activity is MainActivity) {
             showMainTab(index)
             return
         }
@@ -84,11 +84,13 @@ internal class MainNavigationView(
         }
         activity.startActivity(Intent(activity, destination).apply {
             addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
-            if (index < 3) putExtra(EXTRA_TAB, index)
+            if (index < 3 || index == ANALYSEN) putExtra(EXTRA_TAB, index)
         })
     }
 
     companion object {
         const val EXTRA_TAB = "de.pulselibre.MAIN_TAB"
+        /** Tab index of the main tab "Analysen" (#227); 3 stays the hidden test laboratory, 4 the data tab. */
+        const val ANALYSEN = 5
     }
 }

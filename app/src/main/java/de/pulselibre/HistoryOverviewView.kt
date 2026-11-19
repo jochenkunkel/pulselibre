@@ -165,7 +165,7 @@ class HistoryOverviewView(
         val resolution = HistoryResolution.forRange(snapshot.range)
         metricCard("Herzfrequenz", "bpm", snapshot.heartRate, snapshot, 240, palette.pulse, resolution)
         metricCard("Sauerstoffsättigung · SpO₂", "%", snapshot.oxygen, snapshot, 100, palette.oxygen, resolution)
-        addView(TrendCardView(context), LayoutParams(-1, -2).apply { topMargin = dp(12) })
+        // The scientific trend block now lives in the main tab "Analysen" (#227).
     }
 
     private fun metricCard(
