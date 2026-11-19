@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Hand-converted from design/icons/fitness-v1/activity-calendar.svg (#41); runtime colours via pl_icon_* so Dark/Light work. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp" android:height="24dp" android:viewportWidth="128" android:viewportHeight="128">
+    <path android:pathData="M28,23H100A13,13 0 0 1 113,36V101A13,13 0 0 1 100,114H28A13,13 0 0 1 15,101V36A13,13 0 0 1 28,23Z" android:strokeColor="@color/pl_icon_line" android:strokeWidth="6" android:strokeLineCap="round" android:strokeLineJoin="round" />
+    <path android:pathData="M15 48h98M39 13v22M89 13v22" android:strokeColor="@color/pl_icon_line" android:strokeWidth="6" android:strokeLineCap="round" android:strokeLineJoin="round" />
+    <path android:pathData="M31,60H40A4,4 0 0 1 44,64V73A4,4 0 0 1 40,77H31A4,4 0 0 1 27,73V64A4,4 0 0 1 31,60Z" android:fillColor="@color/pl_icon_fill" />
+    <path android:pathData="M59,60H68A4,4 0 0 1 72,64V73A4,4 0 0 1 68,77H59A4,4 0 0 1 55,73V64A4,4 0 0 1 59,60Z" android:fillColor="@color/pl_icon_fill" />
+    <path android:pathData="M87,60H96A4,4 0 0 1 100,64V73A4,4 0 0 1 96,77H87A4,4 0 0 1 83,73V64A4,4 0 0 1 87,60Z" android:fillColor="@color/pl_icon_fill" />
+    <path android:pathData="M31,86H40A4,4 0 0 1 44,90V99A4,4 0 0 1 40,103H31A4,4 0 0 1 27,99V90A4,4 0 0 1 31,86Z" android:fillColor="@color/pl_icon_fill" />
+    <path android:pathData="m58 94 6 6 13-17" android:strokeColor="@color/pl_icon_accent" android:strokeWidth="6" android:strokeLineCap="round" android:strokeLineJoin="round" />
+</vector>

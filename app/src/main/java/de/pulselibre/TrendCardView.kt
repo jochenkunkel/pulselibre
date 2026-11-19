@@ -208,7 +208,7 @@ internal class TrendCardView(context: Context) : LinearLayout(context) {
         val box = LinearLayout(context).apply { orientation = VERTICAL; tag = "resting_hero"; setPadding(0, dp(8), 0, dp(4)) }
         box.addView(LinearLayout(context).apply {
             orientation = HORIZONTAL; gravity = Gravity.CENTER_VERTICAL
-            addView(PlIcon.view(context, PlIcon.HEART, 22, palette.pulse), LayoutParams(dp(22), dp(22)).apply { marginEnd = dp(8) })
+            addView(PlIcon.view(context, PlIcon.RESTING_PULSE, 22), LayoutParams(dp(22), dp(22)).apply { marginEnd = dp(8) })
             addView(TextView(context).apply { text = "Ruhepuls · Entwicklung"; textSize = 14f; setTypeface(null, Typeface.BOLD); setTextColor(palette.ink) }, LayoutParams(0, -2, 1f))
         })
         val value = TextView(context).apply { textSize = 28f; setTypeface(null, Typeface.BOLD); setTextColor(palette.ink); tag = "resting_hero_value" }
@@ -241,7 +241,7 @@ internal class TrendCardView(context: Context) : LinearLayout(context) {
         box.addView(View(context).apply { setBackgroundColor(palette.track) }, LayoutParams(-1, dp(1)).apply { topMargin = dp(12); bottomMargin = dp(10) })
         box.addView(LinearLayout(context).apply {
             orientation = HORIZONTAL; gravity = Gravity.CENTER_VERTICAL
-            addView(PlIcon.view(context, PlIcon.DATA, 22, palette.accent), LayoutParams(dp(22), dp(22)).apply { marginEnd = dp(8) })
+            addView(PlIcon.view(context, PlIcon.COVERAGE, 22), LayoutParams(dp(22), dp(22)).apply { marginEnd = dp(8) })
             addView(TextView(context).apply { text = "Datenabdeckung"; textSize = 14f; setTypeface(null, Typeface.BOLD); setTextColor(palette.ink) }, LayoutParams(0, -2, 1f))
         })
         val rows = LinearLayout(context).apply { orientation = VERTICAL }
@@ -281,7 +281,7 @@ internal class TrendCardView(context: Context) : LinearLayout(context) {
         box.addView(View(context).apply { setBackgroundColor(palette.track) }, LayoutParams(-1, dp(1)).apply { topMargin = dp(12); bottomMargin = dp(10) })
         box.addView(LinearLayout(context).apply {
             orientation = HORIZONTAL; gravity = Gravity.CENTER_VERTICAL
-            addView(PlIcon.view(context, PlIcon.STEPS, 22, palette.indicator), LayoutParams(dp(22), dp(22)).apply { marginEnd = dp(8) })
+            addView(PlIcon.view(context, PlIcon.ACTIVITY_CALENDAR, 22), LayoutParams(dp(22), dp(22)).apply { marginEnd = dp(8) })
             addView(TextView(context).apply { text = "Aktivitäts-Atlas · Schritte"; textSize = 14f; setTypeface(null, Typeface.BOLD); setTextColor(palette.ink) }, LayoutParams(0, -2, 1f))
         })
         val summary = TextView(context).apply { textSize = 11f; setTextColor(palette.muted); setPadding(0, dp(4), 0, dp(6)); tag = "activity_atlas_summary" }
