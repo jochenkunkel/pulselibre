@@ -8,34 +8,23 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-java@v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6
         with:
           distribution: temurin
           java-version: '21'
-      - uses: gradle/actions/setup-gradle@v6
+      - uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6
         with:
           gradle-version: '9.6.0'
+      - name: Validate Java 21 transformation regression tests
+        run: python3 -m unittest discover -s tools -p 'test_java21_bytecode_experiment.py' -v
       - name: Apply experimental targets in runner only
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          path = Path("app/build.gradle.kts")
-          original = path.read_text()
-          assert 'JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17' in original
-          assert 'jvmTarget = "17"' in original
-          updated = original.replace(
-              'JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17',
-              'JavaVersion.VERSION_21; targetCompatibility = JavaVersion.VERSION_21'
-          ).replace('jvmTarget = "17"', 'jvmTarget = "21"')
-          path.write_text(updated)
-          print("Experiment only: Java source/target 21; Kotlin JVM target 21")
-          PY
+        run: python3 tools/java21_bytecode_experiment.py app/build.gradle.kts
       - name: Compile and run JVM tests with Java 21 bytecode targets
-        run: gradle :app:testDebugUnitTest :app:assembleDebug --stacktrace
+        run: bash .github/scripts/gradle-retry.sh :app:testDebugUnitTest :app:assembleDebug --stacktrace
       - name: Save failure diagnostics
         if: failure()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: java21-bytecode-experiment-diagnostics
           path: |
