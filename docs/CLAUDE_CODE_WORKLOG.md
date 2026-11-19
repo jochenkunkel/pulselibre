@@ -296,3 +296,8 @@ Noch sichtbar offen (P3): Nacht-Insights erste Spalte „22–6 Uhr / 22331 / We
 
 ## 2026-11-20 – #219 Fund am S25: Modus „Verteilung“ sprang zurück
 - Auf dem S25 (Build 1316) schaltete der Umschalter „Verteilung“ nicht dauerhaft um: Der Verlauf wird bei jedem neuen Messwert neu aufgebaut (Live-Polling), dabei ging der Modus verloren (im Emulatortest nicht aufgefallen, weil dort kein Live-Strom läuft). Fix: gewählter Modus je Karte bleibt im `HistoryOverviewView` erhalten; Test `densityModeSurvivesTheRerenderThatEveryNewReadingTriggers`.
+
+## 2026-11-20 – Hell + Schrift 1,3× am S25: zwei Fehler behoben
+- Kompakter Header (nach dem Scrollen) zeigte in **Hell** „PulsLibre“ und den Untertitel weiß auf dem hellen Seitenhintergrund (#179-Folgefehler, unleserlich) → Textfarben je nach Zustand/Theme (`palette.ink`/`muted` im kompakten Hell-Header). Test `compactHeaderTitleStaysReadableOnThePageBackground`.
+- Gerät: „3 Wiederverbindungen“ brach bei Schrift 1,3× mitten im Wort („Wiede/rverbindungen“) → Starts und Wiederverbindungen stehen jetzt in zwei Zeilen.
+- Sonst in Hell/1,3× gesehen und ok: Statusleiste, Gerät (Bandinformationen, Unbekannte-Felder-Hinweis), Verlauf mit Legende, Navigationsleiste.

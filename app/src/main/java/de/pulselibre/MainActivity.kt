@@ -211,7 +211,8 @@ class MainActivity : AppCompatActivity() {
             gravity = android.view.Gravity.CENTER_VERTICAL
         }
         headerRow.addView(PulseLogoView(this), LinearLayout.LayoutParams(dp(48), dp(48)).apply { marginEnd = dp(12) })
-        headerRow.addView(text("PulsLibre", 30f, Color.WHITE, true), LinearLayout.LayoutParams(0, -2, 1f))
+        val headerTitle = text("PulsLibre", 30f, Color.WHITE, true)
+        headerRow.addView(headerTitle, LinearLayout.LayoutParams(0, -2, 1f))
         // Personal Easter egg: the dedicated humerus SVG-matched vector replaces the gear.
         // Keep a 48dp touch target and an explicit accessibility label.
         val avatarButton = android.widget.ImageView(this).apply {
@@ -314,6 +315,10 @@ class MainActivity : AppCompatActivity() {
             header.minimumHeight = if (compact) 0 else dp(170)
             header.setPadding(dp(20), dp(if (compact) 8 else 16), dp(20), dp(if (compact) 8 else 46))
             header.background = if (compact) rounded(palette.background, 0) else HeaderBackdropDrawable(palette.dark)
+            // The compact header sits on the page background: in the light theme white texts would vanish (S25 finding).
+            val onBackdrop = !compact
+            headerTitle.setTextColor(if (onBackdrop || palette.dark) Color.WHITE else palette.ink)
+            taglineRow.setTextColor(if (onBackdrop) Color.parseColor("#E9E1F7") else if (palette.dark) Color.parseColor("#E9E1F7") else palette.muted)
             taglineRow.layoutParams = (taglineRow.layoutParams as LinearLayout.LayoutParams).apply {
                 topMargin = dp(if (compact) 2 else 8)
             }

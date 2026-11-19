@@ -89,7 +89,7 @@ internal class DeviceOverviewView(context: Context) : LinearLayout(context) {
         val chips = listOf(
             Triple(PlIcon.SIGNAL, "Empfang · 1 Std.", s?.let { DeviceFormat.count(it.readingsLastHour.toLong()) + " Messwerte" } ?: "…"),
             Triple(PlIcon.STORAGE, "Speicher", s?.let { DeviceFormat.count(it.totalEvents) + " Einträge · " + DeviceFormat.bytes(it.databaseBytes) } ?: "…"),
-            Triple(PlIcon.SESSIONS, "Sitzungen heute", s?.let { "${it.sessionsToday} Starts · ${it.reconnectsToday} Wiederverbindungen" } ?: "…"),
+            Triple(PlIcon.SESSIONS, "Sitzungen heute", s?.let { "${it.sessionsToday} Starts\n${it.reconnectsToday} Wiederverbindungen" } ?: "…"),
             Triple(PlIcon.CALENDAR, "Aufzeichnung seit", s?.firstReading?.let { DateTimeFormatter.ofPattern("dd.MM.yyyy").withZone(ZoneId.systemDefault()).format(it) } ?: "–")
         )
         chips.chunked(2).forEach { pair ->
