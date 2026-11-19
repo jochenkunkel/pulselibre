@@ -547,6 +547,21 @@ class MainActivity : AppCompatActivity() {
         val deviceOverview = DeviceOverviewView(this)
         deviceView(deviceOverview, 8)
         deviceOverviewRef = deviceOverview
+        // #204 phase B: discreet hint for not-yet-decoded FIT fields (only when the stored inventory has entries).
+        val unknownFieldsView = UnknownFieldsView(this)
+        deviceView(unknownFieldsView, 0)
+        fun refreshUnknownFields() {
+            Thread {
+                val summary = try {
+                    CirqaDatabase(applicationContext).use { UnknownFieldsSummary.summarize(it.storedFitUnmappedFields()) }
+                } catch (_: Exception) { UnknownFieldsSummary.summarize(emptyList()) }
+                runOnUiThread {
+                    if (destroyed) return@runOnUiThread
+                    unknownFieldsView.show(summary)
+                    (unknownFieldsView.layoutParams as? LinearLayout.LayoutParams)?.bottomMargin = if (summary.isEmpty) 0 else dp(8)
+                }
+            }.start()
+        }
         debugView(cirqaCard)
         cirqaEvidenceView = text(cirqaScanEvidence.summary(), 13f, muted).apply {
             setPadding(dp(16), dp(12), dp(16), dp(12))
@@ -975,6 +990,7 @@ class MainActivity : AppCompatActivity() {
                 historyRefresh?.invoke()
             }
             if (index == 2) recorderRefresh?.invoke()
+            if (index == 2) refreshUnknownFields()
             connectionIndicatorRefresh?.invoke()
             setCompactHeader(false)
             scroll.scrollTo(0, 0)
