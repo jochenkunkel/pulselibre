@@ -114,6 +114,17 @@ auffällig, aber ohne UID-Zuordnung oder Dateiabruf ist nicht belegt, dass
 beide Einträge dieser Aktivität zuzuordnen sind. MLR-Chunks/-Bytes, Pulls und
 Importe: 0. Gemeinsamer Zähler: 12/15.
 
+Der dreizehnte Lauf wurde bei laufendem Garmin-Connect-Dienst ausgeführt. Der
+Android-Bluetooth-Status zeigte unmittelbar davor und danach Garmin Connect
+als GATT-ACL-Inhaber. PulseLibre erhielt dennoch erfolgreich zwei Listen mit
+je 27 Einträgen und 27 unveränderten UID-/Metadatenpaaren; 0 geändert, neu,
+fehlend oder doppelt. Gegenüber dem vorherigen Bestand: +1, ohne UID-Zuordnung
+nicht interpretierbar. MLR-Chunks/-Bytes, Datei-Pulls und Importe: 0. Das
+belegt, dass ein aktiver Connect-GATT-Inhaber eine erfolgreiche PulseLibre-
+Registrierung nicht grundsätzlich verhindert; ein transienter Konflikt als
+Erklärung für Versuch 8 ist damit nicht ausgeschlossen. Gemeinsamer Zähler:
+13/15.
+
 ## Separater Folgeversuch nach Transport-ACK ohne Item-List-Antwort
 
 Die ersten direkten Item-List-Anfragen erhielten einen CRC-geprüften
