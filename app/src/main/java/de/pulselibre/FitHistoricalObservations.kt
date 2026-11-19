@@ -65,19 +65,33 @@ object FitHistoricalObservations {
         val observations: List<Observation>,
         val dataRecordCount: Int,
         val unsupportedMeasurementFieldCount: Int,
-        val deviceMetadata: List<DeviceMetadata> = emptyList()
+        val deviceMetadata: List<DeviceMetadata> = emptyList(),
+        val unknownFields: List<UnknownField> = emptyList()
     ) {
         fun potentialDuplicates(): List<List<Observation>> =
             observations.groupBy { it.duplicateFingerprint }
                 .values.filter { it.size > 1 }
     }
 
+    enum class UnknownKind { UNKNOWN_MESSAGE, UNKNOWN_STANDARD_FIELD, DEVELOPER_FIELD, INCOMPATIBLE_KNOWN_FIELD }
+    /** Metadata only; never includes the original field value. */
+    data class UnknownField(
+        val sourceSha256: String, val globalMessageNumber: Int, val fieldNumber: Int,
+        val baseType: Int?, val size: Int, val developerDataIndex: Int?,
+        val kind: UnknownKind, val definitionCount: Int, val occurrenceCount: Int
+    )
+    private data class UnknownKey(
+        val global: Int, val field: Int, val baseType: Int?, val size: Int,
+        val developerIndex: Int?, val kind: UnknownKind
+    )
+    private data class UnknownCounts(var definitions: Int = 0, var occurrences: Int = 0)
+    private data class DeveloperFieldDefinition(val number: Int, val size: Int, val index: Int)
     private data class FieldDefinition(val number: Int, val size: Int, val baseType: Int)
     private data class Definition(
         val globalNumber: Int,
         val bigEndian: Boolean,
         val fields: List<FieldDefinition>,
-        val developerFieldSizes: List<Int>
+        val developerFields: List<DeveloperFieldDefinition>
     )
 
     /**
@@ -91,6 +105,25 @@ object FitHistoricalObservations {
         val definitions = arrayOfNulls<Definition>(16)
         val observations = mutableListOf<Observation>()
         val deviceMetadata = mutableListOf<DeviceMetadata>()
+        val unknown = LinkedHashMap<UnknownKey, UnknownCounts>()
+        fun track(key: UnknownKey, definition: Boolean) {
+            val count = unknown.getOrPut(key) { UnknownCounts() }
+            if (definition) count.definitions++ else count.occurrences++
+        }
+        fun classify(global: Int, field: FieldDefinition): UnknownKey? {
+            if (field.number == 253) return null // FIT timestamp, not a novel metric
+            val mapped = mapping(global, field.number)
+            if (mapped != null) {
+                val size = when (mapped.baseType) { 2 -> 1; 4 -> 2; 6 -> 4; else -> -1 }
+                return if (field.baseType and 0x1f != mapped.baseType || field.size != size)
+                    UnknownKey(global, field.number, field.baseType, field.size, null,
+                        UnknownKind.INCOMPATIBLE_KNOWN_FIELD) else null
+            }
+            if (global == GLOBAL_DEVICE_INFO && field.number in setOf(1, 2, 4, 5, 10, 11, 32)) return null
+            val kind = if (global in setOf(GLOBAL_RECORD, GLOBAL_MONITORING, GLOBAL_DEVICE_INFO))
+                UnknownKind.UNKNOWN_STANDARD_FIELD else UnknownKind.UNKNOWN_MESSAGE
+            return UnknownKey(global, field.number, field.baseType, field.size, null, kind)
+        }
         var cursor = header.headerSize
         var previousFitTimestamp: Long? = null
         var recordOrdinal = 0
@@ -126,22 +159,29 @@ object FitHistoricalObservations {
                     if (size == 0) return null
                     fields += FieldDefinition(fieldNumber, size, baseType)
                 }
-                val developerSizes = mutableListOf<Int>()
+                val developerFields = mutableListOf<DeveloperFieldDefinition>()
                 if (headerByte and 0x20 != 0) {
                     if (!requireBytes(1)) return null
                     val developerCount = u8(cursor++)
                     if (!requireBytes(developerCount * 3)) return null
                     repeat(developerCount) {
+                        val number = u8(cursor)
                         val size = u8(cursor + 1)
+                        val index = u8(cursor + 2)
                         if (size == 0) return null
-                        developerSizes += size
-                        cursor += 3 // field number, size, developer-data index
+                        developerFields += DeveloperFieldDefinition(number, size, index)
+                        cursor += 3
                     }
                 }
                 definitions[localType] = Definition(
                     globalNumber, bigEndian = architecture == 1,
-                    fields = fields, developerFieldSizes = developerSizes
+                    fields = fields, developerFields = developerFields
                 )
+                fields.forEach { classify(globalNumber, it)?.let { key -> track(key, true) } }
+                developerFields.forEach {
+                    track(UnknownKey(globalNumber, it.number, null, it.size, it.index,
+                        UnknownKind.DEVELOPER_FIELD), true)
+                }
                 continue
             }
             if (!compressed && headerByte and 0x30 != 0) return null
@@ -158,11 +198,14 @@ object FitHistoricalObservations {
                 if (compressed && field == compressedTimestampField) continue
                 if (!requireBytes(field.size)) return null
                 fieldBytes[field] = cursor
+                classify(definition.globalNumber, field)?.let { track(it, false) }
                 cursor += field.size
             }
-            for (size in definition.developerFieldSizes) {
-                if (!requireBytes(size)) return null
-                cursor += size
+            for (field in definition.developerFields) {
+                if (!requireBytes(field.size)) return null
+                track(UnknownKey(definition.globalNumber, field.number, null, field.size,
+                    field.index, UnknownKind.DEVELOPER_FIELD), false)
+                cursor += field.size
             }
 
             val fitTimestamp = if (compressed) {
@@ -252,7 +295,11 @@ object FitHistoricalObservations {
             }
         }
 
-        return Result(observations, recordOrdinal, unsupportedFields, deviceMetadata)
+        return Result(observations, recordOrdinal, unsupportedFields, deviceMetadata,
+            unknown.map { (key, count) ->
+                UnknownField(fileSha, key.global, key.field, key.baseType, key.size,
+                    key.developerIndex, key.kind, count.definitions, count.occurrences)
+            })
     }
 
     private const val MAX_DEVICE_METADATA = 10_000
