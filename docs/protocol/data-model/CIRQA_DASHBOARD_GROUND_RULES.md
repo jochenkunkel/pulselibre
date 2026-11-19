@@ -1,6 +1,6 @@
 # Dashboard data provenance and scientific limits
 
-**Implementation audit: 2026-11-17.** This document describes the current `main` implementation. Earlier notes about reading `cirqa_overnight.jsonl` are obsolete: the dashboard now reads the canonical local SQLite database `cirqa_measurements.db`.
+**Implementation snapshot: 2026-11-17.** This document describes the implementation audited on that date, not necessarily the latest `main`. Subsequent #41/#45 changes and the planned #227 Analysen tab must be checked separately. Earlier notes about reading `cirqa_overnight.jsonl` are obsolete: the dashboard now reads the canonical local SQLite database `cirqa_measurements.db`.
 
 ## Data path
 
