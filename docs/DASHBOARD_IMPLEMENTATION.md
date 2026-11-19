@@ -1,6 +1,6 @@
 # Dashboard: Bestandsaufnahme und erster Konzeptschritt
 
-Stand: 2026-11-17. Basis: `f17f977`; Arbeitsbranch `codex/dashboard-history`.
+**Historischer Bestands-Snapshot:** 2026-11-17, Basis `f17f977`, Arbeitsbranch `codex/dashboard-history`. **Spätere Entwicklung:** #41 (Aktivitätsatlas, Ruhepuls-Hero, getrennte Abdeckung) und #45 (Sensitivitätsanalyse) wurden anschließend auf `main` weiterentwickelt; den aktuellen Implementierungsstand stets am Code/CI prüfen. Neuer Hauptreiter „Analysen“ ist **nur geplant**: [#227](https://github.com/jochenkunkel/pulselibre/issues/227), [Sitemap](science/ANALYSEN_NAVIGATION_CONCEPT.md).
 
 ## Bestand
 
