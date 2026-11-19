@@ -74,6 +74,14 @@ Vermutung, dass die zwischenzeitliche Garmin-Connect-Synchronisation den
 vorherigen 45-vs-23-Unterschied beeinflusst haben könnte, beweist aber keinen
 Kausalzusammenhang. Gemeinsamer Zähler: 6/15.
 
+Der siebte Lauf folgte auf den Hinweis, dass möglicherweise vor dem vierten
+Lauf der Aktionsknopf des Armbands gedrückt worden war; Garmin Connect habe
+daraufhin eine Meldung angezeigt und die Funktion deaktiviert. Der neue
+Zwei-Listen-No-Pull-Vergleich ergab erneut 23/23 identische UID-/Metadatenpaare,
+0 geändert/neu/fehlend, keine doppelten UIDs und keine MLR-Chunks/-Bytes,
+Datei-Pulls oder Importe. Ein Einfluss der Knopfaktion ist plausibel, aber
+unverifiziert. Gemeinsamer Zähler: 7/15.
+
 ## Separater Folgeversuch nach Transport-ACK ohne Item-List-Antwort
 
 Die ersten direkten Item-List-Anfragen erhielten einen CRC-geprüften
