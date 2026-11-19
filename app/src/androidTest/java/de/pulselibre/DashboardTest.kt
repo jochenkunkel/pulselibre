@@ -69,7 +69,7 @@ class DashboardTest {
                     scenario.onActivity { activity ->
                         val root = activity.findViewById<ViewGroup>(android.R.id.content)
                         rendered = containsText(root, "Verlauf · lokal gespeicherte Messpunkte") &&
-                            containsText(root, "Zeitachse: Telefonzeit")
+                            root.findViewWithTag<View>("history_chart_legend") != null
                     }
                 }
                 if (!rendered) Thread.sleep(100)
