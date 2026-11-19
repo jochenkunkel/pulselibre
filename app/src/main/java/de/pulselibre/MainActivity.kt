@@ -220,6 +220,24 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+        // #179 variant 4: a real secondary action, not a decorative icon.
+        val linkInfoButton = android.widget.FrameLayout(this).apply {
+            minimumWidth = dp(48)
+            minimumHeight = dp(48)
+            isClickable = true
+            isFocusable = true
+            contentDescription = "Bluetooth-Verbindungsstatus anzeigen"
+            background = rounded(palette.tinted, 24)
+            addView(PlIcon.view(this@MainActivity, PlIcon.SIGNAL, 23, violet),
+                android.widget.FrameLayout.LayoutParams(dp(23), dp(23), android.view.Gravity.CENTER))
+            setOnClickListener {
+                androidx.appcompat.app.AlertDialog.Builder(this@MainActivity)
+                    .setTitle("CIRQA-Verbindung")
+                    .setMessage(CirqaLinkStatus.contentDescription(cirqaLink))
+                    .setPositiveButton("Schließen", null)
+                    .show()
+            }
+        }
         var lastHeaderStatus: CirqaLinkStatus.Result? = null
         fun refreshAvatarConnectionBorder() {
             refreshCirqaCard()
@@ -236,26 +254,23 @@ class MainActivity : AppCompatActivity() {
                     }.start()
                 }
             }
-            avatarButton.contentDescription = CirqaLinkStatus.contentDescription(link)
+            avatarButton.contentDescription = "Einstellungen öffnen"
+            linkInfoButton.contentDescription = "CIRQA-Verbindungsstatus: ${CirqaLinkStatus.contentDescription(link)}. Details anzeigen"
             if (link.online == lastHeaderStatus?.online) { lastHeaderStatus = link; return }
             lastHeaderStatus = link
-            val connected = link.online
-            val statusColor = if (connected) Color.rgb(31, 190, 112) else Color.BLACK
-            val outerOutline = GradientDrawable().apply {
+            linkInfoButton.background = GradientDrawable().apply {
                 shape = GradientDrawable.OVAL
-                setColor(Color.TRANSPARENT)
-                setStroke(dp(2), Color.WHITE)
-            }
-            val statusOutline = GradientDrawable().apply {
-                shape = GradientDrawable.OVAL
-                setColor(Color.TRANSPARENT)
-                setStroke(dp(3), statusColor)
-            }
-            avatarButton.background = LayerDrawable(arrayOf(outerOutline, statusOutline)).apply {
-                setLayerInset(1, dp(3), dp(3), dp(3), dp(3))
+                setColor(palette.tinted)
+                setStroke(dp(2), if (link.online) Color.rgb(31, 190, 112) else palette.muted)
             }
         }
         connectionIndicatorRefresh = { refreshAvatarConnectionBorder() }
+        headerRow.addView(linkInfoButton, LinearLayout.LayoutParams(dp(48), dp(48)).apply { marginEnd = dp(6) })
+        avatarButton.background = GradientDrawable().apply {
+            shape = GradientDrawable.OVAL
+            setColor(palette.tinted)
+            setStroke(dp(2), palette.accent)
+        }
         headerRow.addView(avatarButton, LinearLayout.LayoutParams(dp(48), dp(48)))
         header.addView(headerRow)
         // Large fonts / narrow screens: "· Offline" moves to its own line instead of being cut off.
