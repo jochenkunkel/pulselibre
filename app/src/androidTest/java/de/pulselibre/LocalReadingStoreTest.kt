@@ -48,16 +48,36 @@ class LocalReadingStoreTest {
             val bytes = fitWithHeartRate(100_000, 72)
             val valid = File(root, CirqaFitBackfill.expectedFileName(bytes))
             valid.writeBytes(bytes)
+            val outOfRangeBytes = fitWithHeartRate(101_000, 250)
+            File(root, CirqaFitBackfill.expectedFileName(outOfRangeBytes)).writeBytes(outOfRangeBytes)
             File(root, "not-a-fit.bin").writeBytes(byteArrayOf(1, 2, 3))
 
             LocalReadingStore(context).use { store ->
                 val importer = CirqaFitBackfill(root, store)
                 val first = importer.run()
                 val repeated = importer.run()
-                assertEquals(2, first.filesSeen)
-                assertEquals(1, first.filesImported)
+                assertEquals(3, first.filesSeen)
+                assertEquals(2, first.filesImported)
                 assertEquals(1, first.invalidFiles)
                 assertEquals(1, first.importableObservations)
+                assertEquals(3, first.fileResults.size)
+                assertEquals(
+                    setOf("file-0001", "file-0002", "file-0003"),
+                    first.fileResults.map { it.alias }.toSet()
+                )
+                assertEquals(1, first.fileResults.count {
+                    it.status == CirqaFitBackfill.FileStatus.IMPORTED &&
+                        it.decodedObservations == 1 && it.eligibleObservations == 1
+                })
+                assertEquals(1, first.fileResults.count {
+                    it.status == CirqaFitBackfill.FileStatus.INVALID_FILE
+                })
+                assertEquals(1, first.fileResults.count {
+                    it.status == CirqaFitBackfill.FileStatus.NO_IMPORTABLE_OBSERVATIONS &&
+                        it.decodedObservations == 1 && it.eligibleObservations == 0 &&
+                        it.outOfRangeObservations == 1 &&
+                        it.unsupportedMeasurementFields == 0
+                })
                 assertEquals(first, repeated)
                 val originalObservation = FitHistoricalObservations.decode(bytes)!!.observations.single()
                 val conflictingBatch = listOf(
@@ -85,7 +105,7 @@ class LocalReadingStoreTest {
                 assertEquals((100_000L + 631_065_600L) * 1_000L,
                     store.cursorFor("cirqa-fit").lastCommittedEpochMillis)
                 val db = store.readableDatabase
-                assertEquals(1, db.rawQuery("SELECT COUNT(*) FROM fit_sources", null).use {
+                assertEquals(2, db.rawQuery("SELECT COUNT(*) FROM fit_sources", null).use {
                     it.moveToFirst(); it.getInt(0)
                 })
                 assertEquals(1, db.rawQuery("SELECT COUNT(*) FROM fit_observation_provenance", null).use {

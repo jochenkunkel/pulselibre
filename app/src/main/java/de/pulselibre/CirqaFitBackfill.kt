@@ -19,7 +19,21 @@ class CirqaFitBackfill(
         val filesSeen: Int,
         val filesImported: Int,
         val invalidFiles: Int,
-        val importableObservations: Int
+        val importableObservations: Int,
+        /** Per-input summary uses ordinal aliases; no private filename or content hash is exposed. */
+        val fileResults: List<FileResult> = emptyList()
+    )
+
+    enum class FileStatus { IMPORTED, NO_IMPORTABLE_OBSERVATIONS, INVALID_FILE }
+
+    data class FileResult(
+        val alias: String,
+        val status: FileStatus,
+        val decodedObservations: Int,
+        val eligibleObservations: Int,
+        val unsupportedMeasurementFields: Int,
+        val missingTimestampObservations: Int,
+        val outOfRangeObservations: Int
     )
 
     init {
@@ -37,20 +51,46 @@ class CirqaFitBackfill(
         var imported = 0
         var invalid = 0
         var decoded = 0
-        for (file in files) {
-            val count = importVerifiedFile(file, readings, deviceKey)
-            if (count == null) {
+        val fileResults = files.mapIndexed { index, file ->
+            val outcome = importVerifiedFileDetailed(file, readings, deviceKey)
+            if (outcome == null) {
                 invalid++
-                continue
+                FileResult(
+                    alias = "file-${(index + 1).toString().padStart(4, '0')}",
+                    status = FileStatus.INVALID_FILE,
+                    decodedObservations = 0,
+                    eligibleObservations = 0,
+                    unsupportedMeasurementFields = 0,
+                    missingTimestampObservations = 0,
+                    outOfRangeObservations = 0
+                )
+            } else {
+                decoded += outcome.eligibleObservations
+                imported++
+                FileResult(
+                    alias = "file-${(index + 1).toString().padStart(4, '0')}",
+                    status = if (outcome.eligibleObservations > 0) FileStatus.IMPORTED
+                        else FileStatus.NO_IMPORTABLE_OBSERVATIONS,
+                    decodedObservations = outcome.decodedObservations,
+                    eligibleObservations = outcome.eligibleObservations,
+                    unsupportedMeasurementFields = outcome.unsupportedMeasurementFields,
+                    missingTimestampObservations = outcome.missingTimestampObservations,
+                    outOfRangeObservations = outcome.outOfRangeObservations
+                )
             }
-            decoded += count
-            imported++
         }
-        return Result(files.size, imported, invalid, decoded)
+        return Result(files.size, imported, invalid, decoded, fileResults)
     }
 
     companion object {
         private const val MAX_FIT_FILE_BYTES = 64L * 1024L * 1024L
+        private data class ImportOutcome(
+            val decodedObservations: Int,
+            val eligibleObservations: Int,
+            val unsupportedMeasurementFields: Int,
+            val missingTimestampObservations: Int,
+            val outOfRangeObservations: Int
+        )
 
         /**
          * Imports one already-persisted content-addressed FIT file. Returns null
@@ -60,7 +100,13 @@ class CirqaFitBackfill(
             file: File,
             readings: FitObservationStore,
             deviceKey: String = "cirqa-fit"
-        ): Int? {
+        ): Int? = importVerifiedFileDetailed(file, readings, deviceKey)?.eligibleObservations
+
+        private fun importVerifiedFileDetailed(
+            file: File,
+            readings: FitObservationStore,
+            deviceKey: String
+        ): ImportOutcome? {
             require(deviceKey.isNotBlank())
             if (!file.isFile || file.length() !in 1..MAX_FIT_FILE_BYTES ||
                 java.nio.file.Files.isSymbolicLink(file.toPath())) return null
@@ -73,7 +119,7 @@ class CirqaFitBackfill(
                 it.timestampEpochMillis != null &&
                     it.quality == FitHistoricalObservations.Quality.PROFILE_VALID
             }
-            return readings.commitFitFile(
+            readings.commitFitFile(
                 sourceSha256 = file.name.removeSuffix(".fit"),
                 fileBytes = bytes.size.toLong(),
                 relativePath = "verified_fit/${file.name}",
@@ -83,6 +129,17 @@ class CirqaFitBackfill(
                 observations = importable,
                 deviceMetadata = result.deviceMetadata,
                 deviceKey = deviceKey
+            )
+            return ImportOutcome(
+                decodedObservations = result.observations.size,
+                eligibleObservations = importable.size,
+                unsupportedMeasurementFields = result.unsupportedMeasurementFieldCount,
+                missingTimestampObservations = result.observations.count {
+                    it.quality == FitHistoricalObservations.Quality.MISSING_TIMESTAMP
+                },
+                outOfRangeObservations = result.observations.count {
+                    it.quality == FitHistoricalObservations.Quality.OUTSIDE_DISPLAY_RANGE
+                }
             )
         }
 
