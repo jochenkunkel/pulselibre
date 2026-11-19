@@ -21,6 +21,20 @@ object AutoStartRecording {
     }
 
     /**
+     * "Already running" for the autostart decision (#212). The recorder flag + heartbeat survive a process kill for up to
+     * [RecorderStatus.STALE_AFTER_MS] (e.g. Android force-stops the service on an app update), so they alone must not block
+     * a fresh start: the service has to be alive as well.
+     */
+    fun isAlreadyRunning(recorderFlagFresh: Boolean, serviceAlive: Boolean): Boolean = recorderFlagFresh && serviceAlive
+
+    /** True when the recording service is actually alive in this app (own services only; works on API 26+). */
+    @Suppress("DEPRECATION")
+    fun isServiceAlive(context: Context): Boolean = try {
+        val am = context.getSystemService(Context.ACTIVITY_SERVICE) as android.app.ActivityManager
+        am.getRunningServices(Int.MAX_VALUE).any { it.service.className == CirqaContinuousRecordingService::class.java.name }
+    } catch (_: Exception) { false }
+
+    /**
      * Pure decision, unit-tested. Starts only on a fresh app launch (not on rotation / recreate), only when all
      * permissions are already granted and Bluetooth is already on (the app never turns Bluetooth on itself or asks
      * for permissions here), and never twice if the service is already running.

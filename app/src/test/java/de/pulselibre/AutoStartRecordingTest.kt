@@ -13,4 +13,17 @@ class AutoStartRecordingTest {
     @Test fun doesNotStartWithoutPermissions() = assertFalse(decide(perms = false))
     @Test fun doesNotStartWithBluetoothOff() = assertFalse(decide(bt = false))
     @Test fun doesNotStartTwiceWhenAlreadyRunning() = assertFalse(decide(running = true))
+
+    @Test fun staleRecorderFlagWithoutAliveServiceDoesNotBlockAutostart() {
+        // Android force-stopped the service (app update): flag + heartbeat still look fresh, service is gone (#212).
+        val alreadyRunning = AutoStartRecording.isAlreadyRunning(recorderFlagFresh = true, serviceAlive = false)
+        assertFalse(alreadyRunning)
+        assertTrue(AutoStartRecording.shouldStart(true, true, true, true, alreadyRunning))
+    }
+
+    @Test fun aliveServiceWithFreshFlagStillBlocksDoubleStart() {
+        val alreadyRunning = AutoStartRecording.isAlreadyRunning(recorderFlagFresh = true, serviceAlive = true)
+        assertTrue(alreadyRunning)
+        assertFalse(AutoStartRecording.shouldStart(true, true, true, true, alreadyRunning))
+    }
 }
