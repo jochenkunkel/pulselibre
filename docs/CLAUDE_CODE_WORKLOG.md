@@ -326,3 +326,8 @@ Noch sichtbar offen (P3): Nacht-Insights erste Spalte „22–6 Uhr / 22331 / We
 ## 2026-11-20 – #41: Asset-Kit fitness-v1 als VectorDrawables
 - Fünf Icons aus `design/icons/fitness-v1/` von Hand in VectorDrawables umgesetzt (`ic_pl_resting_pulse/activity_calendar/coverage/data_gap/baseline`, Farben über `pl_icon_*` → Hell/Dunkel), als `PlIcon`-Einträge; eingesetzt im Ruhepuls-Hero, Aktivitäts-Atlas und in der Datenabdeckung. `data_gap` und `baseline` stehen bereit (noch ohne Einsatzort, kein Platzhalter-UI). Gestrichelte Linie aus `baseline.svg` als Einzelstriche.
 - Emulator-Sichtprüfung (Dunkel, synthetische Daten) ohne Auffälligkeiten.
+## 2026-11-19 – #204: Status je unbekanntem Feld in der UI ändern
+- Pro Feld „Status ändern“ (ungeprüft · in Prüfung · unterstützt · ignoriert) schreibt die Prüfmarke für alle Quelldateien-Zeilen des Feldtyps (`updateFitUnmappedFieldStatus`), aktualisiert die Zeile live und die Zusammenfassung; ändert keine Messdaten.
+- Im Emulator (1000 synthetische Feldtypen, echte Touch-Taps) geprüft; dabei gefunden: `setMessage` + `setSingleChoiceItems` versteckt unter AppCompat die Liste → eigene Ansicht mit Hinweistext und vier Zeilen. DB-Stand nach Test: 1× IGNORED, 1× SUPPORTED, Rest UNREVIEWED.
+- Test `entryOffersAStatusChoiceThatStatesNoMeasurementDataIsChanged`.
+- Korrektur: Der lokale Emulator-Seed-Test `SyntheticSeedTest` war versehentlich mit #250 in `main` gelandet (`git add -A`). Er schreibt synthetische Daten in die App-DB und gehört nie ins Repo/auf ein Handy → entfernt. Künftig nur gezielte `git add`-Pfade.
