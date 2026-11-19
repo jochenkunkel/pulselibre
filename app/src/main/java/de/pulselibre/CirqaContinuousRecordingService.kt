@@ -112,30 +112,46 @@ class CirqaContinuousRecordingService : Service() {
         }
         val current = CirqaMlHandshakeProbe(this, adapter)
         probe = current
-        current.onReading = readingCallback@{ service, reading ->
-            if (!running || token != generation) return@readingCallback
-            readings++
-            val nowMs = System.currentTimeMillis()
-            if (nowMs - lastReadingPersistedMs >= 5_000L) { // throttled liveness marker for the UI status
-                lastReadingPersistedMs = nowMs
-                getSharedPreferences(PREFS, MODE_PRIVATE).edit().putLong(KEY_LAST_READING_MS, nowMs).apply()
+        // GATT callbacks can arrive on binder threads. Serialize all service state
+        // changes onto the main looper and reject stale callbacks by generation
+        // AND probe ownership, including callbacks queued before a stop/reconnect.
+        current.onReading = { service, reading ->
+            handler.post {
+                if (running && token == generation && probe === current) {
+                    readings++
+                    val nowMs = System.currentTimeMillis()
+                    if (nowMs - lastReadingPersistedMs >= 5_000L) {
+                        lastReadingPersistedMs = nowMs
+                        getSharedPreferences(PREFS, MODE_PRIVATE).edit()
+                            .putLong(KEY_LAST_READING_MS, nowMs).apply()
+                    }
+                    if (!log.reading(service, reading)) stopCollection("storage_limit")
+                    else updateNotification("Lokal: $readings Messwerte · CIRQA-Daten empfangen")
+                }
             }
-            if (!log.reading(service, reading)) stopCollection("storage_limit")
-            else updateNotification("Lokal: $readings Messwerte · CIRQA-Daten empfangen")
         }
-        // The probe owns one GATT connection and receives notifications until stopped
-        // or disconnected. No periodic disconnect/reconnect while the session is alive.
+        // Only the first terminal callback for this exact probe may end an attempt.
+        // Nonterminal "Verbinde" notifications do not consume the attempt.
         current.startContinuousAllMetrics { result ->
-            if (!running || token != generation) return@startContinuousAllMetrics
-            if (result.startsWith("ML-Test: Verbinde")) {
-                updateNotification("CIRQA-Verbindung wird aufgebaut")
-                return@startContinuousAllMetrics
-            }
-            probe = null
-            if (!log.append("attempt", mapOf("number" to attemptNumber, "result" to result.take(600)))) {
-                stopCollection("storage_limit")
-            } else {
-                scheduleReconnect(token, "connection_ended")
+            handler.post {
+                if (running && token == generation && probe === current) {
+                    if (result.startsWith("ML-Test: Verbinde")) {
+                        updateNotification("CIRQA-Verbindung wird aufgebaut")
+                    } else {
+                        probe = null
+                        // Invalidate duplicate/late callbacks before scheduling retry.
+                        generation++
+                        val reconnectToken = generation
+                        if (!log.append("attempt", mapOf(
+                                "number" to attemptNumber,
+                                "result" to result.take(600)
+                            ))) {
+                            stopCollection("storage_limit")
+                        } else {
+                            scheduleReconnect(reconnectToken, "connection_ended")
+                        }
+                    }
+                }
             }
         }
     }
