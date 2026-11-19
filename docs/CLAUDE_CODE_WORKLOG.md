@@ -213,3 +213,6 @@ Noch sichtbar offen (P3): Nacht-Insights erste Spalte „22–6 Uhr / 22331 / We
 ## 2026-11-19 – Restglyphen auf Icons (#168 abgeschlossen)
 - Nacht-Indikatoren (SpO₂, 22–6 Uhr, Abdeckung, T90, ODI) und Lade-Sanduhr nutzen `PlIcon`; Aufzeichnungsstatus (aus/startet/beendet/aktiv) zeigt RECORD_STOP/HOURGLASS/RECORD_START. Info-Dialogzeilen verwenden bereits gezeichnete `DashboardInfoIconView`-Icons (Review-Fund dazu war ein Fehlalarm: die Glyphen sind nur interne Schlüssel).
 - Unit/Lint/androidTest-Compile lokal grün; Emulator: Gerätereiter geprüft. Nacht-Indikatoren auf dem Emulator nicht sichtbar (keine SpO₂-Nachtdaten) – nur per Code/CI geprüft.
+
+## 2026-11-19 – Rote main-CI nach #182 repariert
+- Commit eddeff3 (#182, History-Legende → Beschriftung je Diagramm) ließ zwei Emulator-Tests scheitern (`DashboardTest.historyTabIsPresentAndOpensLocalTimeSeries`, `HistoryOverviewViewTest.compactLegend…`), CI-Lauf 44481751539. Tests an die neue Beschriftung (`history_chart_legend`, „Zeitachse: Telefonzeit …“) angepasst; `HistoryOverviewViewTest` lokal auf Emulator grün.
