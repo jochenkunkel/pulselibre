@@ -51,20 +51,31 @@ internal class UnknownFieldsView(context: Context) : LinearLayout(context) {
                 "welche Felder die Dateien des Bands enthalten, die PulsLibre noch nicht versteht."
             textSize = 13f; setTextColor(palette.muted); setPadding(0, 0, 0, dp(10))
         })
-        value.entries.forEach { e ->
-            val item = LinearLayout(context).apply {
-                orientation = VERTICAL; setPadding(0, dp(8), 0, dp(8))
-                tag = "unknown_field_entry"
-            }
-            item.addView(TextView(context).apply { text = e.title; textSize = 14f; setTextColor(palette.ink); setTypeface(null, Typeface.BOLD) })
-            item.addView(TextView(context).apply { text = e.detail; textSize = 12f; setTextColor(palette.muted) })
-            item.addView(TextView(context).apply { text = e.occurrence; textSize = 12f; setTextColor(palette.muted) })
-            item.addView(TextView(context).apply { text = "${e.classification} · Status: ${e.status}"; textSize = 12f; setTextColor(palette.muted) })
-            content.addView(item)
+        // Grouped by FIT message number; a group's field list is inflated lazily on first expand (keeps 900+ types cheap).
+        fun entryView(e: UnknownFieldsSummary.Entry) = LinearLayout(context).apply {
+            orientation = VERTICAL; setPadding(dp(12), dp(6), 0, dp(6)); tag = "unknown_field_entry"
+            addView(TextView(context).apply { text = e.title; textSize = 13f; setTextColor(palette.ink); setTypeface(null, Typeface.BOLD) })
+            addView(TextView(context).apply { text = e.detail; textSize = 12f; setTextColor(palette.muted) })
+            addView(TextView(context).apply { text = e.occurrence; textSize = 12f; setTextColor(palette.muted) })
+            addView(TextView(context).apply { text = "${e.classification} · Status: ${e.status}"; textSize = 12f; setTextColor(palette.muted) })
         }
-        if (value.omitted > 0) content.addView(TextView(context).apply {
-            text = "… und ${value.omitted} weitere Typen"; textSize = 12f; setTextColor(palette.muted)
-        })
+        value.groups.forEach { g ->
+            val body = LinearLayout(context).apply { orientation = VERTICAL; visibility = View.GONE; tag = "unknown_group_body_${g.messageNumber}" }
+            var inflated = false
+            val header = TextView(context).apply {
+                text = "▸  ${g.title}"; textSize = 14f; setTextColor(palette.ink); setTypeface(null, Typeface.BOLD)
+                setPadding(0, dp(12), 0, dp(12)); minimumHeight = dp(48); gravity = Gravity.CENTER_VERTICAL
+                isClickable = true; isFocusable = true; tag = "unknown_group_${g.messageNumber}"
+                contentDescription = "${g.title}. Tippen zum Ein- oder Ausklappen."
+                setOnClickListener {
+                    if (!inflated) { g.entries.forEach { body.addView(entryView(it)) }; inflated = true }
+                    val open = body.visibility != View.VISIBLE
+                    body.visibility = if (open) View.VISIBLE else View.GONE
+                    text = (if (open) "▾  " else "▸  ") + g.title
+                }
+            }
+            content.addView(header); content.addView(body)
+        }
         DialogProbe.track(AlertDialog.Builder(context)
             .setTitle(value.headline)
             .setView(ScrollView(context).apply { addView(content) })
