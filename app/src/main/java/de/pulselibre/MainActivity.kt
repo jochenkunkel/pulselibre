@@ -283,6 +283,28 @@ class MainActivity : AppCompatActivity() {
             addView(root)
         }
         screen.addView(scroll, LinearLayout.LayoutParams(-1, 0, 1f))
+        // #179: one shared header, with a compact sticky presentation after scrolling the overview.
+        // Keep actions and subtitle in the same views; only layout and background change.
+        var compactHeader = false
+        fun setCompactHeader(compact: Boolean) {
+            if (compactHeader == compact) return
+            compactHeader = compact
+            header.minimumHeight = if (compact) 0 else dp(170)
+            header.setPadding(dp(20), dp(if (compact) 8 else 16), dp(20), dp(if (compact) 8 else 46))
+            header.background = if (compact) rounded(palette.background, 0) else HeaderBackdropDrawable(palette.dark)
+            taglineRow.layoutParams = (taglineRow.layoutParams as LinearLayout.LayoutParams).apply {
+                topMargin = dp(if (compact) 2 else 8)
+            }
+            header.requestLayout()
+        }
+        scroll.setOnScrollChangeListener { _, _, y, _, _ ->
+            if (dashboardVisible) {
+                // Hysteresis prevents rapid toggling near the top of the scroll range.
+                if (!compactHeader && y > dp(40)) setCompactHeader(true)
+                else if (compactHeader && y <= dp(12)) setCompactHeader(false)
+            }
+        }
+
         val overview = mutableListOf<android.view.View>()
         val historyViews = mutableListOf<android.view.View>()
         val deviceViews = mutableListOf<android.view.View>()
@@ -444,9 +466,6 @@ class MainActivity : AppCompatActivity() {
                 dashboardLastRefreshAt = 0L
             }
         }
-        // Privacy line at the very top of the overview (moved from below "Gesundheit · CIRQA").
-        // Privacy line sits right under the header panorama (4–8 dp), not as a separate block.
-        overviewView(text("Deine Messwerte · lokal gespeichert", 12f, muted).apply { tag = "dashboard_local_note" }, 6)
         overviewView(bodyCard, 12)
         // One compact dashboard heading; privacy details remain accessible via the info button.
         overviewView(LinearLayout(this).apply {
@@ -949,6 +968,7 @@ class MainActivity : AppCompatActivity() {
             }
             if (index == 2) recorderRefresh?.invoke()
             connectionIndicatorRefresh?.invoke()
+            setCompactHeader(false)
             scroll.scrollTo(0, 0)
         }
         screen.addView(nav)
