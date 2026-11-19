@@ -197,3 +197,7 @@ Noch sichtbar offen (P3): Nacht-Insights erste Spalte „22–6 Uhr / 22331 / We
 - `AutoStartRecording.shouldStart(...)`: nur bei frischem Start (nicht bei Rotation), Berechtigungen schon erteilt, Bluetooth schon an, Dienst nicht bereits aktiv. App schaltet Bluetooth nie selbst ein und fragt hier keine Berechtigungen ab.
 - Der Aufzeichnungsdienst selbst (OpenCode) wurde nicht verändert; es wird nur der bestehende START-Intent ausgelöst.
 - Tests: Unit `AutoStartRecordingTest` (6 Fälle), Instrumentation `autoStartSwitchDefaultsToOffAndIsPersistedOnSave`. Nicht getestet: realer Start am S25 mit Band.
+
+## 2026-11-19 · Header-Untertitel brach/kürzte bei 320 dp und Schrift 200 %
+- Ursache: Untertitel-Zeile mit `wrap_content`-Breite (+ 60 dp Einzug) → bei Umbruch wurde nur die erste Zeile gemessen („Deine Dat…“).
+- Fix: volle Breite (`MATCH_PARENT`), bei Umbruch ohne Einzug. Emulator: 320 dp, 320 dp + Schrift 200 %, 360 dp + 200 %, 360 dp normal – alle vollständig lesbar (Bild `untertitel_nachher_320dp_font2.png`).
