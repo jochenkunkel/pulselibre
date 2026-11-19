@@ -135,7 +135,7 @@ class CirqaContinuousRecordingService : Service() {
         // Nonterminal "Verbinde" notifications do not consume the attempt.
         current.startContinuousAllMetrics { result ->
             handler.post {
-                if (running && token == generation && probe === current) {
+                if (attemptGate.accepts(token, current)) {
                     if (result.startsWith("ML-Test: Verbinde")) {
                         updateNotification("CIRQA-Verbindung wird aufgebaut")
                     } else {
