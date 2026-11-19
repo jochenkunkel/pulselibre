@@ -16,29 +16,12 @@ jobs:
       - uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6
         with:
           gradle-version: '9.6.0'
+      - name: Validate Java 21 transformation regression tests
+        run: python3 -m unittest discover -s tools -p 'test_java21_bytecode_experiment.py' -v
       - name: Apply experimental targets in runner only
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          path = Path("app/build.gradle.kts")
-          original = path.read_text()
-          java17 = 'sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17'
-          java21 = 'sourceCompatibility = JavaVersion.VERSION_21; targetCompatibility = JavaVersion.VERSION_21'
-          kotlin17 = 'jvmTarget.set(JvmTarget.JVM_17)'
-          kotlin21 = 'jvmTarget.set(JvmTarget.JVM_21)'
-          # Verify exact one-to-one transformation; fail if the DSL changes.
-          assert original.count(java17) == 1, 'Expected exactly one Java 17 target pair'
-          assert original.count(kotlin17) == 1, 'Expected exactly one Kotlin JVM_17 target'
-          updated = original.replace(java17, java21).replace(kotlin17, kotlin21)
-          assert updated != original
-          assert updated.count(java21) == 1 and updated.count(kotlin21) == 1
-          assert java17 not in updated and kotlin17 not in updated
-          assert updated.replace(java21, java17).replace(kotlin21, kotlin17) == original, 'Unexpected mutation'
-          path.write_text(updated)
-          print("Experiment only: Java source/target 21; Kotlin JVM target 21")
-          PY
+        run: python3 tools/java21_bytecode_experiment.py app/build.gradle.kts
       - name: Compile and run JVM tests with Java 21 bytecode targets
-        run: gradle :app:testDebugUnitTest :app:assembleDebug --stacktrace
+        run: bash .github/scripts/gradle-retry.sh :app:testDebugUnitTest :app:assembleDebug --stacktrace
       - name: Save failure diagnostics
         if: failure()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
