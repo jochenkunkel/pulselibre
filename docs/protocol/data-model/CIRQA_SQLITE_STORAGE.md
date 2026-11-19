@@ -42,6 +42,15 @@ cursor atomically to the canonical database after the historical-copy check.
 FIT codes are stored as codes, not asserted as a verified CIRQA identity or
 current live state.
 
+`HistoricalObservationRepository` is the schema-independent read API for
+normalized historical rows. It accepts a half-open time window, optional metric
+and device filters, and a bounded keyset page; records may include nullable
+FIT-field provenance (legacy rows have no provenance). It first runs/verifies
+the idempotent historical copy and does not delete or mutate source rows.
+Dashboard consumers have not yet been migrated from event-only reads to this
+API, so the FIT history is available through the repository and export, not
+claimed as visible in dashboard charts.
+
 The former private `cirqa_overnight.jsonl` is removed on database open according
 to the earlier explicit user decision. This is separate from the health-data
 SQLite databases and user-triggered JSONL exports.
@@ -61,17 +70,18 @@ encrypted and excludes FIT/raw original bytes. Restore validates checksums,
 record schemas and FIT foreign-key relationships before confirmation. Do not
 manually copy a live SQLite main file without its journal.
 
-GitHub full CI run 44417266709 passed the canonical write/backup v3 change
-before this schema-v4 metadata work. Current local verification passes 629/629
-JVM tests, 63/63 API-35 emulator tests, 19/19 Python tests, debug APK, lint and
-Android-test APK. GitHub CI was not started for schema v4 because the user has
-temporarily paused the workflow.
+GitHub full CI run 44417266709 passed the canonical write/backup v3 change.
+After schema-v4 metadata work and repository additions, full GitHub CI run
+44473008816 passed for PR #170 (`f40b20d`), including build/JVM/Python/lint,
+instrumentation APK, and API-35 emulator tests. Local verification also passed
+629/629 JVM, 65/65 emulator and 19/19 Python tests after adding the paginated
+repository contract and its migration/provenance coverage.
 
 Schema-v3 `ensureHistoricalStoreCopied()` copies and verifies the old history
 without deleting it. New FIT backfill writes target the canonical DB after this
 copy; schema-v4 metadata is additive. Backup v4 includes both stores and
 restores older v1–v3 archives. Remaining: offline re-backfill of existing FIT
 files for metadata recovery, physical retirement of the old DB after a verified
-transition, dashboard readers/repository integration, broader migration/
-restore fixtures, provenance recovery for old FIT rows, bounded/paginated
-history queries, and original-file backup/retention policy.
+transition, dashboard consumer integration with `HistoricalObservationRepository`,
+broader migration/restore fixtures, provenance recovery for old FIT rows, and
+original-file backup/retention policy.
