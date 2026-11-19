@@ -274,7 +274,7 @@ class MainActivity : AppCompatActivity() {
                 }
             }
             avatarButton.contentDescription = "Einstellungen öffnen"
-            linkInfoButton.contentDescription = "CIRQA-Verbindungsstatus: ${CirqaLinkStatus.contentDescription(link)}. Details anzeigen"
+            linkInfoButton.contentDescription = "${CirqaLinkStatus.contentDescription(link)} Details anzeigen"
             if (link.online == lastHeaderStatus?.online) { lastHeaderStatus = link; return }
             lastHeaderStatus = link
             linkInfoButton.background = GradientDrawable().apply {
