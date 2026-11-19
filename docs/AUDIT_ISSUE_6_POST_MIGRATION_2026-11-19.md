@@ -29,6 +29,12 @@ Die historische Inventur vom 18.11. mit 169 Produktionsdateien / 132 JVM-Testdat
 | Release-Sicherheit | Nur Debug-Build im `app/build.gradle.kts`; stabile CI-Signatur kann **Debug-APK** für Updates bereitstellen. Kein Release-R8/Minify-Gate. | **hoch** | **#154**: nicht debuggable Release-Build, Signatur-/Datenmigrations-Upgrade-Test |
 | Dokumentation | `docs/ANDROID_RELEASE_READINESS.md` behauptet im Abschnitt „CI-Teststrategie“ noch, dass bei normalen Pushes kein Lint/Emulator läuft; aktueller Workflow führt beides aus. `docs/PROJECT_STATUS.md` enthält ebenfalls datierte historische CI-Aussagen. | mittel | Aktuelle Anleitung korrigieren; historische Aussagen datiert belassen |
 
+## Konkreter Befund aus Workflow-Review (Folge-Issue #203)
+
+- `.github/workflows/java21-bytecode-experiment.yml` verlangt per `assert` die alte Kotlin-DSL-Zeichenkette `jvmTarget = "17"`; im aktuellen `app/build.gradle.kts` steht jedoch `jvmTarget.set(JvmTarget.JVM_17)`. Der manuelle Experiment-Workflow würde deshalb bereits beim Transformationsschritt abbrechen, bevor Gradle gestartet wird. **Statischer Nachweis, nicht ausgeführt.**
+- Das Experiment nutzt `actions/checkout@v7`, `actions/setup-java@v6`, `gradle/actions/setup-gradle@v6` und `actions/upload-artifact@v7` ohne vollständige SHA-Pins. Der reguläre CI-Workflow ist dagegen gepinnt.
+- Nacharbeit in [Issue #203](https://github.com/jochenkunkel/pulselibre/issues/203) dokumentiert. Das produktive JVM-17-Ziel bleibt unverändert.
+
 ## Audit-Arbeitsplan für #6
 
 1. **Produktionscode dateiweise** nach BLE, Datenbank/Import, Recorder, UI, Export/Backup, wissenschaftlichen Auswertungen gruppieren. Pro Datei: Eingaben, Seiteneffekte, Fehlerpfade, Sicherheitsgrenzen, Testreferenzen und konkrete Belege erfassen.
