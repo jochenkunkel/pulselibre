@@ -19,6 +19,8 @@ internal class MainNavigationView(
     private val labels = listOf("Übersicht", "Verlauf", "Gerät", "Testlabor", "Daten")
     private val icons = listOf(PlIcon.OVERVIEW, PlIcon.HISTORY, PlIcon.DEVICE, PlIcon.TESTLAB, PlIcon.DATA)
     private var selectedTab = initialTab
+    /** Tab indexes shown in the strip. The test laboratory (index 3) is no longer a visible tab (#172): it opens by a 3 s long press on the CIRQA heading. */
+    private val visibleTabs = listOf(0, 1, 2, 4)
     private fun dp(value: Int) = (value * resources.displayMetrics.density + 0.5f).toInt()
 
     init {
@@ -26,6 +28,7 @@ internal class MainNavigationView(
         setPadding(dp(8), dp(8), dp(8), dp(8))
         setBackgroundColor(palette.card)
         labels.forEachIndexed { index, label ->
+            if (index !in visibleTabs) return@forEachIndexed
             addView(LinearLayout(activity).apply {
                 orientation = VERTICAL
                 gravity = Gravity.CENTER
@@ -56,9 +59,9 @@ internal class MainNavigationView(
 
     fun select(index: Int) {
         selectedTab = index
-        for (i in labels.indices) {
+        for (i in 0 until childCount) {
             val item = getChildAt(i) as LinearLayout
-            item.isSelected = i == index
+            item.isSelected = visibleTabs[i] == index
             item.background = if (item.isSelected) GradientDrawable().apply {
                 setColor(palette.tinted)
                 cornerRadius = dp(12).toFloat()

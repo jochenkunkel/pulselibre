@@ -18,7 +18,9 @@ object CirqaLinkStatus {
 
     fun evaluate(recorderRunning: Boolean, gatt: State, lastReadingMs: Long?, nowMs: Long): Result {
         if (gatt == State.NOT_PAIRED || gatt == State.PERMISSION_DENIED) {
-            return Result(Kind.UNAVAILABLE, false, CirqaStateMapping.label(gatt))
+            // User-facing wording (#209): no "Android GATT" jargon in the status the user sees.
+            return Result(Kind.UNAVAILABLE, false,
+                if (gatt == State.PERMISSION_DENIED) "Bluetooth-Berechtigung fehlt" else CirqaStateMapping.label(gatt))
         }
         val age = lastReadingMs?.takeIf { it in 0..nowMs }?.let { nowMs - it }
         val fresh = recorderRunning && age != null && age <= FRESH_READING_MS

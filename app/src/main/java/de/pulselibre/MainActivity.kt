@@ -273,19 +273,13 @@ class MainActivity : AppCompatActivity() {
         }
         headerRow.addView(avatarButton, LinearLayout.LayoutParams(dp(48), dp(48)))
         header.addView(headerRow)
-        // Large fonts / narrow screens: "· Offline" moves to its own line instead of being cut off.
+        // Large fonts / narrow screens: the subtitle uses the full width (no 60 dp indent) and wraps instead of being cut off.
+        // #179/#209: reference variant 4 shows only "Deine Daten. Deine Kontrolle."; the former "· Offline" suffix was removed
+        // (it was misread as a connection status). The offline-first promise belongs to Help/Privacy, not to the header.
         val taglineWraps = resources.configuration.screenWidthDp < 340 || resources.configuration.fontScale >= 1.3f
-        val taglineRow = LinearLayout(this).apply {
-            orientation = if (taglineWraps) LinearLayout.VERTICAL else LinearLayout.HORIZONTAL
-            gravity = if (taglineWraps) android.view.Gravity.START else android.view.Gravity.CENTER_VERTICAL
+        val taglineRow = text("Deine Daten. Deine Kontrolle.", 13f, Color.parseColor("#E9E1F7")).apply {
+            contentDescription = "Deine Daten. Deine Kontrolle."
         }
-        taglineRow.addView(text("Deine Daten. Deine Kontrolle.", 13f, Color.parseColor("#E9E1F7")))
-        // "Offline" = no cloud, no network permission: true for this app at all times.
-        // The former green dot looked like a connection status; it only meant "no cloud". A lock says that directly.
-        taglineRow.addView(text(if (taglineWraps) "Offline" else "· Offline", 13f, Color.parseColor("#C9BEE0")), LinearLayout.LayoutParams(-2, -2).apply { if (!taglineWraps) marginStart = dp(6) })
-        taglineRow.contentDescription = "Deine Daten. Deine Kontrolle. Offline: keine Cloud, keine Netzwerkverbindung."
-        // Full width (not wrap_content) so that long text wraps over the real available width instead of being clipped to one line;
-        // when it has to wrap, it also uses the space under the logo (no 60 dp indent).
         header.addView(taglineRow, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8); marginStart = if (taglineWraps) 0 else dp(60) })
         screen.addView(header)
         val root = LinearLayout(this).apply {
@@ -313,11 +307,12 @@ class MainActivity : AppCompatActivity() {
             header.requestLayout()
         }
         scroll.setOnScrollChangeListener { _, _, y, _, _ ->
-            if (dashboardVisible) {
-                // Hysteresis prevents rapid toggling near the top of the scroll range.
-                if (!compactHeader && y > dp(40)) setCompactHeader(true)
-                else if (compactHeader && y <= dp(12)) setCompactHeader(false)
-            }
+            // All tabs share the header. Hysteresis prevents rapid toggling near the top of the scroll range; collapsing is
+            // only allowed when enough content remains to scroll afterwards (otherwise shrinking the header would remove the
+            // scroll range, the header would expand again and flicker on short tabs such as Gerät or Daten).
+            val overflow = (scroll.getChildAt(0)?.height ?: 0) - scroll.height
+            if (!compactHeader && y > dp(40) && overflow > dp(220)) setCompactHeader(true)
+            else if (compactHeader && y <= dp(12)) setCompactHeader(false)
         }
 
         val overview = mutableListOf<android.view.View>()
@@ -514,16 +509,14 @@ class MainActivity : AppCompatActivity() {
             deviceView(view, margin)
             debugDeviceViews.add(view)
         }
-        deviceHeading.setOnLongClickListener {
-            debugDevicesVisible = !debugDevicesVisible
-            debugDeviceViews.forEach { it.visibility =
-                if (devicesVisible && debugDevicesVisible) android.view.View.VISIBLE else android.view.View.GONE }
-            Toast.makeText(this, if (debugDevicesVisible) "Debug-Funktionen sichtbar" else "Debug-Funktionen ausgeblendet", Toast.LENGTH_SHORT).show()
-            true
+        // #172: no visible test lab tab; a 3 s long press on the CIRQA heading opens it (also as TalkBack custom action).
+        // Not a security barrier: the lab stays read-only/safe by default. The former inline debug panel is no longer reachable.
+        attachHiddenLongPress(deviceHeading, 3000L, "Testlabor öffnen") {
+            startActivity(Intent(this, CirqaTestLaboratoryActivity::class.java))
         }
-        deviceView(text("Garmin CIRQA · Passive Diagnose ohne Verbindungsaufbau", 13f, muted))
+        debugView(text("Garmin CIRQA · Passive Diagnose ohne Verbindungsaufbau", 13f, muted))
         status = text("Offline · bereit", 14f, muted)
-        deviceView(status)
+        debugView(status)
         fun actionButton(label: String, primary: Boolean = true, icon: PlIcon? = null, action: () -> Unit) =
             TextView(this).apply {
                 text = label
@@ -554,7 +547,7 @@ class MainActivity : AppCompatActivity() {
         val deviceOverview = DeviceOverviewView(this)
         deviceView(deviceOverview, 8)
         deviceOverviewRef = deviceOverview
-        deviceView(cirqaCard)
+        debugView(cirqaCard)
         cirqaEvidenceView = text(cirqaScanEvidence.summary(), 13f, muted).apply {
             setPadding(dp(16), dp(12), dp(16), dp(12))
             background = rounded(palette.card)
@@ -610,7 +603,7 @@ class MainActivity : AppCompatActivity() {
         deviceView(recorderRow, 12)
         recorderRefresh = {
             val running = RecorderStatus.isRunning(getSharedPreferences(CirqaContinuousRecordingService.PREFS, MODE_PRIVATE))
-            if (running) setRecorderState("Aufzeichnungsdienst aktiv · GATT-Status im Kopfbereich", PlIcon.RECORD_START) else setRecorderState("Aufzeichnung aus", PlIcon.RECORD_STOP)
+            if (running) setRecorderState("Aufzeichnung läuft", PlIcon.RECORD_START) else setRecorderState("Aufzeichnung aus", PlIcon.RECORD_STOP)
             recorderState.setTextColor(muted)
             playButton.alpha = if (running) 0.45f else 1f
             stopButton.alpha = if (running) 1f else 0.45f
@@ -957,11 +950,11 @@ class MainActivity : AppCompatActivity() {
             exportCirqaLog.launch("pulselibre-cirqa-overnight.jsonl")
         })
         devices = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
-        deviceView(devices)
+        debugView(devices)
         output = text("Keine Geräte verbunden.", 13f, muted).apply {
             setTextIsSelectable(true)
         }
-        deviceView(output)
+        debugView(output)
         val nav = MainNavigationView(this) { selectMainTab(it) }
         selectMainTab = { index ->
             selectedMainTab = index
@@ -988,6 +981,11 @@ class MainActivity : AppCompatActivity() {
         }
         screen.addView(nav)
         setContentView(screen)
+        // #208: system bar icons must stay readable in both themes (light bars need dark icons).
+        androidx.core.view.WindowCompat.getInsetsController(window, screen).apply {
+            isAppearanceLightStatusBars = !palette.dark
+            isAppearanceLightNavigationBars = !palette.dark
+        }
         selectMainTab(savedInstanceState?.getInt("main_tab") ?: intent.getIntExtra(MainNavigationView.EXTRA_TAB, 0))
         requestBluetoothPermissionOnFirstLaunch()
         if (savedInstanceState == null) autoStartRecordingIfEnabled()
@@ -1006,6 +1004,30 @@ class MainActivity : AppCompatActivity() {
             // Android may refuse (background restrictions); say so instead of failing silently.
             android.widget.Toast.makeText(this, "Automatischer Start der Aufzeichnung nicht möglich – bitte manuell starten.", android.widget.Toast.LENGTH_LONG).show()
         }
+    }
+
+    /**
+     * Touch-based long press with a custom duration (View.setOnLongClickListener cannot be configured). Cancels on release,
+     * on leaving the touch slop and on cancel. Adds a haptic tick when it fires and a TalkBack custom action [actionLabel].
+     */
+    private fun attachHiddenLongPress(view: android.view.View, durationMs: Long, actionLabel: String, action: () -> Unit) {
+        val handler = android.os.Handler(android.os.Looper.getMainLooper())
+        val fire = Runnable {
+            view.performHapticFeedback(android.view.HapticFeedbackConstants.LONG_PRESS)
+            action()
+        }
+        val slop = android.view.ViewConfiguration.get(this).scaledTouchSlop
+        var downX = 0f; var downY = 0f
+        view.setOnTouchListener { _, e ->
+            when (e.actionMasked) {
+                android.view.MotionEvent.ACTION_DOWN -> { downX = e.x; downY = e.y; handler.postDelayed(fire, durationMs) }
+                android.view.MotionEvent.ACTION_MOVE ->
+                    if (kotlin.math.abs(e.x - downX) > slop || kotlin.math.abs(e.y - downY) > slop) handler.removeCallbacks(fire)
+                android.view.MotionEvent.ACTION_UP, android.view.MotionEvent.ACTION_CANCEL -> handler.removeCallbacks(fire)
+            }
+            true
+        }
+        androidx.core.view.ViewCompat.addAccessibilityAction(view, actionLabel) { _, _ -> action(); true }
     }
 
     private var selectedMainTab = 0
