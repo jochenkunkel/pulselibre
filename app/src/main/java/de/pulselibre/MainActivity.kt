@@ -199,16 +199,23 @@ class MainActivity : AppCompatActivity() {
             setBackgroundColor(surface)
             fitsSystemWindows = true
         }
+        // Header redesign (flicker fix): the backdrop with the tagline is the first element of the scrolled content and simply
+        // scrolls away. Only the thin title bar (logo, title, status and settings buttons) stays pinned as an overlay; its
+        // background fades in while the backdrop slides underneath. No view changes its size while scrolling, so nothing can
+        // feed back into the scroll range (the old size-switching header flickered).
         val header = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             // Extra bottom space shows the mountain ridges of the backdrop (#124).
-            setPadding(dp(20), dp(16), dp(20), dp(46))
+            setPadding(dp(20), dp(12), dp(20), dp(46))
             minimumHeight = dp(170)
             background = HeaderBackdropDrawable(palette.dark)
         }
+        header.addView(android.view.View(this), LinearLayout.LayoutParams(-1, dp(48)))   // room for the pinned title row
         val headerRow = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = android.view.Gravity.CENTER_VERTICAL
+            setPadding(dp(20), dp(12), dp(20), dp(8))
+            minimumHeight = dp(68)
         }
         headerRow.addView(PulseLogoView(this), LinearLayout.LayoutParams(dp(48), dp(48)).apply { marginEnd = dp(12) })
         val headerTitle = text("PulsLibre", 30f, Color.WHITE, true).apply {
@@ -291,7 +298,6 @@ class MainActivity : AppCompatActivity() {
             setStroke(dp(2), palette.accent)
         }
         headerRow.addView(avatarButton, LinearLayout.LayoutParams(dp(48), dp(48)))
-        header.addView(headerRow)
         // Large fonts / narrow screens: the subtitle uses the full width (no 60 dp indent) and wraps instead of being cut off.
         // #179/#209: reference variant 4 shows only "Deine Daten. Deine Kontrolle."; the former "· Offline" suffix was removed
         // (it was misread as a connection status). The offline-first promise belongs to Help/Privacy, not to the header.
@@ -300,7 +306,6 @@ class MainActivity : AppCompatActivity() {
             contentDescription = "Deine Daten. Deine Kontrolle."
         }
         header.addView(taglineRow, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8); marginStart = if (taglineWraps) 0 else dp(60) })
-        screen.addView(header)
         val root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(dp(16), dp(4), dp(16), dp(24))
@@ -308,35 +313,28 @@ class MainActivity : AppCompatActivity() {
         val scroll = ScrollView(this).apply {
             isFillViewport = true
             clipToPadding = false
-            addView(root)
+            addView(LinearLayout(this@MainActivity).apply {
+                orientation = LinearLayout.VERTICAL
+                addView(header, LinearLayout.LayoutParams(-1, -2))
+                addView(root, LinearLayout.LayoutParams(-1, -2))
+            })
         }
-        screen.addView(scroll, LinearLayout.LayoutParams(-1, 0, 1f))
-        // #179: one shared header, with a compact sticky presentation after scrolling the overview.
-        // Keep actions and subtitle in the same views; only layout and background change.
-        var compactHeader = false
-        fun setCompactHeader(compact: Boolean) {
-            if (compactHeader == compact) return
-            compactHeader = compact
-            header.minimumHeight = if (compact) 0 else dp(170)
-            header.setPadding(dp(20), dp(if (compact) 8 else 16), dp(20), dp(if (compact) 8 else 46))
-            header.background = if (compact) rounded(palette.background, 0) else HeaderBackdropDrawable(palette.dark)
-            // The compact header sits on the page background: in the light theme white texts would vanish (S25 finding).
-            val onBackdrop = !compact
-            headerTitle.setTextColor(if (onBackdrop || palette.dark) Color.WHITE else palette.ink)
-            taglineRow.setTextColor(if (onBackdrop) Color.parseColor("#E9E1F7") else if (palette.dark) Color.parseColor("#E9E1F7") else palette.muted)
-            taglineRow.layoutParams = (taglineRow.layoutParams as LinearLayout.LayoutParams).apply {
-                topMargin = dp(if (compact) 2 else 8)
-            }
-            header.requestLayout()
+        val body = android.widget.FrameLayout(this)
+        body.addView(scroll, android.widget.FrameLayout.LayoutParams(-1, -1))
+        body.addView(headerRow, android.widget.FrameLayout.LayoutParams(-1, -2, android.view.Gravity.TOP))
+        screen.addView(body, LinearLayout.LayoutParams(-1, 0, 1f))
+        // Pinned title bar: transparent over the backdrop, opaque page colour once the backdrop slid underneath it.
+        fun updateTitleBar(y: Int) {
+            val start = (header.height - headerRow.height - dp(40)).coerceAtLeast(0)
+            val t = ((y - start).toFloat() / dp(40)).coerceIn(0f, 1f)
+            headerRow.setBackgroundColor(Color.argb((255 * t).toInt(), Color.red(palette.background), Color.green(palette.background), Color.blue(palette.background)))
+            headerRow.elevation = if (t > 0.5f) dp(2).toFloat() else 0f
+            val onPage = t > 0.5f && !palette.dark
+            headerTitle.setTextColor(if (onPage) palette.ink else Color.WHITE)
+            taglineRow.alpha = (1f - y.toFloat() / dp(36)).coerceIn(0f, 1f)
         }
-        scroll.setOnScrollChangeListener { _, _, y, _, _ ->
-            // All tabs share the header. Hysteresis prevents rapid toggling near the top of the scroll range; collapsing is
-            // only allowed when enough content remains to scroll afterwards (otherwise shrinking the header would remove the
-            // scroll range, the header would expand again and flicker on short tabs such as Gerät or Daten).
-            val overflow = (scroll.getChildAt(0)?.height ?: 0) - scroll.height
-            if (!compactHeader && y > dp(40) && overflow > dp(220)) setCompactHeader(true)
-            else if (compactHeader && y <= dp(12)) setCompactHeader(false)
-        }
+        scroll.setOnScrollChangeListener { _, _, y, _, _ -> updateTitleBar(y) }
+        header.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> updateTitleBar(scroll.scrollY) }
 
         val overview = mutableListOf<android.view.View>()
         val historyViews = mutableListOf<android.view.View>()
@@ -712,8 +710,8 @@ class MainActivity : AppCompatActivity() {
             if (index == 2) recorderRefresh?.invoke()
             if (index == 2) refreshUnknownFields()
             connectionIndicatorRefresh?.invoke()
-            setCompactHeader(false)
             scroll.scrollTo(0, 0)
+            updateTitleBar(0)
         }
         screen.addView(nav)
         setContentView(screen)

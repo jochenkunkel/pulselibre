@@ -331,3 +331,8 @@ Noch sichtbar offen (P3): Nacht-Insights erste Spalte „22–6 Uhr / 22331 / We
 - Im Emulator (1000 synthetische Feldtypen, echte Touch-Taps) geprüft; dabei gefunden: `setMessage` + `setSingleChoiceItems` versteckt unter AppCompat die Liste → eigene Ansicht mit Hinweistext und vier Zeilen. DB-Stand nach Test: 1× IGNORED, 1× SUPPORTED, Rest UNREVIEWED.
 - Test `entryOffersAStatusChoiceThatStatesNoMeasurementDataIsChanged`.
 - Korrektur: Der lokale Emulator-Seed-Test `SyntheticSeedTest` war versehentlich mit #250 in `main` gelandet (`git add -A`). Er schreibt synthetische Daten in die App-DB und gehört nie ins Repo/auf ein Handy → entfernt. Künftig nur gezielte `git add`-Pfade.
+
+## 2026-11-20 – Header-Flimmern beim Scrollen behoben
+- Ursache: Der Kopf wechselte beim Scrollen zwischen zwei Größen (170 dp ↔ kompakt) und war Geschwister des ScrollViews; jede Größenänderung veränderte Sichtfenster und Scrollbereich und löste neue Scroll-Ereignisse aus (Sprung, Flimmern, besonders um die 40-dp-Schwelle).
+- Neu: Der Hintergrund (Berge + Untertitel) ist das erste Element des gescrollten Inhalts und scrollt einfach weg; nur die schmale Titelleiste (Logo, Titel, Status-/Einstellungs-Button) bleibt als Overlay fixiert, ihr Hintergrund blendet kontinuierlich ein, der Untertitel blendet aus. Keine Ansicht ändert beim Scrollen ihre Größe.
+- Tests: `scrollingNeverResizesTheHeaderOrTheScrollRange` (Größen bleiben bei y = 0/60/150/400/900/0 gleich), vorhandene Header-/Dashboard-/Analysen-Tests laufen im Emulator grün; Sichtprüfung Dunkel und Hell im Emulator.
