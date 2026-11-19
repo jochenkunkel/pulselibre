@@ -206,3 +206,6 @@ Noch sichtbar offen (P3): Nacht-Insights erste Spalte „22–6 Uhr / 22331 / We
 - Profil löschen erhält SpO₂-Schwellen/Gate (#169), Store-Konstante, toter Avatar-Code entfernt, Hinweis bei fehlgeschlagenem Autostart.
 - Tests: lokal Unit/Lint/androidTest-Kompilierung grün; `PersonalSettingsDialogTest` auf Emulator grün. GitHub-CI weiterhin wegen Billing nicht startbar.
 - Emoji→PlIcon für CIRQA-Überschrift, Verlauf-Datumsknopf, Daten-Tab-Datenschutzzeile (Teil von #168). Unit/Lint/androidTest-Compile lokal grün, Emulator-Sichtprüfung. Profilkarten-Icons brauchen neue Entwürfe.
+
+## 2026-11-19 – Profilkarte mit Designer-Icons (#168)
+- Neue Icons profile/height/weight/age/bmi (vom Designer) in `PlIcon` aufgenommen; Profilkarte nutzt sie statt 👤 ↕ ⚖ ◷ ▣. Unit/Lint/androidTest-Compile lokal grün, Emulator-Sichtprüfung ok. Offen in #168: Info-Dialogzeilen, Statusglyphen (○ ◌ ◉ ↧).

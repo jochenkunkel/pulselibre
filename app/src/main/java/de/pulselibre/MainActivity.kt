@@ -319,8 +319,9 @@ class MainActivity : AppCompatActivity() {
             orientation = LinearLayout.HORIZONTAL
             gravity = android.view.Gravity.CENTER_VERTICAL
         }
-        if (!largeText) bodyHeader.addView(TextView(this).apply {
-            text = "👤"; textSize = 17f; gravity = android.view.Gravity.CENTER
+        if (!largeText) bodyHeader.addView(android.widget.ImageView(this).apply {
+            setImageDrawable(PlIcon.drawable(this@MainActivity, PlIcon.PROFILE, 22, android.graphics.Color.WHITE))
+            scaleType = android.widget.ImageView.ScaleType.CENTER
             background = rounded(DesignTokens.BRAND_PURPLE, 11)
             importantForAccessibility = android.view.View.IMPORTANT_FOR_ACCESSIBILITY_NO
         }, LinearLayout.LayoutParams(dp(32), dp(32)).apply { marginEnd = dp(10) })
@@ -380,14 +381,17 @@ class MainActivity : AppCompatActivity() {
                 Bmi.Tone.RED -> android.graphics.Color.rgb(255, 107, 120)
                 null -> heroSecondary
             }
-            fun add(icon: String, title: String, value: String, valueColor: Int = heroText, extra: String? = null, tagName: String? = null, description: String? = null, onClick: (() -> Unit)? = null) {
+            fun add(icon: PlIcon, title: String, value: String, valueColor: Int = heroText, extra: String? = null, tagName: String? = null, description: String? = null, onClick: (() -> Unit)? = null) {
                 val row = LinearLayout(this).apply {
                     orientation = LinearLayout.HORIZONTAL
                     gravity = android.view.Gravity.CENTER_VERTICAL
                 }
                 // fixed columns: icon | label | value, identical edges in all four rows
-                row.addView(text(icon, 15f, heroAccent, true).apply { gravity = android.view.Gravity.CENTER },
-                    LinearLayout.LayoutParams(dp(22), -2))
+                row.addView(android.widget.ImageView(this).apply {
+                    setImageDrawable(PlIcon.drawable(this@MainActivity, icon, 20, heroAccent))
+                    scaleType = android.widget.ImageView.ScaleType.CENTER
+                    importantForAccessibility = android.view.View.IMPORTANT_FOR_ACCESSIBILITY_NO
+                }, LinearLayout.LayoutParams(dp(22), dp(22)))
                 if (compactProfile) {
                     val stack = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; gravity = android.view.Gravity.CENTER_VERTICAL }
                     stack.addView(text(title, 12f, heroSecondary)); stack.addView(text(value, 15f, valueColor, true))
@@ -412,12 +416,12 @@ class MainActivity : AppCompatActivity() {
                     if (description != null) row.contentDescription = description
                 }
             }
-            add("↕", "Größe", if (heightText.isBlank()) "–" else "$heightText cm")
-            add("⚖", "Gewicht", if (weightText.isBlank()) "–" else "$weightText kg", tagName = "body_weight_row",
+            add(PlIcon.HEIGHT, "Größe", if (heightText.isBlank()) "–" else "$heightText cm")
+            add(PlIcon.WEIGHT, "Gewicht", if (weightText.isBlank()) "–" else "$weightText kg", tagName = "body_weight_row",
                 description = "Gewicht ${if (weightText.isBlank()) "nicht angegeben" else "$weightText Kilogramm"}. Tippen zum Ändern.") { showQuickWeight { refreshBodyCard() } }
-            add("◷", "Alter", age?.let { "$it Jahre" } ?: "–")
+            add(PlIcon.AGE, "Alter", age?.let { "$it Jahre" } ?: "–")
             // BMI: value + written category (colour is never the only signal); tap explains reference and limits.
-            add("▣", "BMI", bmi.value?.let { germanOne.format(it) + " kg/m²" } ?: "–", heroText,
+            add(PlIcon.BMI, "BMI", bmi.value?.let { germanOne.format(it) + " kg/m²" } ?: "–", heroText,
                 extra = bmi.category?.let { "● ${it.label}" } ?: bmi.note) { showBmiInfo(bmi) }
             bodyCard.contentDescription = "Mein Körperprofil. " +
                 (0 until bodyValues.childCount).joinToString(", ") { i ->
