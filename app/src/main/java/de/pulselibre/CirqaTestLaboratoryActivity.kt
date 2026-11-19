@@ -337,7 +337,8 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
             )
             statusOutput.text = "Item-List-Wiederholbarkeit:\n" +
                 (prefs.getString(CirqaItemListRepeatabilityAttemptGate.SUMMARY_KEY, null) ?: "Noch kein Lauf.") +
-                "\nGate=${prefs.getBoolean(CirqaItemListRepeatabilityAttemptGate.PREFERENCE_KEY, false)}"
+                "\nVersuche=${CirqaItemListRepeatabilityAttemptGate.attemptsUsed(prefs)}/" +
+                CirqaItemListRepeatabilityAttemptGate.MAX_ATTEMPTS
         })
         syncCard.addView(button("FileAccess-Status") {
             statusOutput.text = "FileAccess:\n" +
@@ -579,9 +580,8 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
         val prefs = getSharedPreferences(
             CirqaItemListRepeatabilityAttemptGate.PREFS_NAME, MODE_PRIVATE
         )
-        if (!CirqaItemListRepeatabilityAttemptGate.RELEASED_FOR_DEVICE_TEST ||
-            prefs.getBoolean(CirqaItemListRepeatabilityAttemptGate.PREFERENCE_KEY, false)) {
-            statusOutput.text = "Item-List-Wiederholbarkeit gesperrt oder Einmal-Gate bereits verbraucht."
+        if (!CirqaItemListRepeatabilityAttemptGate.hasAttemptsRemaining(prefs)) {
+            statusOutput.text = "Item-List-Wiederholbarkeit gesperrt oder Versuchslimit erreicht."
             return
         }
         AlertDialog.Builder(this)
@@ -591,9 +591,11 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
                     "Keine sync_request-, Pull-, MLR-Datei-, Archiv-, Flag-, Lösch- oder Reset-Anfrage. " +
                     "Verglichen werden UIDs nur flüchtig im Arbeitsspeicher; gespeichert/angezeigt werden " +
                     "ausschließlich redigierte Anzahlen zu gleichen/geänderten/neuen/fehlenden Einträgen. " +
-                    "40-s-Gesamtlimit, kein Retry. Das prüft Wiederholbarkeit innerhalb dieser Sitzung, " +
+                    "40-s-Gesamtlimit, kein Retry. Insgesamt höchstens " +
+                    "${CirqaItemListRepeatabilityAttemptGate.MAX_ATTEMPTS} ausdrücklich bestätigte Läufe; " +
+                    "jeder Versuch wird vor der Verbindung verbraucht. Das prüft Wiederholbarkeit innerhalb dieser Sitzung, " +
                     "nicht UID-Stabilität über spätere Sitzungen oder Vollständigkeit des Gerätearchivs. " +
-                    "Das Einmal-Gate wird vor dem Verbinden verbraucht."
+                    "Das Versuchslimit wird vor dem Verbinden fortgeschrieben."
             )
             .setNegativeButton("Abbrechen", null)
             .setPositiveButton("Ausführen") { _, _ ->

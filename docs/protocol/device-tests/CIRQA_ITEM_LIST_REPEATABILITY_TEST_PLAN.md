@@ -27,8 +27,9 @@ oder die Semantik der UIDs bei Retention/Dateiersetzung.
 - UID-Bytes verbleiben nur flüchtig im Arbeitsspeicher. Verglichen werden
   interne SHA-256-Schlüssel; Status und Bericht enthalten ausschließlich
   Counts, keine UIDs, Hashes, Gerätedaten oder Datei-/Messwerte.
-- Das neue persistente Lab-Gate wird vor der Verbindung genau einmal verbraucht;
-  es wird nicht zurückgesetzt.
+- Das persistente Lab-Gate erlaubt höchstens 15 ausdrücklich bestätigte Läufe
+  und wird vor jeder Verbindung atomar fortgeschrieben. Fehlversuche verbrauchen
+  ebenfalls einen Versuch; es gibt keinen automatischen Retry oder Gate-Reset.
 
 ## Interpretation
 
@@ -43,8 +44,8 @@ oder die Semantik der UIDs bei Retention/Dateiersetzung.
 
 ## Ausstehende Verifikation
 
-Zum Zeitpunkt der Erstellung war kein S25 über ADB verbunden; kein App-Build
-wurde installiert und kein Gerätekommando gesendet. Ein späterer, separat
-bestätigter zweiter Lab-Lauf in einer neuen Verbindung wäre erforderlich, um
-UID-Stabilität über Sitzungen hinweg zu untersuchen. Auch zwei erfolgreiche
+Bis zum Merge/Update ist kein Gerätekommando dieses neuen Testfalls gesendet.
+Ein zweiter separat bestätigter Lauf in einer neuen Verbindung kann ergänzend
+UID-Stabilität über Sitzungen hinweg untersuchen; dazu müssen die redigierten
+Ergebnisse beider Läufe manuell verglichen werden. Auch erfolgreiche
 Listenläufe beweisen keine vollständige historische Abdeckung.
