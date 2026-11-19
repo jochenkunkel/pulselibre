@@ -107,6 +107,28 @@ class MainActivity : AppCompatActivity() {
         dashboardPolling = false
         handler.removeCallbacks(dashboardPoll)
     }
+    /**
+     * Re-index already verified private FIT files on app entry (#204).
+     * Scanning and SQLite writes run off the UI thread and do not communicate
+     * with the device. The bounded scan is safe to repeat on later launches.
+     */
+    private fun scheduleUnknownFitInventoryScan() {
+        if (dashboardWorker.isShutdown) return
+        dashboardWorker.execute {
+            try {
+                CirqaDatabase(applicationContext).use { database ->
+                    CirqaUnknownFitInventory.scanAndPersist(
+                        root = java.io.File(applicationContext.filesDir, "verified_fit"),
+                        store = database,
+                        validatedAtEpochMillis = System.currentTimeMillis(),
+                        cancelled = { Thread.currentThread().isInterrupted }
+                    )
+                }
+            } catch (_: Exception) {
+                // Best-effort and repeatable; retry on a later app entry without logging data.
+            }
+        }
+    }
     override fun onResume() {
         super.onResume()
         startDashboardPolling()
@@ -1000,6 +1022,7 @@ class MainActivity : AppCompatActivity() {
         }
         screen.addView(nav)
         setContentView(screen)
+        scheduleUnknownFitInventoryScan()
         // #208: system bar icons must stay readable in both themes (light bars need dark icons).
         androidx.core.view.WindowCompat.getInsetsController(window, screen).apply {
             isAppearanceLightStatusBars = !palette.dark
