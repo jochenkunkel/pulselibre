@@ -27,6 +27,9 @@ oder die Semantik der UIDs bei Retention/Dateiersetzung.
 - UID-Bytes verbleiben nur flüchtig im Arbeitsspeicher. Verglichen werden
   interne SHA-256-Schlüssel; Status und Bericht enthalten ausschließlich
   Counts, keine UIDs, Hashes, Gerätedaten oder Datei-/Messwerte.
+- Ein GFDI-5000-Frame zu 5043 wird als Transport-ACK getrennt von einer
+  FileAccess-5044-Antwort ausgewiesen. Ein ACK belegt allein keine Annahme der
+  Item-List-Anfrage durch die Geräteanwendung.
 - Das persistente Lab-Gate erlaubt höchstens 15 ausdrücklich bestätigte Läufe
   und wird vor jeder Verbindung atomar fortgeschrieben. Fehlversuche verbrauchen
   ebenfalls einen Versuch; es gibt keinen automatischen Retry oder Gate-Reset.

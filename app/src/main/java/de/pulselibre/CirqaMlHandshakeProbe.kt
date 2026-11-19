@@ -1868,12 +1868,17 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                 }
             }
             if (verified.messageType == 5000) {
-                // The device may reject our 5043 with a GFDI response (e.g. status 2 =
-                // UNKNOWN_OR_NOT_SUPPORTED). Record status and payload length only.
                 val h = GarminGfdiHeader.inspect(frame)
                 if (h?.responseTo == 5043) {
-                    fileAccessDiag = "5000[to=5043,status=${h.responseStatus}," +
-                        "payloadLen=${maxOf(0, frame.size - 9)}]"
+                    val ack = CirqaLegacy5043AckObservation.parse(frame)
+                    fileAccessDiag = if (ack != null) {
+                        "5043-Transport-ACK(gfdiAck=${ack.gfdiAck},requestId=${ack.requestId}," +
+                            "offset=${ack.receivedOffset},successFlag=${ack.successFlag},status=${ack.status}); " +
+                            "dies bestätigt nur den Transport, keine Item-List-Antwort"
+                    } else {
+                        "5000[to=5043,gfdiAck=${h.responseStatus},frameLen=${frame.size}," +
+                            "ACK-Form=nicht verifiziert]"
+                    }
                     main.post { mark("FileAccess: $fileAccessDiag") }
                 }
                 continue
@@ -2662,7 +2667,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                 if (syncFinalReport.isNotEmpty()) syncFinalReport
                 else if (fileAccessListMode) "${if (syncRequestMode) "SyncRequest" else "FileAccess-ItemList"}: $message; " +
                     "${fileAccessReassembler.summary()}; requestSent=$fileAccessRequestClaimed; " +
-                    "accepted=$syncAccepted; proto=[$syncProtoShapes]; other=[$syncOtherLengths]; " +
+                    (if (syncRequestMode) "syncAccepted=$syncAccepted; " else "") +
+                    "proto=[$syncProtoShapes]; other=[$syncOtherLengths]; " +
                     "response=$fileAccessDiag"
                 else if (dirReadSession != null) dirReadSession!!.summary() +
                     " [acks5004=$acks5004Queued,acks5043=$acks5043Queued," +
