@@ -36,7 +36,7 @@ internal object CirqaUnknownFitInventory {
         for (file in files.take(MAX_FILES)) {
             if (cancelled()) { truncated = true; break }
             if (!file.isFile || Files.isSymbolicLink(file.toPath()) ||
-                file.length() !in 1..MAX_FILE_BYTES.toLong() ||
+                file.length() !in 1L..MAX_FILE_BYTES.toLong() ||
                 total + file.length() > MAX_TOTAL_BYTES) {
                 rejected++
                 if (total + file.length() > MAX_TOTAL_BYTES) { truncated = true; break }
