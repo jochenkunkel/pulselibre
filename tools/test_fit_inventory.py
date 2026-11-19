@@ -179,6 +179,42 @@ class FitInventoryTests(unittest.TestCase):
             self.assertEqual(summary["duplicate_primary_keys"], 1)
             self.assertEqual(summary["reading_count"], 2)
 
+    def test_sqlite_inventory_supports_canonical_observations_and_provenance(self):
+        with tempfile.TemporaryDirectory() as temp:
+            db = Path(temp) / "canonical.db"
+            connection = sqlite3.connect(db)
+            connection.executescript("""
+                PRAGMA foreign_keys=ON;
+                CREATE TABLE fit_sources(source_sha256 TEXT PRIMARY KEY);
+                CREATE TABLE observations(
+                    device_id TEXT, metric TEXT, measured_at_ms INTEGER,
+                    sample_id TEXT PRIMARY KEY, value REAL, unit TEXT,
+                    received_at_ms INTEGER
+                );
+                CREATE TABLE fit_observation_provenance(
+                    sample_id TEXT PRIMARY KEY REFERENCES observations(sample_id),
+                    source_sha256 TEXT REFERENCES fit_sources(source_sha256)
+                );
+                INSERT INTO fit_sources VALUES ('source');
+                INSERT INTO observations VALUES (
+                    'device', 'heart_rate', 1, 'candidate', 72, 'bpm', 2
+                );
+                INSERT INTO fit_observation_provenance VALUES ('candidate', 'source');
+            """)
+            connection.commit()
+            connection.close()
+
+            summary, sample_ids = inventory.sqlite_imported(db)
+
+            self.assertEqual(summary["store"], "canonical_observations")
+            self.assertEqual(summary["integrity_check"], "ok")
+            self.assertEqual(summary["reading_count"], 1)
+            self.assertEqual(summary["metric_counts"], {"heart_rate": 1})
+            self.assertEqual(summary["fit_source_count"], 1)
+            self.assertEqual(summary["provenance_count"], 1)
+            self.assertEqual(summary["foreign_key_violations"], 0)
+            self.assertEqual(sample_ids, {"candidate"})
+
 
 if __name__ == "__main__":
     unittest.main()
