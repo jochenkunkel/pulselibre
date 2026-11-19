@@ -1,6 +1,6 @@
 # PulsLibre
 
-**Neuer Chat oder Entwicklungsagent?** Zuerst [CHAT_START_HERE.md](docs/CHAT_START_HERE.md) lesen, danach den [zentralen Projektstatus](docs/PROJECT_STATUS.md) und die offenen GitHub-Issues prüfen.
+**Geplante Wissenschaftsnavigation:** eigener Hauptreiter [„Analysen“ (#227)](https://github.com/jochenkunkel/pulselibre/issues/227), [Sitemap und Modulgruppen](docs/science/ANALYSEN_NAVIGATION_CONCEPT.md); **noch nicht als App-Reiter implementiert**.\n\n**Neuer Chat oder Entwicklungsagent?** Zuerst [CHAT_START_HERE.md](docs/CHAT_START_HERE.md) lesen, danach den [zentralen Projektstatus](docs/PROJECT_STATUS.md) und die offenen GitHub-Issues prüfen.
 
 **Offline-first Android-Projekt für Garmin CIRQA auf Samsung Galaxy S25.**
 
@@ -54,7 +54,7 @@ Keine INTERNET-Berechtigung, kein Cloud-Sync, keine Telemetrie, keine erfundenen
 
 ## Build und Tests
 
-Lokale Build-Anleitung: JDK 17, Android SDK 37 (compileSdk), Gradle 9.6.0. Der GitHub-Actions-Workflow `.github/workflows/android.yml` verwendet dagegen ausdrücklich **JDK 21**. Beispiel:
+Lokale Build-Anleitung: JDK 17 (historischer lokaler Hinweis), Android SDK 37 (compileSdk), Gradle 9.6.0. Der verbindliche GitHub-Actions-Workflow `.github/workflows/android.yml` verwendet **JDK 21**; das **Java/Kotlin-Bytecode-Ziel 17** ist davon zu unterscheiden. Für reproduzierbare CI-Parität lokal bevorzugt JDK 21 verwenden. Beispiel:
 
 ```bash
 gradle :app:testDebugUnitTest :app:lintDebug :app:assembleDebug :app:assembleDebugAndroidTest
