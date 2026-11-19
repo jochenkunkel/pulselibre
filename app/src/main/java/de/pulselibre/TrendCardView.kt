@@ -172,6 +172,7 @@ internal class TrendCardView(context: Context) : LinearLayout(context) {
         }, LayoutParams(-1, -2).apply { topMargin = dp(4) })
     
         addAtlas(d)
+        addCoverage(d)
     }
 
     /** One shared window (7 / 28 / 90 days, default 28) for hero and atlas (#41). */
@@ -229,6 +230,46 @@ internal class TrendCardView(context: Context) : LinearLayout(context) {
         windowListeners.add { refresh() }
         refresh()
         content.addView(box)
+    }
+
+    /** Slim coverage block (#41): resting pulse and steps separately, never one shared percentage. */
+    private fun addCoverage(d: Data) {
+        val box = LinearLayout(context).apply { orientation = VERTICAL; tag = "data_coverage_box" }
+        box.addView(View(context).apply { setBackgroundColor(palette.track) }, LayoutParams(-1, dp(1)).apply { topMargin = dp(12); bottomMargin = dp(10) })
+        box.addView(LinearLayout(context).apply {
+            orientation = HORIZONTAL; gravity = Gravity.CENTER_VERTICAL
+            addView(PlIcon.view(context, PlIcon.DATA, 22, palette.accent), LayoutParams(dp(22), dp(22)).apply { marginEnd = dp(8) })
+            addView(TextView(context).apply { text = "Datenabdeckung"; textSize = 14f; setTypeface(null, Typeface.BOLD); setTextColor(palette.ink) }, LayoutParams(0, -2, 1f))
+        })
+        val rows = LinearLayout(context).apply { orientation = VERTICAL }
+        box.addView(rows)
+        fun refresh() {
+            rows.removeAllViews()
+            listOf(DataCoverage.line("Ruhepuls", d.restDaily, d.today, atlasWindow), DataCoverage.line("Schritte", d.stepsDaily, d.today, atlasWindow)).forEach { line ->
+                rows.addView(LinearLayout(context).apply {
+                    orientation = VERTICAL; setPadding(0, dp(6), 0, 0); contentDescription = line.description(); isFocusable = true; tag = "coverage_${line.name}"
+                    addView(TextView(context).apply { text = line.text(); textSize = 12f; setTextColor(palette.ink); importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO })
+                    addView(DeviceCoverageBar(context, line.fraction, if (line.name == "Ruhepuls") palette.pulse else palette.indicator, palette.track),
+                        LayoutParams(-1, dp(6)).apply { topMargin = dp(4) })
+                    line.hint()?.let { addView(TextView(context).apply { text = it; textSize = 11f; setTextColor(palette.muted); importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO }) }
+                })
+            }
+        }
+        windowListeners.add { refresh() }
+        refresh()
+        content.addView(box)
+    }
+
+    /** Thin proportional bar; the fill is exactly the share of covered days. */
+    private class DeviceCoverageBar(context: Context, private val fraction: Float, private val fill: Int, private val track: Int) : View(context) {
+        private val paint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG)
+        private val rect = android.graphics.RectF()
+        init { importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO }
+        override fun onDraw(canvas: android.graphics.Canvas) {
+            val r = height / 2f
+            paint.color = track; rect.set(0f, 0f, width.toFloat(), height.toFloat()); canvas.drawRoundRect(rect, r, r, paint)
+            if (fraction > 0f) { paint.color = fill; rect.set(0f, 0f, maxOf(height.toFloat(), width * fraction.coerceIn(0f, 1f)), height.toFloat()); canvas.drawRoundRect(rect, r, r, paint) }
+        }
     }
 
     /** Activity atlas (#41): calendar of daily step totals for the shared window. */
