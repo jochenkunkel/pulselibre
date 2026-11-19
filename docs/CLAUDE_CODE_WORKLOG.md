@@ -310,3 +310,7 @@ Noch sichtbar offen (P3): Nacht-Insights erste Spalte „22–6 Uhr / 22331 / We
 - Nutzerfreigabe nach Screenshots (Build 1326, Dunkel, 1,0×): Reiter Analysen (#227 Stufe 1), Verlauf „Punkte | Verteilung" (#219 UI), Gerät-Kacheln (#242). Screenshots bleiben lokal (echte Gesundheitswerte).
 - Fund: Speicherkachel brach „91,4 / MB" mitten in der Einheit um → Zeilenumbruch vor der Größe.
 - Offen bleiben #219 (Hell/Farbenblind-Alternative) und #227 (Suche/Filter, TalkBack/320 dp).
+
+## 2026-11-19 – #177: bebildertes Benutzerhandbuch (Emulator, Demo-Daten)
+- 9 Abbildungen (Übersicht ×2, Verlauf Punkte/Verteilung, Analysen ×2, Gerät, Daten, Einstellungen) aus dem S25-Emulator (1080×2340, Dunkel) mit synthetischen Daten, auf 540 px verkleinert (PNG8, je 29–72 KB) in `docs/user/images/`, im Handbuch mit nummerierten Bildunterschriften; als Emulator/Demo-Daten gekennzeichnet, nicht als reale Gerätetests.
+- Nicht abgedeckt (ehrlich): echtes Gerät/Band (nur Emulator), Hell-Modus, Dialoge (Rückfragen beim Backup/Löschen), Testlabor, BLE-Zustände mit verbundenem Band.
