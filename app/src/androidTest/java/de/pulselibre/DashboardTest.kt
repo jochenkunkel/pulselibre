@@ -69,7 +69,7 @@ class DashboardTest {
                     scenario.onActivity { activity ->
                         val root = activity.findViewById<ViewGroup>(android.R.id.content)
                         rendered = containsText(root, "Verlauf · lokal gespeicherte Messpunkte") &&
-                            containsDescription(root, "Zeitpunkt: Empfang auf dem Telefon.")
+                            containsText(root, "Zeitachse: Telefonzeit")
                     }
                 }
                 if (!rendered) Thread.sleep(100)

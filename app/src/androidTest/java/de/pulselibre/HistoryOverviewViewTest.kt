@@ -52,7 +52,7 @@ class HistoryOverviewViewTest {
         }
     }
 
-    @Test fun compactLegendUsesIconsAndKeepsFullMeaningAccessible() {
+    @Test fun chartCaptionsExplainTimeMedianRangeAndGaps() {
         val context = ApplicationProvider.getApplicationContext<Context>()
         val end = Instant.parse("2026-11-17T12:00:00Z")
         InstrumentationRegistry.getInstrumentation().runOnMainSync {
@@ -60,11 +60,17 @@ class HistoryOverviewViewTest {
                 HistorySnapshot(range, range.startAt(end), end, emptyList(), emptyList())
             }
             view.refreshSynchronously()
-            val legend = descendants(view).single { it.contentDescription?.startsWith("Verlaufslegende.") == true }
-            assertTrue(legend.contentDescription.contains("Empfang auf dem Telefon"))
-            assertTrue(legend.contentDescription.contains("Median"))
-            assertTrue(legend.contentDescription.contains("Leere Fenster"))
-            assertEquals(3, descendants(legend).filterIsInstance<DashboardInfoIconView>().size)
+            // Since #182 the explanation is a plain caption under each chart (no chips above the plots).
+            val captions = descendants(view).filter { it.tag == "history_chart_legend" }.filterIsInstance<android.widget.TextView>()
+            assertEquals("je Diagrammkarte eine Beschriftung (Herzfrequenz, SpO2)", 2, captions.size)
+            captions.forEach {
+                val t = it.text.toString()
+                assertTrue(t.contains("Telefonzeit"))
+                assertTrue(t.contains("Median"))
+                assertTrue(t.contains("Min–Max"))
+                assertTrue(t.contains("Lücken"))
+            }
+            assertTrue(descendants(view).none { it.contentDescription?.startsWith("Verlaufslegende.") == true })
             assertFalse(containsText(view, "Werte werden je Zeitfenster als Median"))
         }
     }
