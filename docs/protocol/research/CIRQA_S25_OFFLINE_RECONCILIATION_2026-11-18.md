@@ -70,8 +70,10 @@ extracts only the software-version text under `Model`, a boolean
 cover valid and empty fields, malformed XML, DTD/entity rejection, and opaque
 binary input. On the available private pair, one file was XML with a populated
 software-version field, empty mass-storage text, and 51 transfer-direction
-elements; the other was not parsed as this XML format. Values were not printed
-or copied into repository documentation.
+elements; the other was rejected as this XML format. The Kotlin parser was also
+run directly against these two private originals and produced the same
+classification and field-presence/count results. Values were not printed or
+copied into repository documentation.
 
 These remain snapshot-derived structural observations, not current device
 state. Raw metadata is deliberately not persisted in the application database

@@ -1,6 +1,7 @@
 package de.pulselibre
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Test
 
@@ -45,5 +46,17 @@ class CirqaRawDeviceMetadataTest {
 
     @Test fun treatsOpaqueBinaryAsNotParsedXml() {
         assertNull(CirqaRawDeviceMetadataParser.inspect(byteArrayOf(0x00, 0xFF.toByte(), 0x10, 0x01)))
+    }
+
+    @Test fun overlongWhitelistedTextIsOmittedWithoutRejectingOtherStructure() {
+        val overlong = "x".repeat(129)
+        val xml = "<Device><Model><SoftwareVersion>$overlong</SoftwareVersion></Model>" +
+            "<TransferDirection/></Device>"
+
+        val result = CirqaRawDeviceMetadataParser.inspect(xml.toByteArray())
+
+        assertNotNull(result)
+        assertNull(result?.softwareVersion)
+        assertEquals(1, result?.transferDirectionElementCount)
     }
 }

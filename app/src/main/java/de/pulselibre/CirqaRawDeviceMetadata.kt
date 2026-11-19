@@ -71,7 +71,11 @@ internal object CirqaRawDeviceMetadataParser {
 
         override fun characters(ch: CharArray, start: Int, length: Int) {
             if (activeCapture == null) return
-            if (text.length + length > MAX_TEXT_LENGTH) throw SAXException("XML metadata field too long")
+            if (text.length + length > MAX_TEXT_LENGTH) {
+                activeCapture = null
+                text.setLength(0)
+                return
+            }
             text.append(ch, start, length)
         }
 

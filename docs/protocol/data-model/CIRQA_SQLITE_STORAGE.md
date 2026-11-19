@@ -62,7 +62,7 @@ record schemas and FIT foreign-key relationships before confirmation. Do not
 manually copy a live SQLite main file without its journal.
 
 GitHub full CI run 44417266709 passed the canonical write/backup v3 change
-before this schema-v4 metadata work. Current local verification passes 628/628
+before this schema-v4 metadata work. Current local verification passes 629/629
 JVM tests, 63/63 API-35 emulator tests, 19/19 Python tests, debug APK, lint and
 Android-test APK. GitHub CI was not started for schema v4 because the user has
 temporarily paused the workflow.
