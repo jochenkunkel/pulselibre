@@ -223,3 +223,6 @@ Noch sichtbar offen (P3): Nacht-Insights erste Spalte „22–6 Uhr / 22331 / We
 ## 2026-11-19 – main baubar gemacht (Icon-Commits anderer Sessions)
 - Nach dem AGP-Revert (PR #190, versehentlich trotz rotem Lauf 44485944752 gemergt – Skriptfehler: Merge nicht an Grün-Prüfung gekoppelt) zeigte der Lauf zwei weitere Fehler aus Commit 47042de „centralize metric detail icon semantics“: `iconFor` war public mit internem Rückgabetyp `PlIcon` (Kotlin-Fehler), und `DashboardInfoIconView`/`DashboardMetricIconView` erbten von `ImageView` (Lint-Fehler AppCompatCustomView). Behoben (`internal`, `AppCompatImageView`). Lokal Unit/Lint/androidTest-Compile grün.
 - Drei Emulator-Tests an geänderte UI angepasst (Statusbutton ist seit #179 ein FrameLayout, Schritt-Chip nutzt PlIcon): `DashboardTest`, `BodyProfileCardTest`, `DashboardOverviewViewTest`. Nachweis über GitHub-CI (lokaler Emulator wegen Host-RAM nicht nutzbar; Tests laufen nie auf dem S25, weil sie Profildaten verändern).
+
+## 2026-11-19 – StepBarsView-Lint (Kotlin-2.4-Vorbereitung)
+- `[Range]`-Lintfehler in `StepBarsView.kt` (alpha in `Paint.apply` innerhalb einer View-Unterklasse → View.alpha) durch `also { it.alpha = … }` behoben; lint grün auf `main`-Basis und auf der Kotlin-2.4.21-Basis (`add8728`). Abstimmung mit OpenCode über `docs/collaboration/agent-sync/`.
