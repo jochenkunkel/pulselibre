@@ -142,16 +142,6 @@ class MainActivity : AppCompatActivity() {
         super.onPause()
     }
 
-    private val exportCirqaLog = registerForActivityResult(
-        androidx.activity.result.contract.ActivityResultContracts.CreateDocument("application/x-ndjson")
-    ) { uri ->
-        if (uri != null) try {
-            CirqaLocalLog(this).copyTo(this, uri)
-            Toast.makeText(this, "CIRQA-Protokoll exportiert", Toast.LENGTH_LONG).show()
-        } catch (_: Exception) {
-            Toast.makeText(this, "Export fehlgeschlagen", Toast.LENGTH_LONG).show()
-        }
-    }
     private lateinit var adapter: BluetoothAdapter
     private lateinit var status: TextView
     private lateinit var output: TextView
@@ -159,9 +149,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var cirqaCard: TextView
     private lateinit var cirqaEvidenceView: TextView
     private val cirqaScanEvidence = CirqaScanEvidence()
-    private var cirqaGattProbe: CirqaGattProbe? = null
-    private var cirqaMlProbe: CirqaMlHandshakeProbe? = null
-    private var lastHistoryDiagnostic: String? = null
     private val passiveRssiTracker = PassiveRssiTracker()
     private var scanning = false
     private var scanGeneration = 0
@@ -174,7 +161,6 @@ class MainActivity : AppCompatActivity() {
     private val found = mutableSetOf<String>()
     private val deviceRows = mutableMapOf<String, TextView>()
     private val diagnosticRows = mutableMapOf<String, String>()
-    private val bondedRows = mutableListOf<String>()
     private var cirqaBondAddress: String? = null
     private var cirqaScanMatch = false
     private var cirqaGattState = "Nicht abgefragt"
@@ -661,203 +647,6 @@ class MainActivity : AppCompatActivity() {
             stopButton.isEnabled = running
         }
         recorderRefresh?.invoke()
-        debugView(actionButton("Bluetooth-Geräte suchen") { startScan() })
-        debugView(actionButton("Diagnose teilen", false) { shareDiagnostics() })
-        debugView(actionButton("Gekoppelte Geräte anzeigen", false) { showBondedDevices() })
-        debugView(actionButton("CIRQA: GATT-Dienste prüfen (aktive Verbindung)", false) {
-            if (!ensurePermissions()) return@actionButton
-            if (scanning) stopScan()
-            androidx.appcompat.app.AlertDialog.Builder(this)
-                .setTitle("Aktiver CIRQA-Verbindungstest")
-                .setMessage("Garmin Connect vorher beenden. PulsLibre verbindet sich kurz mit dem gekoppelten CIRQA, liest nur die GATT-Dienststruktur und trennt die Verbindung wieder. Keine Schreibbefehle, kein CLOSE_ALL. Fortfahren?")
-                .setNegativeButton("Abbrechen", null)
-                .setPositiveButton("Verbinden") { _, _ ->
-                    if (cirqaGattProbe == null) cirqaGattProbe = CirqaGattProbe(this, adapter)
-                    cirqaGattProbe?.start { message ->
-                        runOnUiThread { output.text = message }
-                    }
-                }.show()
-        })
-        debugView(actionButton("CIRQA: Historien-Diagnose (Phase 1)", false) {
-            if (!ensurePermissions()) return@actionButton
-            if (scanning) stopScan()
-            androidx.appcompat.app.AlertDialog.Builder(this)
-                .setTitle("CIRQA · Historien-Diagnose")
-                .setMessage("Garmin Connect vorher vollständig beenden. Der Test registriert nur den Garmin-GFDI-Dienst, beobachtet 20 Sekunden lang Antwort-Metadaten und trennt die Verbindung. Es wird noch keine Dateiliste angefordert. Kein CLOSE_ALL, keine Dateiänderung, keine Rohdaten im Bericht. Starten?")
-                .setNegativeButton("Abbrechen", null)
-                .setPositiveButton("Diagnose starten") { _, _ ->
-                    if (cirqaMlProbe == null) cirqaMlProbe = CirqaMlHandshakeProbe(this, adapter)
-                    lastHistoryDiagnostic = null
-                    cirqaMlProbe?.startHistoryDiagnostic { message ->
-                        runOnUiThread {
-                            output.text = message
-                            if (message.startsWith("PulsLibre · CIRQA Historien-Diagnose")) {
-                                lastHistoryDiagnostic = message
-                                androidx.appcompat.app.AlertDialog.Builder(this)
-                                    .setTitle("Historien-Diagnose abgeschlossen")
-                                    .setMessage(message)
-                                    .setPositiveButton("Schließen", null)
-                                    .setNeutralButton("Bericht teilen") { _, _ ->
-                                        val intent = Intent(Intent.ACTION_SEND).apply {
-                                            type = "text/plain"
-                                            putExtra(Intent.EXTRA_TEXT, message)
-                                        }
-                                        startActivity(Intent.createChooser(intent, "CIRQA-Diagnose teilen"))
-                                    }
-                                    .show()
-                            }
-                        }
-                    }
-                }.show()
-        })
-        debugView(actionButton("CIRQA: Bootstrap-ACK-Test (experimentell)", false) {
-            if (!ensurePermissions()) return@actionButton
-            if (scanning) stopScan()
-            androidx.appcompat.app.AlertDialog.Builder(this)
-                .setTitle("CIRQA · Aktiver Bootstrap-Test")
-                .setMessage("Garmin Connect und laufende Aufzeichnungen vorher beenden. Nach einer gültigen DeviceInformation (5024) wird genau EIN experimenteller, identitätsfreier ACK-Kandidat gesendet. Keine Dateiliste, keine Dateien, keine Änderungen am Gerät. Abbruch nach 20 Sekunden. Das CIRQA-Verhalten ist unbekannt. Starten?")
-                .setNegativeButton("Abbrechen", null)
-                .setPositiveButton("ACK einmalig testen") { _, _ ->
-                    if (cirqaMlProbe == null) cirqaMlProbe = CirqaMlHandshakeProbe(this, adapter)
-                    lastHistoryDiagnostic = null
-                    cirqaMlProbe?.startBootstrapAckTest { message ->
-                        runOnUiThread {
-                            output.text = message
-                            if (message.startsWith("PulsLibre · CIRQA Historien-Diagnose")) {
-                                lastHistoryDiagnostic = message
-                                androidx.appcompat.app.AlertDialog.Builder(this)
-                                    .setTitle("Bootstrap-ACK-Test abgeschlossen")
-                                    .setMessage(message)
-                                    .setPositiveButton("Schließen", null)
-                                    .setNeutralButton("Bericht teilen") { _, _ ->
-                                        val intent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
-                                            type = "text/plain"
-                                            putExtra(android.content.Intent.EXTRA_TEXT, message)
-                                        }
-                                        startActivity(android.content.Intent.createChooser(intent, "Diagnosebericht teilen"))
-                                    }
-                                    .show()
-                            }
-                        }
-                    }
-                }.show()
-        })
-        debugView(actionButton("CIRQA: Garmin-Connect-HCI-Mitschnitt vorbereiten", false) {
-            androidx.appcompat.app.AlertDialog.Builder(this)
-                .setTitle("CIRQA · Referenz-Handshake aufzeichnen")
-                .setMessage(
-                    "1. Android-Einstellungen > Über das Telefon > Buildnummer siebenmal antippen, falls Entwickleroptionen fehlen.\n\n" +
-                    "2. Entwickleroptionen öffnen und \"Bluetooth-HCI-Snoop-Protokoll aktivieren\" einschalten. Die Bezeichnung hängt vom Gerät ab.\n\n" +
-                    "3. PulsLibre-Aufzeichnung und BLE-Diagnose beenden. Garmin Connect in Android > Apps wieder aktivieren.\n\n" +
-                    "4. Garmin Connect starten und CIRQA genau einmal synchronisieren.\n\n" +
-                    "5. HCI-Snoop sofort wieder ausschalten; Garmin Connect bei Bedarf deaktivieren.\n\n" +
-                    "6. Über Android-Fehlerbericht oder ADB den Bluetooth-HCI-Snoop-Log sichern und lokal in Wireshark auf die Garmin-GATT-Schreibvorgänge prüfen.\n\n" +
-                    "WICHTIG: HCI-Logs können Gerätekennungen, Gesundheitsdaten und andere Bluetooth-Verbindungen enthalten. Vor dem Teilen bereinigen. PulsLibre kann die systemgeschützte HCI-Datei nicht selbst auslesen. Keine Kopplung löschen oder zurücksetzen."
-                )
-                .setNegativeButton("Schließen", null)
-                .setPositiveButton("Entwickleroptionen öffnen") { _, _ ->
-                    try {
-                        startActivity(Intent(android.provider.Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS))
-                    } catch (_: Exception) {
-                        Toast.makeText(this, "Entwickleroptionen bitte manuell in Android-Einstellungen öffnen.", Toast.LENGTH_LONG).show()
-                    }
-                }
-                .show()
-        })
-        debugView(actionButton("CIRQA: 5050-Konfiguration gezielt testen", false) {
-            if (!ensurePermissions()) return@actionButton
-            if (scanning) stopScan()
-            androidx.appcompat.app.AlertDialog.Builder(this)
-                .setTitle("CIRQA · Gezielter 5050-Test")
-                .setMessage("Experimenteller einmaliger Bluetooth-Test. Garmin Connect und laufende Aufzeichnung vorher beenden. Nach dem bisherigen 5024-ACK und einer empfangenen 5050-Konfiguration sendet PulsLibre genau ein 5050-ACK und eine 15-Byte-Hostmaske ohne gesetzte Fähigkeiten. Das Armband kann die Antwort ablehnen. Keine Dateioperationen vorgesehen; Auswirkungen der experimentellen GATT-Schreibbefehle auf das Band sind nicht verifiziert. Nur nach gesonderter Freigabe am S25 testen. Automatische Trennung spätestens 20 Sekunden ohne Schreibabschluss, sonst 10 Sekunden nach der 5050-Schreibbestätigung. Jetzt starten?")
-                .setNegativeButton("Abbrechen", null)
-                .setPositiveButton("5050-Test starten") { _, _ ->
-                    if (cirqaMlProbe == null) cirqaMlProbe = CirqaMlHandshakeProbe(this, adapter)
-                    lastHistoryDiagnostic = null
-                    cirqaMlProbe?.startConfigurationTest { message ->
-                        runOnUiThread {
-                            output.text = message
-                            if (message.startsWith("PulsLibre · CIRQA Historien-Diagnose")) {
-                                lastHistoryDiagnostic = message
-                                androidx.appcompat.app.AlertDialog.Builder(this)
-                                    .setTitle("5050-Konfigurationstest abgeschlossen")
-                                    .setMessage(message)
-                                    .setPositiveButton("Schließen", null)
-                                    .setNeutralButton("Bericht teilen") { _, _ ->
-                                        val intent = Intent(Intent.ACTION_SEND).apply {
-                                            type = "text/plain"
-                                            putExtra(Intent.EXTRA_TEXT, message)
-                                        }
-                                        startActivity(Intent.createChooser(intent, "CIRQA-5050-Test teilen"))
-                                    }.show()
-                            }
-                        }
-                    }
-                }.show()
-        })
-        debugView(actionButton("CIRQA: synthetische SYNC-Aushandlung (experimentell)", false) {
-            if (!ensurePermissions()) return@actionButton
-            if (scanning) stopScan()
-            androidx.appcompat.app.AlertDialog.Builder(this)
-                .setTitle("CIRQA · Synthetischer SYNC-Debugtest")
-                .setMessage("Nur für das freigegebene Testgerät mit synthetischen Daten. Garmin Connect und laufende Aufzeichnung vorher beenden. PulsLibre sendet einmalig 5050-ACK und eine 15-Byte-Hostmaske mit ausschließlich SYNC-Bit 3. Es werden noch KEINE Dateien heruntergeladen oder verändert. Bei Protokollfehlern wird abgebrochen. Dies ist ein experimenteller Bluetooth-Schreibtest. Fortfahren?")
-                .setNegativeButton("Abbrechen", null)
-                .setPositiveButton("SYNC-Debugtest starten") { _, _ ->
-                    if (cirqaMlProbe == null) cirqaMlProbe = CirqaMlHandshakeProbe(this, adapter)
-                    lastHistoryDiagnostic = null
-                    cirqaMlProbe?.startSyntheticSyncDebug { message ->
-                        runOnUiThread {
-                            output.text = message
-                            if (message.startsWith("PulsLibre · CIRQA Historien-Diagnose")) {
-                                lastHistoryDiagnostic = message
-                                androidx.appcompat.app.AlertDialog.Builder(this)
-                                    .setTitle("Synthetischer SYNC-Debugtest abgeschlossen")
-                                    .setMessage(message)
-                                    .setPositiveButton("Schließen", null)
-                                    .setNeutralButton("Bericht teilen") { _, _ ->
-                                        val intent = Intent(Intent.ACTION_SEND).apply {
-                                            type = "text/plain"
-                                            putExtra(Intent.EXTRA_TEXT, message)
-                                        }
-                                        startActivity(Intent.createChooser(intent, "CIRQA-SYNC-Debugbericht teilen"))
-                                    }.show()
-                            }
-                        }
-                    }
-                }.show()
-        })
-        debugView(actionButton("CIRQA: Bootstrap-Rohdaten (experimentell)", false) {
-            if (!ensurePermissions()) return@actionButton
-            if (scanning) stopScan()
-            androidx.appcompat.app.AlertDialog.Builder(this)
-                .setTitle("CIRQA · Rohdaten-Diagnose")
-                .setMessage("Nur für Dummy-Daten: Dieser Test sendet EIN experimentelles DeviceInformation-ACK und erfasst bis zu 32 vollständige, CRC-geprüfte GFDI-Frames (maximal 8 KiB) als Hex im Ergebnisbericht. Enthalten sein können Gesundheitswerte, Seriennummern und Gerätekennungen. Die Daten werden nicht automatisch hochgeladen; beim Teilen bestimmst du selbst den Empfänger. Nach 20 Sekunden wird getrennt. Fortfahren?")
-                .setNegativeButton("Abbrechen", null)
-                .setPositiveButton("Rohdaten erfassen") { _, _ ->
-                    if (cirqaMlProbe == null) cirqaMlProbe = CirqaMlHandshakeProbe(this, adapter)
-                    lastHistoryDiagnostic = null
-                    cirqaMlProbe?.startBootstrapRawCapture { message ->
-                        runOnUiThread {
-                            output.text = message
-                            if (message.startsWith("PulsLibre · CIRQA Historien-Diagnose")) {
-                                lastHistoryDiagnostic = message
-                                androidx.appcompat.app.AlertDialog.Builder(this)
-                                    .setTitle("Bootstrap-Rohdaten abgeschlossen")
-                                    .setMessage("Bis zu 32 vollständige GFDI-Frames wurden erfasst. Der Bericht kann Kennungen und Gesundheitswerte enthalten. Nur an vertrauenswürdige Empfänger weitergeben.")
-                                    .setNegativeButton("Schließen", null)
-                                    .setPositiveButton("Bericht teilen") { _, _ ->
-                                        val intent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
-                                            type = "text/plain"
-                                            putExtra(android.content.Intent.EXTRA_TEXT, message)
-                                        }
-                                        startActivity(android.content.Intent.createChooser(intent, "Rohdatenbericht teilen"))
-                                    }
-                                    .show()
-                            }
-                        }
-                    }
-                }.show()
-        })
         val disabledFileSyncV2 = actionButton("CIRQA: FileSync V2 dauerhaft gesperrt", false) {}
         disabledFileSyncV2.isEnabled = false
         disabledFileSyncV2.isClickable = false
@@ -866,139 +655,6 @@ class MainActivity : AppCompatActivity() {
         disabledFileSyncV2.contentDescription =
             "FileSync V2 gesperrt; CIRQA hat die frühere Anfrage abgelehnt. Keine Anfrage wird gesendet."
         debugView(disabledFileSyncV2)
-        debugView(actionButton("Letzte Historien-Diagnose teilen", false) {
-            val report = lastHistoryDiagnostic
-            if (report == null) {
-                output.text = "Noch keine abgeschlossene Historien-Diagnose in dieser App-Sitzung."
-            } else {
-                val intent = Intent(Intent.ACTION_SEND).apply {
-                    type = "text/plain"
-                    putExtra(Intent.EXTRA_TEXT, report)
-                }
-                startActivity(Intent.createChooser(intent, "CIRQA-Diagnose teilen"))
-            }
-        })
-        debugView(actionButton("CIRQA: Garmin-ML-Handshake testen", false) {
-            if (!ensurePermissions()) return@actionButton
-            if (scanning) stopScan()
-            androidx.appcompat.app.AlertDialog.Builder(this)
-                .setTitle("Garmin Multi-Link Handshake")
-                .setMessage("Garmin Connect vorher vollständig beenden. Der Test verbindet sich mit CIRQA, aktiviert GATT-Benachrichtigungen, sendet eine GFDI-Service-Registrierung und trennt die Verbindung. Keine Gesundheitsdaten werden gelesen. CLOSE_ALL ist optional.")
-                .setNegativeButton("Abbrechen", null)
-                .setNeutralButton("Mit CLOSE_ALL") { _, _ ->
-                    if (cirqaMlProbe == null) cirqaMlProbe = CirqaMlHandshakeProbe(this, adapter)
-                    cirqaMlProbe?.start(true) { message -> runOnUiThread { output.text = message } }
-                }
-                .setPositiveButton("Ohne CLOSE_ALL") { _, _ ->
-                    if (cirqaMlProbe == null) cirqaMlProbe = CirqaMlHandshakeProbe(this, adapter)
-                    cirqaMlProbe?.start(false) { message -> runOnUiThread { output.text = message } }
-                }.show()
-        })
-        debugView(actionButton("CIRQA: Puls und Schritte live testen", false) {
-            if (!ensurePermissions()) return@actionButton
-            if (scanning) stopScan()
-            androidx.appcompat.app.AlertDialog.Builder(this)
-                .setTitle("CIRQA Echtzeit-Messwerte")
-                .setMessage("Garmin Connect vorher beenden. PulsLibre registriert GFDI, Puls und Schritte ohne CLOSE_ALL, wartet maximal 20 Sekunden auf echte Messwerte und trennt die Verbindung. Empfangene Messwerte werden lokal für die Übersicht gespeichert. Keine Kopplungsänderung. Fortfahren?")
-                .setNegativeButton("Abbrechen", null)
-                .setPositiveButton("Live-Test starten") { _, _ ->
-                    if (cirqaMlProbe == null) cirqaMlProbe = CirqaMlHandshakeProbe(this, adapter)
-                    cirqaMlProbe?.onReading = { service, reading ->
-                        CirqaLocalLog(this).reading(service, reading)
-                    }
-                    cirqaMlProbe?.startRealtime { message -> runOnUiThread {
-                        output.text = message
-                        if (!message.startsWith("ML-Test: Verbinde")) updateCirqaDashboard()
-                    } }
-                }.show()
-        })
-        debugView(actionButton("CIRQA: Alle Garmin-Messwerte testen", false) {
-            if (!ensurePermissions()) return@actionButton
-            if (scanning) stopScan()
-            androidx.appcompat.app.AlertDialog.Builder(this)
-                .setTitle("CIRQA: Weitere Messwerte")
-                .setMessage("Garmin Connect vorher beenden. PulsLibre versucht zusätzlich SpO₂, Atmung, HRV, Stress, Body Battery, Kalorien und Intensitätsminuten einzeln zu registrieren. Nicht unterstützte Dienste werden gemeldet. Maximal 20 Sekunden, kein CLOSE_ALL. Empfangene Messwerte werden lokal für die Übersicht gespeichert.")
-                .setNegativeButton("Abbrechen", null)
-                .setPositiveButton("Messwerte prüfen") { _, _ ->
-                    if (cirqaMlProbe == null) cirqaMlProbe = CirqaMlHandshakeProbe(this, adapter)
-                    cirqaMlProbe?.onReading = { service, reading ->
-                        CirqaLocalLog(this).reading(service, reading)
-                    }
-                    cirqaMlProbe?.startAllMetrics { message -> runOnUiThread {
-                        output.text = message
-                        if (!message.startsWith("ML-Test: Verbinde")) updateCirqaDashboard()
-                    } }
-                }.show()
-        })
-        debugView(actionButton("CIRQA: Bewegungssensor (Service 16) prüfen", false) {
-            if (!ensurePermissions()) return@actionButton
-            if (cirqaMlProbe == null) cirqaMlProbe = CirqaMlHandshakeProbe(this, adapter)
-            output.text = "Service 16: einmalige, zeitbegrenzte Prüfung · keine Rohdaten gespeichert"
-            cirqaMlProbe?.startMotionDiscovery { message ->
-                runOnUiThread {
-                    output.text = message
-                    android.app.AlertDialog.Builder(this)
-                        .setTitle("CIRQA · Bewegungssensor-Test")
-                        .setMessage(message)
-                        .setPositiveButton("OK", null)
-                        .show()
-                }
-            }
-        })
-        debugView(actionButton("CIRQA: Bewegungssensor – MousePods Start + Lesen", false) {
-            if (!ensurePermissions()) return@actionButton
-            if (scanning) stopScan()
-            androidx.appcompat.app.AlertDialog.Builder(this)
-                .setTitle("CIRQA · MousePods-Vergleichstest")
-                .setMessage("Garmin Connect vorher vollständig beenden. Anders als beim normalen Service-16-Test registriert PulsLibre den Dienst und sendet anschließend das Startkommando 0x01 auf dem bestätigten Handle. Maximal 20 Sekunden; Paketanzahl wird angezeigt, keine Rohbewegungsdaten gespeichert. Beim Beenden wird 0x00 zum Stoppen versucht. Kein CLOSE_ALL, keine Kopplungsänderung. Jetzt testen?")
-                .setNegativeButton("Abbrechen", null)
-                .setPositiveButton("MousePods-Test starten") { _, _ ->
-                    if (cirqaMlProbe == null) cirqaMlProbe = CirqaMlHandshakeProbe(this, adapter)
-                    output.text = "MousePods-Vergleichstest läuft · maximal 20 Sekunden"
-                    cirqaMlProbe?.startMousePodsMotion { message ->
-                        runOnUiThread {
-                            output.text = message
-                            if (!message.startsWith("ML-Test: Verbinde")) {
-                                android.app.AlertDialog.Builder(this)
-                                    .setTitle("CIRQA · MousePods-Ergebnis")
-                                    .setMessage(message)
-                                    .setPositiveButton("OK", null)
-                                    .show()
-                            }
-                        }
-                    }
-                }.show()
-        })
-        debugView(actionButton("CIRQA: kontinuierliche Sammlung starten (lokal)", false) {
-            if (!ensurePermissions()) return@actionButton
-            if (scanning) stopScan()
-            androidx.appcompat.app.AlertDialog.Builder(this)
-                .setTitle("Lokale CIRQA-Sammlung")
-                .setMessage("PulsLibre verbindet sich aktiv per Bluetooth mit dem CIRQA-Armband und hält die GATT-Verbindung für verfügbare Echtzeitmesswerte offen. Bei Verbindungsabbrüchen versucht die App die Verbindung erneut. Messwerte und Sitzungsereignisse werden lokal in der App-Datenbank gespeichert. Es werden keine historischen FIT-Daten geladen und keine Daten in eine Cloud übertragen. Android zeigt eine dauerhafte Benachrichtigung mit Stopp-Funktion; das System kann den Dienst dennoch beenden. Garmin Connect kann die Bluetooth-Verbindung beeinflussen. Jetzt starten?")
-                .setNegativeButton("Abbrechen", null)
-                .setPositiveButton("Starten") { _, _ ->
-                    try {
-                        androidx.core.content.ContextCompat.startForegroundService(
-                            this, Intent(this, CirqaContinuousRecordingService::class.java)
-                                .setAction(CirqaContinuousRecordingService.ACTION_START))
-                        output.text = "CIRQA-Sammlung angefordert. Laufstatus in Android-Benachrichtigung; Daten bleiben lokal."
-                    } catch (_: Exception) {
-                        output.text = "CIRQA-Sammlung konnte nicht gestartet werden (Android-Berechtigung oder Hintergrundbeschränkung)."
-                    }
-                }.show()
-        })
-        debugView(actionButton("CIRQA: Sammlung stoppen", false) {
-            startService(Intent(this, CirqaContinuousRecordingService::class.java)
-                .setAction(CirqaContinuousRecordingService.ACTION_STOP))
-            output.text = "Stopp der CIRQA-Sammlung angefordert."
-        })
-        debugView(actionButton("CIRQA: Lokale Dateistatistik", false) {
-            val log = CirqaLocalLog(this)
-            output.text = "CIRQA JSONL lokal: ${log.sizeBytes()} Bytes, ${log.lines()} Zeilen. Keine automatische Aggregation; Originalmessungen und Versuchsergebnisse bleiben erhalten."
-        })
-        debugView(actionButton("CIRQA: Messprotokoll exportieren", false) {
-            exportCirqaLog.launch("pulselibre-cirqa-overnight.jsonl")
-        })
         devices = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         debugView(devices)
         output = text("Keine Geräte verbunden.", 13f, muted).apply {
@@ -1283,41 +939,7 @@ class MainActivity : AppCompatActivity() {
         return state
     }
 
-    @SuppressLint("MissingPermission")
-    private fun showBondedDevices() {
-        if (!ensurePermissions()) return
-        refreshCirqaCard()
-        bondedRows.clear()
-        try {
-            adapter.bondedDevices.orEmpty().sortedBy { it.name ?: "" }.forEach { device ->
-                bondedRows.add("${device.name ?: "Unbenannt"} · bereits gekoppelt (Android)")
-            }
-            output.text = "Android-Kopplungen: ${bondedRows.size}\n" +
-                bondedRows.joinToString("\n") +
-                "\nHinweis: Kopplung bedeutet nicht, dass BLE-Werbedaten sichtbar sind."
-        } catch (_: SecurityException) {
-            output.text = "Bluetooth-Berechtigung für gekoppelte Geräte fehlt."
-        }
-    }
 
-    private fun shareDiagnostics() {
-        refreshCirqaCard()
-        val report = DiagnosticReport.build(
-            advertisingDevices = diagnosticRows.size,
-            scanStatus = lastScanDiagnostic,
-            gattLabel = cirqaGattState,
-            transitions = cirqaConnectionHistory.snapshot(),
-            bonded = cirqaBondAddress != null,
-            addressMatch = cirqaScanMatch,
-            evidenceSummary = cirqaScanEvidence.summary(),
-            rssiSummary = passiveRssiTracker.summary(),
-            bondListQueried = bondedRows.isNotEmpty()
-        )
-        startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).apply {
-            type = "text/plain"
-            putExtra(Intent.EXTRA_TEXT, report)
-        }, "BLE-Diagnose teilen"))
-    }
 
     /** Weight quick edit (#118): tap on the weight value; − / + change in 0.1 kg steps, cancel changes nothing. */
     private fun showQuickWeight(onSaved: () -> Unit) {
@@ -1410,8 +1032,6 @@ class MainActivity : AppCompatActivity() {
         dashboardRefresh = null
         connectionIndicatorRefresh = null
         destroyed = true
-        cirqaGattProbe?.close()
-        cirqaMlProbe?.close()
         handler.removeCallbacksAndMessages(null)
         stopScan()
         super.onDestroy()
