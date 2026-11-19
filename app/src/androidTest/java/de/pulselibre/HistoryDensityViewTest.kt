@@ -47,6 +47,25 @@ class HistoryDensityViewTest {
         }
     }
 
+    @Test fun colorSafeModeUsesTheBlueYellowRampWithoutRedGreenAndOwnLegend() {
+        InstrumentationRegistry.getInstrumentation().runOnMainSync {
+            val end = Instant.parse("2026-11-17T12:00:00Z")
+            val start = HistoryRange.DAY.startAt(end)
+            val hr = (0 until 200).map { HistoryPoint(start.plusSeconds(it * 400L), 60 + (it % 7) * 3) }
+            val view = HistoryOverviewView(context) { range -> HistorySnapshot(range, start, end, hr, emptyList()) }
+            view.refreshSynchronously()
+            all(view).first { it.tag == "history_mode_Farbsicher_Herzfrequenz" }.performClick()
+            val chart = all(view).first { it.tag == "history_density_chart" } as HistoryDensityChartView
+            assertTrue(chart.colorSafe)
+            val rare = chart.colorFor(0.0); val frequent = chart.colorFor(1.0)
+            // selten = blau dominiert, häufig = gelb (Rot- und Grünanteil hoch, Blau niedrig)
+            assertTrue(android.graphics.Color.blue(rare) > android.graphics.Color.red(rare))
+            assertTrue(android.graphics.Color.red(frequent) > 200 && android.graphics.Color.green(frequent) > 200 && android.graphics.Color.blue(frequent) < 100)
+            val legend = all(view).filterIsInstance<TextView>().first { it.tag == "history_density_legend" }
+            assertTrue(legend.text.toString().contains("farbsicher"))
+        }
+    }
+
     @Test fun densityModeSurvivesTheRerenderThatEveryNewReadingTriggers() {
         InstrumentationRegistry.getInstrumentation().runOnMainSync {
             val end = Instant.parse("2026-11-17T12:00:00Z")

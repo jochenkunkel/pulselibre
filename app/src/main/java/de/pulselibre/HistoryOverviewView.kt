@@ -170,6 +170,7 @@ class HistoryOverviewView(
 
     /** Cards switched to "Verteilung" (#219). The view re-renders on every new reading; the mode must survive that. */
     private val densityTitles = mutableSetOf<String>()
+    private val safeTitles = mutableSetOf<String>()
 
     private fun metricCard(
         title: String,
@@ -241,24 +242,24 @@ class HistoryOverviewView(
             var densityView: HistoryDensityChartView? = null
             val modes = LinearLayout(context).apply { orientation = HORIZONTAL; tag = "history_mode_$title" }
             fun styleMode(t: TextView, on: Boolean) { t.setTextColor(if (on) palette.accent else palette.muted); t.setTypeface(null, if (on) Typeface.BOLD else Typeface.NORMAL) }
-            val pointsMode = TextView(context); val densityMode = TextView(context)
-            listOf(pointsMode to "Punkte", densityMode to "Verteilung").forEach { (t, name) ->
+            val pointsMode = TextView(context); val densityMode = TextView(context); val safeMode = TextView(context)
+            listOf(pointsMode to "Punkte", densityMode to "Verteilung", safeMode to "Farbsicher").forEach { (t, name) ->
                 t.text = name; t.textSize = 12f; t.gravity = Gravity.CENTER; t.minimumHeight = dp(48); t.isClickable = true; t.isFocusable = true
                 t.contentDescription = "Darstellung $name"; t.tag = "history_mode_${name}_$title"
                 modes.addView(t, LayoutParams(0, -2, 1f))
             }
-            styleMode(pointsMode, true); styleMode(densityMode, false)
+            styleMode(pointsMode, true); styleMode(densityMode, false); styleMode(safeMode, false)
             val chartHost = android.widget.FrameLayout(context)
             chartHost.addView(scatter, android.widget.FrameLayout.LayoutParams(-1, dp(210)))
             pointsMode.setOnClickListener {
-                densityTitles.remove(title)
-                styleMode(pointsMode, true); styleMode(densityMode, false)
+                densityTitles.remove(title); safeTitles.remove(title)
+                styleMode(pointsMode, true); styleMode(densityMode, false); styleMode(safeMode, false)
                 scatter.visibility = View.VISIBLE; densityView?.visibility = View.GONE
                 scatterLegend.visibility = View.VISIBLE; densityLegend.visibility = View.GONE
             }
-            densityMode.setOnClickListener {
-                densityTitles.add(title)
-                styleMode(pointsMode, false); styleMode(densityMode, true)
+            fun showDensity(safe: Boolean) {
+                densityTitles.add(title); if (safe) safeTitles.add(title) else safeTitles.remove(title)
+                styleMode(pointsMode, false); styleMode(densityMode, !safe); styleMode(safeMode, safe)
                 if (densityView == null) {
                     val binWidth = (scale.span / 20).coerceAtLeast(1)
                     val density = aggregateHistoryDensity(points, snapshot.start, snapshot.end, resolution, scale, binWidth)
@@ -270,14 +271,18 @@ class HistoryOverviewView(
                     }
                     chartHost.addView(densityView, android.widget.FrameLayout.LayoutParams(-1, dp(210)))
                 }
+                densityView?.colorSafe = safe
+                densityLegend.text = if (safe) HistoryDensityDetail.LEGEND_COLOR_SAFE else HistoryDensityDetail.LEGEND
                 scatter.visibility = View.GONE; densityView?.visibility = View.VISIBLE
                 scatterLegend.visibility = View.GONE; densityLegend.visibility = View.VISIBLE
             }
+            densityMode.setOnClickListener { showDensity(false) }
+            safeMode.setOnClickListener { showDensity(true) }
             card.addView(modes, LayoutParams(-1, -2).apply { topMargin = dp(4) })
             card.addView(chartHost, LayoutParams(-1, -2))
             card.addView(scatterLegend, LayoutParams(-1, -2).apply { topMargin = dp(8) })
             card.addView(densityLegend, LayoutParams(-1, -2).apply { topMargin = dp(8) })
-            if (title in densityTitles) densityMode.performClick()
+            if (title in safeTitles) safeMode.performClick() else if (title in densityTitles) densityMode.performClick()
         }
         addView(card, LayoutParams(-1, -2).apply { bottomMargin = dp(12) })
     }
