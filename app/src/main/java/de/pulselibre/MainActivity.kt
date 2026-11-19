@@ -250,7 +250,12 @@ class MainActivity : AppCompatActivity() {
                     deviceStatsLoadedAt = now
                     Thread {
                         val stats = try { DeviceStatsReader(applicationContext).read(java.time.Instant.now(), java.time.ZoneId.systemDefault()) } catch (_: Exception) { null }
-                        if (stats != null) runOnUiThread { if (!destroyed) overviewView.showStats(stats) }
+                        val battery = DeviceBatteryReader.read(applicationContext)
+                        runOnUiThread {
+                            if (destroyed) return@runOnUiThread
+                            if (stats != null) overviewView.showStats(stats)
+                            overviewView.showBattery(battery)
+                        }
                     }.start()
                 }
             }
