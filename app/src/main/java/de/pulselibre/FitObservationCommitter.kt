@@ -64,7 +64,9 @@ internal object FitObservationCommitter {
                 """INSERT OR IGNORE INTO fit_sources
                    (source_sha256, file_bytes, relative_path, validated_at_ms, decoder_version, profile_version)
                    VALUES (?, ?, ?, ?, ?, ?)""",
-                arrayOf(sourceSha256, fileBytes, relativePath, validatedAtEpochMillis, decoderVersion, profileVersion)
+                arrayOf<Any?>(
+                    sourceSha256, fileBytes, relativePath, validatedAtEpochMillis, decoderVersion, profileVersion
+                )
             )
             db.rawQuery(
                 """SELECT file_bytes, relative_path, decoder_version, profile_version
@@ -204,7 +206,7 @@ internal object FitObservationCommitter {
                     """INSERT INTO sync_cursors(device_id, last_committed_ms) VALUES (?, ?)
                        ON CONFLICT(device_id) DO UPDATE SET
                        last_committed_ms = MAX(last_committed_ms, excluded.last_committed_ms)""",
-                    arrayOf(deviceKey, newest)
+                    arrayOf<Any?>(deviceKey, newest)
                 )
             }
             db.setTransactionSuccessful()
