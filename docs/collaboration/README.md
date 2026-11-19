@@ -1,6 +1,6 @@
 # Zusammenarbeit, Verantwortlichkeiten und Projektregeln
 
-Hier finden Entwickler, Codex und andere Agenten die **Arbeitsvereinbarungen, Qualitätsgrenzen und Übergaberegeln**. Die Dokumente sind verbindlich, soweit sie nicht durch aktuellere explizite Projektentscheidungen ersetzt wurden.
+Hier finden Entwickler, die Haupt-IDE VSCodium/Codium (mit alternativem Claude-Code- oder Codex-Zugang) und weitere Agenten die **Arbeitsvereinbarungen, Qualitätsgrenzen und Übergaberegeln**. Die Dokumente sind verbindlich, soweit sie nicht durch aktuellere explizite Projektentscheidungen ersetzt wurden.
 
 ## Verbindliche Einstiege
 - [AGENTS.md](../../AGENTS.md): zentrale Repository-Regeln für Coding-Agenten.
@@ -13,6 +13,9 @@ Hier finden Entwickler, Codex und andere Agenten die **Arbeitsvereinbarungen, Qu
 - [Codex-Dokumentationsprüfung](../CODEX_DOCUMENTATION_REVIEW_2026-11-17.md): historischer Prüfbericht, keine automatisch aktuelle Freigabe.
 
 ## Zusammenarbeit
+
+**Namensregel:** „Codium“, „VSCodium“, „Claude Code“ und „Codex“ können im Projekt dieselbe Haupt-IDE bezeichnen. Claude Code und Codex sind alternative API-Zugänge, **nicht zwei gleichzeitig aktive IDE-Agenten**. Für technische Test-/Laufnachweise die tatsächlich verwendete API benennen. Maßgebliche aktuelle Zuständigkeiten: [AGENTS.md](../../AGENTS.md).
+
 1. GitHub ist die dauerhafte Quelle für Quellcode, Entscheidungen und Dokumentation.
 2. Vor Änderungen relevante Dokumente und Code prüfen; keine widersprüchlichen Parallelimplementierungen.
 3. Kleine nachvollziehbare Commits mit Tests; Status *implementiert*, *gebaut*, *getestet*, *freigegeben* strikt trennen.
