@@ -12,16 +12,19 @@
 
 > **Arbeitsregel für alle Chats und Entwicklungsagenten:** Dieses Dokument und der aktuelle GitHub-`main` sind der gemeinsame, versionierte Übergabepunkt. Ein Chatverlauf wird **nicht automatisch** in andere Chats übertragen. Zu Beginn jeder Arbeit zuerst `main`, diese Datei, die offenen Issues und die CI-Ergebnisse lesen. Widersprüche gegen den aktuellen Code prüfen; nicht ungeprüft aus älteren Chatantworten übernehmen.
 
-## Parallele Entwicklungsaufträge (vereinbart am 2026-11-17)
+## Arbeitsorganisation – aktuelle Klarstellung (19.11.2026)
 
-| Zuständigkeit | Agent | Umfang | Grenze |
-| --- | --- | --- | --- |
-| Dashboard und wissenschaftliche Analysen | OpenAI Codex in VSCodium | Freigegebenes Vier-Screens-UI, Visualisierung und Zeitreihen aus validierten lokalen Daten, überprüfbare wissenschaftliche Methoden, UI-/Unit-Tests | Keine Änderungen am BLE-/GFDI-/5050-/FileSync-Historientransport |
-| CIRQA-Historien-Download | ChatGPT-Entwicklungsagent | Capability-/Handshake-Recherche, sichere Offline-Protokolltests, kontrollierter Downloadpfad nach Nachweis und Freigabe | Keine parallele Bearbeitung von Dashboard oder wissenschaftlichen Algorithmen |
+**Haupt-IDE ist VSCodium („Codium“).** Claude Code und OpenAI Codex sind zwei alternative API-/Agenten-Zugänge **derselben IDE**, von denen **immer nur einer aktiv ist**. In der Projektkoordination können „Codium“, „VSCodium“, „Claude Code“ und „Codex“ daher denselben IDE-Arbeitsplatz meinen. Die Modell-/API-Bezeichnung bleibt bei konkreten technischen Laufnachweisen erhalten. **Claude Code ist kein zweiter Entwickler neben Codex und kein organisatorischer Nachfolger der IDE.**
 
-**Start und Übergabe:** `AGENTS.md` enthält die verbindliche Arbeitsteilung; der kopierbare Codex-Willkommensauftrag steht in `docs/CHAT_START_HERE.md`. GitHub ist gemeinsame Wahrheit. Codex wird erst durch einen Auftrag in VSCodium tatsächlich aktiv. Gemeinsame Dateien/SQLite-Schema/CI nur koordiniert ändern; getrennte Worktrees/Branches und PRs für parallele Änderungen. **Diese Aufgabenverteilung ist kein Nachweis, dass Codex bereits arbeitet oder dass historische Daten heruntergeladen werden können.**
+| Arbeitsbereich | Zuständiger Arbeitsplatz | Umfang und Abstimmung |
+| --- | --- | --- |
+| Dashboard, UI und wissenschaftliche Analysen | Haupt-IDE VSCodium/Codium (wahlweise Claude Code **oder** Codex) | Vier-Screens-UI, echte lokale Messwerte, validierte Analysen; kein eigenmächtiger BLE-/FileSync-Transportumbau |
+| CIRQA-Protokoll und Historien-Download | ChatGPT-Entwicklungsagent | Nachgewiesene BLE-/FIT-Arbeit, Offline-Tests, nur freigegebene Geräteversuche; UI-/Wissenschaftsänderungen abstimmen |
+| Zusätzliche konkret zugewiesene Aufgaben | Weitere beauftragte Mitwirkende (z. B. OpenCode) | Nur gemäß Issue/PR, besonders bei Datenbank- und Schnittstellenänderungen koordinieren |
 
-## Dashboard, GUI und Analysen – Stand 2026-11-18 (Claude Code, Nachfolger von Codex in diesem Bereich)
+**Zusammenarbeit:** GitHub-`main`, Issues und PRs sind die gemeinsame Übergabe. Getrennte Branches/Worktrees bei tatsächlicher paralleler Arbeit; gemeinsam genutzte Dateien und SQLite-Schema koordinieren. **Diese Zuordnung ist keine Behauptung gleichzeitig aktiver Prozesse.** Verbindliche Regeln: [AGENTS.md](../AGENTS.md). Ältere Rollenbezeichnungen in datierten Berichten sind historische Laufangaben.
+
+## Dashboard, GUI und Analysen – Stand 2026-11-18 (Haupt-IDE VSCodium, API-Zugang Claude Code)
 
 Ausführliches Protokoll mit Nachweisen: `docs/CLAUDE_CODE_WORKLOG.md`. Alle Aussagen „CI grün“ beziehen sich auf volle Läufe inkl. Emulator, **kein S25-Gerätetest**.
 
@@ -31,7 +34,7 @@ Ausführliches Protokoll mit Nachweisen: `docs/CLAUDE_CODE_WORKLOG.md`. Alle Aus
 - **Validierungsgates:** vom Nutzer am 2026-11-18 akzeptiert. Betroffene Kacheln sind **nicht validiert** und tragen einen dunkelvioletten Rand (`UnvalidatedFeatures`).
 - **CI:** nur manuell/`v*`-Tags; Lauftitel nennen Branch und Testumfang.
 
-## GUI, Icons und Build – Stand 2026-11-19 (Claude Code)
+## GUI, Icons und Build – Stand 2026-11-19 (Haupt-IDE VSCodium, API-Zugang Claude Code)
 
 Ausführliches Protokoll: `docs/CLAUDE_CODE_WORKLOG.md`, Review: `docs/CODE_REVIEW_2026-11-19.md`. **`main` = `90e440e`, voller CI-Lauf [44492240320](https://github.com/jochenkunkel/pulselibre/actions/runs/44492240320) grün** (Build, Unit, Lint, Emulator API 35). Kein S25-Gerätetest der neuen Oberfläche; auf dem S25 läuft Build 1144 (CI-signiert).
 
@@ -40,7 +43,7 @@ Ausführliches Protokoll: `docs/CLAUDE_CODE_WORKLOG.md`, Review: `docs/CODE_REVI
 - **Build/CI:** Dependabot-AGP-9.5.1 (#188) brach den Build (Gradle 9.6 nötig) → Revert (PR #190); AGP-9-Migration ist eigenes Thema (#155). Icon-Commits aus paralleler Arbeit erzeugten Kotlin-/Lint-Fehler und rote UI-Tests → behoben (PR #184, #191). **Merge nur nach grünem vollem Lauf.** Check „dependency-review“ ist rot, weil der Dependency graph im Repo nicht aktiviert ist.
 - **Offen (GUI):** #159/#126 Geräteseite (Akku, Firmware, Uhrzeit, Modell „noch nicht gelesen“ – braucht decodierte Metadaten von OpenCode); Review-Reste: typisierter Profil-Zugriff, doppelter Code Dashboard/Verlauf, 46 Thread-Starts, Hellmodus-Durchgang, `MainActivity` zerlegen.
 - **Test-Regel:** Instrumentationstests laufen **nie auf dem S25** (sie überschreiben/löschen Profil- und Einstellungswerte), nur Emulator/GitHub-CI; bei mehreren Geräten `ANDROID_SERIAL` setzen.
-- **Offene fremde PRs:** #189 (OpenCode, Metadaten-Backfill), #186/#187 (Dependabot AndroidX/Kotlin 2.4.21) – jeweils erst mit eigenem grünem Lauf mergen.
+- **PR-Stand bei dieser Nachprüfung (19.11.2026):** #189 (OpenCode, Metadaten-Backfill) ist auf `main` gemergt (Merge-Commit `90e94964`); #186/#187 (Dependabot AndroidX/Kotlin 2.4.21) waren noch offen. Vor weiteren Merges aktuellen PR-/CI-Stand erneut prüfen.
 
 ## Aktueller CIRQA- und Teamstatus (2026-11-17)
 
