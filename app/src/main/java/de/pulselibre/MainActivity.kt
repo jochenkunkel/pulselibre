@@ -527,7 +527,13 @@ class MainActivity : AppCompatActivity() {
         }
         debugView(cirqaEvidenceView)
         // The foreground service keeps a CIRQA notification connection open and reconnects after disconnects.
-        val recorderState = text("○  Aufzeichnung aus", 15f, muted, true)
+        val recorderState = text("Aufzeichnung aus", 15f, muted, true)
+        fun setRecorderState(message: String, icon: PlIcon) {
+            recorderState.text = message
+            recorderState.setCompoundDrawablesRelative(PlIcon.drawable(this, icon, 20, muted), null, null, null)
+            recorderState.compoundDrawablePadding = dp(10)
+        }
+        setRecorderState("Aufzeichnung aus", PlIcon.RECORD_STOP)
         deviceView(recorderState, 8)
         val recorderRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
         val playButton = actionButton("Starten", true, PlIcon.RECORD_START) { /* Click handler installed below. */ }
@@ -535,7 +541,7 @@ class MainActivity : AppCompatActivity() {
             try {
                 startService(Intent(this, CirqaContinuousRecordingService::class.java)
                     .setAction(CirqaContinuousRecordingService.ACTION_STOP))
-                recorderState.text = "◌  CIRQA-Sammlung wird beendet …"
+                setRecorderState("CIRQA-Sammlung wird beendet …", PlIcon.HOURGLASS)
             } catch (_: Exception) {
                 output.text = "Stopp konnte nicht angefordert werden."
             }
@@ -559,7 +565,7 @@ class MainActivity : AppCompatActivity() {
                             Intent(this@MainActivity, CirqaContinuousRecordingService::class.java)
                                 .setAction(CirqaContinuousRecordingService.ACTION_START)
                         )
-                        recorderState.text = "◌  CIRQA-Sammlung wird gestartet …"
+                        setRecorderState("CIRQA-Sammlung wird gestartet …", PlIcon.HOURGLASS)
                     } catch (_: Exception) {
                         output.text = "Start fehlgeschlagen. Bluetooth- und Android-Berechtigungen prüfen."
                     }
@@ -570,7 +576,7 @@ class MainActivity : AppCompatActivity() {
         deviceView(recorderRow, 12)
         recorderRefresh = {
             val running = RecorderStatus.isRunning(getSharedPreferences(CirqaContinuousRecordingService.PREFS, MODE_PRIVATE))
-            recorderState.text = if (running) "◌  Aufzeichnungsdienst aktiv · GATT-Status im Kopfbereich" else "○  Aufzeichnung aus"
+            if (running) setRecorderState("Aufzeichnungsdienst aktiv · GATT-Status im Kopfbereich", PlIcon.RECORD_START) else setRecorderState("Aufzeichnung aus", PlIcon.RECORD_STOP)
             recorderState.setTextColor(muted)
             playButton.alpha = if (running) 0.45f else 1f
             stopButton.alpha = if (running) 1f else 0.45f

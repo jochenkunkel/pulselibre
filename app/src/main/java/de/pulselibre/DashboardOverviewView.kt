@@ -191,10 +191,11 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
             addView(DashboardInfoIconView(context, DashboardInfoIconView.Kind.TIME, palette.accent),
                 LayoutParams(dp(24), dp(24)).apply { marginEnd = dp(8) })
             addView(label("Nacht-Insights", 15f, ink, true), LayoutParams(0, -2, 1f))
-            addView(label("⏳", 17f, palette.muted, true).apply {
+            addView(android.widget.ImageView(context).apply {
+                setImageDrawable(PlIcon.drawable(context, PlIcon.HOURGLASS, 22, palette.muted))
                 contentDescription = "Nachtserie wird gelesen"
                 tag = "night_status_icon"
-            }, LayoutParams(-2, -2))
+            }, LayoutParams(dp(22), dp(22)))
         }
         card.addView(titleRow)
         card.addView(View(context).apply { setBackgroundColor(palette.track) },
@@ -207,22 +208,22 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
         fun fill(night: NocturnalOxygen.Summary?) {
             insightRow.removeAllViews()
             if (night == null) {
-                addNightIndicator(insightRow, "◉", "SpO₂", "Nachtserie wird gelesen …", palette.muted)
+                addNightIndicator(insightRow, PlIcon.OXYGEN, "SpO₂", "Nachtserie wird gelesen …", palette.muted)
                 return
             }
             val nf = java.text.NumberFormat.getNumberInstance(java.util.Locale.GERMANY).apply { maximumFractionDigits = 1 }
-            addNightIndicator(insightRow, "◉", "22–6 Uhr",
+            addNightIndicator(insightRow, PlIcon.RECOVERY, "22–6 Uhr",
                 java.text.NumberFormat.getIntegerInstance(java.util.Locale.GERMANY).format(night.samples), palette.muted,
                 description = "Nacht 22 bis 6 Uhr: ${night.samples} Messwerte")
-            addNightIndicator(insightRow, "◷", "Abdeckung",
+            addNightIndicator(insightRow, PlIcon.HOURGLASS, "Abdeckung",
                 night.coveragePercent?.let { "${nf.format(it)} %" } ?: "nicht berechenbar", palette.muted)
-            addNightIndicator(insightRow, "⌁", "T90",
+            addNightIndicator(insightRow, PlIcon.SIGNAL, "T90",
                 if (!night.computable) "nicht berechenbar" else "${nf.format(night.minutesBelow90)} min", palette.muted)
-            addNightIndicator(insightRow, "↧", "ODI3 / ODI4",
+            addNightIndicator(insightRow, PlIcon.BREATHING, "ODI3 / ODI4",
                 if (!night.computable) "nicht berechenbar"
                 else night.odi3?.let { "${nf.format(it)} / ${nf.format(night.odi4)} je h" } ?: "nicht berechenbar", palette.muted)
             // The hourglass only belongs to the loading state.
-            findViewWithTag<TextView>("night_status_icon")?.apply { text = ""; contentDescription = null }
+            findViewWithTag<View>("night_status_icon")?.apply { visibility = View.GONE; contentDescription = null }
             if (night.reason != "ok") nightReason.text = night.reason
         }
         // The overview re-renders whenever readings arrive; show the cached result at once and let the
@@ -272,14 +273,17 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
         @Volatile var nightLoading = false
     }
 
-    private fun addNightIndicator(parent: LinearLayout, icon: String, title: String, value: String, color: Int, description: String? = null) {
+    private fun addNightIndicator(parent: LinearLayout, icon: PlIcon, title: String, value: String, color: Int, description: String? = null) {
         val cell = LinearLayout(context).apply {
             orientation = VERTICAL
             gravity = Gravity.CENTER
             setPadding(dp(4), dp(3), dp(4), dp(3))
             contentDescription = description ?: "$title: $value"
             importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_YES
-            addView(label(icon, 18f, color, true), LayoutParams(-2, -2))
+            addView(android.widget.ImageView(context).apply {
+                setImageDrawable(PlIcon.drawable(context, icon, 22, color))
+                importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+            }, LayoutParams(dp(22), dp(22)))
             addView(label(title, 11f, muted, true).apply { gravity = Gravity.CENTER }, LayoutParams(-1, -2))
             addView(label(value, 12f, ink).apply { gravity = Gravity.CENTER }, LayoutParams(-1, -2).apply { topMargin = dp(2) })
         }
