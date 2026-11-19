@@ -328,6 +328,17 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
         syncCard.addView(button("FileAccess-Dateiliste (read-only)") {
             confirmFileAccessList()
         })
+        syncCard.addView(button("Item-List zweimal vergleichen (kein Pull)") {
+            confirmItemListRepeatability()
+        }.apply { isEnabled = CirqaItemListRepeatabilityAttemptGate.RELEASED_FOR_DEVICE_TEST })
+        syncCard.addView(button("Item-List-Vergleichsstatus") {
+            val prefs = getSharedPreferences(
+                CirqaItemListRepeatabilityAttemptGate.PREFS_NAME, MODE_PRIVATE
+            )
+            statusOutput.text = "Item-List-Wiederholbarkeit:\n" +
+                (prefs.getString(CirqaItemListRepeatabilityAttemptGate.SUMMARY_KEY, null) ?: "Noch kein Lauf.") +
+                "\nGate=${prefs.getBoolean(CirqaItemListRepeatabilityAttemptGate.PREFERENCE_KEY, false)}"
+        })
         syncCard.addView(button("FileAccess-Status") {
             statusOutput.text = "FileAccess:\n" +
                 (preferences.getString(CirqaFileAccessAttemptGate.SUMMARY_KEY, null) ?: "Noch kein Lauf.") +
@@ -557,6 +568,44 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
                         runOnUiThread {
                             statusOutput.text = message
                             prefs.edit().putString(CirqaFileAccessAttemptGate.SUMMARY_KEY, message).apply()
+                        }
+                    }
+                }
+            }
+            .show()
+    }
+
+    private fun confirmItemListRepeatability() {
+        val prefs = getSharedPreferences(
+            CirqaItemListRepeatabilityAttemptGate.PREFS_NAME, MODE_PRIVATE
+        )
+        if (!CirqaItemListRepeatabilityAttemptGate.RELEASED_FOR_DEVICE_TEST ||
+            prefs.getBoolean(CirqaItemListRepeatabilityAttemptGate.PREFERENCE_KEY, false)) {
+            statusOutput.text = "Item-List-Wiederholbarkeit gesperrt oder Einmal-Gate bereits verbraucht."
+            return
+        }
+        AlertDialog.Builder(this)
+            .setTitle("Zwei Item-Listen vergleichen?")
+            .setMessage(
+                "Ein begrenzter BLE-Lauf: Bootstrap, danach genau zwei read-only FileAccess-Item-List-Anfragen. " +
+                    "Keine sync_request-, Pull-, MLR-Datei-, Archiv-, Flag-, Lösch- oder Reset-Anfrage. " +
+                    "Verglichen werden UIDs nur flüchtig im Arbeitsspeicher; gespeichert/angezeigt werden " +
+                    "ausschließlich redigierte Anzahlen zu gleichen/geänderten/neuen/fehlenden Einträgen. " +
+                    "40-s-Gesamtlimit, kein Retry. Das prüft Wiederholbarkeit innerhalb dieser Sitzung, " +
+                    "nicht UID-Stabilität über spätere Sitzungen oder Vollständigkeit des Gerätearchivs. " +
+                    "Das Einmal-Gate wird vor dem Verbinden verbraucht."
+            )
+            .setNegativeButton("Abbrechen", null)
+            .setPositiveButton("Ausführen") { _, _ ->
+                withBluetoothPermissions(needsScan = false) {
+                    val probe = CirqaMlHandshakeProbe(this, adapter)
+                    systemEventProbe = probe
+                    probe.startItemListRepeatabilityTest(userConfirmed = true) { message ->
+                        runOnUiThread {
+                            statusOutput.text = message
+                            prefs.edit().putString(
+                                CirqaItemListRepeatabilityAttemptGate.SUMMARY_KEY, message
+                            ).apply()
                         }
                     }
                 }

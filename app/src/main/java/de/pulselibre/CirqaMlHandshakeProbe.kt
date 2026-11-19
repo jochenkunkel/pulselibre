@@ -94,6 +94,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private val mlrData = java.io.ByteArrayOutputStream()
     private var syncFinalReport = ""
     private var fileAccessRequestClaimed = false
+    private var itemListRepeatabilityMode = false
+    private var itemListRepeatabilityFirstPage: CirqaFileAccessItemListParser.ItemListPage? = null
     private val fileAccessFramer = CirqaRfcommStreamFramer()
     private val fileAccessReassembler = GarminProtobufReassembler()
     private var fileAccessDiag = ""
@@ -1778,6 +1780,62 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         }
     }
 
+    /** Two read-only item-list requests in one session; never pulls file bytes. */
+    @SuppressLint("MissingPermission")
+    fun startItemListRepeatabilityTest(userConfirmed: Boolean, result: (String) -> Unit) {
+        if (!CirqaItemListRepeatabilityAttemptGate.RELEASED_FOR_DEVICE_TEST || !userConfirmed) {
+            result("Item-List-Wiederholbarkeit gesperrt; keine Verbindung.")
+            return
+        }
+        if (active || sessionStartedNanos != 0L || historicalSyncV1 != null || dirReadSession != null ||
+            directoryReadAfterChain || directoryReadV2Mode || legacy5030Only != null ||
+            legacy5007TestMode || legacy5031TestMode || legacyHistoryDownloadMode ||
+            realtimeMode || continuousRecordingMode || rawCaptureMode) {
+            result("Item-List-Wiederholbarkeit benötigt eine neue Probeinstanz; keine Verbindung.")
+            return
+        }
+        val uniqueTarget = try {
+            adapter.isEnabled && adapter.bondedDevices.orEmpty().count {
+                it.name?.contains("CIRQA", ignoreCase = true) == true
+            } == 1
+        } catch (_: SecurityException) { false }
+        if (!uniqueTarget || CirqaBleSessionGate.isBusy()) {
+            result("Item-List-Wiederholbarkeit: Bluetooth aus, Ziel nicht eindeutig oder Sitzung belegt.")
+            return
+        }
+        val prefs = context.getSharedPreferences(
+            CirqaItemListRepeatabilityAttemptGate.PREFS_NAME, Context.MODE_PRIVATE
+        )
+        if (!CirqaItemListRepeatabilityAttemptGate.consume(prefs)) {
+            result("Item-List-Wiederholbarkeit: Einmal-Gate verbraucht oder Persistierung fehlgeschlagen.")
+            return
+        }
+        itemListRepeatabilityMode = true
+        itemListRepeatabilityFirstPage = null
+        fileAccessListMode = true
+        fileAccessRequestClaimed = false
+        fileAccessDiag = ""
+        fileAccessFramer.reset()
+        fileAccessReassembler.reset()
+        bootstrapAckMode = true
+        configurationTestMode = true
+        historyDiagnosticMode = true
+        start(false, result)
+        if (!active) {
+            itemListRepeatabilityMode = false
+            fileAccessListMode = false
+            bootstrapAckMode = false
+            configurationTestMode = false
+            historyDiagnosticMode = false
+        } else {
+            main.postDelayed({
+                if (active && itemListRepeatabilityMode) {
+                    finish("Item-List-Wiederholbarkeit: Zeitlimit; kein Retry. $fileAccessDiag", gatt)
+                }
+            }, 40_000L)
+        }
+    }
+
     @SuppressLint("MissingPermission")
     private fun maybeSendFileAccessList(g: BluetoothGatt) {
         if (!fileAccessListMode || fileAccessRequestClaimed || mlWritePending) return
@@ -1837,6 +1895,38 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             fileAccessReassembler.accept(frame)?.let { msg ->
                 val report = "5044 vollständig, len=${msg.size}, " +
                     "shape=${CirqaProtobufShapeInspector.nestedShape(msg)}"
+                if (itemListRepeatabilityMode) {
+                    val page = CirqaFileAccessItemListParser.parsePage(msg)
+                    if (page == null || page.status != ITEM_LIST_SUCCESS_STATUS) {
+                        finish("Item-List-Wiederholbarkeit: ungültige/fehlgeschlagene Antwort; keine Wiederholung.", g)
+                        return
+                    }
+                    val first = itemListRepeatabilityFirstPage
+                    if (first == null) {
+                        itemListRepeatabilityFirstPage = page
+                        val handle = historyHandle ?: run {
+                            finish("Item-List-Wiederholbarkeit: GFDI-Handle fehlt; keine Wiederholung.", g)
+                            return
+                        }
+                        fileAccessReassembler.reset()
+                        queueAck(g, CirqaFileAccessListRequest.mlValue(handle, 2))
+                        main.post { mark("Item-List-Wiederholbarkeit: zweite read-only Item-List angefordert; kein Pull") }
+                    } else {
+                        val comparison = CirqaItemListRepeatability.compare(first.items, page.items)
+                        val reportText =
+                            "Item-List-Wiederholbarkeit abgeschlossen: " +
+                                "erste=${comparison.firstCount}, zweite=${comparison.secondCount}, " +
+                                "UID+Metadaten unverändert=${comparison.unchanged}, " +
+                                "Metadaten geändert=${comparison.changedMetadata}, " +
+                                "neu=${comparison.added}, fehlend=${comparison.missing}, " +
+                                "doppelte UIDs=${comparison.duplicateUidsFirst}/${comparison.duplicateUidsSecond}; " +
+                                "nur zwei Listen im selben BLE-Lauf, keine Datei-Pulls; " +
+                                "sessionId=${page.sessionId != null} (keine Pagination); " +
+                                "UID-Stabilität über getrennte Sitzungen und Archivvollständigkeit ungeprüft."
+                        finish(reportText, g)
+                    }
+                    return
+                }
                 if (syncRequestMode) {
                     // Connect keeps the connection open after sync_response: the device
                     // begins delivering buffered files only afterwards.
@@ -2599,6 +2689,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             directoryReadAfterChain = false
             dirReadSession = null
             fileAccessListMode = false
+            itemListRepeatabilityMode = false
+            itemListRepeatabilityFirstPage = null
             syncRequestMode = false
             syncAccepted = false
             syncFrameCounts.clear()
