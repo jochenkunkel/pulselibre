@@ -104,6 +104,16 @@ und Importe: 0. In diesem Lauf wurde kein weiterer Listeneintrag sichtbar;
 das belegt nicht, ob das Band intern eine Aktion gespeichert hat.
 Gemeinsamer Zähler: 11/15.
 
+Im Anschluss wurde die während des vorigen Tests laufende Garmin-Connect-
+Aktivität (4:10) gestoppt und gespeichert; Connect zeigte sie danach in
+„Aktivitäten von heute“. Der zwölfte Zwei-Listen-No-Pull-Lauf lieferte
+26 Einträge je Liste und 26 unveränderte UID-/Metadatenpaare, 0 geändert,
+neu, fehlend oder doppelt. Gegenüber dem vorherigen 24er-Bestand sind zwei
+Einträge hinzugekommen. Der zeitliche Zusammenhang mit dem Speichern ist
+auffällig, aber ohne UID-Zuordnung oder Dateiabruf ist nicht belegt, dass
+beide Einträge dieser Aktivität zuzuordnen sind. MLR-Chunks/-Bytes, Pulls und
+Importe: 0. Gemeinsamer Zähler: 12/15.
+
 ## Separater Folgeversuch nach Transport-ACK ohne Item-List-Antwort
 
 Die ersten direkten Item-List-Anfragen erhielten einen CRC-geprüften
