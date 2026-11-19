@@ -30,11 +30,11 @@ Stand: 2026-11-15. **Primäres Zielgerät: Samsung Galaxy S25.** Weitere Android
 7. Keine INTERNET-Berechtigung und kein Health Connect ohne gesonderte Produktentscheidung.
 
 
-## CI-Teststrategie für schnelle Beta-Entwicklung (2026-11-16)
+## CI-Teststrategie (aktualisiert 2026-11-19 nach #155)
 
-- **Jeder Push auf `main` und jeder Pull Request:** Android-Debug-APK bauen, JVM-Unit-Tests ausführen, APK-Signatur und Paket-/Versionsmetadaten prüfen. Bei vollständig konfigurierten Signatur-Secrets wird eine signierte Update-APK aus erfolgreichen Nicht-PR-Builds veröffentlicht.
-- **Nicht bei jedem Beta-Push:** vollständiges Android Lint, Instrumentation-Test-APK und API-35-Emulator. Diese Prüfungen bleiben im Workflow erhalten; sie werden nicht gelöscht.
-- **Vollprüfung:** GitHub Actions → Android CI → Run workflow → `full_tests` aktivieren; außerdem automatisch für Tags `v*`. Die manuelle Option ist standardmäßig deaktiviert, damit ein normaler Beta-Test schnell bleibt.
+- **Jeder Push auf `main` und jeder Pull Request gegen `main`:** vollständiger Android-Debug-Build, Python-/JVM-Unit-Tests, Android Lint, Instrumentation-Test-APK, API-35-Emulator und Coverage-Nachweis. APK-Signatur und Paket-/Versionsmetadaten werden geprüft. Bei vollständig konfigurierten Signatur-Secrets wird eine signierte Update-APK aus erfolgreichen Nicht-PR-Builds veröffentlicht.
+- **PR-Sicherheit:** Signatur-Secrets werden in PR-Läufen nicht geladen; signierte Update-Debug-APK wird nur bei Nicht-PR-Läufen mit vollständig konfigurierten Secrets veröffentlicht.
+- **Manueller Lauf:** GitHub Actions → Android CI → Run workflow; standardmäßig Schnelllauf, mit `full_tests=true` Vollprüfung. PRs und `main` erhalten die Vollprüfung automatisch. Kein automatischer Tag-Trigger im aktuellen Workflow.
 - **Änderungsbezogene Zusatztests:** Bei Änderungen an BLE, Berechtigungen, Foreground Services, Datenmigrationen oder UI müssen die betroffenen Tests bewusst ausgewählt und gegebenenfalls die Vollprüfung manuell gestartet werden. Die JVM-Suite ist aktuell nicht dateibasiert gefiltert; sie läuft als günstiger Grundschutz vollständig.
 - **Freigabegrenze:** Ein grüner Beta-Build ist kein vollständiger Release-Test und kein Nachweis für echte CIRQA-Hardwarefunktion. Vor einem Release sind Lint, Emulator, Upgrade-Test und relevante Tests am echten Galaxy S25 erforderlich.
 
