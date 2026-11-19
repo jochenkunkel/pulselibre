@@ -51,8 +51,8 @@ jobs:
       - name: Python offline HCI validator regression tests
         run: python3 -m unittest discover -s tools -p 'test_*.py' -v
       # PRs and main pushes run the full gate; manual dispatch defaults to quick.
-      - name: Build and unit tests
-        run: bash .github/scripts/gradle-retry.sh :app:testDebugUnitTest :app:assembleDebug :app:createDebugUnitTestCoverageReport -PpulselibreVersionCode=${{ github.run_number }} --stacktrace
+      - name: Build debug and R8 release variants, run unit tests
+        run: bash .github/scripts/gradle-retry.sh :app:testDebugUnitTest :app:assembleDebug :app:assembleRelease :app:createDebugUnitTestCoverageReport -PpulselibreVersionCode=${{ github.run_number }} --stacktrace
       - name: Print non-secret APK update diagnostics
         run: |
           echo "Package: de.pulselibre"
@@ -60,7 +60,21 @@ jobs:
           echo "Stable signing configured: $([ -n "$PULSELIBRE_SIGNING_STORE" ] && echo yes || echo no)"
           "${ANDROID_HOME}/build-tools/35.0.0/apksigner" verify --print-certs app/build/outputs/apk/debug/app-debug.apk | grep -E 'Signer #1 certificate SHA-256 digest|Verified using'
           "${ANDROID_HOME}/build-tools/35.0.0/aapt" dump badging app/build/outputs/apk/debug/app-debug.apk | grep '^package:'
+          test -f app/build/outputs/mapping/release/mapping.txt
+          release_apk=$(find app/build/outputs/apk/release -maxdepth 1 -type f -name 'app-release*.apk' -print -quit)
+          test -n "$release_apk"
+          "${ANDROID_HOME}/build-tools/35.0.0/aapt" dump badging "$release_apk" | grep '^package:'
+          if "${ANDROID_HOME}/build-tools/35.0.0/aapt" dump badging "$release_apk" | grep -q 'application-debuggable'; then
+            echo "::error::Release APK is debuggable"
+            exit 1
+          fi
           if [ -n "$PULSELIBRE_SIGNING_STORE" ]; then
+            release_cert=$("${ANDROID_HOME}/build-tools/35.0.0/apksigner" verify --print-certs "$release_apk" | sed -n 's/^Signer #1 certificate SHA-256 digest: //p')
+            debug_cert=$("${ANDROID_HOME}/build-tools/35.0.0/apksigner" verify --print-certs app/build/outputs/apk/debug/app-debug.apk | sed -n 's/^Signer #1 certificate SHA-256 digest: //p')
+            if [ -z "$release_cert" ] || [ "$release_cert" != "$debug_cert" ]; then
+              echo "::error::Release APK signing certificate differs from the established debug update certificate"
+              exit 1
+            fi
             echo "APK_SIGNING_READY=true" >> "$GITHUB_ENV"
           else
             echo "APK_SIGNING_READY=false" >> "$GITHUB_ENV"
@@ -91,8 +105,8 @@ jobs:
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         if: success() && env.APK_SIGNING_READY == 'true'
         with:
-          name: pulselibre-signed-update-apk
-          path: app/build/outputs/apk/debug/app-debug.apk
+          name: pulselibre-signed-release-update-apk
+          path: app/build/outputs/apk/release/app-release.apk
           retention-days: 7
   emulator:
     name: "Emulator-Instrumentationstests (API 35)"
