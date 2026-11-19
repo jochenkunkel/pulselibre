@@ -33,7 +33,8 @@ internal class TrendCardView(context: Context) : LinearLayout(context) {
         val scatter: List<Pair<Double, Double>>,
         val restDaily: Map<LocalDate, Double> = emptyMap(),
         val stepsDaily: Map<LocalDate, Double> = emptyMap(),
-        val today: LocalDate = LocalDate.now()
+        val today: LocalDate = LocalDate.now(),
+        val sensitivity: PairedCorrelation.Sensitivity? = null
     )
 
     init {
@@ -81,7 +82,8 @@ internal class TrendCardView(context: Context) : LinearLayout(context) {
         val stepTrends = windows.map { TrendAnalysis.analyze(steps, today, it, 500.0) }
         return Data(FitnessOverview.assess(stepTrends[1], restTrends[1]), restTrends, stepTrends,
             PairedCorrelation.analyze(steps, rest, 1),
-            PairedCorrelation.pair(steps, rest, 1).map { it.second to it.third }, rest, steps, today)
+            PairedCorrelation.pair(steps, rest, 1).map { it.second to it.third }, rest, steps, today,
+            PairedCorrelation.sensitivity(steps, rest, 1))
     }
 
     private fun showMessage(text: String) {
@@ -245,6 +247,12 @@ internal class TrendCardView(context: Context) : LinearLayout(context) {
             setPadding(0, dp(8), 0, 0)
         }
         val box = LinearLayout(context).apply { orientation = VERTICAL; setPadding(dp(16), dp(12), dp(16), 0); addView(view); addView(note) }
+        data?.sensitivity?.let { s ->
+            box.addView(TextView(context).apply {
+                tag = "scatter_sensitivity"; textSize = 12f; setTextColor(palette.ink); setPadding(0, dp(8), 0, 0)
+                text = s.text(nf)
+            })
+        }
         androidx.appcompat.app.AlertDialog.Builder(context).setTitle("Schritte ↔ Ruhepuls am Folgetag")
             .setView(box).setPositiveButton("Schließen", null).show()
     }

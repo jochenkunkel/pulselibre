@@ -60,4 +60,37 @@ class PairedCorrelationTest {
         val adj = PairedCorrelation.benjaminiHochberg(listOf(0.01, 0.04, 0.03, 0.005))
         assertEquals(listOf(0.02, 0.04, 0.04, 0.02), adj.map { Math.round(it * 1000) / 1000.0 })
     }
+
+    @Test fun sensitivityNeedsTheMinimumNumberOfPairs() {
+        val x = days(10) { it.toDouble() }
+        assertNull(PairedCorrelation.sensitivity(x, x, 0))
+    }
+
+    @Test fun strongRelationIsStableWhenSingleDaysAreLeftOut() {
+        val rnd = Random(3)
+        val x = days(120) { rnd.nextGaussian() }
+        val y = days(120) { x[start.plusDays(it.toLong())]!! * 0.8 + rnd.nextGaussian() * 0.3 }
+        val s = PairedCorrelation.sensitivity(x, y, 0)!!
+        assertTrue(s.stable)
+        assertTrue(s.looMin <= s.baseRho && s.looMax >= s.baseRho)
+        assertEquals(6, s.trimmedCount)               // 5 % of 120
+        assertTrue(s.trimmedRho > 0.7)
+    }
+
+    @Test fun weakAssociationThatDependsOnExtremeDaysIsNotReportedAsStable() {
+        // Deterministic permutation with a weak positive rho (~0.17): dropping the 2 most extreme days changes rho by > 0.1.
+        val x = days(40) { it.toDouble() }
+        val y = days(40) { ((it * 7) % 40).toDouble() }
+        val s = PairedCorrelation.sensitivity(x, y, 0)!!
+        assertFalse(s.stable)
+        assertEquals(2, s.trimmedCount)               // 5 % of 40
+        assertTrue(Math.abs(s.trimmedRho - s.baseRho) >= 0.1)
+        assertTrue(s.text(java.text.NumberFormat.getNumberInstance(java.util.Locale.GERMANY)).contains("nicht stabil"))
+    }
+
+    @Test fun constantSeriesHasNoSensitivity() {
+        val x = days(40) { it.toDouble() }
+        val y = days(40) { 5.0 }
+        assertNull(PairedCorrelation.sensitivity(x, y, 0))
+    }
 }
