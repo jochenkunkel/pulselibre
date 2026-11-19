@@ -116,7 +116,10 @@ internal class TrendCardView(context: Context) : LinearLayout(context) {
 
     private fun render(d: Data) {
         content.removeAllViews()
+        windowListeners.clear()
         content.addView(titleRow { showDetails(d) })
+        addWindowSegments()
+        addRestingHero(d)
         // 28-day overview: icon + name + state; sentences live in the ⓘ dialog and as accessibility text.
         d.overview.dimensions.forEach { dim ->
             content.addView(LinearLayout(context).apply {
@@ -171,8 +174,64 @@ internal class TrendCardView(context: Context) : LinearLayout(context) {
         addAtlas(d)
     }
 
-    /** Activity atlas (#41): calendar of daily step totals with 7 / 28 / 90 day window; default 28. */
+    /** One shared window (7 / 28 / 90 days, default 28) for hero and atlas (#41). */
     private var atlasWindow = 28
+    private val windowListeners = mutableListOf<() -> Unit>()
+
+    private fun addWindowSegments() {
+        val segments = LinearLayout(context).apply { orientation = HORIZONTAL; tag = "window_segments" }
+        listOf(7, 28, 90).forEach { days ->
+            segments.addView(TextView(context).apply {
+                text = "$days T"; textSize = 12f; gravity = Gravity.CENTER; minimumHeight = dp(48); tag = "atlas_window_$days"
+                isClickable = true; isFocusable = true; contentDescription = "Zeitraum $days Tage"
+                setOnClickListener {
+                    atlasWindow = days
+                    for (i in 0 until segments.childCount) (segments.getChildAt(i) as TextView).let { t -> styleSegment(t, t.tag == "atlas_window_$atlasWindow") }
+                    windowListeners.forEach { it() }
+                }
+                styleSegment(this, atlasWindow == days)
+            }, LayoutParams(0, -2, 1f))
+        }
+        content.addView(segments, LayoutParams(-1, -2).apply { topMargin = dp(4) })
+    }
+
+    private fun styleSegment(t: TextView, on: Boolean) {
+        t.setTextColor(if (on) palette.accent else palette.muted); t.setTypeface(null, if (on) Typeface.BOLD else Typeface.NORMAL)
+    }
+
+    /** Resting-pulse hero (#41 "Pulse Flow"): median, neutral delta, daily points with gaps, previous-period baseline. */
+    private fun addRestingHero(d: Data) {
+        val box = LinearLayout(context).apply { orientation = VERTICAL; tag = "resting_hero"; setPadding(0, dp(8), 0, dp(4)) }
+        box.addView(LinearLayout(context).apply {
+            orientation = HORIZONTAL; gravity = Gravity.CENTER_VERTICAL
+            addView(PlIcon.view(context, PlIcon.HEART, 22, palette.pulse), LayoutParams(dp(22), dp(22)).apply { marginEnd = dp(8) })
+            addView(TextView(context).apply { text = "Ruhepuls · Entwicklung"; textSize = 14f; setTypeface(null, Typeface.BOLD); setTextColor(palette.ink) }, LayoutParams(0, -2, 1f))
+        })
+        val value = TextView(context).apply { textSize = 28f; setTypeface(null, Typeface.BOLD); setTextColor(palette.ink); tag = "resting_hero_value" }
+        val delta = TextView(context).apply { textSize = 12f; setTextColor(palette.muted); tag = "resting_hero_delta" }
+        val message = TextView(context).apply { textSize = 11f; setTextColor(palette.muted); tag = "resting_hero_message" }
+        val chart = RestingPulseChartView(context)
+        box.addView(value, LayoutParams(-1, -2).apply { topMargin = dp(6) })
+        box.addView(delta)
+        box.addView(chart, LayoutParams(-1, -2).apply { topMargin = dp(6) })
+        box.addView(message, LayoutParams(-1, -2).apply { topMargin = dp(4) })
+        box.isClickable = true; box.isFocusable = true; box.minimumHeight = dp(48)
+        box.setOnClickListener { showDaily(d, "Geräte-Ruhepuls (bpm)", d.restDaily, d.rest, palette.pulse, zeroBased = false) }
+        fun refresh() {
+            val trend = TrendAnalysis.analyze(d.restDaily, d.today, atlasWindow, 1.0)
+            val m = RestingPulseHero.build(d.restDaily, d.today, atlasWindow, trend)
+            value.text = m.valueText ?: "–"
+            delta.text = m.deltaText.orEmpty(); delta.visibility = if (m.deltaText == null) GONE else VISIBLE
+            message.text = m.message
+            chart.show(m)
+            box.contentDescription = m.description() + " Tippen für die Tageswerte."
+        }
+        windowListeners.add { refresh() }
+        refresh()
+        content.addView(box)
+    }
+
+    /** Activity atlas (#41): calendar of daily step totals for the shared window. */
     private fun addAtlas(d: Data) {
         val box = LinearLayout(context).apply { orientation = VERTICAL; tag = "activity_atlas_box" }
         box.addView(View(context).apply { setBackgroundColor(palette.track) }, LayoutParams(-1, dp(1)).apply { topMargin = dp(12); bottomMargin = dp(10) })
@@ -190,27 +249,6 @@ internal class TrendCardView(context: Context) : LinearLayout(context) {
             val m = ActivityAtlas.build(d.stepsDaily, d.today, atlasWindow)
             atlas.show(m); summary.text = m.summary()
         }
-        val segments = LinearLayout(context).apply { orientation = HORIZONTAL }
-        listOf(7, 28, 90).forEach { days ->
-            segments.addView(TextView(context).apply {
-                text = "$days T"; textSize = 12f; gravity = Gravity.CENTER; minimumHeight = dp(48); tag = "atlas_window_$days"
-                isClickable = true; isFocusable = true; contentDescription = "Zeitraum $days Tage"
-                fun style() {
-                    setTextColor(if (atlasWindow == days) palette.accent else palette.muted)
-                    setTypeface(null, if (atlasWindow == days) Typeface.BOLD else Typeface.NORMAL)
-                }
-                style()
-                setOnClickListener {
-                    atlasWindow = days
-                    for (i in 0 until segments.childCount) (segments.getChildAt(i) as TextView).let { t ->
-                        val on = t.tag == "atlas_window_$atlasWindow"
-                        t.setTextColor(if (on) palette.accent else palette.muted); t.setTypeface(null, if (on) Typeface.BOLD else Typeface.NORMAL)
-                    }
-                    refresh()
-                }
-            }, LayoutParams(0, -2, 1f))
-        }
-        box.addView(segments)
         box.addView(summary)
         box.addView(atlas, LayoutParams(-1, -2))
         box.addView(TextView(context).apply {
@@ -218,6 +256,7 @@ internal class TrendCardView(context: Context) : LinearLayout(context) {
                 "Umrandet = heute, noch nicht abgeschlossen. Trends beschreiben deine erfassten Daten – keine Fitnessdiagnose."
             textSize = 11f; setTextColor(palette.muted); setPadding(0, dp(8), 0, 0)
         })
+        windowListeners.add { refresh() }
         refresh()
         content.addView(box)
     }

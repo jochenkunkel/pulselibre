@@ -56,4 +56,41 @@ class ActivityAtlasViewTest {
             assertEquals("10 von 90 Tagen mit verifizierten Schrittwerten", summary90)
         }
     }
+
+    private fun cardWith(rest: Map<LocalDate, Double>): TrendCardView {
+        val card = TrendCardView(context)
+        val d = TrendCardView.Data(
+            FitnessOverview.assess(TrendAnalysis.analyze(emptyMap(), today, 28, 500.0), TrendAnalysis.analyze(rest, today, 28, 1.0)),
+            listOf(7, 28, 90).map { TrendAnalysis.analyze(rest, today, it, 1.0) },
+            listOf(7, 28, 90).map { TrendAnalysis.analyze(emptyMap(), today, it, 500.0) },
+            PairedCorrelation.analyze(emptyMap(), emptyMap(), 1), emptyList(), rest, emptyMap(), today
+        )
+        card.javaClass.getDeclaredMethod("render", TrendCardView.Data::class.java).apply { isAccessible = true }.invoke(card, d)
+        return card
+    }
+    private fun all(v: View): List<View> = listOf(v) + ((v as? ViewGroup)?.let { g -> (0 until g.childCount).flatMap { all(g.getChildAt(it)) } } ?: emptyList())
+
+    @Test fun heroWithoutRestingPulseShowsNoFictionalValue() {
+        InstrumentationRegistry.getInstrumentation().runOnMainSync {
+            val views = all(cardWith(emptyMap()))
+            assertEquals("–", views.filterIsInstance<TextView>().first { it.tag == "resting_hero_value" }.text.toString())
+            assertTrue(views.filterIsInstance<TextView>().first { it.tag == "resting_hero_message" }.text.toString()
+                .startsWith("Noch keine verifizierten Ruhepulswerte"))
+            assertTrue(views.any { it.tag == "resting_pulse_chart" })
+        }
+    }
+
+    @Test fun heroShowsMedianAndNeutralDeltaAndFollowsTheSharedWindow() {
+        InstrumentationRegistry.getInstrumentation().runOnMainSync {
+            val rest = (1..56).associate { today.minusDays(it.toLong()) to if (it <= 28) 72.0 else 76.0 }
+            val card = cardWith(rest)
+            val views = all(card)
+            assertEquals("72 bpm", views.filterIsInstance<TextView>().first { it.tag == "resting_hero_value" }.text.toString())
+            val delta = views.filterIsInstance<TextView>().first { it.tag == "resting_hero_delta" }
+            assertEquals("−4 bpm gegenüber vorherigen 28 Tagen", delta.text.toString())
+            views.first { it.tag == "atlas_window_7" }.performClick()
+            val delta7 = all(card).filterIsInstance<TextView>().first { it.tag == "resting_hero_delta" }.text.toString()
+            assertTrue(delta7.endsWith("vorherigen 7 Tagen"))
+        }
+    }
 }
