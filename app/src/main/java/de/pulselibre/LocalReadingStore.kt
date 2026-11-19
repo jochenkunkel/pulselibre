@@ -26,6 +26,30 @@ data class StoredFitProvenance(
     val decoderVersion: String
 )
 
+enum class StoredFitFieldKind { STANDARD, DEVELOPER }
+
+data class FitFieldInventoryRecord(
+    val sourceSha256: String,
+    val globalMessageNumber: Int,
+    val kind: StoredFitFieldKind,
+    val fieldNumber: Int,
+    val baseTypeCode: Int?,
+    val fieldSize: Int,
+    val developerDataIndex: Int?,
+    val classification: String,
+    val definitionCount: Long,
+    val observedMessageCount: Long,
+    val validElementCount: Long?,
+    val invalidElementCount: Long?,
+    val decoderVersion: String,
+    val profileVersion: String,
+    val status: FitFieldInventoryStatus = FitFieldInventoryStatus.UNREVIEWED
+)
+
+enum class FitFieldInventoryStatus { UNREVIEWED, INVESTIGATING, SUPPORTED, IGNORED }
+
+typealias StoredFitUnmappedField = FitFieldInventoryRecord
+
 interface FitObservationStore {
     fun commitFitFile(
         sourceSha256: String,
@@ -36,6 +60,7 @@ interface FitObservationStore {
         profileVersion: String,
         observations: List<FitHistoricalObservations.Observation>,
         deviceMetadata: List<FitHistoricalObservations.DeviceMetadata> = emptyList(),
+        unmappedFields: List<FitFieldInventoryRecord> = emptyList(),
         deviceKey: String = "cirqa-fit"
     ): Int
 }
@@ -189,10 +214,11 @@ class LocalReadingStore(context: Context) : SQLiteOpenHelper(
         profileVersion: String,
         observations: List<FitHistoricalObservations.Observation>,
         deviceMetadata: List<FitHistoricalObservations.DeviceMetadata>,
+        unmappedFields: List<FitFieldInventoryRecord>,
         deviceKey: String
     ): Int = FitObservationCommitter.commit(
         writableDatabase, "readings", sourceSha256, fileBytes, relativePath, validatedAtEpochMillis,
-        decoderVersion, profileVersion, observations, deviceMetadata, deviceKey
+        decoderVersion, profileVersion, observations, deviceMetadata, unmappedFields, deviceKey
     )
 
     fun cursorFor(deviceId: String): SyncCursor {

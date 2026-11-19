@@ -24,7 +24,7 @@ import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
 
 private const val BACKUP_FORMAT = "de.pulselibre.local-database-backup"
-private const val BACKUP_VERSION = 5
+private const val BACKUP_VERSION = 6
 private const val MAX_ARCHIVE_BYTES = 128L * 1024L * 1024L
 private const val MAX_ENTRY_BYTES = 120L * 1024L * 1024L
 private const val MAX_LINE_BYTES = 2 * 1024 * 1024
@@ -41,6 +41,7 @@ private const val CANONICAL_FIT_SOURCES_ENTRY = "canonical_fit_sources.jsonl"
 private const val CANONICAL_FIT_PROVENANCE_ENTRY = "canonical_fit_observation_provenance.jsonl"
 private const val CANONICAL_DEVICE_METADATA_ENTRY = "canonical_fit_device_metadata.jsonl"
 private const val RAW_DEVICE_METADATA_ENTRY = "raw_device_metadata.jsonl"
+private const val CANONICAL_UNMAPPED_FIT_FIELDS_ENTRY = "canonical_fit_unmapped_fields.jsonl"
 private const val MANIFEST_ENTRY = "manifest.json"
 private val BACKUP_V1_ENTRIES = setOf(EVENTS_ENTRY, READINGS_ENTRY, CURSORS_ENTRY)
 private val BACKUP_V2_ENTRIES =
@@ -51,6 +52,7 @@ private val BACKUP_V3_ENTRIES = BACKUP_V2_ENTRIES + setOf(
 )
 private val BACKUP_V4_ENTRIES = BACKUP_V3_ENTRIES + CANONICAL_DEVICE_METADATA_ENTRY
 private val BACKUP_V5_ENTRIES = BACKUP_V4_ENTRIES + RAW_DEVICE_METADATA_ENTRY
+private val BACKUP_V6_ENTRIES = BACKUP_V5_ENTRIES + CANONICAL_UNMAPPED_FIT_FIELDS_ENTRY
 
 data class DatabaseBackupReport(
     val createdAt: String,
@@ -129,7 +131,8 @@ object DatabaseBackup {
                 2 -> BACKUP_V2_ENTRIES
                 3 -> BACKUP_V3_ENTRIES
                 4 -> BACKUP_V4_ENTRIES
-                BACKUP_VERSION -> BACKUP_V5_ENTRIES
+                5 -> BACKUP_V5_ENTRIES
+                BACKUP_VERSION -> BACKUP_V6_ENTRIES
                 else -> throw IllegalArgumentException("Backup-Version wird nicht unterstützt")
             }
             require(extracted.keys == dataEntries + MANIFEST_ENTRY) {
@@ -167,6 +170,7 @@ object DatabaseBackup {
             if (version >= 5) {
                 validateRawDeviceMetadataReferences(directory)
             }
+            if (version >= 6) validateUnmappedFitFieldReferences(directory)
             return PreparedDatabaseRestore(
                 directory = directory,
                 createdAt = createdAt,
@@ -223,10 +227,11 @@ object DatabaseBackup {
                                 File(plan.directory, CANONICAL_CURSORS_ENTRY).bufferedReader(Charsets.UTF_8).use { canonicalCursors ->
                                     File(plan.directory, CANONICAL_FIT_SOURCES_ENTRY).bufferedReader(Charsets.UTF_8).use { canonicalSources ->
                                         File(plan.directory, CANONICAL_FIT_PROVENANCE_ENTRY).bufferedReader(Charsets.UTF_8).use { canonicalProvenance ->
-                                            val replace: (
+                                                val replace: (
                                                 Sequence<FitHistoricalObservations.DeviceMetadata>,
-                                                Sequence<RawDeviceMetadataRecord>
-                                            ) -> Unit = { metadata, rawMetadata ->
+                                                Sequence<RawDeviceMetadataRecord>,
+                                                Sequence<StoredFitUnmappedField>
+                                            ) -> Unit = { metadata, rawMetadata, unmappedFields ->
                                                 database.replaceAllStoredRows(
                                                     eventReader.lineSequence(),
                                                     readingReader.lineSequence().map(::parseReading),
@@ -239,6 +244,7 @@ object DatabaseBackup {
                                                     canonicalProvenance.lineSequence().map(::parseFitProvenance),
                                                     canonicalDeviceMetadata = metadata,
                                                     canonicalRawDeviceMetadata = rawMetadata,
+                                                    canonicalUnmappedFitFields = unmappedFields,
                                                     markHistoricalCopyComplete = true
                                                 )
                                             }
@@ -248,20 +254,41 @@ object DatabaseBackup {
                                                         if (plan.version >= 5) {
                                                             File(plan.directory, RAW_DEVICE_METADATA_ENTRY)
                                                                 .bufferedReader(Charsets.UTF_8).use { rawReader ->
-                                                                    replace(
+                                                                    if (plan.version >= 6) {
+                                                                        File(plan.directory, CANONICAL_UNMAPPED_FIT_FIELDS_ENTRY)
+                                                                            .bufferedReader(Charsets.UTF_8).use { unknownReader ->
+                                                                            database.replaceAllStoredRows(
+                                                                                eventReader.lineSequence(),
+                                                                                readingReader.lineSequence().map(::parseReading),
+                                                                                cursorReader.lineSequence().map(::parseCursor),
+                                                                                sourceReader.lineSequence().map(::parseFitSource),
+                                                                                provenanceReader.lineSequence().map(::parseFitProvenance),
+                                                                                canonicalReadings.lineSequence().map(::parseReading),
+                                                                                canonicalCursors.lineSequence().map(::parseCursor),
+                                                                                canonicalSources.lineSequence().map(::parseFitSource),
+                                                                                canonicalProvenance.lineSequence().map(::parseFitProvenance),
+                                                                                metadataReader.lineSequence().map(::parseDeviceMetadata),
+                                                                                rawReader.lineSequence().map(::parseRawDeviceMetadata),
+                                                                                unknownReader.lineSequence().map(::parseUnmappedFitField),
+                                                                                markHistoricalCopyComplete = true
+                                                                            )
+                                                                        }
+                                                                    } else replace(
                                                                         metadataReader.lineSequence().map(::parseDeviceMetadata),
-                                                                        rawReader.lineSequence().map(::parseRawDeviceMetadata)
+                                                                        rawReader.lineSequence().map(::parseRawDeviceMetadata),
+                                                                        emptySequence()
                                                                     )
                                                                 }
                                                         } else {
                                                             replace(
                                                                 metadataReader.lineSequence().map(::parseDeviceMetadata),
+                                                                emptySequence(),
                                                                 emptySequence()
                                                             )
                                                         }
                                                     }
                                             } else {
-                                                replace(emptySequence(), emptySequence())
+                                                replace(emptySequence(), emptySequence(), emptySequence())
                                             }
                                         }
                                     }
@@ -475,11 +502,41 @@ object DatabaseBackup {
                     }
                     rawDeviceMetadataCount = rawDeviceMetadata.records
                     metadata.put(RAW_DEVICE_METADATA_ENTRY, entryMetadata(rawDeviceMetadata))
+                    val canonicalUnmappedFields = writeJsonLines(zip, CANONICAL_UNMAPPED_FIT_FIELDS_ENTRY) { emit ->
+                        db.rawQuery(
+                            """SELECT source_sha256, global_message_number, field_kind, field_number,
+                                      base_type_code, field_size, developer_data_index, classification,
+                                      definition_count, observed_message_count, valid_element_count,
+                                      invalid_element_count, decoder_version, profile_version, review_status
+                               FROM main.fit_unmapped_fields
+                               ORDER BY source_sha256, global_message_number, field_kind, field_number""",
+                            null
+                        ).use { rows ->
+                            while (rows.moveToNext()) emit(encodeUnmappedFitField(StoredFitUnmappedField(
+                                sourceSha256 = rows.getString(0),
+                                globalMessageNumber = rows.getInt(1),
+                                kind = StoredFitFieldKind.valueOf(rows.getString(2)),
+                                fieldNumber = rows.getInt(3),
+                                baseTypeCode = rows.getInt(4).takeUnless { it == -1 },
+                                fieldSize = rows.getInt(5),
+                                developerDataIndex = rows.getInt(6).takeUnless { it == -1 },
+                                classification = rows.getString(7),
+                                definitionCount = rows.getLong(8),
+                                observedMessageCount = rows.getLong(9),
+                                validElementCount = if (rows.isNull(10)) null else rows.getLong(10),
+                                invalidElementCount = if (rows.isNull(11)) null else rows.getLong(11),
+                                decoderVersion = rows.getString(12),
+                                profileVersion = rows.getString(13),
+                                status = FitFieldInventoryStatus.valueOf(rows.getString(14))
+                            )))
+                        }
+                    }
+                    metadata.put(CANONICAL_UNMAPPED_FIT_FIELDS_ENTRY, entryMetadata(canonicalUnmappedFields))
                     require(
                         events.bytes + readings.bytes + cursors.bytes + sources.bytes + provenance.bytes +
                             canonicalReadings.bytes + canonicalCursors.bytes + canonicalSources.bytes +
                             canonicalProvenance.bytes + canonicalDeviceMetadata.bytes +
-                            rawDeviceMetadata.bytes <= MAX_ARCHIVE_BYTES
+                            rawDeviceMetadata.bytes + canonicalUnmappedFields.bytes <= MAX_ARCHIVE_BYTES
                     ) {
                         "Lokale Datenbank ist zu groß für ein Backup"
                     }
@@ -584,6 +641,7 @@ object DatabaseBackup {
                     CANONICAL_FIT_PROVENANCE_ENTRY -> parseFitProvenance(line)
                     CANONICAL_DEVICE_METADATA_ENTRY -> parseDeviceMetadata(line)
                     RAW_DEVICE_METADATA_ENTRY -> parseRawDeviceMetadata(line)
+                    CANONICAL_UNMAPPED_FIT_FIELDS_ENTRY -> parseUnmappedFitField(line)
                 }
                 count++
                 require(count <= MAX_RECORDS) { "Zu viele Einträge in $name" }
@@ -732,6 +790,19 @@ object DatabaseBackup {
         }
     }
 
+    private fun validateUnmappedFitFieldReferences(directory: File) {
+        val sources = hashSetOf<String>()
+        File(directory, CANONICAL_FIT_SOURCES_ENTRY).bufferedReader(Charsets.UTF_8).useLines { lines ->
+            lines.forEach { sources += parseFitSource(it).sha256 }
+        }
+        File(directory, CANONICAL_UNMAPPED_FIT_FIELDS_ENTRY).bufferedReader(Charsets.UTF_8).useLines { lines ->
+            lines.forEach { line ->
+                val field = parseUnmappedFitField(line)
+                require(field.sourceSha256 in sources) { "FIT-Feldinventur verweist auf eine fehlende Quelle" }
+            }
+        }
+    }
+
     private fun parseReading(line: String): RawExportRecord {
         val item = JSONObject(line)
         val record = RawExportRecord(
@@ -843,6 +914,43 @@ object DatabaseBackup {
         return metadata
     }
 
+    private fun parseUnmappedFitField(line: String): StoredFitUnmappedField {
+        val json = JSONObject(line)
+        val item = StoredFitUnmappedField(
+            sourceSha256 = json.getString("source_sha256"),
+            globalMessageNumber = json.getInt("global_message_number"),
+            kind = StoredFitFieldKind.valueOf(json.getString("field_kind")),
+            fieldNumber = json.getInt("field_number"),
+            baseTypeCode = if (json.isNull("base_type_code")) null else json.getInt("base_type_code"),
+            fieldSize = json.getInt("field_size"),
+            developerDataIndex = if (json.isNull("developer_data_index")) null else json.getInt("developer_data_index"),
+            classification = json.getString("classification"),
+            definitionCount = json.getLong("definition_count"),
+            observedMessageCount = json.getLong("observed_message_count"),
+            validElementCount = if (json.isNull("valid_element_count")) null else json.getLong("valid_element_count"),
+            invalidElementCount = if (json.isNull("invalid_element_count")) null else json.getLong("invalid_element_count"),
+            decoderVersion = json.getString("decoder_version"),
+            profileVersion = json.getString("profile_version"),
+            status = FitFieldInventoryStatus.valueOf(json.getString("status"))
+        )
+        require(
+            item.sourceSha256.matches(Regex("[0-9a-f]{64}")) &&
+                item.globalMessageNumber in 0..65535 && item.fieldNumber in 0..255 &&
+                item.fieldSize in 1..255 &&
+                (item.baseTypeCode == null || item.baseTypeCode in 0..255) &&
+                (item.developerDataIndex == null || item.developerDataIndex in 0..255) &&
+                item.classification in setOf(
+                    "MESSAGE_NOT_DECODED_BY_APP", "FIELD_NOT_DECODED_BY_APP",
+                    "KNOWN_MAPPING_INCOMPATIBLE", "DEVELOPER_FIELD_NOT_DECODED_BY_APP"
+                ) && item.definitionCount in 0..1_000_000 &&
+                item.observedMessageCount in 0..1_000_000 &&
+                (item.validElementCount == null || item.validElementCount in 0..1_000_000) &&
+                (item.invalidElementCount == null || item.invalidElementCount in 0..1_000_000) &&
+                item.decoderVersion.length in 1..32 && item.profileVersion.length in 1..32
+        ) { "Ungültige FIT-Feldinventur im Backup" }
+        return item
+    }
+
     private fun encodeReading(record: RawExportRecord): String = JSONObject()
         .put("device_id", record.deviceId)
         .put("metric", record.metric)
@@ -901,6 +1009,24 @@ object DatabaseBackup {
         .put("software_version", value.softwareVersion ?: JSONObject.NULL)
         .put("mass_storage_mode", value.massStorageMode ?: JSONObject.NULL)
         .put("transfer_direction_count", value.transferDirectionElementCount)
+        .toString()
+
+    private fun encodeUnmappedFitField(value: StoredFitUnmappedField): String = JSONObject()
+        .put("source_sha256", value.sourceSha256)
+        .put("global_message_number", value.globalMessageNumber)
+        .put("field_kind", value.kind.name)
+        .put("field_number", value.fieldNumber)
+        .put("base_type_code", value.baseTypeCode ?: JSONObject.NULL)
+        .put("field_size", value.fieldSize)
+        .put("developer_data_index", value.developerDataIndex ?: JSONObject.NULL)
+        .put("classification", value.classification)
+        .put("definition_count", value.definitionCount)
+        .put("observed_message_count", value.observedMessageCount)
+        .put("valid_element_count", value.validElementCount ?: JSONObject.NULL)
+        .put("invalid_element_count", value.invalidElementCount ?: JSONObject.NULL)
+        .put("decoder_version", value.decoderVersion)
+        .put("profile_version", value.profileVersion)
+        .put("status", value.status.name)
         .toString()
 
     private fun sha256(file: File): String {

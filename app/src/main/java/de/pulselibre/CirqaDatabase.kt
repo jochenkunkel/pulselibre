@@ -13,7 +13,7 @@ import java.security.MessageDigest
  * UNIQUE SHA-256 of each full line makes repeated imports idempotent.
  */
 class CirqaDatabase(private val contextRef: Context) :
-    SQLiteOpenHelper(contextRef, "cirqa_measurements.db", null, 5), FitObservationStore {
+    SQLiteOpenHelper(contextRef, "cirqa_measurements.db", null, 6), FitObservationStore {
 
     override fun onConfigure(db: SQLiteDatabase) {
         super.onConfigure(db)
@@ -36,10 +36,11 @@ class CirqaDatabase(private val contextRef: Context) :
         createHistoricalSchema(db)
         createFitDeviceMetadataSchema(db)
         createRawDeviceMetadataSchema(db)
+        createUnmappedFitFieldSchema(db)
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-        require(oldVersion in 1..4 && newVersion == 5)
+        require(oldVersion in 1..5 && newVersion == 6)
         if (oldVersion <= 2) {
             if (oldVersion == 1) {
             db.execSQL("ALTER TABLE events ADD COLUMN dashboard_time TEXT")
@@ -66,7 +67,8 @@ class CirqaDatabase(private val contextRef: Context) :
         } else if (oldVersion == 3) {
             createFitDeviceMetadataSchema(db)
         }
-        createRawDeviceMetadataSchema(db)
+        if (oldVersion < 5) createRawDeviceMetadataSchema(db)
+        createUnmappedFitFieldSchema(db)
     }
 
     private fun createHistoricalSchema(db: SQLiteDatabase) {
@@ -147,6 +149,33 @@ class CirqaDatabase(private val contextRef: Context) :
             transfer_direction_count INTEGER NOT NULL CHECK(transfer_direction_count BETWEEN 0 AND 10000)
         )""")
         db.execSQL("CREATE INDEX raw_device_metadata_by_verified_time ON raw_device_metadata(verified_at_ms)")
+    }
+
+    private fun createUnmappedFitFieldSchema(db: SQLiteDatabase) {
+        db.execSQL("""CREATE TABLE fit_unmapped_fields (
+            source_sha256 TEXT NOT NULL REFERENCES fit_sources(source_sha256) ON DELETE RESTRICT,
+            global_message_number INTEGER NOT NULL CHECK(global_message_number BETWEEN 0 AND 65535),
+            field_kind TEXT NOT NULL CHECK(field_kind IN ('STANDARD', 'DEVELOPER')),
+            field_number INTEGER NOT NULL CHECK(field_number BETWEEN 0 AND 255),
+            base_type_code INTEGER NOT NULL CHECK(base_type_code BETWEEN -1 AND 255),
+            field_size INTEGER NOT NULL CHECK(field_size BETWEEN 1 AND 255),
+            developer_data_index INTEGER NOT NULL CHECK(developer_data_index BETWEEN -1 AND 255),
+            classification TEXT NOT NULL CHECK(classification IN (
+                'MESSAGE_NOT_DECODED_BY_APP', 'FIELD_NOT_DECODED_BY_APP',
+                'KNOWN_MAPPING_INCOMPATIBLE', 'DEVELOPER_FIELD_NOT_DECODED_BY_APP'
+            )),
+            definition_count INTEGER NOT NULL CHECK(definition_count BETWEEN 0 AND 1000000),
+            observed_message_count INTEGER NOT NULL CHECK(observed_message_count BETWEEN 0 AND 1000000),
+            valid_element_count INTEGER CHECK(valid_element_count IS NULL OR valid_element_count BETWEEN 0 AND 1000000),
+            invalid_element_count INTEGER CHECK(invalid_element_count IS NULL OR invalid_element_count BETWEEN 0 AND 1000000),
+            decoder_version TEXT NOT NULL CHECK(length(decoder_version) BETWEEN 1 AND 32),
+            profile_version TEXT NOT NULL CHECK(length(profile_version) BETWEEN 1 AND 32),
+            review_status TEXT NOT NULL DEFAULT 'UNREVIEWED'
+                CHECK(review_status IN ('UNREVIEWED', 'INVESTIGATING', 'SUPPORTED', 'IGNORED')),
+            PRIMARY KEY(source_sha256, global_message_number, field_kind, field_number,
+                        base_type_code, field_size, developer_data_index, classification)
+        )""")
+        db.execSQL("CREATE INDEX fit_unmapped_fields_by_status ON fit_unmapped_fields(review_status)")
     }
 
     private fun createDashboardIndex(db: SQLiteDatabase) {
@@ -370,13 +399,66 @@ class CirqaDatabase(private val contextRef: Context) :
         profileVersion: String,
         observations: List<FitHistoricalObservations.Observation>,
         deviceMetadata: List<FitHistoricalObservations.DeviceMetadata>,
+        unmappedFields: List<FitFieldInventoryRecord>,
         deviceKey: String
     ): Int {
         ensureHistoricalStoreCopied()
         return FitObservationCommitter.commit(
             writableDatabase, "observations", sourceSha256, fileBytes, relativePath,
-            validatedAtEpochMillis, decoderVersion, profileVersion, observations, deviceMetadata, deviceKey
+            validatedAtEpochMillis, decoderVersion, profileVersion, observations, deviceMetadata,
+            unmappedFields, deviceKey
         )
+    }
+
+    fun storedFitUnmappedFields(): List<StoredFitUnmappedField> =
+        readableDatabase.rawQuery(
+            """SELECT source_sha256, global_message_number, field_kind, field_number,
+                      base_type_code, field_size, developer_data_index, classification,
+                      definition_count, observed_message_count, valid_element_count,
+                      invalid_element_count, decoder_version, profile_version, review_status
+               FROM fit_unmapped_fields
+               ORDER BY source_sha256, global_message_number, field_kind, field_number""",
+            null
+        ).use { rows ->
+            buildList {
+                while (rows.moveToNext()) add(StoredFitUnmappedField(
+                    sourceSha256 = rows.getString(0),
+                    globalMessageNumber = rows.getInt(1),
+                    kind = StoredFitFieldKind.valueOf(rows.getString(2)),
+                    fieldNumber = rows.getInt(3),
+                    baseTypeCode = rows.getInt(4).takeUnless { it == -1 },
+                    fieldSize = rows.getInt(5),
+                    developerDataIndex = rows.getInt(6).takeUnless { it == -1 },
+                    classification = rows.getString(7),
+                    definitionCount = rows.getLong(8),
+                    observedMessageCount = rows.getLong(9),
+                    validElementCount = if (rows.isNull(10)) null else rows.getLong(10),
+                    invalidElementCount = if (rows.isNull(11)) null else rows.getLong(11),
+                    decoderVersion = rows.getString(12),
+                    profileVersion = rows.getString(13),
+                    status = FitFieldInventoryStatus.valueOf(rows.getString(14))
+                ))
+            }
+        }
+
+    @Synchronized fun updateFitUnmappedFieldStatus(
+        field: StoredFitUnmappedField,
+        status: FitFieldInventoryStatus
+    ) {
+        val changed = writableDatabase.update(
+            "fit_unmapped_fields",
+            ContentValues().apply { put("review_status", status.name) },
+            """source_sha256 = ? AND global_message_number = ? AND field_kind = ?
+               AND field_number = ? AND base_type_code = ? AND field_size = ?
+               AND developer_data_index = ? AND classification = ?""",
+            arrayOf(
+                field.sourceSha256, field.globalMessageNumber.toString(), field.kind.name,
+                field.fieldNumber.toString(), (field.baseTypeCode ?: -1).toString(),
+                field.fieldSize.toString(), (field.developerDataIndex ?: -1).toString(),
+                field.classification
+            )
+        )
+        check(changed == 1) { "FIT field signature not found" }
     }
 
     fun fitDeviceMetadata(): List<FitHistoricalObservations.DeviceMetadata> =
@@ -586,12 +668,14 @@ class CirqaDatabase(private val contextRef: Context) :
         canonicalFitProvenance: Sequence<StoredFitProvenance> = emptySequence(),
         canonicalDeviceMetadata: Sequence<FitHistoricalObservations.DeviceMetadata> = emptySequence(),
         canonicalRawDeviceMetadata: Sequence<RawDeviceMetadataRecord> = emptySequence(),
+        canonicalUnmappedFitFields: Sequence<StoredFitUnmappedField> = emptySequence(),
         markHistoricalCopyComplete: Boolean = false
     ) = withLegacyDatabase { db ->
         db.beginTransaction()
         try {
             db.execSQL("DELETE FROM main.events")
             db.execSQL("DELETE FROM main.fit_observation_provenance")
+            db.execSQL("DELETE FROM main.fit_unmapped_fields")
             db.execSQL("DELETE FROM main.fit_device_metadata")
             db.execSQL("DELETE FROM main.raw_device_metadata")
             db.execSQL("DELETE FROM main.observations")
@@ -806,6 +890,41 @@ class CirqaDatabase(private val contextRef: Context) :
                 else rawDeviceMetadataInsert.bindLong(6, if (item.massStorageMode) 1 else 0)
                 rawDeviceMetadataInsert.bindLong(7, item.transferDirectionElementCount.toLong())
                 rawDeviceMetadataInsert.executeInsert()
+            }
+            val unmappedFitFieldInsert = db.compileStatement(
+                """INSERT INTO main.fit_unmapped_fields
+                   (source_sha256, global_message_number, field_kind, field_number, base_type_code,
+                    field_size, developer_data_index, classification, definition_count,
+                    observed_message_count, valid_element_count, invalid_element_count,
+                    decoder_version, profile_version, review_status)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"""
+            )
+            canonicalUnmappedFitFields.forEach { item ->
+                require(item.sourceSha256.matches(Regex("[0-9a-f]{64}")) &&
+                    item.globalMessageNumber in 0..65535 && item.fieldNumber in 0..255 &&
+                    item.fieldSize in 1..255 && item.definitionCount in 0..1_000_000 &&
+                    item.observedMessageCount in 0..1_000_000) {
+                    "Ungültige FIT-Feldinventur im Backup"
+                }
+                unmappedFitFieldInsert.clearBindings()
+                unmappedFitFieldInsert.bindString(1, item.sourceSha256)
+                unmappedFitFieldInsert.bindLong(2, item.globalMessageNumber.toLong())
+                unmappedFitFieldInsert.bindString(3, item.kind.name)
+                unmappedFitFieldInsert.bindLong(4, item.fieldNumber.toLong())
+                unmappedFitFieldInsert.bindLong(5, (item.baseTypeCode ?: -1).toLong())
+                unmappedFitFieldInsert.bindLong(6, item.fieldSize.toLong())
+                unmappedFitFieldInsert.bindLong(7, (item.developerDataIndex ?: -1).toLong())
+                unmappedFitFieldInsert.bindString(8, item.classification)
+                unmappedFitFieldInsert.bindLong(9, item.definitionCount)
+                unmappedFitFieldInsert.bindLong(10, item.observedMessageCount)
+                if (item.validElementCount == null) unmappedFitFieldInsert.bindNull(11)
+                else unmappedFitFieldInsert.bindLong(11, item.validElementCount)
+                if (item.invalidElementCount == null) unmappedFitFieldInsert.bindNull(12)
+                else unmappedFitFieldInsert.bindLong(12, item.invalidElementCount)
+                unmappedFitFieldInsert.bindString(13, item.decoderVersion)
+                unmappedFitFieldInsert.bindString(14, item.profileVersion)
+                unmappedFitFieldInsert.bindString(15, item.status.name)
+                unmappedFitFieldInsert.executeInsert()
             }
 
             val canonicalProvenanceInsert = db.compileStatement(

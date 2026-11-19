@@ -15,6 +15,7 @@ internal object FitObservationCommitter {
         profileVersion: String,
         observations: List<FitHistoricalObservations.Observation>,
         deviceMetadata: List<FitHistoricalObservations.DeviceMetadata>,
+        unmappedFields: List<FitFieldInventoryRecord>,
         deviceKey: String
     ): Int {
         require(readingsTable == "readings" || readingsTable == "observations")
@@ -46,6 +47,17 @@ internal object FitObservationCommitter {
         require(deviceMetadata.map { it.recordOrdinal }.distinct().size == deviceMetadata.size) {
             "Duplicate FIT device_info ordinal in one file"
         }
+        require(unmappedFields.all {
+            it.sourceFileSha256 == sourceSha256 &&
+                it.globalMessageNumber in 0..65535 &&
+                it.fieldNumber in 0..255 && it.fieldSize in 1..255 &&
+                (it.baseTypeCode == null || it.baseTypeCode in 0..255) &&
+                (it.developerDataIndex == null || it.developerDataIndex in 0..255) &&
+                it.definitionCount in 0..1_000_000 &&
+                it.observedMessageCount in 0..1_000_000 &&
+                (it.validElementCount == null || it.validElementCount in 0..1_000_000) &&
+                (it.invalidElementCount == null || it.invalidElementCount in 0..1_000_000)
+        }) { "FIT field inventory does not match validated source or limits" }
 
         val records = observations.map {
             RawExportRecord(
@@ -80,6 +92,40 @@ internal object FitObservationCommitter {
             }
 
             if (readingsTable == "observations") {
+                val inventoryInsert = db.compileStatement(
+                    """INSERT INTO fit_unmapped_fields
+                       (source_sha256, global_message_number, field_kind, field_number,
+                        base_type_code, field_size, developer_data_index, classification,
+                        definition_count, observed_message_count, valid_element_count,
+                        invalid_element_count, decoder_version, profile_version)
+                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                       ON CONFLICT(source_sha256, global_message_number, field_kind, field_number,
+                                   base_type_code, field_size, developer_data_index, classification)
+                       DO UPDATE SET definition_count = excluded.definition_count,
+                           observed_message_count = excluded.observed_message_count,
+                           valid_element_count = excluded.valid_element_count,
+                           invalid_element_count = excluded.invalid_element_count,
+                           decoder_version = excluded.decoder_version,
+                           profile_version = excluded.profile_version"""
+                )
+                for (field in unmappedFields) {
+                    inventoryInsert.clearBindings()
+                    inventoryInsert.bindString(1, sourceSha256)
+                    inventoryInsert.bindLong(2, field.globalMessageNumber.toLong())
+                    inventoryInsert.bindString(3, field.kind.name)
+                    inventoryInsert.bindLong(4, field.fieldNumber.toLong())
+                    inventoryInsert.bindLong(5, (field.baseTypeCode ?: -1).toLong())
+                    inventoryInsert.bindLong(6, field.fieldSize.toLong())
+                    inventoryInsert.bindLong(7, (field.developerDataIndex ?: -1).toLong())
+                    inventoryInsert.bindString(8, field.classification)
+                    inventoryInsert.bindLong(9, field.definitionCount)
+                    inventoryInsert.bindLong(10, field.observedMessageCount)
+                    bindNullableLong(inventoryInsert, 11, field.validElementCount)
+                    bindNullableLong(inventoryInsert, 12, field.invalidElementCount)
+                    inventoryInsert.bindString(13, decoderVersion)
+                    inventoryInsert.bindString(14, profileVersion)
+                    inventoryInsert.executeInsert()
+                }
                 val metadataInsert = db.compileStatement(
                     """INSERT OR IGNORE INTO fit_device_metadata
                        (source_sha256, record_ordinal, observed_at_ms, device_type_code,
@@ -123,6 +169,9 @@ internal object FitObservationCommitter {
             } else {
                 require(deviceMetadata.isEmpty()) {
                     "Historical transition store does not accept FIT device metadata"
+                }
+                require(unmappedFields.isEmpty()) {
+                    "Historical transition store does not accept FIT field inventories"
                 }
             }
 

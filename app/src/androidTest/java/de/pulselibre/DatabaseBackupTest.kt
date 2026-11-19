@@ -20,6 +20,114 @@ import org.json.JSONObject
 
 @RunWith(AndroidJUnit4::class)
 class DatabaseBackupTest {
+    @Test fun schemaFiveUpgradeAddsInventoryWithoutChangingExistingFitSources() {
+        val base = ApplicationProvider.getApplicationContext<Context>()
+        val root = Files.createTempDirectory(base.cacheDir.toPath(), "fit-inventory-migration-").toFile()
+        val context = isolatedContext(base, root)
+        try {
+            val legacy = SQLiteDatabase.openOrCreateDatabase(
+                context.getDatabasePath("cirqa_measurements.db"), null
+            )
+            legacy.execSQL(
+                """CREATE TABLE fit_sources (
+                    source_sha256 TEXT PRIMARY KEY NOT NULL CHECK(length(source_sha256) = 64),
+                    file_bytes INTEGER NOT NULL, relative_path TEXT NOT NULL,
+                    validated_at_ms INTEGER NOT NULL, decoder_version TEXT NOT NULL,
+                    profile_version TEXT NOT NULL
+                )"""
+            )
+            legacy.execSQL(
+                """INSERT INTO fit_sources VALUES (?, 100, ?, 10, '1', '21.222.0')""",
+                arrayOf("e".repeat(64), "verified_fit/${"e".repeat(64)}.fit")
+            )
+            legacy.version = 5
+            legacy.close()
+
+            CirqaDatabase(context).use { database ->
+                assertEquals(6, database.readableDatabase.version)
+                val sourceCount = database.readableDatabase.rawQuery(
+                    "SELECT COUNT(*) FROM fit_sources", null
+                ).use { it.moveToFirst(); it.getInt(0) }
+                assertEquals(1, sourceCount)
+                val inventoryTableExists = database.readableDatabase.rawQuery(
+                    "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'fit_unmapped_fields'",
+                    null
+                ).use { it.moveToFirst(); it.getInt(0) }
+                assertEquals(1, inventoryTableExists)
+            }
+        } finally {
+            root.deleteRecursively()
+        }
+    }
+
+    @Test fun fitFieldInventoryReplayPreservesReviewStatusAndBackupRestore() {
+        val base = ApplicationProvider.getApplicationContext<Context>()
+        val root = Files.createTempDirectory(base.cacheDir.toPath(), "fit-inventory-db-test-").toFile()
+        val context = isolatedContext(base, root)
+        val sourceSha = "d".repeat(64)
+        val field = FitFieldInventoryRecord(
+            sourceFileSha256 = sourceSha,
+            globalMessageNumber = 20,
+            kind = StoredFitFieldKind.STANDARD,
+            fieldNumber = 85,
+            baseTypeCode = 2,
+            fieldSize = 1,
+            developerDataIndex = null,
+            classification = "FIELD_NOT_DECODED_BY_APP",
+            definitionCount = 1,
+            observedMessageCount = 3,
+            validElementCount = 2,
+            invalidElementCount = 1
+        )
+        try {
+            CirqaDatabase(context).use { database ->
+                database.commitFitFile(
+                    sourceSha256 = sourceSha,
+                    fileBytes = 100,
+                    relativePath = "verified_fit/$sourceSha.fit",
+                    validatedAtEpochMillis = 10,
+                    decoderVersion = FitHistoricalObservations.DECODER_VERSION,
+                    profileVersion = FitHistoricalObservations.PROFILE_VERSION,
+                    observations = emptyList(),
+                    unmappedFields = listOf(field)
+                )
+                val initial = database.storedFitUnmappedFields().single()
+                assertEquals(FitFieldInventoryStatus.UNREVIEWED, initial.status)
+                database.updateFitUnmappedFieldStatus(
+                    initial, FitFieldInventoryStatus.INVESTIGATING
+                )
+                database.commitFitFile(
+                    sourceSha256 = sourceSha,
+                    fileBytes = 100,
+                    relativePath = "verified_fit/$sourceSha.fit",
+                    validatedAtEpochMillis = 20,
+                    decoderVersion = FitHistoricalObservations.DECODER_VERSION,
+                    profileVersion = FitHistoricalObservations.PROFILE_VERSION,
+                    observations = emptyList(),
+                    unmappedFields = listOf(field.copy(observedMessageCount = 4, validElementCount = 3))
+                )
+                val replay = database.storedFitUnmappedFields().single()
+                assertEquals(4L, replay.observedMessageCount)
+                assertEquals(3L, replay.validElementCount)
+                assertEquals(FitFieldInventoryStatus.INVESTIGATING, replay.status)
+            }
+
+            val archive = ByteArrayOutputStream()
+            DatabaseBackup.write(context, archive)
+            val plan = DatabaseBackup.prepareRestore(context, ByteArrayInputStream(archive.toByteArray()))
+            plan.use {
+                DatabaseBackup.restore(context, plan)
+            }
+            CirqaDatabase(context).use { database ->
+                val restored = database.storedFitUnmappedFields().single()
+                assertEquals(4L, restored.observedMessageCount)
+                assertEquals(FitFieldInventoryStatus.INVESTIGATING, restored.status)
+            }
+        } finally {
+            root.deleteRecursively()
+        }
+    }
+
     @Test fun backupResetAndRestoreRoundTripBothLocalStoresAndCursor() {
         val base = ApplicationProvider.getApplicationContext<Context>()
         val root = Files.createTempDirectory(base.cacheDir.toPath(), "database-backup-test-").toFile()
