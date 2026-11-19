@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from design/icons/v1/height.svg -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp" android:height="24dp" android:viewportWidth="128" android:viewportHeight="128">
+    <path android:pathData="M57 25a12 12 0 1 0 0-24 12 12 0 0 0 0 24Z" android:strokeColor="@color/pl_icon_line" android:strokeWidth="6" android:strokeLineCap="round" android:strokeLineJoin="round" />
+    <path android:pathData="M57 34v48m-22-35 22-13 22 13M57 82l-17 29m17-29 17 29" android:strokeColor="@color/pl_icon_line" android:strokeWidth="6" android:strokeLineCap="round" android:strokeLineJoin="round" />
+    <path android:pathData="M100 17v94M92 25l8-8 8 8M92 103l8 8 8-8" android:strokeColor="@color/pl_icon_line" android:strokeWidth="6" android:strokeLineCap="round" android:strokeLineJoin="round" />
+</vector>
