@@ -16,6 +16,7 @@ object FitHistoricalObservations {
     const val PROFILE_VERSION = "21.222.0"
     private const val GLOBAL_RECORD = 20
     private const val GLOBAL_MONITORING = 55
+    private const val GLOBAL_DEVICE_INFO = 23
 
     enum class Metric(val unit: String) {
         HEART_RATE("bpm"),
@@ -23,7 +24,6 @@ object FitHistoricalObservations {
         DISTANCE("m"),
         SPEED("m/s"),
         POWER("W"),
-        CUMULATIVE_STEPS("steps")
     }
 
     enum class Quality { PROFILE_VALID, MISSING_TIMESTAMP, OUTSIDE_DISPLAY_RANGE }
@@ -44,10 +44,28 @@ object FitHistoricalObservations {
         val duplicateFingerprint: String
     )
 
+    /**
+     * Whitelisted, non-serial FIT device_info fields. Codes are retained as
+     * profile codes; they are not treated as a verified CIRQA identity.
+     */
+    data class DeviceMetadata(
+        val sourceFileSha256: String,
+        val recordOrdinal: Int,
+        val timestampEpochMillis: Long?,
+        val deviceTypeCode: Int?,
+        val manufacturerCode: Int?,
+        val productCode: Int?,
+        val softwareVersion: Double?,
+        val batteryVoltageVolts: Double?,
+        val batteryStatusCode: Int?,
+        val batteryLevelPercent: Int?
+    )
+
     data class Result(
         val observations: List<Observation>,
         val dataRecordCount: Int,
-        val unsupportedMeasurementFieldCount: Int
+        val unsupportedMeasurementFieldCount: Int,
+        val deviceMetadata: List<DeviceMetadata> = emptyList()
     ) {
         fun potentialDuplicates(): List<List<Observation>> =
             observations.groupBy { it.duplicateFingerprint }
@@ -72,10 +90,12 @@ object FitHistoricalObservations {
         val fileSha = sha256(file)
         val definitions = arrayOfNulls<Definition>(16)
         val observations = mutableListOf<Observation>()
+        val deviceMetadata = mutableListOf<DeviceMetadata>()
         var cursor = header.headerSize
         var previousFitTimestamp: Long? = null
         var recordOrdinal = 0
         var unsupportedFields = 0
+        var deviceInfoOrdinal = 0
 
         fun requireBytes(count: Int): Boolean =
             count >= 0 && cursor <= dataEnd - count
@@ -165,6 +185,35 @@ object FitHistoricalObservations {
                 ?.takeIf { it != 0xffff_ffffL }
                 ?.let { (it + FIT_EPOCH_UNIX_SECONDS) * 1_000L }
 
+            if (definition.globalNumber == GLOBAL_DEVICE_INFO) {
+                deviceInfoOrdinal++
+                if (deviceMetadata.size >= MAX_DEVICE_METADATA) return null
+                fun fieldValue(number: Int, baseType: Int): Long? {
+                    val field = definition.fields.firstOrNull { it.number == number } ?: return null
+                    val offset = fieldBytes[field] ?: return null
+                    val raw = readSupportedUnsigned(file, offset, field, definition.bigEndian, baseType)
+                        ?: return null
+                    return raw.takeUnless { it == invalidSentinel(field) }
+                }
+                val batteryLevel = fieldValue(32, baseType = 2)
+                    ?.takeIf { it in 0L..100L }?.toInt()
+                val batteryVoltage = fieldValue(10, baseType = 4)
+                    ?.let { it / 256.0 }?.takeIf { it.isFinite() && it in 0.0..20.0 }
+                deviceMetadata += DeviceMetadata(
+                    sourceFileSha256 = fileSha,
+                    recordOrdinal = deviceInfoOrdinal,
+                    timestampEpochMillis = timestampMillis,
+                    deviceTypeCode = fieldValue(1, baseType = 2)?.toInt(),
+                    manufacturerCode = fieldValue(2, baseType = 4)?.toInt(),
+                    productCode = fieldValue(4, baseType = 4)?.toInt(),
+                    softwareVersion = fieldValue(5, baseType = 4)
+                        ?.div(100.0)?.takeIf { it.isFinite() },
+                    batteryVoltageVolts = batteryVoltage,
+                    batteryStatusCode = fieldValue(11, baseType = 2)?.toInt(),
+                    batteryLevelPercent = batteryLevel
+                )
+            }
+
             if (definition.globalNumber == GLOBAL_RECORD || definition.globalNumber == GLOBAL_MONITORING) {
                 recordOrdinal++
                 for ((field, offset) in fieldBytes) {
@@ -203,8 +252,10 @@ object FitHistoricalObservations {
             }
         }
 
-        return Result(observations, recordOrdinal, unsupportedFields)
+        return Result(observations, recordOrdinal, unsupportedFields, deviceMetadata)
     }
+
+    private const val MAX_DEVICE_METADATA = 10_000
 
     private data class Mapping(
         val metric: Metric,
@@ -226,7 +277,6 @@ object FitHistoricalObservations {
             else -> null
         }
         GLOBAL_MONITORING -> when (field) {
-            9 -> Mapping(Metric.CUMULATIVE_STEPS, baseType = 4, multiplier = 2.0) // 2 steps/cycle
             27 -> Mapping(Metric.HEART_RATE, baseType = 2) // uint8, bpm
             else -> null
         }

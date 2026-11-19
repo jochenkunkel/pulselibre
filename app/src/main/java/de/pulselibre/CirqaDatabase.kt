@@ -13,7 +13,7 @@ import java.security.MessageDigest
  * UNIQUE SHA-256 of each full line makes repeated imports idempotent.
  */
 class CirqaDatabase(private val contextRef: Context) :
-    SQLiteOpenHelper(contextRef, "cirqa_measurements.db", null, 3), FitObservationStore {
+    SQLiteOpenHelper(contextRef, "cirqa_measurements.db", null, 4), FitObservationStore {
 
     override fun onConfigure(db: SQLiteDatabase) {
         super.onConfigure(db)
@@ -34,11 +34,13 @@ class CirqaDatabase(private val contextRef: Context) :
         createDashboardIndex(db)
         db.execSQL("CREATE INDEX events_kind_time ON events(kind, received_at_utc)")
         createHistoricalSchema(db)
+        createFitDeviceMetadataSchema(db)
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-        require(oldVersion in 1..2 && newVersion == 3)
-        if (oldVersion == 1) {
+        require(oldVersion in 1..3 && newVersion == 4)
+        if (oldVersion <= 2) {
+            if (oldVersion == 1) {
             db.execSQL("ALTER TABLE events ADD COLUMN dashboard_time TEXT")
             var lastId = 0L
             while (true) {
@@ -54,8 +56,12 @@ class CirqaDatabase(private val contextRef: Context) :
                 lastId = batch.last().first
             }
             createDashboardIndex(db)
+            }
+            createHistoricalSchema(db)
+            createFitDeviceMetadataSchema(db)
+        } else {
+            createFitDeviceMetadataSchema(db)
         }
-        createHistoricalSchema(db)
     }
 
     private fun createHistoricalSchema(db: SQLiteDatabase) {
@@ -106,6 +112,23 @@ class CirqaDatabase(private val contextRef: Context) :
         )""")
         db.execSQL("CREATE INDEX fit_provenance_by_source ON fit_observation_provenance(source_sha256, record_ordinal)")
         db.execSQL("CREATE INDEX fit_provenance_by_metric_time ON fit_observation_provenance(metric, measured_at_ms)")
+    }
+
+    private fun createFitDeviceMetadataSchema(db: SQLiteDatabase) {
+        db.execSQL("""CREATE TABLE fit_device_metadata (
+            source_sha256 TEXT NOT NULL REFERENCES fit_sources(source_sha256) ON DELETE RESTRICT,
+            record_ordinal INTEGER NOT NULL CHECK(record_ordinal > 0),
+            observed_at_ms INTEGER CHECK(observed_at_ms IS NULL OR observed_at_ms >= 0),
+            device_type_code INTEGER CHECK(device_type_code IS NULL OR device_type_code BETWEEN 0 AND 254),
+            manufacturer_code INTEGER CHECK(manufacturer_code IS NULL OR manufacturer_code BETWEEN 0 AND 65534),
+            product_code INTEGER CHECK(product_code IS NULL OR product_code BETWEEN 0 AND 65534),
+            software_version REAL CHECK(software_version IS NULL OR software_version BETWEEN 0 AND 655.34),
+            battery_voltage_volts REAL CHECK(battery_voltage_volts IS NULL OR battery_voltage_volts BETWEEN 0 AND 20),
+            battery_status_code INTEGER CHECK(battery_status_code IS NULL OR battery_status_code BETWEEN 0 AND 254),
+            battery_level_percent INTEGER CHECK(battery_level_percent IS NULL OR battery_level_percent BETWEEN 0 AND 100),
+            PRIMARY KEY(source_sha256, record_ordinal)
+        )""")
+        db.execSQL("CREATE INDEX fit_device_metadata_by_time ON fit_device_metadata(observed_at_ms)")
     }
 
     private fun createDashboardIndex(db: SQLiteDatabase) {
@@ -328,14 +351,39 @@ class CirqaDatabase(private val contextRef: Context) :
         decoderVersion: String,
         profileVersion: String,
         observations: List<FitHistoricalObservations.Observation>,
+        deviceMetadata: List<FitHistoricalObservations.DeviceMetadata>,
         deviceKey: String
     ): Int {
         ensureHistoricalStoreCopied()
         return FitObservationCommitter.commit(
             writableDatabase, "observations", sourceSha256, fileBytes, relativePath,
-            validatedAtEpochMillis, decoderVersion, profileVersion, observations, deviceKey
+            validatedAtEpochMillis, decoderVersion, profileVersion, observations, deviceMetadata, deviceKey
         )
     }
+
+    fun fitDeviceMetadata(): List<FitHistoricalObservations.DeviceMetadata> =
+        readableDatabase.rawQuery(
+            """SELECT source_sha256, record_ordinal, observed_at_ms, device_type_code,
+                      manufacturer_code, product_code, software_version, battery_voltage_volts,
+                      battery_status_code, battery_level_percent
+               FROM fit_device_metadata ORDER BY observed_at_ms, source_sha256, record_ordinal""",
+            null
+        ).use { rows ->
+            buildList {
+                while (rows.moveToNext()) add(FitHistoricalObservations.DeviceMetadata(
+                    sourceFileSha256 = rows.getString(0),
+                    recordOrdinal = rows.getInt(1),
+                    timestampEpochMillis = if (rows.isNull(2)) null else rows.getLong(2),
+                    deviceTypeCode = if (rows.isNull(3)) null else rows.getInt(3),
+                    manufacturerCode = if (rows.isNull(4)) null else rows.getInt(4),
+                    productCode = if (rows.isNull(5)) null else rows.getInt(5),
+                    softwareVersion = if (rows.isNull(6)) null else rows.getDouble(6),
+                    batteryVoltageVolts = if (rows.isNull(7)) null else rows.getDouble(7),
+                    batteryStatusCode = if (rows.isNull(8)) null else rows.getInt(8),
+                    batteryLevelPercent = if (rows.isNull(9)) null else rows.getInt(9)
+                ))
+            }
+        }
 
     /** Store a single locally generated JSONL event immediately, without a second BLE path. */
     @Synchronized fun insertLine(line: String): Boolean {
@@ -461,12 +509,14 @@ class CirqaDatabase(private val contextRef: Context) :
         canonicalCursors: Sequence<LocalSyncCursor> = emptySequence(),
         canonicalFitSources: Sequence<StoredFitSource> = emptySequence(),
         canonicalFitProvenance: Sequence<StoredFitProvenance> = emptySequence(),
+        canonicalDeviceMetadata: Sequence<FitHistoricalObservations.DeviceMetadata> = emptySequence(),
         markHistoricalCopyComplete: Boolean = false
     ) = withLegacyDatabase { db ->
         db.beginTransaction()
         try {
             db.execSQL("DELETE FROM main.events")
             db.execSQL("DELETE FROM main.fit_observation_provenance")
+            db.execSQL("DELETE FROM main.fit_device_metadata")
             db.execSQL("DELETE FROM main.observations")
             db.execSQL("DELETE FROM main.fit_sources")
             db.execSQL("DELETE FROM main.sync_cursors")
@@ -629,6 +679,37 @@ class CirqaDatabase(private val contextRef: Context) :
                 canonicalSourceInsert.executeInsert()
             }
 
+            val deviceMetadataInsert = db.compileStatement(
+                """INSERT INTO main.fit_device_metadata
+                   (source_sha256, record_ordinal, observed_at_ms, device_type_code,
+                    manufacturer_code, product_code, software_version, battery_voltage_volts,
+                    battery_status_code, battery_level_percent)
+                   VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"""
+            )
+            canonicalDeviceMetadata.forEach { item ->
+                require(isValidDeviceMetadata(item)) { "Ungültige FIT-Gerätemetadaten im Backup" }
+                deviceMetadataInsert.clearBindings()
+                deviceMetadataInsert.bindString(1, item.sourceFileSha256)
+                deviceMetadataInsert.bindLong(2, item.recordOrdinal.toLong())
+                if (item.timestampEpochMillis == null) deviceMetadataInsert.bindNull(3)
+                else deviceMetadataInsert.bindLong(3, item.timestampEpochMillis)
+                if (item.deviceTypeCode == null) deviceMetadataInsert.bindNull(4)
+                else deviceMetadataInsert.bindLong(4, item.deviceTypeCode.toLong())
+                if (item.manufacturerCode == null) deviceMetadataInsert.bindNull(5)
+                else deviceMetadataInsert.bindLong(5, item.manufacturerCode.toLong())
+                if (item.productCode == null) deviceMetadataInsert.bindNull(6)
+                else deviceMetadataInsert.bindLong(6, item.productCode.toLong())
+                if (item.softwareVersion == null) deviceMetadataInsert.bindNull(7)
+                else deviceMetadataInsert.bindDouble(7, item.softwareVersion)
+                if (item.batteryVoltageVolts == null) deviceMetadataInsert.bindNull(8)
+                else deviceMetadataInsert.bindDouble(8, item.batteryVoltageVolts)
+                if (item.batteryStatusCode == null) deviceMetadataInsert.bindNull(9)
+                else deviceMetadataInsert.bindLong(9, item.batteryStatusCode.toLong())
+                if (item.batteryLevelPercent == null) deviceMetadataInsert.bindNull(10)
+                else deviceMetadataInsert.bindLong(10, item.batteryLevelPercent.toLong())
+                deviceMetadataInsert.executeInsert()
+            }
+
             val canonicalProvenanceInsert = db.compileStatement(
                 """INSERT INTO main.fit_observation_provenance
                    (sample_id, device_id, metric, measured_at_ms, source_sha256, record_ordinal,
@@ -719,6 +800,17 @@ class CirqaDatabase(private val contextRef: Context) :
         fun isValidStoredReading(record: RawExportRecord): Boolean = record.deviceId.isNotBlank() &&
             record.metric.isNotBlank() && record.unit.isNotBlank() && record.measuredAtEpochMillis >= 0 &&
             record.value.isFinite() && (record.receivedAtEpochMillis == null || record.receivedAtEpochMillis >= 0)
+
+        internal fun isValidDeviceMetadata(item: FitHistoricalObservations.DeviceMetadata): Boolean =
+            item.sourceFileSha256.matches(Regex("[0-9a-f]{64}")) && item.recordOrdinal > 0 &&
+                (item.timestampEpochMillis == null || item.timestampEpochMillis >= 0) &&
+                (item.deviceTypeCode == null || item.deviceTypeCode in 0..254) &&
+                (item.manufacturerCode == null || item.manufacturerCode in 0..65534) &&
+                (item.productCode == null || item.productCode in 0..65534) &&
+                (item.softwareVersion == null || item.softwareVersion.isFinite() && item.softwareVersion in 0.0..655.34) &&
+                (item.batteryVoltageVolts == null || item.batteryVoltageVolts.isFinite() && item.batteryVoltageVolts in 0.0..20.0) &&
+                (item.batteryStatusCode == null || item.batteryStatusCode in 0..254) &&
+                (item.batteryLevelPercent == null || item.batteryLevelPercent in 0..100)
 
         private fun lineSha256(line: String): String = MessageDigest.getInstance("SHA-256")
             .digest(line.toByteArray(Charsets.UTF_8))

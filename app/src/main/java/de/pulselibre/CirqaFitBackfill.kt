@@ -7,7 +7,7 @@ import java.security.MessageDigest
  * Offline, repeatable import of already-verified FIT originals.
  *
  * Each file is decoded and committed independently. A process interruption can
- * therefore be resumed by calling [run] again; LocalReadingStore's stable
+ * therefore be resumed by calling [run] again; the destination store's stable
  * (device, metric, timestamp, sample) key prevents duplicate observations.
  */
 class CirqaFitBackfill(
@@ -81,6 +81,7 @@ class CirqaFitBackfill(
                 decoderVersion = FitHistoricalObservations.DECODER_VERSION,
                 profileVersion = FitHistoricalObservations.PROFILE_VERSION,
                 observations = importable,
+                deviceMetadata = result.deviceMetadata,
                 deviceKey = deviceKey
             )
         }

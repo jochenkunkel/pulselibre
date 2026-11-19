@@ -59,7 +59,8 @@ class ExportActivity : AppCompatActivity() {
                             "${report.fitSources} historische FIT-Quellen/${report.fitProvenance} Herkunftszeilen; " +
                             "${report.canonicalReadings} kanonische Messwerte, " +
                             "${report.canonicalFitSources} kanonische FIT-Quellen/" +
-                            "${report.canonicalFitProvenance} Herkunftszeilen. " +
+                            "${report.canonicalFitProvenance} Herkunftszeilen und " +
+                            "${report.canonicalDeviceMetadata} FIT-Metadatenzeilen. " +
                             "FIT-Originaldateien sind nicht enthalten."
                     }
                 } catch (_: Exception) {
@@ -305,7 +306,8 @@ class ExportActivity : AppCompatActivity() {
                     "${plan.fitSources} FIT-Quellen und ${plan.fitProvenance} FIT-Herkunftszeilen. " +
                     "${plan.canonicalReadings} kanonische Messwerte und " +
                     "${plan.canonicalFitSources} kanonische FIT-Quellen/" +
-                    "${plan.canonicalFitProvenance} Herkunftszeilen. " +
+                    "${plan.canonicalFitProvenance} Herkunftszeilen sowie " +
+                    "${plan.canonicalDeviceMetadata} FIT-Metadatenzeilen. " +
                     "FIT-Originaldateien sind nicht enthalten.\n\n" +
                     "Alle aktuell gespeicherten Datenbankeinträge werden ersetzt. " +
                     "App-Einstellungen bleiben erhalten. Nur mit einem Backup aus vertrauenswürdiger Quelle fortfahren."

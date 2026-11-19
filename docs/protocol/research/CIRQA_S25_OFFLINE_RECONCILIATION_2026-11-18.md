@@ -22,10 +22,13 @@ The private inputs remain under `/tmp/opencode/issue-141-private/` and
 - Re-running `tools/fit_inventory.py` on the private originals using Garmin's
   official FIT Python SDK 21.222.0 profile reports 31 structurally valid FIT
   files, 126,089 FIT bytes, and 20,204 bytes across the two non-FIT files.
-- The decoder-derived candidate key set has 294 keys, all 294 present in the
-  read-only SQLite snapshot. This confirms complete key-level reconciliation
-  for the supported current decoder output, not correctness of every decoded
-  value, coverage of unsupported fields, or completeness of the device archive.
+- The Kotlin decoder emitted 761 profile-mapped observation candidates. After
+  timestamp/quality import filters, its 294 importable keys are all present in
+  the read-only SQLite snapshot. The remaining 467 monitoring-heart-rate
+  candidates lack eligible full FIT timestamps and are excluded. This confirms
+  complete key-level reconciliation for importable current output, not semantic
+  correctness of every value, coverage of unsupported fields, or completeness
+  of the device archive.
 - The non-FIT files are structurally classified as one XML file and one
   unrecognized protobuf/schema-like binary. Their contents are not published;
   no device metadata meaning is inferred from the unknown binary.
@@ -61,12 +64,45 @@ and filenames remain private.
 
 The XML inventory establishes a `Device` root, 726 elements, 51 file-entry
 groups, and schema fields including `Model`, `SoftwareVersion`,
-`MassStorageMode`, and `TransferDirection`. This is schema/structure evidence
-only: the private values were not promoted into repository documentation or
-application storage. Existing BLE/GFDI evidence is limited to protocol
+`MassStorageMode`, and `TransferDirection`. A hardened offline parser now
+extracts only the software-version text under `Model`, a boolean
+`MassStorageMode` value, and the count of `TransferDirection` elements. Tests
+cover valid and empty fields, malformed XML, DTD/entity rejection, and opaque
+binary input. On the available private pair, one file was XML with a populated
+software-version field, empty mass-storage text, and 51 transfer-direction
+elements; the other was rejected as this XML format. The Kotlin parser was also
+run directly against these two private originals and produced the same
+classification and field-presence/count results. Values were not printed or
+copied into repository documentation.
+
+These remain snapshot-derived structural observations, not current device
+state. Raw metadata is deliberately not persisted in the application database
+or backup yet: the existing raw-file storage has no privacy-reviewed metadata
+record contract, and raw identifiers/paths must not enter persistence. Adding
+such persistence needs an explicit whitelist schema, retention/linkage and
+backup/restore review. Existing BLE/GFDI evidence is limited to protocol
 structure and statuses documented in the dated experiment reports; no
 read-only live metadata query is established. No additional device request was
 made.
+
+## FIT backfill runtime validation (19.11.2026)
+
+The current Kotlin decoder was run against the same 31 private FIT originals;
+all 31 passed its verified-file checks. It emitted 761 profile-mapped
+observation candidates, of which 294 had importable timestamp/quality and were
+committed to an isolated disposable schema-v4 database. The other 467 heart-rate
+candidates have no eligible full FIT timestamp and were not imported. The
+disposable database contained 31 FIT sources, 294 observations, 294 provenance
+rows, and 100 whitelisted `device_info` rows; `foreign_key_check` was clean.
+Repeating the backfill left those row counts unchanged. No existing app database
+or source original was modified, and no measurement values or identifiers were
+printed or retained in the repository.
+
+The 100 metadata records had valid FIT record timestamps. Valid encoded
+elements included 60 device-type, 36 manufacturer, 40 product, and 68 software
+version values. Battery voltage, status, and level each had zero valid values.
+These remain FIT profile codes/fields, not verified CIRQA identity, latest
+firmware, or current battery state.
 
 ## Evidence boundary and remaining work
 
@@ -79,7 +115,10 @@ structural evidence.
 The S25 database checks establish the observed stored data only. They do not
 prove that 33 transferred files exhaust the CIRQA archive. Supported-key
 reconciliation does not establish semantic value parity for every FIT field;
-unsupported and unknown fields remain inventory-only. Battery metadata is
-not available from these FIT `device_info` records. No production metadata
-repository currently stores these candidates; implementing a privacy-filtered,
-timestamped metadata store and fixture-backed offline extraction remains open.
+unsupported and unknown fields remain inventory-only. Battery metadata is not
+available from these FIT `device_info` records. Schema v4 now provides
+privacy-filtered timestamped storage for a FIT `device_info` whitelist. The
+verified originals were replayed into a disposable database to validate
+extraction and idempotency; the user's existing database was not modified.
+Opaque protobuf metadata remains undecoded and unstored; XML extraction is
+limited to the three whitelisted fields above, which are not persisted.

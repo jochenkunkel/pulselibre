@@ -4,10 +4,11 @@ Stand: 2026-11-18. Der Realtime-/Dashboardpfad und FIT-Historienpfad benutzen
 jetzt dieselbe kanonische DB, während die alte Historien-DB als Übergangsquelle
 erhalten bleibt:
 
-- `cirqa_measurements.db` / `CirqaDatabase` speichert Realtime-Ereignisse sowie
-  normalisierte FIT-Beobachtungen, Cursor, Quellmetadaten und Feldprovenienz.
+- `cirqa_measurements.db` / `CirqaDatabase` (Schema v4) speichert
+  Realtime-Ereignisse sowie normalisierte FIT-Beobachtungen, Cursor,
+  Quellmetadaten, Feldprovenienz und ausgewählte FIT-`device_info`-Metadaten.
   V25-FIT-Dateien schreiben nach einem verifizierten Kopierschritt pro Datei
-  Messwerte, Provenienz und Cursor atomar in diesen Store.
+  Messwerte, Provenienz, whitelisted Gerätefeldwerte und Cursor atomar.
 - `pulselibre_readings.db` / `LocalReadingStore` bleibt als historische
   Quell-/Rollback-DB erhalten. Schema v2 ergänzt die Quellen-/Feldprovenienz
   additiv, ohne vorhandene Messwert- oder Cursorzeilen zu verändern.
@@ -41,8 +42,10 @@ bleiben verfügbar.
 
 ## Grenzen
 
-Die FIT-Originalbytes bleiben separat und werden nicht in Backup v3 kopiert;
-Backup enthält SHA-/Dateimetadaten und Feldherkunft. Dashboard-Repositories
+Die FIT-Originalbytes bleiben separat und werden nicht in Backup v4 kopiert;
+Backup enthält SHA-/Dateimetadaten, Feldherkunft und privacy-gefilterte
+FIT-`device_info`-Felder. Seriennummern und Geräteindizes werden ausgelassen.
+Dashboard-Repositories
 greifen noch nicht direkt auf den normalisierten FIT-Store zu. Eine physische
 DB-Konsolidierung, historische Geräteabdeckung und ein CIRQA-Hardwaretest sind
 nicht durch diesen Storage-Stand behauptet. Weitere Details und Tests: oben

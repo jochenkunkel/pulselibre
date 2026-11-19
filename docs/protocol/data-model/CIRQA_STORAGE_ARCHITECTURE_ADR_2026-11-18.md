@@ -123,17 +123,18 @@ composite key. The v1→v2 migration creates only new tables/indexes; it preserv
 existing readings and cursors. Existing v1 rows have no fabricated provenance;
 replaying a verified original can add provenance by stable sample ID.
 
-Canonical `cirqa_measurements.db` schema v3 now has corresponding normalized
-tables. `ensureHistoricalStoreCopied()` copies historical rows in a destination
+Canonical `cirqa_measurements.db` schema v4 now has corresponding normalized
+tables plus a whitelisted FIT device-metadata table. `ensureHistoricalStoreCopied()` copies historical rows in a destination
 transaction, verifies every copied key/value/provenance and table counts, and
 can be rerun without duplicating rows. A count marker skips unchanged source
 snapshots and is cleared by database restore. The source DB and original files
 are preserved. The CSV export path invokes this copy stage.
 
-Backup format v3 includes events, both historical and canonical readings,
-cursors, FIT-source metadata and provenance. The restore reader accepts format
-v1 and v2; those versions contain no canonical snapshot. Original file bytes
-remain outside all backup formats.
+Backup format v4 includes events, both historical and canonical readings,
+cursors, FIT-source metadata, provenance, and canonical whitelisted FIT
+device-metadata rows. The restore reader accepts format v1–v3; older versions
+contain no device-metadata snapshot. Original file bytes remain outside all
+backup formats.
 
 The 18 Nov 2026 S25 snapshots passed SQLite `integrity_check`. Observed counts
 and privacy-limited reconciliation are in
@@ -281,9 +282,10 @@ the app does not need to copy the entire external profile into each database.
    closed rather than silently overwriting an earlier observation.
 6. Dashboard/history paths primarily query `events`; normalized observations
    are copied into schema v3 during FIT import, CSV export or backup creation.
-   FIT imports now write to canonical schema v3 after that copy. Dashboard
-   readers have not yet cut over. Backup v3 serializes both stores and supports
-   restore from v1/v2; it does not embed original FIT bytes.
+   FIT imports now write to canonical schema v4 after that copy and extract a
+   strict `device_info` whitelist. Dashboard readers have not yet cut over.
+   Backup v4 serializes both stores and supports restore from v1–v3; it does not
+   embed original FIT bytes.
 
 `measured_at_ms` is the device/FIT measurement clock. `received_at_ms` is the
 local transfer/import clock and must not replace a missing measurement time.
@@ -301,7 +303,7 @@ identifier is not a committed SQLite cursor.
    transaction. A verified original can add provenance to a matching existing
    reading by its stable sample key.
 3. **Implemented copy stage:** add normalized tables/indexes to `CirqaDatabase`
-   schema v3 and copy historical readings, FIT source metadata and cursors in a
+    schema v3 and copy historical readings, FIT source metadata and cursors in a
    transaction. The copy verifies matching keys/values and source/destination
    counts; conflicting destination rows fail closed and roll back. The old DB
    remains intact as rollback evidence.
@@ -309,10 +311,11 @@ identifier is not a committed SQLite cursor.
    successful validation. Interrupted transactions roll back; a later export
    retries if the historical source row counts have changed.
 5. **Implemented write/backup stage:** new FIT imports write to canonical
-   observations after the history copy. Backup v3 serializes canonical and
-   historical rows/provenance/cursors; its restore accepts v1/v2 and v3, validates
-   both provenance relationships before confirmation, and marks the copy stage
-   complete only for v3 restores. Original bytes remain excluded.
+   observations and whitelisted FIT device metadata after the history copy.
+   Backup v4 serializes canonical and historical rows/provenance/cursors plus
+   metadata; restore accepts v1–v3, validates references before confirmation,
+   and marks the copy stage complete for v3/v4 restores. Original bytes remain
+   excluded.
 6. Run backup→restore round trips against both pre-migration and migrated
    fixtures. Compare counts, stable keys, cursors, event hashes and file hashes.
    Retire neither legacy DB nor original files as part of this migration.
@@ -325,7 +328,7 @@ not a valid backup procedure.
 ## Operational/privacy decisions
 
 - Keep the database and original files app-private. No cloud, telemetry, or
-  committed health data. Backup v3 is checksummed but **not encrypted**; do not
+  committed health data. Backup v4 is checksummed but **not encrypted**; do not
   claim encryption. Encryption-at-rest for user-selected backups requires a
   separate key-management decision.
 - Keep content-addressed originals immutable. Quotas/orphan cleanup require
@@ -340,8 +343,8 @@ not a valid backup procedure.
 
 The diagrams and target/migration decision are architecture artifacts. The
 historical DB and canonical DB have normalized FIT tables; new FIT writes and
-backup v3 now target/preserve canonical rows with v1/v2 restore support. The
-historical DB remains as a rollback source. Dashboard readers, physical
-retirement of the old store, metadata observations, file-byte backup/restore
-and a broad populated-device migration rehearsal remain open before closing
-issue #144.
+backup v4 target/preserve canonical rows and whitelisted device metadata with
+v1–v3 restore support. The historical DB remains as a rollback source.
+Dashboard readers, re-backfilling existing FIT files for metadata recovery,
+physical retirement of the old store, XML/raw metadata decoding, file-byte
+backup/restore, and a broad populated-device migration rehearsal remain open.
