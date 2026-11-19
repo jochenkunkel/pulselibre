@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Hand-converted from design/icons/fitness-v1/coverage.svg (#41); runtime colours via pl_icon_* so Dark/Light work. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp" android:height="24dp" android:viewportWidth="128" android:viewportHeight="128">
+    <path android:pathData="M28,19H100A12,12 0 0 1 112,31V98A12,12 0 0 1 100,110H28A12,12 0 0 1 16,98V31A12,12 0 0 1 28,19Z" android:strokeColor="@color/pl_icon_line" android:strokeWidth="6" android:strokeLineCap="round" android:strokeLineJoin="round" />
+    <path android:pathData="M33 42h20M33 65h20M33 88h20" android:strokeColor="@color/pl_icon_line" android:strokeWidth="6" android:strokeLineCap="round" android:strokeLineJoin="round" />
+    <path android:pathData="m72 41 7 7 15-16m-22 33 7 7 15-16" android:strokeColor="@color/pl_icon_accent" android:strokeWidth="6" android:strokeLineCap="round" android:strokeLineJoin="round" />
+    <path android:pathData="M72 88h22" android:strokeColor="@color/pl_icon_line" android:strokeWidth="6" android:strokeLineCap="round" android:strokeLineJoin="round" />
+</vector>

@@ -55,6 +55,11 @@ internal enum class PlIcon(@DrawableRes val res: Int, val label: String) {
     STRESS(R.drawable.ic_pl_stress, "Stress"),
     TESTLAB(R.drawable.ic_pl_testlab, "Testlabor"),
     TREND_LINK(R.drawable.ic_pl_trend_link, "Zusammenhang"),
+    RESTING_PULSE(R.drawable.ic_pl_resting_pulse, "Ruhepuls"),
+    ACTIVITY_CALENDAR(R.drawable.ic_pl_activity_calendar, "Aktivitätskalender"),
+    COVERAGE(R.drawable.ic_pl_coverage, "Datenabdeckung"),
+    DATA_GAP(R.drawable.ic_pl_data_gap, "Datenlücke"),
+    BASELINE(R.drawable.ic_pl_baseline, "Persönlicher Vergleichswert"),
     TRENDS(R.drawable.ic_pl_trends, "Trends");
 
     companion object {
