@@ -301,3 +301,8 @@ Noch sichtbar offen (P3): Nacht-Insights erste Spalte „22–6 Uhr / 22331 / We
 - Kompakter Header (nach dem Scrollen) zeigte in **Hell** „PulsLibre“ und den Untertitel weiß auf dem hellen Seitenhintergrund (#179-Folgefehler, unleserlich) → Textfarben je nach Zustand/Theme (`palette.ink`/`muted` im kompakten Hell-Header). Test `compactHeaderTitleStaysReadableOnThePageBackground`.
 - Gerät: „3 Wiederverbindungen“ brach bei Schrift 1,3× mitten im Wort („Wiede/rverbindungen“) → Starts und Wiederverbindungen stehen jetzt in zwei Zeilen.
 - Sonst in Hell/1,3× gesehen und ok: Statusleiste, Gerät (Bandinformationen, Unbekannte-Felder-Hinweis), Verlauf mit Legende, Navigationsleiste.
+
+## 2026-11-19 – S25-Abnahme Analysen/Verlauf-Dichte und Gerät-Kacheln
+- Nutzerfreigabe nach Screenshots (Build 1326, Dunkel, 1,0×): Reiter Analysen (#227 Stufe 1), Verlauf „Punkte | Verteilung" (#219 UI), Gerät-Kacheln (#242). Screenshots bleiben lokal (echte Gesundheitswerte).
+- Fund: Speicherkachel brach „91,4 / MB" mitten in der Einheit um → Zeilenumbruch vor der Größe.
+- Offen bleiben #219 (Hell/Farbenblind-Alternative) und #227 (Suche/Filter, TalkBack/320 dp).
