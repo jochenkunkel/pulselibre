@@ -2,6 +2,7 @@ package de.pulselibre
 
 import java.io.File
 import java.nio.file.Files
+import java.security.MessageDigest
 
 /**
  * Read-only, bounded inventory of existing app-private, content-addressed FIT files.
@@ -44,17 +45,16 @@ internal object CirqaUnknownFitInventory {
             total += file.length()
             checked++
             val decoded = try {
-                FitHistoricalObservations.decode(file.readBytes())
+                val bytes = file.readBytes()
+                val hash = MessageDigest.getInstance("SHA-256").digest(bytes)
+                    .joinToString("") { "%02x".format(it.toInt() and 255) }
+                if (hash != file.name.removeSuffix(".fit")) null
+                else FitHistoricalObservations.decode(bytes)
             } catch (_: java.io.IOException) {
                 null
             }
-            if (decoded == null || decoded.unknownFields.firstOrNull()?.sourceSha256 != null &&
-                decoded.unknownFields.first().sourceSha256 != file.name.removeSuffix(".fit")) {
-                rejected++
-            } else {
-                // The original FIT decoder validates CRC before reporting metadata.
-                result.addAll(decoded.unknownFields)
-            }
+            if (decoded == null) rejected++
+            else result.addAll(decoded.unknownFields)
         }
         return Scan(checked, rejected, truncated, result)
     }
