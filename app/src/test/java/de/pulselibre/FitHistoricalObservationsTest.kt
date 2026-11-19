@@ -225,4 +225,66 @@ class FitHistoricalObservationsTest {
             .groupBy { it.duplicateFingerprint }.values.single()
         assertEquals(2, identical.size)
     }
+    @Test fun unknownStandardFieldCountsDefinitionsAndActualRecordsSeparately() {
+        val data = byteArrayOf(
+            0x40, 0, 0, 20, 0, 3,
+            253.toByte(), 4, 0x86.toByte(),
+            3, 1, 2,
+            85.toByte(), 2, 0x84.toByte(),
+            0
+        ) + u32(100_000) + byteArrayOf(72) + u16(123) +
+            byteArrayOf(0x80.toByte(), 73) + u16(124)
+        val result = FitHistoricalObservations.decode(fit(data))!!
+        val unknown = result.unknownFields.single()
+        assertEquals(FitHistoricalObservations.UnknownKind.UNKNOWN_STANDARD_FIELD, unknown.kind)
+        assertEquals(85, unknown.fieldNumber)
+        assertEquals(1, unknown.definitionCount)
+        assertEquals(2, unknown.occurrenceCount)
+        assertEquals(2, result.observations.size)
+        assertEquals(result, FitHistoricalObservations.decode(fit(data)))
+    }
+
+    @Test fun developerFieldAndUnknownGlobalMessageAreNotGuessedAsMeasurements() {
+        val data = byteArrayOf(
+            0x60, 0, 0, 99, 0, 1,
+            9, 1, 2,
+            1, 7, 2, 4,
+            0, 55, 66, 77
+        )
+        val result = FitHistoricalObservations.decode(fit(data))!!
+        assertTrue(result.observations.isEmpty())
+        assertEquals(2, result.unknownFields.size)
+        assertTrue(result.unknownFields.any {
+            it.kind == FitHistoricalObservations.UnknownKind.UNKNOWN_MESSAGE &&
+                it.fieldNumber == 9 && it.occurrenceCount == 1
+        })
+        assertTrue(result.unknownFields.any {
+            it.kind == FitHistoricalObservations.UnknownKind.DEVELOPER_FIELD &&
+                it.fieldNumber == 7 && it.developerDataIndex == 4 &&
+                it.size == 2 && it.occurrenceCount == 1
+        })
+    }
+
+    @Test fun incompatibleKnownFieldIsInventoriedWithoutImportingIt() {
+        val data = byteArrayOf(
+            0x40, 0, 0, 20, 0, 1,
+            3, 2, 0x84.toByte(),
+            0
+        ) + u16(72)
+        val result = FitHistoricalObservations.decode(fit(data))!!
+        assertTrue(result.observations.isEmpty())
+        assertEquals(1, result.unsupportedMeasurementFieldCount)
+        assertEquals(FitHistoricalObservations.UnknownKind.INCOMPATIBLE_KNOWN_FIELD,
+            result.unknownFields.single().kind)
+    }
+
+    @Test fun crcAndTruncationDoNotYieldAnInventory() {
+        val data = byteArrayOf(0x40, 0, 0, 20, 0, 1, 85.toByte(), 2, 0x84.toByte(), 0, 42)
+        val valid = fit(data)
+        assertNull(FitHistoricalObservations.decode(valid))
+        val corrupted = fit(data + byteArrayOf(11))
+        corrupted[corrupted.size - 1] = (corrupted.last().toInt() xor 1).toByte()
+        assertNull(FitHistoricalObservations.decode(corrupted))
+    }
+
 }
