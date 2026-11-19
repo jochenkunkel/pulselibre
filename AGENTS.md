@@ -1,13 +1,15 @@
-# PulsLibre – Arbeitsanweisungen für Codex und menschliche Entwickler
+# PulsLibre – Arbeitsanweisungen für die Haupt-IDE und weitere Entwickler
 
-Diese Datei gilt repositoryweit. **GitHub ist die verbindliche, versionierte Wissensbasis**, nicht eine Chat-Unterhaltung oder eine lokale Codex-Sitzung. Für den aktuellen Projektstand zuerst `docs/PROJECT_STATUS.md` lesen; für den vollständigen Einstieg `docs/CHAT_START_HERE.md`.
+Diese Datei gilt repositoryweit. **GitHub ist die verbindliche, versionierte Wissensbasis**, nicht eine Chat-Unterhaltung oder eine lokale IDE-Sitzung. Für den aktuellen Projektstand zuerst `docs/PROJECT_STATUS.md` lesen; für den vollständigen Einstieg `docs/CHAT_START_HERE.md`.
 
-## Aktuelle Aufgabenverteilung (2026-11-17)
+## Aktuelle Zusammenarbeit und Namenskonvention (19.11.2026)
 
-- **Codex in VSCodium – alleiniger Bearbeiter für Dashboard/UI und wissenschaftliche Analyse:** Umsetzung des freigegebenen Vier-Screens-Konzepts in `docs/ui/APPROVED_UI_CONCEPT_2026-11-15.md`, Prüfung vorhandener Dashboard-/Export-Datenflüsse, nachvollziehbare Visualisierung echter lokal gespeicherter Messwerte; wissenschaftliche Methoden/Quellen kritisch prüfen und nur nach `docs/ENGINEERING_SCIENTIFIC_STANDARDS.md` implementieren. Keine erfundenen Schlafphasen, SpO₂, Kalorien, Bewegungssensorwerte oder klinischen Aussagen. Bestehende Datenbank und Exportsemantik erhalten.
-- **ChatGPT-Entwicklungsagent – alleiniger Bearbeiter für CIRQA-Historien-Download:** Garmin-ML/GFDI/5050-Capabilities, sichere FileSync-/FIT-Protokollforschung, Offline-Tests und gezielte, ausdrücklich freigegebene S25-Gerätetests. Keine spekulativen BLE-Schreibbefehle; Vollständiger historischer FIT-Download weiterhin unbewiesen. Einstieg: `docs/protocol/research/CIRQA_HISTORICAL_RESEARCH_STATUS_2026-11-18.md`, danach die dort verlinkten datierten Geräteberichte.
-- **Gemeinsame Dateien** (`AGENTS.md`, `README.md`, `docs/PROJECT_STATUS.md`, `docs/CHAT_START_HERE.md`, CI/Gradle, Datenbankschema): vor Änderungen koordinieren, eigene Branches/Worktrees verwenden und Konflikte nicht blind überschreiben. Codex soll keine BLE-Protokolländerungen vornehmen; ChatGPT soll keine Dashboard-/Wissenschaftsänderungen vornehmen, solange diese Aufteilung gilt.
-- Codex arbeitet nicht allein durch diesen Eintrag automatisch: Auftrag in der Codex-Sitzung starten. Die Zuständigkeit ist eine Arbeitsvereinbarung, kein Nachweis einer laufenden Agenten-Ausführung.
+- **Haupt-IDE: VSCodium („Codium“).** „Codium“, „VSCodium“, „Claude Code“ und „Codex“ bezeichnen in der projektinternen Aufgabenkoordination **denselben IDE-Arbeitsplatz**, nicht vier unabhängig parallel arbeitende Entwickler. Claude Code und OpenAI Codex sind alternative API-/Agenten-Zugänge in VSCodium; **es ist jeweils nur einer davon aktiv**. Die Bezeichnungen sind als Kurzform für diesen Arbeitsplatz austauschbar, soweit nicht ein konkreter Lauf oder dessen Modell technisch unterschieden werden muss.
+- **IDE-Arbeitsbereich:** Dashboard/UI, wissenschaftliche Analysen und die jeweils ausdrücklich in Issues/PRs übernommenen Aufgaben. Die frühere Formulierung „Claude Code als Nachfolger von Codex“ bezeichnet einen Wechsel des verwendeten API-Zugangs, **keinen Wechsel der verantwortlichen IDE oder eine zweite parallele Entwicklerinstanz**.
+- **ChatGPT-Arbeitsbereich:** CIRQA-Protokoll, Historien-Download und zugewiesene Offline-Tests; aktuelle Nachweise stehen in `docs/protocol/research/CIRQA_HISTORICAL_RESEARCH_STATUS_2026-11-18.md`. Der begrenzte V24/V25-Abruf von 33 Dateien (31 FIT, 2 Nicht-FIT) ist bestätigt; **vollständige historische Abdeckung bleibt offen**. Kein unbeauftragter aktiver BLE-Geräteversuch.
+- **Andere ausdrücklich beauftragte Werkzeuge/Agenten** (z. B. OpenCode) sind separate Mitwirkende nur für ihre konkret übernommenen Aufgaben. Ihre Existenz impliziert nicht, dass Codex und Claude Code gleichzeitig laufen.
+- **Gemeinsame Dateien** (`AGENTS.md`, `README.md`, `docs/PROJECT_STATUS.md`, `docs/CHAT_START_HERE.md`, CI/Gradle, Datenbankschema): vor Änderungen koordinieren, getrennte Branches/Worktrees verwenden und Konflikte nicht blind überschreiben. Die Zuordnung ist aufgabenbezogen, keine dauerhafte technische Zugriffssperre; bei geänderter Aufgabenverteilung Issue/PR und Übergabe aktualisieren.
+- Ein Agent startet nicht durch diese Dokumentation automatisch. Nur ein tatsächlich erteilter Auftrag belegt aktive Arbeit.
 
 ## Einstieg vor jeder Arbeit
 
