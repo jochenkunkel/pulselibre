@@ -43,14 +43,14 @@ Du arbeitest am Projekt **PulsLibre** (in älteren Gesprächen teilweise „Puls
 
 ## 3. Technischer Kontext und nachgewiesene Grenzen
 
-- Android-Anwendung: `applicationId = de.pulselibre`; `minSdk=26`, `targetSdk=35`, `compileSdk=35`; Kotlin/Gradle, Java 17.
+- Android-Anwendung: `applicationId = de.pulselibre`; `minSdk=26`, `targetSdk=35`, `compileSdk=37`; Kotlin 2.4.21, AGP 9.5.1, Gradle 9.6.0, Java 17.
 - Zielgerät Samsung Galaxy S25; passiver BLE-Scan und Berechtigungsdialog wurden laut bisherigem Projektstand praktisch getestet. Das beweist **keine** vollständige CIRQA-Kompatibilität.
 - Im Code existieren passive BLE-Diagnose, aktive nutzerinitiierte GATT-Dienstsuche, Garmin-ML-/GFDI-Handshake-Probes, experimentelle Echtzeitmessungen und ein Nacht-/Vordergrunddienst. **Passive Scans sind nicht mit aktiven ML-Probes gleichzusetzen**: Letztere können Notifications abonnieren und GATT-Schreibbefehle senden.
 - Lokale Messwert-/Dashboard-/Exportfunktionen sind vorhanden. **Kein unabhängig bestätigter, produktionsreifer CIRQA-Gesundheitsdatensync.** Insbesondere Schlaf, SpO₂, Puls und Schritte nicht ohne überprüfte Quelle als erfolgreich ausgelesen deklarieren.
 - Offline-first, keine INTERNET-Berechtigung laut dokumentiertem Design; Datenschutz und Exportpfade trotzdem codebezogen prüfen.
 - Android-App-Updates benötigen **gleiche kompatible Signatur, identische applicationId und höheren versionCode**. Lokaler Standard in `app/build.gradle.kts`: `versionCode=2`, `versionName=2.0.0_build2`; CI setzt versionCode über `github.run_number`.
 - Stabile CI-Debug-Signierung erfordert vier GitHub-Secrets: `PULSELIBRE_SIGNING_KEY_B64`, `PULSELIBRE_SIGNING_STORE_PASSWORD`, `PULSELIBRE_SIGNING_KEY_ALIAS`, `PULSELIBRE_SIGNING_KEY_PASSWORD`. **Ob sie eingerichtet sind, ist nicht bestätigt.** Niemals ihre Werte ausgeben oder ins Repo schreiben.
-- `.github/workflows/android.yml` startet nach geprüftem Stand vom 19.11.2026 **nur manuell** (`workflow_dispatch`); Schnelllauf: Build/JVM/Python, `full_tests=true`: zusätzlich Lint und API-35-Emulator. **Weder PRs noch `main`-Pushes oder Tags starten Android CI automatisch.** Der separate Dependency-Review-Workflow läuft bei PRs, ist wegen fehlender Dependency-Graph-Unterstützung aber kein Nachweis eines erfolgreichen Android-Builds. Vor Änderungen den Workflow erneut lesen und CI-Erfolge nicht unterstellen.
+- `.github/workflows/android.yml` startet seit 19.11.2026 **automatisch** bei Pull Requests gegen `main` und Pushes auf `main` mit vollem Build, JVM-/Python-Tests, Lint und API-35-Emulator. Manuell (`workflow_dispatch`) weiterhin möglich: Schnelllauf oder `full_tests=true`. Stabile Signierschlüssel werden nicht in PR-Läufen geladen. Den tatsächlichen grünen Lauf stets prüfen.
 - Aktuell kein Gradle-Wrapper laut README. Lokaler Build, falls SDK/Gradle verfügbar: `gradle :app:testDebugUnitTest :app:lintDebug :app:assembleDebug :app:assembleDebugAndroidTest`. Ein Emulator-/Hardwaretest ist damit nicht ersetzt.
 
 ## 4. Was bereits auf `main` umgesetzt wurde (historische Commit-Referenzen)

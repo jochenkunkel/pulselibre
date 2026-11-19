@@ -45,7 +45,7 @@
 - Experimentelle, ausdrücklich vom Nutzer gestartete GATT-Dienstsuche und ML-Probe einschließlich Vordergrunddienst für wiederholte Versuche. Die Existenz dieses Codes belegt keine erfolgreich ausgelesenen CIRQA-Gesundheitswerte; mögliche Wechselwirkungen mit Garmin Connect müssen am Gerät geprüft werden.
 - Offline-Datenmodell, lokale SQLite-Ablage mit Transaktionen und CSV-Export. V24/V25 haben einen begrenzten CIRQA-Dateiimport mit 294 SQLite-Metrikzeilen nachgewiesen; daraus folgt keine vollständige historische Abdeckung oder medizinische Validierung.
 - Offline-Inspektion von GFDI-Headern und CRC-16-Prüfung sowie ein begrenzter Offline-FIT-Decoder (`FitHistoricalObservations`) für ausgewählte Standardfelder mit zugehörigen Unit-Tests. Dies belegt weder einen CIRQA-Historiendownload noch einen Geräteimport oder einen erfolgreichen CI-Lauf.
-- CIRQA-Testlabor mit passivem Scan, Android-Verbindungsstatus, begrenzter read-only GATT-Dienstsuche, ausdrücklich bestätigter vorhandener Live-Messwertprobe und datensparsamem Testbericht. V24/V25 belegen einen begrenzten historischen Mehrdateiabruf; aktive Testpfade unterliegen gesonderten Freigaben und Einmal-Gates.
+- CIRQA-Testlabor mit passivem Scan, Android-Verbindungsstatus, begrenzter read-only GATT-Dienstsuche, ausdrücklich bestätigter vorhandener Live-Messwertprobe und datensparsamem Testbericht. V24/V25 belegen einen begrenzten historischen Mehrdateiabruf; neue aktive/proprietäre Testbefehle benötigen eine gesonderte Freigabe; passive, offline und nichtdestruktive lesende Prüfungen dürfen Agenten ohne wiederholte Einmal-Gates durchführen (siehe AGENTS.md).
 - Offline FIT-Envelope-/CRC-Prüfung und begrenzte Dekodierung ausgewählter Garmin-Profilfelder. SAF-Dateiauswahl, keine allgemeine Dateiberechtigung, keine Kopie oder Datenbankübernahme. Dies bestätigt weder CIRQA-Herkunft noch einen CIRQA-Dateidownload.
 
 ## Sicherheitsgrenzen
@@ -54,7 +54,7 @@ Keine INTERNET-Berechtigung, kein Cloud-Sync, keine Telemetrie, keine erfundenen
 
 ## Build und Tests
 
-Lokale Build-Anleitung: JDK 17, Android SDK 35, Gradle 8.13. Der GitHub-Actions-Workflow `.github/workflows/android.yml` verwendet dagegen ausdrücklich **JDK 21**. Beispiel:
+Lokale Build-Anleitung: JDK 17, Android SDK 37 (compileSdk), Gradle 9.6.0. Der GitHub-Actions-Workflow `.github/workflows/android.yml` verwendet dagegen ausdrücklich **JDK 21**. Beispiel:
 
 ```bash
 gradle :app:testDebugUnitTest :app:lintDebug :app:assembleDebug :app:assembleDebugAndroidTest

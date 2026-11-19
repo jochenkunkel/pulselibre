@@ -1,4 +1,4 @@
-# S25 offline FIT and SQLite reconciliation (18.11.2026)
+# S25 offline FIT and SQLite reconciliation (18–19.11.2026)
 
 ## Scope and privacy
 
@@ -124,3 +124,39 @@ idempotency; the user's existing database was not modified. XML metadata
 storage is implemented for future verified raw imports, but the historical
 private XML sample was not replayed into the application database. Opaque
 protobuf metadata remains undecoded and unstored.
+
+## S25 follow-up after build 1158 installation (19.11.2026)
+
+The signed update was installed in place with `adb install -r` after full
+`main` CI run 44499161938 succeeded, including API-35 emulator instrumentation.
+The APK package was `de.pulselibre`, version code 1158, and its signing
+certificate matched the installed build 1144. The device's `firstInstallTime`
+was unchanged. No app data was cleared; no phone instrumentation test, BLE
+request, or sync was initiated.
+
+Read-only post-install snapshots of both app databases pass SQLite
+`integrity_check`; `foreign_key_check` reports no violations. The legacy
+`pulselibre_readings.db` remains byte-identical to its pre-install snapshot and
+contains zero readings. The canonical `cirqa_measurements.db` has 117,746
+events, while the pre-install snapshot had 116,347. Every pre-install event
+content hash is present in the post-install snapshot; 1,399 additional events
+are present (1,397 `reading`, one `attempt_start`, and one `session_start`).
+No event rows were removed. The reason and timing of those additional events
+are not established, so they are not attributed to the APK installation or to
+a particular device operation. The canonical database still has zero
+`observations`, `fit_sources`, `fit_observation_provenance`, and
+`raw_device_metadata` rows.
+
+The app-private `files/verified_fit` and `files/verified_raw` directories are
+absent on this device, so the 31 FIT and 2 raw originals are not available at
+those expected paths. A fresh read-only run of `tools/fit_inventory.py` against
+the separately retained private archive and its historical SQLite snapshot
+again found 31 FIT files and 2 non-FIT files; the historical DB passed
+integrity checks and its 294 readings (129 heart-rate, 129 distance, 36 speed)
+matched all 294 decoder candidate keys, with no duplicate primary keys.
+
+This establishes archive-to-historical-snapshot reconciliation only. It does
+not reconcile the current S25's empty reading/observation stores with the
+historical 294 rows, establish where those prior rows went, or authorize an
+on-device backfill. No backfill was run. The difference in event count is
+documented without claiming data loss or a causal explanation.
