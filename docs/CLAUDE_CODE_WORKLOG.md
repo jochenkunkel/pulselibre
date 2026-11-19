@@ -209,3 +209,7 @@ Noch sichtbar offen (P3): Nacht-Insights erste Spalte „22–6 Uhr / 22331 / We
 
 ## 2026-11-19 – Profilkarte mit Designer-Icons (#168)
 - Neue Icons profile/height/weight/age/bmi (vom Designer) in `PlIcon` aufgenommen; Profilkarte nutzt sie statt 👤 ↕ ⚖ ◷ ▣. Unit/Lint/androidTest-Compile lokal grün, Emulator-Sichtprüfung ok. Offen in #168: Info-Dialogzeilen, Statusglyphen (○ ◌ ◉ ↧).
+
+## 2026-11-19 – Restglyphen auf Icons (#168 abgeschlossen)
+- Nacht-Indikatoren (SpO₂, 22–6 Uhr, Abdeckung, T90, ODI) und Lade-Sanduhr nutzen `PlIcon`; Aufzeichnungsstatus (aus/startet/beendet/aktiv) zeigt RECORD_STOP/HOURGLASS/RECORD_START. Info-Dialogzeilen verwenden bereits gezeichnete `DashboardInfoIconView`-Icons (Review-Fund dazu war ein Fehlalarm: die Glyphen sind nur interne Schlüssel).
+- Unit/Lint/androidTest-Compile lokal grün; Emulator: Gerätereiter geprüft. Nacht-Indikatoren auf dem Emulator nicht sichtbar (keine SpO₂-Nachtdaten) – nur per Code/CI geprüft.
