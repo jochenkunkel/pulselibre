@@ -610,6 +610,7 @@ class MainActivity : AppCompatActivity() {
                 }
             }.start()
         }
+        unknownFieldsView.onStatusChanged = { refreshUnknownFields() }
         debugView(cirqaCard)
         cirqaEvidenceView = text(cirqaScanEvidence.summary(), 13f, muted).apply {
             setPadding(dp(16), dp(12), dp(16), dp(12))

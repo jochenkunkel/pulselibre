@@ -10,7 +10,9 @@ internal object UnknownFieldsSummary {
         val detail: String,       // type / size / developer index
         val occurrence: String,   // "12 Meldungen in 3 Dateien"
         val classification: String,
-        val status: String
+        val status: String,
+        /** The stored rows (one per source file) behind this aggregated entry; needed to change the review status (#204). */
+        val records: List<StoredFitUnmappedField> = emptyList()
     )
 
     /** All field types of one FIT message number, for a collapsible list (#204: 930 single rows are unreadable). */
@@ -45,7 +47,8 @@ internal object UnknownFieldsSummary {
                         (key.developerIndex?.let { " · Developer-Index $it" } ?: ""),
                     occurrence = "$messages ${if (messages == 1L) "Meldung" else "Meldungen"} in $files ${if (files == 1) "Datei" else "Dateien"}",
                     classification = classificationLabel(key.classification),
-                    status = statusLabel(rows.map { it.status }.distinct())
+                    status = statusLabel(rows.map { it.status }.distinct()),
+                    records = rows
                 )
             }
         val groups = grouped.entries.groupBy { it.key.global }.toSortedMap().map { (message, parts) ->
@@ -64,7 +67,7 @@ internal object UnknownFieldsSummary {
         else -> "Nicht dekodiert"
     }
 
-    private fun statusLabel(statuses: List<FitFieldInventoryStatus>): String =
+    fun statusLabel(statuses: List<FitFieldInventoryStatus>): String =
         statuses.joinToString(" / ") {
             when (it) {
                 FitFieldInventoryStatus.UNREVIEWED -> "ungeprüft"
