@@ -188,7 +188,7 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
         val titleRow = LinearLayout(context).apply {
             orientation = HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
-            addView(DashboardInfoIconView(context, DashboardInfoIconView.Kind.TIME, palette.accent),
+            addView(PlIcon.view(context, PlIcon.INFO_TIME, 24, palette.accent),
                 LayoutParams(dp(24), dp(24)).apply { marginEnd = dp(8) })
             addView(label("Nacht-Insights", 15f, ink, true), LayoutParams(0, -2, 1f))
             addView(android.widget.ImageView(context).apply {
@@ -303,7 +303,7 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
             contentDescription = "Tagesstand. Kumulativer Gerätezähler; Messpunkte werden nicht addiert."
             importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_YES
             val stepIconParams = LinearLayout.LayoutParams(dp(18), dp(18)).apply { rightMargin = dp(5) }
-            addView(DashboardMetricIconView(context, "Schritte", palette.indicator), stepIconParams)
+            addView(PlIcon.view(context, PlIcon.STEPS, 18, palette.indicator), stepIconParams)
             addView(label("Tagesstand", 11f, muted, true), LinearLayout.LayoutParams(-2, -2))
         }
         chip.getChildAt(0).importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
@@ -475,7 +475,7 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
         orientation = HORIZONTAL
         gravity = Gravity.CENTER_VERTICAL
         setPaddingRelative(0, 0, dp(18), 0)
-        addView(DashboardMetricIconView(context, metric.title, iconColor(metric.title)).apply {
+        addView(PlIcon.view(context, DashboardMetricIconView.iconFor(metric.title), 20, iconColor(metric.title)).apply {
             tag = "dashboard_metric_icon_${metric.title}"
         }, LayoutParams(dp(20), dp(20)).apply { marginEnd = dp(6) })
         // The long SpO₂ title broke mid-word in a half-width card; show the short name, keep the full one for accessibility.
@@ -652,20 +652,13 @@ private class ReceptionIndicatorView(
             setPadding(dp(22), dp(8), dp(22), dp(8))
         }
         fun row(symbol: String, text: String, color: Int = palette.ink, url: String? = null) {
-            val kind = when (symbol) {
-                "▬" -> DashboardInfoIconView.Kind.SCALE
-                "▰" -> DashboardInfoIconView.Kind.RANGE
-                "↗" -> DashboardInfoIconView.Kind.SOURCE
-                "◷" -> DashboardInfoIconView.Kind.TIME
-                "⚠" -> DashboardInfoIconView.Kind.LIMIT
-                else -> DashboardInfoIconView.Kind.WINDOW
-            }
+            val icon = MetricInfoIconMapping.forSymbol(symbol)
             val line = LinearLayout(context).apply {
                 orientation = LinearLayout.HORIZONTAL
                 gravity = Gravity.CENTER_VERTICAL
                 setPadding(0, dp(5), 0, dp(5))
             }
-            line.addView(DashboardInfoIconView(context, kind, if (url == null) palette.muted else palette.accent),
+            line.addView(PlIcon.view(context, icon, 18, if (url == null) palette.muted else palette.accent),
                 LinearLayout.LayoutParams(dp(18), dp(18)).apply { marginEnd = dp(10) })
             line.addView(TextView(context).apply {
                 this.text = text
