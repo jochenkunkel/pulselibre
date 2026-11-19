@@ -1,6 +1,6 @@
 # PulsLibre Icon System · v1
 
-**Status:** 32 Icons als VectorDrawables (`ic_pl_*.xml`, erzeugt mit `tools/svg_icons_to_vector.py`) integriert (#157): Navigation, Gerät, Verlauf/Trends, Info-Buttons, Aufzeichnen-Buttons. Nutzung über `PlIcon.view(...)`; Farben themefähig in `values/` und `values-night/pl_icon_colors.xml`. Nicht auf dem Echtgerät, TalkBack und Kontrast nicht gemessen. Alle Grafiken sind neu für PulsLibre gezeichnet, keine kopierten Hersteller-Icons. [Visuelle Übersicht](icon-contact-sheet.svg).
+**Status:** 44 Icons als VectorDrawables (`ic_pl_*.xml`, erzeugt mit `tools/svg_icons_to_vector.py`) integriert (#157): Navigation, Gerät, Verlauf/Trends, Info-Buttons, Aufzeichnen-Buttons. Nutzung über `PlIcon.view(...)`; Farben themefähig in `values/` und `values-night/pl_icon_colors.xml`. Nicht auf dem Echtgerät, TalkBack und Kontrast nicht gemessen. Alle Grafiken sind neu für PulsLibre gezeichnet, keine kopierten Hersteller-Icons. [Visuelle Übersicht](icon-contact-sheet.svg).
 
 ## Gestaltung
 
@@ -30,7 +30,7 @@
 | `signal.svg` | Empfang / Verbindungsstatus |
 | `info.svg` | Hinweise / Info-Button |
 
-Zusätzlich integriert: `band-time` (Uhrzeit des Bands), `firmware`, `identity`, `body-battery`, `breathing`, `calories`, `intensity`, `rr-interval`, `stress`, `trend-link`, `trends`, `hourglass`, `fitness`, `consistency`, `recovery`, `record-start`/`record-stop` (Starten/Stoppen). Zuordnung im Code: `PlIcon.kt`.
+Ergänzung für #168: `profile`, `height`, `weight`, `age`, `bmi` (Profilkarte) sowie `info-range`, `info-band`, `info-trend`, `warning`, `night`, `sleep-drop`, `recording-state` (Info- und Statuskontexte). Alle zwölf SVG-Quellen und Android-VectorDrawables liegen auf `main` und sind in `PlIcon.kt` registriert. **Noch nicht alle neuen Icons sind in den betreffenden UI-Stellen eingebunden; visuelle Abnahme steht aus.**\n\nZusätzlich integriert: `band-time` (Uhrzeit des Bands), `firmware`, `identity`, `body-battery`, `breathing`, `calories`, `intensity`, `rr-interval`, `stress`, `trend-link`, `trends`, `hourglass`, `fitness`, `consistency`, `recovery`, `record-start`/`record-stop` (Starten/Stoppen). Zuordnung im Code: `PlIcon.kt`.
 
 Nachweis: `docs/test-evidence/icons/` (synthetische Emulator-Screenshots).
 
