@@ -195,7 +195,7 @@ class HistoryOverviewView(
             orientation = HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
         }
-        heading.addView(DashboardMetricIconView(context, title, accent), LayoutParams(dp(20), dp(20)).apply {
+        heading.addView(PlIcon.view(context, DashboardMetricIconView.iconFor(title), 20, accent), LayoutParams(dp(20), dp(20)).apply {
             marginEnd = dp(7)
         })
         heading.addView(label(title, 15f, palette.ink, true).apply { maxLines = 2 }, LayoutParams(0, -2, 1f))
@@ -207,7 +207,7 @@ class HistoryOverviewView(
             contentDescription = "Quelle und Skala für $title anzeigen"
             tag = "history_info_$title"
             setOnClickListener { showMetricInfo(title, unit) }
-            addView(DashboardInfoIconView(context, DashboardInfoIconView.Kind.SOURCE, palette.indicator),
+            addView(PlIcon.view(context, PlIcon.INFO_SOURCE, 20, palette.indicator),
                 android.widget.FrameLayout.LayoutParams(dp(20), dp(20), Gravity.CENTER))
         }
         heading.addView(infoButton, LayoutParams(dp(48), dp(48)))
@@ -245,20 +245,13 @@ class HistoryOverviewView(
             setPadding(dp(22), dp(8), dp(22), dp(8))
         }
         fun row(symbol: String, text: String, url: String? = null) {
-            val kind = when (symbol) {
-                "▬" -> DashboardInfoIconView.Kind.SCALE
-                "▰" -> DashboardInfoIconView.Kind.RANGE
-                "↗" -> DashboardInfoIconView.Kind.SOURCE
-                "◷" -> DashboardInfoIconView.Kind.TIME
-                "⚠" -> DashboardInfoIconView.Kind.LIMIT
-                else -> DashboardInfoIconView.Kind.WINDOW
-            }
+            val icon = MetricInfoIconMapping.forSymbol(symbol)
             val line = LinearLayout(context).apply {
                 orientation = HORIZONTAL
                 gravity = Gravity.CENTER_VERTICAL
                 setPadding(0, dp(5), 0, dp(5))
             }
-            line.addView(DashboardInfoIconView(context, kind, if (url == null) palette.muted else palette.accent),
+            line.addView(PlIcon.view(context, icon, 18, if (url == null) palette.muted else palette.accent),
                 LayoutParams(dp(18), dp(18)).apply { marginEnd = dp(10) })
             line.addView(TextView(context).apply {
                 this.text = text
