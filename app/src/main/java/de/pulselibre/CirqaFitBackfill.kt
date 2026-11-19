@@ -128,30 +128,7 @@ class CirqaFitBackfill(
                 profileVersion = FitHistoricalObservations.PROFILE_VERSION,
                 observations = importable,
                 deviceMetadata = result.deviceMetadata,
-                unmappedFields = result.unknownFields.map { field ->
-                    FitFieldInventoryRecord(
-                        sourceSha256 = field.sourceSha256,
-                        globalMessageNumber = field.globalMessageNumber,
-                        kind = if (field.kind == FitHistoricalObservations.UnknownKind.DEVELOPER_FIELD)
-                            StoredFitFieldKind.DEVELOPER else StoredFitFieldKind.STANDARD,
-                        fieldNumber = field.fieldNumber,
-                        baseTypeCode = field.baseType,
-                        fieldSize = field.size,
-                        developerDataIndex = field.developerDataIndex,
-                        classification = when (field.kind) {
-                            FitHistoricalObservations.UnknownKind.UNKNOWN_MESSAGE -> "MESSAGE_NOT_DECODED_BY_APP"
-                            FitHistoricalObservations.UnknownKind.UNKNOWN_STANDARD_FIELD -> "FIELD_NOT_DECODED_BY_APP"
-                            FitHistoricalObservations.UnknownKind.DEVELOPER_FIELD -> "DEVELOPER_FIELD_NOT_DECODED_BY_APP"
-                            FitHistoricalObservations.UnknownKind.INCOMPATIBLE_KNOWN_FIELD -> "KNOWN_MAPPING_INCOMPATIBLE"
-                        },
-                        definitionCount = field.definitionCount.toLong().coerceAtMost(1_000_000L),
-                        observedMessageCount = field.occurrenceCount.toLong().coerceAtMost(1_000_000L),
-                        validElementCount = null,
-                        invalidElementCount = null,
-                        decoderVersion = FitHistoricalObservations.DECODER_VERSION,
-                        profileVersion = FitHistoricalObservations.PROFILE_VERSION
-                    )
-                },
+                unmappedFields = result.unknownFields.map(CirqaUnknownFitInventory::toStoredField),
                 deviceKey = deviceKey
             )
             return ImportOutcome(

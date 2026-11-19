@@ -60,7 +60,7 @@ Lokale Build-Anleitung: JDK 17, Android SDK 37 (compileSdk), Gradle 9.6.0. Der G
 gradle :app:testDebugUnitTest :app:lintDebug :app:assembleDebug :app:assembleDebugAndroidTest
 ```
 
-Starte **Android CI** in GitHub unter **Actions → Android CI → Run workflow** oder per `gh workflow run android.yml --ref main`. Der manuelle Schnelllauf baut die App und führt die JVM-Unit-Tests aus. Aktiviere `full_tests` für Lint, die Instrumentation-APK und API-35-Emulatortests. Pushes, Pull Requests und Tags lösen keinen CI-Lauf aus. Die Android-CI lädt APKs als zeitlich begrenzte Artifacts hoch.
+Starte **Android CI** in GitHub unter **Actions → Android CI → Run workflow** oder per `gh workflow run android.yml --ref main`. Der manuelle Schnelllauf baut die App und führt die JVM-Unit-Tests aus. Aktiviere `full_tests` für Lint, die Instrumentation-APK und API-35-Emulatortests. Pushes auf `main` und Pull Requests gegen `main` lösen automatisch die vollständige CI aus; Tags lösen keinen CI-Lauf aus. Die Android-CI lädt APKs als zeitlich begrenzte Artifacts hoch.
 
 ## Ausblick
 
