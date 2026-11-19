@@ -4,7 +4,7 @@ Stand: 2026-11-15. **Primäres Zielgerät: Samsung Galaxy S25.** Weitere Android
 
 ## Geräte und Darstellung
 
-- Android minSdk 26, targetSdk 35, compileSdk 35; BLE-Hardware laut Manifest erforderlich.
+- Android minSdk 26, targetSdk 35, compileSdk 37; BLE-Hardware laut Manifest erforderlich.
 - Layout in `MainActivity` verwendet vertikalen ScrollView und drei gleich gewichtete Navigationseinträge. Dies ist eine Ausgangsbasis, **keine** Garantie für kleine Displays, große Schrift, Tablets oder Landscape.
 - Prüfmatrix vor Freigabe: Galaxy S25 real (Hauptgerät), Android-Emulator API 35 Pixel 6 (CI), kleines Telefon 360dp, großes Telefon, Tablet, Hoch-/Querformat, Font-Scale 1.0/1.3/2.0, Display-Scale, Hell-/Dunkelmodus, TalkBack.
 - UI-Befunde: Gerätediagnose kann lange, nicht umgebrochene Service-UUIDs enthalten; `ExportActivity` verwendet feste Pixelabstände statt dp; Bottom-Navigation hat keine explizite barrierefreie Tab-Semantik. Beides ist vor Store-Freigabe zu testen und zu verbessern.

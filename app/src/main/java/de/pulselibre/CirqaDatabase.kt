@@ -52,7 +52,10 @@ class CirqaDatabase(private val contextRef: Context) :
                 }
                 if (batch.isEmpty()) break
                 for ((id, timestamp) in batch) {
-                    db.execSQL("UPDATE events SET dashboard_time = ? WHERE id = ?", arrayOf(timeKey(timestamp), id))
+                    db.execSQL(
+                        "UPDATE events SET dashboard_time = ? WHERE id = ?",
+                        arrayOf<Any?>(timeKey(timestamp), id)
+                    )
                 }
                 lastId = batch.last().first
             }
@@ -411,7 +414,7 @@ class CirqaDatabase(private val contextRef: Context) :
                    (source_sha256, file_bytes, verified_at_ms, parser_version, software_version,
                     mass_storage_mode, transfer_direction_count)
                    VALUES (?, ?, ?, ?, ?, ?, ?)""",
-                arrayOf(
+                arrayOf<Any?>(
                     record.sourceSha256, record.fileBytes, record.verifiedAtEpochMillis, record.parserVersion,
                     record.softwareVersion, record.massStorageMode?.let { if (it) 1 else 0 },
                     record.transferDirectionElementCount

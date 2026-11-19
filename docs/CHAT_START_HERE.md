@@ -43,7 +43,7 @@ Du arbeitest am Projekt **PulsLibre** (in älteren Gesprächen teilweise „Puls
 
 ## 3. Technischer Kontext und nachgewiesene Grenzen
 
-- Android-Anwendung: `applicationId = de.pulselibre`; `minSdk=26`, `targetSdk=35`, `compileSdk=35`; Kotlin/Gradle, Java 17.
+- Android-Anwendung: `applicationId = de.pulselibre`; `minSdk=26`, `targetSdk=35`, `compileSdk=37`; Kotlin 2.4.21, AGP 9.5.1, Gradle 9.6.0, Java 17.
 - Zielgerät Samsung Galaxy S25; passiver BLE-Scan und Berechtigungsdialog wurden laut bisherigem Projektstand praktisch getestet. Das beweist **keine** vollständige CIRQA-Kompatibilität.
 - Im Code existieren passive BLE-Diagnose, aktive nutzerinitiierte GATT-Dienstsuche, Garmin-ML-/GFDI-Handshake-Probes, experimentelle Echtzeitmessungen und ein Nacht-/Vordergrunddienst. **Passive Scans sind nicht mit aktiven ML-Probes gleichzusetzen**: Letztere können Notifications abonnieren und GATT-Schreibbefehle senden.
 - Lokale Messwert-/Dashboard-/Exportfunktionen sind vorhanden. **Kein unabhängig bestätigter, produktionsreifer CIRQA-Gesundheitsdatensync.** Insbesondere Schlaf, SpO₂, Puls und Schritte nicht ohne überprüfte Quelle als erfolgreich ausgelesen deklarieren.

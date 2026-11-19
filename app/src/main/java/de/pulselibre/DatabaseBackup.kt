@@ -637,7 +637,7 @@ object DatabaseBackup {
                         db.execSQL(
                             """INSERT INTO readings(device_id, metric, measured_at_ms, sample_id)
                                VALUES(?, ?, ?, ?)""",
-                            arrayOf(reading.deviceId, reading.metric, reading.measuredAtEpochMillis,
+                            arrayOf<Any?>(reading.deviceId, reading.metric, reading.measuredAtEpochMillis,
                                 reading.sampleId ?: "")
                         )
                     }
@@ -649,7 +649,7 @@ object DatabaseBackup {
                             """INSERT INTO provenance
                                (sample_id, device_id, metric, measured_at_ms, source_sha256)
                                VALUES(?, ?, ?, ?, ?)""",
-                            arrayOf(item.sampleId, item.deviceId, item.metric, item.measuredAtEpochMillis,
+                            arrayOf<Any?>(item.sampleId, item.deviceId, item.metric, item.measuredAtEpochMillis,
                                 item.sourceSha256)
                         )
                     }
@@ -690,7 +690,7 @@ object DatabaseBackup {
                         val item = parseDeviceMetadata(line)
                         db.execSQL(
                             "INSERT INTO metadata(source_sha256, record_ordinal) VALUES(?, ?)",
-                            arrayOf(item.sourceFileSha256, item.recordOrdinal)
+                            arrayOf<Any?>(item.sourceFileSha256, item.recordOrdinal)
                         )
                     }
                 }
