@@ -236,3 +236,7 @@ Noch sichtbar offen (P3): Nacht-Insights erste Spalte „22–6 Uhr / 22331 / We
 - GUI-Abnahme am S25 (siehe Ticketkommentare) ergab: Statusleiste in Hell unleserlich (#208), widersprüchliche Statustexte im Gerätereiter (#209), Testlabor weiter sichtbarer Reiter (#172).
 - Umgesetzt: Theme-abhängige Systemleisten-Icons; Untertitel ohne „· Offline“; Header-Kollaps auf allen Reitern mit Überstand-Schwelle (kein Flackern); technische/veraltete Texte des Gerätereiters in den versteckten Debugbereich; Reiter „Testlabor“ aus der Navigation entfernt, Einstieg per 3-s-Long-Press auf „Gerät · CIRQA“ + TalkBack-Aktion; inline-Debug-Toggle entfällt. Tests: `HeaderAndDeviceCleanupTest` (neu), Navigationstests auf vier sichtbare Reiter angepasst. Lokal Unit/Lint/androidTest-Compile grün; Emulator-Läufe über CI.
 - Nicht umgesetzt (bleibt in #172): Bottom Sheet, fünf Diagnosebereiche, Opt-in-Trace, redigierter Export, Entfernen des toten Debug-Codes.
+
+## 2026-11-19 – GUI-Abnahme S25 und Abschluss #179/#208/#209
+- Build 1212 (CI-signiert, Lauf 44520571327) am S25: großer/kompakter Header auf Übersicht und Gerät, Hell-Modus-Statusleiste lesbar, Gerätereiter ohne widersprüchliche Texte, Testlabor per 3-s-Long-Press (bei 1,5 s nichts, bei 3,4 s öffnet). Autostart nach frischem Start: Aufzeichnung läuft nach 25 s; nach Paketersatz startete sie beim ersten Start nicht (veraltetes `running`-Flag, #212).
+- Geschlossen: #179, #208, #209, #182; auf Anweisung #63, #126. Offen mit Nacharbeit: #159, #172, #204, #212.
