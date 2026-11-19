@@ -320,6 +320,18 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
         syncCard.addView(button("Sync anfordern (read-only)") {
             confirmSyncRequest()
         })
+        syncCard.addView(button("Sync + Item-List prüfen (Stopp vor Pull)") {
+            confirmSyncItemListNoPull()
+        }.apply { isEnabled = CirqaSyncItemListNoPullAttemptGate.RELEASED_FOR_DEVICE_TEST })
+        syncCard.addView(button("Sync+Item-List-Status (kein Pull)") {
+            val prefs = getSharedPreferences(
+                CirqaSyncItemListNoPullAttemptGate.PREFS_NAME, MODE_PRIVATE
+            )
+            statusOutput.text = "Sync+Item-List ohne Pull:\n" +
+                (prefs.getString(CirqaSyncItemListNoPullAttemptGate.SUMMARY_KEY, null) ?: "Noch kein Lauf.") +
+                "\nVersuche=${CirqaSyncItemListNoPullAttemptGate.attemptsUsed(prefs)}/" +
+                CirqaSyncItemListNoPullAttemptGate.MAX_ATTEMPTS
+        })
         syncCard.addView(button("Sync-Status") {
             statusOutput.text = "Sync-Request:\n" +
                 (preferences.getString(CirqaSyncAttemptGate.SUMMARY_KEY, null) ?: "Noch kein Lauf.") +
@@ -537,6 +549,46 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
                         runOnUiThread {
                             statusOutput.text = message
                             prefs.edit().putString(CirqaSyncAttemptGate.SUMMARY_KEY, message).apply()
+                        }
+                    }
+                }
+            }
+            .show()
+    }
+
+    private fun confirmSyncItemListNoPull() {
+        val prefs = getSharedPreferences(
+            CirqaSyncItemListNoPullAttemptGate.PREFS_NAME, MODE_PRIVATE
+        )
+        if (!CirqaSyncItemListNoPullAttemptGate.hasAttemptsRemaining(prefs)) {
+            statusOutput.text = "Sync+Item-List ohne Pull gesperrt oder Versuchslimit erreicht."
+            return
+        }
+        AlertDialog.Builder(this)
+            .setTitle("Sync + Item-List ohne Pull testen?")
+            .setMessage(
+                "Ein separat begrenzter BLE-Lauf: frischer Bootstrap, genau ein sync_request und " +
+                    "höchstens eine read-only Item-List-Anfrage. Das Gerät kann den Sync-Request " +
+                    "als übertragen markieren. Es werden keine Datei-Pulls, MLR-Registrierungen, " +
+                    "Dateiimporte, Flags, Lösch- oder Reset-Befehle gesendet. Bei unerwarteter " +
+                    "Pull-Antwort wird sofort vor MLR/Dateipull gestoppt. 40-s-Gesamtlimit, kein Retry. " +
+                    "Höchstens ${CirqaSyncItemListNoPullAttemptGate.MAX_ATTEMPTS} ausdrücklich bestätigte " +
+                    "Läufe; jeder Versuch wird vor Verbindung verbraucht."
+            )
+            .setNegativeButton("Abbrechen", null)
+            .setPositiveButton("Ausführen") { _, _ ->
+                withBluetoothPermissions(needsScan = false) {
+                    val probe = CirqaMlHandshakeProbe(this, adapter)
+                    systemEventProbe = probe
+                    probe.startSyncRequestTest(
+                        userConfirmed = true,
+                        stopBeforePull = true
+                    ) { message ->
+                        runOnUiThread {
+                            statusOutput.text = message
+                            prefs.edit().putString(
+                                CirqaSyncItemListNoPullAttemptGate.SUMMARY_KEY, message
+                            ).apply()
                         }
                     }
                 }
