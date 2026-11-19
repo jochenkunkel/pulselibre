@@ -1,6 +1,6 @@
 # Android-Gerätekompatibilität, Updates und Store-Vorbereitung
 
-Stand: 2026-11-15. **Primäres Zielgerät: Samsung Galaxy S25.** Weitere Android-Geräte sind unterstützte Testziele, keine bereits bestätigten Hardwaretests.
+**Historischer Prüfstand:** 2026-11-15. Die spätere Navigationsentscheidung [#227](https://github.com/jochenkunkel/pulselibre/issues/227) plant einen eigenen Hauptreiter „Analysen“; die folgenden Angaben zu drei Navigationseinträgen sind der damalige Bestand, keine aktuelle Freigabe. **Primäres Zielgerät: Samsung Galaxy S25.** Weitere Android-Geräte sind unterstützte Testziele, keine bereits bestätigten Hardwaretests.
 
 ## Geräte und Darstellung
 
