@@ -30,10 +30,12 @@ internal data class SpO2DisplaySettings(
          * The sensor is still NOT validated; affected tiles carry a red border (UnvalidatedFeatures).
          */
         const val OWNER_ACCEPTED_UNVALIDATED = true
-        private const val STORE = "local_personal_profile"
+        internal const val STORE = "local_personal_profile"
         private const val GREEN_FROM_KEY = "spo2_display_green_from"
         private const val RED_BELOW_KEY = "spo2_display_red_below"
         private const val VALIDATION_GATE_KEY = "spo2_device_validation_recorded"
+        /** Keys that belong to the SpO2 display/validation settings and must survive "Profil löschen". */
+        internal val PRESERVED_KEYS = setOf(GREEN_FROM_KEY, RED_BELOW_KEY, VALIDATION_GATE_KEY)
         internal fun isInRange(percent: Int?): Boolean = percent != null && percent in 1..100
         internal fun neutralColor(palette: AppPalette): Int = palette.ink
         internal fun missingColor(palette: AppPalette): Int = palette.muted

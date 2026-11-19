@@ -26,3 +26,10 @@ Konfig-Absturz (#161), Profilkarte nach Speichern über Header-Button (#162), Co
 
 ## Zusätzliche Beobachtung (Vorfall, nicht Code)
 Auf dem S25 stand nach einem App-Absturz „Datenbank aus Backup wiederhergestellt“ (DB danach 6,7 MB). Geprüft: `ExportActivity.confirmRestore` zeigt vor dem Überschreiben einen Dialog mit Backup-Datum und Zählern und verlangt „Ersetzen“; die Wiederherstellung musste also ausdrücklich bestätigt werden (nicht durch einen unbeabsichtigten Einzel-Tap möglich). Code ist hier in Ordnung; wer bestätigt hat, ist aus den Logs nicht ersichtlich.
+
+## Nachtrag: Review-Punkte behoben (Branch claude/review-2026-11-19)
+- **#2 / Ticket #169:** „Profil löschen“ entfernt nur noch Profilschlüssel; SpO₂-Schwellen und Validierungs-Gate bleiben (`SpO2DisplaySettings.PRESERVED_KEYS`). Instrumentationstest `deletingTheProfileKeepsSpo2SettingsInTheSameStore` (lokal auf Emulator grün).
+- **#4:** Store-Name als Konstante `SpO2DisplaySettings.STORE`, in `MainActivity`/`PersonalSettings` verwendet.
+- **#6:** ungenutzte `avatar()`/`bodyAvatar()` entfernt.
+- **#9:** Schlägt der automatische Start fehl, erscheint ein Hinweis (Toast) statt stillem Scheitern. Test am Band weiter offen.
+- Offen bewusst: #1/#168 (Emoji→Icon, größerer Umbau), #3, #5, #7, #8, #12, #13, CI-Billing.

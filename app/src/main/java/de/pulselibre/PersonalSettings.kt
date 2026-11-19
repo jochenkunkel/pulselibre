@@ -10,22 +10,8 @@ import androidx.appcompat.app.AlertDialog
 
 /** Single-user, offline preferences. No account, network request, or cloud synchronization. */
 object PersonalSettings {
-    private const val STORE = "local_personal_profile"
+    private const val STORE = SpO2DisplaySettings.STORE
     private fun prefs(context: Context) = context.getSharedPreferences(STORE, Context.MODE_PRIVATE)
-    fun avatar(context: Context): String {
-        val name = prefs(context).getString("display_name", "").orEmpty().trim()
-        val initial = name.firstOrNull()?.uppercaseChar()?.toString() ?: "☺"
-        return initial
-    }
-
-    /** Locally selected profile avatar; no gender is inferred from appearance. */
-    fun bodyAvatar(context: Context): String = when (prefs(context).getString("gender", "Keine Angabe")) {
-        "Männlich" -> "👨"
-        "Weiblich" -> "👩"
-        "Divers / andere" -> "🧙"
-        else -> "🧍"
-    }
-
     fun show(context: Context, onSaved: () -> Unit = {}) {
         val p = prefs(context)
         val scroll = ScrollView(context)
@@ -293,7 +279,7 @@ object PersonalSettings {
                 // Two separate confirmations: scope first, then the irreversible final step.
                 DialogProbe.track(AlertDialog.Builder(context)
                     .setTitle("Profil löschen?")
-                    .setMessage("Alle Profilangaben (Name, Körperdaten, Ziele, Einstellungen) werden entfernt. Messdaten bleiben erhalten.")
+                    .setMessage("Alle Profilangaben (Name, Körperdaten, Ziele) werden entfernt. SpO₂-Grenzwerte bleiben erhalten. Messdaten bleiben erhalten.")
                     .setNegativeButton("Abbrechen", null)
                     .setPositiveButton("Weiter") { _, _ ->
                         DialogProbe.track(AlertDialog.Builder(context)
@@ -301,7 +287,10 @@ object PersonalSettings {
                             .setMessage("Das Löschen kann nicht rückgängig gemacht werden.")
                             .setNegativeButton("Abbrechen", null)
                             .setPositiveButton("Endgültig löschen") { _, _ ->
-                                p.edit().clear().apply()
+                                // Only profile data goes; SpO2 thresholds and the validation gate share this store and stay.
+                                val edit = p.edit()
+                                p.all.keys.filter { it !in SpO2DisplaySettings.PRESERVED_KEYS }.forEach { edit.remove(it) }
+                                edit.apply()
                                 onSaved()
                                 dialog.dismiss()
                             }.create()).show()

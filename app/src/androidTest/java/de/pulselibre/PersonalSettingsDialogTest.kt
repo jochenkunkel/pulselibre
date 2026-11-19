@@ -52,6 +52,24 @@ class PersonalSettingsDialogTest {
         prefs.edit().remove("display_name").commit()
     }
 
+    /** Regression (#169): deleting the profile must not wipe SpO2 thresholds / validation gate in the same store. */
+    @Test fun deletingTheProfileKeepsSpo2SettingsInTheSameStore() {
+        SpO2DisplaySettings.save(instrumentation.targetContext, SpO2DisplaySettings(96, 91))
+        prefs.edit().putString("display_name", "Testperson").commit()
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            scenario.onActivity { PersonalSettings.show(it) }
+            val settings = DialogTestSupport.awaitDialog("Profil löschen …")
+            DialogTestSupport.clickText(settings, "Profil löschen …")
+            DialogTestSupport.clickButton(DialogTestSupport.awaitDialog("Profil löschen?"), AlertDialog.BUTTON_POSITIVE)
+            DialogTestSupport.clickButton(DialogTestSupport.awaitDialog("Wirklich endgültig löschen?"), AlertDialog.BUTTON_POSITIVE)
+            Thread.sleep(500)
+            assertEquals(null, prefs.getString("display_name", null))
+            assertEquals(96, prefs.getInt("spo2_display_green_from", -1))
+            assertEquals(91, prefs.getInt("spo2_display_red_below", -1))
+        }
+        prefs.edit().remove("spo2_display_green_from").remove("spo2_display_red_below").commit()
+    }
+
     /** Regression: SpO2 scale keys are stored as Int; opening Config after saving them crashed (ClassCastException). */
     @Test fun opensWithIntegerStoredSpo2ThresholdsWithoutCrashing() {
         SpO2DisplaySettings.save(instrumentation.targetContext, SpO2DisplaySettings(96, 91))
