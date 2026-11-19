@@ -147,7 +147,9 @@ class CirqaFitBackfill(
                         definitionCount = field.definitionCount.toLong().coerceAtMost(1_000_000L),
                         observedMessageCount = field.occurrenceCount.toLong().coerceAtMost(1_000_000L),
                         validElementCount = null,
-                        invalidElementCount = null
+                        invalidElementCount = null,
+                        decoderVersion = FitHistoricalObservations.DECODER_VERSION,
+                        profileVersion = FitHistoricalObservations.PROFILE_VERSION
                     )
                 },
                 deviceKey = deviceKey

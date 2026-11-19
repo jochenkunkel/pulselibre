@@ -66,7 +66,7 @@ class DatabaseBackupTest {
         val context = isolatedContext(base, root)
         val sourceSha = "d".repeat(64)
         val field = FitFieldInventoryRecord(
-            sourceFileSha256 = sourceSha,
+            sourceSha256 = sourceSha,
             globalMessageNumber = 20,
             kind = StoredFitFieldKind.STANDARD,
             fieldNumber = 85,
@@ -77,7 +77,9 @@ class DatabaseBackupTest {
             definitionCount = 1,
             observedMessageCount = 3,
             validElementCount = 2,
-            invalidElementCount = 1
+            invalidElementCount = 1,
+            decoderVersion = FitHistoricalObservations.DECODER_VERSION,
+            profileVersion = FitHistoricalObservations.PROFILE_VERSION
         )
         try {
             CirqaDatabase(context).use { database ->

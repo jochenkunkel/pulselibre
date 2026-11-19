@@ -48,7 +48,7 @@ internal object FitObservationCommitter {
             "Duplicate FIT device_info ordinal in one file"
         }
         require(unmappedFields.all {
-            it.sourceFileSha256 == sourceSha256 &&
+            it.sourceSha256 == sourceSha256 &&
                 it.globalMessageNumber in 0..65535 &&
                 it.fieldNumber in 0..255 && it.fieldSize in 1..255 &&
                 (it.baseTypeCode == null || it.baseTypeCode in 0..255) &&
