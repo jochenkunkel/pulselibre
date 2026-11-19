@@ -81,6 +81,11 @@ instrumentation APK, and API-35 emulator tests. Local verification also passed
 629/629 JVM, 68/68 API-35 emulator and 19/19 Python tests after adding the
 paginated repository contract and schema-v5 raw-metadata coverage.
 
+PR #178 (`1d057f1`) added schema v5 and backup v5 for the whitelisted raw XML
+metadata. Full CI run [44479097091](https://github.com/jochenkunkel/pulselibre/actions/runs/44479097091)
+passed, including API-35 emulator instrumentation; local build, lint, 629 JVM,
+68 emulator and 19 Python tests also passed.
+
 Schema-v3 `ensureHistoricalStoreCopied()` copies and verifies the old history
 without deleting it. New FIT backfill writes target the canonical DB after this
 copy; schema-v4 FIT metadata and schema-v5 raw XML metadata are additive.
