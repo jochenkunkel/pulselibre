@@ -1,10 +1,10 @@
 package de.pulselibre
 
 import android.content.Context
-import android.widget.ImageView
+import androidx.appcompat.widget.AppCompatImageView
 
 /** Compatibility view for dashboard metrics. All artwork comes from the PulsLibre SVG icon set. */
-class DashboardMetricIconView(context: Context, title: String, color: Int) : ImageView(context) {
+class DashboardMetricIconView(context: Context, title: String, color: Int) : AppCompatImageView(context) {
     init {
         setImageDrawable(PlIcon.drawable(context, iconFor(title), 24, color))
         scaleType = ScaleType.FIT_CENTER
@@ -13,7 +13,7 @@ class DashboardMetricIconView(context: Context, title: String, color: Int) : Ima
 
     companion object {
         /** Match the former Canvas icon semantics, including special cases before generic steps. */
-        fun iconFor(title: String): PlIcon = when {
+        internal fun iconFor(title: String): PlIcon = when {
             title.contains("Herzfrequenz", true) || title.contains("Ruhepuls", true) -> PlIcon.HEART
             title.contains("SpO₂", true) || title.contains("Sauerstoff", true) -> PlIcon.OXYGEN
             title.contains("Schlaf", true) -> PlIcon.SLEEP
