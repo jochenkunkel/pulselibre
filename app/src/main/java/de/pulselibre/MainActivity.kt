@@ -994,7 +994,11 @@ class MainActivity : AppCompatActivity() {
     /** Opt-in from the settings: start the recording service on a fresh launch if everything is already in place. */
     private fun autoStartRecordingIfEnabled() {
         val granted = permissions().all { ActivityCompat.checkSelfPermission(this, it) == PackageManager.PERMISSION_GRANTED }
-        val running = RecorderStatus.isRunning(getSharedPreferences(CirqaContinuousRecordingService.PREFS, MODE_PRIVATE))
+        // A fresh heartbeat of a killed process must not block the start (#212): require the service to be alive too.
+        val running = AutoStartRecording.isAlreadyRunning(
+            RecorderStatus.isRunning(getSharedPreferences(CirqaContinuousRecordingService.PREFS, MODE_PRIVATE)),
+            AutoStartRecording.isServiceAlive(this)
+        )
         val btOn = try { adapter.isEnabled } catch (_: Exception) { false }
         if (!AutoStartRecording.shouldStart(AutoStartRecording.isEnabled(this), true, granted, btOn, running)) return
         try {

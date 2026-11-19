@@ -240,3 +240,7 @@ Noch sichtbar offen (P3): Nacht-Insights erste Spalte „22–6 Uhr / 22331 / We
 ## 2026-11-19 – GUI-Abnahme S25 und Abschluss #179/#208/#209
 - Build 1212 (CI-signiert, Lauf 44520571327) am S25: großer/kompakter Header auf Übersicht und Gerät, Hell-Modus-Statusleiste lesbar, Gerätereiter ohne widersprüchliche Texte, Testlabor per 3-s-Long-Press (bei 1,5 s nichts, bei 3,4 s öffnet). Autostart nach frischem Start: Aufzeichnung läuft nach 25 s; nach Paketersatz startete sie beim ersten Start nicht (veraltetes `running`-Flag, #212).
 - Geschlossen: #179, #208, #209, #182; auf Anweisung #63, #126. Offen mit Nacharbeit: #159, #172, #204, #212.
+
+## 2026-11-19 – #212 Autostart nach Update/Kill
+- Ursache: `RecorderStatus.isRunning` (Flag + Heartbeat < 65 s) blieb nach dem Force-Stop durch das App-Update „wahr“ und blockierte den Autostart. Fix: Der Autostart verlangt zusätzlich, dass der Dienst tatsächlich lebt (`AutoStartRecording.isServiceAlive` über `ActivityManager.getRunningServices`, nur eigene Dienste). Unit-Tests für beide Fälle; Lint/androidTest-Compile lokal grün; Hardwarenachweis nach Merge am S25 (Update installieren, frisch starten, Aufzeichnung muss ohne Zweitstart laufen).
+- Bewusst nicht umgesetzt: automatischer Neustart per `MY_PACKAGE_REPLACED` (Foreground-Service-Start aus dem Hintergrund unterliegt Android-Einschränkungen; Nutzerentscheidung nötig).
