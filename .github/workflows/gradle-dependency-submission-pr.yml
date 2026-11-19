@@ -1,0 +1,21 @@
+name: Submit PR Gradle dependency graph
+
+on:
+  workflow_run:
+    workflows: ['Gradle Dependency Submission']
+    types: [completed]
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  submit-pr-graph:
+    name: Submit graph for Dependency Review
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Submit the graph artifact from the completed PR workflow
+        uses: gradle/actions/dependency-submission@8da46b539cd8fe6ab27ca75128919a18d757604c # v6
+        with:
+          dependency-graph: download-and-submit
