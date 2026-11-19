@@ -96,4 +96,30 @@ class HeaderAndDeviceCleanupTest {
             }
         }
     }
+
+    @Test fun compactHeaderTitleStaysReadableOnThePageBackground() {
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            scenario.onActivity { activity ->
+                val palette = AppPalette.of(activity)
+                val root = activity.findViewById<View>(android.R.id.content)
+                val title = all(root).filterIsInstance<TextView>().first { it.text.toString() == "PulsLibre" }
+                // expanded header: text sits on the dark purple backdrop -> white
+                assertEquals(android.graphics.Color.WHITE, title.currentTextColor)
+                // Make the content scrollable enough and collapse: drive the same listener the user triggers.
+                val scroll = all(root).filterIsInstance<android.widget.ScrollView>().first()
+                scroll.getChildAt(0).minimumHeight = scroll.height * 3
+                scroll.getChildAt(0).requestLayout()
+            }
+            androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().waitForIdleSync()
+            scenario.onActivity { activity ->
+                all(activity.findViewById<View>(android.R.id.content)).filterIsInstance<android.widget.ScrollView>().first().scrollTo(0, 400)
+            }
+            androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().waitForIdleSync()
+            scenario.onActivity { activity ->
+                val palette = AppPalette.of(activity)
+                val title = all(activity.findViewById<View>(android.R.id.content)).filterIsInstance<TextView>().first { it.text.toString() == "PulsLibre" }
+                if (!palette.dark) assertEquals("kompakter Header in Hell: Titel nicht weiß", palette.ink, title.currentTextColor)
+            }
+        }
+    }
 }
