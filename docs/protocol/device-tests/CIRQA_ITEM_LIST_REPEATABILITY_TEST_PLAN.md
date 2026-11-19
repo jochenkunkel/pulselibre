@@ -82,6 +82,16 @@ Zwei-Listen-No-Pull-Vergleich ergab erneut 23/23 identische UID-/Metadatenpaare,
 Datei-Pulls oder Importe. Ein Einfluss der Knopfaktion ist plausibel, aber
 unverifiziert. Gemeinsamer Zähler: 7/15.
 
+Der achte Versuch endete vor dem `sync_request`: Das Gerät lehnte die
+GFDI-Registrierung ab; es wurden keine Item-Lists empfangen. Der Versuch wurde
+trotzdem verbraucht. Beim anschließenden Knopftest startete die CIRQA die
+eingestellte „Aktivität mit Zeitangabe“. Die Aktivität wurde kurz in Garmin
+Connect gespeichert. Der neunte PulseLibre-Lauf erhielt danach zwei Listen
+mit je 24 Einträgen; alle 24 UID-/Metadatenpaare waren identisch, 0 geändert,
+neu, fehlend oder doppelt. MLR-Chunks/-Bytes, Datei-Pulls und Importe: 0.
+Der Anstieg von 23 auf 24 passt zur gespeicherten Aktivität, ist ohne
+Dateiabruf/UID-Zuordnung aber kein Beweis. Gemeinsamer Zähler: 9/15.
+
 ## Separater Folgeversuch nach Transport-ACK ohne Item-List-Antwort
 
 Die ersten direkten Item-List-Anfragen erhielten einen CRC-geprüften
