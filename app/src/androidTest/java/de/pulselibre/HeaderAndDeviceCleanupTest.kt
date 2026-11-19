@@ -122,4 +122,32 @@ class HeaderAndDeviceCleanupTest {
             }
         }
     }
+
+    /** Flicker fix: scrolling must never change the size of any view (the old header toggled between two sizes). */
+    @Test fun scrollingNeverResizesTheHeaderOrTheScrollRange() {
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            var contentHeight = 0; var scrollHeight = 0
+            scenario.onActivity { activity ->
+                val scroll = all(activity.findViewById<View>(android.R.id.content)).filterIsInstance<android.widget.ScrollView>().first()
+                scroll.getChildAt(0).minimumHeight = scroll.height * 3
+                scroll.getChildAt(0).requestLayout()
+            }
+            androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().waitForIdleSync()
+            scenario.onActivity { activity ->
+                val scroll = all(activity.findViewById<View>(android.R.id.content)).filterIsInstance<android.widget.ScrollView>().first()
+                contentHeight = scroll.getChildAt(0).height; scrollHeight = scroll.height
+            }
+            listOf(0, 60, 150, 400, 900, 0).forEach { y ->
+                scenario.onActivity { activity ->
+                    all(activity.findViewById<View>(android.R.id.content)).filterIsInstance<android.widget.ScrollView>().first().scrollTo(0, y)
+                }
+                androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().waitForIdleSync()
+                scenario.onActivity { activity ->
+                    val scroll = all(activity.findViewById<View>(android.R.id.content)).filterIsInstance<android.widget.ScrollView>().first()
+                    assertEquals("Scrollbereich ändert sich bei y=$y", contentHeight, scroll.getChildAt(0).height)
+                    assertEquals("Sichtfenster ändert sich bei y=$y", scrollHeight, scroll.height)
+                }
+            }
+        }
+    }
 }
