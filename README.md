@@ -54,7 +54,7 @@ Keine INTERNET-Berechtigung, kein Cloud-Sync, keine Telemetrie, keine erfundenen
 
 ## Build und Tests
 
-Lokale Build-Anleitung: JDK 17, Android SDK 35, Gradle 8.13. Der GitHub-Actions-Workflow `.github/workflows/android.yml` verwendet dagegen ausdrücklich **JDK 21**. Beispiel:
+Lokale Build-Anleitung: JDK 17, Android SDK 37 (compileSdk), Gradle 9.6.0. Der GitHub-Actions-Workflow `.github/workflows/android.yml` verwendet dagegen ausdrücklich **JDK 21**. Beispiel:
 
 ```bash
 gradle :app:testDebugUnitTest :app:lintDebug :app:assembleDebug :app:assembleDebugAndroidTest

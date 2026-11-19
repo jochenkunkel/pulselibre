@@ -120,7 +120,7 @@ class CirqaStorageMigrationTest {
                     """INSERT INTO observations
                        (device_id, metric, measured_at_ms, value, unit, sample_id, received_at_ms)
                        VALUES(?, ?, ?, ?, ?, ?, ?)""",
-                    arrayOf(
+                    arrayOf<Any?>(
                         conflictingRow.deviceId, conflictingRow.metric, conflictingRow.measuredAtEpochMillis,
                         conflictingRow.value, conflictingRow.unit, conflictingRow.sampleId,
                         conflictingRow.receivedAtEpochMillis
