@@ -217,19 +217,62 @@ class HistoryOverviewView(
         if (points.isEmpty()) {
             card.addView(label("Keine Messdaten in diesem Zeitraum", 14f, palette.muted),
                 LayoutParams(-1, -2).apply { topMargin = dp(18); bottomMargin = dp(18) })
+            // The explanatory caption stays even without data (consistent per card, see #182).
+            card.addView(label(
+                "Zeitachse: Telefonzeit · Punkt: Median · Ring: Mittelwert (bei mehreren Werten) · Linie: Min–Max · Lücken: keine Messdaten",
+                11f, palette.muted
+            ).apply { tag = "history_chart_legend"; importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_YES },
+                LayoutParams(-1, -2).apply { topMargin = dp(8) })
         } else {
-            card.addView(HistoryScatterChartView(context, buckets, points.size, snapshot.start, snapshot.end,
-                scale, accent, snapshot.range, resolution), LayoutParams(-1, dp(210)))
+            // #219: switch between the existing points view and the density ("Verteilung") view.
+            val scatter = HistoryScatterChartView(context, buckets, points.size, snapshot.start, snapshot.end,
+                scale, accent, snapshot.range, resolution)
+            val scatterLegend = label(
+                "Zeitachse: Telefonzeit · Punkt: Median · Ring: Mittelwert (bei mehreren Werten) · Linie: Min–Max · Lücken: keine Messdaten",
+                11f, palette.muted
+            ).apply { tag = "history_chart_legend"; importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_YES }
+            val densityLegend = label(HistoryDensityDetail.LEGEND, 11f, palette.muted).apply {
+                tag = "history_density_legend"; importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_YES; visibility = View.GONE
+            }
+            val zone = ZoneId.systemDefault()
+            var densityView: HistoryDensityChartView? = null
+            val modes = LinearLayout(context).apply { orientation = HORIZONTAL; tag = "history_mode_$title" }
+            fun styleMode(t: TextView, on: Boolean) { t.setTextColor(if (on) palette.accent else palette.muted); t.setTypeface(null, if (on) Typeface.BOLD else Typeface.NORMAL) }
+            val pointsMode = TextView(context); val densityMode = TextView(context)
+            listOf(pointsMode to "Punkte", densityMode to "Verteilung").forEach { (t, name) ->
+                t.text = name; t.textSize = 12f; t.gravity = Gravity.CENTER; t.minimumHeight = dp(48); t.isClickable = true; t.isFocusable = true
+                t.contentDescription = "Darstellung $name"; t.tag = "history_mode_${name}_$title"
+                modes.addView(t, LayoutParams(0, -2, 1f))
+            }
+            styleMode(pointsMode, true); styleMode(densityMode, false)
+            val chartHost = android.widget.FrameLayout(context)
+            chartHost.addView(scatter, android.widget.FrameLayout.LayoutParams(-1, dp(210)))
+            pointsMode.setOnClickListener {
+                styleMode(pointsMode, true); styleMode(densityMode, false)
+                scatter.visibility = View.VISIBLE; densityView?.visibility = View.GONE
+                scatterLegend.visibility = View.VISIBLE; densityLegend.visibility = View.GONE
+            }
+            densityMode.setOnClickListener {
+                styleMode(pointsMode, false); styleMode(densityMode, true)
+                if (densityView == null) {
+                    val binWidth = (scale.span / 20).coerceAtLeast(1)
+                    val density = aggregateHistoryDensity(points, snapshot.start, snapshot.end, resolution, scale, binWidth)
+                    densityView = HistoryDensityChartView(context, density, scale, zone) { index ->
+                        val column = density.columns[index]
+                        androidx.appcompat.app.AlertDialog.Builder(context).setTitle("$title · Zeitfenster")
+                            .setMessage(HistoryDensityDetail.describe(column, points, unit, zone, index == density.columns.lastIndex))
+                            .setPositiveButton("Schließen", null).show()
+                    }
+                    chartHost.addView(densityView, android.widget.FrameLayout.LayoutParams(-1, dp(210)))
+                }
+                scatter.visibility = View.GONE; densityView?.visibility = View.VISIBLE
+                scatterLegend.visibility = View.GONE; densityLegend.visibility = View.VISIBLE
+            }
+            card.addView(modes, LayoutParams(-1, -2).apply { topMargin = dp(4) })
+            card.addView(chartHost, LayoutParams(-1, -2))
+            card.addView(scatterLegend, LayoutParams(-1, -2).apply { topMargin = dp(8) })
+            card.addView(densityLegend, LayoutParams(-1, -2).apply { topMargin = dp(8) })
         }
-        // Plain explanatory copy belongs to each chart, not in button-like chips above the plots.
-        // The plot renders a filled median point, an optional mean ring, and a min–max whisker.
-        card.addView(label(
-            "Zeitachse: Telefonzeit · Punkt: Median · Ring: Mittelwert (bei mehreren Werten) · Linie: Min–Max · Lücken: keine Messdaten",
-            11f, palette.muted
-        ).apply {
-            tag = "history_chart_legend"
-            importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_YES
-        }, LayoutParams(-1, -2).apply { topMargin = dp(8) })
         addView(card, LayoutParams(-1, -2).apply { bottomMargin = dp(12) })
     }
 
