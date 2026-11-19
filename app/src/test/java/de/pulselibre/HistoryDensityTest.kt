@@ -2,6 +2,7 @@ package de.pulselibre
 
 import java.time.Instant
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -72,8 +73,10 @@ class HistoryDensityTest {
         assertEquals(1, column.bins[1].count) // 62
         assertEquals(2, column.bins.last().count) // 99, inclusive axis maximum 100
         assertEquals(60, column.bins.first().lowerInclusive)
-        assertEquals(62, column.bins.first().upperInclusive)
-        assertEquals(100, column.bins.last().upperInclusive)
+        assertEquals(62, column.bins.first().upperBound)
+        assertFalse(column.bins.first().upperBoundInclusive)
+        assertEquals(100, column.bins.last().upperBound)
+        assertTrue(column.bins.last().upperBoundInclusive)
     }
 
     @Test fun sampleAtRangeEndFallsIntoFinalSlot() {

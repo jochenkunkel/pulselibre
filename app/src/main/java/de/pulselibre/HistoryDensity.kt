@@ -17,7 +17,8 @@ import java.time.Instant
  */
 data class HistoryDensityBin(
     val lowerInclusive: Int,
-    val upperInclusive: Int,
+    val upperBound: Int,
+    val upperBoundInclusive: Boolean,
     val count: Int,
     val probability: Double,
     val intensity: Double
@@ -114,7 +115,8 @@ fun aggregateHistoryDensity(
             val probability = if (samples == 0) 0.0 else count.toDouble() / samples
             HistoryDensityBin(
                 lowerInclusive = lower.toInt(),
-                upperInclusive = upper.toInt(),
+                upperBound = upper.toInt(),
+                upperBoundInclusive = bin == binCount - 1,
                 count = count,
                 probability = probability,
                 intensity = if (reference == 0.0) 0.0 else (probability / reference).coerceIn(0.0, 1.0)
