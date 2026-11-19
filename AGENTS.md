@@ -9,6 +9,15 @@ Diese Datei gilt repositoryweit. **GitHub ist die verbindliche, versionierte Wis
 - **Gemeinsame Dateien** (`AGENTS.md`, `README.md`, `docs/PROJECT_STATUS.md`, `docs/CHAT_START_HERE.md`, CI/Gradle, Datenbankschema): vor Änderungen koordinieren, eigene Branches/Worktrees verwenden und Konflikte nicht blind überschreiben. Codex soll keine BLE-Protokolländerungen vornehmen; ChatGPT soll keine Dashboard-/Wissenschaftsänderungen vornehmen, solange diese Aufteilung gilt.
 - Codex arbeitet nicht allein durch diesen Eintrag automatisch: Auftrag in der Codex-Sitzung starten. Die Zuständigkeit ist eine Arbeitsvereinbarung, kein Nachweis einer laufenden Agenten-Ausführung.
 
+## Abstimmung zwischen Agenten über das Repository (verbindlich ab 2026-11-19)
+
+- **Agenten stimmen sich über `docs/collaboration/agent-sync/` ab, nicht über Chat-Texte, die der Nutzer weiterreicht.** Vor jeder Arbeit `INDEX.md` und alle offenen Nachrichten lesen; Nachrichten als neue Datei `YYYY-MM-DD_HHMM_<von>-an-<an>_<thema>.md` schreiben, in `INDEX.md` eintragen, Status pflegen. Format und Regeln: `docs/collaboration/agent-sync/README.md`.
+- **Aktuelle Zuständigkeiten (2026-11-19):** Claude Code – Android-GUI, Icons, Dashboard, Navigation, UI-Tests, UI-Status. OpenCode – BLE/GFDI/FIT/Protokoll, Datenbank/Backfill, Gerätemetadaten-Decoder. Fremde Bereiche nur nach vorheriger Nachricht ändern.
+- **Ein Bearbeiter pro Problem:** Wer eine rote `main`, einen Dependabot-Sprung oder eine Querschnittsänderung angeht, kündigt das vorher per Nachricht an („ich übernehme X“); andere Agenten arbeiten dann nicht parallel am selben Fix.
+- **Merge nur nach grünem, geprüftem vollem Android-CI-Lauf (inkl. Emulator)** auf dem Branch-Head und anschließendem vollem Lauf auf `main`. Das Ergebnis des Laufs wird gelesen, bevor gemergt wird; ein Merge-Befehl wird nie an das bloße Ende eines Laufs gekoppelt.
+- **Instrumentationstests laufen nie auf dem S25** (sie überschreiben/löschen Profil- und Einstellungswerte); nur Emulator/GitHub-CI, bei mehreren Geräten `ANDROID_SERIAL` setzen.
+- **Dependabot-Sprünge** (AGP, Gradle, Kotlin, compileSdk, AndroidX-Majors) nie ohne eigenen vollen Lauf mergen; sie gehören in ein eigenes Migrationsticket (z. B. #155).
+
 ## Einstieg vor jeder Arbeit
 
 1. `git status`, aktuellen Branch, `git fetch origin` und neuesten `origin/main` prüfen; lokale Änderungen nicht überschreiben.

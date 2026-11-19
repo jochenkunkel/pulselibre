@@ -12,6 +12,8 @@ Hier finden Entwickler, Codex und andere Agenten die **Arbeitsvereinbarungen, Qu
 - [Wissenschaftliche Engineering-Standards](../ENGINEERING_SCIENTIFIC_STANDARDS.md): Regeln für wissenschaftliche Funktionen.
 - [Codex-Dokumentationsprüfung](../CODEX_DOCUMENTATION_REVIEW_2026-11-17.md): historischer Prüfbericht, keine automatisch aktuelle Freigabe.
 
+- [Agenten-Abstimmung über das Repository](agent-sync/README.md): Nachrichten zwischen Agenten, Index und Regeln (verbindlich ab 2026-11-19).
+
 ## Zusammenarbeit
 1. GitHub ist die dauerhafte Quelle für Quellcode, Entscheidungen und Dokumentation.
 2. Vor Änderungen relevante Dokumente und Code prüfen; keine widersprüchlichen Parallelimplementierungen.
