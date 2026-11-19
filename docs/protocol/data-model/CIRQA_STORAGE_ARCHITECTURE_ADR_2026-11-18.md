@@ -343,8 +343,20 @@ not a valid backup procedure.
 
 The diagrams and target/migration decision are architecture artifacts. The
 historical DB and canonical DB have normalized FIT tables; new FIT writes and
-backup v4 target/preserve canonical rows and whitelisted device metadata with
-v1–v3 restore support. The historical DB remains as a rollback source.
-Dashboard readers, re-backfilling existing FIT files for metadata recovery,
-physical retirement of the old store, XML/raw metadata decoding, file-byte
-backup/restore, and a broad populated-device migration rehearsal remain open.
+backup target/preserve canonical rows and whitelisted metadata. The historical
+DB remains as a rollback source. Dashboard readers, re-backfilling existing FIT
+files for metadata recovery, physical retirement of the old store, opaque
+protobuf decoding, file-byte backup/restore, and a broad populated-device
+migration rehearsal remain open.
+
+## Implementation addendum (19.11.2026)
+
+Schema v5 and backup v5 add a one-row-per-content-hash `raw_device_metadata`
+index for verified `Device` XML. It persists only file size, local verification
+time, parser version, bounded `SoftwareVersion` text, nullable
+`MassStorageMode` boolean and `TransferDirection` count. Paths, names,
+identifiers and opaque protobuf bytes are excluded. The raw original remains in
+the private content-addressed file store and is not embedded in backups.
+Restore supports v1–v4 without this entry; v5 validates and restores it
+atomically. No existing private raw sample was replayed into the app database,
+and no hardware test was run.

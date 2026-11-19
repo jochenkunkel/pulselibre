@@ -49,6 +49,28 @@ class CirqaStorageMigrationTest {
         }
     }
 
+    @Test fun canonicalSchemaV4UpgradeAddsRawMetadataIndexWithoutChangingExistingRows() {
+        val base = ApplicationProvider.getApplicationContext<Context>()
+        val root = Files.createTempDirectory(base.cacheDir.toPath(), "cirqa-schema-v5-upgrade-").toFile()
+        val context = isolatedContext(base, root)
+        val event = """{"schema":1,"type":"reading","received_at_utc":"2026-11-18T08:00:00Z","service":6,"bpm":70}"""
+        try {
+            CirqaDatabase(context).use { database ->
+                assertTrue(database.insertLine(event))
+                val db = database.writableDatabase
+                db.execSQL("DROP TABLE raw_device_metadata")
+                db.version = 4
+            }
+            CirqaDatabase(context).use { database ->
+                assertEquals(listOf(event), database.allLines())
+                assertTrue(database.rawDeviceMetadata().isEmpty())
+                assertEquals(5, database.writableDatabase.version)
+            }
+        } finally {
+            root.deleteRecursively()
+        }
+    }
+
     @Test fun canonicalSchemaV2UpgradePreservesEventsAndAddsNormalizedTables() {
         val base = ApplicationProvider.getApplicationContext<Context>()
         val root = Files.createTempDirectory(base.cacheDir.toPath(), "cirqa-schema-upgrade-").toFile()

@@ -2457,8 +2457,29 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                 return "len=${data.size};expected=${item.dataSize};type=$label;sha256=$sha;" +
                     "privateRawSaveFailed=${e.javaClass.simpleName}"
             }
+            val metadata = CirqaRawDeviceMetadataParser.inspect(data)
+            val metadataIndex = if (metadata == null) {
+                "metadata=notDeviceXml"
+            } else {
+                try {
+                    CirqaDatabase(context).use { store ->
+                        store.storeRawDeviceMetadata(RawDeviceMetadataRecord(
+                            sourceSha256 = saved.sha256,
+                            fileBytes = data.size.toLong(),
+                            verifiedAtEpochMillis = System.currentTimeMillis(),
+                            parserVersion = CirqaRawDeviceMetadataParser.VERSION,
+                            softwareVersion = metadata.softwareVersion,
+                            massStorageMode = metadata.massStorageMode,
+                            transferDirectionElementCount = metadata.transferDirectionElementCount
+                        ))
+                    }
+                    "metadata=indexed"
+                } catch (e: Exception) {
+                    "metadataIndexFailed=${e.javaClass.simpleName}"
+                }
+            }
             return "len=${data.size};expected=${item.dataSize};type=$label;exactSize=true;" +
-                "sha256=$sha;privateRaw=${if (saved.alreadyPresent) "ALREADY_PRESENT" else "CREATED"}"
+                "sha256=$sha;privateRaw=${if (saved.alreadyPresent) "ALREADY_PRESENT" else "CREATED"};$metadataIndex"
         }
         if (FitFileHeader.inspectVerified(data) == null) {
             return "len=${data.size};expected=${item.dataSize};type=$label;magic=$magic;" +

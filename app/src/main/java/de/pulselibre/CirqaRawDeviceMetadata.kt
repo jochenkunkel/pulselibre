@@ -7,8 +7,21 @@ import java.io.ByteArrayInputStream
 import javax.xml.XMLConstants
 import javax.xml.parsers.SAXParserFactory
 
+/** Whitelisted metadata derived from one verified raw XML original. */
+data class RawDeviceMetadataRecord(
+    val sourceSha256: String,
+    val fileBytes: Long,
+    /** Local processing time; this is not a device-observed timestamp. */
+    val verifiedAtEpochMillis: Long,
+    val parserVersion: String,
+    val softwareVersion: String?,
+    val massStorageMode: Boolean?,
+    val transferDirectionElementCount: Int
+)
+
 /** Extracts only non-identifying XML metadata; file names, paths and identifiers are ignored. */
 internal object CirqaRawDeviceMetadataParser {
+    const val VERSION = "1"
     private const val MAX_TEXT_LENGTH = 128
     private const val MAX_TRANSFER_DIRECTIONS = 10_000
 

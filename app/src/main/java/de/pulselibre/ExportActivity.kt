@@ -60,8 +60,9 @@ class ExportActivity : AppCompatActivity() {
                             "${report.canonicalReadings} kanonische Messwerte, " +
                             "${report.canonicalFitSources} kanonische FIT-Quellen/" +
                             "${report.canonicalFitProvenance} Herkunftszeilen und " +
-                            "${report.canonicalDeviceMetadata} FIT-Metadatenzeilen. " +
-                            "FIT-Originaldateien sind nicht enthalten."
+                            "${report.canonicalDeviceMetadata} FIT-Metadatenzeilen, " +
+                            "${report.rawDeviceMetadata} abgeleitete Raw-XML-Metadatenzeilen. " +
+                            "Originaldateien sind nicht enthalten; keine Pfade oder XML-IDs werden gespeichert."
                     }
                 } catch (_: Exception) {
                     runOnUiThread { databaseFeedback.text = "Backup fehlgeschlagen. Bitte Speicherort prüfen." }
@@ -310,8 +311,9 @@ class ExportActivity : AppCompatActivity() {
                     "${plan.canonicalReadings} kanonische Messwerte und " +
                     "${plan.canonicalFitSources} kanonische FIT-Quellen/" +
                     "${plan.canonicalFitProvenance} Herkunftszeilen sowie " +
-                    "${plan.canonicalDeviceMetadata} FIT-Metadatenzeilen. " +
-                    "FIT-Originaldateien sind nicht enthalten.\n\n" +
+                    "${plan.canonicalDeviceMetadata} FIT-Metadatenzeilen und " +
+                    "${plan.rawDeviceMetadata} abgeleitete Raw-XML-Metadatenzeilen. " +
+                    "Originaldateien sind nicht enthalten; Pfade und XML-IDs werden nicht gesichert.\n\n" +
                     "Alle aktuell gespeicherten Datenbankeinträge werden ersetzt. " +
                     "App-Einstellungen bleiben erhalten. Nur mit einem Backup aus vertrauenswürdiger Quelle fortfahren."
             )

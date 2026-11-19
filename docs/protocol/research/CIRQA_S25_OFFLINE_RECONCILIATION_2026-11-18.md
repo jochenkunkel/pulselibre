@@ -76,11 +76,11 @@ classification and field-presence/count results. Values were not printed or
 copied into repository documentation.
 
 These remain snapshot-derived structural observations, not current device
-state. Raw metadata is deliberately not persisted in the application database
-or backup yet: the existing raw-file storage has no privacy-reviewed metadata
-record contract, and raw identifiers/paths must not enter persistence. Adding
-such persistence needs an explicit whitelist schema, retention/linkage and
-backup/restore review. Existing BLE/GFDI evidence is limited to protocol
+state. Schema v5 now persists only this explicit XML whitelist, keyed by
+content hash and accompanied by local verification time/parser version; it
+stores no filename, path, XML identifier or unvalidated field. Backup v5
+includes these derived fields without embedding source bytes. Opaque Raw
+protobuf remains uninterpreted and unstored. Existing BLE/GFDI evidence is limited to protocol
 structure and statuses documented in the dated experiment reports; no
 read-only live metadata query is established. No additional device request was
 made.
@@ -116,9 +116,11 @@ The S25 database checks establish the observed stored data only. They do not
 prove that 33 transferred files exhaust the CIRQA archive. Supported-key
 reconciliation does not establish semantic value parity for every FIT field;
 unsupported and unknown fields remain inventory-only. Battery metadata is not
-available from these FIT `device_info` records. Schema v4 now provides
-privacy-filtered timestamped storage for a FIT `device_info` whitelist. The
-verified originals were replayed into a disposable database to validate
-extraction and idempotency; the user's existing database was not modified.
-Opaque protobuf metadata remains undecoded and unstored; XML extraction is
-limited to the three whitelisted fields above, which are not persisted.
+available from these FIT `device_info` records. Schema v4 provides
+privacy-filtered timestamped FIT `device_info` storage; schema v5 adds the
+three-field XML whitelist from verified raw files. The verified FIT originals
+were replayed into a disposable database to validate extraction and
+idempotency; the user's existing database was not modified. XML metadata
+storage is implemented for future verified raw imports, but the historical
+private XML sample was not replayed into the application database. Opaque
+protobuf metadata remains undecoded and unstored.
