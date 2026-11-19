@@ -19,12 +19,12 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-java@v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6
         with:
           distribution: temurin
           java-version: '21'
-      - uses: gradle/actions/setup-gradle@v6
+      - uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6
         with:
           gradle-version: '8.13'
       - name: Restore stable APK signing key
@@ -47,7 +47,7 @@ jobs:
         run: python3 -m unittest discover -s tools -p 'test_*.py' -v
       # The manual quick gate compiles the app and runs JVM unit tests.
       - name: Build and unit tests
-        run: gradle :app:testDebugUnitTest :app:assembleDebug -PpulselibreVersionCode=${{ github.run_number }} --stacktrace
+        run: bash .github/scripts/gradle-retry.sh :app:testDebugUnitTest :app:assembleDebug :app:createDebugUnitTestCoverageReport -PpulselibreVersionCode=${{ github.run_number }} --stacktrace
       - name: Print non-secret APK update diagnostics
         run: |
           echo "Package: de.pulselibre"
@@ -62,10 +62,20 @@ jobs:
           fi
       - name: Full lint and instrumentation test APK
         if: inputs.full_tests
-        run: gradle :app:lintDebug :app:assembleDebugAndroidTest --stacktrace
+        run: bash .github/scripts/gradle-retry.sh :app:lintDebug :app:assembleDebugAndroidTest --stacktrace
+      - name: Upload JVM JaCoCo coverage report
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: pulselibre-jvm-jacoco
+          path: |
+            app/build/reports/jacoco/
+            app/build/outputs/unit_test_code_coverage/
+          if-no-files-found: warn
+          retention-days: 7
       - name: Upload diagnostic reports on failure
         if: failure()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: pulselibre-build-diagnostics
           path: |
@@ -73,7 +83,7 @@ jobs:
             app/build/test-results/
           if-no-files-found: ignore
           retention-days: 7
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         if: success() && env.APK_SIGNING_READY == 'true'
         with:
           name: pulselibre-signed-update-apk
@@ -88,20 +98,32 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-java@v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6
         with:
           distribution: temurin
           java-version: '21'
-      - uses: gradle/actions/setup-gradle@v6
+      - uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6
         with:
           gradle-version: '8.13'
       - name: Enable KVM
         run: sudo chmod 666 /dev/kvm
       - name: Emulator instrumentation tests
-        uses: reactivecircus/android-emulator-runner@v2
+        uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2
         with:
           api-level: 35
           arch: x86_64
           profile: pixel_6
-          script: gradle :app:connectedDebugAndroidTest --stacktrace
+          script: bash .github/scripts/gradle-retry.sh :app:connectedDebugAndroidTest --stacktrace
+      - name: Upload instrumentation coverage and reports
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: pulselibre-instrumentation-coverage
+          path: |
+            app/build/outputs/code_coverage/
+            app/build/reports/coverage/
+            app/build/reports/androidTests/
+            app/build/outputs/androidTest-results/
+          if-no-files-found: warn
+          retention-days: 7
