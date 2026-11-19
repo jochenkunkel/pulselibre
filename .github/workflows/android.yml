@@ -1,6 +1,10 @@
 name: Android CI
-run-name: "Android CI · ${{ github.ref_name }} · ${{ inputs.full_tests && 'voll (mit Emulator)' || 'schnell (Build + Unit-Tests)' }}"
+run-name: "Android CI · ${{ github.ref_name }} · ${{ github.event_name != 'workflow_dispatch' || inputs.full_tests && 'voll (mit Emulator)' || 'schnell (Build + Unit-Tests)' }}"
 on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
   workflow_dispatch:
     inputs:
       full_tests:
@@ -28,6 +32,7 @@ jobs:
         with:
           gradle-version: '8.13'
       - name: Restore stable APK signing key
+        if: github.event_name != 'pull_request'
         env:
           SIGNING_KEY_B64: ${{ secrets.PULSELIBRE_SIGNING_KEY_B64 }}
           SIGNING_STORE_PASSWORD: ${{ secrets.PULSELIBRE_SIGNING_STORE_PASSWORD }}
@@ -45,7 +50,7 @@ jobs:
           fi
       - name: Python offline HCI validator regression tests
         run: python3 -m unittest discover -s tools -p 'test_*.py' -v
-      # The manual quick gate compiles the app and runs JVM unit tests.
+      # PRs and main pushes run the full gate; manual dispatch defaults to quick.
       - name: Build and unit tests
         run: bash .github/scripts/gradle-retry.sh :app:testDebugUnitTest :app:assembleDebug :app:createDebugUnitTestCoverageReport -PpulselibreVersionCode=${{ github.run_number }} --stacktrace
       - name: Print non-secret APK update diagnostics
@@ -61,7 +66,7 @@ jobs:
             echo "APK_SIGNING_READY=false" >> "$GITHUB_ENV"
           fi
       - name: Full lint and instrumentation test APK
-        if: inputs.full_tests
+        if: github.event_name != 'workflow_dispatch' || inputs.full_tests
         run: bash .github/scripts/gradle-retry.sh :app:lintDebug :app:assembleDebugAndroidTest --stacktrace
       - name: Upload JVM JaCoCo coverage report
         if: always()
@@ -91,7 +96,7 @@ jobs:
           retention-days: 7
   emulator:
     name: "Emulator-Instrumentationstests (API 35)"
-    if: inputs.full_tests
+    if: github.event_name != 'workflow_dispatch' || inputs.full_tests
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 40
