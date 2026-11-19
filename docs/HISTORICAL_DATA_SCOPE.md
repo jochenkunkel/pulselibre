@@ -16,17 +16,25 @@ Das umfasst grundsätzlich sämtliche vom Gerät angebotenen Dateien, Datensätz
 6. Keine löschenden oder verändernden Gerätebefehle verwenden (insbesondere kein FileSetFlags, kein Reset und kein CLOSE_ALL ohne separate Verifikation und Freigabe).
 7. Keine Behauptung vollständiger historischer Datenabdeckung, bevor Dateiliste, Paginierung und alle zugänglichen Dateien am CIRQA nachweislich geprüft wurden.
 
-## Aktueller Stand (2026-11-18, V25 – nachgewiesen)
+## Aktueller Stand (2026-11-19, V26 – nachgewiesen)
 
 - Der Connect-kompatible read-only Sync ist am echten CIRQA bestätigt: `sync_request` → `sync_response` → Item-Liste → Pull → MLR-Datenübertragung.
-- V24 und V25 haben jeweils **33/33 gelistete Dateien vollständig** übertragen (146.293 Byte); privat gespeichert sind **31 FIT-Dateien (126.089 Byte)** und **2 Nicht-FIT-Rohdateien (20.204 Byte)**.
-- **31/31 FIT-Dateien** bestanden unabhängige Prüfungen von Magic, Länge, Header-/Datei-CRC-16 und SHA-256/Dateiname.
-- SQLite nach V25: `integrity_check=ok`, **294 Beobachtungen** (`heart_rate=129`, `distance=129`, `speed=36`), keine doppelten Primärschlüssel. Die Wiederholung war idempotent.
-- **Pagination korrigiert:** Nur eine vorhandene `session_id` setzt dieselbe Liste fort; `next_transaction_id` ist hier **kein** Seiten-Cursor. V25 endete nach einer Seite mit 33 Einträgen.
-- **Nicht nachgewiesen:** Dass die 33 Einträge die gesamte historische Datenmenge abdecken; dass alle enthaltenen FIT-Felder bereits ausgewertet werden; dass Schlaf-Score/Schlafphasen aus dem Gerät stammen.
-- **Keine weiteren Gerätesitzungen freigegeben:** V24/V25-Einmal-Gates sind verbraucht. Keine Lösch-/Archiv-/Reset-/Flag-/`CLOSE_ALL`-Operationen.
+- V24/V25 übertrugen jeweils **33/33 gelistete Dateien**. V26 übertrug **42 gelistete Dateien**: 40 FIT und 2 Nicht-FIT, insgesamt 218.951 Byte.
+- V26-FIT-Dateien bestanden lokale Hüllen-/CRC-Prüfungen; SHA-256 dient der privaten content-addressed Ablage. Die beiden Nicht-FIT-Dateien wurden nicht semantisch interpretiert.
+- Die kanonische SQLite-Datenbank hatte nach V26 `integrity_check=ok` und weiterhin **294 normalisierte Beobachtungen** (`heart_rate=129`, `distance=129`, `speed=36`); der wiederholte Import führte zu keinen Duplikaten.
+- **Pagination ungeklärt:** V25 endete nach einer Seite mit 33 Einträgen. In V26 blieb die begrenzte Listenseite ebenfalls eine Vollständigkeitslücke. Ein FIT aus dem V24/V25-Archiv wurde in V26 nicht beobachtet; zehn FIT-Inhalte und eine Rohdatei waren neu gegenüber dem vorherigen privaten Archiv.
+- **Nicht nachgewiesen:** Dass eine der beobachteten Listen die gesamte historische Datenmenge abdeckt; dass alle FIT-Felder ausgewertet werden; dass Schlaf-Score/Schlafphasen aus dem Gerät stammen.
+- **Keine weitere Gerätesitzung oder Gate-Änderung autorisiert:** V24/V25-Einmal-Gates bleiben verbraucht. Keine Lösch-/Archiv-/Reset-/Flag-/`CLOSE_ALL`-Operationen.
 
-Belege: [V24](protocol/device-tests/CIRQA_SYNC_V24_DEVICE_RESULT_2026-11-18.md), [V25](protocol/device-tests/CIRQA_SYNC_V25_DEVICE_RESULT_2026-11-18.md), [Forschungsstand](protocol/research/CIRQA_HISTORICAL_RESEARCH_STATUS_2026-11-18.md).
+### Produktintegration und Inkrementalität
+
+- V26 übertrug in einem ausdrücklich gestarteten Testlauf 42 gelistete Dateien (40 FIT, 2 Nicht-FIT; 218.951 Byte). 10 FIT-Inhalte und eine Rohdatei waren neu gegenüber dem privaten V24/V25-Archiv; ein früheres FIT wurde in der V26-Liste nicht beobachtet. Das Ergebnis belegt weiterhin keine vollständige Gerätehistorie.
+- Der tatsächlich bewiesene Dateiabruf läuft über den Testlaborpfad `startSyncRequestTest`; er wird nicht beim App-Start oder im Hintergrund automatisch ausgeführt.
+- Lokale SHA-256-Speicherung und FIT/SQLite-Reimport sind inhaltsbasiert und idempotent. **Das ist kein inkrementeller Funkabruf:** die SHA-256 ist erst nach dem Pull bekannt.
+- Für einen sicheren Skip vor dem Pull fehlen belegte Semantiken zur Stabilität und Wiederverwendung der File-UIDs zwischen Listungen bzw. nach Geräte-Retention/Dateiersetzung. Daher darf der Produktivpfad aktuell nicht anhand einer ungeprüften UID/Größe/Dateityp-Kombination Dateien überspringen.
+- Kein automatischer Hintergrundabruf, dauerhafter UID-zu-Importstatus, reconnect/resume-Checkpoint oder vollständiger List-Paging-Nachweis ist implementiert. Die dafür nötige Identitäts-/Delta-Forschung bleibt in [#148](https://github.com/jochenkunkel/pulselibre/issues/148), die Pipeline-Härtung in [#149](https://github.com/jochenkunkel/pulselibre/issues/149).
+
+Belege: [V24](protocol/device-tests/CIRQA_SYNC_V24_DEVICE_RESULT_2026-11-18.md), [V25](protocol/device-tests/CIRQA_SYNC_V25_DEVICE_RESULT_2026-11-18.md), [V26](protocol/device-tests/CIRQA_SYNC_V26_DEVICE_RESULT_2026-11-19.md), [Forschungsstand](protocol/research/CIRQA_HISTORICAL_RESEARCH_STATUS_2026-11-18.md).
 
 ## Feldinventur und Erkenntnisstufen
 
