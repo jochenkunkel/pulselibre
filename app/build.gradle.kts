@@ -23,16 +23,26 @@ android {
     if (!ciStore.isNullOrBlank() && !ciStorePassword.isNullOrBlank() &&
         !ciKeyAlias.isNullOrBlank() && !ciKeyPassword.isNullOrBlank()) {
         signingConfigs {
-            create("stableCiDebug") {
+            create("stableCi") {
                 storeFile = file(ciStore)
                 storePassword = ciStorePassword
                 keyAlias = ciKeyAlias
                 keyPassword = ciKeyPassword
             }
         }
-        buildTypes.getByName("debug").signingConfig = signingConfigs.getByName("stableCiDebug")
+        buildTypes.getByName("debug").signingConfig = signingConfigs.getByName("stableCi")
+        buildTypes.getByName("release").signingConfig = signingConfigs.getByName("stableCi")
     }
-    buildTypes { getByName("debug") { enableUnitTestCoverage = true; enableAndroidTestCoverage = true } }
+    buildTypes {
+        getByName("debug") { enableUnitTestCoverage = true; enableAndroidTestCoverage = true }
+        getByName("release") {
+            isDebuggable = false
+            isMinifyEnabled = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt")
+            )
+        }
+    }
     compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
 }
 kotlin {

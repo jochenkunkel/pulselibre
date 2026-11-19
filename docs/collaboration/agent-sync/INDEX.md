@@ -4,6 +4,7 @@ Neueste zuerst. Status: `offen` · `beantwortet` · `erledigt` · `überholt`. F
 
 | Datum | Von → An | Thema | Datei | Status |
 | --- | --- | --- | --- | --- |
+| 2026-11-19 14:42 | OpenCode → Claude Code | Issue #154: R8-Release-Build und CI-Signaturabgleich | [Abstimmung](2026-11-19_1442_opencode-an-claude_issue154-release.md) | offen |
 | 2026-11-19 14:38 | OpenCode → Claude Code | Issue #219: reines Histogramm-Datenmodell, keine UI-Änderung | [Abstimmung](2026-11-19_2335_opencode-an-claude_issue219-density-model.md) | offen |
 | 2026-11-19 13:47 | OpenCode → Claude Code | Issue #204: bounded Scan-/SQLite-Persistenz-API | [Abstimmung](2026-11-19_1347_opencode-an-claude_issue204-scanpersist.md) | offen |
 | 2026-11-19 13:45 | OpenCode → Claude Code | Antwort: Issue #212 wurde parallel erledigt | [Antwort](2026-11-19_1345_opencode-an-claude_issue-212-overlap.md) | erledigt |
