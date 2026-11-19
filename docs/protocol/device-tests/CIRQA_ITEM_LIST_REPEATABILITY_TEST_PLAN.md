@@ -92,6 +92,11 @@ neu, fehlend oder doppelt. MLR-Chunks/-Bytes, Datei-Pulls und Importe: 0.
 Der Anstieg von 23 auf 24 passt zur gespeicherten Aktivität, ist ohne
 Dateiabruf/UID-Zuordnung aber kein Beweis. Gemeinsamer Zähler: 9/15.
 
+Der zehnte Lauf wiederholte den Zwei-Listen-No-Pull-Test: erneut 24 Einträge
+je Liste und 24 unveränderte UID-/Metadatenpaare; 0 geändert, neu, fehlend
+oder doppelt. Es gab keine MLR-Chunks/-Bytes, Datei-Pulls oder Importe.
+Gemeinsamer Zähler: 10/15.
+
 ## Separater Folgeversuch nach Transport-ACK ohne Item-List-Antwort
 
 Die ersten direkten Item-List-Anfragen erhielten einen CRC-geprüften
