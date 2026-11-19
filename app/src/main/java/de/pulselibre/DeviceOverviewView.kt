@@ -21,8 +21,12 @@ internal class DeviceOverviewView(context: Context) : LinearLayout(context) {
     private var link: CirqaLinkStatus.Result? = null
     private var stats: DeviceStats? = null
     private var recorderRunning = false
+    private var battery: BatteryReading? = null
 
     init { orientation = VERTICAL; tag = "device_overview"; render() }
+
+    /** Stored band battery (#159); null keeps the honest "Nicht verfügbar". */
+    fun showBattery(reading: BatteryReading?) { if (battery != reading) { battery = reading; render() } }
 
     fun update(link: CirqaLinkStatus.Result, running: Boolean) {
         val changed = this.link?.kind != link.kind || this.link?.online != link.online || recorderRunning != running
@@ -126,10 +130,23 @@ internal class DeviceOverviewView(context: Context) : LinearLayout(context) {
             LayoutParams(-1, -2).apply { topMargin = dp(2) })
         listOf(PlIcon.BATTERY to "Akku", PlIcon.FIRMWARE to "Firmware", PlIcon.BAND_TIME to "Uhrzeit des Bands", PlIcon.IDENTITY to "Modell / Seriennummer").forEach { (icon, name) ->
             val row = LinearLayout(context).apply { orientation = HORIZONTAL; gravity = Gravity.CENTER_VERTICAL; minimumHeight = dp(34) }
-            row.addView(PlIcon.view(context, icon, 22).apply { alpha = 0.55f }, LayoutParams(dp(28), dp(22)))
+            val reading = if (icon == PlIcon.BATTERY) battery else null
+            row.addView(PlIcon.view(context, icon, 22).apply { alpha = if (reading != null) 1f else 0.55f }, LayoutParams(dp(28), dp(22)))
             row.addView(label(name, 13f, palette.ink), LayoutParams(0, -2, 1f))
-            row.addView(label("Nicht verfügbar", 12f, palette.muted))
-            row.contentDescription = "$name: nicht verfügbar; bisher kein bestätigter Gerätewert"
+            if (reading != null) {
+                val view = DeviceBatteryFormat.describe(reading, System.currentTimeMillis())
+                val column = LinearLayout(context).apply { orientation = VERTICAL; gravity = Gravity.END }
+                column.addView(label(view.valueText, 14f, palette.ink, true))
+                column.addView(DeviceBatteryBar(context, reading.percent,
+                    DeviceBatteryFormat.levelColor(reading.percent, palette.dark), palette.track), LayoutParams(dp(120), dp(8)).apply { topMargin = dp(4); gravity = Gravity.END })
+                column.addView(label(view.freshness, 11f, if (view.stale) palette.muted else palette.ink), LayoutParams(-2, -2).apply { topMargin = dp(3) })
+                row.addView(column)
+                row.contentDescription = view.description
+                row.tag = "device_battery_row"
+            } else {
+                row.addView(label("Nicht verfügbar", 12f, palette.muted))
+                row.contentDescription = "$name: nicht verfügbar; bisher kein bestätigter Gerätewert"
+            }
             meta.addView(row, LayoutParams(-1, -2).apply { topMargin = dp(4) })
         }
         addView(meta, LayoutParams(-1, -2).apply { bottomMargin = dp(12) })
