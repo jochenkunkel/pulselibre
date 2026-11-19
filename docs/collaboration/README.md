@@ -12,6 +12,8 @@ Hier finden Entwickler, die Haupt-IDE VSCodium/Codium (mit alternativem Claude-C
 - [Wissenschaftliche Engineering-Standards](../ENGINEERING_SCIENTIFIC_STANDARDS.md): Regeln für wissenschaftliche Funktionen.
 - [Codex-Dokumentationsprüfung](../CODEX_DOCUMENTATION_REVIEW_2026-11-17.md): historischer Prüfbericht, keine automatisch aktuelle Freigabe.
 
+- [Agenten-Abstimmung über das Repository](agent-sync/README.md): Nachrichten zwischen Agenten, Index und Regeln (verbindlich ab 2026-11-19).
+
 ## Zusammenarbeit
 
 **Namensregel:** „Codium“, „VSCodium“, „Claude Code“ und „Codex“ können im Projekt dieselbe Haupt-IDE bezeichnen. Claude Code und Codex sind alternative API-Zugänge, **nicht zwei gleichzeitig aktive IDE-Agenten**. Für technische Test-/Laufnachweise die tatsächlich verwendete API benennen. Maßgebliche aktuelle Zuständigkeiten: [AGENTS.md](../../AGENTS.md).

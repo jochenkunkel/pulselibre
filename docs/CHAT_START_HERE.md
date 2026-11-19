@@ -6,6 +6,8 @@
 
 > Diese Datei ist der **Copy-&-Paste-Einstiegspunkt für neue Chats und Entwicklungsagenten**. Sie bewahrt den im Repository dokumentierten Projektkontext, ersetzt aber weder den tatsächlichen aktuellen Git-Stand noch automatisch synchronisierte Chatverläufe. Vor jeder Änderung den aktuellen `main`-Stand und die Issues erneut lesen.
 
+> **Abstimmung zwischen Agenten (ab 19.11.2026):** Vor jeder Arbeit [docs/collaboration/agent-sync/INDEX.md](collaboration/agent-sync/INDEX.md) lesen; Absprachen laufen über dieses Verzeichnis, nicht über weitergereichte Chat-Texte (Regeln: [README](collaboration/agent-sync/README.md), [AGENTS.md](../AGENTS.md)).
+
 **Haupt-IDE-Einstieg (VSCodium/Codium, Claude Code oder Codex):** Zuerst [AGENTS.md](../AGENTS.md) lesen. Der aktuelle CIRQA-5050-Befund steht in [PROJECT_STATUS.md](PROJECT_STATUS.md), Abschnitt „Aktueller CIRQA- und Teamstatus (2026-11-17)“. Die nachstehenden älteren Commits, Issue-Prioritäten und Beispiele sind historische Einstiegshilfen und dürfen nicht als aktueller Git-Head interpretiert werden. Für ausdrücklich zur Prüfung bestellte Änderungen Branch + PR statt Direkt-Commit nach main verwenden.
 
 ## Willkommensauftrag für die Haupt-IDE VSCodium/Codium (aktualisiert 19.11.2026)
