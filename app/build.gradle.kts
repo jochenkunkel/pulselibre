@@ -31,13 +31,13 @@ android {
         }
         buildTypes.getByName("debug").signingConfig = signingConfigs.getByName("stableCiDebug")
     }
-    buildTypes { getByName("debug") { enableUnitTestCoverage = true } }
+    buildTypes { getByName("debug") { enableUnitTestCoverage = true; enableAndroidTestCoverage = true } }
     compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
     kotlinOptions { jvmTarget = "17" }
 }
 dependencies {
-    implementation("androidx.core:core-ktx:1.15.0")
-    implementation("androidx.appcompat:appcompat:1.7.0")
+    implementation("androidx.core:core-ktx:1.19.1")
+    implementation("androidx.appcompat:appcompat:1.8.0")
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test:core:1.6.1")
     androidTestImplementation("androidx.test:runner:1.6.2")
