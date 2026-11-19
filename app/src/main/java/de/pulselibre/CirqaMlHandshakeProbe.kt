@@ -57,6 +57,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private var dirReadSession: CirqaDirectoryReadV2Session? = null
     private var fileAccessListMode = false
     private var syncRequestMode = false
+    private var syncStopBeforePullMode = false
     private var syncAccepted = false
     private val syncFrameCounts = LinkedHashMap<Int, Int>()
     private var syncProtoShapes = ""
@@ -1005,6 +1006,15 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         syncPageNextTransactionId = page.nextTransactionId
         syncHasPaginationSession = page.sessionId != null
         syncHasNextTransactionId = page.nextTransactionId != null
+        if (syncStopBeforePullMode) {
+            syncItemSummary = "items=${page.items.size}; session=${page.sessionId != null}; " +
+                "nextTransaction=${page.nextTransactionId != null}"
+            finish(
+                "Item-List nach sync_request empfangen; sicherer Stopp vor Datei-Pulls.",
+                g
+            )
+            return
+        }
         syncGdxmlStrings.putAll(page.gdxmlStrings)
         val maxTotal = CirqaSyntheticDownloadLimits.MAX_TOTAL_BYTES
         var queuedNow = 0
@@ -1651,8 +1661,15 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
 
     /** One Connect-style 5043 sync_request after a fresh bootstrap. */
     @SuppressLint("MissingPermission")
-    fun startSyncRequestTest(userConfirmed: Boolean, result: (String) -> Unit) {
-        if (!CirqaSyncAttemptGate.RELEASED_FOR_DEVICE_TEST || !userConfirmed) {
+    fun startSyncRequestTest(
+        userConfirmed: Boolean,
+        stopBeforePull: Boolean = false,
+        result: (String) -> Unit
+    ) {
+        if ((!stopBeforePull && !CirqaSyncAttemptGate.RELEASED_FOR_DEVICE_TEST) ||
+            (stopBeforePull && !CirqaSyncItemListNoPullAttemptGate.RELEASED_FOR_DEVICE_TEST) ||
+            !userConfirmed
+        ) {
             result("Sync-Request gesperrt; keine Verbindung.")
             return
         }
@@ -1672,12 +1689,24 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             result("Sync-Request: Bluetooth aus, Ziel nicht eindeutig oder Sitzung belegt.")
             return
         }
-        val prefs = context.getSharedPreferences(CirqaSyncAttemptGate.PREFS_NAME, Context.MODE_PRIVATE)
-        if (!CirqaSyncAttemptGate.consume(prefs)) {
-            result("Sync-Request: Gate verbraucht oder Persistierung fehlgeschlagen.")
+        val prefs = if (stopBeforePull) {
+            context.getSharedPreferences(
+                CirqaSyncItemListNoPullAttemptGate.PREFS_NAME, Context.MODE_PRIVATE
+            )
+        } else {
+            context.getSharedPreferences(CirqaSyncAttemptGate.PREFS_NAME, Context.MODE_PRIVATE)
+        }
+        val consumed = if (stopBeforePull) {
+            CirqaSyncItemListNoPullAttemptGate.consume(prefs)
+        } else {
+            CirqaSyncAttemptGate.consume(prefs)
+        }
+        if (!consumed) {
+            result("Sync-Request: Versuchslimit verbraucht oder Persistierung fehlgeschlagen.")
             return
         }
         syncRequestMode = true
+        syncStopBeforePullMode = stopBeforePull
         syncAccepted = false
         syncProtoShapes = ""
         syncOtherLengths = ""
@@ -1716,6 +1745,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         start(false, result)
         if (!active) {
             syncRequestMode = false
+            syncStopBeforePullMode = false
             fileAccessListMode = false
             bootstrapAckMode = false
             configurationTestMode = false
@@ -1724,9 +1754,9 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             main.postDelayed({
                 if (active && fileAccessListMode) {
                     // finish() builds the single canonical report (including validation).
-                    finish("120-s-Zeitlimit; $fileAccessDiag", gatt)
+                    finish("${if (stopBeforePull) "40-s" else "120-s"}-Zeitlimit; $fileAccessDiag", gatt)
                 }
-            }, CirqaSyntheticDownloadLimits.MAX_SESSION_MILLIS)
+            }, if (stopBeforePull) 40_000L else CirqaSyntheticDownloadLimits.MAX_SESSION_MILLIS)
         }
     }
 
@@ -1940,6 +1970,11 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     // An item_list_response carries real, readable items. Parse it and
                     // request the first one; UIDs stay in memory and are never reported.
                     CirqaFileAccessItemListParser.parsePullResult(msg)?.let { pull ->
+                        if (syncStopBeforePullMode) {
+                            syncPullDiag = "unexpectedPullResponse=true; no MLR registration or file pull"
+                            finish("Unerwartete Pull-Antwort; vor MLR und Datei-Pull gestoppt.", g)
+                            return
+                        }
                         syncPullDiag = (syncPullDiag + "|result=${pull.resultCode},transport=${pull.transport}," +
                             "handle=${pull.transferHandle},path=${pull.hasFilePath}," +
                             "window=${pull.compressionWindow}]").take(1000)
@@ -1971,6 +2006,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     }
                     CirqaFileAccessItemListParser.parsePage(msg)?.let { page ->
                         appendSyncItemListPage(g, page)
+                        if (syncStopBeforePullMode) return
                     }
                     // Connect requests the pending file list only AFTER sync_response.
                     val handle = historyHandle
@@ -2698,6 +2734,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             itemListRepeatabilityMode = false
             itemListRepeatabilityFirstPage = null
             syncRequestMode = false
+            syncStopBeforePullMode = false
             syncAccepted = false
             syncFrameCounts.clear()
             syncProtoShapes = ""

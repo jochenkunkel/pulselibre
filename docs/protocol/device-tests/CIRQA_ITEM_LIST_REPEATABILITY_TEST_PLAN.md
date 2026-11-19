@@ -30,8 +30,9 @@ oder die Semantik der UIDs bei Retention/Dateiersetzung.
 - Ein GFDI-5000-Frame zu 5043 wird als Transport-ACK getrennt von einer
   FileAccess-5044-Antwort ausgewiesen. Ein ACK belegt allein keine Annahme der
   Item-List-Anfrage durch die Geräteanwendung.
-- Das persistente Lab-Gate erlaubt höchstens 15 ausdrücklich bestätigte Läufe
-  und wird vor jeder Verbindung atomar fortgeschrieben. Fehlversuche verbrauchen
+- Das persistente S25-Live-Test-Gate erlaubt insgesamt höchstens 15 ausdrücklich
+  bestätigte Läufe (direkte Item-List- und no-pull-Sync-Diagnose zusammen) und
+  wird vor jeder Verbindung atomar fortgeschrieben. Fehlversuche verbrauchen
   ebenfalls einen Versuch; es gibt keinen automatischen Retry oder Gate-Reset.
 
 ## Interpretation
@@ -45,10 +46,25 @@ oder die Semantik der UIDs bei Retention/Dateiersetzung.
 - Eine vorhandene `session_id` wird nur vermerkt; der Test stoppt vor
   Pagination, damit er genau zwei Anfragen sendet.
 
-## Ausstehende Verifikation
+## Bisherige S25-Ergebnisse
 
-Bis zum Merge/Update ist kein Gerätekommando dieses neuen Testfalls gesendet.
-Ein zweiter separat bestätigter Lauf in einer neuen Verbindung kann ergänzend
-UID-Stabilität über Sitzungen hinweg untersuchen; dazu müssen die redigierten
-Ergebnisse beider Läufe manuell verglichen werden. Auch erfolgreiche
-Listenläufe beweisen keine vollständige historische Abdeckung.
+Drei separat bestätigte direkte Läufe erhielten jeweils ein CRC-validiertes
+GFDI-5000-Transport-ACK zu 5043, aber keine FileAccess-5044-Item-List-Antwort.
+Daher gab es keine Listen zum Vergleichen und keine Aussage zur UID-Stabilität.
+Ein neuer Versuch nutzt den getrennten Sync-Request-Pfad mit Stopp vor Pull;
+auch ein erfolgreicher Listenlauf beweist keine vollständige historische
+Abdeckung.
+
+## Separater Folgeversuch nach Transport-ACK ohne Item-List-Antwort
+
+Die ersten direkten Item-List-Anfragen erhielten einen CRC-geprüften
+GFDI-5000-Transport-ACK für 5043 (`requestId=1`, `offset=0`,
+`successFlag=0`, `status=0`), aber keine 5044-Item-List-Antwort. Als klar
+getrennter Folgeversuch darf nach ausdrücklicher Bestätigung ein einzelner
+Connect-kompatibler `sync_request` gefolgt von höchstens einer Item-List-Anfrage
+ausgeführt werden. Ein sync_request kann geräteseitig Daten als übertragen
+markieren. Der neue Test stoppt nach der ersten CRC-validierten Item-List-Seite
+vor UID-Verarbeitung, MLR-Registrierung, Datei-Pulls, Pagination oder Import;
+bei einer unerwarteten Pull-Antwort stoppt er ebenfalls vor MLR/Pull. 40 s,
+kein Retry, gemeinsames persistentes Limit von 15 bestätigten Läufen;
+Fehlversuche verbrauchen einen Lauf. Das ist kein allgemeiner Datei-Sync.
