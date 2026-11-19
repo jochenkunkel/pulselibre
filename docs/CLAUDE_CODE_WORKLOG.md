@@ -327,3 +327,4 @@ Noch sichtbar offen (P3): Nacht-Insights erste Spalte „22–6 Uhr / 22331 / We
 - Pro Feld „Status ändern“ (ungeprüft · in Prüfung · unterstützt · ignoriert) schreibt die Prüfmarke für alle Quelldateien-Zeilen des Feldtyps (`updateFitUnmappedFieldStatus`), aktualisiert die Zeile live und die Zusammenfassung; ändert keine Messdaten.
 - Im Emulator (1000 synthetische Feldtypen, echte Touch-Taps) geprüft; dabei gefunden: `setMessage` + `setSingleChoiceItems` versteckt unter AppCompat die Liste → eigene Ansicht mit Hinweistext und vier Zeilen. DB-Stand nach Test: 1× IGNORED, 1× SUPPORTED, Rest UNREVIEWED.
 - Test `entryOffersAStatusChoiceThatStatesNoMeasurementDataIsChanged`.
+- Korrektur: Der lokale Emulator-Seed-Test `SyntheticSeedTest` war versehentlich mit #250 in `main` gelandet (`git add -A`). Er schreibt synthetische Daten in die App-DB und gehört nie ins Repo/auf ein Handy → entfernt. Künftig nur gezielte `git add`-Pfade.
