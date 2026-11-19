@@ -2,6 +2,7 @@ package de.pulselibre
 
 import java.time.LocalDate
 import kotlin.math.abs
+import kotlin.math.ceil
 import kotlin.math.atanh
 import kotlin.math.sqrt
 import kotlin.math.tanh
@@ -66,6 +67,47 @@ internal object PairedCorrelation {
         val verdict = if (excludesZero && abs(rho) >= MIN_EFFECT) Verdict.EXPLORATORY_ASSOCIATION else Verdict.NO_RELIABLE_ASSOCIATION
         return Result(n, rho, r, effective, lo, hi, lagDays, verdict,
             "Spearman ρ, 95-%-Intervall mit effektivem n≈${"%.0f".format(java.util.Locale.GERMANY, effective)}; keine Aussage über Ursache und Wirkung.")
+    }
+
+    /**
+     * Robustness check (#45): how much does rho depend on single days?
+     * [looMin]/[looMax]: Spearman rho when each single paired day is left out in turn.
+     * [trimmedRho]: rho without the [trimmedCount] days (5 %, at least 1) whose rank positions are most extreme in x and y.
+     * [stable]: same sign everywhere and no deviation from the full-sample rho of 0.1 or more.
+     */
+    data class Sensitivity(
+        val baseRho: Double, val looMin: Double, val looMax: Double,
+        val trimmedRho: Double, val trimmedCount: Int, val stable: Boolean
+    ) {
+        fun text(nf: java.text.NumberFormat): String =
+            "Robustheit: ohne einzelne Tage ρ ${nf.format(looMin)} bis ${nf.format(looMax)}; ohne die $trimmedCount auffälligsten Tage " +
+                "ρ ${nf.format(trimmedRho)} – " + if (stable) "stabil." else "nicht stabil (einzelne Tage beeinflussen das Ergebnis)."
+    }
+
+    fun sensitivity(x: Map<LocalDate, Double>, y: Map<LocalDate, Double>, lagDays: Int): Sensitivity? {
+        val p = pair(x, y, lagDays)
+        val n = p.size
+        if (n < MIN_PAIRS) return null
+        val xs = p.map { it.second }; val ys = p.map { it.third }
+        if (xs.distinct().size < 2 || ys.distinct().size < 2) return null
+        fun rho(ix: List<Int>): Double? {
+            val a = ix.map { xs[it] }; val b = ix.map { ys[it] }
+            if (a.distinct().size < 2 || b.distinct().size < 2) return null
+            return pearson(ranks(a), ranks(b))
+        }
+        val all = xs.indices.toList()
+        val base = rho(all) ?: return null
+        val loo = all.mapNotNull { drop -> rho(all.filter { it != drop }) }
+        if (loo.isEmpty()) return null
+        // Extremeness by rank distance from the middle in both series.
+        val rx = ranks(xs); val ry = ranks(ys); val mid = (n + 1) / 2.0
+        val trimCount = ceil(n * 0.05).toInt().coerceAtLeast(1)
+        val drop = all.sortedByDescending { abs(rx[it] - mid) + abs(ry[it] - mid) }.take(trimCount).toSet()
+        val trimmed = rho(all.filter { it !in drop }) ?: return null
+        val sign = Math.signum(base)
+        val sameSign = sign != 0.0 && Math.signum(trimmed) == sign && loo.all { Math.signum(it) == sign }
+        val stable = sameSign && abs(trimmed - base) < 0.1 && loo.all { abs(it - base) < 0.1 }
+        return Sensitivity(base, loo.min(), loo.max(), trimmed, trimCount, stable)
     }
 
     /** Benjamini–Hochberg adjusted p-values (same order as input), for multiple pre-specified hypotheses. */
