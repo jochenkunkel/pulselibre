@@ -93,4 +93,20 @@ class ActivityAtlasViewTest {
             assertTrue(delta7.endsWith("vorherigen 7 Tagen"))
         }
     }
+
+    @Test fun coverageIsShownSeparatelyForRestingPulseAndStepsAndFollowsTheWindow() {
+        InstrumentationRegistry.getInstrumentation().runOnMainSync {
+            val rest = (1..5).associate { today.minusDays(it.toLong()) to 60.0 }
+            val card = cardWith(rest)
+            val views = all(card)
+            val box = views.first { it.tag == "data_coverage_box" }
+            val texts = all(box).filterIsInstance<TextView>().map { it.text.toString() }
+            assertTrue(texts.contains("Ruhepuls: 5 von 28 Tagen"))
+            assertTrue(texts.contains("Schritte: 0 von 28 Tagen"))
+            assertTrue(texts.any { it.contains("mindestens 14") })
+            views.first { it.tag == "atlas_window_7" }.performClick()
+            val texts7 = all(card).first { it.tag == "data_coverage_box" }.let { b -> all(b).filterIsInstance<TextView>().map { it.text.toString() } }
+            assertTrue(texts7.contains("Ruhepuls: 5 von 7 Tagen"))
+        }
+    }
 }
