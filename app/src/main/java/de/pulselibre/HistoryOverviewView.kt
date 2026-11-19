@@ -163,43 +163,9 @@ class HistoryOverviewView(
         addView(rangeRow, LayoutParams(-1, -2).apply { bottomMargin = dp(10) })
         addWindowNavigation(snapshot)
         val resolution = HistoryResolution.forRange(snapshot.range)
-        addLegend()
         metricCard("Herzfrequenz", "bpm", snapshot.heartRate, snapshot, 240, palette.pulse, resolution)
         metricCard("Sauerstoffsättigung · SpO₂", "%", snapshot.oxygen, snapshot, 100, palette.oxygen, resolution)
         addView(TrendCardView(context), LayoutParams(-1, -2).apply { topMargin = dp(12) })
-    }
-
-    private fun addLegend() {
-        val row = LinearLayout(context).apply {
-            orientation = HORIZONTAL
-            gravity = Gravity.CENTER_VERTICAL
-            isFocusable = true
-            contentDescription = "Verlaufslegende. Zeitpunkt: Empfang auf dem Telefon. Gefüllter Punkt: Median; Ring: arithmetischer Mittelwert; Strich: beobachtetes Minimum bis Maximum. Leere Fenster enthalten keine Messdaten."
-            importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_YES
-        }
-        listOf(
-            DashboardInfoIconView.Kind.TIME to "Telefonzeit",
-            DashboardInfoIconView.Kind.RANGE to "Median ● Mittel ○ Min–Max",
-            DashboardInfoIconView.Kind.WINDOW to "Leer = keine Daten"
-        ).forEachIndexed { index, (kind, text) ->
-            val chip = LinearLayout(context).apply {
-                orientation = HORIZONTAL
-                gravity = Gravity.CENTER
-                setPadding(dp(4), dp(7), dp(4), dp(7))
-                background = GradientDrawable().apply {
-                    setColor(palette.tinted)
-                    cornerRadius = dp(10).toFloat()
-                }
-                importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
-                addView(DashboardInfoIconView(context, kind, palette.accent),
-                    LayoutParams(dp(15), dp(15)).apply { marginEnd = dp(3) })
-                addView(label(text, 11f, palette.muted, true), LayoutParams(-2, -2))
-            }
-            row.addView(chip, LayoutParams(0, -2, 1f).apply {
-                if (index < 2) marginEnd = dp(4)
-            })
-        }
-        addView(row, LayoutParams(-1, -2).apply { bottomMargin = dp(14) })
     }
 
     private fun metricCard(
@@ -255,6 +221,15 @@ class HistoryOverviewView(
             card.addView(HistoryScatterChartView(context, buckets, points.size, snapshot.start, snapshot.end,
                 scale, accent, snapshot.range, resolution), LayoutParams(-1, dp(210)))
         }
+        // Plain explanatory copy belongs to each chart, not in button-like chips above the plots.
+        // The plot renders a filled median point, an optional mean ring, and a min–max whisker.
+        card.addView(label(
+            "Zeitachse: Telefonzeit · Punkt: Median · Ring: Mittelwert (bei mehreren Werten) · Linie: Min–Max · Lücken: keine Messdaten",
+            11f, palette.muted
+        ).apply {
+            tag = "history_chart_legend"
+            importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_YES
+        }, LayoutParams(-1, -2).apply { topMargin = dp(8) })
         addView(card, LayoutParams(-1, -2).apply { bottomMargin = dp(12) })
     }
 
