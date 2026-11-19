@@ -142,7 +142,7 @@ internal class TrendCardView(context: Context) : LinearLayout(context) {
         })
         // Pre-specified hypothesis, one compact line; tap opens the scatter plot.
         val c = d.correlation
-        val corr = if (c.rho == null) "⏳ ${c.pairs}/${PairedCorrelation.MIN_PAIRS} Tage"
+        val corr = if (c.rho == null) "${c.pairs}/${PairedCorrelation.MIN_PAIRS} Tage"
             else "${nf.format(c.rho)} ρ · n=${c.pairs}"
         content.addView(LinearLayout(context).apply {
             orientation = HORIZONTAL
