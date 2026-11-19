@@ -15,6 +15,40 @@ import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 class CirqaStorageMigrationTest {
+    @Test fun canonicalSchemaV3UpgradeAddsMetadataWithoutChangingExistingFitSources() {
+        val base = ApplicationProvider.getApplicationContext<Context>()
+        val root = Files.createTempDirectory(base.cacheDir.toPath(), "cirqa-metadata-upgrade-").toFile()
+        val context = isolatedContext(base, root)
+        val sha = "a".repeat(64)
+        try {
+            SQLiteDatabase.openOrCreateDatabase(context.getDatabasePath("cirqa_measurements.db"), null).use { db ->
+                db.execSQL("CREATE TABLE fit_sources(source_sha256 TEXT PRIMARY KEY NOT NULL)")
+                db.execSQL("INSERT INTO fit_sources(source_sha256) VALUES(?)", arrayOf(sha))
+                db.version = 3
+            }
+            CirqaDatabase(context).use { database ->
+                val db = database.writableDatabase
+                assertEquals(1, db.rawQuery("SELECT COUNT(*) FROM fit_sources WHERE source_sha256 = ?", arrayOf(sha))
+                    .use { it.moveToFirst(); it.getInt(0) })
+                db.execSQL(
+                    """INSERT INTO fit_device_metadata
+                       (source_sha256, record_ordinal, observed_at_ms, software_version)
+                       VALUES(?, 1, 1234, 12.34)""",
+                    arrayOf(sha)
+                )
+                assertEquals(1, db.rawQuery("SELECT COUNT(*) FROM fit_device_metadata", null)
+                    .use { it.moveToFirst(); it.getInt(0) })
+                assertEquals(0, db.rawQuery("PRAGMA foreign_key_check", null).use {
+                    var violations = 0
+                    while (it.moveToNext()) violations++
+                    violations
+                })
+            }
+        } finally {
+            root.deleteRecursively()
+        }
+    }
+
     @Test fun canonicalSchemaV2UpgradePreservesEventsAndAddsNormalizedTables() {
         val base = ApplicationProvider.getApplicationContext<Context>()
         val root = Files.createTempDirectory(base.cacheDir.toPath(), "cirqa-schema-upgrade-").toFile()

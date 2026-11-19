@@ -64,6 +64,18 @@ class DatabaseBackupTest {
                 idempotencyKey = "canonical-only-sample",
                 duplicateFingerprint = "canonical-only-fingerprint"
             )
+            val canonicalMetadata = FitHistoricalObservations.DeviceMetadata(
+                sourceFileSha256 = canonicalSha,
+                recordOrdinal = 1,
+                timestampEpochMillis = 6_000,
+                deviceTypeCode = 4,
+                manufacturerCode = 1,
+                productCode = 2,
+                softwareVersion = 12.34,
+                batteryVoltageVolts = null,
+                batteryStatusCode = null,
+                batteryLevelPercent = null
+            )
             CirqaDatabase(context).use { database ->
                 database.ensureHistoricalStoreCopied()
                 database.commitFitFile(
@@ -73,7 +85,8 @@ class DatabaseBackupTest {
                     validatedAtEpochMillis = 7_000,
                     decoderVersion = FitHistoricalObservations.DECODER_VERSION,
                     profileVersion = FitHistoricalObservations.PROFILE_VERSION,
-                    observations = listOf(canonicalObservation)
+                    observations = listOf(canonicalObservation),
+                    deviceMetadata = listOf(canonicalMetadata)
                 )
             }
 
@@ -87,6 +100,7 @@ class DatabaseBackupTest {
             assertEquals(3L, report.canonicalReadings)
             assertEquals(2L, report.canonicalFitSources)
             assertEquals(2L, report.canonicalFitProvenance)
+            assertEquals(1L, report.canonicalDeviceMetadata)
 
             DatabaseBackup.reset(context)
             CirqaDatabase(context).use { assertEquals(0L, it.eventCount()) }
@@ -97,8 +111,9 @@ class DatabaseBackupTest {
 
             val plan = DatabaseBackup.prepareRestore(context, ByteArrayInputStream(bytes.toByteArray()))
             try {
-                assertEquals(3, plan.version)
+                assertEquals(4, plan.version)
                 assertEquals(3L, plan.canonicalReadings)
+                assertEquals(1L, plan.canonicalDeviceMetadata)
                 DatabaseBackup.restore(context, plan)
             } finally { plan.close() }
 
@@ -137,6 +152,11 @@ class DatabaseBackupTest {
                 assertEquals(2, db.rawQuery("SELECT COUNT(*) FROM fit_observation_provenance", null).use {
                     it.moveToFirst(); it.getInt(0)
                 })
+                assertEquals(1, db.rawQuery(
+                    "SELECT COUNT(*) FROM fit_device_metadata WHERE source_sha256 = ? AND software_version = 12.34",
+                    arrayOf(canonicalSha)
+                ).use { it.moveToFirst(); it.getInt(0) })
+                assertEquals(listOf(canonicalMetadata), database.fitDeviceMetadata())
                 assertTrue(db.rawQuery(
                     "SELECT value FROM observations WHERE sample_id = 'canonical-only-sample'", null
                 ).use { it.moveToFirst() && it.getDouble(0) == 67.0 })
@@ -243,6 +263,48 @@ class DatabaseBackupTest {
         }
     }
 
+    @Test fun version3BackupRemainsRestorableAfterMetadataSchemaUpgrade() {
+        val base = ApplicationProvider.getApplicationContext<Context>()
+        val root = Files.createTempDirectory(base.cacheDir.toPath(), "database-backup-v3-test-").toFile()
+        val context = isolatedContext(base, root)
+        try {
+            val plan = DatabaseBackup.prepareRestore(context, ByteArrayInputStream(emptyVersion2Backup(version = 3)))
+            try {
+                assertEquals(3, plan.version)
+                assertEquals(0L, plan.canonicalDeviceMetadata)
+                DatabaseBackup.restore(context, plan)
+            } finally { plan.close() }
+
+            CirqaDatabase(context).use { database ->
+                assertEquals(0, database.readableDatabase.rawQuery(
+                    "SELECT COUNT(*) FROM fit_device_metadata", null
+                ).use { it.moveToFirst(); it.getInt(0) })
+            }
+        } finally {
+            root.deleteRecursively()
+        }
+    }
+
+    @Test fun orphanedDeviceMetadataIsRejectedBeforeRestoreConfirmation() {
+        val base = ApplicationProvider.getApplicationContext<Context>()
+        val root = Files.createTempDirectory(base.cacheDir.toPath(), "database-backup-metadata-fk-test-").toFile()
+        val context = isolatedContext(base, root)
+        val sentinel = """{"schema":1,"type":"attempt","received_at_utc":"2026-11-18T00:00:00Z"}"""
+        try {
+            CirqaDatabase(context).use { assertTrue(it.insertLine(sentinel)) }
+            try {
+                DatabaseBackup.prepareRestore(
+                    context,
+                    ByteArrayInputStream(version4ArchiveWithOrphanedDeviceMetadata())
+                )
+                fail("Expected orphaned FIT device metadata to be rejected")
+            } catch (_: Exception) { }
+            CirqaDatabase(context).use { assertEquals(listOf(sentinel), it.allLines()) }
+        } finally {
+            root.deleteRecursively()
+        }
+    }
+
     private fun emptyVersion1Backup(): ByteArray {
         val dataEntries = listOf("cirqa_events.jsonl", "legacy_readings.jsonl", "sync_cursors.jsonl")
         val emptySha = MessageDigest.getInstance("SHA-256").digest(byteArrayOf())
@@ -269,10 +331,15 @@ class DatabaseBackupTest {
         }.toByteArray()
     }
 
-    private fun emptyVersion2Backup(): ByteArray {
-        val dataEntries = listOf(
+    private fun emptyVersion2Backup(version: Int = 2): ByteArray {
+        val dataEntries = if (version == 2) listOf(
             "cirqa_events.jsonl", "legacy_readings.jsonl", "sync_cursors.jsonl",
             "fit_sources.jsonl", "fit_observation_provenance.jsonl"
+        ) else listOf(
+            "cirqa_events.jsonl", "legacy_readings.jsonl", "sync_cursors.jsonl",
+            "fit_sources.jsonl", "fit_observation_provenance.jsonl",
+            "canonical_observations.jsonl", "canonical_sync_cursors.jsonl",
+            "canonical_fit_sources.jsonl", "canonical_fit_observation_provenance.jsonl"
         )
         val emptySha = MessageDigest.getInstance("SHA-256").digest(byteArrayOf())
             .joinToString("") { "%02x".format(it.toInt() and 255) }
@@ -282,7 +349,7 @@ class DatabaseBackupTest {
         }
         val manifest = JSONObject()
             .put("format", "de.pulselibre.local-database-backup")
-            .put("version", 2)
+            .put("version", version)
             .put("app_id", "de.pulselibre")
             .put("created_at", "2026-11-18T00:00:00Z")
             .put("encryption", "none")
@@ -319,6 +386,50 @@ class DatabaseBackupTest {
         val manifest = JSONObject()
             .put("format", "de.pulselibre.local-database-backup")
             .put("version", 2)
+            .put("app_id", "de.pulselibre")
+            .put("created_at", "2026-11-18T00:00:00Z")
+            .put("encryption", "none")
+            .put("entries", metadata)
+        return ByteArrayOutputStream().also { bytes ->
+            ZipOutputStream(bytes).use { zip ->
+                payloads.forEach { (name, value) ->
+                    zip.putNextEntry(ZipEntry(name))
+                    zip.write(value.toByteArray(Charsets.UTF_8))
+                    zip.closeEntry()
+                }
+                zip.putNextEntry(ZipEntry("manifest.json"))
+                zip.write(manifest.toString().toByteArray(Charsets.UTF_8))
+                zip.closeEntry()
+            }
+        }.toByteArray()
+    }
+
+    private fun version4ArchiveWithOrphanedDeviceMetadata(): ByteArray {
+        val payloads = linkedMapOf(
+            "cirqa_events.jsonl" to "",
+            "legacy_readings.jsonl" to "",
+            "sync_cursors.jsonl" to "",
+            "fit_sources.jsonl" to "",
+            "fit_observation_provenance.jsonl" to "",
+            "canonical_observations.jsonl" to "",
+            "canonical_sync_cursors.jsonl" to "",
+            "canonical_fit_sources.jsonl" to "",
+            "canonical_fit_observation_provenance.jsonl" to "",
+            "canonical_fit_device_metadata.jsonl" to
+                """{"source_sha256":"${"c".repeat(64)}","record_ordinal":1,"observed_at_ms":null,"device_type_code":null,"manufacturer_code":null,"product_code":null,"software_version":null,"battery_voltage_volts":null,"battery_status_code":null,"battery_level_percent":null}""" + "\n"
+        )
+        val metadata = JSONObject()
+        payloads.forEach { (name, value) ->
+            val bytes = value.toByteArray(Charsets.UTF_8)
+            metadata.put(name, JSONObject()
+                .put("records", if (value.isEmpty()) 0 else 1)
+                .put("bytes", bytes.size)
+                .put("sha256", MessageDigest.getInstance("SHA-256").digest(bytes)
+                    .joinToString("") { "%02x".format(it.toInt() and 255) }))
+        }
+        val manifest = JSONObject()
+            .put("format", "de.pulselibre.local-database-backup")
+            .put("version", 4)
             .put("app_id", "de.pulselibre")
             .put("created_at", "2026-11-18T00:00:00Z")
             .put("encryption", "none")

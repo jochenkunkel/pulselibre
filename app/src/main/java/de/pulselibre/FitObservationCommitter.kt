@@ -14,6 +14,7 @@ internal object FitObservationCommitter {
         decoderVersion: String,
         profileVersion: String,
         observations: List<FitHistoricalObservations.Observation>,
+        deviceMetadata: List<FitHistoricalObservations.DeviceMetadata>,
         deviceKey: String
     ): Int {
         require(readingsTable == "readings" || readingsTable == "observations")
@@ -30,6 +31,20 @@ internal object FitObservationCommitter {
         }) { "FIT provenance does not match validated source" }
         require(observations.map { it.idempotencyKey }.distinct().size == observations.size) {
             "Duplicate FIT idempotency key in one file"
+        }
+        require(deviceMetadata.all {
+            it.sourceFileSha256 == sourceSha256 && it.recordOrdinal > 0 &&
+                (it.timestampEpochMillis == null || it.timestampEpochMillis >= 0) &&
+                (it.deviceTypeCode == null || it.deviceTypeCode in 0..254) &&
+                (it.manufacturerCode == null || it.manufacturerCode in 0..65534) &&
+                (it.productCode == null || it.productCode in 0..65534) &&
+                (it.softwareVersion == null || it.softwareVersion.isFinite() && it.softwareVersion in 0.0..655.34) &&
+                (it.batteryVoltageVolts == null || it.batteryVoltageVolts.isFinite() && it.batteryVoltageVolts in 0.0..20.0) &&
+                (it.batteryStatusCode == null || it.batteryStatusCode in 0..254) &&
+                (it.batteryLevelPercent == null || it.batteryLevelPercent in 0..100)
+        }) { "FIT device metadata does not match validated source" }
+        require(deviceMetadata.map { it.recordOrdinal }.distinct().size == deviceMetadata.size) {
+            "Duplicate FIT device_info ordinal in one file"
         }
 
         val records = observations.map {
@@ -59,6 +74,53 @@ internal object FitObservationCommitter {
                 check(row.moveToFirst() && row.getLong(0) == fileBytes && row.getString(1) == relativePath &&
                     row.getString(2) == decoderVersion && row.getString(3) == profileVersion) {
                     "Stored FIT source metadata conflicts with content hash"
+                }
+            }
+
+            if (readingsTable == "observations") {
+                val metadataInsert = db.compileStatement(
+                    """INSERT OR IGNORE INTO fit_device_metadata
+                       (source_sha256, record_ordinal, observed_at_ms, device_type_code,
+                        manufacturer_code, product_code, software_version, battery_voltage_volts,
+                        battery_status_code, battery_level_percent)
+                       VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"""
+                )
+                for (metadata in deviceMetadata) {
+                    metadataInsert.clearBindings()
+                    metadataInsert.bindString(1, sourceSha256)
+                    metadataInsert.bindLong(2, metadata.recordOrdinal.toLong())
+                    bindNullableLong(metadataInsert, 3, metadata.timestampEpochMillis)
+                    bindNullableInt(metadataInsert, 4, metadata.deviceTypeCode)
+                    bindNullableInt(metadataInsert, 5, metadata.manufacturerCode)
+                    bindNullableInt(metadataInsert, 6, metadata.productCode)
+                    bindNullableDouble(metadataInsert, 7, metadata.softwareVersion)
+                    bindNullableDouble(metadataInsert, 8, metadata.batteryVoltageVolts)
+                    bindNullableInt(metadataInsert, 9, metadata.batteryStatusCode)
+                    bindNullableInt(metadataInsert, 10, metadata.batteryLevelPercent)
+                    metadataInsert.executeInsert()
+
+                    db.rawQuery(
+                        """SELECT observed_at_ms, device_type_code, manufacturer_code, product_code,
+                                  software_version, battery_voltage_volts, battery_status_code, battery_level_percent
+                           FROM fit_device_metadata WHERE source_sha256 = ? AND record_ordinal = ?""",
+                        arrayOf(sourceSha256, metadata.recordOrdinal.toString())
+                    ).use { row ->
+                        check(row.moveToFirst() &&
+                            sameNullableLong(row, 0, metadata.timestampEpochMillis) &&
+                            sameNullableInt(row, 1, metadata.deviceTypeCode) &&
+                            sameNullableInt(row, 2, metadata.manufacturerCode) &&
+                            sameNullableInt(row, 3, metadata.productCode) &&
+                            sameNullableDouble(row, 4, metadata.softwareVersion) &&
+                            sameNullableDouble(row, 5, metadata.batteryVoltageVolts) &&
+                            sameNullableInt(row, 6, metadata.batteryStatusCode) &&
+                            sameNullableInt(row, 7, metadata.batteryLevelPercent)) {
+                            "FIT device metadata conflicts with previously committed source"
+                        }
+                    }
+                }
+            } else {
+                require(deviceMetadata.isEmpty()) {
+                    "Historical transition store does not accept FIT device metadata"
                 }
             }
 
@@ -151,4 +213,26 @@ internal object FitObservationCommitter {
         }
         return records.size
     }
+
+    private fun bindNullableLong(statement: android.database.sqlite.SQLiteStatement, index: Int, value: Long?) {
+        if (value == null) statement.bindNull(index) else statement.bindLong(index, value)
+    }
+
+    private fun bindNullableInt(statement: android.database.sqlite.SQLiteStatement, index: Int, value: Int?) {
+        if (value == null) statement.bindNull(index) else statement.bindLong(index, value.toLong())
+    }
+
+    private fun bindNullableDouble(statement: android.database.sqlite.SQLiteStatement, index: Int, value: Double?) {
+        if (value == null) statement.bindNull(index) else statement.bindDouble(index, value)
+    }
+
+    private fun sameNullableLong(cursor: android.database.Cursor, index: Int, value: Long?): Boolean =
+        if (value == null) cursor.isNull(index) else !cursor.isNull(index) && cursor.getLong(index) == value
+
+    private fun sameNullableInt(cursor: android.database.Cursor, index: Int, value: Int?): Boolean =
+        if (value == null) cursor.isNull(index) else !cursor.isNull(index) && cursor.getInt(index) == value
+
+    private fun sameNullableDouble(cursor: android.database.Cursor, index: Int, value: Double?): Boolean =
+        if (value == null) cursor.isNull(index) else
+            !cursor.isNull(index) && cursor.getDouble(index).toBits() == value.toBits()
 }

@@ -27,6 +27,52 @@ class FitHistoricalObservationsTest {
         (value ushr 16).toByte(), (value ushr 24).toByte()
     )
 
+    private fun u16(value: Int) = byteArrayOf(value.toByte(), (value ushr 8).toByte())
+
+    @Test fun extractsWhitelistedTimestampedDeviceMetadataAndIgnoresSerialNumber() {
+        val data = byteArrayOf(
+            0x40, 0, 0, 23, 0, 9,
+            253.toByte(), 4, 0x86.toByte(), // timestamp
+            1, 1, 2,                        // device_type
+            2, 2, 0x84.toByte(),            // manufacturer
+            3, 4, 0x8c.toByte(),            // serial_number (never exposed)
+            4, 2, 0x84.toByte(),            // product
+            5, 2, 0x84.toByte(),            // software_version / 100
+            10, 2, 0x84.toByte(),           // battery_voltage / 256
+            11, 1, 2,                       // battery_status code
+            32, 1, 2,                       // battery_level
+            0
+        ) + u32(100_000) + byteArrayOf(7) + u16(15) + u32(123456) +
+            u16(200) + u16(1234) + u16(3000) + byteArrayOf(2, 88)
+
+        val result = FitHistoricalObservations.decode(fit(data))!!
+        val metadata = result.deviceMetadata.single()
+        assertEquals((100_000L + 631_065_600L) * 1_000L, metadata.timestampEpochMillis)
+        assertEquals(7, metadata.deviceTypeCode)
+        assertEquals(15, metadata.manufacturerCode)
+        assertEquals(200, metadata.productCode)
+        assertEquals(12.34, metadata.softwareVersion!!, 0.0)
+        assertEquals(3000.0 / 256.0, metadata.batteryVoltageVolts!!, 0.0)
+        assertEquals(2, metadata.batteryStatusCode)
+        assertEquals(88, metadata.batteryLevelPercent)
+        assertFalse(FitHistoricalObservations.DeviceMetadata::class.java.declaredFields
+            .any { it.name.contains("serial", ignoreCase = true) })
+    }
+
+    @Test fun invalidBatterySentinelsAndOutOfRangeLevelsAreNotPromotedToMetadata() {
+        val data = byteArrayOf(
+            0x40, 0, 0, 23, 0, 3,
+            10, 2, 0x84.toByte(),
+            32, 1, 2,
+            11, 1, 2,
+            0
+        ) + u16(0xffff) + byteArrayOf(120, 0xff.toByte())
+        val metadata = FitHistoricalObservations.decode(fit(data))!!.deviceMetadata.single()
+        assertNull(metadata.batteryVoltageVolts)
+        assertNull(metadata.batteryLevelPercent)
+        assertNull(metadata.batteryStatusCode)
+    }
+
     @Test fun decodesSupportedRecordMeasurementsAndCompressedTimestamp() {
         val timestamp = 100_000
         val data = byteArrayOf(
@@ -58,18 +104,15 @@ class FitHistoricalObservationsTest {
         })
     }
 
-    @Test fun monitoringCycles16IsExplicitlyRepresentedAsSteps() {
+    @Test fun monitoringCyclesAreNotGuessedAsStepCounts() {
         val data = byteArrayOf(
             0x40, 0, 0, 55, 0, 2,
             253.toByte(), 4, 0x86.toByte(),
-            9, 2, 0x84.toByte(),
+            3, 4, 0x86.toByte(), // FIT Profile Monitoring.cycles
             0
-        ) + u32(200_000) + byteArrayOf(0x34, 0x12)
+        ) + u32(200_000) + u32(0x1234)
         val result = FitHistoricalObservations.decode(fit(data))!!
-        val steps = result.observations.single()
-        assertEquals(FitHistoricalObservations.Metric.CUMULATIVE_STEPS, steps.metric)
-        assertEquals(0x1234 * 2.0, steps.value, 0.0)
-        assertEquals("steps", steps.unit)
+        assertTrue(result.observations.isEmpty())
     }
 
     @Test fun scalesDistanceAndSpeedAndRetainsPowerInProfileUnits() {
