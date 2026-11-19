@@ -167,6 +167,59 @@ internal class TrendCardView(context: Context) : LinearLayout(context) {
             } else addView(TextView(context).apply { text = corr; textSize = 12f; setTextColor(palette.muted); setPadding(0, 0, dp(8), 0) })
             if (d.scatter.size >= 2) addView(PlIcon.view(context, PlIcon.TRENDS, 22), LayoutParams(dp(22), dp(22)))
         }, LayoutParams(-1, -2).apply { topMargin = dp(4) })
+    
+        addAtlas(d)
+    }
+
+    /** Activity atlas (#41): calendar of daily step totals with 7 / 28 / 90 day window; default 28. */
+    private var atlasWindow = 28
+    private fun addAtlas(d: Data) {
+        val box = LinearLayout(context).apply { orientation = VERTICAL; tag = "activity_atlas_box" }
+        box.addView(View(context).apply { setBackgroundColor(palette.track) }, LayoutParams(-1, dp(1)).apply { topMargin = dp(12); bottomMargin = dp(10) })
+        box.addView(LinearLayout(context).apply {
+            orientation = HORIZONTAL; gravity = Gravity.CENTER_VERTICAL
+            addView(PlIcon.view(context, PlIcon.STEPS, 22, palette.indicator), LayoutParams(dp(22), dp(22)).apply { marginEnd = dp(8) })
+            addView(TextView(context).apply { text = "Aktivitäts-Atlas · Schritte"; textSize = 14f; setTypeface(null, Typeface.BOLD); setTextColor(palette.ink) }, LayoutParams(0, -2, 1f))
+        })
+        val summary = TextView(context).apply { textSize = 11f; setTextColor(palette.muted); setPadding(0, dp(4), 0, dp(6)); tag = "activity_atlas_summary" }
+        val atlas = ActivityAtlasView(context) { cell ->
+            androidx.appcompat.app.AlertDialog.Builder(context).setTitle("Tagesdetail")
+                .setMessage(ActivityAtlas.describe(cell)).setPositiveButton("Schließen", null).show()
+        }
+        fun refresh() {
+            val m = ActivityAtlas.build(d.stepsDaily, d.today, atlasWindow)
+            atlas.show(m); summary.text = m.summary()
+        }
+        val segments = LinearLayout(context).apply { orientation = HORIZONTAL }
+        listOf(7, 28, 90).forEach { days ->
+            segments.addView(TextView(context).apply {
+                text = "$days T"; textSize = 12f; gravity = Gravity.CENTER; minimumHeight = dp(48); tag = "atlas_window_$days"
+                isClickable = true; isFocusable = true; contentDescription = "Zeitraum $days Tage"
+                fun style() {
+                    setTextColor(if (atlasWindow == days) palette.accent else palette.muted)
+                    setTypeface(null, if (atlasWindow == days) Typeface.BOLD else Typeface.NORMAL)
+                }
+                style()
+                setOnClickListener {
+                    atlasWindow = days
+                    for (i in 0 until segments.childCount) (segments.getChildAt(i) as TextView).let { t ->
+                        val on = t.tag == "atlas_window_$atlasWindow"
+                        t.setTextColor(if (on) palette.accent else palette.muted); t.setTypeface(null, if (on) Typeface.BOLD else Typeface.NORMAL)
+                    }
+                    refresh()
+                }
+            }, LayoutParams(0, -2, 1f))
+        }
+        box.addView(segments)
+        box.addView(summary)
+        box.addView(atlas, LayoutParams(-1, -2))
+        box.addView(TextView(context).apply {
+            text = "Abstufung = relative Schrittzahl der erfassten Tage (kein Gesundheitsstatus). Graue Zelle = keine verifizierten Daten, nicht 0 Schritte. " +
+                "Umrandet = heute, noch nicht abgeschlossen. Trends beschreiben deine erfassten Daten – keine Fitnessdiagnose."
+            textSize = 11f; setTextColor(palette.muted); setPadding(0, dp(8), 0, 0)
+        })
+        refresh()
+        content.addView(box)
     }
 
     private fun cell(r: TrendAnalysis.Result): String =
