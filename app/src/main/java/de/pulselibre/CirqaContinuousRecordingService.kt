@@ -39,7 +39,7 @@ class CirqaContinuousRecordingService : Service() {
     private lateinit var log: CirqaLocalLog
     private var attempts = 0
     private var readings = 0
-    private var generation = 0
+    private val attemptGate = RecorderAttemptGate()
     private var lastReadingPersistedMs = 0L
 
     override fun onBind(intent: Intent?): IBinder? = null
@@ -99,7 +99,7 @@ class CirqaContinuousRecordingService : Service() {
     private fun sample() {
         if (!running) return
         attempts++
-        val token = ++generation
+        val token = attemptGate.start()
         val attemptNumber = attempts
         if (!log.append("attempt_start", mapOf("number" to attemptNumber))) {
             stopCollection("storage_limit")
@@ -112,12 +112,13 @@ class CirqaContinuousRecordingService : Service() {
         }
         val current = CirqaMlHandshakeProbe(this, adapter)
         probe = current
+        check(attemptGate.attach(token, current))
         // GATT callbacks can arrive on binder threads. Serialize all service state
         // changes onto the main looper and reject stale callbacks by generation
         // AND probe ownership, including callbacks queued before a stop/reconnect.
         current.onReading = { service, reading ->
             handler.post {
-                if (running && token == generation && probe === current) {
+                if (attemptGate.accepts(token, current)) {
                     readings++
                     val nowMs = System.currentTimeMillis()
                     if (nowMs - lastReadingPersistedMs >= 5_000L) {
@@ -138,10 +139,10 @@ class CirqaContinuousRecordingService : Service() {
                     if (result.startsWith("ML-Test: Verbinde")) {
                         updateNotification("CIRQA-Verbindung wird aufgebaut")
                     } else {
+                        // Consume this attempt before any side effects or retry.
+                        val reconnectToken = attemptGate.finish(token, current)
+                            ?: return@post
                         probe = null
-                        // Invalidate duplicate/late callbacks before scheduling retry.
-                        generation++
-                        val reconnectToken = generation
                         if (!log.append("attempt", mapOf(
                                 "number" to attemptNumber,
                                 "result" to result.take(600)
@@ -157,14 +158,14 @@ class CirqaContinuousRecordingService : Service() {
     }
 
     private fun scheduleReconnect(token: Int, reason: String) {
-        if (!running || token != generation) return
+        if (!attemptGate.canRetry(token)) return
         // Bounded backoff: 2, 4, 8, 16, 32, then 60 seconds.
         val shift = (attempts - 1).coerceIn(0, 5)
         val delayMs = (2_000L shl shift).coerceAtMost(60_000L)
         updateNotification("CIRQA getrennt · neuer Versuch in ${delayMs / 1000}s")
         log.append("reconnect_scheduled", mapOf("reason" to reason, "delay_ms" to delayMs))
         handler.postDelayed({
-            if (running && token == generation) sample()
+            if (attemptGate.canRetry(token)) sample()
         }, delayMs)
     }
 
@@ -172,7 +173,7 @@ class CirqaContinuousRecordingService : Service() {
         if (running) log.append("session_end", mapOf("reason" to reason, "attempts" to attempts, "readings" to readings))
         running = false
         getSharedPreferences(PREFS, MODE_PRIVATE).edit().putBoolean(KEY_RUNNING, false).apply()
-        generation++
+        attemptGate.stop()
         handler.removeCallbacksAndMessages(null)
         probe?.close()
         probe = null
