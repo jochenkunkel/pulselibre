@@ -46,3 +46,29 @@ Nach den gezielten Dokumentationskorrekturen werden alle **veränderten** Dateie
 - Kein Anspruch auf vollständige Inspektion des gesamten Git-Trees, aller Issue-Kommentare, aller aktuellen Actions-Runs oder eines angeschlossenen S25.
 - Neue wissenschaftliche Ideen sind Backlog, nicht freigegebene, implementierte oder klinisch validierte Features.
 - Ein vollständiger Hardware-/BLE-Test ist nicht Teil dieser Dokumentationsarbeit.
+
+
+## Durchgang 2 – tatsächliche Nachprüfung und Ergebnis (19.11.2026)
+
+**Erneut aus GitHub gelesen:** `README.md`, `docs/CHAT_START_HERE.md`, `docs/PROJECT_STATUS.md`, `docs/DASHBOARD_IMPLEMENTATION.md`, `docs/science/SCIENTIFIC_DASHBOARD_TILE_BLUEPRINT.md`, `docs/protocol/data-model/CIRQA_DASHBOARD_GROUND_RULES.md`, `docs/ANDROID_RELEASE_READINESS.md`, `docs/science/ANALYSEN_NAVIGATION_CONCEPT.md`. Zusätzlich existierende Quellen `docs/SCIENTIFIC_REFERENCES.md` und `docs/collaboration/agent-sync/INDEX.md` geprüft.
+
+| Kontrolle | Ergebnis | Nachweis / Einschränkung |
+|---|---|---|
+| Neuer Reiter #227 in zentralen Einstiegspunkten | **Bestanden (Dokumentation)** | Alle 8 erneut gelesenen Dokumente enthalten #227; kanonische Sitemap ist verlinkt, sofern fachlich relevant |
+| Dreifach duplizierter langer Analysen-Block | **Behoben** | Dashboard-, Wissenschafts- und Datenmodell-Dokument enthalten stattdessen kurze Links auf die Sitemap |
+| Alte CI-Aussage als aktueller Workflow | **Behoben** | Der historische Abschnitt in `PROJECT_STATUS.md` ist als überholt markiert; aktueller Workflow ist gesondert beschrieben |
+| Agenten-Ownership und behauptete Gleichzeitigkeit | **Behoben (Text)** | Startprompt verweist auf Agenten-Sync; aus Dokumentation wird keine aktuell laufende Session behauptet |
+| Historischer vs. neuer Dashboard-Stand | **Behoben (Einordnung)** | `DASHBOARD_IMPLEMENTATION.md` bezeichnet seinen Basis-Commit als Snapshot, nennt spätere #41/#45-Entwicklung |
+| CIRQA-Dateidownload vs. fachlich validierter Import | **Behoben (Einordnung)** | Wissenschafts-Blueprint trennt V24/V25-Dateitransport von fachlich validierter Schlaf-/HRV-Semantik |
+| Referenzpfad | **Bestanden** | `docs/SCIENTIFIC_REFERENCES.md` existiert; `docs/science/SCIENTIFIC_REFERENCES.md` nicht – letzteres nicht verwenden |
+| JDK-Laufzeit vs. Bytecode-Ziel | **Behoben (Dokumentation)** | README unterscheidet CI-JDK 21 von Java/Kotlin-Bytecode-Ziel 17 |
+| Android-/Emulator-/S25-Abnahme | **Nicht ausgeführt** | Dokumentationsprüfung ist kein Build, keine aktuelle CI-Laufabfrage und kein Gerätetest |
+| Vollständige Repo-weite Link-/Codeprüfung | **Nicht durchgeführt** | Prüfumfang ist die explizite Quellliste; weitere historische Dokumente können Altstände enthalten |
+
+**Status:** zwei dokumentierte Prüfzyklen abgeschlossen; die gezielt gefundenen textlichen Konflikte sind auf `main` bereinigt. Keine Behauptung, dass jede Datei im Repository gelesen wurde. Bestehende historisch datierte Arbeitsberichte wurden nicht rückwirkend umgeschrieben.
+
+### Empfehlungen für die nächste Audit-Runde
+1. CI-/Hardwarestatus über die neuesten echten GitHub-Actions-Runs und Gerätetests belegen, nicht aus Worklog-Text ableiten.
+2. Bei späterer Umsetzung von #227 den UI-Navigationsvertrag mit realem `MainActivity`-/Navigation-Code und Accessibility-Tests abgleichen.
+3. Wissenschaftliche Formeln in `docs/SCIENTIFIC_REFERENCES.md` und ihren konkreten Implementierungen quellenweise verifizieren.
+4. Vor Änderungen an #144/#148 die aktuellen Datenbankschemas und Backup-/Restore-Migrationspfade technisch prüfen.
