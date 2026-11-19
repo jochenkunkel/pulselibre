@@ -107,8 +107,8 @@ class BodyProfileCardTest {
             scenario.onActivity { activity ->
                 // values appear in the dialog fields only; the card still shows "–" until saved via the header button
                 prefs.edit().putString("height_cm", "196").putString("weight_kg", "99.2").commit()
-                val button = all(activity.findViewById(android.R.id.content)).filterIsInstance<android.widget.ImageView>()
-                    .first { it.contentDescription?.toString()?.startsWith("CIRQA-Verbindungsstatus:") == true }
+                val button = all(activity.findViewById(android.R.id.content))
+                    .first { it.contentDescription?.toString()?.startsWith("Einstellungen öffnen") == true }
                 button.performClick()
             }
             val settings = DialogTestSupport.awaitDialog("Speichern")

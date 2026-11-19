@@ -1,10 +1,10 @@
 package de.pulselibre
 
 import android.content.Context
-import android.widget.ImageView
+import androidx.appcompat.widget.AppCompatImageView
 
 /** Compatibility view: old information kinds now resolve exclusively to PulsLibre SVG resources. */
-internal class DashboardInfoIconView(context: Context, kind: Kind, tint: Int) : ImageView(context) {
+internal class DashboardInfoIconView(context: Context, kind: Kind, tint: Int) : AppCompatImageView(context) {
     enum class Kind { TIME, RANGE, WINDOW, SOURCE, SCALE, LIMIT, HOME, HISTORY, DEVICES, LAB, DATA }
 
     init {
