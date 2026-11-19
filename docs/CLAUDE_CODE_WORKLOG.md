@@ -301,3 +301,8 @@ Noch sichtbar offen (P3): Nacht-Insights erste Spalte „22–6 Uhr / 22331 / We
 - Kompakter Header (nach dem Scrollen) zeigte in **Hell** „PulsLibre“ und den Untertitel weiß auf dem hellen Seitenhintergrund (#179-Folgefehler, unleserlich) → Textfarben je nach Zustand/Theme (`palette.ink`/`muted` im kompakten Hell-Header). Test `compactHeaderTitleStaysReadableOnThePageBackground`.
 - Gerät: „3 Wiederverbindungen“ brach bei Schrift 1,3× mitten im Wort („Wiede/rverbindungen“) → Starts und Wiederverbindungen stehen jetzt in zwei Zeilen.
 - Sonst in Hell/1,3× gesehen und ok: Statusleiste, Gerät (Bandinformationen, Unbekannte-Felder-Hinweis), Verlauf mit Legende, Navigationsleiste.
+
+## 2026-11-19 – #248: farbsichere Verteilung (Emulator-Abnahme in Hell/Dunkel)
+- Dritter Schalter „Farbsicher“ neben „Punkte | Verteilung“ im Verlauf: blau (selten) → türkis → gelb (häufig), keine Rot/Grün-Unterscheidung, eigene Legende; Modus bleibt beim Neurendern erhalten.
+- Geprüft im lokalen Emulator (S25-Auflösung 1080x2340, 480 dpi, synthetische Daten für 60 Tage), Hell und Dunkel; Hell-Ansicht der Verteilung ohne Auffälligkeiten.
+- Emulator-Daten wurden lokal per nicht eingechecktem Instrumentationstest erzeugt; der Test läuft nur per `adb -s emulator-5554`, nie auf dem S25.

@@ -33,12 +33,24 @@ internal class HistoryDensityChartView(
     private val top = 8 * d; private val bottom get() = height - 22 * d
     private val fmt = DateTimeFormatter.ofPattern("d.M. HH:mm", Locale.GERMANY)
 
+    /** Umschaltbar: Ampel (rot/gelb/grün) oder farbsichere Skala. */
+    var colorSafe: Boolean = false
+        set(value) { field = value; invalidate() }
+
     init { tag = "history_density_chart" }
 
     override fun onMeasure(w: Int, h: Int) = setMeasuredDimension(MeasureSpec.getSize(w), (210 * d).toInt())
 
     /** Rare = green, mid = yellow, frequent = red; opacity grows with the intensity (secondary, hue-independent cue). */
     internal fun colorFor(intensity: Double): Int {
+        val i = intensity.coerceIn(0.0, 1.0)
+        if (colorSafe) {
+            // Farbsichere Skala (#248): blau (selten) → türkis → gelb (häufig), monoton in der Helligkeit, ohne Rot/Grün-Unterscheidung.
+            val stops = intArrayOf(0x3B528B, 0x21A585, 0xFDE725)
+            val pos = i * (stops.size - 1); val lo = pos.toInt().coerceAtMost(stops.size - 2); val t = (pos - lo).toFloat()
+            fun mix(shift: Int) = (((stops[lo] shr shift) and 0xFF) * (1 - t) + ((stops[lo + 1] shr shift) and 0xFF) * t).toInt()
+            return Color.argb((90 + 165 * i).toInt(), mix(16), mix(8), mix(0))
+        }
         val hue = (120.0 * (1.0 - intensity.coerceIn(0.0, 1.0))).toFloat()
         val alpha = (70 + 185 * intensity.coerceIn(0.0, 1.0)).toInt()
         return Color.HSVToColor(alpha, floatArrayOf(hue, 0.78f, if (palette.dark) 0.95f else 0.82f))

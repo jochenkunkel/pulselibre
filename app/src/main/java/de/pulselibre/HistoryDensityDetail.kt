@@ -37,4 +37,8 @@ internal object HistoryDensityDetail {
     const val LEGEND = "Verteilung je Zeitfenster: Farbe = relative Häufigkeit der Messwerte innerhalb desselben Fensters " +
         "(rot häufig · gelb mittel · grün selten, kräftiger = häufiger), gemeinsame Skala für alle Fenster. " +
         "Zeigt die Form der Verteilung, nicht die Anzahl der Messwerte. Leer = keine Messwerte. Antippen für Details."
+
+    const val LEGEND_COLOR_SAFE = "Verteilung je Zeitfenster (farbsicher): Farbe = relative Häufigkeit der Messwerte innerhalb desselben Fensters " +
+        "(gelb häufig · türkis mittel · blau selten, kräftiger = häufiger), gemeinsame Skala für alle Fenster. " +
+        "Ohne Rot/Grün-Unterscheidung. Leer = keine Messwerte. Antippen für Details."
 }
