@@ -1,8 +1,8 @@
 # PulsLibre – wissenschaftlicher Dashboard-Kachelbauplan
 
-**Version:** 1.0 · **Stand:** 2026-11-17 · **Status:** Forschungs- und Implementierungsplan, **keine** Freigabe medizinischer Algorithmen oder Garmin-CIRQA-Historienfunktionen.
+**Version:** 1.0 · **Fachlicher Ausgangsstand:** 2026-11-17 · **Navigationsergänzung:** 2026-11-19, [Analysen-Konzept](ANALYSEN_NAVIGATION_CONCEPT.md) · **Status:** Forschungs- und Implementierungsplan, **keine** Freigabe medizinischer Algorithmen oder Garmin-CIRQA-Historienfunktionen.
 
-**Zweck:** Verbindliche fachliche Spezifikation für einzelne Dashboard-Kacheln: Herkunft, Formel, Kontext, Bereich, Farbsemantik, Fehlwerte, Drilldown, Tests und Quellen. Die Umsetzung erfolgt durch den Dashboard-/Wissenschaftsagenten in Abstimmung mit `AGENTS.md`; der BLE-/GFDI-/Historientransport bleibt unberührt.
+**Hinweis zum Fortschritt:** Spätere begrenzte CIRQA-Dateiabrufe (V24/V25) belegen Dateitransport, **nicht** automatisch validierte fachliche FIT-/Schlaf-/HRV-Importsemantik. Siehe `docs/PROJECT_STATUS.md` und die CIRQA-Forschungsberichte.\n\n**Zweck:** Verbindliche fachliche Spezifikation für einzelne Dashboard-Kacheln: Herkunft, Formel, Kontext, Bereich, Farbsemantik, Fehlwerte, Drilldown, Tests und Quellen. Die Umsetzung erfolgt durch den Dashboard-/Wissenschaftsagenten in Abstimmung mit `AGENTS.md`; der BLE-/GFDI-/Historientransport bleibt unberührt.
 
 ## 0. Grundprinzip: wissenschaftlich statt dekorativ
 
@@ -33,7 +33,7 @@ Alle Kacheln zeigen auf Abruf: **Wert + Einheit + Zeitbezug + Quelle/Service + M
 | Body Battery | 20 | Geräteindex 0–100 | Drittcode-Kandidat | Proprietär, keine klinische Energiemessung |
 | Atemfrequenz | 21 | 1–100 Atemzüge/min | Drittcode-Kandidat | Ruhe-/Bewegungskontext fehlt |
 | Rohbeschleunigung | 16 (Protokollkandidat) | gepackte Samples | **Nicht implementiert, nicht CIRQA-bestätigt** | Keine Roh-Aktigraphie behaupten |
-| Schlaf, FIT-Monitoring, HRV-Status, Aktivitätsdateien | GFDI/FIT-Dateitypen, *falls verfügbar* | historisch, Schema offen | **Kein validierter CIRQA-Historienimport** | Dateityp garantiert weder Datei noch Feld |
+| Schlaf, FIT-Monitoring, HRV-Status, Aktivitätsdateien | GFDI/FIT-Dateitypen, *falls verfügbar* | historisch, Schema offen | **Stand 17.11.: kein validierter CIRQA-Historienimport** | Dateityp garantiert weder Datei noch Feld |
 
 **Widerspruchsregel:** Ältere Dashboard-Notizen und reale S25-Nutzerbeobachtungen können voneinander abweichen. Nur im aktuellen Datenmodell gespeicherte, gültige, rückverfolgbare Ereignisse sind als Datenquelle zulässig; die Bestätigung einzelner Services muss durch CIRQA-Tests erfolgen.
 
