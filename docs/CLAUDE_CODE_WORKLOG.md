@@ -319,3 +319,6 @@ Noch sichtbar offen (P3): Nacht-Insights erste Spalte „22–6 Uhr / 22331 / We
 - Rest: „Herzfrequenzvariabilität“ bricht bei 320 dp weiterhin in der Karte um (ein 24-Buchstaben-Wort ohne Trennstelle), bewusst akzeptiert.
 - Fund TalkBack-Semantik (uiautomator-Dump, kein echter Screenreader): Beschreibung des Status-Buttons wiederholte „CIRQA-Verbindungsstatus:“ und endete auf „öffnen.. Details anzeigen“ → bereinigt. Gruppen und Modulkarten tragen vollständige Beschreibungen inkl. Status und „Tippen zum Öffnen“.
 - Entscheidung Analysen-Suche/Filter: laut #227 „erst bei Bedarf“; bei 17 Modulen in 5 Gruppen nicht nötig, bewusst nicht gebaut. Zeitfenster gilt nur im Ruhepuls-/Atlas-Block (7/28/90 T), kein globaler Zwang.
+
+## 2026-11-19 – #204: Tap auf „Unbekannte Datenfelder“ im Emulator geprüft
+- Auf dem S25 (Build 1320) öffnete sich der Dialog bei zwei Tests nicht. Im Emulator mit 1000 synthetischen Feldtypen (100 FIT-Nachrichten × 10 Felder) öffnet der echte Touch-Tap den Dialog sofort, Gruppen lassen sich auf-/zuklappen. Fehler damit **nicht reproduzierbar**; wahrscheinlichste Ursache: der Tap lag nach dem Scrollen neben der Karte (ihre Position hängt von der Länge der Seite ab). Kein Codechange; Beobachtung bei der nächsten Handyprüfung wiederholen (Position per `uiautomator dump` bestimmen).
