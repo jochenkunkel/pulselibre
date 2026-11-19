@@ -61,14 +61,7 @@ Phone-local date handling is used for the daily step card. The underlying events
 - `docs/ENGINEERING_SCIENTIFIC_STANDARDS.md`
 
 
----
 
-## Geplante Informationsarchitektur: Hauptreiter „Analysen“ (Entscheidung 2026-11-19)
+## Navigation wissenschaftlicher Auswertungen – Planung #227 (19.11.2026)
 
-**Verbindliches Zielbild für die weitere Planung:** Wissenschaftliche Auswertungen werden künftig unter einem eigenständigen Hauptreiter **„Analysen“** gebündelt. Die **„Übersicht“** bleibt für aktuelle Messwerte und Gerätestatus; dort sind nur kurze Teaser mit Deep Link in die Analyse erlaubt. Die Umsetzung ist in [GitHub #227](https://github.com/jochenkunkel/pulselibre/issues/227) spezifiziert. **Dies ist eine Dokumentationsänderung, kein Nachweis einer bereits implementierten Navigation.**
-
-**Geplante Modulgruppen:** (1) Herz & Kreislauf: Ruhepuls/Fitness #41, optionale HRV/Belastungserholung/SpO₂; (2) Schlaf & Erholung: #43 und #44, mögliche Lag-Analysen; (3) Bewegung & Entwicklung: #46, #47, Aktivitätssignatur; (4) Zusammenhänge & Muster: #45, Tagesrhythmik, Trendbrüche und explorative Muster; (5) Datenqualität & Methoden: Quellen, Abdeckung, persönliche Baseline, Datenlücken, Unsicherheit. Forschungs-Ideen sind nicht automatisch als verfügbare Funktionen anzusehen.
-
-**Kartenvertrag:** Jede wissenschaftliche Karte besitzt eine verständliche Fragestellung, Einheit/Zeitraum, Quellennachweis, Stichprobengröße/Abdeckung, Qualitätszustand und einen Methoden-Drilldown. Keine künstlichen Fitnessscores, klinischen Aussagen oder erfundenen Messreihen. Fehlen verifizierte Daten, zeigt das Modul einen erklärten Leerzustand. 7/28/90 Tage nur dort anbieten, wo reale Daten und fachliche Eignung nachgewiesen sind. Alle bestehenden wissenschaftlichen Tile-Spezifikationen bleiben gültig; sie werden künftig als **Analysen-Modul** statt als überladene Startseiten-Kachel eingeordnet.
-
-**Designreferenzen:** [Fitness-Icons](../../../design/icons/fitness-v1/README.md), [Research-Icons](../../../design/icons/research-v1/README.md), [Science-Mockups](../../../design/mockups/research-v1/). SVGs sind Entwürfe; Android-VectorDrawable-Konvertierung und Produktiv-UI sind separate Codex-Arbeit. Quellcode, Navigation und BLE bleiben durch diese Dokumentationsänderung unverändert.
+Die ausführlichen wissenschaftlichen Auswertungen werden künftig im **geplanten** Hauptreiter **„Analysen“** gruppiert; die **„Übersicht“** bleibt auf aktuelle Werte und kompakte Teaser begrenzt. **Kanonisch:** [Analysen-Sitemap und Modulvertrag](../../science/ANALYSEN_NAVIGATION_CONCEPT.md) sowie [Issue #227](https://github.com/jochenkunkel/pulselibre/issues/227). Die hier dokumentierten Messquellen-, Qualitäts- und Methodengrenzen bleiben verbindlich. **Keine Android-Navigation durch diese Dokumentationsänderung implementiert.**
