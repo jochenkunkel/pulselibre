@@ -271,3 +271,6 @@ Noch sichtbar offen (P3): Nacht-Insights erste Spalte „22–6 Uhr / 22331 / We
 
 ## 2026-11-19 – #41 Stufe 3: getrennte Datenabdeckung
 - Unter dem Atlas: Block „Datenabdeckung“ mit **getrennten** Zeilen „Ruhepuls: x von y Tagen“ und „Schritte: x von y Tagen“ (nur vollständige Tage vor heute, Fenster wie die Trends), dünnem Balken (Füllung = Anteil) und Hinweis „für eine Trendaussage fehlen Tage (mindestens N nötig)“ bei Unterschreitung (4/14/45). Folgt dem gemeinsamen Zeitfenster. Logik `DataCoverage` (Unit-Tests), Anzeige in `TrendCardView`, Instrumentationstest ergänzt. Offen in #41: Regelmäßigkeit (nur mit verifiziertem Ziel), Asset-Kit → VectorDrawables, Emulator-Screenshots (synthetisch), S25-Abnahme.
+
+## 2026-11-19 – Nacharbeit aus der S25-Abnahme (Build 1292)
+- #212 am S25 bestätigt und geschlossen. #204: 930 Typen als Einzelliste unübersichtlich → Gruppierung nach FIT-Nachrichtennummer, Gruppen einklappbar (Felder werden erst beim Aufklappen erzeugt), Test angepasst. #41: Aktivitäts-Atlas zeigte „heute“ als „–“, weil der Tagesleser nur vollständige Tage liefert → der Atlas liest zusätzlich den laufenden Tagesstand (`stepsWithToday`), die Zelle ist als „heute, noch nicht abgeschlossen“ umrandet; Trends/Abdeckung bleiben bei vollständigen Tagen.

@@ -10,6 +10,7 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -43,6 +44,10 @@ class UnknownFieldsViewTest {
                 v.performClick()
             }
             val dialog = DialogTestSupport.awaitDialog("Unbekannte Datenfelder entdeckt (2 Typen)")
+            // grouped by message number, collapsed until tapped (#204 follow-up)
+            assertTrue(DialogTestSupport.containsText(dialog, "FIT-Nachricht 20 · 2 Feldtypen · 14 Meldungen"))
+            assertFalse(DialogTestSupport.containsText(dialog, "FIT-Nachricht 20 · Feld 85"))
+            DialogTestSupport.clickText(dialog, "FIT-Nachricht 20 · 2 Feldtypen")
             assertTrue(DialogTestSupport.containsText(dialog, "FIT-Nachricht 20 · Feld 85"))
             assertTrue(DialogTestSupport.containsText(dialog, "7 Meldungen in 1 Datei"))
             assertTrue(DialogTestSupport.containsText(dialog, "ungeprüft"))

@@ -34,7 +34,9 @@ internal class TrendCardView(context: Context) : LinearLayout(context) {
         val restDaily: Map<LocalDate, Double> = emptyMap(),
         val stepsDaily: Map<LocalDate, Double> = emptyMap(),
         val today: LocalDate = LocalDate.now(),
-        val sensitivity: PairedCorrelation.Sensitivity? = null
+        val sensitivity: PairedCorrelation.Sensitivity? = null,
+        /** Daily steps INCLUDING today's running counter (atlas only); empty = use [stepsDaily]. */
+        val stepsWithToday: Map<LocalDate, Double> = emptyMap()
     )
 
     init {
@@ -83,7 +85,8 @@ internal class TrendCardView(context: Context) : LinearLayout(context) {
         return Data(FitnessOverview.assess(stepTrends[1], restTrends[1]), restTrends, stepTrends,
             PairedCorrelation.analyze(steps, rest, 1),
             PairedCorrelation.pair(steps, rest, 1).map { it.second to it.third }, rest, steps, today,
-            PairedCorrelation.sensitivity(steps, rest, 1))
+            PairedCorrelation.sensitivity(steps, rest, 1),
+            reader.read(DashboardMeasurement.STEPS, first, today.plusDays(1), zone))
     }
 
     private fun showMessage(text: String) {
@@ -287,7 +290,7 @@ internal class TrendCardView(context: Context) : LinearLayout(context) {
                 .setMessage(ActivityAtlas.describe(cell)).setPositiveButton("Schließen", null).show()
         }
         fun refresh() {
-            val m = ActivityAtlas.build(d.stepsDaily, d.today, atlasWindow)
+            val m = ActivityAtlas.build(d.stepsWithToday.ifEmpty { d.stepsDaily }, d.today, atlasWindow)
             atlas.show(m); summary.text = m.summary()
         }
         box.addView(summary)

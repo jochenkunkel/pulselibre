@@ -59,4 +59,13 @@ class UnknownFieldsSummaryTest {
         val s = UnknownFieldsSummary.summarize(listOf(field(status = FitFieldInventoryStatus.INVESTIGATING)))
         assertEquals("in Prüfung", s.entries.single().status)
     }
+
+    @Test fun typesAreGroupedByFitMessageNumber() {
+        val s = UnknownFieldsSummary.summarize(listOf(field(global = 0, number = 0), field(global = 0, number = 1, messages = 4), field(global = 20, number = 85)))
+        assertEquals(2, s.groups.size)
+        assertEquals("FIT-Nachricht 0 · 2 Feldtypen · 7 Meldungen", s.groups[0].title)
+        assertEquals(2, s.groups[0].entries.size)
+        assertEquals("FIT-Nachricht 20 · 1 Feldtyp · 3 Meldungen", s.groups[1].title)
+        assertEquals(3, s.typeCount)
+    }
 }

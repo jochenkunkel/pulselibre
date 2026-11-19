@@ -13,7 +13,10 @@ internal object UnknownFieldsSummary {
         val status: String
     )
 
-    data class Summary(val typeCount: Int, val entries: List<Entry>, val omitted: Int) {
+    /** All field types of one FIT message number, for a collapsible list (#204: 930 single rows are unreadable). */
+    data class Group(val messageNumber: Int, val title: String, val entries: List<Entry>)
+
+    data class Summary(val typeCount: Int, val entries: List<Entry>, val omitted: Int, val groups: List<Group> = emptyList()) {
         val isEmpty get() = typeCount == 0
         val headline get() = if (typeCount == 1) "Unbekanntes Datenfeld entdeckt (1 Typ)" else "Unbekannte Datenfelder entdeckt ($typeCount Typen)"
         val explanation get() = "Von der App noch nicht entschlüsselt. Das sind keine Messwerte und keine Diagnose."
@@ -45,7 +48,12 @@ internal object UnknownFieldsSummary {
                     status = statusLabel(rows.map { it.status }.distinct())
                 )
             }
-        return Summary(entries.size, entries.take(MAX_ENTRIES), (entries.size - MAX_ENTRIES).coerceAtLeast(0))
+        val groups = grouped.entries.groupBy { it.key.global }.toSortedMap().map { (message, parts) ->
+            val fieldEntries = entries.filter { it.title.startsWith("FIT-Nachricht $message ·") }
+            val occurrences = parts.sumOf { p -> p.value.sumOf { it.observedMessageCount } }
+            Group(message, "FIT-Nachricht $message · ${parts.size} ${if (parts.size == 1) "Feldtyp" else "Feldtypen"} · $occurrences Meldungen", fieldEntries)
+        }
+        return Summary(entries.size, entries.take(MAX_ENTRIES), (entries.size - MAX_ENTRIES).coerceAtLeast(0), groups)
     }
 
     fun classificationLabel(code: String) = when (code) {
