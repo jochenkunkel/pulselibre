@@ -216,3 +216,6 @@ Noch sichtbar offen (P3): Nacht-Insights erste Spalte „22–6 Uhr / 22331 / We
 
 ## 2026-11-19 – Rote main-CI nach #182 repariert
 - Commit eddeff3 (#182, History-Legende → Beschriftung je Diagramm) ließ zwei Emulator-Tests scheitern (`DashboardTest.historyTabIsPresentAndOpensLocalTimeSeries`, `HistoryOverviewViewTest.compactLegend…`), CI-Lauf 44481751539. Tests an die neue Beschriftung (`history_chart_legend`, „Zeitachse: Telefonzeit …“) angepasst; `HistoryOverviewViewTest` lokal auf Emulator grün.
+
+## 2026-11-19 – main-CI rot durch AGP 9.5.1 (Dependabot #188) – Revert
+- Nach Merge von Dependabot-PR #188 (AGP 8.7.3 → 9.5.1) scheitert der Build: „Minimum supported Gradle version is 9.6.0. Current version is 8.13“ (Lauf 44485578810). AGP 9 braucht Gradle 9.6 und weitere Migrationen (u. a. eingebautes Kotlin). Revert auf AGP 8.7.3, damit main baubar bleibt; der AGP-9-Sprung gehört in ein eigenes Migrationsticket (#155).
