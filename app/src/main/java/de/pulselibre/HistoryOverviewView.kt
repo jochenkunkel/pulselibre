@@ -96,8 +96,9 @@ class HistoryOverviewView(
         row.addView(step("›", "Späteres Zeitfenster", selectedOffset > 0, selectedOffset - 1, "history_window_next"),
             LayoutParams(dp(48), dp(48)))
         // free date choice inside the cached 30 days
-        row.addView(label("📅", 18f, palette.accent, true).apply {
-            gravity = Gravity.CENTER; tag = "history_window_date"
+        row.addView(android.widget.ImageView(context).apply {
+            setImageDrawable(PlIcon.drawable(context, PlIcon.CALENDAR, 24, palette.accent))
+            scaleType = android.widget.ImageView.ScaleType.CENTER; tag = "history_window_date"
             contentDescription = "Datum wählen"
             isClickable = true; isFocusable = true
             background = GradientDrawable().apply { setColor(palette.tinted); cornerRadius = dp(12).toFloat() }

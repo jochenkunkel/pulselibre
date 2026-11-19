@@ -201,3 +201,8 @@ Noch sichtbar offen (P3): Nacht-Insights erste Spalte „22–6 Uhr / 22331 / We
 ## 2026-11-19 · Header-Untertitel brach/kürzte bei 320 dp und Schrift 200 %
 - Ursache: Untertitel-Zeile mit `wrap_content`-Breite (+ 60 dp Einzug) → bei Umbruch wurde nur die erste Zeile gemessen („Deine Dat…“).
 - Fix: volle Breite (`MATCH_PARENT`), bei Umbruch ohne Einzug. Emulator: 320 dp, 320 dp + Schrift 200 %, 360 dp + 200 %, 360 dp normal – alle vollständig lesbar (Bild `untertitel_nachher_320dp_font2.png`).
+
+## 2026-11-19 – Review-Punkte behoben
+- Profil löschen erhält SpO₂-Schwellen/Gate (#169), Store-Konstante, toter Avatar-Code entfernt, Hinweis bei fehlgeschlagenem Autostart.
+- Tests: lokal Unit/Lint/androidTest-Kompilierung grün; `PersonalSettingsDialogTest` auf Emulator grün. GitHub-CI weiterhin wegen Billing nicht startbar.
+- Emoji→PlIcon für CIRQA-Überschrift, Verlauf-Datumsknopf, Daten-Tab-Datenschutzzeile (Teil von #168). Unit/Lint/androidTest-Compile lokal grün, Emulator-Sichtprüfung. Profilkarten-Icons brauchen neue Entwürfe.

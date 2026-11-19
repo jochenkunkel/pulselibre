@@ -365,7 +365,7 @@ class MainActivity : AppCompatActivity() {
         bodyRow.addView(bodyValues, if (compactProfile) LinearLayout.LayoutParams(-1, -2) else LinearLayout.LayoutParams(0, -2, 1f))
         bodyCard.addView(bodyRow)
         fun refreshBodyCard() {
-            val p = getSharedPreferences("local_personal_profile", MODE_PRIVATE)
+            val p = getSharedPreferences(SpO2DisplaySettings.STORE, MODE_PRIVATE)
             bodyValues.removeAllViews()
             bodyFigure.contentDescription = "Illustration einer Person mit Basecap und violettem Hoodie. Profilwerte sind daneben aufgeführt."
             val heightText = p.getString("height_cm", "").orEmpty()
@@ -448,8 +448,9 @@ class MainActivity : AppCompatActivity() {
         overviewView(LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = android.view.Gravity.CENTER_VERTICAL
-            addView(TextView(this@MainActivity).apply {
-                text = "📡"; textSize = 15f; gravity = android.view.Gravity.CENTER
+            addView(android.widget.ImageView(this@MainActivity).apply {
+                setImageDrawable(PlIcon.drawable(this@MainActivity, PlIcon.CIRQA_BAND, 20, android.graphics.Color.WHITE))
+                scaleType = android.widget.ImageView.ScaleType.CENTER
                 background = GradientDrawable().apply { shape = GradientDrawable.OVAL; setColor(DesignTokens.BRAND_PURPLE) }
                 importantForAccessibility = android.view.View.IMPORTANT_FOR_ACCESSIBILITY_NO
             }, LinearLayout.LayoutParams(dp(32), dp(32)).apply { marginEnd = dp(10) })
@@ -956,8 +957,9 @@ class MainActivity : AppCompatActivity() {
         try {
             androidx.core.content.ContextCompat.startForegroundService(this,
                 Intent(this, CirqaContinuousRecordingService::class.java).setAction(CirqaContinuousRecordingService.ACTION_START))
-        } catch (_: Exception) {
-            // Android may refuse (background restrictions); the manual start button stays available.
+        } catch (e: Exception) {
+            // Android may refuse (background restrictions); say so instead of failing silently.
+            android.widget.Toast.makeText(this, "Automatischer Start der Aufzeichnung nicht möglich – bitte manuell starten.", android.widget.Toast.LENGTH_LONG).show()
         }
     }
 
@@ -1195,7 +1197,7 @@ class MainActivity : AppCompatActivity() {
 
     /** Weight quick edit (#118): tap on the weight value; − / + change in 0.1 kg steps, cancel changes nothing. */
     private fun showQuickWeight(onSaved: () -> Unit) {
-        val p = getSharedPreferences("local_personal_profile", MODE_PRIVATE)
+        val p = getSharedPreferences(SpO2DisplaySettings.STORE, MODE_PRIVATE)
         val d = resources.displayMetrics.density
         val palette = AppPalette.of(this)
         val input = android.widget.EditText(this).apply {
