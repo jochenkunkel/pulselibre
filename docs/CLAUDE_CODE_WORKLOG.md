@@ -302,6 +302,10 @@ Noch sichtbar offen (P3): Nacht-Insights erste Spalte „22–6 Uhr / 22331 / We
 - Gerät: „3 Wiederverbindungen“ brach bei Schrift 1,3× mitten im Wort („Wiede/rverbindungen“) → Starts und Wiederverbindungen stehen jetzt in zwei Zeilen.
 - Sonst in Hell/1,3× gesehen und ok: Statusleiste, Gerät (Bandinformationen, Unbekannte-Felder-Hinweis), Verlauf mit Legende, Navigationsleiste.
 
+## 2026-11-19 – #248: farbsichere Verteilung (Emulator-Abnahme in Hell/Dunkel)
+- Dritter Schalter „Farbsicher“ neben „Punkte | Verteilung“ im Verlauf: blau (selten) → türkis → gelb (häufig), keine Rot/Grün-Unterscheidung, eigene Legende; Modus bleibt beim Neurendern erhalten.
+- Geprüft im lokalen Emulator (S25-Auflösung 1080x2340, 480 dpi, synthetische Daten für 60 Tage), Hell und Dunkel; Hell-Ansicht der Verteilung ohne Auffälligkeiten.
+- Emulator-Daten wurden lokal per nicht eingechecktem Instrumentationstest erzeugt; der Test läuft nur per `adb -s emulator-5554`, nie auf dem S25.
 ## 2026-11-19 – S25-Abnahme Analysen/Verlauf-Dichte und Gerät-Kacheln
 - Nutzerfreigabe nach Screenshots (Build 1326, Dunkel, 1,0×): Reiter Analysen (#227 Stufe 1), Verlauf „Punkte | Verteilung" (#219 UI), Gerät-Kacheln (#242). Screenshots bleiben lokal (echte Gesundheitswerte).
 - Fund: Speicherkachel brach „91,4 / MB" mitten in der Einheit um → Zeilenumbruch vor der Größe.
