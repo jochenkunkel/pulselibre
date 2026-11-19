@@ -34,6 +34,10 @@ def profile():
 
 
 class FitInventoryTests(unittest.TestCase):
+    def test_inventory_without_sqlite_uses_empty_sample_id_set(self):
+        _, sample_ids = inventory.sqlite_imported(None)
+        self.assertEqual(set(), sample_ids)
+
     def test_all_fit_base_type_ids_widths_and_names(self):
         expected = {
             0: ("enum", 1), 1: ("sint8", 1), 2: ("uint8", 1),

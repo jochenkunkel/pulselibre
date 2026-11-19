@@ -533,7 +533,7 @@ def _protobuf_shape(data: bytes):
 
 def sqlite_imported(path: Path | None):
     if path is None:
-        return {}, {}
+        return {}, set()
     uri = f"file:{path.resolve()}?mode=ro"
     con = sqlite3.connect(uri, uri=True)
     try:
