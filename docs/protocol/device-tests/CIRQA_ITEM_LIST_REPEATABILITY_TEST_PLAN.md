@@ -57,6 +57,15 @@ vorhanden). Der Lauf stoppte vor MLR/Pull/Import. UID-Wiederholbarkeit bleibt
 ungeprüft; auch ein erfolgreicher Listenlauf beweist keine vollständige
 historische Abdeckung.
 
+Der fünfte Lauf verwendete den ausdrücklich bestätigten Zwei-Listen-Modus:
+beide Antworten enthielten 23 Einträge; 23 UID-/Metadatenpaare waren
+unverändert, 0 Metadaten geändert, 0 neu/fehlend und 0 doppelte UIDs. Es gab
+keine MLR-Chunks/-Bytes, Datei-Pulls oder Importe. Das belegt
+Same-session-Wiederholbarkeit nur für diese beiden Antworten. Da der vierte
+Lauf 45 Einträge lieferte, bleibt die Abweichung zwischen Listenläufen zu
+untersuchen; UID-Stabilität über Sitzungen und Archivvollständigkeit sind
+weiterhin unbewiesen. Gemeinsamer Zähler: 5/15.
+
 ## Separater Folgeversuch nach Transport-ACK ohne Item-List-Antwort
 
 Die ersten direkten Item-List-Anfragen erhielten einen CRC-geprüften
@@ -69,11 +78,12 @@ Item-List-Seite mit 45 Einträgen, `pullSent=false`, MLR-Chunks/-Bytes 0. Der
 Lauf stoppte vor MLR/Pull/Import. 40 s, kein Retry, gemeinsames persistentes
 Limit von 15 bestätigten Läufen; Fehlversuche verbrauchen einen Lauf.
 
-Ein weiterer separat bestätigter no-pull-Modus fordert nach einem
+Der separat bestätigte no-pull-Modus fordert nach einem
 `sync_request` genau zwei Item-Lists in derselben BLE-Sitzung an und vergleicht
 UID-Schlüssel sowie Metadaten nur flüchtig im Speicher. Angezeigt/gespeichert
 werden ausschließlich Counts. Der Modus stoppt nach der zweiten Antwort vor
 MLR-Registrierung, Datei-Pull, Pagination und Import; das mögliche
 geräteseitige Markieren durch `sync_request` wird vorher offengelegt. Der
-Vergleich testet nur Same-session-Wiederholbarkeit, nicht UID-Stabilität über
-Sitzungen oder Archivvollständigkeit.
+fünfte Lauf ergab 23/23 identische Einträge. Der Vergleich testet nur
+Same-session-Wiederholbarkeit, nicht UID-Stabilität über Sitzungen oder
+Archivvollständigkeit.
