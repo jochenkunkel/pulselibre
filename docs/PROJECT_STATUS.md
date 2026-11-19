@@ -31,6 +31,17 @@ Ausführliches Protokoll mit Nachweisen: `docs/CLAUDE_CODE_WORKLOG.md`. Alle Aus
 - **Validierungsgates:** vom Nutzer am 2026-11-18 akzeptiert. Betroffene Kacheln sind **nicht validiert** und tragen einen dunkelvioletten Rand (`UnvalidatedFeatures`).
 - **CI:** nur manuell/`v*`-Tags; Lauftitel nennen Branch und Testumfang.
 
+## GUI, Icons und Build – Stand 2026-11-19 (Claude Code)
+
+Ausführliches Protokoll: `docs/CLAUDE_CODE_WORKLOG.md`, Review: `docs/CODE_REVIEW_2026-11-19.md`. **`main` = `90e440e`, voller CI-Lauf [44492240320](https://github.com/jochenkunkel/pulselibre/actions/runs/44492240320) grün** (Build, Unit, Lint, Emulator API 35). Kein S25-Gerätetest der neuen Oberfläche; auf dem S25 läuft Build 1144 (CI-signiert).
+
+- **Geschlossen:** #157 (Icon-System, 32 Icons), #164 (Header-Berge Eiger–Mönch–Jungfrau), #168 (Restemojis/Glyphen → `PlIcon`; Profilkarte nutzt Designer-Icons Profil/Größe/Gewicht/Alter/BMI), #169 („Profil löschen“ erhält SpO₂-Schwellen und Validierungs-Gate).
+- **Neu in der App:** Untertitel im Header bricht bei 320 dp / Schrift 200 % um; Konfig-Dialog mit Namen/Größe/Gewicht zuerst, Icons, Schalter „Beim App-Start automatisch aufzeichnen“ (Entscheidungslogik per Unit-Test, **am Band nicht getestet**, bei Fehlstart Toast); Absturz beim Öffnen der Konfig (Int/String-Typkonflikt) und veraltete Profilkarte nach Speichern behoben.
+- **Build/CI:** Dependabot-AGP-9.5.1 (#188) brach den Build (Gradle 9.6 nötig) → Revert (PR #190); AGP-9-Migration ist eigenes Thema (#155). Icon-Commits aus paralleler Arbeit erzeugten Kotlin-/Lint-Fehler und rote UI-Tests → behoben (PR #184, #191). **Merge nur nach grünem vollem Lauf.** Check „dependency-review“ ist rot, weil der Dependency graph im Repo nicht aktiviert ist.
+- **Offen (GUI):** #159/#126 Geräteseite (Akku, Firmware, Uhrzeit, Modell „noch nicht gelesen“ – braucht decodierte Metadaten von OpenCode); Review-Reste: typisierter Profil-Zugriff, doppelter Code Dashboard/Verlauf, 46 Thread-Starts, Hellmodus-Durchgang, `MainActivity` zerlegen.
+- **Test-Regel:** Instrumentationstests laufen **nie auf dem S25** (sie überschreiben/löschen Profil- und Einstellungswerte), nur Emulator/GitHub-CI; bei mehreren Geräten `ANDROID_SERIAL` setzen.
+- **Offene fremde PRs:** #189 (OpenCode, Metadaten-Backfill), #186/#187 (Dependabot AndroidX/Kotlin 2.4.21) – jeweils erst mit eigenem grünem Lauf mergen.
+
 ## Aktueller CIRQA- und Teamstatus (2026-11-17)
 
 - **18.11., Nutzerfreigabe 5030-only:** Nach PR #67 und der dokumentierten Entscheidungsvorlage hat der Nutzer genau einen Bootstrap→5030-only-Lauf ausdrücklich freigegeben. Keine Freigabe für nachfolgende 5007/5031/5002- oder Retry-Läufe. `origin/main=49318ec` enthält PR #66/#67; neuer isolierter Freigabebranch `fix/cirqa-5030-authorized-once`. Nur Releasekonstante und passende Testlabor-Texte werden aktiviert; separater persistenter Einmal-Gate und App-Bestätigung bleiben verpflichtend. ADB-Vorprüfung leer: noch keine Installation oder Geräteverbindung, kein Gate-Verbrauch. Bestehende alte Gates bleiben unverändert.
