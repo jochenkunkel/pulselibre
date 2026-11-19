@@ -310,3 +310,9 @@ Noch sichtbar offen (P3): Nacht-Insights erste Spalte „22–6 Uhr / 22331 / We
 - Nutzerfreigabe nach Screenshots (Build 1326, Dunkel, 1,0×): Reiter Analysen (#227 Stufe 1), Verlauf „Punkte | Verteilung" (#219 UI), Gerät-Kacheln (#242). Screenshots bleiben lokal (echte Gesundheitswerte).
 - Fund: Speicherkachel brach „91,4 / MB" mitten in der Einheit um → Zeilenumbruch vor der Größe.
 - Offen bleiben #219 (Hell/Farbenblind-Alternative) und #227 (Suche/Filter, TalkBack/320 dp).
+
+## 2026-11-19 – #248: 320-dp-Prüfung im Emulator
+- Emulator mit `wm density 540` (= 320 dp Breite) geprüft: App-Titel „PulsLibre“ brach mitten im Wort um → einzeilig mit Autosize (18–30 sp) und Abstand zum Status-Button; lange Modultitel in Analysen mit Silbentrennung.
+- Rest: „Herzfrequenzvariabilität“ bricht bei 320 dp weiterhin in der Karte um (ein 24-Buchstaben-Wort ohne Trennstelle), bewusst akzeptiert.
+- Fund TalkBack-Semantik (uiautomator-Dump, kein echter Screenreader): Beschreibung des Status-Buttons wiederholte „CIRQA-Verbindungsstatus:“ und endete auf „öffnen.. Details anzeigen“ → bereinigt. Gruppen und Modulkarten tragen vollständige Beschreibungen inkl. Status und „Tippen zum Öffnen“.
+- Entscheidung Analysen-Suche/Filter: laut #227 „erst bei Bedarf“; bei 17 Modulen in 5 Gruppen nicht nötig, bewusst nicht gebaut. Zeitfenster gilt nur im Ruhepuls-/Atlas-Block (7/28/90 T), kein globaler Zwang.
