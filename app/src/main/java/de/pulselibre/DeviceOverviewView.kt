@@ -119,17 +119,17 @@ internal class DeviceOverviewView(context: Context) : LinearLayout(context) {
         }
         addView(reception, LayoutParams(-1, -2).apply { bottomMargin = dp(12) })
 
-        // --- band metadata (not read yet) ---
+        // --- band metadata: never infer battery, firmware or band clock from reception statistics ---
         val meta = card()
         meta.addView(label("Bandinformationen", 14f, palette.ink, true))
-        meta.addView(label("Werden angezeigt, sobald das Band sie nachweislich liefert und OpenCode sie decodiert (#126).", 11f, palette.muted),
+        meta.addView(label("Gerätewerte werden nur mit bestätigter Quelle und aktuellem Zeitstempel angezeigt.", 11f, palette.muted),
             LayoutParams(-1, -2).apply { topMargin = dp(2) })
         listOf(PlIcon.BATTERY to "Akku", PlIcon.FIRMWARE to "Firmware", PlIcon.BAND_TIME to "Uhrzeit des Bands", PlIcon.IDENTITY to "Modell / Seriennummer").forEach { (icon, name) ->
             val row = LinearLayout(context).apply { orientation = HORIZONTAL; gravity = Gravity.CENTER_VERTICAL; minimumHeight = dp(34) }
             row.addView(PlIcon.view(context, icon, 22).apply { alpha = 0.55f }, LayoutParams(dp(28), dp(22)))
             row.addView(label(name, 13f, palette.ink), LayoutParams(0, -2, 1f))
-            row.addView(label("noch nicht gelesen", 12f, palette.muted))
-            row.contentDescription = "$name: noch nicht gelesen"
+            row.addView(label("Nicht verfügbar", 12f, palette.muted))
+            row.contentDescription = "$name: nicht verfügbar; bisher kein bestätigter Gerätewert"
             meta.addView(row, LayoutParams(-1, -2).apply { topMargin = dp(4) })
         }
         addView(meta, LayoutParams(-1, -2).apply { bottomMargin = dp(12) })
