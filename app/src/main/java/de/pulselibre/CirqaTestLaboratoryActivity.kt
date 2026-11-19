@@ -323,6 +323,9 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
         syncCard.addView(button("Sync + Item-List prüfen (Stopp vor Pull)") {
             confirmSyncItemListNoPull()
         }.apply { isEnabled = CirqaSyncItemListNoPullAttemptGate.RELEASED_FOR_DEVICE_TEST })
+        syncCard.addView(button("Sync + Item-List zweimal vergleichen (kein Pull)") {
+            confirmSyncItemListNoPull(repeatItemLists = true)
+        }.apply { isEnabled = CirqaSyncItemListNoPullAttemptGate.RELEASED_FOR_DEVICE_TEST })
         syncCard.addView(button("Sync+Item-List-Status (kein Pull)") {
             val prefs = getSharedPreferences(
                 CirqaSyncItemListNoPullAttemptGate.PREFS_NAME, MODE_PRIVATE
@@ -556,7 +559,7 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
             .show()
     }
 
-    private fun confirmSyncItemListNoPull() {
+    private fun confirmSyncItemListNoPull(repeatItemLists: Boolean = false) {
         val prefs = getSharedPreferences(
             CirqaSyncItemListNoPullAttemptGate.PREFS_NAME, MODE_PRIVATE
         )
@@ -565,13 +568,20 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
             return
         }
         AlertDialog.Builder(this)
-            .setTitle("Sync + Item-List ohne Pull testen?")
+            .setTitle(
+                if (repeatItemLists) "Sync + zwei Item-Listen vergleichen?"
+                else "Sync + Item-List ohne Pull testen?"
+            )
             .setMessage(
                 "Ein separat begrenzter BLE-Lauf: frischer Bootstrap, genau ein sync_request und " +
-                    "höchstens eine read-only Item-List-Anfrage. Das Gerät kann den Sync-Request " +
+                    (if (repeatItemLists) "genau zwei read-only Item-List-Anfragen. "
+                    else "höchstens eine read-only Item-List-Anfrage. ") +
+                    "Das Gerät kann den Sync-Request " +
                     "als übertragen markieren. Es werden keine Datei-Pulls, MLR-Registrierungen, " +
                     "Dateiimporte, Flags, Lösch- oder Reset-Befehle gesendet. Bei unerwarteter " +
-                    "Pull-Antwort wird sofort vor MLR/Dateipull gestoppt. 40-s-Gesamtlimit, kein Retry. " +
+                    "Pull-Antwort wird sofort vor MLR/Dateipull gestoppt. Bei zwei Listen werden " +
+                    "UIDs/Metadaten nur im Arbeitsspeicher verglichen; der Status enthält nur Counts. " +
+                    "40-s-Gesamtlimit, kein Retry. " +
                     "Höchstens ${CirqaSyncItemListNoPullAttemptGate.MAX_ATTEMPTS} ausdrücklich bestätigte " +
                     "Läufe; jeder Versuch wird vor Verbindung verbraucht."
             )
@@ -582,7 +592,8 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
                     systemEventProbe = probe
                     probe.startSyncRequestTest(
                         userConfirmed = true,
-                        stopBeforePull = true
+                        stopBeforePull = true,
+                        repeatItemLists = repeatItemLists
                     ) { message ->
                         runOnUiThread {
                             statusOutput.text = message

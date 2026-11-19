@@ -58,6 +58,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private var fileAccessListMode = false
     private var syncRequestMode = false
     private var syncStopBeforePullMode = false
+    private var syncRepeatItemListsMode = false
+    private var syncRepeatFirstItems: List<CirqaFileAccessItemListParser.Item>? = null
     private var syncAccepted = false
     private val syncFrameCounts = LinkedHashMap<Int, Int>()
     private var syncProtoShapes = ""
@@ -1007,6 +1009,36 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         syncHasPaginationSession = page.sessionId != null
         syncHasNextTransactionId = page.nextTransactionId != null
         if (syncStopBeforePullMode) {
+            val firstItems = syncRepeatFirstItems
+            if (syncRepeatItemListsMode && firstItems == null) {
+                syncRepeatFirstItems = page.items
+                syncItemSummary = "firstItems=${page.items.size}; session=${page.sessionId != null}; " +
+                    "nextTransaction=${page.nextTransactionId != null}"
+                val handle = historyHandle ?: run {
+                    finish("Erste Item-List empfangen, aber GFDI-Handle fehlt; Vergleich gestoppt.", g)
+                    return
+                }
+                fileAccessReassembler.reset()
+                val requestId = syncNextRequestId
+                syncNextRequestId = if (syncNextRequestId >= 0xffff) 1 else syncNextRequestId + 1
+                queueAck(g, CirqaFileAccessListRequest.mlValue(handle, requestId))
+                main.post { mark("Zweite Item-List nach sync_request angefordert; kein Pull") }
+                return
+            }
+            if (syncRepeatItemListsMode && firstItems != null) {
+                val comparison = CirqaItemListRepeatability.compare(firstItems, page.items)
+                syncItemSummary =
+                    "erste=${comparison.firstCount}, zweite=${comparison.secondCount}, " +
+                        "UID+Metadaten unverändert=${comparison.unchanged}, " +
+                        "Metadaten geändert=${comparison.changedMetadata}, neu=${comparison.added}, " +
+                        "fehlend=${comparison.missing}, doppelte UIDs=" +
+                        "${comparison.duplicateUidsFirst}/${comparison.duplicateUidsSecond}"
+                finish(
+                    "Zwei Item-Listen nach sync_request verglichen; Stopp vor Datei-Pulls.",
+                    g
+                )
+                return
+            }
             syncItemSummary = "items=${page.items.size}; session=${page.sessionId != null}; " +
                 "nextTransaction=${page.nextTransactionId != null}"
             finish(
@@ -1664,6 +1696,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     fun startSyncRequestTest(
         userConfirmed: Boolean,
         stopBeforePull: Boolean = false,
+        repeatItemLists: Boolean = false,
         result: (String) -> Unit
     ) {
         if ((!stopBeforePull && !CirqaSyncAttemptGate.RELEASED_FOR_DEVICE_TEST) ||
@@ -1707,6 +1740,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         }
         syncRequestMode = true
         syncStopBeforePullMode = stopBeforePull
+        syncRepeatItemListsMode = stopBeforePull && repeatItemLists
+        syncRepeatFirstItems = null
         syncAccepted = false
         syncProtoShapes = ""
         syncOtherLengths = ""
@@ -1746,6 +1781,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         if (!active) {
             syncRequestMode = false
             syncStopBeforePullMode = false
+            syncRepeatItemListsMode = false
+            syncRepeatFirstItems = null
             fileAccessListMode = false
             bootstrapAckMode = false
             configurationTestMode = false
@@ -2735,6 +2772,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             itemListRepeatabilityFirstPage = null
             syncRequestMode = false
             syncStopBeforePullMode = false
+            syncRepeatItemListsMode = false
+            syncRepeatFirstItems = null
             syncAccepted = false
             syncFrameCounts.clear()
             syncProtoShapes = ""

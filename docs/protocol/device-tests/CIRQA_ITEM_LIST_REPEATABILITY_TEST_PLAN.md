@@ -51,20 +51,29 @@ oder die Semantik der UIDs bei Retention/Dateiersetzung.
 Drei separat bestätigte direkte Läufe erhielten jeweils ein CRC-validiertes
 GFDI-5000-Transport-ACK zu 5043, aber keine FileAccess-5044-Item-List-Antwort.
 Daher gab es keine Listen zum Vergleichen und keine Aussage zur UID-Stabilität.
-Ein neuer Versuch nutzt den getrennten Sync-Request-Pfad mit Stopp vor Pull;
-auch ein erfolgreicher Listenlauf beweist keine vollständige historische
-Abdeckung.
+Der vierte Lauf verwendete den getrennten Sync-Request-Pfad und erhielt eine
+Item-List mit 45 Einträgen (eine Seite; keine session_id, nextTransactionId
+vorhanden). Der Lauf stoppte vor MLR/Pull/Import. UID-Wiederholbarkeit bleibt
+ungeprüft; auch ein erfolgreicher Listenlauf beweist keine vollständige
+historische Abdeckung.
 
 ## Separater Folgeversuch nach Transport-ACK ohne Item-List-Antwort
 
 Die ersten direkten Item-List-Anfragen erhielten einen CRC-geprüften
 GFDI-5000-Transport-ACK für 5043 (`requestId=1`, `offset=0`,
-`successFlag=0`, `status=0`), aber keine 5044-Item-List-Antwort. Als klar
-getrennter Folgeversuch darf nach ausdrücklicher Bestätigung ein einzelner
-Connect-kompatibler `sync_request` gefolgt von höchstens einer Item-List-Anfrage
-ausgeführt werden. Ein sync_request kann geräteseitig Daten als übertragen
-markieren. Der neue Test stoppt nach der ersten CRC-validierten Item-List-Seite
-vor UID-Verarbeitung, MLR-Registrierung, Datei-Pulls, Pagination oder Import;
-bei einer unerwarteten Pull-Antwort stoppt er ebenfalls vor MLR/Pull. 40 s,
-kein Retry, gemeinsames persistentes Limit von 15 bestätigten Läufen;
-Fehlversuche verbrauchen einen Lauf. Das ist kein allgemeiner Datei-Sync.
+`successFlag=0`, `status=0`), aber keine 5044-Item-List-Antwort. Im vierten
+bestätigten Lauf wurde deshalb ein einzelner Connect-kompatibler `sync_request`
+vor einer Item-List-Anfrage gesendet. Das Gerät kann den `sync_request`
+geräteseitig als übertragen markieren. Ergebnis: eine CRC-validierte
+Item-List-Seite mit 45 Einträgen, `pullSent=false`, MLR-Chunks/-Bytes 0. Der
+Lauf stoppte vor MLR/Pull/Import. 40 s, kein Retry, gemeinsames persistentes
+Limit von 15 bestätigten Läufen; Fehlversuche verbrauchen einen Lauf.
+
+Ein weiterer separat bestätigter no-pull-Modus fordert nach einem
+`sync_request` genau zwei Item-Lists in derselben BLE-Sitzung an und vergleicht
+UID-Schlüssel sowie Metadaten nur flüchtig im Speicher. Angezeigt/gespeichert
+werden ausschließlich Counts. Der Modus stoppt nach der zweiten Antwort vor
+MLR-Registrierung, Datei-Pull, Pagination und Import; das mögliche
+geräteseitige Markieren durch `sync_request` wird vorher offengelegt. Der
+Vergleich testet nur Same-session-Wiederholbarkeit, nicht UID-Stabilität über
+Sitzungen oder Archivvollständigkeit.
