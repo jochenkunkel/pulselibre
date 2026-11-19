@@ -61,7 +61,7 @@ internal class AnalysenView(
         addView(PlIcon.view(context, m.icon, 24, if (clickable) palette.accent else palette.muted), LayoutParams(dp(24), dp(24)).apply { marginEnd = dp(10) })
         val texts = LinearLayout(context).apply { orientation = VERTICAL }
         texts.addView(TextView(context).apply { text = m.title; textSize = 14f; setTypeface(null, Typeface.BOLD); setTextColor(if (clickable) palette.ink else palette.muted)
-            hyphenationFrequency = android.text.Layout.HYPHENATION_FREQUENCY_FULL; breakStrategy = android.text.Layout.BREAK_STRATEGY_HIGH_QUALITY
+            hyphenationFrequency = android.text.Layout.HYPHENATION_FREQUENCY_FULL
             importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO })
         texts.addView(TextView(context).apply { text = m.note; textSize = 11f; setTextColor(palette.muted)
             importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO })
