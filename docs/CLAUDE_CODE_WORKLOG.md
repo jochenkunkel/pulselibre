@@ -293,3 +293,6 @@ Noch sichtbar offen (P3): Nacht-Insights erste Spalte „22–6 Uhr / 22331 / We
 
 ## 2026-11-20 – #227 Teaser auf der Übersicht
 - Kompakte Karte „Ruhepuls-Trend ansehen“ unter den CIRQA-Kacheln der Übersicht, Tippen öffnet den Reiter Analysen (keine doppelte Berechnung). Instrumentationstest `overviewTeaserLinksToTheAnalysenTab`.
+
+## 2026-11-20 – #219 Fund am S25: Modus „Verteilung“ sprang zurück
+- Auf dem S25 (Build 1316) schaltete der Umschalter „Verteilung“ nicht dauerhaft um: Der Verlauf wird bei jedem neuen Messwert neu aufgebaut (Live-Polling), dabei ging der Modus verloren (im Emulatortest nicht aufgefallen, weil dort kein Live-Strom läuft). Fix: gewählter Modus je Karte bleibt im `HistoryOverviewView` erhalten; Test `densityModeSurvivesTheRerenderThatEveryNewReadingTriggers`.

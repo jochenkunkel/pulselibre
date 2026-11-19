@@ -168,6 +168,9 @@ class HistoryOverviewView(
         // The scientific trend block now lives in the main tab "Analysen" (#227).
     }
 
+    /** Cards switched to "Verteilung" (#219). The view re-renders on every new reading; the mode must survive that. */
+    private val densityTitles = mutableSetOf<String>()
+
     private fun metricCard(
         title: String,
         unit: String,
@@ -248,11 +251,13 @@ class HistoryOverviewView(
             val chartHost = android.widget.FrameLayout(context)
             chartHost.addView(scatter, android.widget.FrameLayout.LayoutParams(-1, dp(210)))
             pointsMode.setOnClickListener {
+                densityTitles.remove(title)
                 styleMode(pointsMode, true); styleMode(densityMode, false)
                 scatter.visibility = View.VISIBLE; densityView?.visibility = View.GONE
                 scatterLegend.visibility = View.VISIBLE; densityLegend.visibility = View.GONE
             }
             densityMode.setOnClickListener {
+                densityTitles.add(title)
                 styleMode(pointsMode, false); styleMode(densityMode, true)
                 if (densityView == null) {
                     val binWidth = (scale.span / 20).coerceAtLeast(1)
@@ -272,6 +277,7 @@ class HistoryOverviewView(
             card.addView(chartHost, LayoutParams(-1, -2))
             card.addView(scatterLegend, LayoutParams(-1, -2).apply { topMargin = dp(8) })
             card.addView(densityLegend, LayoutParams(-1, -2).apply { topMargin = dp(8) })
+            if (title in densityTitles) densityMode.performClick()
         }
         addView(card, LayoutParams(-1, -2).apply { bottomMargin = dp(12) })
     }

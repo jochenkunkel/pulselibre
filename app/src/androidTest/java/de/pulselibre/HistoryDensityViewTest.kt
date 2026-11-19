@@ -46,4 +46,20 @@ class HistoryDensityViewTest {
             assertEquals(View.GONE, all(view).filterIsInstance<TextView>().first { it.tag == "history_density_legend" }.visibility)
         }
     }
+
+    @Test fun densityModeSurvivesTheRerenderThatEveryNewReadingTriggers() {
+        InstrumentationRegistry.getInstrumentation().runOnMainSync {
+            val end = Instant.parse("2026-11-17T12:00:00Z")
+            val start = HistoryRange.DAY.startAt(end)
+            val hr = (0 until 200).map { HistoryPoint(start.plusSeconds(it * 400L), 60 + (it % 7) * 3) }
+            val view = HistoryOverviewView(context) { range -> HistorySnapshot(range, start, end, hr, emptyList()) }
+            view.refreshSynchronously()
+            all(view).first { it.tag == "history_mode_Verteilung_Herzfrequenz" }.performClick()
+            assertEquals(View.VISIBLE, all(view).first { it.tag == "history_density_chart" }.visibility)
+            view.refreshSynchronously()          // what the live polling does on each new reading
+            val chart = all(view).firstOrNull { it.tag == "history_density_chart" }
+            assertNotNull("Verteilung muss nach dem Neuzeichnen aktiv bleiben", chart)
+            assertEquals(View.VISIBLE, chart!!.visibility)
+        }
+    }
 }
