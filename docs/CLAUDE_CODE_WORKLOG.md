@@ -290,3 +290,6 @@ Noch sichtbar offen (P3): Nacht-Insights erste Spalte „22–6 Uhr / 22331 / We
 
 ## 2026-11-20 – #177 Textfassung des Benutzerhandbuchs
 - `docs/user/BENUTZERHANDBUCH.md`: vollständige Beschreibung aller Reiter und Einstellungen des aktuellen Stands (Übersicht, Verlauf inkl. Verteilung, Analysen inkl. Trend-Block/Atlas/Abdeckung, Gerät inkl. Akku-Zeile/unbekannte Felder/Testlabor-Einstieg, Daten, Einstellungen, Grenzen) – **ohne Screenshots**. Die bebilderte Fassung bleibt #177 (Testgerät, geschwärzte/synthetische Bilder, nichts Privates im Repo).
+
+## 2026-11-20 – #227 Teaser auf der Übersicht
+- Kompakte Karte „Ruhepuls-Trend ansehen“ unter den CIRQA-Kacheln der Übersicht, Tippen öffnet den Reiter Analysen (keine doppelte Berechnung). Instrumentationstest `overviewTeaserLinksToTheAnalysenTab`.

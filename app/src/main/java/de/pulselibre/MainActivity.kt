@@ -517,6 +517,23 @@ class MainActivity : AppCompatActivity() {
         updateCirqaDashboard()
         dashboardRefresh = { updateCirqaDashboard() }
         overviewView(cirqaDashboard)
+        // #227: compact teaser; the scientific views live in the main tab "Analysen" (no duplicated calculations).
+        overviewView(LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = android.view.Gravity.CENTER_VERTICAL
+            tag = "analysen_teaser"
+            minimumHeight = dp(56)
+            setPadding(dp(14), dp(10), dp(14), dp(10))
+            background = rounded(palette.card)
+            isClickable = true; isFocusable = true
+            contentDescription = "Ruhepuls-Trend und weitere Analysen ansehen. Öffnet den Reiter Analysen."
+            addView(PlIcon.view(this@MainActivity, PlIcon.FITNESS, 24, palette.accent), LinearLayout.LayoutParams(dp(24), dp(24)).apply { marginEnd = dp(12) })
+            val texts = LinearLayout(this@MainActivity).apply { orientation = LinearLayout.VERTICAL }
+            texts.addView(text("Ruhepuls-Trend ansehen", 14f, ink, true).apply { importantForAccessibility = android.view.View.IMPORTANT_FOR_ACCESSIBILITY_NO })
+            texts.addView(text("Trends, Aktivitäts-Atlas und Zusammenhänge unter „Analysen“", 12f, muted).apply { importantForAccessibility = android.view.View.IMPORTANT_FOR_ACCESSIBILITY_NO })
+            addView(texts, LinearLayout.LayoutParams(0, -2, 1f))
+            setOnClickListener { selectMainTab(MainNavigationView.ANALYSEN) }
+        }, 12)
         val cirqaHistory = HistoryOverviewView(this) { range, offset -> CirqaHistoryReader(this).read(range, offset = offset) }
         historyRefresh = { cirqaHistory.refresh() }
         cirqaHistory.refresh()

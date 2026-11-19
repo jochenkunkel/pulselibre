@@ -88,4 +88,21 @@ class AnalysenTabTest {
             }
         }
     }
+
+    @Test fun overviewTeaserLinksToTheAnalysenTab() {
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            scenario.onActivity { activity ->
+                val root = activity.findViewById<View>(android.R.id.content)
+                val teaser = root.findViewWithTag<View>("analysen_teaser")
+                assertTrue("Teaser auf der Übersicht fehlt", teaser.isShown)
+                assertTrue(teaser.performClick())
+            }
+            InstrumentationRegistry.getInstrumentation().waitForIdleSync()
+            scenario.onActivity { activity ->
+                val root = activity.findViewById<View>(android.R.id.content)
+                assertTrue(root.findViewWithTag<View>("navigation_item_Analysen").isSelected)
+                assertFalse(root.findViewWithTag<View>("analysen_teaser").isShown)
+            }
+        }
+    }
 }
