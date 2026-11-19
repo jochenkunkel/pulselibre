@@ -70,7 +70,9 @@ class HeaderAndDeviceCleanupTest {
                 listOf("Offline · bereit", "Keine Geräte verbunden.").forEach {
                     assertFalse("Veralteter Statustext sichtbar: $it", texts.contains(it))
                 }
-                assertFalse("Technischer GATT-Text sichtbar", texts.any { it.contains("Android GATT") })
+                val gatt = all(activity.findViewById(android.R.id.content)).filterIsInstance<TextView>()
+                    .filter { it.isShown && it.text.contains("Android GATT") }
+                assertTrue("Technischer GATT-Text sichtbar in: " + gatt.joinToString { "${it.javaClass.simpleName}(vis=${it.visibility}, text='${it.text}')" }, gatt.isEmpty())
                 assertFalse("Passive-Diagnose-Zeile sichtbar", texts.any { it.contains("Passive Diagnose") })
                 // User functions stay: recording state + start/stop.
                 assertTrue(texts.any { it.startsWith("Aufzeichnung") })
