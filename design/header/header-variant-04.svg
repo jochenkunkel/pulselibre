@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="680" viewBox="0 0 900 680" role="img" aria-label="PulsLibre Header-Designvariante 4 mit zwei Aktionen rechts oben: Benachrichtigungen und Konfiguration.">
+<title>PulsLibre – Headerentwurf 4: Modern mit Aktionen</title>
+<defs>
+<linearGradient id="bg" x2="1" y2="1"><stop stop-color="#101329"/><stop offset="1" stop-color="#241537"/></linearGradient>
+<linearGradient id="sky" x2="0" y2="1"><stop stop-color="#1a1030"/><stop offset="1" stop-color="#3c215d"/></linearGradient>
+<radialGradient id="sun"><stop stop-color="#f4b77c" stop-opacity=".8"/><stop offset="1" stop-color="#f4b77c" stop-opacity="0"/></radialGradient>
+<linearGradient id="card" x2="1" y2="1"><stop stop-color="#48265e"/><stop offset="1" stop-color="#241633"/></linearGradient>
+</defs>
+<rect width="900" height="680" rx="28" fill="url(#bg)"/>
+<text x="55" y="65" font-family="Arial,sans-serif" font-size="30" font-weight="700" fill="#f6f1ff">04  Modern – Mit Aktionen</text>
+<text x="55" y="100" font-family="Arial,sans-serif" font-size="18" fill="#c3b3d9">Ausgewählte Designrichtung · PulsLibre</text>
+<rect x="190" y="128" width="520" height="484" rx="30" fill="#0c1121" stroke="#67527f" stroke-width="3"/>
+<rect x="190" y="128" width="520" height="33" rx="28" fill="#0c1121"/>
+<text x="217" y="151" font-family="Arial,sans-serif" font-size="14" fill="white">8:10  ◈</text>
+<path d="M642 143l9-7 9 7-9 10Z M672 153v-16h9v16Z" fill="white"/>
+<rect x="190" y="161" width="520" height="240" fill="url(#sky)"/>
+<circle cx="646" cy="302" r="95" fill="url(#sun)"/>
+<path d="M190 356 230 314 256 326 295 275 333 321 380 288 421 339 465 297 495 319 548 264 594 312 625 278 668 316 710 338V401H190Z" fill="#693a91"/>
+<path d="M190 378 247 348 303 363 350 336 417 369 483 338 549 360 615 337 710 369V401H190Z" fill="#3c225e"/>
+<path d="M190 390 256 376 321 392 387 369 459 393 524 377 591 395 658 378 710 392V401H190Z" fill="#29183f"/>
+<path d="M288 291l7-16 14 18m237-15 2-14 16 23" fill="none" stroke="#a16bc2" stroke-width="2"/>
+<rect x="218" y="183" width="58" height="58" rx="15" fill="#5324d5"/>
+<path d="M231 215h10l6-20 8 35 7-16h9" fill="none" stroke="white" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="291" y="217" font-family="Arial,sans-serif" font-size="36" font-weight="700" fill="#fff">PulsLibre</text>
+<text x="291" y="247" font-family="Arial,sans-serif" font-size="17" fill="#ddd1eb">Deine Daten. Deine Kontrolle.</text>
+<circle cx="622" cy="208" r="24" fill="#1b1731" stroke="#a58cc6" stroke-width="2"/>
+<path d="M613 213c3-4 1-13 9-15 8 2 6 11 9 15m-21 0h24m-16 5q4 6 8 0" fill="none" stroke="#eee6ff" stroke-width="2.5" stroke-linecap="round"/>
+<circle cx="632" cy="189" r="5" fill="#ee69b8"/>
+<circle cx="674" cy="208" r="25" fill="#26143b" stroke="#bb7dfc" stroke-width="2.5"/>
+<circle cx="674" cy="208" r="19" fill="none" stroke="#7b3be4" stroke-width="1.5"/>
+<path d="M665 225v-30q0-8 9-8t9 8v14q0 6-7 6h-5v10m0-28q9-4 12 4m-12 3q7-3 12 2m-12 3q7-2 12 1" fill="none" stroke="#f7efff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="213" y="421" width="474" height="167" rx="22" fill="url(#card)" stroke="#8650e6" stroke-width="2"/>
+<rect x="231" y="439" width="44" height="44" rx="14" fill="#5929cc"/>
+<circle cx="253" cy="451" r="7" fill="none" stroke="white" stroke-width="2"/>
+<path d="M241 473v-5q12-11 24 0v5" fill="none" stroke="white" stroke-width="2"/>
+<text x="289" y="459" font-family="Arial,sans-serif" font-size="24" font-weight="700" fill="#fff">Mein Körperprofil</text>
+<text x="289" y="482" font-family="Arial,sans-serif" font-size="16" fill="#d3bfe6">Tippen zum Bearbeiten</text>
+<text x="241" y="529" font-family="Arial,sans-serif" font-size="18" fill="#d3bfe6">Größe</text><text x="356" y="529" font-family="Arial,sans-serif" font-size="18" fill="#fff">–</text>
+<text x="241" y="562" font-family="Arial,sans-serif" font-size="18" fill="#d3bfe6">Gewicht</text><text x="356" y="562" font-family="Arial,sans-serif" font-size="18" fill="#fff">–</text>
+<text x="55" y="645" font-family="Arial,sans-serif" font-size="16" fill="#d1c3e2">Konfiguration mit PulsLibre-Oberarm-Icon · rechts neben optionaler Benachrichtigung</text>
+</svg>
