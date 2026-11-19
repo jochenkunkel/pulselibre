@@ -97,6 +97,13 @@ je Liste und 24 unveränderte UID-/Metadatenpaare; 0 geändert, neu, fehlend
 oder doppelt. Es gab keine MLR-Chunks/-Bytes, Datei-Pulls oder Importe.
 Gemeinsamer Zähler: 10/15.
 
+Für Lauf elf drückte der Nutzer unmittelbar davor erneut den Bandknopf. Beide
+Listen enthielten weiterhin 24 Einträge und dieselben 24 UID-/Metadatenpaare;
+es gab 0 geändert, neu, fehlend oder doppelt. MLR-Chunks/-Bytes, Datei-Pulls
+und Importe: 0. In diesem Lauf wurde kein weiterer Listeneintrag sichtbar;
+das belegt nicht, ob das Band intern eine Aktion gespeichert hat.
+Gemeinsamer Zähler: 11/15.
+
 ## Separater Folgeversuch nach Transport-ACK ohne Item-List-Antwort
 
 Die ersten direkten Item-List-Anfragen erhielten einen CRC-geprüften
