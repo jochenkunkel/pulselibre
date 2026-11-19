@@ -1,0 +1,55 @@
+# PulsLibre – Benutzerhandbuch (Textfassung)
+
+> **Stand:** 20.11.2026 · App-Version 2.0.0 (Build ab 1292) · Diese Fassung beschreibt die App **ohne Screenshots**. Bebilderte Fassung: Ticket #177 (braucht ein Testgerät und geschwärzte oder synthetische Bilder, keine echten Gesundheitsdaten im Repository). Alle Aussagen beziehen sich auf den tatsächlichen Stand von `main`; „noch nicht verfügbar“ heißt wirklich: nicht umgesetzt oder ohne belegte Datenquelle.
+
+PulsLibre ist eine **lokale, offline arbeitende** App für das Garmin-CIRQA-Armband. Alle Daten bleiben auf deinem Telefon; es gibt keine Cloud, kein Konto und keine Internetberechtigung. Die App stellt **keine Diagnosen** und keine Gesundheits- oder Fitness-Scores bereit.
+
+## 1. Der Kopfbereich
+- Oben stehen Logo, „PulsLibre“ und „Deine Daten. Deine Kontrolle.“. Rechts zwei Schaltflächen: **Verbindungsstatus** (grüner Ring = Armband verbunden und liefert Werte; Tippen erklärt den Zustand) und **Einstellungen** (Oberarm-Symbol).
+- Auf der Übersicht ist der Kopf groß mit Bergillustration. Sobald du nach unten scrollst, wird er klein (ohne Berge), damit mehr Platz für Messwerte bleibt; am oberen Rand wird er wieder groß. Das gilt auf allen Reitern mit genug Inhalt.
+
+## 2. Reiter in der unteren Leiste
+Übersicht · Verlauf · Analysen · Gerät · Daten.
+
+### Übersicht
+- **Mein Körperprofil:** Größe, Gewicht, Alter und BMI aus deinen eigenen Angaben (Tippen zum Bearbeiten; das Gewicht lässt sich direkt per Antippen ändern). Der BMI ist nur eine Orientierung und wird mit Kategorie in Worten gezeigt.
+- **Gesundheit · CIRQA:** Herzfrequenz (Tacho mit Aktivitätskontext), SpO₂ (mit Skala und Verlauf), Schritte heute, Ruhepuls und weitere Gerätewerte (RR-Intervall, Stress, Body Battery …). Jede Kachel hat ein ⓘ mit Quelle, Skala und Einschränkungen. Kacheln mit **dunkelviolettem Rahmen** sind noch **nicht validiert** (z. B. SpO₂ des Bands); sie zeigen Werte, aber keine Bewertung als gesichert.
+- Fehlende Werte werden als „Keine Messdaten“ gezeigt, nie als 0.
+
+### Verlauf
+- Zeitraum **24 Stunden / 7 Tage / 30 Tage**, Fensternavigation (‹ ›) und Datumswahl. Je Messgröße (Herzfrequenz, SpO₂) eine Karte.
+- **Punkte | Verteilung:** „Punkte“ zeigt je Zeitfenster Median (Punkt), Mittelwert (Ring) und Min–Max (Linie). „Verteilung“ zeigt, **wo** die Messwerte im Fenster liegen: Farbe von grün (selten) über gelb zu rot (häufig), kräftiger = häufiger. Das ist die **relative** Verteilung innerhalb des Fensters, nicht die Anzahl; leere Fenster bleiben leer. Antippen eines Fensters zeigt Stichprobe, Median, Mittelwert, Min/Max und das häufigste Wertintervall.
+- Die Zeitachse ist die **Empfangszeit auf dem Telefon**.
+
+### Analysen
+Wissenschaftliche, **explorative** Auswertungen in fünf Gruppen (Herz & Kreislauf · Schlaf & Erholung · Bewegung & Entwicklung · Zusammenhänge & Muster · Datenqualität & Methoden). Module ohne belegte Datenquelle (z. B. Schlaf, HRV) stehen als **„Noch nicht verfügbar“** mit Begründung da – es werden keine Werte geschätzt.
+- **Trend-Block** (7 T | 28 T | 90 T, Standard 28 T): *Ruhepuls · Entwicklung* mit Median des vom Gerät berechneten Ruhepulses, neutralem Vergleich „−4 bpm gegenüber vorherigen 28 Tagen“ (nicht überlappende Vorperiode) und Tagespunkten – **über fehlende Tage wird keine Linie gezogen**. Zu wenige Tage (7 T ≥ 4, 28 T ≥ 14, 90 T ≥ 45) → nur Tageswerte und ein Hinweis, kein Vergleich.
+- **Aktivitäts-Atlas:** Kalenderraster der Tages-Schrittstände (Mo–So). **Graue Zelle = keine verifizierten Daten** (nicht 0 Schritte); Abstufung = relative Schrittzahl deiner erfassten Tage (kein Gesundheitsstatus); die Zahl in der Zelle (z. B. 7,2k) ist das zweite Merkmal neben der Farbe; umrandet = heute, noch nicht abgeschlossen.
+- **Zusammenhang Schritte → Ruhepuls am Folgetag** (explorativ, Spearman mit 95-%-Intervall und Robustheitszeile; erst ab 30 gepaarten Tagen) – Antippen öffnet das Streudiagramm.
+- **Datenabdeckung:** Ruhepuls und Schritte getrennt als „x von y Tagen“.
+- **Methoden und Grenzen:** Quellen, Zeitbezug, Annahmen. Unterhalb von 90 Tagen realer Historie wird nie extrapoliert.
+
+### Gerät
+- Die Verbindungskarte zeigt, ob das Band verbunden ist und wann die letzte Messung ankam. Darunter Kennzahlen (Empfang je Stunde, Speicher, Sitzungen heute, seit wann aufgezeichnet) und der **letzte Empfang je Messgröße**.
+- **Bandinformationen:** Akku, Firmware, Uhrzeit, Modell. Ein Wert erscheint **nur**, wenn er mit Quelle und Zeitstempel gespeichert ist; sonst „Nicht verfügbar“. Ein Akkustand zeigt Balken und „Stand: vor …“ bzw. „Veraltet · letzter bekannter Stand …“.
+- **Unbekannte Datenfelder:** Wenn die Dateien des Bands Felder enthalten, die PulsLibre noch nicht versteht, erscheint ein dezenter Hinweis; die Liste (nach FIT-Nachricht gruppiert) zeigt nur Feldkoordinaten und Häufigkeiten – **keine Messwerte, keine Diagnosen**.
+- **Aufzeichnung:** „Starten“/„Stoppen“ des Aufzeichnungsdienstes (Android zeigt dabei eine dauerhafte Benachrichtigung mit Stopp-Taste).
+- *Versteckt:* Ein **3-Sekunden-Druck auf „Gerät · CIRQA“** öffnet das **Testlabor** (nur lesende Diagnose: App, Bluetooth-Status, Synchronisationszähler, Diagnosepaket mit Vorschau zum bewussten Teilen; „Erweitertes Testlabor“ für Fortgeschrittene).
+
+### Daten
+Lokaler Export und Sicherung deiner Daten (Zeitraum wählen, exportieren) sowie Hinweise zu Datenschutz und lokaler Speicherung. Wiederherstellungen verlangen eine ausdrückliche Bestätigung.
+
+## 3. Einstellungen (Oberarm-Symbol)
+- **Profil:** Name, Geburtsdatum, Geschlecht, Armseite, Größe, Gewicht, Schritt- und Schlafziele, Ruhepuls-Referenz u. a.; die Angaben werden nur lokal gespeichert.
+- **SpO₂-Grenzwerte** (Anzeige-Skala) und weitere Anzeigeeinstellungen.
+- **Aufzeichnung:** Schalter „Beim App-Start automatisch aufzeichnen“ – startet den Aufzeichnungsdienst beim Öffnen der App, wenn Bluetooth an ist und die Berechtigungen schon erteilt sind. Die App schaltet Bluetooth nie selbst ein.
+- **Darstellung:** System/Hell/Dunkel.
+- **Profil löschen** entfernt nur die Profilangaben (nicht die Messdaten und nicht die SpO₂-Einstellungen) und verlangt zwei Bestätigungen.
+
+## 4. Hinweise
+- **Dunkel/Hell, große Schrift, TalkBack:** Die App folgt dem System; Statusleisten-Symbole passen sich dem Thema an. TalkBack ist als Anspruch umgesetzt, aber noch nicht in einem vollständigen Gerätedurchlauf geprüft.
+- **Bluetooth-Berechtigung** („Geräte in der Nähe“) und Benachrichtigungen werden für die Aufzeichnung gebraucht. Ohne sie zeigt die App „Bluetooth-Berechtigung fehlt“.
+- **Akku:** Dauerhafte Aufzeichnung verbraucht Strom auf Telefon und Band; eine Messung dazu läuft (Ticket #235).
+
+## 5. Grenzen
+PulsLibre ersetzt keine ärztliche Beratung. Ruhepuls-Werte kommen vom Gerät (nie aus dem Tagesminimum), SpO₂-Werte des Bands sind nicht validiert, Schlaf- und HRV-Analysen sind nicht verfügbar, und Zusammenhänge sind nur Muster in deinen Daten, keine Ursachen.
