@@ -511,9 +511,7 @@ class MainActivity : AppCompatActivity() {
         }
         // #172: no visible test lab tab; a 3 s long press on the CIRQA heading opens it (also as TalkBack custom action).
         // Not a security barrier: the lab stays read-only/safe by default. The former inline debug panel is no longer reachable.
-        attachHiddenLongPress(deviceHeading, 3000L, "Testlabor öffnen") {
-            startActivity(Intent(this, CirqaTestLaboratoryActivity::class.java))
-        }
+        attachHiddenLongPress(deviceHeading, 3000L, "Testlabor öffnen") { DiagnosticsSheet.show(this) }
         debugView(text("Garmin CIRQA · Passive Diagnose ohne Verbindungsaufbau", 13f, muted))
         status = text("Offline · bereit", 14f, muted)
         debugView(status)
