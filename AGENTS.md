@@ -36,6 +36,19 @@ Diese Datei gilt repositoryweit. **GitHub ist die verbindliche, versionierte Wis
 - Issue-/PR-Verweise und Evidenz in Commits/PRs dokumentieren. `docs/PROJECT_STATUS.md` bei tatsächlichen Statusänderungen aktualisieren; keine redundanten Statuskopien schaffen.
 - Nur nachgewiesene Erfolge behaupten: `implementiert`, `CI grün`, `Full-CI grün`, `S25 getestet`, `Release freigegeben` sind verschiedene Aussagen.
 
+## Pragmatische Freigaberegel für Agenten (aktualisiert 19.11.2026)
+
+**Keine wiederholten Einmal-Gates für risikoarme Arbeiten.** Der Nutzer hat die bisherige Gate-Praxis ausdrücklich gelockert, damit Codex/Claude Code/OpenCode selbstständig arbeiten können. Die folgenden Tätigkeiten sind im Rahmen eines zugewiesenen Tickets ohne zusätzliche Einzelrückfrage erlaubt:
+
+- Offline-Auswertung bereits vorhandener, rechtmäßig gespeicherter FIT-/SQLite-/Diagnosedaten; rein lesende Decoder-, Inventur- und Reanalyse-Läufe.
+- Passive Auswertung von Daten, die über den **bereits bestehenden** CIRQA-Empfangspfad eintreffen; kein zusätzlicher Scan, keine neuen BLE-Kommandos und keine Änderung des Transportverhaltens.
+- Emulator-Tests, CI, Screenshots und nichtdestruktive **lesende** Diagnose-/UI-Prüfungen auf einem bereits angeschlossenen, freigegebenen Testgerät. **Keine Instrumentationstests auf dem S25**, da sie Nutzerprofil und Einstellungen verändern können.
+- Code, Tests, Dokumentation, lokale Debug-Ansichten und datensparsame Diagnoseberichte erstellen; Ergebnisse und Grenzen nachträglich im Issue dokumentieren, statt pro Teilschritt auf eine Freigabe zu warten.
+
+**Eine ausdrückliche Einzelentscheidung bleibt erforderlich** für neue/experimentelle aktive proprietäre BLE-/GATT-/FileSync-Befehle oder -Sequenzen, schreibende Eingriffe am Band, Reset, Entkoppeln, Firmwareaktionen, Löschung/Überschreibung realer Nutzerdaten, riskante Dauerlast sowie Weitergabe nicht anonymisierter Gesundheits- oder Geräte-Rohdaten an Dritte. Eine explizite Freigabe für einen konkret definierten Test gilt innerhalb ihres vereinbarten Umfangs; nicht bei jedem identischen Unterbefehl erneut fragen. **Bestehende Sicherheits-Stop-Bedingungen bleiben gültig.**
+
+Diese Regel ersetzt widersprechende pauschale Einmal-Gate-Formulierungen für *passive, offline oder rein lesende* Arbeiten in älteren Notizen; historische Protokollversuche sind keine generelle Autorisierung für neue aktive Gerätebefehle. Qualitätssicherung und nachweisbare CI-/Geräteabnahme werden dadurch nicht aufgehoben. Siehe #204.
+
 ## Architektur, Datenschutz und Gerätesicherheit
 
 - Bestehende Kotlin/Android-Architektur erhalten. BLE-Transport, Protokoll-Decoder, lokale Speicherung, Domainlogik und UI möglichst getrennt halten; vor Refactoring Code und Tests lesen.
