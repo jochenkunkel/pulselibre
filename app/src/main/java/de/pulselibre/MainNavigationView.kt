@@ -27,8 +27,9 @@ internal class MainNavigationView(
         orientation = HORIZONTAL
         setPadding(dp(8), dp(8), dp(8), dp(8))
         setBackgroundColor(palette.card)
-        labels.forEachIndexed { index, label ->
-            if (index !in visibleTabs) return@forEachIndexed
+        // Children are added in strip order (visibleTabs), so child i belongs to tab visibleTabs[i].
+        visibleTabs.forEach { index ->
+            val label = labels[index]
             addView(LinearLayout(activity).apply {
                 orientation = VERTICAL
                 gravity = Gravity.CENTER
