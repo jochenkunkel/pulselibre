@@ -64,7 +64,23 @@ keine MLR-Chunks/-Bytes, Datei-Pulls oder Importe. Das belegt
 Same-session-Wiederholbarkeit nur für diese beiden Antworten. Da der vierte
 Lauf 45 Einträge lieferte, bleibt die Abweichung zwischen Listenläufen zu
 untersuchen; UID-Stabilität über Sitzungen und Archivvollständigkeit sind
-weiterhin unbewiesen. Gemeinsamer Zähler: 5/15.
+weiterhin unbewiesen.
+
+Der sechste Lauf wurde nach einer zwischenzeitlichen Garmin-Connect-Synchroni-
+sation erneut als Zwei-Listen-No-Pull-Test ausgeführt. Ergebnis wieder 23/23,
+alle UID-/Metadatenpaare unverändert, 0 geändert/neu/fehlend, keine doppelten
+UIDs; keine MLR-Chunks/-Bytes, Datei-Pulls oder Importe. Das passt zu der
+Vermutung, dass die zwischenzeitliche Garmin-Connect-Synchronisation den
+vorherigen 45-vs-23-Unterschied beeinflusst haben könnte, beweist aber keinen
+Kausalzusammenhang. Gemeinsamer Zähler: 6/15.
+
+Der siebte Lauf folgte auf den Hinweis, dass möglicherweise vor dem vierten
+Lauf der Aktionsknopf des Armbands gedrückt worden war; Garmin Connect habe
+daraufhin eine Meldung angezeigt und die Funktion deaktiviert. Der neue
+Zwei-Listen-No-Pull-Vergleich ergab erneut 23/23 identische UID-/Metadatenpaare,
+0 geändert/neu/fehlend, keine doppelten UIDs und keine MLR-Chunks/-Bytes,
+Datei-Pulls oder Importe. Ein Einfluss der Knopfaktion ist plausibel, aber
+unverifiziert. Gemeinsamer Zähler: 7/15.
 
 ## Separater Folgeversuch nach Transport-ACK ohne Item-List-Antwort
 
@@ -84,6 +100,6 @@ UID-Schlüssel sowie Metadaten nur flüchtig im Speicher. Angezeigt/gespeichert
 werden ausschließlich Counts. Der Modus stoppt nach der zweiten Antwort vor
 MLR-Registrierung, Datei-Pull, Pagination und Import; das mögliche
 geräteseitige Markieren durch `sync_request` wird vorher offengelegt. Der
-fünfte Lauf ergab 23/23 identische Einträge. Der Vergleich testet nur
-Same-session-Wiederholbarkeit, nicht UID-Stabilität über Sitzungen oder
-Archivvollständigkeit.
+fünfte und sechste Lauf ergaben jeweils 23/23 identische Einträge pro Sitzung.
+Der Vergleich testet nur Same-session-Wiederholbarkeit, nicht UID-Stabilität
+über Sitzungen oder Archivvollständigkeit.

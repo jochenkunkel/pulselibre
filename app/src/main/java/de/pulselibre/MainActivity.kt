@@ -211,7 +211,12 @@ class MainActivity : AppCompatActivity() {
             gravity = android.view.Gravity.CENTER_VERTICAL
         }
         headerRow.addView(PulseLogoView(this), LinearLayout.LayoutParams(dp(48), dp(48)).apply { marginEnd = dp(12) })
-        val headerTitle = text("PulsLibre", 30f, Color.WHITE, true)
+        val headerTitle = text("PulsLibre", 30f, Color.WHITE, true).apply {
+            // #248: bei 320 dp bricht der Titel sonst mitten im Wort um -> einzeilig, Schrift schrumpft bis 18 sp.
+            maxLines = 1
+            androidx.core.widget.TextViewCompat.setAutoSizeTextTypeUniformWithConfiguration(this, 18, 30, 1, android.util.TypedValue.COMPLEX_UNIT_SP)
+            setPadding(0, 0, (8 * resources.displayMetrics.density).toInt(), 0)
+        }
         headerRow.addView(headerTitle, LinearLayout.LayoutParams(0, -2, 1f))
         // Personal Easter egg: the dedicated humerus SVG-matched vector replaces the gear.
         // Keep a 48dp touch target and an explicit accessibility label.
@@ -269,7 +274,7 @@ class MainActivity : AppCompatActivity() {
                 }
             }
             avatarButton.contentDescription = "Einstellungen öffnen"
-            linkInfoButton.contentDescription = "CIRQA-Verbindungsstatus: ${CirqaLinkStatus.contentDescription(link)}. Details anzeigen"
+            linkInfoButton.contentDescription = "${CirqaLinkStatus.contentDescription(link)} Details anzeigen"
             if (link.online == lastHeaderStatus?.online) { lastHeaderStatus = link; return }
             lastHeaderStatus = link
             linkInfoButton.background = GradientDrawable().apply {

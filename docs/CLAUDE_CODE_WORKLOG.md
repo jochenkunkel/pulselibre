@@ -314,3 +314,8 @@ Noch sichtbar offen (P3): Nacht-Insights erste Spalte „22–6 Uhr / 22331 / We
 ## 2026-11-19 – #177: bebildertes Benutzerhandbuch (Emulator, Demo-Daten)
 - 9 Abbildungen (Übersicht ×2, Verlauf Punkte/Verteilung, Analysen ×2, Gerät, Daten, Einstellungen) aus dem S25-Emulator (1080×2340, Dunkel) mit synthetischen Daten, auf 540 px verkleinert (PNG8, je 29–72 KB) in `docs/user/images/`, im Handbuch mit nummerierten Bildunterschriften; als Emulator/Demo-Daten gekennzeichnet, nicht als reale Gerätetests.
 - Nicht abgedeckt (ehrlich): echtes Gerät/Band (nur Emulator), Hell-Modus, Dialoge (Rückfragen beim Backup/Löschen), Testlabor, BLE-Zustände mit verbundenem Band.
+## 2026-11-19 – #248: 320-dp-Prüfung im Emulator
+- Emulator mit `wm density 540` (= 320 dp Breite) geprüft: App-Titel „PulsLibre“ brach mitten im Wort um → einzeilig mit Autosize (18–30 sp) und Abstand zum Status-Button; lange Modultitel in Analysen mit Silbentrennung.
+- Rest: „Herzfrequenzvariabilität“ bricht bei 320 dp weiterhin in der Karte um (ein 24-Buchstaben-Wort ohne Trennstelle), bewusst akzeptiert.
+- Fund TalkBack-Semantik (uiautomator-Dump, kein echter Screenreader): Beschreibung des Status-Buttons wiederholte „CIRQA-Verbindungsstatus:“ und endete auf „öffnen.. Details anzeigen“ → bereinigt. Gruppen und Modulkarten tragen vollständige Beschreibungen inkl. Status und „Tippen zum Öffnen“.
+- Entscheidung Analysen-Suche/Filter: laut #227 „erst bei Bedarf“; bei 17 Modulen in 5 Gruppen nicht nötig, bewusst nicht gebaut. Zeitfenster gilt nur im Ruhepuls-/Atlas-Block (7/28/90 T), kein globaler Zwang.
