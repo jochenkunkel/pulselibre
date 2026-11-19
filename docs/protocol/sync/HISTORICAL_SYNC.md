@@ -14,17 +14,19 @@ The wearable is not continuously connected. Measurements made while out of Bluet
 - Reconnection must be bounded and battery-aware; Android background BLE restrictions and permissions must be considered. Do not promise guaranteed background sync.
 - Never reset/unpair the band or interfere with existing Garmin Connect pairing.
 
-## Implementation state (verified V24/V25, 2026-11-18)
+## Implementation state (verified V24/V25/V26, 2026-11-19)
 - Verified read-only device sequence: Connect-style `sync_request` (5043/5044), Item-List, PullItem, transfer-handle configuration and MLR data pipe (0x2018).
-- 33/33 listed files transferred; 31 FIT (126,089 B) + 2 non-FIT raw files (20,204 B) privately stored. All FIT files independently pass size, header, CRC and SHA-256 checks.
-- The same list is continued **only if `session_id` is present**; `next_transaction_id` is not a page cursor in this observed exchange. V25 ended after one page with 33 items.
-- SQLite has 294 imported observations (`heart_rate=129`, `distance=129`, `speed=36`); `integrity_check=ok`, no duplicate primary keys, and V25 replay was idempotent.
+- V24/V25 transferred 33/33 listed files; V26 transferred 42 listed files (40 FIT, 2 non-FIT; 218,951 B). The V26 listing included 10 FIT contents and one raw content not present in the prior private archive, while one prior FIT was not observed. All received FIT files passed local envelope/CRC checks and all received files were content-addressed by SHA-256.
+- In V25 the list was continued **only if `session_id` was present**; `next_transaction_id` was not treated as a page cursor. V25 ended after one page with 33 items. V26 still did not close the completeness gap.
+- SQLite has 294 imported observations (`heart_rate=129`, `distance=129`, `speed=36`); V26 replay did not add duplicate normalized observations.
+- **Historical download is not an automatic product feature.** The proven transfer is exercised through the explicitly started Test Laboratory `startSyncRequestTest` path. There is no startup/background scheduler, durable per-device-UID download ledger, reconnect/resume workflow, or proven incremental skip policy.
+- **Incremental transfer is not yet safe to enable:** the observed item UID is available to the parser, but its stability/reuse semantics across listing generations, file replacement, and device retention have not been established. Content SHA-256 is known only after pulling bytes, so it provides idempotent local storage/import but cannot by itself avoid radio transfer.
 - The pure `HistorySync.kt` merge/checkpoint helper is **not** the entire production sync implementation. Do not describe the proven file-store/SQLite import pipeline as absent; do not infer that all intended transactional checkpoint, reconnect, background, retention or history-completeness guarantees are proven.
 - Offline `CirqaFitBackfill.run()` returns per-input, ordinal-only aliases with decoded/eligible counts and missing-timestamp/out-of-range/unsupported-field counts. It distinguishes invalid files from valid files with no eligible observations. This summary is in-memory for the invocation; it is not a durable sync/import-status ledger and contains no filename or content hash.
-- The 33 listed files **do not prove** exhaustive history. The two raw files are not yet semantically decoded. The current FIT parser supports a restricted set of Record/Monitoring fields; other fields and sleep-related content require the [offline field inventory](https://github.com/jochenkunkel/pulselibre/issues/141).
-- No new device run is authorized by this document. V24/V25 one-shot gates consumed; no reset, archive, flag, delete or CLOSE_ALL commands.
+- The listed files **do not prove** exhaustive history. The non-FIT files are not yet semantically decoded. The current FIT parser supports a restricted set of Record/Monitoring fields; other fields and sleep-related content require the [offline field inventory](https://github.com/jochenkunkel/pulselibre/issues/141).
+- The V26 item list also does not prove exhaustive history; the missing prior FIT and limited list page remain unresolved. No further device run, gate reset, archive, flag, delete, or CLOSE_ALL operation is authorized by this document.
 
-Primary evidence: [V24](../device-tests/CIRQA_SYNC_V24_DEVICE_RESULT_2026-11-18.md), [V25](../device-tests/CIRQA_SYNC_V25_DEVICE_RESULT_2026-11-18.md), [historical data scope](../../HISTORICAL_DATA_SCOPE.md).
+Primary evidence: [V24](../device-tests/CIRQA_SYNC_V24_DEVICE_RESULT_2026-11-18.md), [V25](../device-tests/CIRQA_SYNC_V25_DEVICE_RESULT_2026-11-18.md), [V26](../device-tests/CIRQA_SYNC_V26_DEVICE_RESULT_2026-11-19.md), [historical data scope](../../HISTORICAL_DATA_SCOPE.md), [incremental-sync research #148](https://github.com/jochenkunkel/pulselibre/issues/148).
 
 ## Acceptance tests planned
 1. Band out of range for 24h, then reconnect and backfill original timestamps.
