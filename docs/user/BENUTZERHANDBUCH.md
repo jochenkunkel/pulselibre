@@ -32,7 +32,7 @@ Wissenschaftliche, **explorative** Auswertungen in fünf Gruppen (Herz & Kreisla
 ### Gerät
 - Die Verbindungskarte zeigt, ob das Band verbunden ist und wann die letzte Messung ankam. Darunter Kennzahlen (Empfang je Stunde, Speicher, Sitzungen heute, seit wann aufgezeichnet) und der **letzte Empfang je Messgröße**.
 - **Bandinformationen:** Akku, Firmware, Uhrzeit, Modell. Ein Wert erscheint **nur**, wenn er mit Quelle und Zeitstempel gespeichert ist; sonst „Nicht verfügbar“. Ein Akkustand zeigt Balken und „Stand: vor …“ bzw. „Veraltet · letzter bekannter Stand …“.
-- **Unbekannte Datenfelder:** Wenn die Dateien des Bands Felder enthalten, die PulsLibre noch nicht versteht, erscheint ein dezenter Hinweis; die Liste (nach FIT-Nachricht gruppiert) zeigt nur Feldkoordinaten und Häufigkeiten – **keine Messwerte, keine Diagnosen**.
+- **Unbekannte Datenfelder:** Wenn die Dateien des Bands Felder enthalten, die PulsLibre noch nicht versteht, erscheint ein dezenter Hinweis; die Liste (nach FIT-Nachricht gruppiert) zeigt nur Feldkoordinaten und Häufigkeiten – **keine Messwerte, keine Diagnosen**. Pro Feld kannst du über **„Status ändern“** eine eigene Prüfmarke setzen (ungeprüft · in Prüfung · unterstützt · ignoriert); das verändert keine Messdaten.
 - **Aufzeichnung:** „Starten“/„Stoppen“ des Aufzeichnungsdienstes (Android zeigt dabei eine dauerhafte Benachrichtigung mit Stopp-Taste).
 - *Versteckt:* Ein **3-Sekunden-Druck auf „Gerät · CIRQA“** öffnet das **Testlabor** (nur lesende Diagnose: App, Bluetooth-Status, Synchronisationszähler, Diagnosepaket mit Vorschau zum bewussten Teilen; „Erweitertes Testlabor“ für Fortgeschrittene).
 

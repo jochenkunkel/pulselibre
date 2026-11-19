@@ -319,3 +319,8 @@ Noch sichtbar offen (P3): Nacht-Insights erste Spalte „22–6 Uhr / 22331 / We
 
 ## 2026-11-19 – #204: Tap auf „Unbekannte Datenfelder“ im Emulator geprüft
 - Auf dem S25 (Build 1320) öffnete sich der Dialog bei zwei Tests nicht. Im Emulator mit 1000 synthetischen Feldtypen (100 FIT-Nachrichten × 10 Felder) öffnet der echte Touch-Tap den Dialog sofort, Gruppen lassen sich auf-/zuklappen. Fehler damit **nicht reproduzierbar**; wahrscheinlichste Ursache: der Tap lag nach dem Scrollen neben der Karte (ihre Position hängt von der Länge der Seite ab). Kein Codechange; Beobachtung bei der nächsten Handyprüfung wiederholen (Position per `uiautomator dump` bestimmen).
+
+## 2026-11-19 – #204: Status je unbekanntem Feld in der UI ändern
+- Pro Feld „Status ändern“ (ungeprüft · in Prüfung · unterstützt · ignoriert) schreibt die Prüfmarke für alle Quelldateien-Zeilen des Feldtyps (`updateFitUnmappedFieldStatus`), aktualisiert die Zeile live und die Zusammenfassung; ändert keine Messdaten.
+- Im Emulator (1000 synthetische Feldtypen, echte Touch-Taps) geprüft; dabei gefunden: `setMessage` + `setSingleChoiceItems` versteckt unter AppCompat die Liste → eigene Ansicht mit Hinweistext und vier Zeilen. DB-Stand nach Test: 1× IGNORED, 1× SUPPORTED, Rest UNREVIEWED.
+- Test `entryOffersAStatusChoiceThatStatesNoMeasurementDataIsChanged`.

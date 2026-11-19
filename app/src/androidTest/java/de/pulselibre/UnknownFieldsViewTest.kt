@@ -53,4 +53,25 @@ class UnknownFieldsViewTest {
             assertTrue(DialogTestSupport.containsText(dialog, "ungeprüft"))
         }
     }
+
+    @Test fun entryOffersAStatusChoiceThatStatesNoMeasurementDataIsChanged() {
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            scenario.onActivity { activity ->
+                val v = UnknownFieldsView(activity)
+                (activity.findViewById<ViewGroup>(android.R.id.content)).addView(v)
+                v.show(UnknownFieldsSummary.summarize(listOf(field(85))))
+                v.performClick()
+            }
+            val dialog = DialogTestSupport.awaitDialog("Unbekanntes Datenfeld entdeckt (1 Typ)")
+            DialogTestSupport.clickText(dialog, "FIT-Nachricht 20 · 1 Feldtyp")
+            DialogTestSupport.clickText(dialog, "Status ändern")
+            val choice = DialogTestSupport.awaitDialog("Status: FIT-Nachricht 20 · Feld 85")
+            assertTrue(DialogTestSupport.containsText(choice, "Es werden keine Messdaten verändert"))
+            // die Listeneinträge werden erst nach dem ersten Layout-Durchlauf angelegt
+            val end = System.currentTimeMillis() + 5000
+            val options = listOf("ungeprüft", "in Prüfung", "unterstützt", "ignoriert")
+            while (System.currentTimeMillis() < end && !options.all { DialogTestSupport.containsText(choice, it) }) Thread.sleep(100)
+            options.forEach { assertTrue(it, DialogTestSupport.containsText(choice, it)) }
+        }
+    }
 }
