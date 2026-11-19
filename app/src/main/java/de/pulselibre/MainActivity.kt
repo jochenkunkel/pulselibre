@@ -345,6 +345,7 @@ class MainActivity : AppCompatActivity() {
         val overview = mutableListOf<android.view.View>()
         val historyViews = mutableListOf<android.view.View>()
         val deviceViews = mutableListOf<android.view.View>()
+        val analysisViews = mutableListOf<android.view.View>()
         fun overviewView(view: android.view.View, margin: Int = 12) {
             root.addView(view, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(margin) })
             overview.add(view)
@@ -352,6 +353,11 @@ class MainActivity : AppCompatActivity() {
         fun deviceView(view: android.view.View, margin: Int = 12) {
             root.addView(view, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(margin) })
             deviceViews.add(view)
+            view.visibility = android.view.View.GONE
+        }
+        fun analysisView(view: android.view.View, margin: Int = 12) {
+            root.addView(view, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(margin) })
+            analysisViews.add(view)
             view.visibility = android.view.View.GONE
         }
         fun historyView(view: android.view.View, margin: Int = 12) {
@@ -529,6 +535,10 @@ class MainActivity : AppCompatActivity() {
         historyRefresh = { cirqaHistory.refresh() }
         cirqaHistory.refresh()
         historyView(cirqaHistory)
+        // #227: main tab "Analysen" with the five module groups; hosts the single trend block.
+        lateinit var analysenView: AnalysenView
+        analysenView = AnalysenView(this, goHistory = { selectMainTab(1) }, reveal = { y -> scroll.post { scroll.smoothScrollTo(0, analysenView.top + y) } })
+        analysisView(analysenView, 12)
         val deviceHeading = text("Gerät · CIRQA", 22f, ink, true)
         deviceView(deviceHeading)
         val debugDeviceViews = mutableListOf<android.view.View>()
@@ -1008,6 +1018,7 @@ class MainActivity : AppCompatActivity() {
             }
             overview.forEach { it.visibility = if (index == 0) android.view.View.VISIBLE else android.view.View.GONE }
             historyViews.forEach { it.visibility = if (index == 1) android.view.View.VISIBLE else android.view.View.GONE }
+            analysisViews.forEach { it.visibility = if (index == MainNavigationView.ANALYSEN) android.view.View.VISIBLE else android.view.View.GONE }
             deviceViews.forEach { it.visibility = if (index == 2 && (debugDevicesVisible || it !in debugDeviceViews)) android.view.View.VISIBLE else android.view.View.GONE }
             if (index == 1) {
                 dashboardLastEventId = -1L
