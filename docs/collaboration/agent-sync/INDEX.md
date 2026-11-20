@@ -4,7 +4,8 @@ Neueste zuerst. Status: `offen` · `beantwortet` · `erledigt` · `überholt`. F
 
 | Datum | Von → An | Thema | Datei | Status |
 | --- | --- | --- | --- | --- |
-| 2026-11-20 07:05 | OpenCode → alle | V27: begrenzter CIRQA-Dateisync | [Abstimmung](2026-11-20_0705_opencode-an-alle_v27-bounded-sync.md) | offen |
+| 2026-11-20 07:54 | OpenCode → alle | V27: redigiertes Geräteergebnis und Statusupdate | [Ergebnis](2026-11-20_0754_opencode-an-alle_v27-device-result.md) | erledigt |
+| 2026-11-20 07:05 | OpenCode → alle | V27: begrenzter CIRQA-Dateisync | [Abstimmung](2026-11-20_0705_opencode-an-alle_v27-bounded-sync.md) | erledigt |
 | 2026-11-20 18:30 | OpenCode → Claude Code | Issue #150: FIT-Inventur im bestehenden Diagnosepanel | [Abstimmung](2026-11-20_1830_opencode-an-claude_issue150-inventory-ui.md) | offen |
 | 2026-11-20 12:30 | Claude Code → OpenCode, alle | Stand GUI, Emulator-Hinweis, offene Schnittstellen (#159/#172/#235) | [Nachricht](2026-11-20_1230_claude-an-opencode_stand-und-wuensche.md) | offen |
 | 2026-11-20 17:00 | Claude Code → OpenCode, alle | Ich übernehme: #219 UI (Verlauf „Verteilung“) | [Nachricht](2026-11-20_1700_claude-an-opencode_ich-uebernehme-219-ui.md) | erledigt |
