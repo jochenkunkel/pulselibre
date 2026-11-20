@@ -175,10 +175,66 @@ Beide Umgebungen verwenden dieselben vier Repository-Secrets:
 - **CLOUD/LOCAL-Runner:** Der Workflow schreibt den Keystore nach `$RUNNER_TEMP`
   (wird vom Runner zwischen Jobs verworfen) und exportiert die Variablen über
   `GITHUB_ENV`.
-- **Reine Offline-Läufe:** `tools/ci/signing.sh` liest optional
-  `~/.config/pulselibre/ci-signing.env` (Rechte `600`, außerhalb des Repos) mit
-  denselben vier Werten. Ohne diese Datei laufen alle Tests, aber es entsteht
-  **keine updatefähige APK** – sichtbar als `APK_SIGNING_READY=false`.
+- **Lokale Läufe:** `tools/ci/signing.sh` liest optional
+  `~/.config/pulselibre/ci-signing.env` (Rechte `600`, außerhalb des Repos).
+  Bereitgestellt wird der **bestehende** Keystore als Base64 sowie Store-Passwort,
+  Alias und Key-Passwort. Der Keystore wird für den Lauf temporär mit Modus `600`
+  nach `$TMPDIR` dekodiert und nach Abschluss entfernt; die Originaldatei bleibt
+  am sicheren Speicherort.
+
+### Lokalen Keystore sicher bereitstellen
+
+1. Den bereits vorhandenen `.jks`-/`.keystore`-Keystore und die dazugehörigen
+   Zugangswerte aus dem eigenen sicheren Speicher/Passwortmanager verwenden.
+   Keinen neuen Schlüssel erzeugen. Ein GitHub-Token kann die Signaturwerte
+   **nicht** ersetzen; GitHub zeigt gespeicherte Secret-Werte nicht wieder an.
+2. Das Konfigurationsverzeichnis nur für das eigene Konto lesbar machen und
+   den Keystore **direkt in die Datei außerhalb des Repositorys** Base64-kodieren
+   (Beispiel für Linux; den Platzhalter durch den Pfad zur vorhandenen Datei
+   ersetzen):
+
+   ```bash
+   install -d -m 700 "$HOME/.config/pulselibre"
+   umask 077
+   {
+     printf 'PULSELIBRE_SIGNING_KEY_B64='
+     base64 < "/sicherer/pfad/zum/vorhandenen-keystore.jks" | tr -d '\n'
+     printf '\n'
+   } > "$HOME/.config/pulselibre/ci-signing.env"
+   ```
+
+3. Die Datei mit einem lokalen Editor ergänzen:
+
+   ```bash
+   "${EDITOR:-nano}" "$HOME/.config/pulselibre/ci-signing.env"
+   ```
+
+   ```bash
+   PULSELIBRE_SIGNING_STORE_PASSWORD='bestehendes-Store-Passwort'
+   PULSELIBRE_SIGNING_KEY_ALIAS='bestehender-Alias'
+   PULSELIBRE_SIGNING_KEY_PASSWORD='bestehendes-Key-Passwort'
+   ```
+
+   Shell-kompatibel quoten. Keystore/Base64 und Passwörter weder in Chat,
+   Kommandozeilenargumente, Shell-History noch Repository-Dateien kopieren.
+   Base64 ist **keine Verschlüsselung**; der Schutz erfolgt durch Verzeichnis-
+   und Dateirechte.
+4. Rechte setzen und die lokale CI starten:
+
+   ```bash
+   chmod 600 "$HOME/.config/pulselibre/ci-signing.env"
+   ./tools/ci-local.sh --quick
+   ```
+
+   Ohne Signing-Datei laufen Tests weiter, aber es entsteht **keine signierte
+   Update-APK** (`APK_SIGNING_READY=false`). Mit gültigen Werten zeigt die
+   Diagnose `APK_SIGNING_READY=true`; die Release-Datei liegt dann unter
+   `app/build/outputs/apk/release/app-release.apk`.
+
+Eine lokal signierte APK ist nicht automatisch ein freigegebenes Update. Vor
+Installation oder Verteilung müssen Signaturfingerprint **und** Versionscode
+zur installierten/verteilten App passen. Insbesondere erzeugt ein lokaler
+Standardlauf keinen garantierten fortlaufenden Release-Versionscode.
 - Pull Requests erhalten keine Signatur-Secrets.
 
 Ein Signaturvergleich zwischen Debug- und Release-APK findet in `diagnostics`

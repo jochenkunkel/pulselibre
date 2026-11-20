@@ -62,7 +62,7 @@ and releases.
 | 10 | Keine unerwarteten Cloud-Jobs | **bestanden** (Logiktests): Forks immer CLOUD, unbekannte Trigger CLOUD, PR ohne Freigabe CLOUD; LOCAL nur bei expliziter Freigabe |
 | 11 | Workflow-Struktur (Regressionsschutz) | **bestanden**: 12 Tests in `tools/test_workflow_structure.py` – `runs-on` nur über ein JSON-Array + `fromJSON`, statische Job-Namen, Actions auf Commit-SHA gepinnt, `persist-credentials: false`, kein `write-all` |
 | 12 | Runner-Installer-Trockenlauf | **bestanden** (`--user` und `--system --dry-run` ohne root, jeweils Exit 0): vollständiger Ablauf angezeigt, keine Registrierung, kein Schreibzugriff auf `/opt`; PR [44708553642](https://github.com/jochenkunkel/pulselibre/actions/runs/44708553642) und `main` [44709934316](https://github.com/jochenkunkel/pulselibre/actions/runs/44709934316) grün |
-| 13 | Runner-Installer-Sicherheitsregressionen | **bestanden**: 4 isolierte Tests in `tools/test_runner_installer.py`; tokenloser System-/User-Dry-Run, öffentliche Repo-Installation und Dry-Run ohne expliziten Override vor Seiteneffekten abgelehnt; gesamte Python-Suite: 70 Tests grün |
+| 13 | Runner-Installer-Sicherheitsregressionen | **bestanden**: 4 isolierte Tests in `tools/test_runner_installer.py`; tokenloser System-/User-Dry-Run, öffentliche Repo-Installation und Dry-Run ohne expliziten Override vor Seiteneffekten abgelehnt; Python-Suite: 70 Tests grün; PR [44750380436](https://github.com/jochenkunkel/pulselibre/actions/runs/44750380436) und Main [44751861736](https://github.com/jochenkunkel/pulselibre/actions/runs/44751861736) CLOUD+FULL inkl. Emulator grün |
 
 ### Push auf `main`
 
