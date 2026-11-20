@@ -351,9 +351,15 @@ sudo chmod 666 /dev/kvm
   zwischen Läufen wiederverwendet.
 - **Kein vollständiger Rebuild:** Gradle ist inkrementell; `--rerun-tasks` wird
   nirgends verwendet.
-- **Parallele Läufe:** Die Concurrency-Gruppe enthält die Umgebung, damit LOCAL
-  und CLOUD desselben Branches parallel laufen können; überholte Läufe derselben
-  Umgebung werden abgebrochen.
+- **Parallele Läufe:** Die Concurrency-Gruppe enthält Ref und Umgebung, damit
+  LOCAL und CLOUD desselben Branches parallel laufen können. Bei neuen Commits
+  dürfen überholte PR-Läufe derselben PR-Gruppe abgebrochen werden. Push- und
+  manuelle Läufe brechen dagegen keinen bereits laufenden Job ab. GitHub hält pro
+  Gruppe maximal einen Pending-Lauf; bei weiteren Commits wird der Pending-Lauf
+  durch den neuesten ersetzt. Damit endet ein aktiver Main-FULL-Lauf vollständig,
+  danach wird der jüngste wartende Main-Stand geprüft. Offline-Policy-Tests
+  simulieren dieses Verhalten; die echte Scheduler-Semantik wird zusätzlich in
+  Actions anhand der Main-FULL-Runs beobachtet.
 - **Emulator:** QUICK startet keinen Emulator. FULL nutzt einen Cold Boot ohne
   Snapshot (reproduzierbar) und deaktivierte Animationen.
 - **Speicher:** `org.gradle.jvmargs=-Xmx2048m` bleibt bewusst konservativ, damit
