@@ -82,6 +82,61 @@ Zwei-Listen-No-Pull-Vergleich ergab erneut 23/23 identische UID-/Metadatenpaare,
 Datei-Pulls oder Importe. Ein Einfluss der Knopfaktion ist plausibel, aber
 unverifiziert. Gemeinsamer Zähler: 7/15.
 
+Der achte Versuch endete vor dem `sync_request`: Das Gerät lehnte die
+GFDI-Registrierung ab; es wurden keine Item-Lists empfangen. Der Versuch wurde
+trotzdem verbraucht. Beim anschließenden Knopftest startete die CIRQA die
+eingestellte „Aktivität mit Zeitangabe“. Die Aktivität wurde kurz in Garmin
+Connect gespeichert. Der neunte PulseLibre-Lauf erhielt danach zwei Listen
+mit je 24 Einträgen; alle 24 UID-/Metadatenpaare waren identisch, 0 geändert,
+neu, fehlend oder doppelt. MLR-Chunks/-Bytes, Datei-Pulls und Importe: 0.
+Der Anstieg von 23 auf 24 passt zur gespeicherten Aktivität, ist ohne
+Dateiabruf/UID-Zuordnung aber kein Beweis. Gemeinsamer Zähler: 9/15.
+
+Der zehnte Lauf wiederholte den Zwei-Listen-No-Pull-Test: erneut 24 Einträge
+je Liste und 24 unveränderte UID-/Metadatenpaare; 0 geändert, neu, fehlend
+oder doppelt. Es gab keine MLR-Chunks/-Bytes, Datei-Pulls oder Importe.
+Gemeinsamer Zähler: 10/15.
+
+Für Lauf elf drückte der Nutzer unmittelbar davor erneut den Bandknopf. Beide
+Listen enthielten weiterhin 24 Einträge und dieselben 24 UID-/Metadatenpaare;
+es gab 0 geändert, neu, fehlend oder doppelt. MLR-Chunks/-Bytes, Datei-Pulls
+und Importe: 0. In diesem Lauf wurde kein weiterer Listeneintrag sichtbar;
+das belegt nicht, ob das Band intern eine Aktion gespeichert hat.
+Gemeinsamer Zähler: 11/15.
+
+Im Anschluss wurde die während des vorigen Tests laufende Garmin-Connect-
+Aktivität (4:10) gestoppt und gespeichert; Connect zeigte sie danach in
+„Aktivitäten von heute“. Der zwölfte Zwei-Listen-No-Pull-Lauf lieferte
+26 Einträge je Liste und 26 unveränderte UID-/Metadatenpaare, 0 geändert,
+neu, fehlend oder doppelt. Gegenüber dem vorherigen 24er-Bestand sind zwei
+Einträge hinzugekommen. Der zeitliche Zusammenhang mit dem Speichern ist
+auffällig, aber ohne UID-Zuordnung oder Dateiabruf ist nicht belegt, dass
+beide Einträge dieser Aktivität zuzuordnen sind. MLR-Chunks/-Bytes, Pulls und
+Importe: 0. Gemeinsamer Zähler: 12/15.
+
+Der dreizehnte Lauf wurde bei laufendem Garmin-Connect-Dienst ausgeführt. Der
+Android-Bluetooth-Status zeigte unmittelbar davor und danach Garmin Connect
+als GATT-ACL-Inhaber. PulseLibre erhielt dennoch erfolgreich zwei Listen mit
+je 27 Einträgen und 27 unveränderten UID-/Metadatenpaaren; 0 geändert, neu,
+fehlend oder doppelt. Gegenüber dem vorherigen Bestand: +1, ohne UID-Zuordnung
+nicht interpretierbar. MLR-Chunks/-Bytes, Datei-Pulls und Importe: 0. Das
+belegt, dass ein aktiver Connect-GATT-Inhaber eine erfolgreiche PulseLibre-
+Registrierung nicht grundsätzlich verhindert; ein transienter Konflikt als
+Erklärung für Versuch 8 ist damit nicht ausgeschlossen. Gemeinsamer Zähler:
+13/15.
+
+Danach wurde in Garmin Connect „Gerät synchronisieren“ ausgelöst. Im Anschluss
+lieferte Lauf 14 zwei Listen mit je 25 unveränderten UID-/Metadatenpaaren;
+Lauf 15 lieferte zwei Listen mit je 26 unveränderten Paaren. Beide Läufe
+hatten 0 geändert, neu, fehlend oder doppelt und keine MLR-Chunks/-Bytes,
+Datei-Pulls oder Importe. Der sitzungsübergreifende Verlauf 27 → 25 → 26
+zeigt, dass der Listenbestand nicht stabil blieb; ein kausaler Effekt der
+Connect-Synchronisierung lässt sich daraus nicht isolieren. Auch die
+geräte-seitige Wirkung des jeweils gesendeten `sync_request` bleibt als
+Störfaktor bestehen. Das gemeinsame Limit von 15 bestätigten Läufen ist
+ausgeschöpft; keine weiteren Live-Läufe ohne neues, separat bestätigtes
+Versuchsbudget.
+
 ## Separater Folgeversuch nach Transport-ACK ohne Item-List-Antwort
 
 Die ersten direkten Item-List-Anfragen erhielten einen CRC-geprüften
