@@ -66,7 +66,8 @@ object FitHistoricalObservations {
         val dataRecordCount: Int,
         val unsupportedMeasurementFieldCount: Int,
         val deviceMetadata: List<DeviceMetadata> = emptyList(),
-        val unknownFields: List<UnknownField> = emptyList()
+        val unknownFields: List<UnknownField> = emptyList(),
+        val invalidMeasurementFieldCount: Int = 0
     ) {
         fun potentialDuplicates(): List<List<Observation>> =
             observations.groupBy { it.duplicateFingerprint }
@@ -128,6 +129,7 @@ object FitHistoricalObservations {
         var previousFitTimestamp: Long? = null
         var recordOrdinal = 0
         var unsupportedFields = 0
+        var invalidMeasurementFields = 0
         var deviceInfoOrdinal = 0
 
         fun requireBytes(count: Int): Boolean =
@@ -266,7 +268,10 @@ object FitHistoricalObservations {
                         unsupportedFields++
                         continue
                     }
-                    if (raw == invalidSentinel(field)) continue
+                    if (raw == invalidSentinel(field)) {
+                        invalidMeasurementFields++
+                        continue
+                    }
                     // A data field without a valid timestamp is retained as an
                     // explicitly non-importable observation for quality auditing.
                     val value = mapped.scale(raw)
@@ -299,7 +304,7 @@ object FitHistoricalObservations {
             unknown.map { (key, count) ->
                 UnknownField(fileSha, key.global, key.field, key.baseType, key.size,
                     key.developerIndex, key.kind, count.definitions, count.occurrences)
-            })
+            }, invalidMeasurementFields)
     }
 
     private const val MAX_DEVICE_METADATA = 10_000
