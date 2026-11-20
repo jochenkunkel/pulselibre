@@ -10,6 +10,11 @@ Die Bedeutungen unten stammen aus dem öffentlichen FIT-Profil **aus dem Gedäch
 - Wirkung auf die Lücken: Mit diesen Werten sinkt die Summe der Herzfrequenz-Lücken über 5 Minuten (Live + Band) um etwa einen Tag (von ca. 4 d 4 h auf ca. 3 d 4 h), vor allem am zweiten Tag der großen Lücke.
 - Das widerspricht nicht der Vorsicht aus `fit-history-data-contract`: Die Rekonstruktion ist keine Schätzung, sondern die im Profil definierte Regel. Sie braucht trotzdem Decoder-Test und Qualitätsmarke (z. B. `RECONSTRUCTED_FROM_TIMESTAMP_16`), damit die UI sie kennzeichnen kann.
 
+## Umgesetzt (2026-11-21, Nutzerauftrag)
+- `FitHistoricalObservations` rekonstruiert für **Monitoring-Nachrichten (Nr. 55)** den Zeitstempel aus `timestamp_16` (Regel oben, fortlaufend, nur nach einem früheren vollen Zeitstempel derselben Datei; Ungültig-Marke `0xFFFF` und andere Nachrichten bleiben ohne Zeit).
+- Nachweis auf den 45 echten Originalen (lokal, offline): vorher 27.736 importierbar und 1.622 ohne Zeitstempel, nachher 29.358 importierbar (Summe 27.736 + 1.622) und 0 ohne Zeitstempel; 7 außerhalb der Anzeigegrenzen bleiben.
+- **Bewusst nicht geändert:** `DECODER_VERSION` bleibt `1` (ein neuer Wert würde die Prüfung „Stored FIT source metadata conflicts“ der 45 vorhandenen Quellen auslösen), und die Qualität bleibt `PROFILE_VALID` (die Tabelle `fit_observation_provenance` erlaubt per `CHECK` nur diesen Wert; eine Kennzeichnung bräuchte eine Schemaänderung bei OpenCode). Der Backfill läuft bei jedem App-Start über alle Originale; die neuen Zeilen kommen additiv hinzu (Primärschlüssel aus Datei, Datensatznummer, Nachricht, Feld; vorhandene Zeilen bleiben unverändert).
+
 ## Weitere Befunde je Nachricht (Hypothesen)
 | Nr. | Vermutete Bedeutung | Belege (nur Struktur) |
 |---|---|---|
