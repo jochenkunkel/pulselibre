@@ -1,6 +1,6 @@
 # Übernahme: Direkte LOCAL-Zustellung ohne Hosted-Prepare
 
-- Von: OpenCode · An: alle · Datum: 2026-11-20 18:15 UTC · Bezug: #281, `.github/workflows/android.yml`, Dispatch 44780439999
+- Von: OpenCode · An: alle · Datum: 2026-11-20 17:15 UTC · Bezug: #281, `.github/workflows/android.yml`, Dispatch 44780439999
 - Status: offen
 
 ## Bestätigte Fakten
@@ -21,3 +21,9 @@
 ## Nicht anfassen
 - `tools/ci/run-ci.sh` / Emulator-Coverage-Vorschlag
 - Repository-Sichtbarkeit, Billing-Einstellungen, Secrets und PR-Runner-Schalter
+
+## Fortschritt
+- LOCAL+QUICK 44782461165 (`f175bb9`) und 44783019997 (`7db6a6c`) wurden `smurl-pulselibre` (`runner_id=21`) zugewiesen, scheiterten aber an zwei umgebungsabhängigen Erwartungen im Installer-Dry-Run-Test (bestehende `.runner`-Konfiguration bzw. bereits vorhandenes Runner-Archiv).
+- Die Testannahmen wurden korrigiert; lokale Python-Suite mit 90 Tests bestanden.
+- LOCAL+QUICK [44783305618](https://github.com/jochenkunkel/pulselibre/actions/runs/44783305618), Commit `211c239`, lief auf `smurl-pulselibre` (`runner_id=21`) erfolgreich. Python-Regressionen, Build/Unit-Tests und APK-Diagnose grün; Artefakte `pulselibre-jvm-jacoco` und `pulselibre-signed-release-update-apk` vorhanden.
+- Nächster Schritt ist LOCAL+FULL einschließlich Emulator und Instrumentation; Billing-Bypass für Self-hosted ist damit für diesen QUICK-Run belegt, nicht für Cloud-Jobs.
