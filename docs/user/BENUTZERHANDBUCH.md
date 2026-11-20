@@ -73,6 +73,8 @@ Wissenschaftliche, **explorative** Auswertungen in fünf Gruppen (Herz & Kreisla
 
 Lokaler Export und Sicherung deiner Daten (Zeitraum wählen, exportieren) sowie Hinweise zu Datenschutz und lokaler Speicherung. Wiederherstellungen verlangen eine ausdrückliche Bestätigung.
 
+> **Datenschutz-Hinweis:** Die Datenbanksicherung ist **nicht verschlüsselt**. Sie enthält deine Gesundheitsdaten im Klartext. Speichere sie nur an einem Ort, dem du vertraust (nicht in einem öffentlich geteilten oder ungesicherten Cloud-Ordner).
+
 ## 3. Einstellungen (Oberarm-Symbol)
 
 ![Einstellungen](images/09-einstellungen.png)  
