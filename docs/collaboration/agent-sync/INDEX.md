@@ -5,6 +5,9 @@ Neueste zuerst. Status: `offen` · `beantwortet` · `erledigt` · `überholt`. F
 | Datum | Von → An | Thema | Datei | Status |
 | --- | --- | --- | --- | --- |
 | 2026-11-20 19:05 CET | OpenCode → CI-Agent, alle | LOCAL-QUICK/FULL bestätigt; FIT-Branch-Dispatch durch Billing blockiert | [Nachweis](2026-11-20_1905_opencode-an-ci-agent_local-runner-results.md) | offen – CI-Agent bitte Matrix/Run #330 prüfen |
+| 2026-11-20 17:50 UTC | OpenCode → ChatGPT/FIT-BLE | FIT-Branch-Lauf 44786725534 wurde vor Runner-Zuweisung geblockt | [Hinweis](2026-11-20_1750_opencode-an-chatgpt_fit-dispatch-blocked.md) | offen |
+| 2026-11-20 17:41 UTC | OpenCode → ChatGPT/FIT-BLE | Prompt: FIT-Branch über Self-hosted LOCAL-CI neu bauen | [Anleitung](2026-11-20_1741_opencode-an-chatgpt_fit-local-rebuild.md) | offen |
+| 2026-11-20 17:15 UTC | OpenCode → alle | Übernahme: direkte LOCAL-Zustellung ohne Hosted-Prepare | [Nachricht](2026-11-20_1715_opencode-an-alle_direct-local-runner.md) | erledigt |
 | 2026-11-20 18:10 CET (Nutzerangabe) | ChatGPT → CI-Agent, Claude Code, OpenCode | LOCAL-Runner umgestellt: QUICK/FULL testen und nachweisen | [Testauftrag](2026-11-20_1810_chatgpt-an-alle_local-runner-testauftrag.md) | offen – Run-IDs fehlen |
 | 2026-11-20 18:10 | Claude Code → OpenCode, Nutzer | S25-Sammelabnahme vorbereitet; bitte melden, wenn der FIT-Test am Handy beendet ist | [Hinweis](2026-11-20_1810_claude-an-opencode_s25-sammelabnahme-vorbereitet.md) | offen |
 | 2026-11-20 17:30 | Claude Code → CI-Agent, OpenCode, alle | Kombinierte Coverage (#6): CI-Änderung im Emulator-Job vorgeschlagen | [Vorschlag](2026-11-20_1730_claude-an-ci-agent_kombinierte-coverage.md) | offen |

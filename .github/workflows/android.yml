@@ -41,68 +41,57 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  # Entscheidet Runner und Umfang. Läuft immer auf GitHub-hosted (Sekunden),
-  # damit die Entscheidung auch dann fällt, wenn der lokale Runner offline ist.
-  prepare:
-    name: "CI-Ziel bestimmen"
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    permissions:
-      contents: read
-    outputs:
-      environment: ${{ steps.resolve.outputs.environment }}
-      requested_environment: ${{ steps.resolve.outputs.requested_environment }}
-      scope: ${{ steps.resolve.outputs.scope }}
-      runs_on: ${{ steps.resolve.outputs.runs_on }}
-      runner_label: ${{ steps.resolve.outputs.runner_label }}
-      reason: ${{ steps.resolve.outputs.reason }}
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-        with:
-          persist-credentials: false
-      - name: Runner und Umfang bestimmen
-        id: resolve
-        env:
-          EVENT_NAME: ${{ github.event_name }}
-          REQUESTED_ENVIRONMENT: ${{ inputs.run_environment }}
-          REQUESTED_SCOPE: ${{ inputs.test_scope }}
-          LOCAL_RUNNER_ENABLED: ${{ vars.PULSELIBRE_LOCAL_RUNNER_ENABLED }}
-          PR_ON_LOCAL_ENABLED: ${{ vars.PULSELIBRE_PR_ON_LOCAL_ENABLED }}
-          PR_FROM_FORK: ${{ github.event.pull_request.head.repo.fork }}
-        run: bash tools/ci/resolve-target.sh
-      - name: Ergebnis protokollieren
-        env:
-          ENVIRONMENT: ${{ steps.resolve.outputs.environment }}
-          SCOPE: ${{ steps.resolve.outputs.scope }}
-          REASON: ${{ steps.resolve.outputs.reason }}
-          RUNNER_LABEL: ${{ steps.resolve.outputs.runner_label }}
-        run: |
-          echo "Umgebung: $ENVIRONMENT"
-          echo "Runner:   $RUNNER_LABEL"
-          echo "Umfang:   $SCOPE"
-          echo "Grund:    $REASON"
-
   build:
     name: "Build, Unit-Tests, Lint, APK"
-    needs: prepare
-    runs-on: ${{ fromJSON(needs.prepare.outputs.runs_on) }}
+    # LOCAL wird für vertrauenswürdige main-Pushes und explizite Dispatches
+    # direkt gewählt. So braucht GitHub keinen vorgeschalteten Hosted-Job, um
+    # den Self-hosted Runner zu bestimmen. PRs sind nur bei explizitem Opt-in
+    # aus demselben Repository erlaubt; Forks bleiben immer CLOUD.
+    runs-on: >-
+      ${{ fromJSON(
+        (
+          (github.event_name == 'push' &&
+           vars.PULSELIBRE_LOCAL_RUNNER_ENABLED == 'true') ||
+          (github.event_name == 'workflow_dispatch' &&
+           inputs.run_environment == 'LOCAL' &&
+           vars.PULSELIBRE_LOCAL_RUNNER_ENABLED == 'true') ||
+          (github.event_name == 'pull_request' &&
+           vars.PULSELIBRE_LOCAL_RUNNER_ENABLED == 'true' &&
+           vars.PULSELIBRE_PR_ON_LOCAL_ENABLED == 'true' &&
+           github.event.pull_request.head.repo.fork == false)
+        ) &&
+        '["self-hosted","linux","x64","pulselibre"]' ||
+        '["ubuntu-latest"]'
+      ) }}
     timeout-minutes: 60
     permissions:
       contents: read
+    env:
+      CI_SCOPE: ${{ github.event_name == 'workflow_dispatch' && inputs.test_scope || 'FULL' }}
+      CI_ENVIRONMENT: >-
+        ${{ (
+          (github.event_name == 'push' &&
+           vars.PULSELIBRE_LOCAL_RUNNER_ENABLED == 'true') ||
+          (github.event_name == 'workflow_dispatch' &&
+           inputs.run_environment == 'LOCAL' &&
+           vars.PULSELIBRE_LOCAL_RUNNER_ENABLED == 'true') ||
+          (github.event_name == 'pull_request' &&
+           vars.PULSELIBRE_LOCAL_RUNNER_ENABLED == 'true' &&
+           vars.PULSELIBRE_PR_ON_LOCAL_ENABLED == 'true' &&
+           github.event.pull_request.head.repo.fork == false)
+        ) && 'LOCAL' || 'CLOUD' }}
     steps:
       - name: Ausführungsziel
         env:
-          ENVIRONMENT: ${{ needs.prepare.outputs.environment }}
-          SCOPE: ${{ needs.prepare.outputs.scope }}
-          RUNNER_LABEL: ${{ needs.prepare.outputs.runner_label }}
+          RUNNER_NAME: ${{ runner.name }}
         run: |
-          echo "Umgebung: $ENVIRONMENT | Runner: $RUNNER_LABEL | Umfang: $SCOPE"
+          echo "Umgebung: $CI_ENVIRONMENT | Runner: $RUNNER_NAME | Umfang: $CI_SCOPE"
           {
             echo "### Android CI – Build"
             echo ""
             echo "| Umgebung | Runner | Umfang |"
             echo "|---|---|---|"
-            echo "| **$ENVIRONMENT** | \`$RUNNER_LABEL\` | **$SCOPE** |"
+            echo "| **$CI_ENVIRONMENT** | \`$RUNNER_NAME\` | **$CI_SCOPE** |"
           } >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -136,12 +125,8 @@ jobs:
       - name: Python regression tests (validators, workflow structure, runner safety)
         run: bash tools/ci/run-ci.sh python-tests
       - name: Build debug and R8 release variants, run unit tests
-        env:
-          CI_SCOPE: ${{ needs.prepare.outputs.scope }}
         run: bash tools/ci/run-ci.sh build --scope "$CI_SCOPE"
       - name: Android lint and instrumentation test APK (FULL only)
-        env:
-          CI_SCOPE: ${{ needs.prepare.outputs.scope }}
         run: bash tools/ci/run-ci.sh verify --scope "$CI_SCOPE"
       - name: APK and signing diagnostics
         run: bash tools/ci/run-ci.sh diagnostics
@@ -174,26 +159,53 @@ jobs:
 
   emulator:
     name: "Emulator-Instrumentationstests (API 35)"
-    if: needs.prepare.outputs.scope == 'FULL'
-    needs: [prepare, build]
-    runs-on: ${{ fromJSON(needs.prepare.outputs.runs_on) }}
+    if: github.event_name != 'workflow_dispatch' || inputs.test_scope == 'FULL'
+    needs: build
+    runs-on: >-
+      ${{ fromJSON(
+        (
+          (github.event_name == 'push' &&
+           vars.PULSELIBRE_LOCAL_RUNNER_ENABLED == 'true') ||
+          (github.event_name == 'workflow_dispatch' &&
+           inputs.run_environment == 'LOCAL' &&
+           vars.PULSELIBRE_LOCAL_RUNNER_ENABLED == 'true') ||
+          (github.event_name == 'pull_request' &&
+           vars.PULSELIBRE_LOCAL_RUNNER_ENABLED == 'true' &&
+           vars.PULSELIBRE_PR_ON_LOCAL_ENABLED == 'true' &&
+           github.event.pull_request.head.repo.fork == false)
+        ) &&
+        '["self-hosted","linux","x64","pulselibre"]' ||
+        '["ubuntu-latest"]'
+      ) }}
     timeout-minutes: 40
     permissions:
       contents: read
+    env:
+      CI_SCOPE: ${{ github.event_name == 'workflow_dispatch' && inputs.test_scope || 'FULL' }}
+      CI_ENVIRONMENT: >-
+        ${{ (
+          (github.event_name == 'push' &&
+           vars.PULSELIBRE_LOCAL_RUNNER_ENABLED == 'true') ||
+          (github.event_name == 'workflow_dispatch' &&
+           inputs.run_environment == 'LOCAL' &&
+           vars.PULSELIBRE_LOCAL_RUNNER_ENABLED == 'true') ||
+          (github.event_name == 'pull_request' &&
+           vars.PULSELIBRE_LOCAL_RUNNER_ENABLED == 'true' &&
+           vars.PULSELIBRE_PR_ON_LOCAL_ENABLED == 'true' &&
+           github.event.pull_request.head.repo.fork == false)
+        ) && 'LOCAL' || 'CLOUD' }}
     steps:
       - name: Ausführungsziel
         env:
-          ENVIRONMENT: ${{ needs.prepare.outputs.environment }}
-          SCOPE: ${{ needs.prepare.outputs.scope }}
-          RUNNER_LABEL: ${{ needs.prepare.outputs.runner_label }}
+          RUNNER_NAME: ${{ runner.name }}
         run: |
-          echo "Umgebung: $ENVIRONMENT | Runner: $RUNNER_LABEL | Umfang: $SCOPE"
+          echo "Umgebung: $CI_ENVIRONMENT | Runner: $RUNNER_NAME | Umfang: $CI_SCOPE"
           {
             echo "### Android CI – Emulator"
             echo ""
             echo "| Umgebung | Runner | Umfang |"
             echo "|---|---|---|"
-            echo "| **$ENVIRONMENT** | \`$RUNNER_LABEL\` | **$SCOPE** |"
+            echo "| **$CI_ENVIRONMENT** | \`$RUNNER_NAME\` | **$CI_SCOPE** |"
           } >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -219,7 +231,7 @@ jobs:
           emulator-options: >-
             -no-window -no-audio -no-boot-anim -no-snapshot
             -gpu swiftshader_indirect -camera-back none -camera-front none
-          script: bash tools/ci/run-ci.sh emulator --scope FULL
+          script: bash tools/ci/run-ci.sh emulator --scope "$CI_SCOPE"
       - name: Upload instrumentation coverage and reports
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7

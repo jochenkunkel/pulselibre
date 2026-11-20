@@ -27,7 +27,8 @@ WORKFLOW_DIR = REPO_ROOT / ".github" / "workflows"
 ANDROID_WORKFLOW = WORKFLOW_DIR / "android.yml"
 
 SHA_PINNED_ACTION = re.compile(r"^[^@\s]+@[0-9a-f]{40}$")
-DYNAMIC_RUNNER = "${{ fromJSON(needs.prepare.outputs.runs_on) }}"
+LOCAL_RUNNER_JSON = '["self-hosted","linux","x64","pulselibre"]'
+CLOUD_RUNNER_JSON = '["ubuntu-latest"]'
 
 
 def load_workflow(path: pathlib.Path) -> dict:
@@ -67,47 +68,35 @@ class AndroidWorkflowTest(unittest.TestCase):
         self.assertEqual(scope["options"], ["QUICK", "FULL"])
         self.assertIn(scope["default"], scope["options"])
 
-    def test_prepare_job_runs_on_github_hosted(self):
-        # Die Entscheidung muss auch fallen, wenn der lokale Runner offline ist.
-        prepare = self.workflow["jobs"]["prepare"]
-        self.assertEqual(prepare["runs-on"], "ubuntu-latest")
-        self.assertEqual(prepare["timeout-minutes"], 5)
-
-    def test_prepare_publishes_required_outputs(self):
-        outputs = self.workflow["jobs"]["prepare"]["outputs"]
-        for name in ("environment", "scope", "runs_on", "runner_label", "reason"):
-            self.assertIn(name, outputs)
-
-    def test_prepare_calls_resolver_with_required_inputs(self):
-        resolve_steps = [
-            step
-            for job_id, step in iter_steps(self.workflow)
-            if job_id == "prepare" and "resolve-target.sh" in step.get("run", "")
-        ]
-        self.assertEqual(len(resolve_steps), 1)
-        env = resolve_steps[0]["env"]
-        for name in (
-            "EVENT_NAME",
-            "REQUESTED_ENVIRONMENT",
-            "REQUESTED_SCOPE",
-            "LOCAL_RUNNER_ENABLED",
-            "PR_ON_LOCAL_ENABLED",
-            "PR_FROM_FORK",
-        ):
-            self.assertIn(name, env)
-        self.assertEqual(
-            env["LOCAL_RUNNER_ENABLED"], "${{ vars.PULSELIBRE_LOCAL_RUNNER_ENABLED }}"
-        )
-        self.assertEqual(
-            env["PR_ON_LOCAL_ENABLED"], "${{ vars.PULSELIBRE_PR_ON_LOCAL_ENABLED }}"
-        )
-
-    def test_runner_is_resolved_through_json_output(self):
+    def test_local_routing_does_not_depend_on_hosted_prepare_job(self):
+        # A hosted prepare job would itself be blocked by a billing lock before
+        # GitHub could route the actual Android work to the self-hosted runner.
+        self.assertNotIn("prepare", self.workflow["jobs"])
         for job_id in ("build", "emulator"):
             with self.subTest(job=job_id):
                 job = self.workflow["jobs"][job_id]
-                self.assertEqual(job["runs-on"], DYNAMIC_RUNNER)
-                self.assertIn("prepare", job["needs"])
+                self.assertNotIn("prepare", job.get("needs", []))
+                self.assertIn("fromJSON", job["runs-on"])
+                self.assertIn(LOCAL_RUNNER_JSON, job["runs-on"])
+                self.assertIn(CLOUD_RUNNER_JSON, job["runs-on"])
+
+    def test_direct_local_routing_preserves_event_and_pr_safety_guards(self):
+        for job_id in ("build", "emulator"):
+            with self.subTest(job=job_id):
+                routing = self.workflow["jobs"][job_id]["runs-on"]
+                self.assertIn("github.event_name == 'push'", routing)
+                self.assertIn("github.event_name == 'workflow_dispatch'", routing)
+                self.assertIn("inputs.run_environment == 'LOCAL'", routing)
+                self.assertIn("vars.PULSELIBRE_LOCAL_RUNNER_ENABLED == 'true'", routing)
+                self.assertIn("vars.PULSELIBRE_PR_ON_LOCAL_ENABLED == 'true'", routing)
+                self.assertIn("github.event.pull_request.head.repo.fork == false", routing)
+
+    def test_scope_is_derived_without_prepare_outputs(self):
+        build = self.workflow["jobs"]["build"]
+        emulator = self.workflow["jobs"]["emulator"]
+        self.assertIn("inputs.test_scope", build["env"]["CI_SCOPE"])
+        self.assertIn("inputs.test_scope", emulator["env"]["CI_SCOPE"])
+        self.assertNotIn("needs.prepare", str(self.workflow))
 
     def test_job_names_are_static(self):
         # GitHub wertet 'needs' in Job-Namen nicht aus; Expressions erscheinen
@@ -118,7 +107,8 @@ class AndroidWorkflowTest(unittest.TestCase):
 
     def test_emulator_only_runs_for_full_scope(self):
         emulator = self.workflow["jobs"]["emulator"]
-        self.assertEqual(emulator["if"], "needs.prepare.outputs.scope == 'FULL'")
+        self.assertIn("inputs.test_scope == 'FULL'", emulator["if"])
+        self.assertIn("github.event_name != 'workflow_dispatch'", emulator["if"])
 
     def test_concurrency_cancels_only_superseded_pull_requests(self):
         concurrency = self.workflow["concurrency"]
