@@ -40,8 +40,6 @@ internal class DayTimelineView(
     private val laneHeight = 88 * density
     private val touchSlop = ViewConfiguration.get(context).scaledTouchSlop
     private val timeFormat = DateTimeFormatter.ofPattern("HH:mm").withZone(zone)
-    private val tickFractions = day.axisFractions()
-    private val tickLabels = listOf("00:00", "06:00", "12:00", "18:00", "24:00")
     private var downX = 0f
     private var downY = 0f
     private var dragging = false
@@ -59,7 +57,31 @@ internal class DayTimelineView(
         setMeasuredDimension(MeasureSpec.getSize(widthSpec), h)
     }
 
-    private fun x(fraction: Float) = left + (width - left - margin) * fraction
+    /** Visible window of the day (#264); changing it only changes the axis, never the data. */
+    var viewport = DayViewport()
+        set(value) { field = value; invalidate(); onViewport(value) }
+    var onViewport: (DayViewport) -> Unit = {}
+    private val scale = android.view.ScaleGestureDetector(context, object : android.view.ScaleGestureDetector.SimpleOnScaleGestureListener() {
+        private var lastFocus = 0f
+        override fun onScaleBegin(d: android.view.ScaleGestureDetector): Boolean { lastFocus = d.focusX; return true }
+        override fun onScale(d: android.view.ScaleGestureDetector): Boolean {
+            val focus = viewport.start + fractionAtScreen(d.focusX) * viewport.span
+            var v = viewport.zoom(focus, d.scaleFactor)
+            v = v.pan(-(d.focusX - lastFocus) / (width - left - margin) * v.span)   // two-finger pan
+            lastFocus = d.focusX
+            viewport = v
+            return true
+        }
+    })
+
+    fun zoomIn() { viewport = viewport.zoom(centerFraction(), 2f) }
+    fun zoomOut() { viewport = viewport.zoom(centerFraction(), 0.5f) }
+    fun panBy(direction: Int) { viewport = viewport.pan(direction * viewport.span / 2f) }
+    fun resetZoom() { viewport = DayViewport() }
+    private fun centerFraction() = (viewport.start + viewport.end) / 2f
+
+    private fun fractionAtScreen(px: Float) = ((px - left) / (width - left - margin)).coerceIn(0f, 1f)
+    private fun x(fraction: Float) = left + (width - left - margin) * ((fraction - viewport.start) / viewport.span)
     private fun laneTop(index: Int) = margin + index * (laneHeight + laneGap)
 
     private fun y(lane: DayTimeline.Lane, index: Int, value: Long): Float {
@@ -73,13 +95,15 @@ internal class DayTimelineView(
             val top = laneTop(index)
             val bottom = top + laneHeight
             paint.color = track; paint.style = Paint.Style.STROKE; paint.strokeWidth = density
-            tickFractions.forEach { canvas.drawLine(x(it), top, x(it), bottom, paint) }
+            visibleTicks().forEach { canvas.drawLine(x(it.first), top, x(it.first), bottom, paint) }
             canvas.drawLine(left, bottom, width - margin, bottom, paint)
             text.textAlign = Paint.Align.LEFT
             canvas.drawText(lane.title, left, top - 4 * density, text)
             // Gaps: hatched box + label, so a gap is readable without colour.
+            canvas.save(); canvas.clipRect(left, top - 2 * density, width - margin, bottom + 2 * density)
             lane.gaps.forEach { gap ->
-                val a = x(day.fraction(gap.start)); val b = x(day.fraction(gap.end))
+                val a = x(day.fraction(gap.start)).coerceAtLeast(left); val b = x(day.fraction(gap.end)).coerceAtMost(width - margin)
+                if (b <= a) return@forEach
                 var s = a
                 while (s < b) { canvas.drawLine(s, bottom, minOf(s + laneHeight * 0.4f, b), top, hatch); s += 8 * density }
                 if (b - a > text.measureText("keine Daten") + 4 * density) {
@@ -87,7 +111,7 @@ internal class DayTimelineView(
                     canvas.drawText("keine Daten", (a + b) / 2, (top + bottom) / 2, text)
                 }
             }
-            if (lane.points.isEmpty()) return@forEachIndexed
+            if (lane.points.isEmpty()) { canvas.restore(); return@forEachIndexed }
             // Value axis: low and high of the lane scale.
             text.textAlign = Paint.Align.RIGHT
             val lo = if (lane.cumulative) 0L else lane.min!!
@@ -114,22 +138,41 @@ internal class DayTimelineView(
             if (!lane.cumulative) lane.points.forEach {
                 canvas.drawCircle(x(day.fraction(it.time)), y(lane, index, it.value), 1.6f * density, paint)
             }
+            canvas.restore()
         }
         // Axis labels under the last lane.
         text.textAlign = Paint.Align.CENTER; text.color = ink
         val labelY = laneTop(lanes.size - 1) + laneHeight + text.textSize + 2 * density
         val showMiddle = width >= 5 * (text.measureText("00:00") + margin)
-        tickFractions.forEachIndexed { i, f ->
-            if (showMiddle || i == 0 || i == tickLabels.lastIndex) {
-                text.textAlign = when (i) { 0 -> Paint.Align.LEFT; tickLabels.lastIndex -> Paint.Align.RIGHT; else -> Paint.Align.CENTER }
-                canvas.drawText(tickLabels[i], x(f), labelY, text)
+        val ticks = visibleTicks()
+        ticks.forEachIndexed { i, (f, label) ->
+            if (showMiddle || i == 0 || i == ticks.lastIndex) {
+                text.textAlign = when (i) { 0 -> Paint.Align.LEFT; ticks.lastIndex -> Paint.Align.RIGHT; else -> Paint.Align.CENTER }
+                canvas.drawText(label, x(f), labelY, text)
             }
         }
         selected?.let { t ->
             paint.color = ink; paint.style = Paint.Style.STROKE; paint.strokeWidth = 1.5f * density; paint.alpha = 255
             val cx = x(day.fraction(t))
-            canvas.drawLine(cx, laneTop(0), cx, laneTop(lanes.size - 1) + laneHeight, paint)
+            if (cx >= left && cx <= width - margin) canvas.drawLine(cx, laneTop(0), cx, laneTop(lanes.size - 1) + laneHeight, paint)
         }
+    }
+
+    /** Ticks (day fraction, label) inside the viewport; labels come from real instants, so DST days stay correct. */
+    private fun visibleTicks(): List<Pair<Float, String>> {
+        val dayMinutes = java.time.Duration.between(day.start, day.end).toMinutes()
+        val step = DayViewport.tickMinutes(viewport.span, dayMinutes)
+        val out = mutableListOf<Pair<Float, String>>()
+        var m = 0L
+        while (m <= dayMinutes) {
+            val t = day.start.plusSeconds(m * 60)
+            val f = day.fraction(t)
+            if (f >= viewport.start - 1e-4f && f <= viewport.end + 1e-4f) {
+                out += f to (if (m == dayMinutes) "24:00" else timeFormat.format(t))
+            }
+            m += step
+        }
+        return out
     }
 
     /** Text for the instant [t]: time and the value of each lane, or "keine Daten". */
@@ -147,9 +190,11 @@ internal class DayTimelineView(
         onSelect(t, valuesAt(t))
     }
 
-    private fun fractionAt(px: Float) = ((px - left) / (width - left - margin)).coerceIn(0f, 1f)
+    private fun fractionAt(px: Float) = viewport.start + fractionAtScreen(px) * viewport.span
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
+        scale.onTouchEvent(event)
+        if (scale.isInProgress || event.pointerCount > 1) { dragging = false; scrolling = true; parent.requestDisallowInterceptTouchEvent(true); return true }
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> { downX = event.x; downY = event.y; dragging = false; scrolling = false }
             MotionEvent.ACTION_MOVE -> {

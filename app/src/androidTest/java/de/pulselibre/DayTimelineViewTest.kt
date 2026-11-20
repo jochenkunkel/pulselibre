@@ -42,4 +42,25 @@ class DayTimelineViewTest {
             assertTrue(view.measuredHeight > 0)
         }
     }
+
+    @Test fun zoomedViewStillReportsRawPointsAndResetRestoresTheDay() {
+        InstrumentationRegistry.getInstrumentation().runOnMainSync {
+            val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+            val lanes = listOf(DayTimeline.lane(DashboardMeasurement.PULSE, "Herzfrequenz", "bpm",
+                listOf(obs(600, 72), obs(601, 140)), day, now))
+            val view = DayTimelineView(context, day, lanes, zone, null, Color.WHITE, Color.GRAY, listOf(Color.CYAN))
+            view.measure(View.MeasureSpec.makeMeasureSpec(1000, View.MeasureSpec.EXACTLY),
+                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED))
+            view.layout(0, 0, view.measuredWidth, view.measuredHeight)
+            view.viewport = DayViewport(595f / 1440, 610f / 1440)
+            var reported = ""
+            view.onSelect = { _, line -> reported = line }
+            view.select(601f / 1440)
+            assertTrue(reported, reported.contains("140") || reported.contains("72"))
+            view.zoomIn()
+            assertTrue(view.viewport.span < 15f / 1440 + 1e-6f)
+            view.resetZoom()
+            assertTrue(view.viewport.isFull)
+        }
+    }
 }

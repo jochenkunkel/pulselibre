@@ -71,6 +71,28 @@ internal fun showDayTimeline(activity: MainActivity, worker: Executor) {
                 chart.importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_YES
                 chart.onSelect = { _, line -> selected.text = line }
                 chartHolder.addView(chart, LinearLayout.LayoutParams(-1, -2))
+                val zoomInfo = text(12f, palette.muted).apply { tag = "day_timeline_zoom_info" }
+                fun describeViewport(v: DayViewport) {
+                    zoomInfo.text = if (v.isFull) "Ganzer Tag. Zwei Finger zum Zoomen, oder Tasten."
+                    else "Ausschnitt ${"%.1f".format(java.util.Locale.GERMANY, v.span * 24)} h von 24 h (Rohpunkte, keine Mittelwerte)."
+                }
+                chart.onViewport = ::describeViewport
+                describeViewport(chart.viewport)
+                val tools = LinearLayout(activity).apply { orientation = LinearLayout.HORIZONTAL }
+                fun tool(label: String, description: String, action: () -> Unit) = Button(activity).apply {
+                    text = label; contentDescription = description; isAllCaps = false; minWidth = 0; minimumWidth = 0
+                    setTextColor(palette.accent)
+                    background = android.graphics.drawable.GradientDrawable().apply { setColor(palette.tinted); cornerRadius = 12 * density }
+                    setOnClickListener { action() }
+                    tools.addView(this, LinearLayout.LayoutParams(0, -2, 1f).apply { marginEnd = (4 * density).toInt() })
+                }
+                tool("‹", "Ausschnitt zurück") { chart.panBy(-1) }
+                tool("−", "Herauszoomen") { chart.zoomOut() }
+                tool("+", "Hineinzoomen") { chart.zoomIn() }
+                tool("›", "Ausschnitt vor") { chart.panBy(1) }
+                tool("Tag", "Ganzen Tag anzeigen") { chart.resetZoom() }
+                chartHolder.addView(tools)
+                chartHolder.addView(zoomInfo)
                 selected.text = "Tippen oder ziehen, um Werte zu einer Uhrzeit zu sehen."
             }
         }
