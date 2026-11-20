@@ -219,9 +219,10 @@ object FitHistoricalObservations {
             } else {
                 val timestampField = definition.fields.firstOrNull { it.number == 253 }
                 val offset = timestampField?.let(fieldBytes::get)
-                offset?.let {
+                val full = offset?.let {
                     readUnsigned32(file, it, timestampField.size, definition.bigEndian, timestampField)
                 }
+                full ?: reconstructMonitoringTimestamp16(definition, fieldBytes, file, previousFitTimestamp)
             }
             if (fitTimestamp != null && fitTimestamp != 0xffff_ffffL) {
                 previousFitTimestamp = fitTimestamp
@@ -333,6 +334,25 @@ object FitHistoricalObservations {
             else -> null
         }
         else -> null
+    }
+
+    /**
+     * Monitoring messages may carry `timestamp_16` (field 26, uint16) instead of a full timestamp. The FIT profile
+     * defines the full value as the most recent full timestamp plus the 16-bit difference (mod 2^16). Without an
+     * earlier full timestamp in the same file, or with the invalid marker, nothing is reconstructed (stays missing).
+     */
+    private fun reconstructMonitoringTimestamp16(
+        definition: Definition,
+        fieldBytes: Map<FieldDefinition, Int>,
+        file: ByteArray,
+        previous: Long?
+    ): Long? {
+        if (definition.globalNumber != GLOBAL_MONITORING || previous == null) return null
+        val field = definition.fields.firstOrNull { it.number == 26 && it.size == 2 } ?: return null
+        val offset = fieldBytes[field] ?: return null
+        val raw = readSupportedUnsigned(file, offset, field, definition.bigEndian, 4) ?: return null
+        if (raw == invalidSentinel(field)) return null
+        return previous + ((raw - (previous and 0xffffL)) and 0xffffL)
     }
 
     private fun readSupportedUnsigned(

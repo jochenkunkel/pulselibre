@@ -91,6 +91,32 @@ class ExportActivity : AppCompatActivity() {
         }
     }
 
+    /** #328: raw FIT originals as a ZIP, only after a warning and into a location the user picks. */
+    private val createFitOriginals = registerForActivityResult(
+        ActivityResultContracts.CreateDocument("application/zip")
+    ) { uri ->
+        if (uri == null) {
+            databaseFeedback.text = "Export der FIT-Originale abgebrochen."
+        } else {
+            databaseFeedback.text = "FIT-Originale werden exportiert …"
+            executor.execute {
+                try {
+                    val output = contentResolver.openOutputStream(uri) ?: error("Ziel kann nicht geöffnet werden")
+                    val result = output.use { FitOriginalsArchive.write(java.io.File(filesDir, "verified_fit"), it) }
+                    runOnUiThread {
+                        databaseFeedback.text = "FIT-Originale gespeichert: ${result.files} Dateien" +
+                            (if (result.skipped > 0) ", ${result.skipped} wegen der Größengrenze übersprungen" else "") +
+                            ". Die ZIP-Datei ist unverschlüsselt."
+                    }
+                } catch (_: Exception) {
+                    runOnUiThread {
+                        databaseFeedback.text = "Export fehlgeschlagen. Bitte Speicherort prüfen; eine angelegte Zieldatei kann unvollständig sein und sollte gelöscht werden."
+                    }
+                }
+            }
+        }
+    }
+
     private val createDocument = registerForActivityResult(
         ActivityResultContracts.CreateDocument("text/csv")
     ) { uri ->
@@ -286,6 +312,20 @@ class ExportActivity : AppCompatActivity() {
         ) {
             createDatabaseBackup.launch("pulslibre_backup_${LocalDate.now()}.zip")
         })
+        dataPanel.addView(databaseAction(
+            "FIT-Originale exportieren", "Rohe FIT-Originaldateien als ZIP exportieren", palette.accent
+        ) {
+            AlertDialog.Builder(this)
+                .setTitle("FIT-Originale exportieren?")
+                .setMessage("Die ZIP-Datei enthält die rohen, geprüften FIT-Dateien deines Bands. Sie ist unverschlüsselt und " +
+                    "kann sensible Gesundheits- und Geräteinformationen enthalten. Es wird nichts verändert, gelöscht oder gesendet. " +
+                    "Speichere sie nur an einem Ort, dem du vertraust.")
+                .setNegativeButton("Abbrechen", null)
+                .setPositiveButton("Exportieren") { _, _ ->
+                    createFitOriginals.launch("pulselibre_fit_originale_${LocalDate.now()}.zip")
+                }
+                .show()
+        }, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) })
         dataPanel.addView(databaseAction(
             "Backup wiederherstellen", "Datenbank aus einem Backup wiederherstellen", palette.accent
         ) {

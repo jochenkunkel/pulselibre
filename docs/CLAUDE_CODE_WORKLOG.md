@@ -500,7 +500,7 @@ Noch sichtbar offen (P3): Nacht-Insights erste Spalte „22–6 Uhr / 22331 / We
 ## 2026-11-21 – S25-Sichtprüfung #334 (CI-signiertes APK, Build 1561)
 
 - Installiert: `app-release.apk` aus dem main-Lauf 44821236628 (enthält #335/#336), `adb install -r`, Daten erhalten. Nur lesend bedient (Tabs, Zeitraumwahl, Scrollen); keine BLE-Aktion, keine Instrumentation.
-- **Verlauf, 30 Tage:** zweite Karte „Herzfrequenz · Band-Verlauf (FIT)“ vorhanden, 12.730 Werte in 5 belegten Tagesfenstern, Legende „Zeitachse: Messzeit des Bandes (aus FIT-Dateien)“; die Live-Karte bleibt „Telefonzeit“ (54.454 Werte in 4 Fenstern). Beide Reihen getrennt.
+- **Verlauf, 30 Tage:** zweite Karte „Herzfrequenz · Band-Verlauf (FIT)“ vorhanden, Werte in mehreren belegten Tagesfenstern, Legende „Zeitachse: Messzeit des Bandes (aus FIT-Dateien)“; die Live-Karte bleibt „Telefonzeit“ (eigene Werte, Telefonzeit). Beide Reihen getrennt.
 - **Übersicht:** Herzfrequenz-Kachel zeigt die Live-Zeile („Heute Ø … bpm“); die Zeile „Band-Verlauf heute (Messzeit)“ erscheint nicht, weil die FIT-Daten nicht von heute sind (erwartetes Verhalten: nur heutige Band-Werte).
 - **Performance:** Wechsel 7 → 30 Tage bis zur sichtbaren Karte unter etwa 2 s (grobe Messung inklusive UI-Dump); kein Absturz im Crash-Log. Kein Anlass für Rollups (#140).
 - Offen: die Übersicht zeigt historische Band-Werte nur für den heutigen Tag; Tage davor wären ein eigener Schritt (Wochenkarte, #329) und braucht belegte weitere Metriken.
@@ -510,3 +510,30 @@ Noch sichtbar offen (P3): Nacht-Insights erste Spalte „22–6 Uhr / 22331 / We
 - Befund am S25: Die Band-Zeile der Herzfrequenz-Kachel erschien nicht, weil die FIT-Daten nicht von heute sind. Das erfüllt den Nutzerwunsch („historische Daten in der Übersicht“) nicht.
 - Jetzt: ohne heutige Band-Werte zeigt die Kachel den neuesten Tag mit Band-Werten, mit Datum in der Zeile („Band-Verlauf 17.11. (Messzeit): Ø … (n Werte)“) und eigener Sparkline. `FitHistoryReader.latestMeasuredAt` (nur lesend). Live-Werte bleiben getrennt.
 - Tests: `FitDaySummaryTest` (Datum des Vortags), `FitHistoryViewTest` (latestMeasuredAt halboffen). Unit-Tests grün, Emulator-Tests kompilieren.
+
+## 2026-11-21 – S25-Abnahme #334: Messtag der FIT-Herzfrequenz (Build 1569, nur lesend)
+
+- Aufbau: CI-signiertes APK aus dem main-Lauf 44827310290 (Stand nach #339), `adb install -r` (Daten erhalten), nur Tabs/Zeitraum/Zurückblättern/Scrollen; **keine BLE-Synchronisation, keine Instrumentation**.
+- Aus Datenschutzgründen stehen hier bewusst **keine Messwerte, Zählwerte oder Messdaten-Tage** (Regel: keine Gesundheitsdaten im Repo); die Zahlen liegen nur im lokalen Gerätebericht.
+- **Übersicht:** Die Herzfrequenz-Kachel zeigt neben der Live-Zeile eine getrennte Zeile „Band-Verlauf <Datum> (Messzeit)“ mit dem Datum des neuesten Messtags, weil heute keine Band-Werte vorliegen.
+- **Verlauf:** 30 Tage und ein 24-h-Fenster zurück zeigen die getrennte Band-Karte („Zeitachse: Messzeit des Bandes“); die Live-Karte im selben Fenster hat eigene Werte (Telefonzeit). Beide Reihen getrennt.
+- **Konsistenz:** Der Messtag der Kachel liegt im Verlaufsfenster, in dem die Band-Karte ihre Werte hat; Ortsdarstellung und UTC-Epoche entsprechen der Zusage von OpenCode. Grenze: keine unabhängige Referenz für den absoluten Tag (kein Garmin-Connect-Vergleich); geprüft ist die interne Konsistenz von Kachel, Verlauf und Fensterachse.
+- **Performance:** Zeitraumwechsel und Zurückblättern ohne spürbare Verzögerung, kein Absturz im Crash-Log. Rollups (#140) nicht nötig.
+- **Offen:** Metrikverteilung der 17 importierten Dateien (OpenCode); Tageszeitleiste/Tagesdialoge lesen weiter nur Live-Daten; weitere Metriken erst nach Import.
+
+## 2026-11-21 – Export der FIT-Originale (#328, optionaler Export) auf Nutzerwunsch
+
+- Anlass: Nutzer will die unbekannten Feldtypen lokal analysieren (Daten sind synthetisch). Das App-Backup enthält nur das Feldinventar (Koordinaten, Typ, Größe, Zähler), keine Rohwerte; die Originale liegen im privaten App-Ordner (Release-App nicht debugbar, kein `run-as`).
+- Neu: Daten-Seite „FIT-Originale exportieren“: Warnhinweis, dann ZIP in einen vom Nutzer gewählten Ort (Dateiauswahl). `FitOriginalsArchive` nimmt nur reguläre Dateien `<64 hex>.fit`, keine Links, Obergrenzen 2.000 Dateien/64 MB; verändert, löscht und sendet nichts. Tests: `FitOriginalsArchiveTest` (JVM, grün).
+- Die ZIP-Datei bleibt lokal (nicht im Repo); Auswertung der Feldinventur lokal, Ergebnisse hier nur ohne Werte.
+
+## 2026-11-21 – FIT-Feldanalyse der 45 Originale
+
+- Signiertes APK Build 1580 (CI-grün, #344) auf dem S25 installiert, „FIT-Originale exportieren“ ausgelöst (Warnung gelesen), ZIP per `adb pull` lokal (nicht im Repo). 45 Dateien, rund 0,6 MB.
+- Eigener Parser `tools/fit_field_survey.py`; Ergebnis in `docs/protocol/FIT_FELDANALYSE_2026-11-21.md` (ohne Rohwerte). Hauptbefund: Die 1.622 Herzfrequenzwerte ohne Zeitstempel sind Monitoring-Werte mit `timestamp_16` und per FIT-Regel zeitlich zuordenbar (Lücken sinken um etwa einen Tag). Aufgabe an OpenCode im agent-sync (00:45).
+
+## 2026-11-21 – timestamp_16 im FIT-Decoder (Nutzerauftrag)
+
+- Auf Nutzerwunsch Erkenntnis umgesetzt: Monitoring-Herzfrequenz mit `timestamp_16` bekommt den Zeitstempel per FIT-Regel (3 neue Unit-Tests, alle Unit-Tests grün). Auf den 45 echten Originalen (lokal, temporärer Test, nicht eingecheckt): 29.358 importierbar statt 27.736, 0 ohne Zeitstempel.
+- Bewusst unverändert: `DECODER_VERSION` und Qualitätswert (Schema-CHECK, Quellenabgleich). Hinweis an OpenCode im agent-sync (01:20).
+- Zuständigkeit: Eingriff im Bereich von OpenCode nur wegen des ausdrücklichen Nutzerauftrags und mit Meldung.
