@@ -13,20 +13,19 @@ gepflegte CI-Definition.
 ## 1. Architektur
 
 ```text
-                    GitHub Actions
-                          │
-                  prepare (ubuntu-latest)
-                  ermittelt Runner + Umfang
-                          │
-             ┌────────────┴────────────┐
-             │                         │
-          LOCAL                      CLOUD
-   [self-hosted, linux, x64,      ubuntu-latest
-          pulselibre]
-             │                         │
-             └────────────┬────────────┘
-                          ▼
-                 tools/ci/run-ci.sh
+                     GitHub Actions
+               runs-on direkt aus Trigger,
+                Inputs und Repo-Variablen
+                           │
+             ┌─────────────┴──────────────┐
+             │                            │
+          LOCAL                         CLOUD
+   [self-hosted, linux, x64,       ubuntu-latest
+         pulselibre]
+             │                            │
+             └──────────────┬─────────────┘
+                            ▼
+                   tools/ci/run-ci.sh
         ┌─────────────────┼─────────────────┐
         ▼                 ▼                 ▼
    python-tests        build              verify
@@ -47,10 +46,17 @@ gepflegte CI-Definition.
                   GitHub Artifacts
 ```
 
-Der Job `prepare` läuft bewusst immer auf GitHub-hosted (wenige Sekunden). So
-wird die Zielumgebung auch dann korrekt bestimmt, wenn der lokale Runner offline
-ist. Ein LOCAL-Job wartet dann in der Warteschlange, statt unbemerkt in die Cloud
-auszuweichen.
+Der Runner wird direkt in `runs-on` bestimmt. Vertrauenswürdige Pushes auf
+`main` und manuelle LOCAL-Dispatches benötigen deshalb keinen vorgelagerten
+GitHub-hosted Job. Bei einem Billing-Lock kann GitHub den Job dennoch global
+blockieren; ob Self-hosted Jobs in diesem Konto trotz des Locks zugestellt
+werden, ist erst mit einem tatsächlichen Run belegt. Ein freigegebener LOCAL-
+Job wartet bei offline befindlichem Runner in der Warteschlange und wechselt
+nicht still in die Cloud.
+
+Pull Requests gehen standardmäßig direkt auf CLOUD. Nur ein explizites
+`PULSELIBRE_PR_ON_LOCAL_ENABLED=true` kann Nicht-Fork-PRs auf LOCAL routen;
+Forks bleiben unabhängig von Variablen immer CLOUD.
 
 ## 2. Bedienung in GitHub
 
@@ -68,10 +74,9 @@ auszuweichen.
 | CLOUD | QUICK | dasselbe auf `ubuntu-latest` |
 | CLOUD | FULL | dasselbe inklusive Emulator auf `ubuntu-latest` |
 
-Die tatsächlich verwendete Umgebung steht im Job-Namen
-(`… · LOCAL · FULL`), im Laufprotokoll des `prepare`-Jobs und in der
-Job-Zusammenfassung („Android CI – Ausführungsziel“). Der Laufname zeigt den
-**angeforderten** Wert; bei automatischen Läufen steht dort `AUTO`.
+Die tatsächlich verwendete Umgebung und der Runnername stehen im Jobprotokoll
+und in der Job-Zusammenfassung („Android CI – Ausführungsziel“). Der Laufname
+zeigt den **angeforderten** Wert; bei automatischen Läufen steht dort `AUTO`.
 
 ### Standardwerte bei automatischen Läufen
 
@@ -151,9 +156,9 @@ Ergebnis zu erzeugen.
 `tools/test_workflow_structure.py` die Workflow-Dateien. Dieser Test
 sichert die Fehler ab, die beim Umbau real aufgetreten sind:
 
-- `runs-on` wird ausschließlich über `fromJSON(needs.prepare.outputs.runs_on)`
-  aufgelöst; ein bloßer String wie `ubuntu-latest` ist kein gültiges JSON und
-  lässt GitHub den Job verwerfen.
+- `runs-on` wird ohne Hosted-Prepare-Job direkt aus dem Trigger, den
+  Repository-Variablen und manuellen Eingaben als JSON-Array bestimmt. Ein
+  bloßer String wie `ubuntu-latest` ist für `fromJSON()` kein gültiges JSON.
 - Job-Namen enthalten keine `${{ ... }}`-Ausdrücke (GitHub wertet `needs` dort
   nicht aus).
 - Alle Actions sind auf einen vollständigen Commit-SHA gepinnt.
@@ -272,10 +277,19 @@ Weitere Maßnahmen:
 - Ein Runner, der einmal fremden Code ausgeführt hat, gilt als kompromittiert.
   Nach einem Vorfall: Runner entfernen, neu registrieren, Secrets rotieren.
 
-## 8. Runner installieren (vorbereitet, nicht automatisch ausgeführt)
+## 8. Runner installieren und warten
 
-Die Installation ist vorbereitet, die **Registrierung erfolgt erst nach der
-Freigabe** (Repository privat oder bewusste Risikoakzeptanz).
+**Aktueller Betrieb (20.11.2026):** Repository `jochenkunkel/pulselibre` ist
+privat. Der Systemrunner `smurl-pulselibre` ist mit Labels `self-hosted`,
+`Linux`, `X64`, `pulselibre` registriert und online. Der Dienst läuft unter
+`ghrunner`; JDK 21 liegt unter `/opt/pulselibre-jdk-21`, Android SDK unter
+`/opt/android-sdk`, `ghrunner` ist in der KVM-Gruppe. GitHub-Variablen:
+`PULSELIBRE_LOCAL_RUNNER_ENABLED=true`,
+`PULSELIBRE_PR_ON_LOCAL_ENABLED=false`. Echte LOCAL+QUICK- und LOCAL+FULL-
+Nachweise stehen in der [Testmatrix](../CI_TEST_STRATEGY.md).
+
+Die folgenden Befehle sind für Neuinstallation/Wiederherstellung dokumentiert;
+die bestehende Runner-Registrierung nicht blind ersetzen.
 
 ```bash
 # 1. Dedizierten Android-SDK für den Runner-Benutzer bereitstellen (optional)
@@ -284,7 +298,7 @@ sudo bash tools/runner/prepare-android-sdk.sh --target /opt/android-sdk --owner 
 # 2. Runner installieren (Systemdienst, Benutzer ghrunner)
 sudo bash tools/runner/install-runner.sh --system \
   --android-sdk /opt/android-sdk \
-  --java-home /home/smiler/.local/share/pulselibre-ci/jdk-21
+  --java-home /opt/pulselibre-jdk-21
 
 # 2a. Trockenlauf ohne root und ohne Registrierung (zeigt alle Befehle)
 bash tools/runner/install-runner.sh --system --dry-run \
@@ -370,19 +384,20 @@ sudo chmod 666 /dev/kvm
 Optimierungen dürfen keine Tests entfernen. Der Umfang wird ausschließlich über
 `QUICK`/`FULL` gesteuert und ist im Laufnamen sichtbar.
 
-## 10. Repository privat schalten (vorbereitet, **nicht** ausgeführt)
+## 10. Repository-Sichtbarkeit und Sicherheit
 
-Die Sichtbarkeit wird nur nach ausdrücklicher Freigabe geändert. Checkliste:
+Repository-Sichtbarkeit wurde am 20.11.2026 als `private` bestätigt. Die
+folgenden Punkte sind Betriebsregeln und Statushinweise:
 
 1. **Actions-Minuten:** Private Repos verbrauchen das Kontingent des Kontos;
    Self-hosted Runner sind kostenlos. Deshalb LOCAL als Standard für Push/PR.
-2. **Secrets:** bleiben beim Wechsel erhalten; nach dem Wechsel einmal prüfen,
-   dass alle vier Signatur-Secrets vorhanden sind.
+2. **Secrets:** Signier-Secrets wurden in LOCAL+QUICK und LOCAL+FULL durch den
+   Schritt „Restore stable APK signing key“ verwendet; Werte nie ausgeben.
 3. **Runner-Gruppen:** Ein Repo-Runner ist nur für dieses Repository sichtbar.
    Für mehrere Repos eine Runner-Gruppe mit „Selected repositories“ verwenden.
-4. **PR-Sicherheit:** Nach dem Wechsel sind PRs nur noch von Mitarbeitern
-   möglich. `PULSELIBRE_PR_ON_LOCAL_ENABLED=true` erst dann setzen, wenn keine
-   Fork-PRs mehr erwartet werden. Fork-PRs bleiben technisch immer auf CLOUD.
+4. **PR-Sicherheit:** `PULSELIBRE_PR_ON_LOCAL_ENABLED=false` bleibt aktiv.
+   PRs und Forks laufen CLOUD; Forks können technisch nie auf LOCAL geroutet
+   werden. Die Variable nicht zur Umgehung eines Billing-Blocks ändern.
 5. **Branch-Schutz für `main`:**
    - Force Push verhindern
    - Branch-Löschung verhindern
@@ -396,7 +411,7 @@ Die Sichtbarkeit wird nur nach ausdrücklicher Freigabe geändert. Checkliste:
 
 | Symptom | Ursache | Lösung |
 | --- | --- | --- |
-| Job fehlt im Lauf / `Error when evaluating 'runs-on'` | `runs_on` ist kein gültiges JSON | `tools/ci/resolve-target.sh` muss ein JSON-Array liefern (`["ubuntu-latest"]`, nicht `ubuntu-latest`); Tests `tools/test_ci_target.py` und `tools/test_workflow_structure.py` |
+| Job fehlt im Lauf / `Error when evaluating 'runs-on'` | `runs-on`-Ausdruck ungültig | Direkten Ausdruck in `.github/workflows/android.yml` und JSON-Arrays `["ubuntu-latest"]`/`["self-hosted",…]` prüfen; Tests `tools/test_workflow_structure.py` |
 | LOCAL-Job bleibt „Queued“ | Runner offline oder Label falsch | `systemctl status 'actions.runner.*'`, Label `pulselibre` prüfen |
 | Lauf zeigt `CLOUD` trotz LOCAL | `PULSELIBRE_LOCAL_RUNNER_ENABLED` fehlt/`false` | Variable auf `true` setzen |
 | `JDK 21 nicht gefunden` | nur JDK 17 installiert | `tools/ci/bootstrap-toolchain.sh` |
@@ -410,5 +425,6 @@ Die Sichtbarkeit wird nur nach ausdrücklicher Freigabe geändert. Checkliste:
 ## 12. Testnachweise
 
 Siehe Abschnitt „Testmatrix“ in [CI_TEST_STRATEGY.md](../CI_TEST_STRATEGY.md) für
-die dokumentierten Ergebnisse. Nicht ausführbare Tests (z. B. GitHub-Läufe ohne
-registrierten Runner oder ohne Keystore) bleiben dort ausdrücklich offen.
+die dokumentierten Ergebnisse. Hosted-CLOUD-/PR-Läufe bei Billing-Sperre und
+echtes Queue-Verhalten bei offline geschaltetem Runner bleiben dort
+ausdrücklich als offen/blockiert gekennzeichnet.
