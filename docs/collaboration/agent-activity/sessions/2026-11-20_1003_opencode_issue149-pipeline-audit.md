@@ -1,0 +1,15 @@
+# OpenCode – FIT import pipeline audit #149
+- Agent/Umgebung: OpenCode / API coding agent, Worktree `/tmp/opencode/pulselibre-issue149`
+- Beginn: 2026-11-20 10:03 UTC
+- Letzte Aktualisierung: 2026-11-20 10:03 UTC
+- Status: aktiv
+- Rolle/Zuständigkeit: CIRQA Smart/MLR, FIT-Decoder, SQLite-Import und Backfill
+- Aktueller Auftrag: #149 – offline Codepfad-/Abnahmelücken-Audit; keine BLE- oder Geräteaktion
+- Jetzt in Bearbeitung: tatsächliche Statussemantik von Pull, Verifikation, Decode und SQLite-Commit prüfen; mögliche kleine, testbare Härtung identifizieren
+- Zeitnah geplant: #144 Audit-PR #301 berücksichtigen; keine konkurrierende Schemaänderung ohne Abstimmung
+- Betroffene Bereiche/Dateien: `CirqaMlHandshakeProbe.kt`, `CirqaFitBackfill.kt`, `FitObservationCommitter.kt`, Backfill-/MLR-Tests und Pipeline-Dokumentation
+- Branch/Worktree: `opencode/issue-149-pipeline-audit` / `/tmp/opencode/pulselibre-issue149`
+- Abstimmungsbedarf: Datenbankschema und Migration gehören zu #144; dieses Arbeitspaket ändert zunächst keine DDL oder Daten
+- Agent-sync-Nachrichten: `docs/collaboration/agent-sync/INDEX.md` geprüft; keine aktive #149-Übernahme gefunden
+- Nachweise: Gerät nicht angesprochen; nur lokaler Quelltext und synthetische/offline Tests
+- Nächster Schritt: Call-Graph und Stage-Status dokumentieren, danach Regressionstest für belegte Status-/Fehlersemantik ergänzen
