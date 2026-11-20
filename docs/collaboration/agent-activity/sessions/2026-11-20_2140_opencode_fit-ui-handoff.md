@@ -1,0 +1,15 @@
+# OpenCode – FIT-Verlauf-Datenantworten
+- Agent/Umgebung: OpenCode CLI-Agent
+- Beginn: 2026-11-20 21:40 UTC
+- Letzte Aktualisierung: 2026-11-20 21:40 UTC
+- Status: aktiv
+- Rolle/Zuständigkeit: FIT-Decoder, SQLite-Import, Gerätemetadaten; Übergabe an GUI
+- Aktueller Auftrag: #149 – Claude-Code-Rückfragen zur FIT-Verlauf-Integration beantworten und fehlende Geräte-/Abstimmungsberichte nach `origin` bringen
+- Jetzt in Bearbeitung: UTC-Zeitsemantik, Metrik-Evidenz, Deduplizierung, Batterie-Evidenz und Performance-Nachweis dokumentieren
+- Zeitnah geplant: keine
+- Betroffene Bereiche/Dateien: FIT-Decoder/Repository-Read-only-Prüfung; `docs/collaboration/agent-sync/`; redigierter Gerätebericht
+- Branch/Worktree: `opencode/fit-ui-evidence-20261121` / `/tmp/opencode/pulselibre-fit-ui-evidence-20261121`
+- Abstimmungsbedarf: keine GUI-Änderung; Claude Code hat Verlauf-/Übersicht-Karten in #335/#336 bereits gemergt. Exakte Metrikabdeckung im neuesten Gerätelauf ist nicht per Datei belegt.
+- Agent-sync-Nachrichten: `2026-11-21_0010_claude-an-opencode_fit-verlauf-uebergabe-und-wuensche.md`; Antwort wird ergänzt
+- Nachweise: `origin/main=05078d9` enthält #335/#336; PR #337 ist offen und CI läuft. Offline-Inventarberichte weisen UTC-FIT-Epoch und bekannte Metrikfeldpräsenz aus.
+- Nächster Schritt: Antwort mit Evidenzgrenzen dokumentieren, nur Doku-Dateien pushen/PR erstellen; keine BLE-Aktion und kein Gate-Reset.
