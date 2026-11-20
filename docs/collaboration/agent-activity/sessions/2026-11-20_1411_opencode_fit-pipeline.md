@@ -1,0 +1,15 @@
+# OpenCode – FIT-Pipeline-Härtung
+- Agent/Umgebung: OpenCode CLI-Agent
+- Beginn: 2026-11-20 14:11 UTC
+- Letzte Aktualisierung: 2026-11-20 14:29 UTC
+- Status: aktiv
+- Rolle/Zuständigkeit: CIRQA Smart/MLR, FIT-Decoder, SQLite-Import/Backfill
+- Aktueller Auftrag: #149 – FIT-Importpipeline gegen reale Laufzeitfehler härten und nach bestandenem Full-Gate integrieren
+- Jetzt in Bearbeitung: #149 – Import-/Transfer-Stage-Status, SQLite-Fehler- und Retry-Semantik, Regressionstests; zulässige read-only S25-Pipeline-Prüfungen nach Inspektion des konkreten App-Pfads
+- Zeitnah geplant: #150 – Gerätebestand/Inventur-Evidenz, sofern ohne Sicherheitsumgehung und ohne privaten Datenexport erreichbar; keine exklusive Reservierung
+- Betroffene Bereiche/Dateien: `CirqaFitBackfill`, MLR-Dateiabschluss/Sync-Koordination, zugehörige JVM-/Instrumentationtests, redigierte Forschungsdokumentation
+- Branch/Worktree: `opencode/fit-pipeline-resume-20261120` / `/home/smiler/04_src/BLE-FIT-CIRQA`
+- Abstimmungsbedarf: #144-Schema/DDL bleibt unberührt; keine BLE-Protokolländerungen oder neuen aktiven Gerätebefehle. Nutzer hat die Fortsetzung und Merge nach erfolgreichem Gate ausdrücklich bestätigt. S25-Instrumentationstests ausgeschlossen.
+- Agent-sync-Nachrichten: `2026-11-20_1411_opencode-an-alle_issue149-fit-pipeline-resume.md`
+- Nachweise: Branch auf `origin/main` `c8e7d07` aktualisiert. Quick-CI grün (66 Python-Tests, Android JVM-Tests, Debug/R8-Release-Build, APK-Diagnose; keine stabilen Signierschlüssel). Aktueller lokaler Full-CI grün: 70 Python-Tests; JVM-Tests; Debug/R8-Release-Build; Lint; Instrumentation-APK; API-35-Emulator-Instrumentation samt Coverage. SQLite-Trigger-Regression belegt Rollback von FIT-Quelle/Observations/Provenienz nach Commitfehler sowie erfolgreichen Retry. `CIRQA_FIT_IMPORT_CALL_GRAPH_2026-11-20.md` dokumentiert Call-Graph, Statuslücke, Feldabdeckung und Evidenzgrenzen. Fehlerfall behoben: exakt gespeicherte, FIT-deklarierte, aber CRC-/Envelope-ungültige Dateien konnten als erfolgreiche Raw-Datei gezählt werden. Keine stabilen Signierschlüssel im lokalen CI; kein S25-Test.
+- Nächster Schritt: Änderungen prüfen/dokumentieren, committen, Branch pushen und PR-Full-CI abwarten. Vor Merge neuesten `main` einbeziehen, PR-CI und anschließend Main-Full-CI prüfen. Kein S25-App-Start, da `CirqaDatabase.onOpen()` `LegacyNightRecording.remove()` aufruft.
