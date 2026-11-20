@@ -10,12 +10,17 @@ class HistoricalSyncPolicyTest {
     }
 
     @Test fun freshSuccessSuppressesSyncUntilFifteenMinutes() {
-        assertFalse(HistoricalSyncPolicy.isDue(1_000_000L, 0L, 100_000L))
-        assertTrue(HistoricalSyncPolicy.isDue(1_000_000L, 0L, 100_000L + HistoricalSyncPolicy.FRESHNESS_MS))
+        val lastSuccess = 100_000L
+        assertFalse(HistoricalSyncPolicy.isDue(
+            lastSuccess + HistoricalSyncPolicy.FRESHNESS_MS - 1, 0L, lastSuccess
+        ))
+        assertTrue(HistoricalSyncPolicy.isDue(
+            lastSuccess + HistoricalSyncPolicy.FRESHNESS_MS, 0L, lastSuccess
+        ))
     }
 
     @Test fun attemptCooldownAppliesEvenWhenPreviousRunFailed() {
-        assertFalse(HistoricalSyncPolicy.isDue(400_000L, 100_000L, 0L))
+        assertFalse(HistoricalSyncPolicy.isDue(399_999L, 100_000L, 0L))
         assertTrue(HistoricalSyncPolicy.isDue(
             100_000L + HistoricalSyncPolicy.MIN_ATTEMPT_INTERVAL_MS, 100_000L, 0L
         ))
