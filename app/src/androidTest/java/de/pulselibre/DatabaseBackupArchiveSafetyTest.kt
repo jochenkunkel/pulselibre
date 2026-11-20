@@ -14,7 +14,7 @@ import java.nio.file.Files
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
-/** Audit #6 / B7-2: manipulated archives are rejected, write nothing outside staging and leave no staging data. */
+/** Audit #6 / B7-2: manipulated archives are rejected (by the platform zip reader or by our whitelist), write nothing outside staging and leave no staging data. */
 @RunWith(AndroidJUnit4::class)
 class DatabaseBackupArchiveSafetyTest {
     private fun zip(vararg entries: Pair<String, String>): ByteArrayInputStream {
@@ -33,7 +33,9 @@ class DatabaseBackupArchiveSafetyTest {
     }
 
     private fun assertRejectedWithoutTrace(archive: ByteArrayInputStream) = withCache { ctx, cache ->
-        assertThrows(IllegalArgumentException::class.java) { DatabaseBackup.prepareRestore(ctx, archive) }
+        // Android's ZipInputStream itself rejects '..' and absolute names with ZipException (IOException);
+        // the app's own checks throw IllegalArgumentException. The UI catches any Exception.
+        assertThrows(Exception::class.java) { DatabaseBackup.prepareRestore(ctx, archive) }
         assertEquals("no staging data may remain", emptyList<String>(), cache.list().orEmpty().toList())
         assertFalse(File(cache.parentFile, "evil.jsonl").exists())
     }

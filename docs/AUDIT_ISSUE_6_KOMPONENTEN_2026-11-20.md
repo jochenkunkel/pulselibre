@@ -96,7 +96,7 @@ Einordnung (Stichprobe, nicht abschließend):
 Gelesen: `extractArchive`, `prepareRestore`, Versions-/Eintragsprüfung, Grenzen.
 | Prüfpunkt | Ergebnis | Beleg |
 | --- | --- | --- |
-| Zip-Slip (Pfade im Archiv) | nicht möglich | Nur feste Eintragsnamen aus `BACKUP_V6_ENTRIES + manifest.json` werden akzeptiert (`entry.name in allowed`); Verzeichnisse und Duplikate werden abgelehnt, Zieldatei = `File(directory, <fester Name>)` |
+| Zip-Slip (Pfade im Archiv) | nicht möglich (zusätzlich lehnt Androids `ZipInputStream` `..`/absolute Namen selbst mit `ZipException` ab; im Emulator API 35 belegt) | Nur feste Eintragsnamen aus `BACKUP_V6_ENTRIES + manifest.json` werden akzeptiert (`entry.name in allowed`); Verzeichnisse und Duplikate werden abgelehnt, Zieldatei = `File(directory, <fester Name>)` |
 | Größenbegrenzung / Zip-Bomb | begrenzt | 128 MB gesamt, 120 MB je Eintrag, 2 MB je Zeile, 1 Mio. Datensätze, 64 kB Manifest, während des Entpackens geprüft |
 | Versionierung | V1–V6, Eintragsliste muss exakt zur Version passen | `prepareRestore`; Emulator-Tests für V1–V4-Wiederherstellung nach Schema-Upgrades |
 | Validierung vor Überschreiben | vollständig, in privatem Cache-Verzeichnis, vor Bestätigungsdialog | `PreparedDatabaseRestore` (`close()` löscht Staging) |
