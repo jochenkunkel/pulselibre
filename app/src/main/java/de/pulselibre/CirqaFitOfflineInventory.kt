@@ -48,7 +48,8 @@ internal object CirqaFitOfflineInventory {
                 append("${file.alias}: ${file.status}; Records=${file.recordMessages}; " +
                     "Observations=${file.supportedObservations}; importierbar=${file.importableObservations}; " +
                     "ohneZeit=${file.missingTimestamps}; außerhalb=${file.outsideDisplayRange}; " +
-                    "nichtUnterstützteFelder=${file.unsupportedMeasurementFields}; Metadaten=${file.metadataRecords}; " +
+                    "ungültigeWerte=${file.invalidMeasurementValues}; nichtUnterstützteFelder=${file.unsupportedMeasurementFields}; " +
+                    "Metadaten=${file.metadataRecords}; " +
                     "unbekannteSignaturen=${file.unknownFieldSignatures}")
                 if (file.byMetric.isNotEmpty()) {
                     append("; Metriken=")
@@ -79,6 +80,7 @@ internal object CirqaFitOfflineInventory {
         val importableObservations: Int,
         val missingTimestamps: Int,
         val outsideDisplayRange: Int,
+        val invalidMeasurementValues: Int,
         val unsupportedMeasurementFields: Int,
         val metadataRecords: Int,
         val unknownFieldSignatures: Int,
@@ -126,6 +128,7 @@ internal object CirqaFitOfflineInventory {
                 importableObservations = 0,
                 missingTimestamps = 0,
                 outsideDisplayRange = 0,
+                invalidMeasurementValues = 0,
                 unsupportedMeasurementFields = 0,
                 metadataRecords = 0,
                 unknownFieldSignatures = 0,
@@ -186,24 +189,43 @@ internal object CirqaFitOfflineInventory {
             }
             val fileMatchedKeys = fileImportable.count { it.idempotencyKey in databaseSampleIds }
             val fileMetrics = decoded.observations.groupingBy { it.metric }.eachCount()
-            val mappedFieldCoverage = decoded.observations.groupBy {
-                Triple(it.globalMessageNumber, it.fieldNumber, it.metric)
-            }.map { (key, items) ->
-                "g${key.first}.f${key.second}:${key.third.name}:" +
-                    "obs${items.size}/imp${items.count {
-                        it.quality == FitHistoricalObservations.Quality.PROFILE_VALID &&
-                            it.timestampEpochMillis != null
-                    }}"
+            val mappedGroups = decoded.observations.groupBy { observation ->
+                Triple(observation.globalMessageNumber, observation.fieldNumber, observation.metric)
             }
-            val unknownFieldCoverage = decoded.unknownFields.map { field ->
-                "g${field.globalMessageNumber}.f${field.fieldNumber}:${field.kind.name}:" +
+            val mappedFieldCoverage = mutableListOf<String>()
+            for ((key, items) in mappedGroups) {
+                var importableForField = 0
+                for (observation in items) {
+                    if (observation.quality == FitHistoricalObservations.Quality.PROFILE_VALID &&
+                        observation.timestampEpochMillis != null
+                    ) importableForField++
+                }
+                mappedFieldCoverage += "g${key.first}.f${key.second}:${key.third.name}:" +
+                    "obs${items.size}/imp$importableForField"
+            }
+            val unknownFieldCoverage = mutableListOf<String>()
+            for (field in decoded.unknownFields) {
+                unknownFieldCoverage += "g${field.globalMessageNumber}.f${field.fieldNumber}:${field.kind.name}:" +
                     "b${field.baseType ?: "-"}s${field.size}di${field.developerDataIndex ?: "-"}:" +
                     "occ${field.occurrenceCount}defs${field.definitionCount}"
             }
             val allFieldCoverage = (mappedFieldCoverage + unknownFieldCoverage).sorted()
+            val hasExcludedContent = fileImportable.size < decoded.observations.size ||
+                decoded.unsupportedMeasurementFieldCount > 0 ||
+                decoded.invalidMeasurementFieldCount > 0
+            val fileStatus = when {
+                decoded.observations.isEmpty() &&
+                    (decoded.unknownFields.isNotEmpty() ||
+                        decoded.unsupportedMeasurementFieldCount > 0) -> "nicht unterstützt"
+                databaseAvailable && sourcePresent && fileMatchedKeys == fileImportable.size &&
+                    !hasExcludedContent -> "importiert"
+                databaseAvailable && (sourcePresent || fileMatchedKeys > 0) -> "teilweise"
+                hasExcludedContent -> "teilweise"
+                else -> "dekodiert"
+            }
             fileSummaries += FileSummary(
                 alias = alias,
-                status = "verifiziert",
+                status = fileStatus,
                 recordMessages = decoded.dataRecordCount,
                 supportedObservations = decoded.observations.size,
                 importableObservations = fileImportable.size,
@@ -215,6 +237,7 @@ internal object CirqaFitOfflineInventory {
                 outsideDisplayRange = decoded.observations.count {
                     it.quality == FitHistoricalObservations.Quality.OUTSIDE_DISPLAY_RANGE
                 },
+                invalidMeasurementValues = decoded.invalidMeasurementFieldCount,
                 unsupportedMeasurementFields = decoded.unsupportedMeasurementFieldCount,
                 metadataRecords = decoded.deviceMetadata.size,
                 unknownFieldSignatures = decoded.unknownFields.size,

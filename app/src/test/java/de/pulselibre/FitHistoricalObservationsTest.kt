@@ -197,6 +197,7 @@ class FitHistoricalObservationsTest {
         val first = FitHistoricalObservations.decode(file)!!
         val again = FitHistoricalObservations.decode(file)!!
         assertTrue(first.observations.isEmpty())
+        assertEquals(1, first.invalidMeasurementFieldCount)
         assertEquals(first, again)
     }
 

@@ -31,7 +31,7 @@ class CirqaFitOfflineInventoryTest {
             assertEquals(1, summary.byMetric[FitHistoricalObservations.Metric.HEART_RATE])
             assertEquals(1, summary.perFile.size)
             assertEquals("FIT-0001", summary.perFile.single().alias)
-            assertEquals("verifiziert", summary.perFile.single().status)
+            assertEquals("dekodiert", summary.perFile.single().status)
             assertEquals(1, summary.perFile.single().importableObservations)
             assertEquals(1, summary.perFile.single().byMetric[FitHistoricalObservations.Metric.HEART_RATE])
             assertTrue(summary.perFile.single().fieldCoverage.any {
@@ -41,7 +41,7 @@ class CirqaFitOfflineInventoryTest {
             val report = summary.redactedText()
             assertTrue(report.contains("verifiziert: 1"))
             assertTrue(report.contains("HEART_RATE: 1"))
-            assertTrue(report.contains("FIT-0001: verifiziert; Records=1; Observations=1; importierbar=1"))
+            assertTrue(report.contains("FIT-0001: dekodiert; Records=1; Observations=1; importierbar=1"))
             assertTrue(report.contains("g20.f3:HEART_RATE:obs1/imp1"))
             assertFalse(report.contains(privateName))
             assertFalse(report.contains(bytes.toString(Charsets.ISO_8859_1)))
@@ -97,6 +97,50 @@ class CirqaFitOfflineInventoryTest {
     }
 
     @Test
+    fun reportsPerFileTimestampAndRangeExclusionsAsPartialCoverage() {
+        val root = Files.createTempDirectory("fit-offline-inventory-quality-").toFile()
+        try {
+            val missingTimestamp = fitWithHeartRate(timestamp = -1, heartRate = 72)
+            val outsideRange = fitWithHeartRate(timestamp = 100_000, heartRate = 250)
+            File(root, CirqaFitBackfill.expectedFileName(missingTimestamp)).writeBytes(missingTimestamp)
+            File(root, CirqaFitBackfill.expectedFileName(outsideRange)).writeBytes(outsideRange)
+
+            val summary = CirqaFitOfflineInventory.inspect(root)
+
+            assertEquals(2, summary.filesSeen)
+            assertEquals(2, summary.verifiedFiles)
+            assertEquals(2, summary.supportedObservations)
+            assertEquals(0, summary.importableObservations)
+            assertEquals(1, summary.missingTimestamps)
+            assertEquals(1, summary.outsideDisplayRange)
+            assertTrue(summary.perFile.all { it.status == "teilweise" })
+            assertEquals(2, summary.perFile.sumOf { it.supportedObservations })
+        } finally {
+            root.deleteRecursively()
+        }
+    }
+
+    @Test
+    fun reportsInvalidProfileSentinelsWithoutExposingTheirValues() {
+        val root = Files.createTempDirectory("fit-offline-inventory-sentinel-").toFile()
+        try {
+            val sentinelFile = fitWithHeartRate(timestamp = 100_000, heartRate = 255)
+            File(root, CirqaFitBackfill.expectedFileName(sentinelFile)).writeBytes(sentinelFile)
+
+            val summary = CirqaFitOfflineInventory.inspect(root)
+
+            assertEquals(1, summary.verifiedFiles)
+            assertEquals(0, summary.supportedObservations)
+            assertEquals(1, summary.perFile.single().invalidMeasurementValues)
+            assertEquals("teilweise", summary.perFile.single().status)
+            assertTrue(summary.redactedText().contains("ungültigeWerte=1"))
+            assertFalse(summary.redactedText().contains("255"))
+        } finally {
+            root.deleteRecursively()
+        }
+    }
+
+    @Test
     fun reconcilesOnlyAggregatesAndNeverEmitsPrivateKeys() {
         val root = Files.createTempDirectory("fit-offline-reconcile-").toFile()
         try {
@@ -112,6 +156,7 @@ class CirqaFitOfflineInventoryTest {
             assertEquals(1, matched.importableKeysInDatabase)
             assertEquals(0, matched.importableKeysMissingFromDatabase)
             assertEquals(1, matched.verifiedSourcesInDatabase)
+            assertEquals("importiert", matched.perFile.single().status)
             assertEquals(1, matched.perFile.single().databaseMatchedKeys)
             assertEquals(true, matched.perFile.single().databaseSourcePresent)
             val report = matched.redactedText()
@@ -122,6 +167,7 @@ class CirqaFitOfflineInventoryTest {
             val missing = CirqaFitOfflineInventory.inspect(root, databaseAvailable = true)
             assertEquals(0, missing.importableKeysInDatabase)
             assertEquals(1, missing.importableKeysMissingFromDatabase)
+            assertEquals("dekodiert", missing.perFile.single().status)
             assertEquals(0, missing.perFile.single().databaseMatchedKeys)
             assertEquals(false, missing.perFile.single().databaseSourcePresent)
             assertEquals(null, CirqaFitOfflineInventory.inspect(root).importableKeysMissingFromDatabase)

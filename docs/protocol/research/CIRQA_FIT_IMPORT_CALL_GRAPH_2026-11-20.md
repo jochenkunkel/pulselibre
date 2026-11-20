@@ -109,8 +109,9 @@ Emulatornachweis, kein S25-Test.
   Transaktionsfehler auf dem S25.
 - Für den Folgeabgleich ergänzt Commit `b0b9c26` `CirqaFitOfflineInventory`
   um einen datensparsamen Per-Datei-Bericht: lokale Ordinal-Aliase, Datei-
-  Status, Record-/Observation-/Qualitäts-/Metrikzähler, bekannte Mapping-
-  und unbekannte FIT-Feldsignaturen sowie optional DB-Schlüssel-/Quellen-
+  Status (`dekodiert`, `importiert`, `teilweise`, `nicht unterstützt`,
+  `abgewiesen`), Record-/Observation-/Qualitäts-/FIT-Sentinel-/Metrikzähler,
+  bekannte Mapping- und unbekannte FIT-Feldsignaturen sowie optional DB-Schlüssel-/Quellen-
   Matches. Es werden keine Werte, Zeitstempel, Dateinamen oder Hashes
   ausgegeben. Der Scan ist auf 256 Dateien und 64 MiB Gesamtdaten begrenzt;
   nicht geprüfte Dateien werden explizit gezählt. Je Datei werden höchstens
