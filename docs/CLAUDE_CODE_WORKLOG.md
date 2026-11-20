@@ -449,3 +449,6 @@ Noch sichtbar offen (P3): Nacht-Insights erste Spalte „22–6 Uhr / 22331 / We
 ## 2026-11-20 – #6 MASVS-Zuordnung (Abschnitt 13 im Audit)
 - Befunde A6-1…A10-1, B7, B9 den MASVS-Kategorien zugeordnet, inkl. „noch nicht geprüft“ je Kategorie und Reihenfolge der nächsten Schritte. Ausdrücklich keine MASVS-Abnahme. Kein Code geändert.
 - #6 S25-Evidenz (nur dumpsys, lesend) als Audit-Abschnitt 14: Berechtigungen ohne INTERNET/Standort, nicht debuggbar, kein ALLOW_BACKUP.
+
+## 2026-11-20 – #6 kombinierte Coverage: Versuch scheiterte an Klassen-Prüfsummen
+- Lokales Zusammenführen JVM+Emulator ergab 0 % (Messartefakt, nicht-identische Klassen); Audit Abschnitt 15, Vorschlag an den CI-Agenten per agent-sync (Emulator-Job soll Unit-Tests mitlaufen lassen und dort mergen). Kein Workflow geändert.
