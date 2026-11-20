@@ -1,7 +1,7 @@
 # OpenCode – V27-Gerätenachlauf und CIRQA-Abnahme
 - Agent/Umgebung: OpenCode / API coding agent, Worktree `/tmp/opencode/cirqa-v27-sync`
 - Beginn: 2026-11-20 07:31 UTC
-- Letzte Aktualisierung: 2026-11-20 09:20 UTC
+- Letzte Aktualisierung: 2026-11-20 09:27 UTC
 - Status: aktiv
 - Rolle/Zuständigkeit: CIRQA-Protokoll, begrenzter Gerätelauf, FIT/SQLite-Abgleich gemäß ausdrücklicher Beauftragung
 - Aktueller Auftrag: FIT-Historienpipeline #149/#150 vervollständigen: vorhandene verifizierte Dateien ohne BLE automatisch offline backfillen; keine Behauptung vollständiger Gerätehistorie
@@ -11,5 +11,5 @@
 - Branch/Worktree: `opencode/v27-metadata-evidence` (PR #289) / `/tmp/opencode/cirqa-v27-sync`
 - Abstimmungsbedarf: Claude Code arbeitet laut offener Nachricht an #150 an der FIT-Inventur im Diagnosepanel; mein Geräte-/Protokollnachlauf ist davon getrennt. Keine parallele Änderung an Testlabor-D/E.
 - Agent-sync-Nachrichten: `docs/collaboration/agent-sync/2026-11-20_0705_opencode-an-alle_v27-bounded-sync.md`; `docs/collaboration/agent-sync/2026-11-20_1830_opencode-an-claude_issue150-inventory-ui.md`
-- Nachweise: V27 lokal 45/45 FIT-Dateien verifiziert; 27.736/27.736 importierbare Kandidatenschlüssel in SQLite; V26-Korpus unabhängig 294/294 reconciled; FIT-Metadatenaggregate im privaten Export geprüft. PR #289 `0ba466c` enthält redigierte Metadaten-Doku. Neuer App-Start-Backfill und Tests in Arbeit; lokale Gradle-9.6/JDK-17-Konfiguration wird gegen Projektvorgaben geprüft.
-- Nächster Schritt: Offline-Backfill-Änderung bauen/testen, in PR #289 aufnehmen und Full-CI abwarten; Issue #149/#150 offen lassen bis offene Decoder-, Status-, Metadaten- und Vollständigkeitskriterien einzeln belegt sind.
+- Nachweise: V27 lokal 45/45 FIT-Dateien verifiziert; 27.736/27.736 importierbare Kandidatenschlüssel in SQLite. Privater V26-Korpus erneut geprüft: 40 FIT-Dateien, 294/294 Kandidatenschlüssel, SQLite `integrity_check=ok`, keine doppelten Schlüssel/FK-Verletzungen. FIT-Metadatenaggregate im privaten Export geprüft. Lokale Unit-Tests mit Gradle 9.6 erfolgreich; Android-Instrumentation-APK-Bau läuft. PR #289 um bounded offline Backfill auf App-Start erweitert.
+- Nächster Schritt: Instrumentationstest kompilieren, neuen PR-Head-Full-CI vollständig abnehmen und nur dann mergen; Issues #149/#150 offen lassen, solange weitere Decoder-, Status-, Metadaten- und Gerätehistorienlücken bestehen.
