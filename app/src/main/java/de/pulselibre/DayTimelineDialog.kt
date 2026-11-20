@@ -65,7 +65,8 @@ internal fun showDayTimeline(activity: MainActivity, worker: Executor) {
                 val description = DayTimeline.describe(allLanes, day, now, zone)
                 summary.text = description + "\nEmpfangszeit · ${zone.id}. Lücken bleiben leer und werden nicht überbrückt."
                 if (lanes.isEmpty()) return@runOnUiThread
-                val chart = DayTimelineView(activity, day, lanes, zone, steps.goal, palette.ink, palette.track,
+                val chart = DayTimelineView(activity, day, lanes, zone,
+                    effectiveStepGoal(activity.getSharedPreferences(SpO2DisplaySettings.STORE, android.content.Context.MODE_PRIVATE).getString("step_goal", null), steps.goal), palette.ink, palette.track,
                     listOf(palette.indicator, palette.accent))
                 chart.contentDescription = description
                 chart.importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_YES
