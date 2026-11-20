@@ -115,6 +115,47 @@ class FitHistoricalObservationsTest {
         assertTrue(result.observations.isEmpty())
     }
 
+    // FIT profile: monitoring.timestamp_16 (field 26) = last full timestamp + 16-bit difference (mod 2^16).
+    private val monitoringFull = byteArrayOf(0x40, 0, 0, 55, 0, 2, 253.toByte(), 4, 0x86.toByte(), 27, 1, 2)
+    private val monitoringShort = byteArrayOf(0x41, 0, 0, 55, 0, 2, 26, 2, 0x84.toByte(), 27, 1, 2)
+    private fun fitTime(seconds: Long) = (seconds + 631_065_600L) * 1_000L
+
+    @Test fun monitoringHeartRateWithTimestamp16IsReconstructedFromTheLastFullTimestamp() {
+        val base = 131_056 // low 16 bits 0xFFF0: the next value wraps around
+        val data = monitoringFull + monitoringShort +
+            byteArrayOf(0) + u32(base) + byteArrayOf(60) +
+            byteArrayOf(1) + u16(0x0010) + byteArrayOf(70) +        // wrap: base + 32
+            byteArrayOf(1) + u16(0x0030) + byteArrayOf(72)          // continues from the reconstructed value: base + 64
+        val result = FitHistoricalObservations.decode(fit(data))!!.observations
+        assertEquals(listOf(fitTime(base.toLong()), fitTime(base + 32L), fitTime(base + 64L)),
+            result.map { it.timestampEpochMillis })
+        assertEquals(listOf(60.0, 70.0, 72.0), result.map { it.value })
+        assertTrue(result.all { it.quality == FitHistoricalObservations.Quality.PROFILE_VALID })
+    }
+
+    @Test fun timestamp16WithoutEarlierFullTimestampOrWithInvalidMarkerStaysMissing() {
+        val noBase = FitHistoricalObservations.decode(fit(monitoringShort + byteArrayOf(1) + u16(500) + byteArrayOf(70)))!!
+            .observations.single()
+        assertNull(noBase.timestampEpochMillis)
+        assertEquals(FitHistoricalObservations.Quality.MISSING_TIMESTAMP, noBase.quality)
+
+        val invalid = FitHistoricalObservations.decode(fit(monitoringFull + monitoringShort +
+            byteArrayOf(0) + u32(200_000) + byteArrayOf(60) +
+            byteArrayOf(1) + u16(0xFFFF) + byteArrayOf(70)))!!.observations
+        assertEquals(FitHistoricalObservations.Quality.PROFILE_VALID, invalid[0].quality)
+        assertEquals(FitHistoricalObservations.Quality.MISSING_TIMESTAMP, invalid[1].quality)
+    }
+
+    @Test fun timestamp16IsOnlyReconstructedForMonitoringMessages() {
+        // record (global 20) with a field 26 must not be treated as timestamp_16
+        val data = byteArrayOf(0x40, 0, 0, 20, 0, 2, 253.toByte(), 4, 0x86.toByte(), 3, 1, 2) +
+            byteArrayOf(0) + u32(300_000) + byteArrayOf(60) +
+            byteArrayOf(0x41, 0, 0, 20, 0, 2, 26, 2, 0x84.toByte(), 3, 1, 2) +
+            byteArrayOf(1) + u16(300_050) + byteArrayOf(80)
+        val result = FitHistoricalObservations.decode(fit(data))!!.observations
+        assertEquals(FitHistoricalObservations.Quality.MISSING_TIMESTAMP, result[1].quality)
+    }
+
     @Test fun scalesDistanceAndSpeedAndRetainsPowerInProfileUnits() {
         val data = byteArrayOf(
             0x40, 0, 0, 20, 0, 4,
