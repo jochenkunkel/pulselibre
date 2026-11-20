@@ -66,6 +66,8 @@ and releases.
 
 Der erste Push-Lauf nach dem Merge ([44701191634](https://github.com/jochenkunkel/pulselibre/actions/runs/44701191634)) zeigte `requested_environment=LOCAL`, `environment=CLOUD`, `scope=FULL` – also den dokumentierten Fallback – und wurde durch einen neueren Push eines anderen Agenten abgebrochen (Concurrency, erwartetes Verhalten). Der Lauf auf dem aktuellen Head [6087f1c](https://github.com/jochenkunkel/pulselibre/commit/6087f1c) ([44701721576](https://github.com/jochenkunkel/pulselibre/actions/runs/44701721576)) war mit `CI-Ziel bestimmen`, `Build, Unit-Tests, Lint, APK` und `Emulator-Instrumentationstests (API 35)` **grün**.
 
+Die Nachhärtung aus PR #292 (Workflow-Strukturtests) lief ebenfalls vollständig grün: als PR [44705657911](https://github.com/jochenkunkel/pulselibre/actions/runs/44705657911) und als Push auf `main` [44706755589](https://github.com/jochenkunkel/pulselibre/actions/runs/44706755589), jeweils CLOUD + FULL inklusive Emulator.
+
 Details und Befehle: [ci/HYBRID_CI.md](ci/HYBRID_CI.md). Die Tabelle wird nach
 jedem tatsächlich ausgeführten Lauf mit Datum, Lauf-ID und Ergebnis aktualisiert;
 nicht ausführbare Tests bleiben ausdrücklich offen.
