@@ -29,10 +29,16 @@ class CirqaFitOfflineInventoryTest {
             assertEquals(0, summary.missingTimestamps)
             assertEquals(0, summary.outsideDisplayRange)
             assertEquals(1, summary.byMetric[FitHistoricalObservations.Metric.HEART_RATE])
+            assertEquals(1, summary.perFile.size)
+            assertEquals("FIT-0001", summary.perFile.single().alias)
+            assertEquals("verifiziert", summary.perFile.single().status)
+            assertEquals(1, summary.perFile.single().importableObservations)
+            assertEquals(1, summary.perFile.single().byMetric[FitHistoricalObservations.Metric.HEART_RATE])
 
             val report = summary.redactedText()
             assertTrue(report.contains("verifiziert: 1"))
             assertTrue(report.contains("HEART_RATE: 1"))
+            assertTrue(report.contains("FIT-0001: verifiziert; Records=1; Observations=1; importierbar=1"))
             assertFalse(report.contains(privateName))
             assertFalse(report.contains(bytes.toString(Charsets.ISO_8859_1)))
         } finally {
@@ -57,6 +63,30 @@ class CirqaFitOfflineInventoryTest {
             assertEquals(2, summary.rejectedFiles)
             assertEquals(0, summary.importableObservations)
             assertEquals(0, summary.recordMessages)
+            assertEquals(2, summary.perFile.size)
+            assertTrue(summary.perFile.all { it.status == "abgewiesen" })
+            assertEquals(listOf("FIT-0001", "FIT-0002"), summary.perFile.map { it.alias })
+        } finally {
+            root.deleteRecursively()
+        }
+    }
+
+    @Test
+    fun capsPerFileReportAndMakesUnscannedFilesExplicit() {
+        val root = Files.createTempDirectory("fit-offline-inventory-cap-").toFile()
+        try {
+            repeat(257) { index ->
+                File(root, "%03d.fit".format(index)).writeBytes(byteArrayOf(index.toByte()))
+            }
+
+            val summary = CirqaFitOfflineInventory.inspect(root)
+
+            assertEquals(257, summary.filesSeen)
+            assertEquals(0, summary.verifiedFiles)
+            assertEquals(256, summary.rejectedFiles)
+            assertEquals(1, summary.filesNotScanned)
+            assertEquals(256, summary.perFile.size)
+            assertTrue(summary.redactedText().contains("Nicht geprüft (Sicherheitslimit): 1"))
         } finally {
             root.deleteRecursively()
         }
@@ -78,6 +108,8 @@ class CirqaFitOfflineInventoryTest {
             assertEquals(1, matched.importableKeysInDatabase)
             assertEquals(0, matched.importableKeysMissingFromDatabase)
             assertEquals(1, matched.verifiedSourcesInDatabase)
+            assertEquals(1, matched.perFile.single().databaseMatchedKeys)
+            assertEquals(true, matched.perFile.single().databaseSourcePresent)
             val report = matched.redactedText()
             assertFalse(report.contains(sampleId))
             assertFalse(report.contains(sourceHash))
@@ -86,6 +118,8 @@ class CirqaFitOfflineInventoryTest {
             val missing = CirqaFitOfflineInventory.inspect(root, databaseAvailable = true)
             assertEquals(0, missing.importableKeysInDatabase)
             assertEquals(1, missing.importableKeysMissingFromDatabase)
+            assertEquals(0, missing.perFile.single().databaseMatchedKeys)
+            assertEquals(false, missing.perFile.single().databaseSourcePresent)
             assertEquals(null, CirqaFitOfflineInventory.inspect(root).importableKeysMissingFromDatabase)
         } finally {
             root.deleteRecursively()

@@ -1,15 +1,15 @@
 # OpenCode – FIT-Pipeline-Härtung
 - Agent/Umgebung: OpenCode CLI-Agent
 - Beginn: 2026-11-20 14:11 UTC
-- Letzte Aktualisierung: 2026-11-20 14:29 UTC
+- Letzte Aktualisierung: 2026-11-20 15:58 UTC
 - Status: aktiv
 - Rolle/Zuständigkeit: CIRQA Smart/MLR, FIT-Decoder, SQLite-Import/Backfill
 - Aktueller Auftrag: #149 – FIT-Importpipeline gegen reale Laufzeitfehler härten und nach bestandenem Full-Gate integrieren
-- Jetzt in Bearbeitung: #149 – Import-/Transfer-Stage-Status, SQLite-Fehler- und Retry-Semantik, Regressionstests; zulässige read-only S25-Pipeline-Prüfungen nach Inspektion des konkreten App-Pfads
+- Jetzt in Bearbeitung: #149 – additive datensparsame per-Datei-Coverage im bestehenden FIT-Inventurbericht; anschließend semantische Decoderprüfung und Evidenzgrenzen
 - Zeitnah geplant: #150 – Gerätebestand/Inventur-Evidenz, sofern ohne Sicherheitsumgehung und ohne privaten Datenexport erreichbar; keine exklusive Reservierung
 - Betroffene Bereiche/Dateien: `CirqaFitBackfill`, MLR-Dateiabschluss/Sync-Koordination, zugehörige JVM-/Instrumentationtests, redigierte Forschungsdokumentation
-- Branch/Worktree: `opencode/fit-pipeline-resume-20261120` / `/home/smiler/04_src/BLE-FIT-CIRQA`
+- Branch/Worktree: `opencode/fit-pipeline-evidence-20261120` / `/home/smiler/04_src/BLE-FIT-CIRQA`
 - Abstimmungsbedarf: #144-Schema/DDL bleibt unberührt; keine BLE-Protokolländerungen oder neuen aktiven Gerätebefehle. Nutzer hat die Fortsetzung und Merge nach erfolgreichem Gate ausdrücklich bestätigt. S25-Instrumentationstests ausgeschlossen.
-- Agent-sync-Nachrichten: `2026-11-20_1411_opencode-an-alle_issue149-fit-pipeline-resume.md`
-- Nachweise: Branch auf `origin/main` `c8e7d07` aktualisiert. Quick-CI grün (66 Python-Tests, Android JVM-Tests, Debug/R8-Release-Build, APK-Diagnose; keine stabilen Signierschlüssel). Aktueller lokaler Full-CI grün: 70 Python-Tests; JVM-Tests; Debug/R8-Release-Build; Lint; Instrumentation-APK; API-35-Emulator-Instrumentation samt Coverage. SQLite-Trigger-Regression belegt Rollback von FIT-Quelle/Observations/Provenienz nach Commitfehler sowie erfolgreichen Retry. `CIRQA_FIT_IMPORT_CALL_GRAPH_2026-11-20.md` dokumentiert Call-Graph, Statuslücke, Feldabdeckung und Evidenzgrenzen. Fehlerfall behoben: exakt gespeicherte, FIT-deklarierte, aber CRC-/Envelope-ungültige Dateien konnten als erfolgreiche Raw-Datei gezählt werden. Keine stabilen Signierschlüssel im lokalen CI; kein S25-Test.
-- Nächster Schritt: Änderungen prüfen/dokumentieren, committen, Branch pushen und PR-Full-CI abwarten. Vor Merge neuesten `main` einbeziehen, PR-CI und anschließend Main-Full-CI prüfen. Kein S25-App-Start, da `CirqaDatabase.onOpen()` `LegacyNightRecording.remove()` aufruft.
+- Agent-sync-Nachrichten: `2026-11-20_1411_opencode-an-alle_issue149-fit-pipeline-resume.md`, `2026-11-20_1449_opencode-an-alle_fit-inventory-live-redacted.md`, `2026-11-20_1452_opencode-an-alle_issue149-per-file-coverage.md`
+- Nachweise: PR #311 (`daea7b3`) nach grüner vollständiger PR-CI inkl. API-35-Emulator gemergt als `15816dc`; Main-Full-CI für den nachfolgenden `main`-Head läuft. Lokaler Full-CI für #311-Branch-Head grün. SQLite-Trigger-Regression belegt Transaktionsrollback und Retry. Im vorhandenen S25-Build `2.0.0_build1487` wurde die bereits sichtbare MainActivity nicht neu gestartet; nur die read-only Synchronisationsinventur im Diagnosepanel geöffnet. Redigiert: 45/45 FIT geprüft, 27.736/27.736 importierbare Schlüssel und 45/45 Quellen in SQLite, 0 fehlend. Nutzer bestätigt synthetische Daten und alle nötigen Freigaben. Kein BLE/Sync/Install/App-Neustart/Instrumentation/DB-Schreiben durch Diagnose. Per-Datei-Coverage, Datei- und Gesamtmengenlimits sowie JVM-Tests ergänzt; `./tools/ci-local.sh --quick` grün (70 Python-Tests und JVM-Tests; APK-Build/Diagnose). `CIRQA_FIT_IMPORT_CALL_GRAPH_2026-11-20.md` enthält Audit und Evidenz.
+- Nächster Schritt: neueste `main`-Koordinierung übernehmen, Full-CI für den Per-Datei-Branch ausführen, danach PR-/Main-Full-CI prüfen. Nicht die fehlenden Semantik- oder Gerätehistorienbelege behaupten.

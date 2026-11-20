@@ -1,8 +1,10 @@
 # FIT-Import-Aufrufpfad und Fehlerstatus (#149)
 
-Stand: 2026-11-20 · Codebasis: `origin/main` `ce3ebe8` plus die in diesem Branch
-geprüften Änderungen. Offline-Codeaudit; kein BLE-Lauf, kein App-Start und keine
-Änderung an privaten S25-Daten.
+Stand: 2026-11-20 · Call-Graph-Audit: `origin/main` `ce3ebe8`; Korrektur in
+PR #311 (`daea7b3`) gemergt als `15816dc`. Ergänzt um eine redigierte
+Read-only-In-App-Diagnose am bestehenden S25-Build 1487. Keine Installation,
+kein neuer App-Start, kein BLE-Lauf und keine Änderung an privaten
+FIT-/SQLite-Daten.
 
 ## Produktiver Smart/MLR-Pfad
 
@@ -73,6 +75,24 @@ Emulatornachweis, kein S25-Test.
   25/25 Transfers, 24 FIT und 1 Nicht-FIT aus; danach waren lokal 45/45 FIT
   verifiziert und 27.736/27.736 importierbare Kandidatenschlüssel vorhanden.
   Das ist begrenzte Bestands-/Laufevidenz, keine vollständige Gerätehistorie.
+- Read-only-Bestätigung am S25 am 20.11.2026: Vor der Prüfung war die bereits
+  installierte Version `2.0.0_build1487` in `MainActivity` sichtbar. Im
+  bestehenden Diagnosebereich D lieferte die lokale FIT-Inventur 45/45
+  verifizierte Dateien, 0 abgewiesene Dateien und 45/45 Quellen in der
+  Datenbank. Von 29.365 unterstützten Decoder-Observations waren 27.736
+  zeitgestempelte, importierbare Kandidaten; alle 27.736 Kandidatenschlüssel
+  waren in SQLite vorhanden, 0 fehlten. 1.622 Observations hatten keinen
+  geeigneten Zeitstempel und 7 lagen außerhalb der Anzeigegrenzen. Die
+  Metrikaggregate waren DISTANCE 14.911, HEART_RATE 14.359 und SPEED 95;
+  139 FIT-Metadatensätze und 11.976 unbekannte-Feld-Signaturen wurden gezählt.
+  Diese Werte sind laut Nutzer synthetische Banddaten.
+- Es wurde nur innerhalb der bereits laufenden App zum Diagnosebereich
+  navigiert und der Synchronisations-Abschnitt geöffnet. `DiagnosticsCollector`
+  öffnet SQLite ausdrücklich `OPEN_READONLY`; der Bericht inventarisiert
+  bestehende Dateien ohne Import. Kein App-Start/Install, keine Instrumentation,
+  kein BLE-Scan/-Connect/-Write, kein Sync, keine Rohwerte/Dateinamen/Hashes und
+  keine Datei-/DB-Schreiboperation. Die Diagnose behauptet ausdrücklich keine
+  vollständige Gerätehistorie.
 - Die Feldmatrix vom 18.11.2026 beschreibt 31 ältere FIT-Dateien und kann nicht
   ohne erneute private Inventur auf den späteren 45-Datei-Bestand übertragen
   werden. Der lokale private Bestand ist diesem Arbeitscheckout nicht
@@ -84,18 +104,14 @@ Emulatornachweis, kein S25-Test.
   5.938 sind als `unmapped` klassifiziert. Das belegt damalige Abdeckung,
   nicht die spätere 45-Datei-Feldabdeckung oder fachliche Richtigkeit aller
   Profileinheiten.
-- Die redigierte damalige FIT-Matrix enthält 9.784 FIT-Feldzeilen. Bei drei
-  Profilfeldkombinationen wurden importierte Werte mit SQLite-Schlüsseln
-  abgeglichen: `record.heart_rate` 129, `record.distance` 129 und
-  `record.enhanced_speed` 36. 2.496 Zeilen haben keinen Profilmessagenamen;
-  5.938 sind als `unmapped` klassifiziert. Das belegt damalige Abdeckung,
-  nicht die spätere 45-Datei-Feldabdeckung oder fachliche Richtigkeit aller
-  Profileinheiten.
 - Diese Prüfung verifiziert die Codeverknüpfung und Failure-Klassifikation,
   nicht die semantische Richtigkeit aller FIT-Felder oder einen SQLite-
   Transaktionsfehler auf dem S25.
-- Ein S25-App-Start wurde nicht durchgeführt: `CirqaDatabase.onOpen()` kann
-  Legacy-Nachtaufzeichnungsdateien bereinigen. Ohne Klärung/Vorher-Nachher-
-  Sicherung dieses Startseiteneffekts wäre das kein sicherer Read-only-Test.
+- Ein neuer S25-App-Start wurde bewusst nicht durchgeführt: `MainActivity`
+  plant beim Einstieg einen FIT-Backfill (SQLite-Schreibvorgänge) und kann bei
+  gesetzter Nutzereinstellung die Aufzeichnung starten; `CirqaDatabase.onOpen()`
+  kann außerdem eine Legacy-Nachtaufzeichnungsdatei bereinigen. Die bereits
+  laufende App ermöglichte die oben beschriebene echte Read-only-Diagnose ohne
+  diese Startseiteneffekte.
 - Keine Änderungen an Schema/DDL, Backupformat, BLE-Kommandos oder
   Transportverhalten.
