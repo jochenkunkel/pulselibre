@@ -44,3 +44,27 @@ class FitHistoryMappingTest {
         assertTrue(band.info.contains("nicht der Empfang"))
     }
 }
+
+class FitDaySummaryTest {
+    private val zone = java.time.ZoneId.of("Europe/Berlin")
+    private val day = DashboardDay(java.time.LocalDate.of(2026, 11, 20), zone)
+    private val now = java.time.ZonedDateTime.of(2026, 11, 20, 15, 0, 0, 0, zone).toInstant()
+    private fun at(h: Int, m: Int = 0) = java.time.ZonedDateTime.of(2026, 11, 20, h, m, 0, 0, zone).toInstant()
+
+    @Test fun summarizesOnlyTodayUpToNowByMeasurementHour() {
+        val s = TileInsightCalc.summarizeFit(listOf(
+            HistoryPoint(at(8, 10), 60), HistoryPoint(at(8, 40), 70), HistoryPoint(at(9), 80),
+            HistoryPoint(at(16), 99),                                   // after now
+            HistoryPoint(at(23).minusSeconds(86_400), 55)               // yesterday
+        ), day, now)!!
+        assertEquals(3, s.count)
+        assertEquals(60.0, s.min, 0.0); assertEquals(80.0, s.max, 0.0)
+        assertEquals(65.0, s.hourly[8]!!, 0.0); assertEquals(80.0, s.hourly[9]!!, 0.0)
+        assertTrue(s.hourly[16] == null)
+    }
+
+    @Test fun noPointsTodayGivesNull() {
+        assertTrue(TileInsightCalc.summarizeFit(emptyList(), day, now) == null)
+        assertTrue(TileInsightCalc.summarizeFit(listOf(HistoryPoint(at(8).minusSeconds(86_400), 60)), day, now) == null)
+    }
+}

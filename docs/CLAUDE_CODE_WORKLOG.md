@@ -489,3 +489,10 @@ Noch sichtbar offen (P3): Nacht-Insights erste Spalte „22–6 Uhr / 22331 / We
 - Neue Karte „Herzfrequenz · Band-Verlauf (FIT)“ im Reiter Verlauf: Zeitachse Messzeit des Bandes, getrennt von der bestehenden Karte (Telefonzeit). `FitHistoryReader` liest nur lesend über `HistoricalObservationRepository`, nur Beobachtungen mit FIT-Herkunft, `heart_rate`, 1–240 bpm. Karte nur sichtbar, wenn FIT-Daten existieren; sonst ehrlicher Leertext.
 - Tests: JVM `FitHistoryMappingTest` (Zeit, Herkunft, Wertebereich, Zeitbasen), Emulator `FitHistoryViewTest` (Reader-Fenster halboffen, Karten getrennt, Leerzustand). Offline: Unit-Tests grün, Emulator-Tests kompilieren; Emulator-Lauf in der CI.
 - Bekanntes Risiko: Der Verlauf lädt bei jedem Refresh das FIT-Fenster neu (Hintergrundthread, bis 150.000 Punkte pro Fenster). Falls das auf dem S25 spürbar ist, Cache ergänzen.
+
+## 2026-11-20 (nachts) – #334 Teil 2: Übersicht zeigt Band-Verlauf (FIT)
+
+- Nutzerhinweis: Die Graphen der Übersicht zeigen die historischen Daten ebenfalls nicht (gleiche Ursache: nur Echtzeit-`events`).
+- Herzfrequenz-Kachel: zusätzliche Zeile „Band-Verlauf heute (Messzeit): Ø · min–max (n Werte)“ und eigene Sparkline (24 Stunden, Messzeit des Bandes). Live-Werte und Band-Werte werden nicht gemischt. Hat die Kachel heute nur Band-Daten, erscheint nur dieser Block (kein Wochenvergleich, der wäre live-only).
+- Tests: `FitDaySummaryTest` (nur heute bis jetzt, Stundenmittel nach Messzeit, leer = null). Offline Unit-Tests grün, Emulator-Tests kompilieren.
+- Offen: Tageszeitleiste (`DayTimeline`) und Tagesdialoge lesen weiter nur Live-Events; weitere FIT-Metriken gibt es im Import nicht für diese Kacheln.
