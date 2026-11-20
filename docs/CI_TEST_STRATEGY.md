@@ -61,6 +61,10 @@ and releases.
 | 9 | Verhalten bei offline geschaltetem Runner | Entscheidungslogik **getestet** (`tools/test_ci_target.py`, 14 Fälle): LOCAL ohne Freigabe → CLOUD mit Begründung; LOCAL mit Freigabe → Self-hosted, wartet bei Offline-Runner. Echter Offline-Test **offen** (kein registrierter Runner) |
 | 10 | Keine unerwarteten Cloud-Jobs | **bestanden** (Logiktests): Forks immer CLOUD, unbekannte Trigger CLOUD, PR ohne Freigabe CLOUD; LOCAL nur bei expliziter Freigabe |
 
+### Push auf `main`
+
+Der erste Push-Lauf nach dem Merge ([44701191634](https://github.com/jochenkunkel/pulselibre/actions/runs/44701191634)) zeigte `requested_environment=LOCAL`, `environment=CLOUD`, `scope=FULL` – also den dokumentierten Fallback – und wurde durch einen neueren Push eines anderen Agenten abgebrochen (Concurrency, erwartetes Verhalten). Der Lauf auf dem aktuellen Head [6087f1c](https://github.com/jochenkunkel/pulselibre/commit/6087f1c) ([44701721576](https://github.com/jochenkunkel/pulselibre/actions/runs/44701721576)) war mit `CI-Ziel bestimmen`, `Build, Unit-Tests, Lint, APK` und `Emulator-Instrumentationstests (API 35)` **grün**.
+
 Details und Befehle: [ci/HYBRID_CI.md](ci/HYBRID_CI.md). Die Tabelle wird nach
 jedem tatsächlich ausgeführten Lauf mit Datum, Lauf-ID und Ergebnis aktualisiert;
 nicht ausführbare Tests bleiben ausdrücklich offen.
