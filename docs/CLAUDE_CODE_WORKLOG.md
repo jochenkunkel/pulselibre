@@ -439,5 +439,13 @@ Noch sichtbar offen (P3): Nacht-Insights erste Spalte „22–6 Uhr / 22331 / We
 - `lintDebug` lokal: 0 Fehler, keine `UnusedResources`-Meldung, alle 59 Drawables referenziert. Die drei `ClickableViewAccessibility`-Treffer in `MainActivity` sind bewertet (unkritisch, kein Code geändert); `ApplySharedPref` im Testlabor und `OldTargetApi` als Hinweise für OpenCode bzw. ein eigenes Migrationsticket vermerkt. #6 bleibt offen (Coverage, MASVS, S25-Evidenz).
 - Coverage nur JVM lokal erhoben: 30,9 % Zeilen (Audit Abschnitt 12); kombinierter Wert mit Emulator-Tests fehlt, bewusst nicht lokal gestartet (S25 am selben adb).
 
+## 2026-11-20 – S25-Abnahme Build 1502 (Bedienung/Lesen, ohne BLE-Aktion)
+- Installiert: signiertes Update aus `main` (Lauf 1502) per `adb install -r`, `ANDROID_SERIAL` auf das S25; keine Instrumentationstests, kein Download/Scan, Screenshots nur lokal.
+- **#309 bestätigt:** Verlauf-Beschreibung sagt „Horizontale Achse 19.11. 16:28 bis 20.11. 16:28“. **#312 bestätigt:** „Abdeckung 0,5 %“ in Kachel und Begründung.
+- **#267 am Gerät:** Anpassen-Dialog öffnet; Kachel ausblenden (SpO₂) und wieder einblenden, „Hoch“ (SpO₂ vor Herzfrequenz), „Favorit“ (Schlaf unter „Im Fokus“), „Zurücksetzen“ stellt den Standard her. Nicht geprüft: „Runter“ einzeln, Erhalt nach App-Neustart.
+- **Hell-Ansicht** (Übersicht, Verlauf, Analysen) und **320 dp** (`wm density 540`, Übersicht/Verlauf/Gerät): lesbar, keine abgeschnittenen Texte, Umbrüche sauber. Kosmetik: App-Symbol im Kopfbereich hebt sich in Hell kaum vom Banner ab.
+- Zurückgesetzt: `wm density reset` (480), Dunkelmodus an, Schrift 1,0 unverändert, Startseite auf Standard. Nicht geprüft: echte Pinch-Geste, TalkBack real.
+
 ## 2026-11-20 – #6 MASVS-Zuordnung (Abschnitt 13 im Audit)
 - Befunde A6-1…A10-1, B7, B9 den MASVS-Kategorien zugeordnet, inkl. „noch nicht geprüft“ je Kategorie und Reihenfolge der nächsten Schritte. Ausdrücklich keine MASVS-Abnahme. Kein Code geändert.
+- #6 S25-Evidenz (nur dumpsys, lesend) als Audit-Abschnitt 14: Berechtigungen ohne INTERNET/Standort, nicht debuggbar, kein ALLOW_BACKUP.

@@ -160,3 +160,14 @@ Größte JVM-unabgedeckte Dateien (Zeilen ohne Abdeckung): `CirqaMlHandshakeProb
 | **PRIVACY** | keine Telemetrie, keine Werbe-IDs, keine Netzwerkberechtigung; Messwerte bleiben lokal; Diagnosepaket mit Vorschau und ausdrücklicher Nutzeraktion (4, A6-5) | – | Datenschutzerklärung/Einwilligungstexte im Handbuch gegen die tatsächliche Datenhaltung abgleichen (#177) |
 
 **Reihenfolge der nächsten Schritte (nach Risiko):** (1) A6-2 Lebenszyklus-/Timeout-Test des Dauerdienstes, zusammen mit dem Bearbeiter von #3/#235; (2) kombinierter Coverage-Bericht in der Full-CI; (3) A6-4 Zerlegung (OpenCode); (4) S25-Evidenz nur lesend nach der FIT-Prüfung, wenn das Handy wieder frei ist. Eine Mehrsprachigkeit (A10-1) ist eine Produktentscheidung und kein Sicherheitsthema.
+
+## 14. S25-Evidenz, nur lesend (Build 2.0.0_build1502, 2026-11-20)
+Quelle: `adb shell dumpsys package de.pulselibre` auf dem S25 (nur Lesen; keine Instrumentationstests, kein BLE-Vorgang). Roh-Ausgabe nicht eingecheckt.
+| Prüfpunkt | Gerätebefund | Passt zu Manifest/Audit |
+| --- | --- | --- |
+| Angeforderte Berechtigungen | `POST_NOTIFICATIONS`, `FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_CONNECTED_DEVICE`, `BLUETOOTH_CONNECT`, `BLUETOOTH_SCAN` und die app-eigene `DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION` (von AndroidX für nicht exportierte Receiver) | ja; **keine** `INTERNET`, keine Standort-, Kontakt- oder Speicherberechtigung |
+| Zur Laufzeit gewährt | Benachrichtigungen, Bluetooth-Verbindung, Bluetooth-Suche | ja (Nutzer hat gewährt, kein Standort nötig) |
+| App-Flags | `HAS_CODE ALLOW_CLEAR_USER_DATA`; **kein** `DEBUGGABLE`, **kein** `ALLOW_BACKUP` | bestätigt `allowBackup=false`; Release-Build nicht debuggbar |
+| Signatur/Installation | eine Signatur, `installerPackageName=null` (Sideload per adb/APK) | erwartet; Update-Kontinuität zu früheren Builds durch `adb install -r` ohne Deinstallation belegt (Daten blieben erhalten) |
+| Zielversion | `targetSdk=35`, `minSdk=26` | wie `OldTargetApi` in Abschnitt 11 |
+**Noch offen (Handy):** Standort-/Speicher-Berechtigungsliste nach Update von sehr alten Builds, echtes TalkBack, Verhalten der App unter Foreground-Service-Regeln bei längerem Lauf (gehört zu #235).
