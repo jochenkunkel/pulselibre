@@ -12,6 +12,12 @@ The previously consumed `cirqaSyncAttemptedV25` preference is left untouched.
 V27 uses a distinct one-shot preference and result key; no old gate is cleared,
 re-armed, or migrated.
 
+The owner also explicitly authorized pausing and resuming the currently active
+`CirqaContinuousRecordingService` for this single run, accepting the brief live
+sampling gap. The service is not mutually excluded from historical sync, so it
+must be stopped before V27 starts and restarted after the sync has fully
+terminated.
+
 ## Preconditions
 
 - Install only a CI-signed in-place update with the established signing
@@ -20,7 +26,9 @@ re-armed, or migrated.
 - Confirm the app version, S25 USB connection, Bluetooth permissions, and
   exactly one bonded CIRQA target using read-only checks.
 - Ensure the recorder and any existing BLE/GATT session are inactive. The app's
-  shared BLE-session guard must report the session available.
+  shared BLE-session guard must report the session available. The active
+  continuous recorder may be stopped only for this authorized V27 window and
+  must be restarted afterwards.
 - Inspect the existing aggregate-only diagnostic before and after. If the
   app/database backup or upgrade path is not verified, stop before device
   sync.
