@@ -393,3 +393,7 @@ Noch sichtbar offen (P3): Nacht-Insights erste Spalte „22–6 Uhr / 22331 / We
 ## 2026-11-20 – #177 Nutzerdokumentation ergänzt (ohne neue Bilder)
 - Neu: `docs/user/README.md` (Startseite/Navigation, Kurzstart), `docs/user/FEHLERBEHEBUNG.md` (häufige Fragen: „Keine Messdaten“, „GATT verbunden (Aufzeichnung aus)“, Berechtigungen, Lücken, fehlende Trends, fehlende Schlaf-/HRV-Werte, Datenlöschung bei Deinstallation, Akku). Handbuch um Tag im Überblick, Wochenkarte, Regelmäßigkeit und Gerätewerte ergänzt; Link in der Repo-`README.md`. Alle Aussagen aus dem tatsächlichen Verhalten (S25-/Emulator-Prüfung, Code), keine nicht vorhandenen Funktionen.
 - Weiter offen in #177: Abbildungen für die neuen Ansichten und ein Durchlauf auf dem Handy mit geschwärzten/synthetischen Bildern (echte Gesundheitsdaten gehören nicht ins Repo). Das Ticket bleibt dafür offen.
+
+## 2026-11-20 – #235 Akku-Messwerkzeug (Handy-Seite)
+- Neu: `tools/battery_baseline.py` (nur lesend per adb: Pegel, Ladezähler, Ladezustand, Bildschirm, App-Zeilen Bluetooth/Wakelock/Foreground; `report` berechnet %/h und mAh/h und warnt bei Fenstern unter 60 min, Laden, Build-Wechsel), Unit-Tests `tools/test_battery_baseline.py` (6), Protokoll `docs/BATTERY_MEASUREMENT_PROTOCOL.md`. Snapshot-Test am S25 lief (Handy lud gerade, Werkzeug meldete `plugged=True`).
+- **Keine Messwerte, keine Android-Änderung.** Die Baseline selbst braucht mehrere Stunden am Handy; #235 bleibt offen.
