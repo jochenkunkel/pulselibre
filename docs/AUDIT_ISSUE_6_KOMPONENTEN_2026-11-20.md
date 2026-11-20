@@ -82,11 +82,11 @@ Einordnung (Stichprobe, nicht abschließend):
 | A6-2 | `CirqaContinuousRecordingService` ohne Testreferenz | mittel–hoch | Lebenszyklus-/Timeout-Tests (#3), in Abstimmung mit dem Bearbeiter von #3/#25/#171 |
 | A6-3 | `FitObservationCommitter` ohne direkten Test der Commit-/Idempotenz-Logik | mittel | Unit-Test mit In-Memory-/Temp-DB; OpenCode (Datenbank) |
 | A6-4 | `CirqaMlHandshakeProbe` mit 2.842 Zeilen ohne Referenz | mittel (Wartbarkeit) | Zerlegung und Tests der reinen Teile; OpenCode |
-| A6-5 | `CirqaLocalLog`-Inhalt und Diagnosepaket auf Geräte-/Gesundheitsdaten prüfen | offen | Prüfung steht aus |
+| A6-5 | `CirqaLocalLog`-Inhalt und Diagnosepaket auf Geräte-/Gesundheitsdaten geprüft | **erledigt (2026-11-20)** | Belegt: (1) Das Diagnosepaket besteht aus einer festen Feldliste (`DiagnosticsSnapshot`: Zähler, Versionen, Flags; `FitOfflineInventory.redactedText` nur Zähler); `DiagnosticReportPrivacyTest` prüft Abwesenheit von MAC/Name. (2) `CirqaLocalLog` speichert Sitzungs-/Versuchsereignisse mit Statustext (`result.take(600)`: Phase, GATT-Status, Zähler, Antwort*formen* = Länge/Typ/Service-ID, keine Nutzdaten, keine MAC, kein Gerätename) sowie Messwerte (`reading`: bpm, Schritte usw.). Diese Messwerte sind Gesundheitsdaten und bleiben lokal; `CirqaLocalLog.copyTo` (SAF-Export der Ereigniszeilen) hat im Produktionscode keinen Aufrufer (toter Code, kein Abfluss; Entfernung oder Anbindung ist Sache von OpenCode/Datenmodell). (3) Kein `Log.*`/`println` im Produktionscode; neu abgesichert durch `NoPlatformLoggingTest`. Falls `copyTo` je angebunden wird: Datei ist **kein** redigiertes Paket und muss so gekennzeichnet werden. |
 | A6-6 | UI-Dateien ohne JVM-Test: Logik, die in Views steckt, ist nur am Emulator abgedeckt | gering | neue UI-Logik weiterhin in reine Modelle auslagern (wie `DayTimeline`, `DashboardLayout`) |
 
 ## 6. Nächste Prüfschritte für #6
-1. A6-5: `CirqaLocalLog` und `DiagnosticsCollector` auf personenbezogene Inhalte lesen (Redaktion belegen).
+1. ~~A6-5~~ erledigt (siehe Tabelle); nächste Stufe: A6-6 und dateiweise Tiefenprüfung.
 2. Persistenz: Migrationen in `CirqaDatabase` und `DatabaseBackup` (Export/Import, Rollback) dateiweise mit Fehlerpfaden.
 3. Ressourcen: unbenutzte Ressourcen, Hardcoded-Strings, Barrierefreiheit (TalkBack-Beschreibungen).
 4. Zusammengeführter Coverage-Bericht (JaCoCo, JVM + Emulator) und komponentenweise Zielwerte.

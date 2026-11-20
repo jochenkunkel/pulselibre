@@ -393,3 +393,7 @@ Noch sichtbar offen (P3): Nacht-Insights erste Spalte „22–6 Uhr / 22331 / We
 ## 2026-11-20 – #177 Nutzerdokumentation ergänzt (ohne neue Bilder)
 - Neu: `docs/user/README.md` (Startseite/Navigation, Kurzstart), `docs/user/FEHLERBEHEBUNG.md` (häufige Fragen: „Keine Messdaten“, „GATT verbunden (Aufzeichnung aus)“, Berechtigungen, Lücken, fehlende Trends, fehlende Schlaf-/HRV-Werte, Datenlöschung bei Deinstallation, Akku). Handbuch um Tag im Überblick, Wochenkarte, Regelmäßigkeit und Gerätewerte ergänzt; Link in der Repo-`README.md`. Alle Aussagen aus dem tatsächlichen Verhalten (S25-/Emulator-Prüfung, Code), keine nicht vorhandenen Funktionen.
 - Weiter offen in #177: Abbildungen für die neuen Ansichten und ein Durchlauf auf dem Handy mit geschwärzten/synthetischen Bildern (echte Gesundheitsdaten gehören nicht ins Repo). Das Ticket bleibt dafür offen.
+
+## 2026-11-20 – #6 A6-5 Log-/Diagnoseinhalt geprüft
+- Ergebnis im Auditdokument: Diagnosepaket = feste Feldliste (bereits durch `DiagnosticReportPrivacyTest` gestützt); `CirqaLocalLog`-Statustexte enthalten nur Phase/Status/Zähler/Antwortformen (keine Nutzdaten, MAC, Namen); Messwerte bleiben lokal; `CirqaLocalLog.copyTo` hat keinen Aufrufer.
+- Neu: `NoPlatformLoggingTest` (Quelltext-Wächter: kein `Log.*`/`println`/`printStackTrace` im Produktionscode; lokal grün, Gradle offline mit `ANDROID_HOME=/home/smiler/pulselibre-tools/sdk`). Kein Produktionscode geändert.
