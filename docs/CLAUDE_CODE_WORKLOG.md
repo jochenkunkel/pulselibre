@@ -466,3 +466,9 @@ Noch sichtbar offen (P3): Nacht-Insights erste Spalte „22–6 Uhr / 22331 / We
 
 ## 2026-11-20 – S25-Sammelabnahme, zweiter Komplettlauf mit korrigiertem Werkzeug (Build 1520, 18:11–18:22)
 - **53 PASS, 0 FAIL, 3 INFO** (Akku 100 % lädt; CIRQA-Batteriestand nicht angezeigt (#159); kein Vordergrunddienst nach 90 s Hintergrund). Alle Phasen inkl. Überlappungs-Heuristik in Hell/Schrift 1,3/Schrift 2,0/320 dp, #312 (Kachel = Begründung), #309, #267, #172, #204-Warnung. Einstellungen wiederhergestellt (Nachtmodus an, Schrift 1,0, Dichte 480). Bericht lokal (echte Werte, nicht im Repo).
+
+## 2026-11-20 (abends) – Offline-Nachweis nach Umstellung auf LOCAL
+
+- Stand: PR-/Fork-Läufe bleiben CLOUD (Billing-Blocker, wird nicht umgangen); PR #330 (direktes LOCAL-Routing) ist offen. Keine Pushes/Merges von mir, solange kein grüner voller Lauf auf dem Branch-Kopf lesbar ist.
+- Branch `claude/header-icon-kontrast` auf aktuellen `origin/main` rebased (konfliktfrei). Lokal offline grün: `:app:testDebugUnitTest` und `:app:compileDebugAndroidTestKotlin` (inkl. `PulseLogoViewTest`). Emulator-Tests laufen weiterhin nur in der CI.
+- Nächster Schritt: sobald PR #330 integriert und Billing geklärt ist, LOCAL QUICK/FULL per `workflow_dispatch` auf dem Branch auslösen (mit CI-Agent abstimmen, Concurrency #321), dann #327 und den Logo-PR mergen.
