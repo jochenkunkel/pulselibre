@@ -472,3 +472,9 @@ Noch sichtbar offen (P3): Nacht-Insights erste Spalte „22–6 Uhr / 22331 / We
 - Stand: PR-/Fork-Läufe bleiben CLOUD (Billing-Blocker, wird nicht umgangen); PR #330 (direktes LOCAL-Routing) ist offen. Keine Pushes/Merges von mir, solange kein grüner voller Lauf auf dem Branch-Kopf lesbar ist.
 - Branch `claude/header-icon-kontrast` auf aktuellen `origin/main` rebased (konfliktfrei). Lokal offline grün: `:app:testDebugUnitTest` und `:app:compileDebugAndroidTestKotlin` (inkl. `PulseLogoViewTest`). Emulator-Tests laufen weiterhin nur in der CI.
 - Nächster Schritt: sobald PR #330 integriert und Billing geklärt ist, LOCAL QUICK/FULL per `workflow_dispatch` auf dem Branch auslösen (mit CI-Agent abstimmen, Concurrency #321), dann #327 und den Logo-PR mergen.
+
+## 2026-11-20 (abends) – Audit #6: ExportActivity abgeschlossen
+
+- A6-7 umgesetzt: Fehlermeldungen bei Backup/CSV-Export nennen die mögliche unvollständige Zieldatei (reiner Text, `compileDebugKotlin` offline grün, keine Tests an den Texten).
+- A6-8 (still verworfene beschädigte Zeilen, Speicherlast von `readingLines()`) im Audit Abschnitt 16 dokumentiert, nicht umgesetzt.
+- Nur lokal committet; kein Push bis LOCAL-Nachweis (siehe oben).
