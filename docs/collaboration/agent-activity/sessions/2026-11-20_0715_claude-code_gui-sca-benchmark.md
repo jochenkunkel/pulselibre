@@ -1,11 +1,11 @@
 # Claude Code – GUI, Benchmark-Umsetzung (#261-Folgetickets), SCA (#155)
 - Agent/Umgebung: Claude Code (Sonnet 5.5) / VSCodium
 - Beginn: 2026-11-20 05:50 UTC (Berlin 06:50)
-- Letzte Aktualisierung: 2026-11-20 09:30 UTC
+- Letzte Aktualisierung: 2026-11-20 14:30 UTC (Wiederaufnahme nach Absturz)
 - Status: aktiv
 - Rolle/Zuständigkeit: Android-GUI, Dashboard, Navigation, UI-Tests, UI-Status (laut AGENTS.md); zusätzlich auf Nutzerauftrag Abarbeiten der nicht BLE-gebundenen Tickets
 - Aktueller Auftrag: offene, nicht BLE-/Protokoll-gebundene Tickets selbstständig abarbeiten (Nutzerfreigabe liegt vor)
-- Jetzt in Bearbeitung: #6 Vertiefung (A6-5 erledigt, Branch `claude/6-log-privacy`, noch nicht gepusht; CI wird gebündelt genutzt, nur ein PR zur Zeit). #235 (Werkzeug als PR #294) – nur die **GUI-/Werkzeugseite**: Messskript und Messprotokoll für die Akku-Baseline (adb/batterystats, nur lesend; die Messung selbst braucht ein Zeitfenster am S25 mit dem Nutzer)
+- Jetzt in Bearbeitung: #6 Vertiefung (Schritt 3 Ressourcen, Branch `claude/audit6-resources`, ein PR zur Zeit; nur Dokumentation). #235 nur Werkzeugseite (PR #294 gemergt); die Messung braucht das S25 mit dem Nutzer
 - Abgeschlossen in dieser Sitzung: #155 (geschlossen, 0 Dependabot-Alerts), #261 (geschlossen), #263–#266 (geschlossen), #267 (Code gemergt, Ticket offen bis Handyabnahme), #41-Regelmäßigkeit, #177-Textdoku, #6-Teilprüfung (PR #291; #6 bleibt offen)
 - Zeitnah geplant (keine exklusive Reservierung): #159/#172-Reste (warten auf OpenCode-Schnittstellen), #6 Vertiefung (A6-5 Log-/Diagnoseinhalt, Persistenz-Migrationen)
 - Betroffene Bereiche/Dateien: `build.gradle.kts` (nur buildscript-Constraints), `docs/SCA_DEPENDENCY_REVIEW_2026-11-20.md`, `DayTimeline*.kt`, `DashboardOverview*.kt`, `TrendCardView.kt`, später Übersicht/Einstellungen (#267)

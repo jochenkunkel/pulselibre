@@ -418,3 +418,7 @@ Noch sichtbar offen (P3): Nacht-Insights erste Spalte „22–6 Uhr / 22331 / We
 
 ## 2026-11-20 – #6 Barrierefreiheit: Verteilungsdiagramm mit Screenreader-Text
 - Prüfung: Von 23 eigenen View-Klassen setzt nur `HistoryDensityChartView` weder `contentDescription` noch `importantForAccessibility`. Jetzt trägt es eine Zusammenfassung (`HistoryDensityAccessibility.summary`: Anzahl Werte/Zeitfenster, Achsenbereich, Bedienhinweis; keine erfundenen Werte), Unit-Test `HistoryDensityAccessibilityTest`. Echtes TalkBack am Gerät nicht geprüft.
+
+## 2026-11-20 – #6 Ressourcen-Teilprüfung (Abschnitt 10 im Audit)
+- Nach einem Sitzungsabsturz am letzten gemergten Stand (PR #306) wieder aufgesetzt (neuer Branch `claude/audit6-resources` von `origin/main`; nichts Uncommittetes ging verloren).
+- Befund A10-1: keine `strings.xml`, 120 feste Textliterale in 13 Dateien, Oberfläche nur Deutsch. Kein Code geändert; Empfehlung und offene Produktfrage (Mehrsprachigkeit) im Audit. #6 bleibt offen (offen: `UnusedResources`-Lint, Coverage, MASVS, S25-Evidenz).
