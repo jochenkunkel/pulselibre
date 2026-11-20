@@ -88,7 +88,7 @@ Einordnung (Stichprobe, nicht abschließend):
 ## 6. Nächste Prüfschritte für #6
 1. ~~A6-5~~ erledigt (siehe Tabelle); nächste Stufe: A6-6 und dateiweise Tiefenprüfung.
 2. Persistenz: Migrationen in `CirqaDatabase` und `DatabaseBackup` (Export/Import, Rollback) dateiweise mit Fehlerpfaden.
-3. Ressourcen: Hardcoded-Strings und Beschreibungen **erledigt (Abschnitt 10)**; offen: Lint `UnusedResources`.
+3. Ressourcen: Hardcoded-Strings und Beschreibungen **erledigt (Abschnitt 10)**; `UnusedResources` erledigt (Abschnitt 11).
 4. Zusammengeführter Coverage-Bericht (JaCoCo, JVM + Emulator) und komponentenweise Zielwerte.
 5. MASVS-Zuordnung (STORAGE, NETWORK, PLATFORM, CODE, RESILIENCE) je Befund; S25-Evidenz nur lesend, keine Instrumentationstests auf dem Handy.
 
@@ -128,3 +128,14 @@ Nicht geprüft: Migrationen in `CirqaDatabase` (nächster Schritt), echte Wieder
 
 **Befund A10-1 (gering, Wartbarkeit):** Texte nicht ausgelagert. Empfehlung: nicht als Sammelumbau, sondern bei jeder ohnehin angefassten Ansicht neue Texte als `strings.xml`-Einträge anlegen; ein Wächtertest (wie `NoPlatformLoggingTest`) kann die Zahl der Literale festschreiben, damit sie nicht wächst. Ob eine Mehrsprachigkeit gewünscht ist, ist eine Produktentscheidung (offen, Nutzer).
 Nicht geprüft: ungenutzte Ressourcen (Lint-Lauf `UnusedResources` steht aus), Textlängen bei Schrift 1,3+ und 320 dp (siehe #276).
+
+## 11. Lint-Auswertung `lintDebug` (lokal, `main` nach PR #312, 2026-11-20)
+Lauf: `gradle --offline :app:lintDebug`, Bericht `app/build/reports/lint-results-debug.*` (nicht eingecheckt). Ergebnis: **0 Fehler**; Warnungen nach Regel: `UseKtx` 94, `ViewConstructor` 16, `DrawAllocation` 11, `ClickableViewAccessibility` 3, `GradleDependency` 3, `ObsoleteSdkInt` 2, `ApplySharedPref` 1, `NotShrinkingResources` 1, `OldTargetApi` 1, `UnusedAttribute` 1.
+| Prüfpunkt | Ergebnis |
+| --- | --- |
+| Ungenutzte Ressourcen | **Keine Meldung `UnusedResources`.** Gegenprobe ohne Lint: alle 59 Drawables werden im Code oder Manifest referenziert (`R.drawable.*`/`@drawable/*`). Damit ist der in Abschnitt 10 offene Punkt erledigt. |
+| `ClickableViewAccessibility` (MainActivity:825, :1084 ×2) | **Bewertet, unkritisch, kein Code geändert.** :825 ist der versteckte 3-s-Long-Press (`attachHiddenLongPress`) an der nicht klickbaren Überschrift „Gerät“; er gibt `true` zurück, verbraucht also nur Touches einer View ohne eigenen Klick, und die Aktion steht zusätzlich als TalkBack-Aktion „Testlabor öffnen“ bereit. :1084 ist der Gewichts-Stepper (+/−): der Touch-Listener gibt `false` zurück und lässt den Klick durch; Klick und Wiederholung laufen über `OnClickListener`/`OnLongClickListener` (TalkBack-tauglich). Die Meldung ist hier ein Fehlalarm. |
+| `ApplySharedPref` (`CirqaTestLaboratoryActivity:534`) | `commit()` statt `apply()` entfernt den Zusammenfassungs-Schlüssel des Einmal-Gates synchron vor dem Dialog. Vermutlich Absicht (Gate soll vor dem aktiven Schritt sicher persistiert sein); gehört zu BLE/Gates (OpenCode), nicht angefasst. |
+| `OldTargetApi` | `targetSdk 35` bei `compileSdk 37` (AGENTS.md). Kein Play-Store-Vertrieb, Anhebung ist ein eigener Migrationsschritt mit Verhaltensänderungen (Edge-to-Edge, Foreground-Service-Typen) und gehört in ein eigenes Ticket, nicht in #6. |
+| `UseKtx`, `ViewConstructor`, `DrawAllocation` | Stil-/Performance-Hinweise ohne Sicherheitsbezug. `DrawAllocation` (11) betrifft Allokationen in `onDraw` der selbst gezeichneten Views; relevant für Ruckeln und Akku (#235), aber ohne Messung nicht priorisiert. |
+**Offen für #6:** Coverage-Bericht (JaCoCo), MASVS-Zuordnung, S25-Evidenz, dateiweise Tiefenprüfung der Dateien ohne Testreferenz.
