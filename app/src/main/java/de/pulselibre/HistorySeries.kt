@@ -32,7 +32,10 @@ enum class HistoryRange(val label: String, val duration: Duration) {
     fun windowEnd(now: Instant, offset: Int): Instant = now.minus(duration.multipliedBy(offset.toLong()))
 }
 
-/** One locally received original observation; timestamp is phone reception time. */
+/**
+ * One stored observation. [receivedAt] is phone reception time for live readings; inside
+ * [HistorySnapshot.fitHeartRate] it is the band's measurement time (see there). Series are never mixed.
+ */
 data class HistoryPoint(val receivedAt: Instant, val value: Int)
 
 data class HistorySnapshot(
@@ -40,7 +43,11 @@ data class HistorySnapshot(
     val start: Instant,
     val end: Instant,
     val heartRate: List<HistoryPoint>,
-    val oxygen: List<HistoryPoint>
+    val oxygen: List<HistoryPoint>,
+    /** Heart rate imported from band FIT files; its points carry the band's MEASUREMENT time, not phone reception (#334). */
+    val fitHeartRate: List<HistoryPoint> = emptyList(),
+    /** True when any FIT heart-rate observation exists at all, so the card can say "nothing in this window". */
+    val fitAvailable: Boolean = false
 )
 
 /** Fixed display resolutions sized to keep selected ranges readable on a phone chart. */

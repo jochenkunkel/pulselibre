@@ -29,7 +29,20 @@ class HistoryOverviewView(
 
     init { orientation = VERTICAL }
 
+    /** Which clock a series' time axis follows; the two are never merged into one series (#334). */
+    internal enum class TimeBasis(val legend: String, val info: String, val emptyText: String) {
+        PHONE_RECEIVED(
+            "Zeitachse: Telefonzeit · Punkt: Median · Ring: Mittelwert (bei mehreren Werten) · Linie: Min–Max · Lücken: keine Messdaten",
+            "Zeitstempel = Empfang auf dem Telefon.",
+            "Keine Messdaten in diesem Zeitraum"),
+        DEVICE_MEASURED(
+            "Zeitachse: Messzeit des Bandes (aus FIT-Dateien) · Punkt: Median · Ring: Mittelwert (bei mehreren Werten) · Linie: Min–Max · Lücken: keine Messdaten",
+            "Zeitstempel = vom Band gemessen (FIT-Datei), nicht der Empfang auf dem Telefon.",
+            "Keine Band-Verlaufsdaten in diesem Zeitraum")
+    }
+
     private companion object {
+        const val FIT_HEART_RATE_TITLE = "Herzfrequenz · Band-Verlauf (FIT)"
         val worker: java.util.concurrent.ExecutorService = java.util.concurrent.Executors.newSingleThreadExecutor()
     }
 
@@ -165,6 +178,11 @@ class HistoryOverviewView(
         val resolution = HistoryResolution.forRange(snapshot.range)
         metricCard("Herzfrequenz", "bpm", snapshot.heartRate, snapshot, 240, palette.pulse, resolution)
         metricCard("Sauerstoffsättigung · SpO₂", "%", snapshot.oxygen, snapshot, 100, palette.oxygen, resolution)
+        // #334: FIT-Historie des Bands in eigener Karte mit eigener Zeitbasis (Messzeit), nie mit Empfangszeit vermischt.
+        if (snapshot.fitAvailable || snapshot.fitHeartRate.isNotEmpty()) {
+            metricCard(FIT_HEART_RATE_TITLE, "bpm", snapshot.fitHeartRate, snapshot, 240, palette.pulse, resolution,
+                TimeBasis.DEVICE_MEASURED)
+        }
         // The scientific trend block now lives in the main tab "Analysen" (#227).
     }
 
@@ -179,7 +197,8 @@ class HistoryOverviewView(
         snapshot: HistorySnapshot,
         hardMaximum: Int,
         accent: Int,
-        resolution: HistoryResolution
+        resolution: HistoryResolution,
+        basis: TimeBasis = TimeBasis.PHONE_RECEIVED
     ) {
         val buckets = aggregateHistoryPoints(points, snapshot.start, snapshot.end, resolution)
         // Fit the vertical range to the observed data (e.g. SpO₂ 89–100 % no longer squeezed into the top of 0–100).
@@ -210,7 +229,7 @@ class HistoryOverviewView(
             isFocusable = true
             contentDescription = "Quelle und Skala für $title anzeigen"
             tag = "history_info_$title"
-            setOnClickListener { showMetricInfo(title, unit) }
+            setOnClickListener { showMetricInfo(title, unit, basis) }
             addView(PlIcon.view(context, PlIcon.INFO_SOURCE, 20, palette.indicator),
                 android.widget.FrameLayout.LayoutParams(dp(20), dp(20), Gravity.CENTER))
         }
@@ -219,12 +238,11 @@ class HistoryOverviewView(
         card.addView(label("${points.size} Werte · ${buckets.size} belegte Fenster · ${resolution.label}\nSkala ${scale.minimum}–${scale.maximum} $unit",
             12f, palette.muted), LayoutParams(-1, -2).apply { topMargin = dp(4) })
         if (points.isEmpty()) {
-            card.addView(label("Keine Messdaten in diesem Zeitraum", 14f, palette.muted),
+            card.addView(label(basis.emptyText, 14f, palette.muted),
                 LayoutParams(-1, -2).apply { topMargin = dp(18); bottomMargin = dp(18) })
             // The explanatory caption stays even without data (consistent per card, see #182).
             card.addView(label(
-                "Zeitachse: Telefonzeit · Punkt: Median · Ring: Mittelwert (bei mehreren Werten) · Linie: Min–Max · Lücken: keine Messdaten",
-                11f, palette.muted
+                basis.legend, 11f, palette.muted
             ).apply { tag = "history_chart_legend"; importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_YES },
                 LayoutParams(-1, -2).apply { topMargin = dp(8) })
         } else {
@@ -232,8 +250,7 @@ class HistoryOverviewView(
             val scatter = HistoryScatterChartView(context, buckets, points.size, snapshot.start, snapshot.end,
                 scale, accent, snapshot.range, resolution)
             val scatterLegend = label(
-                "Zeitachse: Telefonzeit · Punkt: Median · Ring: Mittelwert (bei mehreren Werten) · Linie: Min–Max · Lücken: keine Messdaten",
-                11f, palette.muted
+                basis.legend, 11f, palette.muted
             ).apply { tag = "history_chart_legend"; importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_YES }
             val densityLegend = label(HistoryDensityDetail.LEGEND, 11f, palette.muted).apply {
                 tag = "history_density_legend"; importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_YES; visibility = View.GONE
@@ -292,7 +309,7 @@ class HistoryOverviewView(
         addView(label("Der lokale Verlauf konnte nicht geladen werden.", 14f, palette.muted))
     }
 
-    private fun showMetricInfo(title: String, unit: String) {
+    private fun showMetricInfo(title: String, unit: String, basis: TimeBasis = TimeBasis.PHONE_RECEIVED) {
         val profile = MetricReferenceProfile.forMetric(DashboardMetric(title, "Keine Messdaten", ""))
         val content = LinearLayout(context).apply {
             orientation = VERTICAL
@@ -328,7 +345,7 @@ class HistoryOverviewView(
         }
         profile?.sourceName?.let { row("↗", "Quelle $it", profile.sourceUrl) }
         row("⚠", profile?.caveat ?: "Keine validierte Norm für Einzelmesswerte.")
-        row("◷", "Zeitstempel = Empfang auf dem Telefon.")
+        row("◷", basis.info)
         androidx.appcompat.app.AlertDialog.Builder(context)
             .setTitle("ⓘ  $title")
             .setView(content)
