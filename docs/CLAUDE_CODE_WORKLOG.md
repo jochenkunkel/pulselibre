@@ -386,3 +386,7 @@ Noch sichtbar offen (P3): Nacht-Insights erste Spalte „22–6 Uhr / 22331 / We
 
 ## 2026-11-20 – #155 Nachtrag: Lint-Werkzeug-Konfiguration
 - Nach PR #280 waren noch 6 von 8 Alerts offen: `androidLintTool` löst eigene alte Bibliotheken auf. Fix in `app/build.gradle.kts` (`resolutionStrategy.eachDependency` für Guava, Bouncy Castle ×3, commons-lang3, httpclient), `:app:dependencies` zeigt keine ungepatchte Version mehr. Details: `docs/SCA_DEPENDENCY_REVIEW_2026-11-20.md`.
+
+## 2026-11-20 – #6 Codeaudit: Komponenteninventur und Sicherheits-Stichprobe (Teilprüfung)
+- Neu: `docs/AUDIT_ISSUE_6_KOMPONENTEN_2026-11-20.md`: skriptgestützte Inventur (233 Dateien, 24.997 Zeilen) mit Testreferenzen je Komponente, Liste der 32 Dateien ohne Testreferenz mit Risikoeinordnung, belegte Sicherheits-Stichprobe (kein INTERNET, `allowBackup=false` + Extraktionsregeln, nur Launcher exportiert, PendingIntent immutable, kein WebView/Clipboard/externer Speicher, SAF-Export, Bind-Argumente) und sechs Befunde A6-1…A6-6 (u. a. `RECEIVER_EXPORTED` in `CirqaRfcommRunner`, fehlende Tests für `CirqaContinuousRecordingService` und `FitObservationCommitter`).
+- **Kein Android-Code geändert.** Befunde in BLE/Datenbank gehören OpenCode; Hinweise stehen im Dokument. #6 bleibt offen (dateiweise Tiefenprüfung, MASVS-Zuordnung, Coverage-Bericht, S25-Evidenz stehen aus).
