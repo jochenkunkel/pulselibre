@@ -415,3 +415,6 @@ Noch sichtbar offen (P3): Nacht-Insights erste Spalte „22–6 Uhr / 22331 / We
 - `RecorderBackoff.delayMs` aus `CirqaContinuousRecordingService` extrahiert (identisches Verhalten, Unit-Test `RecorderBackoffTest`). Beobachtung O-1 (Backoff zählt Versuche seit Dienststart, Reset fehlt) im Audit Abschnitt 8 für #235 festgehalten; bewusst nicht geändert, bis die Akku-Baseline vorliegt.
 ## 2026-11-20 – #6 Persistenz: `CirqaDatabase`-Migrationen gelesen
 - Auditdokument Abschnitt 9: linearer, transaktionaler, additiver Upgrade-Pfad v1→v6; Emulator-Tests für alle Ausgangsversionen v1–v5; kein Downgrade (B9-1, jetzt in `docs/user/FEHLERBEHEBUNG.md` erklärt). Kein Code geändert.
+
+## 2026-11-20 – #6 Barrierefreiheit: Verteilungsdiagramm mit Screenreader-Text
+- Prüfung: Von 23 eigenen View-Klassen setzt nur `HistoryDensityChartView` weder `contentDescription` noch `importantForAccessibility`. Jetzt trägt es eine Zusammenfassung (`HistoryDensityAccessibility.summary`: Anzahl Werte/Zeitfenster, Achsenbereich, Bedienhinweis; keine erfundenen Werte), Unit-Test `HistoryDensityAccessibilityTest`. Echtes TalkBack am Gerät nicht geprüft.
