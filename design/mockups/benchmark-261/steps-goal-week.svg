@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 480" font-family="sans-serif" role="img" aria-label="Synthetischer Entwurf: Schrittziel und Wochenübersicht">
+<rect width="360" height="480" fill="#10161f"/>
+<text x="16" y="28" fill="#e8eef7" font-size="16" font-weight="bold">Schritte &amp; Woche</text>
+<text x="16" y="46" fill="#9fb0c5" font-size="10">SYNTHETISCHE WERTE · Entwurf, keine Messdaten</text>
+<text x="16" y="90" fill="#e8eef7" font-size="32" font-weight="bold">8 155</text>
+<text x="118" y="90" fill="#9fb0c5" font-size="12">/ 8 100 Schritte (Ziel erreicht)</text>
+<rect x="16" y="104" width="328" height="8" rx="4" fill="#26323f"/><rect x="16" y="104" width="328" height="8" rx="4" fill="#81c784"/>
+<text x="16" y="128" fill="#9fb0c5" font-size="9">Ziel lokal einstellbar. Uhrzeit-Verlauf nur aus Zählern mit ≤ 10 min Abstand.</text>
+<rect x="16" y="144" width="328" height="100" fill="#17202c" rx="6"/>
+<g fill="#81c784"><rect x="24" y="200" width="14" height="36"/><rect x="62" y="170" width="14" height="66"/><rect x="100" y="188" width="14" height="48"/><rect x="138" y="160" width="14" height="76"/></g>
+<g fill="none" stroke="#9fb0c5" stroke-dasharray="2 2"><rect x="176" y="196" width="14" height="40"/><rect x="214" y="196" width="14" height="40"/></g>
+<text x="170" y="154" fill="#9fb0c5" font-size="8">blass gestrichelt = Zeitpunkt unbekannt (Lücke)</text>
+<text x="16" y="272" fill="#e8eef7" font-size="13" font-weight="bold">Letzte 7 Tage</text>
+<rect x="16" y="280" width="328" height="170" fill="#17202c" rx="6"/>
+<g font-size="10" fill="#9fb0c5">
+<text x="24" y="302">Ø Schritte</text><text x="250" y="302" fill="#e8eef7">7 412 · 6/7 Tage</text>
+<text x="24" y="324">Ø Ruhepuls</text><text x="250" y="324" fill="#e8eef7">58 bpm · 5/7 Tage</text>
+<text x="24" y="346">Schlafdauer Ø</text><text x="250" y="346" fill="#e8eef7">6 h 12 min · 4/7</text>
+<text x="24" y="368">Kalorien</text><text x="250" y="368" fill="#ef9a9a">nicht verfügbar</text>
+<text x="24" y="390">Intensitätsminuten</text><text x="250" y="390" fill="#ef9a9a">nicht verfügbar</text>
+<text x="24" y="412">Stress</text><text x="250" y="412" fill="#ef9a9a">nicht verfügbar</text>
+<text x="24" y="438" font-size="8">Ø nur über Tage mit Daten; Ruhepuls nie aus dem Tagesminimum geschätzt.</text>
+</g></svg>

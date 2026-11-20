@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 520" font-family="sans-serif" role="img" aria-label="Synthetischer Entwurf: gemeinsame 24-Stunden-Zeitachse">
+<rect width="360" height="520" fill="#10161f"/>
+<text x="16" y="28" fill="#e8eef7" font-size="16" font-weight="bold">Tag · 24 h Zeitachse</text>
+<text x="16" y="46" fill="#9fb0c5" font-size="10">SYNTHETISCHE WERTE · Entwurf, keine Messdaten</text>
+<g font-size="9" fill="#9fb0c5"><text x="16" y="72">Herzfrequenz (bpm)</text><text x="300" y="72">Min 52 · Max 131</text></g>
+<rect x="16" y="78" width="328" height="110" fill="#17202c" rx="6"/>
+<polyline fill="none" stroke="#4fc3f7" stroke-width="1.5" points="20,150 40,152 60,148 80,151 100,146 120,150 126,150"/>
+<polyline fill="none" stroke="#4fc3f7" stroke-width="1.5" points="150,140 170,128 190,104 200,96 210,120 230,138 250,142 270,136 290,150 330,148"/>
+<rect x="126" y="80" width="24" height="106" fill="#ffffff" opacity="0.07"/>
+<text x="128" y="132" fill="#9fb0c5" font-size="8" transform="rotate(-90 133 132)">Datenlücke</text>
+<line x1="200" y1="80" x2="200" y2="186" stroke="#ffd54f" stroke-dasharray="3 2"/>
+<rect x="206" y="82" width="92" height="30" fill="#0b1119" stroke="#ffd54f" rx="4"/>
+<text x="210" y="94" fill="#e8eef7" font-size="9">11:42 · 131 bpm</text><text x="210" y="106" fill="#9fb0c5" font-size="8">Quelle: FIT · gemessen</text>
+<g font-size="9" fill="#9fb0c5"><text x="16" y="208">Schritte (kumuliert, 15-min-Intervalle)</text></g>
+<rect x="16" y="214" width="328" height="90" fill="#17202c" rx="6"/>
+<polyline fill="none" stroke="#81c784" stroke-width="1.5" points="20,298 80,298 80,290 130,290 150,270 170,270 190,240 230,240 230,222 270,222 290,226 340,226"/>
+<line x1="16" y1="236" x2="344" y2="236" stroke="#ffd54f" stroke-dasharray="4 3"/><text x="22" y="232" fill="#ffd54f" font-size="8">Ziel (lokal einstellbar)</text>
+<path d="M20 298 h60 v-8 h50" stroke="#81c784" stroke-dasharray="1 3" fill="none"/>
+<g font-size="9" fill="#9fb0c5"><text x="16" y="324">Ereignisse &amp; Schlaf (Text + Symbol + Muster, nicht nur Farbe)</text></g>
+<rect x="16" y="330" width="328" height="44" fill="#17202c" rx="6"/>
+<rect x="16" y="336" width="86" height="14" fill="#7e57c2"/><text x="20" y="347" fill="#fff" font-size="8">Schlaf 00:46–06:51</text>
+<rect x="214" y="336" width="44" height="14" fill="#26a69a"/><text x="217" y="347" fill="#fff" font-size="8">Gehen</text>
+<rect x="102" y="356" width="92" height="12" fill="none" stroke="#9fb0c5" stroke-dasharray="3 2"/><text x="108" y="366" fill="#9fb0c5" font-size="8">keine Daten (Lücke)</text>
+<g font-size="8" fill="#9fb0c5"><text x="16" y="392">00</text><text x="104" y="392">06</text><text x="192" y="392">12</text><text x="280" y="392">18</text><text x="332" y="392">24</text></g>
+<rect x="16" y="404" width="328" height="96" fill="#17202c" rx="6"/>
+<text x="24" y="422" fill="#e8eef7" font-size="10" font-weight="bold">Textfassung für TalkBack</text>
+<text x="24" y="438" fill="#9fb0c5" font-size="9">Herzfrequenz 52–131 bpm, 3 h 10 min ohne Daten.</text>
+<text x="24" y="452" fill="#9fb0c5" font-size="9">Schritte 8 155 von Ziel 8 100, erreicht um 17:20.</text>
+<text x="24" y="466" fill="#9fb0c5" font-size="9">Schlaf 00:46–06:51 (Dauer, Phasen unbekannt).</text>
+<text x="24" y="486" fill="#9fb0c5" font-size="8">Zoom: Rohpunkte · Übersicht: min/max/first/last, Lücken bleiben Lücken.</text>
+</svg>
