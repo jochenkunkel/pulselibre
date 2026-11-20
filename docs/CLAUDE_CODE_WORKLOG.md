@@ -453,3 +453,6 @@ Noch sichtbar offen (P3): Nacht-Insights erste Spalte „22–6 Uhr / 22331 / We
 ## 2026-11-20 – #204 Phase B Punkt 8: Beispielbytes ansehen (ohne Export)
 - Neu: `FitFieldSampleReader` (liest aus einem CRC-geprüften FIT-Original höchstens 3 Beispielwerte à höchstens 32 Byte eines Feldes; Standard- und Developer-Felder, komprimierte Zeitstempel; ungültige Datei → null/fail closed; keine Deutung, keine Einheit, keine Speicherung) mit 7 JVM-Tests. Oberfläche: in der Feldliste neuer Link „Beispielbytes ansehen“ → Warnung („kann sensible Gesundheits- und Geräteinformationen enthalten …“) → erst nach Bestätigung Anzeige als Hex je Datei (Ordinal „Datei 1“, nie Dateiname/Hash), höchstens 3 Dateien. Emulator-Test `bytePreviewNeedsAWarnedConfirmationAndFailsClosedForMissingOriginals`. Kein Decoder geändert (`FitHistoricalObservations`/Inventur unberührt).
 - **Nicht gebaut:** optionaler SAF-Export der Rohbytes (Ticketpunkt „optional“); wegen Gesundheitsdaten-Risiko erst auf ausdrücklichen Wunsch.
+
+## 2026-11-20 – #6 kombinierte Coverage: Versuch scheiterte an Klassen-Prüfsummen
+- Lokales Zusammenführen JVM+Emulator ergab 0 % (Messartefakt, nicht-identische Klassen); Audit Abschnitt 15, Vorschlag an den CI-Agenten per agent-sync (Emulator-Job soll Unit-Tests mitlaufen lassen und dort mergen). Kein Workflow geändert.
