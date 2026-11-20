@@ -144,7 +144,15 @@ exit 98
         self.assertEqual(0, result.returncode, result.stderr)
         self.assertIn("Dry-Run ohne root", result.stderr)
         self.assertIn("kein Registrierungs-Token erforderlich oder abgerufen", result.stderr)
-        self.assertIn("sudo -u ghrunner ./config.sh", result.stdout)
+        # The self-hosted runner invokes this test from its own configured
+        # installation. In that case the installer must preserve the existing
+        # registration instead of printing a fresh config command. Hosted CI
+        # exercises the fresh-install dry-run branch.
+        configured_runner = pathlib.Path("/opt/pulselibre-runner/.runner").exists()
+        if configured_runner:
+            self.assertNotIn("sudo -u ghrunner ./config.sh", result.stdout)
+        else:
+            self.assertIn("sudo -u ghrunner ./config.sh", result.stdout)
         self.assertNotIn("DRY-RUN-NO-TOKEN", result.stdout + result.stderr)
         calls = self.calls_file.read_text(encoding="utf-8")
         self.assertNotIn("mkdir ", calls)
