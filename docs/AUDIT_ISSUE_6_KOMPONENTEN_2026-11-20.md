@@ -176,3 +176,13 @@ Quelle: `adb shell dumpsys package de.pulselibre` auf dem S25 (nur Lesen; keine 
 Versuch: JVM-`.exec` (Artefakt `pulselibre-jvm-jacoco`) und Emulator-`.ec` (Artefakt `pulselibre-instrumentation-coverage`) desselben `main`-Laufs (Commit `3681e22`) lokal gegen die frisch gebauten Debug-Klassen desselben Commits mit JaCoCo (`JacocoReport`, Init-Skript außerhalb des Repos) zusammengeführt.
 **Ergebnis: 0 % für alles, auch für die JVM-Daten, die allein 30,9 % ergaben. Das ist ein Messartefakt, kein Befund über die Tests.** JaCoCo ordnet Messdaten nur Klassen mit identischer Prüfsumme zu; lokal übersetzte Klassen sind nicht byteidentisch mit den in der CI übersetzten. Auch **zwischen den beiden CI-Jobs** (Build-Job und Emulator-Job übersetzen getrennt) ist ein Zusammenführen nicht verlässlich möglich.
 **Folgerung:** Ein kombinierter Wert entsteht nur **innerhalb eines Jobs** mit denselben Klassen. Vorschlag an den CI-Verantwortlichen (Änderung an `tools/ci/run-ci.sh` und `.github/workflows/android.yml`, nicht von mir umgesetzt): im Emulator-Job zusätzlich `:app:testDebugUnitTest` ausführen (vermutlich +1–2 Minuten), dann `JacocoReport` über `testDebugUnitTest.exec` + `connected …/coverage.ec` mit den Klassen dieses Jobs erzeugen und den XML-/HTML-Bericht als Artefakt hochladen. Bis dahin gilt: **JVM-Wert 30,9 % (Abschnitt 12) ist der einzige belastbare Zahlenwert; eine Gesamtabdeckung ist nicht bekannt.**
+
+## 16. `ExportActivity` (dateiweise Prüfung, Teil 1, 2026-11-20, offline)
+
+Geprüft: Zeilen 45–125 (Backup-Export, Wiederherstellung, CSV-Export). Kein Lauf auf dem Gerät.
+
+- **Ziele/Quellen:** ausschließlich Storage Access Framework (`CreateDocument`, `OpenDocument`); keine eigenen Pfade, kein FileProvider, keine Zwischenablage. Gut.
+- **Fehlertexte:** alle `catch`-Zweige zeigen feste, allgemeine Texte ohne Ausnahmenachricht, Pfad oder URI (`Backup fehlgeschlagen…`, `Export fehlgeschlagen…`). Kein Datenleck über die UI.
+- **Wiederherstellung:** `prepareRestore` prüft vor `confirmRestore`; bei beendeter Activity wird der Plan geschlossen (`plan.close()`), Datenbank bleibt unverändert. Gut.
+- **Befund A6-7 (niedrig):** Schlägt das Schreiben von Backup oder CSV nach dem Anlegen des Zieldokuments fehl, bleibt am vom Nutzer gewählten Ort eine leere oder unvollständige Datei zurück. Die Meldung sagt nur „Speicherort prüfen“. Vorschlag: Text um „Die Zieldatei kann unvollständig sein und sollte gelöscht werden“ ergänzen oder das Dokument bei Fehler per `DocumentsContract.deleteDocument` entfernen. Noch nicht umgesetzt.
+- **Offen:** Zeilen 125–532 (Aufbau der Oberfläche, `readUnifiedExport`, JSON-Parsing ab Z. 479–509) noch ungeprüft.
