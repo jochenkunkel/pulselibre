@@ -55,7 +55,8 @@ fi
 
 ci_warn "Fehlende Android-SDK-Pakete: ${missing[*]}"
 if [ "$INSTALL" -ne 1 ]; then
-  ci_die "Mit 'bash tools/ci/ensure-android-sdk.sh --install' installieren."
+  ci_info "Nicht installiert (kein --install). Der Build kann fortgesetzt werden; der Emulator-Job installiert fehlende Pakete bei Bedarf."
+  exit 0
 fi
 
 sdkmanager="$(ci_android_tools)"
