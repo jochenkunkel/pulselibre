@@ -449,3 +449,7 @@ Noch sichtbar offen (P3): Nacht-Insights erste Spalte „22–6 Uhr / 22331 / We
 ## 2026-11-20 – #6 MASVS-Zuordnung (Abschnitt 13 im Audit)
 - Befunde A6-1…A10-1, B7, B9 den MASVS-Kategorien zugeordnet, inkl. „noch nicht geprüft“ je Kategorie und Reihenfolge der nächsten Schritte. Ausdrücklich keine MASVS-Abnahme. Kein Code geändert.
 - #6 S25-Evidenz (nur dumpsys, lesend) als Audit-Abschnitt 14: Berechtigungen ohne INTERNET/Standort, nicht debuggbar, kein ALLOW_BACKUP.
+
+## 2026-11-20 – #204 Phase B Punkt 8: Beispielbytes ansehen (ohne Export)
+- Neu: `FitFieldSampleReader` (liest aus einem CRC-geprüften FIT-Original höchstens 3 Beispielwerte à höchstens 32 Byte eines Feldes; Standard- und Developer-Felder, komprimierte Zeitstempel; ungültige Datei → null/fail closed; keine Deutung, keine Einheit, keine Speicherung) mit 7 JVM-Tests. Oberfläche: in der Feldliste neuer Link „Beispielbytes ansehen“ → Warnung („kann sensible Gesundheits- und Geräteinformationen enthalten …“) → erst nach Bestätigung Anzeige als Hex je Datei (Ordinal „Datei 1“, nie Dateiname/Hash), höchstens 3 Dateien. Emulator-Test `bytePreviewNeedsAWarnedConfirmationAndFailsClosedForMissingOriginals`. Kein Decoder geändert (`FitHistoricalObservations`/Inventur unberührt).
+- **Nicht gebaut:** optionaler SAF-Export der Rohbytes (Ticketpunkt „optional“); wegen Gesundheitsdaten-Risiko erst auf ausdrücklichen Wunsch.
