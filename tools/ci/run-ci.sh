@@ -117,6 +117,9 @@ verify() {
 diagnostics() {
   ci_group "APK-Diagnose (ohne Secrets)"
   local build_tools apksigner aapt debug_apk release_apk release_cert debug_cert
+  # build and diagnostics are separate processes in local CI; restore the
+  # local signing environment again before comparing APK certificates.
+  ci_signing_restore
   build_tools="$(ci_android_build_tools)"
   apksigner="$build_tools/apksigner"
   aapt="$build_tools/aapt"
