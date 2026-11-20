@@ -1,15 +1,15 @@
 # OpenCode – nextTransaction-Fortsetzungstest
 - Agent/Umgebung: OpenCode CLI-Agent
 - Beginn: 2026-11-20 22:54 UTC
-- Letzte Aktualisierung: 2026-11-21 00:15 UTC
-- Status: pausiert – PR-/Gerätefreigabe ausstehend
+- Letzte Aktualisierung: 2026-11-21 00:41 lokal
+- Status: pausiert – PR-Review/CI und Merge ausstehend
 - Rolle/Zuständigkeit: CIRQA/FIT/GFDI-Protokoll und Offline-/S25-Tests
 - Aktueller Auftrag: auf Nutzeranweisung klären, ob `nextTransactionId` nach einer FileAccess-Item-List eine weitere Liste/Transaktion eröffnet; einen engen Test erstellen und bei grünen Gates einmal am S25 prüfen
-- Jetzt in Bearbeitung: keine Codeänderung; PR #345 wartet auf GitHub-Full-CI-Checks und S25-Freigabe durch den GUI-Agenten
+- Jetzt in Bearbeitung: keine Codeänderung; S25-Einmalprobe ausgeführt, PR #345 wartet auf Review und erneute Full-CI nach Ergebnisdokumentation
 - Zeitnah geplant: keine
 - Betroffene Bereiche/Dateien: `CirqaFileAccessListRequest`, `CirqaMlHandshakeProbe`, Testlabor-Gates und zugehörige Tests/Dokumentation
 - Branch/Worktree: `opencode/nexttransaction-s25-test-20261121` / `/tmp/opencode/pulselibre-nexttransaction-test-20261121`
-- Abstimmungsbedarf: PR #343 dokumentiert den bereits abgeschlossenen GUI-Lauf. Vor Bluetooth-Test muss GUI-Agent das S25 freigeben. Die vorhandenen 15/15 Item-List-Läufe bleiben verbraucht; kein Gate-Reset. Nutzer hat einen neuen, engen Bluetooth-Test ausdrücklich angefordert.
+- Abstimmungsbedarf: Nutzer hat die mögliche geräteseitige Transfer-Markierung ausdrücklich freigegeben. S25-Probe wurde nach erfolgreichem Full-CI ausgeführt. Vor Merge gelten weiterhin Review und Full-CI auf PR-Head und main. Die vorhandenen 15/15 Item-List-Läufe bleiben verbraucht; kein Gate-Reset.
 - Agent-sync-Nachrichten: neue Nachricht zur Scope-/Gerätekoordination wird mit Test-PR veröffentlicht
-- Nachweise: statischer Code zeigt Produktpagination nur für `session_id`; `next_transaction_id` wird nur als Presence-Metadatum berichtet. Implementierung in Commit `d1678db`, PR #345. `./tools/ci-local.sh --full` lokal erfolgreich inkl. API-35-Emulator. GitHub-CI-Checks sind beim letzten Abruf noch nicht erschienen. Kein S25-Test ausgeführt.
-- Nächster Schritt: PR-Full-CI und Review abwarten; nach bestätigter Gerätefreigabe passenden PR-Build einmalig am S25 testen. Kein Pull und kein Gate-Reset.
+- Nachweise: Implementierung PR #345; GitHub CLOUD/FULL Dispatch 44836776836 auf Head `d5b90b0` erfolgreich inkl. Emulator. Mit stabil signiertem Build 1583 auf S25 einmalige Probe: erste Liste 28 Einträge, `session=false`, `nextTransaction=true`; eine `transaction_id`-Folgeanfrage lieferte `status=0`, 0 Einträge, erneut `session=false`, `nextTransaction=true`; danach Stopp. `pullSent=false`, MLR 0 Chunks/Bytes. Details: `docs/protocol/device-tests/CIRQA_NEXT_TRANSACTION_PROBE_RESULT_2026-11-21.md`.
+- Nächster Schritt: Ergebnisbericht plus Agent-Sync-Nachricht veröffentlichen; PR-Full-CI und Review abwarten. Keine weitere Folgeanfrage und kein Gate-Reset.

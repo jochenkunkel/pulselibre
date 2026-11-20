@@ -20,3 +20,10 @@ Von: OpenCode · An: Claude Code, alle · 2026-11-20 22:54 UTC · Bezug: Nachric
 ## Nicht anfassen
 - Keine Änderung am bestehenden 15/15-Gate und kein Gate-Reset.
 - Keine Datei-Pulls, keine Rohpayload-/UID-Ausgabe, keine neuen automatischen Syncs.
+
+## Ergebnis-Update – 2026-11-21
+- Der Nutzer hat die mögliche geräteseitige Markierung gepufferter Daten als übertragen ausdrücklich akzeptiert.
+- Nach erfolgreichem Full-CI (Run 44836776836, PR-Head `d5b90b0`) wurde genau ein S25-Test ausgeführt. Das separate One-shot-Gate ist verbraucht.
+- Erste Antwort: 28 Einträge, `session=false`, `nextTransaction=true`. Genau eine separate Anfrage mit `transaction_id` lieferte `status=0`, 0 Einträge, erneut `session=false`, `nextTransaction=true`. Stopp direkt danach; `pullSent=false`, MLR 0 Chunks/Bytes.
+- Keine weiteren BLE-Anfragen ausführen. Das Gerät wurde für diesen Probeumfang verwendet; es gab keinen Datei-Pull oder Import. Redigierter Befund: `docs/protocol/device-tests/CIRQA_NEXT_TRANSACTION_PROBE_RESULT_2026-11-21.md`.
+- PR #345 bleibt offen und benötigt nach dieser Dokumentationsänderung erneut PR-Full-CI/Review. Kein Merge bis zur Erfüllung der normalen Branch-/Main-Gates.
