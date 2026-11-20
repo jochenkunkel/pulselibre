@@ -47,7 +47,7 @@ internal const val LOCAL_STEP_GOAL_NOTE = "Eigenes Ziel (Einstellungen)"
  * source. Invalid input (non-numeric, outside 100..100000 as in the settings dialog) is ignored, never "repaired".
  */
 internal fun applyLocalStepGoal(metrics: List<DashboardMetric>, localRaw: String?): List<DashboardMetric> {
-    val local = localRaw?.trim()?.toIntOrNull()?.takeIf { it in 100..100_000 } ?: return metrics
+    val local = localStepGoal(localRaw) ?: return metrics
     val goal = DashboardMetric("Schrittziel", local.toString(), LOCAL_STEP_GOAL_NOTE)
     return if (metrics.any { it.title == "Schrittziel" }) metrics.map { if (it.title == "Schrittziel") goal else it }
     else metrics + goal
@@ -57,4 +57,29 @@ internal fun applyLocalStepGoal(metrics: List<DashboardMetric>, localRaw: String
 internal fun stepGoalStatus(steps: DashboardMetric, goal: DashboardMetric): String? {
     val progress = stepGoalProgress(steps, goal) ?: return null
     return if (progress >= 100.0) "Tagesziel erreicht" else null
+}
+
+/** The user's own step goal from the settings (100..100000) or null; invalid input is ignored, never repaired. */
+internal fun localStepGoal(raw: String?): Int? = raw?.trim()?.toIntOrNull()?.takeIf { it in 100..100_000 }
+
+/** Goal used by charts: the user's own goal wins over the device goal (#265). */
+internal fun effectiveStepGoal(localRaw: String?, deviceGoal: Long?): Long? =
+    localStepGoal(localRaw)?.toLong() ?: deviceGoal?.takeIf { it > 0 }
+
+/**
+ * Regularity (#41): on how many of the complete days before today with a step value the user's own goal was reached.
+ * Days without data are neither "reached" nor "missed"; they are not counted at all. No score, no rating.
+ */
+internal object GoalRegularity {
+    data class Result(val reached: Int, val validDays: Int, val windowDays: Int, val goal: Int) {
+        fun text(): String? =
+            if (validDays == 0) null
+            else "Eigenes Ziel (${java.text.NumberFormat.getIntegerInstance(java.util.Locale.GERMANY).format(goal)}) erreicht an " +
+                "$reached von $validDays Tagen mit Daten ($windowDays-Tage-Fenster)"
+    }
+
+    fun build(daily: Map<java.time.LocalDate, Double>, today: java.time.LocalDate, windowDays: Int, goal: Int): Result {
+        val values = (1..windowDays).mapNotNull { daily[today.minusDays(it.toLong())]?.takeIf { v -> v.isFinite() && v >= 0.0 } }
+        return Result(values.count { it >= goal }, values.size, windowDays, goal)
+    }
 }

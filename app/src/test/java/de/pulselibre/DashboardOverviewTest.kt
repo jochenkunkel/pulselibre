@@ -74,4 +74,22 @@ class DashboardOverviewTest {
         assertNull(status("Keine Messdaten"))
         assertNull(status("9000", DashboardMetric("Schrittziel", "Keine Messdaten", "")))
     }
+
+    @Test fun effectiveGoalPrefersValidOwnGoalOverDeviceGoal() {
+        assertEquals(8100L, effectiveStepGoal("8100", 9330L))
+        assertEquals(9330L, effectiveStepGoal("abc", 9330L))
+        assertEquals(9330L, effectiveStepGoal(null, 9330L))
+        assertNull(effectiveStepGoal(null, null))
+        assertNull(effectiveStepGoal("50", 0L))
+    }
+
+    @Test fun goalRegularityCountsOnlyDaysWithDataAndNeverTodayOrMissingDays() {
+        val today = java.time.LocalDate.of(2026, 11, 20)
+        val daily = mapOf(today to 99999.0, today.minusDays(1) to 8100.0, today.minusDays(2) to 8099.0,
+            today.minusDays(3) to 12000.0, today.minusDays(40) to 20000.0)
+        val r = GoalRegularity.build(daily, today, 28, 8100)
+        assertEquals(2, r.reached); assertEquals(3, r.validDays)
+        assertEquals("Eigenes Ziel (8.100) erreicht an 2 von 3 Tagen mit Daten (28-Tage-Fenster)", r.text())
+        assertNull(GoalRegularity.build(emptyMap(), today, 28, 8100).text())
+    }
 }

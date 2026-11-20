@@ -317,11 +317,16 @@ internal class TrendCardView(context: Context) : LinearLayout(context) {
             androidx.appcompat.app.AlertDialog.Builder(context).setTitle("Tagesdetail")
                 .setMessage(ActivityAtlas.describe(cell)).setPositiveButton("Schließen", null).show()
         }
+        val ownGoal = localStepGoal(context.getSharedPreferences(SpO2DisplaySettings.STORE, Context.MODE_PRIVATE).getString("step_goal", null))
+        val regularity = TextView(context).apply { textSize = 11f; setTextColor(palette.ink); setPadding(0, 0, 0, dp(6)); tag = "activity_atlas_goal" }
         fun refresh() {
             val m = ActivityAtlas.build(d.stepsWithToday.ifEmpty { d.stepsDaily }, d.today, atlasWindow)
             atlas.show(m); summary.text = m.summary()
+            val line = ownGoal?.let { GoalRegularity.build(d.stepsDaily, d.today, atlasWindow, it).text() }
+            regularity.text = line ?: ""; regularity.visibility = if (line == null) View.GONE else View.VISIBLE
         }
         box.addView(summary)
+        box.addView(regularity)
         box.addView(atlas, LayoutParams(-1, -2))
         box.addView(TextView(context).apply {
             text = "Abstufung = relative Schrittzahl der erfassten Tage (kein Gesundheitsstatus). Graue Zelle = keine verifizierten Daten, nicht 0 Schritte. " +
