@@ -297,6 +297,7 @@ Die Sichtbarkeit wird nur nach ausdrücklicher Freigabe geändert. Checkliste:
 
 | Symptom | Ursache | Lösung |
 | --- | --- | --- |
+| Job fehlt im Lauf / `Error when evaluating 'runs-on'` | `runs_on` ist kein gültiges JSON | `tools/ci/resolve-target.sh` muss ein JSON-Array liefern (`["ubuntu-latest"]`, nicht `ubuntu-latest`); Test `tools/test_ci_target.py` |
 | LOCAL-Job bleibt „Queued“ | Runner offline oder Label falsch | `systemctl status 'actions.runner.*'`, Label `pulselibre` prüfen |
 | Lauf zeigt `CLOUD` trotz LOCAL | `PULSELIBRE_LOCAL_RUNNER_ENABLED` fehlt/`false` | Variable auf `true` setzen |
 | `JDK 21 nicht gefunden` | nur JDK 17 installiert | `tools/ci/bootstrap-toolchain.sh` |
