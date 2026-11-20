@@ -8,6 +8,8 @@ PulsLibre kann jeden Android-CI-Lauf entweder auf dem eigenen Entwicklungsrechne
 Pipeline-Implementierung (`tools/ci/run-ci.sh`). Es gibt keine zweite, separat
 gepflegte CI-Definition.
 
+> **Betriebsmeldung vom 20.11.2026, 18:10 CET:** Der Nutzer meldet, dass der CI-Runner auf **LOCAL umgestellt** wurde. Dies ist eine Bedienerangabe; Online-Status, tatsächlich verwendete Runner-Labels und erfolgreiche Jobs sind damit **noch nicht technisch bestätigt**. Der konkrete Prüfauftrag für CI-Agent, GUI-Agent und FIT/BLE-Agent steht in [Agentenübergabe LOCAL-Runner](../collaboration/agent-sync/2026-11-20_1810_chatgpt-an-alle_local-runner-testauftrag.md). Der CI-Agent soll zuerst **LOCAL/QUICK**, anschließend **LOCAL/FULL** einschließlich API-35-Emulator ausführen und Run-IDs, Commit-SHAs, effektive Runnerauswahl, Ergebnisse und Signaturstatus hier ergänzen. **Keine Instrumentation auf dem S25.** Concurrency-Änderungen zu #321 vorher mit dem zuständigen Agenten abstimmen. Die nachfolgenden Abschnitte zu Freigabeschaltern/Installation beschreiben den ursprünglichen Soll- und Vorbereitungsstand, bis die Verifikation nachgetragen ist.
+
 ## 1. Architektur
 
 ```text
