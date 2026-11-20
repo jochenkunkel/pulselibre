@@ -1,7 +1,7 @@
 # Claude Code – GUI, Benchmark-Umsetzung (#261-Folgetickets), SCA (#155)
 - Agent/Umgebung: Claude Code (Sonnet 5.5) / VSCodium
 - Beginn: 2026-11-20 05:50 UTC (Berlin 06:50)
-- Letzte Aktualisierung: 2026-11-20 14:30 UTC (Wiederaufnahme nach Absturz)
+- Letzte Aktualisierung: 2026-11-20 14:45 UTC (S25 an OpenCode übergeben)
 - Status: aktiv
 - Rolle/Zuständigkeit: Android-GUI, Dashboard, Navigation, UI-Tests, UI-Status (laut AGENTS.md); zusätzlich auf Nutzerauftrag Abarbeiten der nicht BLE-gebundenen Tickets
 - Aktueller Auftrag: offene, nicht BLE-/Protokoll-gebundene Tickets selbstständig abarbeiten (Nutzerfreigabe liegt vor)

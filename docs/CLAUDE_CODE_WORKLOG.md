@@ -430,3 +430,7 @@ Noch sichtbar offen (P3): Nacht-Insights erste Spalte „22–6 Uhr / 22331 / We
 ## 2026-11-20 – Nacht-Insights: Rundung der Begründung an die Kachel angeglichen
 - Am S25 (Build 1487) zeigte die Kachel „Abdeckung 0,5 %“, die Begründung darunter „Abdeckung 1 % unter 70 %“. `NocturnalOxygen` rundet jetzt wie die Kachel auf eine Nachkommastelle; Test `withheldReasonUsesTheSameOneDecimalAsTheTile`. Reine Textänderung, keine Rechenlogik.
 - Beobachtet, nicht geändert: In „Schritte heute“ liegen die Balken des Mini-Verlaufs teilweise hinter dem Wort „Schritte“ (rein optisch, Dunkelmodus, Schrift 1,0); Folge in #276.
+
+## 2026-11-20 – S25 an OpenCode übergeben (FIT-Workflow-Test)
+- S25-Prüfung Build 1487 abgeschlossen (nur Bedienung/Lesen): Start, Verlauf, Analysen, Gerät, Startseite anpassen (SpO₂ aus-/einblenden, Zurücksetzen) ohne Absturz und ohne BLE-Aktion. Korrekturen aus der Prüfung: PR #309 (Achsenansage), PR #312 (Rundung Nacht-Insights). Offen aus der Prüfung: Favorit/Hoch/Runter im Anpassen-Dialog nicht ausprobiert; Balken hinter dem Wort „Schritte“ (#276).
+- Ab 15:45 keine adb-Verbindung mehr; Übergabenachricht an OpenCode im `agent-sync`.
