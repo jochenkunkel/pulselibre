@@ -21,6 +21,12 @@ class NocturnalOxygenTest {
         val r = NocturnalOxygen.summarize(s, start, end)
         assertFalse(r.computable); assertNull(r.minutesBelow90); assertNull(r.odi3)
     }
+    @Test fun withheldReasonUsesTheSameOneDecimalAsTheTile() {
+        val s = series(10) { if (it < 144) 96 else null } // under 1 % coverage: the tile shows one decimal, the reason must not round to a whole number
+        val r = NocturnalOxygen.summarize(s, start, end)
+        assertFalse(r.computable)
+        assertTrue(r.reason, Regex("Abdeckung 0,\\d % unter").containsMatchIn(r.reason))
+    }
     @Test fun denseStableNightHasZeroEventsAndTimeBelow() {
         val r = NocturnalOxygen.summarize(series(10) { 96 }, start, end)
         assertTrue(r.computable); assertEquals(0.0, r.minutesBelow90!!, 1e-9); assertEquals(0.0, r.odi3!!, 1e-9)

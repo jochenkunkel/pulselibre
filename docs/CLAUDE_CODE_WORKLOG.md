@@ -426,3 +426,7 @@ Noch sichtbar offen (P3): Nacht-Insights erste Spalte „22–6 Uhr / 22331 / We
 ## 2026-11-20 – S25-Prüfung Build 1487 (nur lesend) und Korrektur der Achsenansage
 - `adb install -r` des signierten Artefakts aus `main` (Lauf 1487) auf das S25 (`ANDROID_SERIAL` gesetzt, weil zusätzlich ein Emulator am adb hing); Start und Verlauf-Ansicht ohne Absturz, Crash-Puffer leer. Keine Instrumentationstests auf dem Handy; Screenshots nur lokal.
 - Befund am Gerät: Die Beschreibung des Punktediagramms (`HistoryScatterChartView`) sagte im 24-h-Fenster „Horizontale Achse 15:24 bis 15:24“. Neu `HistoryAxisSpeech.span` (Datum + Uhrzeit, Test `HistoryAxisSpeechTest`); die gezeichneten Achsenbeschriftungen bleiben unverändert.
+
+## 2026-11-20 – Nacht-Insights: Rundung der Begründung an die Kachel angeglichen
+- Am S25 (Build 1487) zeigte die Kachel „Abdeckung 0,5 %“, die Begründung darunter „Abdeckung 1 % unter 70 %“. `NocturnalOxygen` rundet jetzt wie die Kachel auf eine Nachkommastelle; Test `withheldReasonUsesTheSameOneDecimalAsTheTile`. Reine Textänderung, keine Rechenlogik.
+- Beobachtet, nicht geändert: In „Schritte heute“ liegen die Balken des Mini-Verlaufs teilweise hinter dem Wort „Schritte“ (rein optisch, Dunkelmodus, Schrift 1,0); Folge in #276.

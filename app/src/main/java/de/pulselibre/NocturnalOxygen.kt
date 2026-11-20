@@ -47,7 +47,7 @@ internal object NocturnalOxygen {
         }
         val coverage = 100.0 * covered.toMillis() / window.toMillis()
         if (coverage < MIN_COVERAGE_PERCENT)
-            return no("Abdeckung ${"%.0f".format(java.util.Locale.GERMANY, coverage)} % unter ${MIN_COVERAGE_PERCENT.toInt()} %.", s.size, coverage)
+            return no("Abdeckung ${"%.1f".format(java.util.Locale.GERMANY, coverage)} % unter ${MIN_COVERAGE_PERCENT.toInt()} %.", s.size, coverage)
         val gaps = s.zipWithNext { a, b -> Duration.between(a.time, b.time) }.sorted()
         val medianGap = gaps[gaps.size / 2]
         val hours = window.toMillis() / 3_600_000.0
