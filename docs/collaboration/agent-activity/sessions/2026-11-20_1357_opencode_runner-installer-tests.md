@@ -2,7 +2,7 @@
 
 - Agent/Umgebung: OpenCode CLI-Agent
 - Beginn: 2026-11-20 13:57 UTC
-- Letzte Aktualisierung: 2026-11-20 14:05 UTC
+- Letzte Aktualisierung: 2026-11-20 14:10 UTC
 - Status: aktiv
 - Rolle/Zuständigkeit: DevOps / GitHub Actions / Runner-Sicherheit und lokale CI
 - Aktueller Auftrag: #281 – unabhängige Regressionstests für den Runner-Installer ergänzen; Sicherheitsfreigaben bleiben ausdrücklich unberührt
@@ -12,8 +12,8 @@
 - Branch/Worktree: `ci/runner-installer-tests` / `/home/smiler/04_src/pulslibe/hybrid-ci`
 - Abstimmungsbedarf: keine bekannte Überschneidung: aktive Sitzungen prüfen, keine offene PR bearbeitet Runner-Tests; Agent-Sync für #281 geprüft. Keine Änderung an Runner-Registrierung oder Repository-Einstellungen.
 - Agent-sync-Nachrichten: keine neue Nachricht erforderlich, da keine Überschneidung vorliegt.
-- Nachweise: 4 isolierte Installer-Regressionstests grün; gesamte Python-Suite 70 Tests grün; gemeinsame Phase `bash tools/ci/run-ci.sh python-tests` mit 70 Tests erfolgreich; `bash -n tools/runner/install-runner.sh` und `git diff --check` sauber
-- Nächster Schritt: Tests mit vollständiger Android-CI prüfen lassen, PR öffnen und nur nach grünem PR-/Main-Lauf integrieren
+- Nachweise: 4 isolierte Installer-Regressionstests grün; gesamte Python-Suite 70 Tests grün; gemeinsame Phase `bash tools/ci/run-ci.sh python-tests` mit 70 Tests erfolgreich; `bash -n tools/runner/install-runner.sh` und `git diff --check` sauber; PR #307 eröffnet und Issue #281 aktualisiert, Full-CI läuft
+- Nächster Schritt: PR #307-FULL-Lauf abwarten, Ergebnis lesen; nur bei grünem PR-/Main-Lauf integrieren
 
 ## Sicherheitsgrenzen
 
