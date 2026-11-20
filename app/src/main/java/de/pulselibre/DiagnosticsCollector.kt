@@ -3,6 +3,7 @@ package de.pulselibre
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
+import android.database.sqlite.SQLiteDatabase
 import android.os.Build
 import androidx.core.app.ActivityCompat
 import java.io.File
@@ -25,26 +26,31 @@ internal object DiagnosticsCollector {
         var sourceHashes = emptySet<String>()
         var databaseAvailable = false
         try {
-            CirqaDatabase(context.applicationContext).use { database ->
-                val db = database.readableDatabase
+            val db = SQLiteDatabase.openDatabase(
+                context.getDatabasePath("cirqa_measurements.db").path,
+                null,
+                SQLiteDatabase.OPEN_READONLY
+            )
+            db.use {
                 integrity = try { db.rawQuery("PRAGMA quick_check", null).use { if (it.moveToFirst()) it.getString(0) else "keine Antwort" } }
                 catch (_: Exception) { "Prüfung fehlgeschlagen" }
+                val availableTables = db.rawQuery(
+                    "SELECT name FROM sqlite_master WHERE type='table'", null
+                ).use { rows -> buildSet { while (rows.moveToNext()) add(rows.getString(0)) } }
                 TABLES.forEach { table ->
                     counts[table] = try { db.rawQuery("SELECT COUNT(*) FROM $table", null).use { if (it.moveToFirst()) it.getLong(0) else null } }
                     catch (_: Exception) { null }
                 }
                 dbBytes = try { File(db.path).length() } catch (_: Exception) { 0L }
-                sampleIds = try {
+                if ("observations" in availableTables && "fit_sources" in availableTables) {
                     db.rawQuery("SELECT sample_id FROM observations WHERE sample_id != ''", null).use { rows ->
                         buildSet { while (rows.moveToNext()) add(rows.getString(0)) }
-                    }
-                } catch (_: Exception) { emptySet() }
-                sourceHashes = try {
+                    }.also { sampleIds = it }
                     db.rawQuery("SELECT source_sha256 FROM fit_sources", null).use { rows ->
                         buildSet { while (rows.moveToNext()) add(rows.getString(0)) }
-                    }
-                } catch (_: Exception) { emptySet() }
-                databaseAvailable = true
+                    }.also { sourceHashes = it }
+                    databaseAvailable = true
+                }
             }
         } catch (_: Exception) { integrity = "Datenbank nicht lesbar" }
         val fitDir = File(context.filesDir, "verified_fit")

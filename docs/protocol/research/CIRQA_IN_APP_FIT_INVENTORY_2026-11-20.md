@@ -13,8 +13,10 @@ only deterministic importable sample keys and source hashes against the
 canonical `observations` and `fit_sources` tables. The UI and explicit
 diagnostic export receive aggregate counts only.
 
-No BLE operation, file write, FIT import, SQLite mutation, or upload is
-performed. The user still explicitly initiates sharing after previewing the
+No BLE operation, file write, FIT import, or upload is performed. The canonical
+database file is opened with SQLite's explicit read-only flag (not through the
+app's upgrade-capable `SQLiteOpenHelper`); only SELECTs and SQLite integrity
+checks are issued. The user still explicitly initiates sharing after previewing the
 diagnostic package. Raw sample values, timestamps, filenames, hashes, and
 sample IDs are never placed in the report. If the private directory or
 database cannot be read, the panel reports an unavailable status without
