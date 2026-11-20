@@ -72,6 +72,13 @@ internal class UnknownFieldsView(context: Context) : LinearLayout(context) {
                     tag = "unknown_field_status_change"; contentDescription = "Status ändern für ${e.title}"
                     setOnClickListener { chooseStatus(e, statusLine) }
                 })
+                // #204 item 8: raw example bytes only after an explicit, warned action; nothing is stored or sent.
+                addView(TextView(context).apply {
+                    text = "Beispielbytes ansehen"; textSize = 12f; setTextColor(palette.accent); setTypeface(null, Typeface.BOLD)
+                    minimumHeight = dp(48); gravity = Gravity.CENTER_VERTICAL; isClickable = true; isFocusable = true
+                    tag = "unknown_field_bytes_preview"; contentDescription = "Beispielbytes ansehen für ${e.title}"
+                    setOnClickListener { confirmBytesPreview(e) }
+                })
             }
         }
         value.groups.forEach { g ->
@@ -96,6 +103,51 @@ internal class UnknownFieldsView(context: Context) : LinearLayout(context) {
             .setView(ScrollView(context).apply { addView(content) })
             .setPositiveButton("Schließen", null)
             .create()).show()
+    }
+
+    private fun confirmBytesPreview(e: UnknownFieldsSummary.Entry) {
+        DialogProbe.track(AlertDialog.Builder(context)
+            .setTitle("Beispielbytes ansehen?")
+            .setMessage("Zeigt wenige Rohbytes dieses Feldes aus deinen lokal gespeicherten Dateien. Sie können sensible " +
+                "Gesundheits- und Geräteinformationen enthalten und werden weder gedeutet noch gespeichert noch gesendet. " +
+                "Gib sie nicht in Tickets, Protokollen oder Screenshots weiter.")
+            .setPositiveButton("Anzeigen") { _, _ -> showBytesPreview(e) }
+            .setNegativeButton("Abbrechen", null)
+            .create()).show()
+    }
+
+    private fun showBytesPreview(e: UnknownFieldsSummary.Entry) {
+        Thread {
+            val root = java.io.File(context.applicationContext.filesDir, "verified_fit")
+            val text = e.records.map { it.sourceSha256 }.distinct().take(MAX_PREVIEW_FILES).withIndex().joinToString("\n\n") { (i, sha) ->
+                val record = e.records.first { it.sourceSha256 == sha }
+                val file = java.io.File(root, "$sha.fit")
+                val safe = SHA_FILE.matches(sha) && file.isFile && !java.nio.file.Files.isSymbolicLink(file.toPath())
+                val preview = if (!safe) null else try {
+                    FitFieldSampleReader.read(file.readBytes(), record.globalMessageNumber, record.fieldNumber,
+                        if (record.kind == StoredFitFieldKind.DEVELOPER) record.developerDataIndex else null)
+                } catch (_: Exception) { null }
+                FitFieldSampleReader.describe(i + 1, preview)
+            }
+            val more = e.records.map { it.sourceSha256 }.distinct().size - MAX_PREVIEW_FILES
+            post {
+                val body = TextView(context).apply {
+                    this.text = text + if (more > 0) "\n\n… und $more weitere Dateien" else ""
+                    textSize = 13f; typeface = Typeface.MONOSPACE; setTextColor(palette.ink); tag = "unknown_field_bytes_text"
+                    setPadding(dp(20), dp(8), dp(20), dp(8))
+                }
+                DialogProbe.track(AlertDialog.Builder(context)
+                    .setTitle(e.title)
+                    .setView(ScrollView(context).apply { addView(body) })
+                    .setPositiveButton("Schließen", null)
+                    .create()).show()
+            }
+        }.start()
+    }
+
+    private companion object {
+        const val MAX_PREVIEW_FILES = 3
+        val SHA_FILE = Regex("[0-9a-f]{64}")
     }
 
     private val statusChoices = listOf(

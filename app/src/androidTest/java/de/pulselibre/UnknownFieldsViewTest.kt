@@ -74,4 +74,26 @@ class UnknownFieldsViewTest {
             options.forEach { assertTrue(it, DialogTestSupport.containsText(choice, it)) }
         }
     }
+
+    @Test fun bytePreviewNeedsAWarnedConfirmationAndFailsClosedForMissingOriginals() {
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            scenario.onActivity { activity ->
+                val v = UnknownFieldsView(activity)
+                (activity.findViewById<ViewGroup>(android.R.id.content)).addView(v)
+                v.show(UnknownFieldsSummary.summarize(listOf(field(85))))
+                v.performClick()
+            }
+            val list = DialogTestSupport.awaitDialog("Unbekanntes Datenfeld entdeckt (1 Typ)")
+            DialogTestSupport.clickText(list, "FIT-Nachricht 20 · 1 Feldtyp")
+            // nothing raw is shown before the explicit action
+            assertFalse(DialogTestSupport.containsText(list, "Vorkommen"))
+            DialogTestSupport.clickText(list, "Beispielbytes ansehen")
+            val warning = DialogTestSupport.awaitDialog("Beispielbytes ansehen?")
+            assertTrue(DialogTestSupport.containsText(warning, "sensible Gesundheits- und Geräteinformationen"))
+            DialogTestSupport.clickButton(warning, android.content.DialogInterface.BUTTON_POSITIVE)
+            // the synthetic source hash has no stored original: the preview must say so instead of inventing bytes
+            val preview = DialogTestSupport.awaitDialog("FIT-Nachricht 20 · Feld 85")
+            assertTrue(DialogTestSupport.containsText(preview, "Datei 1: Original nicht lesbar oder nicht gültig."))
+        }
+    }
 }
