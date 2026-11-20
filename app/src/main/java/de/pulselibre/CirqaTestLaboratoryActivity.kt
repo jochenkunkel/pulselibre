@@ -335,10 +335,11 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
                 "\nVersuche=${CirqaSyncItemListNoPullAttemptGate.attemptsUsed(prefs)}/" +
                 CirqaSyncItemListNoPullAttemptGate.MAX_ATTEMPTS
         })
-        syncCard.addView(button("Sync-Status") {
-            statusOutput.text = "Sync-Request:\n" +
-                (preferences.getString(CirqaSyncAttemptGate.SUMMARY_KEY, null) ?: "Noch kein Lauf.") +
-                "\nGate=${preferences.getBoolean(CirqaSyncAttemptGate.PREFERENCE_KEY, false)}"
+        syncCard.addView(button("V27-Sync-Status") {
+            val syncPrefs = getSharedPreferences(CirqaSyncAttemptGate.PREFS_NAME, MODE_PRIVATE)
+            statusOutput.text = "V27 Sync-Request:\n" +
+                (syncPrefs.getString(CirqaSyncAttemptGate.SUMMARY_KEY, null) ?: "Noch kein Lauf.") +
+                "\nGate=${syncPrefs.getBoolean(CirqaSyncAttemptGate.PREFERENCE_KEY, false)}"
         })
         syncCard.addView(button("FileAccess-Dateiliste (read-only)") {
             confirmFileAccessList()
@@ -532,14 +533,15 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
         }
         prefs.edit().remove(CirqaSyncAttemptGate.SUMMARY_KEY).commit()
         AlertDialog.Builder(this)
-            .setTitle("Garmin-Sync anfordern?")
+            .setTitle("V27: Garmin-Sync anfordern?")
             .setMessage(
                 "Ein Connect-kompatibler 5043-sync_request nach frischem Bootstrap. " +
                     "Das Gerät kann daraufhin gepufferte Daten liefern und diese " +
                     "geräteseitig als übertragen markieren. Wir senden selbst KEINE " +
                     "Archiv-, Flag-, Lösch- oder Reset-Befehle. Dateien werden nur vollständig " +
                     "und größenvalidiert privat gespeichert; FIT-Dateien zusätzlich nur mit gültigem " +
-                    "FIT-CRC. Unterstützte Messwerte werden importiert. " +
+                    "FIT-CRC. Unterstützte Messwerte werden importiert. V27 verbraucht einen neuen, " +
+                    "separaten Einmal-Key; der bereits verbrauchte V25-Key bleibt unverändert. " +
                     "120-s-Budget, maximal 256 Dateien/64 MiB, kein Retry; " +
                     "Einmal-Gate wird vor dem Verbinden verbraucht."
             )
