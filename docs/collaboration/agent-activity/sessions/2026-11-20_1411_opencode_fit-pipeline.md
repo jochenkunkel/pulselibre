@@ -1,11 +1,11 @@
 # OpenCode – FIT-Pipeline-Härtung
 - Agent/Umgebung: OpenCode CLI-Agent
 - Beginn: 2026-11-20 14:11 UTC
-- Letzte Aktualisierung: 2026-11-20 19:55 CET
-- Status: aktiv – Offline-Evidenzarbeit läuft; PR #324 wartet auf Billing-Klärung, Routing-Fix und Main-FULL
+- Letzte Aktualisierung: 2026-11-20 21:12 CET
+- Status: aktiv – Backfill-Fehlerhärtung lokal FULL geprüft; PR #324 wartet auf Billing-Klärung, Routing-Fix und Main-FULL
 - Rolle/Zuständigkeit: CIRQA Smart/MLR, FIT-Decoder, SQLite-Import/Backfill
 - Aktueller Auftrag: #149/#150/#142 – FIT-Pipeline-Abnahme fortsetzen und vorhandene Offline-Evidenz zu FIT-/CIRQA-Metadaten auswerten
-- Jetzt in Bearbeitung: #150/#142 – Offline-Inventur ergänzt um per-Datei-Zähler der whitelisted FIT-Metadatenfelder; nur Präsenzzähler, keine Werte/IDs
+- Jetzt in Bearbeitung: #149/#150 – Backfill meldet READ-/DATABASE-Fehler pro Datei, bewahrt Decode-Zähler, fährt fort und ist nach Fehlern wiederholbar; synthetischer SQLite-Trigger-Instrumentationstest kompiliert, Emulatorausführung ausstehend
 - Zeitnah geplant: #150 – redigierter Offline-Bestand/Metadatenabgleich nur über bestehenden read-only In-App-Pfad; #144 bewusst ohne Schemaänderung; keine exklusiven Reservierungen
 - Betroffene Bereiche/Dateien: `CirqaMlHandshakeProbe`, `CirqaSyncFileCompletion`, FIT-Backfill/Importtests und redigierte FIT-/Gerätemetadaten-Forschungsevidenz
 - Branch/Worktree: `opencode/fit-typed-stage-results-20261120` / `/tmp/opencode/pulselibre-fit-stages` (PR #324; lokaler Stand enthält Main-Merge `e5ad9d0`)
@@ -16,4 +16,5 @@
 - Neue Offline-Evidenzmatrix `docs/protocol/research/CIRQA_METADATA_OFFLINE_EVIDENCE_MATRIX_2026-11-20.md`: vorhandene V24/V25-, V26-, V27-, XML-, GATT-/5024-Belege konsolidiert; keine privaten Werte oder Identifikatoren, keine neuen Geräte-/BLE-Aktionen. Relative Dokumentlinks geprüft.
 - Neue Metadaten-Präsenzzähler in `CirqaFitOfflineInventory`: Gerätetyp, Hersteller, Produkt, Softwareversion, Batterie-Spannung/Status/Level und FIT-Zeitstempel pro Datei. Sentinel-/Out-of-range-Werte zählen nicht als vorhanden. `:app:testDebugUnitTest --tests de.pulselibre.CirqaFitOfflineInventoryTest`, komplette `:app:testDebugUnitTest` und `:app:lintDebug` lokal erfolgreich; keine GitHub-Ausführung.
 - Neuer lokaler Gate auf Commit `2239461`: `./tools/ci-local.sh --quick` und `--full` bestanden; beide liefen 91 Python-Tests sowie JVM-Unit-Tests, Debug/R8-Build und Diagnose. FULL zusätzlich Lint, Instrumentation-APK sowie API-35-Emulator: 111 Tests, 0 Fehler/Failures/Skips und Coverage-Datei erzeugt. Emulator war fest auf `emulator-5560` geroutet und wurde beendet; danach blieb nur das angeschlossene S25 gelistet. Kein S25-Test, keine Installation, kein Push/Dispatch.
-- Nächster Schritt: neue Offline-Evidenzmatrix reviewen und lokal festhalten; keine GitHub-Dispatches mit altem Workflow. PR #324 bleibt bis Billing-Klärung, integriertem Routing-Fix und aktuellem Main-FULL-Nachweis offen. Danach sichere Offline-Decoder-/Metadatenlücken priorisieren; S25 und BLE bleiben unangetastet.
+- Backfill-Follow-up: `./tools/ci-local.sh --full` auf dem aktuellen Worktree erfolgreich. 91 Python-Tests, JVM, Debug/R8-Release, APK-Diagnose, Lint und API-35-Emulator bestanden; 111 Instrumentationstests, 0 Fehler/Failures/Skips, Coverage-Datei erzeugt. Darunter die beiden synthetischen Backfill-Instrumentationstests einschließlich echtem SQLite-Trigger-Rollback und Retry. Vor dem Lauf war der fremde Main-FULL-Run #44803534788 beendet; Runner online/frei, kein GitHub-Dispatch ausgelöst. Emulator wurde nach dem Lauf beendet. Ein physisches S25 war anschließend in der ADB-Liste sichtbar, wurde nicht adressiert; keine Installation/App-Aktion, keine BLE- oder S25-Instrumentation.
+- Nächster Schritt: abschließende Diff-/Statusprüfung und lokalen Commit der Backfill-Härtung samt Evidenz. Kein Push/Dispatch bis Billing-Klärung, integriertem Routing-Fix und aktuellem Main-FULL-Nachweis; S25 und BLE bleiben unangetastet.

@@ -1,7 +1,9 @@
 package de.pulselibre
 
 import java.io.File
+import java.io.IOException
 import java.security.MessageDigest
+import android.database.sqlite.SQLiteException
 
 /**
  * Offline, repeatable import of already-verified FIT originals.
@@ -19,14 +21,19 @@ class CirqaFitBackfill(
         val filesSeen: Int,
         val filesImported: Int,
         val invalidFiles: Int,
+        /** Profile-valid, timestamped candidates decoded, including failed DB commits. */
         val importableObservations: Int,
         /** Per-input summary uses ordinal aliases; no private filename or content hash is exposed. */
         val fileResults: List<FileResult> = emptyList(),
         /** True when safety limits or cancellation prevented a complete directory pass. */
-        val truncated: Boolean = false
+        val truncated: Boolean = false,
+        val failedFiles: Int = 0,
+        /** Candidates reconciled by successful per-file commits; not newly inserted row count. */
+        val committedObservations: Int = 0
     )
 
-    enum class FileStatus { IMPORTED, NO_IMPORTABLE_OBSERVATIONS, INVALID_FILE }
+    enum class FileStatus { IMPORTED, NO_IMPORTABLE_OBSERVATIONS, INVALID_FILE, FAILED }
+    enum class FailureStage { READ, DATABASE }
 
     data class FileResult(
         val alias: String,
@@ -35,7 +42,9 @@ class CirqaFitBackfill(
         val eligibleObservations: Int,
         val unsupportedMeasurementFields: Int,
         val missingTimestampObservations: Int,
-        val outOfRangeObservations: Int
+        val outOfRangeObservations: Int,
+        /** Failure category only; exception text and private paths are never returned. */
+        val failureStage: FailureStage? = null
     )
 
     init {
@@ -55,7 +64,9 @@ class CirqaFitBackfill(
         var totalBytes = 0L
         var imported = 0
         var invalid = 0
-        var decoded = 0
+        var failed = 0
+        var importable = 0
+        var committed = 0
         val fileResults = mutableListOf<FileResult>()
         for ((index, file) in files.withIndex()) {
             if (cancelled()) {
@@ -81,10 +92,20 @@ class CirqaFitBackfill(
                 continue
             }
             totalBytes += bytes
+            var decodedBeforeFailure: ImportOutcome? = null
             val outcome = try {
-                importVerifiedFileDetailed(file, readings, deviceKey)
-            } catch (_: java.io.IOException) {
-                null
+                importVerifiedFileDetailed(file, readings, deviceKey) {
+                    decodedBeforeFailure = it
+                }
+            } catch (_: IOException) {
+                failed++
+                fileResults += failedResult(index, FailureStage.READ)
+                continue
+            } catch (_: SQLiteException) {
+                failed++
+                importable += decodedBeforeFailure?.eligibleObservations ?: 0
+                fileResults += failedResult(index, FailureStage.DATABASE, decodedBeforeFailure)
+                continue
             }
             if (outcome == null) {
                 invalid++
@@ -98,7 +119,8 @@ class CirqaFitBackfill(
                     outOfRangeObservations = 0
                 )
             } else {
-                decoded += outcome.eligibleObservations
+                importable += outcome.eligibleObservations
+                committed += outcome.eligibleObservations
                 imported++
                 fileResults += FileResult(
                     alias = "file-${(index + 1).toString().padStart(4, '0')}",
@@ -112,8 +134,32 @@ class CirqaFitBackfill(
                 )
             }
         }
-        return Result(fileResults.size, imported, invalid, decoded, fileResults, truncated)
+        return Result(
+            filesSeen = fileResults.size,
+            filesImported = imported,
+            invalidFiles = invalid,
+            importableObservations = importable,
+            fileResults = fileResults,
+            truncated = truncated,
+            failedFiles = failed,
+            committedObservations = committed
+        )
     }
+
+    private fun failedResult(
+        index: Int,
+        stage: FailureStage,
+        outcome: ImportOutcome? = null
+    ) = FileResult(
+        alias = "file-${(index + 1).toString().padStart(4, '0')}",
+        status = FileStatus.FAILED,
+        decodedObservations = outcome?.decodedObservations ?: 0,
+        eligibleObservations = outcome?.eligibleObservations ?: 0,
+        unsupportedMeasurementFields = outcome?.unsupportedMeasurementFields ?: 0,
+        missingTimestampObservations = outcome?.missingTimestampObservations ?: 0,
+        outOfRangeObservations = outcome?.outOfRangeObservations ?: 0,
+        failureStage = stage
+    )
 
     companion object {
         const val MAX_FILES = 256
@@ -130,7 +176,7 @@ class CirqaFitBackfill(
 
         /**
          * Imports one already-persisted content-addressed FIT file. Returns null
-         * for invalid FIT bytes; SQLite exceptions are allowed to propagate.
+         * for invalid FIT bytes; storage exceptions are allowed to propagate.
          */
         fun importVerifiedFile(
             file: File,
@@ -141,7 +187,8 @@ class CirqaFitBackfill(
         private fun importVerifiedFileDetailed(
             file: File,
             readings: FitObservationStore,
-            deviceKey: String
+            deviceKey: String,
+            onDecoded: (ImportOutcome) -> Unit = {}
         ): ImportOutcome? {
             require(deviceKey.isNotBlank())
             if (!file.isFile || file.length() !in 1..MAX_FIT_FILE_BYTES ||
@@ -155,6 +202,18 @@ class CirqaFitBackfill(
                 it.timestampEpochMillis != null &&
                     it.quality == FitHistoricalObservations.Quality.PROFILE_VALID
             }
+            val outcome = ImportOutcome(
+                decodedObservations = result.observations.size,
+                eligibleObservations = importable.size,
+                unsupportedMeasurementFields = result.unsupportedMeasurementFieldCount,
+                missingTimestampObservations = result.observations.count {
+                    it.quality == FitHistoricalObservations.Quality.MISSING_TIMESTAMP
+                },
+                outOfRangeObservations = result.observations.count {
+                    it.quality == FitHistoricalObservations.Quality.OUTSIDE_DISPLAY_RANGE
+                }
+            )
+            onDecoded(outcome)
             readings.commitFitFile(
                 sourceSha256 = file.name.removeSuffix(".fit"),
                 fileBytes = bytes.size.toLong(),
@@ -167,17 +226,7 @@ class CirqaFitBackfill(
                 unmappedFields = result.unknownFields.map(CirqaUnknownFitInventory::toStoredField),
                 deviceKey = deviceKey
             )
-            return ImportOutcome(
-                decodedObservations = result.observations.size,
-                eligibleObservations = importable.size,
-                unsupportedMeasurementFields = result.unsupportedMeasurementFieldCount,
-                missingTimestampObservations = result.observations.count {
-                    it.quality == FitHistoricalObservations.Quality.MISSING_TIMESTAMP
-                },
-                outOfRangeObservations = result.observations.count {
-                    it.quality == FitHistoricalObservations.Quality.OUTSIDE_DISPLAY_RANGE
-                }
-            )
+            return outcome
         }
 
         /** Content-addressed stores use this exact lowercase SHA-256 filename. */

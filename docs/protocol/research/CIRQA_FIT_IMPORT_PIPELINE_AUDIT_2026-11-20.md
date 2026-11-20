@@ -67,7 +67,7 @@ eligible candidates processed, not necessarily a count of newly inserted rows
 on replay. These labels need precise UI/report wording before being exposed as
 new product metrics.
 
-## Recommended next hardening (offline, no schema changes in this PR)
+## Recommended next hardening (state at audited main commit)
 
 1. Replace string-substring classification with a typed per-file outcome:
    `TRANSFERRED`, `VERIFIED`, `DECODED`, `IMPORTED`, `NO_IMPORTABLE_DATA`,
@@ -85,6 +85,41 @@ new product metrics.
    implemented.
 5. Coordinate any persisted per-file import status, protocol-scoped cursor, or
    source registry with #144 before designing DDL or changing backup formats.
+
+## Offline retry hardening follow-up (local branch, 2026-11-20)
+
+The current OpenCode feature branch extends `CirqaFitBackfill.run()` without
+changing the database schema or BLE path:
+
+- A file read `IOException` is reported as `FAILED/READ`; an Android
+  `SQLiteException` during its per-file commit is reported as `FAILED/DATABASE`.
+  The run continues to later files and returns its per-file summary instead of
+  discarding it on these expected failure classes.
+- Decode/eligibility counts computed before a failed SQLite commit are preserved
+  in that file's result. The immutable content-addressed FIT original is left
+  untouched. Non-SQLite integrity/programming exceptions still propagate rather
+  than being mislabeled as a recoverable database error.
+- `importableObservations` counts profile-valid, timestamped candidates decoded,
+  including candidates whose DB commit failed. `committedObservations` counts
+  candidates from successful per-file commits/reconciliation; it is **not** a
+  count of newly inserted rows. `filesImported` counts files whose store call
+  returned successfully, including files with no eligible observations.
+- A focused JVM regression test injects a SQLite exception on one of two files,
+  verifies that the other file still completes, confirms both originals remain,
+  then retries and verifies stable idempotency keys and separate candidate vs.
+  committed counts. An instrumentation regression now uses a trigger to inject
+  a real SQLite transaction failure and checks rollback plus retry; this uses
+  synthetic FIT bytes in an isolated temporary database, not private originals.
+
+On the current local code, `./tools/ci-local.sh --full` completed successfully
+on 2026-11-20. The gate passed preflight, all 91 Python tests, JVM unit tests,
+Debug/R8 Release build and APK diagnostics, lint, instrumentation-APK assembly,
+and API-35 emulator instrumentation. All 111 instrumentation tests passed with
+0 failures, errors, or skips; the coverage artifact was generated. This
+includes both `CirqaFitBackfillInstrumentedTest` cases: synthetic offline
+backfill/replay and SQLite-triggered rollback/retry. No GitHub dispatch, phone
+instrumentation, BLE operation, database migration, or private-original replay
+was performed.
 
 ## Evidence limits
 
