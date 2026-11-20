@@ -478,3 +478,7 @@ Noch sichtbar offen (P3): Nacht-Insights erste Spalte „22–6 Uhr / 22331 / We
 - A6-7 umgesetzt: Fehlermeldungen bei Backup/CSV-Export nennen die mögliche unvollständige Zieldatei (reiner Text, `compileDebugKotlin` offline grün, keine Tests an den Texten).
 - A6-8 (still verworfene beschädigte Zeilen, Speicherlast von `readingLines()`) im Audit Abschnitt 16 dokumentiert, nicht umgesetzt.
 - Nur lokal committet; kein Push bis LOCAL-Nachweis (siehe oben).
+
+## 2026-11-20 (spät) – PR #332: Emulator-Test `PulseLogoViewTest` korrigiert
+
+- Cloud-FULL (Lauf 44808320489): 112 Emulator-Tests, 1 Fehler – mein eigener neuer Test: `plain=107 outlined=225`. Die Produktionskontur wirkt (225 gegenüber 107), die Schwelle `plain < 90` war falsch gerechnet (Kanalmittel von #5127C9 = 107). Schwelle auf `< 130` angepasst, Unterschied weiter `> +70`. Der Fehler ist damit ein Testfehler, kein Produktfehler.

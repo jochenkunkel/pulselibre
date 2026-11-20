@@ -34,7 +34,7 @@ class PulseLogoViewTest {
     @Test fun outlineMakesTheEdgeClearlyLighterThanTheVioletFill() {
         val plain = edgeBrightness(render(false))
         val outlined = edgeBrightness(render(true))
-        assertTrue("plain=$plain outlined=$outlined", plain < 90)          // violet fill #5127C9 is dark
+        assertTrue("plain=$plain outlined=$outlined", plain < 130)         // violet fill #5127C9: channel mean = 107
         assertTrue("plain=$plain outlined=$outlined", outlined > plain + 70) // visibly lighter edge
     }
 }
