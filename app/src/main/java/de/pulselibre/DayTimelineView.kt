@@ -33,7 +33,7 @@ internal class DayTimelineView(
         color = ink
         textSize = android.util.TypedValue.applyDimension(android.util.TypedValue.COMPLEX_UNIT_SP, 11f, resources.displayMetrics)
     }
-    private val hatch = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = track; style = Paint.Style.STROKE; strokeWidth = density }
+    private val hatch = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = track; alpha = 110; style = Paint.Style.STROKE; strokeWidth = 0.8f * density }
     private val margin = 8 * density
     private val left = 40 * density
     private val laneGap = 22 * density
@@ -53,7 +53,7 @@ internal class DayTimelineView(
     init { importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO }
 
     override fun onMeasure(widthSpec: Int, heightSpec: Int) {
-        val h = (margin + lanes.size * (laneHeight + laneGap) + margin).toInt()
+        val h = (topPad + lanes.size * (laneHeight + laneGap) + margin).toInt()
         setMeasuredDimension(MeasureSpec.getSize(widthSpec), h)
     }
 
@@ -82,7 +82,9 @@ internal class DayTimelineView(
 
     private fun fractionAtScreen(px: Float) = ((px - left) / (width - left - margin)).coerceIn(0f, 1f)
     private fun x(fraction: Float) = left + (width - left - margin) * ((fraction - viewport.start) / viewport.span)
-    private fun laneTop(index: Int) = margin + index * (laneHeight + laneGap)
+    /** Room above the first lane for its title (S25 check: the title was cut off with only `margin`). */
+    private val topPad = 26 * density
+    private fun laneTop(index: Int) = topPad + index * (laneHeight + laneGap)
 
     private fun y(lane: DayTimeline.Lane, index: Int, value: Long): Float {
         val lo = if (lane.cumulative) 0L else lane.min!!
@@ -99,25 +101,30 @@ internal class DayTimelineView(
             canvas.drawLine(left, bottom, width - margin, bottom, paint)
             text.textAlign = Paint.Align.LEFT
             canvas.drawText(lane.title, left, top - 4 * density, text)
-            // Gaps: hatched box + label, so a gap is readable without colour.
+            // Value axis first (outside the plot clip): low and high of the lane scale.
+            if (lane.points.isNotEmpty()) {
+                text.textAlign = Paint.Align.RIGHT
+                val lo = if (lane.cumulative) 0L else lane.min!!
+                val hi = maxOf(if (lane.cumulative) maxOf(goal ?: 0L, lane.max!!) else lane.max!!, lo + 1)
+                canvas.drawText(lo.toString(), left - 4 * density, bottom, text)
+                canvas.drawText(hi.toString(), left - 4 * density, top + text.textSize, text)
+            }
+            // Gaps: a light box with 45-degree hatching, clipped to the gap, plus the label "keine Daten"
+            // (a gap is readable without colour).
             canvas.save(); canvas.clipRect(left, top - 2 * density, width - margin, bottom + 2 * density)
             lane.gaps.forEach { gap ->
                 val a = x(day.fraction(gap.start)).coerceAtLeast(left); val b = x(day.fraction(gap.end)).coerceAtMost(width - margin)
                 if (b <= a) return@forEach
-                var s = a
-                while (s < b) { canvas.drawLine(s, bottom, minOf(s + laneHeight * 0.4f, b), top, hatch); s += 8 * density }
-                if (b - a > text.measureText("keine Daten") + 4 * density) {
+                canvas.save(); canvas.clipRect(a, top, b, bottom)
+                var sx = a - laneHeight
+                while (sx < b) { canvas.drawLine(sx, bottom, sx + laneHeight, top, hatch); sx += 10 * density }
+                canvas.restore()
+                if (b - a > text.measureText("keine Daten") + 8 * density) {
                     text.textAlign = Paint.Align.CENTER
                     canvas.drawText("keine Daten", (a + b) / 2, (top + bottom) / 2, text)
                 }
             }
             if (lane.points.isEmpty()) { canvas.restore(); return@forEachIndexed }
-            // Value axis: low and high of the lane scale.
-            text.textAlign = Paint.Align.RIGHT
-            val lo = if (lane.cumulative) 0L else lane.min!!
-            val hi = maxOf(if (lane.cumulative) maxOf(goal ?: 0L, lane.max!!) else lane.max!!, lo + 1)
-            canvas.drawText(lo.toString(), left - 4 * density, bottom, text)
-            canvas.drawText(hi.toString(), left - 4 * density, top + text.textSize, text)
             val color = accents[index % accents.size]
             if (lane.cumulative && goal != null && goal > 0) {
                 paint.color = color; paint.alpha = 140
@@ -145,10 +152,16 @@ internal class DayTimelineView(
         val labelY = laneTop(lanes.size - 1) + laneHeight + text.textSize + 2 * density
         val showMiddle = width >= 5 * (text.measureText("00:00") + margin)
         val ticks = visibleTicks()
+        var lastRight = Float.NEGATIVE_INFINITY
         ticks.forEachIndexed { i, (f, label) ->
             if (showMiddle || i == 0 || i == ticks.lastIndex) {
                 text.textAlign = when (i) { 0 -> Paint.Align.LEFT; ticks.lastIndex -> Paint.Align.RIGHT; else -> Paint.Align.CENTER }
-                canvas.drawText(label, x(f), labelY, text)
+                val w = text.measureText(label)
+                val l = when (text.textAlign) { Paint.Align.LEFT -> x(f); Paint.Align.RIGHT -> x(f) - w; else -> x(f) - w / 2 }
+                // Never draw labels on top of each other (S25: "12:0012:30"); the last label wins over a crowded neighbour.
+                if (l >= lastRight + 6 * density || i == ticks.lastIndex && l >= lastRight) {
+                    canvas.drawText(label, x(f), labelY, text); lastRight = l + w
+                }
             }
         }
         selected?.let { t ->

@@ -47,6 +47,6 @@ class WeekSummaryTest {
     }
 
     @Test fun unavailableMetricsAreNamedWithReason() {
-        assertTrue(WeekSummary.UNAVAILABLE.contains("Schlafdauer") && WeekSummary.UNAVAILABLE.contains("keine belegte Quelle"))
+        assertTrue(WeekSummary.UNAVAILABLE.contains("Schlafdauer") && WeekSummary.UNAVAILABLE.contains("Ohne Tageswerte"))
     }
 }
