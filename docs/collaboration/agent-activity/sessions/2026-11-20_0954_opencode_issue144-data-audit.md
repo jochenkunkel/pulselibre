@@ -1,0 +1,15 @@
+# OpenCode – Datenarchitektur-Audit #144
+- Agent/Umgebung: OpenCode / API coding agent, Worktree `/tmp/opencode/pulselibre-issue144`
+- Beginn: 2026-11-20 09:54 UTC
+- Letzte Aktualisierung: 2026-11-20 09:54 UTC
+- Status: aktiv
+- Rolle/Zuständigkeit: SQLite, Datenintegrität, FIT-Import/Provenienz und Backfill
+- Aktueller Auftrag: #144 – read-only IST-Inventur, ERD, Verlustfreiheits-/Backup-/Rollback-Lücken; keine destruktive Migration
+- Jetzt in Bearbeitung: Phase A – tatsächliche Tabellen, Indizes, Foreign Keys, Migrationen, Dateispeicher und Backup/Restore aus Code kartieren
+- Zeitnah geplant: #149/#150 Ergebnisse in Architekturabhängigkeiten einordnen; keine parallele Schemaänderung
+- Betroffene Bereiche/Dateien: `CirqaDatabase.kt`, `LocalReadingStore.kt`, `DatabaseBackup.kt`, `FitObservationCommitter.kt`, Datei-Stores und zugehörige Tests/Dokumentation
+- Branch/Worktree: `opencode/issue-144-data-audit` / `/tmp/opencode/pulselibre-issue144`
+- Abstimmungsbedarf: kein aktiver #144-Eigentümer in `agent-activity`; #149-PR und dessen Importpfad nicht parallel verändern
+- Agent-sync-Nachrichten: `docs/collaboration/agent-sync/INDEX.md` geprüft; keine aktuelle Überschneidung zu #144 gefunden
+- Nachweise: Hardwarezugriff beendet; keine Geräteaktion in diesem Arbeitspaket
+- Nächster Schritt: vollständiges IST-ERD und sichere Migrations-/Rollback-Bewertung aus Code und Tests erstellen; nichts löschen oder migrieren
