@@ -1,0 +1,15 @@
+# OpenCode – Issue #2 aktive CIRQA-Kommunikation
+- Agent/Umgebung: OpenCode / API coding agent, Worktree `/tmp/opencode/cirqa-issue3`
+- Beginn: 2026-11-20 09:46 UTC
+- Letzte Aktualisierung: 2026-11-20 09:48 UTC
+- Status: aktiv
+- Rolle/Zuständigkeit: CIRQA/BLE/GFDI-Protokoll- und Sicherheitsprüfung
+- Aktueller Auftrag: #2 – statischen Abgleich der aktiven GATT-Pfade, expliziter Nutzeraktionen und Dokumentation; keine neuen BLE-Kommandos
+- Jetzt in Bearbeitung: #2 – Codepfad-Inventur und Regressionstestlücken anhand des aktuellen `origin/main`
+- Zeitnah geplant: #3 nur nach Klärung der bestehenden Codex-Übernahme; #149 nach Abschluss des laufenden PR-CI
+- Betroffene Bereiche/Dateien: aktive GATT-/ML-Probe- und Recorder-Aufrufpfade, Dokumentations-/Sicherheitstests
+- Branch/Worktree: `opencode/issue-2-active-gatt-audit` / `/tmp/opencode/cirqa-issue3`
+- Abstimmungsbedarf: keine bekannte parallele Übernahme von #2; keine Änderungen an GUI oder Datenbankschema
+- Agent-sync-Nachrichten: keine neue Überschneidung festgestellt; aktuelle Koordination in `docs/collaboration/agent-sync/INDEX.md` geprüft
+- Nachweise: keine neuen BLE-/GATT-Aktionen; Hardware-Zeitfensterprüfung für #235 als nicht messbar dokumentiert, kein gültiger Akku-Baselinewert; `:app:testDebugUnitTest` auf `2373aef` erfolgreich
+- Nächster Schritt: statischen GATT-Pfad-Audit dokumentieren und PR öffnen; vollständige CI abwarten; keine Hardwarevalidierung ohne gesonderte Freigabe
