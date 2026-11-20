@@ -21,6 +21,9 @@ internal object DiagnosticsCollector {
         var integrity = "nicht geprüft"
         val counts = LinkedHashMap<String, Long?>()
         var dbBytes = 0L
+        var sampleIds = emptySet<String>()
+        var sourceHashes = emptySet<String>()
+        var databaseAvailable = false
         try {
             CirqaDatabase(context.applicationContext).use { database ->
                 val db = database.readableDatabase
@@ -31,9 +34,25 @@ internal object DiagnosticsCollector {
                     catch (_: Exception) { null }
                 }
                 dbBytes = try { File(db.path).length() } catch (_: Exception) { 0L }
+                sampleIds = try {
+                    db.rawQuery("SELECT sample_id FROM observations WHERE sample_id != ''", null).use { rows ->
+                        buildSet { while (rows.moveToNext()) add(rows.getString(0)) }
+                    }
+                } catch (_: Exception) { emptySet() }
+                sourceHashes = try {
+                    db.rawQuery("SELECT source_sha256 FROM fit_sources", null).use { rows ->
+                        buildSet { while (rows.moveToNext()) add(rows.getString(0)) }
+                    }
+                } catch (_: Exception) { emptySet() }
+                databaseAvailable = true
             }
         } catch (_: Exception) { integrity = "Datenbank nicht lesbar" }
         val fitDir = File(context.filesDir, "verified_fit")
+        val inventory = try {
+            CirqaFitOfflineInventory.inspect(fitDir, sampleIds, sourceHashes, databaseAvailable).redactedText()
+        } catch (_: Exception) {
+            "FIT Offline-Inventur nicht verfügbar (Verzeichnis oder Datenbank nicht lesbar)."
+        }
         val fitFiles = fitDir.listFiles()?.filter { it.isFile && it.name.endsWith(".fit") } ?: emptyList()
         fun granted(permission: String) = ActivityCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED
         val bt = try {
@@ -49,7 +68,8 @@ internal object DiagnosticsCollector {
             bluetoothEnabled = bt,
             permissionConnect = Build.VERSION.SDK_INT < 31 || granted(Manifest.permission.BLUETOOTH_CONNECT),
             permissionScan = Build.VERSION.SDK_INT < 31 || granted(Manifest.permission.BLUETOOTH_SCAN),
-            permissionNotifications = Build.VERSION.SDK_INT < 33 || granted(Manifest.permission.POST_NOTIFICATIONS)
+            permissionNotifications = Build.VERSION.SDK_INT < 33 || granted(Manifest.permission.POST_NOTIFICATIONS),
+            fitInventory = inventory
         )
     }
 }

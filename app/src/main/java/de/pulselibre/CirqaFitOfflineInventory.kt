@@ -21,7 +21,10 @@ internal object CirqaFitOfflineInventory {
         val missingTimestamps: Int,
         val outsideDisplayRange: Int,
         val metadataRecords: Int,
-        val byMetric: Map<FitHistoricalObservations.Metric, Int>
+        val byMetric: Map<FitHistoricalObservations.Metric, Int>,
+        val importableKeysInDatabase: Int?,
+        val importableKeysMissingFromDatabase: Int?,
+        val verifiedSourcesInDatabase: Int?
     ) {
         /** Aggregate-only output: no timestamps, identifiers, filenames or samples. */
         fun redactedText(): String = buildString {
@@ -31,11 +34,19 @@ internal object CirqaFitOfflineInventory {
             appendLine("Importierbar: $importableObservations; ohne Zeitstempel: $missingTimestamps")
             appendLine("Außerhalb Anzeigegrenzen: $outsideDisplayRange; Metadatensätze: $metadataRecords")
             byMetric.forEach { (metric, count) -> appendLine("${metric.name}: $count") }
-            appendLine("Hinweis: Diese Inventur ist kein SQLite-Abgleich und beweist keine vollständige Gerätehistorie.")
+            appendLine("Importierbare Schlüssel in Datenbank: ${importableKeysInDatabase ?: "nicht abgeglichen"}")
+            appendLine("Importierbare Schlüssel dort fehlend: ${importableKeysMissingFromDatabase ?: "nicht abgeglichen"}")
+            appendLine("Verifizierte FIT-Quellen in Datenbank: ${verifiedSourcesInDatabase ?: "nicht abgeglichen"}")
+            appendLine("Hinweis: Lokaler Abgleich; beweist keine vollständige Gerätehistorie.")
         }
     }
 
-    fun inspect(directory: File): Summary {
+    fun inspect(
+        directory: File,
+        databaseSampleIds: Set<String> = emptySet(),
+        databaseSourceHashes: Set<String> = emptySet(),
+        databaseAvailable: Boolean = false
+    ): Summary {
         require(directory.isDirectory && !Files.isSymbolicLink(directory.toPath())) {
             "Verified FIT directory unavailable or unsafe"
         }
@@ -49,6 +60,9 @@ internal object CirqaFitOfflineInventory {
         var missingTime = 0
         var invalidRange = 0
         var metadata = 0
+        var matchedKeys = 0
+        var candidateKeys = 0
+        var matchedSources = 0
         val counts = linkedMapOf<FitHistoricalObservations.Metric, Int>()
         files.forEach { file ->
             if (Files.isSymbolicLink(file.toPath()) || file.length() !in 1..MAX_BYTES) {
@@ -66,6 +80,7 @@ internal object CirqaFitOfflineInventory {
                 return@forEach
             }
             verified++
+            if (bytes.sha256Hex() in databaseSourceHashes) matchedSources++
             records += decoded.dataRecordCount
             metadata += decoded.deviceMetadata.size
             observations += decoded.observations.size
@@ -73,13 +88,23 @@ internal object CirqaFitOfflineInventory {
                 counts[item.metric] = (counts[item.metric] ?: 0) + 1
                 when (item.quality) {
                     FitHistoricalObservations.Quality.PROFILE_VALID ->
-                        if (item.timestampEpochMillis != null) importable++ else missingTime++
+                        if (item.timestampEpochMillis != null) {
+                            importable++
+                            candidateKeys++
+                            if (item.idempotencyKey in databaseSampleIds) matchedKeys++
+                        } else missingTime++
                     FitHistoricalObservations.Quality.MISSING_TIMESTAMP -> missingTime++
                     FitHistoricalObservations.Quality.OUTSIDE_DISPLAY_RANGE -> invalidRange++
                 }
             }
         }
         return Summary(files.size, verified, rejected, records, observations, importable,
-            missingTime, invalidRange, metadata, counts.toMap())
+            missingTime, invalidRange, metadata, counts.toMap(),
+            matchedKeys.takeIf { databaseAvailable },
+            (candidateKeys - matchedKeys).takeIf { databaseAvailable },
+            matchedSources.takeIf { databaseAvailable })
     }
+
+    private fun ByteArray.sha256Hex(): String = java.security.MessageDigest.getInstance("SHA-256")
+        .digest(this).joinToString("") { "%02x".format(it) }
 }

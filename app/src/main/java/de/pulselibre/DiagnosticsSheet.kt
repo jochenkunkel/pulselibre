@@ -53,7 +53,7 @@ internal object DiagnosticsSheet {
         tile("app", PlIcon.INFO, "A · App-Diagnose", "Version, Android, Datenbank-Integrität")
         tile("bluetooth", PlIcon.SIGNAL, "B · Bluetooth-Diagnose", "Status und Berechtigungen, ohne Scan/Verbindung")
         tile("trace", PlIcon.SESSIONS, "C · Kommunikationsaufzeichnung", "Opt-in, begrenzt – noch nicht verfügbar")
-        tile("sync", PlIcon.DATA, "D · Synchronisation", "Dateien, Tabellen, letzter Empfang")
+        tile("sync", PlIcon.DATA, "D · Synchronisation", "FIT-Inventur und lokaler Datenbankabgleich")
         tile("export", PlIcon.STORAGE, "E · Diagnosepaket", "Vorschau, dann bewusst teilen")
         details.getValue("trace").text = DiagnosticsFormat.TRACE_PLACEHOLDER
 

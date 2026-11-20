@@ -2,6 +2,7 @@ package de.pulselibre
 
 import java.io.File
 import java.nio.file.Files
+import java.security.MessageDigest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -56,6 +57,36 @@ class CirqaFitOfflineInventoryTest {
             assertEquals(2, summary.rejectedFiles)
             assertEquals(0, summary.importableObservations)
             assertEquals(0, summary.recordMessages)
+        } finally {
+            root.deleteRecursively()
+        }
+    }
+
+    @Test
+    fun reconcilesOnlyAggregatesAndNeverEmitsPrivateKeys() {
+        val root = Files.createTempDirectory("fit-offline-reconcile-").toFile()
+        try {
+            val bytes = fitWithHeartRate(timestamp = 100_000, heartRate = 72)
+            val sampleId = FitHistoricalObservations.decode(bytes)!!.observations.single().idempotencyKey
+            val sourceHash = MessageDigest.getInstance("SHA-256").digest(bytes)
+                .joinToString("") { "%02x".format(it) }
+            File(root, CirqaFitBackfill.expectedFileName(bytes)).writeBytes(bytes)
+
+            val matched = CirqaFitOfflineInventory.inspect(
+                root, setOf(sampleId), setOf(sourceHash), databaseAvailable = true
+            )
+            assertEquals(1, matched.importableKeysInDatabase)
+            assertEquals(0, matched.importableKeysMissingFromDatabase)
+            assertEquals(1, matched.verifiedSourcesInDatabase)
+            val report = matched.redactedText()
+            assertFalse(report.contains(sampleId))
+            assertFalse(report.contains(sourceHash))
+            assertFalse(report.contains(CirqaFitBackfill.expectedFileName(bytes)))
+
+            val missing = CirqaFitOfflineInventory.inspect(root, databaseAvailable = true)
+            assertEquals(0, missing.importableKeysInDatabase)
+            assertEquals(1, missing.importableKeysMissingFromDatabase)
+            assertEquals(null, CirqaFitOfflineInventory.inspect(root).importableKeysMissingFromDatabase)
         } finally {
             root.deleteRecursively()
         }

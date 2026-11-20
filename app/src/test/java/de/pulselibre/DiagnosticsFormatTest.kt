@@ -10,7 +10,8 @@ class DiagnosticsFormatTest {
         dbIntegrity = "ok", dbBytes = 62_000_000, tableCounts = linkedMapOf("events" to 125_000L, "fit_unmapped_fields" to null),
         verifiedFitFiles = 31, verifiedFitBytes = 4_200_000, recorderFlagFresh = true, serviceAlive = false,
         lastReadingAgeSeconds = 95, heartbeatAgeSeconds = 130, bluetoothEnabled = true,
-        permissionConnect = true, permissionScan = false, permissionNotifications = true
+        permissionConnect = true, permissionScan = false, permissionNotifications = true,
+        fitInventory = "Importierbare Schlüssel in Datenbank: 1"
     )
 
     @Test fun sectionsContainTheKeyFacts() {
@@ -24,6 +25,7 @@ class DiagnosticsFormatTest {
         assertTrue(sync.contains("Verifizierte FIT-Dateien lokal: 31"))
         assertTrue(sync.contains("Tabelle fit_unmapped_fields: nicht verfügbar Zeilen"))
         assertTrue(sync.contains("Tabelle events: 125000 Zeilen"))
+        assertTrue(sync.contains("Importierbare Schlüssel in Datenbank: 1"))
     }
 
     @Test fun exportPackageIsRedactedByConstruction() {
