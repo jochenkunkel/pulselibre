@@ -404,3 +404,7 @@ Noch sichtbar offen (P3): Nacht-Insights erste Spalte „22–6 Uhr / 22331 / We
 ## 2026-11-20 – #6 A6-5 Log-/Diagnoseinhalt geprüft
 - Ergebnis im Auditdokument: Diagnosepaket = feste Feldliste (bereits durch `DiagnosticReportPrivacyTest` gestützt); `CirqaLocalLog`-Statustexte enthalten nur Phase/Status/Zähler/Antwortformen (keine Nutzdaten, MAC, Namen); Messwerte bleiben lokal; `CirqaLocalLog.copyTo` hat keinen Aufrufer.
 - Neu: `NoPlatformLoggingTest` (Quelltext-Wächter: kein `Log.*`/`println`/`printStackTrace` im Produktionscode; lokal grün, Gradle offline mit `ANDROID_HOME=/home/smiler/pulselibre-tools/sdk`). Kein Produktionscode geändert.
+
+## 2026-11-20 – #6 JVM-Tests für Einmal-Gates, RFCOMM-Framer, Service-Discovery
+- Neu (alle lokal grün, 17 Tests): `OneShotGatesTest` (Fail-closed-Verhalten der vier Einmal-Gates inkl. „nicht freigegeben / nicht bestätigt / schon verbraucht / Persistieren fehlgeschlagen“, Begrenzung und Manipulationsschutz des Versuchszählers), `CirqaRfcommStreamFramerTest` (COBS: Einzelframe, geteilte/zusammengeklebte Chunks, ungültige und übergroße Frames, reset), `GarminServiceDiscoveryTest`. Kein Produktionscode geändert.
+- Damit sind 8 der 32 Dateien ohne Testreferenz im Inventar nun referenziert (`CirqaFileAccessAttemptGate`, `CirqaDirectoryAfterChainGate`, `CirqaDirectoryReadV2AttemptGate`, `CirqaHistoricalSyncV1MultiPhaseAttemptGate`, `CirqaItemListRepeatabilityAttemptGate`, `CirqaRfcommStreamFramer`, `GarminServiceDiscovery`; Inventurzahl wird bei der nächsten Skriptauswertung aktualisiert).
