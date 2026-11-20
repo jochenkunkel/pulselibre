@@ -50,7 +50,7 @@ and releases.
 
 | # | Test | Ergebnis |
 | --- | --- | --- |
-| 1 | Lokale QUICK-CI (`./tools/ci-local.sh --quick`) | **bestanden** (2026-11-20, Exit 0): 47 Python-Tests, 736 JVM-Unit-Tests, Debug-APK, R8-Release-Build, R8-Mapping, APK-Diagnose |
+| 1 | Lokale QUICK-CI (`./tools/ci-local.sh --quick`) | **bestanden** (2026-11-20, Exit 0): 60 Python-Tests (inkl. 12 Workflow-Strukturtests), 736 JVM-Unit-Tests, Debug-APK, R8-Release-Build, R8-Mapping, APK-Diagnose; nach der Nachhärtung erneut grün |
 | 2 | Lokale FULL-CI (`./tools/ci-local.sh --full`) | **bestanden** (2026-11-20, Exit 0, 517 s): zusätzlich Lint, Instrumentation-Test-APK, 103 Instrumentationstests auf AVD `pulselibre-ci-api35` (API 35), Coverage-Datei `coverage.ec` erzeugt und Gate bestanden |
 | 3 | GitHub Actions LOCAL + QUICK | **teilweise** – Dispatch `LOCAL`+`QUICK` [44698255871](https://github.com/jochenkunkel/pulselibre/actions/runs/44698255871) lief als dokumentierter CLOUD-Fallback (`reason=… PULSELIBRE_LOCAL_RUNNER_ENABLED != true`). Echte Ausführung auf dem Self-hosted Runner **offen** (Runner nicht registriert) |
 | 4 | GitHub Actions LOCAL + FULL | offen – Runner nicht registriert (Repository öffentlich, Sicherheitsregel) |
@@ -60,6 +60,7 @@ and releases.
 | 8 | Testberichte und Artefakte | **bestanden** lokal: `build/ci-reports/`, `app/build/reports/`, `app/build/test-results/`, `app/build/outputs/code_coverage/`; GitHub-Artefakte siehe CLOUD-Läufe |
 | 9 | Verhalten bei offline geschaltetem Runner | Entscheidungslogik **getestet** (`tools/test_ci_target.py`, 14 Fälle): LOCAL ohne Freigabe → CLOUD mit Begründung; LOCAL mit Freigabe → Self-hosted, wartet bei Offline-Runner. Echter Offline-Test **offen** (kein registrierter Runner) |
 | 10 | Keine unerwarteten Cloud-Jobs | **bestanden** (Logiktests): Forks immer CLOUD, unbekannte Trigger CLOUD, PR ohne Freigabe CLOUD; LOCAL nur bei expliziter Freigabe |
+| 11 | Workflow-Struktur (Regressionsschutz) | **bestanden**: 12 Tests in `tools/test_workflow_structure.py` – `runs-on` nur über ein JSON-Array + `fromJSON`, statische Job-Namen, Actions auf Commit-SHA gepinnt, `persist-credentials: false`, kein `write-all` |
 
 ### Push auf `main`
 

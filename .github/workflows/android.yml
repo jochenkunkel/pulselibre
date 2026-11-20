@@ -131,7 +131,7 @@ jobs:
             echo "PULSELIBRE_SIGNING_KEY_ALIAS=$SIGNING_KEY_ALIAS" >> "$GITHUB_ENV"
             echo "PULSELIBRE_SIGNING_KEY_PASSWORD=$SIGNING_KEY_PASSWORD" >> "$GITHUB_ENV"
           fi
-      - name: Python offline HCI validator regression tests
+      - name: Python regression tests (offline validators, workflow structure)
         run: bash tools/ci/run-ci.sh python-tests
       - name: Build debug and R8 release variants, run unit tests
         env:

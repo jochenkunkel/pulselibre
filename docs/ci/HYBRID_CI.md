@@ -122,7 +122,8 @@ Eigenschaften:
 - **Berichte** unter `build/ci-reports/` (gitignoriert), Gradle-Berichte wie gewohnt
   unter `app/build/reports/`.
 - **Voraussetzungen:** JDK 21, Gradle 9.6.x, Android SDK mit `platforms;android-37.0`,
-  `platforms;android-35`, `build-tools;35.0.0`, `platform-tools`; für `--full`
+  `platforms;android-35`, `build-tools;35.0.0`, `platform-tools`, Python 3 mit
+  PyYAML (`python3-yaml`) für die Workflow- und Regressionsprüfungen; für `--full`
   zusätzlich Emulator, System-Image `android-35;google_apis;x86_64` und `/dev/kvm`.
 
 `tools/ci/bootstrap-toolchain.sh` installiert JDK und Gradle benutzereigen und
@@ -134,7 +135,7 @@ SDK-Pakete.
 | Phase | Inhalt |
 | --- | --- |
 | `preflight` | JDK 21, Gradle ≥ 9.6, Android SDK, Build-Tools, freier Speicher; bei FULL: KVM |
-| `python-tests` | `python3 -m unittest discover -s tools -p 'test_*.py' -v` |
+| `python-tests` | `python3 -m unittest discover -s tools -p 'test_*.py' -v` (Validatoren + Workflow-Struktur) |
 | `build` | `:app:testDebugUnitTest :app:assembleDebug :app:assembleRelease :app:createDebugUnitTestCoverageReport -PpulselibreVersionCode=<n>` |
 | `verify` (FULL) | `:app:lintDebug :app:assembleDebugAndroidTest` |
 | `diagnostics` | `apksigner verify --print-certs`, `aapt dump badging`, R8-Mapping vorhanden, Release nicht debuggable, Debug-/Release-Zertifikat identisch (wenn signiert) |
@@ -143,6 +144,19 @@ SDK-Pakete.
 QUICK lässt ausschließlich Lint, Test-APK und Emulator weg – diese Prüfungen
 gehören per Definition zu FULL. Es wird kein Test „übersprungen“, um ein
 Ergebnis zu erzeugen.
+
+`python-tests` prüft vorab, dass PyYAML verfügbar ist, und parst damit
+`tools/test_workflow_structure.py` die Workflow-Dateien. Dieser Test
+sichert die Fehler ab, die beim Umbau real aufgetreten sind:
+
+- `runs-on` wird ausschließlich über `fromJSON(needs.prepare.outputs.runs_on)`
+  aufgelöst; ein bloßer String wie `ubuntu-latest` ist kein gültiges JSON und
+  lässt GitHub den Job verwerfen.
+- Job-Namen enthalten keine `${{ ... }}`-Ausdrücke (GitHub wertet `needs` dort
+  nicht aus).
+- Alle Actions sind auf einen vollständigen Commit-SHA gepinnt.
+- `actions/checkout` setzt `persist-credentials: false`; es gibt kein
+  `permissions: write-all`.
 
 ## 6. APK-Signierung
 
@@ -300,7 +314,7 @@ Die Sichtbarkeit wird nur nach ausdrücklicher Freigabe geändert. Checkliste:
 
 | Symptom | Ursache | Lösung |
 | --- | --- | --- |
-| Job fehlt im Lauf / `Error when evaluating 'runs-on'` | `runs_on` ist kein gültiges JSON | `tools/ci/resolve-target.sh` muss ein JSON-Array liefern (`["ubuntu-latest"]`, nicht `ubuntu-latest`); Test `tools/test_ci_target.py` |
+| Job fehlt im Lauf / `Error when evaluating 'runs-on'` | `runs_on` ist kein gültiges JSON | `tools/ci/resolve-target.sh` muss ein JSON-Array liefern (`["ubuntu-latest"]`, nicht `ubuntu-latest`); Tests `tools/test_ci_target.py` und `tools/test_workflow_structure.py` |
 | LOCAL-Job bleibt „Queued“ | Runner offline oder Label falsch | `systemctl status 'actions.runner.*'`, Label `pulselibre` prüfen |
 | Lauf zeigt `CLOUD` trotz LOCAL | `PULSELIBRE_LOCAL_RUNNER_ENABLED` fehlt/`false` | Variable auf `true` setzen |
 | `JDK 21 nicht gefunden` | nur JDK 17 installiert | `tools/ci/bootstrap-toolchain.sh` |
