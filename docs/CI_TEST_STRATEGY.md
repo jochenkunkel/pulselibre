@@ -61,12 +61,15 @@ and releases.
 | 9 | Verhalten bei offline geschaltetem Runner | Entscheidungslogik **getestet** (`tools/test_ci_target.py`, 14 Fälle): LOCAL ohne Freigabe → CLOUD mit Begründung; LOCAL mit Freigabe → Self-hosted, wartet bei Offline-Runner. Echter Offline-Test **offen** (kein registrierter Runner) |
 | 10 | Keine unerwarteten Cloud-Jobs | **bestanden** (Logiktests): Forks immer CLOUD, unbekannte Trigger CLOUD, PR ohne Freigabe CLOUD; LOCAL nur bei expliziter Freigabe |
 | 11 | Workflow-Struktur (Regressionsschutz) | **bestanden**: 12 Tests in `tools/test_workflow_structure.py` – `runs-on` nur über ein JSON-Array + `fromJSON`, statische Job-Namen, Actions auf Commit-SHA gepinnt, `persist-credentials: false`, kein `write-all` |
+| 12 | Runner-Installer-Trockenlauf | **bestanden** (`--user` und `--system --dry-run` ohne root, jeweils Exit 0): vollständiger Ablauf angezeigt, keine Registrierung, kein Schreibzugriff auf `/opt`; PR [44708553642](https://github.com/jochenkunkel/pulselibre/actions/runs/44708553642) und `main` [44709934316](https://github.com/jochenkunkel/pulselibre/actions/runs/44709934316) grün |
 
 ### Push auf `main`
 
-Der erste Push-Lauf nach dem Merge ([44701191634](https://github.com/jochenkunkel/pulselibre/actions/runs/44701191634)) zeigte `requested_environment=LOCAL`, `environment=CLOUD`, `scope=FULL` – also den dokumentierten Fallback – und wurde durch einen neueren Push eines anderen Agenten abgebrochen (Concurrency, erwartetes Verhalten). Der Lauf auf dem aktuellen Head [6087f1c](https://github.com/jochenkunkel/pulselibre/commit/6087f1c) ([44701721576](https://github.com/jochenkunkel/pulselibre/actions/runs/44701721576)) war mit `CI-Ziel bestimmen`, `Build, Unit-Tests, Lint, APK` und `Emulator-Instrumentationstests (API 35)` **grün**.
+Der erste Push-Lauf nach dem Merge ([44701191634](https://github.com/jochenkunkel/pulselibre/actions/runs/44701191634)) zeigte `requested_environment=LOCAL`, `environment=CLOUD`, `scope=FULL` – also den dokumentierten Fallback – und wurde durch einen neueren Push eines anderen Agenten abgebrochen (Concurrency, erwartetes Verhalten). Der Lauf auf dem damaligen Head [6087f1c](https://github.com/jochenkunkel/pulselibre/commit/6087f1c) ([44701721576](https://github.com/jochenkunkel/pulselibre/actions/runs/44701721576)) war mit `CI-Ziel bestimmen`, `Build, Unit-Tests, Lint, APK` und `Emulator-Instrumentationstests (API 35)` **grün**.
 
 Die Nachhärtung aus PR #292 (Workflow-Strukturtests) lief ebenfalls vollständig grün: als PR [44705657911](https://github.com/jochenkunkel/pulselibre/actions/runs/44705657911) und als Push auf `main` [44706755589](https://github.com/jochenkunkel/pulselibre/actions/runs/44706755589), jeweils CLOUD + FULL inklusive Emulator.
+
+Der Runner-Installer-Trockenlauf aus PR #293 lief in der PR [44708553642](https://github.com/jochenkunkel/pulselibre/actions/runs/44708553642) und nach dem Merge auf `main` [44709934316](https://github.com/jochenkunkel/pulselibre/actions/runs/44709934316) ebenfalls CLOUD + FULL **grün**, jeweils einschließlich Emulator.
 
 Details und Befehle: [ci/HYBRID_CI.md](ci/HYBRID_CI.md). Die Tabelle wird nach
 jedem tatsächlich ausgeführten Lauf mit Datum, Lauf-ID und Ergebnis aktualisiert;
