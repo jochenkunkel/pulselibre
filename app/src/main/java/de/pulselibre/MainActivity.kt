@@ -542,6 +542,23 @@ class MainActivity : AppCompatActivity() {
             addView(texts, LinearLayout.LayoutParams(0, -2, 1f))
             setOnClickListener { selectMainTab(MainNavigationView.ANALYSEN) }
         }, 12)
+        // #263: unified 24-hour view (heart rate + step counter on one axis).
+        overviewView(LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = android.view.Gravity.CENTER_VERTICAL
+            tag = "day_timeline_teaser"
+            minimumHeight = dp(56)
+            setPadding(dp(14), dp(10), dp(14), dp(10))
+            background = rounded(palette.card)
+            isClickable = true; isFocusable = true
+            contentDescription = "Tag im Überblick öffnen. Herzfrequenz und Schritte eines Tages auf einer gemeinsamen Zeitachse."
+            addView(PlIcon.view(this@MainActivity, PlIcon.ACTIVITY_CALENDAR, 24, palette.accent), LinearLayout.LayoutParams(dp(24), dp(24)).apply { marginEnd = dp(12) })
+            val texts = LinearLayout(this@MainActivity).apply { orientation = LinearLayout.VERTICAL }
+            texts.addView(text("Tag im Überblick", 14f, ink, true).apply { importantForAccessibility = android.view.View.IMPORTANT_FOR_ACCESSIBILITY_NO })
+            texts.addView(text("Herzfrequenz und Schritte auf einer Zeitachse, Lücken sichtbar", 12f, muted).apply { importantForAccessibility = android.view.View.IMPORTANT_FOR_ACCESSIBILITY_NO })
+            addView(texts, LinearLayout.LayoutParams(0, -2, 1f))
+            setOnClickListener { showDayTimeline(this@MainActivity, dashboardWorker) }
+        }, 12)
         val cirqaHistory = HistoryOverviewView(this) { range, offset -> CirqaHistoryReader(this).read(range, offset = offset) }
         historyRefresh = { cirqaHistory.refresh() }
         cirqaHistory.refresh()
