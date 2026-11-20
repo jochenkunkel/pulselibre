@@ -456,3 +456,7 @@ Noch sichtbar offen (P3): Nacht-Insights erste Spalte „22–6 Uhr / 22331 / We
 
 ## 2026-11-20 – #6 kombinierte Coverage: Versuch scheiterte an Klassen-Prüfsummen
 - Lokales Zusammenführen JVM+Emulator ergab 0 % (Messartefakt, nicht-identische Klassen); Audit Abschnitt 15, Vorschlag an den CI-Agenten per agent-sync (Emulator-Job soll Unit-Tests mitlaufen lassen und dort mergen). Kein Workflow geändert.
+
+## 2026-11-20 – S25-Sammelabnahme vorbereitet (Plan, Skript, Offline-Tests)
+- Neu: `tools/s25_acceptance.py` (ein Zug, ca. 12–15 min: Preflight inkl. Flags/Berechtigungen, Navigation, Übersicht inkl. Abdeckungs-Konsistenz #312, Verlauf/Achsenansage #309, Analysen/Atlas #41, Startseite anpassen #267, Gerät/Testlabor-Einstieg #172/Unbekannte Felder #204, Anzeigevarianten Hell/Schrift 1,3/2,0/320 dp #276, 90-s-Hintergrundbeobachtung #171/#25/#3), Plan `docs/S25_ACCEPTANCE_PLAN_2026-11-20.md`, Offline-Tests `tools/test_s25_acceptance.py` (14, inkl. Gesamtlauf mit gespieltem Handy).
+- Sicherheit technisch erzwungen: Erlaubnisliste für adb-Befehle (kein Install/Clear/Instrumentation/Bluetooth/Texteingabe), nie Tippen auf Geräte-/Datenaktionen, Ausgabeordner außerhalb des Repos, Wiederherstellung von Nachtmodus/Schrift/Dichte im `finally`. Das Handy wurde dafür **nicht** angefasst (OpenCode nutzt es für den FIT-Test); Rückmeldung per agent-sync erbeten.
