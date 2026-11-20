@@ -379,3 +379,6 @@ Noch sichtbar offen (P3): Nacht-Insights erste Spalte „22–6 Uhr / 22331 / We
 - **Ziellinie (#265):** In „Tag im Überblick“ nutzt die gestrichelte Ziellinie jetzt das eigene Ziel (Vorrang vor dem Gerätziel, `effectiveStepGoal`). Damit ist die kumulierte Tageskurve mit Ziellinie als Treppe in dieser Ansicht vorhanden; eine zusätzliche Kurve in der Übersichtskarte ist nicht gebaut (die Karte hat die 15-min-Balken).
 - **Zeitbeschriftung:** Bei Kollision fällt die spätere Beschriftung weg, nur die letzte (Achsenende) ersetzt ihren Nachbarn.
 - Bewusst nicht gebaut: Zoom in den Verlauf-Charts (die Fenster 24 h/7 T/30 T sind Bin-Darstellungen mit eigener Navigation).
+
+## 2026-11-20 – #155 Nachtrag: Lint-Werkzeug-Konfiguration
+- Nach PR #280 waren noch 6 von 8 Alerts offen: `androidLintTool` löst eigene alte Bibliotheken auf. Fix in `app/build.gradle.kts` (`resolutionStrategy.eachDependency` für Guava, Bouncy Castle ×3, commons-lang3, httpclient), `:app:dependencies` zeigt keine ungepatchte Version mehr. Details: `docs/SCA_DEPENDENCY_REVIEW_2026-11-20.md`.
