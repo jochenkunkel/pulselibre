@@ -37,3 +37,6 @@ Alle Hinweise beschreiben das tatsächliche Verhalten der aktuellen App. Wo etwa
 
 ## Weiter Hilfe
 - Fehler melden oder nachlesen: [GitHub-Issues des Projekts](https://github.com/jochenkunkel/pulselibre/issues). Bitte **keine** privaten Gesundheitsdaten, Screenshots mit echten Werten oder Gerätekennungen anhängen.
+
+## Ältere App-Version über eine neuere installiert – die App startet nicht
+PulsLibre unterstützt **kein Downgrade** der lokalen Datenbank: Ein älterer Build kann ein neueres Datenbankformat nicht öffnen. Deine Daten bleiben dabei unverändert erhalten. Installiere wieder die neuere (oder die zuletzt benutzte) Version; vor jedem Versions-Wechsel nach unten solltest du eine Datenbanksicherung anlegen (Daten → Sicherung).

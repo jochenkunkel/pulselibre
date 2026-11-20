@@ -413,3 +413,5 @@ Noch sichtbar offen (P3): Nacht-Insights erste Spalte „22–6 Uhr / 22331 / We
 
 ## 2026-11-20 – #3/#6 A6-2 Recorder-Lebenszyklus gelesen, Backoff testbar gemacht
 - `RecorderBackoff.delayMs` aus `CirqaContinuousRecordingService` extrahiert (identisches Verhalten, Unit-Test `RecorderBackoffTest`). Beobachtung O-1 (Backoff zählt Versuche seit Dienststart, Reset fehlt) im Audit Abschnitt 8 für #235 festgehalten; bewusst nicht geändert, bis die Akku-Baseline vorliegt.
+## 2026-11-20 – #6 Persistenz: `CirqaDatabase`-Migrationen gelesen
+- Auditdokument Abschnitt 9: linearer, transaktionaler, additiver Upgrade-Pfad v1→v6; Emulator-Tests für v2–v5, kein eigener Test für v1 (B9-1); kein Downgrade (B9-2, jetzt in `docs/user/FEHLERBEHEBUNG.md` erklärt). Kein Code geändert.
