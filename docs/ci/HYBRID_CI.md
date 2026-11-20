@@ -279,14 +279,15 @@ Weitere Maßnahmen:
 
 ## 8. Runner installieren und warten
 
-**Aktueller Betrieb (20.11.2026):** Repository `jochenkunkel/pulselibre` ist
-privat. Der Systemrunner `smurl-pulselibre` ist mit Labels `self-hosted`,
-`Linux`, `X64`, `pulselibre` registriert und online. Der Dienst läuft unter
-`ghrunner`; JDK 21 liegt unter `/opt/pulselibre-jdk-21`, Android SDK unter
-`/opt/android-sdk`, `ghrunner` ist in der KVM-Gruppe. GitHub-Variablen:
-`PULSELIBRE_LOCAL_RUNNER_ENABLED=true`,
-`PULSELIBRE_PR_ON_LOCAL_ENABLED=false`. Echte LOCAL+QUICK- und LOCAL+FULL-
-Nachweise stehen in der [Testmatrix](../CI_TEST_STRATEGY.md).
+**Aktueller Betriebsstatus (Snapshot 2026-11-20, 20:10 UTC):** GitHub meldet
+Repository `jochenkunkel/pulselibre` als **public**; der registrierte
+Self-hosted Runner ist **offline**, der systemd-Dienst **inaktiv**. Der Runner
+wird nicht als verfügbar vorausgesetzt und darf erst nach geklärter
+Repository-Sichtbarkeit bzw. ausdrücklicher Sicherheitsentscheidung wieder
+gestartet werden. `PULSELIBRE_LOCAL_RUNNER_ENABLED=true`,
+`PULSELIBRE_PR_ON_LOCAL_ENABLED=false`. Keine PR-/Fork-Ausführung auf LOCAL.
+Details, Run-Evidenz und ein sauberer Neuaufbauablauf stehen im
+[Runner-Migrationspaket](LOCAL_RUNNER_MIGRATION_PACK_2026-11-20.md).
 
 Die folgenden Befehle sind für Neuinstallation/Wiederherstellung dokumentiert;
 die bestehende Runner-Registrierung nicht blind ersetzen.
@@ -386,8 +387,11 @@ Optimierungen dürfen keine Tests entfernen. Der Umfang wird ausschließlich üb
 
 ## 10. Repository-Sichtbarkeit und Sicherheit
 
-Repository-Sichtbarkeit wurde am 20.11.2026 als `private` bestätigt. Die
-folgenden Punkte sind Betriebsregeln und Statushinweise:
+Repository-Sichtbarkeit war zuvor als `private` bestätigt; beim letzten
+GitHub-API-Check am 20.11.2026 wurde sie als `public` gemeldet. Den aktuellen
+Stand und die Freigabesperre vor Runner-Reaktivierung enthält das
+[Runner-Migrationspaket](LOCAL_RUNNER_MIGRATION_PACK_2026-11-20.md). Die
+folgenden Punkte sind Betriebsregeln:
 
 1. **Actions-Minuten:** Private Repos verbrauchen das Kontingent des Kontos;
    Self-hosted Runner sind kostenlos. Deshalb LOCAL als Standard für Push/PR.
