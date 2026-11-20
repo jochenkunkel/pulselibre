@@ -62,7 +62,21 @@ Lokale Build-Anleitung: JDK 17 (historischer lokaler Hinweis), Android SDK 37 (c
 gradle :app:testDebugUnitTest :app:lintDebug :app:assembleDebug :app:assembleDebugAndroidTest
 ```
 
-Starte **Android CI** in GitHub unter **Actions → Android CI → Run workflow** oder per `gh workflow run android.yml --ref main`. Der manuelle Schnelllauf baut die App und führt die JVM-Unit-Tests aus. Aktiviere `full_tests` für Lint, die Instrumentation-APK und API-35-Emulatortests. Pushes auf `main` und Pull Requests gegen `main` lösen automatisch die vollständige CI aus; Tags lösen keinen CI-Lauf aus. Die Android-CI lädt APKs als zeitlich begrenzte Artifacts hoch.
+Starte **Android CI** in GitHub unter **Actions → Android CI → Run workflow** oder per `gh workflow run android.yml --ref main`. Dort sind zwei unabhängige Eingaben verfügbar:
+
+- **Ausführungsort:** `LOCAL` (eigener Self-hosted Runner, Label `pulselibre`) oder `CLOUD` (GitHub-hosted `ubuntu-latest`).
+- **Testumfang:** `QUICK` (Build, R8-Release, Unit-Tests, APK-Diagnose) oder `FULL` (zusätzlich Lint, Instrumentation-Test-APK und API-35-Emulator).
+
+Pushes auf `main` und Pull Requests gegen `main` laufen automatisch mit `FULL`; Pull Requests bleiben auf GitHub-hosted Runnern, solange der lokale Runner für PRs nicht ausdrücklich freigegeben ist. Beide Umgebungen nutzen dieselbe Pipeline (`tools/ci/run-ci.sh`), damit LOCAL und CLOUD nicht auseinanderlaufen. Die Android-CI lädt APKs und Testberichte als zeitlich begrenzte Artifacts hoch.
+
+Dieselben Prüfungen laufen auch ohne GitHub direkt auf dem Entwicklungsrechner:
+
+```bash
+./tools/ci-local.sh --quick   # Build + Unit-Tests + APK-Diagnose
+./tools/ci-local.sh --full    # zusätzlich Lint, Test-APK und API-35-Emulator
+```
+
+Voraussetzungen, Runner-Installation, Sicherheitsregeln, Umschalten zwischen LOCAL und CLOUD sowie Troubleshooting stehen in [docs/ci/HYBRID_CI.md](docs/ci/HYBRID_CI.md).
 
 ## Ausblick
 

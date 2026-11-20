@@ -24,6 +24,7 @@
 - [DEVELOPMENT_PLAN.md](DEVELOPMENT_PLAN.md): Arbeitsplanung.
 - [PROJECT_HISTORY.md](PROJECT_HISTORY.md): historische Chronik, **keine** aktuelle Freigabe.
 - [QUALITY_GATE.md](QUALITY_GATE.md), [CI_TEST_STRATEGY.md](CI_TEST_STRATEGY.md), [TESTPLAN.md](TESTPLAN.md): Qualität und Tests.
+- [ci/HYBRID_CI.md](ci/HYBRID_CI.md): hybride CI (LOCAL Self-hosted Runner / CLOUD), lokale CI-Befehle, Runner-Betrieb und Sicherheitsregeln.
 - [PRIVACY_INCIDENT_2026-11-16.md](PRIVACY_INCIDENT_2026-11-16.md): Datenschutzvorfall; nicht in ein Archiv verstecken.
 - [ARCHITECTURE_AND_CODE_REVIEW.md](ARCHITECTURE_AND_CODE_REVIEW.md): Architektur und historische Prüfungen.
 - [CIRQA_SQLITE_STORAGE.md](protocol/data-model/CIRQA_SQLITE_STORAGE.md), [LOCAL_STORAGE.md](LOCAL_STORAGE.md): gemeinsame Datenhaltung zwischen Protokoll und UI.
