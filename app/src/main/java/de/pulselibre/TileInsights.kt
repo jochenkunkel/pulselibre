@@ -29,7 +29,7 @@ internal data class TileInsight(
 }
 
 /** Today's band-measured (FIT) values of one metric; never combined with live reception-time values. */
-internal data class FitDaySummary(val count: Int, val min: Double, val max: Double, val average: Double, val hourly: List<Double?>)
+internal data class FitDaySummary(val date: LocalDate, val count: Int, val min: Double, val max: Double, val average: Double, val hourly: List<Double?>)
 
 internal object TileInsightCalc {
     /** Null when the band delivered nothing for [day] (up to [now]); hourly means use the band's measurement time. */
@@ -39,7 +39,7 @@ internal object TileInsightCalc {
         val hourly = arrayOfNulls<Double>(24)
         valid.groupBy { it.receivedAt.atZone(day.zone).hour }.forEach { (h, list) -> hourly[h] = list.map { it.value.toDouble() }.average() }
         val values = valid.map { it.value.toDouble() }
-        return FitDaySummary(values.size, values.min(), values.max(), values.average(), hourly.toList())
+        return FitDaySummary(day.date, values.size, values.min(), values.max(), values.average(), hourly.toList())
     }
 
     val CUMULATIVE = setOf(DashboardMeasurement.STEPS, DashboardMeasurement.CALORIES_TOTAL,
@@ -113,8 +113,14 @@ internal class TileInsightReader(private val context: Context) {
             }
         }
         val fit = if (metric != DashboardMeasurement.PULSE) null else try {
-            val window = FitHistoryReader(context).read(day.start, maxOf(day.start.plusSeconds(1), minOf(day.end, now.plusSeconds(60))))
-            TileInsightCalc.summarizeFit(window.points, day, now)
+            val reader = FitHistoryReader(context)
+            // Band history is usually older than today: show today's band values, else the newest day that has some (labelled with its date).
+            val latest = reader.latestMeasuredAt(now)
+            if (latest == null) null else {
+                val fitDay = if (latest >= day.start) day else DashboardDay(latest.atZone(zone).toLocalDate(), zone)
+                val window = reader.read(fitDay.start, maxOf(fitDay.start.plusSeconds(1), minOf(fitDay.end, now.plusSeconds(60))))
+                TileInsightCalc.summarizeFit(window.points, fitDay, now)
+            }
         } catch (_: Exception) { null }
         return TileInsightCalc.summarize(metric, today, day, now, weekValues).copy(fit = fit)
     }

@@ -496,3 +496,17 @@ Noch sichtbar offen (P3): Nacht-Insights erste Spalte „22–6 Uhr / 22331 / We
 - Herzfrequenz-Kachel: zusätzliche Zeile „Band-Verlauf heute (Messzeit): Ø · min–max (n Werte)“ und eigene Sparkline (24 Stunden, Messzeit des Bandes). Live-Werte und Band-Werte werden nicht gemischt. Hat die Kachel heute nur Band-Daten, erscheint nur dieser Block (kein Wochenvergleich, der wäre live-only).
 - Tests: `FitDaySummaryTest` (nur heute bis jetzt, Stundenmittel nach Messzeit, leer = null). Offline Unit-Tests grün, Emulator-Tests kompilieren.
 - Offen: Tageszeitleiste (`DayTimeline`) und Tagesdialoge lesen weiter nur Live-Events; weitere FIT-Metriken gibt es im Import nicht für diese Kacheln.
+
+## 2026-11-21 – S25-Sichtprüfung #334 (CI-signiertes APK, Build 1561)
+
+- Installiert: `app-release.apk` aus dem main-Lauf 44821236628 (enthält #335/#336), `adb install -r`, Daten erhalten. Nur lesend bedient (Tabs, Zeitraumwahl, Scrollen); keine BLE-Aktion, keine Instrumentation.
+- **Verlauf, 30 Tage:** zweite Karte „Herzfrequenz · Band-Verlauf (FIT)“ vorhanden, 12.730 Werte in 5 belegten Tagesfenstern, Legende „Zeitachse: Messzeit des Bandes (aus FIT-Dateien)“; die Live-Karte bleibt „Telefonzeit“ (54.454 Werte in 4 Fenstern). Beide Reihen getrennt.
+- **Übersicht:** Herzfrequenz-Kachel zeigt die Live-Zeile („Heute Ø … bpm“); die Zeile „Band-Verlauf heute (Messzeit)“ erscheint nicht, weil die FIT-Daten nicht von heute sind (erwartetes Verhalten: nur heutige Band-Werte).
+- **Performance:** Wechsel 7 → 30 Tage bis zur sichtbaren Karte unter etwa 2 s (grobe Messung inklusive UI-Dump); kein Absturz im Crash-Log. Kein Anlass für Rollups (#140).
+- Offen: die Übersicht zeigt historische Band-Werte nur für den heutigen Tag; Tage davor wären ein eigener Schritt (Wochenkarte, #329) und braucht belegte weitere Metriken.
+
+## 2026-11-21 – Übersicht: neuester Band-Tag, wenn heute keiner vorhanden ist
+
+- Befund am S25: Die Band-Zeile der Herzfrequenz-Kachel erschien nicht, weil die FIT-Daten nicht von heute sind. Das erfüllt den Nutzerwunsch („historische Daten in der Übersicht“) nicht.
+- Jetzt: ohne heutige Band-Werte zeigt die Kachel den neuesten Tag mit Band-Werten, mit Datum in der Zeile („Band-Verlauf 17.11. (Messzeit): Ø … (n Werte)“) und eigener Sparkline. `FitHistoryReader.latestMeasuredAt` (nur lesend). Live-Werte bleiben getrennt.
+- Tests: `FitDaySummaryTest` (Datum des Vortags), `FitHistoryViewTest` (latestMeasuredAt halboffen). Unit-Tests grün, Emulator-Tests kompilieren.
