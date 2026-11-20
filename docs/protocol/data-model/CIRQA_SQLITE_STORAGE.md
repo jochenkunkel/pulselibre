@@ -1,18 +1,22 @@
 # CIRQA local SQLite storage (current schema and target)
 
-Stand: 2026-11-19. `CirqaDatabase` uses Android `SQLiteOpenHelper`; no cloud or
-`INTERNET` permission is involved.
+Stand: 2026-11-20. For the complete code-backed table/index/constraint inventory,
+IST ERD, target ERD and migration assessment, see the
+[2026-11-20 data architecture audit](CIRQA_DATA_ARCHITECTURE_AUDIT_2026-11-20.md).
+`CirqaDatabase` uses Android `SQLiteOpenHelper`; no cloud or `INTERNET`
+permission is involved.
 
 ## Current persisted stores
 
 There are currently two physical databases; the target architecture is not yet
 migrated:
 
-- `cirqa_measurements.db`, schema version 5:
+- `cirqa_measurements.db`, schema version 6:
   `events(id, line_sha256 UNIQUE, received_at_utc, dashboard_time, kind,
   service, payload_json)` plus normalized `observations`, `sync_cursors`,
-  `fit_sources`, `fit_observation_provenance`, `fit_device_metadata`, and
-  `raw_device_metadata`.
+  `fit_sources`, `fit_observation_provenance`, `fit_device_metadata`,
+  `raw_device_metadata`, and `fit_unmapped_fields`; it also has the
+  `storage_migrations` copy marker.
   Indexes cover event service/time, kind/time, dashboard-time, observation time,
   FIT provenance, and metadata time. The metadata table contains only
   whitelisted FIT `device_info` fields; serial numbers and device indexes are
@@ -66,12 +70,13 @@ in database backup archives.
 
 ## Backup, tests and limitations
 
-Database backup format v5 serializes events, historical and canonical
+Database backup format v6 serializes events, historical and canonical
 observations/cursors, FIT-source metadata, field-level provenance, and canonical
-FIT and whitelisted XML device metadata into checksummed JSONL entries. Restore
-accepts v1–v4 archives; older versions contain no raw XML metadata entry. The archive is not
-encrypted and excludes FIT/raw original bytes. Restore validates checksums,
-record schemas and FIT foreign-key relationships before confirmation. Do not
+FIT and whitelisted XML device metadata plus the unmapped FIT-field inventory
+into checksummed JSONL entries. Restore accepts v1–v5 archives; older versions
+omit later-added entries. The archive is not encrypted and excludes FIT/raw
+original bytes. Restore validates checksums, record schemas and cross-references
+before confirmation. Do not
 manually copy a live SQLite main file without its journal.
 
 GitHub full CI run 44417266709 passed the canonical write/backup v3 change.
@@ -86,11 +91,13 @@ metadata. Full CI run [44479097091](https://github.com/jochenkunkel/pulselibre/a
 passed, including API-35 emulator instrumentation; local build, lint, 629 JVM,
 68 emulator and 19 Python tests also passed.
 
-Schema-v3 `ensureHistoricalStoreCopied()` copies and verifies the old history
+Schema-v6 `ensureHistoricalStoreCopied()` copies and verifies the old history
 without deleting it. New FIT backfill writes target the canonical DB after this
-copy; schema-v4 FIT metadata and schema-v5 raw XML metadata are additive.
-Backup v5 includes both databases and whitelisted metadata and restores older
-v1–v4 archives. Remaining: physical retirement of the old DB after a verified
+copy; schema-v4 FIT metadata, schema-v5 raw XML metadata, and schema-v6 unmapped
+FIT-field inventory are additive. Backup v6 includes both databases and
+metadata/inventory entries and restores older v1–v5 archives. The copy marker's
+fast path compares counts, not a content fingerprint; see the audit for this
+same-count-change limitation. Remaining: physical retirement of the old DB after a verified
 transition, dashboard consumer integration with `HistoricalObservationRepository`,
 broader migration/restore fixtures, provenance recovery for old FIT rows, and
 original-file backup/retention policy.

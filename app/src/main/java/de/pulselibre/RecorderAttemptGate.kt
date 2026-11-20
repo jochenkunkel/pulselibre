@@ -41,3 +41,13 @@ internal class RecorderAttemptGate {
         generation++
     }
 }
+
+/** Reconnect delay of the continuous recorder: 2, 4, 8, 16, 32, then 60 seconds (bounded, deterministic). */
+internal object RecorderBackoff {
+    const val BASE_MS = 2_000L
+    const val MAX_MS = 60_000L
+
+    /** [attemptNumber] is 1-based and counts every attempt since the service started. */
+    fun delayMs(attemptNumber: Int): Long =
+        (BASE_MS shl (attemptNumber - 1).coerceIn(0, 5)).coerceAtMost(MAX_MS)
+}

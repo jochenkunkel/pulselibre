@@ -79,3 +79,16 @@ class RecorderAttemptGateTest {
         assertTrue(gate.accepts(token, owner))
     }
 }
+
+class RecorderBackoffTest {
+    @org.junit.Test fun backoffDoublesThenCapsAtSixtySeconds() {
+        assertEquals(listOf(2_000L, 4_000L, 8_000L, 16_000L, 32_000L, 60_000L, 60_000L),
+            (1..7).map(RecorderBackoff::delayMs))
+    }
+
+    @org.junit.Test fun backoffIsBoundedForOutOfRangeAttemptNumbers() {
+        assertEquals(2_000L, RecorderBackoff.delayMs(0))
+        assertEquals(2_000L, RecorderBackoff.delayMs(-5))
+        assertEquals(60_000L, RecorderBackoff.delayMs(Int.MAX_VALUE))
+    }
+}
