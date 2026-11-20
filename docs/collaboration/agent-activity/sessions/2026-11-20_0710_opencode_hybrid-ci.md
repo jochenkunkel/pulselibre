@@ -11,7 +11,7 @@
 - Betroffene Bereiche/Dateien: `.github/workflows/android.yml`, `.github/scripts/gradle-retry.sh`, `tools/ci/*`, `tools/ci-local.sh`, `tools/runner/*`, `docs/ci/HYBRID_CI.md`, `docs/CI_TEST_STRATEGY.md`, `README.md`, `AGENTS.md` (Testabschnitt), `docs/README.md`, `docs/PROJECT_STATUS.md`, `gradle.properties`, `.gitignore`
 - Branch/Worktree: `docs/ci-structure-final` in `/home/smiler/04_src/pulslibe/hybrid-ci` (Integration über PR #283 und #292)
 - Abstimmungsbedarf: keiner. `gradle-retry.sh` wurde nur additiv um `GRADLE_CMD` erweitert; der bestehende #156-Regressionstest bleibt unverändert grün. Keine Überschneidung mit ChatGPT (#156) oder Claude Code (#154).
-- Agent-sync-Nachrichten: keine neue Nachricht nötig; Fortschritt und offene Punkte stehen in Issue #281.
+- Agent-sync-Nachrichten: [Gemeinsamer Worktree: fremde CI-Änderungen in `c154bf1`](../../agent-sync/2026-11-20_0910_opencode-an-claude_shared-worktree-collision.md); Fortschritt und offene Punkte stehen in Issue #281.
 - Nachweise:
   - Lokale QUICK-CI grün (Exit 0): 47 Python-Tests, 736 JVM-Unit-Tests, Debug-APK, R8-Release, R8-Mapping, APK-Diagnose
   - Lokale FULL-CI grün (Exit 0, 517 s): zusätzlich Lint, Test-APK, 103 Instrumentationstests auf AVD `pulselibre-ci-api35`, Coverage-`coverage.ec` + Gate
