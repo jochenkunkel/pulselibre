@@ -66,6 +66,10 @@ class FitHistoryViewTest {
             assertFalse(window.truncated)
             assertEquals(listOf(1_000L, 2_000L), window.points.map { it.receivedAt.toEpochMilli() }) // half-open window
             assertEquals(listOf(70, 72), window.points.map { it.value })
+            val reader = FitHistoryReader(context)
+            assertEquals(Instant.ofEpochMilli(9_000), reader.latestMeasuredAt(Instant.ofEpochMilli(20_000)))
+            assertEquals(Instant.ofEpochMilli(2_000), reader.latestMeasuredAt(Instant.ofEpochMilli(8_000)))
+            assertEquals(null, reader.latestMeasuredAt(Instant.ofEpochMilli(500)))
         } finally { root.deleteRecursively() }
     }
 

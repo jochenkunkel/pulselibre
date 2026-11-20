@@ -455,7 +455,8 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
             }, LayoutParams(-1, dp(34)).apply { topMargin = dp(4) })
             // #334: band history (FIT) has its own line and sparkline; its clock is the band's measurement time.
             i.fit?.let { fit ->
-                val text = "Band-Verlauf heute (Messzeit): Ø ${nf.format(fit.average, "")} · ${nf.format(fit.min, "")}–${nf.format(fit.max, "")} $unit" +
+                val dayLabel = if (fit.date == java.time.LocalDate.now()) "heute" else fit.date.format(java.time.format.DateTimeFormatter.ofPattern("dd.MM."))
+                val text = "Band-Verlauf $dayLabel (Messzeit): Ø ${nf.format(fit.average, "")} · ${nf.format(fit.min, "")}–${nf.format(fit.max, "")} $unit" +
                     " (${fit.count} ${if (fit.count == 1) "Wert" else "Werte"})"
                 box.addView(label(text, 11f, muted).apply { tag = "tile_fit_${metric.title}" },
                     LayoutParams(-1, -2).apply { topMargin = dp(if (i.count > 0) 8 else 0) })

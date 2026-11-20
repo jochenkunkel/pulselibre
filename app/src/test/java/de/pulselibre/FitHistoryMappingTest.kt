@@ -67,4 +67,13 @@ class FitDaySummaryTest {
         assertTrue(TileInsightCalc.summarizeFit(emptyList(), day, now) == null)
         assertTrue(TileInsightCalc.summarizeFit(listOf(HistoryPoint(at(8).minusSeconds(86_400), 60)), day, now) == null)
     }
+
+    @Test fun pastDaySummaryCarriesItsDateForTheLabel() {
+        val past = DashboardDay(java.time.LocalDate.of(2026, 11, 17), zone)
+        val t = java.time.ZonedDateTime.of(2026, 11, 17, 10, 0, 0, 0, zone).toInstant()
+        val s = TileInsightCalc.summarizeFit(listOf(HistoryPoint(t, 64), HistoryPoint(t.plusSeconds(3_600), 66)), past, now)!!
+        assertEquals(java.time.LocalDate.of(2026, 11, 17), s.date)
+        assertEquals(2, s.count)
+        assertEquals(65.0, s.average, 0.0)
+    }
 }

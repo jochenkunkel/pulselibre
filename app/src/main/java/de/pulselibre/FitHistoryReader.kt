@@ -45,6 +45,14 @@ class FitHistoryReader(private val context: Context) {
         return Window(points, available(), truncated)
     }
 
+    /** Measurement time of the newest FIT heart-rate observation not after [notAfter], or null when there is none. */
+    fun latestMeasuredAt(notAfter: Instant): Instant? = CirqaDatabase(context).use { db ->
+        db.readableDatabase.rawQuery(
+            "SELECT MAX(measured_at_ms) FROM fit_observation_provenance WHERE metric = ? AND measured_at_ms <= ?",
+            arrayOf(FitHistoryMapping.METRIC, notAfter.toEpochMilli().toString())
+        ).use { if (it.moveToFirst() && !it.isNull(0)) Instant.ofEpochMilli(it.getLong(0)) else null }
+    }
+
     private fun available(): Boolean = CirqaDatabase(context).use { db ->
         db.readableDatabase.rawQuery(
             "SELECT 1 FROM fit_observation_provenance WHERE metric = ? LIMIT 1", arrayOf(FitHistoryMapping.METRIC)
