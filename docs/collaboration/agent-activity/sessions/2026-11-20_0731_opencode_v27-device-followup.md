@@ -1,8 +1,8 @@
 # OpenCode – V27-Gerätenachlauf und CIRQA-Abnahme
 - Agent/Umgebung: OpenCode / API coding agent, Worktree `/tmp/opencode/cirqa-v27-sync`
 - Beginn: 2026-11-20 07:31 UTC
-- Letzte Aktualisierung: 2026-11-20 09:45 UTC
-- Status: aktiv
+- Letzte Aktualisierung: 2026-11-20 09:54 UTC
+- Status: pausiert
 - Rolle/Zuständigkeit: CIRQA-Protokoll, begrenzter Gerätelauf, FIT/SQLite-Abgleich gemäß ausdrücklicher Beauftragung
 - Aktueller Auftrag: historischen Download #149 produktionsreif voranbringen; Backfill vorhandener FITs und Statusfehler korrigieren, Grenzen klar ausweisen
 - Jetzt in Bearbeitung: #149 – FIT-Abschluss an SQLite-Commit koppeln und Downloadlimits nicht mehr still als vollständigen Lauf darstellen; kein destruktiver Gerätebefehl
@@ -12,4 +12,5 @@
 - Abstimmungsbedarf: Claude Code arbeitet laut offener Nachricht an #150 an der FIT-Inventur im Diagnosepanel; mein Geräte-/Protokollnachlauf ist davon getrennt. Keine parallele Änderung an Testlabor-D/E.
 - Agent-sync-Nachrichten: `docs/collaboration/agent-sync/2026-11-20_0705_opencode-an-alle_v27-bounded-sync.md`; `docs/collaboration/agent-sync/2026-11-20_1830_opencode-an-claude_issue150-inventory-ui.md`
 - Nachweise: V27 lokal 45/45 FIT-Dateien verifiziert; 27.736/27.736 importierbare Kandidatenschlüssel in SQLite. Privater V26-Korpus erneut geprüft: 40 FIT-Dateien, 294/294 Kandidatenschlüssel, SQLite `integrity_check=ok`, keine doppelten Schlüssel/FK-Verletzungen. Offline-Backfill auf App-Start ist in PR #289 implementiert. Regressionstest erzwingt FIT-Erfolg erst nach SQLite-Commit; Sync-Bericht trennt Queue-Abarbeitung von Archivabdeckung und stoppt an Grenzen statt Dateien still zu überspringen. CI-Emulator-Tests für den vorherigen Commit sind grün; aktuelle Folgeänderung lokal geprüft.
-- Nächster Schritt: Folgeänderung in PR #289 aufnehmen, Full-CI prüfen. Anschließend kontrollierter, ausdrücklich freigegebener read-only Sync-Validierungslauf nur nach Sicherung/Prüfung der Geräte-DB; keine Gate-Umgehung. Vollständigkeit der gesamten CIRQA-Historie bleibt bis zum erfolgreichen paginierten Gerätelauf unbewiesen.
+- Nachweise: PR #279 gemergt; Full-CI Main-Lauf `44694993958` für Head `f7a526fe62dc5e925f8053611873681a90df4c43` vollständig grün; Build-1399-APK gültig signiert und mit installierter Signatur verglichen; In-place-Update erfolgreich; Vorher-/Nachher-Backup privat ZIP- und Manifest-geprüft; Recorder kontrolliert pausiert und wieder gestartet; genau ein V27-Lauf abgeschlossen; SQLite `quick_check` und Backup-Referenzprüfung bestanden; read-only Inventur 45/45 FIT-Dateien und 27.736/27.736 importierbare Schlüssel in SQLite; redigierter Bericht erstellt.
+- Nächster Schritt: PR #289 wurde seit dem Main-Stand erneut aktualisiert; Full-CI für den aktuellen Head prüfen. #149/#150/#144 bleiben offen, solange Restkriterien bestehen. Keine weiteren Hardwarezugriffe nach Ende des freigegebenen Zeitfensters.

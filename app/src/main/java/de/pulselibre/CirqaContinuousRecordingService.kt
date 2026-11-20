@@ -160,8 +160,7 @@ class CirqaContinuousRecordingService : Service() {
     private fun scheduleReconnect(token: Int, reason: String) {
         if (!attemptGate.canRetry(token)) return
         // Bounded backoff: 2, 4, 8, 16, 32, then 60 seconds.
-        val shift = (attempts - 1).coerceIn(0, 5)
-        val delayMs = (2_000L shl shift).coerceAtMost(60_000L)
+        val delayMs = RecorderBackoff.delayMs(attempts)
         updateNotification("CIRQA getrennt · neuer Versuch in ${delayMs / 1000}s")
         log.append("reconnect_scheduled", mapOf("reason" to reason, "delay_ms" to delayMs))
         handler.postDelayed({
