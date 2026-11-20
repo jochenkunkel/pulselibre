@@ -218,6 +218,10 @@ sudo bash tools/runner/install-runner.sh --system \
   --android-sdk /opt/android-sdk \
   --java-home /home/smiler/.local/share/pulselibre-ci/jdk-21
 
+# 2a. Trockenlauf ohne root und ohne Registrierung (zeigt alle Befehle)
+RUNNER_TOKEN=dummy bash tools/runner/install-runner.sh --system --dry-run \
+  --allow-public --android-sdk /opt/android-sdk
+
 # 3. In GitHub aktivieren
 gh variable set PULSELIBRE_LOCAL_RUNNER_ENABLED --body true -R jochenkunkel/pulselibre
 ```
@@ -235,6 +239,9 @@ Details:
 - Umgebung für Jobs: `.env` im Runner-Stamm (`ANDROID_HOME`, `JAVA_HOME`).
 - Das Skript verweigert die Registrierung bei öffentlichem Repository, außer
   `--allow-public` wird ausdrücklich gesetzt.
+- `--dry-run` funktioniert für `--user` und `--system` auch ohne root: es wird
+  nichts registriert und nichts nach `/opt` geschrieben; nur die Befehle werden
+  angezeigt. Damit lässt sich der Ablauf vor der Freigabe vollständig prüfen.
 
 ### KVM
 

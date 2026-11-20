@@ -78,7 +78,9 @@ run() {
 }
 
 if [ "$MODE" = "system" ]; then
-  [ "$(id -u)" -eq 0 ] || ci_die "System-Installation benötigt root: sudo bash tools/runner/install-runner.sh --system"
+  if [ "$(id -u)" -ne 0 ] && [ "$DRY_RUN" -ne 1 ]; then
+    ci_die "System-Installation benötigt root: sudo bash tools/runner/install-runner.sh --system"
+  fi
   RUNNER_ROOT="/opt/pulselibre-runner"
   RUNNER_USER="ghrunner"
 else
@@ -120,7 +122,12 @@ if [ "$MODE" = "system" ]; then
   fi
 fi
 
-mkdir -p "$RUNNER_ROOT"
+if [ "$MODE" = "system" ] && [ "$DRY_RUN" -eq 1 ] && [ "$(id -u)" -ne 0 ]; then
+  # Ohne root lässt sich der Ablauf vollständig anzeigen, ohne /opt anzufassen.
+  ci_warn "Dry-Run ohne root: $RUNNER_ROOT wird nicht angelegt; die echte Installation benötigt sudo."
+else
+  mkdir -p "$RUNNER_ROOT"
+fi
 if [ "$MODE" = "system" ]; then
   run chown -R "$RUNNER_USER:$RUNNER_USER" "$RUNNER_ROOT"
   run chmod 750 "$RUNNER_ROOT"
