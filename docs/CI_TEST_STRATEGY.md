@@ -71,6 +71,8 @@ Die Nachhärtung aus PR #292 (Workflow-Strukturtests) lief ebenfalls vollständi
 
 Der Runner-Installer-Trockenlauf aus PR #293 lief in der PR [44708553642](https://github.com/jochenkunkel/pulselibre/actions/runs/44708553642) und nach dem Merge auf `main` [44709934316](https://github.com/jochenkunkel/pulselibre/actions/runs/44709934316) ebenfalls CLOUD + FULL **grün**, jeweils einschließlich Emulator.
 
+Nach der Dokumentationsaktualisierung in PR #295 wurde der unmittelbar folgende Main-Lauf [44712911621](https://github.com/jochenkunkel/pulselibre/actions/runs/44712911621) durch einen neueren Main-Push abgebrochen (Concurrency). Der Lauf auf dem danach aktuellen Head `530cda2` ([44714496489](https://github.com/jochenkunkel/pulselibre/actions/runs/44714496489)) war vollständig **grün**, einschließlich Emulator.
+
 Details und Befehle: [ci/HYBRID_CI.md](ci/HYBRID_CI.md). Die Tabelle wird nach
 jedem tatsächlich ausgeführten Lauf mit Datum, Lauf-ID und Ergebnis aktualisiert;
 nicht ausführbare Tests bleiben ausdrücklich offen.
