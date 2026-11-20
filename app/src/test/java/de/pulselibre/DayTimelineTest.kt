@@ -74,4 +74,44 @@ class DayTimelineTest {
         assertTrue(lane.gaps.isEmpty())
         assertEquals("Tag noch nicht begonnen.", DayTimeline.describe(listOf(lane), day, day.start.minusSeconds(1), zone))
     }
+
+    @Test fun zoomKeepsTheFocusFractionAndStaysInsideTheDay() {
+        val v = DayViewport().zoom(0.5f, 4f)
+        assertEquals(0.25f, v.span, 1e-6f)
+        assertEquals(0.375f, v.start, 1e-6f)
+        val edge = DayViewport().zoom(0f, 8f)
+        assertEquals(0f, edge.start, 1e-6f)
+        assertEquals(0.125f, edge.end, 1e-6f)
+    }
+
+    @Test fun zoomIsLimitedToFifteenMinutesAndToTheWholeDay() {
+        var v = DayViewport()
+        repeat(20) { v = v.zoom(0.3f, 2f) }
+        assertEquals(DayViewport.MIN_SPAN, v.span, 1e-6f)
+        assertEquals(DayViewport(), v.zoom(0.3f, 1e-6f))
+        assertTrue(DayViewport().zoom(0.5f, 0.5f).isFull)
+    }
+
+    @Test fun panIsClampedAtBothEnds() {
+        val v = DayViewport(0.4f, 0.6f)
+        assertEquals(1f, v.pan(5f).end, 1e-6f)
+        assertEquals(0f, v.pan(-5f).start, 1e-6f)
+        assertEquals(0.2f, v.pan(5f).span, 1e-6f)
+    }
+
+    @Test fun invalidZoomFactorLeavesTheViewportUnchanged() {
+        val v = DayViewport(0.2f, 0.4f)
+        assertEquals(v, v.zoom(0.3f, 0f))
+        assertEquals(v, v.zoom(0.3f, Float.NaN))
+        assertEquals(v, v.zoom(0.3f, -2f))
+    }
+
+    @Test fun tickSpacingFollowsTheVisibleSpan() {
+        val day = 24L * 60
+        assertEquals(360, DayViewport.tickMinutes(1f, day))
+        assertEquals(180, DayViewport.tickMinutes(0.5f, day))
+        assertEquals(60, DayViewport.tickMinutes(0.2f, day))
+        assertEquals(30, DayViewport.tickMinutes(0.1f, day))
+        assertEquals(10, DayViewport.tickMinutes(0.02f, day))
+    }
 }

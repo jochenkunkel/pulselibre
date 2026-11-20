@@ -78,3 +78,44 @@ internal object DayTimeline {
         }
     }
 }
+
+/**
+ * Visible part of the day axis as fractions 0..1 (#264). Zooming never changes the data, only which part of the
+ * time axis is shown; the smallest window is [MIN_SPAN] (≈ 15 minutes of a 24-hour day).
+ */
+internal data class DayViewport(val start: Float = 0f, val end: Float = 1f) {
+    val span: Float get() = end - start
+    val isFull: Boolean get() = start <= 0f && end >= 1f
+
+    /** Zoom by [factor] (> 1 = in) keeping the day fraction [focus] at the same screen position. */
+    fun zoom(focus: Float, factor: Float): DayViewport {
+        if (factor <= 0f || factor.isNaN()) return this
+        val newSpan = (span / factor).coerceIn(MIN_SPAN, 1f)
+        val f = ((focus - start) / span).coerceIn(0f, 1f)
+        return place(focus - f * newSpan, newSpan)
+    }
+
+    /** Move by [delta] day fractions; stays inside the day. */
+    fun pan(delta: Float): DayViewport = place(start + delta, span)
+
+    private fun place(newStart: Float, newSpan: Float): DayViewport {
+        val s = newStart.coerceIn(0f, 1f - newSpan)
+        return DayViewport(s, s + newSpan)
+    }
+
+    companion object {
+        const val MIN_SPAN = 15f / (24 * 60)
+
+        /** Tick spacing in minutes so that roughly 3–6 labels fit the visible span of a day of [dayMinutes]. */
+        fun tickMinutes(span: Float, dayMinutes: Long): Int {
+            val visible = span * dayMinutes
+            return when {
+                visible > 12 * 60 -> 360
+                visible > 6 * 60 -> 180
+                visible > 3 * 60 -> 60
+                visible > 60 -> 30
+                else -> 10
+            }
+        }
+    }
+}
