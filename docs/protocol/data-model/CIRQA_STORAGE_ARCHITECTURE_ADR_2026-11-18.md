@@ -4,6 +4,12 @@
 - Status: Proposed target; current schema and migration status are stated separately.
 - Scope: SQLite event/history stores and immutable private CIRQA file originals.
 
+> **Current-state update (2026-11-20):** This ADR records the 18 Nov decision and
+> phased migration history. Its schema/version snapshots below are historical,
+> not the current DDL. For the current code-backed schema v6 / history schema v2,
+> backup v6, ERDs, and migration gaps, use
+> [CIRQA_DATA_ARCHITECTURE_AUDIT_2026-11-20.md](CIRQA_DATA_ARCHITECTURE_AUDIT_2026-11-20.md).
+
 ## Decision
 
 Keep one app-private database file as the long-term target: `cirqa_measurements.db`.

@@ -1,8 +1,8 @@
 # OpenCode – V27-Gerätenachlauf und CIRQA-Abnahme
 - Agent/Umgebung: OpenCode / API coding agent, Worktree `/tmp/opencode/cirqa-v27-sync`
 - Beginn: 2026-11-20 07:31 UTC
-- Letzte Aktualisierung: 2026-11-20 07:58 UTC
-- Status: aktiv
+- Letzte Aktualisierung: 2026-11-20 09:54 UTC
+- Status: pausiert
 - Rolle/Zuständigkeit: CIRQA-Protokoll, begrenzter Gerätelauf, FIT/SQLite-Abgleich gemäß ausdrücklicher Beauftragung
 - Aktueller Auftrag: neuen Main-Stand und CI-Gate verifizieren, anschließend den bereits freigegebenen einmaligen V27-Lauf samt lokalem Import sicher durchführen und redigiert dokumentieren
 - Jetzt in Bearbeitung: #149/#150 – V27-Ergebnis redigiert dokumentieren und verbleibende Abnahmekriterien festhalten; keine Behauptung vollständiger Gerätehistorie
@@ -12,4 +12,4 @@
 - Abstimmungsbedarf: Claude Code arbeitet laut offener Nachricht an #150 an der FIT-Inventur im Diagnosepanel; mein Geräte-/Protokollnachlauf ist davon getrennt. Keine parallele Änderung an Testlabor-D/E.
 - Agent-sync-Nachrichten: `docs/collaboration/agent-sync/2026-11-20_0705_opencode-an-alle_v27-bounded-sync.md`; `docs/collaboration/agent-sync/2026-11-20_1830_opencode-an-claude_issue150-inventory-ui.md`
 - Nachweise: PR #279 gemergt; Full-CI Main-Lauf `44694993958` für Head `f7a526fe62dc5e925f8053611873681a90df4c43` vollständig grün; Build-1399-APK gültig signiert und mit installierter Signatur verglichen; In-place-Update erfolgreich; Vorher-/Nachher-Backup privat ZIP- und Manifest-geprüft; Recorder kontrolliert pausiert und wieder gestartet; genau ein V27-Lauf abgeschlossen; SQLite `quick_check` und Backup-Referenzprüfung bestanden; read-only Inventur 45/45 FIT-Dateien und 27.736/27.736 importierbare Schlüssel in SQLite; redigierter Bericht erstellt.
-- Nächster Schritt: Dokumentation committen, fast-forward pushen und PR mit vollständiger CI öffnen; Issues #149/#150/#144 offen lassen, solange Restkriterien bestehen. Main-Full-CI `44697835054` für `98b65ce5c183a7977d7cbac965029b1ad729cf31` ist noch in Arbeit.
+- Nächster Schritt: PR #289 enthält den aktualisierten Merge-Head `5ebac6c`; Full-CI für diesen Head läuft. #149/#150/#144 bleiben offen, solange Restkriterien bestehen. Keine weiteren Hardwarezugriffe nach Ende des freigegebenen Zeitfensters.
