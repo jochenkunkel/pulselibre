@@ -13,20 +13,19 @@ gepflegte CI-Definition.
 ## 1. Architektur
 
 ```text
-                    GitHub Actions
-                          │
-                  prepare (ubuntu-latest)
-                  ermittelt Runner + Umfang
-                          │
-             ┌────────────┴────────────┐
-             │                         │
-          LOCAL                      CLOUD
-   [self-hosted, linux, x64,      ubuntu-latest
-          pulselibre]
-             │                         │
-             └────────────┬────────────┘
-                          ▼
-                 tools/ci/run-ci.sh
+                     GitHub Actions
+               runs-on direkt aus Trigger,
+                Inputs und Repo-Variablen
+                           │
+             ┌─────────────┴──────────────┐
+             │                            │
+          LOCAL                         CLOUD
+   [self-hosted, linux, x64,       ubuntu-latest
+         pulselibre]
+             │                            │
+             └──────────────┬─────────────┘
+                            ▼
+                   tools/ci/run-ci.sh
         ┌─────────────────┼─────────────────┐
         ▼                 ▼                 ▼
    python-tests        build              verify
@@ -47,10 +46,17 @@ gepflegte CI-Definition.
                   GitHub Artifacts
 ```
 
-Der Job `prepare` läuft bewusst immer auf GitHub-hosted (wenige Sekunden). So
-wird die Zielumgebung auch dann korrekt bestimmt, wenn der lokale Runner offline
-ist. Ein LOCAL-Job wartet dann in der Warteschlange, statt unbemerkt in die Cloud
-auszuweichen.
+Der Runner wird direkt in `runs-on` bestimmt. Vertrauenswürdige Pushes auf
+`main` und manuelle LOCAL-Dispatches benötigen deshalb keinen vorgelagerten
+GitHub-hosted Job. Bei einem Billing-Lock kann GitHub den Job dennoch global
+blockieren; ob Self-hosted Jobs in diesem Konto trotz des Locks zugestellt
+werden, ist erst mit einem tatsächlichen Run belegt. Ein freigegebener LOCAL-
+Job wartet bei offline befindlichem Runner in der Warteschlange und wechselt
+nicht still in die Cloud.
+
+Pull Requests gehen standardmäßig direkt auf CLOUD. Nur ein explizites
+`PULSELIBRE_PR_ON_LOCAL_ENABLED=true` kann Nicht-Fork-PRs auf LOCAL routen;
+Forks bleiben unabhängig von Variablen immer CLOUD.
 
 ## 2. Bedienung in GitHub
 
@@ -68,10 +74,9 @@ auszuweichen.
 | CLOUD | QUICK | dasselbe auf `ubuntu-latest` |
 | CLOUD | FULL | dasselbe inklusive Emulator auf `ubuntu-latest` |
 
-Die tatsächlich verwendete Umgebung steht im Job-Namen
-(`… · LOCAL · FULL`), im Laufprotokoll des `prepare`-Jobs und in der
-Job-Zusammenfassung („Android CI – Ausführungsziel“). Der Laufname zeigt den
-**angeforderten** Wert; bei automatischen Läufen steht dort `AUTO`.
+Die tatsächlich verwendete Umgebung und der Runnername stehen im Jobprotokoll
+und in der Job-Zusammenfassung („Android CI – Ausführungsziel“). Der Laufname
+zeigt den **angeforderten** Wert; bei automatischen Läufen steht dort `AUTO`.
 
 ### Standardwerte bei automatischen Läufen
 
@@ -151,9 +156,9 @@ Ergebnis zu erzeugen.
 `tools/test_workflow_structure.py` die Workflow-Dateien. Dieser Test
 sichert die Fehler ab, die beim Umbau real aufgetreten sind:
 
-- `runs-on` wird ausschließlich über `fromJSON(needs.prepare.outputs.runs_on)`
-  aufgelöst; ein bloßer String wie `ubuntu-latest` ist kein gültiges JSON und
-  lässt GitHub den Job verwerfen.
+- `runs-on` wird ohne Hosted-Prepare-Job direkt aus dem Trigger, den
+  Repository-Variablen und manuellen Eingaben als JSON-Array bestimmt. Ein
+  bloßer String wie `ubuntu-latest` ist für `fromJSON()` kein gültiges JSON.
 - Job-Namen enthalten keine `${{ ... }}`-Ausdrücke (GitHub wertet `needs` dort
   nicht aus).
 - Alle Actions sind auf einen vollständigen Commit-SHA gepinnt.
