@@ -394,3 +394,12 @@ Issues: https://github.com/jochenkunkel/pulselibre/issues
 - Der Lauf stoppt nach maximal fünf Sekunden, bei erstem strukturell unerwartetem Frame, ungültigem CRC/COBS oder einer nicht passenden Antwort. Klassifiziert wird nur eine CRC-geprüfte GFDI-5000-Antwort zu Typ 5007; es gibt keinen 5031/5002/5004-/0x8A39-/Retry-Sendepfad.
 - Testlabor verlangt einen unmittelbaren Bestätigungsdialog mit Bytekandidat und Nebenwirkungswarnung und verweigert einen Versuch, falls kein/ein mehrdeutiges gekoppeltes CIRQA-Gerät oder eine laufende App-BLE-Sitzung vorliegt.
 - Der erste Versuch ist als verbraucht markiert. Der zweite Test wird über das signierte Main-Update mit persistenter Zwei-Versuche-Obergrenze vorbereitet. CI-Build und Hardwareergebnis des Folgecommits sind separat zu dokumentieren.
+
+## Hybride CI: LOCAL/CLOUD (2026-11-20)
+
+- `.github/workflows/android.yml` erlaubt bei manuellen Läufen die unabhängige Wahl von **Ausführungsort** (`LOCAL`/`CLOUD`) und **Testumfang** (`QUICK`/`FULL`). Push auf `main` und Pull Requests laufen automatisch mit `FULL`.
+- Beide Umgebungen nutzen dieselbe Pipeline (`tools/ci/run-ci.sh`); lokal zusätzlich `./tools/ci-local.sh --quick|--full`.
+- Sicherheitsregel: Solange das Repository öffentlich ist, laufen Pull Requests und Fork-Code **nicht** auf einem Self-hosted Runner. LOCAL wird erst über die Repository-Variable `PULSELIBRE_LOCAL_RUNNER_ENABLED=true` aktiviert; bis dahin erfolgt ein sichtbarer CLOUD-Fallback.
+- Der Self-hosted Runner (Label `pulselibre`) ist **vorbereitet, aber nicht registriert**. Installations- und Wartungsskripte: `tools/runner/`. Dokumentation: [ci/HYBRID_CI.md](ci/HYBRID_CI.md).
+- Die Repository-Sichtbarkeit wurde **nicht** geändert. Signaturschlüssel und Secrets wurden **nicht** verändert.
+- Lokale Testläufe (QUICK/FULL), Cloud-Läufe und der Signaturvergleich sind in [CI_TEST_STRATEGY.md](CI_TEST_STRATEGY.md) mit tatsächlichem Ergebnis dokumentiert; nicht ausführbare Tests bleiben offen.

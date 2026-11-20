@@ -37,12 +37,24 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
             .remove("pulse_context").apply()
     }
 
+    private var lastMetrics: List<DashboardMetric> = emptyList()
+    private var lastActivity: StepActivityEstimate = StepActivityEstimate.UNKNOWN
+    private val displayPrefs get() = context.getSharedPreferences("dashboard_display", Context.MODE_PRIVATE)
+
     fun render(allMetrics: List<DashboardMetric>, activity: StepActivityEstimate = StepActivityEstimate.UNKNOWN) {
+        lastMetrics = allMetrics; lastActivity = activity
         removeAllViews()
         val metrics = applyLocalStepGoal(allMetrics,
             context.getSharedPreferences(SpO2DisplaySettings.STORE, Context.MODE_PRIVATE).getString("step_goal", null))
         stepGoal = metrics.firstOrNull { it.title == "Schrittziel" }?.value?.toIntOrNull()
         val overview = dashboardOverview(metrics)
+        val keys = DashboardLayout.defaultKeys(overview.details.map { it.title })
+        val entries = DashboardLayout.resolve(DashboardLayout.decode(displayPrefs.getString(LAYOUT_KEY, null)), keys)
+        if (DashboardLayout.isDefault(entries, keys)) renderDefault(overview, activity) else renderCustom(overview, activity, entries)
+        addCustomizeButton(entries)
+    }
+
+    private fun renderDefault(overview: DashboardOverview, activity: StepActivityEstimate) {
         addCardPair(overview.vitalSigns) { metric ->
             if (metric.title == "Herzfrequenz") pulseCard(metric, activity)
             else metricCard(metric, palette.oxygen)
@@ -58,6 +70,66 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
         overview.details.chunked(2).forEach { pair ->
             addCardPair(pair) { metric -> metricCard(metric, ink) }
         }
+    }
+
+    /** User layout (#267): favourites first under "Im Fokus", hidden tiles omitted, half-width tiles pair up. */
+    private fun renderCustom(overview: DashboardOverview, activity: StepActivityEstimate, entries: List<DashboardLayout.Entry>) {
+        val byKey = (overview.vitalSigns + overview.details).associateBy { it.title }
+        val order = DashboardLayout.displayOrder(entries)
+        if (order.isEmpty()) {
+            addView(label("Alle Kacheln sind ausgeblendet. Unter „Startseite anpassen“ lassen sie sich wieder einblenden.", 13f, muted).apply {
+                tag = "dashboard_all_hidden"
+            }, LayoutParams(-1, -2).apply { topMargin = dp(8); bottomMargin = dp(8) })
+            return
+        }
+        fun renderRows(part: List<DashboardLayout.Entry>) {
+            DashboardLayout.rows(part).forEach { row ->
+                val key = row.first()
+                when {
+                    key == DashboardLayout.SLEEP -> addView(metricCard(overview.sleep, violet), LayoutParams(-1, -2).apply { bottomMargin = dp(8) })
+                    key == DashboardLayout.NIGHT -> addNightOxygenCard()
+                    key == DashboardLayout.STEPS -> {
+                        addStepContextChip()
+                        addView(stepCard(overview.steps, overview.stepGoal), LayoutParams(-1, -2).apply { bottomMargin = dp(8) })
+                    }
+                    else -> addCardPair(row.mapNotNull { byKey[it] }) { metric ->
+                        when (metric.title) {
+                            DashboardLayout.HEART -> pulseCard(metric, activity)
+                            DashboardLayout.SPO2 -> metricCard(metric, palette.oxygen)
+                            else -> metricCard(metric, ink)
+                        }
+                    }
+                }
+            }
+        }
+        val favorites = order.filter { it.favorite }
+        if (favorites.isNotEmpty()) {
+            heading("Im Fokus")
+            renderRows(favorites)
+            val rest = order.filterNot { it.favorite }
+            if (rest.isNotEmpty()) { heading("Weitere Kacheln"); renderRows(rest) }
+        } else renderRows(order)
+    }
+
+    private fun addCustomizeButton(entries: List<DashboardLayout.Entry>) {
+        addView(label("Startseite anpassen", 13f, palette.accent, true).apply {
+            tag = "dashboard_customize"
+            gravity = Gravity.CENTER
+            minimumHeight = dp(48)
+            isClickable = true; isFocusable = true
+            contentDescription = "Startseite anpassen. Kacheln ein- oder ausblenden, Reihenfolge ändern, Favoriten festlegen."
+            setOnClickListener {
+                showDashboardCustomize(context, entries,
+                    onSave = { saved ->
+                        displayPrefs.edit().putString(LAYOUT_KEY, DashboardLayout.encode(saved)).apply()
+                        render(lastMetrics, lastActivity)
+                    },
+                    onReset = {
+                        displayPrefs.edit().remove(LAYOUT_KEY).apply()
+                        render(lastMetrics, lastActivity)
+                    })
+            }
+        }, LayoutParams(-1, -2).apply { topMargin = dp(4); bottomMargin = dp(8) })
     }
 
     private fun stepCard(steps: DashboardMetric, goal: DashboardMetric): View {
@@ -265,6 +337,7 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
     }
 
     private companion object {
+        private const val LAYOUT_KEY = "layout_v1"
         const val INSIGHT_CACHE_MS = 60_000L
         val insightCache = java.util.concurrent.ConcurrentHashMap<String, Pair<TileInsight, Long>>()
         const val STEP_CACHE_MS = 60_000L

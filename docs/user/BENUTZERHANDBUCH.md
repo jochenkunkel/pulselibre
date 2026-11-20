@@ -1,6 +1,6 @@
 # PulsLibre – Benutzerhandbuch
 
-> **Stand:** 19.11.2026 · `main` ab Commit cd7c827 (Debug-Build, App-Version 2.0.0) · **Alle Bilder sind Aufnahmen aus dem Android-Emulator (Pixel-Auflösung 1080×2340, Dunkelmodus) mit künstlichen Demo-Daten – keine echten Gesundheitsdaten und kein echtes Armband** (daher „Nicht gekoppelt“ und leere Profilfelder). Alle Aussagen beziehen sich auf den tatsächlichen Stand von `main`; „noch nicht verfügbar“ heißt wirklich: nicht umgesetzt oder ohne belegte Datenquelle. Bilder liegen in `docs/user/images/`.
+> **Textstand:** 20.11.2026 (neu: Tag im Überblick, Wochenkarte, Startseite anpassen; die Abbildungen zeigen den Stand vom 19.11.2026 und sind noch nicht aktualisiert) · **Bildstand:** 19.11.2026 · `main` ab Commit cd7c827 (Debug-Build, App-Version 2.0.0) · **Alle Bilder sind Aufnahmen aus dem Android-Emulator (Pixel-Auflösung 1080×2340, Dunkelmodus) mit künstlichen Demo-Daten – keine echten Gesundheitsdaten und kein echtes Armband** (daher „Nicht gekoppelt“ und leere Profilfelder). Alle Aussagen beziehen sich auf den tatsächlichen Stand von `main`; „noch nicht verfügbar“ heißt wirklich: nicht umgesetzt oder ohne belegte Datenquelle. Bilder liegen in `docs/user/images/`.
 
 PulsLibre ist eine **lokale, offline arbeitende** App für das Garmin-CIRQA-Armband. Alle Daten bleiben auf deinem Telefon; es gibt keine Cloud, kein Konto und keine Internetberechtigung. Die App stellt **keine Diagnosen** und keine Gesundheits- oder Fitness-Scores bereit.
 
@@ -22,6 +22,9 @@ PulsLibre ist eine **lokale, offline arbeitende** App für das Garmin-CIRQA-Armb
 - **Mein Körperprofil:** Größe, Gewicht, Alter und BMI aus deinen eigenen Angaben (Tippen zum Bearbeiten; das Gewicht lässt sich direkt per Antippen ändern). Der BMI ist nur eine Orientierung und wird mit Kategorie in Worten gezeigt.
 - **Gesundheit · CIRQA:** Herzfrequenz (Tacho mit Aktivitätskontext), SpO₂ (mit Skala und Verlauf), Schritte heute, Ruhepuls und weitere Gerätewerte (RR-Intervall, Stress, Body Battery …). Jede Kachel hat ein ⓘ mit Quelle, Skala und Einschränkungen. Kacheln mit **dunkelviolettem Rahmen** sind noch **nicht validiert** (z. B. SpO₂ des Bands); sie zeigen Werte, aber keine Bewertung als gesichert.
 - **Schrittziel:** Ein in den Einstellungen eingetragenes Schrittziel (100–100 000) hat Vorrang und wird als „Ziel (eigenes)“ gezeigt; ohne eigenes Ziel gilt das vom Band gemeldete („Ziel (Gerät)“). Ab dem Ziel steht dort „Tagesziel erreicht“.
+- **Startseite anpassen:** Ganz unten auf der Übersicht lassen sich Kacheln ein- oder ausblenden, in der Reihenfolge verschieben und als Favorit markieren (Favoriten stehen zuerst unter „Im Fokus“). Ausgeblendete Kacheln werden weiter aufgezeichnet, nur nicht angezeigt. „Zurücksetzen“ stellt die Standardansicht wieder her. Die Einstellung bleibt lokal auf dem Gerät.
+- **Tag im Überblick:** Eine Karte unten auf der Übersicht öffnet Herzfrequenz und Schritte eines Tages auf **einer gemeinsamen Zeitachse** (Datum über die Schaltfläche wählbar). Zeiten ohne Messwerte sind **schraffiert und mit „keine Daten“ beschriftet** und werden nie verbunden oder geschätzt. Tippen oder Ziehen zeigt Uhrzeit und den Wert jeder Spur (oder „keine Daten“). Mit Zwei-Finger-Zoom oder den Tasten **‹ − + › Tag** lässt sich der Ausschnitt ändern (bis 15 Minuten); im Ausschnitt stehen die Rohpunkte, keine Mittelwerte. Die gestrichelte Linie bei den Schritten ist dein Ziel (eigenes vor Gerätziel). Unter dem Diagramm steht dieselbe Information als Text (auch für TalkBack).
+- Weitere Gerätewerte (Kalorien, Intensitätsminuten, Stress, Body Battery …) erscheinen unter den Hauptkacheln, sobald das Band sie sendet; ihre Einheiten und Messbedingungen sind nicht geprüft.
 - Fehlende Werte werden als „Keine Messdaten“ gezeigt, nie als 0.
 
 ### Verlauf
@@ -49,6 +52,7 @@ Wissenschaftliche, **explorative** Auswertungen in fünf Gruppen (Herz & Kreisla
 - **Aktivitäts-Atlas:** Kalenderraster der Tages-Schrittstände (Mo–So). **Graue Zelle = keine verifizierten Daten** (nicht 0 Schritte); Abstufung = relative Schrittzahl deiner erfassten Tage (kein Gesundheitsstatus); die Zahl in der Zelle (z. B. 7,2k) ist das zweite Merkmal neben der Farbe; umrandet = heute, noch nicht abgeschlossen.
 - **Zusammenhang Schritte → Ruhepuls am Folgetag** (explorativ, Spearman mit 95-%-Intervall und Robustheitszeile; erst ab 30 gepaarten Tagen) – Antippen öffnet das Streudiagramm.
 - **Datenabdeckung:** Ruhepuls und Schritte getrennt als „x von y Tagen“.
+- **Letzte 7 Tage:** Ø Schritte pro Tag, Schritte gesamt und Ø Geräte-Ruhepuls über die sieben vollständigen Tage vor heute, je Zeile mit eigener Abdeckung („4 von 7 Tagen“). Mittelwerte zählen nur Tage mit Daten; fehlende Tage sind nie 0. Mit eigenem Schrittziel zusätzlich „Ziel erreicht an x von y Tagen mit Daten“ (auch im Aktivitäts-Atlas für das gewählte Fenster). Schlafdauer, Kalorien, Intensitätsminuten und Stress haben noch keine geprüften Tagesreihen.
 - **Methoden und Grenzen:** Quellen, Zeitbezug, Annahmen. Unterhalb von 90 Tagen realer Historie wird nie extrapoliert.
 
 ### Gerät

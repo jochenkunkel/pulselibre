@@ -1,11 +1,14 @@
 #!/usr/bin/env bash
 # Retry only transient dependency-service throttling, never compiler/test failures.
 set -uo pipefail
+# GRADLE_CMD lets the hybrid CI pass an explicit Gradle 9.6 binary/path; the
+# default keeps the established behaviour (Gradle from PATH).
+gradle_bin="${GRADLE_CMD:-gradle}"
 max_attempts=3
 for ((attempt=1; attempt<=max_attempts; attempt++)); do
   log="$(mktemp)"
   echo "Gradle attempt $attempt/$max_attempts"
-  gradle "$@" 2>&1 | tee "$log"
+  "$gradle_bin" "$@" 2>&1 | tee "$log"
   status=${PIPESTATUS[0]}
   if ((status == 0)); then
     rm -f "$log"
