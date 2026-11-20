@@ -102,7 +102,10 @@ fi
 
 # --- Registration token -----------------------------------------------------
 token=""
-if [ -n "${RUNNER_TOKEN:-}" ]; then
+if [ "$DRY_RUN" -eq 1 ]; then
+  # A dry-run never calls config.sh; do not require or request a real token.
+  token="DRY-RUN-NO-TOKEN"
+elif [ -n "${RUNNER_TOKEN:-}" ]; then
   token="$RUNNER_TOKEN"
 elif [ -n "$TOKEN_FILE" ]; then
   [ -r "$TOKEN_FILE" ] || ci_die "Token-Datei nicht lesbar: $TOKEN_FILE"
@@ -110,8 +113,14 @@ elif [ -n "$TOKEN_FILE" ]; then
 elif command -v gh >/dev/null 2>&1; then
   token="$(gh api -X POST "repos/$REPO/actions/runners/registration-token" --jq .token 2>/dev/null || true)"
 fi
-[ -n "$token" ] || ci_die "Kein Registrierungs-Token. 'gh auth login' ausführen oder --token-file/RUNNER_TOKEN verwenden."
-ci_info "Registrierungs-Token vorhanden (wird nicht protokolliert)"
+if [ -z "$token" ]; then
+  ci_die "Kein Registrierungs-Token. 'gh auth login' ausführen oder --token-file/RUNNER_TOKEN verwenden."
+fi
+if [ "$DRY_RUN" -eq 1 ]; then
+  ci_info "Trockenlauf: kein Registrierungs-Token erforderlich oder abgerufen."
+else
+  ci_info "Registrierungs-Token vorhanden (wird nicht protokolliert)"
+fi
 
 # --- Dedicated system user --------------------------------------------------
 if [ "$MODE" = "system" ]; then
