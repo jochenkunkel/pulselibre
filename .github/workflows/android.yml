@@ -1,5 +1,13 @@
 name: Android CI
-run-name: "Android CI · ${{ github.ref_name }} · ${{ github.event_name != 'workflow_dispatch' || inputs.full_tests && 'voll (mit Emulator)' || 'schnell (Build + Unit-Tests)' }}"
+
+# Ausführungsort und Testumfang sind bei manuellen Läufen frei wählbar.
+# Automatische Läufe verwenden dokumentierte Standardwerte (siehe
+# docs/ci/HYBRID_CI.md): Push/PR = LOCAL (falls freigegeben) + FULL.
+run-name: >-
+  Android CI · ${{ github.ref_name }} ·
+  ${{ github.event_name == 'workflow_dispatch' && inputs.run_environment || 'AUTO' }} ·
+  ${{ github.event_name == 'workflow_dispatch' && inputs.test_scope || 'FULL' }}
+
 on:
   pull_request:
     branches: [main]
@@ -7,23 +15,82 @@ on:
     branches: [main]
   workflow_dispatch:
     inputs:
-      full_tests:
-        description: 'Run full release checks including emulator'
-        type: boolean
-        required: false
-        default: false
+      run_environment:
+        description: 'Ausführungsort – LOCAL: eigener Runner, CLOUD: GitHub-hosted'
+        type: choice
+        required: true
+        default: LOCAL
+        options:
+          - LOCAL
+          - CLOUD
+      test_scope:
+        description: 'Testumfang – QUICK: Build + Unit-Tests, FULL: inkl. Lint + Emulator'
+        type: choice
+        required: true
+        default: QUICK
+        options:
+          - QUICK
+          - FULL
+
 concurrency:
-  # Only the newest run per ref remains active; obsolete builds are cancelled.
-  group: pulselibre-android-${{ github.ref }}
+  # LOCAL- und CLOUD-Läufe desselben Refs blockieren sich nicht gegenseitig;
+  # überholte Läufe derselben Umgebung werden abgebrochen.
+  group: pulselibre-android-${{ github.ref }}-${{ github.event_name == 'workflow_dispatch' && inputs.run_environment || 'auto' }}
   cancel-in-progress: true
+
 jobs:
-  build:
-    name: "Build, Unit-Tests, Lint, signierte APK"
+  # Entscheidet Runner und Umfang. Läuft immer auf GitHub-hosted (Sekunden),
+  # damit die Entscheidung auch dann fällt, wenn der lokale Runner offline ist.
+  prepare:
+    name: "CI-Ziel bestimmen"
     runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    outputs:
+      environment: ${{ steps.resolve.outputs.environment }}
+      requested_environment: ${{ steps.resolve.outputs.requested_environment }}
+      scope: ${{ steps.resolve.outputs.scope }}
+      runs_on: ${{ steps.resolve.outputs.runs_on }}
+      runner_label: ${{ steps.resolve.outputs.runner_label }}
+      reason: ${{ steps.resolve.outputs.reason }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Runner und Umfang bestimmen
+        id: resolve
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          REQUESTED_ENVIRONMENT: ${{ inputs.run_environment }}
+          REQUESTED_SCOPE: ${{ inputs.test_scope }}
+          LOCAL_RUNNER_ENABLED: ${{ vars.PULSELIBRE_LOCAL_RUNNER_ENABLED }}
+          PR_ON_LOCAL_ENABLED: ${{ vars.PULSELIBRE_PR_ON_LOCAL_ENABLED }}
+          PR_FROM_FORK: ${{ github.event.pull_request.head.repo.fork }}
+        run: bash tools/ci/resolve-target.sh
+      - name: Ergebnis protokollieren
+        env:
+          ENVIRONMENT: ${{ steps.resolve.outputs.environment }}
+          SCOPE: ${{ steps.resolve.outputs.scope }}
+          REASON: ${{ steps.resolve.outputs.reason }}
+          RUNNER_LABEL: ${{ steps.resolve.outputs.runner_label }}
+        run: |
+          echo "Umgebung: $ENVIRONMENT"
+          echo "Runner:   $RUNNER_LABEL"
+          echo "Umfang:   $SCOPE"
+          echo "Grund:    $REASON"
+
+  build:
+    name: "Build, Unit-Tests, Lint, APK · ${{ needs.prepare.outputs.environment }} · ${{ needs.prepare.outputs.scope }}"
+    needs: prepare
+    runs-on: ${{ fromJSON(needs.prepare.outputs.runs_on) }}
+    timeout-minutes: 60
     permissions:
       contents: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
       - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6
         with:
           distribution: temurin
@@ -31,6 +98,8 @@ jobs:
       - uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6
         with:
           gradle-version: '9.6.0'
+      - name: Android SDK prüfen
+        run: bash tools/ci/ensure-android-sdk.sh
       - name: Restore stable APK signing key
         if: github.event_name != 'pull_request'
         env:
@@ -49,39 +118,17 @@ jobs:
             echo "PULSELIBRE_SIGNING_KEY_PASSWORD=$SIGNING_KEY_PASSWORD" >> "$GITHUB_ENV"
           fi
       - name: Python offline HCI validator regression tests
-        run: python3 -m unittest discover -s tools -p 'test_*.py' -v
-      # PRs and main pushes run the full gate; manual dispatch defaults to quick.
+        run: bash tools/ci/run-ci.sh python-tests
       - name: Build debug and R8 release variants, run unit tests
-        run: bash .github/scripts/gradle-retry.sh :app:testDebugUnitTest :app:assembleDebug :app:assembleRelease :app:createDebugUnitTestCoverageReport -PpulselibreVersionCode=${{ github.run_number }} --stacktrace
-      - name: Print non-secret APK update diagnostics
-        run: |
-          echo "Package: de.pulselibre"
-          echo "Version code: ${{ github.run_number }}"
-          echo "Stable signing configured: $([ -n "$PULSELIBRE_SIGNING_STORE" ] && echo yes || echo no)"
-          "${ANDROID_HOME}/build-tools/35.0.0/apksigner" verify --print-certs app/build/outputs/apk/debug/app-debug.apk | grep -E 'Signer #1 certificate SHA-256 digest|Verified using'
-          "${ANDROID_HOME}/build-tools/35.0.0/aapt" dump badging app/build/outputs/apk/debug/app-debug.apk | grep '^package:'
-          test -f app/build/outputs/mapping/release/mapping.txt
-          release_apk=$(find app/build/outputs/apk/release -maxdepth 1 -type f -name 'app-release*.apk' -print -quit)
-          test -n "$release_apk"
-          "${ANDROID_HOME}/build-tools/35.0.0/aapt" dump badging "$release_apk" | grep '^package:'
-          if "${ANDROID_HOME}/build-tools/35.0.0/aapt" dump badging "$release_apk" | grep -q 'application-debuggable'; then
-            echo "::error::Release APK is debuggable"
-            exit 1
-          fi
-          if [ -n "$PULSELIBRE_SIGNING_STORE" ]; then
-            release_cert=$("${ANDROID_HOME}/build-tools/35.0.0/apksigner" verify --print-certs "$release_apk" | sed -n 's/^Signer #1 certificate SHA-256 digest: //p')
-            debug_cert=$("${ANDROID_HOME}/build-tools/35.0.0/apksigner" verify --print-certs app/build/outputs/apk/debug/app-debug.apk | sed -n 's/^Signer #1 certificate SHA-256 digest: //p')
-            if [ -z "$release_cert" ] || [ "$release_cert" != "$debug_cert" ]; then
-              echo "::error::Release APK signing certificate differs from the established debug update certificate"
-              exit 1
-            fi
-            echo "APK_SIGNING_READY=true" >> "$GITHUB_ENV"
-          else
-            echo "APK_SIGNING_READY=false" >> "$GITHUB_ENV"
-          fi
-      - name: Full lint and instrumentation test APK
-        if: github.event_name != 'workflow_dispatch' || inputs.full_tests
-        run: bash .github/scripts/gradle-retry.sh :app:lintDebug :app:assembleDebugAndroidTest --stacktrace
+        env:
+          CI_SCOPE: ${{ needs.prepare.outputs.scope }}
+        run: bash tools/ci/run-ci.sh build --scope "$CI_SCOPE"
+      - name: Android lint and instrumentation test APK (FULL only)
+        env:
+          CI_SCOPE: ${{ needs.prepare.outputs.scope }}
+        run: bash tools/ci/run-ci.sh verify --scope "$CI_SCOPE"
+      - name: APK and signing diagnostics
+        run: bash tools/ci/run-ci.sh diagnostics
       - name: Upload JVM JaCoCo coverage report
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
@@ -108,16 +155,19 @@ jobs:
           name: pulselibre-signed-release-update-apk
           path: app/build/outputs/apk/release/app-release.apk
           retention-days: 7
+
   emulator:
-    name: "Emulator-Instrumentationstests (API 35)"
-    if: github.event_name != 'workflow_dispatch' || inputs.full_tests
-    needs: build
-    runs-on: ubuntu-latest
+    name: "Emulator-Instrumentationstests (API 35) · ${{ needs.prepare.outputs.environment }} · ${{ needs.prepare.outputs.scope }}"
+    if: needs.prepare.outputs.scope == 'FULL'
+    needs: [prepare, build]
+    runs-on: ${{ fromJSON(needs.prepare.outputs.runs_on) }}
     timeout-minutes: 40
     permissions:
       contents: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
       - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6
         with:
           distribution: temurin
@@ -125,17 +175,21 @@ jobs:
       - uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6
         with:
           gradle-version: '9.6.0'
+      - name: Android SDK prüfen
+        run: bash tools/ci/ensure-android-sdk.sh
       - name: Enable KVM
-        run: sudo chmod 666 /dev/kvm
+        run: bash tools/ci/ensure-kvm.sh
       - name: Emulator instrumentation tests
         uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2
         with:
           api-level: 35
           arch: x86_64
           profile: pixel_6
-          script: bash .github/scripts/gradle-retry.sh :app:connectedDebugAndroidTest --stacktrace
-      - name: Verify instrumentation coverage was generated
-        run: bash .github/scripts/verify-instrumentation-coverage.sh
+          disable-animations: true
+          emulator-options: >-
+            -no-window -no-audio -no-boot-anim -no-snapshot
+            -gpu swiftshader_indirect -camera-back none -camera-front none
+          script: bash tools/ci/run-ci.sh emulator --scope FULL
       - name: Upload instrumentation coverage and reports
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
