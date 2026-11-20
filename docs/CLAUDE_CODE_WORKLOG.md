@@ -370,3 +370,6 @@ Noch sichtbar offen (P3): Nacht-Insights erste Spalte „22–6 Uhr / 22331 / We
 ## 2026-11-20 – Ticketabschluss #263–#266 und Restpunkte
 - #263, #264, #265, #266 geschlossen auf ausdrückliche Anweisung des Nutzers; die offenen Teile stehen gesammelt im Folgeticket (Restpunkte aus #263 bis #266): Schlaf-/Aktivitätsband, kumulierte Schrittkurve mit Ziellinie, Zoom im Verlauf, echte Pinch-Geste/TalkBack/320 dp, Kosmetik Zeitbeschriftung am rechten Rand, Tagesreihen für Kalorien/Intensität/Stress/Schlaf, Akku-Messung (#235).
 - Weiter offen und unberührt: #267 (Startseite anpassen).
+
+## 2026-11-20 – #155 SCA: Dependency Graph belegt, Dependabot-Alerts behoben
+- SBOM per API: 225 Pakete inkl. Gradle-Abhängigkeiten (Dependency Submission funktioniert). 8 offene Dependabot-Alerts, alle im AGP-Build-Klassenpfad, nicht im APK (`releaseRuntimeClasspath` geprüft). Sieben Bibliotheken per `buildscript`-Constraint auf gepatchte Versionen angehoben (`build.gradle.kts`); Details und offene Repo-Einstellungen in `docs/SCA_DEPENDENCY_REVIEW_2026-11-20.md`.
