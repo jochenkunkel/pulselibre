@@ -445,3 +445,7 @@ Noch sichtbar offen (P3): Nacht-Insights erste Spalte „22–6 Uhr / 22331 / We
 - **#267 am Gerät:** Anpassen-Dialog öffnet; Kachel ausblenden (SpO₂) und wieder einblenden, „Hoch“ (SpO₂ vor Herzfrequenz), „Favorit“ (Schlaf unter „Im Fokus“), „Zurücksetzen“ stellt den Standard her. Nicht geprüft: „Runter“ einzeln, Erhalt nach App-Neustart.
 - **Hell-Ansicht** (Übersicht, Verlauf, Analysen) und **320 dp** (`wm density 540`, Übersicht/Verlauf/Gerät): lesbar, keine abgeschnittenen Texte, Umbrüche sauber. Kosmetik: App-Symbol im Kopfbereich hebt sich in Hell kaum vom Banner ab.
 - Zurückgesetzt: `wm density reset` (480), Dunkelmodus an, Schrift 1,0 unverändert, Startseite auf Standard. Nicht geprüft: echte Pinch-Geste, TalkBack real.
+
+## 2026-11-20 – #6 MASVS-Zuordnung (Abschnitt 13 im Audit)
+- Befunde A6-1…A10-1, B7, B9 den MASVS-Kategorien zugeordnet, inkl. „noch nicht geprüft“ je Kategorie und Reihenfolge der nächsten Schritte. Ausdrücklich keine MASVS-Abnahme. Kein Code geändert.
+- #6 S25-Evidenz (nur dumpsys, lesend) als Audit-Abschnitt 14: Berechtigungen ohne INTERNET/Standort, nicht debuggbar, kein ALLOW_BACKUP.

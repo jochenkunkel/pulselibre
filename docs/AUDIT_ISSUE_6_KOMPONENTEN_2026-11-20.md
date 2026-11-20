@@ -90,7 +90,7 @@ Einordnung (Stichprobe, nicht abschließend):
 2. Persistenz: Migrationen in `CirqaDatabase` und `DatabaseBackup` (Export/Import, Rollback) dateiweise mit Fehlerpfaden.
 3. Ressourcen: Hardcoded-Strings und Beschreibungen **erledigt (Abschnitt 10)**; `UnusedResources` erledigt (Abschnitt 11).
 4. Coverage: JVM-Wert erhoben (Abschnitt 12, 30,9 %); kombinierter Bericht JVM + Emulator offen.
-5. MASVS-Zuordnung (STORAGE, NETWORK, PLATFORM, CODE, RESILIENCE) je Befund; S25-Evidenz nur lesend, keine Instrumentationstests auf dem Handy.
+5. MASVS-Zuordnung **erstellt (Abschnitt 13)**; offen: S25-Evidenz nur lesend, keine Instrumentationstests auf dem Handy.
 
 ## 7. Persistenz: `DatabaseBackup` (dateiweise Prüfung, 2026-11-20)
 Gelesen: `extractArchive`, `prepareRestore`, Versions-/Eintragsprüfung, Grenzen.
@@ -145,3 +145,29 @@ Erzeugt mit `gradle --offline :app:createDebugUnitTestCoverageReport` (JaCoCo is
 **Wichtige Einschränkung:** Die Emulator-Instrumentationstests (`androidTest`) sind darin **nicht** enthalten. Deshalb stehen Dateien mit 0 %, die dort getestet werden (`CirqaDatabase`, `DatabaseBackup`, `FitObservationCommitter`, Teile der Views), obwohl sie Tests haben. Der kombinierte Wert fehlt noch; die CI erzeugt ihn bisher nicht. Ein kombinierter Bericht braucht einen Emulatorlauf mit `enableAndroidTestCoverage` (ist gesetzt) und das Einsammeln der `.ec`-Dateien; das ist ein eigener CI-Schritt und wurde hier bewusst nicht lokal gestartet (am selben adb hängt das S25; Instrumentationstests laufen nie auf dem Handy).
 Größte JVM-unabgedeckte Dateien (Zeilen ohne Abdeckung): `CirqaMlHandshakeProbe` 2.123, `CirqaTestLaboratoryActivity` 1.287, `MainActivity` 970, `DatabaseBackup` 794, `CirqaDatabase` 685, `DashboardOverviewView` 641, `ExportActivity` 424, `HistoryOverviewView` 368, `TrendCardView` 345, `PersonalSettings` 301. Ausgenommen die zwei Hardware-Probe-Dateien sind das überwiegend Android-UI- und Persistenzcode, dessen Logik in reinen Modellen liegt (siehe A6-6) bzw. am Emulator geprüft wird.
 **Vorschlag (eigener Schritt):** kombinierter JaCoCo-Bericht in der Full-CI (Emulator-Job lädt `.ec` hoch, ein Folgeschritt führt JVM + Emulator zusammen) und danach komponentenweise Zielwerte statt einer Gesamtzahl. Bis dahin keine Aussage über „Gesamtabdeckung“.
+
+## 13. Zuordnung zu OWASP MASVS v2 (Stand 2026-11-20)
+**Keine MASVS-Abnahme und kein Zertifikat.** Die Tabelle ordnet die bisher belegten Prüfungen den MASVS-Kategorien zu und zeigt, was noch nicht geprüft ist. „belegt“ heißt: in diesem Audit mit Beleg (Abschnitt in Klammern) gesehen, nicht, dass die Anforderung vollständig erfüllt ist.
+| MASVS-Kategorie | Bisher belegt | Befunde | Noch nicht geprüft |
+| --- | --- | --- | --- |
+| **STORAGE** (lokale Daten) | `allowBackup=false`, Cloud-/Gerätewechsel-Backup schließt alles aus; kein externer Speicher, Export nur per SAF (4); kein `Log.*` im Produktionscode, abgesichert durch `NoPlatformLoggingTest` (A6-5); Diagnosepaket = feste Feldliste (A6-5) | **B7-1** manuelles Backup-ZIP unverschlüsselt (im Handbuch erklärt); `CirqaLocalLog.copyTo` toter Code, falls je angebunden: kein redigiertes Paket (A6-5) | Dateiberechtigungen der App-Verzeichnisse am Gerät; Inhalt von Screenshots/Recents (`FLAG_SECURE` nicht gesetzt, Produktentscheidung); Löschung bei Deinstallation am Gerät |
+| **CRYPTO** | keine eigene Kryptografie im Anwendungscode gefunden (Stichprobe); SHA-256 für Backup-Integrität (7) | – | Vollständige Suche nach Krypto-APIs; BLE-Pairing/Bonding-Verhalten gehört zu BLE (OpenCode) |
+| **AUTH** | nicht anwendbar (kein Konto, kein Server) | – | – |
+| **NETWORK** | keine INTERNET-Berechtigung, keine HTTP-/Socket-Klassen (4); damit kein TLS-Thema | – | Bluetooth-Transport (BLE/RFCOMM) ist Gegenstand der Protokollrecherche, nicht dieses Audits |
+| **PLATFORM** (IPC, Berechtigungen, UI) | nur `MainActivity` exportiert, Service/übrige `exported=false`; Stop-`PendingIntent` `FLAG_IMMUTABLE`; kein WebView; Berechtigungen minimal (4) | **A6-1** behoben (`RECEIVER_NOT_EXPORTED` im RFCOMM-Runner); `ClickableViewAccessibility`-Funde bewertet (11) | Intent-Filter/Deep Links (keine gefunden, Stichprobe); Verhalten unter Android 14+ Foreground-Service-Regeln am Gerät; Overlay-/Tapjacking-Schutz nicht geprüft |
+| **CODE** (Qualität, Abhängigkeiten) | Abhängigkeiten per Dependabot + SCA-Prüfung (#155: 8 → 0 Alerts); Lint 0 Fehler (11); R8-Release in der CI | **A6-2** Dauerdienst ohne Lebenszyklus-Test; **A6-3** nur indirekt getestet; **A6-4** `CirqaMlHandshakeProbe` 2.842 Zeilen ohne Test; JVM-Coverage 30,9 % (12); `targetSdk 35` (11) | Kombinierte Coverage; Abhängigkeitslizenzen laufend (siehe `LICENSE_AGPL_AUDIT`); Fehlerpfade von `FitObservationCommitter` einzeln |
+| **RESILIENCE** (Manipulationsschutz) | Release ist R8-verkleinert/obfuskiert, signiert; Schema-Migrationen linear und transaktional (9); Backup-Import validiert vor Überschreiben (7) | **B9-1** kein Downgrade (Hinweis im Handbuch); **B7-2** Testlücke (inzwischen `DatabaseBackupArchiveSafetyTest`) | Root-/Debugger-Erkennung ist für diese App **nicht** Ziel (lokale Gesundheitsdaten, kein Schutzbedarf gegen den Gerätebesitzer); Entscheidung bewusst offen für den Nutzer |
+| **PRIVACY** | keine Telemetrie, keine Werbe-IDs, keine Netzwerkberechtigung; Messwerte bleiben lokal; Diagnosepaket mit Vorschau und ausdrücklicher Nutzeraktion (4, A6-5) | – | Datenschutzerklärung/Einwilligungstexte im Handbuch gegen die tatsächliche Datenhaltung abgleichen (#177) |
+
+**Reihenfolge der nächsten Schritte (nach Risiko):** (1) A6-2 Lebenszyklus-/Timeout-Test des Dauerdienstes, zusammen mit dem Bearbeiter von #3/#235; (2) kombinierter Coverage-Bericht in der Full-CI; (3) A6-4 Zerlegung (OpenCode); (4) S25-Evidenz nur lesend nach der FIT-Prüfung, wenn das Handy wieder frei ist. Eine Mehrsprachigkeit (A10-1) ist eine Produktentscheidung und kein Sicherheitsthema.
+
+## 14. S25-Evidenz, nur lesend (Build 2.0.0_build1502, 2026-11-20)
+Quelle: `adb shell dumpsys package de.pulselibre` auf dem S25 (nur Lesen; keine Instrumentationstests, kein BLE-Vorgang). Roh-Ausgabe nicht eingecheckt.
+| Prüfpunkt | Gerätebefund | Passt zu Manifest/Audit |
+| --- | --- | --- |
+| Angeforderte Berechtigungen | `POST_NOTIFICATIONS`, `FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_CONNECTED_DEVICE`, `BLUETOOTH_CONNECT`, `BLUETOOTH_SCAN` und die app-eigene `DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION` (von AndroidX für nicht exportierte Receiver) | ja; **keine** `INTERNET`, keine Standort-, Kontakt- oder Speicherberechtigung |
+| Zur Laufzeit gewährt | Benachrichtigungen, Bluetooth-Verbindung, Bluetooth-Suche | ja (Nutzer hat gewährt, kein Standort nötig) |
+| App-Flags | `HAS_CODE ALLOW_CLEAR_USER_DATA`; **kein** `DEBUGGABLE`, **kein** `ALLOW_BACKUP` | bestätigt `allowBackup=false`; Release-Build nicht debuggbar |
+| Signatur/Installation | eine Signatur, `installerPackageName=null` (Sideload per adb/APK) | erwartet; Update-Kontinuität zu früheren Builds durch `adb install -r` ohne Deinstallation belegt (Daten blieben erhalten) |
+| Zielversion | `targetSdk=35`, `minSdk=26` | wie `OldTargetApi` in Abschnitt 11 |
+**Noch offen (Handy):** Standort-/Speicher-Berechtigungsliste nach Update von sehr alten Builds, echtes TalkBack, Verhalten der App unter Foreground-Service-Regeln bei längerem Lauf (gehört zu #235).
