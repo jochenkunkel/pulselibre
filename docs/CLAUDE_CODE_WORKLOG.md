@@ -340,3 +340,8 @@ Noch sichtbar offen (P3): Nacht-Insights erste Spalte „22–6 Uhr / 22331 / We
 ## 2026-11-20 – #261 Garmin-Benchmark: Lückenmatrix, Mockups, Subtasks
 - Neu: `docs/research/GARMIN_CONNECT_BENCHMARK_261_2026-11-20.md` (Evidenz aus Code/Doku, Lückenmatrix je Tabellenzeile, Subtasks A–G, Pflichtkriterien) und drei synthetische SVG-Mockups in `design/mockups/benchmark-261/` (24-h-Zeitachse, Schlafdetail, Schrittziel/Woche). Keine Garmin-Screenshots, keine echten Gesundheitswerte im Repo, **kein Android-Code geändert**.
 - Kernbefund: Schlafphasen/Sleep Score/Body Battery/Stress/Kalorien/Intensität sind **nicht als CIRQA-Felder belegt** und bleiben „nicht verfügbar“; echte Lücken sind gemeinsame 24-h-Achse, lokales Schrittziel, Wochenkarte, anpassbare Startseite. Nicht geprüft: Vergleich gegen frische S25-Screenshots (nicht ohne Handy möglich).
+
+## 2026-11-20 – #266 Lokales Schrittziel auf der Übersicht
+- Das in den Einstellungen gespeicherte `step_goal` wurde bisher nicht genutzt; die Schrittkarte zeigte nur das Gerätziel. Jetzt hat ein gültiges eigenes Ziel (100–100 000) Vorrang, Quelle wird gezeigt („Ziel (eigenes)“/„Ziel (Gerät)“), ab dem Ziel „Tagesziel erreicht“. Ungültige Eingaben werden ignoriert, nicht korrigiert.
+- Reine Funktionen `applyLocalStepGoal`, `stepGoalStatus` (Unit-Tests in `DashboardOverviewTest`), Instrumentationstest `ownStepGoalFromSettingsReplacesDeviceGoalAndMarksReachedGoal` (stellt die Einstellung danach wieder her). Handbuch ergänzt.
+- Bewusst nicht Teil dieses Schritts: kumulierte Tageskurve mit Ziellinie (bleibt in #266 offen, braucht die 24-h-Achse aus #263).
