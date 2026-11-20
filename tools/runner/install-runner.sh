@@ -17,6 +17,7 @@
 #   --labels LABELS          default: pulselibre
 #   --name NAME              default: <hostname>-pulselibre
 #   --runner-version V       default: latest release
+#   --sha256 HEX             optional pinned checksum of the runner archive
 #   --android-sdk DIR        existing Android SDK to expose to jobs
 #   --java-home DIR          existing JDK 21 to expose to jobs
 #   --token-file FILE        registration token (otherwise fetched via gh)
@@ -34,6 +35,7 @@ REPO="jochenkunkel/pulselibre"
 LABELS="pulselibre"
 RUNNER_NAME="$(hostname -s 2>/dev/null || hostname)-pulselibre"
 RUNNER_VERSION=""
+SHA256_ARG=""
 ANDROID_SDK=""
 JAVA_HOME_ARG=""
 TOKEN_FILE=""
@@ -54,6 +56,7 @@ while [ "$#" -gt 0 ]; do
     --labels) need_value "$@"; LABELS="$2"; shift ;;
     --name) need_value "$@"; RUNNER_NAME="$2"; shift ;;
     --runner-version) need_value "$@"; RUNNER_VERSION="$2"; shift ;;
+    --sha256) need_value "$@"; SHA256_ARG="$2"; shift ;;
     --android-sdk) need_value "$@"; ANDROID_SDK="$2"; shift ;;
     --java-home) need_value "$@"; JAVA_HOME_ARG="$2"; shift ;;
     --token-file) need_value "$@"; TOKEN_FILE="$2"; shift ;;
@@ -117,7 +120,7 @@ if [ "$MODE" = "system" ]; then
   fi
 fi
 
-run mkdir -p "$RUNNER_ROOT"
+mkdir -p "$RUNNER_ROOT"
 if [ "$MODE" = "system" ]; then
   run chown -R "$RUNNER_USER:$RUNNER_USER" "$RUNNER_ROOT"
   run chmod 750 "$RUNNER_ROOT"
@@ -139,9 +142,21 @@ if [ ! -x "$RUNNER_ROOT/bin/Runner.Listener" ] || [ ! -f "$RUNNER_ROOT/.runner-v
   trap 'rm -rf "$tmp"' EXIT
   ci_info "Lade $archive"
   curl -fsSL --retry 3 -o "$tmp/$archive" "$url"
-  curl -fsSL --retry 3 -o "$tmp/$archive.sha256" "$url.sha256"
-  (cd "$tmp" && printf '%s  %s\n' "$(cut -d' ' -f1 "$archive.sha256")" "$archive" | sha256sum -c --status -) ||
-    ci_die "SHA-256 des Runner-Pakets stimmt nicht."
+
+  expected="$SHA256_ARG"
+  if [ -z "$expected" ] && curl -fsSL --retry 2 -o "$tmp/$archive.sha256" "$url.sha256" 2>/dev/null; then
+    expected="$(cut -d' ' -f1 "$tmp/$archive.sha256")"
+  fi
+  actual="$(sha256sum "$tmp/$archive" | cut -d' ' -f1)"
+  if [ -n "$expected" ]; then
+    [ "$actual" = "$expected" ] || ci_die "SHA-256 des Runner-Pakets stimmt nicht (erwartet $expected, erhalten $actual)."
+    ci_info "SHA-256 geprüft: $actual"
+  else
+    # GitHub veröffentlicht für manche Releases keine .sha256-Datei. Dann wird
+    # der Hash angezeigt und im Runner-Verzeichnis zur späteren Prüfung abgelegt.
+    ci_warn "Keine Hersteller-Prüfsumme verfügbar. SHA-256 des Archivs: $actual (mit --sha256 <hex> festnageln)"
+    if [ "$DRY_RUN" -eq 0 ]; then printf '%s  %s\n' "$actual" "$archive" >"$RUNNER_ROOT/.runner-archive.sha256"; fi
+  fi
   run tar -xzf "$tmp/$archive" -C "$RUNNER_ROOT"
   if [ "$DRY_RUN" -eq 0 ]; then printf '%s\n' "$RUNNER_VERSION" >"$RUNNER_ROOT/.runner-version"; fi
 fi
@@ -192,8 +207,11 @@ else
     else
       (cd "$RUNNER_ROOT" && sudo -u "$RUNNER_USER" -H "${configure[@]}")
     fi
+  elif [ "$DRY_RUN" -eq 1 ]; then
+    printf '[dry-run] (cd %s && ./config.sh --url https://github.com/%s --token *** --name %s --labels %s --work _work --unattended)\n' \
+      "$RUNNER_ROOT" "$REPO" "$RUNNER_NAME" "$LABELS"
   else
-    (cd "$RUNNER_ROOT" && run "${configure[@]}")
+    (cd "$RUNNER_ROOT" && "${configure[@]}")
   fi
 fi
 
