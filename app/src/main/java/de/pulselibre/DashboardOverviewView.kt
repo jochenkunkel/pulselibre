@@ -37,8 +37,10 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
             .remove("pulse_context").apply()
     }
 
-    fun render(metrics: List<DashboardMetric>, activity: StepActivityEstimate = StepActivityEstimate.UNKNOWN) {
+    fun render(allMetrics: List<DashboardMetric>, activity: StepActivityEstimate = StepActivityEstimate.UNKNOWN) {
         removeAllViews()
+        val metrics = applyLocalStepGoal(allMetrics,
+            context.getSharedPreferences(SpO2DisplaySettings.STORE, Context.MODE_PRIVATE).getString("step_goal", null))
         stepGoal = metrics.firstOrNull { it.title == "Schrittziel" }?.value?.toIntOrNull()
         val overview = dashboardOverview(metrics)
         addCardPair(overview.vitalSigns) { metric ->
@@ -111,8 +113,10 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
             }
             content.addView(label("", 22f, ink, true).apply { text = big; tag = "dashboard_step_value" },
                 LayoutParams(-1, -2).apply { topMargin = dp(10) })
-            val targetText = target?.let { "Ziel (Gerät): ${integers.format(it)} Schritte" }
-                ?: "Kein gültiges Geräte-Schrittziel verfügbar"
+            val targetSource = if (goal.note == LOCAL_STEP_GOAL_NOTE) "eigenes" else "Gerät"
+            val reached = stepGoalStatus(steps, goal)
+            val targetText = target?.let { "Ziel ($targetSource): ${integers.format(it)} Schritte" + (reached?.let { r -> " · $r" } ?: "") }
+                ?: "Kein gültiges Schrittziel verfügbar (Gerät oder Einstellungen)"
             contentDescription = "${metric.title}. ${metric.value}. $targetText."
             if (progress != null) {
                 val percentValue = progress

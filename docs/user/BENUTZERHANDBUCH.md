@@ -21,6 +21,7 @@ PulsLibre ist eine **lokale, offline arbeitende** App für das Garmin-CIRQA-Armb
 
 - **Mein Körperprofil:** Größe, Gewicht, Alter und BMI aus deinen eigenen Angaben (Tippen zum Bearbeiten; das Gewicht lässt sich direkt per Antippen ändern). Der BMI ist nur eine Orientierung und wird mit Kategorie in Worten gezeigt.
 - **Gesundheit · CIRQA:** Herzfrequenz (Tacho mit Aktivitätskontext), SpO₂ (mit Skala und Verlauf), Schritte heute, Ruhepuls und weitere Gerätewerte (RR-Intervall, Stress, Body Battery …). Jede Kachel hat ein ⓘ mit Quelle, Skala und Einschränkungen. Kacheln mit **dunkelviolettem Rahmen** sind noch **nicht validiert** (z. B. SpO₂ des Bands); sie zeigen Werte, aber keine Bewertung als gesichert.
+- **Schrittziel:** Ein in den Einstellungen eingetragenes Schrittziel (100–100 000) hat Vorrang und wird als „Ziel (eigenes)“ gezeigt; ohne eigenes Ziel gilt das vom Band gemeldete („Ziel (Gerät)“). Ab dem Ziel steht dort „Tagesziel erreicht“.
 - Fehlende Werte werden als „Keine Messdaten“ gezeigt, nie als 0.
 
 ### Verlauf

@@ -117,6 +117,27 @@ class DashboardOverviewViewTest {
         }
     }
 
+    @Test fun ownStepGoalFromSettingsReplacesDeviceGoalAndMarksReachedGoal() {
+        InstrumentationRegistry.getInstrumentation().runOnMainSync {
+            val ctx = context(1f, 400)
+            val prefs = ctx.getSharedPreferences(SpO2DisplaySettings.STORE, android.content.Context.MODE_PRIVATE)
+            val before = prefs.getString("step_goal", null)
+            try {
+                prefs.edit().putString("step_goal", "8100").commit()
+                val view = DashboardOverviewView(ctx)
+                view.render(listOf(
+                    DashboardMetric("Schritte (Tageszähler)", "8155", ""),
+                    DashboardMetric("Schrittziel", "9330", "")
+                ))
+                val card = cards(view).single { it.tag == "dashboard_metric_Schritte heute" }
+                val labels = descendants(card).filterIsInstance<android.widget.TextView>().map { it.text.toString() }
+                assertTrue(labels.toString(), "Ziel (eigenes): 8.100 Schritte · Tagesziel erreicht" in labels)
+            } finally {
+                prefs.edit().apply { if (before == null) remove("step_goal") else putString("step_goal", before) }.commit()
+            }
+        }
+    }
+
     @Test fun stepCounterExplanationIsCompactButFullyAccessible() {
         InstrumentationRegistry.getInstrumentation().runOnMainSync {
             val view = DashboardOverviewView(context(1f, 400))

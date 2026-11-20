@@ -43,4 +43,35 @@ class DashboardOverviewTest {
         assertNull(progress("-1"))
         assertNull(progress("136", goal.copy(value = "0")))
     }
+
+    @Test fun localStepGoalOverridesDeviceGoalAndIsLabelled() {
+        val device = DashboardMetric("Schrittziel", "9330", "Gerät")
+        val other = DashboardMetric("Schlaf", "Keine Messdaten", "")
+        val out = applyLocalStepGoal(listOf(other, device), " 8100 ")
+        assertEquals(DashboardMetric("Schrittziel", "8100", LOCAL_STEP_GOAL_NOTE), out.single { it.title == "Schrittziel" })
+        assertEquals(other, out[0])
+    }
+
+    @Test fun localStepGoalIsAddedWhenDeviceSentNone() {
+        val out = applyLocalStepGoal(emptyList(), "5000")
+        assertEquals("5000", out.single().value)
+    }
+
+    @Test fun invalidLocalStepGoalKeepsDeviceGoal() {
+        val device = DashboardMetric("Schrittziel", "9330", "Gerät")
+        for (bad in listOf(null, "", "abc", "99", "100001", "8,5", "-5000")) {
+            assertEquals("input=$bad", listOf(device), applyLocalStepGoal(listOf(device), bad))
+        }
+    }
+
+    @Test fun goalReachedOnlyAtOrAboveTargetAndNeverWithoutData() {
+        val goal = DashboardMetric("Schrittziel", "8100", "")
+        fun status(count: String, g: DashboardMetric = goal) =
+            stepGoalStatus(DashboardMetric("Schritte (Tageszähler)", count, ""), g)
+        assertNull(status("8099"))
+        assertEquals("Tagesziel erreicht", status("8100"))
+        assertEquals("Tagesziel erreicht", status("8155"))
+        assertNull(status("Keine Messdaten"))
+        assertNull(status("9000", DashboardMetric("Schrittziel", "Keine Messdaten", "")))
+    }
 }

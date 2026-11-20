@@ -38,3 +38,23 @@ internal fun stepGoalProgress(steps: DashboardMetric, goal: DashboardMetric): Do
     val target = goal.value.toLongOrNull()?.takeIf { it > 0 } ?: return null
     return 100.0 * count / target
 }
+
+/** Marker in [DashboardMetric.note] of a step goal the user set in the settings (#266). */
+internal const val LOCAL_STEP_GOAL_NOTE = "Eigenes Ziel (Einstellungen)"
+
+/**
+ * A step goal the user entered in the settings takes precedence over the device goal; both are shown with their
+ * source. Invalid input (non-numeric, outside 100..100000 as in the settings dialog) is ignored, never "repaired".
+ */
+internal fun applyLocalStepGoal(metrics: List<DashboardMetric>, localRaw: String?): List<DashboardMetric> {
+    val local = localRaw?.trim()?.toIntOrNull()?.takeIf { it in 100..100_000 } ?: return metrics
+    val goal = DashboardMetric("Schrittziel", local.toString(), LOCAL_STEP_GOAL_NOTE)
+    return if (metrics.any { it.title == "Schrittziel" }) metrics.map { if (it.title == "Schrittziel") goal else it }
+    else metrics + goal
+}
+
+/** Reached-goal text for the step tile; `null` when steps or goal are unknown. Never a health judgement. */
+internal fun stepGoalStatus(steps: DashboardMetric, goal: DashboardMetric): String? {
+    val progress = stepGoalProgress(steps, goal) ?: return null
+    return if (progress >= 100.0) "Tagesziel erreicht" else null
+}
