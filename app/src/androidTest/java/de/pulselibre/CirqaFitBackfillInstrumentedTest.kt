@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.ContextWrapper
 import android.database.DatabaseErrorHandler
 import android.database.sqlite.SQLiteDatabase
-import android.database.sqlite.SQLiteException
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import java.io.File
@@ -36,8 +35,10 @@ class CirqaFitBackfillInstrumentedTest {
             assertEquals(1, first.filesSeen)
             assertEquals(1, first.filesImported)
             assertEquals(1, first.importableObservations)
+            assertEquals(1, first.committedObservations)
             assertEquals(1, replay.filesImported)
             assertEquals(1, replay.importableObservations)
+            assertEquals(1, replay.committedObservations)
             assertTrue(!first.truncated && !replay.truncated)
             CirqaDatabase(context).use { database ->
                 val db = database.readableDatabase
@@ -85,12 +86,18 @@ class CirqaFitBackfillInstrumentedTest {
                     """CREATE TRIGGER fail_fit_observation BEFORE INSERT ON observations
                        BEGIN SELECT RAISE(ABORT, 'simulated FIT commit failure'); END"""
                 )
-                try {
-                    CirqaFitBackfill(fitDirectory, database).run()
-                    throw AssertionError("Expected SQLite commit failure")
-                } catch (_: SQLiteException) {
-                    // A failed write must not publish any part of the FIT transaction.
-                }
+                val failed = CirqaFitBackfill(fitDirectory, database).run()
+                assertEquals(1, failed.filesSeen)
+                assertEquals(0, failed.filesImported)
+                assertEquals(1, failed.failedFiles)
+                assertEquals(1, failed.importableObservations)
+                assertEquals(0, failed.committedObservations)
+                val failedFile = failed.fileResults.single()
+                assertEquals(CirqaFitBackfill.FileStatus.FAILED, failedFile.status)
+                assertEquals(CirqaFitBackfill.FailureStage.DATABASE, failedFile.failureStage)
+                assertEquals(1, failedFile.decodedObservations)
+                assertEquals(1, failedFile.eligibleObservations)
+                assertTrue(File(fitDirectory, "${sha256(fit)}.fit").isFile)
 
                 assertEquals(0, count(db, "fit_sources"))
                 assertEquals(0, count(db, "observations"))
@@ -100,6 +107,8 @@ class CirqaFitBackfillInstrumentedTest {
                 val retry = CirqaFitBackfill(fitDirectory, database).run()
                 assertEquals(1, retry.filesImported)
                 assertEquals(1, retry.importableObservations)
+                assertEquals(1, retry.committedObservations)
+                assertEquals(0, retry.failedFiles)
                 assertEquals(1, count(db, "fit_sources"))
                 assertEquals(1, count(db, "observations"))
                 assertEquals(1, count(db, "fit_observation_provenance"))
