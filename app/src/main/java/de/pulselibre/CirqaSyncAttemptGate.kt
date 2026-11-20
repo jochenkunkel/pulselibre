@@ -2,15 +2,18 @@ package de.pulselibre
 
 import android.content.SharedPreferences
 
-/** Fresh persistent one-shot gate for the Connect-style sync_request test. */
+/** Persistent one-shot authorization for the explicitly approved V27 sync test. */
 object CirqaSyncAttemptGate {
     const val RELEASED_FOR_DEVICE_TEST = true
-    const val PREFERENCE_KEY = "cirqaSyncAttemptedV25"
-    const val SUMMARY_KEY = "cirqaSyncSummary"
+    /** New key preserves the consumed V25/V26 attempt; never clear or re-arm it. */
+    const val PREFERENCE_KEY = "cirqaSyncAttemptedV27"
+    const val SUMMARY_KEY = "cirqaSyncSummaryV27"
     const val PREFS_NAME = "cirqa_sync_attempt"
 
     fun available(prefs: SharedPreferences): Boolean =
-        !prefs.getBoolean(PREFERENCE_KEY, false)
+        available(prefs.getBoolean(PREFERENCE_KEY, false))
+
+    internal fun available(alreadyAttempted: Boolean): Boolean = !alreadyAttempted
 
     fun consume(prefs: SharedPreferences): Boolean {
         if (!RELEASED_FOR_DEVICE_TEST || !available(prefs)) return false
