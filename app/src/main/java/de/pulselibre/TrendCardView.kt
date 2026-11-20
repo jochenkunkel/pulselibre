@@ -123,6 +123,7 @@ internal class TrendCardView(context: Context) : LinearLayout(context) {
         content.addView(titleRow { showDetails(d) })
         addWindowSegments()
         addRestingHero(d)
+        addWeekSummary(d)
         // 28-day overview: icon + name + state; sentences live in the ⓘ dialog and as accessibility text.
         d.overview.dimensions.forEach { dim ->
             content.addView(LinearLayout(context).apply {
@@ -201,6 +202,33 @@ internal class TrendCardView(context: Context) : LinearLayout(context) {
 
     private fun styleSegment(t: TextView, on: Boolean) {
         t.setTextColor(if (on) palette.accent else palette.muted); t.setTypeface(null, if (on) Typeface.BOLD else Typeface.NORMAL)
+    }
+
+    /** Last 7 complete days (#265): per-row coverage, averages only over days with data, no score. */
+    private fun addWeekSummary(d: Data) {
+        val goal = context.getSharedPreferences(SpO2DisplaySettings.STORE, Context.MODE_PRIVATE)
+            .getString("step_goal", null)?.trim()?.toIntOrNull()?.takeIf { it in 100..100_000 }
+        val week = WeekSummary.build(d.stepsDaily, d.restDaily, d.today, goal) { v ->
+            NumberFormat.getIntegerInstance(Locale.GERMANY).format(Math.round(v))
+        }
+        val box = LinearLayout(context).apply { orientation = VERTICAL; tag = "week_summary"; setPadding(0, dp(8), 0, dp(4)) }
+        box.addView(TextView(context).apply {
+            text = "Letzte 7 Tage"; textSize = 14f; setTypeface(null, Typeface.BOLD); setTextColor(palette.ink)
+        })
+        week.rows.forEach { row ->
+            box.addView(LinearLayout(context).apply {
+                orientation = VERTICAL; setPadding(0, dp(6), 0, 0); isFocusable = true
+                tag = "week_row_${row.label}"; contentDescription = row.description()
+                addView(LinearLayout(context).apply {
+                    orientation = HORIZONTAL
+                    addView(TextView(context).apply { text = row.label; textSize = 12f; setTextColor(palette.muted); importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO }, LayoutParams(0, -2, 1f))
+                    addView(TextView(context).apply { text = row.value ?: "keine Daten"; textSize = 13f; setTextColor(palette.ink); importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO })
+                })
+                addView(TextView(context).apply { text = (if (row.value != null) row.coverage() else "") + (row.detail?.let { " · $it" } ?: ""); textSize = 11f; setTextColor(palette.muted); importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO })
+            })
+        }
+        box.addView(TextView(context).apply { text = week.unavailable; textSize = 11f; setTextColor(palette.muted); setPadding(0, dp(6), 0, 0) })
+        content.addView(box, LayoutParams(-1, -2))
     }
 
     /** Resting-pulse hero (#41 "Pulse Flow"): median, neutral delta, daily points with gaps, previous-period baseline. */

@@ -355,3 +355,8 @@ Noch sichtbar offen (P3): Nacht-Insights erste Spalte „22–6 Uhr / 22331 / We
 - `DayViewport` (Unit-getestet): sichtbarer Ausschnitt der Tagesachse, Zoom um einen Fokus, Pan, Grenzen (min. 15 min, nie außerhalb des Tages, ungültige Faktoren ignoriert), Tick-Abstand je Ausschnitt. Ansicht: Zwei-Finger-Zoom/-Pan, dazu Tasten ‹ − + › Tag (TalkBack-bedienbar), Hinweiszeile „Ausschnitt x h von 24 h“; Achsenbeschriftung aus echten Zeitpunkten (DST-sicher). Gezeichnet werden immer die Rohpunkte, keine Mittelwerte; Lücken bleiben Lücken.
 - Downsampling: nicht nötig und nicht gebaut – der Reader liefert je Minute höchstens Minimum, Maximum, letzten Wert (≤ ~4 300 Punkte/Spur), alle werden gezeichnet, Spitzen bleiben erhalten. Bei deutlich größeren Datenmengen wäre min/max je Pixelspalte nachzuziehen.
 - Nicht geprüft: echte Pinch-Geste auf dem S25/Emulator (Instrumentationstest prüft Modell und Tasten, nicht Touch-Gesten), TalkBack.
+
+## 2026-11-20 – #265 Wochenkarte „Letzte 7 Tage“
+- Im Trend-Block der Analysen: die sieben vollständigen Tage vor heute, je Zeile eigene Abdeckung („x von 7 Tagen“): Ø Schritte/Tag, Schritte gesamt (nur Tage mit Daten), Ø Geräte-Ruhepuls (nur gemeldete positive Werte, nie aus dem Tagesminimum geschätzt); mit eigenem Schrittziel zusätzlich „Ziel erreicht an x von y Tagen mit Daten“. Fehlende Tage zählen nie als 0; ohne Daten steht „keine Daten“. Schlafdauer, Kalorien, Intensitätsminuten und Stress stehen als „nicht verfügbar (keine belegte Quelle)“.
+- `WeekSummary` (Unit-Tests `WeekSummaryTest`, 6), Einbau `TrendCardView.addWeekSummary`.
+- Nicht geprüft: Emulator-/S25-Optik, TalkBack real.
