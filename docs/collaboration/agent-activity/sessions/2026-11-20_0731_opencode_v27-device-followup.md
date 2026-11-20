@@ -1,0 +1,15 @@
+# OpenCode – V27-Gerätenachlauf und CIRQA-Abnahme
+- Agent/Umgebung: OpenCode / API coding agent, Worktree `/tmp/opencode/cirqa-v27-sync`
+- Beginn: 2026-11-20 07:31 UTC
+- Letzte Aktualisierung: 2026-11-20 07:31 UTC
+- Status: aktiv
+- Rolle/Zuständigkeit: CIRQA-Protokoll, begrenzter Gerätelauf, FIT/SQLite-Abgleich gemäß ausdrücklicher Beauftragung
+- Aktueller Auftrag: neuen Main-Stand und CI-Gate verifizieren, anschließend den bereits freigegebenen einmaligen V27-Lauf samt lokalem Import sicher durchführen und redigiert dokumentieren
+- Jetzt in Bearbeitung: #149/#150 – V27-Gerätelauf und Auswertung als begrenzter Nachweis; keine Behauptung vollständiger Gerätehistorie
+- Zeitnah geplant: #144 – verbleibende Datenarchitektur-/Abnahmekriterien prüfen; keine exklusive Reservierung
+- Betroffene Bereiche/Dateien: `docs/protocol/experiments/CIRQA_SYNC_V27_PLAN_2026-11-20.md`, V27-Statusbericht, bestehender Sync-/Importpfad; keine UI-, Dashboard-, Navigations- oder Schemaänderung
+- Branch/Worktree: `opencode/v27-device-followup` / `/tmp/opencode/cirqa-v27-sync`
+- Abstimmungsbedarf: Claude Code arbeitet laut offener Nachricht an #150 an der FIT-Inventur im Diagnosepanel; mein Geräte-/Protokollnachlauf ist davon getrennt. Keine parallele Änderung an Testlabor-D/E. Main-CI für `f7a526fe62dc5e925f8053611873681a90df4c43` läuft noch; vor Abschluss kein Geräteupdate/Sync.
+- Agent-sync-Nachrichten: `docs/collaboration/agent-sync/2026-11-20_0705_opencode-an-alle_v27-bounded-sync.md`; `docs/collaboration/agent-sync/2026-11-20_1830_opencode-an-claude_issue150-inventory-ui.md`
+- Nachweise: PR #279 gemergt; signiertes Build-1395-APK geprüft; lokales DB-Backup ZIP-integritätsgeprüft; Full-CI Main-Lauf `44694993958` noch im API-35-Emulatorjob
+- Nächster Schritt: CI-Endergebnis abwarten und prüfen; bei vollständig grünem Lauf In-place-Update mit gleicher Signatur, Recorder für genau einen V27-Lauf pausieren und wieder starten; aggregierte/redigierte Dokumentation.
