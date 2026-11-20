@@ -373,3 +373,8 @@ Noch sichtbar offen (P3): Nacht-Insights erste Spalte „22–6 Uhr / 22331 / We
 
 ## 2026-11-20 – #155 SCA: Dependency Graph belegt, Dependabot-Alerts behoben
 - SBOM per API: 225 Pakete inkl. Gradle-Abhängigkeiten (Dependency Submission funktioniert). 8 offene Dependabot-Alerts, alle im AGP-Build-Klassenpfad, nicht im APK (`releaseRuntimeClasspath` geprüft). Sieben Bibliotheken per `buildscript`-Constraint auf gepatchte Versionen angehoben (`build.gradle.kts`); Details und offene Repo-Einstellungen in `docs/SCA_DEPENDENCY_REVIEW_2026-11-20.md`.
+
+## 2026-11-20 – #267 Startseite anpassen
+- Unten auf der Übersicht: „Startseite anpassen“ öffnet einen Dialog (Sichtbar-Häkchen, ★ Favorit, ▲ Hoch, ▼ Runter, Speichern/Zurücksetzen/Abbrechen; alle Bedienelemente mit Textbeschriftung, nicht nur Symbol). Favoriten erscheinen zuerst unter „Im Fokus“. Ausgeblendete Kacheln werden weiter aufgezeichnet. Sind alle ausgeblendet, steht ein Hinweis mit Weg zurück. Die Standardansicht bleibt unverändert, solange nichts angepasst wurde (eigener Codepfad nur für ein gespeichertes Layout).
+- Modell `DashboardLayout` (Unit-getestet: Standard erkannt, Ausblenden/Favorit/Verschieben mit Grenzen, neue Kacheln hinten, verschwundene entfallen, Zeilenbildung, beschädigte Einstellung fällt auf Standard zurück), Dialog `DashboardCustomizeDialog`, Instrumentationstest `customLayoutHidesTilesShowsFavouritesFirstAndResetsToDefault` (stellt die Einstellung danach wieder her). Speicherort: SharedPreferences `dashboard_display`/`layout_v1`, nur lokal.
+- Nicht geprüft: S25-Optik/Bedienung, TalkBack, große Schrift im Dialog.
