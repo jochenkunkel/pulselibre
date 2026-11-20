@@ -81,13 +81,27 @@ jobs:
           echo "Grund:    $REASON"
 
   build:
-    name: "Build, Unit-Tests, Lint, APK · ${{ needs.prepare.outputs.environment }} · ${{ needs.prepare.outputs.scope }}"
+    name: "Build, Unit-Tests, Lint, APK"
     needs: prepare
     runs-on: ${{ fromJSON(needs.prepare.outputs.runs_on) }}
     timeout-minutes: 60
     permissions:
       contents: read
     steps:
+      - name: Ausführungsziel
+        env:
+          ENVIRONMENT: ${{ needs.prepare.outputs.environment }}
+          SCOPE: ${{ needs.prepare.outputs.scope }}
+          RUNNER_LABEL: ${{ needs.prepare.outputs.runner_label }}
+        run: |
+          echo "Umgebung: $ENVIRONMENT | Runner: $RUNNER_LABEL | Umfang: $SCOPE"
+          {
+            echo "### Android CI – Build"
+            echo ""
+            echo "| Umgebung | Runner | Umfang |"
+            echo "|---|---|---|"
+            echo "| **$ENVIRONMENT** | \`$RUNNER_LABEL\` | **$SCOPE** |"
+          } >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
@@ -157,7 +171,7 @@ jobs:
           retention-days: 7
 
   emulator:
-    name: "Emulator-Instrumentationstests (API 35) · ${{ needs.prepare.outputs.environment }} · ${{ needs.prepare.outputs.scope }}"
+    name: "Emulator-Instrumentationstests (API 35)"
     if: needs.prepare.outputs.scope == 'FULL'
     needs: [prepare, build]
     runs-on: ${{ fromJSON(needs.prepare.outputs.runs_on) }}
@@ -165,6 +179,20 @@ jobs:
     permissions:
       contents: read
     steps:
+      - name: Ausführungsziel
+        env:
+          ENVIRONMENT: ${{ needs.prepare.outputs.environment }}
+          SCOPE: ${{ needs.prepare.outputs.scope }}
+          RUNNER_LABEL: ${{ needs.prepare.outputs.runner_label }}
+        run: |
+          echo "Umgebung: $ENVIRONMENT | Runner: $RUNNER_LABEL | Umfang: $SCOPE"
+          {
+            echo "### Android CI – Emulator"
+            echo ""
+            echo "| Umgebung | Runner | Umfang |"
+            echo "|---|---|---|"
+            echo "| **$ENVIRONMENT** | \`$RUNNER_LABEL\` | **$SCOPE** |"
+          } >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false

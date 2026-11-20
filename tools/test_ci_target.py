@@ -4,16 +4,16 @@ The decision logic lives in tools/ci/resolve-target.sh and is pure: these tests
 pin the safety rules so a future edit cannot silently route untrusted pull
 request code to the self-hosted runner.
 """
+import json
 import os
 import pathlib
 import subprocess
 import unittest
-
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 RESOLVER = ROOT / "tools" / "ci" / "resolve-target.sh"
 
 LOCAL_LABELS = '["self-hosted","linux","x64","pulselibre"]'
-CLOUD_LABEL = "ubuntu-latest"
+CLOUD_LABEL = '["ubuntu-latest"]'
 
 
 class ResolveTargetTests(unittest.TestCase):
@@ -144,6 +144,21 @@ class ResolveTargetTests(unittest.TestCase):
                 self.assertIn(out["runs_on"], (LOCAL_LABELS, CLOUD_LABEL))
                 self.assertIn(out["environment"], ("LOCAL", "CLOUD"))
                 self.assertIn(out["scope"], ("QUICK", "FULL"))
+
+    def test_runs_on_is_always_json_for_fromjson(self):
+        # The workflow does fromJSON(needs.prepare.outputs.runs_on). A bare
+        # "ubuntu-latest" is not valid JSON and made GitHub drop the job.
+        for environment in ("LOCAL", "CLOUD"):
+            with self.subTest(environment=environment):
+                out = self.resolve(
+                    EVENT_NAME="workflow_dispatch",
+                    REQUESTED_ENVIRONMENT=environment,
+                    LOCAL_RUNNER_ENABLED="true",
+                )
+                parsed = json.loads(out["runs_on"])
+                self.assertIsInstance(parsed, list)
+                self.assertTrue(parsed)
+                self.assertTrue(all(isinstance(item, str) for item in parsed))
 
     def test_scope_values_are_normalized(self):
         out = self.resolve(

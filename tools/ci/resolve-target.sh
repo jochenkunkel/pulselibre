@@ -92,7 +92,9 @@ if [ "$environment" = "LOCAL" ]; then
   runs_on='["self-hosted","linux","x64","pulselibre"]'
   runner_label="self-hosted, linux, x64, pulselibre"
 else
-  runs_on='ubuntu-latest'
+  # Always a JSON array: the workflow evaluates this with fromJSON(), and a bare
+  # "ubuntu-latest" is not valid JSON (that would drop the job).
+  runs_on='["ubuntu-latest"]'
   runner_label="ubuntu-latest"
 fi
 
