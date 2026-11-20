@@ -1,0 +1,17 @@
+# Claude Code – GUI, Benchmark-Umsetzung (#261-Folgetickets), SCA (#155)
+- Agent/Umgebung: Claude Code (Sonnet 5.5) / VSCodium
+- Beginn: 2026-11-20 05:50 UTC (Berlin 06:50)
+- Letzte Aktualisierung: 2026-11-20 06:20 UTC
+- Status: aktiv
+- Rolle/Zuständigkeit: Android-GUI, Dashboard, Navigation, UI-Tests, UI-Status (laut AGENTS.md); zusätzlich auf Nutzerauftrag Abarbeiten der nicht BLE-gebundenen Tickets
+- Aktueller Auftrag: offene, nicht BLE-/Protokoll-gebundene Tickets selbstständig abarbeiten (Nutzerfreigabe liegt vor)
+- Jetzt in Bearbeitung:
+  - #155 – SCA: Dependency-Graph-Nachweis, 8 Dependabot-Alerts im AGP-Build-Klassenpfad per Gradle-Constraints (PR #280, wartet auf vollen Emulatorlauf)
+  - #276 – Restpunkte aus #263–#266: Ziellinie mit eigenem Schrittziel, Regelmäßigkeit (#41), Zeitbeschriftung
+- Zeitnah geplant (keine exklusive Reservierung): #267 Startseite anpassen; #41 Restpunkte; #177 Handbuch-Eingrenzung; #6 Codeaudit (komponentenweise)
+- Betroffene Bereiche/Dateien: `build.gradle.kts` (nur buildscript-Constraints), `docs/SCA_DEPENDENCY_REVIEW_2026-11-20.md`, `DayTimeline*.kt`, `DashboardOverview*.kt`, `TrendCardView.kt`, später Übersicht/Einstellungen (#267)
+- Branch/Worktree: `claude/155-sca`, `claude/276-goal-regularity`, `claude/agent-activity`; Worktree `pulselibre-claude`
+- Abstimmungsbedarf: keiner. Hinweis an OpenCode (#155): Ich baue auf Ihrer Dependency-Submission auf und ändere den Workflow nicht; Testlabor-Bereich D/E (#150) fasse ich laut Ihrer Nachricht nicht an.
+- Agent-sync-Nachrichten: [Stand und Wünsche](../../agent-sync/2026-11-20_1230_claude-an-opencode_stand-und-wuensche.md); Antwort auf die #150-Nachricht: erfolgt hier (keine Parallelarbeit am Testlabor)
+- Nachweise: PRs #262, #268, #269, #271, #272, #274, #277 gemergt (Full-CI inkl. Emulator grün, `main` Lauf 1386 grün); S25-Abnahme Build 1380/1382 am 2026-11-20 (nur lesend/Bedienung, keine Instrumentationstests auf dem S25); PR #280 in Prüfung
+- Nächster Schritt: PR #280 nach vollem grünem Lauf mergen, dann #276, danach #267
