@@ -1706,12 +1706,41 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         stopBeforePull: Boolean = false,
         repeatItemLists: Boolean = false,
         result: (String) -> Unit
+    ) = startSyncRequest(
+        userConfirmed = userConfirmed,
+        stopBeforePull = stopBeforePull,
+        repeatItemLists = repeatItemLists,
+        requireDeviceTestGate = true,
+        result = result
+    )
+
+    /** User-initiated read-only historical file download for the product UI. */
+    @SuppressLint("MissingPermission")
+    fun startHistoricalDownload(
+        userConfirmed: Boolean,
+        result: (String) -> Unit
+    ) = startSyncRequest(
+        userConfirmed = userConfirmed,
+        stopBeforePull = false,
+        repeatItemLists = false,
+        requireDeviceTestGate = false,
+        result = result
+    )
+
+    @SuppressLint("MissingPermission")
+    private fun startSyncRequest(
+        userConfirmed: Boolean,
+        stopBeforePull: Boolean,
+        repeatItemLists: Boolean,
+        requireDeviceTestGate: Boolean,
+        result: (String) -> Unit
     ) {
-        if ((!stopBeforePull && !CirqaSyncAttemptGate.RELEASED_FOR_DEVICE_TEST) ||
-            (stopBeforePull && !CirqaSyncItemListNoPullAttemptGate.RELEASED_FOR_DEVICE_TEST) ||
+        if ((requireDeviceTestGate &&
+                ((!stopBeforePull && !CirqaSyncAttemptGate.RELEASED_FOR_DEVICE_TEST) ||
+                    (stopBeforePull && !CirqaSyncItemListNoPullAttemptGate.RELEASED_FOR_DEVICE_TEST))) ||
             !userConfirmed
         ) {
-            result("Sync-Request gesperrt; keine Verbindung.")
+            result("Historischer Sync nicht freigegeben/bestätigt; keine Verbindung.")
             return
         }
         if (active || sessionStartedNanos != 0L || historicalSyncV1 != null || dirReadSession != null ||
@@ -1730,21 +1759,23 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             result("Sync-Request: Bluetooth aus, Ziel nicht eindeutig oder Sitzung belegt.")
             return
         }
-        val prefs = if (stopBeforePull) {
-            context.getSharedPreferences(
-                CirqaSyncItemListNoPullAttemptGate.PREFS_NAME, Context.MODE_PRIVATE
-            )
-        } else {
-            context.getSharedPreferences(CirqaSyncAttemptGate.PREFS_NAME, Context.MODE_PRIVATE)
-        }
-        val consumed = if (stopBeforePull) {
-            CirqaSyncItemListNoPullAttemptGate.consume(prefs)
-        } else {
-            CirqaSyncAttemptGate.consume(prefs)
-        }
-        if (!consumed) {
-            result("Sync-Request: Versuchslimit verbraucht oder Persistierung fehlgeschlagen.")
-            return
+        if (requireDeviceTestGate) {
+            val prefs = if (stopBeforePull) {
+                context.getSharedPreferences(
+                    CirqaSyncItemListNoPullAttemptGate.PREFS_NAME, Context.MODE_PRIVATE
+                )
+            } else {
+                context.getSharedPreferences(CirqaSyncAttemptGate.PREFS_NAME, Context.MODE_PRIVATE)
+            }
+            val consumed = if (stopBeforePull) {
+                CirqaSyncItemListNoPullAttemptGate.consume(prefs)
+            } else {
+                CirqaSyncAttemptGate.consume(prefs)
+            }
+            if (!consumed) {
+                result("Sync-Request: Versuchslimit verbraucht oder Persistierung fehlgeschlagen.")
+                return
+            }
         }
         syncRequestMode = true
         syncStopBeforePullMode = stopBeforePull
@@ -2659,8 +2690,16 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                 "sha256=$sha;privateRaw=${if (saved.alreadyPresent) "ALREADY_PRESENT" else "CREATED"};$metadataIndex"
         }
         if (FitFileHeader.inspectVerified(data) == null) {
+            val savedRaw = try {
+                CirqaVerifiedRawFileStore(java.io.File(context.filesDir, "verified_raw"))
+                    .saveExact(data, item.dataSize)
+            } catch (e: Exception) {
+                return "len=${data.size};expected=${item.dataSize};type=$label;magic=$magic;" +
+                    "fitHeader=false;fitCrc=false;privateRawSaveFailed=${e.javaClass.simpleName}"
+            }
             return "len=${data.size};expected=${item.dataSize};type=$label;magic=$magic;" +
-                "fitHeader=false;fitCrc=false;notStored"
+                "exactSize=true;fitHeader=false;fitCrc=false;" +
+                "privateRaw=${if (savedRaw.alreadyPresent) "ALREADY_PRESENT" else "CREATED"}"
         }
         val saved = try {
             CirqaVerifiedFitStore(java.io.File(context.filesDir, "verified_fit"))
