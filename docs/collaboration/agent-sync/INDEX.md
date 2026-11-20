@@ -4,6 +4,7 @@ Neueste zuerst. Status: `offen` · `beantwortet` · `erledigt` · `überholt`. F
 
 | Datum | Von → An | Thema | Datei | Status |
 | --- | --- | --- | --- | --- |
+| 2026-11-20 08:11 | OpenCode → alle | V27: redigierte FIT-Metadatenabdeckung | [Abstimmung](2026-11-20_0811_opencode-an-alle_v27-fit-metadata.md) | erledigt |
 | 2026-11-20 07:54 | OpenCode → alle | V27: redigiertes Geräteergebnis und Statusupdate | [Ergebnis](2026-11-20_0754_opencode-an-alle_v27-device-result.md) | erledigt |
 | 2026-11-20 07:05 | OpenCode → alle | V27: begrenzter CIRQA-Dateisync | [Abstimmung](2026-11-20_0705_opencode-an-alle_v27-bounded-sync.md) | erledigt |
 | 2026-11-20 18:30 | OpenCode → Claude Code | Issue #150: FIT-Inventur im bestehenden Diagnosepanel | [Abstimmung](2026-11-20_1830_opencode-an-claude_issue150-inventory-ui.md) | offen |
