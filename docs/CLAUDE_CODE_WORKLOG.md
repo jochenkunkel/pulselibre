@@ -386,3 +386,7 @@ Noch sichtbar offen (P3): Nacht-Insights erste Spalte „22–6 Uhr / 22331 / We
 
 ## 2026-11-20 – #155 Nachtrag: Lint-Werkzeug-Konfiguration
 - Nach PR #280 waren noch 6 von 8 Alerts offen: `androidLintTool` löst eigene alte Bibliotheken auf. Fix in `app/build.gradle.kts` (`resolutionStrategy.eachDependency` für Guava, Bouncy Castle ×3, commons-lang3, httpclient), `:app:dependencies` zeigt keine ungepatchte Version mehr. Details: `docs/SCA_DEPENDENCY_REVIEW_2026-11-20.md`.
+
+## 2026-11-20 – #177 Nutzerdokumentation ergänzt (ohne neue Bilder)
+- Neu: `docs/user/README.md` (Startseite/Navigation, Kurzstart), `docs/user/FEHLERBEHEBUNG.md` (häufige Fragen: „Keine Messdaten“, „GATT verbunden (Aufzeichnung aus)“, Berechtigungen, Lücken, fehlende Trends, fehlende Schlaf-/HRV-Werte, Datenlöschung bei Deinstallation, Akku). Handbuch um Tag im Überblick, Wochenkarte, Regelmäßigkeit und Gerätewerte ergänzt; Link in der Repo-`README.md`. Alle Aussagen aus dem tatsächlichen Verhalten (S25-/Emulator-Prüfung, Code), keine nicht vorhandenen Funktionen.
+- Weiter offen in #177: Abbildungen für die neuen Ansichten und ein Durchlauf auf dem Handy mit geschwärzten/synthetischen Bildern (echte Gesundheitsdaten gehören nicht ins Repo). Das Ticket bleibt dafür offen.
