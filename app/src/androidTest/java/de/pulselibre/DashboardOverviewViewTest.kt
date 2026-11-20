@@ -138,6 +138,42 @@ class DashboardOverviewViewTest {
         }
     }
 
+    @Test fun customLayoutHidesTilesShowsFavouritesFirstAndResetsToDefault() {
+        InstrumentationRegistry.getInstrumentation().runOnMainSync {
+            val ctx = context(1f, 400)
+            val prefs = ctx.getSharedPreferences("dashboard_display", Context.MODE_PRIVATE)
+            val before = prefs.getString("layout_v1", null)
+            try {
+                val metrics = listOf(
+                    DashboardMetric("Herzfrequenz", "70 bpm", ""),
+                    DashboardMetric("Sauerstoffsättigung · SpO₂", "97 %", ""),
+                    DashboardMetric("Schritte (Tageszähler)", "100", ""),
+                    DashboardMetric("Atemfrequenz", "15 / min", ""),
+                )
+                prefs.edit().remove("layout_v1").commit()
+                val plain = DashboardOverviewView(ctx).apply { render(metrics) }
+                assertNotNull(plain.findViewWithTag<View>("dashboard_metric_Herzfrequenz"))
+                assertNotNull(plain.findViewWithTag<View>("dashboard_customize"))
+                val layout = listOf(
+                    DashboardLayout.Entry("Atemfrequenz", favorite = true),
+                    DashboardLayout.Entry(DashboardLayout.HEART, visible = false),
+                )
+                prefs.edit().putString("layout_v1", DashboardLayout.encode(layout)).commit()
+                val custom = DashboardOverviewView(ctx).apply { render(metrics) }
+                assertNull("hidden tile must not be shown", custom.findViewWithTag<View>("dashboard_metric_Herzfrequenz"))
+                assertNotNull(custom.findViewWithTag<View>("dashboard_metric_Atemfrequenz"))
+                val texts = descendants(custom).filterIsInstance<android.widget.TextView>().map { it.text.toString() }
+                assertTrue(texts.toString(), "Im Fokus" in texts)
+                assertTrue("Startseite anpassen" in texts)
+                prefs.edit().putString("layout_v1", DashboardLayout.encode(DashboardLayout.defaultKeys(listOf("Atemfrequenz")).map { DashboardLayout.Entry(it, visible = false) })).commit()
+                val none = DashboardOverviewView(ctx).apply { render(metrics) }
+                assertNotNull(none.findViewWithTag<View>("dashboard_all_hidden"))
+            } finally {
+                prefs.edit().apply { if (before == null) remove("layout_v1") else putString("layout_v1", before) }.commit()
+            }
+        }
+    }
+
     @Test fun stepCounterExplanationIsCompactButFullyAccessible() {
         InstrumentationRegistry.getInstrumentation().runOnMainSync {
             val view = DashboardOverviewView(context(1f, 400))
