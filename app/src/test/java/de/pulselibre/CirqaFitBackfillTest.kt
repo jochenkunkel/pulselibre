@@ -27,6 +27,29 @@ class CirqaFitBackfillTest {
         }
     }
 
+    private class FailOnceStore : FitObservationStore {
+        var attempts = 0
+        val committedKeys = mutableSetOf<String>()
+
+        override fun commitFitFile(
+            sourceSha256: String,
+            fileBytes: Long,
+            relativePath: String,
+            validatedAtEpochMillis: Long,
+            decoderVersion: String,
+            profileVersion: String,
+            observations: List<FitHistoricalObservations.Observation>,
+            deviceMetadata: List<FitHistoricalObservations.DeviceMetadata>,
+            unmappedFields: List<FitFieldInventoryRecord>,
+            deviceKey: String
+        ): Int {
+            attempts++
+            if (attempts == 1) throw IllegalStateException("simulated commit failure")
+            observations.forEach { committedKeys += it.idempotencyKey }
+            return observations.size
+        }
+    }
+
     private fun fit(): ByteArray {
         val data = byteArrayOf(
             0x40, 0, 0, 20, 0, 2,
@@ -89,6 +112,34 @@ class CirqaFitBackfillTest {
             val result = CirqaFitBackfill(root, RecordingStore()).run { true }
             assertEquals(0, result.filesSeen)
             assertTrue(result.truncated)
+        } finally {
+            root.listFiles()?.forEach { it.delete() }
+            root.delete()
+        }
+    }
+
+    @Test fun failedCommitDoesNotReportFileImportedAndRetryReplaysStableKeys() {
+        val root = Files.createTempDirectory("fit-backfill-retry-test").toFile()
+        try {
+            val bytes = fit()
+            File(root, CirqaFitBackfill.expectedFileName(bytes)).writeBytes(bytes)
+            val store = FailOnceStore()
+            val backfill = CirqaFitBackfill(root, store)
+
+            try {
+                backfill.run()
+                throw AssertionError("Expected the commit failure to propagate")
+            } catch (expected: IllegalStateException) {
+                assertEquals("simulated commit failure", expected.message)
+            }
+
+            val retry = backfill.run()
+
+            assertEquals(2, store.attempts)
+            assertEquals(1, retry.filesSeen)
+            assertEquals(1, retry.filesImported)
+            assertEquals(1, retry.importableObservations)
+            assertEquals(1, store.committedKeys.size)
         } finally {
             root.listFiles()?.forEach { it.delete() }
             root.delete()

@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.ContextWrapper
 import android.database.DatabaseErrorHandler
 import android.database.sqlite.SQLiteDatabase
+import android.database.sqlite.SQLiteException
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import java.io.File
@@ -68,6 +69,55 @@ class CirqaFitBackfillInstrumentedTest {
             root.deleteRecursively()
         }
     }
+
+    @Test fun failedSqliteCommitRollsBackSourceAndRetryImportsAtomically() {
+        val base = ApplicationProvider.getApplicationContext<Context>()
+        val root = Files.createTempDirectory(base.cacheDir.toPath(), "fit-backfill-retry-e2e-").toFile()
+        val fitDirectory = File(root, "verified_fit").also { assertTrue(it.mkdir()) }
+        val context = isolatedContext(base, root)
+        try {
+            val fit = syntheticHeartRateFit()
+            File(fitDirectory, "${sha256(fit)}.fit").writeBytes(fit)
+
+            CirqaDatabase(context).use { database ->
+                val db = database.writableDatabase
+                db.execSQL(
+                    """CREATE TRIGGER fail_fit_observation BEFORE INSERT ON observations
+                       BEGIN SELECT RAISE(ABORT, 'simulated FIT commit failure'); END"""
+                )
+                try {
+                    CirqaFitBackfill(fitDirectory, database).run()
+                    throw AssertionError("Expected SQLite commit failure")
+                } catch (_: SQLiteException) {
+                    // A failed write must not publish any part of the FIT transaction.
+                }
+
+                assertEquals(0, count(db, "fit_sources"))
+                assertEquals(0, count(db, "observations"))
+                assertEquals(0, count(db, "fit_observation_provenance"))
+
+                db.execSQL("DROP TRIGGER fail_fit_observation")
+                val retry = CirqaFitBackfill(fitDirectory, database).run()
+                assertEquals(1, retry.filesImported)
+                assertEquals(1, retry.importableObservations)
+                assertEquals(1, count(db, "fit_sources"))
+                assertEquals(1, count(db, "observations"))
+                assertEquals(1, count(db, "fit_observation_provenance"))
+                assertEquals("ok", db.rawQuery("PRAGMA quick_check", null).use {
+                    assertTrue(it.moveToFirst())
+                    it.getString(0)
+                })
+            }
+        } finally {
+            root.deleteRecursively()
+        }
+    }
+
+    private fun count(db: SQLiteDatabase, table: String): Int =
+        db.rawQuery("SELECT COUNT(*) FROM $table", null).use {
+            assertTrue(it.moveToFirst())
+            it.getInt(0)
+        }
 
     private fun syntheticHeartRateFit(): ByteArray {
         val data = byteArrayOf(

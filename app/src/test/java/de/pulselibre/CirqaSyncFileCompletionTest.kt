@@ -33,5 +33,13 @@ class CirqaSyncFileCompletionTest {
         assertFalse(CirqaSyncFileCompletion.isSuccessful(
             "len=100;expected=100;exactSize=true;privateRawSaveFailed=IOException"
         ))
+        assertFalse(CirqaSyncFileCompletion.isSuccessful(
+            "len=100;expected=100;type=FIT_TYPE_ACTIVITY;exactSize=true;" +
+                "fitHeader=false;fitCrc=false;privateRaw=CREATED"
+        ))
+        assertFalse(CirqaSyncFileCompletion.isSuccessful(
+            "len=100;expected=100;type=FIT_TYPE_ACTIVITY;exactSize=true;" +
+                "fitHeader=false;privateRaw=ALREADY_PRESENT"
+        ))
     }
 }
