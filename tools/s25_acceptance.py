@@ -209,10 +209,27 @@ class Run:
         return True
 
     def swipe(self, up: bool = True) -> None:
+        # Slow, short drag: a fast swipe starts a fling that carries the page far past the target (seen on the S25).
         w, h = self.size
-        y1, y2 = (int(h * .75), int(h * .30)) if up else (int(h * .30), int(h * .75))
-        self.adb.shell(f"input swipe {w // 2} {y1} {w // 2} {y2} 300")
-        self.adb.sleep(.6)
+        y1, y2 = (int(h * .70), int(h * .42)) if up else (int(h * .42), int(h * .70))
+        self.adb.shell(f"input swipe {w // 2} {y1} {w // 2} {y2} 900")
+        self.adb.sleep(.8)
+
+    def scan_page(self, steps: int = 16) -> list[Node]:
+        """One pass from the top to the bottom; returns the union of every node seen (nothing can be skipped)."""
+        self.scroll_top()
+        seen: dict[tuple, Node] = {}
+        previous = None
+        for _ in range(steps):
+            nodes = self.dump()
+            for n in nodes:
+                seen[(n.label, n.bounds[0], n.bounds[2])] = n
+            signature = tuple(n.label for n in nodes)
+            if signature == previous:   # the page did not move: bottom reached
+                break
+            previous = signature
+            self.swipe(True)
+        return list(seen.values())
 
     def scroll_to(self, needle: str, limit: int = 14, up: bool = True) -> Node | None:
         for _ in range(limit):
@@ -310,10 +327,11 @@ def phase_navigation(run: Run) -> None:
 def phase_overview(run: Run) -> None:
     run.tab("Übersicht"); run.scroll_top()
     run.shot("uebersicht_oben")
-    for needle in ("Herzfrequenz", "SpO", "Schlaf", "Nacht-Insights", "Schritte heute"):
-        node = run.scroll_to(needle)
-        run.add("Übersicht", f"Kachel „{needle}“ sichtbar", PASS if node else FAIL)
-    ok, detail = coverage_texts_agree(run.dump())
+    page = run.scan_page()
+    titles = {n.text for n in page}
+    for needle in ("Herzfrequenz", "SpO₂", "Schlaf", "Nacht-Insights", "Schritte heute"):
+        run.add("Übersicht", f"Kachel „{needle}“ sichtbar", PASS if needle in titles else FAIL)
+    ok, detail = coverage_texts_agree(page)
     run.add("#312", "Nacht-Insights: Abdeckung in Kachel und Begründung gleich", PASS if ok else FAIL, detail)
     run.shot("uebersicht_mitte")
 

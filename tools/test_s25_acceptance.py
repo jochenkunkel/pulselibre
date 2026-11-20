@@ -140,6 +140,27 @@ class RunnerTest(unittest.TestCase):
             s.main(["--serial", "X", "--phases", "gibtsnicht"])
 
 
+class ScanPageTest(unittest.TestCase):
+    def test_scan_collects_nodes_from_every_scroll_position_and_stops_at_the_bottom(self):
+        top = xml(("Herzfrequenz", "", (0, 300, 400, 400), False))
+        middle = xml(("Schritte heute", "", (0, 300, 400, 400), False), ("", "Abdeckung: 0,5 %", (0, 500, 400, 560), False))
+        bottom = xml(("Startseite anpassen", "", (0, 300, 400, 400), False))
+        adb = FakeAdb([top, middle, bottom, bottom], {"wm size": "Physical size: 1080x2340"})
+        with tempfile.TemporaryDirectory() as tmp:
+            page = s.Run(adb, Path(tmp)).scan_page()
+        titles = {n.text for n in page}
+        self.assertTrue({"Herzfrequenz", "Schritte heute", "Startseite anpassen"} <= titles)
+        self.assertTrue(any(n.desc == "Abdeckung: 0,5 %" for n in page))
+
+    def test_swipes_are_slow_and_short_to_avoid_flings(self):
+        adb = FakeAdb(["x"])
+        with tempfile.TemporaryDirectory() as tmp:
+            s.Run(adb, Path(tmp)).swipe(True)
+        command = adb.commands[-1].split()
+        self.assertEqual("900", command[-1])
+        self.assertLess(int(command[3]) - int(command[5]), 0.35 * 2340)
+
+
 class FullRunTest(unittest.TestCase):
     """A scripted phone: every phase runs end to end; nothing outside the allow-list is sent; settings are restored."""
 
