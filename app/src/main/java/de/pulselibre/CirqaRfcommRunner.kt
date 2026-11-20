@@ -92,7 +92,7 @@ class CirqaRfcommRunner {
         sdpReceiver = receiver
         ContextCompat.registerReceiver(
             context, receiver, IntentFilter(BluetoothDevice.ACTION_UUID),
-            ContextCompat.RECEIVER_EXPORTED
+            ContextCompat.RECEIVER_NOT_EXPORTED
         )
     }
 

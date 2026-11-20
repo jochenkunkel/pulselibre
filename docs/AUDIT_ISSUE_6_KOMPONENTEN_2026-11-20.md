@@ -78,9 +78,9 @@ Einordnung (Stichprobe, nicht abschließend):
 ## 5. Befunde und Empfehlungen
 | ID | Befund | Risiko | Empfehlung / Zuständigkeit |
 | --- | --- | --- | --- |
-| A6-1 | `CirqaRfcommRunner.kt:93` registriert den `ACTION_UUID`-Receiver mit `RECEIVER_EXPORTED`. Für diesen systemseitigen Broadcast ist das voraussichtlich nicht nötig (Hypothese, am Gerät/Doku zu bestätigen); ein exportierter Receiver nähme Broadcasts fremder Apps an. | gering (nur im Testlabor-Pfad, kurz registriert) | Prüfen, ob `RECEIVER_NOT_EXPORTED` genügt; OpenCode (Protokoll/Testlabor) |
+| A6-1 | `CirqaRfcommRunner` registrierte den `ACTION_UUID`-Receiver mit `RECEIVER_EXPORTED`. | **behoben (2026-11-20)**: jetzt `RECEIVER_NOT_EXPORTED`. `ACTION_UUID` ist ein geschützter System-Broadcast; Android liefert solche Broadcasts auch an nicht exportierte Receiver, fremde Apps können ihn nicht mehr einspeisen. | Abdeckung: Emulator-Lauf kompiliert die Änderung; echte SDP-Antwort am Band nicht erneut geprüft (kein BLE-/RFCOMM-Lauf ausgeführt). |
 | A6-2 | `CirqaContinuousRecordingService` ohne Testreferenz | mittel–hoch | Lebenszyklus-/Timeout-Tests (#3), in Abstimmung mit dem Bearbeiter von #3/#25/#171 |
-| A6-3 | `FitObservationCommitter` ohne direkten Test der Commit-/Idempotenz-Logik | mittel | Unit-Test mit In-Memory-/Temp-DB; OpenCode (Datenbank) |
+| A6-3 | `FitObservationCommitter` ohne direkte Testreferenz | **korrigiert (2026-11-20)**: indirekt über `CirqaDatabase.commitFitFile` getestet (`LocalReadingStoreTest`: wiederholbarer Backfill, Ablehnung ungültiger Dateien, Batch idempotent, kein Schreiben/Cursor bei ungültigem Batch, Konfliktfall → `IllegalStateException`; `HistoricalObservationRepositoryTest`). Nur ein direkter Test der einzelnen Konfliktprüfungen (Metadaten-/Provenance-Abweichung) fehlt. | optional: gezielte Konflikttests je Prüfung |
 | A6-4 | `CirqaMlHandshakeProbe` mit 2.842 Zeilen ohne Referenz | mittel (Wartbarkeit) | Zerlegung und Tests der reinen Teile; OpenCode |
 | A6-5 | `CirqaLocalLog`-Inhalt und Diagnosepaket auf Geräte-/Gesundheitsdaten prüfen | offen | Prüfung steht aus |
 | A6-6 | UI-Dateien ohne JVM-Test: Logik, die in Views steckt, ist nur am Emulator abgedeckt | gering | neue UI-Logik weiterhin in reine Modelle auslagern (wie `DayTimeline`, `DashboardLayout`) |

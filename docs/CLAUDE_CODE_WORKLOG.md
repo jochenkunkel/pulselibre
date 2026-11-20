@@ -397,3 +397,7 @@ Noch sichtbar offen (P3): Nacht-Insights erste Spalte „22–6 Uhr / 22331 / We
 ## 2026-11-20 – #235 Akku-Messwerkzeug (Handy-Seite)
 - Neu: `tools/battery_baseline.py` (nur lesend per adb: Pegel, Ladezähler, Ladezustand, Bildschirm, App-Zeilen Bluetooth/Wakelock/Foreground; `report` berechnet %/h und mAh/h und warnt bei Fenstern unter 60 min, Laden, Build-Wechsel), Unit-Tests `tools/test_battery_baseline.py` (6), Protokoll `docs/BATTERY_MEASUREMENT_PROTOCOL.md`. Snapshot-Test am S25 lief (Handy lud gerade, Werkzeug meldete `plugged=True`).
 - **Keine Messwerte, keine Android-Änderung.** Die Baseline selbst braucht mehrere Stunden am Handy; #235 bleibt offen.
+
+## 2026-11-20 – #6 Härtung A6-1, Korrektur A6-3
+- A6-1 behoben: `CirqaRfcommRunner` registriert den `ACTION_UUID`-Receiver mit `RECEIVER_NOT_EXPORTED` (geschützter System-Broadcast wird weiter zugestellt). Echte RFCOMM-/SDP-Antwort am Band nicht erneut geprüft.
+- A6-3 im Audit korrigiert: der Committer ist indirekt über `commitFitFile` in `LocalReadingStoreTest` abgedeckt (Idempotenz, Konflikt, Rollback); fehlend sind nur gezielte Einzel-Konflikttests.
