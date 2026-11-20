@@ -135,7 +135,7 @@ SDK-Pakete.
 | Phase | Inhalt |
 | --- | --- |
 | `preflight` | JDK 21, Gradle ≥ 9.6, Android SDK, Build-Tools, freier Speicher; bei FULL: KVM |
-| `python-tests` | `python3 -m unittest discover -s tools -p 'test_*.py' -v` (Validatoren + Workflow-Struktur) |
+| `python-tests` | `python3 -m unittest discover -s tools -p 'test_*.py' -v` (Validatoren, Workflow-Struktur, Runner-Installer-Sicherheit) |
 | `build` | `:app:testDebugUnitTest :app:assembleDebug :app:assembleRelease :app:createDebugUnitTestCoverageReport -PpulselibreVersionCode=<n>` |
 | `verify` (FULL) | `:app:lintDebug :app:assembleDebugAndroidTest` |
 | `diagnostics` | `apksigner verify --print-certs`, `aapt dump badging`, R8-Mapping vorhanden, Release nicht debuggable, Debug-/Release-Zertifikat identisch (wenn signiert) |
@@ -157,6 +157,12 @@ sichert die Fehler ab, die beim Umbau real aufgetreten sind:
 - Alle Actions sind auf einen vollständigen Commit-SHA gepinnt.
 - `actions/checkout` setzt `persist-credentials: false`; es gibt kein
   `permissions: write-all`.
+
+`tools/test_runner_installer.py` verwendet isolierte Command-Stubs, um den
+Runner-Installer ohne Netzwerk, echten Token, Service- oder Systemänderung zu
+prüfen: tokenloser System-/User-Dry-Run sowie Ablehnung eines echten
+Installationsversuchs bei öffentlichem Repository, bevor Seiteneffekte
+auftreten.
 
 ## 6. APK-Signierung
 
@@ -219,7 +225,7 @@ sudo bash tools/runner/install-runner.sh --system \
   --java-home /home/smiler/.local/share/pulselibre-ci/jdk-21
 
 # 2a. Trockenlauf ohne root und ohne Registrierung (zeigt alle Befehle)
-RUNNER_TOKEN=dummy bash tools/runner/install-runner.sh --system --dry-run \
+bash tools/runner/install-runner.sh --system --dry-run \
   --allow-public --android-sdk /opt/android-sdk
 
 # 3. In GitHub aktivieren
@@ -241,7 +247,8 @@ Details:
   `--allow-public` wird ausdrücklich gesetzt.
 - `--dry-run` funktioniert für `--user` und `--system` auch ohne root: es wird
   nichts registriert und nichts nach `/opt` geschrieben; nur die Befehle werden
-  angezeigt. Damit lässt sich der Ablauf vor der Freigabe vollständig prüfen.
+  angezeigt. Der Trockenlauf benötigt oder ruft **keinen Registrierungs-Token**
+  ab. Damit lässt sich der Ablauf vor der Freigabe vollständig prüfen.
 
 ### KVM
 
