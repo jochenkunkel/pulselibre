@@ -463,3 +463,6 @@ Noch sichtbar offen (P3): Nacht-Insights erste Spalte „22–6 Uhr / 22331 / We
 
 ## 2026-11-20 – Kosmetik: App-Symbol im Kopfbereich in der Hell-Ansicht
 - Befund aus der S25-Prüfung: Logo-Quadrat (#5127C9) und Banner (#5A33C7 im Hellmodus) fast gleich. `PulseLogoView` zeichnet in Hell eine 1,5-dp-Kontur (weiß, 80 %); Dunkel unverändert. Parameter `outline` injizierbar; Emulator-Test `PulseLogoViewTest` prüft per Pixel, dass die Kante deutlich heller ist als die Füllung. Wartet auf stabile CI (kein Push während der LOCAL-Läufe).
+
+## 2026-11-20 – S25-Sammelabnahme, zweiter Komplettlauf mit korrigiertem Werkzeug (Build 1520, 18:11–18:22)
+- **53 PASS, 0 FAIL, 3 INFO** (Akku 100 % lädt; CIRQA-Batteriestand nicht angezeigt (#159); kein Vordergrunddienst nach 90 s Hintergrund). Alle Phasen inkl. Überlappungs-Heuristik in Hell/Schrift 1,3/Schrift 2,0/320 dp, #312 (Kachel = Begründung), #309, #267, #172, #204-Warnung. Einstellungen wiederhergestellt (Nachtmodus an, Schrift 1,0, Dichte 480). Bericht lokal (echte Werte, nicht im Repo).
