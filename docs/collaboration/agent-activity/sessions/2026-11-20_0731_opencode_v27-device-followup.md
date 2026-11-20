@@ -1,15 +1,15 @@
 # OpenCode – V27-Gerätenachlauf und CIRQA-Abnahme
 - Agent/Umgebung: OpenCode / API coding agent, Worktree `/tmp/opencode/cirqa-v27-sync`
 - Beginn: 2026-11-20 07:31 UTC
-- Letzte Aktualisierung: 2026-11-20 09:27 UTC
+- Letzte Aktualisierung: 2026-11-20 09:45 UTC
 - Status: aktiv
 - Rolle/Zuständigkeit: CIRQA-Protokoll, begrenzter Gerätelauf, FIT/SQLite-Abgleich gemäß ausdrücklicher Beauftragung
-- Aktueller Auftrag: FIT-Historienpipeline #149/#150 vervollständigen: vorhandene verifizierte Dateien ohne BLE automatisch offline backfillen; keine Behauptung vollständiger Gerätehistorie
-- Jetzt in Bearbeitung: #149/#150 – App-Start-Backfill über bestehenden `CirqaFitBackfill`, begrenzte/idempotente Verarbeitung und synthetische Regressionstests
+- Aktueller Auftrag: historischen Download #149 produktionsreif voranbringen; Backfill vorhandener FITs und Statusfehler korrigieren, Grenzen klar ausweisen
+- Jetzt in Bearbeitung: #149 – FIT-Abschluss an SQLite-Commit koppeln und Downloadlimits nicht mehr still als vollständigen Lauf darstellen; kein destruktiver Gerätebefehl
 - Zeitnah geplant: #144 – verbleibende Datenarchitektur-/Abnahmekriterien prüfen; keine exklusive Reservierung
 - Betroffene Bereiche/Dateien: `docs/protocol/experiments/CIRQA_SYNC_V27_PLAN_2026-11-20.md`, V27-Statusbericht, bestehender Sync-/Importpfad; keine UI-, Dashboard-, Navigations- oder Schemaänderung
 - Branch/Worktree: `opencode/v27-metadata-evidence` (PR #289) / `/tmp/opencode/cirqa-v27-sync`
 - Abstimmungsbedarf: Claude Code arbeitet laut offener Nachricht an #150 an der FIT-Inventur im Diagnosepanel; mein Geräte-/Protokollnachlauf ist davon getrennt. Keine parallele Änderung an Testlabor-D/E.
 - Agent-sync-Nachrichten: `docs/collaboration/agent-sync/2026-11-20_0705_opencode-an-alle_v27-bounded-sync.md`; `docs/collaboration/agent-sync/2026-11-20_1830_opencode-an-claude_issue150-inventory-ui.md`
-- Nachweise: V27 lokal 45/45 FIT-Dateien verifiziert; 27.736/27.736 importierbare Kandidatenschlüssel in SQLite. Privater V26-Korpus erneut geprüft: 40 FIT-Dateien, 294/294 Kandidatenschlüssel, SQLite `integrity_check=ok`, keine doppelten Schlüssel/FK-Verletzungen. FIT-Metadatenaggregate im privaten Export geprüft. Lokale Unit-Tests mit Gradle 9.6 erfolgreich; Android-Instrumentation-APK-Bau läuft. PR #289 um bounded offline Backfill auf App-Start erweitert.
-- Nächster Schritt: Instrumentationstest kompilieren, neuen PR-Head-Full-CI vollständig abnehmen und nur dann mergen; Issues #149/#150 offen lassen, solange weitere Decoder-, Status-, Metadaten- und Gerätehistorienlücken bestehen.
+- Nachweise: V27 lokal 45/45 FIT-Dateien verifiziert; 27.736/27.736 importierbare Kandidatenschlüssel in SQLite. Privater V26-Korpus erneut geprüft: 40 FIT-Dateien, 294/294 Kandidatenschlüssel, SQLite `integrity_check=ok`, keine doppelten Schlüssel/FK-Verletzungen. Offline-Backfill auf App-Start ist in PR #289 implementiert. Regressionstest erzwingt FIT-Erfolg erst nach SQLite-Commit; Sync-Bericht trennt Queue-Abarbeitung von Archivabdeckung und stoppt an Grenzen statt Dateien still zu überspringen. CI-Emulator-Tests für den vorherigen Commit sind grün; aktuelle Folgeänderung lokal geprüft.
+- Nächster Schritt: Folgeänderung in PR #289 aufnehmen, Full-CI prüfen. Anschließend kontrollierter, ausdrücklich freigegebener read-only Sync-Validierungslauf nur nach Sicherung/Prüfung der Geräte-DB; keine Gate-Umgehung. Vollständigkeit der gesamten CIRQA-Historie bleibt bis zum erfolgreichen paginierten Gerätelauf unbewiesen.
