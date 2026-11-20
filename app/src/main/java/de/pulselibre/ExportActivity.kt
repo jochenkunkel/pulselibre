@@ -65,7 +65,7 @@ class ExportActivity : AppCompatActivity() {
                             "Originaldateien sind nicht enthalten; keine Pfade oder XML-IDs werden gespeichert."
                     }
                 } catch (_: Exception) {
-                    runOnUiThread { databaseFeedback.text = "Backup fehlgeschlagen. Bitte Speicherort prüfen." }
+                    runOnUiThread { databaseFeedback.text = "Backup fehlgeschlagen. Bitte Speicherort prüfen; eine angelegte Zieldatei kann unvollständig sein und sollte gelöscht werden." }
                 }
             }
         }
@@ -111,7 +111,7 @@ class ExportActivity : AppCompatActivity() {
                     }
                 } catch (error: Exception) {
                     runOnUiThread {
-                        feedback.text = "Export fehlgeschlagen. Bitte Speicherort prüfen und erneut versuchen."
+                        feedback.text = "Export fehlgeschlagen. Bitte Speicherort prüfen und erneut versuchen; eine angelegte Zieldatei kann unvollständig sein und sollte gelöscht werden."
                     }
                 }
             }

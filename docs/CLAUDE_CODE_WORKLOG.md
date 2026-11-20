@@ -460,3 +460,25 @@ Noch sichtbar offen (P3): Nacht-Insights erste Spalte „22–6 Uhr / 22331 / We
 ## 2026-11-20 – S25-Sammelabnahme vorbereitet (Plan, Skript, Offline-Tests)
 - Neu: `tools/s25_acceptance.py` (ein Zug, ca. 12–15 min: Preflight inkl. Flags/Berechtigungen, Navigation, Übersicht inkl. Abdeckungs-Konsistenz #312, Verlauf/Achsenansage #309, Analysen/Atlas #41, Startseite anpassen #267, Gerät/Testlabor-Einstieg #172/Unbekannte Felder #204, Anzeigevarianten Hell/Schrift 1,3/2,0/320 dp #276, 90-s-Hintergrundbeobachtung #171/#25/#3), Plan `docs/S25_ACCEPTANCE_PLAN_2026-11-20.md`, Offline-Tests `tools/test_s25_acceptance.py` (14, inkl. Gesamtlauf mit gespieltem Handy).
 - Sicherheit technisch erzwungen: Erlaubnisliste für adb-Befehle (kein Install/Clear/Instrumentation/Bluetooth/Texteingabe), nie Tippen auf Geräte-/Datenaktionen, Ausgabeordner außerhalb des Repos, Wiederherstellung von Nachtmodus/Schrift/Dichte im `finally`. Das Handy wurde dafür **nicht** angefasst (OpenCode nutzt es für den FIT-Test); Rückmeldung per agent-sync erbeten.
+
+## 2026-11-20 – Kosmetik: App-Symbol im Kopfbereich in der Hell-Ansicht
+- Befund aus der S25-Prüfung: Logo-Quadrat (#5127C9) und Banner (#5A33C7 im Hellmodus) fast gleich. `PulseLogoView` zeichnet in Hell eine 1,5-dp-Kontur (weiß, 80 %); Dunkel unverändert. Parameter `outline` injizierbar; Emulator-Test `PulseLogoViewTest` prüft per Pixel, dass die Kante deutlich heller ist als die Füllung. Wartet auf stabile CI (kein Push während der LOCAL-Läufe).
+
+## 2026-11-20 – S25-Sammelabnahme, zweiter Komplettlauf mit korrigiertem Werkzeug (Build 1520, 18:11–18:22)
+- **53 PASS, 0 FAIL, 3 INFO** (Akku 100 % lädt; CIRQA-Batteriestand nicht angezeigt (#159); kein Vordergrunddienst nach 90 s Hintergrund). Alle Phasen inkl. Überlappungs-Heuristik in Hell/Schrift 1,3/Schrift 2,0/320 dp, #312 (Kachel = Begründung), #309, #267, #172, #204-Warnung. Einstellungen wiederhergestellt (Nachtmodus an, Schrift 1,0, Dichte 480). Bericht lokal (echte Werte, nicht im Repo).
+
+## 2026-11-20 (abends) – Offline-Nachweis nach Umstellung auf LOCAL
+
+- Stand: PR-/Fork-Läufe bleiben CLOUD (Billing-Blocker, wird nicht umgangen); PR #330 (direktes LOCAL-Routing) ist offen. Keine Pushes/Merges von mir, solange kein grüner voller Lauf auf dem Branch-Kopf lesbar ist.
+- Branch `claude/header-icon-kontrast` auf aktuellen `origin/main` rebased (konfliktfrei). Lokal offline grün: `:app:testDebugUnitTest` und `:app:compileDebugAndroidTestKotlin` (inkl. `PulseLogoViewTest`). Emulator-Tests laufen weiterhin nur in der CI.
+- Nächster Schritt: sobald PR #330 integriert und Billing geklärt ist, LOCAL QUICK/FULL per `workflow_dispatch` auf dem Branch auslösen (mit CI-Agent abstimmen, Concurrency #321), dann #327 und den Logo-PR mergen.
+
+## 2026-11-20 (abends) – Audit #6: ExportActivity abgeschlossen
+
+- A6-7 umgesetzt: Fehlermeldungen bei Backup/CSV-Export nennen die mögliche unvollständige Zieldatei (reiner Text, `compileDebugKotlin` offline grün, keine Tests an den Texten).
+- A6-8 (still verworfene beschädigte Zeilen, Speicherlast von `readingLines()`) im Audit Abschnitt 16 dokumentiert, nicht umgesetzt.
+- Nur lokal committet; kein Push bis LOCAL-Nachweis (siehe oben).
+
+## 2026-11-20 (spät) – PR #332: Emulator-Test `PulseLogoViewTest` korrigiert
+
+- Cloud-FULL (Lauf 44808320489): 112 Emulator-Tests, 1 Fehler – mein eigener neuer Test: `plain=107 outlined=225`. Die Produktionskontur wirkt (225 gegenüber 107), die Schwelle `plain < 90` war falsch gerechnet (Kanalmittel von #5127C9 = 107). Schwelle auf `< 130` angepasst, Unterschied weiter `> +70`. Der Fehler ist damit ein Testfehler, kein Produktfehler.
