@@ -107,6 +107,17 @@ Emulatornachweis, kein S25-Test.
 - Diese Prüfung verifiziert die Codeverknüpfung und Failure-Klassifikation,
   nicht die semantische Richtigkeit aller FIT-Felder oder einen SQLite-
   Transaktionsfehler auf dem S25.
+- Für den Folgeabgleich ergänzt Commit `b0b9c26` `CirqaFitOfflineInventory`
+  um einen datensparsamen Per-Datei-Bericht: lokale Ordinal-Aliase, Datei-
+  Status, Record-/Observation-/Qualitäts-/Metrikzähler, bekannte Mapping-
+  und unbekannte FIT-Feldsignaturen sowie optional DB-Schlüssel-/Quellen-
+  Matches. Es werden keine Werte, Zeitstempel, Dateinamen oder Hashes
+  ausgegeben. Der Scan ist auf 256 Dateien und 64 MiB Gesamtdaten begrenzt;
+  nicht geprüfte Dateien werden explizit gezählt. Je Datei werden höchstens
+  24 Feldsignaturen ausgegeben und weitere explizit gezählt. Die
+  JVM-Regressionen prüfen Alias-/Status-/Redaktions-/DB-Abgleich und
+  Limitverhalten. Diese neue Implementierung ist noch nicht auf dem S25
+  ausgeführt und braucht den vollen CI-/Updatepfad vor Geräteeinsatz.
 - Ein neuer S25-App-Start wurde bewusst nicht durchgeführt: `MainActivity`
   plant beim Einstieg einen FIT-Backfill (SQLite-Schreibvorgänge) und kann bei
   gesetzter Nutzereinstellung die Aufzeichnung starten; `CirqaDatabase.onOpen()`

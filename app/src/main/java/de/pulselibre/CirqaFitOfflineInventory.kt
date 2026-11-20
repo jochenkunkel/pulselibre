@@ -12,6 +12,7 @@ internal object CirqaFitOfflineInventory {
     private const val MAX_FILES = 256
     private const val MAX_BYTES = 64L * 1024L * 1024L
     private const val MAX_TOTAL_BYTES = 64L * 1024L * 1024L
+    private const val MAX_FIELD_SUMMARIES_PER_FILE = 24
 
     data class Summary(
         val filesSeen: Int,
@@ -57,6 +58,13 @@ internal object CirqaFitOfflineInventory {
                     append("; DB-Schlüssel=$matched/${file.importableObservations}")
                 }
                 file.databaseSourcePresent?.let { append("; QuelleInDB=$it") }
+                if (file.fieldCoverage.isNotEmpty()) {
+                    append("; Felder=")
+                    append(file.fieldCoverage.joinToString(","))
+                    if (file.fieldCoverageOmitted > 0) {
+                        append(",weitere=${file.fieldCoverageOmitted}")
+                    }
+                }
                 appendLine()
             }
             appendLine("Hinweis: Lokaler Abgleich; beweist keine vollständige Gerätehistorie.")
@@ -76,7 +84,10 @@ internal object CirqaFitOfflineInventory {
         val unknownFieldSignatures: Int,
         val byMetric: Map<FitHistoricalObservations.Metric, Int>,
         val databaseMatchedKeys: Int?,
-        val databaseSourcePresent: Boolean?
+        val databaseSourcePresent: Boolean?,
+        /** Structural FIT message/field coverage only; never values or timestamps. */
+        val fieldCoverage: List<String>,
+        val fieldCoverageOmitted: Int
     )
 
     fun inspect(
@@ -120,7 +131,9 @@ internal object CirqaFitOfflineInventory {
                 unknownFieldSignatures = 0,
                 byMetric = emptyMap(),
                 databaseMatchedKeys = if (databaseAvailable) 0 else null,
-                databaseSourcePresent = if (databaseAvailable) false else null
+                databaseSourcePresent = if (databaseAvailable) false else null,
+                fieldCoverage = emptyList(),
+                fieldCoverageOmitted = 0
             )
         }
         for ((index, file) in files.withIndex()) {
@@ -173,6 +186,21 @@ internal object CirqaFitOfflineInventory {
             }
             val fileMatchedKeys = fileImportable.count { it.idempotencyKey in databaseSampleIds }
             val fileMetrics = decoded.observations.groupingBy { it.metric }.eachCount()
+            val mappedFieldCoverage = decoded.observations.groupBy {
+                Triple(it.globalMessageNumber, it.fieldNumber, it.metric)
+            }.map { (key, items) ->
+                "g${key.first}.f${key.second}:${key.third.name}:" +
+                    "obs${items.size}/imp${items.count {
+                        it.quality == FitHistoricalObservations.Quality.PROFILE_VALID &&
+                            it.timestampEpochMillis != null
+                    }}"
+            }
+            val unknownFieldCoverage = decoded.unknownFields.map { field ->
+                "g${field.globalMessageNumber}.f${field.fieldNumber}:${field.kind.name}:" +
+                    "b${field.baseType ?: "-"}s${field.size}di${field.developerDataIndex ?: "-"}:" +
+                    "occ${field.occurrenceCount}defs${field.definitionCount}"
+            }
+            val allFieldCoverage = (mappedFieldCoverage + unknownFieldCoverage).sorted()
             fileSummaries += FileSummary(
                 alias = alias,
                 status = "verifiziert",
@@ -192,7 +220,10 @@ internal object CirqaFitOfflineInventory {
                 unknownFieldSignatures = decoded.unknownFields.size,
                 byMetric = fileMetrics,
                 databaseMatchedKeys = fileMatchedKeys.takeIf { databaseAvailable },
-                databaseSourcePresent = sourcePresent.takeIf { databaseAvailable }
+                databaseSourcePresent = sourcePresent.takeIf { databaseAvailable },
+                fieldCoverage = allFieldCoverage.take(MAX_FIELD_SUMMARIES_PER_FILE),
+                fieldCoverageOmitted = (allFieldCoverage.size - MAX_FIELD_SUMMARIES_PER_FILE)
+                    .coerceAtLeast(0)
             )
         }
         return Summary(files.size, verified, rejected, records, observations, importable,

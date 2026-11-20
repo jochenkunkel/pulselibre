@@ -34,11 +34,15 @@ class CirqaFitOfflineInventoryTest {
             assertEquals("verifiziert", summary.perFile.single().status)
             assertEquals(1, summary.perFile.single().importableObservations)
             assertEquals(1, summary.perFile.single().byMetric[FitHistoricalObservations.Metric.HEART_RATE])
+            assertTrue(summary.perFile.single().fieldCoverage.any {
+                it == "g20.f3:HEART_RATE:obs1/imp1"
+            })
 
             val report = summary.redactedText()
             assertTrue(report.contains("verifiziert: 1"))
             assertTrue(report.contains("HEART_RATE: 1"))
             assertTrue(report.contains("FIT-0001: verifiziert; Records=1; Observations=1; importierbar=1"))
+            assertTrue(report.contains("g20.f3:HEART_RATE:obs1/imp1"))
             assertFalse(report.contains(privateName))
             assertFalse(report.contains(bytes.toString(Charsets.ISO_8859_1)))
         } finally {
