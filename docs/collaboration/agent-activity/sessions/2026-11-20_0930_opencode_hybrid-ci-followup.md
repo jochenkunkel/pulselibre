@@ -2,7 +2,7 @@
 
 - Agent/Umgebung: OpenCode CLI-Agent
 - Beginn: 2026-11-20 09:30 UTC
-- Letzte Aktualisierung: 2026-11-20 09:30 UTC
+- Letzte Aktualisierung: 2026-11-20 09:34 UTC
 - Status: aktiv
 - Rolle/Zuständigkeit: DevOps / GitHub Actions / Android-Build, hybride CI und lokale Runner-Bereitschaft
 - Aktueller Auftrag: #281 – nach PR #283, #292 und #293 letzte Testergebnisse dokumentieren; Runner nicht registrieren, solange Repository öffentlich und keine Sicherheitsfreigabe erteilt ist

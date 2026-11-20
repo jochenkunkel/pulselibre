@@ -1,17 +1,16 @@
 # Claude Code – GUI, Benchmark-Umsetzung (#261-Folgetickets), SCA (#155)
 - Agent/Umgebung: Claude Code (Sonnet 5.5) / VSCodium
 - Beginn: 2026-11-20 05:50 UTC (Berlin 06:50)
-- Letzte Aktualisierung: 2026-11-20 06:20 UTC
+- Letzte Aktualisierung: 2026-11-20 09:30 UTC
 - Status: aktiv
 - Rolle/Zuständigkeit: Android-GUI, Dashboard, Navigation, UI-Tests, UI-Status (laut AGENTS.md); zusätzlich auf Nutzerauftrag Abarbeiten der nicht BLE-gebundenen Tickets
 - Aktueller Auftrag: offene, nicht BLE-/Protokoll-gebundene Tickets selbstständig abarbeiten (Nutzerfreigabe liegt vor)
-- Jetzt in Bearbeitung:
-  - #155 – SCA: Dependency-Graph-Nachweis, 8 Dependabot-Alerts im AGP-Build-Klassenpfad per Gradle-Constraints (PR #280, wartet auf vollen Emulatorlauf)
-  - #276 – Restpunkte aus #263–#266: Ziellinie mit eigenem Schrittziel, Regelmäßigkeit (#41), Zeitbeschriftung
-- Zeitnah geplant (keine exklusive Reservierung): #267 Startseite anpassen; #41 Restpunkte; #177 Handbuch-Eingrenzung; #6 Codeaudit (komponentenweise)
+- Jetzt in Bearbeitung: #6 Vertiefung (A6-5 erledigt, Branch `claude/6-log-privacy`, noch nicht gepusht; CI wird gebündelt genutzt, nur ein PR zur Zeit). #235 (Werkzeug als PR #294) – nur die **GUI-/Werkzeugseite**: Messskript und Messprotokoll für die Akku-Baseline (adb/batterystats, nur lesend; die Messung selbst braucht ein Zeitfenster am S25 mit dem Nutzer)
+- Abgeschlossen in dieser Sitzung: #155 (geschlossen, 0 Dependabot-Alerts), #261 (geschlossen), #263–#266 (geschlossen), #267 (Code gemergt, Ticket offen bis Handyabnahme), #41-Regelmäßigkeit, #177-Textdoku, #6-Teilprüfung (PR #291; #6 bleibt offen)
+- Zeitnah geplant (keine exklusive Reservierung): #159/#172-Reste (warten auf OpenCode-Schnittstellen), #6 Vertiefung (A6-5 Log-/Diagnoseinhalt, Persistenz-Migrationen)
 - Betroffene Bereiche/Dateien: `build.gradle.kts` (nur buildscript-Constraints), `docs/SCA_DEPENDENCY_REVIEW_2026-11-20.md`, `DayTimeline*.kt`, `DashboardOverview*.kt`, `TrendCardView.kt`, später Übersicht/Einstellungen (#267)
 - Branch/Worktree: `claude/155-sca`, `claude/276-goal-regularity`, `claude/agent-activity`; Worktree `pulselibre-claude`
 - Abstimmungsbedarf: keiner. Hinweis an OpenCode (#155): Ich baue auf Ihrer Dependency-Submission auf und ändere den Workflow nicht; Testlabor-Bereich D/E (#150) fasse ich laut Ihrer Nachricht nicht an.
 - Agent-sync-Nachrichten: [Stand und Wünsche](../../agent-sync/2026-11-20_1230_claude-an-opencode_stand-und-wuensche.md); Antwort auf die #150-Nachricht: erfolgt hier (keine Parallelarbeit am Testlabor)
-- Nachweise: PRs #262, #268, #269, #271, #272, #274, #277 gemergt (Full-CI inkl. Emulator grün, `main` Lauf 1386 grün); S25-Abnahme Build 1380/1382 am 2026-11-20 (nur lesend/Bedienung, keine Instrumentationstests auf dem S25); PR #280 in Prüfung
-- Nächster Schritt: PR #280 nach vollem grünem Lauf mergen, dann #276, danach #267
+- Nachweise: PRs #262, #268, #269, #271, #272, #274, #277 gemergt (Full-CI inkl. Emulator grün, `main` Lauf 1386 grün); S25-Abnahme Build 1380/1382 am 2026-11-20 (nur lesend/Bedienung, keine Instrumentationstests auf dem S25); PRs #280, #284, #285, #286, #290, #291 gemergt (jeweils voller Lauf inkl. Emulator vor dem Merge gelesen); Dependabot-Alerts 8 → 0
+- Nächster Schritt: Akku-Messwerkzeug (#235), danach #6 vertiefen; Abnahme von #267 und der neuen Ansichten am S25 sobald der Nutzer das Handy freigibt
