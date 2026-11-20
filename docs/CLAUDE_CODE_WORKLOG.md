@@ -482,3 +482,10 @@ Noch sichtbar offen (P3): Nacht-Insights erste Spalte „22–6 Uhr / 22331 / We
 ## 2026-11-20 (spät) – PR #332: Emulator-Test `PulseLogoViewTest` korrigiert
 
 - Cloud-FULL (Lauf 44808320489): 112 Emulator-Tests, 1 Fehler – mein eigener neuer Test: `plain=107 outlined=225`. Die Produktionskontur wirkt (225 gegenüber 107), die Schwelle `plain < 90` war falsch gerechnet (Kanalmittel von #5127C9 = 107). Schwelle auf `< 130` angepasst, Unterschied weiter `> +70`. Der Fehler ist damit ein Testfehler, kein Produktfehler.
+
+## 2026-11-20 (nachts) – #334: FIT-Historie im Verlauf
+
+- Ticket #334 angelegt (Folgepunkt zu #149). Die genannte agent-sync-Datei (22:08) und der Geräte-Befund liegen auf `origin` nicht vor; Umsetzung nach Auftragsbeschreibung und Code, Rückfrage im agent-sync (22:30).
+- Neue Karte „Herzfrequenz · Band-Verlauf (FIT)“ im Reiter Verlauf: Zeitachse Messzeit des Bandes, getrennt von der bestehenden Karte (Telefonzeit). `FitHistoryReader` liest nur lesend über `HistoricalObservationRepository`, nur Beobachtungen mit FIT-Herkunft, `heart_rate`, 1–240 bpm. Karte nur sichtbar, wenn FIT-Daten existieren; sonst ehrlicher Leertext.
+- Tests: JVM `FitHistoryMappingTest` (Zeit, Herkunft, Wertebereich, Zeitbasen), Emulator `FitHistoryViewTest` (Reader-Fenster halboffen, Karten getrennt, Leerzustand). Offline: Unit-Tests grün, Emulator-Tests kompilieren; Emulator-Lauf in der CI.
+- Bekanntes Risiko: Der Verlauf lädt bei jedem Refresh das FIT-Fenster neu (Hintergrundthread, bis 150.000 Punkte pro Fenster). Falls das auf dem S25 spürbar ist, Cache ergänzen.
