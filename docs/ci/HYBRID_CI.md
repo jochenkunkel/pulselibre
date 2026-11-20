@@ -195,12 +195,16 @@ Beide Umgebungen verwenden dieselben vier Repository-Secrets:
 
    ```bash
    install -d -m 700 "$HOME/.config/pulselibre"
+   chmod 700 "$HOME/.config/pulselibre"
    umask 077
+   signing_env="$HOME/.config/pulselibre/ci-signing.env"
+   touch "$signing_env"
+   chmod 600 "$signing_env"
    {
      printf 'PULSELIBRE_SIGNING_KEY_B64='
      base64 < "/sicherer/pfad/zum/vorhandenen-keystore.jks" | tr -d '\n'
      printf '\n'
-   } > "$HOME/.config/pulselibre/ci-signing.env"
+   } > "$signing_env"
    ```
 
 3. Die Datei mit einem lokalen Editor ergänzen:
