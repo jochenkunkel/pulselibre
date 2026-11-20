@@ -165,7 +165,7 @@ class DashboardOverviewViewTest {
                 val texts = descendants(custom).filterIsInstance<android.widget.TextView>().map { it.text.toString() }
                 assertTrue(texts.toString(), "Im Fokus" in texts)
                 assertTrue("Startseite anpassen" in texts)
-                prefs.edit().putString("layout_v1", DashboardLayout.encode(layout.map { it.copy(visible = false) })).commit()
+                prefs.edit().putString("layout_v1", DashboardLayout.encode(DashboardLayout.defaultKeys(listOf("Atemfrequenz")).map { DashboardLayout.Entry(it, visible = false) })).commit()
                 val none = DashboardOverviewView(ctx).apply { render(metrics) }
                 assertNotNull(none.findViewWithTag<View>("dashboard_all_hidden"))
             } finally {
