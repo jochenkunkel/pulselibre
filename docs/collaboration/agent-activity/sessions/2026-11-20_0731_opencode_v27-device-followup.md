@@ -4,12 +4,13 @@
 - Letzte Aktualisierung: 2026-11-20 09:54 UTC
 - Status: pausiert
 - Rolle/Zuständigkeit: CIRQA-Protokoll, begrenzter Gerätelauf, FIT/SQLite-Abgleich gemäß ausdrücklicher Beauftragung
-- Aktueller Auftrag: neuen Main-Stand und CI-Gate verifizieren, anschließend den bereits freigegebenen einmaligen V27-Lauf samt lokalem Import sicher durchführen und redigiert dokumentieren
-- Jetzt in Bearbeitung: #149/#150 – V27-Ergebnis redigiert dokumentieren und verbleibende Abnahmekriterien festhalten; keine Behauptung vollständiger Gerätehistorie
+- Aktueller Auftrag: historischen Download #149 produktionsreif voranbringen; Backfill vorhandener FITs und Statusfehler korrigieren, Grenzen klar ausweisen
+- Jetzt in Bearbeitung: #149 – FIT-Abschluss an SQLite-Commit koppeln und Downloadlimits nicht mehr still als vollständigen Lauf darstellen; kein destruktiver Gerätebefehl
 - Zeitnah geplant: #144 – verbleibende Datenarchitektur-/Abnahmekriterien prüfen; keine exklusive Reservierung
 - Betroffene Bereiche/Dateien: `docs/protocol/experiments/CIRQA_SYNC_V27_PLAN_2026-11-20.md`, V27-Statusbericht, bestehender Sync-/Importpfad; keine UI-, Dashboard-, Navigations- oder Schemaänderung
-- Branch/Worktree: `opencode/v27-device-followup` (remote PR branch; current local merge worktree `opencode/v27-device-followup-merge`) / `/tmp/opencode/cirqa-v27-sync`
+- Branch/Worktree: `opencode/v27-metadata-evidence` (PR #289) / `/tmp/opencode/cirqa-v27-sync`
 - Abstimmungsbedarf: Claude Code arbeitet laut offener Nachricht an #150 an der FIT-Inventur im Diagnosepanel; mein Geräte-/Protokollnachlauf ist davon getrennt. Keine parallele Änderung an Testlabor-D/E.
 - Agent-sync-Nachrichten: `docs/collaboration/agent-sync/2026-11-20_0705_opencode-an-alle_v27-bounded-sync.md`; `docs/collaboration/agent-sync/2026-11-20_1830_opencode-an-claude_issue150-inventory-ui.md`
+- Nachweise: V27 lokal 45/45 FIT-Dateien verifiziert; 27.736/27.736 importierbare Kandidatenschlüssel in SQLite. Privater V26-Korpus erneut geprüft: 40 FIT-Dateien, 294/294 Kandidatenschlüssel, SQLite `integrity_check=ok`, keine doppelten Schlüssel/FK-Verletzungen. Offline-Backfill auf App-Start ist in PR #289 implementiert. Regressionstest erzwingt FIT-Erfolg erst nach SQLite-Commit; Sync-Bericht trennt Queue-Abarbeitung von Archivabdeckung und stoppt an Grenzen statt Dateien still zu überspringen. CI-Emulator-Tests für den vorherigen Commit sind grün; aktuelle Folgeänderung lokal geprüft.
 - Nachweise: PR #279 gemergt; Full-CI Main-Lauf `44694993958` für Head `f7a526fe62dc5e925f8053611873681a90df4c43` vollständig grün; Build-1399-APK gültig signiert und mit installierter Signatur verglichen; In-place-Update erfolgreich; Vorher-/Nachher-Backup privat ZIP- und Manifest-geprüft; Recorder kontrolliert pausiert und wieder gestartet; genau ein V27-Lauf abgeschlossen; SQLite `quick_check` und Backup-Referenzprüfung bestanden; read-only Inventur 45/45 FIT-Dateien und 27.736/27.736 importierbare Schlüssel in SQLite; redigierter Bericht erstellt.
-- Nächster Schritt: PR #289 enthält den aktualisierten Merge-Head `5ebac6c`; Full-CI für diesen Head läuft. #149/#150/#144 bleiben offen, solange Restkriterien bestehen. Keine weiteren Hardwarezugriffe nach Ende des freigegebenen Zeitfensters.
+- Nächster Schritt: PR #289 wurde seit dem Main-Stand erneut aktualisiert; Full-CI für den aktuellen Head prüfen. #149/#150/#144 bleiben offen, solange Restkriterien bestehen. Keine weiteren Hardwarezugriffe nach Ende des freigegebenen Zeitfensters.

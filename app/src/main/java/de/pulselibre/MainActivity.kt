@@ -40,6 +40,7 @@ class MainActivity : AppCompatActivity() {
     private var dashboardLastEventId = -1L
     private var dashboardLastRefreshAt = 0L
     private val dashboardWorker = java.util.concurrent.Executors.newSingleThreadExecutor()
+    private var historicalDownloadProbe: CirqaMlHandshakeProbe? = null
 
     private var pollInFlight = false
     private var readingDashboard = false
@@ -108,17 +109,21 @@ class MainActivity : AppCompatActivity() {
         handler.removeCallbacks(dashboardPoll)
     }
     /**
-     * Re-index already verified private FIT files on app entry (#204).
-     * Scanning and SQLite writes run off the UI thread and do not communicate
-     * with the device. The bounded scan is safe to repeat on later launches.
+     * Backfill already verified private FIT files and re-index unknown fields
+     * on app entry (#149/#150/#204). Work is bounded, idempotent, off the UI
+     * thread, and never communicates with the device.
      */
     private fun scheduleUnknownFitInventoryScan() {
         if (dashboardWorker.isShutdown) return
         dashboardWorker.execute {
             try {
+                val fitRoot = java.io.File(applicationContext.filesDir, "verified_fit")
                 CirqaDatabase(applicationContext).use { database ->
+                    CirqaFitBackfill(fitRoot, database).run {
+                        Thread.currentThread().isInterrupted
+                    }
                     CirqaUnknownFitInventory.scanAndPersist(
-                        root = java.io.File(applicationContext.filesDir, "verified_fit"),
+                        root = fitRoot,
                         store = database,
                         validatedAtEpochMillis = System.currentTimeMillis(),
                         cancelled = { Thread.currentThread().isInterrupted }
@@ -602,6 +607,49 @@ class MainActivity : AppCompatActivity() {
                 isFocusable = true
                 setOnClickListener { action() }
             }
+        val historicalSyncStatus = text(
+            "Noch kein historischer Download gestartet.", 13f, muted
+        ).apply {
+            setPadding(dp(16), dp(12), dp(16), dp(12))
+            background = rounded(palette.card)
+            contentDescription = text.toString()
+        }
+        deviceView(text("Historische Gerätedaten", 17f, ink, true), 16)
+        deviceView(text(
+            "Dateien werden lokal und privat gespeichert. FIT-Messwerte werden zusätzlich in SQLite importiert; unbekannte Dateitypen bleiben als Original erhalten.",
+            13f, muted
+        ), 4)
+        deviceView(actionButton("Historie herunterladen", true, PlIcon.HISTORY) {
+            if (!ensureSyncPermissions()) return@actionButton
+            if (scanning) stopScan()
+            androidx.appcompat.app.AlertDialog.Builder(this@MainActivity)
+                .setTitle("CIRQA-Historie herunterladen?")
+                .setMessage(
+                    "PulsLibre verbindet sich jetzt mit dem gekoppelten CIRQA und fordert die verfügbare Dateiliste samt Fortsetzungen und Datei-Pulls an. " +
+                        "Der Sync-Request kann das Gerät dazu veranlassen, Daten als übertragen zu markieren. " +
+                        "PulsLibre sendet keine Lösch-, Archiv-, SetFlags- oder Reset-Befehle. " +
+                        "Dateien werden innerhalb der angezeigten Sicherheitslimits privat gespeichert; FIT-Dateien werden nach CRC-Prüfung importiert. " +
+                        "Ein Lauf kann durch Sicherheitslimits oder Verbindungsabbruch unvollständig enden; dann zeigt der Status dies an. " +
+                        "Die vollständige Historie des Geräts ist erst nach bestätigter Listen-Paginierung belegt."
+                )
+                .setNegativeButton("Abbrechen", null)
+                .setPositiveButton("Herunterladen") { _, _ ->
+                    historicalSyncStatus.text = "Historischer Download läuft …"
+                    val probe = CirqaMlHandshakeProbe(this@MainActivity, adapter)
+                    historicalDownloadProbe?.close()
+                    historicalDownloadProbe = probe
+                    probe.startHistoricalDownload(userConfirmed = true) { message ->
+                        runOnUiThread {
+                            if (!destroyed) {
+                                historicalSyncStatus.text = message
+                                historyRefresh?.invoke()
+                            }
+                        }
+                    }
+                }
+                .show()
+        }, 4)
+        deviceView(historicalSyncStatus, 4)
         cirqaCard = text("CIRQA Smart Band", 15f, ink, true).apply {
             setPadding(dp(16), dp(16), dp(16), dp(16))
             background = rounded(palette.card)
@@ -805,6 +853,21 @@ class MainActivity : AppCompatActivity() {
         arrayOf(Manifest.permission.BLUETOOTH_SCAN, Manifest.permission.BLUETOOTH_CONNECT)
     else arrayOf(Manifest.permission.ACCESS_FINE_LOCATION)
 
+    private fun ensureSyncPermissions(): Boolean {
+        val required = if (Build.VERSION.SDK_INT >= 31)
+            arrayOf(Manifest.permission.BLUETOOTH_CONNECT)
+        else arrayOf(Manifest.permission.ACCESS_FINE_LOCATION)
+        val missing = required.filter {
+            ActivityCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
+        }
+        if (missing.isNotEmpty()) {
+            status.text = "Bluetooth-Verbindungsberechtigung für den historischen Sync erforderlich."
+            ActivityCompat.requestPermissions(this, missing.toTypedArray(), 12)
+            return false
+        }
+        return ensureBluetoothEnabled()
+    }
+
     /** Ask once on first launch; never turn Bluetooth on or initiate a connection. */
     private fun requestBluetoothPermissionOnFirstLaunch() {
         val missing = permissions().filter {
@@ -864,6 +927,13 @@ class MainActivity : AppCompatActivity() {
                 else "Bluetooth-Berechtigung abgelehnt · Einstellungen → Apps → PulsLibre → Berechtigungen → Geräte in der Nähe"
             lastScanDiagnostic = status.text.toString()
             connectionIndicatorRefresh?.invoke()
+        }
+        if (requestCode == 12 && ::status.isInitialized) {
+            val granted = grantResults.isNotEmpty() && grantResults.all {
+                it == PackageManager.PERMISSION_GRANTED
+            }
+            status.text = if (granted) "Bluetooth-Verbindungsberechtigung erteilt · Sync erneut starten"
+                else "Bluetooth-Verbindungsberechtigung abgelehnt."
         }
     }
 
@@ -1077,6 +1147,8 @@ class MainActivity : AppCompatActivity() {
         destroyed = true
         handler.removeCallbacksAndMessages(null)
         stopScan()
+        historicalDownloadProbe?.close()
+        historicalDownloadProbe = null
         super.onDestroy()
     }
     @SuppressLint("MissingPermission")

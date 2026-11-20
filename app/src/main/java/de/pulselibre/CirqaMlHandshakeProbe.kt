@@ -82,6 +82,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private var syncQueuedFiles = 0
     private var syncQueuedBytes = 0L
     private var syncSkippedFiles = 0
+    private var syncIncompleteReason: String? = null
     private val syncGdxmlStrings = linkedMapOf<Long, String>()
     private val syncSeenItemUids = hashSetOf<String>()
     private var mlrHandle: Int? = null
@@ -947,10 +948,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private fun completeSyncFile(g: BluetoothGatt) {
         val item = syncCurrentItem ?: return
         val result = mlrValidation()
-        val successful = result.contains("privateFit=CREATED") ||
-            result.contains("privateFit=ALREADY_PRESENT") ||
-            result.contains("privateRaw=CREATED") ||
-            result.contains("privateRaw=ALREADY_PRESENT")
+        val successful = CirqaSyncFileCompletion.isSuccessful(result)
         if (successful) syncCompletedFiles++ else syncFailedFiles++
         syncFileResults = (syncFileResults + "file${syncCompletedFiles + syncFailedFiles}[" +
             CirqaFileAccessItemListParser.safeTypeLabel(item, syncGdxmlStrings) + ":$result];")
@@ -971,10 +969,12 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         if (syncQueuedFiles >= CirqaSyntheticDownloadLimits.MAX_FILES ||
             syncQueuedBytes >= CirqaSyntheticDownloadLimits.MAX_TOTAL_BYTES
         ) {
+            syncIncompleteReason = syncIncompleteReason ?: "download-budget-exhausted"
             finish("Downloadlimit erreicht; keine Vollständigkeit behauptet.", g)
             return
         }
         if (syncListPageCount >= MAX_SYNC_ITEM_LIST_PAGES) {
+            syncIncompleteReason = syncIncompleteReason ?: "item-list-page-limit"
             finish("Item-List-Seitenlimit erreicht; keine Vollständigkeit behauptet.", g)
             return
         }
@@ -1000,6 +1000,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
 
     private fun appendSyncItemListPage(g: BluetoothGatt, page: CirqaFileAccessItemListParser.ItemListPage) {
         if (page.status != ITEM_LIST_SUCCESS_STATUS) {
+            syncIncompleteReason = "item-list-status"
             finish("Item-List meldete Status ${page.status ?: "fehlt"}; Fortsetzung gestoppt.", g)
             return
         }
@@ -1063,7 +1064,14 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                 item.dataSize > maxTotal - syncQueuedBytes
             ) {
                 syncSkippedFiles++
-                continue
+                syncIncompleteReason = when {
+                    syncQueuedFiles >= CirqaSyntheticDownloadLimits.MAX_FILES -> "file-count-budget"
+                    item.dataSize !in 1..CirqaVerifiedRawFileStore.MAX_FILE_BYTES -> "file-size-out-of-range"
+                    else -> "aggregate-byte-budget"
+                }
+                finish("Downloadbudget/Dateigrößenlimit verhindert vollständige Item-List; " +
+                    "keine Vollständigkeit behauptet.", g)
+                return
             }
             syncPendingItems.addLast(item)
             syncQueuedFiles++
@@ -1698,12 +1706,41 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         stopBeforePull: Boolean = false,
         repeatItemLists: Boolean = false,
         result: (String) -> Unit
+    ) = startSyncRequest(
+        userConfirmed = userConfirmed,
+        stopBeforePull = stopBeforePull,
+        repeatItemLists = repeatItemLists,
+        requireDeviceTestGate = true,
+        result = result
+    )
+
+    /** User-initiated read-only historical file download for the product UI. */
+    @SuppressLint("MissingPermission")
+    fun startHistoricalDownload(
+        userConfirmed: Boolean,
+        result: (String) -> Unit
+    ) = startSyncRequest(
+        userConfirmed = userConfirmed,
+        stopBeforePull = false,
+        repeatItemLists = false,
+        requireDeviceTestGate = false,
+        result = result
+    )
+
+    @SuppressLint("MissingPermission")
+    private fun startSyncRequest(
+        userConfirmed: Boolean,
+        stopBeforePull: Boolean,
+        repeatItemLists: Boolean,
+        requireDeviceTestGate: Boolean,
+        result: (String) -> Unit
     ) {
-        if ((!stopBeforePull && !CirqaSyncAttemptGate.RELEASED_FOR_DEVICE_TEST) ||
-            (stopBeforePull && !CirqaSyncItemListNoPullAttemptGate.RELEASED_FOR_DEVICE_TEST) ||
+        if ((requireDeviceTestGate &&
+                ((!stopBeforePull && !CirqaSyncAttemptGate.RELEASED_FOR_DEVICE_TEST) ||
+                    (stopBeforePull && !CirqaSyncItemListNoPullAttemptGate.RELEASED_FOR_DEVICE_TEST))) ||
             !userConfirmed
         ) {
-            result("Sync-Request gesperrt; keine Verbindung.")
+            result("Historischer Sync nicht freigegeben/bestätigt; keine Verbindung.")
             return
         }
         if (active || sessionStartedNanos != 0L || historicalSyncV1 != null || dirReadSession != null ||
@@ -1722,21 +1759,23 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             result("Sync-Request: Bluetooth aus, Ziel nicht eindeutig oder Sitzung belegt.")
             return
         }
-        val prefs = if (stopBeforePull) {
-            context.getSharedPreferences(
-                CirqaSyncItemListNoPullAttemptGate.PREFS_NAME, Context.MODE_PRIVATE
-            )
-        } else {
-            context.getSharedPreferences(CirqaSyncAttemptGate.PREFS_NAME, Context.MODE_PRIVATE)
-        }
-        val consumed = if (stopBeforePull) {
-            CirqaSyncItemListNoPullAttemptGate.consume(prefs)
-        } else {
-            CirqaSyncAttemptGate.consume(prefs)
-        }
-        if (!consumed) {
-            result("Sync-Request: Versuchslimit verbraucht oder Persistierung fehlgeschlagen.")
-            return
+        if (requireDeviceTestGate) {
+            val prefs = if (stopBeforePull) {
+                context.getSharedPreferences(
+                    CirqaSyncItemListNoPullAttemptGate.PREFS_NAME, Context.MODE_PRIVATE
+                )
+            } else {
+                context.getSharedPreferences(CirqaSyncAttemptGate.PREFS_NAME, Context.MODE_PRIVATE)
+            }
+            val consumed = if (stopBeforePull) {
+                CirqaSyncItemListNoPullAttemptGate.consume(prefs)
+            } else {
+                CirqaSyncAttemptGate.consume(prefs)
+            }
+            if (!consumed) {
+                result("Sync-Request: Versuchslimit verbraucht oder Persistierung fehlgeschlagen.")
+                return
+            }
         }
         syncRequestMode = true
         syncStopBeforePullMode = stopBeforePull
@@ -1764,6 +1803,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         syncQueuedFiles = 0
         syncQueuedBytes = 0L
         syncSkippedFiles = 0
+        syncIncompleteReason = null
         syncGdxmlStrings.clear()
         syncSeenItemUids.clear()
         mlrHandle = null
@@ -2650,8 +2690,16 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                 "sha256=$sha;privateRaw=${if (saved.alreadyPresent) "ALREADY_PRESENT" else "CREATED"};$metadataIndex"
         }
         if (FitFileHeader.inspectVerified(data) == null) {
+            val savedRaw = try {
+                CirqaVerifiedRawFileStore(java.io.File(context.filesDir, "verified_raw"))
+                    .saveExact(data, item.dataSize)
+            } catch (e: Exception) {
+                return "len=${data.size};expected=${item.dataSize};type=$label;magic=$magic;" +
+                    "fitHeader=false;fitCrc=false;privateRawSaveFailed=${e.javaClass.simpleName}"
+            }
             return "len=${data.size};expected=${item.dataSize};type=$label;magic=$magic;" +
-                "fitHeader=false;fitCrc=false;notStored"
+                "exactSize=true;fitHeader=false;fitCrc=false;" +
+                "privateRaw=${if (savedRaw.alreadyPresent) "ALREADY_PRESENT" else "CREATED"}"
         }
         val saved = try {
             CirqaVerifiedFitStore(java.io.File(context.filesDir, "verified_fit"))
@@ -2690,7 +2738,19 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         if (syncRequestMode && syncFinalReport.isEmpty()) {
             val counts = syncFrameCounts.entries.sortedBy { it.key }
                 .joinToString(",") { "${it.key}x${it.value}" }
-            syncFinalReport = "Sync-Beobachtung: $message; accepted=$syncAccepted; " +
+            val runDrained = syncAccepted && syncIncompleteReason == null &&
+                syncFailedFiles == 0 && syncPendingItems.isEmpty() && syncCurrentItem == null &&
+                syncPageSessionId == null
+            syncFinalReport = "Sync-Beobachtung: $message; runDrained=$runDrained; " +
+                "coverage=device-history-unverified; " +
+                "incompleteReason=${syncIncompleteReason ?: when {
+                    !syncAccepted -> "sync-not-accepted"
+                    syncFailedFiles > 0 -> "file-import-failed"
+                    syncStopBeforePullMode -> "diagnostic-stop-before-pull"
+                    !runDrained -> "transfer-not-drained"
+                    else -> "none"
+                }}; " +
+                "accepted=$syncAccepted; " +
                 "itemListSent=$syncItemListSent; pullSent=$syncPullSent; items=[$syncItemSummary]; " +
                 "$syncPullDiag; $mlrDiag; mlr=[chunks=$mlrChunks,bytes=$mlrBytes]; " +
                 "files=[completed=$syncCompletedFiles,failed=$syncFailedFiles,queued=${syncPendingItems.size}," +
@@ -2796,6 +2856,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             syncQueuedFiles = 0
             syncQueuedBytes = 0L
             syncSkippedFiles = 0
+            syncIncompleteReason = null
             syncGdxmlStrings.clear()
             syncSeenItemUids.clear()
             syncMlrRegistrationPending = false

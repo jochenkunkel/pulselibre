@@ -50,7 +50,8 @@ class LocalReadingStoreTest {
             valid.writeBytes(bytes)
             val outOfRangeBytes = fitWithHeartRate(101_000, 250)
             File(root, CirqaFitBackfill.expectedFileName(outOfRangeBytes)).writeBytes(outOfRangeBytes)
-            File(root, "not-a-fit.bin").writeBytes(byteArrayOf(1, 2, 3))
+            val invalidBytes = byteArrayOf(1, 2, 3)
+            File(root, CirqaFitBackfill.expectedFileName(invalidBytes)).writeBytes(invalidBytes)
 
             LocalReadingStore(context).use { store ->
                 val importer = CirqaFitBackfill(root, store)

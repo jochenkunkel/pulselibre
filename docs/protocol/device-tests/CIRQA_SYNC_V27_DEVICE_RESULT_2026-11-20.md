@@ -47,6 +47,29 @@
   display range. These are aggregate decoder diagnostics, not a claim that all
   supported observations are importable or semantically complete.
 
+## FIT device-metadata coverage (redacted)
+
+A separate read-only review of the post-run canonical backup found 139 stored
+FIT `device_info` metadata records linked to 40 of the 45 verified FIT sources.
+It counted field presence only; no field values, identifiers, or timestamps are
+published:
+
+| Whitelisted field | Non-null records | Sources with a value |
+| --- | ---: | ---: |
+| Device type code | 81 | 19 |
+| Manufacturer code | 51 | 33 |
+| Product code | 58 | 40 |
+| Software version | 93 | 40 |
+| Battery voltage | 0 | 0 |
+| Battery status | 0 | 0 |
+| Battery level | 0 | 0 |
+
+These FIT values are historical file metadata, not verified current CIRQA
+identity, current firmware, or live battery state. FIT metadata presence does
+not prove the semantic correctness of every field. This review did not inspect
+the non-FIT payloads, prior BLE/Android logs, or perform live metadata queries;
+those #150 criteria remain open.
+
 ## Limits and side effects
 
 - A successful bounded page is not proof of complete device-history coverage.

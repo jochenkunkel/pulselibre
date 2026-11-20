@@ -21,7 +21,9 @@ class CirqaFitBackfill(
         val invalidFiles: Int,
         val importableObservations: Int,
         /** Per-input summary uses ordinal aliases; no private filename or content hash is exposed. */
-        val fileResults: List<FileResult> = emptyList()
+        val fileResults: List<FileResult> = emptyList(),
+        /** True when safety limits or cancellation prevented a complete directory pass. */
+        val truncated: Boolean = false
     )
 
     enum class FileStatus { IMPORTED, NO_IMPORTABLE_OBSERVATIONS, INVALID_FILE }
@@ -40,22 +42,53 @@ class CirqaFitBackfill(
         require(deviceKey.isNotBlank())
     }
 
-    fun run(): Result {
+    fun run(cancelled: () -> Boolean = { false }): Result {
         require(fitDirectory.isDirectory && !java.nio.file.Files.isSymbolicLink(fitDirectory.toPath())) {
             "FIT source directory must be a private, non-symlink directory"
         }
-        val files = fitDirectory.listFiles()
-            ?.filter { it.isFile && !java.nio.file.Files.isSymbolicLink(it.toPath()) }
+        val candidates = fitDirectory.listFiles()
+            ?.filter { it.name.matches(CONTENT_ADDRESSED_FIT_NAME) }
             ?.sortedBy { it.name }
             ?: error("Cannot list FIT source directory")
+        var truncated = candidates.size > MAX_FILES
+        val files = candidates.take(MAX_FILES)
+        var totalBytes = 0L
         var imported = 0
         var invalid = 0
         var decoded = 0
-        val fileResults = files.mapIndexed { index, file ->
-            val outcome = importVerifiedFileDetailed(file, readings, deviceKey)
+        val fileResults = mutableListOf<FileResult>()
+        for ((index, file) in files.withIndex()) {
+            if (cancelled()) {
+                truncated = true
+                break
+            }
+            val bytes = file.length()
+            if (!file.isFile || java.nio.file.Files.isSymbolicLink(file.toPath()) ||
+                bytes !in 1..MAX_FIT_FILE_BYTES || bytes > MAX_TOTAL_BYTES - totalBytes
+            ) {
+                if (bytes > MAX_TOTAL_BYTES - totalBytes) truncated = true
+                invalid++
+                fileResults += FileResult(
+                    alias = "file-${(index + 1).toString().padStart(4, '0')}",
+                    status = FileStatus.INVALID_FILE,
+                    decodedObservations = 0,
+                    eligibleObservations = 0,
+                    unsupportedMeasurementFields = 0,
+                    missingTimestampObservations = 0,
+                    outOfRangeObservations = 0
+                )
+                if (truncated) break
+                continue
+            }
+            totalBytes += bytes
+            val outcome = try {
+                importVerifiedFileDetailed(file, readings, deviceKey)
+            } catch (_: java.io.IOException) {
+                null
+            }
             if (outcome == null) {
                 invalid++
-                FileResult(
+                fileResults += FileResult(
                     alias = "file-${(index + 1).toString().padStart(4, '0')}",
                     status = FileStatus.INVALID_FILE,
                     decodedObservations = 0,
@@ -67,7 +100,7 @@ class CirqaFitBackfill(
             } else {
                 decoded += outcome.eligibleObservations
                 imported++
-                FileResult(
+                fileResults += FileResult(
                     alias = "file-${(index + 1).toString().padStart(4, '0')}",
                     status = if (outcome.eligibleObservations > 0) FileStatus.IMPORTED
                         else FileStatus.NO_IMPORTABLE_OBSERVATIONS,
@@ -79,11 +112,14 @@ class CirqaFitBackfill(
                 )
             }
         }
-        return Result(files.size, imported, invalid, decoded, fileResults)
+        return Result(fileResults.size, imported, invalid, decoded, fileResults, truncated)
     }
 
     companion object {
-        private const val MAX_FIT_FILE_BYTES = 64L * 1024L * 1024L
+        const val MAX_FILES = 256
+        const val MAX_TOTAL_BYTES = 64L * 1024L * 1024L
+        const val MAX_FIT_FILE_BYTES = 8L * 1024L * 1024L
+        private val CONTENT_ADDRESSED_FIT_NAME = Regex("^[0-9a-f]{64}\\.fit$")
         private data class ImportOutcome(
             val decodedObservations: Int,
             val eligibleObservations: Int,
