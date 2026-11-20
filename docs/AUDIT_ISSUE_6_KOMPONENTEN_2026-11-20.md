@@ -88,7 +88,7 @@ Einordnung (Stichprobe, nicht abschließend):
 ## 6. Nächste Prüfschritte für #6
 1. ~~A6-5~~ erledigt (siehe Tabelle); nächste Stufe: A6-6 und dateiweise Tiefenprüfung.
 2. Persistenz: Migrationen in `CirqaDatabase` und `DatabaseBackup` (Export/Import, Rollback) dateiweise mit Fehlerpfaden.
-3. Ressourcen: unbenutzte Ressourcen, Hardcoded-Strings, Barrierefreiheit (TalkBack-Beschreibungen).
+3. Ressourcen: Hardcoded-Strings und Beschreibungen **erledigt (Abschnitt 10)**; offen: Lint `UnusedResources`.
 4. Zusammengeführter Coverage-Bericht (JaCoCo, JVM + Emulator) und komponentenweise Zielwerte.
 5. MASVS-Zuordnung (STORAGE, NETWORK, PLATFORM, CODE, RESILIENCE) je Befund; S25-Evidenz nur lesend, keine Instrumentationstests auf dem Handy.
 
@@ -118,3 +118,13 @@ Nicht geprüft: Migrationen in `CirqaDatabase` (nächster Schritt), echte Wieder
 - Pfadabdeckung: v1 → v6 (`CirqaHistoryReaderTest` legt eine v1-Datenbank an und prüft das Backfill von `dashboard_time`), v2 → v6 (`canonicalSchemaV2UpgradePreservesEventsAndAddsNormalizedTables`), v3 → v6, v4 → v6 (`CirqaStorageMigrationTest`), v5 → v6 (`DatabaseBackupTest.schemaFiveUpgradeAddsInventory…`). Alle fünf Ausgangsversionen sind abgedeckt, kein Befund.
 - **Downgrade:** Kein `onDowngrade`; `SQLiteOpenHelper` wirft dann eine Ausnahme (Installation eines älteren Builds über ein neueres Schema startet nicht, Daten bleiben unangetastet). Für ein Datenschutz-/Datenintegritätsziel akzeptabel, aber für Nutzer nicht erklärt (Befund **B9-1**, gering: in der Fehlerbehebung vermerken, dass Downgrades nicht unterstützt werden).
 - Schemaänderungen an `CirqaDatabase` gehören laut AGENTS.md zu den koordinierungspflichtigen Dateien; hier wurde nichts geändert.
+
+## 10. Ressourcen: Texte und Beschriftungen (gelesen 2026-11-20)
+| Prüfpunkt | Ergebnis | Beleg |
+| --- | --- | --- |
+| String-Ressourcen | **Keine `strings.xml`, keine `R.string`-Verweise.** Alle sichtbaren Texte und `contentDescription`-Werte stehen als deutsche Literale im Kotlin-Code (Suche `setText("`/`text = "`: 120 Treffer in 13 Dateien; zusätzlich Beschriftungen in `MainActivity` u. a.). Manifest-Labels (`PulsLibre`, `CIRQA · Kontinuierliche Aufzeichnung`) ebenfalls als Literale. | Suche in `app/src/main/java`, `AndroidManifest.xml` |
+| Folgen | (1) Keine Übersetzung möglich, ohne den Code anzufassen (die App ist bewusst nur Deutsch, `values/` enthält nur Farben/Themes). (2) Lint-Regel `HardcodedText` greift nur bei XML-Layouts und meldet hier nichts, weil die Oberfläche programmatisch gebaut wird. (3) Gleiche Begriffe können an mehreren Stellen leicht abweichen. | Ressourcenverzeichnis `app/src/main/res/values*` |
+| Barrierefreiheit | Die TalkBack-Beschreibungen sind vorhanden, aber ebenfalls Literale; `HistoryDensityChartView` war bis PR #306 die einzige eigene View ohne Beschreibung. | siehe Worklog 2026-11-20 |
+
+**Befund A10-1 (gering, Wartbarkeit):** Texte nicht ausgelagert. Empfehlung: nicht als Sammelumbau, sondern bei jeder ohnehin angefassten Ansicht neue Texte als `strings.xml`-Einträge anlegen; ein Wächtertest (wie `NoPlatformLoggingTest`) kann die Zahl der Literale festschreiben, damit sie nicht wächst. Ob eine Mehrsprachigkeit gewünscht ist, ist eine Produktentscheidung (offen, Nutzer).
+Nicht geprüft: ungenutzte Ressourcen (Lint-Lauf `UnusedResources` steht aus), Textlängen bei Schrift 1,3+ und 320 dp (siehe #276).
