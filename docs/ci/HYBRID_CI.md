@@ -214,6 +214,9 @@ Details:
   `linux`, `x64`).
 - Registrierungstoken: wird über `gh api` geholt oder per `--token-file`
   übergeben, nie protokolliert und nicht gespeichert.
+- Prüfsumme: Ist eine `.sha256`-Datei im Release vorhanden, wird sie geprüft.
+  Fehlt sie, zeigt das Skript den berechneten SHA-256 an und legt ihn in
+  `.runner-archive.sha256` ab; mit `--sha256 <hex>` lässt er sich festnageln.
 - Dienst: systemd, `Restart=always`, Start beim Booten.
 - Umgebung für Jobs: `.env` im Runner-Stamm (`ANDROID_HOME`, `JAVA_HOME`).
 - Das Skript verweigert die Registrierung bei öffentlichem Repository, außer
