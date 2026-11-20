@@ -8,7 +8,7 @@
 # Usage: tools/ci/run-ci.sh <phase> [--scope QUICK|FULL]
 #
 #   preflight      verify toolchain, SDK components and (for FULL) KVM
-#   python-tests   offline HCI/FIT validator regression tests
+#   python-tests   offline validator + workflow structure regression tests
 #   build          unit tests + debug APK + R8 release APK + JVM coverage
 #   verify         Android lint + instrumentation test APK (FULL only)
 #   diagnostics    non-secret APK/signing/R8 checks
@@ -82,7 +82,10 @@ preflight() {
 }
 
 python_tests() {
-  ci_group "Python-Regressionstests (Offline-Validatoren)"
+  ci_group "Python-Regressionstests (Offline-Validatoren, Workflow-Struktur)"
+  if ! python3 -c 'import yaml' >/dev/null 2>&1; then
+    ci_die "PyYAML fehlt (python3 -c 'import yaml'). Installation: sudo apt-get install python3-yaml" 2
+  fi
   python3 -m unittest discover -s "$CI_REPO_ROOT/tools" -p 'test_*.py' -v
   ci_group_end
 }
