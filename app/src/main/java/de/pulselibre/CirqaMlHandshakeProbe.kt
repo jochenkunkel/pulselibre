@@ -59,6 +59,9 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private var syncRequestMode = false
     private var syncStopBeforePullMode = false
     private var syncRepeatItemListsMode = false
+    private var syncNextTransactionProbeMode = false
+    private var syncNextTransactionFollowupSent = false
+    private var syncNextTransactionFirstItemCount: Int? = null
     private var syncRepeatFirstItems: List<CirqaFileAccessItemListParser.Item>? = null
     private var syncAccepted = false
     private val syncFrameCounts = LinkedHashMap<Int, Int>()
@@ -1012,6 +1015,39 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         syncPageNextTransactionId = page.nextTransactionId
         syncHasPaginationSession = page.sessionId != null
         syncHasNextTransactionId = page.nextTransactionId != null
+        if (syncNextTransactionProbeMode) {
+            if (!syncNextTransactionFollowupSent) {
+                val handle = historyHandle ?: run {
+                    finish("nextTransaction-Probe: GFDI-Handle fehlt; Stopp ohne Folgeanfrage.", g)
+                    return
+                }
+                val requestId = syncNextRequestId
+                val nextRequest = CirqaFileAccessListRequest.nextTransactionMlValue(
+                    handle, requestId, page
+                )
+                if (nextRequest == null) {
+                    syncItemSummary = "erste=${page.items.size}; nextTransactionId fehlt; Folgeanfrage=0"
+                    finish("nextTransaction-Probe beendet: keine Folgetransaktion angekündigt.", g)
+                    return
+                }
+                syncNextRequestId = if (syncNextRequestId >= 0xffff) 1 else syncNextRequestId + 1
+                syncNextTransactionFirstItemCount = page.items.size
+                syncNextTransactionFollowupSent = true
+                fileAccessReassembler.reset()
+                queueAck(g, nextRequest)
+                main.post { mark("nextTransaction-Kontext einmal angefragt; Stopp vor Datei-Pulls") }
+            } else {
+                syncItemSummary =
+                    "erste=${syncNextTransactionFirstItemCount ?: 0}; " +
+                        "Folgeantwort=${page.items.size}; status=${page.status}; " +
+                        "session=${page.sessionId != null}; nextTransaction=${page.nextTransactionId != null}"
+                finish(
+                    "nextTransaction-Probe abgeschlossen: genau eine Folgeanfrage, Stopp vor Datei-Pulls.",
+                    g
+                )
+            }
+            return
+        }
         if (syncStopBeforePullMode) {
             val firstItems = syncRepeatFirstItems
             if (syncRepeatItemListsMode && firstItems == null) {
@@ -1717,6 +1753,20 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         result = result
     )
 
+    /** One sync_request, initial Item-List, then at most one next_transaction_id request; never pulls files. */
+    @SuppressLint("MissingPermission")
+    fun startNextTransactionProbeTest(
+        userConfirmed: Boolean,
+        result: (String) -> Unit
+    ) = startSyncRequest(
+        userConfirmed = userConfirmed,
+        stopBeforePull = true,
+        repeatItemLists = false,
+        requireDeviceTestGate = true,
+        nextTransactionProbe = true,
+        result = result
+    )
+
     /** User-initiated read-only historical file download for the product UI. */
     @SuppressLint("MissingPermission")
     fun startHistoricalDownload(
@@ -1736,11 +1786,14 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         stopBeforePull: Boolean,
         repeatItemLists: Boolean,
         requireDeviceTestGate: Boolean,
+        nextTransactionProbe: Boolean = false,
         result: (String) -> Unit
     ) {
         if ((requireDeviceTestGate &&
                 ((!stopBeforePull && !CirqaSyncAttemptGate.RELEASED_FOR_DEVICE_TEST) ||
-                    (stopBeforePull && !CirqaSyncItemListNoPullAttemptGate.RELEASED_FOR_DEVICE_TEST))) ||
+                    (stopBeforePull && !nextTransactionProbe &&
+                        !CirqaSyncItemListNoPullAttemptGate.RELEASED_FOR_DEVICE_TEST) ||
+                    (nextTransactionProbe && !CirqaNextTransactionProbeAttemptGate.RELEASED_FOR_DEVICE_TEST))) ||
             !userConfirmed
         ) {
             result("Historischer Sync nicht freigegeben/bestätigt; keine Verbindung.")
@@ -1763,14 +1816,20 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             return
         }
         if (requireDeviceTestGate) {
-            val prefs = if (stopBeforePull) {
+            val prefs = if (nextTransactionProbe) {
+                context.getSharedPreferences(
+                    CirqaNextTransactionProbeAttemptGate.PREFS_NAME, Context.MODE_PRIVATE
+                )
+            } else if (stopBeforePull) {
                 context.getSharedPreferences(
                     CirqaSyncItemListNoPullAttemptGate.PREFS_NAME, Context.MODE_PRIVATE
                 )
             } else {
                 context.getSharedPreferences(CirqaSyncAttemptGate.PREFS_NAME, Context.MODE_PRIVATE)
             }
-            val consumed = if (stopBeforePull) {
+            val consumed = if (nextTransactionProbe) {
+                CirqaNextTransactionProbeAttemptGate.consume(prefs)
+            } else if (stopBeforePull) {
                 CirqaSyncItemListNoPullAttemptGate.consume(prefs)
             } else {
                 CirqaSyncAttemptGate.consume(prefs)
@@ -1783,6 +1842,9 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         syncRequestMode = true
         syncStopBeforePullMode = stopBeforePull
         syncRepeatItemListsMode = stopBeforePull && repeatItemLists
+        syncNextTransactionProbeMode = stopBeforePull && nextTransactionProbe
+        syncNextTransactionFollowupSent = false
+        syncNextTransactionFirstItemCount = null
         syncRepeatFirstItems = null
         syncAccepted = false
         syncProtoShapes = ""
@@ -1827,6 +1889,9 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             syncStopBeforePullMode = false
             syncRepeatItemListsMode = false
             syncRepeatFirstItems = null
+            syncNextTransactionProbeMode = false
+            syncNextTransactionFollowupSent = false
+            syncNextTransactionFirstItemCount = null
             fileAccessListMode = false
             bootstrapAckMode = false
             configurationTestMode = false
@@ -2927,6 +2992,9 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             syncStopBeforePullMode = false
             syncRepeatItemListsMode = false
             syncRepeatFirstItems = null
+            syncNextTransactionProbeMode = false
+            syncNextTransactionFollowupSent = false
+            syncNextTransactionFirstItemCount = null
             syncAccepted = false
             syncFrameCounts.clear()
             syncProtoShapes = ""
@@ -2984,6 +3052,9 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         realtimeMode = false
         continuousRecordingMode = false
         historyDiagnosticMode = false
+        syncNextTransactionProbeMode = false
+        syncNextTransactionFollowupSent = false
+        syncNextTransactionFirstItemCount = null
         legacy5007TestMode = false
         legacy5031TestMode = false
         legacyHistoryDownloadMode = false

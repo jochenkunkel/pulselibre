@@ -1,0 +1,15 @@
+# OpenCode – nextTransaction-Fortsetzungstest
+- Agent/Umgebung: OpenCode CLI-Agent
+- Beginn: 2026-11-20 22:54 UTC
+- Letzte Aktualisierung: 2026-11-20 22:54 UTC
+- Status: aktiv
+- Rolle/Zuständigkeit: CIRQA/FIT/GFDI-Protokoll und Offline-/S25-Tests
+- Aktueller Auftrag: auf Nutzeranweisung klären, ob `nextTransactionId` nach einer FileAccess-Item-List eine weitere Liste/Transaktion eröffnet; einen engen Test erstellen und bei grünen Gates einmal am S25 prüfen
+- Jetzt in Bearbeitung: statische Call-Graph-/Semantikprüfung; separater fail-closed, einläufiger No-Pull-Test für genau eine transaction-context-Anfrage planen
+- Zeitnah geplant: keine
+- Betroffene Bereiche/Dateien: `CirqaFileAccessListRequest`, `CirqaMlHandshakeProbe`, Testlabor-Gates und zugehörige Tests/Dokumentation
+- Branch/Worktree: `opencode/nexttransaction-s25-test-20261121` / `/tmp/opencode/pulselibre-nexttransaction-test-20261121`
+- Abstimmungsbedarf: PR #343 dokumentiert den bereits abgeschlossenen GUI-Lauf. Vor Bluetooth-Test muss GUI-Agent das S25 freigeben. Die vorhandenen 15/15 Item-List-Läufe bleiben verbraucht; kein Gate-Reset. Nutzer hat einen neuen, engen Bluetooth-Test ausdrücklich angefordert.
+- Agent-sync-Nachrichten: neue Nachricht zur Scope-/Gerätekoordination wird mit Test-PR veröffentlicht
+- Nachweise: statischer Code zeigt Produktpagination nur für `session_id`; `next_transaction_id` wird nur als Presence-Metadatum berichtet. Bestehender Kommentar sagt, die ID ist Kontext einer späteren Transaktion, nicht der aktuelle Listenseitencursor. Noch kein neuer Test/Hardwarelauf.
+- Nächster Schritt: offline Testimplementierung gegen `transaction_id`, expliziter Hinweis auf mögliches `sync_request`-Transfermarker-Verhalten, exakt eine zusätzliche Anfrage, Stopp vor `pull_item`; danach Full-CI und Gerätefreigabe koordinieren.
