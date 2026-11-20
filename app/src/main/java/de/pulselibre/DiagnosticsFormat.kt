@@ -21,7 +21,8 @@ internal data class DiagnosticsSnapshot(
     val bluetoothEnabled: Boolean?,
     val permissionConnect: Boolean,
     val permissionScan: Boolean,
-    val permissionNotifications: Boolean
+    val permissionNotifications: Boolean,
+    val fitInventory: String
 )
 
 internal object DiagnosticsFormat {
@@ -57,6 +58,8 @@ internal object DiagnosticsFormat {
     fun sync(s: DiagnosticsSnapshot): String = buildString {
         appendLine("Verifizierte FIT-Dateien lokal: ${s.verifiedFitFiles} (${bytes(s.verifiedFitBytes)})")
         s.tableCounts.forEach { (table, count) -> appendLine("Tabelle $table: ${count?.toString() ?: "nicht verfügbar"} Zeilen") }
+        appendLine()
+        append(s.fitInventory)
         append("Nur lesende Prüfung; ein Sync wird hier nicht gestartet.")
     }
 
