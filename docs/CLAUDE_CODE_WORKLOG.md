@@ -366,3 +366,7 @@ Noch sichtbar offen (P3): Nacht-Insights erste Spalte „22–6 Uhr / 22331 / We
 - Funde und Korrekturen: (1) Spurtitel „Herzfrequenz“ oben abgeschnitten → mehr Platz über der ersten Spur. (2) Lücken-Schraffur war ein unruhiger Fächer → saubere 45°-Schraffur je Lücke, heller. (3) Werteachse (Min/Max) war unsichtbar (vom Plot-Clip abgeschnitten) → außerhalb des Clips. (4) Zeitachse „12:0012:30“ überlappte → Beschriftungen überlappen nie. (5) „8315  zuletzt“ (Doppelleerzeichen bei leerer Einheit). (6) Wochenkarte sagte „keine belegte Quelle“, obwohl Übersicht Kalorien/Stress/Intensität live zeigt → Wortlaut „Ohne Tageswerte (noch keine geprüften Tagesreihen; Gerätewerte erscheinen nur live)“.
 - Nicht geprüft: echte Pinch-Geste (adb kann keine zwei Finger), TalkBack, 320 dp, Hell-Ansicht von Verlauf/Analysen im Detail, Akku (#235: batterystats nur seit kurzem Ladevorgang, keine belastbare Aussage).
 - Beobachtung (nicht von mir): Gerät zeigt „GATT verbunden (Aufzeichnung aus)“, letzte Messwerte „vor 8 h 39 min“.
+
+## 2026-11-20 – Ticketabschluss #263–#266 und Restpunkte
+- #263, #264, #265, #266 geschlossen auf ausdrückliche Anweisung des Nutzers; die offenen Teile stehen gesammelt im Folgeticket (Restpunkte aus #263 bis #266): Schlaf-/Aktivitätsband, kumulierte Schrittkurve mit Ziellinie, Zoom im Verlauf, echte Pinch-Geste/TalkBack/320 dp, Kosmetik Zeitbeschriftung am rechten Rand, Tagesreihen für Kalorien/Intensität/Stress/Schlaf, Akku-Messung (#235).
+- Weiter offen und unberührt: #267 (Startseite anpassen).
