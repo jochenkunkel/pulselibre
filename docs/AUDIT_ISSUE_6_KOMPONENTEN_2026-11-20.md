@@ -91,3 +91,19 @@ Einordnung (Stichprobe, nicht abschließend):
 3. Ressourcen: unbenutzte Ressourcen, Hardcoded-Strings, Barrierefreiheit (TalkBack-Beschreibungen).
 4. Zusammengeführter Coverage-Bericht (JaCoCo, JVM + Emulator) und komponentenweise Zielwerte.
 5. MASVS-Zuordnung (STORAGE, NETWORK, PLATFORM, CODE, RESILIENCE) je Befund; S25-Evidenz nur lesend, keine Instrumentationstests auf dem Handy.
+
+## 7. Persistenz: `DatabaseBackup` (dateiweise Prüfung, 2026-11-20)
+Gelesen: `extractArchive`, `prepareRestore`, Versions-/Eintragsprüfung, Grenzen.
+| Prüfpunkt | Ergebnis | Beleg |
+| --- | --- | --- |
+| Zip-Slip (Pfade im Archiv) | nicht möglich (zusätzlich lehnt Androids `ZipInputStream` `..`/absolute Namen selbst mit `ZipException` ab; im Emulator API 35 belegt) | Nur feste Eintragsnamen aus `BACKUP_V6_ENTRIES + manifest.json` werden akzeptiert (`entry.name in allowed`); Verzeichnisse und Duplikate werden abgelehnt, Zieldatei = `File(directory, <fester Name>)` |
+| Größenbegrenzung / Zip-Bomb | begrenzt | 128 MB gesamt, 120 MB je Eintrag, 2 MB je Zeile, 1 Mio. Datensätze, 64 kB Manifest, während des Entpackens geprüft |
+| Versionierung | V1–V6, Eintragsliste muss exakt zur Version passen | `prepareRestore`; Emulator-Tests für V1–V4-Wiederherstellung nach Schema-Upgrades |
+| Validierung vor Überschreiben | vollständig, in privatem Cache-Verzeichnis, vor Bestätigungsdialog | `PreparedDatabaseRestore` (`close()` löscht Staging) |
+| Prüfsummen | SHA-256 je Datei im Manifest, beim Einlesen geprüft (`DatabaseBackup.kt:152`) | `DigestInputStream` |
+| Verwaiste Provenance/Metadaten | werden abgelehnt | Tests `orphanedFitProvenanceIsRejected…`, `orphanedDeviceMetadataIsRejected…` |
+| Verschlüsselung | **keine** (Manifest `encryption: none`, im Klassenkommentar benannt) | Befund B7-1 |
+Befunde:
+- **B7-1 (gering–mittel, Datenschutz):** Das Backup enthält Gesundheitsdaten unverschlüsselt im vom Nutzer gewählten SAF-Ziel (z. B. Cloud-Ordner). Das Verhalten ist dokumentiert; die Nutzerdokumentation und der Exportdialog sollten es deutlich nennen. Verschlüsselung wäre ein eigenes Ticket (Schlüsselverwaltung, Wiederherstellbarkeit).
+- **B7-2 (gering, Testlücke):** Es gibt keinen gezielten Test für ein Archiv mit unbekanntem Eintragsnamen, `../`-Namen, absolutem Pfad und fehlendem Manifest (jetzt `DatabaseBackupArchiveSafetyTest`, Emulator); Duplikat-Eintrag und Größenüberschreitung bleiben ungetestet (ZipOutputStream erzeugt keine Duplikate) (die Logik ist vorhanden; `invalidArchiveIsRejectedBeforeAnyStoredDataChanges` deckt nur den allgemeinen Fall). Ein Emulator-/JVM-Test mit manipuliertem ZIP wäre billig.
+Nicht geprüft: Migrationen in `CirqaDatabase` (nächster Schritt), echte Wiederherstellung am S25.
