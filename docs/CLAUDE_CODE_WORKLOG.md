@@ -429,8 +429,12 @@ Noch sichtbar offen (P3): Nacht-Insights erste Spalte „22–6 Uhr / 22331 / We
 
 ## 2026-11-20 – Nacht-Insights: Rundung der Begründung an die Kachel angeglichen
 - Am S25 (Build 1487) zeigte die Kachel „Abdeckung 0,5 %“, die Begründung darunter „Abdeckung 1 % unter 70 %“. `NocturnalOxygen` rundet jetzt wie die Kachel auf eine Nachkommastelle; Test `withheldReasonUsesTheSameOneDecimalAsTheTile`. Reine Textänderung, keine Rechenlogik.
-- Beobachtet, nicht geändert: In „Schritte heute“ liegen die Balken des Mini-Verlaufs teilweise hinter dem Wort „Schritte“ (rein optisch, Dunkelmodus, Schrift 1,0); Folge in #276.
+- Beobachtet: In „Schritte heute“ liegen die blassen 15-min-Balken hinter dem Wort „Schritte“; das ist so gewollt (Hintergrundebene laut Design #122, `StepBarsView`, Alpha ≈ 33 %), kein Fehler.
 
 ## 2026-11-20 – S25 an OpenCode übergeben (FIT-Workflow-Test)
-- S25-Prüfung Build 1487 abgeschlossen (nur Bedienung/Lesen): Start, Verlauf, Analysen, Gerät, Startseite anpassen (SpO₂ aus-/einblenden, Zurücksetzen) ohne Absturz und ohne BLE-Aktion. Korrekturen aus der Prüfung: PR #309 (Achsenansage), PR #312 (Rundung Nacht-Insights). Offen aus der Prüfung: Favorit/Hoch/Runter im Anpassen-Dialog nicht ausprobiert; Balken hinter dem Wort „Schritte“ (#276).
+- S25-Prüfung Build 1487 abgeschlossen (nur Bedienung/Lesen): Start, Verlauf, Analysen, Gerät, Startseite anpassen (SpO₂ aus-/einblenden, Zurücksetzen) ohne Absturz und ohne BLE-Aktion. Korrekturen aus der Prüfung: PR #309 (Achsenansage), PR #312 (Rundung Nacht-Insights). Offen aus der Prüfung: Favorit/Hoch/Runter im Anpassen-Dialog nicht ausprobiert.
 - Ab 15:45 keine adb-Verbindung mehr; Übergabenachricht an OpenCode im `agent-sync`.
+
+## 2026-11-20 – #6 Lint-Auswertung (Abschnitt 11 im Audit), ohne S25
+- `lintDebug` lokal: 0 Fehler, keine `UnusedResources`-Meldung, alle 59 Drawables referenziert. Die drei `ClickableViewAccessibility`-Treffer in `MainActivity` sind bewertet (unkritisch, kein Code geändert); `ApplySharedPref` im Testlabor und `OldTargetApi` als Hinweise für OpenCode bzw. ein eigenes Migrationsticket vermerkt. #6 bleibt offen (Coverage, MASVS, S25-Evidenz).
+- Coverage nur JVM lokal erhoben: 30,9 % Zeilen (Audit Abschnitt 12); kombinierter Wert mit Emulator-Tests fehlt, bewusst nicht lokal gestartet (S25 am selben adb).
