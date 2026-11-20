@@ -1,15 +1,15 @@
 # OpenCode – V27-Gerätenachlauf und CIRQA-Abnahme
 - Agent/Umgebung: OpenCode / API coding agent, Worktree `/tmp/opencode/cirqa-v27-sync`
 - Beginn: 2026-11-20 07:31 UTC
-- Letzte Aktualisierung: 2026-11-20 08:11 UTC
+- Letzte Aktualisierung: 2026-11-20 09:20 UTC
 - Status: aktiv
 - Rolle/Zuständigkeit: CIRQA-Protokoll, begrenzter Gerätelauf, FIT/SQLite-Abgleich gemäß ausdrücklicher Beauftragung
-- Aktueller Auftrag: neuen Main-Stand und CI-Gate verifizieren, anschließend den bereits freigegebenen einmaligen V27-Lauf samt lokalem Import sicher durchführen und redigiert dokumentieren
-- Jetzt in Bearbeitung: #150 – FIT-Gerätemetadaten-Feldabdeckung aus dem privaten V27-Nachher-Backup redigiert ergänzen; übrige Metadatenquellen und Live-Status bleiben offen
+- Aktueller Auftrag: FIT-Historienpipeline #149/#150 vervollständigen: vorhandene verifizierte Dateien ohne BLE automatisch offline backfillen; keine Behauptung vollständiger Gerätehistorie
+- Jetzt in Bearbeitung: #149/#150 – App-Start-Backfill über bestehenden `CirqaFitBackfill`, begrenzte/idempotente Verarbeitung und synthetische Regressionstests
 - Zeitnah geplant: #144 – verbleibende Datenarchitektur-/Abnahmekriterien prüfen; keine exklusive Reservierung
 - Betroffene Bereiche/Dateien: `docs/protocol/experiments/CIRQA_SYNC_V27_PLAN_2026-11-20.md`, V27-Statusbericht, bestehender Sync-/Importpfad; keine UI-, Dashboard-, Navigations- oder Schemaänderung
-- Branch/Worktree: `opencode/v27-metadata-evidence` / `/tmp/opencode/cirqa-v27-sync`
+- Branch/Worktree: `opencode/v27-metadata-evidence` (PR #289) / `/tmp/opencode/cirqa-v27-sync`
 - Abstimmungsbedarf: Claude Code arbeitet laut offener Nachricht an #150 an der FIT-Inventur im Diagnosepanel; mein Geräte-/Protokollnachlauf ist davon getrennt. Keine parallele Änderung an Testlabor-D/E.
 - Agent-sync-Nachrichten: `docs/collaboration/agent-sync/2026-11-20_0705_opencode-an-alle_v27-bounded-sync.md`; `docs/collaboration/agent-sync/2026-11-20_1830_opencode-an-claude_issue150-inventory-ui.md`
-- Nachweise: PR #279 gemergt; Full-CI Main-Lauf `44694993958` für Head `f7a526fe62dc5e925f8053611873681a90df4c43` vollständig grün; Build-1399-APK gültig signiert und mit installierter Signatur verglichen; In-place-Update erfolgreich; Vorher-/Nachher-Backup privat ZIP- und Manifest-geprüft; Recorder kontrolliert pausiert und wieder gestartet; genau ein V27-Lauf abgeschlossen; SQLite `quick_check` und Backup-Referenzprüfung bestanden; read-only Inventur 45/45 FIT-Dateien und 27.736/27.736 importierbare Schlüssel in SQLite; redigierter Bericht erstellt.
-- Nächster Schritt: Aggregate im privaten Post-Run-Backup verifizieren, Abdeckungsgrenzen kennzeichnen, Dokumentations-PR mit vollständiger CI öffnen; Issues #149/#150/#144 offen lassen, solange Restkriterien bestehen. Main-Full-CI `44700185560` für `5e2d0d4a8f6a38f7688ba53c47f6ddc5fd343cad` ist noch in Arbeit.
+- Nachweise: V27 lokal 45/45 FIT-Dateien verifiziert; 27.736/27.736 importierbare Kandidatenschlüssel in SQLite; V26-Korpus unabhängig 294/294 reconciled; FIT-Metadatenaggregate im privaten Export geprüft. PR #289 `0ba466c` enthält redigierte Metadaten-Doku. Neuer App-Start-Backfill und Tests in Arbeit; lokale Gradle-9.6/JDK-17-Konfiguration wird gegen Projektvorgaben geprüft.
+- Nächster Schritt: Offline-Backfill-Änderung bauen/testen, in PR #289 aufnehmen und Full-CI abwarten; Issue #149/#150 offen lassen bis offene Decoder-, Status-, Metadaten- und Vollständigkeitskriterien einzeln belegt sind.

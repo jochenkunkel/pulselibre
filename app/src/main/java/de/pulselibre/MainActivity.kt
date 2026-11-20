@@ -108,17 +108,21 @@ class MainActivity : AppCompatActivity() {
         handler.removeCallbacks(dashboardPoll)
     }
     /**
-     * Re-index already verified private FIT files on app entry (#204).
-     * Scanning and SQLite writes run off the UI thread and do not communicate
-     * with the device. The bounded scan is safe to repeat on later launches.
+     * Backfill already verified private FIT files and re-index unknown fields
+     * on app entry (#149/#150/#204). Work is bounded, idempotent, off the UI
+     * thread, and never communicates with the device.
      */
     private fun scheduleUnknownFitInventoryScan() {
         if (dashboardWorker.isShutdown) return
         dashboardWorker.execute {
             try {
+                val fitRoot = java.io.File(applicationContext.filesDir, "verified_fit")
                 CirqaDatabase(applicationContext).use { database ->
+                    CirqaFitBackfill(fitRoot, database).run {
+                        Thread.currentThread().isInterrupted
+                    }
                     CirqaUnknownFitInventory.scanAndPersist(
-                        root = java.io.File(applicationContext.filesDir, "verified_fit"),
+                        root = fitRoot,
                         store = database,
                         validatedAtEpochMillis = System.currentTimeMillis(),
                         cancelled = { Thread.currentThread().isInterrupted }
