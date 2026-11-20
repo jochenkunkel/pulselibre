@@ -1,7 +1,7 @@
 # OpenCode – FIT-Pipeline-Härtung
 - Agent/Umgebung: OpenCode CLI-Agent
 - Beginn: 2026-11-20 14:11 UTC
-- Letzte Aktualisierung: 2026-11-20 19:45 CET
+- Letzte Aktualisierung: 2026-11-20 19:55 CET
 - Status: aktiv – Offline-Evidenzarbeit läuft; PR #324 wartet auf Billing-Klärung, Routing-Fix und Main-FULL
 - Rolle/Zuständigkeit: CIRQA Smart/MLR, FIT-Decoder, SQLite-Import/Backfill
 - Aktueller Auftrag: #149/#150/#142 – FIT-Pipeline-Abnahme fortsetzen und vorhandene Offline-Evidenz zu FIT-/CIRQA-Metadaten auswerten
@@ -15,4 +15,5 @@
 - Nachweise: PR #324 Head `f4a0b878e5b39743e2c9e16efa26f61a8f116a74` bestand vollständigen CLOUD+FULL Run 44772676850 inkl. API-35-Emulatorjob `136417368947`. Lokale QUICK/FULL-Skripte auf demselben Head bestanden; FULL: 77 Python-Tests, JVM/R8/Debug, Lint, Instrumentation-APK und API-35-Emulator/Coverage. GitHub LOCAL+QUICK #44783305618 auf `211c239` und LOCAL+FULL #44784374536 auf `80096b7` wurden jeweils auf `smurl-pulselibre` erfolgreich ausgeführt, sind jedoch CI-Agent-Zweig. Dispatch auf FIT-Head #44786725534 und Main-Run #44785095335 wurden wegen GitHub-Billing vor Teststart abgewiesen. Runner/Variablen aktuell online/true; Signaturdiagnose bereit und erwartete Artefakte für die erfolgreichen LOCAL-Runs vorhanden. #321 geschlossen; keine Workflow-Bearbeitung durch OpenCode.
 - Neue Offline-Evidenzmatrix `docs/protocol/research/CIRQA_METADATA_OFFLINE_EVIDENCE_MATRIX_2026-11-20.md`: vorhandene V24/V25-, V26-, V27-, XML-, GATT-/5024-Belege konsolidiert; keine privaten Werte oder Identifikatoren, keine neuen Geräte-/BLE-Aktionen. Relative Dokumentlinks geprüft.
 - Neue Metadaten-Präsenzzähler in `CirqaFitOfflineInventory`: Gerätetyp, Hersteller, Produkt, Softwareversion, Batterie-Spannung/Status/Level und FIT-Zeitstempel pro Datei. Sentinel-/Out-of-range-Werte zählen nicht als vorhanden. `:app:testDebugUnitTest --tests de.pulselibre.CirqaFitOfflineInventoryTest`, komplette `:app:testDebugUnitTest` und `:app:lintDebug` lokal erfolgreich; keine GitHub-Ausführung.
+- Neuer lokaler Gate auf Commit `2239461`: `./tools/ci-local.sh --quick` und `--full` bestanden; beide liefen 91 Python-Tests sowie JVM-Unit-Tests, Debug/R8-Build und Diagnose. FULL zusätzlich Lint, Instrumentation-APK sowie API-35-Emulator: 111 Tests, 0 Fehler/Failures/Skips und Coverage-Datei erzeugt. Emulator war fest auf `emulator-5560` geroutet und wurde beendet; danach blieb nur das angeschlossene S25 gelistet. Kein S25-Test, keine Installation, kein Push/Dispatch.
 - Nächster Schritt: neue Offline-Evidenzmatrix reviewen und lokal festhalten; keine GitHub-Dispatches mit altem Workflow. PR #324 bleibt bis Billing-Klärung, integriertem Routing-Fix und aktuellem Main-FULL-Nachweis offen. Danach sichere Offline-Decoder-/Metadatenlücken priorisieren; S25 und BLE bleiben unangetastet.
