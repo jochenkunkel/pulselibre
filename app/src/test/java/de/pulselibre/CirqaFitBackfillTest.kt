@@ -1,5 +1,6 @@
 package de.pulselibre
 
+import android.database.sqlite.SQLiteException
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -44,19 +45,19 @@ class CirqaFitBackfillTest {
             deviceKey: String
         ): Int {
             attempts++
-            if (attempts == 1) throw IllegalStateException("simulated commit failure")
+            if (attempts == 1) throw SQLiteException("simulated commit failure")
             observations.forEach { committedKeys += it.idempotencyKey }
             return observations.size
         }
     }
 
-    private fun fit(): ByteArray {
+    private fun fit(heartRate: Int = 72): ByteArray {
         val data = byteArrayOf(
             0x40, 0, 0, 20, 0, 2,
             253.toByte(), 4, 0x86.toByte(),
             3, 1, 2,
             0
-        ) + byteArrayOf(0x10, 0x27, 0, 0, 72)
+        ) + byteArrayOf(0x10, 0x27, 0, 0, heartRate.toByte())
         val file = ByteArray(14 + data.size + 2)
         file[0] = 14
         file[1] = 0x20
@@ -118,28 +119,42 @@ class CirqaFitBackfillTest {
         }
     }
 
-    @Test fun failedCommitDoesNotReportFileImportedAndRetryReplaysStableKeys() {
+    @Test fun sqliteFailureIsReportedPerFileAndLaterFilesContinueThenRetryIdempotently() {
         val root = Files.createTempDirectory("fit-backfill-retry-test").toFile()
         try {
-            val bytes = fit()
-            File(root, CirqaFitBackfill.expectedFileName(bytes)).writeBytes(bytes)
+            val firstBytes = fit(heartRate = 72)
+            val secondBytes = fit(heartRate = 73)
+            File(root, CirqaFitBackfill.expectedFileName(firstBytes)).writeBytes(firstBytes)
+            File(root, CirqaFitBackfill.expectedFileName(secondBytes)).writeBytes(secondBytes)
             val store = FailOnceStore()
             val backfill = CirqaFitBackfill(root, store)
 
-            try {
-                backfill.run()
-                throw AssertionError("Expected the commit failure to propagate")
-            } catch (expected: IllegalStateException) {
-                assertEquals("simulated commit failure", expected.message)
-            }
-
+            val first = backfill.run()
             val retry = backfill.run()
 
-            assertEquals(2, store.attempts)
-            assertEquals(1, retry.filesSeen)
-            assertEquals(1, retry.filesImported)
-            assertEquals(1, retry.importableObservations)
-            assertEquals(1, store.committedKeys.size)
+            assertEquals(2, first.filesSeen)
+            assertEquals(1, first.filesImported)
+            assertEquals(1, first.failedFiles)
+            val failedFile = first.fileResults.single {
+                it.status == CirqaFitBackfill.FileStatus.FAILED
+            }
+            assertEquals(CirqaFitBackfill.FailureStage.DATABASE, failedFile.failureStage)
+            assertEquals(1, failedFile.decodedObservations)
+            assertEquals(1, failedFile.eligibleObservations)
+            assertEquals(1, first.fileResults.count {
+                it.status == CirqaFitBackfill.FileStatus.IMPORTED
+            })
+            assertFalse(first.truncated)
+            assertEquals(2, first.importableObservations)
+            assertEquals(1, first.committedObservations)
+            assertEquals(2, root.listFiles()?.count { it.name.endsWith(".fit") })
+
+            assertEquals(2, retry.filesSeen)
+            assertEquals(2, retry.filesImported)
+            assertEquals(0, retry.failedFiles)
+            assertEquals(2, retry.importableObservations)
+            assertEquals(2, retry.committedObservations)
+            assertEquals(2, store.committedKeys.size)
         } finally {
             root.listFiles()?.forEach { it.delete() }
             root.delete()

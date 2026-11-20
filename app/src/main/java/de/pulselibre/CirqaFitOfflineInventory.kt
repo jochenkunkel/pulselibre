@@ -14,6 +14,17 @@ internal object CirqaFitOfflineInventory {
     private const val MAX_TOTAL_BYTES = 64L * 1024L * 1024L
     private const val MAX_FIELD_SUMMARIES_PER_FILE = 24
 
+    enum class MetadataField(val redactedLabel: String) {
+        DEVICE_TYPE("type"),
+        MANUFACTURER("manufacturer"),
+        PRODUCT("product"),
+        SOFTWARE_VERSION("softwareVersion"),
+        BATTERY_VOLTAGE("batteryVoltage"),
+        BATTERY_STATUS("batteryStatus"),
+        BATTERY_LEVEL("batteryLevel"),
+        TIMESTAMP("timestamp")
+    }
+
     data class Summary(
         val filesSeen: Int,
         val verifiedFiles: Int,
@@ -55,6 +66,12 @@ internal object CirqaFitOfflineInventory {
                     append("; Metriken=")
                     append(file.byMetric.entries.joinToString(",") { "${it.key.name}:${it.value}" })
                 }
+                if (file.metadataRecords > 0) {
+                    append("; Metadatenfelder=")
+                    append(MetadataField.entries.joinToString(",") {
+                        "${it.redactedLabel}:${file.metadataFieldCoverage[it] ?: 0}"
+                    })
+                }
                 file.databaseMatchedKeys?.let { matched ->
                     append("; DB-Schlüssel=$matched/${file.importableObservations}")
                 }
@@ -89,7 +106,9 @@ internal object CirqaFitOfflineInventory {
         val databaseSourcePresent: Boolean?,
         /** Structural FIT message/field coverage only; never values or timestamps. */
         val fieldCoverage: List<String>,
-        val fieldCoverageOmitted: Int
+        val fieldCoverageOmitted: Int,
+        /** Counts of non-null whitelisted fields only; no metadata values are exposed. */
+        val metadataFieldCoverage: Map<MetadataField, Int>
     )
 
     fun inspect(
@@ -136,7 +155,8 @@ internal object CirqaFitOfflineInventory {
                 databaseMatchedKeys = if (databaseAvailable) 0 else null,
                 databaseSourcePresent = if (databaseAvailable) false else null,
                 fieldCoverage = emptyList(),
-                fieldCoverageOmitted = 0
+                fieldCoverageOmitted = 0,
+                metadataFieldCoverage = emptyMap()
             )
         }
         for ((index, file) in files.withIndex()) {
@@ -210,6 +230,21 @@ internal object CirqaFitOfflineInventory {
                     "occ${field.occurrenceCount}defs${field.definitionCount}"
             }
             val allFieldCoverage = (mappedFieldCoverage + unknownFieldCoverage).sorted()
+            val metadataFieldCoverage = linkedMapOf<MetadataField, Int>()
+            for (item in decoded.deviceMetadata) {
+                fun count(field: MetadataField, present: Boolean) {
+                    metadataFieldCoverage[field] = (metadataFieldCoverage[field] ?: 0) +
+                        if (present) 1 else 0
+                }
+                count(MetadataField.DEVICE_TYPE, item.deviceTypeCode != null)
+                count(MetadataField.MANUFACTURER, item.manufacturerCode != null)
+                count(MetadataField.PRODUCT, item.productCode != null)
+                count(MetadataField.SOFTWARE_VERSION, item.softwareVersion != null)
+                count(MetadataField.BATTERY_VOLTAGE, item.batteryVoltageVolts != null)
+                count(MetadataField.BATTERY_STATUS, item.batteryStatusCode != null)
+                count(MetadataField.BATTERY_LEVEL, item.batteryLevelPercent != null)
+                count(MetadataField.TIMESTAMP, item.timestampEpochMillis != null)
+            }
             val hasExcludedContent = fileImportable.size < decoded.observations.size ||
                 decoded.unsupportedMeasurementFieldCount > 0 ||
                 decoded.invalidMeasurementFieldCount > 0
@@ -246,7 +281,8 @@ internal object CirqaFitOfflineInventory {
                 databaseSourcePresent = sourcePresent.takeIf { databaseAvailable },
                 fieldCoverage = allFieldCoverage.take(MAX_FIELD_SUMMARIES_PER_FILE),
                 fieldCoverageOmitted = (allFieldCoverage.size - MAX_FIELD_SUMMARIES_PER_FILE)
-                    .coerceAtLeast(0)
+                    .coerceAtLeast(0),
+                metadataFieldCoverage = metadataFieldCoverage
             )
         }
         return Summary(files.size, verified, rejected, records, observations, importable,

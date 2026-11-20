@@ -141,6 +141,69 @@ class CirqaFitOfflineInventoryTest {
     }
 
     @Test
+    fun reportsOnlyPerFileWhitelistedMetadataFieldPresenceCounts() {
+        val root = Files.createTempDirectory("fit-offline-inventory-metadata-").toFile()
+        try {
+            val bytes = fitWithDeviceMetadata(
+                deviceType = 7,
+                manufacturer = 15,
+                product = 200,
+                softwareVersionHundredths = 1234,
+                batteryVoltageRaw = 3000,
+                batteryStatus = 2,
+                batteryLevel = 88
+            )
+            val privateName = CirqaFitBackfill.expectedFileName(bytes)
+            File(root, privateName).writeBytes(bytes)
+            val sentinelBytes = fitWithDeviceMetadata(
+                deviceType = 255,
+                manufacturer = 0xffff,
+                product = 0xffff,
+                softwareVersionHundredths = 0xffff,
+                batteryVoltageRaw = 0xffff,
+                batteryStatus = 255,
+                batteryLevel = 120
+            )
+            File(root, CirqaFitBackfill.expectedFileName(sentinelBytes)).writeBytes(sentinelBytes)
+
+            val summary = CirqaFitOfflineInventory.inspect(root)
+            val file = summary.perFile.single {
+                it.metadataFieldCoverage[CirqaFitOfflineInventory.MetadataField.BATTERY_LEVEL] == 1
+            }
+            val sentinelFile = summary.perFile.single {
+                it.metadataFieldCoverage[CirqaFitOfflineInventory.MetadataField.BATTERY_LEVEL] == 0
+            }
+
+            assertEquals(1, file.metadataRecords)
+            assertEquals(1, file.metadataFieldCoverage[CirqaFitOfflineInventory.MetadataField.DEVICE_TYPE])
+            assertEquals(1, file.metadataFieldCoverage[CirqaFitOfflineInventory.MetadataField.MANUFACTURER])
+            assertEquals(1, file.metadataFieldCoverage[CirqaFitOfflineInventory.MetadataField.PRODUCT])
+            assertEquals(1, file.metadataFieldCoverage[CirqaFitOfflineInventory.MetadataField.SOFTWARE_VERSION])
+            assertEquals(1, file.metadataFieldCoverage[CirqaFitOfflineInventory.MetadataField.BATTERY_VOLTAGE])
+            assertEquals(1, file.metadataFieldCoverage[CirqaFitOfflineInventory.MetadataField.BATTERY_STATUS])
+            assertEquals(1, file.metadataFieldCoverage[CirqaFitOfflineInventory.MetadataField.BATTERY_LEVEL])
+            assertEquals(1, file.metadataFieldCoverage[CirqaFitOfflineInventory.MetadataField.TIMESTAMP])
+            assertEquals(0, sentinelFile.metadataFieldCoverage[CirqaFitOfflineInventory.MetadataField.DEVICE_TYPE])
+            assertEquals(0, sentinelFile.metadataFieldCoverage[CirqaFitOfflineInventory.MetadataField.MANUFACTURER])
+            assertEquals(0, sentinelFile.metadataFieldCoverage[CirqaFitOfflineInventory.MetadataField.PRODUCT])
+            assertEquals(0, sentinelFile.metadataFieldCoverage[CirqaFitOfflineInventory.MetadataField.SOFTWARE_VERSION])
+            assertEquals(0, sentinelFile.metadataFieldCoverage[CirqaFitOfflineInventory.MetadataField.BATTERY_VOLTAGE])
+            assertEquals(0, sentinelFile.metadataFieldCoverage[CirqaFitOfflineInventory.MetadataField.BATTERY_STATUS])
+            assertEquals(0, sentinelFile.metadataFieldCoverage[CirqaFitOfflineInventory.MetadataField.BATTERY_LEVEL])
+
+            val report = summary.redactedText()
+            assertTrue(report.contains(
+                "Metadatenfelder=type:1,manufacturer:1,product:1,softwareVersion:1," +
+                    "batteryVoltage:1,batteryStatus:1,batteryLevel:1,timestamp:1"
+            ))
+            listOf("1234", "3000", "88", privateName, bytes.toString(Charsets.ISO_8859_1))
+                .forEach { assertFalse(report.contains(it)) }
+        } finally {
+            root.deleteRecursively()
+        }
+    }
+
+    @Test
     fun reconcilesOnlyAggregatesAndNeverEmitsPrivateKeys() {
         val root = Files.createTempDirectory("fit-offline-reconcile-").toFile()
         try {
@@ -188,6 +251,49 @@ class CirqaFitOfflineInventoryTest {
             3, 1, 2,
             0
         ) + u32(timestamp) + byteArrayOf(heartRate.toByte())
+        val file = ByteArray(14 + data.size + 2)
+        file[0] = 14
+        file[1] = 0x20
+        file[2] = 0x64
+        file[4] = data.size.toByte()
+        file[5] = (data.size ushr 8).toByte()
+        ".FIT".toByteArray().copyInto(file, 8)
+        val headerCrc = FitFileHeader.crc16(file, 0, 12)
+        file[12] = headerCrc.toByte()
+        file[13] = (headerCrc ushr 8).toByte()
+        data.copyInto(file, 14)
+        val crc = FitFileHeader.crc16(file, 0, file.size - 2)
+        file[file.size - 2] = crc.toByte()
+        file[file.lastIndex] = (crc ushr 8).toByte()
+        return file
+    }
+
+    private fun fitWithDeviceMetadata(
+        deviceType: Int,
+        manufacturer: Int,
+        product: Int,
+        softwareVersionHundredths: Int,
+        batteryVoltageRaw: Int,
+        batteryStatus: Int,
+        batteryLevel: Int
+    ): ByteArray {
+        fun u16(value: Int) = byteArrayOf(value.toByte(), (value ushr 8).toByte())
+        val data = byteArrayOf(
+            0x40, 0, 0, 23, 0, 8,
+            253.toByte(), 4, 0x86.toByte(),
+            1, 1, 2,
+            2, 2, 0x84.toByte(),
+            4, 2, 0x84.toByte(),
+            5, 2, 0x84.toByte(),
+            10, 2, 0x84.toByte(),
+            11, 1, 2,
+            32, 1, 2,
+            0
+        ) + byteArrayOf(0xA0.toByte(), 0x86.toByte(), 1, 0) +
+            byteArrayOf(deviceType.toByte()) + u16(manufacturer) + u16(product) +
+            u16(softwareVersionHundredths) + u16(batteryVoltageRaw) +
+            byteArrayOf(batteryStatus.toByte(), batteryLevel.toByte())
+
         val file = ByteArray(14 + data.size + 2)
         file[0] = 14
         file[1] = 0x20
