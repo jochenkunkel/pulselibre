@@ -520,3 +520,9 @@ Noch sichtbar offen (P3): Nacht-Insights erste Spalte „22–6 Uhr / 22331 / We
 - **Konsistenz:** Der Messtag der Kachel liegt im Verlaufsfenster, in dem die Band-Karte ihre Werte hat; Ortsdarstellung und UTC-Epoche entsprechen der Zusage von OpenCode. Grenze: keine unabhängige Referenz für den absoluten Tag (kein Garmin-Connect-Vergleich); geprüft ist die interne Konsistenz von Kachel, Verlauf und Fensterachse.
 - **Performance:** Zeitraumwechsel und Zurückblättern ohne spürbare Verzögerung, kein Absturz im Crash-Log. Rollups (#140) nicht nötig.
 - **Offen:** Metrikverteilung der 17 importierten Dateien (OpenCode); Tageszeitleiste/Tagesdialoge lesen weiter nur Live-Daten; weitere Metriken erst nach Import.
+
+## 2026-11-21 – Export der FIT-Originale (#328, optionaler Export) auf Nutzerwunsch
+
+- Anlass: Nutzer will die unbekannten Feldtypen lokal analysieren (Daten sind synthetisch). Das App-Backup enthält nur das Feldinventar (Koordinaten, Typ, Größe, Zähler), keine Rohwerte; die Originale liegen im privaten App-Ordner (Release-App nicht debugbar, kein `run-as`).
+- Neu: Daten-Seite „FIT-Originale exportieren“: Warnhinweis, dann ZIP in einen vom Nutzer gewählten Ort (Dateiauswahl). `FitOriginalsArchive` nimmt nur reguläre Dateien `<64 hex>.fit`, keine Links, Obergrenzen 2.000 Dateien/64 MB; verändert, löscht und sendet nichts. Tests: `FitOriginalsArchiveTest` (JVM, grün).
+- Die ZIP-Datei bleibt lokal (nicht im Repo); Auswertung der Feldinventur lokal, Ergebnisse hier nur ohne Werte.
