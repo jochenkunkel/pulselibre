@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 380" font-family="sans-serif" role="img" aria-label="Synthetischer Entwurf: Schlafdetail mit getrennten Quellen">
+<rect width="360" height="380" fill="#10161f"/>
+<text x="16" y="28" fill="#e8eef7" font-size="16" font-weight="bold">Schlaf</text>
+<text x="16" y="46" fill="#9fb0c5" font-size="10">SYNTHETISCHE WERTE · Entwurf, keine Messdaten</text>
+<text x="16" y="86" fill="#e8eef7" font-size="30" font-weight="bold">5 h 43 min</text>
+<text x="16" y="104" fill="#9fb0c5" font-size="10">00:46 – 06:51 · Dauer aus Aufzeichnung (Quelle: Gerät)</text>
+<rect x="16" y="118" width="328" height="56" fill="#17202c" rx="6"/>
+<rect x="20" y="126" width="304" height="14" fill="#7e57c2" opacity="0.55"/>
+<text x="24" y="137" fill="#fff" font-size="8">Schlafphasen: unbekannt (keine belegte Quelle)</text>
+<rect x="20" y="148" width="40" height="18" fill="none" stroke="#ef9a9a" stroke-dasharray="3 2"/><text x="24" y="160" fill="#ef9a9a" font-size="8">Lücke</text>
+<g font-size="8" fill="#9fb0c5"><text x="20" y="184">00:46</text><text x="296" y="184">06:51</text></g>
+<rect x="16" y="196" width="328" height="64" fill="#17202c" rx="6"/>
+<text x="24" y="214" fill="#e8eef7" font-size="10" font-weight="bold">Nachts gemessen</text>
+<text x="24" y="230" fill="#9fb0c5" font-size="9">Herzfrequenz Min 49 · Median 55 bpm (Abdeckung 96 %)</text>
+<text x="24" y="246" fill="#9fb0c5" font-size="9">SpO₂ Min 91 % · Abdeckung 88 %</text>
+<rect x="16" y="272" width="328" height="86" fill="#17202c" stroke="#ffd54f" stroke-dasharray="4 3" rx="6"/>
+<text x="24" y="290" fill="#ffd54f" font-size="10" font-weight="bold">Nicht verfügbar</text>
+<text x="24" y="306" fill="#9fb0c5" font-size="9">Sleep Score: kein belegtes Feld im CIRQA-Datenvertrag.</text>
+<text x="24" y="320" fill="#9fb0c5" font-size="9">Schlafphasen: keine belegte Quelle; keine Schätzung.</text>
+<text x="24" y="334" fill="#9fb0c5" font-size="9">Body Battery: proprietär, wird nicht nachgebildet.</text>
+<text x="24" y="348" fill="#9fb0c5" font-size="8">Mehr: Analysen → Methoden und Grenzen</text>
+</svg>
