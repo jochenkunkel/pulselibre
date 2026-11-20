@@ -538,22 +538,58 @@ def sqlite_imported(path: Path | None):
     con = sqlite3.connect(uri, uri=True)
     try:
         integrity = con.execute("PRAGMA integrity_check").fetchone()[0]
+        tables = {row[0] for row in con.execute(
+            "SELECT name FROM sqlite_master WHERE type='table'"
+        )}
+        if "readings" in tables:
+            table = "readings"
+            summary_kind = "legacy_readings"
+            source_count = None
+            provenance_count = None
+            foreign_key_violations = None
+        elif {"observations", "fit_observation_provenance", "fit_sources"} <= tables:
+            # The canonical schema stores the same deterministic sample_id used
+            # by the legacy store, with source linkage in separate tables.
+            table = "observations"
+            summary_kind = "canonical_observations"
+            source_count = con.execute("SELECT COUNT(*) FROM fit_sources").fetchone()[0]
+            provenance_count = con.execute(
+                "SELECT COUNT(*) FROM fit_observation_provenance"
+            ).fetchone()[0]
+            foreign_key_violations = len(con.execute(
+                "PRAGMA foreign_key_check"
+            ).fetchall())
+        else:
+            raise FitError("SQLite schema has no supported historical observation store")
+
         counts = dict(con.execute(
-            "SELECT metric, COUNT(*) FROM readings GROUP BY metric"
+            f"SELECT metric, COUNT(*) FROM {table} GROUP BY metric"
         ).fetchall())
         duplicate_keys = con.execute(
-            """SELECT COUNT(*) FROM (
+            f"""SELECT COUNT(*) FROM (
                 SELECT device_id, metric, measured_at_ms, sample_id, COUNT(*) AS n
-                FROM readings GROUP BY device_id, metric, measured_at_ms, sample_id
+                FROM {table}
+                GROUP BY device_id, metric, measured_at_ms, sample_id
                 HAVING n > 1
             )"""
         ).fetchone()[0]
         sample_ids = {r[0] for r in con.execute(
-            "SELECT sample_id FROM readings WHERE sample_id != ''"
+            f"SELECT sample_id FROM {table} WHERE sample_id != ''"
         )}
-        return {"integrity_check": integrity, "metric_counts": counts,
-                "reading_count": sum(counts.values()),
-                "duplicate_primary_keys": duplicate_keys}, sample_ids
+        summary = {
+            "store": summary_kind,
+            "integrity_check": integrity,
+            "metric_counts": counts,
+            "reading_count": sum(counts.values()),
+            "duplicate_primary_keys": duplicate_keys,
+        }
+        if source_count is not None:
+            summary.update({
+                "fit_source_count": source_count,
+                "provenance_count": provenance_count,
+                "foreign_key_violations": foreign_key_violations,
+            })
+        return summary, sample_ids
     finally:
         con.close()
 
