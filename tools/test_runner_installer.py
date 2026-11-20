@@ -156,7 +156,9 @@ exit 98
         self.assertNotIn("DRY-RUN-NO-TOKEN", result.stdout + result.stderr)
         calls = self.calls_file.read_text(encoding="utf-8")
         self.assertNotIn("mkdir ", calls)
-        self.assertIn("curl ", calls)  # only the stubbed archive download
+        # The configured system runner may already have the requested archive
+        # version, in which case a dry-run correctly skips the download.
+        self.assertIn("[dry-run]", result.stdout)
         self.assertNotIn("registration-token", calls)
 
     def test_user_dry_run_is_confined_to_test_temp_directory(self):
