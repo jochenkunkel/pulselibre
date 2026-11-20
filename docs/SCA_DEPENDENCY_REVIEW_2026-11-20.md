@@ -20,3 +20,6 @@ Alle acht Alerts betreffen Bibliotheken des **Build-Klassenpfads** (Android Grad
 
 ## Lehre aus dem ersten CI-Lauf
 Der erste Entwurf hob nur `bcprov` (1.85) und `bcpkix` (1.84) an; die CI brach in `validateSigningDebug` mit `NoSuchFieldError ... IANAObjectIdentifiers` ab, weil die Bouncy-Castle-Module nicht zueinander passten. Lokal fiel das nicht auf, da der Debug-Keystore schon existierte. Jetzt stehen alle drei Module auf 1.85, geprüft mit frischem `ANDROID_USER_HOME` (neuer Debug-Keystore wie in der CI).
+
+## Nachtrag: Lint-Werkzeug-Konfiguration
+Nach dem Merge von PR #280 blieben sechs Alerts offen (Guava, bcprov ×2, bcpkix, commons-lang3, httpclient): `:app:dependencies` zeigte, dass die Konfiguration `androidLintTool` eine eigene, alte Kopie auflöst (Guava 33.4.0, Bouncy Castle 1.80.2 …), die die `buildscript`-Constraints nicht erreichen. `app/build.gradle.kts` hebt diese Bibliotheken jetzt in allen Konfigurationen des App-Projekts auf die gepatchten Versionen (`resolutionStrategy.eachDependency`). Geprüft: `:app:dependencies` zeigt keine ungepatchte Version mehr; Unit-Tests, Lint, `assembleDebugAndroidTest`, `assembleRelease` mit frischem Debug-Keystore grün. Ob GitHub die Alerts schließt, zeigt der nächste Dependency-Submission-Lauf auf `main`.

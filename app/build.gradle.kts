@@ -58,3 +58,20 @@ dependencies {
     androidTestImplementation("androidx.test:runner:1.6.2")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
 }
+
+// SCA (#155): the lint tool configuration (`androidLintTool`) resolves its own copy of build-tool libraries that the
+// buildscript constraints in the root build file do not reach. None of these libraries is part of the APK; raise them
+// to the first patched versions (Dependabot alerts #1, #2, #5-#8) until the Android Gradle Plugin ships them itself.
+val patchedBuildToolLibraries = mapOf(
+    "com.google.guava:guava" to "33.7.2-jre",
+    "org.bouncycastle:bcprov-jdk18on" to "1.85",
+    "org.bouncycastle:bcpkix-jdk18on" to "1.85",
+    "org.bouncycastle:bcutil-jdk18on" to "1.85",
+    "org.apache.commons:commons-lang3" to "3.18.0",
+    "org.apache.httpcomponents:httpclient" to "4.5.14",
+)
+configurations.configureEach {
+    resolutionStrategy.eachDependency {
+        patchedBuildToolLibraries["${requested.group}:${requested.name}"]?.let { useVersion(it); because("SCA #155") }
+    }
+}

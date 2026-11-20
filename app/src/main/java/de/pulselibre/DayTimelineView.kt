@@ -152,18 +152,21 @@ internal class DayTimelineView(
         val labelY = laneTop(lanes.size - 1) + laneHeight + text.textSize + 2 * density
         val showMiddle = width >= 5 * (text.measureText("00:00") + margin)
         val ticks = visibleTicks()
-        var lastRight = Float.NEGATIVE_INFINITY
+        // Collect label boxes first; on a collision the later label is dropped, except the last one (the end of the
+        // axis), which replaces its crowded neighbour.
+        class Label(val text: String, val x: Float, val align: Paint.Align, val left: Float, val right: Float)
+        val labels = mutableListOf<Label>()
         ticks.forEachIndexed { i, (f, label) ->
-            if (showMiddle || i == 0 || i == ticks.lastIndex) {
-                text.textAlign = when (i) { 0 -> Paint.Align.LEFT; ticks.lastIndex -> Paint.Align.RIGHT; else -> Paint.Align.CENTER }
-                val w = text.measureText(label)
-                val l = when (text.textAlign) { Paint.Align.LEFT -> x(f); Paint.Align.RIGHT -> x(f) - w; else -> x(f) - w / 2 }
-                // Never draw labels on top of each other (S25: "12:0012:30"); the last label wins over a crowded neighbour.
-                if (l >= lastRight + 6 * density || i == ticks.lastIndex && l >= lastRight) {
-                    canvas.drawText(label, x(f), labelY, text); lastRight = l + w
-                }
-            }
+            if (!(showMiddle || i == 0 || i == ticks.lastIndex)) return@forEachIndexed
+            val align = when (i) { 0 -> Paint.Align.LEFT; ticks.lastIndex -> Paint.Align.RIGHT; else -> Paint.Align.CENTER }
+            val w = text.measureText(label)
+            val l = when (align) { Paint.Align.LEFT -> x(f); Paint.Align.RIGHT -> x(f) - w; else -> x(f) - w / 2 }
+            val item = Label(label, x(f), align, l, l + w)
+            val prev = labels.lastOrNull()
+            if (prev == null || item.left >= prev.right + 6 * density) labels += item
+            else if (i == ticks.lastIndex) { labels.removeAt(labels.lastIndex); labels += item }
         }
+        labels.forEach { text.textAlign = it.align; canvas.drawText(it.text, it.x, labelY, text) }
         selected?.let { t ->
             paint.color = ink; paint.style = Paint.Style.STROKE; paint.strokeWidth = 1.5f * density; paint.alpha = 255
             val cx = x(day.fraction(t))
