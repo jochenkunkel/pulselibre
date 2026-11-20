@@ -67,6 +67,8 @@ class DayTimelineTest {
         assertTrue(d, d.contains("Herzfrequenz: 55–131 bpm, 2 Messwerte, 2 Lücken"))
         assertTrue(d, d.contains("längste 659 min"))
         assertTrue(d, d.contains("Schritte: keine Daten an diesem Tag."))
+        val s = DayTimeline.describe(listOf(steps(listOf(at(10, 8315)), noon)), day, noon, zone)
+        assertTrue(s, s.contains("8315 zuletzt") && !s.contains("  "))
     }
 
     @Test fun futureDayHasNoGapsAndSaysNotStarted() {

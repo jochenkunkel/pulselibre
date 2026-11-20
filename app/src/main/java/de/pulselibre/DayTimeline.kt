@@ -67,7 +67,7 @@ internal object DayTimeline {
         return lanes.joinToString("\n") { lane ->
             if (lane.points.isEmpty()) "${lane.title}: keine Daten an diesem Tag."
             else {
-                val range = if (lane.cumulative) "${lane.points.last().value} ${lane.unit} zuletzt"
+                val range = if (lane.cumulative) "${lane.points.last().value}${if (lane.unit.isEmpty()) "" else " " + lane.unit} zuletzt"
                     else "${lane.min}–${lane.max} ${lane.unit}"
                 val longest = lane.gaps.maxByOrNull { it.duration }
                 val gapText = if (longest == null) "keine Lücken"

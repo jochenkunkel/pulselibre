@@ -28,7 +28,7 @@ internal object WeekSummary {
     }
 
     /** Sources that are not backed by validated daily values yet (see GARMIN_CONNECT_BENCHMARK_261). */
-    const val UNAVAILABLE = "Nicht verfügbar (keine belegte Quelle): Schlafdauer, Kalorien, Intensitätsminuten, Stress."
+    const val UNAVAILABLE = "Ohne Tageswerte (noch keine geprüften Tagesreihen; Gerätewerte erscheinen nur live): Schlafdauer, Kalorien, Intensitätsminuten, Stress."
 
     fun build(stepsDaily: Map<LocalDate, Double>, restDaily: Map<LocalDate, Double>, today: LocalDate,
               stepGoal: Int?, format: (Double) -> String): Result {
