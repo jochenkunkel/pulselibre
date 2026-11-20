@@ -94,8 +94,12 @@ published or treated as a live/current device reading.
   for exclusion (unsupported field, invalid/sentinel, timestamp, quality,
   deduplication, or import status) before claiming semantic completeness.
 - Existing source/provenance relations and the offline `FitHistoricalObservations`
-  path provide a base for a backfill, but this analysis did not trigger a
-  production backfill or mutate the database.
+  path provide a base for a backfill. A call-site audit found that
+  `CirqaFitBackfill.run()` has no app production caller; the
+  `importVerifiedFile()` helper is currently called from the BLE transfer path
+  in `CirqaMlHandshakeProbe`. Therefore, the standalone no-BLE backfill required
+  for already-stored originals is **not yet exposed as a production app action**.
+  This analysis did not trigger a production backfill or mutate the database.
 - The in-app diagnostic remains aggregate-only; this host report uses a private
   file-level matrix that is not included in Git.
 
