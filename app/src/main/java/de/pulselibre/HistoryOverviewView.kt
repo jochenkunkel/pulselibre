@@ -369,7 +369,7 @@ private class HistoryScatterChartView(
         importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_YES
         contentDescription = "$storedPointCount gespeicherte Messwerte in ${buckets.size} belegten Zeitfenstern, Auflösung ${resolution.label}. " +
             "Gefüllter Punkt ist der Median, der Ring der arithmetische Mittelwert; der Strich zeigt beobachtetes Minimum bis Maximum. Vertikale Achse ${axis.minimum} bis ${axis.maximum}. " +
-            "Horizontale Achse ${timeFormatter.format(start)} bis ${timeFormatter.format(end)}. " +
+            "Horizontale Achse ${HistoryAxisSpeech.span(start, end, range, ZoneId.systemDefault())}. " +
             "Leere Fenster bleiben leer. Es gibt keine Verbindung oder Interpolation zwischen Fenstern."
     }
 

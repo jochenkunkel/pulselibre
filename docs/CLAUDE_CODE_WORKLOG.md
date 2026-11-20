@@ -422,3 +422,7 @@ Noch sichtbar offen (P3): Nacht-Insights erste Spalte „22–6 Uhr / 22331 / We
 ## 2026-11-20 – #6 Ressourcen-Teilprüfung (Abschnitt 10 im Audit)
 - Nach einem Sitzungsabsturz am letzten gemergten Stand (PR #306) wieder aufgesetzt (neuer Branch `claude/audit6-resources` von `origin/main`; nichts Uncommittetes ging verloren).
 - Befund A10-1: keine `strings.xml`, 120 feste Textliterale in 13 Dateien, Oberfläche nur Deutsch. Kein Code geändert; Empfehlung und offene Produktfrage (Mehrsprachigkeit) im Audit. #6 bleibt offen (offen: `UnusedResources`-Lint, Coverage, MASVS, S25-Evidenz).
+
+## 2026-11-20 – S25-Prüfung Build 1487 (nur lesend) und Korrektur der Achsenansage
+- `adb install -r` des signierten Artefakts aus `main` (Lauf 1487) auf das S25 (`ANDROID_SERIAL` gesetzt, weil zusätzlich ein Emulator am adb hing); Start und Verlauf-Ansicht ohne Absturz, Crash-Puffer leer. Keine Instrumentationstests auf dem Handy; Screenshots nur lokal.
+- Befund am Gerät: Die Beschreibung des Punktediagramms (`HistoryScatterChartView`) sagte im 24-h-Fenster „Horizontale Achse 15:24 bis 15:24“. Neu `HistoryAxisSpeech.span` (Datum + Uhrzeit, Test `HistoryAxisSpeechTest`); die gezeichneten Achsenbeschriftungen bleiben unverändert.
