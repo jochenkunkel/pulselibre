@@ -11,9 +11,12 @@ Alle acht Alerts betreffen Bibliotheken des **Build-Klassenpfads** (Android Grad
 `:app:dependencies` für `releaseRuntimeClasspath`/`releaseCompileClasspath` enthält keine davon (nur den leeren Platzhalter `guava:listenablefuture:1.0`). Sie landen nicht im APK. Betroffen wäre höchstens die Entwicklungs-/CI-Umgebung beim Verarbeiten manipulierter Eingaben.
 
 ## Maßnahme
-`build.gradle.kts` hebt diese sieben Bibliotheken per `buildscript`-Constraint auf die ersten gepatchten Versionen (Guava 33.7.2, bcprov 1.85, bcpkix 1.84, jose4j 0.9.6, JDOM2 2.0.6.1, commons-lang3 3.18.0, httpclient 4.5.14). Geprüft mit `gradle buildEnvironment` (aufgelöste Versionen) sowie Unit-Tests, Lint, `assembleDebugAndroidTest` und `assembleRelease`. Die Constraints können entfallen, sobald das Android Gradle Plugin selbst gepatchte Versionen mitbringt.
+`build.gradle.kts` hebt diese sieben Bibliotheken per `buildscript`-Constraint auf die ersten gepatchten Versionen (Guava 33.7.2, Bouncy Castle bcprov/bcpkix/bcutil 1.85 (alle Module gleich), jose4j 0.9.6, JDOM2 2.0.6.1, commons-lang3 3.18.0, httpclient 4.5.14). Geprüft mit `gradle buildEnvironment` (aufgelöste Versionen) sowie Unit-Tests, Lint, `assembleDebugAndroidTest` und `assembleRelease`. Die Constraints können entfallen, sobald das Android Gradle Plugin selbst gepatchte Versionen mitbringt.
 
 ## Nicht erledigt / offen
 - **Dependabot Security Updates** stehen in den Repository-Einstellungen auf „disabled“. Das ist eine Einstellung des Repository-Eigentümers (Settings → Code security); ich habe sie nicht verändert.
 - **Secret scanning** ist ebenfalls deaktiviert (gleiche Stelle).
 - Ob die Alerts nach dem Merge automatisch schließen, hängt davon ab, dass der Dependency-Submission-Lauf auf `main` die neuen Versionen meldet. Das wird nach dem Merge geprüft.
+
+## Lehre aus dem ersten CI-Lauf
+Der erste Entwurf hob nur `bcprov` (1.85) und `bcpkix` (1.84) an; die CI brach in `validateSigningDebug` mit `NoSuchFieldError ... IANAObjectIdentifiers` ab, weil die Bouncy-Castle-Module nicht zueinander passten. Lokal fiel das nicht auf, da der Debug-Keystore schon existierte. Jetzt stehen alle drei Module auf 1.85, geprüft mit frischem `ANDROID_USER_HOME` (neuer Debug-Keystore wie in der CI).
