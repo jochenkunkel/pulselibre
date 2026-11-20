@@ -2,11 +2,11 @@
 
 - Agent/Umgebung: OpenCode (CLI-Agent) auf dem Entwicklungsrechner `smurl` (Ubuntu 26.04, x86_64)
 - Beginn: 2026-11-20 07:10 UTC
-- Letzte Aktualisierung: 2026-11-20 09:05 UTC
-- Status: abgeschlossen
+- Letzte Aktualisierung: 2026-11-20 09:20 UTC
+- Status: aktiv
 - Rolle/Zuständigkeit: DevOps / GitHub Actions / Android-Build (hybride CI, Runner-Betrieb, lokale Pipeline)
 - Aktueller Auftrag: PulsLibre-CI umschaltbar machen zwischen Self-hosted Runner (LOCAL) und GitHub-hosted Runner (CLOUD), gemeinsame Pipeline, lokale CI ohne GitHub, Runner-Installation vorbereiten, dokumentieren
-- Jetzt in Bearbeitung: abgeschlossen – Workflow-Strukturtests über PR #292 integriert, keine offenen Codeänderungen
+- Jetzt in Bearbeitung: Runner-Installer-Trockenlauf für `--system` auch ohne root (Validierung vor der Freigabe), PR folgt
 - Zeitnah geplant: keine exklusive Reservierung; offene Freigaben siehe #281
 - Betroffene Bereiche/Dateien: `.github/workflows/android.yml`, `.github/scripts/gradle-retry.sh`, `tools/ci/*`, `tools/ci-local.sh`, `tools/runner/*`, `docs/ci/HYBRID_CI.md`, `docs/CI_TEST_STRATEGY.md`, `README.md`, `AGENTS.md` (Testabschnitt), `docs/README.md`, `docs/PROJECT_STATUS.md`, `gradle.properties`, `.gitignore`
 - Branch/Worktree: `docs/ci-structure-final` in `/home/smiler/04_src/pulslibe/hybrid-ci` (Integration über PR #283 und #292)
