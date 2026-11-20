@@ -2,6 +2,12 @@
 
 Diese Datei gilt repositoryweit. **GitHub ist die verbindliche, versionierte Wissensbasis**, nicht eine Chat-Unterhaltung oder eine lokale IDE-Sitzung. Für den aktuellen Projektstand zuerst `docs/PROJECT_STATUS.md` lesen; für den vollständigen Einstieg `docs/CHAT_START_HERE.md`.
 
+## Verbindliches Agenten-Aktivitätslog (ab 20.11.2026)
+
+**Jeder tatsächlich arbeitende Agent registriert seine Sitzung** unter [docs/collaboration/agent-activity/README.md](docs/collaboration/agent-activity/README.md) und führt eine eigene Datei unter `docs/collaboration/agent-activity/sessions/`. Vor der ersten Codeänderung aktive Einträge, offene Issue-Übernahmen und `docs/collaboration/agent-sync/INDEX.md` prüfen. Im Eintrag stehen: Agent/Umgebung, Rolle, aktueller Auftrag, **jetzt bearbeitete Tickets**, **zeitnah geplante Tickets** (ohne exklusive Reservierung), betroffene Dateien, Branch, **Abstimmungsbedarf**, Fortschritt und Nachweise. Bei wesentlichem Wechsel aktualisieren; am Ende auf abgeschlossen/pausiert/blockiert setzen. Keine gemeinsamen Logdateien bei jedem Schritt umschreiben.
+
+**Rollen gelten weiterhin wie unten beschrieben; konkrete aktuelle Übernahmen und das Log haben Vorrang vor historischen Annahmen.** Codex und Claude Code in derselben IDE nicht als gleichzeitig aktiv zählen, wenn nur einer läuft. Überschneidungen per `agent-sync` abstimmen. Nach Registrierung **möglichst lange selbstständig weiterarbeiten**, keine Rückfragen für triviale technische Entscheidungen; nur echte Freigaben, Sicherheitsrisiken oder unauflösbare Konflikte eskalieren. Keine Geheimnisse oder privaten Gerätedaten loggen.
+
 ## Aktuelle Zusammenarbeit und Namenskonvention (19.11.2026)
 
 - **Haupt-IDE: VSCodium („Codium“).** „Codium“, „VSCodium“, „Claude Code“ und „Codex“ bezeichnen in der projektinternen Aufgabenkoordination **denselben IDE-Arbeitsplatz**, nicht vier unabhängig parallel arbeitende Entwickler. Claude Code und OpenAI Codex sind alternative API-/Agenten-Zugänge in VSCodium; **es ist jeweils nur einer davon aktiv**. Die Bezeichnungen sind als Kurzform für diesen Arbeitsplatz austauschbar, soweit nicht ein konkreter Lauf oder dessen Modell technisch unterschieden werden muss.
