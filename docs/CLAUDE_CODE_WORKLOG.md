@@ -437,3 +437,4 @@ Noch sichtbar offen (P3): Nacht-Insights erste Spalte „22–6 Uhr / 22331 / We
 
 ## 2026-11-20 – #6 Lint-Auswertung (Abschnitt 11 im Audit), ohne S25
 - `lintDebug` lokal: 0 Fehler, keine `UnusedResources`-Meldung, alle 59 Drawables referenziert. Die drei `ClickableViewAccessibility`-Treffer in `MainActivity` sind bewertet (unkritisch, kein Code geändert); `ApplySharedPref` im Testlabor und `OldTargetApi` als Hinweise für OpenCode bzw. ein eigenes Migrationsticket vermerkt. #6 bleibt offen (Coverage, MASVS, S25-Evidenz).
+- Coverage nur JVM lokal erhoben: 30,9 % Zeilen (Audit Abschnitt 12); kombinierter Wert mit Emulator-Tests fehlt, bewusst nicht lokal gestartet (S25 am selben adb).
