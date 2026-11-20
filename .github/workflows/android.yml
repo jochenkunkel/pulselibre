@@ -33,10 +33,12 @@ on:
           - FULL
 
 concurrency:
-  # LOCAL- und CLOUD-Läufe desselben Refs blockieren sich nicht gegenseitig;
-  # überholte Läufe derselben Umgebung werden abgebrochen.
+  # LOCAL- und CLOUD-Läufe desselben Refs blockieren sich nicht gegenseitig.
+  # Überholte PR-Läufe dürfen enden; ein aktiver Main-/Dispatch-FULL-Lauf darf
+  # durch Folge-Pushes nicht gekappt werden. GitHub hält je Gruppe höchstens
+  # einen Pending-Lauf und ersetzt diesen bei weiteren Pushes durch den neuesten.
   group: pulselibre-android-${{ github.ref }}-${{ github.event_name == 'workflow_dispatch' && inputs.run_environment || 'auto' }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   # Entscheidet Runner und Umfang. Läuft immer auf GitHub-hosted (Sekunden),

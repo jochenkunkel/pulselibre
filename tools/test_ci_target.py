@@ -35,6 +35,37 @@ class ResolveTargetTests(unittest.TestCase):
             line.split("=", 1) for line in result.stdout.splitlines() if "=" in line
         )
 
+    def test_all_manual_environment_scope_combinations(self):
+        for environment in ("LOCAL", "CLOUD"):
+            for scope in ("QUICK", "FULL"):
+                with self.subTest(environment=environment, scope=scope):
+                    out = self.resolve(
+                        EVENT_NAME="workflow_dispatch",
+                        REQUESTED_ENVIRONMENT=environment,
+                        REQUESTED_SCOPE=scope,
+                        LOCAL_RUNNER_ENABLED="true",
+                        PR_ON_LOCAL_ENABLED="false",
+                    )
+                    expected_runner = (
+                        LOCAL_LABELS if environment == "LOCAL" else CLOUD_LABEL
+                    )
+                    self.assertEqual(environment, out["environment"])
+                    self.assertEqual(scope, out["scope"])
+                    self.assertEqual(expected_runner, out["runs_on"])
+
+    def test_manual_local_quick_and_full_fallback_preserves_scope(self):
+        for scope in ("QUICK", "FULL"):
+            with self.subTest(scope=scope):
+                out = self.resolve(
+                    EVENT_NAME="workflow_dispatch",
+                    REQUESTED_ENVIRONMENT="LOCAL",
+                    REQUESTED_SCOPE=scope,
+                    LOCAL_RUNNER_ENABLED="false",
+                )
+                self.assertEqual("CLOUD", out["environment"])
+                self.assertEqual(scope, out["scope"])
+                self.assertEqual(CLOUD_LABEL, out["runs_on"])
+
     def test_manual_local_quick(self):
         out = self.resolve(
             EVENT_NAME="workflow_dispatch",

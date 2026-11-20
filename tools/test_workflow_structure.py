@@ -120,9 +120,12 @@ class AndroidWorkflowTest(unittest.TestCase):
         emulator = self.workflow["jobs"]["emulator"]
         self.assertEqual(emulator["if"], "needs.prepare.outputs.scope == 'FULL'")
 
-    def test_concurrency_cancels_outdated_runs(self):
+    def test_concurrency_cancels_only_superseded_pull_requests(self):
         concurrency = self.workflow["concurrency"]
-        self.assertTrue(concurrency["cancel-in-progress"])
+        self.assertEqual(
+            concurrency["cancel-in-progress"],
+            "${{ github.event_name == 'pull_request' }}",
+        )
         self.assertIn("github.ref", concurrency["group"])
 
     def test_checkout_never_persists_credentials(self):
