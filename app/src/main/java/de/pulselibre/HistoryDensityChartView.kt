@@ -37,7 +37,10 @@ internal class HistoryDensityChartView(
     var colorSafe: Boolean = false
         set(value) { field = value; invalidate() }
 
-    init { tag = "history_density_chart" }
+    init {
+        tag = "history_density_chart"
+        contentDescription = HistoryDensityAccessibility.summary(density, axis)
+    }
 
     override fun onMeasure(w: Int, h: Int) = setMeasuredDimension(MeasureSpec.getSize(w), (210 * d).toInt())
 
