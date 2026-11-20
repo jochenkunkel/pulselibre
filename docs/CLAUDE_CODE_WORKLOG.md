@@ -520,3 +520,9 @@ Noch sichtbar offen (P3): Nacht-Insights erste Spalte „22–6 Uhr / 22331 / We
 - **Konsistenz:** Der Messtag der Kachel liegt im Verlaufsfenster, in dem die Band-Karte ihre Werte hat; Ortsdarstellung und UTC-Epoche entsprechen der Zusage von OpenCode. Grenze: keine unabhängige Referenz für den absoluten Tag (kein Garmin-Connect-Vergleich); geprüft ist die interne Konsistenz von Kachel, Verlauf und Fensterachse.
 - **Performance:** Zeitraumwechsel und Zurückblättern ohne spürbare Verzögerung, kein Absturz im Crash-Log. Rollups (#140) nicht nötig.
 - **Offen:** Metrikverteilung der 17 importierten Dateien (OpenCode); Tageszeitleiste/Tagesdialoge lesen weiter nur Live-Daten; weitere Metriken erst nach Import.
+
+## 2026-11-21 – Lücken-Auswertung und zweiter Historien-Download (Nutzerfreigabe)
+
+- Aus einem App-Backup (lokal, nicht im Repo) mit `tools/db_gap_report.py` ausgewertet: Die Herzfrequenz (Live + FIT) hat über mehrere Tage sehr viele Lücken über 5 Minuten; Live-Lücken folgen den Aufzeichnungszeiten, die FIT-Reihe deckt nur wenige Tage ab. Keine Messwerte oder Zeiten hier.
+- Auf Nutzerfreigabe einmal „Historie herunterladen“ ausgeführt (Dialog gelesen, bestätigt; keine Gate-Änderung, kein Reset, keine Instrumentation). Ergebnis: dieselben 25 Dateien/488.067 Bytes wie beim ersten Lauf, `ALREADY_PRESENT`, nichts Neues importiert, `coverage=device-history-unverified`, `nextTransaction=true`. Details und Fragen an OpenCode im agent-sync (00:30).
+- Folgerung: Weitere Daten kommen so nicht; das Listenende/`nextTransaction` und die Werte ohne Zeitstempel sind Sache von OpenCode.

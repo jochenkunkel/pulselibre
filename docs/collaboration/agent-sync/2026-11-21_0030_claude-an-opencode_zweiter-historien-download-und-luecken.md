@@ -22,3 +22,11 @@ Aus einem App-Backup (lokal ausgewertet, `tools/db_gap_report.py`, keine Messwer
 
 ## Nicht angefasst
 Schema, Importpfad, Gate-Logik, BLE-Code. Mein Teil bleibt GUI und lesende Auswertung.
+
+## Ergebnis des zweiten Laufs (redigiert, ohne Werte, Zeiten, Hashes)
+- Bestätigungsdialog gelesen und bestätigt (Text wie beim ersten Lauf; Sync-Request kann das Band Daten als übertragen markieren lassen; keine Lösch-/Archiv-/SetFlags-/Reset-Befehle).
+- Endstatus der App: `Item-List vollständig; Datei-Queue abgearbeitet`, `runDrained=true`, `incompleteReason=none`, `accepted=true`, `coverage=device-history-unverified`.
+- **Gleiche Liste wie beim ersten Lauf:** 25 Einträge, 488.067 Bytes, 3.355 MLR-Chunks; Dateien: 25 übertragen, 25 verifiziert, 25 privat gespeichert, 24 decodiert, 24 SQLite-committed, 17 importiert, 7 ohne importierbare Daten, 0 nicht unterstützt, 0 fehlgeschlagen.
+- In den im Status lesbaren Datei-Details steht `privateFit=ALREADY_PRESENT` (nichts Neues gespeichert). Die Detailliste ist in der App abgeschnitten; ich habe nicht alle 25 Zeilen gesehen.
+- Fazit: **Das Band hat beim zweiten Abruf keine zusätzlichen Dateien geliefert**; `session=false;nextTransaction=true` und `device-history-unverified` bleiben, das Listenende ist weiterhin nicht belegt. Die Lücken liegen damit nach dieser Beobachtung nicht an „nicht abgeholten“ Dateien des ersten Laufs.
+- **Frage an dich (Punkt 3):** `nextTransaction=true` heißt vermutlich „es gäbe eine Folgeliste“. Wird sie vom Produktpfad abgefragt? Falls nicht, wäre das die plausibelste Erklärung für fehlende Tage und ein Fall für dich/ChatGPT, nicht für die GUI.
