@@ -93,4 +93,64 @@
     <string name="nav_testlab">Labo de test</string>
     <string name="nav_data">Données</string>
     <string name="nav_analyses">Analyses</string>
+
+    <!-- Hauptansicht (MainActivity) Teil 1 -->
+    <!-- TODO-CHATGPT-REVIEW: Erstentwurf von Claude Code, Ticket #365 -->
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="main_bt_off">Le Bluetooth est désactivé – les mesures CIRQA ne peuvent pas être reçues.</string>
+    <string name="main_link_status_cd">Afficher l’état de la connexion Bluetooth</string>
+    <string name="main_link_title">Connexion CIRQA</string>
+    <string name="main_open_settings">Ouvrir les paramètres</string>
+    <string name="main_link_details_cd">%1$s Afficher les détails</string>
+    <string name="main_tagline">Vos données. Votre contrôle.</string>
+    <string name="main_profile_title">Mon profil corporel</string>
+    <string name="main_profile_tap_edit">Appuyer pour modifier</string>
+    <string name="main_data_info_cd">Informations sur les mesures reçues et le stockage local</string>
+    <string name="main_data_dialog_title">Vos données de mesure</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="main_data_dialog_message">%1$d mesures reçues\nProtocole d’origine : %2$d Kio\n\nVos valeurs restent sur cet appareil. Pas de cloud.\nHeure de mesure = heure de réception. Aucun diagnostic médical.</string>
+    <string name="main_body_figure_cd">Illustration d’une personne avec une casquette et un sweat à capuche violet. Les valeurs du profil figurent à côté.</string>
+    <string name="main_body_height">Taille</string>
+    <string name="main_body_weight">Poids</string>
+    <string name="main_body_age">Âge</string>
+    <string name="main_body_bmi">IMC</string>
+    <string name="main_body_weight_cd">Poids %1$s. Appuyer pour modifier.</string>
+    <string name="main_body_weight_unset">non renseigné</string>
+    <string name="main_body_weight_kg_words">%1$s kilogrammes</string>
+    <string name="main_body_age_years">%1$d ans</string>
+    <string name="main_body_card_cd">Mon profil corporel. </string>
+    <string name="main_health_heading">Santé · CIRQA</string>
+    <string name="main_trend_link_cd">Voir la tendance de la fréquence cardiaque au repos et d’autres analyses. Ouvre l’onglet Analyses.</string>
+    <string name="main_trend_link_title">Voir la tendance de la fréquence cardiaque au repos</string>
+    <string name="main_trend_link_text">Tendances, atlas d’activité et corrélations sous « Analyses »</string>
+    <string name="main_day_link_cd">Ouvrir l’aperçu du jour. Fréquence cardiaque et pas d’une journée sur un axe temporel commun.</string>
+    <string name="main_day_link_title">Aperçu du jour</string>
+    <string name="main_day_link_text">Fréquence cardiaque et pas sur un axe temporel, lacunes visibles</string>
+    <string name="main_device_heading">Appareil · CIRQA</string>
+    <string name="main_open_testlab">Ouvrir le labo de test</string>
+    <string name="main_status_ready">Hors ligne · prêt</string>
+    <string name="main_hist_status_none">Aucun téléchargement de l’historique démarré.</string>
+    <string name="main_hist_heading">Données historiques de l’appareil</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="main_hist_info">Les fichiers sont enregistrés localement et en privé. Les mesures FIT sont en outre importées dans SQLite ; les types de fichiers inconnus sont conservés en l’état.</string>
+    <string name="main_hist_button">Télécharger l’historique</string>
+    <string name="main_hist_confirm_title">Télécharger l’historique CIRQA ?</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="main_hist_confirm_message">PulsLibre se connecte maintenant au CIRQA associé et demande la liste de fichiers disponible, y compris les suites et les transferts de fichiers. La requête de synchronisation peut amener l’appareil à marquer des données comme transférées. PulsLibre n’envoie aucune commande de suppression, d’archivage, SetFlags ou de réinitialisation. Les fichiers sont enregistrés en privé dans les limites de sécurité affichées ; les fichiers FIT sont importés après vérification CRC. Une exécution peut se terminer de façon incomplète à cause des limites de sécurité ou d’une perte de connexion ; l’état l’indique alors. L’historique complet de l’appareil n’est prouvé qu’après une pagination de liste confirmée.</string>
+    <string name="main_hist_confirm_ok">Télécharger</string>
+    <string name="main_hist_running">Téléchargement de l’historique en cours …</string>
+    <string name="main_rec_off">Enregistrement désactivé</string>
+    <string name="main_rec_on">Enregistrement en cours</string>
+    <string name="main_rec_stopping">Arrêt de la collecte CIRQA …</string>
+    <string name="main_rec_starting">Démarrage de la collecte CIRQA …</string>
+    <string name="main_rec_start">Démarrer</string>
+    <string name="main_rec_stop">Arrêter</string>
+    <string name="main_rec_stop_failed">L’arrêt n’a pas pu être demandé.</string>
+    <string name="main_rec_start_failed">Échec du démarrage. Vérifiez le Bluetooth et les autorisations Android.</string>
+    <string name="main_rec_confirm_title">Démarrer la collecte CIRQA</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="main_rec_confirm_message">PulsLibre se connecte activement au bracelet CIRQA par Bluetooth et reçoit les mesures en temps réel disponibles via une connexion continue. En cas de coupure, l’app tente de se reconnecter. Les mesures sont enregistrées localement sur cet appareil. Aucune donnée FIT historique n’est chargée. Android affiche pendant ce temps une notification permanente avec un bouton d’arrêt (Android 13+ : les notifications doivent être autorisées) ; le système peut malgré tout arrêter le service. Garmin Connect peut influencer la connexion Bluetooth. Démarrer maintenant ?</string>
+    <string name="main_rec_autostart_failed">Démarrage automatique de l’enregistrement impossible – veuillez le démarrer manuellement.</string>
+    <string name="main_bt_permission_needed">Autorisation de connexion Bluetooth requise pour la synchronisation de l’historique.</string>
+    <string name="main_auto_sync_running">Synchronisation automatique de l’historique en cours …</string>
 </resources>
