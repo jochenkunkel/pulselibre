@@ -84,4 +84,20 @@ class OneShotGatesTest {
         assertEquals(15, CirqaItemListRepeatabilityAttemptGate.attemptsUsed(stored))
         assertTrue(CirqaItemListRepeatabilityAttemptGate.hasAttemptsRemaining(stored))
     }
+
+    @Test fun nextTransactionGateAllowsExactlyOneAdditionalAttemptWithoutReset() {
+        val gate = CirqaNextTransactionProbeAttemptGate
+        assertEquals(2, gate.MAX_ATTEMPTS)
+        val storedFirstAttempt = prefs(mapOf(gate.ATTEMPT_COUNT_KEY to 1))
+        assertEquals(1, gate.attemptsUsed(storedFirstAttempt))
+        assertTrue(gate.hasAttemptsRemaining(storedFirstAttempt))
+        assertTrue(gate.consume(storedFirstAttempt))
+        assertEquals(2, gate.attemptsUsed(storedFirstAttempt))
+        assertFalse(gate.hasAttemptsRemaining(storedFirstAttempt))
+        assertFalse(gate.consume(storedFirstAttempt))
+
+        val overLimit = prefs(mapOf(gate.ATTEMPT_COUNT_KEY to 999))
+        assertEquals(2, gate.attemptsUsed(overLimit))
+        assertFalse(gate.hasAttemptsRemaining(overLimit))
+    }
 }
