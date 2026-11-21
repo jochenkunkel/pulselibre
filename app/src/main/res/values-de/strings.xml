@@ -842,4 +842,13 @@
     <string name="dd_last_today">Letzter Empfang heute %1$s</string>
     <string name="dd_goal">Letztes Geräte-Schrittziel: %1$s</string>
     <string name="dd_scale">Skala · %1$s–%2$s %3$s</string>
+    <!-- Dienst-Benachrichtigung (#365) -->
+    <string name="svc_channel">CIRQA · Kontinuierliche Aufzeichnung</string>
+    <string name="svc_title">PulsLibre · Kontinuierliche Aufzeichnung</string>
+    <string name="svc_collecting">Lokal sammeln · noch keine Messwerte</string>
+    <string name="svc_bt_off">Bluetooth ausgeschaltet – bitte einschalten</string>
+    <string name="svc_received">Lokal: %1$d Messwerte · CIRQA-Daten empfangen</string>
+    <string name="svc_connecting">CIRQA-Verbindung wird aufgebaut</string>
+    <string name="svc_reconnect">CIRQA getrennt · neuer Versuch in %1$d s</string>
+    <string name="svc_stop">Sammlung beenden</string>
 </resources>

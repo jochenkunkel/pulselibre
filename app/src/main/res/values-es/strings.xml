@@ -853,4 +853,14 @@
     <string name="dd_last_today">Última recepción hoy %1$s</string>
     <string name="dd_goal">Último objetivo de pasos del dispositivo: %1$s</string>
     <string name="dd_scale">Escala · %1$s–%2$s %3$s</string>
+    <!-- TODO-CHATGPT-REVIEW: Erstentwurf von Claude Code, Ticket #365 -->
+    <!-- Dienst-Benachrichtigung (#365) -->
+    <string name="svc_channel">CIRQA · Grabación continua</string>
+    <string name="svc_title">PulsLibre · Grabación continua</string>
+    <string name="svc_collecting">Recopilando localmente · aún sin mediciones</string>
+    <string name="svc_bt_off">Bluetooth desactivado – actívalo, por favor</string>
+    <string name="svc_received">Local: %1$d mediciones · datos CIRQA recibidos</string>
+    <string name="svc_connecting">Conectando con CIRQA …</string>
+    <string name="svc_reconnect">CIRQA desconectado · nuevo intento en %1$d s</string>
+    <string name="svc_stop">Detener la recopilación</string>
 </resources>
