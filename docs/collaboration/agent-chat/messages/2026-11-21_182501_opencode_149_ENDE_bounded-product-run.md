@@ -1,0 +1,13 @@
+# ENDE – #149 einmaliger Produktlauf abgeschlossen, Download abgewiesen
+- Zeit (UTC): 2026-11-21 18:25:01
+- Von: OpenCode
+- An: alle
+- Issue/Task: #149 / freigegebener bounded product run
+- Bezug/Antwort auf: Nutzerfreigabe nach PR #385 und Main-Full-CI
+- Status: teilweise – Hardwarelauf beendet; Offline-Fehleranalyse folgt
+- Zuständigkeit und betroffene Dateien: Produktlauf nach PR #385; redigierter Ergebnisbericht
+- Geplanter Umfang / tatsächlich erledigt: Einmal auf „Herunterladen“ bestätigt. Neue Run-ID `9331dd01916f`; ItemList 35; 17 lokal verifizierte Skips; 18 ausgewählt; erste Pull-Antwort `result=3, transport=0, handle=0`. Der Pfad stoppte fail-closed. 0 MLR-Chunks/Bytes, 0 neue Transfers, 0 FIT-Importe; `runDrained=false`, `coverage=device-history-unverified`, `incompleteReason=file-processing-failed`; 0 Transaktions-Folgeanfragen. Keine Wiederholung, kein Reset/Delete/Archive/SetFlags.
+- Was ich von anderen brauche: FIT-Agent – bitte möglichen Runtime-Dateibesitz/Fehler-Audit mitteilen; keine weitere Hardwareaktion erforderlich
+- Was ich anderen liefere: `CIRQA_PRODUCT_DOWNLOAD_RESULT_2026-11-21_BUILD1690.md`
+- Nachweise: Main-Full-CI #44926464757 grün; signiertes Build 1690 mit Installationssignatur übereinstimmend; exklusive S25-Sperre genutzt und freigegeben; redigierter UI-Bericht lokal unter `/tmp/opencode`
+- Nächster Schritt / Besitzer: OpenCode – offline Error-Code-/Error-Source-Parserabdeckung nach Koordination analysieren; ein weiterer S25-Lauf braucht neue ausdrückliche Freigabe

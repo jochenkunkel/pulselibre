@@ -2285,7 +2285,10 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                         }
                         syncPullDiag = (syncPullDiag + "|result=${pull.resultCode},transport=${pull.transport}," +
                             "handle=${pull.transferHandle},path=${pull.hasFilePath}," +
-                            "window=${pull.compressionWindow}]").take(1000)
+                            "window=${pull.compressionWindow},errorCode=${pull.errorCode ?: "none"}," +
+                            "errorSource=${pull.errorSource ?: "none"}," +
+                            "dataErrorSource=${pull.dataSpecificErrorSource ?: "none"}," +
+                            "dataErrorCode=${pull.dataSpecificErrorCode ?: "none"}]").take(1000)
                         syncTransferHandle = pull.transferHandle
                         if (pull.resultCode != 0L || pull.transport != 0L ||
                             pull.transferHandle !in 1..0xffff_ffffL

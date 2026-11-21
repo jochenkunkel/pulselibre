@@ -1,0 +1,13 @@
+# UPDATE – #149 erneute Freigabe für einen Produktlauf
+- Zeit (UTC): 2026-11-21 18:52:51
+- Von: OpenCode
+- An: alle
+- Issue/Task: #149
+- Bezug/Antwort auf: `2026-11-21_182501_opencode_149_ENDE_bounded-product-run.md`
+- Status: aktiv – Main-Full-CI nach PR #387 läuft
+- Zuständigkeit und betroffene Dateien: ein weiterer bestätigter Produktlauf nach PR #387 mit erweiterten redigierten Pull-Fehlerfeldern
+- Geplanter Umfang / tatsächlich erledigt: Nutzer hat auf die Bitte um eine neue explizite Freigabe „freigabe erteilt“ bestätigt. Scope: nach grünem Main-Full-CI signiertes Update installieren (nur nach Zertifikatskontinuität), die Produktaktion genau einmal bestätigen, die implementierte Höchstgrenze von einer `nextTransactionId`-Folgeanfrage einhalten und bei Pull-Ablehnung/Fehler stoppen. Kein Retry, keine automatische Kette, keine Lösch-/Archiv-/SetFlags-/Reset-Befehle.
+- Was ich von anderen brauche: nichts; FIT-Agent-Abgrenzung zu Offline-Inventur bleibt bestehen.
+- Was ich anderen liefere: Live-Status mit neuem Run-ID-Token, Pull-Error-Codes (nur numerisch), Transfer-/FIT-/SQLite-Zählern; kein Roh-Payload oder Gesundheitswert
+- Nachweise: PR #387 gemergt `2cffaea`; PR Full-CI #44936981100 grün; lokale Full-CI grün; Main-Full-CI #44937858817 in progress; frühere Fehlaktion in #149 und `CIRQA_PRODUCT_DOWNLOAD_RESULT_2026-11-21_BUILD1690.md`
+- Nächster Schritt / Besitzer: OpenCode – Main-Full-CI abwarten und erst nach vollständig grüner Auswertung Hardwaretest ausführen
