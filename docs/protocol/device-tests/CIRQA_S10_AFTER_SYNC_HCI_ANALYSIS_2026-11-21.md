@@ -1,5 +1,7 @@
 # S10-HCI nach Pairing/Sync: redaktierte Offline-Analyse (2026-11-21)
 
+> **KORREKTUR (2026-11-21):** Abschnitt 4 und Aussage 3 in Abschnitt 5 sind zu widerrufen. Der sequenzbewusste Parser des FIT-Agenten findet `5043`/`5044` und FileAccess-Nachrichten bereits in diesem Mitschnitt; die eigene Rekonstruktion hatte nur Handle `0x40` betrachtet und ML-Sequenzierungen ignoriert. Maßgeblich ist jetzt [CIRQA_S10_THIRD_SYNC_HCI_CORRECTION_2026-11-21.md](CIRQA_S10_THIRD_SYNC_HCI_CORRECTION_2026-11-21.md). Die Zahlen zu HCI/ACL/ATT/SMP/GATT und die `5024`-ACKs bleiben bestehen.
+
 - Analyst: OpenCode (BLE/Protokoll)
 - Quelle: vom FIT-Agenten erzeugter Bugreport und Bluetooth-Mitschnitt nach Pairing/Sync auf dem S10
 - Methode: ausschließlich offline, lokaler redaktierender Parser; kein Bluetooth, kein Pairing, kein Sync, kein Gerätezugriff
