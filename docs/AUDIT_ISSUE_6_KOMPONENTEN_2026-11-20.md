@@ -242,3 +242,6 @@ Gelesen: `AppLanguage.kt`, `DomainText.kt`, `DomainTextAnalysis.kt`, `attachBase
 
 ## 25. A6-18 behoben: `ExportActivity` übersteht Drehung (2026-11-22)
 `ExportActivity` behandelt `orientation|screenSize|smallestScreenSize|screenLayout|keyboardHidden` selbst (Manifest `configChanges`). Eine Drehung zerstört die Activity damit nicht mehr; ein laufender Export zeigt sein Ergebnis weiter an. Bewusst **nicht** enthalten: `uiMode` (Hell/Dunkel braucht Neuaufbau der Farben) und Sprache (Sprachwechsel erzeugt die Activity absichtlich neu). Die Oberfläche ist ein einfaches vertikales Layout in einem `ScrollView`, das sich der neuen Breite ohne Neuaufbau anpasst. Nicht auf dem Gerät geprüft; Emulatorläufe der CI decken Erzeugung und Bedienung ab, nicht die Drehung. Der gleiche Weg ist für `MainActivity` (A6-11) **nicht** gewählt: dort sind Diagramme auf die Breite bei Erzeugung ausgelegt; Lösung dort über Download-Halter außerhalb der Activity.
+
+## 26. A6-12 behoben: Dienst-Label aus Ressource (2026-11-22)
+Das Manifest-Label des Dienstes zeigt jetzt auf `@string/svc_channel` (gleicher Text wie der Benachrichtigungskanal, vier Sprachen). Der Text ist in Systemdialogen (Dienste/Task-Manager) damit in der Systemsprache sichtbar; die in der App gewählte Sprache gilt dort nicht, weil das System das Label selbst auflöst.
