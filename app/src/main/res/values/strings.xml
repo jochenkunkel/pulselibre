@@ -721,4 +721,56 @@
     <string name="dev_unavailable">Not available</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="dev_unavailable_cd">%1$s: not available; no confirmed device value yet</string>
+    <!-- Gerät: unbekannte FIT-Felder (#365) -->
+    <string name="unk_headline_one">Unknown data field discovered (1 type)</string>
+    <string name="unk_headline_many">Unknown data fields discovered (%1$d types)</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="unk_explanation">Not yet decoded by the app. These are not measurements and not a diagnosis.</string>
+    <string name="unk_hint_cd">%1$s. %2$s Tap for details.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="unk_intro">Unknown means: not decoded. These entries are neither measurements nor diagnoses; they only show which fields the band’s files contain that PulsLibre does not yet understand.</string>
+    <string name="unk_title_std">FIT message %1$d · field %2$d</string>
+    <string name="unk_title_dev">FIT message %1$d · developer field %2$d</string>
+    <string name="unk_base_unknown">unknown</string>
+    <string name="unk_detail">Base type %1$s · %2$d bytes</string>
+    <string name="unk_detail_dev">Base type %1$s · %2$d bytes · developer index %3$d</string>
+    <string name="unk_occ_11">%1$d message in %2$d file</string>
+    <string name="unk_occ_1n">%1$d message in %2$d files</string>
+    <string name="unk_occ_n1">%1$d messages in %2$d file</string>
+    <string name="unk_occ_nn">%1$d messages in %2$d files</string>
+    <string name="unk_group_11">FIT message %1$d · %2$d field type · %3$d message</string>
+    <string name="unk_group_1n">FIT message %1$d · %2$d field type · %3$d messages</string>
+    <string name="unk_group_n1">FIT message %1$d · %2$d field types · %3$d message</string>
+    <string name="unk_group_nn">FIT message %1$d · %2$d field types · %3$d messages</string>
+    <string name="unk_group_cd">%1$s. Tap to expand or collapse.</string>
+    <string name="unk_cls_message">Message type not decoded by the app</string>
+    <string name="unk_cls_field">Field not decoded by the app</string>
+    <string name="unk_cls_incompatible">Known field with mismatching data type</string>
+    <string name="unk_cls_developer">Developer field not decoded</string>
+    <string name="unk_cls_other">Not decoded</string>
+    <string name="unk_status_unreviewed">unreviewed</string>
+    <string name="unk_status_investigating">under review</string>
+    <string name="unk_status_supported">supported</string>
+    <string name="unk_status_ignored">ignored</string>
+    <string name="unk_status_line">%1$s · Status: %2$s</string>
+    <string name="unk_status_save_failed">%1$s · Status could not be saved</string>
+    <string name="unk_status_change">Change status</string>
+    <string name="unk_status_change_cd">Change status for %1$s</string>
+    <string name="unk_status_title">Status: %1$s</string>
+    <string name="unk_status_note">Only your own review mark for this field. No measurement data is changed.</string>
+    <string name="unk_status_selected_cd">%1$s, currently selected</string>
+    <string name="unk_bytes_action">View sample bytes</string>
+    <string name="unk_bytes_action_cd">View sample bytes for %1$s</string>
+    <string name="unk_bytes_title">View sample bytes?</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="unk_bytes_warning">Shows a few raw bytes of this field from your locally stored files. They may contain sensitive health and device information and are neither interpreted nor stored nor sent. Do not share them in tickets, logs or screenshots.</string>
+    <string name="unk_bytes_confirm">Show</string>
+    <string name="unk_bytes_more_files">… and %1$d more files</string>
+    <string name="unk_file">File %1$d</string>
+    <string name="unk_sample_unreadable">%1$s: original not readable or not valid.</string>
+    <string name="unk_sample_absent">%1$s: field not present in this file.</string>
+    <string name="unk_sample_head_one">%1$s: 1 occurrence, first value</string>
+    <string name="unk_sample_head">%1$s: %2$d occurrences, first %3$d values</string>
+    <string name="unk_sample_more">  … and %1$d more</string>
+    <string name="unk_sample_cut">  (each value truncated to %1$d bytes)</string>
 </resources>

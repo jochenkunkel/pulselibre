@@ -730,4 +730,57 @@
     <string name="dev_unavailable">Non disponible</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="dev_unavailable_cd">%1$s : non disponible ; aucune valeur d’appareil confirmée pour l’instant</string>
+    <!-- TODO-CHATGPT-REVIEW: Erstentwurf von Claude Code, Ticket #365 -->
+    <!-- Gerät: unbekannte FIT-Felder (#365) -->
+    <string name="unk_headline_one">Champ de données inconnu détecté (1 type)</string>
+    <string name="unk_headline_many">Champs de données inconnus détectés (%1$d types)</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="unk_explanation">Pas encore décodé par l’application. Ce ne sont ni des mesures ni un diagnostic.</string>
+    <string name="unk_hint_cd">%1$s. %2$s Appuyez pour afficher les détails.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="unk_intro">Inconnu signifie : non décodé. Ces entrées ne sont ni des mesures ni des diagnostics ; elles indiquent seulement quels champs des fichiers du bracelet PulsLibre ne comprend pas encore.</string>
+    <string name="unk_title_std">Message FIT %1$d · champ %2$d</string>
+    <string name="unk_title_dev">Message FIT %1$d · champ développeur %2$d</string>
+    <string name="unk_base_unknown">inconnu</string>
+    <string name="unk_detail">Type de base %1$s · %2$d octets</string>
+    <string name="unk_detail_dev">Type de base %1$s · %2$d octets · index développeur %3$d</string>
+    <string name="unk_occ_11">%1$d message dans %2$d fichier</string>
+    <string name="unk_occ_1n">%1$d message dans %2$d fichiers</string>
+    <string name="unk_occ_n1">%1$d messages dans %2$d fichier</string>
+    <string name="unk_occ_nn">%1$d messages dans %2$d fichiers</string>
+    <string name="unk_group_11">Message FIT %1$d · %2$d type de champ · %3$d message</string>
+    <string name="unk_group_1n">Message FIT %1$d · %2$d type de champ · %3$d messages</string>
+    <string name="unk_group_n1">Message FIT %1$d · %2$d types de champs · %3$d message</string>
+    <string name="unk_group_nn">Message FIT %1$d · %2$d types de champs · %3$d messages</string>
+    <string name="unk_group_cd">%1$s. Appuyez pour développer ou réduire.</string>
+    <string name="unk_cls_message">Type de message non décodé par l’application</string>
+    <string name="unk_cls_field">Champ non décodé par l’application</string>
+    <string name="unk_cls_incompatible">Champ connu avec un type de données inadapté</string>
+    <string name="unk_cls_developer">Champ développeur non décodé</string>
+    <string name="unk_cls_other">Non décodé</string>
+    <string name="unk_status_unreviewed">non vérifié</string>
+    <string name="unk_status_investigating">en cours d’examen</string>
+    <string name="unk_status_supported">pris en charge</string>
+    <string name="unk_status_ignored">ignoré</string>
+    <string name="unk_status_line">%1$s · Statut : %2$s</string>
+    <string name="unk_status_save_failed">%1$s · Le statut n’a pas pu être enregistré</string>
+    <string name="unk_status_change">Modifier le statut</string>
+    <string name="unk_status_change_cd">Modifier le statut de %1$s</string>
+    <string name="unk_status_title">Statut : %1$s</string>
+    <string name="unk_status_note">Uniquement votre propre marque de vérification pour ce champ. Aucune donnée de mesure n’est modifiée.</string>
+    <string name="unk_status_selected_cd">%1$s, actuellement sélectionné</string>
+    <string name="unk_bytes_action">Afficher des octets d’exemple</string>
+    <string name="unk_bytes_action_cd">Afficher des octets d’exemple pour %1$s</string>
+    <string name="unk_bytes_title">Afficher des octets d’exemple ?</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="unk_bytes_warning">Affiche quelques octets bruts de ce champ provenant de vos fichiers stockés localement. Ils peuvent contenir des informations sensibles sur la santé et l’appareil et ne sont ni interprétés, ni enregistrés, ni envoyés. Ne les partagez pas dans des tickets, des journaux ou des captures d’écran.</string>
+    <string name="unk_bytes_confirm">Afficher</string>
+    <string name="unk_bytes_more_files">… et %1$d autres fichiers</string>
+    <string name="unk_file">Fichier %1$d</string>
+    <string name="unk_sample_unreadable">%1$s : original illisible ou non valide.</string>
+    <string name="unk_sample_absent">%1$s : champ absent de ce fichier.</string>
+    <string name="unk_sample_head_one">%1$s : 1 occurrence, première valeur</string>
+    <string name="unk_sample_head">%1$s : %2$d occurrences, %3$d premières valeurs</string>
+    <string name="unk_sample_more">  … et %1$d autres</string>
+    <string name="unk_sample_cut">  (chaque valeur tronquée à %1$d octets)</string>
 </resources>

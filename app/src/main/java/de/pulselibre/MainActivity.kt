@@ -664,8 +664,8 @@ class MainActivity : AppCompatActivity() {
         fun refreshUnknownFields() {
             Thread {
                 val summary = try {
-                    CirqaDatabase(applicationContext).use { UnknownFieldsSummary.summarize(it.storedFitUnmappedFields()) }
-                } catch (_: Exception) { UnknownFieldsSummary.summarize(emptyList()) }
+                    CirqaDatabase(applicationContext).use { UnknownFieldsSummary.summarize(Strings.of(this), it.storedFitUnmappedFields()) }
+                } catch (_: Exception) { UnknownFieldsSummary.summarize(Strings.of(this), emptyList()) }
                 runOnUiThread {
                     if (destroyed) return@runOnUiThread
                     unknownFieldsView.show(summary)

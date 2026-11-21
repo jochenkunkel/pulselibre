@@ -721,4 +721,56 @@
     <string name="dev_unavailable">Nicht verfügbar</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="dev_unavailable_cd">%1$s: nicht verfügbar; bisher kein bestätigter Gerätewert</string>
+    <!-- Gerät: unbekannte FIT-Felder (#365) -->
+    <string name="unk_headline_one">Unbekanntes Datenfeld entdeckt (1 Typ)</string>
+    <string name="unk_headline_many">Unbekannte Datenfelder entdeckt (%1$d Typen)</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="unk_explanation">Von der App noch nicht entschlüsselt. Das sind keine Messwerte und keine Diagnose.</string>
+    <string name="unk_hint_cd">%1$s. %2$s Tippen für Details.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="unk_intro">Unbekannt heißt: nicht entschlüsselt. Diese Einträge sind weder Messwerte noch Diagnosen; sie zeigen nur, welche Felder die Dateien des Bands enthalten, die PulsLibre noch nicht versteht.</string>
+    <string name="unk_title_std">FIT-Nachricht %1$d · Feld %2$d</string>
+    <string name="unk_title_dev">FIT-Nachricht %1$d · Developer-Feld %2$d</string>
+    <string name="unk_base_unknown">unbekannt</string>
+    <string name="unk_detail">Basistyp %1$s · %2$d Byte</string>
+    <string name="unk_detail_dev">Basistyp %1$s · %2$d Byte · Developer-Index %3$d</string>
+    <string name="unk_occ_11">%1$d Meldung in %2$d Datei</string>
+    <string name="unk_occ_1n">%1$d Meldung in %2$d Dateien</string>
+    <string name="unk_occ_n1">%1$d Meldungen in %2$d Datei</string>
+    <string name="unk_occ_nn">%1$d Meldungen in %2$d Dateien</string>
+    <string name="unk_group_11">FIT-Nachricht %1$d · %2$d Feldtyp · %3$d Meldung</string>
+    <string name="unk_group_1n">FIT-Nachricht %1$d · %2$d Feldtyp · %3$d Meldungen</string>
+    <string name="unk_group_n1">FIT-Nachricht %1$d · %2$d Feldtypen · %3$d Meldung</string>
+    <string name="unk_group_nn">FIT-Nachricht %1$d · %2$d Feldtypen · %3$d Meldungen</string>
+    <string name="unk_group_cd">%1$s. Tippen zum Ein- oder Ausklappen.</string>
+    <string name="unk_cls_message">Nachrichtentyp von der App nicht dekodiert</string>
+    <string name="unk_cls_field">Feld von der App nicht dekodiert</string>
+    <string name="unk_cls_incompatible">Bekanntes Feld mit unpassendem Datentyp</string>
+    <string name="unk_cls_developer">Developer-Feld nicht dekodiert</string>
+    <string name="unk_cls_other">Nicht dekodiert</string>
+    <string name="unk_status_unreviewed">ungeprüft</string>
+    <string name="unk_status_investigating">in Prüfung</string>
+    <string name="unk_status_supported">unterstützt</string>
+    <string name="unk_status_ignored">ignoriert</string>
+    <string name="unk_status_line">%1$s · Status: %2$s</string>
+    <string name="unk_status_save_failed">%1$s · Status konnte nicht gespeichert werden</string>
+    <string name="unk_status_change">Status ändern</string>
+    <string name="unk_status_change_cd">Status ändern für %1$s</string>
+    <string name="unk_status_title">Status: %1$s</string>
+    <string name="unk_status_note">Nur deine Prüfmarke für dieses Feld. Es werden keine Messdaten verändert.</string>
+    <string name="unk_status_selected_cd">%1$s, aktuell gewählt</string>
+    <string name="unk_bytes_action">Beispielbytes ansehen</string>
+    <string name="unk_bytes_action_cd">Beispielbytes ansehen für %1$s</string>
+    <string name="unk_bytes_title">Beispielbytes ansehen?</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="unk_bytes_warning">Zeigt wenige Rohbytes dieses Feldes aus deinen lokal gespeicherten Dateien. Sie können sensible Gesundheits- und Geräteinformationen enthalten und werden weder gedeutet noch gespeichert noch gesendet. Gib sie nicht in Tickets, Protokollen oder Screenshots weiter.</string>
+    <string name="unk_bytes_confirm">Anzeigen</string>
+    <string name="unk_bytes_more_files">… und %1$d weitere Dateien</string>
+    <string name="unk_file">Datei %1$d</string>
+    <string name="unk_sample_unreadable">%1$s: Original nicht lesbar oder nicht gültig.</string>
+    <string name="unk_sample_absent">%1$s: Feld in dieser Datei nicht vorhanden.</string>
+    <string name="unk_sample_head_one">%1$s: 1 Vorkommen, erster Wert</string>
+    <string name="unk_sample_head">%1$s: %2$d Vorkommen, erste %3$d Werte</string>
+    <string name="unk_sample_more">  … und %1$d weitere</string>
+    <string name="unk_sample_cut">  (je Wert auf %1$d Byte gekürzt)</string>
 </resources>
