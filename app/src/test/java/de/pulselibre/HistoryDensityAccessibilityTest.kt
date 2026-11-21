@@ -15,14 +15,14 @@ class HistoryDensityAccessibilityTest {
     )
 
     @Test fun summaryNamesCountsRangeAndInteraction() {
-        val text = HistoryDensityAccessibility.summary(density(5 to 60, 10 to 70, 70 to 80), axis)
+        val text = HistoryDensityAccessibility.summary(GermanStrings, density(5 to 60, 10 to 70, 70 to 80), axis)
         assertTrue(text, text.contains("3 Messwerte in 2 von 4 Zeitfenstern"))
         assertTrue(text, text.contains("50 bis 110"))
         assertTrue(text, text.contains("Doppeltippen"))
     }
 
     @Test fun emptyDensityIsSaidPlainly() {
-        val text = HistoryDensityAccessibility.summary(density(), axis)
+        val text = HistoryDensityAccessibility.summary(GermanStrings, density(), axis)
         assertTrue(text, text.contains("keine Messwerte"))
     }
 }

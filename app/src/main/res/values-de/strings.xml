@@ -307,4 +307,52 @@
     <string name="dom_note_sleep_na">Schlafdauer und Schlafphasen noch nicht verfügbar</string>
     <string name="dom_note_ground">Keine Diagnosen; keine geschätzten Werte; kein RR→RMSSD ohne Zeitreihe</string>
     <string name="dom_unit_device_scale">Geräteskala 0–100</string>
+
+    <!-- Verlauf: Zeitfenster, Karten, Verteilung -->
+    <string name="hv_window_current">Aktuell · bis %1$s</string>
+    <string name="hv_window_cd">Zeitfenster %1$s</string>
+    <string name="hv_window_previous">Früheres Zeitfenster</string>
+    <string name="hv_window_next">Späteres Zeitfenster</string>
+    <string name="hv_pick_date">Datum wählen</string>
+    <string name="hv_loading">Daten für %1$s werden geladen …</string>
+    <string name="hv_header">Verlauf · lokal gespeicherte Messpunkte</string>
+    <string name="hv_range_selected_cd">%1$s, ausgewählt</string>
+    <string name="hv_info_cd">Quelle und Skala für %1$s anzeigen</string>
+    <string name="hv_card_summary">%1$d Werte · %2$d belegte Fenster · %3$s\nSkala %4$s–%5$s %6$s</string>
+    <string name="hv_mode_points">Punkte</string>
+    <string name="hv_mode_density">Verteilung</string>
+    <string name="hv_mode_safe">Farbsicher</string>
+    <string name="hv_mode_cd">Darstellung %1$s</string>
+    <string name="hv_density_title">%1$s · Zeitfenster</string>
+    <string name="hv_failed">Der lokale Verlauf konnte nicht geladen werden.</string>
+    <string name="hv_no_norm">Keine validierte Norm für Einzelmesswerte.</string>
+    <string name="hv_basis_phone_legend">Zeitachse: Telefonzeit · Punkt: Median · Ring: Mittelwert (bei mehreren Werten) · Linie: Min–Max · Lücken: keine Messdaten</string>
+    <string name="hv_basis_phone_info">Zeitstempel = Empfang auf dem Telefon.</string>
+    <string name="hv_basis_phone_empty">Keine Messdaten in diesem Zeitraum</string>
+    <string name="hv_basis_band_legend">Zeitachse: Messzeit des Bandes (aus FIT-Dateien) · Punkt: Median · Ring: Mittelwert (bei mehreren Werten) · Linie: Min–Max · Lücken: keine Messdaten</string>
+    <string name="hv_basis_band_info">Zeitstempel = vom Band gemessen (FIT-Datei), nicht der Empfang auf dem Telefon. Bei einem Teil der Werte ist die Zeit aus der Kurzform der Datei zurückgerechnet.</string>
+    <string name="hv_basis_band_empty">Keine Band-Verlaufsdaten in diesem Zeitraum</string>
+    <string name="hv_title_fit">Herzfrequenz · Band-Verlauf (FIT)</string>
+    <string name="hv_range_day">24 Stunden</string>
+    <string name="hv_range_week">7 Tage</string>
+    <string name="hv_range_month">30 Tage</string>
+    <string name="hv_res_15m">15 min</string>
+    <string name="hv_res_2h">2 Std.</string>
+    <string name="hv_res_1h">1 Std.</string>
+    <string name="hv_res_6h">6 Std.</string>
+    <string name="hv_res_1d">1 Tag</string>
+    <string name="hv_chart_cd">%1$d gespeicherte Messwerte in %2$d belegten Zeitfenstern, Auflösung %3$s. Gefüllter Punkt ist der Median, der Ring der arithmetische Mittelwert; der Strich zeigt beobachtetes Minimum bis Maximum. Vertikale Achse %4$d bis %5$d. Horizontale Achse %6$s. Leere Fenster bleiben leer. Es gibt keine Verbindung oder Interpolation zwischen Fenstern.</string>
+    <string name="hd_window_empty">%1$s\nKeine Messwerte in diesem Zeitfenster (Lücke, nichts interpoliert).</string>
+    <string name="hd_peak">Häufigstes Intervall: %1$s %2$s (%3$d %% der %4$d Werte im Achsenbereich)</string>
+    <string name="hd_peak_none">Alle Werte liegen außerhalb der Achse.</string>
+    <string name="hd_sample">Stichprobe: %1$d Werte</string>
+    <string name="hd_median_mean">Median %1$s %3$s · Mittelwert %2$s %3$s</string>
+    <string name="hd_observed">Beobachtet: %1$d–%2$d %3$s</string>
+    <string name="hd_excluded">%1$d Werte außerhalb der gezeigten Achse nicht eingefärbt.</string>
+    <string name="hd_footer">Relative Verteilung innerhalb dieses Fensters; keine Diagnose.</string>
+    <string name="hd_legend">Verteilung je Zeitfenster: Farbe = relative Häufigkeit der Messwerte innerhalb desselben Fensters (rot häufig · gelb mittel · grün selten, kräftiger = häufiger), gemeinsame Skala für alle Fenster. Zeigt die Form der Verteilung, nicht die Anzahl der Messwerte. Leer = keine Messwerte. Antippen für Details.</string>
+    <string name="hd_legend_safe">Verteilung je Zeitfenster (farbsicher): Farbe = relative Häufigkeit der Messwerte innerhalb desselben Fensters (gelb häufig · türkis mittel · blau selten, kräftiger = häufiger), gemeinsame Skala für alle Fenster. Ohne Rot/Grün-Unterscheidung. Leer = keine Messwerte. Antippen für Details.</string>
+    <string name="hd_density_empty">Verteilungsdiagramm: keine Messwerte im gewählten Zeitraum.</string>
+    <string name="hd_density_cd">Verteilungsdiagramm: %1$d Messwerte in %2$d von %3$d Zeitfenstern, Wertebereich der Achse %4$d bis %5$d. Doppeltippen auf das Diagramm öffnet die Einzelwerte des angetippten Zeitfensters; die Farbe zeigt die Häufigkeit, Zeitfenster ohne Werte bleiben leer.</string>
+    <string name="hd_axis_span">%1$s bis %2$s</string>
 </resources>

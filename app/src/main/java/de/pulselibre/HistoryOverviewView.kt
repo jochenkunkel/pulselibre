@@ -97,22 +97,22 @@ class HistoryOverviewView(
                 }
             }
         val row = LinearLayout(context).apply { orientation = HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
-        row.addView(step("‹", "Früheres Zeitfenster", selectedOffset < maxOffset, selectedOffset + 1, "history_window_previous"),
+        row.addView(step("‹", context.getString(R.string.hv_window_previous), selectedOffset < maxOffset, selectedOffset + 1, "history_window_previous"),
             LayoutParams(dp(48), dp(48)))
-        val title = if (selectedOffset == 0) "Aktuell · bis ${fmt.format(snapshot.end.atZone(zone))}"
+        val title = if (selectedOffset == 0) context.getString(R.string.hv_window_current, fmt.format(snapshot.end.atZone(zone)))
             else "${fmt.format(snapshot.start.atZone(zone))} – ${fmt.format(snapshot.end.atZone(zone))}"
         row.addView(label(title, 13f, palette.ink, true).apply {
             gravity = Gravity.CENTER
             tag = "history_window_title"
-            contentDescription = "Zeitfenster $title"
+            contentDescription = context.getString(R.string.hv_window_cd, title)
         }, LayoutParams(0, -2, 1f))
-        row.addView(step("›", "Späteres Zeitfenster", selectedOffset > 0, selectedOffset - 1, "history_window_next"),
+        row.addView(step("›", context.getString(R.string.hv_window_next), selectedOffset > 0, selectedOffset - 1, "history_window_next"),
             LayoutParams(dp(48), dp(48)))
         // free date choice inside the cached 30 days
         row.addView(android.widget.ImageView(context).apply {
             setImageDrawable(PlIcon.drawable(context, PlIcon.CALENDAR, 24, palette.accent))
             scaleType = android.widget.ImageView.ScaleType.CENTER; tag = "history_window_date"
-            contentDescription = "Datum wählen"
+            contentDescription = context.getString(R.string.hv_pick_date)
             isClickable = true; isFocusable = true
             background = GradientDrawable().apply { setColor(palette.tinted); cornerRadius = dp(12).toFloat() }
             setOnClickListener {
@@ -136,13 +136,13 @@ class HistoryOverviewView(
             val v = getChildAt(i)
             if (v is TextView && v.tag == "history_loading") return
         }
-        addView(label("Daten für ${selectedRange.label} werden geladen …", 12f, palette.muted).apply { tag = "history_loading" },
+        addView(label(context.getString(R.string.hv_loading, DomainText.tr(context, selectedRange.label)), 12f, palette.muted).apply { tag = "history_loading" },
             0, LayoutParams(-1, -2).apply { bottomMargin = dp(8) })
     }
 
     private fun render(snapshot: HistorySnapshot) {
         removeAllViews()
-        addView(label("Verlauf · lokal gespeicherte Messpunkte", 12f, palette.muted),
+        addView(label(context.getString(R.string.hv_header), 12f, palette.muted),
             LayoutParams(-1, -2).apply { bottomMargin = dp(12) })
         val rangeRow = LinearLayout(context).apply {
             orientation = HORIZONTAL
@@ -150,14 +150,14 @@ class HistoryOverviewView(
         }
         HistoryRange.entries.forEach { range ->
             val selected = range == selectedRange
-            val button = label(range.label, 12f, if (selected) palette.card else palette.accent, true).apply {
+            val button = label(DomainText.tr(context, range.label), 12f, if (selected) palette.card else palette.accent, true).apply {
                 gravity = Gravity.CENTER
                 minHeight = dp(48)
                 setPadding(dp(8), dp(8), dp(8), dp(8))
                 isClickable = true
                 isFocusable = true
                 isSelected = selected
-                contentDescription = "${range.label}${if (selected) ", ausgewählt" else ""}"
+                contentDescription = DomainText.tr(context, range.label).let { if (selected) context.getString(R.string.hv_range_selected_cd, it) else it }
                 background = GradientDrawable().apply {
                     setColor(if (selected) palette.primary else palette.tinted)
                     cornerRadius = dp(12).toFloat()
@@ -221,13 +221,13 @@ class HistoryOverviewView(
         heading.addView(PlIcon.view(context, DashboardMetricIconView.iconFor(title), 20, accent), LayoutParams(dp(20), dp(20)).apply {
             marginEnd = dp(7)
         })
-        heading.addView(label(title, 15f, palette.ink, true).apply { maxLines = 2 }, LayoutParams(0, -2, 1f))
+        heading.addView(label(DomainText.tr(context, title), 15f, palette.ink, true).apply { maxLines = 2 }, LayoutParams(0, -2, 1f))
         val infoButton = android.widget.FrameLayout(context).apply {
             minimumWidth = dp(48)
             minimumHeight = dp(48)
             isClickable = true
             isFocusable = true
-            contentDescription = "Quelle und Skala für $title anzeigen"
+            contentDescription = context.getString(R.string.hv_info_cd, DomainText.tr(context, title))
             tag = "history_info_$title"
             setOnClickListener { showMetricInfo(title, unit, basis) }
             addView(PlIcon.view(context, PlIcon.INFO_SOURCE, 20, palette.indicator),
@@ -235,14 +235,14 @@ class HistoryOverviewView(
         }
         heading.addView(infoButton, LayoutParams(dp(48), dp(48)))
         card.addView(heading)
-        card.addView(label("${points.size} Werte · ${buckets.size} belegte Fenster · ${resolution.label}\nSkala ${scale.minimum}–${scale.maximum} $unit",
+        card.addView(label(context.getString(R.string.hv_card_summary, points.size, buckets.size, DomainText.tr(context, resolution.label), scale.minimum.toString(), scale.maximum.toString(), unit),
             12f, palette.muted), LayoutParams(-1, -2).apply { topMargin = dp(4) })
         if (points.isEmpty()) {
-            card.addView(label(basis.emptyText, 14f, palette.muted),
+            card.addView(label(DomainText.tr(context, basis.emptyText), 14f, palette.muted),
                 LayoutParams(-1, -2).apply { topMargin = dp(18); bottomMargin = dp(18) })
             // The explanatory caption stays even without data (consistent per card, see #182).
             card.addView(label(
-                basis.legend, 11f, palette.muted
+                DomainText.tr(context, basis.legend), 11f, palette.muted
             ).apply { tag = "history_chart_legend"; importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_YES },
                 LayoutParams(-1, -2).apply { topMargin = dp(8) })
         } else {
@@ -250,9 +250,9 @@ class HistoryOverviewView(
             val scatter = HistoryScatterChartView(context, buckets, points.size, snapshot.start, snapshot.end,
                 scale, accent, snapshot.range, resolution)
             val scatterLegend = label(
-                basis.legend, 11f, palette.muted
+                DomainText.tr(context, basis.legend), 11f, palette.muted
             ).apply { tag = "history_chart_legend"; importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_YES }
-            val densityLegend = label(HistoryDensityDetail.LEGEND, 11f, palette.muted).apply {
+            val densityLegend = label(HistoryDensityDetail.legend(Strings.of(context), false), 11f, palette.muted).apply {
                 tag = "history_density_legend"; importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_YES; visibility = View.GONE
             }
             val zone = ZoneId.systemDefault()
@@ -261,8 +261,9 @@ class HistoryOverviewView(
             fun styleMode(t: TextView, on: Boolean) { t.setTextColor(if (on) palette.accent else palette.muted); t.setTypeface(null, if (on) Typeface.BOLD else Typeface.NORMAL) }
             val pointsMode = TextView(context); val densityMode = TextView(context); val safeMode = TextView(context)
             listOf(pointsMode to "Punkte", densityMode to "Verteilung", safeMode to "Farbsicher").forEach { (t, name) ->
-                t.text = name; t.textSize = 12f; t.gravity = Gravity.CENTER; t.minimumHeight = dp(48); t.isClickable = true; t.isFocusable = true
-                t.contentDescription = "Darstellung $name"; t.tag = "history_mode_${name}_$title"
+                val shown = DomainText.tr(context, name)
+                t.text = shown; t.textSize = 12f; t.gravity = Gravity.CENTER; t.minimumHeight = dp(48); t.isClickable = true; t.isFocusable = true
+                t.contentDescription = context.getString(R.string.hv_mode_cd, shown); t.tag = "history_mode_${name}_$title"
                 modes.addView(t, LayoutParams(0, -2, 1f))
             }
             styleMode(pointsMode, true); styleMode(densityMode, false); styleMode(safeMode, false)
@@ -282,14 +283,14 @@ class HistoryOverviewView(
                     val density = aggregateHistoryDensity(points, snapshot.start, snapshot.end, resolution, scale, binWidth)
                     densityView = HistoryDensityChartView(context, density, scale, zone) { index ->
                         val column = density.columns[index]
-                        androidx.appcompat.app.AlertDialog.Builder(context).setTitle("$title · Zeitfenster")
-                            .setMessage(HistoryDensityDetail.describe(column, points, unit, zone, index == density.columns.lastIndex))
-                            .setPositiveButton("Schließen", null).show()
+                        androidx.appcompat.app.AlertDialog.Builder(context).setTitle(context.getString(R.string.hv_density_title, DomainText.tr(context, title)))
+                            .setMessage(HistoryDensityDetail.describe(Strings.of(context), column, points, unit, zone, index == density.columns.lastIndex))
+                            .setPositiveButton(context.getString(R.string.action_close), null).show()
                     }
                     chartHost.addView(densityView, android.widget.FrameLayout.LayoutParams(-1, dp(210)))
                 }
                 densityView?.colorSafe = safe
-                densityLegend.text = if (safe) HistoryDensityDetail.LEGEND_COLOR_SAFE else HistoryDensityDetail.LEGEND
+                densityLegend.text = HistoryDensityDetail.legend(Strings.of(context), safe)
                 scatter.visibility = View.GONE; densityView?.visibility = View.VISIBLE
                 scatterLegend.visibility = View.GONE; densityLegend.visibility = View.VISIBLE
             }
@@ -306,7 +307,7 @@ class HistoryOverviewView(
 
     private fun showFailure() {
         removeAllViews()
-        addView(label("Der lokale Verlauf konnte nicht geladen werden.", 14f, palette.muted))
+        addView(label(context.getString(R.string.hv_failed), 14f, palette.muted))
     }
 
     private fun showMetricInfo(title: String, unit: String, basis: TimeBasis = TimeBasis.PHONE_RECEIVED) {
@@ -339,17 +340,17 @@ class HistoryOverviewView(
             }, LayoutParams(0, -2, 1f))
             content.addView(line)
         }
-        row("▬", "Skala ${profile?.minimum ?: 0}–${profile?.maximum ?: if (unit == "%") 100 else 240} $unit")
+        row("▬", context.getString(R.string.ov_scale, (profile?.minimum ?: 0).toString(), (profile?.maximum ?: if (unit == "%") 100 else 240).toString(), unit))
         profile?.referenceMinimum?.let { low ->
-            row("▰", "$low–${profile.referenceMaximum} $unit · ${profile.referenceLabel}")
+            row("▰", "$low–${profile.referenceMaximum} $unit · ${DomainText.tr(context, profile.referenceLabel ?: "")}")
         }
-        profile?.sourceName?.let { row("↗", "Quelle $it", profile.sourceUrl) }
-        row("⚠", profile?.caveat ?: "Keine validierte Norm für Einzelmesswerte.")
-        row("◷", basis.info)
+        profile?.sourceName?.let { row("↗", context.getString(R.string.ov_source, it), profile.sourceUrl) }
+        row("⚠", profile?.caveat?.let { DomainText.tr(context, it) } ?: context.getString(R.string.hv_no_norm))
+        row("◷", DomainText.tr(context, basis.info))
         androidx.appcompat.app.AlertDialog.Builder(context)
-            .setTitle("ⓘ  $title")
+            .setTitle("ⓘ  ${DomainText.tr(context, title)}")
             .setView(content)
-            .setPositiveButton("Schließen", null)
+            .setPositiveButton(context.getString(R.string.action_close), null)
             .show()
     }
 
@@ -384,10 +385,8 @@ private class HistoryScatterChartView(
 
     init {
         importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_YES
-        contentDescription = "$storedPointCount gespeicherte Messwerte in ${buckets.size} belegten Zeitfenstern, Auflösung ${resolution.label}. " +
-            "Gefüllter Punkt ist der Median, der Ring der arithmetische Mittelwert; der Strich zeigt beobachtetes Minimum bis Maximum. Vertikale Achse ${axis.minimum} bis ${axis.maximum}. " +
-            "Horizontale Achse ${HistoryAxisSpeech.span(start, end, range, ZoneId.systemDefault())}. " +
-            "Leere Fenster bleiben leer. Es gibt keine Verbindung oder Interpolation zwischen Fenstern."
+        contentDescription = context.getString(R.string.hv_chart_cd, storedPointCount, buckets.size, DomainText.tr(context, resolution.label),
+            axis.minimum, axis.maximum, HistoryAxisSpeech.span(Strings.of(context), start, end, range, ZoneId.systemDefault()))
     }
 
     override fun onDraw(canvas: Canvas) {

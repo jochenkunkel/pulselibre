@@ -39,7 +39,7 @@ internal class HistoryDensityChartView(
 
     init {
         tag = "history_density_chart"
-        contentDescription = HistoryDensityAccessibility.summary(density, axis)
+        contentDescription = HistoryDensityAccessibility.summary(Strings.of(context), density, axis)
     }
 
     override fun onMeasure(w: Int, h: Int) = setMeasuredDimension(MeasureSpec.getSize(w), (210 * d).toInt())

@@ -19,7 +19,7 @@ class HistoryDensityDetailTest {
         // 10 values near 60 and 6 values near 100 within the first hour -> mean ~75 lies between the modes, peak bin is 60..70.
         val points = pts(*((0 until 10).map { it to 62 } + (10 until 16).map { it to 101 }).toTypedArray())
         val col = density(points).columns[0]
-        val text = HistoryDensityDetail.describe(col, points, "bpm", zone, isLast = false)
+        val text = HistoryDensityDetail.describe(GermanStrings, col, points, "bpm", zone, isLast = false)
         assertTrue(text, text.contains("Stichprobe: 16 Werte"))
         assertTrue(text, text.contains("Häufigstes Intervall: 60–<70 bpm (63 % der 16 Werte"))
         assertTrue(text, text.contains("Beobachtet: 62–101 bpm"))
@@ -29,7 +29,7 @@ class HistoryDensityDetailTest {
     @Test fun medianAndMeanComeFromTheRawPointsOfExactlyThatWindow() {
         val points = pts(5 to 60, 10 to 70, 15 to 80, 70 to 200)        // the 200 belongs to the second window
         val col = density(points).columns[0]
-        val text = HistoryDensityDetail.describe(col, points, "bpm", zone, isLast = false)
+        val text = HistoryDensityDetail.describe(GermanStrings, col, points, "bpm", zone, isLast = false)
         assertTrue(text.contains("Stichprobe: 3 Werte"))
         assertTrue(text.contains("Median 70 bpm · Mittelwert 70 bpm"))
     }
@@ -37,7 +37,7 @@ class HistoryDensityDetailTest {
     @Test fun emptyWindowIsAGapAndNothingIsInterpolated() {
         val points = pts(5 to 60)
         val col = density(points).columns[2]
-        val text = HistoryDensityDetail.describe(col, points, "bpm", zone, isLast = false)
+        val text = HistoryDensityDetail.describe(GermanStrings, col, points, "bpm", zone, isLast = false)
         assertTrue(text.contains("Keine Messwerte in diesem Zeitfenster"))
         assertTrue(text.contains("nichts interpoliert"))
     }
@@ -45,14 +45,14 @@ class HistoryDensityDetailTest {
     @Test fun valuesOutsideTheAxisAreReportedNotColoured() {
         val points = pts(5 to 60, 6 to 250)
         val col = density(points).columns[0]
-        val text = HistoryDensityDetail.describe(col, points, "bpm", zone, isLast = false)
+        val text = HistoryDensityDetail.describe(GermanStrings, col, points, "bpm", zone, isLast = false)
         assertEquals(1, col.excludedOutsideAxis)
         assertTrue(text.contains("1 Werte außerhalb der gezeigten Achse nicht eingefärbt"))
     }
 
     @Test fun legendExplainsColourAndThatItIsRelativeNotAbsolute() {
-        assertTrue(HistoryDensityDetail.LEGEND.contains("relative Häufigkeit"))
-        assertTrue(HistoryDensityDetail.LEGEND.contains("nicht die Anzahl"))
-        assertTrue(HistoryDensityDetail.LEGEND.contains("Leer = keine Messwerte"))
+        assertTrue(HistoryDensityDetail.legend(GermanStrings, false).contains("relative Häufigkeit"))
+        assertTrue(HistoryDensityDetail.legend(GermanStrings, false).contains("nicht die Anzahl"))
+        assertTrue(HistoryDensityDetail.legend(GermanStrings, false).contains("Leer = keine Messwerte"))
     }
 }
