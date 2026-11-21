@@ -158,3 +158,181 @@ geräteseitige Markieren durch `sync_request` wird vorher offengelegt. Der
 fünfte und sechste Lauf ergaben jeweils 23/23 identische Einträge pro Sitzung.
 Der Vergleich testet nur Same-session-Wiederholbarkeit, nicht UID-Stabilität
 über Sitzungen oder Archivvollständigkeit.
+
+## Addendum: vorbereiteter Cross-session-No-pull-Test
+
+Nach ausdrücklicher Nutzerfreigabe wurde die Obergrenze des gemeinsamen
+No-pull-Test-Gates von 15 auf 40 bestätigte Läufe angehoben. Der vorhandene
+persistente Zähler wird dabei nicht zurückgesetzt; die dokumentierten 15
+verbrauchten Läufe bleiben erhalten. Jeder weitere Lauf erfordert weiterhin
+die ausdrückliche Bestätigung im App-Dialog und verbraucht vor der Verbindung
+einen Versuch.
+
+Für einen sitzungsübergreifenden Vergleich liefert die vorbereitete App-Version
+zusätzlich einen aggregierten SHA-256-Fingerprint über UID, Typ, Größe und
+Flags aller Listeneinträge. Roh-UIDs und Einzel-Hashes werden nicht angezeigt.
+Der aggregierte Fingerprint wird lokal im Diagnose-Status gespeichert und ist
+dennoch ein linkbarer Geräte-/Listenbezeichner: nicht veröffentlichen oder in
+Git protokollieren. Vor dem nächsten Lauf muss der Nutzer ihn privat notieren,
+weil der Status beim folgenden Lauf ersetzt wird.
+
+Testablauf nach Bereitstellung einer signaturkompatiblen APK:
+
+1. Drei getrennte bestätigte No-pull-Läufe mit jeweils einer Item-List in
+   frischen BLE-Sitzungen ausführen; vor jedem Lauf den Status sichern.
+2. Prüfen, dass Listenanzahl und Fingerprint über alle drei Sitzungen
+   identisch sind; Abweichungen bedeuten „UID-Stabilität nicht belegt“.
+3. Nach jedem Lauf sicherstellen, dass `pullSent=false`, MLR-Chunks/-Bytes 0
+   und keine Dateiimporte gemeldet werden.
+4. Da jeder Lauf `sync_request` enthält, vor jedem Lauf berücksichtigen, dass
+   das Band Daten geräteseitig als übertragen markieren kann.
+
+Auch drei identische Läufe belegen nur beobachtete Stabilität dieses Geräts,
+dieser Firmware und dieser Beobachtungsperiode; sie beweisen weder
+unbeschränkte UID-Stabilität noch vollständige Gerätehistorie.
+
+## Lauf vom 2026-11-21 nach Freigabe des 40er-Limits
+
+Das signaturkompatible Update `2.0.0_build1595` wurde als Update installiert;
+der bestehende App-Datenbestand blieb erhalten. Der vollständige lokale CI-Lauf
+einschließlich Emulator war zuvor erfolgreich.
+
+- Ein bestätigter No-pull-Lauf erreichte `sync_request` und empfing eine
+  Item-List mit 41 Einträgen. Ergebnis: `accepted=true`, `itemListSent=true`,
+  `pullSent=false`, MLR-Chunks/-Bytes 0, Dateiimporte 0. Ein aggregierter
+  Listenfingerprint wurde nur lokal für den privaten Folgevergleich verwendet
+  und absichtlich nicht in dieses Dokument übernommen.
+- Die beiden folgenden, separat bestätigten Läufe endeten jeweils vor
+  `sync_request` mit GATT-Status 147, ohne Notifications/Listenantwort,
+  Datei-Pull oder Import. Beide Versuche wurden verbraucht.
+- Verbrauch: 18/40. Nach zwei aufeinanderfolgenden GATT-147-Abbrüchen wurden
+  weitere Funkversuche gestoppt.
+
+Damit existiert nur eine erfolgreiche Sitzung als Baseline. Cross-session-
+UID-Stabilität ist **nicht nachgewiesen**; keine Remote-Datei darf aufgrund
+dieses Einzelergebnisses übersprungen werden.
+
+## Diagnose des GATT-147-Fehlers und nächster Ablauf
+
+Android dokumentiert Status 147 (`BluetoothGatt.GATT_CONNECTION_TIMEOUT`) als
+Verbindungs-Timeout; als wahrscheinliche Gründe nennt die API-Dokumentation
+außer Reichweite oder fehlende Connectable-Advertisements:
+[BluetoothGatt](https://developer.android.com/reference/android/bluetooth/BluetoothGatt#GATT_CONNECTION_TIMEOUT).
+Beide fehlgeschlagenen Läufe hatten `state=DISCONNECTED`, Notifications 0,
+keinen GATT-Write, `sync_request` nicht gesendet und keine Item-List. Es ist
+also ein Verbindungsaufbaufehler vor dem CIRQA-Protokoll, nicht ein negativer
+Sync-/Item-List-Status. Die konkrete Ursache ist aus Status 147 allein nicht
+ableitbar.
+
+Der nächste Geräteablauf ist deshalb passiv zuerst: 15 Sekunden BLE-Scan ohne
+GATT-Verbindung, Pairing oder Sync-Request. Die Diagnose wird nur melden, ob
+eine Anzeige des bereits gekoppelten Geräts erkannt wurde und ob Android diese
+als verbindbar meldete; keine Geräteadresse wird gespeichert. Nur wenn eine
+passende verbindbare Anzeige erkannt wird, kann anschließend nach erneuter
+Bestätigung höchstens ein No-pull-Listenlauf folgen. Andernfalls wird ohne
+weiteren Verbindungsversuch gestoppt. Der GATT-147-Codepfad zeigt künftig
+Androids lesbare Statusbeschreibung an; automatische Retries bleiben aus.
+
+### Passiver Scan am 2026-11-21
+
+Mit signiertem `2.0.0_build1601` (Versioncode 1601; Zertifikat passend zum
+installierten Paket) wurde ein 15-Sekunden-Scan durchgeführt:
+
+- 106 Werbeereignisse; Abgleich mit der gekoppelten CIRQA-Anzeige: ja.
+- Android meldete die Anzeige als verbindbar; Median-RSSI −56 dBm.
+- Kein GATT-Verbindungsversuch, kein Sync-Request und kein Datei-Pull.
+- Es wurden keine Geräteadresse oder Rohdaten in die Dokumentation übernommen.
+
+Der passive Befund erfüllt nur die Vorbedingung für eine mögliche erneute
+Bestätigung. Er belegt weder eine erfolgreiche GATT-Verbindung noch
+Cross-session-UID-Stabilität.
+
+### Bestätigter No-pull-Lauf nach Passivscan am 2026-11-21
+
+Nach erneuter Nutzerbestätigung wurde genau ein Lauf ausgeführt. Er empfing
+nach `sync_request` eine Item-List mit 41 Einträgen und stoppte vor Datei-Pulls:
+`accepted=true`, `itemListSent=true`, `pullSent=false`; MLR-Chunks/-Bytes 0,
+Dateiimporte 0. Der lokale aggregierte Listenfingerprint stimmte mit dem der
+vorherigen erfolgreichen Sitzung überein; der Fingerprint wird hier nicht
+veröffentlicht. Gate-Verbrauch: 19/40. Es gab keinen Retry.
+
+Damit stimmen zwei erfolgreiche, getrennte Listenbeobachtungen in Anzahl und
+aggregiertem Fingerprint überein. Die zwei dazwischenliegenden GATT-147-
+Verbindungsabbrüche lieferten keine Listen und sind kein Gegenbeleg zur
+Gleichheit der beiden empfangenen Listen. Die kleine Zahl erfolgreicher
+Beobachtungen belegt noch keine dauerhafte Identitätsstabilität oder sichere
+Überspringbarkeit künftiger Dateien; gezielte Pull-Auswahl bleibt bis zu
+weiterer Evidenz fail-safe.
+
+### Dritter erfolgreicher No-pull-Lauf am 2026-11-21
+
+Im Rahmen der Tagesfreigabe wurde genau ein weiterer Lauf ohne Retry ausgeführt.
+Er empfing wieder 41 Einträge; `accepted=true`, `itemListSent=true`,
+`pullSent=false`, MLR-Chunks/-Bytes 0 und Dateiimporte 0. Gate-Verbrauch:
+20/40. Der private aggregierte Listenfingerprint entsprach erneut den beiden
+vorherigen erfolgreichen Sitzungen; kein Fingerprint und keine Einzel-UID
+wird hier veröffentlicht.
+
+Somit sind drei erfolgreiche getrennte Listenbeobachtungen in diesem Test
+untereinander identisch (je 41 Einträge und gleicher aggregierter Fingerprint).
+Das ist positive Evidenz für beobachtete Listen-/UID-Wiederholbarkeit auf
+diesem Gerät in dieser Testperiode; die zwei fehlgeschlagenen GATT-Verbindungen
+stellen keine zusätzlichen Listenbeobachtungen dar. Es ist keine Garantie für
+zukünftige Sitzungen oder unveränderte Datei-Inhalte. Der Lauf hat keine FIT-
+Datei-Pulls und keinen erfolgreichen Import erzeugt, daher ist die Bedingung
+„gleiche stabile Identität und zugehöriger erfolgreicher lokaler Import“ der
+gezielten Skip-Policy nicht praktisch validiert. Bis zur Integration und
+Validierung dieser Zuordnung bleibt Überspringen fail-safe deaktiviert.
+
+## Offline-Skip-Gate
+
+`CirqaUidStabilityEvidence` und `CirqaTargetedPullManifest` bilden die
+konservative Mindestschwelle pro Remote-Identität ab: mindestens drei
+unterschiedliche erfolgreiche Sync-Sitzungen müssen dieselbe UID-/Typ-/Größen-/
+Flags-Identität gesehen haben. Fehlversuche, doppelte Sitzungs-IDs,
+unvollständige Beobachtungen oder Persistierungsfehler erzeugen keinen
+Stabilitätsnachweis. Der bestehende Produkt-Sync beobachtet erfolgreiche
+Item-List-Einträge, speichert aber ausschließlich gehashte Identitäten in
+app-privaten, nicht gesicherten SharedPreferences. Nach einem erfolgreichen
+FIT-Import wird die Zuordnung zur vollständigen Inhalts-SHA-256 gespeichert.
+
+Vor einem Skip verifiziert der Produktpfad erneut die lokale FIT-Datei samt
+Hash/CRC sowie einen passenden `fit_sources`- und
+`fit_observation_provenance`-Nachweis in der kanonischen SQLite-Datenbank.
+`CirqaTargetedPullPolicy` überspringt nur bei dieser gesamten Evidenzkette;
+alle unbekannten Fälle bleiben pull-pflichtig. Bestehende lokale FIT-Dateien
+ohne aufgezeichnete Remote-UID-Zuordnung werden beim ersten Sync nach dem
+Update weiterhin gezogen, nicht anhand Größe/Typ geraten. Die drei bereits
+erhobenen Gerätelisten wurden vor Einführung dieser Persistenz erfasst und
+werden nicht in die App importiert; nach dem Update müssen drei erfolgreiche
+Sitzungen die lokale Evidenz neu aufbauen. Unit-Tests und vollständiger lokaler
+CI-Lauf sind grün. Der folgende Hardwaretest validiert den Skip-Pfad für die
+beobachteten Einträge; die Gerätehistorie bleibt unvollständig.
+
+## Hardwarevalidierung der Manifest-Policy am 2026-11-21
+
+Der signierte Update-Build `2.0.0_build1609` wurde auf dem Gerät als Update
+installiert; bestehende App-Daten blieben erhalten. Der zuvor erstellte Build
+1602 wurde wegen des bereits installierten Codes 1608 nicht installiert
+(Downgrade vermieden). Keine GATT-/Protokollsequenz wurde ergänzt.
+
+1. Erster bestätigter Produkt-Sync: Item-List 43 Einträge, `pullSent=true`,
+   638.954 übertragene Bytes. 43 Dateien übertragen/verifiziert/privat
+   gespeichert, 0 Übertragungsfehler, 40 SQLite-Commits, davon 19 importierte
+   FIT-Dateien und 21 FIT-Dateien ohne importierbare Beobachtungen; drei
+   weitere Dateien waren Nicht-FIT. Der Lauf stoppte nach der Item-List-Session
+   wegen angekündigter separater Transaktion (`next-transaction-pending`);
+   keine weitere Transaktion wurde angefragt.
+2. Zwei getrennt bestätigte No-pull-Sitzungen lieferten je 43 Einträge,
+   `pullSent=false`, 0 MLR-Chunks/Bytes; Gate-Verbrauch 22/40.
+3. Nächster bestätigter Produkt-Sync: 43 Einträge, 19 exakte
+   `manifest-skip:verified-local-import`-Entscheidungen, 24 verbleibende
+   Dateien gepullt, 150.637 Bytes, 24 erfolgreich, 0 fehlgeschlagen.
+   Erneuter Stopp vor einer separaten Transaktion.
+
+Damit wurde der Skip-Pfad am Gerät praktisch für 19 bereits importierte FITs
+bestätigt; unbekannte, nicht importierte oder nicht exakt passende Einträge
+blieben im Pull-Pfad. Dies validiert die Implementierung für diese 43
+beobachteten Einträge, nicht die Vollständigkeit der Gerätehistorie oder
+künftige Firmware. Es wurden keine Einzel-UIDs, Geräteadressen, Roh-Payloads
+oder Hashes dokumentiert.

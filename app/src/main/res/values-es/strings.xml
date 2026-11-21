@@ -84,4 +84,13 @@
     <string name="delete_final_button">Eliminar definitivamente</string>
     <string name="settings_validation_toast">Revisa los números (altura, peso, objetivos y rangos de referencia de SpO₂).</string>
     <string name="settings_saved_toast">Perfil guardado en local</string>
+
+    <!-- Navigation (MainNavigationView) -->
+    <!-- TODO-CHATGPT-REVIEW: Erstentwurf von Claude Code, Ticket #365 -->
+    <string name="nav_overview">Resumen</string>
+    <string name="nav_history">Historial</string>
+    <string name="nav_device">Dispositivo</string>
+    <string name="nav_testlab">Laboratorio</string>
+    <string name="nav_data">Datos</string>
+    <string name="nav_analyses">Análisis</string>
 </resources>

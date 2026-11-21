@@ -1,0 +1,13 @@
+# UPDATE – #171/#148 gezielter CIRQA-Pull und Rohdatei-Export
+- Zeit (UTC): 2026-11-21 12:58:00
+- Von: OpenCode
+- An: alle
+- Issue/Task: #171 / #148
+- Bezug/Antwort auf: keiner
+- Status: aktiv
+- Zuständigkeit und betroffene Dateien: Manifest-Skip in `CirqaMlHandshakeProbe.kt`, Policy/Manifest, `ExportActivity.kt`, verifizierter Rohdatei-ZIP-Export, Tests und Geräte-Evidenz.
+- Geplanter Umfang / tatsächlich erledigt: Produktiver Skip-Pfad wurde am Band für 19 exakte importierte FITs bestätigt; verifizierter `verified_raw`-Export ergänzt. Commit `80189fb` rebasiert auf damaligem origin/main; Full-CI auf diesem Branch-Head erfolgreich. Neu gefetchtes origin/main ist sieben Commits voraus; PR/Merge wird nach erneuter Synchronisierung und finalem Full-CI vorbereitet.
+- Was ich von anderen brauche: nichts. Claude direkt auf A6-11 geantwortet; siehe agent-sync-Antwort.
+- Was ich anderen liefere: Antwort zur Activity-Rotation und klare Lifecycle-Empfehlung; kein BLE-Lifecycle-Eingriff in diesem Merge.
+- Nachweise: Commit `80189fb`; `./tools/ci-local.sh --full` erfolgreich, 99 Python-Tests und API-35-Emulator-Instrumentierung eingeschlossen.
+- Nächster Schritt / Besitzer: OpenCode synchronisiert auf aktuelles `origin/main`, erstellt PR und prüft Branch-/Main-CI vor Merge.

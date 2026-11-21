@@ -121,6 +121,34 @@ class ExportActivity : AppCompatActivity() {
     /** Stored rows that could not be parsed during the current export read (A6-8); shown to the user, never hidden. */
     private val unreadableRows = java.util.concurrent.atomic.AtomicInteger()
 
+    /** Explicit user-selected export of opaque, verified raw CIRQA originals. */
+    private val createVerifiedRawOriginals = registerForActivityResult(
+        ActivityResultContracts.CreateDocument("application/zip")
+    ) { uri ->
+        if (uri == null) {
+            databaseFeedback.text = "Export der Rohdateien abgebrochen."
+        } else {
+            databaseFeedback.text = "Rohdateien werden exportiert …"
+            executor.execute {
+                try {
+                    val output = contentResolver.openOutputStream(uri) ?: error("Ziel kann nicht geöffnet werden")
+                    val result = output.use {
+                        CirqaVerifiedRawArchive.write(java.io.File(filesDir, "verified_raw"), it)
+                    }
+                    runOnUiThread {
+                        databaseFeedback.text = "Rohdateien gespeichert: ${result.files} Dateien, ${result.bytes} Bytes" +
+                            (if (result.skipped > 0) ", ${result.skipped} übersprungen" else "") +
+                            ". Die ZIP-Datei ist unverschlüsselt; die Inhalte werden nicht automatisch dekodiert."
+                    }
+                } catch (_: Exception) {
+                    runOnUiThread {
+                        databaseFeedback.text = "Export fehlgeschlagen. Bitte Speicherort prüfen; eine angelegte Zieldatei kann unvollständig sein und sollte gelöscht werden."
+                    }
+                }
+            }
+        }
+    }
+
     private val createDocument = registerForActivityResult(
         ActivityResultContracts.CreateDocument("text/csv")
     ) { uri ->
@@ -329,6 +357,25 @@ class ExportActivity : AppCompatActivity() {
                 .setNegativeButton("Abbrechen", null)
                 .setPositiveButton("Exportieren") { _, _ ->
                     createFitOriginals.launch("pulselibre_fit_originale_${LocalDate.now()}.zip")
+                }
+                .show()
+        }, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) })
+        dataPanel.addView(databaseAction(
+            "Verifizierte Rohdateien exportieren",
+            "Opake, lokal gespeicherte CIRQA-Rohdateien als ZIP exportieren",
+            palette.accent
+        ) {
+            AlertDialog.Builder(this)
+                .setTitle("Rohdateien exportieren?")
+                .setMessage(
+                    "Das ZIP enthält unveränderte, verifizierte Rohdateien des Bands. " +
+                        "Es ist unverschlüsselt und kann sensible Gesundheits- und Geräteinformationen enthalten. " +
+                        "Die Dateien werden von PulseLibre nicht automatisch dekodiert. " +
+                        "Nichts wird verändert, gelöscht oder gesendet. Wähle einen vertrauenswürdigen Speicherort."
+                )
+                .setNegativeButton("Abbrechen", null)
+                .setPositiveButton("Exportieren") { _, _ ->
+                    createVerifiedRawOriginals.launch("pulslibre_rohdateien_${LocalDate.now()}.zip")
                 }
                 .show()
         }, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) })

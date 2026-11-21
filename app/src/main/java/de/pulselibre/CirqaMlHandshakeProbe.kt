@@ -3,6 +3,7 @@ package de.pulselibre
 import android.annotation.SuppressLint
 import android.bluetooth.*
 import android.content.Context
+import android.database.sqlite.SQLiteDatabase
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
@@ -58,6 +59,10 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private var fileAccessListMode = false
     private var syncRequestMode = false
     private var syncStopBeforePullMode = false
+    private var syncSessionId: String? = null
+    private val targetedPullManifest by lazy(LazyThreadSafetyMode.NONE) {
+        CirqaTargetedPullManifest(CirqaTargetedPullManifestPreferences(context))
+    }
     private var syncRepeatItemListsMode = false
     private var syncNextTransactionProbeMode = false
     private var syncNextTransactionFollowupSent = false
@@ -697,7 +702,12 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     if (callbackGeneration !== generation) { safeClose(g); return }
                     if (!active || terminationRequested) { safeClose(g); return }
                     if (status != BluetoothGatt.GATT_SUCCESS || state == BluetoothProfile.STATE_DISCONNECTED) {
-                        finish("ML-Verbindung beendet (GATT $status, Zustand $state). Letzte Phase: $phase; Notifications: $notificationsReceived; GATT-Schreiben bestätigt: $writeConfirmed; Protokollzustand: ${session?.stage}; Antwortformen: ${notificationShapes.joinToString(" | ")}.", g)
+                        val statusDescription = CirqaGattConnectionStatus.description(status)
+                            ?.let { " ($it)" }.orEmpty()
+                        finish("ML-Verbindung beendet (GATT $status$statusDescription, Zustand $state). " +
+                            "Letzte Phase: $phase; Notifications: $notificationsReceived; " +
+                            "GATT-Schreiben bestätigt: $writeConfirmed; Protokollzustand: ${session?.stage}; " +
+                            "Antwortformen: ${notificationShapes.joinToString(" | ")}.", g)
                     } else if (state == BluetoothProfile.STATE_CONNECTED) {
                         mark("GATT verbunden; Dienstsuche läuft")
                         try { if (!g.discoverServices()) finish("GATT-Dienstsuche konnte nicht starten.", g) }
@@ -955,9 +965,21 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         syncFileStageCounts.record(result)
         val successful = result.successfulForSync
         if (successful) syncCompletedFiles++ else syncFailedFiles++
+        val manifestRecorded = if (
+            result.format == CirqaSyncFileCompletion.Format.FIT &&
+            result.status == CirqaSyncFileCompletion.Status.IMPORTED &&
+            result.sqliteCommit == CirqaSyncFileCompletion.Stage.SUCCEEDED
+        ) {
+            val sha = java.security.MessageDigest.getInstance("SHA-256")
+                .digest(mlrData.toByteArray())
+                .joinToString("") { "%02x".format(it.toInt() and 255) }
+            targetedPullManifest.recordCompletedImport(item, sha)
+        } else null
         syncFileResults = (syncFileResults + "file${syncCompletedFiles + syncFailedFiles}[" +
             CirqaFileAccessItemListParser.safeTypeLabel(item, syncGdxmlStrings) +
-            ":${result.redactedSummary()}];")
+            ":${result.redactedSummary()}" +
+            (manifestRecorded?.let { ";manifest=${if (it) "recorded" else "notPersisted"}" } ?: "") +
+            "];")
             .take(1800)
         syncCurrentItem = null
         syncExpectedSize = 0L
@@ -968,6 +990,70 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         mlrRegisterSent = false
         syncMlrRegistrationPending = false
         if (syncPendingItems.isEmpty()) requestNextSyncItemListPage(g) else sendNextSyncFile(g)
+    }
+
+    /**
+     * Skip only an exact remote identity with three distinct successful
+     * observations and a still-present, content-verified FIT source committed
+     * to the canonical SQLite store. Every uncertainty means pull.
+     */
+    private fun shouldPullTargetedItem(item: CirqaFileAccessItemListParser.Item): Boolean {
+        val identity = targetedPullManifest.identity(item) ?: return true
+        val evidence = targetedPullManifest.stabilityEvidence(item) ?: return true
+        val contentSha256 = targetedPullManifest.completedImportSha256(item) ?: return true
+        if (!isCommittedLocalFit(contentSha256, item.dataSize)) {
+            targetedPullManifest.forgetCompletedImport(item)
+            return true
+        }
+        return CirqaTargetedPullPolicy.shouldPull(
+            identity.policyIdentity,
+            listOf(
+                CirqaTargetedPullPolicy.CompletedImport(
+                    identity = identity.policyIdentity,
+                    contentSha256 = contentSha256,
+                    importSucceeded = true,
+                    uidStabilityEvidence = evidence
+                )
+            )
+        )
+    }
+
+    private fun isCommittedLocalFit(contentSha256: String, expectedBytes: Long): Boolean {
+        if (!contentSha256.matches(Regex("[0-9a-f]{64}")) ||
+            expectedBytes !in 1..CirqaVerifiedRawFileStore.MAX_FILE_BYTES
+        ) return false
+        val fitDirectory = File(context.filesDir, "verified_fit")
+        val file = File(fitDirectory, "$contentSha256.fit")
+        if (!fitDirectory.isDirectory || java.nio.file.Files.isSymbolicLink(fitDirectory.toPath())) {
+            return false
+        }
+        if (!file.isFile || java.nio.file.Files.isSymbolicLink(file.toPath()) ||
+            file.length() != expectedBytes
+        ) return false
+        val bytes = runCatching { file.readBytes() }.getOrNull() ?: return false
+        val actualSha = java.security.MessageDigest.getInstance("SHA-256").digest(bytes)
+            .joinToString("") { "%02x".format(it.toInt() and 255) }
+        if (actualSha != contentSha256 || FitFileHeader.inspectVerified(bytes) == null) return false
+
+        val databaseFile = context.getDatabasePath("cirqa_measurements.db")
+        if (!databaseFile.isFile) return false
+        return runCatching {
+            SQLiteDatabase.openDatabase(
+                databaseFile.path, null, SQLiteDatabase.OPEN_READONLY
+            ).use { db ->
+                db.rawQuery(
+                    """SELECT 1 FROM fit_sources s
+                       WHERE s.source_sha256 = ? AND s.file_bytes = ?
+                         AND s.relative_path = ?
+                         AND EXISTS (
+                           SELECT 1 FROM fit_observation_provenance p
+                           WHERE p.source_sha256 = s.source_sha256
+                         )
+                       LIMIT 1""",
+                    arrayOf(contentSha256, expectedBytes.toString(), "verified_fit/$contentSha256.fit")
+                ).use { it.moveToFirst() }
+            }
+        }.getOrDefault(false)
     }
 
     private fun requestNextSyncItemListPage(g: BluetoothGatt) {
@@ -1020,6 +1106,10 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             finish("Item-List meldete Status ${page.status ?: "fehlt"}; Fortsetzung gestoppt.", g)
             return
         }
+        val sessionId = syncSessionId
+        if (syncRequestMode && syncAccepted && sessionId != null) {
+            page.items.forEach { targetedPullManifest.observe(it, sessionId) }
+        }
         syncListPageCount++
         syncPageSessionId = CirqaFileAccessListRequest.nextPageSessionId(page)
         syncPageNextTransactionId = page.nextTransactionId
@@ -1064,7 +1154,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             if (syncRepeatItemListsMode && firstItems == null) {
                 syncRepeatFirstItems = page.items
                 syncItemSummary = "firstItems=${page.items.size}; session=${page.sessionId != null}; " +
-                    "nextTransaction=${page.nextTransactionId != null}"
+                    "nextTransaction=${page.nextTransactionId != null}; " +
+                    "fingerprint=${CirqaItemListFingerprint.create(page.items)}"
                 val handle = historyHandle ?: run {
                     finish("Erste Item-List empfangen, aber GFDI-Handle fehlt; Vergleich gestoppt.", g)
                     return
@@ -1083,7 +1174,9 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                         "UID+Metadaten unverändert=${comparison.unchanged}, " +
                         "Metadaten geändert=${comparison.changedMetadata}, neu=${comparison.added}, " +
                         "fehlend=${comparison.missing}, doppelte UIDs=" +
-                        "${comparison.duplicateUidsFirst}/${comparison.duplicateUidsSecond}"
+                        "${comparison.duplicateUidsFirst}/${comparison.duplicateUidsSecond}, " +
+                        "firstFingerprint=${CirqaItemListFingerprint.create(firstItems)}, " +
+                        "secondFingerprint=${CirqaItemListFingerprint.create(page.items)}"
                 finish(
                     "Zwei Item-Listen nach sync_request verglichen; Stopp vor Datei-Pulls.",
                     g
@@ -1091,7 +1184,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                 return
             }
             syncItemSummary = "items=${page.items.size}; session=${page.sessionId != null}; " +
-                "nextTransaction=${page.nextTransactionId != null}"
+                "nextTransaction=${page.nextTransactionId != null}; " +
+                "fingerprint=${CirqaItemListFingerprint.create(page.items)}"
             finish(
                 "Item-List nach sync_request empfangen; sicherer Stopp vor Datei-Pulls.",
                 g
@@ -1107,6 +1201,12 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                 .digest(item.uid).joinToString("") { "%02x".format(it.toInt() and 255) }
             if (!syncSeenItemUids.add(uidKey)) {
                 syncSkippedFiles++
+                continue
+            }
+            if (!shouldPullTargetedItem(item)) {
+                syncSkippedFiles++
+                syncPullDiag = (syncPullDiag + "|manifest-skip:verified-local-import")
+                    .take(1000)
                 continue
             }
             if (syncQueuedFiles >= CirqaSyntheticDownloadLimits.MAX_FILES ||
@@ -1852,6 +1952,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         }
         syncRequestMode = true
         syncStopBeforePullMode = stopBeforePull
+        syncSessionId = UUID.randomUUID().toString()
         syncRepeatItemListsMode = stopBeforePull && repeatItemLists
         syncNextTransactionProbeMode = stopBeforePull && nextTransactionProbe
         syncNextTransactionFollowupSent = false

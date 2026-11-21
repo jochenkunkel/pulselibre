@@ -66,6 +66,7 @@ class OneShotGatesTest {
     }
 
     @Test fun itemListGateIsBoundedAndClampsTamperedCounter() {
+        assertEquals(40, CirqaItemListRepeatabilityAttemptGate.MAX_ATTEMPTS)
         val p = prefs()
         repeat(CirqaItemListRepeatabilityAttemptGate.MAX_ATTEMPTS) { assertTrue(CirqaItemListRepeatabilityAttemptGate.consume(p)) }
         assertFalse(CirqaItemListRepeatabilityAttemptGate.hasAttemptsRemaining(p))
@@ -74,5 +75,13 @@ class OneShotGatesTest {
         assertEquals(CirqaItemListRepeatabilityAttemptGate.MAX_ATTEMPTS, CirqaItemListRepeatabilityAttemptGate.attemptsUsed(tampered))
         val negative = prefs(mapOf(CirqaItemListRepeatabilityAttemptGate.ATTEMPT_COUNT_KEY to -5))
         assertEquals(0, CirqaItemListRepeatabilityAttemptGate.attemptsUsed(negative))
+    }
+
+    @Test fun raisingLimitPreservesPreviouslyConsumedAttempts() {
+        val stored = prefs(mapOf(
+            CirqaItemListRepeatabilityAttemptGate.ATTEMPT_COUNT_KEY to 15
+        ))
+        assertEquals(15, CirqaItemListRepeatabilityAttemptGate.attemptsUsed(stored))
+        assertTrue(CirqaItemListRepeatabilityAttemptGate.hasAttemptsRemaining(stored))
     }
 }
