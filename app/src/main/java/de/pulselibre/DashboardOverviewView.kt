@@ -545,7 +545,7 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
             } else base
             tag = "dashboard_metric_${metric.title}"
             contentDescription = context.getString(R.string.metric_last_reception_cd, MetricText.title(context, metric.title), MetricText.value(context, metric.value), receptionLabel(freshness))
-            if (unvalidated) contentDescription = contentDescription.toString() + UnvalidatedFeatures.ACCESSIBILITY_SUFFIX
+            if (unvalidated) contentDescription = contentDescription.toString() + DomainText.tr(context, UnvalidatedFeatures.ACCESSIBILITY_SUFFIX)
             ViewCompat.setScreenReaderFocusable(this, false)
             importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
             val show = openDay

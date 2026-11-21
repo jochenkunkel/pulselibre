@@ -43,10 +43,10 @@ internal class TrendCardView(context: Context) : LinearLayout(context) {
         orientation = VERTICAL
         setPadding(dp(14), dp(14), dp(14), dp(14))
         background = GradientDrawable().apply { setColor(palette.card); cornerRadius = dp(16).toFloat(); UnvalidatedFeatures.mark(this, resources.displayMetrics.density, palette.dark) }
-        contentDescription = "Trends. Enthält ungeprüften Geräte-Ruhepuls." + UnvalidatedFeatures.ACCESSIBILITY_SUFFIX
+        contentDescription = context.getString(R.string.tr_cd) + DomainText.tr(context, UnvalidatedFeatures.ACCESSIBILITY_SUFFIX)
         tag = "trend_card"
         addView(content, LayoutParams(-1, -2))
-        showMessage("Trends werden berechnet …")
+        showMessage(context.getString(R.string.tr_computing))
     }
 
     override fun onAttachedToWindow() {
@@ -65,7 +65,7 @@ internal class TrendCardView(context: Context) : LinearLayout(context) {
             val result = try { compute(app) } catch (_: Exception) { null }
             Handler(Looper.getMainLooper()).post {
                 if (token != generation) return@post
-                if (result == null) { showMessage("Trends konnten nicht berechnet werden."); return@post }
+                if (result == null) { showMessage(context.getString(R.string.tr_failed)); return@post }
                 cachedData = result; cachedAt = System.currentTimeMillis(); data = result
                 render(result)
             }
@@ -100,10 +100,10 @@ internal class TrendCardView(context: Context) : LinearLayout(context) {
         gravity = Gravity.CENTER_VERTICAL
         addView(PlIcon.view(context, PlIcon.TRENDS, 24), LayoutParams(dp(24), dp(24)).apply { marginEnd = dp(8) })
         addView(TextView(context).apply {
-            text = "Trends"; textSize = 16f; setTypeface(null, Typeface.BOLD); setTextColor(palette.ink)
+            text = context.getString(R.string.tr_title); textSize = 16f; setTypeface(null, Typeface.BOLD); setTextColor(palette.ink)
         }, LayoutParams(0, -2, 1f))
         if (info != null) addView(FrameLayout(context).apply {
-            contentDescription = "Methode und Einschränkungen der Trends"
+            contentDescription = context.getString(R.string.tr_method_cd)
             isClickable = true; isFocusable = true
             setOnClickListener { info() }
             addView(PlIcon.view(context, PlIcon.INFO, 22), FrameLayout.LayoutParams(dp(22), dp(22), Gravity.CENTER))
@@ -130,35 +130,35 @@ internal class TrendCardView(context: Context) : LinearLayout(context) {
                 orientation = HORIZONTAL
                 gravity = Gravity.CENTER_VERTICAL
                 minimumHeight = dp(32)
-                contentDescription = "${dim.name}: ${dim.state.label}. ${dim.sentence}"
+                contentDescription = context.getString(R.string.tr_dim_cd, DomainText.tr(context, dim.name), DomainText.tr(context, dim.state.label), DomainText.tr(context, dim.sentence))
                 isFocusable = true
                 addView(PlIcon.view(context, dimensionIcon(dim.name), 22), LayoutParams(dp(22), dp(22)).apply { marginEnd = dp(8) })
-                addView(TextView(context).apply { text = dim.name; textSize = 13f; setTextColor(palette.ink)
+                addView(TextView(context).apply { text = DomainText.tr(context, dim.name); textSize = 13f; setTextColor(palette.ink)
                     importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO }, LayoutParams(0, -2, 1f))
-                addView(TextView(context).apply { text = dim.state.label; textSize = 12f; setTextColor(palette.muted)
+                addView(TextView(context).apply { text = DomainText.tr(context, dim.state.label); textSize = 12f; setTextColor(palette.muted)
                     importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO })
             })
         }
         // Trend table: rows = metric, columns = 7 / 28 / 90 days.
-        content.addView(tableRow(null, listOf("7 T", "28 T", "90 T")), LayoutParams(-1, -2).apply { topMargin = dp(12) })
-        content.addView(tableRow("Ruhepuls", d.rest.map { cell(it) }, PlIcon.HEART).apply {
+        content.addView(tableRow(null, listOf(context.getString(R.string.tr_col_7), context.getString(R.string.tr_col_28), context.getString(R.string.tr_col_90))), LayoutParams(-1, -2).apply { topMargin = dp(12) })
+        content.addView(tableRow(context.getString(R.string.tr_rest), d.rest.map { cell(it) }, PlIcon.HEART).apply {
             tag = "trend_row_rest"; isClickable = true; isFocusable = true; minimumHeight = dp(48)
-            setOnClickListener { showDaily(d, "Geräte-Ruhepuls (bpm)", d.restDaily, d.rest, palette.pulse, zeroBased = false) }
+            setOnClickListener { showDaily(d, context.getString(R.string.tr_rest_daily), d.restDaily, d.rest, palette.pulse, zeroBased = false) }
         })
-        content.addView(tableRow("Schritte", d.steps.map { cell(it) }, PlIcon.STEPS).apply {
+        content.addView(tableRow(context.getString(R.string.tr_steps), d.steps.map { cell(it) }, PlIcon.STEPS).apply {
             tag = "trend_row_steps"; isClickable = true; isFocusable = true; minimumHeight = dp(48)
-            setOnClickListener { showDaily(d, "Schritte pro Tag", d.stepsDaily, d.steps, palette.indicator) }
+            setOnClickListener { showDaily(d, context.getString(R.string.tr_steps_daily), d.stepsDaily, d.steps, palette.indicator) }
         })
         // Pre-specified hypothesis, one compact line; tap opens the scatter plot.
         val c = d.correlation
-        val corr = if (c.rho == null) "${c.pairs}/${PairedCorrelation.MIN_PAIRS} Tage"
+        val corr = if (c.rho == null) context.getString(R.string.tr_pairs_days, c.pairs.toString(), PairedCorrelation.MIN_PAIRS.toString())
             else "${nf.format(c.rho)} ρ · n=${c.pairs}"
         content.addView(LinearLayout(context).apply {
             orientation = HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
             minimumHeight = dp(48)
             isClickable = true; isFocusable = true
-            contentDescription = "Zusammenhang Schritte und Ruhepuls am Folgetag: ${c.verdict.label}, ${c.note}. Tippen für das Streudiagramm."
+            contentDescription = context.getString(R.string.tr_corr_cd, DomainText.tr(context, c.verdict.label), DomainText.tr(context, c.note))
             setOnClickListener { showScatter() }
             addView(PlIcon.view(context, PlIcon.TREND_LINK, 22), LayoutParams(dp(22), dp(22)).apply { marginEnd = dp(8) })
             addView(LinearLayout(context).apply {
@@ -166,11 +166,11 @@ internal class TrendCardView(context: Context) : LinearLayout(context) {
                 addView(PlIcon.view(context, PlIcon.STEPS, 18), LayoutParams(dp(18), dp(18)))
                 addView(TextView(context).apply { text = " → "; textSize = 13f; setTextColor(palette.ink) })
                 addView(PlIcon.view(context, PlIcon.HEART, 18), LayoutParams(dp(18), dp(18)))
-                addView(TextView(context).apply { text = "  Folgetag"; textSize = 13f; setTextColor(palette.ink) })
+                addView(TextView(context).apply { text = context.getString(R.string.tr_next_day); textSize = 13f; setTextColor(palette.ink) })
             }, LayoutParams(0, -2, 1f))
             if (c.rho == null) {
                 addView(PlIcon.view(context, PlIcon.HOURGLASS, 18), LayoutParams(dp(18), dp(18)).apply { marginEnd = dp(4) })
-                addView(TextView(context).apply { text = "${c.pairs}/${PairedCorrelation.MIN_PAIRS} Tage"; textSize = 12f; setTextColor(palette.muted); setPadding(0, 0, dp(8), 0) })
+                addView(TextView(context).apply { text = context.getString(R.string.tr_pairs_days, c.pairs.toString(), PairedCorrelation.MIN_PAIRS.toString()); textSize = 12f; setTextColor(palette.muted); setPadding(0, 0, dp(8), 0) })
             } else addView(TextView(context).apply { text = corr; textSize = 12f; setTextColor(palette.muted); setPadding(0, 0, dp(8), 0) })
             if (d.scatter.size >= 2) addView(PlIcon.view(context, PlIcon.TRENDS, 22), LayoutParams(dp(22), dp(22)))
         }, LayoutParams(-1, -2).apply { topMargin = dp(4) })
@@ -187,8 +187,8 @@ internal class TrendCardView(context: Context) : LinearLayout(context) {
         val segments = LinearLayout(context).apply { orientation = HORIZONTAL; tag = "window_segments" }
         listOf(7, 28, 90).forEach { days ->
             segments.addView(TextView(context).apply {
-                text = "$days T"; textSize = 12f; gravity = Gravity.CENTER; minimumHeight = dp(48); tag = "atlas_window_$days"
-                isClickable = true; isFocusable = true; contentDescription = "Zeitraum $days Tage"
+                text = context.getString(when (days) { 7 -> R.string.tr_col_7; 28 -> R.string.tr_col_28; else -> R.string.tr_col_90 }); textSize = 12f; gravity = Gravity.CENTER; minimumHeight = dp(48); tag = "atlas_window_$days"
+                isClickable = true; isFocusable = true; contentDescription = context.getString(R.string.tr_window_cd, days.toString())
                 setOnClickListener {
                     atlasWindow = days
                     for (i in 0 until segments.childCount) (segments.getChildAt(i) as TextView).let { t -> styleSegment(t, t.tag == "atlas_window_$atlasWindow") }
@@ -213,21 +213,21 @@ internal class TrendCardView(context: Context) : LinearLayout(context) {
         }
         val box = LinearLayout(context).apply { orientation = VERTICAL; tag = "week_summary"; setPadding(0, dp(8), 0, dp(4)) }
         box.addView(TextView(context).apply {
-            text = "Letzte 7 Tage"; textSize = 14f; setTypeface(null, Typeface.BOLD); setTextColor(palette.ink)
+            text = context.getString(R.string.tr_last7); textSize = 14f; setTypeface(null, Typeface.BOLD); setTextColor(palette.ink)
         })
         week.rows.forEach { row ->
             box.addView(LinearLayout(context).apply {
                 orientation = VERTICAL; setPadding(0, dp(6), 0, 0); isFocusable = true
-                tag = "week_row_${row.label}"; contentDescription = row.description()
+                tag = "week_row_${row.label}"; contentDescription = DomainText.weekRowDescription(context, row)
                 addView(LinearLayout(context).apply {
                     orientation = HORIZONTAL
-                    addView(TextView(context).apply { text = row.label; textSize = 12f; setTextColor(palette.muted); importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO }, LayoutParams(0, -2, 1f))
-                    addView(TextView(context).apply { text = row.value ?: "keine Daten"; textSize = 13f; setTextColor(palette.ink); importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO })
+                    addView(TextView(context).apply { text = DomainText.tr(context, row.label); textSize = 12f; setTextColor(palette.muted); importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO }, LayoutParams(0, -2, 1f))
+                    addView(TextView(context).apply { text = row.value?.let { DomainText.tr(context, it) } ?: context.getString(R.string.tr_no_data); textSize = 13f; setTextColor(palette.ink); importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO })
                 })
-                addView(TextView(context).apply { text = (if (row.value != null) row.coverage() else "") + (row.detail?.let { " · $it" } ?: ""); textSize = 11f; setTextColor(palette.muted); importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO })
+                addView(TextView(context).apply { text = (if (row.value != null) DomainText.weekRowCoverage(context, row) else "") + (row.detail?.let { " · ${DomainText.tr(context, it)}" } ?: ""); textSize = 11f; setTextColor(palette.muted); importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO })
             })
         }
-        box.addView(TextView(context).apply { text = week.unavailable; textSize = 11f; setTextColor(palette.muted); setPadding(0, dp(6), 0, 0) })
+        box.addView(TextView(context).apply { text = DomainText.tr(context, week.unavailable); textSize = 11f; setTextColor(palette.muted); setPadding(0, dp(6), 0, 0) })
         content.addView(box, LayoutParams(-1, -2))
     }
 
@@ -237,7 +237,7 @@ internal class TrendCardView(context: Context) : LinearLayout(context) {
         box.addView(LinearLayout(context).apply {
             orientation = HORIZONTAL; gravity = Gravity.CENTER_VERTICAL
             addView(PlIcon.view(context, PlIcon.RESTING_PULSE, 22), LayoutParams(dp(22), dp(22)).apply { marginEnd = dp(8) })
-            addView(TextView(context).apply { text = "Ruhepuls · Entwicklung"; textSize = 14f; setTypeface(null, Typeface.BOLD); setTextColor(palette.ink) }, LayoutParams(0, -2, 1f))
+            addView(TextView(context).apply { text = context.getString(R.string.tr_rest_dev); textSize = 14f; setTypeface(null, Typeface.BOLD); setTextColor(palette.ink) }, LayoutParams(0, -2, 1f))
         })
         val value = TextView(context).apply { textSize = 28f; setTypeface(null, Typeface.BOLD); setTextColor(palette.ink); tag = "resting_hero_value" }
         val delta = TextView(context).apply { textSize = 12f; setTextColor(palette.muted); tag = "resting_hero_delta" }
@@ -248,15 +248,15 @@ internal class TrendCardView(context: Context) : LinearLayout(context) {
         box.addView(chart, LayoutParams(-1, -2).apply { topMargin = dp(6) })
         box.addView(message, LayoutParams(-1, -2).apply { topMargin = dp(4) })
         box.isClickable = true; box.isFocusable = true; box.minimumHeight = dp(48)
-        box.setOnClickListener { showDaily(d, "Geräte-Ruhepuls (bpm)", d.restDaily, d.rest, palette.pulse, zeroBased = false) }
+        box.setOnClickListener { showDaily(d, context.getString(R.string.tr_rest_daily), d.restDaily, d.rest, palette.pulse, zeroBased = false) }
         fun refresh() {
             val trend = TrendAnalysis.analyze(d.restDaily, d.today, atlasWindow, 1.0)
             val m = RestingPulseHero.build(d.restDaily, d.today, atlasWindow, trend)
             value.text = m.valueText ?: "–"
-            delta.text = m.deltaText.orEmpty(); delta.visibility = if (m.deltaText == null) GONE else VISIBLE
-            message.text = m.message
+            delta.text = m.deltaText?.let { DomainText.tr(context, it) }.orEmpty(); delta.visibility = if (m.deltaText == null) GONE else VISIBLE
+            message.text = DomainText.tr(context, m.message)
             chart.show(m)
-            box.contentDescription = m.description() + " Tippen für die Tageswerte."
+            box.contentDescription = DomainText.heroDescription(context, m) + context.getString(R.string.tr_tap_daily)
         }
         windowListeners.add { refresh() }
         refresh()
@@ -270,7 +270,7 @@ internal class TrendCardView(context: Context) : LinearLayout(context) {
         box.addView(LinearLayout(context).apply {
             orientation = HORIZONTAL; gravity = Gravity.CENTER_VERTICAL
             addView(PlIcon.view(context, PlIcon.COVERAGE, 22), LayoutParams(dp(22), dp(22)).apply { marginEnd = dp(8) })
-            addView(TextView(context).apply { text = "Datenabdeckung"; textSize = 14f; setTypeface(null, Typeface.BOLD); setTextColor(palette.ink) }, LayoutParams(0, -2, 1f))
+            addView(TextView(context).apply { text = context.getString(R.string.tr_coverage); textSize = 14f; setTypeface(null, Typeface.BOLD); setTextColor(palette.ink) }, LayoutParams(0, -2, 1f))
         })
         val rows = LinearLayout(context).apply { orientation = VERTICAL }
         box.addView(rows)
@@ -278,11 +278,11 @@ internal class TrendCardView(context: Context) : LinearLayout(context) {
             rows.removeAllViews()
             listOf(DataCoverage.line("Ruhepuls", d.restDaily, d.today, atlasWindow), DataCoverage.line("Schritte", d.stepsDaily, d.today, atlasWindow)).forEach { line ->
                 rows.addView(LinearLayout(context).apply {
-                    orientation = VERTICAL; setPadding(0, dp(6), 0, 0); contentDescription = line.description(); isFocusable = true; tag = "coverage_${line.name}"
-                    addView(TextView(context).apply { text = line.text(); textSize = 12f; setTextColor(palette.ink); importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO })
+                    orientation = VERTICAL; setPadding(0, dp(6), 0, 0); contentDescription = DomainText.coverageDescription(context, line); isFocusable = true; tag = "coverage_${line.name}"
+                    addView(TextView(context).apply { text = DomainText.tr(context, line.text()); textSize = 12f; setTextColor(palette.ink); importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO })
                     addView(DeviceCoverageBar(context, line.fraction, if (line.name == "Ruhepuls") palette.pulse else palette.indicator, palette.track),
                         LayoutParams(-1, dp(6)).apply { topMargin = dp(4) })
-                    line.hint()?.let { addView(TextView(context).apply { text = it; textSize = 11f; setTextColor(palette.muted); importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO }) }
+                    line.hint()?.let { addView(TextView(context).apply { text = DomainText.tr(context, it); textSize = 11f; setTextColor(palette.muted); importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO }) }
                 })
             }
         }
@@ -310,27 +310,26 @@ internal class TrendCardView(context: Context) : LinearLayout(context) {
         box.addView(LinearLayout(context).apply {
             orientation = HORIZONTAL; gravity = Gravity.CENTER_VERTICAL
             addView(PlIcon.view(context, PlIcon.ACTIVITY_CALENDAR, 22), LayoutParams(dp(22), dp(22)).apply { marginEnd = dp(8) })
-            addView(TextView(context).apply { text = "Aktivitäts-Atlas · Schritte"; textSize = 14f; setTypeface(null, Typeface.BOLD); setTextColor(palette.ink) }, LayoutParams(0, -2, 1f))
+            addView(TextView(context).apply { text = context.getString(R.string.tr_atlas); textSize = 14f; setTypeface(null, Typeface.BOLD); setTextColor(palette.ink) }, LayoutParams(0, -2, 1f))
         })
         val summary = TextView(context).apply { textSize = 11f; setTextColor(palette.muted); setPadding(0, dp(4), 0, dp(6)); tag = "activity_atlas_summary" }
         val atlas = ActivityAtlasView(context) { cell ->
-            androidx.appcompat.app.AlertDialog.Builder(context).setTitle("Tagesdetail")
-                .setMessage(ActivityAtlas.describe(cell)).setPositiveButton("Schließen", null).show()
+            androidx.appcompat.app.AlertDialog.Builder(context).setTitle(context.getString(R.string.tr_day_detail))
+                .setMessage(DomainText.tr(context, ActivityAtlas.describe(cell))).setPositiveButton(context.getString(R.string.action_close), null).show()
         }
         val ownGoal = localStepGoal(context.getSharedPreferences(SpO2DisplaySettings.STORE, Context.MODE_PRIVATE).getString("step_goal", null))
         val regularity = TextView(context).apply { textSize = 11f; setTextColor(palette.ink); setPadding(0, 0, 0, dp(6)); tag = "activity_atlas_goal" }
         fun refresh() {
             val m = ActivityAtlas.build(d.stepsWithToday.ifEmpty { d.stepsDaily }, d.today, atlasWindow)
-            atlas.show(m); summary.text = m.summary()
+            atlas.show(m); summary.text = DomainText.tr(context, m.summary())
             val line = ownGoal?.let { GoalRegularity.build(d.stepsDaily, d.today, atlasWindow, it).text() }
-            regularity.text = line ?: ""; regularity.visibility = if (line == null) View.GONE else View.VISIBLE
+            regularity.text = line?.let { DomainText.tr(context, it) } ?: ""; regularity.visibility = if (line == null) View.GONE else View.VISIBLE
         }
         box.addView(summary)
         box.addView(regularity)
         box.addView(atlas, LayoutParams(-1, -2))
         box.addView(TextView(context).apply {
-            text = "Abstufung = relative Schrittzahl der erfassten Tage (kein Gesundheitsstatus). Graue Zelle = keine verifizierten Daten, nicht 0 Schritte. " +
-                "Umrandet = heute, noch nicht abgeschlossen. Trends beschreiben deine erfassten Daten – keine Fitnessdiagnose."
+            text = context.getString(R.string.tr_atlas_legend)
             textSize = 11f; setTextColor(palette.muted); setPadding(0, dp(8), 0, 0)
         })
         windowListeners.add { refresh() }
@@ -361,7 +360,7 @@ internal class TrendCardView(context: Context) : LinearLayout(context) {
                 gravity = Gravity.CENTER
                 if (label == null) setTypeface(null, Typeface.BOLD)
                 contentDescription = if (label == null) c else
-                    "$label ${c.replace("\n", ", Tage mit Daten ")}"
+                    "$label ${c.replace("\n", context.getString(R.string.tr_cell_days))}"
             }, LayoutParams(0, -2, 1f))
         }
     }
@@ -371,59 +370,57 @@ internal class TrendCardView(context: Context) : LinearLayout(context) {
         val box = LinearLayout(context).apply { orientation = VERTICAL; setPadding(dp(16), dp(8), dp(16), 0) }
         val present = (1..90).count { values.containsKey(d.today.minusDays(it.toLong())) }
         box.addView(DailyBarsView(context, values, d.today, 90, color, palette.ink, palette.track,
-            listOf("Median 7 T" to trends[0].current.median, "Median 28 T" to trends[1].current.median), zeroBased),
+            listOf(context.getString(R.string.tr_median7) to trends[0].current.median, context.getString(R.string.tr_median28) to trends[1].current.median), zeroBased),
             LayoutParams(-1, -2))
         box.addView(TextView(context).apply {
             setTextColor(palette.muted); textSize = 12f; setPadding(0, dp(8), 0, 0)
-            text = "$present von 90 Tagen mit Daten · leere Tage = keine Messung (nicht 0). " +
-                "Gestrichelt: Median der letzten 7 bzw. 28 vollständigen Tage. Der heutige Tag ist nicht enthalten. Keine Diagnose."
+            text = context.getString(R.string.tr_daily_note, present.toString())
         })
-        androidx.appcompat.app.AlertDialog.Builder(context).setTitle(title).setView(box).setPositiveButton("Schließen", null).show()
+        androidx.appcompat.app.AlertDialog.Builder(context).setTitle(title).setView(box).setPositiveButton(context.getString(R.string.action_close), null).show()
     }
 
     /** Full explanation moved out of the card body. */
     private fun showDetails(d: Data) {
         val text = buildString {
-            append("Übersicht (28 Tage, ohne Gesamtpunktzahl)")
-            d.overview.dimensions.forEach { append("\n• ${it.name}: ${it.state.label} – ${it.sentence}") }
-            append("\n\nGrößen je Zeitraum: Median vollständiger Tage, Pfeil = Richtung gegenüber dem gleich langen Zeitraum davor, darunter Tage mit Daten / Zeitraum.")
-            listOf("Geräte-Ruhepuls (bpm)" to d.rest, "Schritte pro Tag" to d.steps).forEach { (title, list) ->
+            append(context.getString(R.string.tr_details_head))
+            d.overview.dimensions.forEach { append(context.getString(R.string.tr_details_dim, DomainText.tr(context, it.name), DomainText.tr(context, it.state.label), DomainText.tr(context, it.sentence))) }
+            append(context.getString(R.string.tr_details_sizes))
+            listOf(context.getString(R.string.tr_rest_daily) to d.rest, context.getString(R.string.tr_steps_daily) to d.steps).forEach { (title, list) ->
                 append("\n\n$title")
                 list.forEach { r ->
-                    append("\n${r.windowDays} Tage: ")
-                    if (r.direction == TrendAnalysis.Direction.UNKNOWN) append("nicht bewertbar · ${r.reason}")
-                    else append("${nf.format(r.current.median)} ${r.direction.arrow} ${if (r.delta!! > 0) "+" else ""}${nf.format(r.delta)} (davor ${nf.format(r.baseline.median)}) · ${r.current.validDays}/${r.windowDays} Tage")
+                    append(context.getString(R.string.tr_details_days, r.windowDays.toString()))
+                    if (r.direction == TrendAnalysis.Direction.UNKNOWN) append(context.getString(R.string.tr_details_unrated, DomainText.tr(context, r.reason)))
+                    else append(context.getString(R.string.tr_details_row, nf.format(r.current.median), r.direction.arrow, if (r.delta!! > 0) "+" else "", nf.format(r.delta), nf.format(r.baseline.median), r.current.validDays.toString(), r.windowDays.toString()))
                 }
             }
             val c = d.correlation
-            append("\n\nZusammenhang (explorativ, 1 vorab festgelegte Hypothese): Schritte eines Tages ↔ Geräte-Ruhepuls am Folgetag\n")
-            if (c.rho == null) append("${c.verdict.label} · ${c.note}")
-            else append("${c.verdict.label} · ρ=${nf.format(c.rho)} (95 %: ${nf.format(c.ciLow)} bis ${nf.format(c.ciHigh)}) · n=${c.pairs} Tage. ${c.note}")
-            append("\n\nTage ohne Daten werden nicht aufgefüllt; zu wenige Tage ergeben „nicht bewertbar“. Der Ruhepuls ist der vom Gerät gemeldete Wert, seine Messbedingungen sind ungeprüft. Schritte sind Aktivitätsvolumen, kein Maß für Fitness. Keine Diagnose.")
+            append(context.getString(R.string.tr_details_corr_head))
+            if (c.rho == null) append(context.getString(R.string.tr_details_corr_nr, DomainText.tr(context, c.verdict.label), DomainText.tr(context, c.note)))
+            else append(context.getString(R.string.tr_details_corr, DomainText.tr(context, c.verdict.label), nf.format(c.rho), nf.format(c.ciLow), nf.format(c.ciHigh), c.pairs.toString(), DomainText.tr(context, c.note)))
+            append(context.getString(R.string.tr_details_foot))
         }
-        androidx.appcompat.app.AlertDialog.Builder(context).setTitle("Trends · Methode")
-            .setMessage(text).setPositiveButton("OK", null).show()
+        androidx.appcompat.app.AlertDialog.Builder(context).setTitle(context.getString(R.string.tr_methods_title))
+            .setMessage(text).setPositiveButton(context.getString(R.string.action_ok), null).show()
     }
 
     private fun showScatter() {
         val pairs = data?.scatter.orEmpty()
         if (pairs.size < 2) return
-        val view = ScatterView(context, pairs, "Schritte (Tag)", "Ruhepuls Folgetag (bpm)", palette.ink, palette.accent, palette.muted)
+        val view = ScatterView(context, pairs, context.getString(R.string.tr_scatter_x), context.getString(R.string.tr_scatter_y), palette.ink, palette.accent, palette.muted)
         val note = TextView(context).apply {
             setTextColor(palette.ink); textSize = 12f
-            text = "${pairs.size} Wertepaare · jeder Punkt = ein Tag. Ohne Trendlinie. " +
-                "Ein Zusammenhang in den Punkten sagt nichts über Ursache und Wirkung."
+            text = context.getString(R.string.tr_scatter_note, pairs.size.toString())
             setPadding(0, dp(8), 0, 0)
         }
         val box = LinearLayout(context).apply { orientation = VERTICAL; setPadding(dp(16), dp(12), dp(16), 0); addView(view); addView(note) }
         data?.sensitivity?.let { s ->
             box.addView(TextView(context).apply {
                 tag = "scatter_sensitivity"; textSize = 12f; setTextColor(palette.ink); setPadding(0, dp(8), 0, 0)
-                text = s.text(nf)
+                text = DomainText.tr(context, s.text(nf))
             })
         }
-        androidx.appcompat.app.AlertDialog.Builder(context).setTitle("Schritte ↔ Ruhepuls am Folgetag")
-            .setView(box).setPositiveButton("Schließen", null).show()
+        androidx.appcompat.app.AlertDialog.Builder(context).setTitle(context.getString(R.string.tr_scatter_title))
+            .setView(box).setPositiveButton(context.getString(R.string.action_close), null).show()
     }
 
     private fun dp(v: Int) = (v * resources.displayMetrics.density + 0.5f).toInt()

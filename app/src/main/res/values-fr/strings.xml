@@ -359,4 +359,290 @@
     <string name="hd_density_empty">Graphique de répartition : aucune mesure sur la période choisie.</string>
     <string name="hd_density_cd">Graphique de répartition : %1$d mesures dans %2$d des %3$d fenêtres temporelles, plage de valeurs de l’axe de %4$d à %5$d. Un double appui sur le graphique ouvre les valeurs individuelles de la fenêtre touchée ; la couleur indique la fréquence, les fenêtres sans valeurs restent vides.</string>
     <string name="hd_axis_span">%1$s à %2$s</string>
+
+    <!-- Analysen: Katalog, Trendkarte, Modellsätze -->
+    <!-- TODO-CHATGPT-REVIEW: Erstentwurf von Claude Code, Ticket #365 -->
+    <string name="an_title">Analyses</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="an_intro">Analyses scientifiques exploratoires de vos données enregistrées – pas un diagnostic. Les modules sans données vérifiées sont marqués « Pas encore disponible » avec le motif.</string>
+    <string name="an_group_cd">Groupe %1$s : %2$s. %3$s</string>
+    <string name="an_module_cd">%1$s. %2$s. %3$s</string>
+    <string name="an_tap_open"> Appuyer pour ouvrir.</string>
+    <string name="an_methods_title">Méthodes et limites</string>
+    <string name="an_cat_heart">Cœur et circulation</string>
+    <string name="an_cat_heart_sub">Pouls au repos, évolution de la forme, oxygène</string>
+    <string name="an_cat_sleep">Sommeil et récupération</string>
+    <string name="an_cat_sleep_sub">Nuit, lendemain, récupération différée</string>
+    <string name="an_cat_move">Mouvement et évolution</string>
+    <string name="an_cat_move_sub">Activité, progression, tendances sur 90 jours</string>
+    <string name="an_cat_pattern">Corrélations et motifs</string>
+    <string name="an_cat_pattern_sub">Corrélations, motifs quotidiens, ruptures</string>
+    <string name="an_cat_quality">Qualité des données et méthodes</string>
+    <string name="an_cat_quality_sub">Couverture, origine, limites</string>
+    <string name="an_avail_yes">Disponible</string>
+    <string name="an_avail_partial">Partiel</string>
+    <string name="an_avail_no">Pas encore disponible</string>
+    <string name="an_m_rest">Pouls au repos · évolution de la forme</string>
+    <string name="an_m_rest_n">Pouls au repos de l’appareil, médiane, comparaison avec la période précédente (7/28/90 jours). Dépend de l’historique.</string>
+    <string name="an_m_hrv">Variabilité de la fréquence cardiaque</string>
+    <string name="an_m_hrv_n">Il n’existe pas de série RR quotidienne vérifiée ; la VFC n’est pas estimée à partir des valeurs de pouls.</string>
+    <string name="an_m_hrr">Récupération de la fréquence cardiaque</string>
+    <string name="an_m_hrr_n">Nécessite des séances d’effort comparables avec métadonnées d’effort ; les pas et le pouls seuls ne suffisent pas.</string>
+    <string name="an_m_spo2">Stabilité de l’oxygène (SpO₂)</string>
+    <string name="an_m_spo2_n">L’évolution de la SpO₂ est visible dans l’onglet Historique ; une analyse nocturne n’est pas diagnostique et reste limitée.</string>
+    <string name="an_m_sleep">Sommeil et récupération</string>
+    <string name="an_m_sleep_n">Il n’existe pas de source de sommeil vérifiée ; les phases de sommeil ne sont pas estimées.</string>
+    <string name="an_m_actnight">Activité → nuit suivante</string>
+    <string name="an_m_actnight_n">Nécessite des intervalles de sommeil/nuit vérifiés (téléchargement de l’historique).</string>
+    <string name="an_m_lag">Récupération différée (décalage)</string>
+    <string name="an_m_lag_n">Nécessite des données de sommeil et d’effort sur de plus longues périodes.</string>
+    <string name="an_m_matched">Progression de la forme à effort comparable</string>
+    <string name="an_m_matched_n">Sans métadonnées d’effort vérifiées, aucun indicateur de résultat (« Pas de séances suffisamment comparables »).</string>
+    <string name="an_m_t90">Tendances sur 90 jours</string>
+    <string name="an_m_t90_n">Commutateur 90 j dans le bloc de tendances ; rien n’est jamais extrapolé – les jours manquants restent vides.</string>
+    <string name="an_m_atlas">Atlas d’activité (pas)</string>
+    <string name="an_m_atlas_n">Grille calendaire des totaux de pas quotidiens ; cellule grise = pas de données vérifiées.</string>
+    <string name="an_m_corr">Pas ↔ pouls au repos le lendemain</string>
+    <string name="an_m_corr_n">Exploratoire (Spearman, intervalle à 95 %, robustesse) ; à partir de 30 jours appariés, jamais à interpréter comme une cause.</string>
+    <string name="an_m_circ">Rythmes circadiens quotidiens</string>
+    <string name="an_m_circ_n">Backlog de recherche : pas encore de méthode approuvée.</string>
+    <string name="an_m_cp">Analyse des points de rupture</string>
+    <string name="an_m_cp_n">Backlog de recherche : nécessite un historique nettement plus long.</string>
+    <string name="an_m_cluster">Clusters exploratoires</string>
+    <string name="an_m_cluster_n">Backlog de recherche : pas de clusters sans caractéristiques validées.</string>
+    <string name="an_m_cov">Couverture des données</string>
+    <string name="an_m_cov_n">Pouls au repos et pas séparément : « x jours sur y » dans le bloc de tendances.</string>
+    <string name="an_m_methods">Méthodes et limites</string>
+    <string name="an_m_methods_n">Sources, référence temporelle, hypothèses et ce que les analyses ne disent pas.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="an_methods_text">• Sources : uniquement des valeurs enregistrées localement et fournies par l’appareil (pouls au repos calculé par l’appareil, compteur de pas cumulé par jour ; dernier total quotidien valide).\n• Référence temporelle : heure de réception sur le téléphone, jours calendaires locaux ; aujourd’hui est incomplet.\n• Les lacunes restent des lacunes : les jours manquants ne sont ni estimés, ni reliés, ni comptés comme 0.\n• Comparaisons : période précédente de même durée sans chevauchement ; jours minimaux 4 / 14 / 45 (7 / 28 / 90 jours) – une heuristique de produit motivée, pas un seuil scientifique.\n• Les corrélations sont exploratoires et ne décrivent que ces données ; elles ne disent rien de la cause et de l’effet.\n• Pas de diagnostic, pas de score de forme ou de santé, pas d’évaluation médicale.</string>
+    <string name="tr_cd">Tendances. Contient le pouls au repos de l’appareil non vérifié.</string>
+    <string name="tr_computing">Calcul des tendances …</string>
+    <string name="tr_failed">Les tendances n’ont pas pu être calculées.</string>
+    <string name="tr_title">Tendances</string>
+    <string name="tr_method_cd">Méthode et limites des tendances</string>
+    <string name="tr_dim_cd">%1$s : %2$s. %3$s</string>
+    <string name="tr_col_7">7 j</string>
+    <string name="tr_col_28">28 j</string>
+    <string name="tr_col_90">90 j</string>
+    <string name="tr_rest">Pouls au repos</string>
+    <string name="tr_steps">Pas</string>
+    <string name="tr_rest_daily">Pouls au repos de l’appareil (bpm)</string>
+    <string name="tr_steps_daily">Pas par jour</string>
+    <string name="tr_pairs_days">%1$s/%2$s jours</string>
+    <string name="tr_corr_cd">Lien entre les pas et le pouls au repos le lendemain : %1$s, %2$s. Appuyer pour le nuage de points.</string>
+    <string name="tr_next_day">  lendemain</string>
+    <string name="tr_window_cd">Période de %1$s jours</string>
+    <string name="tr_last7">7 derniers jours</string>
+    <string name="tr_no_data">pas de données</string>
+    <string name="tr_rest_dev">Pouls au repos · évolution</string>
+    <string name="tr_tap_daily"> Appuyer pour les valeurs quotidiennes.</string>
+    <string name="tr_coverage">Couverture des données</string>
+    <string name="tr_atlas">Atlas d’activité · pas</string>
+    <string name="tr_day_detail">Détail du jour</string>
+    <string name="tr_atlas_legend">Dégradé = nombre de pas relatif des jours enregistrés (pas un état de santé). Cellule grise = pas de données vérifiées, pas 0 pas. Entourée = aujourd’hui, pas encore terminé. Les tendances décrivent vos données enregistrées – pas un diagnostic de forme.</string>
+    <string name="tr_cell_cd">%1$s %2$s</string>
+    <string name="tr_cell_days">, jours avec données </string>
+    <string name="tr_median7">Médiane 7 j</string>
+    <string name="tr_median28">Médiane 28 j</string>
+    <string name="tr_daily_note">%1$s jours sur 90 avec données · jours vides = pas de mesure (pas 0). En pointillés : médiane des 7 ou 28 derniers jours complets. Aujourd’hui n’est pas inclus. Pas un diagnostic.</string>
+    <string name="tr_details_head">Aperçu (28 jours, sans score global)</string>
+    <string name="tr_details_dim">\n• %1$s : %2$s – %3$s</string>
+    <string name="tr_details_sizes">\n\nValeurs par période : médiane des jours complets, flèche = sens par rapport à la période de même durée qui précède, en dessous jours avec données / période.</string>
+    <string name="tr_details_days">\n%1$s jours : </string>
+    <string name="tr_details_unrated">non évaluable · %1$s</string>
+    <string name="tr_details_row">%1$s %2$s %3$s%4$s (avant : %5$s) · %6$s/%7$s jours</string>
+    <string name="tr_details_corr_head">\n\nCorrélation (exploratoire, 1 hypothèse fixée à l’avance) : pas d’un jour ↔ pouls au repos de l’appareil le lendemain\n</string>
+    <string name="tr_details_corr_nr">%1$s · %2$s</string>
+    <string name="tr_details_corr">%1$s · ρ=%2$s (95 %% : %3$s à %4$s) · n=%5$s jours. %6$s</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="tr_details_foot">\n\nLes jours sans données ne sont pas complétés ; trop peu de jours donnent « non évaluable ». Le pouls au repos est la valeur indiquée par l’appareil, ses conditions de mesure ne sont pas vérifiées. Les pas sont un volume d’activité, pas une mesure de la forme. Pas un diagnostic.</string>
+    <string name="tr_methods_title">Tendances · méthode</string>
+    <string name="tr_scatter_x">Pas (jour)</string>
+    <string name="tr_scatter_y">Pouls au repos le lendemain (bpm)</string>
+    <string name="tr_scatter_note">%1$s paires de valeurs · chaque point = un jour. Sans droite de tendance. Une corrélation dans les points ne dit rien de la cause et de l’effet.</string>
+    <string name="tr_scatter_title">Pas ↔ pouls au repos le lendemain</string>
+    <string name="tr_scatter_cd">Nuage de points %1$s en fonction de %2$s avec %3$s paires de valeurs. Plage de valeurs %4$s %5$s à %6$s, %7$s %8$s à %9$s.</string>
+    <string name="tr_bars_cd">Valeurs quotidiennes des %1$s derniers jours : %2$s jours avec données</string>
+    <string name="tr_bars_range">, plus bas %1$s, plus haut %2$s</string>
+    <string name="tr_bars_none">Aucune valeur quotidienne</string>
+    <string name="tr_bars_ago">il y a %1$s j</string>
+    <string name="tr_bars_ago_axis">il y a %1$s j · axe à partir de %2$s</string>
+    <string name="tr_bars_yesterday">hier</string>
+    <string name="tr_rest_chart_none">Aucune valeur de pouls au repos vérifiée</string>
+    <string name="md_dir_up">plus élevé</string>
+    <string name="md_dir_down">plus bas</string>
+    <string name="md_dir_stable">inchangé</string>
+    <string name="md_dir_unknown">non évaluable</string>
+    <string name="md_state_pos">positif</string>
+    <string name="md_state_neutral">neutre</string>
+    <string name="md_state_mixed">contrasté</string>
+    <string name="md_verdict_nc">non calculable</string>
+    <string name="md_verdict_none">aucune corrélation fiable</string>
+    <string name="md_verdict_expl">corrélation exploratoire</string>
+    <string name="md_dim_consistency">Régularité de l’activité</string>
+    <string name="md_dim_fitness">Évolution de la forme</string>
+    <string name="md_dim_recovery">Récupération</string>
+    <string name="md_cons_few">Trop peu de jours avec des données de pas pour une comparaison sur %1$s jours.</string>
+    <string name="md_cons_up">Les pas par jour ont augmenté par rapport à la période précédente.</string>
+    <string name="md_cons_down">Les pas par jour ont diminué par rapport à la période précédente.</string>
+    <string name="md_cons_same">Les pas par jour sont inchangés par rapport à la période précédente.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="md_fit_none">Ni l’activité ni le pouls au repos n’ont assez de données sur %1$s jours.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="md_fit_one">Un seul canal de données disponible (%1$s) ; aucune affirmation sur la forme.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="md_fit_good">Activité en hausse ; pouls au repos de l’appareil en baisse sur la même période. Une indication, pas un diagnostic.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="md_fit_bad">Activité en baisse et pouls au repos de l’appareil en hausse. Les causes possibles n’ont pas été examinées.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="md_fit_mixed">L’activité et le pouls au repos de l’appareil n’évoluent pas dans le même sens au sens d’un effet d’entraînement.</string>
+    <string name="md_fit_no_change">Aucun changement net sur %1$s jours.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="md_rec">Aucun signal de sommeil ou de VFC vérifié ; rien n’est estimé.</string>
+    <string name="md_trend_few">Trop peu de jours avec données (%1$s sur au moins %2$s).</string>
+    <string name="md_trend_base_few">La période de comparaison a trop peu de données (%1$s sur au moins %2$s).</string>
+    <string name="md_trend_note">Médiane des %1$s derniers jours comparée aux %2$s jours précédents.</string>
+    <string name="md_corr_pairs">Seulement %1$s jours appariés, au moins %2$s nécessaires.</string>
+    <string name="md_corr_const">Une grandeur est constante ; aucune corrélation définissable.</string>
+    <string name="md_corr_dep">Trop peu d’observations indépendantes en raison de la dépendance temporelle.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="md_corr_method">ρ de Spearman, intervalle à 95 %% avec n effectif ≈%1$s ; aucune affirmation sur la cause et l’effet.</string>
+    <string name="md_sens">Robustesse : sans jours isolés ρ %1$s à %2$s ; sans les %3$s jours les plus marquants ρ %4$s – %5$s</string>
+    <string name="md_stable">stable.</string>
+    <string name="md_unstable">pas stable (des jours isolés influencent le résultat).</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="md_hero_none">Pas encore de valeurs de pouls au repos vérifiées. Source : pouls au repos calculé par l’appareil (pas de remplacement par le pouls en direct).</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="md_hero_few">Trop peu de jours avec pouls au repos (%1$s sur au moins %2$s) : les valeurs quotidiennes sont affichées, mais aucune affirmation de tendance ou de comparaison.</string>
+    <string name="md_hero_delta">%1$s bpm par rapport aux %2$s jours précédents</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="md_hero_msg_ok">Pouls au repos calculé par l’appareil ; comparaison avec les %1$s jours précédents. Pas un diagnostic de forme.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="md_hero_msg_nobase">Pouls au repos calculé par l’appareil. La période de comparaison a trop peu de données (%1$s sur au moins %2$s) ; pas de comparaison.</string>
+    <string name="md_hero_cd">Pouls au repos, évolution sur %1$s jours. </string>
+    <string name="md_hero_cd_median">Médiane %1$s. </string>
+    <string name="md_cov_text">%1$s : %2$s jours sur %3$s</string>
+    <string name="md_cov_hint">il manque des jours pour une affirmation de tendance (au moins %1$s nécessaires)</string>
+    <string name="tr_week_value">%1$s : %2$s</string>
+    <string name="md_week_cov">%1$s jours sur 7</string>
+    <string name="md_week_unavail">Sans valeurs quotidiennes (pas encore de séries quotidiennes vérifiées ; les valeurs de l’appareil n’apparaissent qu’en direct) : durée de sommeil, calories, minutes d’intensité, stress.</string>
+    <string name="md_week_goal">Objectif (%1$s) atteint sur %2$s des %3$s jours avec données.</string>
+    <string name="md_week_avg_steps">Ø pas par jour</string>
+    <string name="md_week_total_steps">Total des pas</string>
+    <string name="md_week_total_val">%1$s (jours avec données uniquement)</string>
+    <string name="md_week_avg_rest">Ø pouls au repos de l’appareil</string>
+    <string name="md_atlas_summary">%1$s jours sur %2$s avec valeurs de pas vérifiées</string>
+    <string name="md_atlas_none">%1$s\nAucune donnée quotidienne vérifiée.</string>
+    <string name="md_atlas_partial">%1$s\nJusqu’ici %2$s pas (aujourd’hui, pas encore terminé).</string>
+    <string name="md_atlas_last">%1$s\nDernier total de pas vérifié : %2$s.</string>
+    <string name="md_atlas_lvl_none">pas de données</string>
+    <string name="md_atlas_lvl_low">moins de pas enregistrés</string>
+    <string name="md_atlas_lvl_mid">nombre de pas moyen</string>
+    <string name="md_atlas_lvl_high">plus de pas enregistrés</string>
+    <string name="md_atlas_cd">Atlas d’activité, pas. %1$s. Période de %2$s jours. Appuyer sur les cellules pour les détails ; les cellules grises n’ont pas de données vérifiées.</string>
+    <string name="md_goal_reg">Objectif personnel (%1$s) atteint sur %2$s des %3$s jours avec données (fenêtre de %4$s jours)</string>
+
+    <!-- Analysen: Marker und Wochentage -->
+    <!-- TODO-CHATGPT-REVIEW: Erstentwurf von Claude Code, Ticket #365 -->
+    <string name="uv_legend">Bordure violette = mesure ou analyse non validée (capteur/champ de l’appareil non vérifié, pas de diagnostic).</string>
+    <string name="uv_suffix"> Non validé, bordure violette.</string>
+    <string name="an_wd_mo">Lun</string>
+    <string name="an_wd_di">Mar</string>
+    <string name="an_wd_mi">Mer</string>
+    <string name="an_wd_do">Jeu</string>
+    <string name="an_wd_fr">Ven</string>
+    <string name="an_wd_sa">Sam</string>
+    <string name="an_wd_so">Dim</string>
+
+    <!-- Allgemein -->
+    <!-- TODO-CHATGPT-REVIEW: Erstentwurf von Claude Code, Ticket #365 -->
+    <string name="action_ok">OK</string>
+
+    <!-- Daten/Export: Backup, Wiederherstellung, Reset -->
+    <!-- TODO-CHATGPT-REVIEW: Erstentwurf von Claude Code, Ticket #365 -->
+    <string name="ex_backup_cancelled">Sauvegarde annulée.</string>
+    <string name="ex_backup_running">Création de la sauvegarde …</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ex_backup_done">Sauvegarde enregistrée : %1$d événements, %2$d mesures historiques, %3$d sources FIT historiques/%4$d lignes de provenance ; %5$d mesures canoniques, %6$d sources FIT canoniques/%7$d lignes de provenance et %8$d lignes de métadonnées FIT, %9$d lignes de métadonnées XML brutes dérivées. Les fichiers originaux ne sont pas inclus ; aucun chemin ni identifiant XML n’est enregistré.</string>
+    <string name="ex_backup_failed">Échec de la sauvegarde. Vérifiez l’emplacement ; un fichier cible créé peut être incomplet et devrait être supprimé.</string>
+    <string name="ex_backup_checking">Vérification de la sauvegarde …</string>
+    <string name="ex_backup_invalid">Sauvegarde non valide ou illisible. Base de données inchangée.</string>
+    <string name="ex_fit_cancelled">Export des originaux FIT annulé.</string>
+    <string name="ex_fit_running">Export des originaux FIT …</string>
+    <string name="ex_fit_done">Originaux FIT enregistrés : %1$d fichiers</string>
+    <string name="ex_fit_skipped">, %1$d ignorés en raison de la limite de taille</string>
+    <string name="ex_zip_unencrypted">. Le fichier ZIP n’est pas chiffré.</string>
+    <string name="ex_export_failed">Échec de l’export. Vérifiez l’emplacement ; un fichier cible créé peut être incomplet et devrait être supprimé.</string>
+    <string name="ex_raw_cancelled">Export des fichiers bruts annulé.</string>
+    <string name="ex_raw_running">Export des fichiers bruts …</string>
+    <string name="ex_raw_done">Fichiers bruts enregistrés : %1$d fichiers, %2$d octets</string>
+    <string name="ex_raw_skipped">, %1$d ignorés</string>
+    <string name="ex_raw_tail">. Le fichier ZIP n’est pas chiffré ; le contenu n’est pas décodé automatiquement.</string>
+    <string name="ex_csv_cancelled">Export annulé.</string>
+    <string name="ex_csv_running">Enregistrement de l’export …</string>
+    <string name="ex_csv_done">CSV enregistré : %1$d mesures. Contient uniquement des données disponibles localement.</string>
+    <string name="ex_csv_unreadable"> %1$d lignes enregistrées étaient illisibles et n’ont pas été exportées.</string>
+    <string name="ex_csv_failed">Échec de l’export. Vérifiez l’emplacement et réessayez ; un fichier cible créé peut être incomplet et devrait être supprimé.</string>
+    <string name="ex_back">Retour</string>
+    <string name="ex_title">Données</string>
+    <string name="ex_icon_cd">Symbole du bras cassé PulsLibre</string>
+    <string name="ex_subtitle">Export · Sauvegarde · Restauration · local et hors ligne</string>
+    <string name="ex_period">Période</string>
+    <string name="ex_from">Du</string>
+    <string name="ex_to">Au</string>
+    <string name="ex_zone">%1$s · minute de fin incluse</string>
+    <string name="ex_csv_button">⬇  Exporter en CSV</string>
+    <string name="ex_csv_cd">Exporter les mesures en CSV</string>
+    <string name="ex_invalid_period">Période non valide : la fin doit être postérieure au début.</string>
+    <string name="ex_local_only">Uniquement sur votre appareil · Pas de cloud · Pas de connexion</string>
+    <string name="ex_db_title">Base de données locale</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ex_db_note">La sauvegarde contient des événements CIRQA, des mesures historiques et des états de synchronisation. Le fichier ZIP n’est pas chiffré et contient des données de santé sensibles.</string>
+    <string name="ex_btn_backup">Créer une sauvegarde</string>
+    <string name="ex_btn_backup_cd">Créer une sauvegarde locale de la base de données</string>
+    <string name="ex_btn_fit">Exporter les originaux FIT</string>
+    <string name="ex_btn_fit_cd">Exporter les fichiers FIT originaux bruts en ZIP</string>
+    <string name="ex_fit_confirm_title">Exporter les originaux FIT ?</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ex_fit_confirm_msg">Le fichier ZIP contient les fichiers FIT bruts et vérifiés de votre bracelet. Il n’est pas chiffré et peut contenir des informations sensibles sur la santé et l’appareil. Rien n’est modifié, supprimé ou envoyé. Enregistrez-le uniquement à un endroit de confiance.</string>
+    <string name="ex_export_btn">Exporter</string>
+    <string name="ex_btn_raw">Exporter les fichiers bruts vérifiés</string>
+    <string name="ex_btn_raw_cd">Exporter en ZIP les fichiers bruts CIRQA opaques stockés localement</string>
+    <string name="ex_raw_confirm_title">Exporter les fichiers bruts ?</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ex_raw_confirm_msg">Le ZIP contient des fichiers bruts vérifiés et non modifiés du bracelet. Il n’est pas chiffré et peut contenir des informations sensibles sur la santé et l’appareil. Les fichiers ne sont pas décodés automatiquement par PulseLibre. Rien n’est modifié, supprimé ou envoyé. Choisissez un emplacement de confiance.</string>
+    <string name="ex_btn_restore">Restaurer une sauvegarde</string>
+    <string name="ex_btn_restore_cd">Restaurer la base de données à partir d’une sauvegarde</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ex_btn_reset">Réinitialiser la base de données</string>
+    <string name="ex_btn_reset_cd">Supprimer toutes les entrées locales de la base de données</string>
+    <string name="ex_prefs_kept">Les paramètres de l’app sont conservés lors de la restauration et de la réinitialisation.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ex_restore_title">Remplacer la base de données ?</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ex_restore_msg">La sauvegarde du %1$s contient %2$d événements, %3$d mesures historiques, %4$d états de synchronisation, %5$d sources FIT et %6$d lignes de provenance FIT. %7$d mesures canoniques et %8$d sources FIT canoniques/%9$d lignes de provenance ainsi que %10$d lignes de métadonnées FIT et %11$d lignes de métadonnées XML brutes dérivées. Les fichiers originaux ne sont pas inclus ; les chemins et les identifiants XML ne sont pas sauvegardés.\n\nToutes les entrées actuellement enregistrées dans la base de données seront remplacées. Les paramètres de l’app sont conservés. Ne continuez qu’avec une sauvegarde provenant d’une source de confiance.</string>
+    <string name="ex_replace">Remplacer</string>
+    <string name="ex_restore_cancelled">Restauration annulée.</string>
+    <string name="ex_restore_running">Restauration de la base de données …</string>
+    <string name="ex_restore_done">Base de données restaurée à partir de la sauvegarde.</string>
+    <string name="ex_restore_failed">Échec de la restauration. Veuillez vérifier la base de données.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ex_reset_title">Réinitialiser la base de données locale ?</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ex_reset_msg">Tous les événements CIRQA, mesures historiques et états de synchronisation stockés localement seront supprimés définitivement. Les paramètres de l’app sont conservés. Cette action est irréversible.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ex_reset_delete">Supprimer les données</string>
+    <string name="ex_reset_running">Réinitialisation de la base de données …</string>
+    <string name="ex_reset_done">La base de données locale a été vidée.</string>
+    <string name="ex_reset_failed">Échec de la réinitialisation. Veuillez vérifier la base de données.</string>
+    <string name="ex_rec_title">Enregistrement en cours</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ex_rec_msg">L’enregistrement CIRQA local en cours doit être arrêté avant l’opération sur la base de données.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ex_rec_stop">Arrêter et continuer</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ex_rec_stop_failed">L’enregistrement n’a pas pu être arrêté ; la base de données est restée inchangée.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ex_rec_still">L’enregistrement est toujours en cours ; la base de données est restée inchangée.</string>
 </resources>
