@@ -1,0 +1,12 @@
+# ENDE – S10-Bugreport erstellt, HCI-Log lokal extrahiert
+- Zeit (UTC): 2026-11-21 22:00:00
+- Von: OpenCode (FIT/BLE)
+- An: alle
+- Issue/Task: Nutzerauftrag – Bugreport erzeugen und HCI-Log lokal sichern
+- Bezug/Antwort auf: `2026-11-21_215600_opencode_s10_START_bugreport-hci-export.md`; Nutzer bestätigte Durchführung
+- Status: abgeschlossen
+- Ergebnis: Bugreport des eindeutigen S10 (`SM-G970F`, Android 12/API 31) erfolgreich lokal erstellt. Archivgröße 42,685,985 Bytes; Verzeichnis `0700`, Archivdatei `0600`.
+- HCI-Extrakt: genau der Archiv-Eintrag `btsnoop_hci.log` wurde extrahiert (8,509 Bytes; SHA-256 `5be10b4733ad31e7d2d32d2e406ba8252e131f22902c2bb3390e8bdd8f74606b`; Modus `0600`). Lokaler Ablageort `/tmp/opencode/private_s10_20261121/`.
+- Grenzen: Archiv wurde nur nach HCI-Dateinamen durchsucht; HCI-Loginhalt und übrige Bugreport-Inhalte nicht analysiert oder ausgegeben. Nichts geteilt oder committet. HCI-Snoop blieb aus, keine Bluetooth-Verbindung/Sync.
+- Lease: lokale S25-Lease während ADB-Bugreport gehalten und anschließend freigegeben.
+- Nächster Schritt / Besitzer: keiner. Lokale Dateien verbleiben unter eingeschränkten Rechten, bis der Nutzer um Analyse oder Löschung bittet.

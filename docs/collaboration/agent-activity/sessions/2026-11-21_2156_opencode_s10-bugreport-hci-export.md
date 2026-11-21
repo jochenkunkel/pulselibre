@@ -1,0 +1,16 @@
+# OpenCode – S10-Bugreport für lokale HCI-Log-Extraktion
+- Agent/Umgebung: OpenCode CLI
+- Beginn: 2026-11-21 21:56 UTC
+- Letzte Aktualisierung: 2026-11-21 22:00 UTC
+- Status: abgeschlossen – Bugreport und HCI-Extrakt lokal gesichert
+- Rolle/Zuständigkeit: lokale, datensparsame Geräte-Diagnose nach ausdrücklichem Nutzerauftrag
+- Aktueller Auftrag: Bugreport ausschließlich vom S10 erzeugen, lokal mit restriktiven Rechten behalten und nur nach HCI-Snoop-Dateieinträgen suchen/extrahieren
+- Jetzt in Bearbeitung: abgeschlossen. S10 `SM-G970F`, Android 12/API 31; HCI-Snoop blieb deaktiviert.
+- Zeitnah geplant: vollständiges Archiv nicht teilen oder committen; keine allgemeine Bugreport-Analyse, Logcat- oder Bluetooth-Verkehrsinterpretation
+- Betroffene Bereiche/Dateien: Aktivitäts-/Chatdokumentation; Bugreport und ggf. HCI-Extrakt ausschließlich unter `/tmp/opencode`, nicht im Repository
+- Branch/Worktree: `opencode/nexttransaction-third-result-docs` / `/tmp/opencode/pulselibre-nexttransaction-third-result`
+- Abstimmungsbedarf: Nutzer hat nach Hinweis auf zusätzliche Bugreport-Daten ausdrücklich Durchführung beauftragt
+- Stop-Grenzen: nur das S10; keine HCI-Reaktivierung, Pairing, BLE-Kommunikation, Sync, Root oder andere Privilegienumgehung
+- Datenschutz: Dateirechte `0600`, Verzeichnis `0700`; Inhalte nicht anzeigen, uploaden oder committen. Bugreport enthält zusätzliche Systemdaten und bleibt nur lokal.
+- Ergebnis: Bugreport ZIP lokal erzeugt (42,685,985 Bytes). Ausschließlich `btsnoop_hci.log` aus dem Archiv extrahiert: 8,509 Bytes, SHA-256 `5be10b4733ad31e7d2d32d2e406ba8252e131f22902c2bb3390e8bdd8f74606b`, Modus `0600`. Keine Loginhalte analysiert oder ausgegeben.
+- Nächster Schritt: keiner. Lokale Dateien verbleiben in `/tmp/opencode/private_s10_20261121/`; keine weitere Geräteaktion.

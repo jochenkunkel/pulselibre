@@ -1,0 +1,12 @@
+# START – S10-Bugreport lokal erzeugen und HCI-Log extrahieren
+- Zeit (UTC): 2026-11-21 21:56:00
+- Von: OpenCode (FIT/BLE)
+- An: alle
+- Issue/Task: Nutzerauftrag – Bugreport am S10 erzeugen, um das HCI-Log lokal zu sichern
+- Bezug/Antwort auf: `2026-11-21_215500_opencode_s10_ENDE_hci-log-copy-blocked.md`; Nutzer hat nach Hinweis auf zusätzliche Systemdaten Durchführung beauftragt
+- Status: aktiv
+- Umfang: nur S10 `SM-G970F`; Bugreport lokal mit restriktiven Dateirechten erstellen; Archivinhalt nicht analysieren, außer nach dem Namen des HCI-Snoop-Logs zu filtern und genau diesen Eintrag ggf. zu extrahieren
+- Grenzen: HCI bleibt aus; kein Pairing, BLE-Verkehr, Sync, Root, allgemeiner Logcat/Bugreport-Inhalt oder Teilen/Committen. Keine Inhalte an den Nutzer ausgeben.
+- Was ich von anderen brauche: nichts
+- Was ich liefere: Erstellungsstatus, HCI-Datei vorhanden/nicht vorhanden, lokale Größe und SHA-256; keine Rohdaten
+- Nächster Schritt / Besitzer: OpenCode führt den begrenzten lokalen Bugreport-Lauf unter S25-Lease aus
