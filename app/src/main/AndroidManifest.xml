@@ -12,7 +12,8 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE"/>
     <application android:name=".PulseLibreApplication" android:icon="@mipmap/ic_launcher" android:roundIcon="@mipmap/ic_launcher_round" android:allowBackup="false" android:label="PulsLibre" android:dataExtractionRules="@xml/data_extraction_rules" android:fullBackupContent="@xml/full_backup_content" android:theme="@style/Theme.PulsLibre" android:supportsRtl="true" android:localeConfig="@xml/locales_config">
         <service android:name=".CirqaContinuousRecordingService" android:exported="false" android:foregroundServiceType="connectedDevice" android:label="CIRQA · Kontinuierliche Aufzeichnung"/>
-        <activity android:name=".ExportActivity" android:exported="false"/>
+        <activity android:name=".ExportActivity" android:exported="false"
+            android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboardHidden"/>
         <activity android:name=".CirqaTestLaboratoryActivity" android:exported="false"/>
         <activity android:name=".MainActivity" android:exported="true">
             <intent-filter>
