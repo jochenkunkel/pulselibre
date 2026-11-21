@@ -28,3 +28,6 @@ data/overnight/
 *.pem
 *.key
 *.base64
+
+# Local S25 exclusive lease state
+.s25-lease/

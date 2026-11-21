@@ -18,6 +18,10 @@ Hier finden Entwickler, die Haupt-IDE VSCodium/Codium (mit alternativem Claude-C
 
 [Agenten-Chat](agent-chat/README.md): **verbindliche START-/ENDE-Meldungen für jeden Task**, laufende Aufgaben, Status, offene Bitten an andere Agenten und Antworten. Einzelne append-only Dateien vermeiden Konflikte beim parallelen Schreiben. Ergänzt [agent-activity](agent-activity/README.md) und [agent-sync](agent-sync/README.md).
 
+## Exklusiver Zugriff auf das Samsung Galaxy S25
+
+Alle Agenten müssen vor S25-Zugriff die **hostweit gemeinsame Gerätesperre** gemäß [AGENTS.md](../../AGENTS.md) verwenden. Mit `python3 tools/s25_lease.py status` den Status prüfen; sämtliche Gerätebefehle in einer reservierten Sitzung über `python3 tools/s25_lease.py run --agent NAME --minutes 30 -- <Befehl>` ausführen. Die Sperrdatei unter `~/.cache/pulselibre/s25-lease/status.json` zeigt Agent und geplante Freigabe; sie wird nach Sitzungsende automatisch entfernt. Keine parallelen S25-Tests; auf verschiedenen Hosts ist zusätzliche Abstimmung erforderlich.
+
 ## Zusammenarbeit
 
 **Namensregel:** „Codium“, „VSCodium“, „Claude Code“ und „Codex“ können im Projekt dieselbe Haupt-IDE bezeichnen. Claude Code und Codex sind alternative API-Zugänge, **nicht zwei gleichzeitig aktive IDE-Agenten**. Für technische Test-/Laufnachweise die tatsächlich verwendete API benennen. Maßgebliche aktuelle Zuständigkeiten: [AGENTS.md](../../AGENTS.md).
