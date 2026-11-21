@@ -888,6 +888,8 @@
     <string name="main_perm_needed">Autorisation Bluetooth requise : autorisez les appareils à proximité dans la fenêtre Android</string>
     <string name="main_perm_granted">Autorisation Bluetooth accordée · relancez la recherche</string>
     <string name="main_perm_denied">Autorisation Bluetooth refusée · Paramètres → Applications → PulsLibre → Autorisations → Appareils à proximité</string>
+    <string name="main_sync_perm_granted">Autorisation de connexion Bluetooth accordée · relancez la synchronisation</string>
+    <string name="main_sync_perm_denied">Autorisation de connexion Bluetooth refusée.</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="main_notif_off">Les notifications sont désactivées : l’enregistrement est en cours, mais la notification avec le bouton d’arrêt est invisible. Arrêtez-le avec « Arrêter » dans l’application ou autorisez les notifications dans les paramètres Android.</string>
     <string name="main_weight_title">Poids (kg)</string>

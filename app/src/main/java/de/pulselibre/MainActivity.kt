@@ -979,8 +979,7 @@ class MainActivity : AppCompatActivity() {
             val granted = grantResults.isNotEmpty() && grantResults.all {
                 it == PackageManager.PERMISSION_GRANTED
             }
-            status.text = if (granted) "Bluetooth-Verbindungsberechtigung erteilt · Sync erneut starten"
-                else "Bluetooth-Verbindungsberechtigung abgelehnt."
+            status.text = getString(if (granted) R.string.main_sync_perm_granted else R.string.main_sync_perm_denied)
         }
     }
 
