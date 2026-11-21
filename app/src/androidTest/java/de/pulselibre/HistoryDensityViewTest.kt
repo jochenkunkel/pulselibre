@@ -17,7 +17,7 @@ import java.time.Instant
 /** #219: switch between "Punkte" and "Verteilung" per metric card. */
 @RunWith(AndroidJUnit4::class)
 class HistoryDensityViewTest {
-    private val context = ApplicationProvider.getApplicationContext<Context>()
+    private val context = AppLanguageSettings.wrap(ApplicationProvider.getApplicationContext<Context>())
     private fun all(v: View): List<View> = listOf(v) + ((v as? ViewGroup)?.let { g -> (0 until g.childCount).flatMap { all(g.getChildAt(it)) } } ?: emptyList())
 
     @Test fun densityModeShowsTheDensityChartAndLegendAndKeepsThePointsViewAvailable() {
