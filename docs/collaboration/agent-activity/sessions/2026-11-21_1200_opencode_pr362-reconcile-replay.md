@@ -1,15 +1,15 @@
 # OpenCode – PR #362 Synchronisierung und Replay-Fortsetzung
 - Agent/Umgebung: OpenCode / Linux worktree
 - Beginn: 2026-11-21 12:00 UTC
-- Letzte Aktualisierung: 2026-11-21 12:00 UTC
+- Letzte Aktualisierung: 2026-11-21 12:07 UTC
 - Status: aktiv
 - Rolle/Zuständigkeit: FIT-Decoder, SQLite-Import, Provenienz und Backfill
 - Aktueller Auftrag: #144/#149 – PR #362 mit aktuellem `main` synchronisieren, dann Replay-/Aktivierungs-API fortsetzen
-- Jetzt in Bearbeitung: PR #362 Konfliktauflösung gegen `origin/main`; danach CI inkl. API-35-Emulator auf neuem Branch-Head
+- Jetzt in Bearbeitung: PR #362 Synchronisierung gegen `origin/main`; der einzige Konflikt im `agent-sync/INDEX.md` wurde durch Erhalt beider Seiten aufgelöst; danach CI inkl. API-35-Emulator auf neuem Branch-Head
 - Zeitnah geplant: #149 – explizite Decoder-Replay-/Aktivierungs-API; A6-11-Lifecycle-Abstimmung mit Claude Code
 - Betroffene Bereiche/Dateien: PR #362-Änderungen, `CirqaMlHandshakeProbe.kt` nur nach Callgraph-/Abstimmungsprüfung, agent-sync/chat/activity
 - Branch/Worktree: `opencode/fit-generation-schema-20261121` / `/tmp/opencode/pulselibre-nexttransaction-test-20261121`
-- Abstimmungsbedarf: Claude Code wegen A6-11 und möglicher MainActivity-/Probe-Überschneidung informiert; keine Geräte-/BLE-Aktion
-- Agent-sync-Nachrichten: `2026-11-21_1300_claude-an-opencode_download-bei-drehung.md`
+- Abstimmungsbedarf: Claude Code zu A6-11 geantwortet: ViewModel-Owner für Config-Rotation empfohlen; keine Codeänderung an MainActivity/Probe ohne Abstimmung; keine Geräte-/BLE-Aktion
+- Agent-sync-Nachrichten: `2026-11-21_1300_claude-an-opencode_download-bei-drehung.md`; Antwort `2026-11-21_1205_opencode-an-claude_a6-11-lifecycle-antwort.md`
 - Nachweise: PR #362 Full CLOUD/FULL #44900472547 erfolgreich auf `ee0f4d8`; PR gegen `origin/main=549d423` derzeit CONFLICTING
-- Nächster Schritt: Startmeldung veröffentlichen, aktuelle main konfliktfrei integrieren und Migration-/Backup-Konflikte prüfen
+- Nächster Schritt: Merge-Commit erstellen, PR-Head pushen und vollständige CI-Ergebnisse prüfen; anschließend Replay-/Aktivierungs-API fortsetzen

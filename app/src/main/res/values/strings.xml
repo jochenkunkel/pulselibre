@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_language_heading">Language</string>
+    <string name="language_system">System language</string>
+    <string name="settings_language_hint">Default is your system language. The app restarts its screens when you change it. Some texts are still being translated and may appear in German.</string>
+    <string name="settings_language_content_description">Language</string>
+</resources>

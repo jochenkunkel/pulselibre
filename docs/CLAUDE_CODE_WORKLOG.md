@@ -559,3 +559,6 @@ Noch sichtbar offen (P3): Nacht-Insights erste Spalte „22–6 Uhr / 22331 / We
 
 ## 2026-11-21 – #334: Band-Herzfrequenz in der Tageszeitleiste der Übersicht
 - „Tag im Überblick“ bekommt eine dritte Spur „Herzfrequenz · Band (FIT)“ (Messzeit des Bandes, eigene Spur, nicht mit Telefonzeit-Werten vermischt); Lücken bleiben leer. Der Erklärtext unter dem Diagramm nennt beide Zeitbasen. Lesefehler der FIT-Daten blenden nur die Spur aus.
+
+## 2026-11-21 – A6-8: Export meldet nicht lesbare gespeicherte Zeilen
+- Die CSV-Erfolgsmeldung nennt jetzt, wenn gespeicherte Zeilen nicht gelesen werden konnten („N gespeicherte Zeilen waren nicht lesbar und wurden nicht exportiert“); ohne Fehler bleibt die Meldung unverändert. Zählt nur Parse-Fehler, nicht Zeilen außerhalb des Zeitraums.
