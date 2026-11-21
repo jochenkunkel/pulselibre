@@ -29,6 +29,9 @@ internal data class TileInsight(
 }
 
 /** Today's band-measured (FIT) values of one metric; never combined with live reception-time values. */
+/** Fewer band values than this on today's date: show the newest earlier band day instead (labelled with its date). */
+internal const val MIN_FIT_DAY_VALUES = 12
+
 internal data class FitDaySummary(val date: LocalDate, val count: Int, val min: Double, val max: Double, val average: Double, val hourly: List<Double?>)
 
 internal object TileInsightCalc {
@@ -115,11 +118,19 @@ internal class TileInsightReader(private val context: Context) {
         val fit = if (metric != DashboardMeasurement.PULSE) null else try {
             val reader = FitHistoryReader(context)
             // Band history is usually older than today: show today's band values, else the newest day that has some (labelled with its date).
+            fun summaryFor(fitDay: DashboardDay): FitDaySummary? {
+                val window = reader.read(fitDay.start, maxOf(fitDay.start.plusSeconds(1), minOf(fitDay.end, now.plusSeconds(60))))
+                return TileInsightCalc.summarizeFit(window.points, fitDay, now)
+            }
             val latest = reader.latestMeasuredAt(now)
             if (latest == null) null else {
-                val fitDay = if (latest >= day.start) day else DashboardDay(latest.atZone(zone).toLocalDate(), zone)
-                val window = reader.read(fitDay.start, maxOf(fitDay.start.plusSeconds(1), minOf(fitDay.end, now.plusSeconds(60))))
-                TileInsightCalc.summarizeFit(window.points, fitDay, now)
+                val first = summaryFor(if (latest >= day.start) day else DashboardDay(latest.atZone(zone).toLocalDate(), zone))
+                // A band day with only a few values (e.g. a single reading just after midnight) says little: prefer the newest richer day.
+                if (first != null && first.date == day.date && first.count < MIN_FIT_DAY_VALUES) {
+                    val earlier = reader.latestMeasuredAt(day.start.minusMillis(1))
+                    val older = earlier?.let { summaryFor(DashboardDay(it.atZone(zone).toLocalDate(), zone)) }
+                    if (older != null && older.count > first.count) older else first
+                } else first
             }
         } catch (_: Exception) { null }
         return TileInsightCalc.summarize(metric, today, day, now, weekValues).copy(fit = fit)

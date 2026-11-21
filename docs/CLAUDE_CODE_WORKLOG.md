@@ -461,6 +461,12 @@ Noch sichtbar offen (P3): Nacht-Insights erste Spalte „22–6 Uhr / 22331 / We
 - Neu: `tools/s25_acceptance.py` (ein Zug, ca. 12–15 min: Preflight inkl. Flags/Berechtigungen, Navigation, Übersicht inkl. Abdeckungs-Konsistenz #312, Verlauf/Achsenansage #309, Analysen/Atlas #41, Startseite anpassen #267, Gerät/Testlabor-Einstieg #172/Unbekannte Felder #204, Anzeigevarianten Hell/Schrift 1,3/2,0/320 dp #276, 90-s-Hintergrundbeobachtung #171/#25/#3), Plan `docs/S25_ACCEPTANCE_PLAN_2026-11-20.md`, Offline-Tests `tools/test_s25_acceptance.py` (14, inkl. Gesamtlauf mit gespieltem Handy).
 - Sicherheit technisch erzwungen: Erlaubnisliste für adb-Befehle (kein Install/Clear/Instrumentation/Bluetooth/Texteingabe), nie Tippen auf Geräte-/Datenaktionen, Ausgabeordner außerhalb des Repos, Wiederherstellung von Nachtmodus/Schrift/Dichte im `finally`. Das Handy wurde dafür **nicht** angefasst (OpenCode nutzt es für den FIT-Test); Rückmeldung per agent-sync erbeten.
 
+## 2026-11-20 – S25-Sammelabnahme durchgeführt (Build 1520, 17:35–17:52)
+- **Ergebnis (ohne Gesundheitswerte):** 52 PASS, 1 FAIL (Werkzeugfehler, behoben), 3 INFO, 5 MANUELL. Navigation, Verlauf (Achsenansage mit Datum #309, Verteilungs-Zusammenfassung), Analysen, Startseite anpassen (#267 aus/zurück), Testlabor per 3-s-Druck (#172, Sheet A–E „Nur lesende Diagnose“), Feldliste auf dem echten Bestand (930 Typen), Beispielbytes: Warnung erscheint, Abbrechen zeigt keine Bytes (#204), Hell/Schrift 1,3/Schrift 2,0/320 dp ohne Absturz und ohne Überlappung (Heuristik; Stichprobe der Screenshots gesehen), Berechtigungen/Flags (#6).
+- **FAIL war ein Werkzeugfehler:** „Schritte heute“ nicht gefunden, weil `input swipe` einen Fling auslöste und die sequentielle Suche die Kachel übersprang; die Kachel war vorhanden. Behoben: langsamer kurzer Zug (900 ms, 28 %) und `scan_page` (einmaliger Durchlauf, Vereinigung aller Knoten). Wiederholung der Phasen preflight/navigation/overview: alle PASS, **#312 am Gerät belegt (Kachel 0,5 % = Begründung 0,5 %)**.
+- **INFO:** Akku 100 %, lädt; CIRQA-Batteriestand wird auf der Geräteseite nicht angezeigt (#159 hängt an OpenCode); nach 90 s im Hintergrund kein Vordergrunddienst aktiv (Zustand „Aufzeichnung aus“; Beleg für #171/#25/#3, keine Aussage über Dauerbetrieb).
+- **Offen/manuell:** TalkBack durch die neuen Dialoge, Beispielbytes bewusst anzeigen (nur „Datei n“), Plausibilität Fitness-Ansicht, Gestaltungswunsch Geräteseite. Bericht und Screenshots liegen lokal (`~/s25-acceptance/…`), enthalten echte Werte, nicht im Repo.
+
 ## 2026-11-20 – Kosmetik: App-Symbol im Kopfbereich in der Hell-Ansicht
 - Befund aus der S25-Prüfung: Logo-Quadrat (#5127C9) und Banner (#5A33C7 im Hellmodus) fast gleich. `PulseLogoView` zeichnet in Hell eine 1,5-dp-Kontur (weiß, 80 %); Dunkel unverändert. Parameter `outline` injizierbar; Emulator-Test `PulseLogoViewTest` prüft per Pixel, dass die Kante deutlich heller ist als die Füllung. Wartet auf stabile CI (kein Push während der LOCAL-Läufe).
 
@@ -542,3 +548,11 @@ Noch sichtbar offen (P3): Nacht-Insights erste Spalte „22–6 Uhr / 22331 / We
 - Auf Nutzerwunsch Erkenntnis umgesetzt: Monitoring-Herzfrequenz mit `timestamp_16` bekommt den Zeitstempel per FIT-Regel (3 neue Unit-Tests, alle Unit-Tests grün). Auf den 45 echten Originalen (lokal, temporärer Test, nicht eingecheckt): 29.358 importierbar statt 27.736, 0 ohne Zeitstempel.
 - Bewusst unverändert: `DECODER_VERSION` und Qualitätswert (Schema-CHECK, Quellenabgleich). Hinweis an OpenCode im agent-sync (01:20).
 - Zuständigkeit: Eingriff im Bereich von OpenCode nur wegen des ausdrücklichen Nutzerauftrags und mit Meldung.
+
+## 2026-11-21 – S25-Update mit timestamp_16 (Build 1594) und Lückenvergleich
+- Update-Installation (`adb install -r`, CI-signiertes APK von der grünen main-CI) ohne Datenverlust; Sicherung vor und nach dem Update verglichen (Rohdaten nur lokal, hier keine Werte/Zahlen/Daten).
+- **A (neu importiert aus neuen Quellen):** zwei zusätzliche Quelldateien, direkt nach dem App-Start validiert; Ursache offen, Frage an OpenCode (agent-sync). Es wurde von mir keine BLE-Synchronisation gestartet.
+- **B (bekannte Quellen, rekonstruierter Zeitstempel):** zusätzliche Herzfrequenz-Beobachtungen aus Monitoring Feld 27 – entspricht der Vorabprüfung zu #347.
+- **C (Darstellung):** Lückensumme und längste Lücke im Band-Verlauf sinken deutlich; keine neuen Metriken.
+- Befund GUI: Kachel zeigte „heute“ mit nur einem Wert kurz nach Mitternacht → jetzt fällt sie bei sehr dünnem heutigem Band-Tag auf den neuesten reicheren Tag zurück. Info-Text der Band-Karte nennt rückgerechnete Zeiten.
+- Rekonstruierte Zeiten sind in der DB nicht gekennzeichnet (CHECK nur PROFILE_VALID); Vorschlag für Herkunftsfeld an OpenCode.
