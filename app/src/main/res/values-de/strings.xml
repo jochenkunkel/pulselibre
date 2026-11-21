@@ -355,4 +355,200 @@
     <string name="hd_density_empty">Verteilungsdiagramm: keine Messwerte im gewählten Zeitraum.</string>
     <string name="hd_density_cd">Verteilungsdiagramm: %1$d Messwerte in %2$d von %3$d Zeitfenstern, Wertebereich der Achse %4$d bis %5$d. Doppeltippen auf das Diagramm öffnet die Einzelwerte des angetippten Zeitfensters; die Farbe zeigt die Häufigkeit, Zeitfenster ohne Werte bleiben leer.</string>
     <string name="hd_axis_span">%1$s bis %2$s</string>
+
+    <!-- Analysen: Katalog, Trendkarte, Modellsätze -->
+    <string name="an_title">Analysen</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="an_intro">Wissenschaftliche, explorative Auswertungen deiner erfassten Daten – keine Diagnose. Module ohne belegte Daten sind als „Noch nicht verfügbar“ mit Grund gekennzeichnet.</string>
+    <string name="an_group_cd">Gruppe %1$s: %2$s. %3$s</string>
+    <string name="an_module_cd">%1$s. %2$s. %3$s</string>
+    <string name="an_tap_open"> Tippen zum Öffnen.</string>
+    <string name="an_methods_title">Methoden und Grenzen</string>
+    <string name="an_cat_heart">Herz &amp; Kreislauf</string>
+    <string name="an_cat_heart_sub">Ruhepuls, Fitnessentwicklung, Sauerstoff</string>
+    <string name="an_cat_sleep">Schlaf &amp; Erholung</string>
+    <string name="an_cat_sleep_sub">Nacht, Folgetag, verzögerte Erholung</string>
+    <string name="an_cat_move">Bewegung &amp; Entwicklung</string>
+    <string name="an_cat_move_sub">Aktivität, Fortschritt, 90-Tage-Trends</string>
+    <string name="an_cat_pattern">Zusammenhänge &amp; Muster</string>
+    <string name="an_cat_pattern_sub">Korrelationen, Tagesmuster, Brüche</string>
+    <string name="an_cat_quality">Datenqualität &amp; Methoden</string>
+    <string name="an_cat_quality_sub">Abdeckung, Herkunft, Grenzen</string>
+    <string name="an_avail_yes">Verfügbar</string>
+    <string name="an_avail_partial">Teilweise</string>
+    <string name="an_avail_no">Noch nicht verfügbar</string>
+    <string name="an_m_rest">Ruhepuls · Fitnessentwicklung</string>
+    <string name="an_m_rest_n">Geräte-Ruhepuls, Median, Vergleich mit der Vorperiode (7/28/90 Tage). Hängt von der Historie ab.</string>
+    <string name="an_m_hrv">Herzfrequenzvariabilität</string>
+    <string name="an_m_hrv_n">Es gibt keine verifizierte RR-Tagesreihe; HRV wird nicht aus Pulswerten geschätzt.</string>
+    <string name="an_m_hrr">Herzfrequenz-Erholung</string>
+    <string name="an_m_hrr_n">Braucht vergleichbare Belastungseinheiten mit Belastungsmetadaten; Schritte und Puls allein reichen nicht.</string>
+    <string name="an_m_spo2">Sauerstoffstabilität (SpO₂)</string>
+    <string name="an_m_spo2_n">SpO₂-Verlauf ist im Reiter Verlauf sichtbar; eine nächtliche Auswertung ist nichtdiagnostisch und noch begrenzt.</string>
+    <string name="an_m_sleep">Schlaf und Regeneration</string>
+    <string name="an_m_sleep_n">Es gibt keine verifizierte Schlafquelle; Schlafphasen werden nicht geschätzt.</string>
+    <string name="an_m_actnight">Aktivität → folgende Nacht</string>
+    <string name="an_m_actnight_n">Braucht verifizierte Schlaf-/Nachtintervalle (Historien-Download).</string>
+    <string name="an_m_lag">Verzögerte Erholung (Lag)</string>
+    <string name="an_m_lag_n">Braucht Schlaf- und Belastungsdaten über längere Zeiträume.</string>
+    <string name="an_m_matched">Fitnessfortschritt bei vergleichbarer Belastung</string>
+    <string name="an_m_matched_n">Ohne verifizierte Belastungsmetadaten keine Ergebnis-Kennzahl („Keine ausreichend vergleichbaren Einheiten“).</string>
+    <string name="an_m_t90">90-Tage-Trends</string>
+    <string name="an_m_t90_n">Schalter 90 T im Trend-Block; es wird nie extrapoliert – fehlende Tage bleiben leer.</string>
+    <string name="an_m_atlas">Aktivitäts-Atlas (Schritte)</string>
+    <string name="an_m_atlas_n">Kalenderraster der Tages-Schrittstände; graue Zelle = keine verifizierten Daten.</string>
+    <string name="an_m_corr">Schritte ↔ Ruhepuls am Folgetag</string>
+    <string name="an_m_corr_n">Explorativ (Spearman, 95-%%-Intervall, Robustheit); ab 30 gepaarten Tagen, nie als Ursache zu lesen.</string>
+    <string name="an_m_circ">Zirkadiane Tagesmuster</string>
+    <string name="an_m_circ_n">Forschungs-Backlog: noch keine freigegebene Methode.</string>
+    <string name="an_m_cp">Change-Point-Analyse</string>
+    <string name="an_m_cp_n">Forschungs-Backlog: braucht deutlich längere Historie.</string>
+    <string name="an_m_cluster">Explorative Cluster</string>
+    <string name="an_m_cluster_n">Forschungs-Backlog: keine Cluster ohne validierte Merkmale.</string>
+    <string name="an_m_cov">Datenabdeckung</string>
+    <string name="an_m_cov_n">Ruhepuls und Schritte getrennt: „x von y Tagen“ im Trend-Block.</string>
+    <string name="an_m_methods">Methoden und Grenzen</string>
+    <string name="an_m_methods_n">Quellen, Zeitbezug, Annahmen und was die Auswertungen nicht aussagen.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="an_methods_text">• Quellen: nur lokal gespeicherte, vom Gerät gelieferte Werte (Ruhepuls vom Gerät berechnet, Schrittzähler kumulativ je Tag; letzter gültiger Tagesstand).\n• Zeitbezug: Empfangszeit auf dem Telefon, lokale Kalendertage; heute ist unvollständig.\n• Lücken bleiben Lücken: fehlende Tage werden nicht geschätzt, nicht verbunden und nicht als 0 gezählt.\n• Vergleiche: nicht überlappende, gleich lange Vorperiode; Mindesttage 4 / 14 / 45 (7 / 28 / 90 Tage) – eine begründete Produktheuristik, kein wissenschaftlicher Grenzwert.\n• Zusammenhänge sind explorativ und beschreiben nur diese Daten; sie sagen nichts über Ursache und Wirkung.\n• Keine Diagnose, kein Fitness- oder Gesundheitsscore, keine medizinische Bewertung.</string>
+    <string name="tr_cd">Trends. Enthält ungeprüften Geräte-Ruhepuls.</string>
+    <string name="tr_computing">Trends werden berechnet …</string>
+    <string name="tr_failed">Trends konnten nicht berechnet werden.</string>
+    <string name="tr_title">Trends</string>
+    <string name="tr_method_cd">Methode und Einschränkungen der Trends</string>
+    <string name="tr_dim_cd">%1$s: %2$s. %3$s</string>
+    <string name="tr_col_7">7 T</string>
+    <string name="tr_col_28">28 T</string>
+    <string name="tr_col_90">90 T</string>
+    <string name="tr_rest">Ruhepuls</string>
+    <string name="tr_steps">Schritte</string>
+    <string name="tr_rest_daily">Geräte-Ruhepuls (bpm)</string>
+    <string name="tr_steps_daily">Schritte pro Tag</string>
+    <string name="tr_pairs_days">%1$s/%2$s Tage</string>
+    <string name="tr_corr_cd">Zusammenhang Schritte und Ruhepuls am Folgetag: %1$s, %2$s. Tippen für das Streudiagramm.</string>
+    <string name="tr_next_day">  Folgetag</string>
+    <string name="tr_window_cd">Zeitraum %1$s Tage</string>
+    <string name="tr_last7">Letzte 7 Tage</string>
+    <string name="tr_no_data">keine Daten</string>
+    <string name="tr_rest_dev">Ruhepuls · Entwicklung</string>
+    <string name="tr_tap_daily"> Tippen für die Tageswerte.</string>
+    <string name="tr_coverage">Datenabdeckung</string>
+    <string name="tr_atlas">Aktivitäts-Atlas · Schritte</string>
+    <string name="tr_day_detail">Tagesdetail</string>
+    <string name="tr_atlas_legend">Abstufung = relative Schrittzahl der erfassten Tage (kein Gesundheitsstatus). Graue Zelle = keine verifizierten Daten, nicht 0 Schritte. Umrandet = heute, noch nicht abgeschlossen. Trends beschreiben deine erfassten Daten – keine Fitnessdiagnose.</string>
+    <string name="tr_cell_cd">%1$s %2$s</string>
+    <string name="tr_cell_days">, Tage mit Daten </string>
+    <string name="tr_median7">Median 7 T</string>
+    <string name="tr_median28">Median 28 T</string>
+    <string name="tr_daily_note">%1$s von 90 Tagen mit Daten · leere Tage = keine Messung (nicht 0). Gestrichelt: Median der letzten 7 bzw. 28 vollständigen Tage. Der heutige Tag ist nicht enthalten. Keine Diagnose.</string>
+    <string name="tr_details_head">Übersicht (28 Tage, ohne Gesamtpunktzahl)</string>
+    <string name="tr_details_dim">\n• %1$s: %2$s – %3$s</string>
+    <string name="tr_details_sizes">\n\nGrößen je Zeitraum: Median vollständiger Tage, Pfeil = Richtung gegenüber dem gleich langen Zeitraum davor, darunter Tage mit Daten / Zeitraum.</string>
+    <string name="tr_details_days">\n%1$s Tage: </string>
+    <string name="tr_details_unrated">nicht bewertbar · %1$s</string>
+    <string name="tr_details_row">%1$s %2$s %3$s%4$s (davor %5$s) · %6$s/%7$s Tage</string>
+    <string name="tr_details_corr_head">\n\nZusammenhang (explorativ, 1 vorab festgelegte Hypothese): Schritte eines Tages ↔ Geräte-Ruhepuls am Folgetag\n</string>
+    <string name="tr_details_corr_nr">%1$s · %2$s</string>
+    <string name="tr_details_corr">%1$s · ρ=%2$s (95 %%: %3$s bis %4$s) · n=%5$s Tage. %6$s</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="tr_details_foot">\n\nTage ohne Daten werden nicht aufgefüllt; zu wenige Tage ergeben „nicht bewertbar“. Der Ruhepuls ist der vom Gerät gemeldete Wert, seine Messbedingungen sind ungeprüft. Schritte sind Aktivitätsvolumen, kein Maß für Fitness. Keine Diagnose.</string>
+    <string name="tr_methods_title">Trends · Methode</string>
+    <string name="tr_scatter_x">Schritte (Tag)</string>
+    <string name="tr_scatter_y">Ruhepuls Folgetag (bpm)</string>
+    <string name="tr_scatter_note">%1$s Wertepaare · jeder Punkt = ein Tag. Ohne Trendlinie. Ein Zusammenhang in den Punkten sagt nichts über Ursache und Wirkung.</string>
+    <string name="tr_scatter_title">Schritte ↔ Ruhepuls am Folgetag</string>
+    <string name="tr_scatter_cd">Streudiagramm %1$s gegen %2$s mit %3$s Wertepaaren. Wertebereich %4$s %5$s bis %6$s, %7$s %8$s bis %9$s.</string>
+    <string name="tr_bars_cd">Tageswerte der letzten %1$s Tage: %2$s Tage mit Daten</string>
+    <string name="tr_bars_range">, niedrigster %1$s, höchster %2$s</string>
+    <string name="tr_bars_none">Keine Tageswerte</string>
+    <string name="tr_bars_ago">vor %1$s T</string>
+    <string name="tr_bars_ago_axis">vor %1$s T · Achse ab %2$s</string>
+    <string name="tr_bars_yesterday">gestern</string>
+    <string name="tr_rest_chart_none">Keine verifizierten Ruhepulswerte</string>
+    <string name="md_dir_up">höher</string>
+    <string name="md_dir_down">niedriger</string>
+    <string name="md_dir_stable">unverändert</string>
+    <string name="md_dir_unknown">nicht bewertbar</string>
+    <string name="md_state_pos">positiv</string>
+    <string name="md_state_neutral">neutral</string>
+    <string name="md_state_mixed">uneinheitlich</string>
+    <string name="md_verdict_nc">nicht berechenbar</string>
+    <string name="md_verdict_none">kein belastbarer Zusammenhang</string>
+    <string name="md_verdict_expl">explorativer Zusammenhang</string>
+    <string name="md_dim_consistency">Aktivitätskonstanz</string>
+    <string name="md_dim_fitness">Fitnessentwicklung</string>
+    <string name="md_dim_recovery">Regeneration</string>
+    <string name="md_cons_few">Zu wenige Tage mit Schrittdaten für einen Vergleich über %1$s Tage.</string>
+    <string name="md_cons_up">Schritte pro Tag sind gegenüber dem Vorzeitraum gestiegen.</string>
+    <string name="md_cons_down">Schritte pro Tag sind gegenüber dem Vorzeitraum gesunken.</string>
+    <string name="md_cons_same">Schritte pro Tag sind gegenüber dem Vorzeitraum unverändert.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="md_fit_none">Weder Aktivität noch Ruhepuls haben genug Daten über %1$s Tage.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="md_fit_one">Nur ein Datenkanal verfügbar (%1$s); keine Aussage zur Fitness.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="md_fit_good">Aktivität gestiegen; Geräte-Ruhepuls im selben Zeitraum gesunken. Hinweis, keine Diagnose.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="md_fit_bad">Aktivität gesunken und Geräte-Ruhepuls gestiegen. Mögliche Ursachen wurden nicht geprüft.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="md_fit_mixed">Aktivität und Geräte-Ruhepuls entwickeln sich nicht gleichgerichtet im Sinne eines Trainingseffekts.</string>
+    <string name="md_fit_no_change">Keine eindeutige Veränderung über %1$s Tage.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="md_rec">Kein verifiziertes Schlaf- oder HRV-Signal; es wird nichts geschätzt.</string>
+    <string name="md_trend_few">Zu wenige Tage mit Daten (%1$s von mindestens %2$s).</string>
+    <string name="md_trend_base_few">Vergleichszeitraum hat zu wenige Daten (%1$s von mindestens %2$s).</string>
+    <string name="md_trend_note">Median der letzten %1$s Tage gegen die %2$s Tage davor.</string>
+    <string name="md_corr_pairs">Nur %1$s gepaarte Tage, mindestens %2$s nötig.</string>
+    <string name="md_corr_const">Eine Größe ist konstant; keine Korrelation definierbar.</string>
+    <string name="md_corr_dep">Wegen zeitlicher Abhängigkeit zu wenige unabhängige Beobachtungen.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="md_corr_method">Spearman ρ, 95-%%-Intervall mit effektivem n≈%1$s; keine Aussage über Ursache und Wirkung.</string>
+    <string name="md_sens">Robustheit: ohne einzelne Tage ρ %1$s bis %2$s; ohne die %3$s auffälligsten Tage ρ %4$s – %5$s</string>
+    <string name="md_stable">stabil.</string>
+    <string name="md_unstable">nicht stabil (einzelne Tage beeinflussen das Ergebnis).</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="md_hero_none">Noch keine verifizierten Ruhepulswerte. Quelle: vom Gerät berechneter Ruhepuls (kein Ersatz durch Live-Puls).</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="md_hero_few">Zu wenige Tage mit Ruhepuls (%1$s von mindestens %2$s): Tageswerte werden gezeigt, aber keine Trend- oder Vergleichsaussage.</string>
+    <string name="md_hero_delta">%1$s bpm gegenüber vorherigen %2$s Tagen</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="md_hero_msg_ok">Vom Gerät berechneter Ruhepuls; Vergleich mit den %1$s Tagen davor. Keine Fitnessdiagnose.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="md_hero_msg_nobase">Vom Gerät berechneter Ruhepuls. Vergleichszeitraum hat zu wenige Daten (%1$s von mindestens %2$s); kein Vergleich.</string>
+    <string name="md_hero_cd">Ruhepuls, Entwicklung über %1$s Tage. </string>
+    <string name="md_hero_cd_median">Median %1$s. </string>
+    <string name="md_cov_text">%1$s: %2$s von %3$s Tagen</string>
+    <string name="md_cov_hint">für eine Trendaussage fehlen Tage (mindestens %1$s nötig)</string>
+    <string name="tr_week_value">%1$s: %2$s</string>
+    <string name="md_week_cov">%1$s von 7 Tagen</string>
+    <string name="md_week_unavail">Ohne Tageswerte (noch keine geprüften Tagesreihen; Gerätewerte erscheinen nur live): Schlafdauer, Kalorien, Intensitätsminuten, Stress.</string>
+    <string name="md_week_goal">Ziel (%1$s) erreicht an %2$s von %3$s Tagen mit Daten.</string>
+    <string name="md_week_avg_steps">Ø Schritte pro Tag</string>
+    <string name="md_week_total_steps">Schritte gesamt</string>
+    <string name="md_week_total_val">%1$s (nur Tage mit Daten)</string>
+    <string name="md_week_avg_rest">Ø Geräte-Ruhepuls</string>
+    <string name="md_atlas_summary">%1$s von %2$s Tagen mit verifizierten Schrittwerten</string>
+    <string name="md_atlas_none">%1$s\nKeine verifizierten Tagesdaten.</string>
+    <string name="md_atlas_partial">%1$s\nBisher %2$s Schritte (heute, noch nicht abgeschlossen).</string>
+    <string name="md_atlas_last">%1$s\nLetzter verifizierter Schrittstand: %2$s.</string>
+    <string name="md_atlas_lvl_none">keine Daten</string>
+    <string name="md_atlas_lvl_low">weniger erfasste Schritte</string>
+    <string name="md_atlas_lvl_mid">mittlere Schrittzahl</string>
+    <string name="md_atlas_lvl_high">mehr erfasste Schritte</string>
+    <string name="md_atlas_cd">Aktivitäts-Atlas, Schritte. %1$s. Zeitraum %2$s Tage. Zellen antippen für Details; graue Zellen haben keine verifizierten Daten.</string>
+    <string name="md_goal_reg">Eigenes Ziel (%1$s) erreicht an %2$s von %3$s Tagen mit Daten (%4$s-Tage-Fenster)</string>
+
+    <!-- Analysen: Marker und Wochentage -->
+    <string name="uv_legend">Violetter Rand = Messwert oder Auswertung nicht validiert (Sensor/Gerätefeld ungeprüft, keine Diagnose).</string>
+    <string name="uv_suffix"> Nicht validiert, violetter Rand.</string>
+    <string name="an_wd_mo">Mo</string>
+    <string name="an_wd_di">Di</string>
+    <string name="an_wd_mi">Mi</string>
+    <string name="an_wd_do">Do</string>
+    <string name="an_wd_fr">Fr</string>
+    <string name="an_wd_sa">Sa</string>
+    <string name="an_wd_so">So</string>
+
+    <!-- Allgemein -->
+    <string name="action_ok">OK</string>
 </resources>
