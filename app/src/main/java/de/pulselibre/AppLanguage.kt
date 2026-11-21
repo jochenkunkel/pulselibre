@@ -1,8 +1,8 @@
 package de.pulselibre
 
 import android.content.Context
-import androidx.appcompat.app.AppCompatDelegate
-import androidx.core.os.LocaleListCompat
+import android.content.ContextWrapper
+import java.util.Locale
 
 /**
  * App language (#i18n): default is the system language; the user may pick one of the supported languages in the settings.
@@ -28,14 +28,27 @@ object AppLanguageSettings {
     fun preference(context: Context): AppLanguage = AppLanguage.from(
         context.getSharedPreferences(STORE, Context.MODE_PRIVATE).getString("language", null))
 
-    /** Stores the choice and applies it; AppCompat recreates visible activities when the language really changes. */
+    /**
+     * Stores the choice; the visible activity is recreated (its base context picks the language up again).
+     * Deterministic and independent of the system's per-app locale service (which applies asynchronously).
+     */
     fun save(context: Context, language: AppLanguage) {
-        context.getSharedPreferences(STORE, Context.MODE_PRIVATE).edit().putString("language", language.storedValue).apply()
-        apply(language)
+        context.getSharedPreferences(STORE, Context.MODE_PRIVATE).edit().putString("language", language.storedValue).commit()
+        var c: Context? = context
+        while (c is ContextWrapper && c !is android.app.Activity) c = c.baseContext
+        (c as? android.app.Activity)?.recreate()
     }
 
-    fun apply(language: AppLanguage) {
-        AppCompatDelegate.setApplicationLocales(
-            if (language.tag == null) LocaleListCompat.getEmptyLocaleList() else LocaleListCompat.forLanguageTags(language.tag))
+    /**
+     * Base context for activities: the chosen language, or the unchanged context for "system language" (then Android,
+     * including its own per-app language setting on Android 13+, decides).
+     */
+    fun wrap(base: Context): Context {
+        val tag = preference(base).tag ?: return base
+        val locale = Locale.forLanguageTag(tag)
+        val configuration = android.content.res.Configuration(base.resources.configuration)
+        configuration.setLocale(locale)
+        configuration.setLayoutDirection(locale)
+        return base.createConfigurationContext(configuration)
     }
 }

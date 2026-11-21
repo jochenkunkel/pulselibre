@@ -4,4 +4,83 @@
     <string name="language_system">System language</string>
     <string name="settings_language_hint">Default is your system language. The app restarts its screens when you change it. Some texts are still being translated and may appear in German.</string>
     <string name="settings_language_content_description">Language</string>
+
+    <!-- Einstellungen (PersonalSettings) -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_ok">OK</string>
+    <string name="settings_explanation_for">Explanation of %1$s</string>
+    <string name="profile_heading">Profile</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="profile_info">The body profile avatar follows the optional gender selection: man, woman or a small Jedi for diverse / other. Without a choice the neutral figure stays. No user account and no cloud. The details are not yet linked to medical or calorie estimation formulas. The age for each day is calculated from the date of birth; it stays stored locally.</string>
+    <string name="profile_display_name">Display name</string>
+    <string name="profile_gender">Gender (optional)</string>
+    <string name="gender_none">Not specified</string>
+    <string name="gender_male">Male</string>
+    <string name="gender_female">Female</string>
+    <string name="gender_other">Diverse / other</string>
+    <string name="profile_birth_date">Date of birth (optional)</string>
+    <string name="profile_birth_legacy">Previously stored age: %1$s years. Please add a date of birth; it is not estimated from the age.</string>
+    <string name="profile_birth_choose">Choose date of birth</string>
+    <string name="profile_birth_with_age">%1$s  ·  %2$s</string>
+    <string name="profile_age_years">%1$d years</string>
+    <string name="profile_age_invalid">invalid</string>
+    <string name="profile_birth_change_cd">Change date of birth %1$s</string>
+    <string name="body_heading">Body &amp; goals</string>
+    <string name="body_height">Height (cm)</string>
+    <string name="body_weight">Weight (kg)</string>
+    <string name="body_step_goal">Step goal/day</string>
+    <string name="body_sleep_goal">Sleep goal (h)</string>
+    <string name="body_resting_hr">Known resting heart rate (bpm)</string>
+    <string name="other_heading">Other</string>
+    <string name="other_wear_side">Wearing side</string>
+    <string name="wear_none">Not specified</string>
+    <string name="wear_left">Left</string>
+    <string name="wear_right">Right</string>
+    <string name="other_units">Units</string>
+    <string name="units_metric">Metric (kg, cm)</string>
+    <string name="units_imperial">Imperial (display later)</string>
+    <string name="other_note">Note (local only)</string>
+    <string name="recording_heading">Recording</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="recording_info">When enabled, PulsLibre starts the recording service automatically when the app is opened and connects to the CIRQA band. This only happens if Bluetooth is already on and the permissions have already been granted; PulsLibre never turns Bluetooth on by itself. Default: off. Recordings that are already running are not started twice. You can still stop them in the app or from the notification.</string>
+    <string name="recording_autostart">Record automatically at app start</string>
+    <string name="recording_autostart_cd">Start recording automatically at app start, on or off</string>
+    <string name="appearance_heading">Appearance</string>
+    <string name="appearance_theme_cd">Choose app theme</string>
+    <string name="theme_system">System setting</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+    <string name="settings_version_cd">App version %1$s</string>
+    <string name="settings_developer">Developed by Jochen Kunkel</string>
+    <string name="settings_developer_cd">Developer: Jochen Kunkel</string>
+    <string name="activity_heading">Activity from steps</string>
+    <string name="activity_info">Based on cumulative CIRQA step counts of the last minutes. The mode is a rough display heuristic: steps prove neither sitting nor a particular sport. With too few or outdated values it stays unknown.</string>
+    <string name="activity_rest">Rest (/min)</string>
+    <string name="activity_sport">Sport (/min)</string>
+    <string name="activity_window">Window (min)</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="spo2_heading">SpO₂ scale · not validated</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="spo2_info">Preview %1$s\n\n%2$s The CIRQA wrist sensor is not validated for this specific device. No diagnosis or alarm function; signal quality is not transmitted.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="spo2_colors_on">Colour scale active (accepted by the user); the violet card border marks the missing validation.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="spo2_colors_off">Colour scale stays neutral.</string>
+    <string name="spo2_green_from">Green from (%)</string>
+    <string name="spo2_orange_from">Orange from (%)</string>
+    <string name="delete_heading">Delete profile</string>
+    <string name="delete_button">Delete profile …</string>
+    <string name="delete_button_cd">Delete profile, requires two confirmations</string>
+    <string name="action_close">Close</string>
+    <string name="action_save">Save</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_continue">Continue</string>
+    <string name="delete_confirm_title">Delete profile?</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="delete_confirm_message">All profile details (name, body data, goals) will be removed. SpO₂ limits are kept. Measurement data is kept.</string>
+    <string name="delete_final_title">Really delete permanently?</string>
+    <string name="delete_final_message">Deleting cannot be undone.</string>
+    <string name="delete_final_button">Delete permanently</string>
+    <string name="settings_validation_toast">Please check the numbers (height, weight, goals and SpO₂ reference ranges).</string>
+    <string name="settings_saved_toast">Profile saved locally</string>
 </resources>

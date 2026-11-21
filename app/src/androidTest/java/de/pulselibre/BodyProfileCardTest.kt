@@ -15,6 +15,7 @@ import java.time.LocalDate
 /** Body profile card: derived age, BMI with written category, quick weight dialog (#117, #118). Emulator only. */
 @RunWith(AndroidJUnit4::class)
 class BodyProfileCardTest {
+    @get:org.junit.Rule val german = GermanUiRule()
     private val instrumentation get() = InstrumentationRegistry.getInstrumentation()
     private val prefs get() = instrumentation.targetContext.getSharedPreferences("local_personal_profile", 0)
 

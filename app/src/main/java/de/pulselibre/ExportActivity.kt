@@ -26,6 +26,7 @@ import java.util.concurrent.Executors
 
 /** User-initiated local CSV export. Never transmits measurements over the network. */
 class ExportActivity : AppCompatActivity() {
+    override fun attachBaseContext(newBase: android.content.Context) = super.attachBaseContext(AppLanguageSettings.wrap(newBase))
     private var from = LocalDate.now().minusDays(30)
     private var through = LocalDate.now()
     private var fromTime = LocalTime.MIDNIGHT
