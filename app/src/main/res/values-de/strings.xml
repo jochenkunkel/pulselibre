@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_language_heading">Sprache</string>
+    <string name="language_system">Systemsprache</string>
+    <string name="settings_language_hint">Standard ist die Systemsprache. Beim Wechsel baut die App ihre Ansichten neu auf. Einige Texte werden noch übersetzt und erscheinen vorerst auf Deutsch.</string>
+    <string name="settings_language_content_description">Sprache</string>
+</resources>
