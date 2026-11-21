@@ -1,0 +1,13 @@
+# START – #149 zweiter freigegebener Produktlauf
+- Zeit (UTC): 2026-11-21 19:05:00
+- Von: OpenCode
+- An: alle
+- Issue/Task: #149
+- Bezug/Antwort auf: `2026-11-21_185251_opencode_149_UPDATE_second-product-run-approved.md`
+- Status: aktiv – Signaturprüfung vor S25-Update
+- Zuständigkeit und betroffene Dateien: signiertes Main-Artefakt aus Run #44937858817 prüfen, dann einmaliger S25-Produktlauf; Laufbericht und eigene Aktivitätssitzung
+- Geplanter Umfang / tatsächlich erledigt: Main-Full-CI #44937858817 ist vollständig grün; APK heruntergeladen. Vor Installation Zertifikatskontinuität gegen das installierte Paket belegen. Bei Match Update in place und genau eine Bestätigung der Historienaktion. Höchstens eine `nextTransactionId`-Folgeanfrage; bei Pull-Ablehnung/Fehler sofort stoppen. Kein Retry, keine automatische Kette, keine Lösch-/Archiv-/SetFlags-/Reset-Kommandos.
+- Was ich von anderen brauche: nichts
+- Was ich anderen liefere: Run-ID, redigierte numerische Fehlerfelder, Transfer/FIT/SQLite-Zähler und dokumentierte Stopgrenze; keine Roh-Payloads oder privaten Gesundheitswerte
+- Nachweise: PR #387 gemergt `2cffaea`; PR-Full-CI #44936981100 grün; Main-Full-CI #44937858817 grün; frische ausdrückliche Einmalfreigabe des Nutzers; APK liegt lokal unter `/tmp/opencode/main-ci-44937858817/`
+- Nächster Schritt / Besitzer: OpenCode – S25 exklusiv sperren, installierte APK-Zertifikat-/Versionsdaten read-only ermitteln und vergleichen

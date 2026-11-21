@@ -1,15 +1,15 @@
 # OpenCode – Issue #149: funktionale FIT-Historienpipeline
 - Agent/Umgebung: OpenCode / Linux worktree
 - Beginn: 2026-11-21 15:23 UTC
-- Letzte Aktualisierung: 2026-11-21 18:25 UTC
-- Status: aktiv – ein freigegebener S25-Produktlauf beendet; Offline-Fehleranalyse läuft
+- Letzte Aktualisierung: 2026-11-21 19:08 UTC
+- Status: aktiv – einmaliger Folge-Produktlauf nach GATT 133 fail-closed beendet; Ergebnisdokumentation läuft
 - Rolle/Zuständigkeit: CIRQA/GFDI/FIT/SQLite/Backfill
 - Aktueller Auftrag: #149 – den vom Nutzer bekräftigten Auftrag „funktionaler historischer Download samt verifiziertem FIT-Import und GUI-Anzeige“ umsetzen
-- Jetzt in Bearbeitung: PR #387 um redigierte Pull-Error-Metadaten und Parserregressionen ergänzen; Full local CI läuft
-- Zeitnah geplant: Resultat des Full-Gates lesen und PR-CI beobachten; Ursache des `NO_AVAILABLE_RESOURCES`-Befunds weiter offline untersuchen; kein weiterer S25-Lauf ohne neue Freigabe
+- Jetzt in Bearbeitung: Ergebnis des einmaligen Folge-Produktlaufs redigiert dokumentieren und Issue #149 aktualisieren; GATT-Fehler 133 führte zum sofortigen Stopp
+- Zeitnah geplant: nur Offline-Fehleranalyse/Weiterentwicklung; für weitere Geräteaktion wäre eine neue ausdrückliche Nutzerfreigabe nötig.
 - Betroffene Bereiche/Dateien: zunächst bestehender Smart/MLR-Downloader, FIT-Validierung/Commit, `HistoricalObservationRepository`/`FitHistoryReader`; noch kein Eingriff in #378-Gate/Testlabor-Dateien
-- Branch/Worktree: `opencode/history-pull-rejection-followup-20261121` / `/tmp/opencode/pulselibre-history-149-20261121`
+- Branch/Worktree: `opencode/history-second-product-run-20261121` / `/tmp/opencode/pulselibre-history-149-20261121`
 - Abstimmungsbedarf: PR #378 (`opencode/nexttransaction-second-shot`) wird auf denselben Issue-Kontext bezogen; mein Umfang ist der bestehende Download→Import→GUI-Pfad, nicht `nextTransaction`-Gate oder No-Pull-Sonde. Bitte melden, falls dessen Umfang in Produktionstransport übergeht.
 - Agent-chat/agent-sync: START 2026-11-21_152353_opencode_149_START_functional-history.md; Abstimmung 2026-11-21_1524_opencode-an-alle_issue149-scope.md
-- Nachweise: PR #385 (`c93f9da`) gemergt als `9a7f119`; Main-Full-CI Run `44926464757` vollständig grün; signiertes Main-APK Build 1690 mit identischer Signatur in-place installiert; exakt ein bestätigter Produktlauf, neuer Token `9331dd01916f`; ItemList 35, 17 verified skips, 18 selected; Pull `result=3`, 0 MLR/Transfers/Imports, `runDrained=false`; Detailbericht `CIRQA_PRODUCT_DOWNLOAD_RESULT_2026-11-21_BUILD1690.md`; `:app:testDebugUnitTest` nach Parserdiagnoseänderung grün, Full local CI in Arbeit
-- Nächster Schritt: Full local CI und PR-CI prüfen; keine erneute Geräteaktion ohne neue Freigabe
+- Nachweise: PR #385 gemergt als `9a7f119`; Main-Full-CI #44926464757 grün; Build 1690 in-place signaturkompatibel installiert; erster Lauf ergab `result=3`, 0 Transfers/Imports. PR #387 / `61c4fe8` ergänzt redigierte numerische Pull-Error-Felder und ist als `2cffaea` gemergt; PR-Full-CI #44936981100 grün; lokale Full-CI am exakten Branchhead erfolgreich. Main-Full-CI #44937858817 vollständig grün; Zertifikatskontinuität bestätigt, Build 1701 in place aktualisiert, `firstInstallTime` erhalten. Zweiter freigegebener Lauf genau einmal bestätigt; Run-ID `a1e5c993a569`, GATT 133 vor Notifications/Schreiben, `accepted=false`, null List/Pull/Transfers/FIT/SQLite/Folgeanfragen; Stop ohne Retry. Ergebnisbericht `CIRQA_PRODUCT_DOWNLOAD_RESULT_2026-11-21_BUILD1701.md`.
+- Nächster Schritt: Bericht committen/pushen und Issue #149 mit Evidenz aktualisieren; keine weitere Geräteaktion ohne neue Freigabe
