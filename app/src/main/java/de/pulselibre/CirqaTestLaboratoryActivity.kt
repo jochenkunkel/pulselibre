@@ -58,6 +58,7 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
     private var scanning = false
     private var scanEvents = 0
     private var matchedBondAdvertisement = false
+    private var matchedBondConnectableAdvertisement = false
     private var garminHintEvents = 0
     private val rssiSamples = ArrayList<Int>()
     private var gattProbe: CirqaGattProbe? = null
@@ -593,8 +594,9 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
                     "Das Gerät kann den Sync-Request " +
                     "als übertragen markieren. Es werden keine Datei-Pulls, MLR-Registrierungen, " +
                     "Dateiimporte, Flags, Lösch- oder Reset-Befehle gesendet. Bei unerwarteter " +
-                    "Pull-Antwort wird sofort vor MLR/Dateipull gestoppt. Bei zwei Listen werden " +
-                    "UIDs/Metadaten nur im Arbeitsspeicher verglichen; der Status enthält nur Counts. " +
+                    "Pull-Antwort wird sofort vor MLR/Dateipull gestoppt. UIDs/Metadaten bleiben " +
+                    "im Arbeitsspeicher; der lokale Status enthält Counts und einen aggregierten " +
+                    "SHA-256-Listenfingerprint zum sitzungsübergreifenden Vergleich, keine Einzel-UIDs. " +
                     "40-s-Gesamtlimit, kein Retry. " +
                     "Höchstens ${CirqaSyncItemListNoPullAttemptGate.MAX_ATTEMPTS} ausdrücklich bestätigte " +
                     "Läufe; jeder Versuch wird vor Verbindung verbraucht."
@@ -1425,6 +1427,7 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
         }
         scanEvents = 0
         matchedBondAdvertisement = false
+        matchedBondConnectableAdvertisement = false
         garminHintEvents = 0
         rssiSamples.clear()
         val bondedAddress = findBondedCirqa()?.address
@@ -1433,9 +1436,11 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
                 if (!scanning || destroyed) return
                 scanEvents++
                 if (rssiSamples.size < 500) rssiSamples += result.rssi
-                if (bondedAddress != null &&
-                    CirqaAddressMatch.matches(bondedAddress, result.device.address)) {
+                val matchesBond = bondedAddress != null &&
+                    CirqaAddressMatch.matches(bondedAddress, result.device.address)
+                if (matchesBond) {
                     matchedBondAdvertisement = true
+                    if (result.isConnectable) matchedBondConnectableAdvertisement = true
                 }
                 val record = result.scanRecord
                 val companyIds = (0 until (record?.manufacturerSpecificData?.size() ?: 0))
@@ -1444,7 +1449,9 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
                 val name = record?.deviceName
                 if (BleAdvertisementIdentity.isGarminHint(name, companyIds, serviceIds)) garminHintEvents++
                 scanOutput.text = "Passiver Scan läuft · Ereignisse=$scanEvents · " +
-                    "Garmin-Hinweise=$garminHintEvents · Adressabgleich=${if (matchedBondAdvertisement) "ja" else "nein"}"
+                    "Garmin-Hinweise=$garminHintEvents · " +
+                    "Adressabgleich=${if (matchedBondAdvertisement) "ja" else "nein"} · " +
+                    "CIRQA-verbindbar=${if (matchedBondConnectableAdvertisement) "ja" else "nein"}"
             }
 
             override fun onScanFailed(errorCode: Int) {
@@ -1488,6 +1495,7 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
         }
         val summary = "Scan abgeschlossen; Werbeereignisse=$scanEvents; Garmin-Hinweise=$garminHintEvents; " +
             "Adressabgleich=${if (matchedBondAdvertisement) "ja" else "nein"}; " +
+            "CIRQA-verbindbar=${if (matchedBondConnectableAdvertisement) "ja" else "nein"}; " +
             "RSSI-Messpunkte=${rssiSamples.size}" + (median?.let { "; Median=${it}dBm" } ?: "")
         scanOutput.text = summary + "\nGarmin-/Adresshinweise sind kein Identitätsnachweis."
         val observed = scanEvents > 0

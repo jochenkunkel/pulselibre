@@ -8,7 +8,7 @@ internal object CirqaItemListRepeatabilityAttemptGate {
     const val PREFS_NAME = "cirqa_item_list_repeatability"
     const val ATTEMPT_COUNT_KEY = "cirqaItemListRepeatabilityAttemptCountV1"
     const val SUMMARY_KEY = "cirqaItemListRepeatabilitySummary"
-    const val MAX_ATTEMPTS = 15
+    const val MAX_ATTEMPTS = 40
 
     fun attemptsUsed(prefs: SharedPreferences): Int =
         prefs.getInt(ATTEMPT_COUNT_KEY, 0).coerceIn(0, MAX_ATTEMPTS)
