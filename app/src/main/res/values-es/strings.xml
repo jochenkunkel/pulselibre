@@ -184,7 +184,6 @@
     <string name="reception_old">sin nuevas recepciones desde hace tiempo</string>
 
     <!-- Übersicht: Kacheln, Nacht, Schritte, Empfangsdialog -->
-    <!-- TODO-CHATGPT-REVIEW: Erstentwurf von Claude Code, Ticket #365 -->
     <string name="ov_today_glance">Hoy de un vistazo</string>
     <string name="ov_more_health">Más valores de salud</string>
     <string name="ov_all_hidden">Todas las tarjetas están ocultas. Puedes volver a mostrarlas en «Personalizar inicio».</string>
@@ -203,7 +202,7 @@
     <string name="ov_step_percent_cd">%1$s %2$s %% del objetivo diario.</string>
     <string name="ov_night_title">Resumen de la noche</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
-    <string name="ov_night_cd">Resumen de la noche. El análisis de SpO₂ aún no se puede calcular: el muestreo y la calidad de señal de CIRQA no están validados. No es un diagnóstico.</string>
+    <string name="ov_night_cd">Resumen de la noche. El análisis de SpO₂ aún no se puede calcular: el muestreo y la calidad de la señal de CIRQA no están validados. No es un diagnóstico.</string>
     <string name="ov_night_loading_cd">Leyendo la serie nocturna</string>
     <string name="ov_night_loading">Leyendo la serie nocturna …</string>
     <string name="ov_night_hours">22–6 h</string>
@@ -254,7 +253,6 @@
     <string name="ov_dot_hint">El color del punto de arriba solo indica la antigüedad de la recepción, no la salud.</string>
 
     <!-- Fachlogik-Texte: Aktivität, Skalen, Nacht, Zielstatus -->
-    <!-- TODO-CHATGPT-REVIEW: Erstentwurf von Claude Code, Ticket #365 -->
     <string name="dom_mode_unknown">Modo desconocido</string>
     <string name="dom_mode_rest">Reposo</string>
     <string name="dom_mode_movement">Movimiento ligero</string>
@@ -303,7 +301,6 @@
     <string name="dom_night_unreadable">Serie nocturna no legible.</string>
 
     <!-- Fachlogik-Texte: Hinweise der Kacheln -->
-    <!-- TODO-CHATGPT-REVIEW: Erstentwurf von Claude Code, Ticket #365 -->
     <string name="dom_note_not_measured">No medido o no válido</string>
     <string name="dom_note_source">Fuente: servicio CIRQA %1$s</string>
     <string name="dom_note_sleep_fit">Las fases/duración del sueño requieren un historial FIT validado</string>
@@ -312,7 +309,6 @@
     <string name="dom_unit_device_scale">Escala del dispositivo 0–100</string>
 
     <!-- Verlauf: Zeitfenster, Karten, Verteilung -->
-    <!-- TODO-CHATGPT-REVIEW: Erstentwurf von Claude Code, Ticket #365 -->
     <string name="hv_window_current">Actual · hasta %1$s</string>
     <string name="hv_window_cd">Ventana de tiempo %1$s</string>
     <string name="hv_window_previous">Ventana de tiempo anterior</string>
@@ -325,7 +321,7 @@
     <string name="hv_card_summary">%1$d valores · %2$d ventanas ocupadas · %3$s\nEscala %4$s–%5$s %6$s</string>
     <string name="hv_mode_points">Puntos</string>
     <string name="hv_mode_density">Distribución</string>
-    <string name="hv_mode_safe">Apto daltonismo</string>
+    <string name="hv_mode_safe">Colores accesibles</string>
     <string name="hv_mode_cd">Vista %1$s</string>
     <string name="hv_density_title">%1$s · ventana de tiempo</string>
     <string name="hv_failed">No se pudo cargar el historial local.</string>
