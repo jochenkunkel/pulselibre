@@ -182,4 +182,74 @@
     <string name="reception_recent">reçu il y a quelques minutes</string>
     <string name="reception_delayed">réception retardée</string>
     <string name="reception_old">aucune nouvelle réception depuis longtemps</string>
+
+    <!-- Übersicht: Kacheln, Nacht, Schritte, Empfangsdialog -->
+    <!-- TODO-CHATGPT-REVIEW: Erstentwurf von Claude Code, Ticket #365 -->
+    <string name="ov_today_glance">Aujourd’hui en un coup d’œil</string>
+    <string name="ov_more_health">Autres valeurs de santé</string>
+    <string name="ov_all_hidden">Toutes les tuiles sont masquées. Vous pouvez les afficher à nouveau sous « Personnaliser l’accueil ».</string>
+    <string name="ov_in_focus">En vedette</string>
+    <string name="ov_more_tiles">Autres tuiles</string>
+    <string name="ov_customize">Personnaliser l’accueil</string>
+    <string name="ov_customize_cd">Personnaliser l’accueil. Afficher ou masquer des tuiles, changer l’ordre, définir des favoris.</string>
+    <string name="ov_steps_count">%1$s pas</string>
+    <string name="ov_steps_trend_partial_cd">%1$s Évolution de l’activité par intervalles de 15 minutes, partiellement disponible (%2$d intervalles sur %3$d).</string>
+    <string name="ov_steps_trend_none_cd">%1$s Évolution de la journée pas encore disponible.</string>
+    <string name="ov_steps_trend_none">Évolution de la journée pas encore disponible</string>
+    <string name="ov_step_goal_own">propre</string>
+    <string name="ov_step_goal_device">appareil</string>
+    <string name="ov_step_target">Objectif (%1$s) : %2$s pas</string>
+    <string name="ov_step_target_none">Aucun objectif de pas valide disponible (appareil ou paramètres)</string>
+    <string name="ov_step_percent_cd">%1$s %2$s %% de l’objectif quotidien.</string>
+    <string name="ov_night_title">Aperçu de la nuit</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ov_night_cd">Aperçu de la nuit. L’analyse de la SpO₂ n’est pas encore calculable : l’échantillonnage et la qualité du signal pour CIRQA ne sont pas validés. Pas un diagnostic.</string>
+    <string name="ov_night_loading_cd">Lecture de la série de nuit</string>
+    <string name="ov_night_loading">Lecture de la série de nuit …</string>
+    <string name="ov_night_hours">22 h–6 h</string>
+    <string name="ov_night_samples_cd">Nuit de 22 h à 6 h : %1$s mesures</string>
+    <string name="ov_night_coverage">Couverture</string>
+    <string name="ov_not_computable">non calculable</string>
+    <string name="ov_night_minutes">%1$s min</string>
+    <string name="ov_night_odi_value">%1$s / %2$s par h</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ov_night_footer">Points d’origine uniquement · pas de diagnostic</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ov_night_footer_cd">Mesures d’origine enregistrées uniquement ; pas de diagnostic</string>
+    <string name="ov_step_day_state">Total du jour</string>
+    <string name="ov_step_day_state_cd">Total du jour. Compteur cumulatif de l’appareil ; les points de mesure ne sont pas additionnés.</string>
+    <string name="ov_today_value">Aujourd’hui %1$s</string>
+    <string name="ov_today_single">Aujourd’hui %1$s (%2$s)</string>
+    <string name="ov_today_range">Aujourd’hui Ø %1$s · %2$s–%3$s</string>
+    <string name="ov_values_one">%1$d valeur</string>
+    <string name="ov_values_many">%1$d valeurs</string>
+    <string name="ov_today_word">aujourd’hui</string>
+    <string name="ov_band_history">Historique du bracelet %1$s (heure de mesure) : Ø %2$s · %3$s–%4$s %5$s (%6$s)</string>
+    <string name="ov_spo2_bands">≥95 %% : %1$d · 90–94 %% : %2$d · &lt;90 %% : %3$d  (part aujourd’hui en %%)</string>
+    <string name="ov_week_pending">Ø 7 jours : à venir (%1$d/%2$d)</string>
+    <string name="ov_week_now">Ø 7 jours maintenant : %1$s</string>
+    <string name="ov_week_now_cd">Moyenne des 7 derniers jours à cette heure : %1$s</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ov_lung_cd">Graphique discret des poumons, niveau de remplissage %1$d %% ; couleur selon l’échelle SpO₂ configurable, pas d’indicateur de qualité du signal</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ov_lung_nodata_cd">Graphique discret des poumons, aucune donnée de mesure ; couleur selon l’échelle SpO₂ configurable, pas d’indicateur de qualité du signal</string>
+    <string name="ov_reception_cd">Source, échelle et informations de réception pour %1$s : %2$s. Appuyer pour les détails.</string>
+    <string name="ov_recv_seconds">il y a %1$d secondes</string>
+    <string name="ov_recv_minutes">il y a %1$d minutes</string>
+    <string name="ov_recv_hours">il y a %1$d heures</string>
+    <string name="ov_recv_at">Reçu : %1$s (%2$s)</string>
+    <string name="ov_recv_none">Aucune heure de réception n’est disponible pour cette valeur.</string>
+    <string name="ov_scale">Échelle  %1$s–%2$s %3$s</string>
+    <string name="ov_source">Source  %1$s</string>
+    <string name="ov_preview">Aperçu  %1$s</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ov_spo2_scale_on">Échelle de couleurs active (acceptée par l’utilisateur) · capteur NON validé, pas de qualité du signal, pas de diagnostic ni d’alarme.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ov_spo2_scale_off">Orientation désactivée · capteur non validé.</string>
+    <string name="ov_who">OMS : 150–300 min modérées ou 75–150 min intenses par semaine</string>
+    <string name="ov_who_name">OMS</string>
+    <string name="ov_cirqa_period">Période CIRQA non confirmée ; pas de comparaison hebdomadaire.</string>
+    <string name="ov_no_norm">Aucune échelle de référence validée pour cette valeur de l’appareil.</string>
+    <string name="ov_reception_state">État de réception  %1$s</string>
+    <string name="ov_dot_hint">La couleur du point en haut indique seulement l’ancienneté de la réception, pas la santé.</string>
 </resources>

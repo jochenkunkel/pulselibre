@@ -182,4 +182,73 @@
     <string name="reception_recent">wenige Minuten alt</string>
     <string name="reception_delayed">verzögert</string>
     <string name="reception_old">lange ohne neuen Empfang</string>
+
+    <!-- Übersicht: Kacheln, Nacht, Schritte, Empfangsdialog -->
+    <string name="ov_today_glance">Heute auf einen Blick</string>
+    <string name="ov_more_health">Weitere Gesundheitswerte</string>
+    <string name="ov_all_hidden">Alle Kacheln sind ausgeblendet. Unter „Startseite anpassen“ lassen sie sich wieder einblenden.</string>
+    <string name="ov_in_focus">Im Fokus</string>
+    <string name="ov_more_tiles">Weitere Kacheln</string>
+    <string name="ov_customize">Startseite anpassen</string>
+    <string name="ov_customize_cd">Startseite anpassen. Kacheln ein- oder ausblenden, Reihenfolge ändern, Favoriten festlegen.</string>
+    <string name="ov_steps_count">%1$s Schritte</string>
+    <string name="ov_steps_trend_partial_cd">%1$s Aktivitätsverlauf in 15-Minuten-Intervallen, teilweise verfügbar (%2$d von %3$d Intervallen).</string>
+    <string name="ov_steps_trend_none_cd">%1$s Tagesverlauf noch nicht verfügbar.</string>
+    <string name="ov_steps_trend_none">Tagesverlauf noch nicht verfügbar</string>
+    <string name="ov_step_goal_own">eigenes</string>
+    <string name="ov_step_goal_device">Gerät</string>
+    <string name="ov_step_target">Ziel (%1$s): %2$s Schritte</string>
+    <string name="ov_step_target_none">Kein gültiges Schrittziel verfügbar (Gerät oder Einstellungen)</string>
+    <string name="ov_step_percent_cd">%1$s %2$s %% des Tagesziels.</string>
+    <string name="ov_night_title">Nacht-Insights</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ov_night_cd">Nacht-Insights. SpO₂-Auswertung noch nicht berechenbar: Sampling und Signalqualität für CIRQA sind nicht validiert. Keine Diagnose.</string>
+    <string name="ov_night_loading_cd">Nachtserie wird gelesen</string>
+    <string name="ov_night_loading">Nachtserie wird gelesen …</string>
+    <string name="ov_night_hours">22–6 Uhr</string>
+    <string name="ov_night_samples_cd">Nacht 22 bis 6 Uhr: %1$s Messwerte</string>
+    <string name="ov_night_coverage">Abdeckung</string>
+    <string name="ov_not_computable">nicht berechenbar</string>
+    <string name="ov_night_minutes">%1$s min</string>
+    <string name="ov_night_odi_value">%1$s / %2$s je h</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ov_night_footer">Nur Originalpunkte · keine Diagnose</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ov_night_footer_cd">Nur gespeicherte Originalmessungen; keine Diagnose</string>
+    <string name="ov_step_day_state">Tagesstand</string>
+    <string name="ov_step_day_state_cd">Tagesstand. Kumulativer Gerätezähler; Messpunkte werden nicht addiert.</string>
+    <string name="ov_today_value">Heute %1$s</string>
+    <string name="ov_today_single">Heute %1$s (%2$s)</string>
+    <string name="ov_today_range">Heute Ø %1$s · %2$s–%3$s</string>
+    <string name="ov_values_one">%1$d Wert</string>
+    <string name="ov_values_many">%1$d Werte</string>
+    <string name="ov_today_word">heute</string>
+    <string name="ov_band_history">Band-Verlauf %1$s (Messzeit): Ø %2$s · %3$s–%4$s %5$s (%6$s)</string>
+    <string name="ov_spo2_bands">≥95 %%: %1$d · 90–94 %%: %2$d · &lt;90 %%: %3$d  (Anteil heute in %%)</string>
+    <string name="ov_week_pending">Ø 7 Tage: folgt (%1$d/%2$d)</string>
+    <string name="ov_week_now">Ø 7 Tage jetzt: %1$s</string>
+    <string name="ov_week_now_cd">Durchschnitt der letzten 7 Tage zu dieser Uhrzeit: %1$s</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ov_lung_cd">Dezente Lungengrafik, Füllstand %1$d%%; Farbe nach konfigurierbarer SpO₂-Skala, keine Signalqualitätsanzeige</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ov_lung_nodata_cd">Dezente Lungengrafik, keine Messdaten; Farbe nach konfigurierbarer SpO₂-Skala, keine Signalqualitätsanzeige</string>
+    <string name="ov_reception_cd">Quelle, Skala und Empfangsinformationen zu %1$s: %2$s. Antippen für Details.</string>
+    <string name="ov_recv_seconds">vor %1$d Sekunden</string>
+    <string name="ov_recv_minutes">vor %1$d Minuten</string>
+    <string name="ov_recv_hours">vor %1$d Stunden</string>
+    <string name="ov_recv_at">Empfangen: %1$s (%2$s)</string>
+    <string name="ov_recv_none">Für diesen Wert liegt kein Empfangszeitpunkt vor.</string>
+    <string name="ov_scale">Skala  %1$s–%2$s %3$s</string>
+    <string name="ov_source">Quelle  %1$s</string>
+    <string name="ov_preview">Vorschau  %1$s</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ov_spo2_scale_on">Farbskala aktiv (vom Nutzer akzeptiert) · Sensor NICHT validiert, keine Signalqualität, keine Diagnose oder Alarmfunktion.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ov_spo2_scale_off">Orientierung deaktiviert · Sensor nicht validiert.</string>
+    <string name="ov_who">WHO: 150–300 min moderat oder 75–150 min intensiv/Woche</string>
+    <string name="ov_who_name">WHO</string>
+    <string name="ov_cirqa_period">CIRQA-Zeitraum unbestätigt; kein Wochenvergleich.</string>
+    <string name="ov_no_norm">Keine validierte Normskala für diesen Gerätewert.</string>
+    <string name="ov_reception_state">Empfangsstatus  %1$s</string>
+    <string name="ov_dot_hint">Punktfarbe oben zeigt nur Empfangsalter, keine Gesundheit.</string>
 </resources>
