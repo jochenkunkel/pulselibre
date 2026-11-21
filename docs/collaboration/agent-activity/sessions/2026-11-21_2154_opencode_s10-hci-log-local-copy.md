@@ -1,0 +1,17 @@
+# OpenCode – vorhandene S10-HCI-Datei lokal sichern
+- Agent/Umgebung: OpenCode CLI
+- Beginn: 2026-11-21 21:54 UTC
+- Letzte Aktualisierung: 2026-11-21 21:55 UTC
+- Status: blockiert – Android verweigert ADB-Shell den Zugriff auf geschützte Bluetooth-Logs
+- Rolle/Zuständigkeit: lokale, datensparsame Geräte-Diagnose nach ausdrücklichem Nutzerauftrag
+- Aktueller Auftrag: vorhandene HCI-Snoop-Datei des S10 bei Vorhandensein lokal und zugriffsbeschränkt sichern
+- Jetzt in Bearbeitung: beendet; öffentliche Pfade fehlten, geschützte Pfade unter `/data/misc/bluetooth/logs` antworteten mit `Permission denied`
+- Zeitnah geplant: keine weitere Bluetooth-Aufzeichnung, kein Pairing, Sync oder Verkehrstest
+- Betroffene Bereiche/Dateien: diese Aktivitätssitzung und Agenten-Chat; lokale Binärdatei außerhalb des Repositories
+- Branch/Worktree: `opencode/nexttransaction-third-result-docs` / `/tmp/opencode/pulselibre-nexttransaction-third-result`
+- Abstimmungsbedarf: keiner
+- Nachweise: Nutzer hat ausdrücklich lokale Speicherung sämtlicher Daten des HCI-Logs erlaubt. HCI-Snoop am S10 war nach Testende auf `0` gesetzt.
+- Stop-Grenzen: kein Bugreport, Logcat, vollständiger Gerätescan, erneutes Einschalten von HCI, Privilegien-/Root-Umgehung oder Teilen/Committen des Rohlogs
+- Datenschutz: Log kann Bluetooth-Metadaten und sensible Nutzdaten enthalten; keine Inhaltsanalyse oder Ausgabe. Lokalkopie mit Modus `0600`, Prüfsumme nur als Integritätsnachweis.
+- Nachweise: keine Datei kopiert; HCI bleibt deaktiviert (`secure bluetooth_hci_log=0`). Kein Root, keine Berechtigungsumgehung, kein Bugreport erzeugt.
+- Nächster Schritt: Nutzer kann selbst über Android Developer Options einen Bugreport bereitstellen oder eine andere ausdrücklich genehmigte Exportmethode festlegen; Bugreport enthält zusätzliche Gerätedaten und wurde hier nicht erstellt.
