@@ -186,7 +186,7 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
             content.addView(label("", 22f, ink, true).apply { text = big; tag = "dashboard_step_value" },
                 LayoutParams(-1, -2).apply { topMargin = dp(10) })
             val targetSource = context.getString(if (goal.note == LOCAL_STEP_GOAL_NOTE) R.string.ov_step_goal_own else R.string.ov_step_goal_device)
-            val reached = stepGoalStatus(steps, goal)
+            val reached = stepGoalStatus(steps, goal)?.let { DomainText.tr(context, it) }
             val targetText = target?.let { context.getString(R.string.ov_step_target, targetSource, integers.format(it)) + (reached?.let { r -> " · $r" } ?: "") }
                 ?: context.getString(R.string.ov_step_target_none)
             contentDescription = "${MetricText.title(context, metric.title)}. ${MetricText.value(context, metric.value)}. $targetText."
@@ -243,7 +243,7 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
         val gauge = HeartRateGaugeView(context)
         gauge.show(model, activity)
         card.content.addView(gauge, LayoutParams(-1, -2))
-        card.content.addView(label(activity.caption, 11f, muted),
+        card.content.addView(label(DomainText.activityCaption(context, activity), 11f, muted),
             LayoutParams(-1, -2).apply { topMargin = dp(2) })
         attachInsights(card, metric.copy(title = DashboardMeasurement.PULSE.title), card.content.let { palette.pulse })
         if (previous?.bpm != null && model.bpm != null && previous.bpm != model.bpm) {
@@ -304,7 +304,7 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
                 else night.odi3?.let { context.getString(R.string.ov_night_odi_value, nf.format(it), nf.format(night.odi4)) } ?: notComputable, palette.muted)
             // The hourglass only belongs to the loading state.
             findViewWithTag<View>("night_status_icon")?.apply { visibility = View.GONE; contentDescription = null }
-            if (night.reason != "ok") nightReason.text = night.reason
+            if (night.reason != "ok") nightReason.text = DomainText.nightReason(context, night.reason)
         }
         // The overview re-renders whenever readings arrive; show the cached result at once and let the
         // single background load update whichever card is currently on screen.
@@ -772,23 +772,23 @@ private class ReceptionIndicatorView(
         val profile = MetricReferenceProfile.forMetric(metric, stepGoal)
         row("■", "${MetricText.title(context, metric.title)}  ·  ${MetricText.value(context, metric.value)}")
         if (profile != null) {
-            row("▬", context.getString(R.string.ov_scale, profile.minimum.toString(), profile.maximum.toString(), profile.unit), palette.muted)
+            row("▬", context.getString(R.string.ov_scale, profile.minimum.toString(), profile.maximum.toString(), DomainText.tr(context, profile.unit)), palette.muted)
             if (profile.referenceMinimum != null && profile.referenceMaximum != null) {
-                row("▰", "${profile.referenceMinimum}–${profile.referenceMaximum} ${profile.unit}  ·  ${profile.referenceLabel}", palette.muted)
+                row("▰", "${profile.referenceMinimum}–${profile.referenceMaximum} ${DomainText.tr(context, profile.unit)}  ·  ${DomainText.tr(context, profile.referenceLabel ?: "")}", palette.muted)
             }
             profile.sourceName?.let { row("↗", context.getString(R.string.ov_source, it), palette.accent, profile.sourceUrl) }
             if (metric.title == "Sauerstoffsättigung · SpO₂") {
                 val displayBands = SpO2DisplaySettings.read(context)
-                row("▰", context.getString(R.string.ov_preview, displayBands.bandLabel()), palette.muted)
+                row("▰", context.getString(R.string.ov_preview, displayBands.bandLabel(context)), palette.muted)
                 row("⏳", context.getString(if (displayBands.colorBandsEnabled) R.string.ov_spo2_scale_on else R.string.ov_spo2_scale_off), palette.muted)
             }
-            row("⚠", profile.caveat, palette.muted)
+            row("⚠", DomainText.tr(context, profile.caveat), palette.muted)
         } else if (metric.title == "Moderate Intensitätsminuten" || metric.title == "Intensive Intensitätsminuten") {
             row("▱", context.getString(R.string.ov_who), palette.muted)
             row("↗", context.getString(R.string.ov_source, context.getString(R.string.ov_who_name)), palette.accent, "https://www.who.int/initiatives/behealthy/physical-activity")
             row("⚠", context.getString(R.string.ov_cirqa_period), palette.muted)
         } else {
-            row("▱", metric.note, palette.muted)
+            row("▱", DomainText.tr(context, metric.note), palette.muted)
             row("⚠", context.getString(R.string.ov_no_norm), palette.muted)
         }
         row("◷", received, palette.muted)

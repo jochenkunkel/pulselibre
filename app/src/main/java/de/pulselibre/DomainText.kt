@@ -1,0 +1,73 @@
+package de.pulselibre
+
+import android.content.Context
+
+/**
+ * Display text for fixed phrases produced by the domain layer. The model classes keep their German phrases as stable,
+ * test-pinned identifiers (like [MetricText] does for metric titles); the views translate them here (#i18n).
+ * Unknown phrases are shown unchanged, so a new domain phrase never disappears from the screen.
+ */
+internal object DomainText {
+    private val exact = mapOf(
+        "Modus unbekannt" to R.string.dom_mode_unknown,
+        "Ruhe" to R.string.dom_mode_rest,
+        "Leichte Bewegung" to R.string.dom_mode_movement,
+        "Sport" to R.string.dom_mode_sport,
+        "Noch keine frischen Schrittwerte" to R.string.dom_expl_none,
+        "Einstellungen ungültig" to R.string.dom_expl_settings,
+        "Widersprüchliche Schrittwerte" to R.string.dom_expl_conflict,
+        "Keine frischen Schrittwerte" to R.string.dom_expl_nofresh,
+        "Schrittwerte veraltet" to R.string.dom_expl_stale,
+        "Zu wenige frische Schrittwerte" to R.string.dom_expl_few,
+        "Schrittbasierte Einordnung · heuristisch" to R.string.dom_expl_heuristic,
+        "Unterhalb der Anzeigeskala" to R.string.dom_gauge_below,
+        "Oberhalb der Anzeigeskala" to R.string.dom_gauge_above,
+        "Messwertanzeige · keine Zielzone" to R.string.dom_gauge_plain,
+        "Keine Messdaten" to R.string.metric_no_data,
+        "Erwachsene in Ruhe" to R.string.dom_ref_adults_rest,
+        "Durchschnittliche Erwachsene, in Ruhe" to R.string.dom_ref_avg_adults_rest,
+        "Der aktuelle Puls ist aktivitätsabhängig; die Ruhe-Referenz ist hier nur Kontext." to R.string.dom_cav_pulse,
+        "Allgemeine Orientierung, kein persönlicher Ziel- oder Diagnosewert." to R.string.dom_cav_resting,
+        "Finger-Pulsoximeter-Orientierung; nicht für CIRQA am Handgelenk validiert." to R.string.dom_cav_spo2,
+        "Gilt für Erwachsene in Ruhe; Momentanwert kann durch Aktivität abweichen." to R.string.dom_cav_resp,
+        "Proprietäre Geräteskala; kein klinischer Normbereich." to R.string.dom_cav_device_scale,
+        "Einzelnes RR-Intervall; keine HRV-Kennzahl und kein Normvergleich." to R.string.dom_cav_rr,
+        "Fortschritt zum geräteeigenen Tagesziel, keine WHO-Norm." to R.string.dom_cav_steps,
+        "Produktfortschritt zum vom Gerät gelieferten Tagesziel; keine Gesundheitsbewertung oder Bewegungsempfehlung." to R.string.dom_cav_goal,
+        "Schritte" to R.string.dom_unit_steps,
+        "Tagesziel erreicht" to R.string.dom_goal_reached,
+        "Zu wenige gültige Messwerte." to R.string.dom_night_few,
+        "Nachtserie nicht lesbar." to R.string.dom_night_unreadable,
+        "Nicht gemessen oder ungültig" to R.string.dom_note_not_measured,
+        "Schlafphasen/-dauer erfordern validierte FIT-Historie" to R.string.dom_note_sleep_fit,
+        "Schlafdauer und Schlafphasen noch nicht verfügbar" to R.string.dom_note_sleep_na,
+        "Keine Diagnosen; keine geschätzten Werte; kein RR→RMSSD ohne Zeitreihe" to R.string.dom_note_ground,
+        "Geräteskala 0–100" to R.string.dom_unit_device_scale,
+    )
+
+    private val sourceRx = Regex("^Quelle: CIRQA-Service (\\S+)$")
+
+    fun tr(context: Context, german: String): String =
+        exact[german]?.let(context::getString)
+            ?: sourceRx.matchEntire(german)?.let { context.getString(R.string.dom_note_source, it.groupValues[1]) }
+            ?: german
+
+    fun mode(context: Context, mode: PulseContext) = tr(context, mode.label)
+
+    /** Caption under the heart-rate gauge (language dependent; the model's own [StepActivityEstimate.caption] stays German). */
+    fun activityCaption(context: Context, a: StepActivityEstimate): String =
+        a.cadenceStepsPerMinute?.let { context.getString(R.string.dom_caption_cadence, it.toInt(), a.spanSeconds / 60) }
+            ?: context.getString(R.string.dom_caption_unknown, tr(context, a.explanation))
+
+    private val windowRx = Regex("^Zeitfenster kürzer als (\\d+) h\\.$")
+    private val coverageRx = Regex("^Abdeckung (\\S+) % unter (\\d+) %\\.$")
+    private val gapRx = Regex("^Abtastabstand zu groß für ODI \\(Median (\\d+) s, nötig ≤ (\\d+) s\\)\\.$")
+
+    /** Reason text of a night summary; numbers are carried over from the German phrase. */
+    fun nightReason(context: Context, reason: String): String {
+        windowRx.matchEntire(reason)?.let { return context.getString(R.string.dom_night_window, it.groupValues[1].toInt()) }
+        coverageRx.matchEntire(reason)?.let { return context.getString(R.string.dom_night_coverage, it.groupValues[1], it.groupValues[2].toInt()) }
+        gapRx.matchEntire(reason)?.let { return context.getString(R.string.dom_night_gap, it.groupValues[1].toInt(), it.groupValues[2].toInt()) }
+        return tr(context, reason)
+    }
+}

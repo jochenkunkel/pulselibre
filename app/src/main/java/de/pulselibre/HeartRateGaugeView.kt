@@ -26,10 +26,8 @@ class HeartRateGaugeView(context: Context) : View(context) {
         if (from != null) shownFraction = from
         reading = model
         mode = activity.context
-        contentDescription = "Herzfrequenz: ${model.bpm?.let { "$it bpm" } ?: "Keine Messdaten"}. " +
-            "${activity.context.label}. ${activity.explanation}. " +
-            "Modus heuristisch aus Schrittzähler abgeleitet, kein Nachweis von Sitzen oder Sport. " +
-            "Anzeigeskala 40 bis 180 bpm, keine medizinischen Zonen. ${model.scaleNote}"
+        contentDescription = context.getString(R.string.dom_gauge_cd, model.bpm?.let { "$it bpm" } ?: context.getString(R.string.metric_no_data),
+            DomainText.mode(context, activity.context), DomainText.tr(context, activity.explanation), DomainText.tr(context, model.scaleNote))
         val target = model.fraction ?: 0f
         if (isAttachedToWindow && model.bpm != null && ValueAnimator.areAnimatorsEnabled()) {
             animator = ValueAnimator.ofFloat(shownFraction, target).apply {
@@ -115,9 +113,9 @@ class HeartRateGaugeView(context: Context) : View(context) {
             paint.color = colors.accent
             canvas.drawCircle(cx, pivotY, w * 0.027f, paint)
         }
-        drawText(canvas, mode.label, cx, h * HeartRateGaugeModel.MODE_Y_PER_HEIGHT, w * 0.052f, colors.muted, bold = true)
+        drawText(canvas, DomainText.mode(context, mode), cx, h * HeartRateGaugeModel.MODE_Y_PER_HEIGHT, w * 0.052f, colors.muted, bold = true)
         drawText(canvas, reading.bpm?.toString() ?: "—", cx, h * HeartRateGaugeModel.VALUE_Y_PER_HEIGHT, w * 0.17f, colors.ink, bold = true)
-        drawText(canvas, if (reading.bpm == null) "Keine Messdaten" else "bpm",
+        drawText(canvas, if (reading.bpm == null) context.getString(R.string.metric_no_data) else "bpm",
             cx, h * HeartRateGaugeModel.UNIT_Y_PER_HEIGHT, w * 0.045f, colors.muted)
     }
 

@@ -40,7 +40,13 @@ internal object MetricText {
     fun shortTitle(context: Context, id: String): String = short[id]?.let(context::getString) ?: title(context, id)
 
     /** Replaces the stored placeholder "Keine Messdaten"; real values (numbers with units) are language independent. */
-    fun value(context: Context, raw: String): String = if (raw == NO_DATA) context.getString(R.string.metric_no_data) else raw
+    fun value(context: Context, raw: String): String = when {
+        raw == NO_DATA -> context.getString(R.string.metric_no_data)
+        raw.endsWith(STEPS_UNIT) -> raw.removeSuffix(STEPS_UNIT) + context.getString(R.string.dom_unit_steps)
+        else -> raw
+    }
+
+    private const val STEPS_UNIT = " Schritte"
 
     const val NO_DATA = "Keine Messdaten"
 }

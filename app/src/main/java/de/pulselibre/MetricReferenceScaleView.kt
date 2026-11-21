@@ -75,9 +75,10 @@ class MetricReferenceScaleView(
 
     init {
         contentDescription = buildString {
-            append("Skala ${profile.minimum} bis ${profile.maximum} ${profile.unit}; Wert $value ${profile.unit}. ")
-            profile.referenceLabel?.let { append("Orientierungsbereich ${profile.referenceMinimum} bis ${profile.referenceMaximum}, $it. ") }
-            append(profile.caveat)
+            val unit = DomainText.tr(context, profile.unit)
+            append(context.getString(R.string.dom_scale_cd, profile.minimum, profile.maximum, unit, value))
+            profile.referenceLabel?.let { append(context.getString(R.string.dom_scale_ref_cd, profile.referenceMinimum, profile.referenceMaximum, DomainText.tr(context, it))) }
+            append(DomainText.tr(context, profile.caveat))
         }
         importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_YES
     }
