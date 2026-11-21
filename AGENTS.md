@@ -2,6 +2,10 @@
 
 Diese Datei gilt repositoryweit. **GitHub ist die verbindliche, versionierte Wissensbasis**, nicht eine Chat-Unterhaltung oder eine lokale IDE-Sitzung. Für den aktuellen Projektstand zuerst `docs/PROJECT_STATUS.md` lesen; für den vollständigen Einstieg `docs/CHAT_START_HERE.md`.
 
+## Verbindlicher gemeinsamer Agenten-Chat (ab 21.11.2026)
+
+**Vor und nach jedem Task muss jeder aktive Agent im gemeinsamen [Agenten-Chat](docs/collaboration/agent-chat/README.md) eine START- bzw. ENDE-Nachricht veröffentlichen.** Der Chat enthält laufende Aufgaben, konkrete Zuständigkeiten, geplante Dateieingriffe, Fortschritt, Nachweise und ausdrücklich **was welcher Agent von wem benötigt**. Blockaden und Antworten ebenfalls dort posten; konkrete adressierte Abstimmungen zusätzlich über `agent-sync/` führen. Vor Arbeitsbeginn neue Nachrichten und laufende Sitzungen lesen. Ein Chat-Post ist erst nach Push/Fetch bei anderen sichtbar; er ersetzt weder `agent-activity` noch die exklusive S25-Sperre. Keine parallele Bearbeitung derselben Aufgabe.
+
 ## Verbindliches Agenten-Aktivitätslog (ab 20.11.2026)
 
 **Jeder tatsächlich arbeitende Agent registriert seine Sitzung** unter [docs/collaboration/agent-activity/README.md](docs/collaboration/agent-activity/README.md) und führt eine eigene Datei unter `docs/collaboration/agent-activity/sessions/`. Vor der ersten Codeänderung aktive Einträge, offene Issue-Übernahmen und `docs/collaboration/agent-sync/INDEX.md` prüfen. Im Eintrag stehen: Agent/Umgebung, Rolle, aktueller Auftrag, **jetzt bearbeitete Tickets**, **zeitnah geplante Tickets** (ohne exklusive Reservierung), betroffene Dateien, Branch, **Abstimmungsbedarf**, Fortschritt und Nachweise. Bei wesentlichem Wechsel aktualisieren; am Ende auf abgeschlossen/pausiert/blockiert setzen. Keine gemeinsamen Logdateien bei jedem Schritt umschreiben.
