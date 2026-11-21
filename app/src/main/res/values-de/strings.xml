@@ -636,7 +636,6 @@
     <string name="ex_rec_stop_failed">Aufzeichnung konnte nicht beendet werden; Datenbank blieb unverändert.</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="ex_rec_still">Aufzeichnung läuft noch; Datenbank blieb unverändert.</string>
-    <string name="ex_rec_still">Aufzeichnung läuft noch; Datenbank blieb unverändert.</string>
     <!-- Gerät: Verbindungsstatus, Akku, Empfang (#365) -->
     <string name="dur_s">%1$d s</string>
     <string name="dur_min">%1$d min</string>
