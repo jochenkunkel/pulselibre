@@ -67,10 +67,19 @@ internal object DomainText {
 
     private val sourceRx = Regex("^Quelle: CIRQA-Service (\\S+)$")
 
-    fun tr(context: Context, german: String): String =
-        exact[german]?.let(context::getString)
-            ?: sourceRx.matchEntire(german)?.let { context.getString(R.string.dom_note_source, it.groupValues[1]) }
+    fun tr(context: Context, german: String): String = translate(Strings.of(context), german)
+
+    /** Context free core of [tr]; with the German resources it returns every known phrase unchanged (unit-tested). */
+    fun translate(t: Strings, german: String): String =
+        exact[german]?.let { t.get(it) }
+            ?: DomainTextAnalysis.exact[german]?.let { t.get(it) }
+            ?: sourceRx.matchEntire(german)?.let { t.get(R.string.dom_note_source, it.groupValues[1]) }
+            ?: DomainTextAnalysis.patterns.firstNotNullOfOrNull { (rx, id) ->
+                rx.matchEntire(german)?.let { m -> t.get(id, *m.groupValues.drop(1).map { translate(t, it) }.toTypedArray()) }
+            }
             ?: german
+
+    internal fun knownPhrases(): Set<String> = exact.keys + DomainTextAnalysis.exact.keys
 
     fun mode(context: Context, mode: PulseContext) = tr(context, mode.label)
 
@@ -90,4 +99,23 @@ internal object DomainText {
         gapRx.matchEntire(reason)?.let { return context.getString(R.string.dom_night_gap, it.groupValues[1].toInt(), it.groupValues[2].toInt()) }
         return tr(context, reason)
     }
+
+    /** Spoken description of the resting-pulse hero (language dependent; the model's own [RestingPulseHero.Model.description] stays German). */
+    fun heroDescription(context: Context, m: RestingPulseHero.Model): String = buildString {
+        append(tr(context, "Ruhepuls, Entwicklung über ${m.windowDays} Tage. "))
+        m.valueText?.let { append(tr(context, "Median $it. ")) }
+        m.deltaText?.let { append(tr(context, it)).append(". ") }
+        append(tr(context, m.message))
+    }
+
+    fun weekRowText(context: Context, row: WeekSummary.Row): String =
+        context.getString(R.string.tr_week_value, tr(context, row.label), row.value?.let { tr(context, it) } ?: context.getString(R.string.tr_no_data))
+
+    fun weekRowCoverage(context: Context, row: WeekSummary.Row): String = tr(context, row.coverage())
+
+    fun weekRowDescription(context: Context, row: WeekSummary.Row): String =
+        weekRowText(context, row) + (if (row.value != null) ", ${weekRowCoverage(context, row)}" else "") + (row.detail?.let { ". ${tr(context, it)}" } ?: "")
+
+    fun coverageDescription(context: Context, line: DataCoverage.Line): String =
+        tr(context, line.text()) + (line.hint()?.let { ", ${tr(context, it)}" } ?: "")
 }

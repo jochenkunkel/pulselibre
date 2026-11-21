@@ -41,7 +41,7 @@ internal class RestingPulseChartView(context: Context) : View(context) {
         label.color = palette.muted
         if (m.points.isEmpty()) {
             label.textAlign = Paint.Align.CENTER
-            canvas.drawText("Keine verifizierten Ruhepulswerte", width / 2f, height / 2f, label)
+            canvas.drawText(context.getString(R.string.tr_rest_chart_none), width / 2f, height / 2f, label)
             return
         }
         val values = m.points.map { it.bpm } + listOfNotNull(m.baselineBpm)

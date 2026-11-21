@@ -355,4 +355,200 @@
     <string name="hd_density_empty">Distribution chart: no readings in the selected period.</string>
     <string name="hd_density_cd">Distribution chart: %1$d readings in %2$d of %3$d time windows, axis value range %4$d to %5$d. Double-tap on the chart opens the individual values of the tapped time window; the color shows the frequency, time windows without values stay empty.</string>
     <string name="hd_axis_span">%1$s to %2$s</string>
+
+    <!-- Analysen: Katalog, Trendkarte, Modellsätze -->
+    <string name="an_title">Analyses</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="an_intro">Scientific, exploratory analyses of your recorded data – not a diagnosis. Modules without verified data are marked “Not available yet” with a reason.</string>
+    <string name="an_group_cd">Group %1$s: %2$s. %3$s</string>
+    <string name="an_module_cd">%1$s. %2$s. %3$s</string>
+    <string name="an_tap_open"> Tap to open.</string>
+    <string name="an_methods_title">Methods and limits</string>
+    <string name="an_cat_heart">Heart &amp; circulation</string>
+    <string name="an_cat_heart_sub">Resting pulse, fitness development, oxygen</string>
+    <string name="an_cat_sleep">Sleep &amp; recovery</string>
+    <string name="an_cat_sleep_sub">Night, next day, delayed recovery</string>
+    <string name="an_cat_move">Movement &amp; development</string>
+    <string name="an_cat_move_sub">Activity, progress, 90-day trends</string>
+    <string name="an_cat_pattern">Relationships &amp; patterns</string>
+    <string name="an_cat_pattern_sub">Correlations, daily patterns, breaks</string>
+    <string name="an_cat_quality">Data quality &amp; methods</string>
+    <string name="an_cat_quality_sub">Coverage, origin, limits</string>
+    <string name="an_avail_yes">Available</string>
+    <string name="an_avail_partial">Partly</string>
+    <string name="an_avail_no">Not available yet</string>
+    <string name="an_m_rest">Resting pulse · fitness development</string>
+    <string name="an_m_rest_n">Device resting pulse, median, comparison with the previous period (7/28/90 days). Depends on the history.</string>
+    <string name="an_m_hrv">Heart rate variability</string>
+    <string name="an_m_hrv_n">There is no verified daily RR series; HRV is not estimated from pulse values.</string>
+    <string name="an_m_hrr">Heart rate recovery</string>
+    <string name="an_m_hrr_n">Needs comparable exertion sessions with exertion metadata; steps and pulse alone are not enough.</string>
+    <string name="an_m_spo2">Oxygen stability (SpO₂)</string>
+    <string name="an_m_spo2_n">The SpO₂ history is visible in the History tab; a nightly analysis is non-diagnostic and still limited.</string>
+    <string name="an_m_sleep">Sleep and recovery</string>
+    <string name="an_m_sleep_n">There is no verified sleep source; sleep stages are not estimated.</string>
+    <string name="an_m_actnight">Activity → following night</string>
+    <string name="an_m_actnight_n">Needs verified sleep/night intervals (history download).</string>
+    <string name="an_m_lag">Delayed recovery (lag)</string>
+    <string name="an_m_lag_n">Needs sleep and exertion data over longer periods.</string>
+    <string name="an_m_matched">Fitness progress at comparable exertion</string>
+    <string name="an_m_matched_n">Without verified exertion metadata there is no result metric (“No sufficiently comparable sessions”).</string>
+    <string name="an_m_t90">90-day trends</string>
+    <string name="an_m_t90_n">Switch 90 d in the trend block; nothing is ever extrapolated – missing days stay empty.</string>
+    <string name="an_m_atlas">Activity atlas (steps)</string>
+    <string name="an_m_atlas_n">Calendar grid of daily step totals; gray cell = no verified data.</string>
+    <string name="an_m_corr">Steps ↔ resting pulse the next day</string>
+    <string name="an_m_corr_n">Exploratory (Spearman, 95 % interval, robustness); from 30 paired days, never to be read as a cause.</string>
+    <string name="an_m_circ">Circadian daily patterns</string>
+    <string name="an_m_circ_n">Research backlog: no approved method yet.</string>
+    <string name="an_m_cp">Change-point analysis</string>
+    <string name="an_m_cp_n">Research backlog: needs a much longer history.</string>
+    <string name="an_m_cluster">Exploratory clusters</string>
+    <string name="an_m_cluster_n">Research backlog: no clusters without validated features.</string>
+    <string name="an_m_cov">Data coverage</string>
+    <string name="an_m_cov_n">Resting pulse and steps separately: “x of y days” in the trend block.</string>
+    <string name="an_m_methods">Methods and limits</string>
+    <string name="an_m_methods_n">Sources, time reference, assumptions and what the analyses do not say.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="an_methods_text">• Sources: only locally stored values supplied by the device (resting pulse calculated by the device, step counter cumulative per day; last valid daily total).\n• Time reference: reception time on the phone, local calendar days; today is incomplete.\n• Gaps stay gaps: missing days are not estimated, not connected and not counted as 0.\n• Comparisons: non-overlapping previous period of equal length; minimum days 4 / 14 / 45 (7 / 28 / 90 days) – a reasoned product heuristic, not a scientific threshold.\n• Relationships are exploratory and describe only this data; they say nothing about cause and effect.\n• No diagnosis, no fitness or health score, no medical assessment.</string>
+    <string name="tr_cd">Trends. Contains the unverified device resting pulse.</string>
+    <string name="tr_computing">Calculating trends …</string>
+    <string name="tr_failed">Trends could not be calculated.</string>
+    <string name="tr_title">Trends</string>
+    <string name="tr_method_cd">Method and limitations of the trends</string>
+    <string name="tr_dim_cd">%1$s: %2$s. %3$s</string>
+    <string name="tr_col_7">7 d</string>
+    <string name="tr_col_28">28 d</string>
+    <string name="tr_col_90">90 d</string>
+    <string name="tr_rest">Resting pulse</string>
+    <string name="tr_steps">Steps</string>
+    <string name="tr_rest_daily">Device resting pulse (bpm)</string>
+    <string name="tr_steps_daily">Steps per day</string>
+    <string name="tr_pairs_days">%1$s/%2$s days</string>
+    <string name="tr_corr_cd">Relationship between steps and resting pulse the next day: %1$s, %2$s. Tap for the scatter plot.</string>
+    <string name="tr_next_day">  next day</string>
+    <string name="tr_window_cd">Period %1$s days</string>
+    <string name="tr_last7">Last 7 days</string>
+    <string name="tr_no_data">no data</string>
+    <string name="tr_rest_dev">Resting pulse · development</string>
+    <string name="tr_tap_daily"> Tap for the daily values.</string>
+    <string name="tr_coverage">Data coverage</string>
+    <string name="tr_atlas">Activity atlas · steps</string>
+    <string name="tr_day_detail">Day detail</string>
+    <string name="tr_atlas_legend">Shading = relative step count of the recorded days (not a health status). Gray cell = no verified data, not 0 steps. Outlined = today, not finished yet. Trends describe your recorded data – not a fitness diagnosis.</string>
+    <string name="tr_cell_cd">%1$s %2$s</string>
+    <string name="tr_cell_days">, days with data </string>
+    <string name="tr_median7">Median 7 d</string>
+    <string name="tr_median28">Median 28 d</string>
+    <string name="tr_daily_note">%1$s of 90 days with data · empty days = no measurement (not 0). Dashed: median of the last 7 or 28 complete days. Today is not included. Not a diagnosis.</string>
+    <string name="tr_details_head">Overview (28 days, no total score)</string>
+    <string name="tr_details_dim">\n• %1$s: %2$s – %3$s</string>
+    <string name="tr_details_sizes">\n\nValues per period: median of complete days, arrow = direction compared with the equally long period before, below it days with data / period.</string>
+    <string name="tr_details_days">\n%1$s days: </string>
+    <string name="tr_details_unrated">not assessable · %1$s</string>
+    <string name="tr_details_row">%1$s %2$s %3$s%4$s (before: %5$s) · %6$s/%7$s days</string>
+    <string name="tr_details_corr_head">\n\nRelationship (exploratory, 1 pre-specified hypothesis): steps of one day ↔ device resting pulse the next day\n</string>
+    <string name="tr_details_corr_nr">%1$s · %2$s</string>
+    <string name="tr_details_corr">%1$s · ρ=%2$s (95 %%: %3$s to %4$s) · n=%5$s days. %6$s</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="tr_details_foot">\n\nDays without data are not filled in; too few days result in “not assessable”. The resting pulse is the value reported by the device, its measurement conditions are unverified. Steps are activity volume, not a measure of fitness. Not a diagnosis.</string>
+    <string name="tr_methods_title">Trends · method</string>
+    <string name="tr_scatter_x">Steps (day)</string>
+    <string name="tr_scatter_y">Resting pulse next day (bpm)</string>
+    <string name="tr_scatter_note">%1$s value pairs · each point = one day. No trend line. A relationship in the points says nothing about cause and effect.</string>
+    <string name="tr_scatter_title">Steps ↔ resting pulse the next day</string>
+    <string name="tr_scatter_cd">Scatter plot %1$s versus %2$s with %3$s value pairs. Value range %4$s %5$s to %6$s, %7$s %8$s to %9$s.</string>
+    <string name="tr_bars_cd">Daily values of the last %1$s days: %2$s days with data</string>
+    <string name="tr_bars_range">, lowest %1$s, highest %2$s</string>
+    <string name="tr_bars_none">No daily values</string>
+    <string name="tr_bars_ago">%1$s d ago</string>
+    <string name="tr_bars_ago_axis">%1$s d ago · axis from %2$s</string>
+    <string name="tr_bars_yesterday">yesterday</string>
+    <string name="tr_rest_chart_none">No verified resting pulse values</string>
+    <string name="md_dir_up">higher</string>
+    <string name="md_dir_down">lower</string>
+    <string name="md_dir_stable">unchanged</string>
+    <string name="md_dir_unknown">not assessable</string>
+    <string name="md_state_pos">positive</string>
+    <string name="md_state_neutral">neutral</string>
+    <string name="md_state_mixed">mixed</string>
+    <string name="md_verdict_nc">not computable</string>
+    <string name="md_verdict_none">no reliable relationship</string>
+    <string name="md_verdict_expl">exploratory relationship</string>
+    <string name="md_dim_consistency">Activity consistency</string>
+    <string name="md_dim_fitness">Fitness development</string>
+    <string name="md_dim_recovery">Recovery</string>
+    <string name="md_cons_few">Too few days with step data for a comparison over %1$s days.</string>
+    <string name="md_cons_up">Steps per day have increased compared with the previous period.</string>
+    <string name="md_cons_down">Steps per day have decreased compared with the previous period.</string>
+    <string name="md_cons_same">Steps per day are unchanged compared with the previous period.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="md_fit_none">Neither activity nor resting pulse has enough data over %1$s days.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="md_fit_one">Only one data channel available (%1$s); no statement about fitness.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="md_fit_good">Activity increased; device resting pulse decreased in the same period. An indication, not a diagnosis.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="md_fit_bad">Activity decreased and device resting pulse increased. Possible causes were not examined.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="md_fit_mixed">Activity and device resting pulse do not move in the same direction in the sense of a training effect.</string>
+    <string name="md_fit_no_change">No clear change over %1$s days.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="md_rec">No verified sleep or HRV signal; nothing is estimated.</string>
+    <string name="md_trend_few">Too few days with data (%1$s of at least %2$s).</string>
+    <string name="md_trend_base_few">The comparison period has too little data (%1$s of at least %2$s).</string>
+    <string name="md_trend_note">Median of the last %1$s days against the %2$s days before.</string>
+    <string name="md_corr_pairs">Only %1$s paired days, at least %2$s needed.</string>
+    <string name="md_corr_const">One quantity is constant; no correlation can be defined.</string>
+    <string name="md_corr_dep">Too few independent observations because of temporal dependence.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="md_corr_method">Spearman ρ, 95 %% interval with effective n≈%1$s; no statement about cause and effect.</string>
+    <string name="md_sens">Robustness: leaving out single days ρ %1$s to %2$s; without the %3$s most conspicuous days ρ %4$s – %5$s</string>
+    <string name="md_stable">stable.</string>
+    <string name="md_unstable">not stable (single days influence the result).</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="md_hero_none">No verified resting pulse values yet. Source: resting pulse calculated by the device (no substitution by live pulse).</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="md_hero_few">Too few days with resting pulse (%1$s of at least %2$s): daily values are shown, but no trend or comparison statement.</string>
+    <string name="md_hero_delta">%1$s bpm compared with the previous %2$s days</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="md_hero_msg_ok">Resting pulse calculated by the device; compared with the %1$s days before. Not a fitness diagnosis.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="md_hero_msg_nobase">Resting pulse calculated by the device. The comparison period has too little data (%1$s of at least %2$s); no comparison.</string>
+    <string name="md_hero_cd">Resting pulse, development over %1$s days. </string>
+    <string name="md_hero_cd_median">Median %1$s. </string>
+    <string name="md_cov_text">%1$s: %2$s of %3$s days</string>
+    <string name="md_cov_hint">days are missing for a trend statement (at least %1$s needed)</string>
+    <string name="tr_week_value">%1$s: %2$s</string>
+    <string name="md_week_cov">%1$s of 7 days</string>
+    <string name="md_week_unavail">Without daily values (no verified daily series yet; device values appear only live): sleep duration, calories, intensity minutes, stress.</string>
+    <string name="md_week_goal">Goal (%1$s) reached on %2$s of %3$s days with data.</string>
+    <string name="md_week_avg_steps">Ø steps per day</string>
+    <string name="md_week_total_steps">Total steps</string>
+    <string name="md_week_total_val">%1$s (days with data only)</string>
+    <string name="md_week_avg_rest">Ø device resting pulse</string>
+    <string name="md_atlas_summary">%1$s of %2$s days with verified step values</string>
+    <string name="md_atlas_none">%1$s\nNo verified daily data.</string>
+    <string name="md_atlas_partial">%1$s\nSo far %2$s steps (today, not finished yet).</string>
+    <string name="md_atlas_last">%1$s\nLast verified step total: %2$s.</string>
+    <string name="md_atlas_lvl_none">no data</string>
+    <string name="md_atlas_lvl_low">fewer recorded steps</string>
+    <string name="md_atlas_lvl_mid">medium step count</string>
+    <string name="md_atlas_lvl_high">more recorded steps</string>
+    <string name="md_atlas_cd">Activity atlas, steps. %1$s. Period %2$s days. Tap cells for details; gray cells have no verified data.</string>
+    <string name="md_goal_reg">Own goal (%1$s) reached on %2$s of %3$s days with data (%4$s-day window)</string>
+
+    <!-- Analysen: Marker und Wochentage -->
+    <string name="uv_legend">Violet border = measurement or analysis not validated (sensor/device field unverified, no diagnosis).</string>
+    <string name="uv_suffix"> Not validated, violet border.</string>
+    <string name="an_wd_mo">Mon</string>
+    <string name="an_wd_di">Tue</string>
+    <string name="an_wd_mi">Wed</string>
+    <string name="an_wd_do">Thu</string>
+    <string name="an_wd_fr">Fri</string>
+    <string name="an_wd_sa">Sat</string>
+    <string name="an_wd_so">Sun</string>
+
+    <!-- Allgemein -->
+    <string name="action_ok">OK</string>
 </resources>

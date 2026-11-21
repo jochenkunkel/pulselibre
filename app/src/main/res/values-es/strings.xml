@@ -355,4 +355,203 @@
     <string name="hd_density_empty">Gráfico de distribución: sin mediciones en el período elegido.</string>
     <string name="hd_density_cd">Gráfico de distribución: %1$d mediciones en %2$d de %3$d ventanas de tiempo, rango de valores del eje de %4$d a %5$d. Un doble toque en el gráfico abre los valores individuales de la ventana tocada; el color muestra la frecuencia, las ventanas sin valores permanecen vacías.</string>
     <string name="hd_axis_span">%1$s a %2$s</string>
+
+    <!-- Analysen: Katalog, Trendkarte, Modellsätze -->
+    <!-- TODO-CHATGPT-REVIEW: Erstentwurf von Claude Code, Ticket #365 -->
+    <string name="an_title">Análisis</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="an_intro">Análisis científicos y exploratorios de tus datos registrados – no es un diagnóstico. Los módulos sin datos verificados se marcan como «Aún no disponible» con el motivo.</string>
+    <string name="an_group_cd">Grupo %1$s: %2$s. %3$s</string>
+    <string name="an_module_cd">%1$s. %2$s. %3$s</string>
+    <string name="an_tap_open"> Toca para abrir.</string>
+    <string name="an_methods_title">Métodos y límites</string>
+    <string name="an_cat_heart">Corazón y circulación</string>
+    <string name="an_cat_heart_sub">Pulso en reposo, evolución de la forma física, oxígeno</string>
+    <string name="an_cat_sleep">Sueño y recuperación</string>
+    <string name="an_cat_sleep_sub">Noche, día siguiente, recuperación diferida</string>
+    <string name="an_cat_move">Movimiento y evolución</string>
+    <string name="an_cat_move_sub">Actividad, progreso, tendencias de 90 días</string>
+    <string name="an_cat_pattern">Relaciones y patrones</string>
+    <string name="an_cat_pattern_sub">Correlaciones, patrones diarios, rupturas</string>
+    <string name="an_cat_quality">Calidad de datos y métodos</string>
+    <string name="an_cat_quality_sub">Cobertura, origen, límites</string>
+    <string name="an_avail_yes">Disponible</string>
+    <string name="an_avail_partial">Parcial</string>
+    <string name="an_avail_no">Aún no disponible</string>
+    <string name="an_m_rest">Pulso en reposo · evolución de la forma física</string>
+    <string name="an_m_rest_n">Pulso en reposo del dispositivo, mediana, comparación con el período anterior (7/28/90 días). Depende del historial.</string>
+    <string name="an_m_hrv">Variabilidad de la frecuencia cardíaca</string>
+    <string name="an_m_hrv_n">No hay una serie diaria de RR verificada; la VFC no se estima a partir de valores de pulso.</string>
+    <string name="an_m_hrr">Recuperación de la frecuencia cardíaca</string>
+    <string name="an_m_hrr_n">Necesita sesiones de esfuerzo comparables con metadatos de esfuerzo; los pasos y el pulso solos no bastan.</string>
+    <string name="an_m_spo2">Estabilidad del oxígeno (SpO₂)</string>
+    <string name="an_m_spo2_n">El historial de SpO₂ es visible en la pestaña Historial; un análisis nocturno no es diagnóstico y sigue siendo limitado.</string>
+    <string name="an_m_sleep">Sueño y recuperación</string>
+    <string name="an_m_sleep_n">No hay una fuente de sueño verificada; las fases del sueño no se estiman.</string>
+    <string name="an_m_actnight">Actividad → noche siguiente</string>
+    <string name="an_m_actnight_n">Necesita intervalos de sueño/noche verificados (descarga del historial).</string>
+    <string name="an_m_lag">Recuperación diferida (retardo)</string>
+    <string name="an_m_lag_n">Necesita datos de sueño y esfuerzo durante períodos más largos.</string>
+    <string name="an_m_matched">Progreso de la forma física con esfuerzo comparable</string>
+    <string name="an_m_matched_n">Sin metadatos de esfuerzo verificados no hay métrica de resultado («No hay sesiones suficientemente comparables»).</string>
+    <string name="an_m_t90">Tendencias de 90 días</string>
+    <string name="an_m_t90_n">Interruptor 90 d en el bloque de tendencias; nunca se extrapola – los días que faltan quedan vacíos.</string>
+    <string name="an_m_atlas">Atlas de actividad (pasos)</string>
+    <string name="an_m_atlas_n">Cuadrícula de calendario con los totales diarios de pasos; celda gris = sin datos verificados.</string>
+    <string name="an_m_corr">Pasos ↔ pulso en reposo al día siguiente</string>
+    <string name="an_m_corr_n">Exploratorio (Spearman, intervalo del 95 %, robustez); a partir de 30 días emparejados, nunca debe leerse como causa.</string>
+    <string name="an_m_circ">Patrones circadianos diarios</string>
+    <string name="an_m_circ_n">Pendiente de investigación: aún no hay un método aprobado.</string>
+    <string name="an_m_cp">Análisis de puntos de cambio</string>
+    <string name="an_m_cp_n">Pendiente de investigación: necesita un historial mucho más largo.</string>
+    <string name="an_m_cluster">Clústeres exploratorios</string>
+    <string name="an_m_cluster_n">Pendiente de investigación: sin clústeres sin características validadas.</string>
+    <string name="an_m_cov">Cobertura de datos</string>
+    <string name="an_m_cov_n">Pulso en reposo y pasos por separado: «x de y días» en el bloque de tendencias.</string>
+    <string name="an_m_methods">Métodos y límites</string>
+    <string name="an_m_methods_n">Fuentes, referencia temporal, supuestos y lo que los análisis no dicen.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="an_methods_text">• Fuentes: solo valores guardados localmente y suministrados por el dispositivo (pulso en reposo calculado por el dispositivo, contador de pasos acumulado por día; último total diario válido).\n• Referencia temporal: hora de recepción en el teléfono, días naturales locales; hoy está incompleto.\n• Los huecos siguen siendo huecos: los días que faltan no se estiman, no se unen y no se cuentan como 0.\n• Comparaciones: período anterior de igual duración sin solapamiento; días mínimos 4 / 14 / 45 (7 / 28 / 90 días) – una heurística de producto fundamentada, no un umbral científico.\n• Las relaciones son exploratorias y describen solo estos datos; no dicen nada sobre causa y efecto.\n• Sin diagnóstico, sin puntuación de forma física o salud, sin valoración médica.</string>
+    <string name="tr_cd">Tendencias. Incluye el pulso en reposo del dispositivo sin verificar.</string>
+    <string name="tr_computing">Calculando tendencias …</string>
+    <string name="tr_failed">No se pudieron calcular las tendencias.</string>
+    <string name="tr_title">Tendencias</string>
+    <string name="tr_method_cd">Método y limitaciones de las tendencias</string>
+    <string name="tr_dim_cd">%1$s: %2$s. %3$s</string>
+    <string name="tr_col_7">7 d</string>
+    <string name="tr_col_28">28 d</string>
+    <string name="tr_col_90">90 d</string>
+    <string name="tr_rest">Pulso en reposo</string>
+    <string name="tr_steps">Pasos</string>
+    <string name="tr_rest_daily">Pulso en reposo del dispositivo (lpm)</string>
+    <string name="tr_steps_daily">Pasos por día</string>
+    <string name="tr_pairs_days">%1$s/%2$s días</string>
+    <string name="tr_corr_cd">Relación entre pasos y pulso en reposo al día siguiente: %1$s, %2$s. Toca para ver el diagrama de dispersión.</string>
+    <string name="tr_next_day">  día siguiente</string>
+    <string name="tr_window_cd">Período de %1$s días</string>
+    <string name="tr_last7">Últimos 7 días</string>
+    <string name="tr_no_data">sin datos</string>
+    <string name="tr_rest_dev">Pulso en reposo · evolución</string>
+    <string name="tr_tap_daily"> Toca para ver los valores diarios.</string>
+    <string name="tr_coverage">Cobertura de datos</string>
+    <string name="tr_atlas">Atlas de actividad · pasos</string>
+    <string name="tr_day_detail">Detalle del día</string>
+    <string name="tr_atlas_legend">Gradación = número relativo de pasos de los días registrados (no es un estado de salud). Celda gris = sin datos verificados, no 0 pasos. Con borde = hoy, aún sin terminar. Las tendencias describen tus datos registrados – no es un diagnóstico de forma física.</string>
+    <string name="tr_cell_cd">%1$s %2$s</string>
+    <string name="tr_cell_days">, días con datos </string>
+    <string name="tr_median7">Mediana 7 d</string>
+    <string name="tr_median28">Mediana 28 d</string>
+    <string name="tr_daily_note">%1$s de 90 días con datos · días vacíos = sin medición (no 0). Discontinua: mediana de los últimos 7 o 28 días completos. El día de hoy no está incluido. No es un diagnóstico.</string>
+    <string name="tr_details_head">Resumen (28 días, sin puntuación total)</string>
+    <string name="tr_details_dim">\n• %1$s: %2$s – %3$s</string>
+    <string name="tr_details_sizes">\n\nValores por período: mediana de días completos, flecha = dirección respecto al período de igual duración anterior, debajo días con datos / período.</string>
+    <string name="tr_details_days">\n%1$s días: </string>
+    <string name="tr_details_unrated">no evaluable · %1$s</string>
+    <string name="tr_details_row">%1$s %2$s %3$s%4$s (antes: %5$s) · %6$s/%7$s días</string>
+    <string name="tr_details_corr_head">\n\nRelación (exploratoria, 1 hipótesis fijada de antemano): pasos de un día ↔ pulso en reposo del dispositivo al día siguiente\n</string>
+    <string name="tr_details_corr_nr">%1$s · %2$s</string>
+    <string name="tr_details_corr">%1$s · ρ=%2$s (95 %%: %3$s a %4$s) · n=%5$s días. %6$s</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="tr_details_foot">\n\nLos días sin datos no se rellenan; muy pocos días dan «no evaluable». El pulso en reposo es el valor que informa el dispositivo, sus condiciones de medición no están verificadas. Los pasos son volumen de actividad, no una medida de la forma física. No es un diagnóstico.</string>
+    <string name="tr_methods_title">Tendencias · método</string>
+    <string name="tr_scatter_x">Pasos (día)</string>
+    <string name="tr_scatter_y">Pulso en reposo al día siguiente (lpm)</string>
+    <string name="tr_scatter_note">%1$s pares de valores · cada punto = un día. Sin línea de tendencia. Una relación en los puntos no dice nada sobre causa y efecto.</string>
+    <string name="tr_scatter_title">Pasos ↔ pulso en reposo al día siguiente</string>
+    <string name="tr_scatter_cd">Diagrama de dispersión %1$s frente a %2$s con %3$s pares de valores. Rango de valores %4$s %5$s a %6$s, %7$s %8$s a %9$s.</string>
+    <string name="tr_bars_cd">Valores diarios de los últimos %1$s días: %2$s días con datos</string>
+    <string name="tr_bars_range">, más bajo %1$s, más alto %2$s</string>
+    <string name="tr_bars_none">Sin valores diarios</string>
+    <string name="tr_bars_ago">hace %1$s d</string>
+    <string name="tr_bars_ago_axis">hace %1$s d · eje desde %2$s</string>
+    <string name="tr_bars_yesterday">ayer</string>
+    <string name="tr_rest_chart_none">Sin valores de pulso en reposo verificados</string>
+    <string name="md_dir_up">más alto</string>
+    <string name="md_dir_down">más bajo</string>
+    <string name="md_dir_stable">sin cambios</string>
+    <string name="md_dir_unknown">no evaluable</string>
+    <string name="md_state_pos">positivo</string>
+    <string name="md_state_neutral">neutral</string>
+    <string name="md_state_mixed">mixto</string>
+    <string name="md_verdict_nc">no calculable</string>
+    <string name="md_verdict_none">sin relación fiable</string>
+    <string name="md_verdict_expl">relación exploratoria</string>
+    <string name="md_dim_consistency">Constancia de la actividad</string>
+    <string name="md_dim_fitness">Evolución de la forma física</string>
+    <string name="md_dim_recovery">Recuperación</string>
+    <string name="md_cons_few">Muy pocos días con datos de pasos para una comparación de %1$s días.</string>
+    <string name="md_cons_up">Los pasos por día han aumentado respecto al período anterior.</string>
+    <string name="md_cons_down">Los pasos por día han disminuido respecto al período anterior.</string>
+    <string name="md_cons_same">Los pasos por día no han cambiado respecto al período anterior.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="md_fit_none">Ni la actividad ni el pulso en reposo tienen suficientes datos en %1$s días.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="md_fit_one">Solo hay un canal de datos disponible (%1$s); sin afirmación sobre la forma física.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="md_fit_good">La actividad aumentó; el pulso en reposo del dispositivo disminuyó en el mismo período. Un indicio, no un diagnóstico.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="md_fit_bad">La actividad disminuyó y el pulso en reposo del dispositivo aumentó. No se examinaron las posibles causas.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="md_fit_mixed">La actividad y el pulso en reposo del dispositivo no evolucionan en la misma dirección en el sentido de un efecto de entrenamiento.</string>
+    <string name="md_fit_no_change">Ningún cambio claro en %1$s días.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="md_rec">Sin señal de sueño o VFC verificada; no se estima nada.</string>
+    <string name="md_trend_few">Muy pocos días con datos (%1$s de al menos %2$s).</string>
+    <string name="md_trend_base_few">El período de comparación tiene muy pocos datos (%1$s de al menos %2$s).</string>
+    <string name="md_trend_note">Mediana de los últimos %1$s días frente a los %2$s días anteriores.</string>
+    <string name="md_corr_pairs">Solo %1$s días emparejados, se necesitan al menos %2$s.</string>
+    <string name="md_corr_const">Una magnitud es constante; no se puede definir una correlación.</string>
+    <string name="md_corr_dep">Muy pocas observaciones independientes debido a la dependencia temporal.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="md_corr_method">ρ de Spearman, intervalo del 95 %% con n efectivo ≈%1$s; sin afirmación sobre causa y efecto.</string>
+    <string name="md_sens">Robustez: sin días individuales ρ %1$s a %2$s; sin los %3$s días más llamativos ρ %4$s – %5$s</string>
+    <string name="md_stable">estable.</string>
+    <string name="md_unstable">no estable (días individuales influyen en el resultado).</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="md_hero_none">Aún no hay valores de pulso en reposo verificados. Fuente: pulso en reposo calculado por el dispositivo (sin sustitución por el pulso en directo).</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="md_hero_few">Muy pocos días con pulso en reposo (%1$s de al menos %2$s): se muestran los valores diarios, pero ninguna afirmación de tendencia o comparación.</string>
+    <string name="md_hero_delta">%1$s lpm frente a los %2$s días anteriores</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="md_hero_msg_ok">Pulso en reposo calculado por el dispositivo; comparado con los %1$s días anteriores. No es un diagnóstico de forma física.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="md_hero_msg_nobase">Pulso en reposo calculado por el dispositivo. El período de comparación tiene muy pocos datos (%1$s de al menos %2$s); sin comparación.</string>
+    <string name="md_hero_cd">Pulso en reposo, evolución en %1$s días. </string>
+    <string name="md_hero_cd_median">Mediana %1$s. </string>
+    <string name="md_cov_text">%1$s: %2$s de %3$s días</string>
+    <string name="md_cov_hint">faltan días para una afirmación de tendencia (se necesitan al menos %1$s)</string>
+    <string name="tr_week_value">%1$s: %2$s</string>
+    <string name="md_week_cov">%1$s de 7 días</string>
+    <string name="md_week_unavail">Sin valores diarios (aún no hay series diarias verificadas; los valores del dispositivo solo aparecen en directo): duración del sueño, calorías, minutos de intensidad, estrés.</string>
+    <string name="md_week_goal">Objetivo (%1$s) alcanzado en %2$s de %3$s días con datos.</string>
+    <string name="md_week_avg_steps">Ø pasos por día</string>
+    <string name="md_week_total_steps">Total de pasos</string>
+    <string name="md_week_total_val">%1$s (solo días con datos)</string>
+    <string name="md_week_avg_rest">Ø pulso en reposo del dispositivo</string>
+    <string name="md_atlas_summary">%1$s de %2$s días con valores de pasos verificados</string>
+    <string name="md_atlas_none">%1$s\nSin datos diarios verificados.</string>
+    <string name="md_atlas_partial">%1$s\nHasta ahora %2$s pasos (hoy, aún sin terminar).</string>
+    <string name="md_atlas_last">%1$s\nÚltimo total de pasos verificado: %2$s.</string>
+    <string name="md_atlas_lvl_none">sin datos</string>
+    <string name="md_atlas_lvl_low">menos pasos registrados</string>
+    <string name="md_atlas_lvl_mid">número de pasos medio</string>
+    <string name="md_atlas_lvl_high">más pasos registrados</string>
+    <string name="md_atlas_cd">Atlas de actividad, pasos. %1$s. Período de %2$s días. Toca las celdas para ver detalles; las celdas grises no tienen datos verificados.</string>
+    <string name="md_goal_reg">Objetivo propio (%1$s) alcanzado en %2$s de %3$s días con datos (ventana de %4$s días)</string>
+
+    <!-- Analysen: Marker und Wochentage -->
+    <!-- TODO-CHATGPT-REVIEW: Erstentwurf von Claude Code, Ticket #365 -->
+    <string name="uv_legend">Borde violeta = medición o análisis no validado (sensor/campo del dispositivo sin verificar, sin diagnóstico).</string>
+    <string name="uv_suffix"> No validado, borde violeta.</string>
+    <string name="an_wd_mo">Lun</string>
+    <string name="an_wd_di">Mar</string>
+    <string name="an_wd_mi">Mié</string>
+    <string name="an_wd_do">Jue</string>
+    <string name="an_wd_fr">Vie</string>
+    <string name="an_wd_sa">Sáb</string>
+    <string name="an_wd_so">Dom</string>
+
+    <!-- Allgemein -->
+    <!-- TODO-CHATGPT-REVIEW: Erstentwurf von Claude Code, Ticket #365 -->
+    <string name="action_ok">OK</string>
 </resources>
