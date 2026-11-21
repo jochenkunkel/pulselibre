@@ -18,7 +18,6 @@ import org.junit.runner.RunWith
 /** #227: main tab "Analysen" with five groups, honest module states, methods dialog and links. */
 @RunWith(AndroidJUnit4::class)
 class AnalysenTabTest {
-    @get:org.junit.Rule val german = GermanUiRule()
     private fun all(v: View): List<View> =
         listOf(v) + ((v as? ViewGroup)?.let { g -> (0 until g.childCount).flatMap { all(g.getChildAt(it)) } } ?: emptyList())
 

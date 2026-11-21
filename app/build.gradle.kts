@@ -12,7 +12,7 @@ android {
         targetSdk = 35
         versionCode = (providers.gradleProperty("pulselibreVersionCode").orNull?.toIntOrNull() ?: 2)
         versionName = "2.0.0_build${providers.gradleProperty("pulselibreVersionCode").orNull ?: "2"}"
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner = "de.pulselibre.GermanTestRunner"
     }
     // CI uses one persistent private signing key supplied by GitHub Actions secrets.
     // Without these variables, assembleDebug remains an ordinary non-updatable CI debug APK.

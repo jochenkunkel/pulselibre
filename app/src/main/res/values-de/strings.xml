@@ -83,4 +83,12 @@
     <string name="delete_final_button">Endgültig löschen</string>
     <string name="settings_validation_toast">Bitte die Zahlen prüfen (Größe, Gewicht, Ziele und SpO₂-Orientierungsbereiche).</string>
     <string name="settings_saved_toast">Profil lokal gespeichert</string>
+
+    <!-- Navigation (MainNavigationView) -->
+    <string name="nav_overview">Übersicht</string>
+    <string name="nav_history">Verlauf</string>
+    <string name="nav_device">Gerät</string>
+    <string name="nav_testlab">Testlabor</string>
+    <string name="nav_data">Daten</string>
+    <string name="nav_analyses">Analysen</string>
 </resources>

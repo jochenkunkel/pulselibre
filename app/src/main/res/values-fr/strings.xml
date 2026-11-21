@@ -84,4 +84,13 @@
     <string name="delete_final_button">Supprimer définitivement</string>
     <string name="settings_validation_toast">Veuillez vérifier les nombres (taille, poids, objectifs et plages de référence SpO₂).</string>
     <string name="settings_saved_toast">Profil enregistré localement</string>
+
+    <!-- Navigation (MainNavigationView) -->
+    <!-- TODO-CHATGPT-REVIEW: Erstentwurf von Claude Code, Ticket #365 -->
+    <string name="nav_overview">Aperçu</string>
+    <string name="nav_history">Historique</string>
+    <string name="nav_device">Appareil</string>
+    <string name="nav_testlab">Labo de test</string>
+    <string name="nav_data">Données</string>
+    <string name="nav_analyses">Analyses</string>
 </resources>
