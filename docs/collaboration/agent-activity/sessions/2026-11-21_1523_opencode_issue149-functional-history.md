@@ -1,15 +1,15 @@
 # OpenCode – Issue #149: funktionale FIT-Historienpipeline
 - Agent/Umgebung: OpenCode / Linux worktree
 - Beginn: 2026-11-21 15:23 UTC
-- Letzte Aktualisierung: 2026-11-21 17:31 UTC
-- Status: aktiv
+- Letzte Aktualisierung: 2026-11-21 18:25 UTC
+- Status: aktiv – ein freigegebener S25-Produktlauf beendet; Offline-Fehleranalyse läuft
 - Rolle/Zuständigkeit: CIRQA/GFDI/FIT/SQLite/Backfill
 - Aktueller Auftrag: #149 – den vom Nutzer bekräftigten Auftrag „funktionaler historischer Download samt verifiziertem FIT-Import und GUI-Anzeige“ umsetzen
-- Jetzt in Bearbeitung: PR für begrenzte Product-ItemList-Fortsetzung nach `nextTransactionId`, eindeutige Laufidentität und Regressionen
-- Zeitnah geplant: PR-/Full-CI; erneuter produktiver S25-Lauf erst nach ausdrücklicher Freigabe für den geänderten Pfad
+- Jetzt in Bearbeitung: Pull-Antwort `result=3` aus dem einmaligen Produktlauf offline einordnen; fehlende Error-Metadaten im Pull-Parser untersuchen
+- Zeitnah geplant: parserseitige redigierte Error-Code-/Error-Source-Abdeckung mit synthetischen Tests, nach FIT-Agent-Abstimmung; keine weitere S25-Aktion ohne neue Freigabe
 - Betroffene Bereiche/Dateien: zunächst bestehender Smart/MLR-Downloader, FIT-Validierung/Commit, `HistoricalObservationRepository`/`FitHistoryReader`; noch kein Eingriff in #378-Gate/Testlabor-Dateien
-- Branch/Worktree: `opencode/fit-history-end-to-end-20261121` / `/tmp/opencode/pulselibre-history-149-20261121`
+- Branch/Worktree: `opencode/history-pull-rejection-followup-20261121` / `/tmp/opencode/pulselibre-history-149-20261121`
 - Abstimmungsbedarf: PR #378 (`opencode/nexttransaction-second-shot`) wird auf denselben Issue-Kontext bezogen; mein Umfang ist der bestehende Download→Import→GUI-Pfad, nicht `nextTransaction`-Gate oder No-Pull-Sonde. Bitte melden, falls dessen Umfang in Produktionstransport übergeht.
 - Agent-chat/agent-sync: START 2026-11-21_152353_opencode_149_START_functional-history.md; Abstimmung 2026-11-21_1524_opencode-an-alle_issue149-scope.md
-- Nachweise: `:app:testDebugUnitTest` bestanden; vollständige lokale CI auf aktuellem Branch inkl. 99 Python-Tests, JVM, Debug/R8-Release, Lint, APK-Diagnose und API-35-Emulator (15 Instrumentationstests) grün; zwei separate No-Pull-Transaktionsproben dokumentiert in PR #384; neue Produktaktion auf geändertem Code noch nicht ausgeführt
-- Nächster Schritt: finalen Diff prüfen, Agentenabgrenzung bestätigen, PR mit Branch-Full-CI eröffnen; kein weiterer S25-/BLE-Lauf ohne aktualisierte Einzelentscheidung
+- Nachweise: PR #385 (`c93f9da`) gemergt als `9a7f119`; Main-Full-CI Run `44926464757` vollständig grün; signiertes Main-APK Build 1690 mit identischer Signatur in-place installiert; exakt ein bestätigter Produktlauf, neuer Token `9331dd01916f`; ItemList 35, 17 verified skips, 18 selected; Pull `result=3`, 0 MLR/Transfers/Imports, `runDrained=false`; Detailbericht `CIRQA_PRODUCT_DOWNLOAD_RESULT_2026-11-21_BUILD1690.md`
+- Nächster Schritt: Fehlerbericht und fehlende Error-Felder offline prüfen; keine erneute Geräteaktion ohne neue Freigabe

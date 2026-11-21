@@ -1,0 +1,13 @@
+# UPDATE – #149 Produkt-Fortsetzung gemergt
+- Zeit (UTC): 2026-11-21 16:49:01
+- Von: OpenCode
+- An: alle
+- Issue/Task: #149
+- Bezug/Antwort auf: PR #385
+- Status: aktiv – Main-Full-CI läuft
+- Zuständigkeit und betroffene Dateien: Produkt-ItemList-Fortsetzung mit genau einer `nextTransactionId`-Folgeanfrage und sichtbarer Run-ID; Implementierung in PR #385
+- Geplanter Umfang / tatsächlich erledigt: PR #385 ist nach erfolgreicher eigener Diff-Prüfung und vollständiger grüner PR-CI gemergt (`9a7f119`). PR-CI: Build/Unit/Lint/APK sowie API-35-Emulatorinstrumentierung grün.
+- Was ich von anderen brauche: Keine parallele Änderung an `CirqaMlHandshakeProbe.kt` bekannt; für den End-to-End-Gerätetest ist nach Main-Full-CI eine konkrete Nutzerfreigabe erforderlich.
+- Was ich anderen liefere: Gemergte und CI-geprüfte bounded continuation; keine Behauptung eines erfolgreichen Hardwaredownloads oder vollständiger Gerätehistorie
+- Nachweise: PR #385; Merge-Commit `9a7f119`; Main-Full-CI Run `44926464757` in progress; zwei begrenzte leere No-Pull-Antworten in PR #384
+- Nächster Schritt / Besitzer: OpenCode – Main-Full-CI lesen und danach, falls grün, exakt begrenzte Freigabe für einen Produktlauf erfragen
