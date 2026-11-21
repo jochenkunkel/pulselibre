@@ -1,5 +1,7 @@
 # PulseLibre – Anforderungen, Motivation und Umsetzung
 
+> **Temporäre Entwicklungsregel (21.11.2026):** Rohdaten des aktuellen CIRQA-Testarmbands dürfen agentenintern verarbeitet werden; vor öffentlicher Weitergabe Identifizierbarkeit prüfen. Diese Sonderfreigabe gilt nicht automatisch für spätere personenbezogene Daten. Siehe [Forschungsdatenregel](collaboration/CURRENT_BAND_RAW_DATA_POLICY.md).
+
 Stand: 2026-11-15 · Lebendes Projektdokument · Priorität: nachvollziehbare Fakten statt scheinbarer Genauigkeit.
 
 ## 1. Warum wir PulseLibre entwickeln
