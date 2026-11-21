@@ -30,6 +30,7 @@ class PulseLibreApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         AppAppearance.apply(AppAppearance.preference(this))
+        AppLanguageSettings.apply(AppLanguageSettings.preference(this))
     }
 }
 

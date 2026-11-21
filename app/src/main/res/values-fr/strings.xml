@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_language_heading">Langue</string>
+    <string name="language_system">Langue du système</string>
+    <string name="settings_language_hint">Par défaut, la langue du système. L’app recharge ses écrans lors du changement. Certains textes sont encore en cours de traduction et apparaissent provisoirement en allemand.</string>
+    <string name="settings_language_content_description">Langue</string>
+</resources>

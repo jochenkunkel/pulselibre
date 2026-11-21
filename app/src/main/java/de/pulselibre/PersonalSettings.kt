@@ -168,6 +168,16 @@ object PersonalSettings {
             layout.addView(this)
         }
 
+        heading(PlIcon.OVERVIEW, context.getString(R.string.settings_language_heading), context.getString(R.string.settings_language_hint))
+        val languageChoice = Spinner(context).apply {
+            adapter = ArrayAdapter(context, android.R.layout.simple_spinner_dropdown_item,
+                AppLanguage.entries.map { it.label(context) })
+            setSelection(AppLanguageSettings.preference(context).ordinal)
+            contentDescription = context.getString(R.string.settings_language_content_description)
+            tag = "settings_language"
+            layout.addView(this)
+        }
+
         heading(PlIcon.STEPS, "Aktivität aus Schritten",
             "Aus kumulativen CIRQA-Schrittständen der letzten Minuten. Der Modus ist eine grobe Anzeige-Heuristik: Schritte belegen weder Sitzen noch eine bestimmte Sportart. Bei zu wenigen oder veralteten Werten bleibt er unbekannt.")
         val activitySettings = ActivityDetectionPreference.read(context)
@@ -342,6 +352,9 @@ object PersonalSettings {
                 Toast.makeText(context, "Profil lokal gespeichert", Toast.LENGTH_SHORT).show()
                 dialog.dismiss()
                 AppAppearance.save(context, ThemePreference.entries[themeChoice.selectedItemPosition])
+                AppLanguage.entries[languageChoice.selectedItemPosition].let { chosen ->
+                    if (chosen != AppLanguageSettings.preference(context)) AppLanguageSettings.save(context, chosen)
+                }
             }
         }
         DialogProbe.track(dialog).show()
