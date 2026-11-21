@@ -189,7 +189,7 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
             val reached = stepGoalStatus(steps, goal)
             val targetText = target?.let { "Ziel ($targetSource): ${integers.format(it)} Schritte" + (reached?.let { r -> " · $r" } ?: "") }
                 ?: "Kein gültiges Schrittziel verfügbar (Gerät oder Einstellungen)"
-            contentDescription = "${metric.title}. ${metric.value}. $targetText."
+            contentDescription = "${MetricText.title(context, metric.title)}. ${MetricText.value(context, metric.value)}. $targetText."
             if (progress != null) {
                 val percentValue = progress
                 val percent = NumberFormat.getNumberInstance(Locale.GERMANY).apply {
@@ -414,13 +414,13 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
             val displaySettings = SpO2DisplaySettings.read(context)
             valueLayer.addView(SpO2LungView(context, percent, displaySettings.colorFor(percent, palette), palette.track),
                 android.widget.FrameLayout.LayoutParams(-1, dp(76), Gravity.CENTER))
-            valueLayer.addView(label(metric.value, 22f, accent, true).apply {
+            valueLayer.addView(label(MetricText.value(context, metric.value), 22f, accent, true).apply {
                 gravity = Gravity.CENTER
                 tag = "spo2_value"
             }, android.widget.FrameLayout.LayoutParams(-1, -1))
             content.addView(valueLayer, LayoutParams(-1, dp(76)).apply { topMargin = dp(4) })
         } else {
-            content.addView(label(metric.value, 22f, accent, true),
+            content.addView(label(MetricText.value(context, metric.value), 22f, accent, true),
                 LayoutParams(-1, -2).apply { topMargin = dp(6) })
         }
         val profile = MetricReferenceProfile.forMetric(metric, stepGoal)
@@ -504,11 +504,11 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
     private fun card(metric: DashboardMetric) = MetricCard(metric)
 
     private fun receptionLabel(f: ReceptionFreshness) = when (f) {
-        ReceptionFreshness.UNKNOWN -> "kein Empfangszeitpunkt"
-        ReceptionFreshness.FRESH -> "frisch"
-        ReceptionFreshness.RECENT -> "wenige Minuten alt"
-        ReceptionFreshness.DELAYED -> "verzögert"
-        ReceptionFreshness.OLD -> "lange ohne neuen Empfang"
+        ReceptionFreshness.UNKNOWN -> context.getString(R.string.reception_unknown)
+        ReceptionFreshness.FRESH -> context.getString(R.string.reception_fresh)
+        ReceptionFreshness.RECENT -> context.getString(R.string.reception_recent)
+        ReceptionFreshness.DELAYED -> context.getString(R.string.reception_delayed)
+        ReceptionFreshness.OLD -> context.getString(R.string.reception_old)
     }
 
     private inner class MetricCard(metric: DashboardMetric) : android.widget.FrameLayout(context) {
@@ -539,7 +539,7 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
                 android.graphics.drawable.LayerDrawable(arrayOf(base, inner)).apply { setLayerInset(1, dp(4), dp(4), dp(4), dp(4)) }
             } else base
             tag = "dashboard_metric_${metric.title}"
-            contentDescription = "${metric.title}: ${metric.value}. Letzter Empfang: ${receptionLabel(freshness)}."
+            contentDescription = context.getString(R.string.metric_last_reception_cd, MetricText.title(context, metric.title), MetricText.value(context, metric.value), receptionLabel(freshness))
             if (unvalidated) contentDescription = contentDescription.toString() + UnvalidatedFeatures.ACCESSIBILITY_SUFFIX
             ViewCompat.setScreenReaderFocusable(this, false)
             importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
@@ -568,12 +568,12 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
             tag = "dashboard_metric_icon_${metric.title}"
         }, LayoutParams(dp(20), dp(20)).apply { marginEnd = dp(6) })
         // The long SpO₂ title broke mid-word in a half-width card; show the short name, keep the full one for accessibility.
-        addView(label(displayTitle(metric.title), 12f, muted, true).apply {
+        addView(label(MetricText.shortTitle(context, metric.title), 12f, muted, true).apply {
             if (metric.title != "Schritte heute") {
                 maxLines = 2
                 ellipsize = android.text.TextUtils.TruncateAt.END
             }
-            contentDescription = metric.title
+            contentDescription = MetricText.title(context, metric.title)
         }, LayoutParams(0, -2, 1f))
     }
 
@@ -701,7 +701,7 @@ private class ReceptionIndicatorView(
     init {
         isClickable = true
         isFocusable = true
-        contentDescription = "Quelle, Skala und Empfangsinformationen zu ${metric.title}: ${state.label()}. Antippen für Details."
+        contentDescription = "Quelle, Skala und Empfangsinformationen zu ${MetricText.title(context, metric.title)}: ${state.label()}. Antippen für Details."
         setOnClickListener { showDetails() }
     }
 
@@ -765,7 +765,7 @@ private class ReceptionIndicatorView(
             details.addView(line)
         }
         val profile = MetricReferenceProfile.forMetric(metric, stepGoal)
-        row("■", "${metric.title}  ·  ${metric.value}")
+        row("■", "${MetricText.title(context, metric.title)}  ·  ${MetricText.value(context, metric.value)}")
         if (profile != null) {
             row("▬", "Skala  ${profile.minimum}–${profile.maximum} ${profile.unit}", palette.muted)
             if (profile.referenceMinimum != null && profile.referenceMaximum != null) {
