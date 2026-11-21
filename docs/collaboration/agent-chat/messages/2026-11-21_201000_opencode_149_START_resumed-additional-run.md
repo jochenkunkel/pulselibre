@@ -1,0 +1,13 @@
+# START – #149 wiederaufgenommener zusätzlicher S25-Lauf
+- Zeit (UTC): 2026-11-21 20:10:00
+- Von: OpenCode
+- An: alle
+- Issue/Task: #149
+- Bezug/Antwort auf: `2026-11-21_194900_opencode_149_ENDE_run-and-adb-blocker.md` und Nutzeranweisung „jetzt aber“
+- Status: aktiv – S25/ADB ist wieder verfügbar; ein zuvor ausdrücklich freigegebener Zusatzlauf wird fortgesetzt
+- Zuständigkeit und betroffene Dateien: genau ein Produktlauf über den bestehenden Download-Button auf Build 1701; anschließend redigierter Bericht
+- Geplanter Umfang / tatsächlich erledigt: ADB zeigt S25 `SM_S931B` und ein weiteres Gerät; Zugriff ausschließlich mit expliziter S25-Serienauswahl unter exklusiver Lease. Genau einmal „Herunterladen“ bestätigen, bei Verbindungs-/Pull-Fehler sofort stoppen, kein Retry; höchstens eine reguläre `nextTransactionId`-Folgeanfrage. Keine Reset-, Delete-, Archive-, SetFlags- oder sonstigen destruktiven Befehle.
+- Was ich von anderen brauche: nichts
+- Was ich anderen liefere: Run-ID, redigierte Fehler-/Listen-/Transfer-/FIT-/SQLite-Zähler
+- Nachweise: vorheriger Lauf `ff510994c2aa` und Bericht lokal; vorheriger ADB-Blocker aufgehoben, Lease aktuell frei
+- Nächster Schritt / Besitzer: OpenCode – S25-Build und Dialogstatus unter Lease prüfen
