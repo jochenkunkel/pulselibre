@@ -57,5 +57,9 @@ object AppLanguageSettings {
     }
 }
 
+/** Short numeric date (optionally with time) in the order of the shown language, e.g. 21.11. / 11/21 / 21/11. */
+internal fun Context.shortDatePattern(withTime: Boolean): String =
+    android.text.format.DateFormat.getBestDateTimePattern(displayLocale(), if (withTime) "dMHm" else "dM")
+
 /** Locale of the language the UI is shown in (the chosen app language, else the system language); for number and date formats in views. */
 internal fun Context.displayLocale(): Locale = resources.configuration.locales[0]

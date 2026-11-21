@@ -79,7 +79,7 @@ class HistoryOverviewView(
         val maxOffset = selectedRange.maxOffset()
         if (maxOffset == 0 && selectedOffset == 0) return // 30 days: nothing to navigate
         val zone = ZoneId.systemDefault()
-        val fmt = DateTimeFormatter.ofPattern(if (selectedRange == HistoryRange.DAY) "dd.MM. HH:mm" else "dd.MM.")
+        val fmt = DateTimeFormatter.ofPattern(context.shortDatePattern(selectedRange == HistoryRange.DAY), context.displayLocale())
         fun step(label: String, description: String, enabled: Boolean, target: Int, tagName: String) =
             label(label, 20f, if (enabled) palette.accent else palette.muted, true).apply {
                 gravity = Gravity.CENTER
@@ -386,7 +386,7 @@ private class HistoryScatterChartView(
     init {
         importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_YES
         contentDescription = context.getString(R.string.hv_chart_cd, storedPointCount, buckets.size, DomainText.tr(context, resolution.label),
-            axis.minimum, axis.maximum, HistoryAxisSpeech.span(Strings.of(context), start, end, range, ZoneId.systemDefault()))
+            axis.minimum, axis.maximum, HistoryAxisSpeech.span(Strings.of(context), start, end, range, ZoneId.systemDefault(), context.shortDatePattern(true), context.shortDatePattern(false)))
     }
 
     override fun onDraw(canvas: Canvas) {
