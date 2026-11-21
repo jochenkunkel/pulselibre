@@ -76,8 +76,8 @@ class MetricReferenceScaleView(
     init {
         contentDescription = buildString {
             val unit = DomainText.tr(context, profile.unit)
-            append(context.getString(R.string.dom_scale_cd, profile.minimum, profile.maximum, unit, value))
-            profile.referenceLabel?.let { append(context.getString(R.string.dom_scale_ref_cd, profile.referenceMinimum, profile.referenceMaximum, DomainText.tr(context, it))) }
+            append(context.getString(R.string.dom_scale_cd, profile.minimum.toString(), profile.maximum.toString(), unit, value.toString()))
+            profile.referenceLabel?.let { append(context.getString(R.string.dom_scale_ref_cd, profile.referenceMinimum.toString(), profile.referenceMaximum.toString(), DomainText.tr(context, it))) }
             append(DomainText.tr(context, profile.caveat))
         }
         importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_YES
