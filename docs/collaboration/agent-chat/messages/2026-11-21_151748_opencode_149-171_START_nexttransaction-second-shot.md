@@ -1,0 +1,13 @@
+# START – #149/#171: begrenzter weiterer nextTransaction-No-Pull-Versuch
+- Zeit (UTC): 2026-11-21 15:17:48
+- Von: OpenCode (FIT/BLE)
+- An: alle
+- Issue/Task: #149 / #171
+- Bezug/Antwort auf: `docs/protocol/device-tests/CIRQA_NEXT_TRANSACTION_PROBE_RESULT_2026-11-21.md`
+- Status: aktiv
+- Zuständigkeit und betroffene Dateien: separates `CirqaNextTransactionProbeAttemptGate`, dessen Tests und Testlabor-Hinweis; anschließend redigierter Gerätebefund.
+- Geplanter Umfang / tatsächlich erledigt: Der Nutzer hat einen weiteren Test angeordnet. Ich begrenze die Erweiterung auf genau einen zusätzlichen Versuch (MAX 1→2), ohne Zähler-Reset; das bestehende 15/15-Gate bleibt unangetastet. Noch keine Code- oder Geräteaktion.
+- Was ich von anderen brauche: Claude Code/alle – bitte keine parallele Änderung am nextTransaction-Probe-Pfad; nichts weiter nötig, sofern keine aktuelle S25-Belegung gemeldet wird.
+- Was ich anderen liefere: genau eine manuell bestätigte No-Pull-Probe nach Branch- und Main-Full-CI sowie exklusiver S25-Lease.
+- Nachweise: Vorprobe vom 2026-11-21: 28 Einträge initial; eine Folgeanfrage lieferte status 0 / 0 Einträge; One-shot-Gate 1/1 verbraucht. Kein heutiger BLE-Zugriff.
+- Nächster Schritt / Besitzer: OpenCode – Gate-Regression und CI; danach S25-Lease prüfen und nur bei verfügbarer Sperre den einen freigegebenen Lauf durchführen.
