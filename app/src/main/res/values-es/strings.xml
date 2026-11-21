@@ -6,7 +6,6 @@
     <string name="settings_language_content_description">Idioma</string>
 
     <!-- Einstellungen (PersonalSettings) -->
-    <!-- TODO-CHATGPT-REVIEW: Erstentwurf von Claude Code, Ticket #365 -->
     <string name="settings_title">Ajustes</string>
     <string name="settings_ok">Aceptar</string>
     <string name="settings_explanation_for">Explicación de %1$s</string>
@@ -29,18 +28,18 @@
     <string name="body_heading">Cuerpo y objetivos</string>
     <string name="body_height">Altura (cm)</string>
     <string name="body_weight">Peso (kg)</string>
-    <string name="body_step_goal">Objetivo de pasos/día</string>
+    <string name="body_step_goal">Objetivo diario de pasos</string>
     <string name="body_sleep_goal">Objetivo de sueño (h)</string>
-    <string name="body_resting_hr">Frecuencia cardíaca en reposo conocida (lpm)</string>
+    <string name="body_resting_hr">Frecuencia cardíaca en reposo conocida (bpm)</string>
     <string name="other_heading">Otros</string>
-    <string name="other_wear_side">Lado de uso</string>
+    <string name="other_wear_side">Muñeca en la que se lleva</string>
     <string name="wear_none">Sin especificar</string>
     <string name="wear_left">Izquierda</string>
     <string name="wear_right">Derecha</string>
     <string name="other_units">Unidades</string>
     <string name="units_metric">Métrico (kg, cm)</string>
     <string name="units_imperial">Imperial (visualización más adelante)</string>
-    <string name="other_note">Nota (solo local)</string>
+    <string name="other_note">Nota (almacenada solo en el dispositivo)</string>
     <string name="recording_heading">Grabación</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="recording_info">Si está activado, PulsLibre inicia automáticamente el servicio de grabación al abrir la app y se conecta a la pulsera CIRQA. Esto solo ocurre si el Bluetooth ya está encendido y los permisos ya se han concedido; PulsLibre nunca enciende el Bluetooth por sí misma. Por defecto: desactivado. Las grabaciones en curso no se inician dos veces. Sigues pudiendo detenerlas en la app o desde la notificación.</string>
@@ -54,8 +53,8 @@
     <string name="settings_version_cd">Versión de la app %1$s</string>
     <string name="settings_developer">Desarrollado por Jochen Kunkel</string>
     <string name="settings_developer_cd">Desarrollador: Jochen Kunkel</string>
-    <string name="activity_heading">Actividad a partir de pasos</string>
-    <string name="activity_info">A partir de los pasos acumulados de CIRQA de los últimos minutos. El modo es una heurística de visualización aproximada: los pasos no demuestran ni estar sentado ni un deporte concreto. Con pocos valores o valores antiguos permanece desconocido.</string>
+    <string name="activity_heading">Actividad estimada a partir de los pasos</string>
+    <string name="activity_info">A partir de los recuentos acumulados de pasos de CIRQA durante los últimos minutos. El modo es una estimación orientativa: los pasos no demuestran que se esté sentado ni que se practique un deporte concreto. Si hay pocos valores o son antiguos, el modo permanece desconocido.</string>
     <string name="activity_rest">Reposo (/min)</string>
     <string name="activity_sport">Deporte (/min)</string>
     <string name="activity_window">Ventana (min)</string>
@@ -83,25 +82,23 @@
     <string name="delete_final_message">La eliminación no se puede deshacer.</string>
     <string name="delete_final_button">Eliminar definitivamente</string>
     <string name="settings_validation_toast">Revisa los números (altura, peso, objetivos y rangos de referencia de SpO₂).</string>
-    <string name="settings_saved_toast">Perfil guardado en local</string>
+    <string name="settings_saved_toast">Perfil guardado localmente</string>
 
     <!-- Navigation (MainNavigationView) -->
-    <!-- TODO-CHATGPT-REVIEW: Erstentwurf von Claude Code, Ticket #365 -->
-    <string name="nav_overview">Resumen</string>
+    <string name="nav_overview">Vista general</string>
     <string name="nav_history">Historial</string>
     <string name="nav_device">Dispositivo</string>
-    <string name="nav_testlab">Laboratorio</string>
+    <string name="nav_testlab">Laboratorio de pruebas</string>
     <string name="nav_data">Datos</string>
     <string name="nav_analyses">Análisis</string>
 
     <!-- Hauptansicht (MainActivity) Teil 1 -->
-    <!-- TODO-CHATGPT-REVIEW: Erstentwurf von Claude Code, Ticket #365 -->
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="main_bt_off">Bluetooth está apagado – no se pueden recibir las mediciones de CIRQA.</string>
     <string name="main_link_status_cd">Mostrar el estado de la conexión Bluetooth</string>
     <string name="main_link_title">Conexión CIRQA</string>
     <string name="main_open_settings">Abrir ajustes</string>
-    <string name="main_link_details_cd">%1$s Mostrar detalles</string>
+    <string name="main_link_details_cd">Mostrar detalles de %1$s</string>
     <string name="main_tagline">Tus datos. Tu control.</string>
     <string name="main_profile_title">Mi perfil corporal</string>
     <string name="main_profile_tap_edit">Toca para editar</string>
@@ -125,11 +122,11 @@
     <string name="main_trend_link_text">Tendencias, atlas de actividad y correlaciones en «Análisis»</string>
     <string name="main_day_link_cd">Abrir el resumen del día. Frecuencia cardíaca y pasos de un día en un eje de tiempo común.</string>
     <string name="main_day_link_title">Resumen del día</string>
-    <string name="main_day_link_text">Frecuencia cardíaca y pasos en un eje de tiempo, huecos visibles</string>
+    <string name="main_day_link_text">Frecuencia cardíaca y pasos en un mismo eje temporal, con los intervalos sin datos visibles</string>
     <string name="main_device_heading">Dispositivo · CIRQA</string>
     <string name="main_open_testlab">Abrir el laboratorio de pruebas</string>
-    <string name="main_status_ready">Sin conexión · listo</string>
-    <string name="main_hist_status_none">Aún no se ha iniciado ninguna descarga del historial.</string>
+    <string name="main_status_ready">Sin conexión · preparado</string>
+    <string name="main_hist_status_none">Todavía no se ha iniciado ninguna descarga de datos históricos.</string>
     <string name="main_hist_heading">Datos históricos del dispositivo</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="main_hist_info">Los archivos se guardan de forma local y privada. Las mediciones FIT además se importan a SQLite; los tipos de archivo desconocidos se conservan como originales.</string>
@@ -141,13 +138,13 @@
     <string name="main_hist_running">Descarga del historial en curso …</string>
     <string name="main_rec_off">Grabación desactivada</string>
     <string name="main_rec_on">Grabación en curso</string>
-    <string name="main_rec_stopping">Deteniendo la recogida de CIRQA …</string>
-    <string name="main_rec_starting">Iniciando la recogida de CIRQA …</string>
+    <string name="main_rec_stopping">Deteniendo la recopilación de CIRQA …</string>
+    <string name="main_rec_starting">Iniciando la recopilación de CIRQA …</string>
     <string name="main_rec_start">Iniciar</string>
     <string name="main_rec_stop">Detener</string>
     <string name="main_rec_stop_failed">No se pudo solicitar la detención.</string>
     <string name="main_rec_start_failed">Error al iniciar. Revisa el Bluetooth y los permisos de Android.</string>
-    <string name="main_rec_confirm_title">Iniciar la recogida de CIRQA</string>
+    <string name="main_rec_confirm_title">Iniciar la recopilación de CIRQA</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="main_rec_confirm_message">PulsLibre se conecta activamente a la pulsera CIRQA por Bluetooth y recibe las mediciones en tiempo real disponibles a través de una conexión continua. Si la conexión se interrumpe, la app intenta reconectar. Las mediciones se guardan localmente en este dispositivo. No se cargan datos históricos FIT. Mientras tanto, Android muestra una notificación permanente con un botón de detención (Android 13+: las notificaciones deben estar permitidas); el sistema aún puede finalizar el servicio. Garmin Connect puede afectar a la conexión Bluetooth. ¿Iniciar ahora?</string>
     <string name="main_rec_autostart_failed">No es posible iniciar la grabación automáticamente – iníciala manualmente.</string>
