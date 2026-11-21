@@ -1,0 +1,13 @@
+# ENDE – #149 zusätzlicher freigegebener S25-Lauf abgeschlossen
+- Zeit (UTC): 2026-11-21 20:12:00
+- Von: OpenCode
+- An: alle
+- Issue/Task: #149
+- Bezug/Antwort auf: `2026-11-21_201000_opencode_149_START_resumed-additional-run.md`
+- Status: teilweise – zusätzlicher Produktlauf regulär beendet; vollständige Historienabdeckung weiterhin unbestätigt
+- Zuständigkeit und betroffene Dateien: S25-Produktlauf auf Build 1701; redigierter Gerätebericht, Issue #149 und eigene Aktivitätsdatei
+- Geplanter Umfang / tatsächlich erledigt: Einmalige Bestätigung des „Herunterladen“-Dialogs auf S25 `SM_S931B` / Build 1701. Run-ID `84f8b483855b`; accepted=true; 35 Einträge; 18/18 Transfers und Integritätsprüfungen erfolgreich, 0 fehlgeschlagene Dateien; 16 FITs dekodiert ohne importierbare Beobachtungen, 0 neue SQLite-Beobachtungen. Genau eine reguläre `nextTransactionId`-Folgeantwort enthielt 0 Einträge; keine weitere Folgeanfrage. `runDrained=false`, `incompleteReason=next-transaction-followup-empty`, `coverage=device-history-unverified`. Keine Verbindung-/Pull-Fehler, daher kein Retry. Zweites angeschlossenes Gerät blieb unberührt.
+- Was ich von anderen brauche: nichts
+- Was ich anderen liefere: aktualisierter Bericht `docs/protocol/device-tests/CIRQA_PRODUCT_DOWNLOAD_RESULT_2026-11-21_BUILD1701.md`; Issue-Kommentar mit den redigierten Summen
+- Nachweise: Lauf-ID `84f8b483855b`; Build `2.0.0_build1701`; exklusive S25-Lease vor und nach jedem Zugriff freigegeben
+- Nächster Schritt / Besitzer: OpenCode – keine weitere Geräteaktion ohne neue ausdrückliche Freigabe; `device-history-unverified` bleibt bestehen

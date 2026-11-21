@@ -21,6 +21,30 @@ Die App ordnete den Lauf der Run-ID `a1e5c993a569` zu:
 
 Der Lauf wurde unmittelbar nach dem GATT-Verbindungsfehler beendet. Es gibt damit aus diesem Lauf weder eine Pull-Antwort noch neue FIT-Dateien oder SQLite-Beobachtungen. Die CIRQA-Historie bleibt unbestätigt/unvollständig; dieser Befund sagt nichts über die Verfügbarkeit einzelner Gerätedateien aus.
 
+## Separater Lauf nach erneuter Freigabe (19:46 UTC)
+
+Nach dem vorstehenden GATT-133-Lauf erteilte der Nutzer erneut eine ausdrückliche Freigabe. Die Bestätigung „Herunterladen“ erfolgte genau einmal; dieser Lauf wurde regulär beendet:
+
+- Run-ID `ff510994c2aa`; `accepted=true`; ItemList gesendet.
+- Zwei Listenantworten: zuerst 35 Einträge, anschließend genau eine reguläre `nextTransactionId`-Folgeantwort mit 0 Einträgen. Keine weitere Transaktion angefordert.
+- 18 ausgewählte Dateien (96.882 Bytes) vollständig übertragen; 18/18 Integritätsprüfungen und private Ablagen erfolgreich; 0 fehlgeschlagene Transfers.
+- 17 lokal bereits verifizierte Manifest-Skips. Von den 18 übertragenen Dateien wurden 16 FIT-Dateien dekodiert, enthielten aber 0 importierbare Beobachtungen; ihre Inhalte waren lokal bereits vorhanden. Auch die beiden übrigen Transfers bestanden die ausgewiesenen Integritäts- und Speicherstufen; es entstanden keine neuen FIT-Imports oder SQLite-Beobachtungen.
+- `transactionFollowups=1`, `transactionFollowupResponseItems=0`, `runDrained=false`, `coverage=device-history-unverified`, `incompleteReason=next-transaction-followup-empty`.
+
+Der Nutzer meldete während des Ablaufs eine versehentliche Störung und erteilte die Freigabe für einen weiteren Test. Vor dessen Start war ADB zunächst ohne angeschlossenes Gerät (`adb devices -l`: keine Geräte); zu diesem Zeitpunkt gab es keinen weiteren Button-Klick oder Produktlauf. Nach erneuter Geräteverfügbarkeit wurde der freigegebene Zusatzlauf wie folgt ausgeführt.
+
+## Wiederaufnahme nach Geräteverfügbarkeit (20:10 UTC)
+
+Das S25 war anschließend per ADB wieder verfügbar; ein zweites angeschlossenes Android-Gerät wurde nicht angesprochen. Der installierte Build wurde als `2.0.0_build1701` / VersionCode `1701` geprüft. Die Bestätigung „Herunterladen“ erfolgte genau einmal:
+
+- Run-ID `84f8b483855b`; `accepted=true`; ItemList gesendet.
+- Zwei Listenantworten: 35 Einträge, danach genau eine reguläre `nextTransactionId`-Folgeantwort mit 0 Einträgen; keine weitere Transaktion angefordert.
+- 18 ausgewählte Dateien (96.882 Bytes) vollständig übertragen, verifiziert und in den privaten Speicherpfad übernommen; 0 fehlgeschlagene Dateien.
+- 17 lokal bereits verifizierte Manifest-Skips. 16 FIT-Dateien wurden dekodiert, enthielten aber 0 importierbare Beobachtungen; `imported=0`, `sqliteCommitted=16` (ohne neue Beobachtungen). `unsupported=0`.
+- `transactionFollowups=1`, `transactionFollowupResponseItems=0`, `runDrained=false`, `coverage=device-history-unverified`, `incompleteReason=next-transaction-followup-empty`.
+
+Der Lauf beendete sich regulär. Es gab keinen Verbindungs- oder Pull-Fehler, daher keinen Retry; es erfolgte keine zweite Bestätigung. Die vollständige Historienabdeckung bleibt unbestätigt.
+
 ## Einordnung
 
-PR #387s zusätzliche numerische Pull-Error-Felder konnten hier nicht greifen, weil keine GATT-Verbindung bzw. Pull-Antwort zustande kam. `GATT 133` identifiziert in diesem Bericht nur den gemeldeten Transportstatus; eine CIRQA-spezifische Ursache ist nicht belegt. Kein weiterer Geräteversuch ist durch die erteilte Einmalfreigabe umfasst.
+PR #387s zusätzliche numerische Pull-Error-Felder konnten im GATT-133-Lauf nicht greifen, weil keine GATT-Verbindung bzw. Pull-Antwort zustande kam. `GATT 133` identifiziert in diesem Bericht nur den gemeldeten Transportstatus; eine CIRQA-spezifische Ursache ist nicht belegt.

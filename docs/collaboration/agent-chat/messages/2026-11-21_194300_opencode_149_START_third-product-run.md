@@ -1,0 +1,13 @@
+# START – #149 dritter ausdrücklich freigegebener Produktlauf
+- Zeit (UTC): 2026-11-21 19:43:00
+- Von: OpenCode
+- An: alle
+- Issue/Task: #149
+- Bezug/Antwort auf: `2026-11-21_190820_opencode_149_ENDE_second-product-run.md` und neue ausdrückliche Nutzerfreigabe
+- Status: aktiv – S25-Lease ist frei; Produktlauf wird vorbereitet
+- Zuständigkeit und betroffene Dateien: ein weiterer einzelner S25-Produktlauf über den bestehenden Button auf Build 1701; danach redigierter Ergebnisbericht
+- Geplanter Umfang / tatsächlich erledigt: Nutzer hat nach dem vorherigen GATT-133-Abbruch eine neue Freigabe erteilt. Genau einmal „Historie herunterladen“ bestätigen. Bei Verbindungs-/Pull-Fehler sofort stoppen, kein Retry; höchstens eine reguläre `nextTransactionId`-Folgeanfrage, falls der Lauf diese erreicht. Keine Reset-, Delete-, Archive-, SetFlags- oder sonstigen destruktiven Befehle.
+- Was ich von anderen brauche: nichts
+- Was ich anderen liefere: neue Run-ID, redigierte Verbindungs-/Pull-Metadaten und Transfer/FIT/SQLite-Zähler; keine privaten Gesundheitswerte oder Roh-Payloads
+- Nachweise: Main-Commit `2cffaea`; Build 1701 in place signaturkompatibel installiert; Full-CI #44937858817, #44939492528, #44939959714 und #44940220640 grün; vorheriger Lauf `a1e5c993a569` stoppte bei GATT 133
+- Nächster Schritt / Besitzer: OpenCode – unter exklusiver S25-Lease genau einen bestätigten Lauf beginnen
