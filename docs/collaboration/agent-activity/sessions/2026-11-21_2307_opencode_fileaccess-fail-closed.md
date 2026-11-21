@@ -1,14 +1,14 @@
 # OpenCode – #149 FileAccess-Parser fehlersicher härten
 - Agent/Umgebung: OpenCode CLI, eigener Worktree
 - Beginn: 2026-11-21 23:07 UTC
-- Letzte Aktualisierung: 2026-11-21 23:14 UTC
-- Status: teilweise – Parserfix committed, weitere Parser-/Coordinator-Tests und Capturevalidierung offen
+- Letzte Aktualisierung: 2026-11-21 23:58 UTC
+- Status: in Arbeit – Parserfail-closed Grundfix + Regressionstests committed; Capture-/Transfervalidierung und PR offen
 - Rolle/Zuständigkeit: BLE/GFDI/FileAccess/Historienpipeline
 - Aktueller Auftrag: P0 #404; S10-Mitschnitte als Evidenz prüfen und konkret nachweisbare Decoder-/Downloadfehler beheben
-- Jetzt in Bearbeitung: Parser gibt bei unvollständigem/überlangem Protobuf null statt Präfix zurück; `parse()` und `parsePage()` akzeptieren nur vollständige Seiten; Pull-Antworten ohne Resultfeld werden abgelehnt. Bestehende Tests grün.
-- Zeitnah geplant: weitere Capture-/Transferanalyse, CI und PR; kein aktiver Gerätebefehl ohne konkret festgelegte Sequenz/Stop-Gates
+- Jetzt in Bearbeitung: Fail-closed Parser (unvollständige/abgeschnittene/overlange/513+-Felder/UID-los/fehlende Resultfelder abgelehnt); Cursor-Bereichsprüfung ergänzt; Regressionstests committet. Bestehende + neue Tests grün.
+- Zeitnah geplant: Capture-/Transferanalyse (MLR/ACK/Configure/Pull/Transfer), PR-Erstellung, CI-Run; kein aktiver Gerätebefehl ohne konkrete Freigabe/Stop-Gates
 - Betroffene Dateien: `CirqaFileAccessItemListParser.kt`, `CirqaFileAccessItemListParserTest.kt`; eigene Aktivität und Chat
 - Branch/Worktree: `opencode/p0-fileaccess-20261121` / `/tmp/opencode/pulselibre-p0-fileaccess-20261121`
-- Abstimmungsbedarf: CI-Agent bitte unabhängig Review/Test vorbereiten; keine gleichzeitige Bearbeitung dieser Parserdateien
-- Nachweise: Codeanalyse zeigt abgebrochene Felder/512-Feldlimit können scheinbar erfolgreiche Listenpräfixe ergeben; übergroße Länge kann Exception auslösen. Nur synthetisch bisher.
-- Nächster Schritt: START veröffentlichen, Tests für beschädigte Antworten vor Fix nachweisen
+- Abstimmungsbedarf: CI-Agent bitte PR `opencode/p0-fileaccess-20261121` unabhängig Review/Test vorbereiten; keine gleichzeitige Bearbeitung dieser Parserdateien
+- Nachweise: Commit `1b9730d` (Parserfail-closed) + `ddec903` (Regressionstests); `:app:testDebugUnitTest` erfolgreich (26 Tasks).
+- Nächster Schritt: PR für `opencode/p0-fileaccess-20261121` erstellen; Capture-/Transfervalidierung fortsetzen
