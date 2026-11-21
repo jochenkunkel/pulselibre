@@ -416,7 +416,8 @@ internal class TrendCardView(context: Context) : LinearLayout(context) {
         data?.sensitivity?.let { s ->
             box.addView(TextView(context).apply {
                 tag = "scatter_sensitivity"; textSize = 12f; setTextColor(palette.ink); setPadding(0, dp(8), 0, 0)
-                text = DomainText.tr(context, s.text(nf))
+                // The model sentence is German with German number formatting (DomainText recognises it by that pattern); only the display is translated.
+                text = DomainText.tr(context, s.text(NumberFormat.getNumberInstance(java.util.Locale.GERMANY).apply { maximumFractionDigits = 1 }))
             })
         }
         androidx.appcompat.app.AlertDialog.Builder(context).setTitle(context.getString(R.string.tr_scatter_title))
