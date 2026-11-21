@@ -153,4 +153,38 @@
     <string name="main_rec_autostart_failed">Démarrage automatique de l’enregistrement impossible – veuillez le démarrer manuellement.</string>
     <string name="main_bt_permission_needed">Autorisation de connexion Bluetooth requise pour la synchronisation de l’historique.</string>
     <string name="main_auto_sync_running">Synchronisation automatique de l’historique en cours …</string>
+
+    <!-- Messgrößen-Namen (Anzeige; Kennungen bleiben deutsch) -->
+    <!-- TODO-CHATGPT-REVIEW: Erstentwurf von Claude Code, Ticket #365 -->
+    <string name="metric_pulse">Fréquence cardiaque</string>
+    <string name="metric_resting_pulse">Fréquence cardiaque au repos</string>
+    <string name="metric_steps_counter">Pas (compteur quotidien)</string>
+    <string name="metric_step_goal">Objectif de pas</string>
+    <string name="metric_spo2">Saturation en oxygène · SpO₂</string>
+    <string name="metric_spo2_short">SpO₂</string>
+    <string name="metric_rr">Intervalle RR (pas RMSSD)</string>
+    <string name="metric_stress">Stress (échelle de l’appareil)</string>
+    <string name="metric_body_battery">Body Battery (échelle de l’appareil)</string>
+    <string name="metric_respiration">Fréquence respiratoire</string>
+    <string name="metric_calories_total">Calories totales (valeur de l’appareil)</string>
+    <string name="metric_calories_total_short">Calories totales</string>
+    <string name="metric_calories_active">Calories actives (valeur de l’appareil)</string>
+    <string name="metric_calories_active_short">Calories actives</string>
+    <string name="metric_moderate">Minutes d’intensité modérée</string>
+    <string name="metric_moderate_short">Intensité modérée</string>
+    <string name="metric_vigorous">Minutes d’intensité élevée</string>
+    <string name="metric_vigorous_short">Intensité élevée</string>
+    <string name="metric_sleep">Sommeil</string>
+    <string name="metric_steps">Pas</string>
+    <string name="metric_steps_today">Pas aujourd’hui</string>
+    <string name="metric_no_data">Aucune donnée de mesure</string>
+    <string name="metric_last_reception_cd">%1$s : %2$s. Dernière réception : %3$s.</string>
+
+    <!-- Empfangsstatus (Kacheln) -->
+    <!-- TODO-CHATGPT-REVIEW: Erstentwurf von Claude Code, Ticket #365 -->
+    <string name="reception_unknown">pas d’heure de réception</string>
+    <string name="reception_fresh">récent</string>
+    <string name="reception_recent">vieux de quelques minutes</string>
+    <string name="reception_delayed">retardé</string>
+    <string name="reception_old">longtemps sans nouvelle réception</string>
 </resources>

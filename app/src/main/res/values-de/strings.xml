@@ -150,4 +150,36 @@
     <string name="main_rec_autostart_failed">Automatischer Start der Aufzeichnung nicht möglich – bitte manuell starten.</string>
     <string name="main_bt_permission_needed">Bluetooth-Verbindungsberechtigung für den historischen Sync erforderlich.</string>
     <string name="main_auto_sync_running">Automatischer historischer Sync läuft …</string>
+
+    <!-- Messgrößen-Namen (Anzeige; Kennungen bleiben deutsch) -->
+    <string name="metric_pulse">Herzfrequenz</string>
+    <string name="metric_resting_pulse">Ruhepuls</string>
+    <string name="metric_steps_counter">Schritte (Tageszähler)</string>
+    <string name="metric_step_goal">Schrittziel</string>
+    <string name="metric_spo2">Sauerstoffsättigung · SpO₂</string>
+    <string name="metric_spo2_short">SpO₂</string>
+    <string name="metric_rr">RR-Intervall (kein RMSSD)</string>
+    <string name="metric_stress">Stress (Geräteskala)</string>
+    <string name="metric_body_battery">Body Battery (Geräteskala)</string>
+    <string name="metric_respiration">Atemfrequenz</string>
+    <string name="metric_calories_total">Kalorien gesamt (Gerätewert)</string>
+    <string name="metric_calories_total_short">Kalorien gesamt</string>
+    <string name="metric_calories_active">Kalorien aktiv (Gerätewert)</string>
+    <string name="metric_calories_active_short">Kalorien aktiv</string>
+    <string name="metric_moderate">Moderate Intensitätsminuten</string>
+    <string name="metric_moderate_short">Intensität moderat</string>
+    <string name="metric_vigorous">Intensive Intensitätsminuten</string>
+    <string name="metric_vigorous_short">Intensität hoch</string>
+    <string name="metric_sleep">Schlaf</string>
+    <string name="metric_steps">Schritte</string>
+    <string name="metric_steps_today">Schritte heute</string>
+    <string name="metric_no_data">Keine Messdaten</string>
+    <string name="metric_last_reception_cd">%1$s: %2$s. Letzter Empfang: %3$s.</string>
+
+    <!-- Empfangsstatus (Kacheln) -->
+    <string name="reception_unknown">kein Empfangszeitpunkt</string>
+    <string name="reception_fresh">frisch</string>
+    <string name="reception_recent">wenige Minuten alt</string>
+    <string name="reception_delayed">verzögert</string>
+    <string name="reception_old">lange ohne neuen Empfang</string>
 </resources>
