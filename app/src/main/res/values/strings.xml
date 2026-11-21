@@ -251,4 +251,60 @@
     <string name="ov_no_norm">No validated reference scale for this device value.</string>
     <string name="ov_reception_state">Reception status  %1$s</string>
     <string name="ov_dot_hint">The dot color above only shows reception age, not health.</string>
+
+    <!-- Fachlogik-Texte: Aktivität, Skalen, Nacht, Zielstatus -->
+    <string name="dom_mode_unknown">Mode unknown</string>
+    <string name="dom_mode_rest">Rest</string>
+    <string name="dom_mode_movement">Light movement</string>
+    <string name="dom_mode_sport">Sport</string>
+    <string name="dom_expl_none">No fresh step values yet</string>
+    <string name="dom_expl_settings">Invalid settings</string>
+    <string name="dom_expl_conflict">Conflicting step values</string>
+    <string name="dom_expl_nofresh">No fresh step values</string>
+    <string name="dom_expl_stale">Step values outdated</string>
+    <string name="dom_expl_few">Too few fresh step values</string>
+    <string name="dom_expl_heuristic">Step-based classification · heuristic</string>
+    <string name="dom_caption_cadence">Step-based · Ø %1$d steps/min · %2$d min</string>
+    <string name="dom_caption_unknown">Activity unknown · %1$s</string>
+    <string name="dom_gauge_below">Below the display scale</string>
+    <string name="dom_gauge_above">Above the display scale</string>
+    <string name="dom_gauge_plain">Value display · no target zone</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="dom_gauge_cd">Heart rate: %1$s. %2$s. %3$s. Mode derived heuristically from the step counter, no proof of sitting or sport. Display scale 40 to 180 bpm, no medical zones. %4$s</string>
+    <string name="dom_ref_adults_rest">Adults at rest</string>
+    <string name="dom_ref_avg_adults_rest">Average adults, at rest</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="dom_cav_pulse">The current pulse depends on activity; the resting reference is only context here.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="dom_cav_resting">General guidance, not a personal target or diagnostic value.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="dom_cav_spo2">Finger pulse oximeter guidance; not validated for CIRQA on the wrist.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="dom_cav_resp">Applies to adults at rest; the momentary value may differ with activity.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="dom_cav_device_scale">Proprietary device scale; no clinical normal range.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="dom_cav_rr">Single RR interval; no HRV metric and no comparison with norms.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="dom_cav_steps">Progress toward the device’s own daily goal, not a WHO norm.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="dom_cav_goal">Product progress toward the daily goal supplied by the device; no health assessment or exercise recommendation.</string>
+    <string name="dom_unit_steps">steps</string>
+    <string name="dom_scale_cd">Scale %1$s to %2$s %3$s; value %4$s %3$s. </string>
+    <string name="dom_scale_ref_cd">Guidance range %1$s to %2$s, %3$s. </string>
+    <string name="dom_goal_reached">Daily goal reached</string>
+    <string name="dom_band_label">🟢 %1$d–100 %%   🟠 %2$d–%3$d %%   🔴 &lt; %2$d %%   ⚪ no valid value</string>
+    <string name="dom_night_window">Time window shorter than %1$d h.</string>
+    <string name="dom_night_few">Too few valid readings.</string>
+    <string name="dom_night_coverage">Coverage %1$s %% below %2$d %%.</string>
+    <string name="dom_night_gap">Sampling interval too large for ODI (median %1$d s, required ≤ %2$d s).</string>
+    <string name="dom_night_unreadable">Night series not readable.</string>
+
+    <!-- Fachlogik-Texte: Hinweise der Kacheln -->
+    <string name="dom_note_not_measured">Not measured or invalid</string>
+    <string name="dom_note_source">Source: CIRQA service %1$s</string>
+    <string name="dom_note_sleep_fit">Sleep stages/duration require validated FIT history</string>
+    <string name="dom_note_sleep_na">Sleep duration and sleep stages not available yet</string>
+    <string name="dom_note_ground">No diagnoses; no estimated values; no RR→RMSSD without a time series</string>
+    <string name="dom_unit_device_scale">Device scale 0–100</string>
 </resources>

@@ -251,4 +251,60 @@
     <string name="ov_no_norm">Keine validierte Normskala für diesen Gerätewert.</string>
     <string name="ov_reception_state">Empfangsstatus  %1$s</string>
     <string name="ov_dot_hint">Punktfarbe oben zeigt nur Empfangsalter, keine Gesundheit.</string>
+
+    <!-- Fachlogik-Texte: Aktivität, Skalen, Nacht, Zielstatus -->
+    <string name="dom_mode_unknown">Modus unbekannt</string>
+    <string name="dom_mode_rest">Ruhe</string>
+    <string name="dom_mode_movement">Leichte Bewegung</string>
+    <string name="dom_mode_sport">Sport</string>
+    <string name="dom_expl_none">Noch keine frischen Schrittwerte</string>
+    <string name="dom_expl_settings">Einstellungen ungültig</string>
+    <string name="dom_expl_conflict">Widersprüchliche Schrittwerte</string>
+    <string name="dom_expl_nofresh">Keine frischen Schrittwerte</string>
+    <string name="dom_expl_stale">Schrittwerte veraltet</string>
+    <string name="dom_expl_few">Zu wenige frische Schrittwerte</string>
+    <string name="dom_expl_heuristic">Schrittbasierte Einordnung · heuristisch</string>
+    <string name="dom_caption_cadence">Schrittbasiert · Ø %1$d Schritte/min · %2$d min</string>
+    <string name="dom_caption_unknown">Aktivität unbekannt · %1$s</string>
+    <string name="dom_gauge_below">Unterhalb der Anzeigeskala</string>
+    <string name="dom_gauge_above">Oberhalb der Anzeigeskala</string>
+    <string name="dom_gauge_plain">Messwertanzeige · keine Zielzone</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="dom_gauge_cd">Herzfrequenz: %1$s. %2$s. %3$s. Modus heuristisch aus Schrittzähler abgeleitet, kein Nachweis von Sitzen oder Sport. Anzeigeskala 40 bis 180 bpm, keine medizinischen Zonen. %4$s</string>
+    <string name="dom_ref_adults_rest">Erwachsene in Ruhe</string>
+    <string name="dom_ref_avg_adults_rest">Durchschnittliche Erwachsene, in Ruhe</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="dom_cav_pulse">Der aktuelle Puls ist aktivitätsabhängig; die Ruhe-Referenz ist hier nur Kontext.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="dom_cav_resting">Allgemeine Orientierung, kein persönlicher Ziel- oder Diagnosewert.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="dom_cav_spo2">Finger-Pulsoximeter-Orientierung; nicht für CIRQA am Handgelenk validiert.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="dom_cav_resp">Gilt für Erwachsene in Ruhe; Momentanwert kann durch Aktivität abweichen.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="dom_cav_device_scale">Proprietäre Geräteskala; kein klinischer Normbereich.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="dom_cav_rr">Einzelnes RR-Intervall; keine HRV-Kennzahl und kein Normvergleich.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="dom_cav_steps">Fortschritt zum geräteeigenen Tagesziel, keine WHO-Norm.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="dom_cav_goal">Produktfortschritt zum vom Gerät gelieferten Tagesziel; keine Gesundheitsbewertung oder Bewegungsempfehlung.</string>
+    <string name="dom_unit_steps">Schritte</string>
+    <string name="dom_scale_cd">Skala %1$s bis %2$s %3$s; Wert %4$s %3$s. </string>
+    <string name="dom_scale_ref_cd">Orientierungsbereich %1$s bis %2$s, %3$s. </string>
+    <string name="dom_goal_reached">Tagesziel erreicht</string>
+    <string name="dom_band_label">🟢 %1$d–100 %%   🟠 %2$d–%3$d %%   🔴 &lt; %2$d %%   ⚪ kein gültiger Wert</string>
+    <string name="dom_night_window">Zeitfenster kürzer als %1$d h.</string>
+    <string name="dom_night_few">Zu wenige gültige Messwerte.</string>
+    <string name="dom_night_coverage">Abdeckung %1$s %% unter %2$d %%.</string>
+    <string name="dom_night_gap">Abtastabstand zu groß für ODI (Median %1$d s, nötig ≤ %2$d s).</string>
+    <string name="dom_night_unreadable">Nachtserie nicht lesbar.</string>
+
+    <!-- Fachlogik-Texte: Hinweise der Kacheln -->
+    <string name="dom_note_not_measured">Nicht gemessen oder ungültig</string>
+    <string name="dom_note_source">Quelle: CIRQA-Service %1$s</string>
+    <string name="dom_note_sleep_fit">Schlafphasen/-dauer erfordern validierte FIT-Historie</string>
+    <string name="dom_note_sleep_na">Schlafdauer und Schlafphasen noch nicht verfügbar</string>
+    <string name="dom_note_ground">Keine Diagnosen; keine geschätzten Werte; kein RR→RMSSD ohne Zeitreihe</string>
+    <string name="dom_unit_device_scale">Geräteskala 0–100</string>
 </resources>

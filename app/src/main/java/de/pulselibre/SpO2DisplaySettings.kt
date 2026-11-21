@@ -21,6 +21,9 @@ internal data class SpO2DisplaySettings(
         }
     }
 
+    fun bandLabel(context: android.content.Context): String =
+        context.getString(R.string.dom_band_label, greenFrom, redBelow, greenFrom - 1)
+
     fun bandLabel(): String =
         "🟢 $greenFrom–100 %   🟠 $redBelow–${greenFrom - 1} %   🔴 < $redBelow %   ⚪ kein gültiger Wert"
 

@@ -252,4 +252,62 @@
     <string name="ov_no_norm">No hay una escala de referencia validada para este valor del dispositivo.</string>
     <string name="ov_reception_state">Estado de recepción  %1$s</string>
     <string name="ov_dot_hint">El color del punto de arriba solo indica la antigüedad de la recepción, no la salud.</string>
+
+    <!-- Fachlogik-Texte: Aktivität, Skalen, Nacht, Zielstatus -->
+    <!-- TODO-CHATGPT-REVIEW: Erstentwurf von Claude Code, Ticket #365 -->
+    <string name="dom_mode_unknown">Modo desconocido</string>
+    <string name="dom_mode_rest">Reposo</string>
+    <string name="dom_mode_movement">Movimiento ligero</string>
+    <string name="dom_mode_sport">Deporte</string>
+    <string name="dom_expl_none">Aún no hay valores de pasos recientes</string>
+    <string name="dom_expl_settings">Ajustes no válidos</string>
+    <string name="dom_expl_conflict">Valores de pasos contradictorios</string>
+    <string name="dom_expl_nofresh">Sin valores de pasos recientes</string>
+    <string name="dom_expl_stale">Valores de pasos obsoletos</string>
+    <string name="dom_expl_few">Muy pocos valores de pasos recientes</string>
+    <string name="dom_expl_heuristic">Clasificación basada en pasos · heurística</string>
+    <string name="dom_caption_cadence">Basado en pasos · Ø %1$d pasos/min · %2$d min</string>
+    <string name="dom_caption_unknown">Actividad desconocida · %1$s</string>
+    <string name="dom_gauge_below">Por debajo de la escala de visualización</string>
+    <string name="dom_gauge_above">Por encima de la escala de visualización</string>
+    <string name="dom_gauge_plain">Visualización del valor · sin zona objetivo</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="dom_gauge_cd">Frecuencia cardíaca: %1$s. %2$s. %3$s. Modo deducido de forma heurística del contador de pasos, sin prueba de estar sentado ni de deporte. Escala de visualización de 40 a 180 bpm, sin zonas médicas. %4$s</string>
+    <string name="dom_ref_adults_rest">Adultos en reposo</string>
+    <string name="dom_ref_avg_adults_rest">Adultos promedio, en reposo</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="dom_cav_pulse">El pulso actual depende de la actividad; la referencia en reposo es aquí solo contexto.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="dom_cav_resting">Orientación general, no es un valor objetivo personal ni de diagnóstico.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="dom_cav_spo2">Orientación para pulsioxímetro de dedo; no validada para CIRQA en la muñeca.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="dom_cav_resp">Válido para adultos en reposo; el valor momentáneo puede variar con la actividad.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="dom_cav_device_scale">Escala propietaria del dispositivo; no es un rango normal clínico.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="dom_cav_rr">Intervalo RR aislado; sin métrica de VFC ni comparación con normas.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="dom_cav_steps">Progreso hacia el objetivo diario propio del dispositivo, no es una norma de la OMS.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="dom_cav_goal">Progreso del producto hacia el objetivo diario del dispositivo; sin valoración de salud ni recomendación de ejercicio.</string>
+    <string name="dom_unit_steps">pasos</string>
+    <string name="dom_scale_cd">Escala de %1$s a %2$s %3$s; valor %4$s %3$s. </string>
+    <string name="dom_scale_ref_cd">Rango orientativo de %1$s a %2$s, %3$s. </string>
+    <string name="dom_goal_reached">Objetivo diario alcanzado</string>
+    <string name="dom_band_label">🟢 %1$d–100 %%   🟠 %2$d–%3$d %%   🔴 &lt; %2$d %%   ⚪ sin valor válido</string>
+    <string name="dom_night_window">Ventana de tiempo inferior a %1$d h.</string>
+    <string name="dom_night_few">Muy pocas mediciones válidas.</string>
+    <string name="dom_night_coverage">Cobertura de %1$s %% por debajo de %2$d %%.</string>
+    <string name="dom_night_gap">Intervalo de muestreo demasiado grande para el ODI (mediana %1$d s, necesario ≤ %2$d s).</string>
+    <string name="dom_night_unreadable">Serie nocturna no legible.</string>
+
+    <!-- Fachlogik-Texte: Hinweise der Kacheln -->
+    <!-- TODO-CHATGPT-REVIEW: Erstentwurf von Claude Code, Ticket #365 -->
+    <string name="dom_note_not_measured">No medido o no válido</string>
+    <string name="dom_note_source">Fuente: servicio CIRQA %1$s</string>
+    <string name="dom_note_sleep_fit">Las fases/duración del sueño requieren un historial FIT validado</string>
+    <string name="dom_note_sleep_na">Duración y fases del sueño aún no disponibles</string>
+    <string name="dom_note_ground">Sin diagnósticos; sin valores estimados; sin RR→RMSSD sin serie temporal</string>
+    <string name="dom_unit_device_scale">Escala del dispositivo 0–100</string>
 </resources>
