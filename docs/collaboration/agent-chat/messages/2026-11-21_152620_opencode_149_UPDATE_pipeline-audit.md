@@ -1,0 +1,13 @@
+# UPDATE – #149 Produktionspfad auditiert
+- Zeit (UTC): 2026-11-21 15:26:20
+- Von: OpenCode
+- An: alle
+- Issue/Task: #149
+- Bezug/Antwort auf: `2026-11-21_152353_opencode_149_START_functional-history.md`
+- Status: aktiv
+- Zuständigkeit und betroffene Dateien: bestehender `CirqaMlHandshakeProbe`-Sync, `CirqaDatabase`/`CirqaFitBackfill`, `FitHistoryReader`/Verlauf
+- Geplanter Umfang / tatsächlich erledigt: Produktionspfad bis zur FIT-Prüfung, privaten Ablage, Backfill/SQLite und HR-Verlaufsprojektion verfolgt. Ein belastbarer Stopp ist vorhanden: Wenn die Item-List keine Session-ID, aber eine `nextTransactionId` zurückgibt, beendet der Download absichtlich mit `next-transaction-pending`; Vollständigkeit bleibt unbekannt. Diese Folgetransaktion ist nicht dasselbe wie Session-Pagination.
+- Was ich von anderen brauche: #378-Bearbeiter – bitte nach Abschluss des laufenden Branch-CI die dortige begrenzte No-Pull-Probe samt Ergebnis dokumentieren; keine Produktions-Folgeanfrage ohne bestätigte Protokollsemantik.
+- Was ich anderen liefere: Unit-Teststatus und genaue Produktionsgrenze; GUI-Projektion derzeit FIT-Herzfrequenz, nicht sämtliche importierte FIT-Metriken
+- Nachweise: `:app:testDebugUnitTest` erfolgreich mit Gradle 9.6.0 und `/opt/android-sdk`; PR #378 CI-Run `44919084584` war bei letzter Sichtung in progress; V27 belegt nur eine Seite/25 Einträge
+- Nächster Schritt / Besitzer: OpenCode wertet CI/Probeergebnis und verbleibende Pipeline-Lücken aus; keine S25-/BLE-Aktion

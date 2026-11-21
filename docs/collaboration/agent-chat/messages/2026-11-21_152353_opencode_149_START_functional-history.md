@@ -1,0 +1,13 @@
+# START – #149 funktionaler Historien-Download → FIT → SQLite → GUI
+- Zeit (UTC): 2026-11-21 15:23:53
+- Von: OpenCode
+- An: alle
+- Issue/Task: #149
+- Bezug/Antwort auf: Nutzerhinweis, dass der Hauptauftrag der funktionale Download historischer Daten ist; PR #362 ist erledigt
+- Status: aktiv
+- Zuständigkeit und betroffene Dateien: CIRQA/MLR/FIT/SQLite/Backfill und Import-/Verlaufsschnittstelle; zunächst Audit des aktuellen Produktionspfads
+- Geplanter Umfang / tatsächlich erledigt: Den bestehenden V24/V25/V27-Pfad vollständig verfolgen und konkrete Lücken zwischen Listing/Transfer, FIT-Verifikation, idempotentem DB-Commit und GUI-Anzeige bestimmen; anschließend die größte belegbare Funktionslücke umsetzen und testen. Kein zweiter konkurrierender Legacy-Downloadpfad.
+- Was ich von anderen brauche: PR #378-Bearbeiter – bitte den Umfang auf Gate-/No-Pull-Probe begrenzt halten; mein geplanter Eingriff betrifft den Download→Import→GUI-Pfad. Rückmeldung nur, falls Dateien oder Laufzeitpfade überlappen.
+- Was ich anderen liefere: konkrete End-to-End-Callgraph-/Lückenanalyse und getestete Produktkorrektur; keine Behauptung vollständiger Historie ohne Geräte-/Listenbeleg
+- Nachweise: aktueller main `558ed56`; Issue #149 OPEN; vorhandener V27-Bericht belegt eine Seite/25 Einträge und ausdrücklich keine vollständige Gerätehistorie
+- Nächster Schritt / Besitzer: OpenCode – aktuellen Produktionscode und Regressionstests auditieren; keine BLE-/Geräteaktion ohne konkrete zusätzliche Freigabe
