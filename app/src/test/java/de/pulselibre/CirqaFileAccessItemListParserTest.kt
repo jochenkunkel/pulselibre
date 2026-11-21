@@ -172,4 +172,71 @@ class CirqaFileAccessItemListParserTest {
             uid.joinToString("") { "%02x".format(it) }
         ))
     }
+
+    private fun declaredLengthField(number: Int, declaredLength: Long, content: ByteArray): ByteArray {
+        val key = varint((number.toLong() shl 3) or 2)
+        val out = java.io.ByteArrayOutputStream()
+        out.write(key)
+        out.write(varint(declaredLength))
+        out.write(content)
+        return out.toByteArray()
+    }
+
+    @Test fun truncatedItemListResponseDoesNotYieldPartialPage() {
+        val ref = field(1, ByteArray(16)) + field(2, byteArrayOf(0x08, 0x01)) + scalarField(3, 100)
+        val response = declaredLengthField(4, 10_000, ref)
+        val smart = field(43, field(10, response))
+        assertNull(CirqaFileAccessItemListParser.parsePage(smart))
+        assertTrue(CirqaFileAccessItemListParser.parse(smart).isEmpty())
+    }
+
+    @Test fun oversizedItemListLengthIsRejected() {
+        val response = declaredLengthField(4, 2_147_483_648L, ByteArray(0)) // 2^31 exceeds Int range
+        val smart = field(43, field(10, response))
+        assertNull(CirqaFileAccessItemListParser.parsePage(smart))
+    }
+
+    @Test fun fieldCountAboveCanonicalLimitIsRejected() {
+        val out = java.io.ByteArrayOutputStream()
+        repeat(513) { index ->
+            out.write(varint((index + 1).toLong() shl 3))
+            out.write(varint(0))
+        }
+        assertNull(CirqaFileAccessItemListParser.fields(out.toByteArray()))
+    }
+
+    @Test fun fieldCountAtCanonicalLimitIsAccepted() {
+        val out = java.io.ByteArrayOutputStream()
+        repeat(512) { index ->
+            out.write(varint((index + 1).toLong() shl 3))
+            out.write(varint(0))
+        }
+        assertEquals(512, CirqaFileAccessItemListParser.fields(out.toByteArray())?.size)
+    }
+
+    @Test fun unsupportedWireTypeIsRejected() {
+        val bytes = varint((10L shl 3) or 7) + varint(0)
+        assertNull(CirqaFileAccessItemListParser.fields(bytes))
+    }
+
+    @Test fun zeroFieldNumberIsRejected() {
+        assertNull(CirqaFileAccessItemListParser.fields(varint(0) + varint(0)))
+    }
+
+    @Test fun itemWithoutUidFailsClosed() {
+        val ref = field(2, byteArrayOf(0x08, 0x01)) + scalarField(3, 100)
+        val smart = field(43, field(10, field(4, ref)))
+        assertNull(CirqaFileAccessItemListParser.parsePage(smart))
+    }
+
+    @Test fun outOfRangeSessionAndTransactionContextFailClosed() {
+        val response = scalarField(1, 0) + scalarField(2, 4_294_967_296L) // 2^32 exceeds protocol max
+        val smart = field(43, field(10, response))
+        assertNull(CirqaFileAccessItemListParser.parsePage(smart))
+    }
+
+    @Test fun pullResponseWithoutResultFieldIsRejected() {
+        val parsed = CirqaFileAccessItemListParser.parsePullResult(field(43, field(2, byteArrayOf())))
+        assertNull(parsed)
+    }
 }
