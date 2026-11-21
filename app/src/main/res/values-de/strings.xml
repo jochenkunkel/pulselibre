@@ -773,4 +773,73 @@
     <string name="unk_sample_head">%1$s: %2$d Vorkommen, erste %3$d Werte</string>
     <string name="unk_sample_more">  … und %1$d weitere</string>
     <string name="unk_sample_cut">  (je Wert auf %1$d Byte gekürzt)</string>
+    <!-- Dialoge: Anpassen, Tagesansicht, Tageszeitleiste (#365) -->
+    <string name="cust_title">Startseite anpassen</string>
+    <string name="cust_note">Ausgeblendete Kacheln werden weiter aufgezeichnet, nur nicht angezeigt. Favoriten erscheinen zuerst unter „%1$s“.</string>
+    <string name="cust_show_cd">%1$s anzeigen</string>
+    <string name="cust_fav_on">★ Favorit</string>
+    <string name="cust_fav_off">☆ Favorit</string>
+    <string name="cust_fav_remove_cd">%1$s aus „%2$s“ entfernen</string>
+    <string name="cust_fav_add_cd">%1$s zu „%2$s“ hinzufügen</string>
+    <string name="cust_up">▲ Hoch</string>
+    <string name="cust_down">▼ Runter</string>
+    <string name="cust_up_cd">%1$s nach oben</string>
+    <string name="cust_down_cd">%1$s nach unten</string>
+    <string name="cust_reset">Zurücksetzen</string>
+    <string name="day_reading">Daten werden gelesen …</string>
+    <string name="day_read_failed">Lokale Messdaten konnten nicht gelesen werden.</string>
+    <string name="dq_not_started">Tag noch nicht begonnen</string>
+    <string name="dq_coverage">Abdeckung %1$s %% (%2$d von %3$d min)</string>
+    <string name="dq_gaps_one">%1$s · 1 Lücke, längste %2$d min</string>
+    <string name="dq_gaps_many">%1$s · %2$d Lücken, längste %3$d min</string>
+    <string name="ma_not_available">nicht verfügbar</string>
+    <string name="ma_insufficient">unzureichende Daten</string>
+    <string name="ma_experimental">experimentell</string>
+    <string name="ma_available">verfügbar</string>
+    <string name="tl_not_started">Tag noch nicht begonnen.</string>
+    <string name="tl_no_data_lane">%1$s: keine Daten an diesem Tag.</string>
+    <string name="tl_last">%1$s zuletzt</string>
+    <string name="tl_no_gaps">keine Lücken</string>
+    <string name="tl_gap_one">1 Lücke, längste %1$d min (%2$s–%3$s)</string>
+    <string name="tl_gap_many">%1$d Lücken, längste %2$d min (%3$s–%4$s)</string>
+    <string name="tl_lane_line">%1$s: %2$s, %3$d Messwerte, %4$s.</string>
+    <string name="tl_no_data">keine Daten</string>
+    <string name="tl_lane_band">Herzfrequenz · Band (FIT)</string>
+    <string name="tl_lane_value">%1$s: %2$s</string>
+    <string name="tl_note_phone">Herzfrequenz und Schritte: Empfangszeit am Telefon.</string>
+    <string name="tl_note_band">%1$s: vom Band gemessene Zeit, nicht der Empfang.</string>
+    <string name="tl_note_gaps">%1$s. Lücken bleiben leer und werden nicht überbrückt.</string>
+    <string name="tl_zoom_full">Ganzer Tag. Zwei Finger zum Zoomen, oder Tasten.</string>
+    <string name="tl_zoom_part">Ausschnitt %1$s h von 24 h (Rohpunkte, keine Mittelwerte).</string>
+    <string name="tl_pan_back">Ausschnitt zurück</string>
+    <string name="tl_zoom_out">Herauszoomen</string>
+    <string name="tl_zoom_in">Hineinzoomen</string>
+    <string name="tl_pan_forward">Ausschnitt vor</string>
+    <string name="tl_day_button">Tag</string>
+    <string name="tl_day_button_cd">Ganzen Tag anzeigen</string>
+    <string name="tl_hint">Tippen oder ziehen, um Werte zu einer Uhrzeit zu sehen.</string>
+    <string name="dd_prev">‹ Vorheriger</string>
+    <string name="dd_next">Nächster ›</string>
+    <string name="dd_prev_cd">Vorheriger Datenpunkt</string>
+    <string name="dd_next_cd">Nächster Datenpunkt</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="dd_no_sleep">Noch kein Tagesverlauf verfügbar. Validierte Schlafdaten fehlen.</string>
+    <string name="dd_no_course">Noch kein Tagesverlauf verfügbar.</string>
+    <string name="dd_unit_steps">Schritte</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="dd_unit_device">Geräteeinheit ungeprüft</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="dd_ctx_oxygen">CIRQA-Sensor nicht validiert</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="dd_ctx_resting">Gerätefeld, Messbedingungen ungeprüft</string>
+    <string name="dd_basis">Empfangszeit · %1$s</string>
+    <string name="dd_valid">%1$d gültige Messwerte</string>
+    <string name="dd_invalid">%1$d ohne gültigen Wert</string>
+    <string name="dd_duplicates">%1$d Duplikate</string>
+    <string name="dd_minutes">Minuten mit gültigem Empfang: %1$d von %2$d</string>
+    <string name="dd_status">Datenstatus: %1$s</string>
+    <string name="dd_chart_note">Diagramm: Minimum, Maximum und letzter Wert je Empfangsminute.</string>
+    <string name="dd_last_today">Letzter Empfang heute %1$s</string>
+    <string name="dd_goal">Letztes Geräte-Schrittziel: %1$s</string>
+    <string name="dd_scale">Skala · %1$s–%2$s %3$s</string>
 </resources>

@@ -24,6 +24,8 @@ internal fun showDashboardDay(
     worker: Executor
 ) {
     val zone = ZoneId.systemDefault()
+    val strings = Strings.of(activity)
+    val locale: java.util.Locale = activity.resources.configuration.locales[0]
     val palette = AppPalette.of(activity)
     val today = LocalDate.now(zone)
     val metric = DashboardMeasurement.entries.firstOrNull {
@@ -58,24 +60,24 @@ internal fun showDashboardDay(
     selected.accessibilityLiveRegion = View.ACCESSIBILITY_LIVE_REGION_POLITE
     val navRow = LinearLayout(activity).apply { orientation = LinearLayout.HORIZONTAL }
     fun navButton(title: String) = styled(Button(activity)).apply { text = title }
-    val previous = navButton("‹ Vorheriger")
-    val next = navButton("Nächster ›")
-    previous.contentDescription = "Vorheriger Datenpunkt"
-    next.contentDescription = "Nächster Datenpunkt"
+    val previous = navButton(activity.getString(R.string.dd_prev))
+    val next = navButton(activity.getString(R.string.dd_next))
+    previous.contentDescription = activity.getString(R.string.dd_prev_cd)
+    next.contentDescription = activity.getString(R.string.dd_next_cd)
     navRow.addView(previous, LinearLayout.LayoutParams(0, -2, 1f))
     navRow.addView(next, LinearLayout.LayoutParams(0, -2, 1f))
     content.addView(navRow)
     val overview = label().apply { textSize = 13f; setTextColor(palette.muted) }
-    val dialog = AlertDialog.Builder(activity).setTitle(title)
+    val dialog = AlertDialog.Builder(activity).setTitle(MetricText.title(activity, title))
         .setView(ScrollView(activity).apply { addView(content) })
-        .setPositiveButton("Schließen", null).create()
+        .setPositiveButton(R.string.action_close, null).create()
     var request = 0
-    val dateFormat = DateTimeFormatter.ofPattern("dd.MM.uuuu")
+    val dateFormat = DateTimeFormatter.ofLocalizedDate(java.time.format.FormatStyle.MEDIUM).withLocale(locale)
     val timeFormat = DateTimeFormatter.ofPattern("HH:mm:ss XXX").withZone(zone)
     fun load(date: LocalDate) {
         val generation = ++request
         dateButton.text = date.format(dateFormat)
-        overview.text = "Daten werden gelesen …"
+        overview.text = activity.getString(R.string.day_reading)
         chartHolder.removeAllViews()
         selected.text = ""
         previous.visibility = View.GONE
@@ -83,7 +85,7 @@ internal fun showDashboardDay(
         val now = Instant.now()
         val day = DashboardDay(date, zone)
         if (metric == null) {
-            overview.text = "Noch kein Tagesverlauf verfügbar. Validierte Schlafdaten fehlen."
+            overview.text = activity.getString(R.string.dd_no_sleep)
             return
         }
         worker.execute {
@@ -92,38 +94,38 @@ internal fun showDashboardDay(
             activity.runOnUiThread {
                 if (!dialog.isShowing || generation != request || activity.isDestroyed) return@runOnUiThread
                 if (series == null) {
-                    overview.text = "Lokale Messdaten konnten nicht gelesen werden."
+                    overview.text = activity.getString(R.string.day_read_failed)
                     return@runOnUiThread
                 }
                 val points = series.points
                 val suffix = when (metric) {
-                    DashboardMeasurement.STEPS -> "Schritte"
-                    DashboardMeasurement.CALORIES_TOTAL, DashboardMeasurement.CALORIES_ACTIVE -> "Geräteeinheit ungeprüft"
+                    DashboardMeasurement.STEPS -> activity.getString(R.string.dd_unit_steps)
+                    DashboardMeasurement.CALORIES_TOTAL, DashboardMeasurement.CALORIES_ACTIVE -> activity.getString(R.string.dd_unit_device)
                     else -> metric.unit
                 }
                 val context = when (metric) {
-                    DashboardMeasurement.OXYGEN -> " · CIRQA-Sensor nicht validiert"
-                    DashboardMeasurement.RESTING_PULSE -> " · Gerätefeld, Messbedingungen ungeprüft"
+                    DashboardMeasurement.OXYGEN -> " · " + activity.getString(R.string.dd_ctx_oxygen)
+                    DashboardMeasurement.RESTING_PULSE -> " · " + activity.getString(R.string.dd_ctx_resting)
                     else -> ""
                 }
                 overview.text = buildString {
-                    if (points.size < 2) append("Noch kein Tagesverlauf verfügbar.\n")
-                    append("Empfangszeit · ${zone.id}\n${series.count} gültige Messwerte")
-                    append(" · ${series.invalid} ohne gültigen Wert")
-                    if (series.duplicate > 0) append(" · ${series.duplicate} Duplikate")
-                    append("\nMinuten mit gültigem Empfang: ${series.minutesObserved} von ${series.availableMinutes}")
+                    if (points.size < 2) append(activity.getString(R.string.dd_no_course)).append("\n")
+                    append(activity.getString(R.string.dd_basis, zone.id)).append("\n").append(activity.getString(R.string.dd_valid, series.count))
+                    append(" · ").append(activity.getString(R.string.dd_invalid, series.invalid))
+                    if (series.duplicate > 0) append(" · ").append(activity.getString(R.string.dd_duplicates, series.duplicate))
+                    append("\n").append(activity.getString(R.string.dd_minutes, series.minutesObserved, series.availableMinutes))
                     val quality = DayDataQuality.assess(points.map { it.time }, day, now)
-                    if (points.isNotEmpty()) append("\n" + quality.summary())
-                    append("\nDatenstatus: " + MetricAvailability.of(metric, quality, series.count).label)
+                    if (points.isNotEmpty()) append("\n" + quality.summary(strings))
+                    append("\n").append(activity.getString(R.string.dd_status, activity.getString(MetricAvailability.of(metric, quality, series.count).labelRes)))
                     if (series.count > points.size) {
-                        append("\nDiagramm: Minimum, Maximum und letzter Wert je Empfangsminute.")
+                        append("\n").append(activity.getString(R.string.dd_chart_note))
                     }
                     append(context)
                     if (date == today && points.isNotEmpty()) {
                         val age = java.time.Duration.between(points.last().time, now).toMinutes()
-                        append("\nLetzter Empfang heute vor $age min")
+                        append("\n").append(activity.getString(R.string.dd_last_today, strings.get(R.string.dur_ago, strings.get(R.string.dur_min, age))))
                     }
-                    series.goal?.let { append("\nLetztes Geräte-Schrittziel: $it") }
+                    series.goal?.let { append("\n").append(activity.getString(R.string.dd_goal, it.toString())) }
                 }
                 if (points.isEmpty()) return@runOnUiThread
                 var index = points.lastIndex
@@ -133,7 +135,7 @@ internal fun showDashboardDay(
                 val chart = DayChart(activity, day, points, series.goal,
                     fixedScale, palette.indicator, palette.track, palette.ink)
                 chartHolder.addView(TextView(activity).apply {
-                    text = "Skala · ${chart.min}–${chart.max} $suffix"
+                    text = activity.getString(R.string.dd_scale, chart.min.toString(), chart.max.toString(), suffix)
                     setTextColor(palette.ink)
                 })
                 fun select(pointIndex: Int) {

@@ -18,11 +18,12 @@ internal data class DayDataQuality(
     val coveragePercent: Double? =
         if (availableMinutes <= 0) null else 100.0 * observedMinutes / availableMinutes
 
-    fun summary(): String {
-        val coverage = coveragePercent ?: return "Tag noch nicht begonnen"
-        val text = "Abdeckung ${"%.0f".format(java.util.Locale.GERMANY, coverage)} % (${observedMinutes} von ${availableMinutes} min)"
+    fun summary(strings: Strings): String {
+        val coverage = coveragePercent ?: return strings.get(R.string.dq_not_started)
+        val text = strings.get(R.string.dq_coverage, "%.0f".format(java.util.Locale.ROOT, coverage), observedMinutes, availableMinutes)
         return if (longestGap == null) text
-        else "$text · $gapCount Lücke${if (gapCount == 1) "" else "n"}, längste ${longestGap.toMinutes()} min"
+        else if (gapCount == 1) strings.get(R.string.dq_gaps_one, text, longestGap.toMinutes())
+        else strings.get(R.string.dq_gaps_many, text, gapCount, longestGap.toMinutes())
     }
 
     companion object {

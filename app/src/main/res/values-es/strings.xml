@@ -783,4 +783,74 @@
     <string name="unk_sample_head">%1$s: %2$d apariciones, primeros %3$d valores</string>
     <string name="unk_sample_more">  … y %1$d más</string>
     <string name="unk_sample_cut">  (cada valor truncado a %1$d bytes)</string>
+    <!-- TODO-CHATGPT-REVIEW: Erstentwurf von Claude Code, Ticket #365 -->
+    <!-- Dialoge: Anpassen, Tagesansicht, Tageszeitleiste (#365) -->
+    <string name="cust_title">Personalizar la pantalla de inicio</string>
+    <string name="cust_note">Las tarjetas ocultas se siguen registrando, solo que no se muestran. Los favoritos aparecen primero en «%1$s».</string>
+    <string name="cust_show_cd">Mostrar %1$s</string>
+    <string name="cust_fav_on">★ Favorito</string>
+    <string name="cust_fav_off">☆ Favorito</string>
+    <string name="cust_fav_remove_cd">Quitar %1$s de «%2$s»</string>
+    <string name="cust_fav_add_cd">Añadir %1$s a «%2$s»</string>
+    <string name="cust_up">▲ Subir</string>
+    <string name="cust_down">▼ Bajar</string>
+    <string name="cust_up_cd">%1$s hacia arriba</string>
+    <string name="cust_down_cd">%1$s hacia abajo</string>
+    <string name="cust_reset">Restablecer</string>
+    <string name="day_reading">Leyendo datos …</string>
+    <string name="day_read_failed">No se pudieron leer los datos de medición locales.</string>
+    <string name="dq_not_started">El día aún no ha comenzado</string>
+    <string name="dq_coverage">Cobertura %1$s %% (%2$d de %3$d min)</string>
+    <string name="dq_gaps_one">%1$s · 1 intervalo sin datos, el más largo %2$d min</string>
+    <string name="dq_gaps_many">%1$s · %2$d intervalos sin datos, el más largo %3$d min</string>
+    <string name="ma_not_available">no disponible</string>
+    <string name="ma_insufficient">datos insuficientes</string>
+    <string name="ma_experimental">experimental</string>
+    <string name="ma_available">disponible</string>
+    <string name="tl_not_started">El día aún no ha comenzado.</string>
+    <string name="tl_no_data_lane">%1$s: sin datos este día.</string>
+    <string name="tl_last">%1$s último</string>
+    <string name="tl_no_gaps">sin intervalos sin datos</string>
+    <string name="tl_gap_one">1 intervalo sin datos, el más largo %1$d min (%2$s–%3$s)</string>
+    <string name="tl_gap_many">%1$d intervalos sin datos, el más largo %2$d min (%3$s–%4$s)</string>
+    <string name="tl_lane_line">%1$s: %2$s, %3$d mediciones, %4$s.</string>
+    <string name="tl_no_data">sin datos</string>
+    <string name="tl_lane_band">Frecuencia cardíaca · pulsera (FIT)</string>
+    <string name="tl_lane_value">%1$s: %2$s</string>
+    <string name="tl_note_phone">Frecuencia cardíaca y pasos: hora de recepción en el teléfono.</string>
+    <string name="tl_note_band">%1$s: hora medida por la pulsera, no la de recepción.</string>
+    <string name="tl_note_gaps">%1$s. Los intervalos sin datos quedan vacíos y no se interpolan.</string>
+    <string name="tl_zoom_full">Día completo. Dos dedos para ampliar, o usa los botones.</string>
+    <string name="tl_zoom_part">Tramo de %1$s h de 24 h (puntos sin procesar, sin promedios).</string>
+    <string name="tl_pan_back">Tramo anterior</string>
+    <string name="tl_zoom_out">Alejar</string>
+    <string name="tl_zoom_in">Acercar</string>
+    <string name="tl_pan_forward">Tramo siguiente</string>
+    <string name="tl_day_button">Día</string>
+    <string name="tl_day_button_cd">Mostrar el día completo</string>
+    <string name="tl_hint">Toca o arrastra para ver los valores a una hora determinada.</string>
+    <string name="dd_prev">‹ Anterior</string>
+    <string name="dd_next">Siguiente ›</string>
+    <string name="dd_prev_cd">Punto de datos anterior</string>
+    <string name="dd_next_cd">Punto de datos siguiente</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="dd_no_sleep">Aún no hay evolución del día disponible. Faltan datos de sueño validados.</string>
+    <string name="dd_no_course">Aún no hay evolución del día disponible.</string>
+    <string name="dd_unit_steps">pasos</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="dd_unit_device">unidad del dispositivo sin verificar</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="dd_ctx_oxygen">sensor CIRQA no validado</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="dd_ctx_resting">campo del dispositivo, condiciones de medición sin verificar</string>
+    <string name="dd_basis">Hora de recepción · %1$s</string>
+    <string name="dd_valid">%1$d mediciones válidas</string>
+    <string name="dd_invalid">%1$d sin valor válido</string>
+    <string name="dd_duplicates">%1$d duplicados</string>
+    <string name="dd_minutes">Minutos con recepción válida: %1$d de %2$d</string>
+    <string name="dd_status">Estado de los datos: %1$s</string>
+    <string name="dd_chart_note">Gráfico: mínimo, máximo y último valor por minuto de recepción.</string>
+    <string name="dd_last_today">Última recepción hoy %1$s</string>
+    <string name="dd_goal">Último objetivo de pasos del dispositivo: %1$s</string>
+    <string name="dd_scale">Escala · %1$s–%2$s %3$s</string>
 </resources>
