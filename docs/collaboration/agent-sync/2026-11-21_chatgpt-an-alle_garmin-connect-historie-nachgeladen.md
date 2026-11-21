@@ -1,18 +1,25 @@
-# Nutzerbeobachtung: Garmin Connect synchronisiert fehlende Historie (21.11.2026)
+# Nutzerbeobachtung: Garmin Connect lädt fehlende Tagesdaten nach (21.11.2026)
 
-**An:** OpenCode, Claude Code, CI-Agent und alle CIRQA-Historien-Agenten
-**Quelle:** direkte Nutzerbeobachtung im Chat, 21.11.2026; kein unabhängiger Trace.
+**An:** OpenCode, Claude Code, CI-Agent und alle CIRQA-Historien-Agenten  
+**Quelle:** direkte Beobachtung und Klarstellung des Nutzers im Chat am 21.11.2026. Kein unabhängiger Paketmitschnitt.
 
-## Beobachtung
-Der Nutzer war unterwegs in der U-Bahn und hat Garmin Connect getestet. **Garmin Connect synchronisierte ungefähr eine Minute lang und zeigte anschließend alle zuvor fehlenden Daten in der App an.**
+## Vom Nutzer berichtete Reihenfolge
 
-## Einordnung
-- Dies ist ein wichtiger Gegenbefund zur Vermutung, die fehlende Historie sei grundsätzlich nicht verfügbar.
-- Nicht bewiesen ist, ob die Daten vom Armband, aus lokalem Cache oder aus der Cloud kamen; auch Zeitraum, Datenarten und Netzwerkweg sind nicht erfasst.
-- PulseLibre-Historienabdeckung bleibt unbestätigt (device-history-unverified).
-- Keine Änderung an Gerätebefehlen, Daten oder Code aus dieser Beobachtung ableiten.
+1. Garmin Connect war nach Aussage des Nutzers den ganzen Tag deaktiviert und zwischenzeitlich deinstalliert; daher war nach seiner Angabe kein App-Cache vorhanden.
+2. Nach dem Start synchronisierte Garmin Connect **zuerst mit der Cloud**. **Alle Daten von heute fehlten danach weiterhin**.
+3. Erst bei **aktivem Bluetooth und einer Synchronisation mit dem Armband** wurden die fehlenden Daten in Garmin Connect sichtbar.
+4. Diese Armband-Synchronisation dauerte nach Beobachtung des Nutzers **ungefähr eine Minute**. Der Test fand während einer U-Bahn-Fahrt statt.
 
-## Nachricht an alle Agenten
-Bitte diese Beobachtung bei den bestehenden Untersuchungen zu #149, #148, Dateilisten und nextTransaction berücksichtigen. Vorhandene Berichte und die tatsächliche PulseLibre-Abdeckung vergleichen, aber keine unbelegten Protokollannahmen treffen. Neue BLE-Gerätetests und Produktentwicklung benötigen weiterhin ausdrückliche Nutzerfreigabe. Der Auftrag des stündlichen ChatGPT-Dienstes bleibt ausschließlich Repository-Hygiene.
+## Technische Bedeutung – Beobachtung von Interpretation trennen
 
-**Status:** Nutzerbeobachtung dokumentiert; technische Ursache offen.
+- **Nutzerbeobachtung:** Die Cloud-Synchronisation allein brachte die fehlenden Tagesdaten nicht; nach der Bluetooth-Armband-Synchronisation waren sie in Garmin Connect vorhanden.
+- Dies ist konkrete Evidenz dafür, dass der **Armband-Synchronisationsschritt** die fehlenden Tagesdaten für Garmin Connect verfügbar machte.
+- **Nicht behaupten:** Die Daten seien bereits vor dem Bluetooth-Sync in der Cloud oder in einem Garmin-Connect-App-Cache verfügbar gewesen. Solche Erklärungen widersprechen dem berichteten Ablauf und sind nicht belegt.
+- Ohne Paketmitschnitt ist der interne Transport-/Speichermechanismus von Garmin Connect nicht vollständig technisch nachgewiesen. Das relativiert **nicht** die klare beobachtete Reihenfolge.
+- PulseLibre meldete zuvor weiterhin `device-history-unverified`; aus dem Garmin-Connect-Erfolg folgt nicht automatisch, dass PulseLibre dieselben Daten bereits lädt.
+
+## An alle Agenten
+
+Bitte diese korrigierte Nutzerbeobachtung bei #149, #148, ItemList-/nextTransaction-Analyse und Historienlücken berücksichtigen. Die frühere pauschale Spekulation „Armband, Cache oder Cloud“ **ist durch die Nutzerklarstellung für diesen Test überholt**. Keine neuen BLE-Geräteversuche oder Produktänderungen ohne gesonderte Freigabe; ChatGPT bleibt beim Auftrag Repository-Hygiene.
+
+**Status:** Korrigierte Nutzerbeobachtung dokumentiert; keine zusätzlichen Geräteaktionen.
