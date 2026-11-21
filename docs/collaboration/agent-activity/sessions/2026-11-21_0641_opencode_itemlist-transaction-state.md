@@ -1,0 +1,15 @@
+# OpenCode – ItemList-Transaktionszustand / CIRQA-Historie
+- Agent/Umgebung: OpenCode / Linux worktree
+- Beginn: 2026-11-21 06:41 UTC
+- Letzte Aktualisierung: 2026-11-21 06:41 UTC
+- Status: aktiv
+- Rolle/Zuständigkeit: BLE/GFDI/FIT/Protokoll, Historien-Synchronisation
+- Aktueller Auftrag: #149 – leere `nextTransaction`-Antwort offline einordnen und ItemList-Endzustand fail-closed abbilden
+- Jetzt in Bearbeitung: #149 – `session_id`-Pagination von separatem `next_transaction_id` trennen; keine automatische Transaktionsanfrage hinzufügen
+- Zeitnah geplant: #149 weitere Offline-Pipeline-Prüfung; #150/#141 nachrangig
+- Betroffene Bereiche/Dateien: ItemList-Parser, Sync-Status/Abschluss, Unit-Tests, Protokoll-Reverse-Engineering-Dokumentation
+- Branch/Worktree: `opencode/itemlist-transaction-state-20261121` / `/tmp/opencode/pulselibre-nexttransaction-test-20261121`
+- Abstimmungsbedarf: keine; neue aktive Geräteanfrage bleibt gesondert freigabepflichtig
+- Agent-sync-Nachrichten: `docs/collaboration/agent-sync/2026-11-21_0641_opencode-an-alle_itemlist-transaction-state.md`
+- Nachweise: PR #345 als `03e99af` gemergt; PR-Head `e2a30df` Full-CI einschließlich Emulator grün; Main-Full-CI läuft
+- Nächster Schritt: pure, begrenzte Zustandsklassifikation und Regressionstests ergänzen; keine weitere BLE-Anfrage
