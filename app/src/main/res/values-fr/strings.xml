@@ -6,10 +6,9 @@
     <string name="settings_language_content_description">Langue</string>
 
     <!-- Einstellungen (PersonalSettings) -->
-    <!-- TODO-CHATGPT-REVIEW: Erstentwurf von Claude Code, Ticket #365 -->
     <string name="settings_title">Paramètres</string>
     <string name="settings_ok">OK</string>
-    <string name="settings_explanation_for">Explication : %1$s</string>
+    <string name="settings_explanation_for">Explication de %1$s</string>
     <string name="profile_heading">Profil</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="profile_info">L’avatar du profil corporel suit le choix facultatif du genre : homme, femme ou un petit Jedi pour divers / autre. Sans indication, la silhouette neutre reste affichée. Aucun compte utilisateur et aucun cloud. Ces informations ne sont pas encore reliées à des formules d’estimation médicales ou caloriques. L’âge du jour est calculé à partir de la date de naissance ; elle reste enregistrée localement.</string>
@@ -29,18 +28,18 @@
     <string name="body_heading">Corps et objectifs</string>
     <string name="body_height">Taille (cm)</string>
     <string name="body_weight">Poids (kg)</string>
-    <string name="body_step_goal">Objectif de pas/jour</string>
+    <string name="body_step_goal">Objectif de pas par jour</string>
     <string name="body_sleep_goal">Objectif de sommeil (h)</string>
     <string name="body_resting_hr">Fréquence cardiaque au repos connue (bpm)</string>
     <string name="other_heading">Autres</string>
-    <string name="other_wear_side">Côté de port</string>
+    <string name="other_wear_side">Poignet de port</string>
     <string name="wear_none">Non précisé</string>
     <string name="wear_left">Gauche</string>
     <string name="wear_right">Droite</string>
     <string name="other_units">Unités</string>
     <string name="units_metric">Métrique (kg, cm)</string>
     <string name="units_imperial">Impérial (affichage ultérieur)</string>
-    <string name="other_note">Note (local uniquement)</string>
+    <string name="other_note">Note (stockée localement)</string>
     <string name="recording_heading">Enregistrement</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="recording_info">Si cette option est active, PulsLibre démarre automatiquement le service d’enregistrement à l’ouverture de l’app et se connecte au bracelet CIRQA. Cela n’a lieu que si le Bluetooth est déjà activé et que les autorisations ont déjà été accordées ; PulsLibre n’active jamais le Bluetooth de lui-même. Par défaut : désactivé. Les enregistrements déjà en cours ne sont pas démarrés deux fois. Vous pouvez toujours les arrêter dans l’app ou depuis la notification.</string>
@@ -54,8 +53,8 @@
     <string name="settings_version_cd">Version de l’app %1$s</string>
     <string name="settings_developer">Développé par Jochen Kunkel</string>
     <string name="settings_developer_cd">Développeur : Jochen Kunkel</string>
-    <string name="activity_heading">Activité d’après les pas</string>
-    <string name="activity_info">D’après les cumuls de pas CIRQA des dernières minutes. Le mode est une heuristique d’affichage grossière : les pas ne prouvent ni la position assise ni un sport précis. Avec trop peu de valeurs ou des valeurs trop anciennes, il reste inconnu.</string>
+    <string name="activity_heading">Activité estimée à partir des pas</string>
+    <string name="activity_info">À partir des compteurs de pas cumulés de CIRQA sur les dernières minutes. Le mode est une estimation indicative : les pas ne prouvent ni une position assise ni la pratique d’un sport précis. Si les valeurs sont trop rares ou trop anciennes, le mode reste inconnu.</string>
     <string name="activity_rest">Repos (/min)</string>
     <string name="activity_sport">Sport (/min)</string>
     <string name="activity_window">Fenêtre (min)</string>
@@ -86,29 +85,27 @@
     <string name="settings_saved_toast">Profil enregistré localement</string>
 
     <!-- Navigation (MainNavigationView) -->
-    <!-- TODO-CHATGPT-REVIEW: Erstentwurf von Claude Code, Ticket #365 -->
-    <string name="nav_overview">Aperçu</string>
+    <string name="nav_overview">Vue d’ensemble</string>
     <string name="nav_history">Historique</string>
     <string name="nav_device">Appareil</string>
-    <string name="nav_testlab">Labo de test</string>
+    <string name="nav_testlab">Laboratoire de test</string>
     <string name="nav_data">Données</string>
     <string name="nav_analyses">Analyses</string>
 
     <!-- Hauptansicht (MainActivity) Teil 1 -->
-    <!-- TODO-CHATGPT-REVIEW: Erstentwurf von Claude Code, Ticket #365 -->
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="main_bt_off">Le Bluetooth est désactivé – les mesures CIRQA ne peuvent pas être reçues.</string>
     <string name="main_link_status_cd">Afficher l’état de la connexion Bluetooth</string>
     <string name="main_link_title">Connexion CIRQA</string>
     <string name="main_open_settings">Ouvrir les paramètres</string>
-    <string name="main_link_details_cd">%1$s Afficher les détails</string>
+    <string name="main_link_details_cd">Afficher les détails de %1$s</string>
     <string name="main_tagline">Vos données. Votre contrôle.</string>
     <string name="main_profile_title">Mon profil corporel</string>
     <string name="main_profile_tap_edit">Appuyer pour modifier</string>
     <string name="main_data_info_cd">Informations sur les mesures reçues et le stockage local</string>
     <string name="main_data_dialog_title">Vos données de mesure</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
-    <string name="main_data_dialog_message">%1$d mesures reçues\nProtocole d’origine : %2$d Kio\n\nVos valeurs restent sur cet appareil. Pas de cloud.\nHeure de mesure = heure de réception. Aucun diagnostic médical.</string>
+    <string name="main_data_dialog_message">%1$d mesures reçues\nProtocole d’origine : %2$d KiB\n\nVos valeurs restent sur cet appareil. Pas de cloud.\nHeure de mesure = heure de réception. Aucun diagnostic médical.</string>
     <string name="main_body_figure_cd">Illustration d’une personne avec une casquette et un sweat à capuche violet. Les valeurs du profil figurent à côté.</string>
     <string name="main_body_height">Taille</string>
     <string name="main_body_weight">Poids</string>
@@ -125,11 +122,11 @@
     <string name="main_trend_link_text">Tendances, atlas d’activité et corrélations sous « Analyses »</string>
     <string name="main_day_link_cd">Ouvrir l’aperçu du jour. Fréquence cardiaque et pas d’une journée sur un axe temporel commun.</string>
     <string name="main_day_link_title">Aperçu du jour</string>
-    <string name="main_day_link_text">Fréquence cardiaque et pas sur un axe temporel, lacunes visibles</string>
+    <string name="main_day_link_text">Fréquence cardiaque et pas sur un même axe temporel, avec les lacunes visibles</string>
     <string name="main_device_heading">Appareil · CIRQA</string>
     <string name="main_open_testlab">Ouvrir le labo de test</string>
     <string name="main_status_ready">Hors ligne · prêt</string>
-    <string name="main_hist_status_none">Aucun téléchargement de l’historique démarré.</string>
+    <string name="main_hist_status_none">Aucun téléchargement de données historiques lancé.</string>
     <string name="main_hist_heading">Données historiques de l’appareil</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="main_hist_info">Les fichiers sont enregistrés localement et en privé. Les mesures FIT sont en outre importées dans SQLite ; les types de fichiers inconnus sont conservés en l’état.</string>
@@ -150,7 +147,7 @@
     <string name="main_rec_confirm_title">Démarrer la collecte CIRQA</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="main_rec_confirm_message">PulsLibre se connecte activement au bracelet CIRQA par Bluetooth et reçoit les mesures en temps réel disponibles via une connexion continue. En cas de coupure, l’app tente de se reconnecter. Les mesures sont enregistrées localement sur cet appareil. Aucune donnée FIT historique n’est chargée. Android affiche pendant ce temps une notification permanente avec un bouton d’arrêt (Android 13+ : les notifications doivent être autorisées) ; le système peut malgré tout arrêter le service. Garmin Connect peut influencer la connexion Bluetooth. Démarrer maintenant ?</string>
-    <string name="main_rec_autostart_failed">Démarrage automatique de l’enregistrement impossible – veuillez le démarrer manuellement.</string>
+    <string name="main_rec_autostart_failed">Impossible de démarrer automatiquement l’enregistrement – veuillez le démarrer manuellement.</string>
     <string name="main_bt_permission_needed">Autorisation de connexion Bluetooth requise pour la synchronisation de l’historique.</string>
     <string name="main_auto_sync_running">Synchronisation automatique de l’historique en cours …</string>
 
