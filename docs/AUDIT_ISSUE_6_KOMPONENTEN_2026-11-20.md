@@ -204,3 +204,9 @@ Geprüft: Hintergrundarbeit und Lebenszyklus (Z. 40–135, 1141–1153), Diensts
 - Hintergrund-Threads (Schrittreihe, Nachtserie, Kachel-Einsichten) melden nur zurück, wenn die Ansicht noch angehängt ist (`isAttachedToWindow`); Fehler beim Lesen führen zu leerem Zustand, nicht zu Absturz.
 - Gemeinsame Zwischenspeicher sind `@Volatile` bzw. `ConcurrentHashMap`; Schrittreihen-Ladeflag wird auch im Fehlerfall zurückgesetzt, weil Ausnahmen im `try` abgefangen werden.
 - Befund: keine neuen Fehler. Rest der Datei (Skalen/Dialoge) bleibt offen im Ticket #6.
+
+## 19. CirqaDatabase (Stichprobe Wiederherstellung/Transaktionen, 2026-11-21; Bereich OpenCode, nur lesend)
+- `replaceAllStoredRows` (Backup-Wiederherstellung) löscht und füllt beide Speicher in **einer** Transaktion mit `setTransactionSuccessful` erst am Ende und `endTransaction` im `finally`: ein abgebrochenes Einspielen lässt den alten Stand unverändert. Eingehende Zeilen werden vor dem Einfügen per `require(isValidStored…)` geprüft.
+- Schreibende Methoden sind `@Synchronized`; Lesemethoden nutzen `use {}` für Cursor.
+- Hinweis (A6-10, kein Fehler): Backups enthalten keine FIT-Originale (nur Export „FIT-Originale“ der Daten-Seite). Nach einer Wiederherstellung auf einem anderen Gerät kann der Start-Backfill daher keine Beobachtungen neu ableiten; abgeleitete Daten kommen nur aus dem Backup. Das steht jetzt im Benutzerhandbuch (Abschnitt Daten).
+- Rest der Datei (Schema-Migrationen, Historienkopie) wurde nicht tief geprüft; Änderungen dort nur über OpenCode/#144.

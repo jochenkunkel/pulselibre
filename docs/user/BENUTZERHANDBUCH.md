@@ -75,6 +75,8 @@ Lokaler Export und Sicherung deiner Daten (Zeitraum wählen, exportieren) sowie 
 
 > **Datenschutz-Hinweis:** Die Datenbanksicherung ist **nicht verschlüsselt**. Sie enthält deine Gesundheitsdaten im Klartext. Speichere sie nur an einem Ort, dem du vertraust (nicht in einem öffentlich geteilten oder ungesicherten Cloud-Ordner).
 
+**Backup und FIT-Originale:** Die Datenbanksicherung enthält deine Messwerte, Ereignisse und Synchronisationsstände, aber **nicht** die Original-Dateien des Bands. Nach einer Wiederherstellung (z. B. auf einem anderen Handy) kommen die Band-Verlaufswerte deshalb nur aus der Sicherung; die App kann sie nicht aus den Originalen neu berechnen. Mit **„FIT-Originale exportieren“** legst du die Original-Dateien zusätzlich als ZIP ab (mit Warnhinweis; sie können Gesundheitsdaten enthalten und sind ebenfalls nicht verschlüsselt).
+
 ## 3. Einstellungen (Oberarm-Symbol)
 
 ![Einstellungen](images/09-einstellungen.png)  
