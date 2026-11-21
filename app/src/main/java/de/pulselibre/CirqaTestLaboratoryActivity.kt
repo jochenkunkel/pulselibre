@@ -35,6 +35,7 @@ import java.util.concurrent.Executors
  * handshake, bootstrap, raw-frame, or motion-command probes.
  */
 class CirqaTestLaboratoryActivity : AppCompatActivity() {
+    override fun attachBaseContext(newBase: android.content.Context) = super.attachBaseContext(AppLanguageSettings.wrap(newBase))
     private val handler = Handler(Looper.getMainLooper())
     private val io = Executors.newSingleThreadExecutor()
     private val preferences by lazy { getSharedPreferences("cirqa_test_laboratory", MODE_PRIVATE) }

@@ -4,4 +4,83 @@
     <string name="language_system">Systemsprache</string>
     <string name="settings_language_hint">Standard ist die Systemsprache. Beim Wechsel baut die App ihre Ansichten neu auf. Einige Texte werden noch übersetzt und erscheinen vorerst auf Deutsch.</string>
     <string name="settings_language_content_description">Sprache</string>
+
+    <!-- Einstellungen (PersonalSettings) -->
+    <string name="settings_title">Einstellungen</string>
+    <string name="settings_ok">OK</string>
+    <string name="settings_explanation_for">Erklärung zu %1$s</string>
+    <string name="profile_heading">Profil</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="profile_info">Der Körperprofil-Avatar richtet sich nach der freiwilligen Geschlechtsauswahl: Mann, Frau oder ein kleiner Jedi für Divers / andere. Ohne Angabe bleibt die neutrale Figur. Kein Benutzerkonto und keine Cloud. Die Angaben sind noch nicht mit medizinischen oder kalorischen Schätzformeln verknüpft. Aus dem Geburtsdatum wird das Alter für den jeweiligen Tag berechnet; es bleibt lokal gespeichert.</string>
+    <string name="profile_display_name">Anzeigename</string>
+    <string name="profile_gender">Geschlecht (optional)</string>
+    <string name="gender_none">Keine Angabe</string>
+    <string name="gender_male">Männlich</string>
+    <string name="gender_female">Weiblich</string>
+    <string name="gender_other">Divers / andere</string>
+    <string name="profile_birth_date">Geburtsdatum (optional)</string>
+    <string name="profile_birth_legacy">Bisher gespeichertes Alter: %1$s Jahre. Bitte Geburtsdatum ergänzen; es wird nicht aus dem Alter geschätzt.</string>
+    <string name="profile_birth_choose">Geburtsdatum wählen</string>
+    <string name="profile_birth_with_age">%1$s  ·  %2$s</string>
+    <string name="profile_age_years">%1$d Jahre</string>
+    <string name="profile_age_invalid">ungültig</string>
+    <string name="profile_birth_change_cd">Geburtsdatum %1$s ändern</string>
+    <string name="body_heading">Körper &amp; Ziele</string>
+    <string name="body_height">Größe (cm)</string>
+    <string name="body_weight">Gewicht (kg)</string>
+    <string name="body_step_goal">Schrittziel/Tag</string>
+    <string name="body_sleep_goal">Schlafziel (h)</string>
+    <string name="body_resting_hr">Bekannter Ruhepuls (bpm)</string>
+    <string name="other_heading">Sonstiges</string>
+    <string name="other_wear_side">Trageseite</string>
+    <string name="wear_none">Nicht angegeben</string>
+    <string name="wear_left">Links</string>
+    <string name="wear_right">Rechts</string>
+    <string name="other_units">Einheiten</string>
+    <string name="units_metric">Metrisch (kg, cm)</string>
+    <string name="units_imperial">Imperial (Anzeige später)</string>
+    <string name="other_note">Notiz (nur lokal)</string>
+    <string name="recording_heading">Aufzeichnung</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="recording_info">Wenn aktiv, startet PulsLibre beim Öffnen der App den Aufzeichnungsdienst automatisch und verbindet sich mit dem CIRQA-Armband. Das passiert nur, wenn Bluetooth bereits eingeschaltet ist und die Berechtigungen schon erteilt wurden; PulsLibre schaltet Bluetooth nie selbst ein. Standard: aus. Laufende Aufzeichnungen werden nicht doppelt gestartet. Stoppen geht weiterhin in der App oder über die Benachrichtigung.</string>
+    <string name="recording_autostart">Beim App-Start automatisch aufzeichnen</string>
+    <string name="recording_autostart_cd">Aufzeichnung beim App-Start automatisch starten, ein oder aus</string>
+    <string name="appearance_heading">Darstellung</string>
+    <string name="appearance_theme_cd">App-Design auswählen</string>
+    <string name="theme_system">Systemeinstellung</string>
+    <string name="theme_light">Hell</string>
+    <string name="theme_dark">Dunkel</string>
+    <string name="settings_version_cd">App-Version %1$s</string>
+    <string name="settings_developer">Entwickelt von Jochen Kunkel</string>
+    <string name="settings_developer_cd">Entwickler: Jochen Kunkel</string>
+    <string name="activity_heading">Aktivität aus Schritten</string>
+    <string name="activity_info">Aus kumulativen CIRQA-Schrittständen der letzten Minuten. Der Modus ist eine grobe Anzeige-Heuristik: Schritte belegen weder Sitzen noch eine bestimmte Sportart. Bei zu wenigen oder veralteten Werten bleibt er unbekannt.</string>
+    <string name="activity_rest">Ruhe (/min)</string>
+    <string name="activity_sport">Sport (/min)</string>
+    <string name="activity_window">Fenster (min)</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="spo2_heading">SpO₂-Skala · nicht validiert</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="spo2_info">Vorschau %1$s\n\n%2$s Der CIRQA-Handgelenksensor ist nicht gerätespezifisch validiert. Keine Diagnose oder Alarmfunktion; Signalqualität wird nicht übertragen.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="spo2_colors_on">Farbskala aktiv (vom Nutzer akzeptiert); der violette Kartenrand kennzeichnet die fehlende Validierung.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="spo2_colors_off">Farbskala bleibt neutral.</string>
+    <string name="spo2_green_from">Grün ab (%)</string>
+    <string name="spo2_orange_from">Orange ab (%)</string>
+    <string name="delete_heading">Profil löschen</string>
+    <string name="delete_button">Profil löschen …</string>
+    <string name="delete_button_cd">Profil löschen, erfordert zwei Bestätigungen</string>
+    <string name="action_close">Schließen</string>
+    <string name="action_save">Speichern</string>
+    <string name="action_cancel">Abbrechen</string>
+    <string name="action_continue">Weiter</string>
+    <string name="delete_confirm_title">Profil löschen?</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="delete_confirm_message">Alle Profilangaben (Name, Körperdaten, Ziele) werden entfernt. SpO₂-Grenzwerte bleiben erhalten. Messdaten bleiben erhalten.</string>
+    <string name="delete_final_title">Wirklich endgültig löschen?</string>
+    <string name="delete_final_message">Das Löschen kann nicht rückgängig gemacht werden.</string>
+    <string name="delete_final_button">Endgültig löschen</string>
+    <string name="settings_validation_toast">Bitte die Zahlen prüfen (Größe, Gewicht, Ziele und SpO₂-Orientierungsbereiche).</string>
+    <string name="settings_saved_toast">Profil lokal gespeichert</string>
 </resources>

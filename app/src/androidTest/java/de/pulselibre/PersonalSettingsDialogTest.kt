@@ -11,6 +11,7 @@ import org.junit.runner.RunWith
 /** Settings dialog: version line and the double-confirmed profile deletion. Uses [DialogProbe], not UiAutomation. */
 @RunWith(AndroidJUnit4::class)
 class PersonalSettingsDialogTest {
+    @get:org.junit.Rule val german = GermanUiRule()
     private val instrumentation get() = InstrumentationRegistry.getInstrumentation()
     private val prefs get() = instrumentation.targetContext.getSharedPreferences("local_personal_profile", 0)
 
