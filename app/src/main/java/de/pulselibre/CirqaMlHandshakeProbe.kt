@@ -986,7 +986,16 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         }
         val sessionId = syncPageSessionId
         if (sessionId == null) {
-            finish("Item-List vollständig; Datei-Queue abgearbeitet.", g)
+            if (syncPageNextTransactionId != null) {
+                syncIncompleteReason = "next-transaction-pending"
+                finish(
+                    "Item-List-Session beendet; separate Transaktion angekündigt. " +
+                        "Stopp ohne weitere Anfrage; Historienvollständigkeit unbekannt.",
+                    g
+                )
+            } else {
+                finish("Item-List vollständig; Datei-Queue abgearbeitet.", g)
+            }
             return
         }
         val handle = historyHandle ?: run {
@@ -1005,7 +1014,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     }
 
     private fun appendSyncItemListPage(g: BluetoothGatt, page: CirqaFileAccessItemListParser.ItemListPage) {
-        if (page.status != ITEM_LIST_SUCCESS_STATUS) {
+        val progress = CirqaItemListProgress.next(page)
+        if (progress == CirqaItemListProgress.Next.FAILED) {
             syncIncompleteReason = "item-list-status"
             finish("Item-List meldete Status ${page.status ?: "fehlt"}; Fortsetzung gestoppt.", g)
             return
@@ -1013,8 +1023,9 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         syncListPageCount++
         syncPageSessionId = CirqaFileAccessListRequest.nextPageSessionId(page)
         syncPageNextTransactionId = page.nextTransactionId
-        syncHasPaginationSession = page.sessionId != null
-        syncHasNextTransactionId = page.nextTransactionId != null
+        syncHasPaginationSession = progress == CirqaItemListProgress.Next.SESSION_PAGE
+        syncHasNextTransactionId = progress == CirqaItemListProgress.Next.TRANSACTION_PENDING ||
+            (progress == CirqaItemListProgress.Next.SESSION_PAGE && page.nextTransactionId != null)
         if (syncNextTransactionProbeMode) {
             if (!syncNextTransactionFollowupSent) {
                 val handle = historyHandle ?: run {
@@ -2647,7 +2658,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         private const val MAX_DIRECTORY_DIAGNOSTIC_ENTRIES = 12
         private const val MAX_SYNC_ITEM_LIST_PAGES = 64
         // ItemListStatus.SUCCESS is 0; 1 means FAIL_UNKNOWN_SESSION_ID.
-        private const val ITEM_LIST_SUCCESS_STATUS = 0L
+        private const val ITEM_LIST_SUCCESS_STATUS = CirqaFileAccessListRequest.ITEM_LIST_SUCCESS_STATUS
     }
 
     private fun legacy5007Report(reason: String): String =
@@ -2897,7 +2908,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                 .joinToString(",") { "${it.key}x${it.value}" }
             val runDrained = syncAccepted && syncIncompleteReason == null &&
                 syncFailedFiles == 0 && syncPendingItems.isEmpty() && syncCurrentItem == null &&
-                syncPageSessionId == null
+                syncPageSessionId == null && syncPageNextTransactionId == null
             syncFinalReport = "Sync-Beobachtung: $message; runDrained=$runDrained; " +
                 "coverage=device-history-unverified; " +
                 "incompleteReason=${syncIncompleteReason ?: when {

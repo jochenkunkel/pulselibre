@@ -10,6 +10,10 @@ ItemList-Endzustands: `session_id` bedeutet Session-Pagination; ein
 S25-Befund (eine leere erfolgreiche Folgeantwort) rechtfertigt weder weitere
 Anfragen noch die Behauptung, zusätzliche Dateien seien vorhanden.
 
+Connect 5.31 kann neben dem Token agentbezogene Flag-/Datentyp-Filter mitsenden;
+die begrenzte S25-Anfrage enthielt nur den Token. Das ist ein möglicher
+Unterschied, aber keine nachgewiesene Ursache der leeren Antwort.
+
 Ich ergänze einen begrenzten, getesteten Zustandsentscheid, damit der Sync
 Session-Seiten weiterverfolgen kann, Transaktionskontext aber als „weitere
 Transaktion erforderlich / Vollständigkeit unbekannt“ ausweist. Es wird keine

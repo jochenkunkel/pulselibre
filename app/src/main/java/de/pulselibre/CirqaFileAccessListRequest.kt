@@ -12,6 +12,7 @@ package de.pulselibre
  */
 object CirqaFileAccessListRequest {
     const val MESSAGE_TYPE = 5043
+    const val ITEM_LIST_SUCCESS_STATUS = 0L
 
     /**
      * Connect's listing loop continues only while a response has session_id.
