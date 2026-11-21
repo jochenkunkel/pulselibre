@@ -91,4 +91,63 @@
     <string name="nav_testlab">Testlabor</string>
     <string name="nav_data">Daten</string>
     <string name="nav_analyses">Analysen</string>
+
+    <!-- Hauptansicht (MainActivity) Teil 1 -->
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="main_bt_off">Bluetooth ist ausgeschaltet – CIRQA-Messwerte können nicht empfangen werden.</string>
+    <string name="main_link_status_cd">Bluetooth-Verbindungsstatus anzeigen</string>
+    <string name="main_link_title">CIRQA-Verbindung</string>
+    <string name="main_open_settings">Einstellungen öffnen</string>
+    <string name="main_link_details_cd">%1$s Details anzeigen</string>
+    <string name="main_tagline">Deine Daten. Deine Kontrolle.</string>
+    <string name="main_profile_title">Mein Körperprofil</string>
+    <string name="main_profile_tap_edit">Tippen zum Bearbeiten</string>
+    <string name="main_data_info_cd">Informationen zu empfangenen Messungen und lokaler Speicherung</string>
+    <string name="main_data_dialog_title">Deine Messdaten</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="main_data_dialog_message">%1$d empfangene Messungen\nOriginalprotokoll: %2$d KiB\n\nDeine Werte bleiben auf diesem Gerät. Keine Cloud.\nMesszeit = Empfangszeit. Keine medizinische Diagnose.</string>
+    <string name="main_body_figure_cd">Illustration einer Person mit Basecap und violettem Hoodie. Profilwerte sind daneben aufgeführt.</string>
+    <string name="main_body_height">Größe</string>
+    <string name="main_body_weight">Gewicht</string>
+    <string name="main_body_age">Alter</string>
+    <string name="main_body_bmi">BMI</string>
+    <string name="main_body_weight_cd">Gewicht %1$s. Tippen zum Ändern.</string>
+    <string name="main_body_weight_unset">nicht angegeben</string>
+    <string name="main_body_weight_kg_words">%1$s Kilogramm</string>
+    <string name="main_body_age_years">%1$d Jahre</string>
+    <string name="main_body_card_cd">Mein Körperprofil. </string>
+    <string name="main_health_heading">Gesundheit · CIRQA</string>
+    <string name="main_trend_link_cd">Ruhepuls-Trend und weitere Analysen ansehen. Öffnet den Reiter Analysen.</string>
+    <string name="main_trend_link_title">Ruhepuls-Trend ansehen</string>
+    <string name="main_trend_link_text">Trends, Aktivitäts-Atlas und Zusammenhänge unter „Analysen“</string>
+    <string name="main_day_link_cd">Tag im Überblick öffnen. Herzfrequenz und Schritte eines Tages auf einer gemeinsamen Zeitachse.</string>
+    <string name="main_day_link_title">Tag im Überblick</string>
+    <string name="main_day_link_text">Herzfrequenz und Schritte auf einer Zeitachse, Lücken sichtbar</string>
+    <string name="main_device_heading">Gerät · CIRQA</string>
+    <string name="main_open_testlab">Testlabor öffnen</string>
+    <string name="main_status_ready">Offline · bereit</string>
+    <string name="main_hist_status_none">Noch kein historischer Download gestartet.</string>
+    <string name="main_hist_heading">Historische Gerätedaten</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="main_hist_info">Dateien werden lokal und privat gespeichert. FIT-Messwerte werden zusätzlich in SQLite importiert; unbekannte Dateitypen bleiben als Original erhalten.</string>
+    <string name="main_hist_button">Historie herunterladen</string>
+    <string name="main_hist_confirm_title">CIRQA-Historie herunterladen?</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="main_hist_confirm_message">PulsLibre verbindet sich jetzt mit dem gekoppelten CIRQA und fordert die verfügbare Dateiliste samt Fortsetzungen und Datei-Pulls an. Der Sync-Request kann das Gerät dazu veranlassen, Daten als übertragen zu markieren. PulsLibre sendet keine Lösch-, Archiv-, SetFlags- oder Reset-Befehle. Dateien werden innerhalb der angezeigten Sicherheitslimits privat gespeichert; FIT-Dateien werden nach CRC-Prüfung importiert. Ein Lauf kann durch Sicherheitslimits oder Verbindungsabbruch unvollständig enden; dann zeigt der Status dies an. Die vollständige Historie des Geräts ist erst nach bestätigter Listen-Paginierung belegt.</string>
+    <string name="main_hist_confirm_ok">Herunterladen</string>
+    <string name="main_hist_running">Historischer Download läuft …</string>
+    <string name="main_rec_off">Aufzeichnung aus</string>
+    <string name="main_rec_on">Aufzeichnung läuft</string>
+    <string name="main_rec_stopping">CIRQA-Sammlung wird beendet …</string>
+    <string name="main_rec_starting">CIRQA-Sammlung wird gestartet …</string>
+    <string name="main_rec_start">Starten</string>
+    <string name="main_rec_stop">Stoppen</string>
+    <string name="main_rec_stop_failed">Stopp konnte nicht angefordert werden.</string>
+    <string name="main_rec_start_failed">Start fehlgeschlagen. Bluetooth- und Android-Berechtigungen prüfen.</string>
+    <string name="main_rec_confirm_title">CIRQA-Sammlung starten</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="main_rec_confirm_message">PulsLibre verbindet sich aktiv per Bluetooth mit dem CIRQA-Armband und empfängt verfügbare Echtzeitmesswerte über eine laufende Verbindung. Bei Verbindungsabbrüchen versucht die App die Verbindung erneut. Die Messwerte werden lokal auf diesem Gerät gespeichert. Es werden keine historischen FIT-Daten geladen. Android zeigt währenddessen eine dauerhafte Benachrichtigung mit Stopp-Taste (Android 13+: Benachrichtigungen müssen erlaubt sein); das System kann den Dienst dennoch beenden. Garmin Connect kann die Bluetooth-Verbindung beeinflussen. Jetzt starten?</string>
+    <string name="main_rec_autostart_failed">Automatischer Start der Aufzeichnung nicht möglich – bitte manuell starten.</string>
+    <string name="main_bt_permission_needed">Bluetooth-Verbindungsberechtigung für den historischen Sync erforderlich.</string>
+    <string name="main_auto_sync_running">Automatischer historischer Sync läuft …</string>
 </resources>

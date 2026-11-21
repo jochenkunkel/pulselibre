@@ -142,7 +142,7 @@ class MainActivity : AppCompatActivity() {
         startDashboardPolling()
         connectionIndicatorRefresh?.invoke()
         if (::adapter.isInitialized && ::status.isInitialized && !adapter.isEnabled) {
-            status.text = "Bluetooth ist ausgeschaltet – CIRQA-Messwerte können nicht empfangen werden."
+            status.text = getString(R.string.main_bt_off)
         }
         maybeStartAutomaticHistoricalSync()
     }
@@ -256,15 +256,15 @@ class MainActivity : AppCompatActivity() {
             minimumHeight = dp(48)
             isClickable = true
             isFocusable = true
-            contentDescription = "Bluetooth-Verbindungsstatus anzeigen"
+            contentDescription = getString(R.string.main_link_status_cd)
             background = rounded(palette.tinted, 24)
             addView(PlIcon.view(this@MainActivity, PlIcon.SIGNAL, 23, violet),
                 android.widget.FrameLayout.LayoutParams(dp(23), dp(23), android.view.Gravity.CENTER))
             setOnClickListener {
                 androidx.appcompat.app.AlertDialog.Builder(this@MainActivity)
-                    .setTitle("CIRQA-Verbindung")
+                    .setTitle(R.string.main_link_title)
                     .setMessage(CirqaLinkStatus.contentDescription(cirqaLink))
-                    .setPositiveButton("Schließen", null)
+                    .setPositiveButton(R.string.action_close, null)
                     .show()
             }
         }
@@ -289,8 +289,8 @@ class MainActivity : AppCompatActivity() {
                     }.start()
                 }
             }
-            avatarButton.contentDescription = "Einstellungen öffnen"
-            linkInfoButton.contentDescription = "${CirqaLinkStatus.contentDescription(link)} Details anzeigen"
+            avatarButton.contentDescription = getString(R.string.main_open_settings)
+            linkInfoButton.contentDescription = getString(R.string.main_link_details_cd, CirqaLinkStatus.contentDescription(link))
             if (link.online == lastHeaderStatus?.online) { lastHeaderStatus = link; return }
             lastHeaderStatus = link
             linkInfoButton.background = GradientDrawable().apply {
@@ -311,8 +311,8 @@ class MainActivity : AppCompatActivity() {
         // #179/#209: reference variant 4 shows only "Deine Daten. Deine Kontrolle."; the former "· Offline" suffix was removed
         // (it was misread as a connection status). The offline-first promise belongs to Help/Privacy, not to the header.
         val taglineWraps = resources.configuration.screenWidthDp < 340 || resources.configuration.fontScale >= 1.3f
-        val taglineRow = text("Deine Daten. Deine Kontrolle.", 13f, Color.parseColor("#E9E1F7")).apply {
-            contentDescription = "Deine Daten. Deine Kontrolle."
+        val taglineRow = text(getString(R.string.main_tagline), 13f, Color.parseColor("#E9E1F7")).apply {
+            contentDescription = getString(R.string.main_tagline)
         }
         header.addView(taglineRow, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8); marginStart = if (taglineWraps) 0 else dp(60) })
         val root = LinearLayout(this).apply {
@@ -394,23 +394,20 @@ class MainActivity : AppCompatActivity() {
             importantForAccessibility = android.view.View.IMPORTANT_FOR_ACCESSIBILITY_NO
         }, LinearLayout.LayoutParams(dp(32), dp(32)).apply { marginEnd = dp(10) })
         val titleColumn = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
-        titleColumn.addView(text("Mein Körperprofil", if (largeText) 16f else 18f, heroText, true))
-        titleColumn.addView(text("Tippen zum Bearbeiten", 13f, heroSecondary).apply { setPadding(0, dp(2), 0, 0); maxLines = 2 })
+        titleColumn.addView(text(getString(R.string.main_profile_title), if (largeText) 16f else 18f, heroText, true))
+        titleColumn.addView(text(getString(R.string.main_profile_tap_edit), 13f, heroSecondary).apply { setPadding(0, dp(2), 0, 0); maxLines = 2 })
         bodyHeader.addView(titleColumn, LinearLayout.LayoutParams(0, -2, 1f))
         val healthInfo = android.widget.FrameLayout(this).apply {
             addView(PlIcon.view(this@MainActivity, PlIcon.INFO, 22), android.widget.FrameLayout.LayoutParams(dp(22), dp(22), android.view.Gravity.CENTER))
-            contentDescription = "Informationen zu empfangenen Messungen und lokaler Speicherung"
+            contentDescription = getString(R.string.main_data_info_cd)
             isClickable = true
             isFocusable = true
             setOnClickListener {
                 readDashboard(includeTotals = true) { summary ->
                 androidx.appcompat.app.AlertDialog.Builder(this@MainActivity)
-                    .setTitle("Deine Messdaten")
-                    .setMessage("${summary.samples} empfangene Messungen\n" +
-                        "Originalprotokoll: ${summary.bytes / 1024} KiB\n\n" +
-                        "Deine Werte bleiben auf diesem Gerät. Keine Cloud.\n" +
-                        "Messzeit = Empfangszeit. Keine medizinische Diagnose.")
-                    .setPositiveButton("Schließen", null)
+                    .setTitle(R.string.main_data_dialog_title)
+                    .setMessage(getString(R.string.main_data_dialog_message, summary.samples, summary.bytes / 1024))
+                    .setPositiveButton(R.string.action_close, null)
                     .show()
                 }
             }
@@ -436,7 +433,7 @@ class MainActivity : AppCompatActivity() {
         fun refreshBodyCard() {
             val p = getSharedPreferences(SpO2DisplaySettings.STORE, MODE_PRIVATE)
             bodyValues.removeAllViews()
-            bodyFigure.contentDescription = "Illustration einer Person mit Basecap und violettem Hoodie. Profilwerte sind daneben aufgeführt."
+            bodyFigure.contentDescription = getString(R.string.main_body_figure_cd)
             val heightText = p.getString("height_cm", "").orEmpty()
             val weightText = p.getString("weight_kg", "").orEmpty()
             // Age is derived from the birth date for today; a legacy stored age is only a fallback (#117).
@@ -484,14 +481,14 @@ class MainActivity : AppCompatActivity() {
                     if (description != null) row.contentDescription = description
                 }
             }
-            add(PlIcon.HEIGHT, "Größe", if (heightText.isBlank()) "–" else "$heightText cm")
-            add(PlIcon.WEIGHT, "Gewicht", if (weightText.isBlank()) "–" else "$weightText kg", tagName = "body_weight_row",
-                description = "Gewicht ${if (weightText.isBlank()) "nicht angegeben" else "$weightText Kilogramm"}. Tippen zum Ändern.") { showQuickWeight { refreshBodyCard() } }
-            add(PlIcon.AGE, "Alter", age?.let { "$it Jahre" } ?: "–")
+            add(PlIcon.HEIGHT, getString(R.string.main_body_height), if (heightText.isBlank()) "–" else "$heightText cm")
+            add(PlIcon.WEIGHT, getString(R.string.main_body_weight), if (weightText.isBlank()) "–" else "$weightText kg", tagName = "body_weight_row",
+                description = getString(R.string.main_body_weight_cd, if (weightText.isBlank()) getString(R.string.main_body_weight_unset) else getString(R.string.main_body_weight_kg_words, weightText))) { showQuickWeight { refreshBodyCard() } }
+            add(PlIcon.AGE, getString(R.string.main_body_age), age?.let { getString(R.string.main_body_age_years, it) } ?: "–")
             // BMI: value + written category (colour is never the only signal); tap explains reference and limits.
-            add(PlIcon.BMI, "BMI", bmi.value?.let { germanOne.format(it) + " kg/m²" } ?: "–", heroText,
+            add(PlIcon.BMI, getString(R.string.main_body_bmi), bmi.value?.let { germanOne.format(it) + " kg/m²" } ?: "–", heroText,
                 extra = bmi.category?.let { "● ${it.label}" } ?: bmi.note) { showBmiInfo(bmi) }
-            bodyCard.contentDescription = "Mein Körperprofil. " +
+            bodyCard.contentDescription = getString(R.string.main_body_card_cd) +
                 (0 until bodyValues.childCount).joinToString(", ") { i ->
                     fun collect(v: android.view.View): String = when (v) {
                         is TextView -> v.text.toString()
@@ -523,7 +520,7 @@ class MainActivity : AppCompatActivity() {
                 background = GradientDrawable().apply { shape = GradientDrawable.OVAL; setColor(DesignTokens.BRAND_PURPLE) }
                 importantForAccessibility = android.view.View.IMPORTANT_FOR_ACCESSIBILITY_NO
             }, LinearLayout.LayoutParams(dp(32), dp(32)).apply { marginEnd = dp(10) })
-            addView(text("Gesundheit · CIRQA", 19f, ink, true))
+            addView(text(getString(R.string.main_health_heading), 19f, ink, true))
         }, 6)
         val cirqaDashboard = DashboardOverviewView(this).apply {
             openDay = { title -> showDashboardDay(this@MainActivity, title, dashboardWorker) }
@@ -543,11 +540,11 @@ class MainActivity : AppCompatActivity() {
             setPadding(dp(14), dp(10), dp(14), dp(10))
             background = rounded(palette.card)
             isClickable = true; isFocusable = true
-            contentDescription = "Ruhepuls-Trend und weitere Analysen ansehen. Öffnet den Reiter Analysen."
+            contentDescription = getString(R.string.main_trend_link_cd)
             addView(PlIcon.view(this@MainActivity, PlIcon.FITNESS, 24, palette.accent), LinearLayout.LayoutParams(dp(24), dp(24)).apply { marginEnd = dp(12) })
             val texts = LinearLayout(this@MainActivity).apply { orientation = LinearLayout.VERTICAL }
-            texts.addView(text("Ruhepuls-Trend ansehen", 14f, ink, true).apply { importantForAccessibility = android.view.View.IMPORTANT_FOR_ACCESSIBILITY_NO })
-            texts.addView(text("Trends, Aktivitäts-Atlas und Zusammenhänge unter „Analysen“", 12f, muted).apply { importantForAccessibility = android.view.View.IMPORTANT_FOR_ACCESSIBILITY_NO })
+            texts.addView(text(getString(R.string.main_trend_link_title), 14f, ink, true).apply { importantForAccessibility = android.view.View.IMPORTANT_FOR_ACCESSIBILITY_NO })
+            texts.addView(text(getString(R.string.main_trend_link_text), 12f, muted).apply { importantForAccessibility = android.view.View.IMPORTANT_FOR_ACCESSIBILITY_NO })
             addView(texts, LinearLayout.LayoutParams(0, -2, 1f))
             setOnClickListener { selectMainTab(MainNavigationView.ANALYSEN) }
         }, 12)
@@ -560,11 +557,11 @@ class MainActivity : AppCompatActivity() {
             setPadding(dp(14), dp(10), dp(14), dp(10))
             background = rounded(palette.card)
             isClickable = true; isFocusable = true
-            contentDescription = "Tag im Überblick öffnen. Herzfrequenz und Schritte eines Tages auf einer gemeinsamen Zeitachse."
+            contentDescription = getString(R.string.main_day_link_cd)
             addView(PlIcon.view(this@MainActivity, PlIcon.ACTIVITY_CALENDAR, 24, palette.accent), LinearLayout.LayoutParams(dp(24), dp(24)).apply { marginEnd = dp(12) })
             val texts = LinearLayout(this@MainActivity).apply { orientation = LinearLayout.VERTICAL }
-            texts.addView(text("Tag im Überblick", 14f, ink, true).apply { importantForAccessibility = android.view.View.IMPORTANT_FOR_ACCESSIBILITY_NO })
-            texts.addView(text("Herzfrequenz und Schritte auf einer Zeitachse, Lücken sichtbar", 12f, muted).apply { importantForAccessibility = android.view.View.IMPORTANT_FOR_ACCESSIBILITY_NO })
+            texts.addView(text(getString(R.string.main_day_link_title), 14f, ink, true).apply { importantForAccessibility = android.view.View.IMPORTANT_FOR_ACCESSIBILITY_NO })
+            texts.addView(text(getString(R.string.main_day_link_text), 12f, muted).apply { importantForAccessibility = android.view.View.IMPORTANT_FOR_ACCESSIBILITY_NO })
             addView(texts, LinearLayout.LayoutParams(0, -2, 1f))
             setOnClickListener { showDayTimeline(this@MainActivity, dashboardWorker) }
         }, 12)
@@ -576,7 +573,7 @@ class MainActivity : AppCompatActivity() {
         lateinit var analysenView: AnalysenView
         analysenView = AnalysenView(this, goHistory = { selectMainTab(1) }, reveal = { y -> scroll.post { scroll.smoothScrollTo(0, analysenView.top + y) } })
         analysisView(analysenView, 12)
-        val deviceHeading = text("Gerät · CIRQA", 22f, ink, true)
+        val deviceHeading = text(getString(R.string.main_device_heading), 22f, ink, true)
         deviceView(deviceHeading)
         val debugDeviceViews = mutableListOf<android.view.View>()
         fun debugView(view: android.view.View, margin: Int = 12) {
@@ -585,9 +582,9 @@ class MainActivity : AppCompatActivity() {
         }
         // #172: no visible test lab tab; a 3 s long press on the CIRQA heading opens it (also as TalkBack custom action).
         // Not a security barrier: the lab stays read-only/safe by default. The former inline debug panel is no longer reachable.
-        attachHiddenLongPress(deviceHeading, 3000L, "Testlabor öffnen") { DiagnosticsSheet.show(this) }
+        attachHiddenLongPress(deviceHeading, 3000L, getString(R.string.main_open_testlab)) { DiagnosticsSheet.show(this) }
         debugView(text("Garmin CIRQA · Passive Diagnose ohne Verbindungsaufbau", 13f, muted))
-        status = text("Offline · bereit", 14f, muted)
+        status = text(getString(R.string.main_status_ready), 14f, muted)
         debugView(status)
         fun actionButton(label: String, primary: Boolean = true, icon: PlIcon? = null, action: () -> Unit) =
             TextView(this).apply {
@@ -612,34 +609,29 @@ class MainActivity : AppCompatActivity() {
                 setOnClickListener { action() }
             }
         val historicalSyncStatus = text(
-            "Noch kein historischer Download gestartet.", 13f, muted
+            getString(R.string.main_hist_status_none), 13f, muted
         ).apply {
             setPadding(dp(16), dp(12), dp(16), dp(12))
             background = rounded(palette.card)
             contentDescription = text.toString()
         }
         historicalSyncStatusView = historicalSyncStatus
-        deviceView(text("Historische Gerätedaten", 17f, ink, true), 16)
+        deviceView(text(getString(R.string.main_hist_heading), 17f, ink, true), 16)
         deviceView(text(
-            "Dateien werden lokal und privat gespeichert. FIT-Messwerte werden zusätzlich in SQLite importiert; unbekannte Dateitypen bleiben als Original erhalten.",
+            getString(R.string.main_hist_info),
             13f, muted
         ), 4)
-        deviceView(actionButton("Historie herunterladen", true, PlIcon.HISTORY) {
+        deviceView(actionButton(getString(R.string.main_hist_button), true, PlIcon.HISTORY) {
             if (!ensureSyncPermissions()) return@actionButton
             if (scanning) stopScan()
             androidx.appcompat.app.AlertDialog.Builder(this@MainActivity)
-                .setTitle("CIRQA-Historie herunterladen?")
+                .setTitle(R.string.main_hist_confirm_title)
                 .setMessage(
-                    "PulsLibre verbindet sich jetzt mit dem gekoppelten CIRQA und fordert die verfügbare Dateiliste samt Fortsetzungen und Datei-Pulls an. " +
-                        "Der Sync-Request kann das Gerät dazu veranlassen, Daten als übertragen zu markieren. " +
-                        "PulsLibre sendet keine Lösch-, Archiv-, SetFlags- oder Reset-Befehle. " +
-                        "Dateien werden innerhalb der angezeigten Sicherheitslimits privat gespeichert; FIT-Dateien werden nach CRC-Prüfung importiert. " +
-                        "Ein Lauf kann durch Sicherheitslimits oder Verbindungsabbruch unvollständig enden; dann zeigt der Status dies an. " +
-                        "Die vollständige Historie des Geräts ist erst nach bestätigter Listen-Paginierung belegt."
+                    getString(R.string.main_hist_confirm_message)
                 )
-                .setNegativeButton("Abbrechen", null)
-                .setPositiveButton("Herunterladen") { _, _ ->
-                    historicalSyncStatus.text = "Historischer Download läuft …"
+                .setNegativeButton(R.string.action_cancel, null)
+                .setPositiveButton(R.string.main_hist_confirm_ok) { _, _ ->
+                    historicalSyncStatus.text = getString(R.string.main_hist_running)
                     val prefs = getSharedPreferences("historical_sync_energy_policy", MODE_PRIVATE)
                     prefs.edit().putLong("last_attempt", System.currentTimeMillis()).commit()
                     val probe = CirqaMlHandshakeProbe(this@MainActivity, adapter)
@@ -689,33 +681,33 @@ class MainActivity : AppCompatActivity() {
         }
         debugView(cirqaEvidenceView)
         // The foreground service keeps a CIRQA notification connection open and reconnects after disconnects.
-        val recorderState = text("Aufzeichnung aus", 15f, muted, true)
+        val recorderState = text(getString(R.string.main_rec_off), 15f, muted, true)
         fun setRecorderState(message: String, icon: PlIcon) {
             recorderState.text = message
             recorderState.setCompoundDrawablesRelative(PlIcon.drawable(this, icon, 20, muted), null, null, null)
             recorderState.compoundDrawablePadding = dp(10)
         }
-        setRecorderState("Aufzeichnung aus", PlIcon.RECORD_STOP)
+        setRecorderState(getString(R.string.main_rec_off), PlIcon.RECORD_STOP)
         deviceView(recorderState, 8)
         val recorderRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        val playButton = actionButton("Starten", true, PlIcon.RECORD_START) { /* Click handler installed below. */ }
-        val stopButton = actionButton("Stoppen", false, PlIcon.RECORD_STOP) {
+        val playButton = actionButton(getString(R.string.main_rec_start), true, PlIcon.RECORD_START) { /* Click handler installed below. */ }
+        val stopButton = actionButton(getString(R.string.main_rec_stop), false, PlIcon.RECORD_STOP) {
             try {
                 startService(Intent(this, CirqaContinuousRecordingService::class.java)
                     .setAction(CirqaContinuousRecordingService.ACTION_STOP))
-                setRecorderState("CIRQA-Sammlung wird beendet …", PlIcon.HOURGLASS)
+                setRecorderState(getString(R.string.main_rec_stopping), PlIcon.HOURGLASS)
             } catch (_: Exception) {
-                output.text = "Stopp konnte nicht angefordert werden."
+                output.text = getString(R.string.main_rec_stop_failed)
             }
         }
         playButton.setOnClickListener {
             if (!ensurePermissions()) return@setOnClickListener
             if (scanning) stopScan()
             androidx.appcompat.app.AlertDialog.Builder(this@MainActivity)
-                .setTitle("CIRQA-Sammlung starten")
-                .setMessage("PulsLibre verbindet sich aktiv per Bluetooth mit dem CIRQA-Armband und empfängt verfügbare Echtzeitmesswerte über eine laufende Verbindung. Bei Verbindungsabbrüchen versucht die App die Verbindung erneut. Die Messwerte werden lokal auf diesem Gerät gespeichert. Es werden keine historischen FIT-Daten geladen. Android zeigt währenddessen eine dauerhafte Benachrichtigung mit Stopp-Taste (Android 13+: Benachrichtigungen müssen erlaubt sein); das System kann den Dienst dennoch beenden. Garmin Connect kann die Bluetooth-Verbindung beeinflussen. Jetzt starten?")
-                .setNegativeButton("Abbrechen", null)
-                .setPositiveButton("Starten") { _, _ ->
+                .setTitle(R.string.main_rec_confirm_title)
+                .setMessage(R.string.main_rec_confirm_message)
+                .setNegativeButton(R.string.action_cancel, null)
+                .setPositiveButton(R.string.main_rec_start) { _, _ ->
                     // Android 13+: without this permission the ongoing notification (with its stop action) stays hidden.
                     if (Build.VERSION.SDK_INT >= 33 && ActivityCompat.checkSelfPermission(this@MainActivity,
                             Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
@@ -727,9 +719,9 @@ class MainActivity : AppCompatActivity() {
                             Intent(this@MainActivity, CirqaContinuousRecordingService::class.java)
                                 .setAction(CirqaContinuousRecordingService.ACTION_START)
                         )
-                        setRecorderState("CIRQA-Sammlung wird gestartet …", PlIcon.HOURGLASS)
+                        setRecorderState(getString(R.string.main_rec_starting), PlIcon.HOURGLASS)
                     } catch (_: Exception) {
-                        output.text = "Start fehlgeschlagen. Bluetooth- und Android-Berechtigungen prüfen."
+                        output.text = getString(R.string.main_rec_start_failed)
                     }
                 }.show()
         }
@@ -738,7 +730,7 @@ class MainActivity : AppCompatActivity() {
         deviceView(recorderRow, 12)
         recorderRefresh = {
             val running = RecorderStatus.isRunning(getSharedPreferences(CirqaContinuousRecordingService.PREFS, MODE_PRIVATE))
-            if (running) setRecorderState("Aufzeichnung läuft", PlIcon.RECORD_START) else setRecorderState("Aufzeichnung aus", PlIcon.RECORD_STOP)
+            if (running) setRecorderState(getString(R.string.main_rec_on), PlIcon.RECORD_START) else setRecorderState(getString(R.string.main_rec_off), PlIcon.RECORD_STOP)
             recorderState.setTextColor(muted)
             playButton.alpha = if (running) 0.45f else 1f
             stopButton.alpha = if (running) 1f else 0.45f
@@ -814,7 +806,7 @@ class MainActivity : AppCompatActivity() {
                 Intent(this, CirqaContinuousRecordingService::class.java).setAction(CirqaContinuousRecordingService.ACTION_START))
         } catch (e: Exception) {
             // Android may refuse (background restrictions); say so instead of failing silently.
-            android.widget.Toast.makeText(this, "Automatischer Start der Aufzeichnung nicht möglich – bitte manuell starten.", android.widget.Toast.LENGTH_LONG).show()
+            android.widget.Toast.makeText(this, getString(R.string.main_rec_autostart_failed), android.widget.Toast.LENGTH_LONG).show()
         }
     }
 
@@ -869,7 +861,7 @@ class MainActivity : AppCompatActivity() {
             ActivityCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
         }
         if (missing.isNotEmpty()) {
-            status.text = "Bluetooth-Verbindungsberechtigung für den historischen Sync erforderlich."
+            status.text = getString(R.string.main_bt_permission_needed)
             ActivityCompat.requestPermissions(this, missing.toTypedArray(), 12)
             return false
         }
@@ -899,7 +891,7 @@ class MainActivity : AppCompatActivity() {
 
         if (!prefs.edit().putLong("last_attempt", now).commit()) return
         automaticHistoricalSyncActive = true
-        statusView.text = "Automatischer historischer Sync läuft …"
+        statusView.text = getString(R.string.main_auto_sync_running)
         val probe = CirqaMlHandshakeProbe(this, adapter)
         historicalDownloadProbe?.close()
         historicalDownloadProbe = probe
@@ -1161,7 +1153,7 @@ class MainActivity : AppCompatActivity() {
         val dialog = androidx.appcompat.app.AlertDialog.Builder(this)
             .setTitle("Gewicht (kg)")
             .setView(box)
-            .setNegativeButton("Abbrechen", null)
+            .setNegativeButton(R.string.action_cancel, null)
             .setPositiveButton("Speichern", null)
             .create()
         dialog.setOnShowListener {
