@@ -851,4 +851,41 @@
     <string name="svc_connecting">Connecting to CIRQA …</string>
     <string name="svc_reconnect">CIRQA disconnected · new attempt in %1$d s</string>
     <string name="svc_stop">Stop collecting</string>
+    <!-- Hauptansicht: Bluetooth, Gewicht, BMI (#365) -->
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="bmi_underweight">Underweight</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="bmi_normal">Normal weight</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="bmi_pre_obesity">Pre-obesity</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="bmi_obesity_1">Obesity class I</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="bmi_obesity_2">Obesity class II</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="bmi_obesity_3">Obesity class III</string>
+    <string name="bmi_note_missing">Enter height and weight to see the BMI.</string>
+    <string name="bmi_note_birth">Add your date of birth to classify the BMI.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="bmi_note_age">No BMI classification is available for this age group.</string>
+    <string name="bmi_info_title">BMI · classification</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="bmi_info_body">BMI = weight (kg) / height (m)². It is a screening indicator, not a diagnosis.\n\nClassification for adults aged 20 and over according to the WHO (same limits for women and men):\nbelow 18.5 underweight · 18.5–24.9 normal weight · 25–29.9 pre-obesity · 30–34.9 obesity class I · 35–39.9 class II · 40 and above class III.\n\nLimits: muscle mass, build, pregnancy and age affect how meaningful the value is. For people under 20 there is no classification here (BMI-for-age references are not implemented). No special limits are applied for older adults.</string>
+    <string name="bmi_info_note">Note: %1$s</string>
+    <string name="main_bt_off_title">Bluetooth is off</string>
+    <string name="main_bt_off_msg">Bluetooth is off. Please turn on Bluetooth so PulsLibre can receive CIRQA measurements.</string>
+    <string name="main_later">Later</string>
+    <string name="main_bt_enable">Turn on Bluetooth</string>
+    <string name="main_bt_enable_toast">Please turn on Bluetooth in the Android settings.</string>
+    <string name="main_perm_needed">Bluetooth permission needed: allow nearby devices in the Android prompt</string>
+    <string name="main_perm_granted">Bluetooth permission granted · start the scan again</string>
+    <string name="main_perm_denied">Bluetooth permission denied · Settings → Apps → PulsLibre → Permissions → Nearby devices</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="main_notif_off">Notifications are off: the recording is running, but the notification with the stop button is invisible. Stop it with “Stop” in the app, or allow notifications in the Android settings.</string>
+    <string name="main_weight_title">Weight (kg)</string>
+    <string name="main_weight_input_cd">Current weight in kilograms</string>
+    <string name="main_weight_minus_cd">Decrease weight by 0.1 kilogram</string>
+    <string name="main_weight_plus_cd">Increase weight by 0.1 kilogram</string>
+    <string name="main_weight_step">Step: 0.1 kg · press and hold to change faster</string>
+    <string name="main_weight_invalid">Please enter a weight between 15 and 400 kg.</string>
 </resources>

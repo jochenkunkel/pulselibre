@@ -863,4 +863,42 @@
     <string name="svc_connecting">Conectando con CIRQA …</string>
     <string name="svc_reconnect">CIRQA desconectado · nuevo intento en %1$d s</string>
     <string name="svc_stop">Detener la recopilación</string>
+    <!-- TODO-CHATGPT-REVIEW: Erstentwurf von Claude Code, Ticket #365 -->
+    <!-- Hauptansicht: Bluetooth, Gewicht, BMI (#365) -->
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="bmi_underweight">Bajo peso</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="bmi_normal">Peso normal</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="bmi_pre_obesity">Sobrepeso</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="bmi_obesity_1">Obesidad de clase I</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="bmi_obesity_2">Obesidad de clase II</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="bmi_obesity_3">Obesidad de clase III</string>
+    <string name="bmi_note_missing">Introduce la estatura y el peso para ver el IMC.</string>
+    <string name="bmi_note_birth">Añade tu fecha de nacimiento para clasificar el IMC.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="bmi_note_age">No hay clasificación del IMC disponible para este grupo de edad.</string>
+    <string name="bmi_info_title">IMC · clasificación</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="bmi_info_body">IMC = peso (kg) / estatura (m)². Es un indicador de cribado, no un diagnóstico.\n\nClasificación para adultos de 20 años o más según la OMS (mismos límites para mujeres y hombres):\nmenos de 18,5 bajo peso · 18,5–24,9 peso normal · 25–29,9 sobrepeso · 30–34,9 obesidad de clase I · 35–39,9 clase II · a partir de 40 clase III.\n\nLímites: la masa muscular, la constitución, el embarazo y la edad influyen en la validez del valor. Para menores de 20 años no hay clasificación aquí (referencias de IMC por edad no implementadas). No se aplican límites especiales a los adultos mayores.</string>
+    <string name="bmi_info_note">Nota: %1$s</string>
+    <string name="main_bt_off_title">Bluetooth desactivado</string>
+    <string name="main_bt_off_msg">Bluetooth está desactivado. Actívalo para que PulsLibre pueda recibir las mediciones de CIRQA.</string>
+    <string name="main_later">Más tarde</string>
+    <string name="main_bt_enable">Activar Bluetooth</string>
+    <string name="main_bt_enable_toast">Activa Bluetooth en los ajustes de Android.</string>
+    <string name="main_perm_needed">Se necesita el permiso de Bluetooth: permite los dispositivos cercanos en el aviso de Android</string>
+    <string name="main_perm_granted">Permiso de Bluetooth concedido · inicia de nuevo la búsqueda</string>
+    <string name="main_perm_denied">Permiso de Bluetooth denegado · Ajustes → Aplicaciones → PulsLibre → Permisos → Dispositivos cercanos</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="main_notif_off">Las notificaciones están desactivadas: la grabación está en curso, pero la notificación con el botón de detener no se ve. Detenla con «Detener» en la app o permite las notificaciones en los ajustes de Android.</string>
+    <string name="main_weight_title">Peso (kg)</string>
+    <string name="main_weight_input_cd">Peso actual en kilogramos</string>
+    <string name="main_weight_minus_cd">Reducir el peso en 0,1 kilogramo</string>
+    <string name="main_weight_plus_cd">Aumentar el peso en 0,1 kilogramo</string>
+    <string name="main_weight_step">Paso: 0,1 kg · mantén pulsado para cambiar más rápido</string>
+    <string name="main_weight_invalid">Introduce un peso entre 15 y 400 kg.</string>
 </resources>

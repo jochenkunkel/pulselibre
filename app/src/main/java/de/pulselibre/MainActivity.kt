@@ -487,7 +487,7 @@ class MainActivity : AppCompatActivity() {
             add(PlIcon.AGE, getString(R.string.main_body_age), age?.let { getString(R.string.main_body_age_years, it) } ?: "–")
             // BMI: value + written category (colour is never the only signal); tap explains reference and limits.
             add(PlIcon.BMI, getString(R.string.main_body_bmi), bmi.value?.let { germanOne.format(it) + " kg/m²" } ?: "–", heroText,
-                extra = bmi.category?.let { "● ${it.label}" } ?: bmi.note) { showBmiInfo(bmi) }
+                extra = bmi.category?.let { "● " + DomainText.tr(this, it.label) } ?: bmi.note?.let { DomainText.tr(this, it) }) { showBmiInfo(bmi) }
             bodyCard.contentDescription = getString(R.string.main_body_card_cd) +
                 (0 until bodyValues.childCount).joinToString(", ") { i ->
                     fun collect(v: android.view.View): String = when (v) {
@@ -932,19 +932,19 @@ class MainActivity : AppCompatActivity() {
 
     private fun ensureBluetoothEnabled(): Boolean {
         if (adapter.isEnabled) return true
-        val message = "Bluetooth ist ausgeschaltet. Bitte aktiviere Bluetooth, damit PulsLibre CIRQA-Messwerte empfangen kann."
+        val message = getString(R.string.main_bt_off_msg)
         status.text = message
         if (::output.isInitialized) output.text = message
         lastScanDiagnostic = message
         androidx.appcompat.app.AlertDialog.Builder(this)
-            .setTitle("Bluetooth ausgeschaltet")
+            .setTitle(R.string.main_bt_off_title)
             .setMessage(message)
-            .setNegativeButton("Später", null)
-            .setPositiveButton("Bluetooth aktivieren") { _, _ ->
+            .setNegativeButton(R.string.main_later, null)
+            .setPositiveButton(R.string.main_bt_enable) { _, _ ->
                 try {
                     startActivity(Intent(android.provider.Settings.ACTION_BLUETOOTH_SETTINGS))
                 } catch (_: Exception) {
-                    Toast.makeText(this, "Bluetooth bitte in den Android-Einstellungen einschalten.", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this, R.string.main_bt_enable_toast, Toast.LENGTH_LONG).show()
                 }
             }
             .show()
@@ -954,7 +954,7 @@ class MainActivity : AppCompatActivity() {
     private fun ensurePermissions(): Boolean {
         val missing = permissions().filter { ActivityCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED }
         if (missing.isNotEmpty()) {
-            status.text = "Bluetooth-Berechtigung benötigt: Geräte in der Android-Abfrage zulassen"
+            status.text = getString(R.string.main_perm_needed)
             ActivityCompat.requestPermissions(this, missing.toTypedArray(), 10)
             return false
         }
@@ -966,14 +966,12 @@ class MainActivity : AppCompatActivity() {
         if (requestCode == 11) {
             val granted = grantResults.isNotEmpty() && grantResults.all { it == PackageManager.PERMISSION_GRANTED }
             if (!granted && ::output.isInitialized) {
-                output.text = "Benachrichtigungen sind aus: Die Aufzeichnung läuft, die Benachrichtigung mit Stopp-Taste ist aber unsichtbar. " +
-                    "Beenden über „Stoppen“ in der App oder Benachrichtigungen in den Android-Einstellungen erlauben."
+                output.text = getString(R.string.main_notif_off)
             }
         }
         if (requestCode == 10 && ::status.isInitialized) {
             val granted = grantResults.isNotEmpty() && grantResults.all { it == PackageManager.PERMISSION_GRANTED }
-            status.text = if (granted) "Bluetooth-Berechtigung erteilt · Scan erneut starten"
-                else "Bluetooth-Berechtigung abgelehnt · Einstellungen → Apps → PulsLibre → Berechtigungen → Geräte in der Nähe"
+            status.text = getString(if (granted) R.string.main_perm_granted else R.string.main_perm_denied)
             lastScanDiagnostic = status.text.toString()
             connectionIndicatorRefresh?.invoke()
         }
@@ -1116,7 +1114,7 @@ class MainActivity : AppCompatActivity() {
             setText(p.getString("weight_kg", "").orEmpty().replace('.', ','))
             setSelectAllOnFocus(true)
             hint = "kg"
-            contentDescription = "Aktuelles Gewicht in Kilogramm"
+            contentDescription = getString(R.string.main_weight_input_cd)
         }
         fun stepButton(label: String, delta: Double, description: String) = TextView(this).apply {
             text = label; textSize = 26f; gravity = android.view.Gravity.CENTER
@@ -1136,31 +1134,31 @@ class MainActivity : AppCompatActivity() {
             }
         }
         val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = android.view.Gravity.CENTER_VERTICAL }
-        row.addView(stepButton("−", -WeightStepper.STEP_KG, "Gewicht um 0,1 Kilogramm verringern").apply { tag = "weight_minus" },
+        row.addView(stepButton("−", -WeightStepper.STEP_KG, getString(R.string.main_weight_minus_cd)).apply { tag = "weight_minus" },
             LinearLayout.LayoutParams((56 * d).toInt(), (56 * d).toInt()))
         row.addView(input, LinearLayout.LayoutParams(0, -2, 1f).apply { marginStart = (8 * d).toInt(); marginEnd = (8 * d).toInt() })
-        row.addView(stepButton("+", WeightStepper.STEP_KG, "Gewicht um 0,1 Kilogramm erhöhen").apply { tag = "weight_plus" },
+        row.addView(stepButton("+", WeightStepper.STEP_KG, getString(R.string.main_weight_plus_cd)).apply { tag = "weight_plus" },
             LinearLayout.LayoutParams((56 * d).toInt(), (56 * d).toInt()))
         val box = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setPadding((20 * d).toInt(), (8 * d).toInt(), (20 * d).toInt(), 0)
             addView(row, LinearLayout.LayoutParams(-1, -2))
             addView(TextView(this@MainActivity).apply {
-                text = "Schritt: 0,1 kg · gedrückt halten für schnelleres Ändern"; textSize = 12f; setTextColor(palette.muted)
+                text = getString(R.string.main_weight_step); textSize = 12f; setTextColor(palette.muted)
                 gravity = android.view.Gravity.CENTER; setPadding(0, (8 * d).toInt(), 0, 0)
             })
         }
         val dialog = androidx.appcompat.app.AlertDialog.Builder(this)
-            .setTitle("Gewicht (kg)")
+            .setTitle(R.string.main_weight_title)
             .setView(box)
             .setNegativeButton(R.string.action_cancel, null)
-            .setPositiveButton("Speichern", null)
+            .setPositiveButton(R.string.action_save, null)
             .create()
         dialog.setOnShowListener {
             dialog.getButton(androidx.appcompat.app.AlertDialog.BUTTON_POSITIVE).setOnClickListener {
                 val value = WeightStepper.parse(input.text.toString())
                 if (value == null || value !in WeightStepper.MIN_KG..WeightStepper.MAX_KG) {
-                    Toast.makeText(this, "Bitte ein Gewicht zwischen 15 und 400 kg eingeben.", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this, R.string.main_weight_invalid, Toast.LENGTH_LONG).show()
                 } else {
                     // stored with one decimal and a dot, like the settings field
                     p.edit().putString("weight_kg", String.format(java.util.Locale.ROOT, "%.1f", value).removeSuffix(".0")).apply()
@@ -1175,16 +1173,11 @@ class MainActivity : AppCompatActivity() {
 
     private fun showBmiInfo(bmi: Bmi.Assessment) {
         val text = buildString {
-            append("BMI = Gewicht (kg) / Größe (m)². Er ist ein Screening-Hinweis, keine Diagnose.\n\n")
-            append("Einordnung für Erwachsene ab 20 Jahren nach WHO (gleiche Grenzen für Frauen und Männer):\n")
-            append("unter 18,5 Untergewicht · 18,5–24,9 Normalgewicht · 25–29,9 Präadipositas · 30–34,9 Adipositas Grad I · 35–39,9 Grad II · ab 40 Grad III.\n\n")
-            append("Grenzen: Muskelmasse, Körperbau, Schwangerschaft und Alter beeinflussen die Aussagekraft. ")
-            append("Für Menschen unter 20 Jahren gibt es hier keine Bewertung (BMI-für-Alter-Referenzen nicht umgesetzt). ")
-            append("Für ältere Erwachsene werden keine Sondergrenzen angewandt.")
-            bmi.note?.let { append("\n\nHinweis: ").append(it) }
+            append(getString(R.string.bmi_info_body))
+            bmi.note?.let { append("\n\n").append(getString(R.string.bmi_info_note, DomainText.tr(this@MainActivity, it))) }
         }
-        androidx.appcompat.app.AlertDialog.Builder(this).setTitle("BMI · Einordnung").setMessage(text)
-            .setPositiveButton("Schließen", null).show()
+        androidx.appcompat.app.AlertDialog.Builder(this).setTitle(R.string.bmi_info_title).setMessage(text)
+            .setPositiveButton(R.string.action_close, null).show()
     }
 
     override fun onDestroy() {
