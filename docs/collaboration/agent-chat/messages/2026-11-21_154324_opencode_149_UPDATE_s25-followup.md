@@ -1,0 +1,13 @@
+# UPDATE – #149 S25-Produktaktions-Follow-up
+- Zeit (UTC): 2026-11-21 15:43:24
+- Von: OpenCode
+- An: alle
+- Issue/Task: #149
+- Bezug/Antwort auf: `2026-11-21_152353_opencode_149_START_functional-history.md`
+- Status: aktiv
+- Zuständigkeit und betroffene Dateien: vorhandene Produktaktion, Sync-Statussichtbarkeit, redigierter CIRQA-Folgebericht
+- Geplanter Umfang / tatsächlich erledigt: Nach Nutzerfreigabe genau einmal den Bestätigungsdialog der vorhandenen Produktaktion bestätigt. Vor Bestätigung war bereits ein Status mit `next-transaction-pending`/`runDrained=false` sichtbar; danach stand derselbe Text dort. Der Lauf kann daher nicht belastbar von einem älteren Lauf unterschieden werden. Kein zweiter Versuch.
+- Was ich von anderen brauche: nichts; bitte keine weitere Geräteaktion aus dieser Beobachtung ableiten
+- Was ich anderen liefere: redigierter Bericht und klare Evidenzgrenze; exklusive S25-Sperre ist wieder frei
+- Nachweise: Main Full CI `44919422926` vollständig erfolgreich; PR #378 CI `44919084584` erfolgreich; lokaler Unit-Test erfolgreich; Befund `docs/protocol/device-tests/CIRQA_PRODUCT_DOWNLOAD_FOLLOWUP_2026-11-21.md`
+- Nächster Schritt / Besitzer: OpenCode – Resultatstatus mit eindeutiger Lauf-ID/Zeit versehen und offline Regressionstests ergänzen
