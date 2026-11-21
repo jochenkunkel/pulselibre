@@ -53,10 +53,11 @@ class AppearanceAndGaugeTest {
             prefs.edit().putString("pulse_context", "SPORT").commit()
             InstrumentationRegistry.getInstrumentation().runOnMainSync {
                 for (night in listOf(Configuration.UI_MODE_NIGHT_NO, Configuration.UI_MODE_NIGHT_YES)) {
-                    val config = Configuration(app.resources.configuration).apply {
+                    val localized = AppLanguageSettings.wrap(app)   // the app language (German in tests) is not part of the application context
+                    val config = Configuration(localized.resources.configuration).apply {
                         uiMode = (uiMode and Configuration.UI_MODE_NIGHT_MASK.inv()) or night
                     }
-                    val context = app.createConfigurationContext(config)
+                    val context = localized.createConfigurationContext(config)
                     val view = DashboardOverviewView(context)
                     view.render(emptyList())
                     var gauge = descendants(view).filterIsInstance<HeartRateGaugeView>().single()

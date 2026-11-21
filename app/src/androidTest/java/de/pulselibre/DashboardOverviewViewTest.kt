@@ -15,7 +15,7 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class DashboardOverviewViewTest {
     private fun context(fontScale: Float, width: Int): Context {
-        val base = ApplicationProvider.getApplicationContext<Context>()
+        val base = AppLanguageSettings.wrap(ApplicationProvider.getApplicationContext<Context>())
         return base.createConfigurationContext(Configuration(base.resources.configuration).apply {
             this.fontScale = fontScale
             screenWidthDp = width
