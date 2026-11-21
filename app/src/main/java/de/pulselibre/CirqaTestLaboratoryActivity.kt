@@ -637,7 +637,7 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
             .setTitle("Eine nextTransaction-Folgeanfrage testen?")
             .setMessage(
                 "Ein einzelner, begrenzter BLE-Lauf: frischer Bootstrap, genau ein sync_request, " +
-                    "eine erste Item-List und höchstens eine zweite Item-List mit dem zurückgegebenen " +
+                    "eine erste Item-List und höchstens eine separate Folge-Item-List mit dem zurückgegebenen " +
                     "next_transaction_id. Der Sync-Request kann gepufferte Banddaten als übertragen markieren. " +
                     "Kein Datei-Pull, keine MLR-Datei-Registrierung, kein Import, keine Wiederholung; " +
                     "keine Archiv-, Flag-, Lösch-, Reset- oder CLOSE_ALL-Anfrage. Das Ergebnis enthält " +

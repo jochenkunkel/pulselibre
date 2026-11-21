@@ -1,0 +1,16 @@
+# OpenCode – ein zusätzlicher `nextTransaction`-No-Pull-Test
+- Agent/Umgebung: OpenCode CLI
+- Beginn: 2026-11-21 19:21 UTC
+- Letzte Aktualisierung: 2026-11-21 19:21 UTC
+- Status: aktiv
+- Rolle/Zuständigkeit: CIRQA/GFDI-Protokoll und begrenzte Gerätetests
+- Aktueller Auftrag: auf ausdrückliche Nutzeranweisung das persistente `nextTransaction`-Gate von 2 auf 3 erhöhen und höchstens einen zusätzlichen S25-Test ausführen
+- Jetzt in Bearbeitung: ein separater, begrenzter Gate-Change samt Regressionstest; danach PR-/Main-Full-CI, Signatur-/Updateprüfung und exklusiver S25-Lease vor höchstens einem Test
+- Zeitnah geplant: keine weiteren Geräteversuche
+- Betroffene Bereiche/Dateien: `CirqaNextTransactionProbeAttemptGate.kt`, `OneShotGatesTest.kt`, Testlabor-Text, redigierter Gerätetestbericht; agent-activity/chat
+- Branch/Worktree: `opencode/nexttransaction-third-probe` / `/tmp/opencode/pulselibre-nexttransaction-third`, Basis `origin/main` `284601d`
+- Abstimmungsbedarf: exklusive Gerätesperre gemäß PR #353 prüfen; geöffneter PR ist noch nicht gemergt. Keine Instrumentation am S25.
+- Nachweise: User request 2026-11-21: genau einen weiteren Versuch; bestehender Zähler 2 darf nicht zurückgesetzt werden. Aktuelles `origin/main`-Full-CI läuft noch (Run 44940220640).
+- Stop-Grenzen: 1 manueller Sync-Request, initiale Item-List, maximal 1 `transaction_id`-Folgeanfrage; sofortiger Stopp danach. Kein Retry, Pagination, MLR, Pull, Import, Löschung/Archivierung oder weitere Transaktion.
+- Risiko: Sync-Request kann gepufferte Gerätedaten geräteseitig als übertragen markieren; Probe ist No-Pull, nicht zwingend zustandsneutral.
+- Nächster Schritt: Gate auf aktuellem main inkrementieren, Regressionstest anpassen und lokal prüfen; Hardwareaktion erst nach branch-/main-Full-CI, stabiler Signaturkontinuität und exklusivem Lease.
