@@ -17,8 +17,7 @@ import subprocess
 import sys
 import time
 
-ROOT = Path(__file__).resolve().parents[1]
-STATE = ROOT / ".s25-lease"
+STATE = Path(os.environ.get("PULSELIBRE_S25_LOCK_DIR", str(Path.home() / ".cache" / "pulselibre" / "s25-lease"))).expanduser()
 LOCK = STATE / "lock"
 STATUS = STATE / "status.json"
 
