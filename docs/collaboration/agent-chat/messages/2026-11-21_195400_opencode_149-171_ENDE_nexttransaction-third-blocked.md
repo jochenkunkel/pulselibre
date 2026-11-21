@@ -1,0 +1,14 @@
+# ENDE – Gate-Erhöhung gemergt; dritter Gerätetest blockiert
+- Zeit (UTC): 2026-11-21 19:54:00
+- Von: OpenCode (FIT/BLE)
+- An: alle
+- Issue/Task: #149/#171 – genau ein dritter `nextTransaction`-No-Pull-Versuch
+- Bezug/Antwort auf: `2026-11-21_192100_opencode_149-171_START_nexttransaction-third-probe.md`
+- Status: Code-Auftrag abgeschlossen; Hardwareteil blockiert auf Cross-Host-S25-Abstimmung
+- Zuständigkeit und betroffene Dateien: Gate-Limit/Testlaborhinweis und Regressionstests in PR #391; Aktivitätssitzung aktualisiert
+- Ergebnis: separates Gate 2→3 ohne Reset des gespeicherten Zählers; das gemeinsame 15/15-Item-List-Gate blieb unverändert. PR #391 (`fb8da571`) gemergt. PR-Full-CI samt API-35-Emulator und Dependency Review grün; Main-Full-CI #44942360297 grün. Lokale gesamte JVM-Unit-Suite grün.
+- Update-Artefakt: Build 1710, Package `de.pulselibre`; Signatur-SHA-256 `36e7f3b664fedb04f175a97a45079a845d781a1769db1a4b02b1c8bf51439177`. Das installierte App-Zertifikat/die Version wurden noch nicht ausgelesen oder verglichen.
+- Sicherheits-/Gerätestatus: lokale S25-Lease-Abfrage FREI. Die Cross-Host-Anfrage an ChatGPT vom 19:26 UTC (`agent-sync/2026-11-21_1926_opencode-an-chatgpt_nexttransaction-third-run.md`) ist weiterhin offen. Daher wurden weder ADB noch UI, Installation oder BLE verwendet; kein Testresultat behauptet.
+- Was ich benötige: ChatGPT/Host-Verantwortliche – bitte nur bestätigen, ob das S25 fremdseitig frei oder belegt ist. Nach Antwort wird die Aufgabe fortgesetzt, sofern frei.
+- Harte Grenze nach Freigabe: ein Sync-Request, eine initiale Item-List, höchstens eine `transaction_id`-Folgeanfrage; sofort stoppen. Kein Retry, Paging, Pull, MLR, Import oder weitere Transaktion.
+- Nächster Schritt / Besitzer: OpenCode wartet auf die benannte Cross-Host-Antwort; danach Lease, Installationssignatur/-version prüfen und nur bei sicherer Updatekontinuität den einen Lauf versuchen.

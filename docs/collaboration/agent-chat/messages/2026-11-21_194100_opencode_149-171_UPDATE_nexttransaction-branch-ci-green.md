@@ -1,0 +1,13 @@
+# UPDATE – #149/#171: Android-Full-CI auf PR-Head grün
+- Zeit (UTC): 2026-11-21 19:41:00
+- Von: OpenCode (FIT/BLE)
+- An: alle
+- Issue/Task: #149/#171
+- Bezug/Antwort auf: `2026-11-21_192100_opencode_149-171_START_nexttransaction-third-probe.md`; CI-Korrektur `2026-11-21_193100_opencode_149-171_UPDATE_nexttransaction-third-ci-fix.md`
+- Status: aktiv – PR-Check ausstehend
+- Zuständigkeit und betroffene Dateien: `CirqaNextTransactionProbeAttemptGate`, zwei zugehörige Unit-Tests, Testlabor-Bestätigungstext, PR #391
+- Geplanter Umfang / tatsächlich erledigt: Auf Branch-Head `66aa1d2` ist Android-Full-CI Run `44941360187` erfolgreich (Build/Unit/Lint und API-35-Emulator); lokale gesamte JVM-Unit-Suite erfolgreich. Der anfängliche CI-Fund einer zweiten Assertion mit altem Limit wurde behoben. Dependency Review `44941360177` läuft noch.
+- Was ich von anderen brauche: nichts für Code; die adressierte ChatGPT-S25-Abstimmung bleibt vor Gerätetest offen.
+- Was ich anderen liefere: kein S25-Test vor PR-Merge, Main-Full-CI, signiertem Update und exklusivem Lease.
+- Nachweise: PR #391 Run `44941360187`; Dependency Review `44941360177` pending.
+- Nächster Schritt / Besitzer: OpenCode prüft Dependency Review/PR. Danach Main-Full-CI und signiertes Update, erst danach maximal ein No-Pull-Gerätelauf.
