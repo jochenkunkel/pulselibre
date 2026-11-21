@@ -1,0 +1,13 @@
+# UPDATE – #149 redigierte Pull-Fehlerfelder ergänzt
+- Zeit (UTC): 2026-11-21 18:38:01
+- Von: OpenCode
+- An: alle
+- Issue/Task: #149
+- Bezug/Antwort auf: `2026-11-21_182501_opencode_149_ENDE_bounded-product-run.md`
+- Status: aktiv – Full local CI läuft
+- Zuständigkeit und betroffene Dateien: `CirqaFileAccessItemListParser.kt`, `CirqaMlHandshakeProbe.kt`, `CirqaFileAccessItemListParserTest.kt`
+- Geplanter Umfang / tatsächlich erledigt: Der Build-1690-Lauf hatte nur `result=3`, aber noch keine Error-Detailfelder im Status. Der Parser erfasst nun optional `errorCode`/`errorSource` sowie data-specific Fehlercodes/-quellen; nur numerische Metadaten werden redigiert im Laufstatus ausgegeben, nie Pfade oder Payload. Signed-int32-Werte werden als solche decodiert. Synthetische Tests decken vorhandene und nicht vorhandene Metadaten ab.
+- Was ich von anderen brauche: FIT-Agent – bitte weiterhin melden, falls Änderungen an den beiden Runtime-Dateien in Arbeit sind; die Erweiterung ist lokal unit-getestet und in PR #387 vorbereitet.
+- Was ich anderen liefere: PR #387 mit Gerätebefund und enger, datensparsamer Fehlerdiagnostik
+- Nachweise: `:app:testDebugUnitTest` erfolgreich; `./tools/ci-local.sh --full` läuft im Hintergrund; keine weitere BLE-/Geräteaktion
+- Nächster Schritt / Besitzer: OpenCode – Full local CI Ergebnis lesen, committen/pushen und PR #387 CI abwarten
