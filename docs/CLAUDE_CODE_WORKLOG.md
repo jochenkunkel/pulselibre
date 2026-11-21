@@ -548,3 +548,11 @@ Noch sichtbar offen (P3): Nacht-Insights erste Spalte „22–6 Uhr / 22331 / We
 - Auf Nutzerwunsch Erkenntnis umgesetzt: Monitoring-Herzfrequenz mit `timestamp_16` bekommt den Zeitstempel per FIT-Regel (3 neue Unit-Tests, alle Unit-Tests grün). Auf den 45 echten Originalen (lokal, temporärer Test, nicht eingecheckt): 29.358 importierbar statt 27.736, 0 ohne Zeitstempel.
 - Bewusst unverändert: `DECODER_VERSION` und Qualitätswert (Schema-CHECK, Quellenabgleich). Hinweis an OpenCode im agent-sync (01:20).
 - Zuständigkeit: Eingriff im Bereich von OpenCode nur wegen des ausdrücklichen Nutzerauftrags und mit Meldung.
+
+## 2026-11-21 – S25-Update mit timestamp_16 (Build 1594) und Lückenvergleich
+- Update-Installation (`adb install -r`, CI-signiertes APK von der grünen main-CI) ohne Datenverlust; Sicherung vor und nach dem Update verglichen (Rohdaten nur lokal, hier keine Werte/Zahlen/Daten).
+- **A (neu importiert aus neuen Quellen):** zwei zusätzliche Quelldateien, direkt nach dem App-Start validiert; Ursache offen, Frage an OpenCode (agent-sync). Es wurde von mir keine BLE-Synchronisation gestartet.
+- **B (bekannte Quellen, rekonstruierter Zeitstempel):** zusätzliche Herzfrequenz-Beobachtungen aus Monitoring Feld 27 – entspricht der Vorabprüfung zu #347.
+- **C (Darstellung):** Lückensumme und längste Lücke im Band-Verlauf sinken deutlich; keine neuen Metriken.
+- Befund GUI: Kachel zeigte „heute“ mit nur einem Wert kurz nach Mitternacht → jetzt fällt sie bei sehr dünnem heutigem Band-Tag auf den neuesten reicheren Tag zurück. Info-Text der Band-Karte nennt rückgerechnete Zeiten.
+- Rekonstruierte Zeiten sind in der DB nicht gekennzeichnet (CHECK nur PROFILE_VALID); Vorschlag für Herkunftsfeld an OpenCode.

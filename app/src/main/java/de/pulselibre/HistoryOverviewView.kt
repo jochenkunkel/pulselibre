@@ -37,7 +37,7 @@ class HistoryOverviewView(
             "Keine Messdaten in diesem Zeitraum"),
         DEVICE_MEASURED(
             "Zeitachse: Messzeit des Bandes (aus FIT-Dateien) · Punkt: Median · Ring: Mittelwert (bei mehreren Werten) · Linie: Min–Max · Lücken: keine Messdaten",
-            "Zeitstempel = vom Band gemessen (FIT-Datei), nicht der Empfang auf dem Telefon.",
+            "Zeitstempel = vom Band gemessen (FIT-Datei), nicht der Empfang auf dem Telefon. Bei einem Teil der Werte ist die Zeit aus der Kurzform der Datei zurückgerechnet.",
             "Keine Band-Verlaufsdaten in diesem Zeitraum")
     }
 
