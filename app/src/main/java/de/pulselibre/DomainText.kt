@@ -63,14 +63,32 @@ internal object DomainText {
         "Schlafdauer und Schlafphasen noch nicht verfügbar" to R.string.dom_note_sleep_na,
         "Keine Diagnosen; keine geschätzten Werte; kein RR→RMSSD ohne Zeitreihe" to R.string.dom_note_ground,
         "Geräteskala 0–100" to R.string.dom_unit_device_scale,
+        Bmi.Category.UNDERWEIGHT.label to R.string.bmi_underweight,
+        Bmi.Category.NORMAL.label to R.string.bmi_normal,
+        Bmi.Category.PRE_OBESITY.label to R.string.bmi_pre_obesity,
+        Bmi.Category.OBESITY_1.label to R.string.bmi_obesity_1,
+        Bmi.Category.OBESITY_2.label to R.string.bmi_obesity_2,
+        Bmi.Category.OBESITY_3.label to R.string.bmi_obesity_3,
+        "Größe und Gewicht eintragen, um den BMI zu sehen." to R.string.bmi_note_missing,
+        "Geburtsdatum ergänzen, um den BMI einzuordnen." to R.string.bmi_note_birth,
+        "Für diese Altersgruppe keine BMI-Bewertung verfügbar." to R.string.bmi_note_age,
     )
 
     private val sourceRx = Regex("^Quelle: CIRQA-Service (\\S+)$")
 
-    fun tr(context: Context, german: String): String =
-        exact[german]?.let(context::getString)
-            ?: sourceRx.matchEntire(german)?.let { context.getString(R.string.dom_note_source, it.groupValues[1]) }
+    fun tr(context: Context, german: String): String = translate(Strings.of(context), german)
+
+    /** Context free core of [tr]; with the German resources it returns every known phrase unchanged (unit-tested). */
+    fun translate(t: Strings, german: String): String =
+        exact[german]?.let { t.get(it) }
+            ?: DomainTextAnalysis.exact[german]?.let { t.get(it) }
+            ?: sourceRx.matchEntire(german)?.let { t.get(R.string.dom_note_source, it.groupValues[1]) }
+            ?: DomainTextAnalysis.patterns.firstNotNullOfOrNull { (rx, id) ->
+                rx.matchEntire(german)?.let { m -> t.get(id, *m.groupValues.drop(1).map { translate(t, it) }.toTypedArray()) }
+            }
             ?: german
+
+    internal fun knownPhrases(): Set<String> = exact.keys + DomainTextAnalysis.exact.keys
 
     fun mode(context: Context, mode: PulseContext) = tr(context, mode.label)
 
@@ -90,4 +108,23 @@ internal object DomainText {
         gapRx.matchEntire(reason)?.let { return context.getString(R.string.dom_night_gap, it.groupValues[1].toInt(), it.groupValues[2].toInt()) }
         return tr(context, reason)
     }
+
+    /** Spoken description of the resting-pulse hero (language dependent; the model's own [RestingPulseHero.Model.description] stays German). */
+    fun heroDescription(context: Context, m: RestingPulseHero.Model): String = buildString {
+        append(tr(context, "Ruhepuls, Entwicklung über ${m.windowDays} Tage. "))
+        m.valueText?.let { append(tr(context, "Median $it. ")) }
+        m.deltaText?.let { append(tr(context, it)).append(". ") }
+        append(tr(context, m.message))
+    }
+
+    fun weekRowText(context: Context, row: WeekSummary.Row): String =
+        context.getString(R.string.tr_week_value, tr(context, row.label), row.value?.let { tr(context, it) } ?: context.getString(R.string.tr_no_data))
+
+    fun weekRowCoverage(context: Context, row: WeekSummary.Row): String = tr(context, row.coverage())
+
+    fun weekRowDescription(context: Context, row: WeekSummary.Row): String =
+        weekRowText(context, row) + (if (row.value != null) ", ${weekRowCoverage(context, row)}" else "") + (row.detail?.let { ". ${tr(context, it)}" } ?: "")
+
+    fun coverageDescription(context: Context, line: DataCoverage.Line): String =
+        tr(context, line.text()) + (line.hint()?.let { ", ${tr(context, it)}" } ?: "")
 }

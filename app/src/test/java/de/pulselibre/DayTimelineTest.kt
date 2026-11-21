@@ -63,18 +63,18 @@ class DayTimelineTest {
     }
 
     @Test fun descriptionStatesRangeCountAndLongestGapOrNoData() {
-        val d = DayTimeline.describe(listOf(hr(listOf(at(60, 55), at(61, 131)), noon), steps(emptyList(), noon)), day, noon, zone)
+        val d = DayTimeline.describe(GermanStrings, listOf(hr(listOf(at(60, 55), at(61, 131)), noon), steps(emptyList(), noon)), day, noon, zone)
         assertTrue(d, d.contains("Herzfrequenz: 55–131 bpm, 2 Messwerte, 2 Lücken"))
         assertTrue(d, d.contains("längste 659 min"))
         assertTrue(d, d.contains("Schritte: keine Daten an diesem Tag."))
-        val s = DayTimeline.describe(listOf(steps(listOf(at(10, 8315)), noon)), day, noon, zone)
+        val s = DayTimeline.describe(GermanStrings, listOf(steps(listOf(at(10, 8315)), noon)), day, noon, zone)
         assertTrue(s, s.contains("8315 zuletzt") && !s.contains("  "))
     }
 
     @Test fun futureDayHasNoGapsAndSaysNotStarted() {
         val lane = hr(emptyList(), day.start.minusSeconds(1))
         assertTrue(lane.gaps.isEmpty())
-        assertEquals("Tag noch nicht begonnen.", DayTimeline.describe(listOf(lane), day, day.start.minusSeconds(1), zone))
+        assertEquals("Tag noch nicht begonnen.", DayTimeline.describe(GermanStrings, listOf(lane), day, day.start.minusSeconds(1), zone))
     }
 
     @Test fun zoomKeepsTheFocusFractionAndStaysInsideTheDay() {

@@ -32,8 +32,8 @@ internal class DailyBarsView(
 
     init {
         val present = series.filterNotNull()
-        contentDescription = "Tageswerte der letzten $days Tage: ${present.size} Tage mit Daten" +
-            (if (present.isNotEmpty()) ", niedrigster ${"%.0f".format(present.min())}, höchster ${"%.0f".format(present.max())}" else "") + "."
+        contentDescription = context.getString(R.string.tr_bars_cd, days.toString(), present.size.toString()) +
+            (if (present.isNotEmpty()) context.getString(R.string.tr_bars_range, "%.0f".format(present.min()), "%.0f".format(present.max())) else "") + "."
     }
 
     override fun onMeasure(w: Int, h: Int) { setMeasuredDimension(MeasureSpec.getSize(w), (200 * d).toInt()) }
@@ -42,7 +42,7 @@ internal class DailyBarsView(
         val present = series.filterNotNull()
         val left = 8 * d; val right = width - 8 * d; val top = 14 * d; val bottom = height - 22 * d
         text.color = ink; text.textSize = 10 * d
-        if (present.isEmpty()) { text.textAlign = Paint.Align.CENTER; canvas.drawText("Keine Tageswerte", width / 2f, height / 2f, text); return }
+        if (present.isEmpty()) { text.textAlign = Paint.Align.CENTER; canvas.drawText(context.getString(R.string.tr_bars_none), width / 2f, height / 2f, text); return }
         val hi = maxOf(present.max(), medians.mapNotNull { it.second }.maxOrNull() ?: 0.0)
         val lo = if (zeroBased) minOf(0.0, present.min()) else Math.floor(present.min() * 0.9 / 5.0) * 5.0
         val span = (hi - lo).takeIf { it > 1e-9 } ?: 1.0
@@ -63,13 +63,13 @@ internal class DailyBarsView(
             canvas.drawLine(left, y(m), right, y(m), line)
             line.pathEffect = null; line.alpha = 255
             // first label on the right above its line, second on the left below its line: they never overprint
-            val txt = "$label ${"%.0f".format(java.util.Locale.GERMANY, m)}"
+            val txt = "$label ${"%.0f".format(context.displayLocale(), m)}"
             if (k == 0) { text.textAlign = Paint.Align.RIGHT; text.alpha = 230; canvas.drawText(txt, right, y(m) - 3 * d, text) }
             else { text.textAlign = Paint.Align.LEFT; text.alpha = 200; canvas.drawText(txt, left, y(m) + 12 * d, text) }
         }
         text.alpha = 160; text.textAlign = Paint.Align.LEFT
-        canvas.drawText(if (zeroBased) "vor $days T" else "vor $days T · Achse ab ${"%.0f".format(lo)}", left, height - 6 * d, text)
-        text.textAlign = Paint.Align.RIGHT; canvas.drawText("gestern", right, height - 6 * d, text)
+        canvas.drawText(if (zeroBased) context.getString(R.string.tr_bars_ago, days.toString()) else context.getString(R.string.tr_bars_ago_axis, days.toString(), "%.0f".format(lo)), left, height - 6 * d, text)
+        text.textAlign = Paint.Align.RIGHT; canvas.drawText(context.getString(R.string.tr_bars_yesterday), right, height - 6 * d, text)
         text.alpha = 255
     }
 }

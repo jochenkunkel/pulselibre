@@ -14,7 +14,7 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class ScatterViewTest {
     private fun render(points: List<Pair<Double, Double>>): Pair<ScatterView, Bitmap> {
-        val ctx = ApplicationProvider.getApplicationContext<Context>().let { androidx.appcompat.view.ContextThemeWrapper(it, androidx.appcompat.R.style.Theme_AppCompat) }
+        val ctx = AppLanguageSettings.wrap(ApplicationProvider.getApplicationContext<Context>()).let { androidx.appcompat.view.ContextThemeWrapper(it, androidx.appcompat.R.style.Theme_AppCompat) }
         val v = ScatterView(ctx, points, "x", "y", Color.BLACK, Color.RED, Color.GRAY)
         v.measure(View.MeasureSpec.makeMeasureSpec(800, View.MeasureSpec.EXACTLY), View.MeasureSpec.UNSPECIFIED)
         v.layout(0, 0, v.measuredWidth, v.measuredHeight)

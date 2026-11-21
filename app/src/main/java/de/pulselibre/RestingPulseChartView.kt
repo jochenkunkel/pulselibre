@@ -22,7 +22,7 @@ internal class RestingPulseChartView(context: Context) : View(context) {
     private val dot = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
     private val dash = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE; strokeWidth = 1.4f * d; pathEffect = DashPathEffect(floatArrayOf(6 * d, 5 * d), 0f) }
     private val label = Paint(Paint.ANTI_ALIAS_FLAG).apply { textSize = 10.5f * d }
-    private val dateFormat = DateTimeFormatter.ofPattern("d.M.", Locale.GERMANY)
+    private val dateFormat = DateTimeFormatter.ofPattern(android.text.format.DateFormat.getBestDateTimePattern(context.displayLocale(), "dM"), context.displayLocale())
 
     init { tag = "resting_pulse_chart" }
 
@@ -41,7 +41,7 @@ internal class RestingPulseChartView(context: Context) : View(context) {
         label.color = palette.muted
         if (m.points.isEmpty()) {
             label.textAlign = Paint.Align.CENTER
-            canvas.drawText("Keine verifizierten Ruhepulswerte", width / 2f, height / 2f, label)
+            canvas.drawText(context.getString(R.string.tr_rest_chart_none), width / 2f, height / 2f, label)
             return
         }
         val values = m.points.map { it.bpm } + listOfNotNull(m.baselineBpm)

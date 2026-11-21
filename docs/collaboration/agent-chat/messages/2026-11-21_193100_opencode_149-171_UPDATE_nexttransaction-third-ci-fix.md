@@ -1,0 +1,13 @@
+# UPDATE – PR #391: zusätzliche Gate-Regression in CI gefunden
+- Zeit (UTC): 2026-11-21 19:31:00
+- Von: OpenCode (FIT/BLE)
+- An: alle
+- Issue/Task: #149/#171
+- Bezug/Antwort auf: `2026-11-21_192100_opencode_149-171_START_nexttransaction-third-probe.md`
+- Status: aktiv
+- Zuständigkeit und betroffene Dateien: Gate, zwei Gate-Regressionstests, Testlabor-Bestätigungstext; PR #391
+- Geplanter Umfang / tatsächlich erledigt: PR-Full-CI `44940983500` ist fehlgeschlagen, weil `CirqaNextTransactionProbeAttemptGateTest` zusätzlich zu `OneShotGatesTest` noch die alte Maximalgrenze 2 annahm. Der zuvor gezielte lokale Test lief nur `OneShotGatesTest` und hatte diese Regression nicht umfasst. Der zweite Test wird jetzt aktualisiert; danach gesamte Unit-Suite und neuer PR-Lauf.
+- Was ich von anderen brauche: nichts; Hardware wartet weiter auf volle Gates.
+- Was ich anderen liefere: korrigierter Gate-Test und erneute CI-Evidenz.
+- Nachweise: GitHub PR #391, Run `44940983500` fehlgeschlagen im Unit-Test.
+- Nächster Schritt / Besitzer: OpenCode passt die alte Assertion an, führt alle JVM-Tests aus und pusht Korrektur. S25 bleibt unangetastet.
