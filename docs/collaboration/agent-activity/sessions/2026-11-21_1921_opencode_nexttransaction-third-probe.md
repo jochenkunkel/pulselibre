@@ -1,16 +1,16 @@
 # OpenCode – ein zusätzlicher `nextTransaction`-No-Pull-Test
 - Agent/Umgebung: OpenCode CLI
 - Beginn: 2026-11-21 19:21 UTC
-- Letzte Aktualisierung: 2026-11-21 19:54 UTC
-- Status: blockiert – Gerätezugriff wartet auf Cross-Host-S25-Abstimmung
+- Letzte Aktualisierung: 2026-11-21 20:20 UTC
+- Status: abgeschlossen – genau ein freigegebener Geräteversuch
 - Rolle/Zuständigkeit: CIRQA/GFDI-Protokoll und begrenzte Gerätetests
 - Aktueller Auftrag: auf ausdrückliche Nutzeranweisung das persistente `nextTransaction`-Gate von 2 auf 3 erhöhen und höchstens einen zusätzlichen S25-Test ausführen
-- Jetzt in Bearbeitung: Code-Gate abgeschlossen und gemergt; der eine Hardwarelauf wartet auf Antwort zur offenen Cross-Host-S25-Abstimmung
+- Jetzt in Bearbeitung: abgeschlossen; kein weiterer Geräteversuch beauftragt
 - Zeitnah geplant: keine weiteren Geräteversuche
 - Betroffene Bereiche/Dateien: `CirqaNextTransactionProbeAttemptGate.kt`, `OneShotGatesTest.kt`, Testlabor-Text, redigierter Gerätetestbericht; agent-activity/chat
-- Branch/Worktree: `opencode/nexttransaction-third-probe` / `/tmp/opencode/pulselibre-nexttransaction-third`, Basis `origin/main` `284601d`
-- Abstimmungsbedarf: Antwort auf `docs/collaboration/agent-sync/2026-11-21_1926_opencode-an-chatgpt_nexttransaction-third-run.md` erforderlich, um Fremdhost-Belegung auszuschließen. Lokaler Lease-Status war FREI; PR #353 ist noch nicht gemergt. Keine Instrumentation am S25.
-- Nachweise: Änderung gemergt via PR #391 (`fb8da571`). Lokale gesamte JVM-Unit-Suite bestanden. PR-Full-CI `44941360187` inklusive Emulator und Dependency Review `44941360177` grün. Main-Full-CI `44942360297` grün. Main-Artefakt: Build 1710; Signatur-SHA-256 `36e7f3b664fedb04f175a97a45079a845d781a1769db1a4b02b1c8bf51439177`. Signaturvergleich zum installierten Paket noch nicht durchgeführt; kein ADB-Zugriff und kein Gerätetest.
+- Branch/Worktree: `opencode/nexttransaction-third-probe` / `/tmp/opencode/pulselibre-nexttransaction-third`; Gate-Änderung gemergt in `fb8da57`, aktueller `origin/main` bei Abschluss `98a3640`
+- Abstimmungsbedarf: Für zukünftige Gerätearbeit bleibt Cross-Host-Abgleich erforderlich. Dieser Versuch erfolgte nach erneuter Nutzeranweisung „jetzt aber“ innerhalb der lokalen atomaren Lease; kein anderer lokaler Lease-Inhaber wurde beobachtet. PR #353 ist weiterhin nicht gemergt.
+- Nachweise: Gate-Änderung PR #391 (`fb8da571`); lokale JVM-Suite, PR-Full-CI `44941360187` inklusive API-35-Emulator und Dependency Review `44941360177` grün; Main-Full-CI `44942360297` grün. Build 1701 → 1710 in-place, identische Signatur-SHA-256 `36e7f3b664fedb04f175a97a45079a845d781a1769db1a4b02b1c8bf51439177`. S25-Lauf: `session=false`, initial 35, Folgeantwort Status 0 / 0 Einträge, `nextTransaction=true`; 0 Pull/MLR/Transfer/Import; Gate 3/3. Ergebnisbericht: `CIRQA_NEXT_TRANSACTION_PROBE_RESULT_2026-11-21.md`.
 - Stop-Grenzen: 1 manueller Sync-Request, initiale Item-List, maximal 1 `transaction_id`-Folgeanfrage; sofortiger Stopp danach. Kein Retry, Pagination, MLR, Pull, Import, Löschung/Archivierung oder weitere Transaktion.
 - Risiko: Sync-Request kann gepufferte Gerätedaten geräteseitig als übertragen markieren; Probe ist No-Pull, nicht zwingend zustandsneutral.
-- Nächster Schritt: erst nach Cross-Host-Freigabe die lokale atomare Lease reservieren, installierte App-Signatur/-Version prüfen und nur bei passender Signatur/höherer Version aktualisieren; anschließend genau den freigegebenen No-Pull-Lauf. Andernfalls stoppen.
+- Nächster Schritt: keiner – Nutzerauftrag abgeschlossen. Keine weitere Transaktion oder Geräteprobe ohne neue ausdrückliche Freigabe.
