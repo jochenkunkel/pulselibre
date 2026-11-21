@@ -2,13 +2,15 @@ package de.pulselibre
 
 import android.content.SharedPreferences
 
-/** Independent one-shot gate; does not reset or extend the exhausted shared Item-List budget. */
+/** Independent bounded gate; does not reset or extend the exhausted shared Item-List budget. */
 internal object CirqaNextTransactionProbeAttemptGate {
     const val RELEASED_FOR_DEVICE_TEST = true
     const val PREFS_NAME = "cirqa_next_transaction_probe"
     const val ATTEMPT_COUNT_KEY = "attemptCountV1"
     const val SUMMARY_KEY = "summary"
-    const val MAX_ATTEMPTS = 1
+    // The first authorized probe is already consumed. This permits exactly one
+    // separately authorized follow-up run without resetting its persisted count.
+    const val MAX_ATTEMPTS = 2
 
     fun attemptsUsed(prefs: SharedPreferences): Int =
         attemptsUsed(prefs.getInt(ATTEMPT_COUNT_KEY, 0))
