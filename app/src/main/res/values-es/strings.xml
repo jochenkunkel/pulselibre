@@ -640,4 +640,260 @@
     <string name="ex_rec_stop_failed">No se pudo detener la grabación; la base de datos permaneció sin cambios.</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="ex_rec_still">La grabación sigue en curso; la base de datos permaneció sin cambios.</string>
+    <!-- TODO-CHATGPT-REVIEW: Erstentwurf von Claude Code, Ticket #365 -->
+    <!-- Gerät: Verbindungsstatus, Akku, Empfang (#365) -->
+    <string name="dur_s">%1$d s</string>
+    <string name="dur_min">%1$d min</string>
+    <string name="dur_h">%1$d h</string>
+    <string name="dur_h_min">%1$d h %2$d min</string>
+    <string name="dur_ago">hace %1$s</string>
+    <string name="dur_ago_day">hace 1 día</string>
+    <string name="dur_ago_days">hace %1$d días</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="gatt_connected">Android GATT: conectado (app desconocida)</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="gatt_connecting">Android GATT: conectando</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="gatt_disconnecting">Android GATT: desconectando</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="gatt_disconnected">Android GATT: no conectado</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="gatt_permission">Android GATT: falta el permiso</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="gatt_not_paired">Ningún CIRQA emparejado</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="gatt_unknown">Android GATT: desconocido</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="link_bt_permission">Falta el permiso de Bluetooth</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="link_receiving">Conectado · última medición hace %1$s</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="link_waiting">Conectado · esperando mediciones</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="link_gatt_recorder_off">GATT conectado (grabación desactivada)</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="link_reconnecting">Grabación en curso · conexión interrumpida, reconectando</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="link_reconnecting_last">Grabación en curso · conexión interrumpida, reconectando · última medición hace %1$s</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="link_none">Sin conexión · grabación desactivada</string>
+    <string name="link_outline_green">borde verde</string>
+    <string name="link_outline_black">borde negro</string>
+    <string name="link_status_cd">Estado de la conexión CIRQA: %1$s. %2$s. Abrir los ajustes.</string>
+    <string name="bat_value">%1$d %%</string>
+    <string name="bat_value_charging">%1$d %% · cargando</string>
+    <string name="bat_fresh">Estado: %1$s</string>
+    <string name="bat_stale">Obsoleto · último estado conocido %1$s</string>
+    <string name="bat_time_unknown">Hora desconocida · último estado conocido</string>
+    <string name="bat_cd">Batería: %1$d por ciento. %2$s</string>
+    <string name="bat_cd_charging">Batería: %1$d por ciento, cargando. %2$s</string>
+    <string name="dev_src_pulse">Frecuencia cardíaca</string>
+    <string name="dev_src_oxygen">SpO₂</string>
+    <string name="dev_src_steps">Pasos</string>
+    <string name="dev_src_stress">Estrés</string>
+    <string name="dev_src_battery">Body Battery</string>
+    <string name="dev_src_rr">Intervalo RR</string>
+    <string name="dev_src_breath">Respiración</string>
+    <string name="dev_src_calories">Calorías</string>
+    <string name="dev_src_intensity">Intensidad</string>
+    <string name="dev_no_reception">sin recepción</string>
+    <string name="dev_hero_reading">Leyendo el estado …</string>
+    <string name="dev_hero_connected">Conectado</string>
+    <string name="dev_hero_reconnecting">Reconectando</string>
+    <string name="dev_hero_not_paired">No emparejado</string>
+    <string name="dev_hero_not_connected">No conectado</string>
+    <string name="dev_hero_cd_connected">CIRQA conectado. %1$s</string>
+    <string name="dev_hero_cd_not_connected">CIRQA no conectado. %1$s</string>
+    <string name="dev_chip_reception">Recepción · 1 h</string>
+    <string name="dev_chip_readings">%1$s mediciones</string>
+    <string name="dev_chip_storage">Almacenamiento</string>
+    <string name="dev_chip_entries">%1$s entradas\n%2$s</string>
+    <string name="dev_chip_sessions">Sesiones de hoy</string>
+    <string name="dev_chip_sessions_value">%1$d inicios\n%2$d reconexiones</string>
+    <string name="dev_chip_since">Grabación desde</string>
+    <string name="dev_pair_cd">%1$s: %2$s</string>
+    <string name="dev_reception_title">Última recepción por medición</string>
+    <string name="dev_being_read">leyendo</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="dev_meta_title">Información de la pulsera</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="dev_meta_note">Los valores del dispositivo solo se muestran con una fuente confirmada y una marca de tiempo actual.</string>
+    <string name="dev_meta_battery">Batería</string>
+    <string name="dev_meta_firmware">Firmware</string>
+    <string name="dev_meta_clock">Hora de la pulsera</string>
+    <string name="dev_meta_identity">Modelo / número de serie</string>
+    <string name="dev_unavailable">No disponible</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="dev_unavailable_cd">%1$s: no disponible; aún no hay ningún valor confirmado del dispositivo</string>
+    <!-- TODO-CHATGPT-REVIEW: Erstentwurf von Claude Code, Ticket #365 -->
+    <!-- Gerät: unbekannte FIT-Felder (#365) -->
+    <string name="unk_headline_one">Campo de datos desconocido detectado (1 tipo)</string>
+    <string name="unk_headline_many">Campos de datos desconocidos detectados (%1$d tipos)</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="unk_explanation">Aún no descifrado por la app. No son mediciones ni un diagnóstico.</string>
+    <string name="unk_hint_cd">%1$s. %2$s Toca para ver los detalles.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="unk_intro">Desconocido significa: no descifrado. Estas entradas no son ni mediciones ni diagnósticos; solo muestran qué campos contienen los archivos de la pulsera que PulsLibre aún no entiende.</string>
+    <string name="unk_title_std">Mensaje FIT %1$d · campo %2$d</string>
+    <string name="unk_title_dev">Mensaje FIT %1$d · campo de desarrollador %2$d</string>
+    <string name="unk_base_unknown">desconocido</string>
+    <string name="unk_detail">Tipo base %1$s · %2$d bytes</string>
+    <string name="unk_detail_dev">Tipo base %1$s · %2$d bytes · índice de desarrollador %3$d</string>
+    <string name="unk_occ_11">%1$d mensaje en %2$d archivo</string>
+    <string name="unk_occ_1n">%1$d mensaje en %2$d archivos</string>
+    <string name="unk_occ_n1">%1$d mensajes en %2$d archivo</string>
+    <string name="unk_occ_nn">%1$d mensajes en %2$d archivos</string>
+    <string name="unk_group_11">Mensaje FIT %1$d · %2$d tipo de campo · %3$d mensaje</string>
+    <string name="unk_group_1n">Mensaje FIT %1$d · %2$d tipo de campo · %3$d mensajes</string>
+    <string name="unk_group_n1">Mensaje FIT %1$d · %2$d tipos de campo · %3$d mensaje</string>
+    <string name="unk_group_nn">Mensaje FIT %1$d · %2$d tipos de campo · %3$d mensajes</string>
+    <string name="unk_group_cd">%1$s. Toca para expandir o contraer.</string>
+    <string name="unk_cls_message">Tipo de mensaje no decodificado por la app</string>
+    <string name="unk_cls_field">Campo no decodificado por la app</string>
+    <string name="unk_cls_incompatible">Campo conocido con un tipo de datos no compatible</string>
+    <string name="unk_cls_developer">Campo de desarrollador no decodificado</string>
+    <string name="unk_cls_other">No decodificado</string>
+    <string name="unk_status_unreviewed">sin revisar</string>
+    <string name="unk_status_investigating">en revisión</string>
+    <string name="unk_status_supported">compatible</string>
+    <string name="unk_status_ignored">ignorado</string>
+    <string name="unk_status_line">%1$s · Estado: %2$s</string>
+    <string name="unk_status_save_failed">%1$s · No se pudo guardar el estado</string>
+    <string name="unk_status_change">Cambiar estado</string>
+    <string name="unk_status_change_cd">Cambiar el estado de %1$s</string>
+    <string name="unk_status_title">Estado: %1$s</string>
+    <string name="unk_status_note">Solo tu propia marca de revisión para este campo. No se modifica ningún dato de medición.</string>
+    <string name="unk_status_selected_cd">%1$s, seleccionado actualmente</string>
+    <string name="unk_bytes_action">Ver bytes de ejemplo</string>
+    <string name="unk_bytes_action_cd">Ver bytes de ejemplo de %1$s</string>
+    <string name="unk_bytes_title">¿Ver bytes de ejemplo?</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="unk_bytes_warning">Muestra unos pocos bytes sin procesar de este campo, tomados de tus archivos guardados localmente. Pueden contener información sensible de salud y del dispositivo, y no se interpretan, ni se guardan, ni se envían. No los compartas en tickets, registros ni capturas de pantalla.</string>
+    <string name="unk_bytes_confirm">Mostrar</string>
+    <string name="unk_bytes_more_files">… y %1$d archivos más</string>
+    <string name="unk_file">Archivo %1$d</string>
+    <string name="unk_sample_unreadable">%1$s: original ilegible o no válido.</string>
+    <string name="unk_sample_absent">%1$s: el campo no está en este archivo.</string>
+    <string name="unk_sample_head_one">%1$s: 1 aparición, primer valor</string>
+    <string name="unk_sample_head">%1$s: %2$d apariciones, primeros %3$d valores</string>
+    <string name="unk_sample_more">  … y %1$d más</string>
+    <string name="unk_sample_cut">  (cada valor truncado a %1$d bytes)</string>
+    <!-- TODO-CHATGPT-REVIEW: Erstentwurf von Claude Code, Ticket #365 -->
+    <!-- Dialoge: Anpassen, Tagesansicht, Tageszeitleiste (#365) -->
+    <string name="cust_title">Personalizar la pantalla de inicio</string>
+    <string name="cust_note">Las tarjetas ocultas se siguen registrando, solo que no se muestran. Los favoritos aparecen primero en «%1$s».</string>
+    <string name="cust_show_cd">Mostrar %1$s</string>
+    <string name="cust_fav_on">★ Favorito</string>
+    <string name="cust_fav_off">☆ Favorito</string>
+    <string name="cust_fav_remove_cd">Quitar %1$s de «%2$s»</string>
+    <string name="cust_fav_add_cd">Añadir %1$s a «%2$s»</string>
+    <string name="cust_up">▲ Subir</string>
+    <string name="cust_down">▼ Bajar</string>
+    <string name="cust_up_cd">%1$s hacia arriba</string>
+    <string name="cust_down_cd">%1$s hacia abajo</string>
+    <string name="cust_reset">Restablecer</string>
+    <string name="day_reading">Leyendo datos …</string>
+    <string name="day_read_failed">No se pudieron leer los datos de medición locales.</string>
+    <string name="dq_not_started">El día aún no ha comenzado</string>
+    <string name="dq_coverage">Cobertura %1$s %% (%2$d de %3$d min)</string>
+    <string name="dq_gaps_one">%1$s · 1 intervalo sin datos, el más largo %2$d min</string>
+    <string name="dq_gaps_many">%1$s · %2$d intervalos sin datos, el más largo %3$d min</string>
+    <string name="ma_not_available">no disponible</string>
+    <string name="ma_insufficient">datos insuficientes</string>
+    <string name="ma_experimental">experimental</string>
+    <string name="ma_available">disponible</string>
+    <string name="tl_not_started">El día aún no ha comenzado.</string>
+    <string name="tl_no_data_lane">%1$s: sin datos este día.</string>
+    <string name="tl_last">%1$s último</string>
+    <string name="tl_no_gaps">sin intervalos sin datos</string>
+    <string name="tl_gap_one">1 intervalo sin datos, el más largo %1$d min (%2$s–%3$s)</string>
+    <string name="tl_gap_many">%1$d intervalos sin datos, el más largo %2$d min (%3$s–%4$s)</string>
+    <string name="tl_lane_line">%1$s: %2$s, %3$d mediciones, %4$s.</string>
+    <string name="tl_no_data">sin datos</string>
+    <string name="tl_lane_band">Frecuencia cardíaca · pulsera (FIT)</string>
+    <string name="tl_lane_value">%1$s: %2$s</string>
+    <string name="tl_note_phone">Frecuencia cardíaca y pasos: hora de recepción en el teléfono.</string>
+    <string name="tl_note_band">%1$s: hora medida por la pulsera, no la de recepción.</string>
+    <string name="tl_note_gaps">%1$s. Los intervalos sin datos quedan vacíos y no se interpolan.</string>
+    <string name="tl_zoom_full">Día completo. Dos dedos para ampliar, o usa los botones.</string>
+    <string name="tl_zoom_part">Tramo de %1$s h de 24 h (puntos sin procesar, sin promedios).</string>
+    <string name="tl_pan_back">Tramo anterior</string>
+    <string name="tl_zoom_out">Alejar</string>
+    <string name="tl_zoom_in">Acercar</string>
+    <string name="tl_pan_forward">Tramo siguiente</string>
+    <string name="tl_day_button">Día</string>
+    <string name="tl_day_button_cd">Mostrar el día completo</string>
+    <string name="tl_hint">Toca o arrastra para ver los valores a una hora determinada.</string>
+    <string name="dd_prev">‹ Anterior</string>
+    <string name="dd_next">Siguiente ›</string>
+    <string name="dd_prev_cd">Punto de datos anterior</string>
+    <string name="dd_next_cd">Punto de datos siguiente</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="dd_no_sleep">Aún no hay evolución del día disponible. Faltan datos de sueño validados.</string>
+    <string name="dd_no_course">Aún no hay evolución del día disponible.</string>
+    <string name="dd_unit_steps">pasos</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="dd_unit_device">unidad del dispositivo sin verificar</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="dd_ctx_oxygen">sensor CIRQA no validado</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="dd_ctx_resting">campo del dispositivo, condiciones de medición sin verificar</string>
+    <string name="dd_basis">Hora de recepción · %1$s</string>
+    <string name="dd_valid">%1$d mediciones válidas</string>
+    <string name="dd_invalid">%1$d sin valor válido</string>
+    <string name="dd_duplicates">%1$d duplicados</string>
+    <string name="dd_minutes">Minutos con recepción válida: %1$d de %2$d</string>
+    <string name="dd_status">Estado de los datos: %1$s</string>
+    <string name="dd_chart_note">Gráfico: mínimo, máximo y último valor por minuto de recepción.</string>
+    <string name="dd_last_today">Última recepción hoy %1$s</string>
+    <string name="dd_goal">Último objetivo de pasos del dispositivo: %1$s</string>
+    <string name="dd_scale">Escala · %1$s–%2$s %3$s</string>
+    <!-- TODO-CHATGPT-REVIEW: Erstentwurf von Claude Code, Ticket #365 -->
+    <!-- Dienst-Benachrichtigung (#365) -->
+    <string name="svc_channel">CIRQA · Grabación continua</string>
+    <string name="svc_title">PulsLibre · Grabación continua</string>
+    <string name="svc_collecting">Recopilando localmente · aún sin mediciones</string>
+    <string name="svc_bt_off">Bluetooth desactivado – actívalo, por favor</string>
+    <string name="svc_received">Local: %1$d mediciones · datos CIRQA recibidos</string>
+    <string name="svc_connecting">Conectando con CIRQA …</string>
+    <string name="svc_reconnect">CIRQA desconectado · nuevo intento en %1$d s</string>
+    <string name="svc_stop">Detener la recopilación</string>
+    <!-- TODO-CHATGPT-REVIEW: Erstentwurf von Claude Code, Ticket #365 -->
+    <!-- Hauptansicht: Bluetooth, Gewicht, BMI (#365) -->
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="bmi_underweight">Bajo peso</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="bmi_normal">Peso normal</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="bmi_pre_obesity">Sobrepeso</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="bmi_obesity_1">Obesidad de clase I</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="bmi_obesity_2">Obesidad de clase II</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="bmi_obesity_3">Obesidad de clase III</string>
+    <string name="bmi_note_missing">Introduce la estatura y el peso para ver el IMC.</string>
+    <string name="bmi_note_birth">Añade tu fecha de nacimiento para clasificar el IMC.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="bmi_note_age">No hay clasificación del IMC disponible para este grupo de edad.</string>
+    <string name="bmi_info_title">IMC · clasificación</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="bmi_info_body">IMC = peso (kg) / estatura (m)². Es un indicador de cribado, no un diagnóstico.\n\nClasificación para adultos de 20 años o más según la OMS (mismos límites para mujeres y hombres):\nmenos de 18,5 bajo peso · 18,5–24,9 peso normal · 25–29,9 sobrepeso · 30–34,9 obesidad de clase I · 35–39,9 clase II · a partir de 40 clase III.\n\nLímites: la masa muscular, la constitución, el embarazo y la edad influyen en la validez del valor. Para menores de 20 años no hay clasificación aquí (referencias de IMC por edad no implementadas). No se aplican límites especiales a los adultos mayores.</string>
+    <string name="bmi_info_note">Nota: %1$s</string>
+    <string name="main_bt_off_title">Bluetooth desactivado</string>
+    <string name="main_bt_off_msg">Bluetooth está desactivado. Actívalo para que PulsLibre pueda recibir las mediciones de CIRQA.</string>
+    <string name="main_later">Más tarde</string>
+    <string name="main_bt_enable">Activar Bluetooth</string>
+    <string name="main_bt_enable_toast">Activa Bluetooth en los ajustes de Android.</string>
+    <string name="main_perm_needed">Se necesita el permiso de Bluetooth: permite los dispositivos cercanos en el aviso de Android</string>
+    <string name="main_perm_granted">Permiso de Bluetooth concedido · inicia de nuevo la búsqueda</string>
+    <string name="main_perm_denied">Permiso de Bluetooth denegado · Ajustes → Aplicaciones → PulsLibre → Permisos → Dispositivos cercanos</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="main_notif_off">Las notificaciones están desactivadas: la grabación está en curso, pero la notificación con el botón de detener no se ve. Detenla con «Detener» en la app o permite las notificaciones en los ajustes de Android.</string>
+    <string name="main_weight_title">Peso (kg)</string>
+    <string name="main_weight_input_cd">Peso actual en kilogramos</string>
+    <string name="main_weight_minus_cd">Reducir el peso en 0,1 kilogramo</string>
+    <string name="main_weight_plus_cd">Aumentar el peso en 0,1 kilogramo</string>
+    <string name="main_weight_step">Paso: 0,1 kg · mantén pulsado para cambiar más rápido</string>
+    <string name="main_weight_invalid">Introduce un peso entre 15 y 400 kg.</string>
 </resources>

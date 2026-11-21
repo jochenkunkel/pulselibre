@@ -18,10 +18,11 @@ internal object UnknownFieldsSummary {
     /** All field types of one FIT message number, for a collapsible list (#204: 930 single rows are unreadable). */
     data class Group(val messageNumber: Int, val title: String, val entries: List<Entry>)
 
-    data class Summary(val typeCount: Int, val entries: List<Entry>, val omitted: Int, val groups: List<Group> = emptyList()) {
+    data class Summary(
+        val typeCount: Int, val entries: List<Entry>, val omitted: Int, val groups: List<Group> = emptyList(),
+        val headline: String = "", val explanation: String = ""
+    ) {
         val isEmpty get() = typeCount == 0
-        val headline get() = if (typeCount == 1) "Unbekanntes Datenfeld entdeckt (1 Typ)" else "Unbekannte Datenfelder entdeckt ($typeCount Typen)"
-        val explanation get() = "Von der App noch nicht entschlüsselt. Das sind keine Messwerte und keine Diagnose."
     }
 
     const val MAX_ENTRIES = 100
@@ -31,7 +32,7 @@ internal object UnknownFieldsSummary {
         val size: Int, val developerIndex: Int?, val classification: String
     )
 
-    fun summarize(fields: List<StoredFitUnmappedField>): Summary {
+    fun summarize(strings: Strings, fields: List<StoredFitUnmappedField>): Summary {
         val grouped = fields.groupBy {
             Key(it.globalMessageNumber, it.kind, it.fieldNumber, it.baseTypeCode, it.fieldSize, it.developerDataIndex, it.classification)
         }
@@ -40,40 +41,54 @@ internal object UnknownFieldsSummary {
             .map { (key, rows) ->
                 val files = rows.map { it.sourceSha256 }.distinct().size
                 val messages = rows.sumOf { it.observedMessageCount }
-                Entry(
-                    title = "FIT-Nachricht ${key.global} · " +
-                        (if (key.kind == StoredFitFieldKind.DEVELOPER) "Developer-Feld" else "Feld") + " ${key.field}",
-                    detail = "Basistyp ${key.baseType?.toString() ?: "unbekannt"} · ${key.size} Byte" +
-                        (key.developerIndex?.let { " · Developer-Index $it" } ?: ""),
-                    occurrence = "$messages ${if (messages == 1L) "Meldung" else "Meldungen"} in $files ${if (files == 1) "Datei" else "Dateien"}",
-                    classification = classificationLabel(key.classification),
-                    status = statusLabel(rows.map { it.status }.distinct()),
+                key.global to Entry(
+                    title = strings.get(if (key.kind == StoredFitFieldKind.DEVELOPER) R.string.unk_title_dev else R.string.unk_title_std, key.global, key.field),
+                    detail = key.baseType?.toString().let { base ->
+                        val type = base ?: strings.get(R.string.unk_base_unknown)
+                        key.developerIndex?.let { strings.get(R.string.unk_detail_dev, type, key.size, it) } ?: strings.get(R.string.unk_detail, type, key.size)
+                    },
+                    occurrence = strings.get(when {
+                        messages == 1L && files == 1 -> R.string.unk_occ_11
+                        messages == 1L -> R.string.unk_occ_1n
+                        files == 1 -> R.string.unk_occ_n1
+                        else -> R.string.unk_occ_nn
+                    }, messages, files),
+                    classification = classificationLabel(strings, key.classification),
+                    status = statusLabel(strings, rows.map { it.status }.distinct()),
                     records = rows
                 )
             }
+        val entryList = entries.map { it.second }
         val groups = grouped.entries.groupBy { it.key.global }.toSortedMap().map { (message, parts) ->
-            val fieldEntries = entries.filter { it.title.startsWith("FIT-Nachricht $message ·") }
+            val fieldEntries = entries.filter { it.first == message }.map { it.second }
             val occurrences = parts.sumOf { p -> p.value.sumOf { it.observedMessageCount } }
-            Group(message, "FIT-Nachricht $message · ${parts.size} ${if (parts.size == 1) "Feldtyp" else "Feldtypen"} · $occurrences Meldungen", fieldEntries)
+            Group(message, strings.get(when {
+                parts.size == 1 && occurrences == 1L -> R.string.unk_group_11
+                parts.size == 1 -> R.string.unk_group_1n
+                occurrences == 1L -> R.string.unk_group_n1
+                else -> R.string.unk_group_nn
+            }, message, parts.size, occurrences), fieldEntries)
         }
-        return Summary(entries.size, entries.take(MAX_ENTRIES), (entries.size - MAX_ENTRIES).coerceAtLeast(0), groups)
+        val headline = if (entryList.size == 1) strings.get(R.string.unk_headline_one) else strings.get(R.string.unk_headline_many, entryList.size)
+        return Summary(entryList.size, entryList.take(MAX_ENTRIES), (entryList.size - MAX_ENTRIES).coerceAtLeast(0), groups,
+            headline, strings.get(R.string.unk_explanation))
     }
 
-    fun classificationLabel(code: String) = when (code) {
-        "MESSAGE_NOT_DECODED_BY_APP" -> "Nachrichtentyp von der App nicht dekodiert"
-        "FIELD_NOT_DECODED_BY_APP" -> "Feld von der App nicht dekodiert"
-        "KNOWN_MAPPING_INCOMPATIBLE" -> "Bekanntes Feld mit unpassendem Datentyp"
-        "DEVELOPER_FIELD_NOT_DECODED_BY_APP" -> "Developer-Feld nicht dekodiert"
-        else -> "Nicht dekodiert"
-    }
+    fun classificationLabel(strings: Strings, code: String) = strings.get(when (code) {
+        "MESSAGE_NOT_DECODED_BY_APP" -> R.string.unk_cls_message
+        "FIELD_NOT_DECODED_BY_APP" -> R.string.unk_cls_field
+        "KNOWN_MAPPING_INCOMPATIBLE" -> R.string.unk_cls_incompatible
+        "DEVELOPER_FIELD_NOT_DECODED_BY_APP" -> R.string.unk_cls_developer
+        else -> R.string.unk_cls_other
+    })
 
-    fun statusLabel(statuses: List<FitFieldInventoryStatus>): String =
-        statuses.joinToString(" / ") {
-            when (it) {
-                FitFieldInventoryStatus.UNREVIEWED -> "ungeprüft"
-                FitFieldInventoryStatus.INVESTIGATING -> "in Prüfung"
-                FitFieldInventoryStatus.SUPPORTED -> "unterstützt"
-                FitFieldInventoryStatus.IGNORED -> "ignoriert"
-            }
-        }
+    fun statusLabel(strings: Strings, statuses: List<FitFieldInventoryStatus>): String =
+        statuses.joinToString(" / ") { strings.get(statusRes(it)) }
+
+    fun statusRes(status: FitFieldInventoryStatus): Int = when (status) {
+        FitFieldInventoryStatus.UNREVIEWED -> R.string.unk_status_unreviewed
+        FitFieldInventoryStatus.INVESTIGATING -> R.string.unk_status_investigating
+        FitFieldInventoryStatus.SUPPORTED -> R.string.unk_status_supported
+        FitFieldInventoryStatus.IGNORED -> R.string.unk_status_ignored
+    }
 }

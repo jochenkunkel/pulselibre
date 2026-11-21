@@ -4,11 +4,11 @@ package de.pulselibre
  * Availability state for analysis tiles (#40). Separates "never received", "too little to
  * compute", "usable" and "experimental source"; an empty series is never a zero value.
  */
-internal enum class MetricAvailability(val label: String) {
-    NOT_AVAILABLE("nicht verfügbar"),
-    INSUFFICIENT_DATA("unzureichende Daten"),
-    EXPERIMENTAL("experimentell"),
-    AVAILABLE("verfügbar");
+internal enum class MetricAvailability(val labelRes: Int) {
+    NOT_AVAILABLE(R.string.ma_not_available),
+    INSUFFICIENT_DATA(R.string.ma_insufficient),
+    EXPERIMENTAL(R.string.ma_experimental),
+    AVAILABLE(R.string.ma_available);
 
     companion object {
         /** Minimum share of elapsed minutes with observations for an analysis to be computed. */

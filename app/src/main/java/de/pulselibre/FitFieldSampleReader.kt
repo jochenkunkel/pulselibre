@@ -108,17 +108,18 @@ internal object FitFieldSampleReader {
     }
 
     /** Text for one source file in the preview dialog; [index] is a local ordinal, never a file name or hash. */
-    fun describe(index: Int, preview: Preview?): String {
-        val title = "Datei $index"
-        if (preview == null) return "$title: Original nicht lesbar oder nicht gültig."
-        if (preview.occurrences == 0) return "$title: Feld in dieser Datei nicht vorhanden."
+    fun describe(strings: Strings, index: Int, preview: Preview?): String {
+        val title = strings.get(R.string.unk_file, index)
+        if (preview == null) return strings.get(R.string.unk_sample_unreadable, title)
+        if (preview.occurrences == 0) return strings.get(R.string.unk_sample_absent, title)
         val shown = preview.samples.mapIndexed { i, b -> "  ${i + 1}: ${hex(b)}" }
         val more = preview.occurrences - preview.samples.size
         return buildString {
-            append("$title: ${preview.occurrences} Vorkommen, erste ${preview.samples.size} Werte\n")
+            append(if (preview.occurrences == 1) strings.get(R.string.unk_sample_head_one, title)
+                else strings.get(R.string.unk_sample_head, title, preview.occurrences, preview.samples.size)).append("\n")
             append(shown.joinToString("\n"))
-            if (more > 0) append("\n  … und $more weitere")
-            if (preview.truncatedBytes) append("\n  (je Wert auf $MAX_BYTES_PER_SAMPLE Byte gekürzt)")
+            if (more > 0) append("\n").append(strings.get(R.string.unk_sample_more, more))
+            if (preview.truncatedBytes) append("\n").append(strings.get(R.string.unk_sample_cut, MAX_BYTES_PER_SAMPLE))
         }
     }
 

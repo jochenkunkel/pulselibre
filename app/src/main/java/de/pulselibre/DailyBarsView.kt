@@ -63,7 +63,7 @@ internal class DailyBarsView(
             canvas.drawLine(left, y(m), right, y(m), line)
             line.pathEffect = null; line.alpha = 255
             // first label on the right above its line, second on the left below its line: they never overprint
-            val txt = "$label ${"%.0f".format(java.util.Locale.GERMANY, m)}"
+            val txt = "$label ${"%.0f".format(context.displayLocale(), m)}"
             if (k == 0) { text.textAlign = Paint.Align.RIGHT; text.alpha = 230; canvas.drawText(txt, right, y(m) - 3 * d, text) }
             else { text.textAlign = Paint.Align.LEFT; text.alpha = 200; canvas.drawText(txt, left, y(m) + 12 * d, text) }
         }

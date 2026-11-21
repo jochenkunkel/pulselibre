@@ -16,6 +16,8 @@ import java.time.format.DateTimeFormatter
 /** Modern device overview: link hero, facts as icon chips, per-source reception, band metadata placeholders (#126). */
 internal class DeviceOverviewView(context: Context) : LinearLayout(context) {
     private val palette = AppPalette.of(context)
+    private val strings = Strings.of(context)
+    private val locale: java.util.Locale = context.resources.configuration.locales[0]
     private val d = resources.displayMetrics.density
     private fun dp(v: Int) = (v * d + 0.5f).toInt()
     private var link: CirqaLinkStatus.Result? = null
@@ -25,7 +27,7 @@ internal class DeviceOverviewView(context: Context) : LinearLayout(context) {
 
     init { orientation = VERTICAL; tag = "device_overview"; render() }
 
-    /** Stored band battery (#159); null keeps the honest "Nicht verfügbar". */
+    /** Stored band battery (#159); null keeps the honest "not available" state. */
     fun showBattery(reading: BatteryReading?) { if (battery != reading) { battery = reading; render() } }
 
     fun update(link: CirqaLinkStatus.Result, running: Boolean) {
@@ -70,27 +72,31 @@ internal class DeviceOverviewView(context: Context) : LinearLayout(context) {
         val heroText = DesignTokens.heroText(palette.dark)
         texts.addView(label("CIRQA", 12f, DesignTokens.heroSecondary(palette.dark), true))
         texts.addView(label(when {
-            l == null -> "Status wird gelesen …"
-            online -> "Verbunden"
-            recorderRunning -> "Wiederverbindung"
-            l.kind == CirqaLinkStatus.Kind.UNAVAILABLE -> "Nicht gekoppelt"
-            else -> "Nicht verbunden"
+            l == null -> context.getString(R.string.dev_hero_reading)
+            online -> context.getString(R.string.dev_hero_connected)
+            recorderRunning -> context.getString(R.string.dev_hero_reconnecting)
+            l.kind == CirqaLinkStatus.Kind.UNAVAILABLE -> context.getString(R.string.dev_hero_not_paired)
+            else -> context.getString(R.string.dev_hero_not_connected)
         }, 22f, heroText, true))
         heroSubtitle = label(l?.label ?: "", 12f, DesignTokens.heroSecondary(palette.dark)).apply { setPadding(0, dp(2), 0, 0) }
         texts.addView(heroSubtitle)
         top.addView(texts, LayoutParams(0, -2, 1f))
         hero.addView(top)
-        hero.contentDescription = "CIRQA ${if (online) "verbunden" else "nicht verbunden"}. ${l?.label.orEmpty()}"
+        hero.contentDescription = context.getString(if (online) R.string.dev_hero_cd_connected else R.string.dev_hero_cd_not_connected, l?.label.orEmpty())
         hero.isFocusable = true
         addView(hero, LayoutParams(-1, -2).apply { bottomMargin = dp(12) })
 
         val s = stats
         // --- facts as icon chips (2 per row) ---
         val chips = listOf(
-            Triple(PlIcon.SIGNAL, "Empfang · 1 Std.", s?.let { DeviceFormat.count(it.readingsLastHour.toLong()) + " Messwerte" } ?: "…"),
-            Triple(PlIcon.STORAGE, "Speicher", s?.let { DeviceFormat.count(it.totalEvents) + " Einträge\n" + DeviceFormat.bytes(it.databaseBytes) } ?: "…"),
-            Triple(PlIcon.SESSIONS, "Sitzungen heute", s?.let { "${it.sessionsToday} Starts\n${it.reconnectsToday} Wiederverbindungen" } ?: "…"),
-            Triple(PlIcon.CALENDAR, "Aufzeichnung seit", s?.firstReading?.let { DateTimeFormatter.ofPattern("dd.MM.yyyy").withZone(ZoneId.systemDefault()).format(it) } ?: "–")
+            Triple(PlIcon.SIGNAL, context.getString(R.string.dev_chip_reception),
+                s?.let { context.getString(R.string.dev_chip_readings, DeviceFormat.count(it.readingsLastHour.toLong(), locale)) } ?: "…"),
+            Triple(PlIcon.STORAGE, context.getString(R.string.dev_chip_storage),
+                s?.let { context.getString(R.string.dev_chip_entries, DeviceFormat.count(it.totalEvents, locale), DeviceFormat.bytes(it.databaseBytes, locale)) } ?: "…"),
+            Triple(PlIcon.SESSIONS, context.getString(R.string.dev_chip_sessions),
+                s?.let { context.getString(R.string.dev_chip_sessions_value, it.sessionsToday, it.reconnectsToday) } ?: "…"),
+            Triple(PlIcon.CALENDAR, context.getString(R.string.dev_chip_since),
+                s?.firstReading?.let { DateTimeFormatter.ofLocalizedDate(java.time.format.FormatStyle.MEDIUM).withLocale(locale).withZone(ZoneId.systemDefault()).format(it) } ?: "–")
         )
         chips.chunked(2).forEach { pair ->
             val row = LinearLayout(context).apply { orientation = HORIZONTAL }
@@ -102,7 +108,7 @@ internal class DeviceOverviewView(context: Context) : LinearLayout(context) {
 
         // --- reception per source ---
         val reception = card()
-        reception.addView(label("Letzter Empfang je Messgröße", 14f, palette.ink, true))
+        reception.addView(label(context.getString(R.string.dev_reception_title), 14f, palette.ink, true))
         val now = Instant.now()
         DeviceSource.entries.forEach { src ->
             val last = s?.lastBySource?.get(src)
@@ -113,28 +119,30 @@ internal class DeviceOverviewView(context: Context) : LinearLayout(context) {
             }
             val row = LinearLayout(context).apply { orientation = HORIZONTAL; gravity = Gravity.CENTER_VERTICAL; minimumHeight = dp(34) }
             row.addView(PlIcon.view(context, src.icon, 22), LayoutParams(dp(28), dp(22)))
-            row.addView(label(src.title, 13f, palette.ink), LayoutParams(0, -2, 1f))
-            row.addView(label(if (s == null) "…" else DeviceFormat.age(last, now), 12f, col, true).apply {
+            row.addView(label(context.getString(src.titleRes), 13f, palette.ink), LayoutParams(0, -2, 1f))
+            row.addView(label(if (s == null) "…" else DeviceFormat.age(strings, last, now), 12f, col, true).apply {
                 setPadding(dp(10), dp(4), dp(10), dp(4))
                 background = GradientDrawable().apply { setColor(palette.tinted); cornerRadius = dp(12).toFloat(); setStroke(dp(1), col) }
             })
-            row.contentDescription = "${src.title}: ${if (s == null) "wird gelesen" else DeviceFormat.age(last, now)}"
+            row.contentDescription = context.getString(R.string.dev_pair_cd, context.getString(src.titleRes),
+                if (s == null) context.getString(R.string.dev_being_read) else DeviceFormat.age(strings, last, now))
             reception.addView(row, LayoutParams(-1, -2).apply { topMargin = dp(4) })
         }
         addView(reception, LayoutParams(-1, -2).apply { bottomMargin = dp(12) })
 
         // --- band metadata: never infer battery, firmware or band clock from reception statistics ---
         val meta = card()
-        meta.addView(label("Bandinformationen", 14f, palette.ink, true))
-        meta.addView(label("Gerätewerte werden nur mit bestätigter Quelle und aktuellem Zeitstempel angezeigt.", 11f, palette.muted),
+        meta.addView(label(context.getString(R.string.dev_meta_title), 14f, palette.ink, true))
+        meta.addView(label(context.getString(R.string.dev_meta_note), 11f, palette.muted),
             LayoutParams(-1, -2).apply { topMargin = dp(2) })
-        listOf(PlIcon.BATTERY to "Akku", PlIcon.FIRMWARE to "Firmware", PlIcon.BAND_TIME to "Uhrzeit des Bands", PlIcon.IDENTITY to "Modell / Seriennummer").forEach { (icon, name) ->
+        listOf(PlIcon.BATTERY to context.getString(R.string.dev_meta_battery), PlIcon.FIRMWARE to context.getString(R.string.dev_meta_firmware),
+            PlIcon.BAND_TIME to context.getString(R.string.dev_meta_clock), PlIcon.IDENTITY to context.getString(R.string.dev_meta_identity)).forEach { (icon, name) ->
             val row = LinearLayout(context).apply { orientation = HORIZONTAL; gravity = Gravity.CENTER_VERTICAL; minimumHeight = dp(34) }
             val reading = if (icon == PlIcon.BATTERY) battery else null
             row.addView(PlIcon.view(context, icon, 22).apply { alpha = if (reading != null) 1f else 0.55f }, LayoutParams(dp(28), dp(22)))
             row.addView(label(name, 13f, palette.ink), LayoutParams(0, -2, 1f))
             if (reading != null) {
-                val view = DeviceBatteryFormat.describe(reading, System.currentTimeMillis())
+                val view = DeviceBatteryFormat.describe(strings, reading, System.currentTimeMillis())
                 val column = LinearLayout(context).apply { orientation = VERTICAL; gravity = Gravity.END }
                 column.addView(label(view.valueText, 14f, palette.ink, true))
                 column.addView(DeviceBatteryBar(context, reading.percent,
@@ -144,8 +152,8 @@ internal class DeviceOverviewView(context: Context) : LinearLayout(context) {
                 row.contentDescription = view.description
                 row.tag = "device_battery_row"
             } else {
-                row.addView(label("Nicht verfügbar", 12f, palette.muted))
-                row.contentDescription = "$name: nicht verfügbar; bisher kein bestätigter Gerätewert"
+                row.addView(label(context.getString(R.string.dev_unavailable), 12f, palette.muted))
+                row.contentDescription = context.getString(R.string.dev_unavailable_cd, name)
             }
             meta.addView(row, LayoutParams(-1, -2).apply { topMargin = dp(4) })
         }
@@ -161,6 +169,6 @@ internal class DeviceOverviewView(context: Context) : LinearLayout(context) {
         head.addView(label(title, 11f, palette.muted, true))
         addView(head)
         addView(label(value, 13f, palette.ink, true), LayoutParams(-1, -2).apply { topMargin = dp(6) })
-        contentDescription = "$title: $value"
+        contentDescription = context.getString(R.string.dev_pair_cd, title, value)
     }
 }

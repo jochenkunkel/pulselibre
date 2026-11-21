@@ -17,7 +17,7 @@ import org.junit.runner.RunWith
 /** #159: the battery row is honest without data and shows percent, bar and freshness with stored data. */
 @RunWith(AndroidJUnit4::class)
 class DeviceBatteryViewTest {
-    private val context = ApplicationProvider.getApplicationContext<Context>()
+    private val context = AppLanguageSettings.wrap(ApplicationProvider.getApplicationContext<Context>())
     private fun all(v: View): List<View> =
         listOf(v) + ((v as? ViewGroup)?.let { g -> (0 until g.childCount).flatMap { all(g.getChildAt(it)) } } ?: emptyList())
 
