@@ -199,3 +199,9 @@ Geprüft: Hintergrundarbeit und Lebenszyklus (Z. 40–135, 1141–1153), Diensts
 - **Bluetooth:** `SecurityException`/`IllegalStateException`/`IllegalArgumentException` werden an allen geprüften Stellen abgefangen (Rechte während des Scans entzogen, Bluetooth ausgeschaltet). `cirqaBondAddress` bleibt nur im Speicher und wird bei Fehlern gelöscht; Adressen werden hier weder geloggt noch gespeichert.
 - **Befund A6-9 (niedrig):** Die Zuordnung des gekoppelten Armbands erfolgt über den Gerätenamen (`name.contains("CIRQA")`, Z. 1015). Ein anderes gekoppeltes Gerät mit gleichem Namensteil würde als CIRQA gelten. Wirkung nur auf Anzeige/Diagnose (die Aufzeichnung verbindet nicht über diese Zuordnung), daher niedrig. Vorschlag: Zuordnung mit dem Dienst/OpenCode abstimmen (gleiche Regel wie `CirqaAddressMatch`).
 - **Offen:** restliche Oberfläche (Z. 135–690, 730–1000, 1155–1209), Berechtigungsdialoge Z. 855–910 nur überflogen.
+
+## 19. CirqaDatabase (Stichprobe Wiederherstellung/Transaktionen, 2026-11-21; Bereich OpenCode, nur lesend)
+- `replaceAllStoredRows` (Backup-Wiederherstellung) löscht und füllt beide Speicher in **einer** Transaktion mit `setTransactionSuccessful` erst am Ende und `endTransaction` im `finally`: ein abgebrochenes Einspielen lässt den alten Stand unverändert. Eingehende Zeilen werden vor dem Einfügen per `require(isValidStored…)` geprüft.
+- Schreibende Methoden sind `@Synchronized`; Lesemethoden nutzen `use {}` für Cursor.
+- Hinweis (A6-10, kein Fehler): Backups enthalten keine FIT-Originale (nur Export „FIT-Originale“ der Daten-Seite). Nach einer Wiederherstellung auf einem anderen Gerät kann der Start-Backfill daher keine Beobachtungen neu ableiten; abgeleitete Daten kommen nur aus dem Backup. Das ist für Nutzer relevant, sollte im Handbuch stehen.
+- Rest der Datei (Schema-Migrationen, Historienkopie) wurde nicht tief geprüft; Änderungen dort nur über OpenCode/#144.
