@@ -1,0 +1,15 @@
+# OpenCode – ein weiterer begrenzter nextTransaction-Versuch
+- Agent/Umgebung: OpenCode CLI
+- Beginn: 2026-11-21 15:17 UTC
+- Letzte Aktualisierung: 2026-11-21 15:17 UTC
+- Status: aktiv – neue Freigabe erhalten; vor Gerätezugriff Gate-/CI-/Lease-Prüfung
+- Rolle/Zuständigkeit: CIRQA/GFDI-Protokoll und S25-Test
+- Aktueller Auftrag: auf Nutzeranweisung genau einen weiteren separaten nextTransaction-No-Pull-Versuch ermöglichen und ausführen
+- Jetzt in Bearbeitung: #149 / #171 – Gate von 1 auf 2 erweitern, ohne den gespeicherten Zähler oder das gemeinsame 15/15-Gate zurückzusetzen
+- Zeitnah geplant: keine weiteren Geräteversuche
+- Betroffene Bereiche/Dateien: `CirqaNextTransactionProbeAttemptGate.kt`, Gate-Unit-Tests, Testlabor-Warntext, datierter Probebericht und Koordination
+- Branch/Worktree: `opencode/nexttransaction-second-shot` / `/home/smiler/04_src/pulselibre-de-ci-agent`
+- Abstimmungsbedarf: S25 exklusiv über das lokale Lease-Tool aus offenem PR #353 reservieren; vor Hardwarelauf Full-CI auf Branch und anschließend `main`; Installations-/Signaturkontinuität prüfen
+- Sicherheitsgrenze: 1 zusätzliche manuell bestätigte No-Pull-Probe, genau eine transaction-id-Folgeanfrage, kein retry, keine Datei-Pulls/MLR/Import, keine Änderung am gemeinsamen Item-List-Gate. Keine Erhöhung auf 100.
+- Nachweise: bisheriger Lauf dokumentiert: erste Liste 28 Einträge; genau eine Folgeliste `status=0`, 0 Einträge; Gate 1/1 verbraucht. Noch keine Änderung oder Geräteaktion in dieser Sitzung.
+- Nächster Schritt: START/Abstimmung veröffentlichen, Gate-Code und Regressionstest vorbereiten; Gerätekontakt erst nach grünen CI-Gates und erfolgreicher Lease-Reservierung.

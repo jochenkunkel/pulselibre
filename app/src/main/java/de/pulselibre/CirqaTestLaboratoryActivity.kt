@@ -632,6 +632,7 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
             statusOutput.text = "nextTransaction-Probe gesperrt oder Einmal-Gate verbraucht."
             return
         }
+        val consumedAttempts = CirqaNextTransactionProbeAttemptGate.attemptsUsed(prefs)
         AlertDialog.Builder(this)
             .setTitle("Eine nextTransaction-Folgeanfrage testen?")
             .setMessage(
@@ -641,7 +642,8 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
                     "Kein Datei-Pull, keine MLR-Datei-Registrierung, kein Import, keine Wiederholung; " +
                     "keine Archiv-, Flag-, Lösch-, Reset- oder CLOSE_ALL-Anfrage. Das Ergebnis enthält " +
                     "nur Counts/Status, keine UID oder Transaktions-ID. 40-s-Limit. Der separate " +
-                    "Einmal-Gate wird vor der Verbindung dauerhaft verbraucht; kein Reset."
+                    "Versuch ${consumedAttempts + 1}/${CirqaNextTransactionProbeAttemptGate.MAX_ATTEMPTS} " +
+                    "wird vor der Verbindung dauerhaft verbraucht; kein Reset."
             )
             .setNegativeButton("Abbrechen", null)
             .setPositiveButton("Einmal ausführen") { _, _ ->

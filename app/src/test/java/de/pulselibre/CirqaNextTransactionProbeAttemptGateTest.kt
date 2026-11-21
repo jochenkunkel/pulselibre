@@ -7,10 +7,11 @@ import org.junit.Test
 
 class CirqaNextTransactionProbeAttemptGateTest {
     @Test
-    fun gateAllowsOneNewAttemptWithoutResettingSharedListBudget() {
+    fun gateAllowsOneAdditionalAttemptWithoutResettingSharedListBudget() {
         assertEquals(0, CirqaNextTransactionProbeAttemptGate.attemptsUsed(-1))
-        assertEquals(1, CirqaNextTransactionProbeAttemptGate.attemptsUsed(2))
+        assertEquals(2, CirqaNextTransactionProbeAttemptGate.attemptsUsed(2))
         assertTrue(CirqaNextTransactionProbeAttemptGate.hasAttemptsRemaining(0))
-        assertFalse(CirqaNextTransactionProbeAttemptGate.hasAttemptsRemaining(1))
+        assertTrue(CirqaNextTransactionProbeAttemptGate.hasAttemptsRemaining(1))
+        assertFalse(CirqaNextTransactionProbeAttemptGate.hasAttemptsRemaining(2))
     }
 }
