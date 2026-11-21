@@ -133,7 +133,7 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
     }
 
     private fun stepCard(steps: DashboardMetric, goal: DashboardMetric): View {
-        val integers = NumberFormat.getIntegerInstance(Locale.GERMANY)
+        val integers = NumberFormat.getIntegerInstance(context.displayLocale())
         val count = steps.value.toLongOrNull()?.takeIf { it >= 0 }
         val target = goal.value.toLongOrNull()?.takeIf { it > 0 }
         val progress = stepGoalProgress(steps, goal)
@@ -166,7 +166,7 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
             val titleRow = LinearLayout(context).apply { orientation = HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
             titleRow.addView(header(metric), LayoutParams(0, -2, 1f))
             val percentText = progress?.let {
-                "≈ " + NumberFormat.getNumberInstance(Locale.GERMANY).apply { maximumFractionDigits = 0 }.format(it) + " %"
+                "≈ " + NumberFormat.getNumberInstance(context.displayLocale()).apply { maximumFractionDigits = 0 }.format(it) + " %"
             }
             if (percentText != null) titleRow.addView(label(percentText, 13f, if (palette.dark) 0xFF0E3B33.toInt() else 0xFF0E5A49.toInt(), true).apply {
                 tag = "dashboard_step_percent"
@@ -193,7 +193,7 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
             baseDescription = contentDescription.toString()
             if (progress != null) {
                 val percentValue = progress
-                val percent = NumberFormat.getNumberInstance(Locale.GERMANY).apply {
+                val percent = NumberFormat.getNumberInstance(context.displayLocale()).apply {
                     maximumFractionDigits = 1
                 }.format(progress)
                 contentDescription = context.getString(R.string.ov_step_percent_cd, contentDescription, percent)
@@ -290,10 +290,10 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
                 addNightIndicator(insightRow, PlIcon.OXYGEN, "SpO₂", context.getString(R.string.ov_night_loading), palette.muted)
                 return
             }
-            val nf = java.text.NumberFormat.getNumberInstance(java.util.Locale.GERMANY).apply { maximumFractionDigits = 1 }
+            val nf = java.text.NumberFormat.getNumberInstance(context.displayLocale()).apply { maximumFractionDigits = 1 }
             val notComputable = context.getString(R.string.ov_not_computable)
             addNightIndicator(insightRow, PlIcon.RECOVERY, context.getString(R.string.ov_night_hours),
-                java.text.NumberFormat.getIntegerInstance(java.util.Locale.GERMANY).format(night.samples), palette.muted,
+                java.text.NumberFormat.getIntegerInstance(context.displayLocale()).format(night.samples), palette.muted,
                 description = context.getString(R.string.ov_night_samples_cd, night.samples.toString()))
             addNightIndicator(insightRow, PlIcon.HOURGLASS, context.getString(R.string.ov_night_coverage),
                 night.coveragePercent?.let { "${nf.format(it)} %" } ?: notComputable, palette.muted)

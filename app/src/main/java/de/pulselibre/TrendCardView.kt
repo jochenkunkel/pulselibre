@@ -22,7 +22,7 @@ internal class TrendCardView(context: Context) : LinearLayout(context) {
     private val content = LinearLayout(context).apply { orientation = VERTICAL }
     private var generation = 0
     private var data: Data? = null
-    private val nf = NumberFormat.getNumberInstance(Locale.GERMANY).apply { maximumFractionDigits = 1 }
+    private val nf = NumberFormat.getNumberInstance(context.displayLocale()).apply { maximumFractionDigits = 1 }
 
     /** Everything the card shows, computed off the UI thread. */
     class Data(
@@ -209,7 +209,7 @@ internal class TrendCardView(context: Context) : LinearLayout(context) {
         val goal = context.getSharedPreferences(SpO2DisplaySettings.STORE, Context.MODE_PRIVATE)
             .getString("step_goal", null)?.trim()?.toIntOrNull()?.takeIf { it in 100..100_000 }
         val week = WeekSummary.build(d.stepsDaily, d.restDaily, d.today, goal) { v ->
-            NumberFormat.getIntegerInstance(Locale.GERMANY).format(Math.round(v))
+            NumberFormat.getIntegerInstance(context.displayLocale()).format(Math.round(v))
         }
         val box = LinearLayout(context).apply { orientation = VERTICAL; tag = "week_summary"; setPadding(0, dp(8), 0, dp(4)) }
         box.addView(TextView(context).apply {
@@ -343,7 +343,7 @@ internal class TrendCardView(context: Context) : LinearLayout(context) {
 
     /** Whole numbers from 100 up (7.762 steps), one decimal below (62,5 bpm) – keeps the 70 dp column single-line. */
     private fun compact(v: Double): String =
-        if (Math.abs(v) >= 100) NumberFormat.getIntegerInstance(Locale.GERMANY).format(Math.round(v)) else nf.format(v)
+        if (Math.abs(v) >= 100) NumberFormat.getIntegerInstance(context.displayLocale()).format(Math.round(v)) else nf.format(v)
 
     private fun tableRow(label: String?, cells: List<String>, icon: PlIcon? = null): View = LinearLayout(context).apply {
         orientation = HORIZONTAL
