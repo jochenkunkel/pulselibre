@@ -3,11 +3,11 @@ package de.pulselibre
 import de.pulselibre.CirqaConnectionHistory.State
 
 /** The header shows green only when Android reports a connected GATT link. */
-object CirqaConnectionIndicator {
+internal object CirqaConnectionIndicator {
     fun isConnected(state: State): Boolean = state == State.CONNECTED
 
-    fun contentDescription(state: State): String {
-        val outline = if (isConnected(state)) "grüner Rand" else "schwarzer Rand"
-        return "CIRQA-Verbindungsstatus: $outline. ${CirqaStateMapping.label(state)}. Einstellungen öffnen."
+    fun contentDescription(strings: Strings, state: State): String {
+        val outline = strings.get(if (isConnected(state)) R.string.link_outline_green else R.string.link_outline_black)
+        return strings.get(R.string.link_status_cd, outline, CirqaStateMapping.label(strings, state))
     }
 }

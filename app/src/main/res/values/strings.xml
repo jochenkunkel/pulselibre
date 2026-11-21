@@ -355,4 +355,537 @@
     <string name="hd_density_empty">Distribution chart: no readings in the selected period.</string>
     <string name="hd_density_cd">Distribution chart: %1$d readings in %2$d of %3$d time windows, axis value range %4$d to %5$d. Double-tap on the chart opens the individual values of the tapped time window; the color shows the frequency, time windows without values stay empty.</string>
     <string name="hd_axis_span">%1$s to %2$s</string>
+
+    <!-- Analysen: Katalog, Trendkarte, Modellsätze -->
+    <string name="an_title">Analyses</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="an_intro">Scientific, exploratory analyses of your recorded data – not a diagnosis. Modules without verified data are marked “Not available yet” with a reason.</string>
+    <string name="an_group_cd">Group %1$s: %2$s. %3$s</string>
+    <string name="an_module_cd">%1$s. %2$s. %3$s</string>
+    <string name="an_tap_open"> Tap to open.</string>
+    <string name="an_methods_title">Methods and limits</string>
+    <string name="an_cat_heart">Heart &amp; circulation</string>
+    <string name="an_cat_heart_sub">Resting pulse, fitness development, oxygen</string>
+    <string name="an_cat_sleep">Sleep &amp; recovery</string>
+    <string name="an_cat_sleep_sub">Night, next day, delayed recovery</string>
+    <string name="an_cat_move">Movement &amp; development</string>
+    <string name="an_cat_move_sub">Activity, progress, 90-day trends</string>
+    <string name="an_cat_pattern">Relationships &amp; patterns</string>
+    <string name="an_cat_pattern_sub">Correlations, daily patterns, breaks</string>
+    <string name="an_cat_quality">Data quality &amp; methods</string>
+    <string name="an_cat_quality_sub">Coverage, origin, limits</string>
+    <string name="an_avail_yes">Available</string>
+    <string name="an_avail_partial">Partly</string>
+    <string name="an_avail_no">Not available yet</string>
+    <string name="an_m_rest">Resting pulse · fitness development</string>
+    <string name="an_m_rest_n">Device resting pulse, median, comparison with the previous period (7/28/90 days). Depends on the history.</string>
+    <string name="an_m_hrv">Heart rate variability</string>
+    <string name="an_m_hrv_n">There is no verified daily RR series; HRV is not estimated from pulse values.</string>
+    <string name="an_m_hrr">Heart rate recovery</string>
+    <string name="an_m_hrr_n">Needs comparable exertion sessions with exertion metadata; steps and pulse alone are not enough.</string>
+    <string name="an_m_spo2">Oxygen stability (SpO₂)</string>
+    <string name="an_m_spo2_n">The SpO₂ history is visible in the History tab; a nightly analysis is non-diagnostic and still limited.</string>
+    <string name="an_m_sleep">Sleep and recovery</string>
+    <string name="an_m_sleep_n">There is no verified sleep source; sleep stages are not estimated.</string>
+    <string name="an_m_actnight">Activity → following night</string>
+    <string name="an_m_actnight_n">Needs verified sleep/night intervals (history download).</string>
+    <string name="an_m_lag">Delayed recovery (lag)</string>
+    <string name="an_m_lag_n">Needs sleep and exertion data over longer periods.</string>
+    <string name="an_m_matched">Fitness progress at comparable exertion</string>
+    <string name="an_m_matched_n">Without verified exertion metadata there is no result metric (“No sufficiently comparable sessions”).</string>
+    <string name="an_m_t90">90-day trends</string>
+    <string name="an_m_t90_n">Switch 90 d in the trend block; nothing is ever extrapolated – missing days stay empty.</string>
+    <string name="an_m_atlas">Activity atlas (steps)</string>
+    <string name="an_m_atlas_n">Calendar grid of daily step totals; gray cell = no verified data.</string>
+    <string name="an_m_corr">Steps ↔ resting pulse the next day</string>
+    <string name="an_m_corr_n">Exploratory (Spearman, 95 % interval, robustness); from 30 paired days, never to be read as a cause.</string>
+    <string name="an_m_circ">Circadian daily patterns</string>
+    <string name="an_m_circ_n">Research backlog: no approved method yet.</string>
+    <string name="an_m_cp">Change-point analysis</string>
+    <string name="an_m_cp_n">Research backlog: needs a much longer history.</string>
+    <string name="an_m_cluster">Exploratory clusters</string>
+    <string name="an_m_cluster_n">Research backlog: no clusters without validated features.</string>
+    <string name="an_m_cov">Data coverage</string>
+    <string name="an_m_cov_n">Resting pulse and steps separately: “x of y days” in the trend block.</string>
+    <string name="an_m_methods">Methods and limits</string>
+    <string name="an_m_methods_n">Sources, time reference, assumptions and what the analyses do not say.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="an_methods_text">• Sources: only locally stored values supplied by the device (resting pulse calculated by the device, step counter cumulative per day; last valid daily total).\n• Time reference: reception time on the phone, local calendar days; today is incomplete.\n• Gaps stay gaps: missing days are not estimated, not connected and not counted as 0.\n• Comparisons: non-overlapping previous period of equal length; minimum days 4 / 14 / 45 (7 / 28 / 90 days) – a reasoned product heuristic, not a scientific threshold.\n• Relationships are exploratory and describe only this data; they say nothing about cause and effect.\n• No diagnosis, no fitness or health score, no medical assessment.</string>
+    <string name="tr_cd">Trends. Contains the unverified device resting pulse.</string>
+    <string name="tr_computing">Calculating trends …</string>
+    <string name="tr_failed">Trends could not be calculated.</string>
+    <string name="tr_title">Trends</string>
+    <string name="tr_method_cd">Method and limitations of the trends</string>
+    <string name="tr_dim_cd">%1$s: %2$s. %3$s</string>
+    <string name="tr_col_7">7 d</string>
+    <string name="tr_col_28">28 d</string>
+    <string name="tr_col_90">90 d</string>
+    <string name="tr_rest">Resting pulse</string>
+    <string name="tr_steps">Steps</string>
+    <string name="tr_rest_daily">Device resting pulse (bpm)</string>
+    <string name="tr_steps_daily">Steps per day</string>
+    <string name="tr_pairs_days">%1$s/%2$s days</string>
+    <string name="tr_corr_cd">Relationship between steps and resting pulse the next day: %1$s, %2$s. Tap for the scatter plot.</string>
+    <string name="tr_next_day">  next day</string>
+    <string name="tr_window_cd">Period %1$s days</string>
+    <string name="tr_last7">Last 7 days</string>
+    <string name="tr_no_data">no data</string>
+    <string name="tr_rest_dev">Resting pulse · development</string>
+    <string name="tr_tap_daily"> Tap for the daily values.</string>
+    <string name="tr_coverage">Data coverage</string>
+    <string name="tr_atlas">Activity atlas · steps</string>
+    <string name="tr_day_detail">Day detail</string>
+    <string name="tr_atlas_legend">Shading = relative step count of the recorded days (not a health status). Gray cell = no verified data, not 0 steps. Outlined = today, not finished yet. Trends describe your recorded data – not a fitness diagnosis.</string>
+    <string name="tr_cell_cd">%1$s %2$s</string>
+    <string name="tr_cell_days">, days with data </string>
+    <string name="tr_median7">Median 7 d</string>
+    <string name="tr_median28">Median 28 d</string>
+    <string name="tr_daily_note">%1$s of 90 days with data · empty days = no measurement (not 0). Dashed: median of the last 7 or 28 complete days. Today is not included. Not a diagnosis.</string>
+    <string name="tr_details_head">Overview (28 days, no total score)</string>
+    <string name="tr_details_dim">\n• %1$s: %2$s – %3$s</string>
+    <string name="tr_details_sizes">\n\nValues per period: median of complete days, arrow = direction compared with the equally long period before, below it days with data / period.</string>
+    <string name="tr_details_days">\n%1$s days: </string>
+    <string name="tr_details_unrated">not assessable · %1$s</string>
+    <string name="tr_details_row">%1$s %2$s %3$s%4$s (before: %5$s) · %6$s/%7$s days</string>
+    <string name="tr_details_corr_head">\n\nRelationship (exploratory, 1 pre-specified hypothesis): steps of one day ↔ device resting pulse the next day\n</string>
+    <string name="tr_details_corr_nr">%1$s · %2$s</string>
+    <string name="tr_details_corr">%1$s · ρ=%2$s (95 %%: %3$s to %4$s) · n=%5$s days. %6$s</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="tr_details_foot">\n\nDays without data are not filled in; too few days result in “not assessable”. The resting pulse is the value reported by the device, its measurement conditions are unverified. Steps are activity volume, not a measure of fitness. Not a diagnosis.</string>
+    <string name="tr_methods_title">Trends · method</string>
+    <string name="tr_scatter_x">Steps (day)</string>
+    <string name="tr_scatter_y">Resting pulse next day (bpm)</string>
+    <string name="tr_scatter_note">%1$s value pairs · each point = one day. No trend line. A relationship in the points says nothing about cause and effect.</string>
+    <string name="tr_scatter_title">Steps ↔ resting pulse the next day</string>
+    <string name="tr_scatter_cd">Scatter plot %1$s versus %2$s with %3$s value pairs. Value range %4$s %5$s to %6$s, %7$s %8$s to %9$s.</string>
+    <string name="tr_bars_cd">Daily values of the last %1$s days: %2$s days with data</string>
+    <string name="tr_bars_range">, lowest %1$s, highest %2$s</string>
+    <string name="tr_bars_none">No daily values</string>
+    <string name="tr_bars_ago">%1$s d ago</string>
+    <string name="tr_bars_ago_axis">%1$s d ago · axis from %2$s</string>
+    <string name="tr_bars_yesterday">yesterday</string>
+    <string name="tr_rest_chart_none">No verified resting pulse values</string>
+    <string name="md_dir_up">higher</string>
+    <string name="md_dir_down">lower</string>
+    <string name="md_dir_stable">unchanged</string>
+    <string name="md_dir_unknown">not assessable</string>
+    <string name="md_state_pos">positive</string>
+    <string name="md_state_neutral">neutral</string>
+    <string name="md_state_mixed">mixed</string>
+    <string name="md_verdict_nc">not computable</string>
+    <string name="md_verdict_none">no reliable relationship</string>
+    <string name="md_verdict_expl">exploratory relationship</string>
+    <string name="md_dim_consistency">Activity consistency</string>
+    <string name="md_dim_fitness">Fitness development</string>
+    <string name="md_dim_recovery">Recovery</string>
+    <string name="md_cons_few">Too few days with step data for a comparison over %1$s days.</string>
+    <string name="md_cons_up">Steps per day have increased compared with the previous period.</string>
+    <string name="md_cons_down">Steps per day have decreased compared with the previous period.</string>
+    <string name="md_cons_same">Steps per day are unchanged compared with the previous period.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="md_fit_none">Neither activity nor resting pulse has enough data over %1$s days.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="md_fit_one">Only one data channel available (%1$s); no statement about fitness.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="md_fit_good">Activity increased; device resting pulse decreased in the same period. An indication, not a diagnosis.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="md_fit_bad">Activity decreased and device resting pulse increased. Possible causes were not examined.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="md_fit_mixed">Activity and device resting pulse do not move in the same direction in the sense of a training effect.</string>
+    <string name="md_fit_no_change">No clear change over %1$s days.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="md_rec">No verified sleep or HRV signal; nothing is estimated.</string>
+    <string name="md_trend_few">Too few days with data (%1$s of at least %2$s).</string>
+    <string name="md_trend_base_few">The comparison period has too little data (%1$s of at least %2$s).</string>
+    <string name="md_trend_note">Median of the last %1$s days against the %2$s days before.</string>
+    <string name="md_corr_pairs">Only %1$s paired days, at least %2$s needed.</string>
+    <string name="md_corr_const">One quantity is constant; no correlation can be defined.</string>
+    <string name="md_corr_dep">Too few independent observations because of temporal dependence.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="md_corr_method">Spearman ρ, 95 %% interval with effective n≈%1$s; no statement about cause and effect.</string>
+    <string name="md_sens">Robustness: leaving out single days ρ %1$s to %2$s; without the %3$s most conspicuous days ρ %4$s – %5$s</string>
+    <string name="md_stable">stable.</string>
+    <string name="md_unstable">not stable (single days influence the result).</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="md_hero_none">No verified resting pulse values yet. Source: resting pulse calculated by the device (no substitution by live pulse).</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="md_hero_few">Too few days with resting pulse (%1$s of at least %2$s): daily values are shown, but no trend or comparison statement.</string>
+    <string name="md_hero_delta">%1$s bpm compared with the previous %2$s days</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="md_hero_msg_ok">Resting pulse calculated by the device; compared with the %1$s days before. Not a fitness diagnosis.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="md_hero_msg_nobase">Resting pulse calculated by the device. The comparison period has too little data (%1$s of at least %2$s); no comparison.</string>
+    <string name="md_hero_cd">Resting pulse, development over %1$s days. </string>
+    <string name="md_hero_cd_median">Median %1$s. </string>
+    <string name="md_cov_text">%1$s: %2$s of %3$s days</string>
+    <string name="md_cov_hint">days are missing for a trend statement (at least %1$s needed)</string>
+    <string name="tr_week_value">%1$s: %2$s</string>
+    <string name="md_week_cov">%1$s of 7 days</string>
+    <string name="md_week_unavail">Without daily values (no verified daily series yet; device values appear only live): sleep duration, calories, intensity minutes, stress.</string>
+    <string name="md_week_goal">Goal (%1$s) reached on %2$s of %3$s days with data.</string>
+    <string name="md_week_avg_steps">Ø steps per day</string>
+    <string name="md_week_total_steps">Total steps</string>
+    <string name="md_week_total_val">%1$s (days with data only)</string>
+    <string name="md_week_avg_rest">Ø device resting pulse</string>
+    <string name="md_atlas_summary">%1$s of %2$s days with verified step values</string>
+    <string name="md_atlas_none">%1$s\nNo verified daily data.</string>
+    <string name="md_atlas_partial">%1$s\nSo far %2$s steps (today, not finished yet).</string>
+    <string name="md_atlas_last">%1$s\nLast verified step total: %2$s.</string>
+    <string name="md_atlas_lvl_none">no data</string>
+    <string name="md_atlas_lvl_low">fewer recorded steps</string>
+    <string name="md_atlas_lvl_mid">medium step count</string>
+    <string name="md_atlas_lvl_high">more recorded steps</string>
+    <string name="md_atlas_cd">Activity atlas, steps. %1$s. Period %2$s days. Tap cells for details; gray cells have no verified data.</string>
+    <string name="md_goal_reg">Own goal (%1$s) reached on %2$s of %3$s days with data (%4$s-day window)</string>
+
+    <!-- Analysen: Marker und Wochentage -->
+    <string name="uv_legend">Violet border = measurement or analysis not validated (sensor/device field unverified, no diagnosis).</string>
+    <string name="uv_suffix"> Not validated, violet border.</string>
+    <string name="an_wd_mo">Mon</string>
+    <string name="an_wd_di">Tue</string>
+    <string name="an_wd_mi">Wed</string>
+    <string name="an_wd_do">Thu</string>
+    <string name="an_wd_fr">Fri</string>
+    <string name="an_wd_sa">Sat</string>
+    <string name="an_wd_so">Sun</string>
+
+    <!-- Allgemein -->
+    <string name="action_ok">OK</string>
+
+    <!-- Daten/Export: Backup, Wiederherstellung, Reset -->
+    <string name="ex_backup_cancelled">Backup cancelled.</string>
+    <string name="ex_backup_running">Creating backup …</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ex_backup_done">Backup saved: %1$d events, %2$d historical readings, %3$d historical FIT sources/%4$d provenance rows; %5$d canonical readings, %6$d canonical FIT sources/%7$d provenance rows and %8$d FIT metadata rows, %9$d derived raw XML metadata rows. Original files are not included; no paths or XML IDs are stored.</string>
+    <string name="ex_backup_failed">Backup failed. Please check the storage location; a created target file may be incomplete and should be deleted.</string>
+    <string name="ex_backup_checking">Checking backup …</string>
+    <string name="ex_backup_invalid">Backup invalid or not readable. Database unchanged.</string>
+    <string name="ex_fit_cancelled">FIT originals export cancelled.</string>
+    <string name="ex_fit_running">Exporting FIT originals …</string>
+    <string name="ex_fit_done">FIT originals saved: %1$d files</string>
+    <string name="ex_fit_skipped">, %1$d skipped because of the size limit</string>
+    <string name="ex_zip_unencrypted">. The ZIP file is not encrypted.</string>
+    <string name="ex_export_failed">Export failed. Please check the storage location; a created target file may be incomplete and should be deleted.</string>
+    <string name="ex_raw_cancelled">Raw files export cancelled.</string>
+    <string name="ex_raw_running">Exporting raw files …</string>
+    <string name="ex_raw_done">Raw files saved: %1$d files, %2$d bytes</string>
+    <string name="ex_raw_skipped">, %1$d skipped</string>
+    <string name="ex_raw_tail">. The ZIP file is not encrypted; the contents are not decoded automatically.</string>
+    <string name="ex_csv_cancelled">Export cancelled.</string>
+    <string name="ex_csv_running">Saving export …</string>
+    <string name="ex_csv_done">CSV saved: %1$d measurements. Contains only locally available data.</string>
+    <string name="ex_csv_unreadable"> %1$d stored rows were not readable and were not exported.</string>
+    <string name="ex_csv_failed">Export failed. Please check the storage location and try again; a created target file may be incomplete and should be deleted.</string>
+    <string name="ex_back">Back</string>
+    <string name="ex_title">Data</string>
+    <string name="ex_icon_cd">PulsLibre broken-arm symbol</string>
+    <string name="ex_subtitle">Export · Backup · Restore · local and offline</string>
+    <string name="ex_period">Period</string>
+    <string name="ex_from">From</string>
+    <string name="ex_to">To</string>
+    <string name="ex_zone">%1$s · end minute included</string>
+    <string name="ex_csv_button">⬇  Export CSV</string>
+    <string name="ex_csv_cd">Export measurements as CSV</string>
+    <string name="ex_invalid_period">Invalid period: the end must be after the start.</string>
+    <string name="ex_local_only">Only on your device · No cloud · No sign-in</string>
+    <string name="ex_db_title">Local database</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ex_db_note">A backup contains CIRQA events, historical readings and synchronization states. The ZIP file is not encrypted and contains sensitive health data.</string>
+    <string name="ex_btn_backup">Create backup</string>
+    <string name="ex_btn_backup_cd">Create a local database backup</string>
+    <string name="ex_btn_fit">Export FIT originals</string>
+    <string name="ex_btn_fit_cd">Export raw FIT original files as ZIP</string>
+    <string name="ex_fit_confirm_title">Export FIT originals?</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ex_fit_confirm_msg">The ZIP file contains the raw, verified FIT files of your band. It is not encrypted and may contain sensitive health and device information. Nothing is changed, deleted or sent. Save it only in a place you trust.</string>
+    <string name="ex_export_btn">Export</string>
+    <string name="ex_btn_raw">Export verified raw files</string>
+    <string name="ex_btn_raw_cd">Export opaque, locally stored CIRQA raw files as ZIP</string>
+    <string name="ex_raw_confirm_title">Export raw files?</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ex_raw_confirm_msg">The ZIP contains unchanged, verified raw files of the band. It is not encrypted and may contain sensitive health and device information. The files are not decoded automatically by PulseLibre. Nothing is changed, deleted or sent. Choose a trustworthy storage location.</string>
+    <string name="ex_btn_restore">Restore backup</string>
+    <string name="ex_btn_restore_cd">Restore the database from a backup</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ex_btn_reset">Reset database</string>
+    <string name="ex_btn_reset_cd">Delete all local database entries</string>
+    <string name="ex_prefs_kept">App settings are kept during restore and reset.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ex_restore_title">Replace database?</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ex_restore_msg">The backup from %1$s contains %2$d events, %3$d historical readings, %4$d synchronization states, %5$d FIT sources and %6$d FIT provenance rows. %7$d canonical readings and %8$d canonical FIT sources/%9$d provenance rows as well as %10$d FIT metadata rows and %11$d derived raw XML metadata rows. Original files are not included; paths and XML IDs are not backed up.\n\nAll currently stored database entries will be replaced. App settings are kept. Only continue with a backup from a trusted source.</string>
+    <string name="ex_replace">Replace</string>
+    <string name="ex_restore_cancelled">Restore cancelled.</string>
+    <string name="ex_restore_running">Restoring database …</string>
+    <string name="ex_restore_done">Database restored from backup.</string>
+    <string name="ex_restore_failed">Restore failed. Please check the database.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ex_reset_title">Reset local database?</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ex_reset_msg">All locally stored CIRQA events, historical readings and synchronization states will be permanently deleted. App settings are kept. This action cannot be undone.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ex_reset_delete">Delete data</string>
+    <string name="ex_reset_running">Resetting database …</string>
+    <string name="ex_reset_done">Local database was emptied.</string>
+    <string name="ex_reset_failed">Reset failed. Please check the database.</string>
+    <string name="ex_rec_title">Recording in progress</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ex_rec_msg">The running local CIRQA recording must be stopped before the database operation.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ex_rec_stop">Stop and continue</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ex_rec_stop_failed">Recording could not be stopped; database remained unchanged.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ex_rec_still">Recording is still running; database remained unchanged.</string>
+    <!-- Gerät: Verbindungsstatus, Akku, Empfang (#365) -->
+    <string name="dur_s">%1$d s</string>
+    <string name="dur_min">%1$d min</string>
+    <string name="dur_h">%1$d h</string>
+    <string name="dur_h_min">%1$d h %2$d min</string>
+    <string name="dur_ago">%1$s ago</string>
+    <string name="dur_ago_day">1 day ago</string>
+    <string name="dur_ago_days">%1$d days ago</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="gatt_connected">Android GATT: connected (app unknown)</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="gatt_connecting">Android GATT: connecting</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="gatt_disconnecting">Android GATT: disconnecting</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="gatt_disconnected">Android GATT: not connected</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="gatt_permission">Android GATT: permission missing</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="gatt_not_paired">No paired CIRQA</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="gatt_unknown">Android GATT: unknown</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="link_bt_permission">Bluetooth permission missing</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="link_receiving">Connected · last reading %1$s ago</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="link_waiting">Connected · waiting for readings</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="link_gatt_recorder_off">GATT connected (recording off)</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="link_reconnecting">Recording running · connection interrupted, reconnecting</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="link_reconnecting_last">Recording running · connection interrupted, reconnecting · last reading %1$s ago</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="link_none">No connection · recording off</string>
+    <string name="link_outline_green">green outline</string>
+    <string name="link_outline_black">black outline</string>
+    <string name="link_status_cd">CIRQA connection status: %1$s. %2$s. Open settings.</string>
+    <string name="bat_value">%1$d %%</string>
+    <string name="bat_value_charging">%1$d %% · charging</string>
+    <string name="bat_fresh">As of: %1$s</string>
+    <string name="bat_stale">Outdated · last known state %1$s</string>
+    <string name="bat_time_unknown">Time unknown · last known state</string>
+    <string name="bat_cd">Battery: %1$d percent. %2$s</string>
+    <string name="bat_cd_charging">Battery: %1$d percent, charging. %2$s</string>
+    <string name="dev_src_pulse">Heart rate</string>
+    <string name="dev_src_oxygen">SpO₂</string>
+    <string name="dev_src_steps">Steps</string>
+    <string name="dev_src_stress">Stress</string>
+    <string name="dev_src_battery">Body Battery</string>
+    <string name="dev_src_rr">RR interval</string>
+    <string name="dev_src_breath">Breathing</string>
+    <string name="dev_src_calories">Calories</string>
+    <string name="dev_src_intensity">Intensity</string>
+    <string name="dev_no_reception">no reception</string>
+    <string name="dev_hero_reading">Reading status …</string>
+    <string name="dev_hero_connected">Connected</string>
+    <string name="dev_hero_reconnecting">Reconnecting</string>
+    <string name="dev_hero_not_paired">Not paired</string>
+    <string name="dev_hero_not_connected">Not connected</string>
+    <string name="dev_hero_cd_connected">CIRQA connected. %1$s</string>
+    <string name="dev_hero_cd_not_connected">CIRQA not connected. %1$s</string>
+    <string name="dev_chip_reception">Reception · 1 h</string>
+    <string name="dev_chip_readings">%1$s readings</string>
+    <string name="dev_chip_storage">Storage</string>
+    <string name="dev_chip_entries">%1$s entries\n%2$s</string>
+    <string name="dev_chip_sessions">Sessions today</string>
+    <string name="dev_chip_sessions_value">%1$d starts\n%2$d reconnections</string>
+    <string name="dev_chip_since">Recording since</string>
+    <string name="dev_pair_cd">%1$s: %2$s</string>
+    <string name="dev_reception_title">Last reception per measurement</string>
+    <string name="dev_being_read">being read</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="dev_meta_title">Band information</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="dev_meta_note">Device values are shown only with a confirmed source and a current timestamp.</string>
+    <string name="dev_meta_battery">Battery</string>
+    <string name="dev_meta_firmware">Firmware</string>
+    <string name="dev_meta_clock">Band clock</string>
+    <string name="dev_meta_identity">Model / serial number</string>
+    <string name="dev_unavailable">Not available</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="dev_unavailable_cd">%1$s: not available; no confirmed device value yet</string>
+    <!-- Gerät: unbekannte FIT-Felder (#365) -->
+    <string name="unk_headline_one">Unknown data field discovered (1 type)</string>
+    <string name="unk_headline_many">Unknown data fields discovered (%1$d types)</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="unk_explanation">Not yet decoded by the app. These are not measurements and not a diagnosis.</string>
+    <string name="unk_hint_cd">%1$s. %2$s Tap for details.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="unk_intro">Unknown means: not decoded. These entries are neither measurements nor diagnoses; they only show which fields the band’s files contain that PulsLibre does not yet understand.</string>
+    <string name="unk_title_std">FIT message %1$d · field %2$d</string>
+    <string name="unk_title_dev">FIT message %1$d · developer field %2$d</string>
+    <string name="unk_base_unknown">unknown</string>
+    <string name="unk_detail">Base type %1$s · %2$d bytes</string>
+    <string name="unk_detail_dev">Base type %1$s · %2$d bytes · developer index %3$d</string>
+    <string name="unk_occ_11">%1$d message in %2$d file</string>
+    <string name="unk_occ_1n">%1$d message in %2$d files</string>
+    <string name="unk_occ_n1">%1$d messages in %2$d file</string>
+    <string name="unk_occ_nn">%1$d messages in %2$d files</string>
+    <string name="unk_group_11">FIT message %1$d · %2$d field type · %3$d message</string>
+    <string name="unk_group_1n">FIT message %1$d · %2$d field type · %3$d messages</string>
+    <string name="unk_group_n1">FIT message %1$d · %2$d field types · %3$d message</string>
+    <string name="unk_group_nn">FIT message %1$d · %2$d field types · %3$d messages</string>
+    <string name="unk_group_cd">%1$s. Tap to expand or collapse.</string>
+    <string name="unk_cls_message">Message type not decoded by the app</string>
+    <string name="unk_cls_field">Field not decoded by the app</string>
+    <string name="unk_cls_incompatible">Known field with mismatching data type</string>
+    <string name="unk_cls_developer">Developer field not decoded</string>
+    <string name="unk_cls_other">Not decoded</string>
+    <string name="unk_status_unreviewed">unreviewed</string>
+    <string name="unk_status_investigating">under review</string>
+    <string name="unk_status_supported">supported</string>
+    <string name="unk_status_ignored">ignored</string>
+    <string name="unk_status_line">%1$s · Status: %2$s</string>
+    <string name="unk_status_save_failed">%1$s · Status could not be saved</string>
+    <string name="unk_status_change">Change status</string>
+    <string name="unk_status_change_cd">Change status for %1$s</string>
+    <string name="unk_status_title">Status: %1$s</string>
+    <string name="unk_status_note">Only your own review mark for this field. No measurement data is changed.</string>
+    <string name="unk_status_selected_cd">%1$s, currently selected</string>
+    <string name="unk_bytes_action">View sample bytes</string>
+    <string name="unk_bytes_action_cd">View sample bytes for %1$s</string>
+    <string name="unk_bytes_title">View sample bytes?</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="unk_bytes_warning">Shows a few raw bytes of this field from your locally stored files. They may contain sensitive health and device information and are neither interpreted nor stored nor sent. Do not share them in tickets, logs or screenshots.</string>
+    <string name="unk_bytes_confirm">Show</string>
+    <string name="unk_bytes_more_files">… and %1$d more files</string>
+    <string name="unk_file">File %1$d</string>
+    <string name="unk_sample_unreadable">%1$s: original not readable or not valid.</string>
+    <string name="unk_sample_absent">%1$s: field not present in this file.</string>
+    <string name="unk_sample_head_one">%1$s: 1 occurrence, first value</string>
+    <string name="unk_sample_head">%1$s: %2$d occurrences, first %3$d values</string>
+    <string name="unk_sample_more">  … and %1$d more</string>
+    <string name="unk_sample_cut">  (each value truncated to %1$d bytes)</string>
+    <!-- Dialoge: Anpassen, Tagesansicht, Tageszeitleiste (#365) -->
+    <string name="cust_title">Customize home screen</string>
+    <string name="cust_note">Hidden tiles keep being recorded, they are just not shown. Favorites appear first under “%1$s”.</string>
+    <string name="cust_show_cd">Show %1$s</string>
+    <string name="cust_fav_on">★ Favorite</string>
+    <string name="cust_fav_off">☆ Favorite</string>
+    <string name="cust_fav_remove_cd">Remove %1$s from “%2$s”</string>
+    <string name="cust_fav_add_cd">Add %1$s to “%2$s”</string>
+    <string name="cust_up">▲ Up</string>
+    <string name="cust_down">▼ Down</string>
+    <string name="cust_up_cd">%1$s up</string>
+    <string name="cust_down_cd">%1$s down</string>
+    <string name="cust_reset">Reset</string>
+    <string name="day_reading">Reading data …</string>
+    <string name="day_read_failed">Local measurement data could not be read.</string>
+    <string name="dq_not_started">Day not started yet</string>
+    <string name="dq_coverage">Coverage %1$s %% (%2$d of %3$d min)</string>
+    <string name="dq_gaps_one">%1$s · 1 gap, longest %2$d min</string>
+    <string name="dq_gaps_many">%1$s · %2$d gaps, longest %3$d min</string>
+    <string name="ma_not_available">not available</string>
+    <string name="ma_insufficient">insufficient data</string>
+    <string name="ma_experimental">experimental</string>
+    <string name="ma_available">available</string>
+    <string name="tl_not_started">Day not started yet.</string>
+    <string name="tl_no_data_lane">%1$s: no data on this day.</string>
+    <string name="tl_last">%1$s latest</string>
+    <string name="tl_no_gaps">no gaps</string>
+    <string name="tl_gap_one">1 gap, longest %1$d min (%2$s–%3$s)</string>
+    <string name="tl_gap_many">%1$d gaps, longest %2$d min (%3$s–%4$s)</string>
+    <string name="tl_lane_line">%1$s: %2$s, %3$d readings, %4$s.</string>
+    <string name="tl_no_data">no data</string>
+    <string name="tl_lane_band">Heart rate · band (FIT)</string>
+    <string name="tl_lane_value">%1$s: %2$s</string>
+    <string name="tl_note_phone">Heart rate and steps: reception time on the phone.</string>
+    <string name="tl_note_band">%1$s: time measured by the band, not reception.</string>
+    <string name="tl_note_gaps">%1$s. Gaps stay empty and are not bridged.</string>
+    <string name="tl_zoom_full">Whole day. Two fingers to zoom, or use the buttons.</string>
+    <string name="tl_zoom_part">Section of %1$s h out of 24 h (raw points, no averages).</string>
+    <string name="tl_pan_back">Section back</string>
+    <string name="tl_zoom_out">Zoom out</string>
+    <string name="tl_zoom_in">Zoom in</string>
+    <string name="tl_pan_forward">Section forward</string>
+    <string name="tl_day_button">Day</string>
+    <string name="tl_day_button_cd">Show whole day</string>
+    <string name="tl_hint">Tap or drag to see values at a time of day.</string>
+    <string name="dd_prev">‹ Previous</string>
+    <string name="dd_next">Next ›</string>
+    <string name="dd_prev_cd">Previous data point</string>
+    <string name="dd_next_cd">Next data point</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="dd_no_sleep">No day course available yet. Validated sleep data is missing.</string>
+    <string name="dd_no_course">No day course available yet.</string>
+    <string name="dd_unit_steps">steps</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="dd_unit_device">device unit not verified</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="dd_ctx_oxygen">CIRQA sensor not validated</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="dd_ctx_resting">device field, measurement conditions not verified</string>
+    <string name="dd_basis">Reception time · %1$s</string>
+    <string name="dd_valid">%1$d valid readings</string>
+    <string name="dd_invalid">%1$d without valid value</string>
+    <string name="dd_duplicates">%1$d duplicates</string>
+    <string name="dd_minutes">Minutes with valid reception: %1$d of %2$d</string>
+    <string name="dd_status">Data status: %1$s</string>
+    <string name="dd_chart_note">Chart: minimum, maximum and last value per reception minute.</string>
+    <string name="dd_last_today">Last reception today %1$s</string>
+    <string name="dd_goal">Last device step goal: %1$s</string>
+    <string name="dd_scale">Scale · %1$s–%2$s %3$s</string>
+    <!-- Dienst-Benachrichtigung (#365) -->
+    <string name="svc_channel">CIRQA · Continuous recording</string>
+    <string name="svc_title">PulsLibre · Continuous recording</string>
+    <string name="svc_collecting">Collecting locally · no readings yet</string>
+    <string name="svc_bt_off">Bluetooth is off – please turn it on</string>
+    <string name="svc_received">Local: %1$d readings · CIRQA data received</string>
+    <string name="svc_connecting">Connecting to CIRQA …</string>
+    <string name="svc_reconnect">CIRQA disconnected · new attempt in %1$d s</string>
+    <string name="svc_stop">Stop collecting</string>
+    <!-- Hauptansicht: Bluetooth, Gewicht, BMI (#365) -->
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="bmi_underweight">Underweight</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="bmi_normal">Normal weight</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="bmi_pre_obesity">Pre-obesity</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="bmi_obesity_1">Obesity class I</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="bmi_obesity_2">Obesity class II</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="bmi_obesity_3">Obesity class III</string>
+    <string name="bmi_note_missing">Enter height and weight to see the BMI.</string>
+    <string name="bmi_note_birth">Add your date of birth to classify the BMI.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="bmi_note_age">No BMI classification is available for this age group.</string>
+    <string name="bmi_info_title">BMI · classification</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="bmi_info_body">BMI = weight (kg) / height (m)². It is a screening indicator, not a diagnosis.\n\nClassification for adults aged 20 and over according to the WHO (same limits for women and men):\nbelow 18.5 underweight · 18.5–24.9 normal weight · 25–29.9 pre-obesity · 30–34.9 obesity class I · 35–39.9 class II · 40 and above class III.\n\nLimits: muscle mass, build, pregnancy and age affect how meaningful the value is. For people under 20 there is no classification here (BMI-for-age references are not implemented). No special limits are applied for older adults.</string>
+    <string name="bmi_info_note">Note: %1$s</string>
+    <string name="main_bt_off_title">Bluetooth is off</string>
+    <string name="main_bt_off_msg">Bluetooth is off. Please turn on Bluetooth so PulsLibre can receive CIRQA measurements.</string>
+    <string name="main_later">Later</string>
+    <string name="main_bt_enable">Turn on Bluetooth</string>
+    <string name="main_bt_enable_toast">Please turn on Bluetooth in the Android settings.</string>
+    <string name="main_perm_needed">Bluetooth permission needed: allow nearby devices in the Android prompt</string>
+    <string name="main_perm_granted">Bluetooth permission granted · start the scan again</string>
+    <string name="main_perm_denied">Bluetooth permission denied · Settings → Apps → PulsLibre → Permissions → Nearby devices</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="main_notif_off">Notifications are off: the recording is running, but the notification with the stop button is invisible. Stop it with “Stop” in the app, or allow notifications in the Android settings.</string>
+    <string name="main_weight_title">Weight (kg)</string>
+    <string name="main_weight_input_cd">Current weight in kilograms</string>
+    <string name="main_weight_minus_cd">Decrease weight by 0.1 kilogram</string>
+    <string name="main_weight_plus_cd">Increase weight by 0.1 kilogram</string>
+    <string name="main_weight_step">Step: 0.1 kg · press and hold to change faster</string>
+    <string name="main_weight_invalid">Please enter a weight between 15 and 400 kg.</string>
 </resources>

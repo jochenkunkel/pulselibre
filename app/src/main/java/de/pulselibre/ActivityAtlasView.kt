@@ -24,15 +24,14 @@ internal class ActivityAtlasView(context: Context, private val onCell: (Activity
     private val rect = RectF()
     private val headerHeight = 18 * d
     private val gap = 3 * d
-    private val weekdays = listOf("Mo", "Di", "Mi", "Do", "Fr", "Sa", "So")
-    private val oneDecimal = NumberFormat.getNumberInstance(Locale.GERMANY).apply { maximumFractionDigits = 1; minimumFractionDigits = 1 }
+    private val weekdays = listOf(R.string.an_wd_mo, R.string.an_wd_di, R.string.an_wd_mi, R.string.an_wd_do, R.string.an_wd_fr, R.string.an_wd_sa, R.string.an_wd_so).map { context.getString(it) }
+    private val oneDecimal = NumberFormat.getNumberInstance(context.displayLocale()).apply { maximumFractionDigits = 1; minimumFractionDigits = 1 }
 
     init { tag = "activity_atlas" }
 
     fun show(value: ActivityAtlas.Model) {
         model = value
-        contentDescription = "Aktivitäts-Atlas, Schritte. ${value.summary()}. Zeitraum ${value.windowDays} Tage. " +
-            "Zellen antippen für Details; graue Zellen haben keine verifizierten Daten."
+        contentDescription = context.getString(R.string.md_atlas_cd, DomainText.tr(context, value.summary()), value.windowDays.toString())
         requestLayout(); invalidate()
     }
 

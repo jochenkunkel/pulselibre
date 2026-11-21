@@ -22,7 +22,7 @@ class DayTimelineViewTest {
 
     @Test fun crosshairReportsEveryLaneAndSaysNoDataInsideGaps() {
         InstrumentationRegistry.getInstrumentation().runOnMainSync {
-            val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+            val context = AppLanguageSettings.wrap(ApplicationProvider.getApplicationContext<android.content.Context>())
             val lanes = listOf(
                 DayTimeline.lane(DashboardMeasurement.PULSE, "Herzfrequenz", "bpm", listOf(obs(600, 72), obs(602, 74)), day, now),
                 DayTimeline.lane(DashboardMeasurement.STEPS, "Schritte", "", listOf(obs(300, 1000), obs(304, 1200)), day, now),
@@ -45,7 +45,7 @@ class DayTimelineViewTest {
 
     @Test fun zoomedViewStillReportsRawPointsAndResetRestoresTheDay() {
         InstrumentationRegistry.getInstrumentation().runOnMainSync {
-            val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+            val context = AppLanguageSettings.wrap(ApplicationProvider.getApplicationContext<android.content.Context>())
             val lanes = listOf(DayTimeline.lane(DashboardMeasurement.PULSE, "Herzfrequenz", "bpm",
                 listOf(obs(600, 72), obs(601, 140)), day, now))
             val view = DayTimelineView(context, day, lanes, zone, null, Color.WHITE, Color.GRAY, listOf(Color.CYAN))

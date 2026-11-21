@@ -355,4 +355,546 @@
     <string name="hd_density_empty">Gráfico de distribución: sin mediciones en el período elegido.</string>
     <string name="hd_density_cd">Gráfico de distribución: %1$d mediciones en %2$d de %3$d ventanas de tiempo, rango de valores del eje de %4$d a %5$d. Un doble toque en el gráfico abre los valores individuales de la ventana tocada; el color muestra la frecuencia, las ventanas sin valores permanecen vacías.</string>
     <string name="hd_axis_span">%1$s a %2$s</string>
+
+    <!-- Analysen: Katalog, Trendkarte, Modellsätze -->
+    <!-- TODO-CHATGPT-REVIEW: Erstentwurf von Claude Code, Ticket #365 -->
+    <string name="an_title">Análisis</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="an_intro">Análisis científicos y exploratorios de tus datos registrados – no es un diagnóstico. Los módulos sin datos verificados se marcan como «Aún no disponible» con el motivo.</string>
+    <string name="an_group_cd">Grupo %1$s: %2$s. %3$s</string>
+    <string name="an_module_cd">%1$s. %2$s. %3$s</string>
+    <string name="an_tap_open"> Toca para abrir.</string>
+    <string name="an_methods_title">Métodos y límites</string>
+    <string name="an_cat_heart">Corazón y circulación</string>
+    <string name="an_cat_heart_sub">Pulso en reposo, evolución de la forma física, oxígeno</string>
+    <string name="an_cat_sleep">Sueño y recuperación</string>
+    <string name="an_cat_sleep_sub">Noche, día siguiente, recuperación diferida</string>
+    <string name="an_cat_move">Movimiento y evolución</string>
+    <string name="an_cat_move_sub">Actividad, progreso, tendencias de 90 días</string>
+    <string name="an_cat_pattern">Relaciones y patrones</string>
+    <string name="an_cat_pattern_sub">Correlaciones, patrones diarios, rupturas</string>
+    <string name="an_cat_quality">Calidad de datos y métodos</string>
+    <string name="an_cat_quality_sub">Cobertura, origen, límites</string>
+    <string name="an_avail_yes">Disponible</string>
+    <string name="an_avail_partial">Parcial</string>
+    <string name="an_avail_no">Aún no disponible</string>
+    <string name="an_m_rest">Pulso en reposo · evolución de la forma física</string>
+    <string name="an_m_rest_n">Pulso en reposo del dispositivo, mediana, comparación con el período anterior (7/28/90 días). Depende del historial.</string>
+    <string name="an_m_hrv">Variabilidad de la frecuencia cardíaca</string>
+    <string name="an_m_hrv_n">No hay una serie diaria de RR verificada; la VFC no se estima a partir de valores de pulso.</string>
+    <string name="an_m_hrr">Recuperación de la frecuencia cardíaca</string>
+    <string name="an_m_hrr_n">Necesita sesiones de esfuerzo comparables con metadatos de esfuerzo; los pasos y el pulso solos no bastan.</string>
+    <string name="an_m_spo2">Estabilidad del oxígeno (SpO₂)</string>
+    <string name="an_m_spo2_n">El historial de SpO₂ es visible en la pestaña Historial; un análisis nocturno no es diagnóstico y sigue siendo limitado.</string>
+    <string name="an_m_sleep">Sueño y recuperación</string>
+    <string name="an_m_sleep_n">No hay una fuente de sueño verificada; las fases del sueño no se estiman.</string>
+    <string name="an_m_actnight">Actividad → noche siguiente</string>
+    <string name="an_m_actnight_n">Necesita intervalos de sueño/noche verificados (descarga del historial).</string>
+    <string name="an_m_lag">Recuperación diferida (retardo)</string>
+    <string name="an_m_lag_n">Necesita datos de sueño y esfuerzo durante períodos más largos.</string>
+    <string name="an_m_matched">Progreso de la forma física con esfuerzo comparable</string>
+    <string name="an_m_matched_n">Sin metadatos de esfuerzo verificados no hay métrica de resultado («No hay sesiones suficientemente comparables»).</string>
+    <string name="an_m_t90">Tendencias de 90 días</string>
+    <string name="an_m_t90_n">Interruptor 90 d en el bloque de tendencias; nunca se extrapola – los días que faltan quedan vacíos.</string>
+    <string name="an_m_atlas">Atlas de actividad (pasos)</string>
+    <string name="an_m_atlas_n">Cuadrícula de calendario con los totales diarios de pasos; celda gris = sin datos verificados.</string>
+    <string name="an_m_corr">Pasos ↔ pulso en reposo al día siguiente</string>
+    <string name="an_m_corr_n">Exploratorio (Spearman, intervalo del 95 %, robustez); a partir de 30 días emparejados, nunca debe leerse como causa.</string>
+    <string name="an_m_circ">Patrones circadianos diarios</string>
+    <string name="an_m_circ_n">Pendiente de investigación: aún no hay un método aprobado.</string>
+    <string name="an_m_cp">Análisis de puntos de cambio</string>
+    <string name="an_m_cp_n">Pendiente de investigación: necesita un historial mucho más largo.</string>
+    <string name="an_m_cluster">Clústeres exploratorios</string>
+    <string name="an_m_cluster_n">Pendiente de investigación: sin clústeres sin características validadas.</string>
+    <string name="an_m_cov">Cobertura de datos</string>
+    <string name="an_m_cov_n">Pulso en reposo y pasos por separado: «x de y días» en el bloque de tendencias.</string>
+    <string name="an_m_methods">Métodos y límites</string>
+    <string name="an_m_methods_n">Fuentes, referencia temporal, supuestos y lo que los análisis no dicen.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="an_methods_text">• Fuentes: solo valores guardados localmente y suministrados por el dispositivo (pulso en reposo calculado por el dispositivo, contador de pasos acumulado por día; último total diario válido).\n• Referencia temporal: hora de recepción en el teléfono, días naturales locales; hoy está incompleto.\n• Los huecos siguen siendo huecos: los días que faltan no se estiman, no se unen y no se cuentan como 0.\n• Comparaciones: período anterior de igual duración sin solapamiento; días mínimos 4 / 14 / 45 (7 / 28 / 90 días) – una heurística de producto fundamentada, no un umbral científico.\n• Las relaciones son exploratorias y describen solo estos datos; no dicen nada sobre causa y efecto.\n• Sin diagnóstico, sin puntuación de forma física o salud, sin valoración médica.</string>
+    <string name="tr_cd">Tendencias. Incluye el pulso en reposo del dispositivo sin verificar.</string>
+    <string name="tr_computing">Calculando tendencias …</string>
+    <string name="tr_failed">No se pudieron calcular las tendencias.</string>
+    <string name="tr_title">Tendencias</string>
+    <string name="tr_method_cd">Método y limitaciones de las tendencias</string>
+    <string name="tr_dim_cd">%1$s: %2$s. %3$s</string>
+    <string name="tr_col_7">7 d</string>
+    <string name="tr_col_28">28 d</string>
+    <string name="tr_col_90">90 d</string>
+    <string name="tr_rest">Pulso en reposo</string>
+    <string name="tr_steps">Pasos</string>
+    <string name="tr_rest_daily">Pulso en reposo del dispositivo (lpm)</string>
+    <string name="tr_steps_daily">Pasos por día</string>
+    <string name="tr_pairs_days">%1$s/%2$s días</string>
+    <string name="tr_corr_cd">Relación entre pasos y pulso en reposo al día siguiente: %1$s, %2$s. Toca para ver el diagrama de dispersión.</string>
+    <string name="tr_next_day">  día siguiente</string>
+    <string name="tr_window_cd">Período de %1$s días</string>
+    <string name="tr_last7">Últimos 7 días</string>
+    <string name="tr_no_data">sin datos</string>
+    <string name="tr_rest_dev">Pulso en reposo · evolución</string>
+    <string name="tr_tap_daily"> Toca para ver los valores diarios.</string>
+    <string name="tr_coverage">Cobertura de datos</string>
+    <string name="tr_atlas">Atlas de actividad · pasos</string>
+    <string name="tr_day_detail">Detalle del día</string>
+    <string name="tr_atlas_legend">Gradación = número relativo de pasos de los días registrados (no es un estado de salud). Celda gris = sin datos verificados, no 0 pasos. Con borde = hoy, aún sin terminar. Las tendencias describen tus datos registrados – no es un diagnóstico de forma física.</string>
+    <string name="tr_cell_cd">%1$s %2$s</string>
+    <string name="tr_cell_days">, días con datos </string>
+    <string name="tr_median7">Mediana 7 d</string>
+    <string name="tr_median28">Mediana 28 d</string>
+    <string name="tr_daily_note">%1$s de 90 días con datos · días vacíos = sin medición (no 0). Discontinua: mediana de los últimos 7 o 28 días completos. El día de hoy no está incluido. No es un diagnóstico.</string>
+    <string name="tr_details_head">Resumen (28 días, sin puntuación total)</string>
+    <string name="tr_details_dim">\n• %1$s: %2$s – %3$s</string>
+    <string name="tr_details_sizes">\n\nValores por período: mediana de días completos, flecha = dirección respecto al período de igual duración anterior, debajo días con datos / período.</string>
+    <string name="tr_details_days">\n%1$s días: </string>
+    <string name="tr_details_unrated">no evaluable · %1$s</string>
+    <string name="tr_details_row">%1$s %2$s %3$s%4$s (antes: %5$s) · %6$s/%7$s días</string>
+    <string name="tr_details_corr_head">\n\nRelación (exploratoria, 1 hipótesis fijada de antemano): pasos de un día ↔ pulso en reposo del dispositivo al día siguiente\n</string>
+    <string name="tr_details_corr_nr">%1$s · %2$s</string>
+    <string name="tr_details_corr">%1$s · ρ=%2$s (95 %%: %3$s a %4$s) · n=%5$s días. %6$s</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="tr_details_foot">\n\nLos días sin datos no se rellenan; muy pocos días dan «no evaluable». El pulso en reposo es el valor que informa el dispositivo, sus condiciones de medición no están verificadas. Los pasos son volumen de actividad, no una medida de la forma física. No es un diagnóstico.</string>
+    <string name="tr_methods_title">Tendencias · método</string>
+    <string name="tr_scatter_x">Pasos (día)</string>
+    <string name="tr_scatter_y">Pulso en reposo al día siguiente (lpm)</string>
+    <string name="tr_scatter_note">%1$s pares de valores · cada punto = un día. Sin línea de tendencia. Una relación en los puntos no dice nada sobre causa y efecto.</string>
+    <string name="tr_scatter_title">Pasos ↔ pulso en reposo al día siguiente</string>
+    <string name="tr_scatter_cd">Diagrama de dispersión %1$s frente a %2$s con %3$s pares de valores. Rango de valores %4$s %5$s a %6$s, %7$s %8$s a %9$s.</string>
+    <string name="tr_bars_cd">Valores diarios de los últimos %1$s días: %2$s días con datos</string>
+    <string name="tr_bars_range">, más bajo %1$s, más alto %2$s</string>
+    <string name="tr_bars_none">Sin valores diarios</string>
+    <string name="tr_bars_ago">hace %1$s d</string>
+    <string name="tr_bars_ago_axis">hace %1$s d · eje desde %2$s</string>
+    <string name="tr_bars_yesterday">ayer</string>
+    <string name="tr_rest_chart_none">Sin valores de pulso en reposo verificados</string>
+    <string name="md_dir_up">más alto</string>
+    <string name="md_dir_down">más bajo</string>
+    <string name="md_dir_stable">sin cambios</string>
+    <string name="md_dir_unknown">no evaluable</string>
+    <string name="md_state_pos">positivo</string>
+    <string name="md_state_neutral">neutral</string>
+    <string name="md_state_mixed">mixto</string>
+    <string name="md_verdict_nc">no calculable</string>
+    <string name="md_verdict_none">sin relación fiable</string>
+    <string name="md_verdict_expl">relación exploratoria</string>
+    <string name="md_dim_consistency">Constancia de la actividad</string>
+    <string name="md_dim_fitness">Evolución de la forma física</string>
+    <string name="md_dim_recovery">Recuperación</string>
+    <string name="md_cons_few">Muy pocos días con datos de pasos para una comparación de %1$s días.</string>
+    <string name="md_cons_up">Los pasos por día han aumentado respecto al período anterior.</string>
+    <string name="md_cons_down">Los pasos por día han disminuido respecto al período anterior.</string>
+    <string name="md_cons_same">Los pasos por día no han cambiado respecto al período anterior.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="md_fit_none">Ni la actividad ni el pulso en reposo tienen suficientes datos en %1$s días.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="md_fit_one">Solo hay un canal de datos disponible (%1$s); sin afirmación sobre la forma física.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="md_fit_good">La actividad aumentó; el pulso en reposo del dispositivo disminuyó en el mismo período. Un indicio, no un diagnóstico.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="md_fit_bad">La actividad disminuyó y el pulso en reposo del dispositivo aumentó. No se examinaron las posibles causas.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="md_fit_mixed">La actividad y el pulso en reposo del dispositivo no evolucionan en la misma dirección en el sentido de un efecto de entrenamiento.</string>
+    <string name="md_fit_no_change">Ningún cambio claro en %1$s días.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="md_rec">Sin señal de sueño o VFC verificada; no se estima nada.</string>
+    <string name="md_trend_few">Muy pocos días con datos (%1$s de al menos %2$s).</string>
+    <string name="md_trend_base_few">El período de comparación tiene muy pocos datos (%1$s de al menos %2$s).</string>
+    <string name="md_trend_note">Mediana de los últimos %1$s días frente a los %2$s días anteriores.</string>
+    <string name="md_corr_pairs">Solo %1$s días emparejados, se necesitan al menos %2$s.</string>
+    <string name="md_corr_const">Una magnitud es constante; no se puede definir una correlación.</string>
+    <string name="md_corr_dep">Muy pocas observaciones independientes debido a la dependencia temporal.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="md_corr_method">ρ de Spearman, intervalo del 95 %% con n efectivo ≈%1$s; sin afirmación sobre causa y efecto.</string>
+    <string name="md_sens">Robustez: sin días individuales ρ %1$s a %2$s; sin los %3$s días más llamativos ρ %4$s – %5$s</string>
+    <string name="md_stable">estable.</string>
+    <string name="md_unstable">no estable (días individuales influyen en el resultado).</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="md_hero_none">Aún no hay valores de pulso en reposo verificados. Fuente: pulso en reposo calculado por el dispositivo (sin sustitución por el pulso en directo).</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="md_hero_few">Muy pocos días con pulso en reposo (%1$s de al menos %2$s): se muestran los valores diarios, pero ninguna afirmación de tendencia o comparación.</string>
+    <string name="md_hero_delta">%1$s lpm frente a los %2$s días anteriores</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="md_hero_msg_ok">Pulso en reposo calculado por el dispositivo; comparado con los %1$s días anteriores. No es un diagnóstico de forma física.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="md_hero_msg_nobase">Pulso en reposo calculado por el dispositivo. El período de comparación tiene muy pocos datos (%1$s de al menos %2$s); sin comparación.</string>
+    <string name="md_hero_cd">Pulso en reposo, evolución en %1$s días. </string>
+    <string name="md_hero_cd_median">Mediana %1$s. </string>
+    <string name="md_cov_text">%1$s: %2$s de %3$s días</string>
+    <string name="md_cov_hint">faltan días para una afirmación de tendencia (se necesitan al menos %1$s)</string>
+    <string name="tr_week_value">%1$s: %2$s</string>
+    <string name="md_week_cov">%1$s de 7 días</string>
+    <string name="md_week_unavail">Sin valores diarios (aún no hay series diarias verificadas; los valores del dispositivo solo aparecen en directo): duración del sueño, calorías, minutos de intensidad, estrés.</string>
+    <string name="md_week_goal">Objetivo (%1$s) alcanzado en %2$s de %3$s días con datos.</string>
+    <string name="md_week_avg_steps">Ø pasos por día</string>
+    <string name="md_week_total_steps">Total de pasos</string>
+    <string name="md_week_total_val">%1$s (solo días con datos)</string>
+    <string name="md_week_avg_rest">Ø pulso en reposo del dispositivo</string>
+    <string name="md_atlas_summary">%1$s de %2$s días con valores de pasos verificados</string>
+    <string name="md_atlas_none">%1$s\nSin datos diarios verificados.</string>
+    <string name="md_atlas_partial">%1$s\nHasta ahora %2$s pasos (hoy, aún sin terminar).</string>
+    <string name="md_atlas_last">%1$s\nÚltimo total de pasos verificado: %2$s.</string>
+    <string name="md_atlas_lvl_none">sin datos</string>
+    <string name="md_atlas_lvl_low">menos pasos registrados</string>
+    <string name="md_atlas_lvl_mid">número de pasos medio</string>
+    <string name="md_atlas_lvl_high">más pasos registrados</string>
+    <string name="md_atlas_cd">Atlas de actividad, pasos. %1$s. Período de %2$s días. Toca las celdas para ver detalles; las celdas grises no tienen datos verificados.</string>
+    <string name="md_goal_reg">Objetivo propio (%1$s) alcanzado en %2$s de %3$s días con datos (ventana de %4$s días)</string>
+
+    <!-- Analysen: Marker und Wochentage -->
+    <!-- TODO-CHATGPT-REVIEW: Erstentwurf von Claude Code, Ticket #365 -->
+    <string name="uv_legend">Borde violeta = medición o análisis no validado (sensor/campo del dispositivo sin verificar, sin diagnóstico).</string>
+    <string name="uv_suffix"> No validado, borde violeta.</string>
+    <string name="an_wd_mo">Lun</string>
+    <string name="an_wd_di">Mar</string>
+    <string name="an_wd_mi">Mié</string>
+    <string name="an_wd_do">Jue</string>
+    <string name="an_wd_fr">Vie</string>
+    <string name="an_wd_sa">Sáb</string>
+    <string name="an_wd_so">Dom</string>
+
+    <!-- Allgemein -->
+    <!-- TODO-CHATGPT-REVIEW: Erstentwurf von Claude Code, Ticket #365 -->
+    <string name="action_ok">OK</string>
+
+    <!-- Daten/Export: Backup, Wiederherstellung, Reset -->
+    <!-- TODO-CHATGPT-REVIEW: Erstentwurf von Claude Code, Ticket #365 -->
+    <string name="ex_backup_cancelled">Copia de seguridad cancelada.</string>
+    <string name="ex_backup_running">Creando la copia de seguridad …</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ex_backup_done">Copia de seguridad guardada: %1$d eventos, %2$d mediciones históricas, %3$d fuentes FIT históricas/%4$d filas de procedencia; %5$d mediciones canónicas, %6$d fuentes FIT canónicas/%7$d filas de procedencia y %8$d filas de metadatos FIT, %9$d filas de metadatos XML sin procesar derivadas. Los archivos originales no están incluidos; no se guardan rutas ni identificadores XML.</string>
+    <string name="ex_backup_failed">Error en la copia de seguridad. Comprueba la ubicación; un archivo de destino creado puede estar incompleto y debería borrarse.</string>
+    <string name="ex_backup_checking">Comprobando la copia de seguridad …</string>
+    <string name="ex_backup_invalid">Copia de seguridad no válida o ilegible. Base de datos sin cambios.</string>
+    <string name="ex_fit_cancelled">Exportación de los originales FIT cancelada.</string>
+    <string name="ex_fit_running">Exportando los originales FIT …</string>
+    <string name="ex_fit_done">Originales FIT guardados: %1$d archivos</string>
+    <string name="ex_fit_skipped">, %1$d omitidos por el límite de tamaño</string>
+    <string name="ex_zip_unencrypted">. El archivo ZIP no está cifrado.</string>
+    <string name="ex_export_failed">Error en la exportación. Comprueba la ubicación; un archivo de destino creado puede estar incompleto y debería borrarse.</string>
+    <string name="ex_raw_cancelled">Exportación de los archivos sin procesar cancelada.</string>
+    <string name="ex_raw_running">Exportando los archivos sin procesar …</string>
+    <string name="ex_raw_done">Archivos sin procesar guardados: %1$d archivos, %2$d bytes</string>
+    <string name="ex_raw_skipped">, %1$d omitidos</string>
+    <string name="ex_raw_tail">. El archivo ZIP no está cifrado; el contenido no se descodifica automáticamente.</string>
+    <string name="ex_csv_cancelled">Exportación cancelada.</string>
+    <string name="ex_csv_running">Guardando la exportación …</string>
+    <string name="ex_csv_done">CSV guardado: %1$d mediciones. Contiene solo datos disponibles localmente.</string>
+    <string name="ex_csv_unreadable"> %1$d filas guardadas no eran legibles y no se exportaron.</string>
+    <string name="ex_csv_failed">Error en la exportación. Comprueba la ubicación e inténtalo de nuevo; un archivo de destino creado puede estar incompleto y debería borrarse.</string>
+    <string name="ex_back">Atrás</string>
+    <string name="ex_title">Datos</string>
+    <string name="ex_icon_cd">Símbolo del brazo roto de PulsLibre</string>
+    <string name="ex_subtitle">Exportación · Copia de seguridad · Restauración · local y sin conexión</string>
+    <string name="ex_period">Período</string>
+    <string name="ex_from">Desde</string>
+    <string name="ex_to">Hasta</string>
+    <string name="ex_zone">%1$s · minuto final incluido</string>
+    <string name="ex_csv_button">⬇  Exportar CSV</string>
+    <string name="ex_csv_cd">Exportar las mediciones como CSV</string>
+    <string name="ex_invalid_period">Período no válido: el final debe ser posterior al inicio.</string>
+    <string name="ex_local_only">Solo en tu dispositivo · Sin nube · Sin inicio de sesión</string>
+    <string name="ex_db_title">Base de datos local</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ex_db_note">La copia de seguridad contiene eventos CIRQA, mediciones históricas y estados de sincronización. El archivo ZIP no está cifrado y contiene datos de salud sensibles.</string>
+    <string name="ex_btn_backup">Crear copia de seguridad</string>
+    <string name="ex_btn_backup_cd">Crear una copia de seguridad local de la base de datos</string>
+    <string name="ex_btn_fit">Exportar los originales FIT</string>
+    <string name="ex_btn_fit_cd">Exportar los archivos FIT originales sin procesar como ZIP</string>
+    <string name="ex_fit_confirm_title">¿Exportar los originales FIT?</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ex_fit_confirm_msg">El archivo ZIP contiene los archivos FIT sin procesar y verificados de tu pulsera. No está cifrado y puede contener información sensible de salud y del dispositivo. No se modifica, borra ni envía nada. Guárdalo solo en un lugar de confianza.</string>
+    <string name="ex_export_btn">Exportar</string>
+    <string name="ex_btn_raw">Exportar archivos sin procesar verificados</string>
+    <string name="ex_btn_raw_cd">Exportar como ZIP los archivos sin procesar CIRQA opacos guardados localmente</string>
+    <string name="ex_raw_confirm_title">¿Exportar archivos sin procesar?</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ex_raw_confirm_msg">El ZIP contiene archivos sin procesar verificados y sin cambios de la pulsera. No está cifrado y puede contener información sensible de salud y del dispositivo. PulseLibre no descodifica los archivos automáticamente. No se modifica, borra ni envía nada. Elige una ubicación de confianza.</string>
+    <string name="ex_btn_restore">Restaurar copia de seguridad</string>
+    <string name="ex_btn_restore_cd">Restaurar la base de datos desde una copia de seguridad</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ex_btn_reset">Restablecer la base de datos</string>
+    <string name="ex_btn_reset_cd">Borrar todas las entradas locales de la base de datos</string>
+    <string name="ex_prefs_kept">Los ajustes de la app se conservan al restaurar y al restablecer.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ex_restore_title">¿Reemplazar la base de datos?</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ex_restore_msg">La copia de seguridad del %1$s contiene %2$d eventos, %3$d mediciones históricas, %4$d estados de sincronización, %5$d fuentes FIT y %6$d filas de procedencia FIT. %7$d mediciones canónicas y %8$d fuentes FIT canónicas/%9$d filas de procedencia, así como %10$d filas de metadatos FIT y %11$d filas de metadatos XML sin procesar derivadas. Los archivos originales no están incluidos; las rutas y los identificadores XML no se guardan.\n\nSe reemplazarán todas las entradas de la base de datos almacenadas actualmente. Los ajustes de la app se conservan. Continúa solo con una copia de seguridad de una fuente de confianza.</string>
+    <string name="ex_replace">Reemplazar</string>
+    <string name="ex_restore_cancelled">Restauración cancelada.</string>
+    <string name="ex_restore_running">Restaurando la base de datos …</string>
+    <string name="ex_restore_done">Base de datos restaurada desde la copia de seguridad.</string>
+    <string name="ex_restore_failed">Error en la restauración. Comprueba la base de datos.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ex_reset_title">¿Restablecer la base de datos local?</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ex_reset_msg">Todos los eventos CIRQA, mediciones históricas y estados de sincronización almacenados localmente se borrarán de forma permanente. Los ajustes de la app se conservan. Esta acción no se puede deshacer.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ex_reset_delete">Borrar datos</string>
+    <string name="ex_reset_running">Restableciendo la base de datos …</string>
+    <string name="ex_reset_done">La base de datos local se vació.</string>
+    <string name="ex_reset_failed">Error al restablecer. Comprueba la base de datos.</string>
+    <string name="ex_rec_title">Grabación en curso</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ex_rec_msg">La grabación CIRQA local en curso debe detenerse antes de la operación en la base de datos.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ex_rec_stop">Detener y continuar</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ex_rec_stop_failed">No se pudo detener la grabación; la base de datos permaneció sin cambios.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ex_rec_still">La grabación sigue en curso; la base de datos permaneció sin cambios.</string>
+    <!-- TODO-CHATGPT-REVIEW: Erstentwurf von Claude Code, Ticket #365 -->
+    <!-- Gerät: Verbindungsstatus, Akku, Empfang (#365) -->
+    <string name="dur_s">%1$d s</string>
+    <string name="dur_min">%1$d min</string>
+    <string name="dur_h">%1$d h</string>
+    <string name="dur_h_min">%1$d h %2$d min</string>
+    <string name="dur_ago">hace %1$s</string>
+    <string name="dur_ago_day">hace 1 día</string>
+    <string name="dur_ago_days">hace %1$d días</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="gatt_connected">Android GATT: conectado (app desconocida)</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="gatt_connecting">Android GATT: conectando</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="gatt_disconnecting">Android GATT: desconectando</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="gatt_disconnected">Android GATT: no conectado</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="gatt_permission">Android GATT: falta el permiso</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="gatt_not_paired">Ningún CIRQA emparejado</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="gatt_unknown">Android GATT: desconocido</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="link_bt_permission">Falta el permiso de Bluetooth</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="link_receiving">Conectado · última medición hace %1$s</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="link_waiting">Conectado · esperando mediciones</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="link_gatt_recorder_off">GATT conectado (grabación desactivada)</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="link_reconnecting">Grabación en curso · conexión interrumpida, reconectando</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="link_reconnecting_last">Grabación en curso · conexión interrumpida, reconectando · última medición hace %1$s</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="link_none">Sin conexión · grabación desactivada</string>
+    <string name="link_outline_green">borde verde</string>
+    <string name="link_outline_black">borde negro</string>
+    <string name="link_status_cd">Estado de la conexión CIRQA: %1$s. %2$s. Abrir los ajustes.</string>
+    <string name="bat_value">%1$d %%</string>
+    <string name="bat_value_charging">%1$d %% · cargando</string>
+    <string name="bat_fresh">Estado: %1$s</string>
+    <string name="bat_stale">Obsoleto · último estado conocido %1$s</string>
+    <string name="bat_time_unknown">Hora desconocida · último estado conocido</string>
+    <string name="bat_cd">Batería: %1$d por ciento. %2$s</string>
+    <string name="bat_cd_charging">Batería: %1$d por ciento, cargando. %2$s</string>
+    <string name="dev_src_pulse">Frecuencia cardíaca</string>
+    <string name="dev_src_oxygen">SpO₂</string>
+    <string name="dev_src_steps">Pasos</string>
+    <string name="dev_src_stress">Estrés</string>
+    <string name="dev_src_battery">Body Battery</string>
+    <string name="dev_src_rr">Intervalo RR</string>
+    <string name="dev_src_breath">Respiración</string>
+    <string name="dev_src_calories">Calorías</string>
+    <string name="dev_src_intensity">Intensidad</string>
+    <string name="dev_no_reception">sin recepción</string>
+    <string name="dev_hero_reading">Leyendo el estado …</string>
+    <string name="dev_hero_connected">Conectado</string>
+    <string name="dev_hero_reconnecting">Reconectando</string>
+    <string name="dev_hero_not_paired">No emparejado</string>
+    <string name="dev_hero_not_connected">No conectado</string>
+    <string name="dev_hero_cd_connected">CIRQA conectado. %1$s</string>
+    <string name="dev_hero_cd_not_connected">CIRQA no conectado. %1$s</string>
+    <string name="dev_chip_reception">Recepción · 1 h</string>
+    <string name="dev_chip_readings">%1$s mediciones</string>
+    <string name="dev_chip_storage">Almacenamiento</string>
+    <string name="dev_chip_entries">%1$s entradas\n%2$s</string>
+    <string name="dev_chip_sessions">Sesiones de hoy</string>
+    <string name="dev_chip_sessions_value">%1$d inicios\n%2$d reconexiones</string>
+    <string name="dev_chip_since">Grabación desde</string>
+    <string name="dev_pair_cd">%1$s: %2$s</string>
+    <string name="dev_reception_title">Última recepción por medición</string>
+    <string name="dev_being_read">leyendo</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="dev_meta_title">Información de la pulsera</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="dev_meta_note">Los valores del dispositivo solo se muestran con una fuente confirmada y una marca de tiempo actual.</string>
+    <string name="dev_meta_battery">Batería</string>
+    <string name="dev_meta_firmware">Firmware</string>
+    <string name="dev_meta_clock">Hora de la pulsera</string>
+    <string name="dev_meta_identity">Modelo / número de serie</string>
+    <string name="dev_unavailable">No disponible</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="dev_unavailable_cd">%1$s: no disponible; aún no hay ningún valor confirmado del dispositivo</string>
+    <!-- TODO-CHATGPT-REVIEW: Erstentwurf von Claude Code, Ticket #365 -->
+    <!-- Gerät: unbekannte FIT-Felder (#365) -->
+    <string name="unk_headline_one">Campo de datos desconocido detectado (1 tipo)</string>
+    <string name="unk_headline_many">Campos de datos desconocidos detectados (%1$d tipos)</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="unk_explanation">Aún no descifrado por la app. No son mediciones ni un diagnóstico.</string>
+    <string name="unk_hint_cd">%1$s. %2$s Toca para ver los detalles.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="unk_intro">Desconocido significa: no descifrado. Estas entradas no son ni mediciones ni diagnósticos; solo muestran qué campos contienen los archivos de la pulsera que PulsLibre aún no entiende.</string>
+    <string name="unk_title_std">Mensaje FIT %1$d · campo %2$d</string>
+    <string name="unk_title_dev">Mensaje FIT %1$d · campo de desarrollador %2$d</string>
+    <string name="unk_base_unknown">desconocido</string>
+    <string name="unk_detail">Tipo base %1$s · %2$d bytes</string>
+    <string name="unk_detail_dev">Tipo base %1$s · %2$d bytes · índice de desarrollador %3$d</string>
+    <string name="unk_occ_11">%1$d mensaje en %2$d archivo</string>
+    <string name="unk_occ_1n">%1$d mensaje en %2$d archivos</string>
+    <string name="unk_occ_n1">%1$d mensajes en %2$d archivo</string>
+    <string name="unk_occ_nn">%1$d mensajes en %2$d archivos</string>
+    <string name="unk_group_11">Mensaje FIT %1$d · %2$d tipo de campo · %3$d mensaje</string>
+    <string name="unk_group_1n">Mensaje FIT %1$d · %2$d tipo de campo · %3$d mensajes</string>
+    <string name="unk_group_n1">Mensaje FIT %1$d · %2$d tipos de campo · %3$d mensaje</string>
+    <string name="unk_group_nn">Mensaje FIT %1$d · %2$d tipos de campo · %3$d mensajes</string>
+    <string name="unk_group_cd">%1$s. Toca para expandir o contraer.</string>
+    <string name="unk_cls_message">Tipo de mensaje no decodificado por la app</string>
+    <string name="unk_cls_field">Campo no decodificado por la app</string>
+    <string name="unk_cls_incompatible">Campo conocido con un tipo de datos no compatible</string>
+    <string name="unk_cls_developer">Campo de desarrollador no decodificado</string>
+    <string name="unk_cls_other">No decodificado</string>
+    <string name="unk_status_unreviewed">sin revisar</string>
+    <string name="unk_status_investigating">en revisión</string>
+    <string name="unk_status_supported">compatible</string>
+    <string name="unk_status_ignored">ignorado</string>
+    <string name="unk_status_line">%1$s · Estado: %2$s</string>
+    <string name="unk_status_save_failed">%1$s · No se pudo guardar el estado</string>
+    <string name="unk_status_change">Cambiar estado</string>
+    <string name="unk_status_change_cd">Cambiar el estado de %1$s</string>
+    <string name="unk_status_title">Estado: %1$s</string>
+    <string name="unk_status_note">Solo tu propia marca de revisión para este campo. No se modifica ningún dato de medición.</string>
+    <string name="unk_status_selected_cd">%1$s, seleccionado actualmente</string>
+    <string name="unk_bytes_action">Ver bytes de ejemplo</string>
+    <string name="unk_bytes_action_cd">Ver bytes de ejemplo de %1$s</string>
+    <string name="unk_bytes_title">¿Ver bytes de ejemplo?</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="unk_bytes_warning">Muestra unos pocos bytes sin procesar de este campo, tomados de tus archivos guardados localmente. Pueden contener información sensible de salud y del dispositivo, y no se interpretan, ni se guardan, ni se envían. No los compartas en tickets, registros ni capturas de pantalla.</string>
+    <string name="unk_bytes_confirm">Mostrar</string>
+    <string name="unk_bytes_more_files">… y %1$d archivos más</string>
+    <string name="unk_file">Archivo %1$d</string>
+    <string name="unk_sample_unreadable">%1$s: original ilegible o no válido.</string>
+    <string name="unk_sample_absent">%1$s: el campo no está en este archivo.</string>
+    <string name="unk_sample_head_one">%1$s: 1 aparición, primer valor</string>
+    <string name="unk_sample_head">%1$s: %2$d apariciones, primeros %3$d valores</string>
+    <string name="unk_sample_more">  … y %1$d más</string>
+    <string name="unk_sample_cut">  (cada valor truncado a %1$d bytes)</string>
+    <!-- TODO-CHATGPT-REVIEW: Erstentwurf von Claude Code, Ticket #365 -->
+    <!-- Dialoge: Anpassen, Tagesansicht, Tageszeitleiste (#365) -->
+    <string name="cust_title">Personalizar la pantalla de inicio</string>
+    <string name="cust_note">Las tarjetas ocultas se siguen registrando, solo que no se muestran. Los favoritos aparecen primero en «%1$s».</string>
+    <string name="cust_show_cd">Mostrar %1$s</string>
+    <string name="cust_fav_on">★ Favorito</string>
+    <string name="cust_fav_off">☆ Favorito</string>
+    <string name="cust_fav_remove_cd">Quitar %1$s de «%2$s»</string>
+    <string name="cust_fav_add_cd">Añadir %1$s a «%2$s»</string>
+    <string name="cust_up">▲ Subir</string>
+    <string name="cust_down">▼ Bajar</string>
+    <string name="cust_up_cd">%1$s hacia arriba</string>
+    <string name="cust_down_cd">%1$s hacia abajo</string>
+    <string name="cust_reset">Restablecer</string>
+    <string name="day_reading">Leyendo datos …</string>
+    <string name="day_read_failed">No se pudieron leer los datos de medición locales.</string>
+    <string name="dq_not_started">El día aún no ha comenzado</string>
+    <string name="dq_coverage">Cobertura %1$s %% (%2$d de %3$d min)</string>
+    <string name="dq_gaps_one">%1$s · 1 intervalo sin datos, el más largo %2$d min</string>
+    <string name="dq_gaps_many">%1$s · %2$d intervalos sin datos, el más largo %3$d min</string>
+    <string name="ma_not_available">no disponible</string>
+    <string name="ma_insufficient">datos insuficientes</string>
+    <string name="ma_experimental">experimental</string>
+    <string name="ma_available">disponible</string>
+    <string name="tl_not_started">El día aún no ha comenzado.</string>
+    <string name="tl_no_data_lane">%1$s: sin datos este día.</string>
+    <string name="tl_last">%1$s último</string>
+    <string name="tl_no_gaps">sin intervalos sin datos</string>
+    <string name="tl_gap_one">1 intervalo sin datos, el más largo %1$d min (%2$s–%3$s)</string>
+    <string name="tl_gap_many">%1$d intervalos sin datos, el más largo %2$d min (%3$s–%4$s)</string>
+    <string name="tl_lane_line">%1$s: %2$s, %3$d mediciones, %4$s.</string>
+    <string name="tl_no_data">sin datos</string>
+    <string name="tl_lane_band">Frecuencia cardíaca · pulsera (FIT)</string>
+    <string name="tl_lane_value">%1$s: %2$s</string>
+    <string name="tl_note_phone">Frecuencia cardíaca y pasos: hora de recepción en el teléfono.</string>
+    <string name="tl_note_band">%1$s: hora medida por la pulsera, no la de recepción.</string>
+    <string name="tl_note_gaps">%1$s. Los intervalos sin datos quedan vacíos y no se interpolan.</string>
+    <string name="tl_zoom_full">Día completo. Dos dedos para ampliar, o usa los botones.</string>
+    <string name="tl_zoom_part">Tramo de %1$s h de 24 h (puntos sin procesar, sin promedios).</string>
+    <string name="tl_pan_back">Tramo anterior</string>
+    <string name="tl_zoom_out">Alejar</string>
+    <string name="tl_zoom_in">Acercar</string>
+    <string name="tl_pan_forward">Tramo siguiente</string>
+    <string name="tl_day_button">Día</string>
+    <string name="tl_day_button_cd">Mostrar el día completo</string>
+    <string name="tl_hint">Toca o arrastra para ver los valores a una hora determinada.</string>
+    <string name="dd_prev">‹ Anterior</string>
+    <string name="dd_next">Siguiente ›</string>
+    <string name="dd_prev_cd">Punto de datos anterior</string>
+    <string name="dd_next_cd">Punto de datos siguiente</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="dd_no_sleep">Aún no hay evolución del día disponible. Faltan datos de sueño validados.</string>
+    <string name="dd_no_course">Aún no hay evolución del día disponible.</string>
+    <string name="dd_unit_steps">pasos</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="dd_unit_device">unidad del dispositivo sin verificar</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="dd_ctx_oxygen">sensor CIRQA no validado</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="dd_ctx_resting">campo del dispositivo, condiciones de medición sin verificar</string>
+    <string name="dd_basis">Hora de recepción · %1$s</string>
+    <string name="dd_valid">%1$d mediciones válidas</string>
+    <string name="dd_invalid">%1$d sin valor válido</string>
+    <string name="dd_duplicates">%1$d duplicados</string>
+    <string name="dd_minutes">Minutos con recepción válida: %1$d de %2$d</string>
+    <string name="dd_status">Estado de los datos: %1$s</string>
+    <string name="dd_chart_note">Gráfico: mínimo, máximo y último valor por minuto de recepción.</string>
+    <string name="dd_last_today">Última recepción hoy %1$s</string>
+    <string name="dd_goal">Último objetivo de pasos del dispositivo: %1$s</string>
+    <string name="dd_scale">Escala · %1$s–%2$s %3$s</string>
+    <!-- TODO-CHATGPT-REVIEW: Erstentwurf von Claude Code, Ticket #365 -->
+    <!-- Dienst-Benachrichtigung (#365) -->
+    <string name="svc_channel">CIRQA · Grabación continua</string>
+    <string name="svc_title">PulsLibre · Grabación continua</string>
+    <string name="svc_collecting">Recopilando localmente · aún sin mediciones</string>
+    <string name="svc_bt_off">Bluetooth desactivado – actívalo, por favor</string>
+    <string name="svc_received">Local: %1$d mediciones · datos CIRQA recibidos</string>
+    <string name="svc_connecting">Conectando con CIRQA …</string>
+    <string name="svc_reconnect">CIRQA desconectado · nuevo intento en %1$d s</string>
+    <string name="svc_stop">Detener la recopilación</string>
+    <!-- TODO-CHATGPT-REVIEW: Erstentwurf von Claude Code, Ticket #365 -->
+    <!-- Hauptansicht: Bluetooth, Gewicht, BMI (#365) -->
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="bmi_underweight">Bajo peso</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="bmi_normal">Peso normal</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="bmi_pre_obesity">Sobrepeso</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="bmi_obesity_1">Obesidad de clase I</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="bmi_obesity_2">Obesidad de clase II</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="bmi_obesity_3">Obesidad de clase III</string>
+    <string name="bmi_note_missing">Introduce la estatura y el peso para ver el IMC.</string>
+    <string name="bmi_note_birth">Añade tu fecha de nacimiento para clasificar el IMC.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="bmi_note_age">No hay clasificación del IMC disponible para este grupo de edad.</string>
+    <string name="bmi_info_title">IMC · clasificación</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="bmi_info_body">IMC = peso (kg) / estatura (m)². Es un indicador de cribado, no un diagnóstico.\n\nClasificación para adultos de 20 años o más según la OMS (mismos límites para mujeres y hombres):\nmenos de 18,5 bajo peso · 18,5–24,9 peso normal · 25–29,9 sobrepeso · 30–34,9 obesidad de clase I · 35–39,9 clase II · a partir de 40 clase III.\n\nLímites: la masa muscular, la constitución, el embarazo y la edad influyen en la validez del valor. Para menores de 20 años no hay clasificación aquí (referencias de IMC por edad no implementadas). No se aplican límites especiales a los adultos mayores.</string>
+    <string name="bmi_info_note">Nota: %1$s</string>
+    <string name="main_bt_off_title">Bluetooth desactivado</string>
+    <string name="main_bt_off_msg">Bluetooth está desactivado. Actívalo para que PulsLibre pueda recibir las mediciones de CIRQA.</string>
+    <string name="main_later">Más tarde</string>
+    <string name="main_bt_enable">Activar Bluetooth</string>
+    <string name="main_bt_enable_toast">Activa Bluetooth en los ajustes de Android.</string>
+    <string name="main_perm_needed">Se necesita el permiso de Bluetooth: permite los dispositivos cercanos en el aviso de Android</string>
+    <string name="main_perm_granted">Permiso de Bluetooth concedido · inicia de nuevo la búsqueda</string>
+    <string name="main_perm_denied">Permiso de Bluetooth denegado · Ajustes → Aplicaciones → PulsLibre → Permisos → Dispositivos cercanos</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="main_notif_off">Las notificaciones están desactivadas: la grabación está en curso, pero la notificación con el botón de detener no se ve. Detenla con «Detener» en la app o permite las notificaciones en los ajustes de Android.</string>
+    <string name="main_weight_title">Peso (kg)</string>
+    <string name="main_weight_input_cd">Peso actual en kilogramos</string>
+    <string name="main_weight_minus_cd">Reducir el peso en 0,1 kilogramo</string>
+    <string name="main_weight_plus_cd">Aumentar el peso en 0,1 kilogramo</string>
+    <string name="main_weight_step">Paso: 0,1 kg · mantén pulsado para cambiar más rápido</string>
+    <string name="main_weight_invalid">Introduce un peso entre 15 y 400 kg.</string>
 </resources>

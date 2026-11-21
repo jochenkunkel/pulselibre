@@ -42,13 +42,15 @@ class CirqaContinuousRecordingService : Service() {
     private val attemptGate = RecorderAttemptGate()
     private var lastReadingPersistedMs = 0L
 
+    override fun attachBaseContext(newBase: android.content.Context) = super.attachBaseContext(AppLanguageSettings.wrap(newBase))
+
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onCreate() {
         super.onCreate()
         log = CirqaLocalLog(this)
         (getSystemService(NOTIFICATION_SERVICE) as NotificationManager)
-            .createNotificationChannel(NotificationChannel(CHANNEL, "CIRQA · Kontinuierliche Aufzeichnung", NotificationManager.IMPORTANCE_LOW))
+            .createNotificationChannel(NotificationChannel(CHANNEL, getString(R.string.svc_channel), NotificationManager.IMPORTANCE_LOW))
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -58,7 +60,7 @@ class CirqaContinuousRecordingService : Service() {
         }
         if (intent?.action != ACTION_START) return START_NOT_STICKY
         if (running) return START_NOT_STICKY
-        val notification = notification("Lokal sammeln · noch keine Messwerte")
+        val notification = notification(getString(R.string.svc_collecting))
         try {
             if (Build.VERSION.SDK_INT >= 29) {
                 startForeground(ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE)
@@ -70,7 +72,7 @@ class CirqaContinuousRecordingService : Service() {
         }
         val bluetooth = (getSystemService(BLUETOOTH_SERVICE) as BluetoothManager).adapter
         if (bluetooth == null || !bluetooth.isEnabled) {
-            updateNotification("Bluetooth ausgeschaltet – bitte einschalten")
+            updateNotification(getString(R.string.svc_bt_off))
             getSharedPreferences(PREFS, MODE_PRIVATE).edit().putBoolean(KEY_RUNNING, false).apply()
             stopForeground(STOP_FOREGROUND_REMOVE)
             stopSelf()
@@ -127,7 +129,7 @@ class CirqaContinuousRecordingService : Service() {
                             .putLong(KEY_LAST_READING_MS, nowMs).apply()
                     }
                     if (!log.reading(service, reading)) stopCollection("storage_limit")
-                    else updateNotification("Lokal: $readings Messwerte · CIRQA-Daten empfangen")
+                    else updateNotification(getString(R.string.svc_received, readings))
                 }
             }
         }
@@ -137,7 +139,7 @@ class CirqaContinuousRecordingService : Service() {
             handler.post {
                 if (attemptGate.accepts(token, current)) {
                     if (result.startsWith("ML-Test: Verbinde")) {
-                        updateNotification("CIRQA-Verbindung wird aufgebaut")
+                        updateNotification(getString(R.string.svc_connecting))
                     } else {
                         // Consume this attempt before any side effects or retry.
                         val reconnectToken = attemptGate.finish(token, current)
@@ -161,7 +163,7 @@ class CirqaContinuousRecordingService : Service() {
         if (!attemptGate.canRetry(token)) return
         // Bounded backoff: 2, 4, 8, 16, 32, then 60 seconds.
         val delayMs = RecorderBackoff.delayMs(attempts)
-        updateNotification("CIRQA getrennt · neuer Versuch in ${delayMs / 1000}s")
+        updateNotification(getString(R.string.svc_reconnect, delayMs / 1000))
         log.append("reconnect_scheduled", mapOf("reason" to reason, "delay_ms" to delayMs))
         handler.postDelayed({
             if (attemptGate.canRetry(token)) sample()
@@ -195,10 +197,10 @@ class CirqaContinuousRecordingService : Service() {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
         return Notification.Builder(this, CHANNEL)
             .setSmallIcon(android.R.drawable.stat_sys_data_bluetooth)
-            .setContentTitle("PulsLibre · Kontinuierliche Aufzeichnung")
+            .setContentTitle(getString(R.string.svc_title))
             .setContentText(message)
             .setOngoing(true)
-            .addAction(Notification.Action.Builder(null, "Sammlung beenden", stop).build())
+            .addAction(Notification.Action.Builder(null, getString(R.string.svc_stop), stop).build())
             .build()
     }
 

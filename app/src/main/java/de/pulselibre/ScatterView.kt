@@ -18,13 +18,13 @@ internal class ScatterView(
     private val grid: Int
 ) : View(context) {
     private val d = resources.displayMetrics.density
-    private val nf = NumberFormat.getNumberInstance(Locale.GERMANY).apply { maximumFractionDigits = 0 }
+    private val nf = NumberFormat.getNumberInstance(context.displayLocale()).apply { maximumFractionDigits = 0 }
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
 
     init {
-        contentDescription = "Streudiagramm $xLabel gegen $yLabel mit ${points.size} Wertepaaren. " +
-            "Wertebereich ${xLabel} ${nf.format(points.minOf { it.first })} bis ${nf.format(points.maxOf { it.first })}, " +
-            "${yLabel} ${nf.format(points.minOf { it.second })} bis ${nf.format(points.maxOf { it.second })}."
+        contentDescription = context.getString(R.string.tr_scatter_cd, xLabel, yLabel, points.size.toString(),
+            xLabel, nf.format(points.minOf { it.first }), nf.format(points.maxOf { it.first }),
+            yLabel, nf.format(points.minOf { it.second }), nf.format(points.maxOf { it.second }))
     }
 
     override fun onMeasure(w: Int, h: Int) {

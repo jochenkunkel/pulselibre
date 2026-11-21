@@ -18,7 +18,7 @@ import org.junit.runner.RunWith
 /** #204 phase B: hint is hidden without data, shows the headline with data and opens a read-only list. */
 @RunWith(AndroidJUnit4::class)
 class UnknownFieldsViewTest {
-    private val context = ApplicationProvider.getApplicationContext<Context>()
+    private val context = AppLanguageSettings.wrap(ApplicationProvider.getApplicationContext<Context>())
     private fun all(v: View): List<View> =
         listOf(v) + ((v as? ViewGroup)?.let { g -> (0 until g.childCount).flatMap { all(g.getChildAt(it)) } } ?: emptyList())
 
@@ -33,9 +33,9 @@ class UnknownFieldsViewTest {
             scenario.onActivity { activity ->
                 val v = UnknownFieldsView(activity)
                 (activity.findViewById<ViewGroup>(android.R.id.content)).addView(v)
-                v.show(UnknownFieldsSummary.summarize(emptyList()))
+                v.show(UnknownFieldsSummary.summarize(Strings.of(activity), emptyList()))
                 assertEquals(View.GONE, v.visibility)
-                v.show(UnknownFieldsSummary.summarize(listOf(field(85), field(86))))
+                v.show(UnknownFieldsSummary.summarize(Strings.of(activity), listOf(field(85), field(86))))
                 assertEquals(View.VISIBLE, v.visibility)
                 val texts = all(v).filterIsInstance<TextView>().map { it.text.toString() }
                 assertTrue(texts.contains("Unbekannte Datenfelder entdeckt (2 Typen)"))
@@ -59,7 +59,7 @@ class UnknownFieldsViewTest {
             scenario.onActivity { activity ->
                 val v = UnknownFieldsView(activity)
                 (activity.findViewById<ViewGroup>(android.R.id.content)).addView(v)
-                v.show(UnknownFieldsSummary.summarize(listOf(field(85))))
+                v.show(UnknownFieldsSummary.summarize(Strings.of(activity), listOf(field(85))))
                 v.performClick()
             }
             val dialog = DialogTestSupport.awaitDialog("Unbekanntes Datenfeld entdeckt (1 Typ)")
@@ -80,7 +80,7 @@ class UnknownFieldsViewTest {
             scenario.onActivity { activity ->
                 val v = UnknownFieldsView(activity)
                 (activity.findViewById<ViewGroup>(android.R.id.content)).addView(v)
-                v.show(UnknownFieldsSummary.summarize(listOf(field(85))))
+                v.show(UnknownFieldsSummary.summarize(Strings.of(activity), listOf(field(85))))
                 v.performClick()
             }
             val list = DialogTestSupport.awaitDialog("Unbekanntes Datenfeld entdeckt (1 Typ)")

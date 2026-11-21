@@ -61,19 +61,19 @@ internal object DayTimeline {
     }
 
     /** Text version of the whole view (TalkBack, and shown under the chart). */
-    fun describe(lanes: List<Lane>, day: DashboardDay, now: Instant, zone: java.time.ZoneId): String {
-        if (day.availableMinutes(now) <= 0) return "Tag noch nicht begonnen."
+    fun describe(strings: Strings, lanes: List<Lane>, day: DashboardDay, now: Instant, zone: java.time.ZoneId): String {
+        if (day.availableMinutes(now) <= 0) return strings.get(R.string.tl_not_started)
         val fmt = java.time.format.DateTimeFormatter.ofPattern("HH:mm").withZone(zone)
         return lanes.joinToString("\n") { lane ->
-            if (lane.points.isEmpty()) "${lane.title}: keine Daten an diesem Tag."
+            if (lane.points.isEmpty()) strings.get(R.string.tl_no_data_lane, lane.title)
             else {
-                val range = if (lane.cumulative) "${lane.points.last().value}${if (lane.unit.isEmpty()) "" else " " + lane.unit} zuletzt"
+                val range = if (lane.cumulative) strings.get(R.string.tl_last, "${lane.points.last().value}${if (lane.unit.isEmpty()) "" else " " + lane.unit}")
                     else "${lane.min}–${lane.max} ${lane.unit}"
                 val longest = lane.gaps.maxByOrNull { it.duration }
-                val gapText = if (longest == null) "keine Lücken"
-                    else "${lane.gaps.size} Lücke${if (lane.gaps.size == 1) "" else "n"}, längste " +
-                        "${longest.duration.toMinutes()} min (${fmt.format(longest.start)}–${fmt.format(longest.end)})"
-                "${lane.title}: $range, ${lane.points.size} Messwerte, $gapText."
+                val gapText = if (longest == null) strings.get(R.string.tl_no_gaps)
+                    else if (lane.gaps.size == 1) strings.get(R.string.tl_gap_one, longest.duration.toMinutes(), fmt.format(longest.start), fmt.format(longest.end))
+                    else strings.get(R.string.tl_gap_many, lane.gaps.size, longest.duration.toMinutes(), fmt.format(longest.start), fmt.format(longest.end))
+                strings.get(R.string.tl_lane_line, lane.title, range, lane.points.size, gapText)
             }
         }
     }

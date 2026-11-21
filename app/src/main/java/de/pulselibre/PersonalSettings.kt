@@ -241,9 +241,9 @@ object PersonalSettings {
                 setStroke(dp(1), UnvalidatedFeatures.color(palette.dark))
             }
             tag = "settings_unvalidated_note"
-            contentDescription = UnvalidatedFeatures.LEGEND
+            contentDescription = DomainText.tr(context, UnvalidatedFeatures.LEGEND)
             addView(PlIcon.view(context, PlIcon.INFO, 22), LinearLayout.LayoutParams(dp(22), dp(22)).apply { marginEnd = dp(10) })
-            addView(TextView(context).apply { text = UnvalidatedFeatures.LEGEND; textSize = 12f; setTextColor(palette.ink)
+            addView(TextView(context).apply { text = DomainText.tr(context, UnvalidatedFeatures.LEGEND); textSize = 12f; setTextColor(palette.ink)
                 importantForAccessibility = android.view.View.IMPORTANT_FOR_ACCESSIBILITY_NO }, LinearLayout.LayoutParams(0, -2, 1f))
         }, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) })
 

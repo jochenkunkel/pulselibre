@@ -25,19 +25,19 @@ internal class AnalysenView(
 
     init {
         orientation = VERTICAL; tag = "analysen_view"
-        addView(TextView(context).apply { text = "Analysen"; textSize = 22f; setTypeface(null, Typeface.BOLD); setTextColor(palette.ink) })
+        addView(TextView(context).apply { text = context.getString(R.string.an_title); textSize = 22f; setTypeface(null, Typeface.BOLD); setTextColor(palette.ink) })
         addView(TextView(context).apply {
-            text = "Wissenschaftliche, explorative Auswertungen deiner erfassten Daten – keine Diagnose. Module ohne belegte Daten sind als „Noch nicht verfügbar“ mit Grund gekennzeichnet."
+            text = context.getString(R.string.an_intro)
             textSize = 13f; setTextColor(palette.muted); setPadding(0, dp(4), 0, dp(8))
         })
         AnalysisCatalog.byCategory().forEach { (category, modules) ->
             addView(TextView(context).apply {
-                text = "%02d · %s".format(category.number, category.title); textSize = 16f; setTypeface(null, Typeface.BOLD)
+                text = "%02d · %s".format(category.number, DomainText.tr(context, category.title)); textSize = 16f; setTypeface(null, Typeface.BOLD)
                 setTextColor(palette.ink); setPadding(0, dp(16), 0, dp(2)); tag = "analysis_group_${category.number}"
                 importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_YES; isFocusable = true
-                contentDescription = "Gruppe ${category.number}: ${category.title}. ${category.subtitle}"
+                contentDescription = context.getString(R.string.an_group_cd, category.number.toString(), DomainText.tr(context, category.title), DomainText.tr(context, category.subtitle))
             })
-            addView(TextView(context).apply { text = category.subtitle; textSize = 12f; setTextColor(palette.muted); setPadding(0, 0, 0, dp(6)) })
+            addView(TextView(context).apply { text = DomainText.tr(context, category.subtitle); textSize = 12f; setTextColor(palette.muted); setPadding(0, 0, 0, dp(6)) })
             modules.forEach { addView(card(it), LayoutParams(-1, -2).apply { topMargin = dp(6) }) }
             if (category == AnalysisCatalog.Category.HEART) {
                 addView(trendBlock, LayoutParams(-1, -2).apply { topMargin = dp(10) })
@@ -57,17 +57,17 @@ internal class AnalysenView(
         background = GradientDrawable().apply { setColor(palette.card); cornerRadius = dp(16).toFloat(); setStroke(dp(1), palette.track) }
         val clickable = m.route != AnalysisCatalog.Route.NONE
         isClickable = clickable; isFocusable = true
-        contentDescription = "${m.title}. ${m.availability.label}. ${m.note}" + if (clickable) " Tippen zum Öffnen." else ""
+        contentDescription = context.getString(R.string.an_module_cd, DomainText.tr(context, m.title), DomainText.tr(context, m.availability.label), DomainText.tr(context, m.note)) + if (clickable) context.getString(R.string.an_tap_open) else ""
         addView(PlIcon.view(context, m.icon, 24, if (clickable) palette.accent else palette.muted), LayoutParams(dp(24), dp(24)).apply { marginEnd = dp(10) })
         val texts = LinearLayout(context).apply { orientation = VERTICAL }
-        texts.addView(TextView(context).apply { text = m.title; textSize = 14f; setTypeface(null, Typeface.BOLD); setTextColor(if (clickable) palette.ink else palette.muted)
+        texts.addView(TextView(context).apply { text = DomainText.tr(context, m.title); textSize = 14f; setTypeface(null, Typeface.BOLD); setTextColor(if (clickable) palette.ink else palette.muted)
             hyphenationFrequency = android.text.Layout.HYPHENATION_FREQUENCY_FULL
             importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO })
-        texts.addView(TextView(context).apply { text = m.note; textSize = 11f; setTextColor(palette.muted)
+        texts.addView(TextView(context).apply { text = DomainText.tr(context, m.note); textSize = 11f; setTextColor(palette.muted)
             importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO })
         addView(texts, LayoutParams(0, -2, 1f))
         addView(TextView(context).apply {
-            text = m.availability.label; textSize = 11f; setTypeface(null, Typeface.BOLD); setTextColor(chipColor(m.availability))
+            text = DomainText.tr(context, m.availability.label); textSize = 11f; setTypeface(null, Typeface.BOLD); setTextColor(chipColor(m.availability))
             gravity = Gravity.END; setPadding(dp(8), 0, 0, 0); importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO
         }, LayoutParams(dp(92), -2))
         if (clickable) setOnClickListener {
@@ -75,8 +75,8 @@ internal class AnalysenView(
                 AnalysisCatalog.Route.INLINE -> reveal(trendBlock.top)
                 AnalysisCatalog.Route.HISTORY -> goHistory()
                 AnalysisCatalog.Route.METHODS -> DialogProbe.track(AlertDialog.Builder(context)
-                    .setTitle("Methoden und Grenzen").setMessage(AnalysisCatalog.METHODS_TEXT)
-                    .setPositiveButton("Schließen", null).create()).show()
+                    .setTitle(context.getString(R.string.an_methods_title)).setMessage(DomainText.tr(context, AnalysisCatalog.METHODS_TEXT))
+                    .setPositiveButton(context.getString(R.string.action_close), null).create()).show()
                 AnalysisCatalog.Route.NONE -> Unit
             }
         }
