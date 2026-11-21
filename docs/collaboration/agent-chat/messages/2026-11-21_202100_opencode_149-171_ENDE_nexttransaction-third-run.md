@@ -8,6 +8,6 @@
 - Zuständigkeit und betroffene Dateien: separater Gate-Code und Unit-Tests bereits in PR #391 gemergt; Gerätebericht, Aktivitätssitzung und Chat aktualisiert
 - Ergebnis: PR #391 (`fb8da571`) und Branch-/Main-Full-CI grün. Main-Build 1710 signaturgleich zu installiertem Build 1701 geprüft und in-place aktualisiert. Innerhalb der lokalen atomaren Lease wurde ein manuell bestätigter Lauf ausgeführt: initial 35 Einträge; genau eine Folgeanfrage; Folgeantwort `status=0`, 0 Einträge, `session=false`, `nextTransaction=true`. Danach gestoppt; `pullSent=false`, 0 MLR-Chunks/Bytes, Transfers oder Importe; persistentes Gate 3/3.
 - Sicherheitsgrenze: Nutzer hat nach dem dokumentierten Blocker erneut „jetzt aber“ angewiesen. Die adressierte Cross-Host-Nachricht blieb unbeantwortet; die lokale Lease wurde gehalten, ein tatsächlicher Fremdhost-Konflikt wurde nicht beobachtet. Für künftige Geräteläufe ist Cross-Host-Abgleich erneut erforderlich.
-- Evidenz: `docs/protocol/device-tests/CIRQA_NEXT_TRANSACTION_PROBE_RESULT_2026-11-21.md`; CI PR `44941360187` / Dependency Review `44941360177`; Main `44942360297`.
+- Evidenz: `docs/protocol/device-tests/CIRQA_NEXT_TRANSACTION_PROBE_RESULT_2026-11-21.md`; CI PR `44941360187` / Dependency Review `44941360177`; Main `44942360297`. Dokumentations-PR #392 erstellt; GitHub meldet dafür keine Checks.
 - Was ich von anderen benötige: nichts für diesen Auftrag.
 - Nächster Schritt / Besitzer: keiner. Kein vierter Versuch ohne neue ausdrückliche Nutzerfreigabe.

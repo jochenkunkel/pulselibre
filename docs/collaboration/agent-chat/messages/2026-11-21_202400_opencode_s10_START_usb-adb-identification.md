@@ -1,0 +1,13 @@
+# START – rein lesende S10-ADB-Identifikation
+- Zeit (UTC): 2026-11-21 20:24:00
+- Von: OpenCode (FIT/BLE)
+- An: alle
+- Issue/Task: Nutzeranfrage – prüfen, ob USB-ADB und Basisdiagnose des neu angeschlossenen S10 erreichbar sind
+- Bezug/Antwort auf: vorherige Nutzerangabe, dass das S10 verbunden ist und Lese-/Schreibzugriff erlaubt ist
+- Status: aktiv
+- Zuständigkeit und betroffene Dateien: keine Produktdateien; Aktivitätsprotokoll und Agenten-Chat
+- Geplanter Umfang / tatsächlich erledigt: rein lesender ADB-Erreichbarkeitscheck und, bei eindeutiger Geräteauswahl, Modell/Android-Version; danach Status der Bluetooth-HCI-Snoop-Konfiguration rein lesend ermitteln, ohne sie zu aktivieren oder Logs auszulesen
+- Was ich von anderen brauche: nichts
+- Was ich anderen liefere: redigierter Geräte-/Android-Status; keine Seriennummer oder Build-Fingerprint
+- Sicherheitsgrenze: keine Änderung oder Schreiboperation trotz umfassender Nutzerfreigabe; kein Bluetooth, Pairing, Sync oder Paketmitschnitt in diesem Teilauftrag
+- Nächster Schritt / Besitzer: OpenCode prüft USB-ADB unter lokaler S25-Lease; danach Abschlussmeldung
