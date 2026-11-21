@@ -637,4 +637,88 @@
     <string name="ex_rec_stop_failed">Recording could not be stopped; database remained unchanged.</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="ex_rec_still">Recording is still running; database remained unchanged.</string>
+    <!-- Gerät: Verbindungsstatus, Akku, Empfang (#365) -->
+    <string name="dur_s">%1$d s</string>
+    <string name="dur_min">%1$d min</string>
+    <string name="dur_h">%1$d h</string>
+    <string name="dur_h_min">%1$d h %2$d min</string>
+    <string name="dur_ago">%1$s ago</string>
+    <string name="dur_ago_day">1 day ago</string>
+    <string name="dur_ago_days">%1$d days ago</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="gatt_connected">Android GATT: connected (app unknown)</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="gatt_connecting">Android GATT: connecting</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="gatt_disconnecting">Android GATT: disconnecting</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="gatt_disconnected">Android GATT: not connected</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="gatt_permission">Android GATT: permission missing</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="gatt_not_paired">No paired CIRQA</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="gatt_unknown">Android GATT: unknown</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="link_bt_permission">Bluetooth permission missing</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="link_receiving">Connected · last reading %1$s ago</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="link_waiting">Connected · waiting for readings</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="link_gatt_recorder_off">GATT connected (recording off)</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="link_reconnecting">Recording running · connection interrupted, reconnecting</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="link_reconnecting_last">Recording running · connection interrupted, reconnecting · last reading %1$s ago</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="link_none">No connection · recording off</string>
+    <string name="link_outline_green">green outline</string>
+    <string name="link_outline_black">black outline</string>
+    <string name="link_status_cd">CIRQA connection status: %1$s. %2$s. Open settings.</string>
+    <string name="bat_value">%1$d %%</string>
+    <string name="bat_value_charging">%1$d %% · charging</string>
+    <string name="bat_fresh">As of: %1$s</string>
+    <string name="bat_stale">Outdated · last known state %1$s</string>
+    <string name="bat_time_unknown">Time unknown · last known state</string>
+    <string name="bat_cd">Battery: %1$d percent. %2$s</string>
+    <string name="bat_cd_charging">Battery: %1$d percent, charging. %2$s</string>
+    <string name="dev_src_pulse">Heart rate</string>
+    <string name="dev_src_oxygen">SpO₂</string>
+    <string name="dev_src_steps">Steps</string>
+    <string name="dev_src_stress">Stress</string>
+    <string name="dev_src_battery">Body Battery</string>
+    <string name="dev_src_rr">RR interval</string>
+    <string name="dev_src_breath">Breathing</string>
+    <string name="dev_src_calories">Calories</string>
+    <string name="dev_src_intensity">Intensity</string>
+    <string name="dev_no_reception">no reception</string>
+    <string name="dev_hero_reading">Reading status …</string>
+    <string name="dev_hero_connected">Connected</string>
+    <string name="dev_hero_reconnecting">Reconnecting</string>
+    <string name="dev_hero_not_paired">Not paired</string>
+    <string name="dev_hero_not_connected">Not connected</string>
+    <string name="dev_hero_cd_connected">CIRQA connected. %1$s</string>
+    <string name="dev_hero_cd_not_connected">CIRQA not connected. %1$s</string>
+    <string name="dev_chip_reception">Reception · 1 h</string>
+    <string name="dev_chip_readings">%1$s readings</string>
+    <string name="dev_chip_storage">Storage</string>
+    <string name="dev_chip_entries">%1$s entries\n%2$s</string>
+    <string name="dev_chip_sessions">Sessions today</string>
+    <string name="dev_chip_sessions_value">%1$d starts\n%2$d reconnections</string>
+    <string name="dev_chip_since">Recording since</string>
+    <string name="dev_pair_cd">%1$s: %2$s</string>
+    <string name="dev_reception_title">Last reception per measurement</string>
+    <string name="dev_being_read">being read</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="dev_meta_title">Band information</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="dev_meta_note">Device values are shown only with a confirmed source and a current timestamp.</string>
+    <string name="dev_meta_battery">Battery</string>
+    <string name="dev_meta_firmware">Firmware</string>
+    <string name="dev_meta_clock">Band clock</string>
+    <string name="dev_meta_identity">Model / serial number</string>
+    <string name="dev_unavailable">Not available</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="dev_unavailable_cd">%1$s: not available; no confirmed device value yet</string>
 </resources>

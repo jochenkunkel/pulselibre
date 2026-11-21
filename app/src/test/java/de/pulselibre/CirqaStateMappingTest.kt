@@ -13,12 +13,12 @@ class CirqaStateMappingTest {
     }
 
     @Test fun connectedDoesNotClaimGarminOwnership() {
-        val label = CirqaStateMapping.label(CirqaConnectionHistory.State.CONNECTED)
+        val label = CirqaStateMapping.label(GermanStrings, CirqaConnectionHistory.State.CONNECTED)
         assertTrue(label.contains("App unbekannt"))
         assertFalse(label.contains("Garmin Connect"))
     }
 
     @Test fun deniedPermissionCannotBeReportedAsConnected() {
-        assertTrue(CirqaStateMapping.label(CirqaConnectionHistory.State.PERMISSION_DENIED).contains("Berechtigung fehlt"))
+        assertTrue(CirqaStateMapping.label(GermanStrings, CirqaConnectionHistory.State.PERMISSION_DENIED).contains("Berechtigung fehlt"))
     }
 }

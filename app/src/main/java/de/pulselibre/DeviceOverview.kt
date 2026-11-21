@@ -16,29 +16,31 @@ internal data class DeviceStats(
     val firstReading: Instant?
 )
 
-internal enum class DeviceSource(val title: String, val icon: PlIcon, val service: Int) {
-    PULSE("Herzfrequenz", PlIcon.HEART, 6), OXYGEN("SpO₂", PlIcon.OXYGEN, 19), STEPS("Schritte", PlIcon.STEPS, 7), STRESS("Stress", PlIcon.STRESS, 13),
-    BATTERY("Body Battery", PlIcon.BODY_BATTERY, 20), RR("RR-Intervall", PlIcon.RR_INTERVAL, 12), BREATH("Atmung", PlIcon.BREATHING, 21),
-    CALORIES("Kalorien", PlIcon.CALORIES, 8), INTENSITY("Intensität", PlIcon.INTENSITY, 10)
+internal enum class DeviceSource(val titleRes: Int, val icon: PlIcon, val service: Int) {
+    PULSE(R.string.dev_src_pulse, PlIcon.HEART, 6), OXYGEN(R.string.dev_src_oxygen, PlIcon.OXYGEN, 19), STEPS(R.string.dev_src_steps, PlIcon.STEPS, 7),
+    STRESS(R.string.dev_src_stress, PlIcon.STRESS, 13), BATTERY(R.string.dev_src_battery, PlIcon.BODY_BATTERY, 20), RR(R.string.dev_src_rr, PlIcon.RR_INTERVAL, 12),
+    BREATH(R.string.dev_src_breath, PlIcon.BREATHING, 21), CALORIES(R.string.dev_src_calories, PlIcon.CALORIES, 8),
+    INTENSITY(R.string.dev_src_intensity, PlIcon.INTENSITY, 10)
 }
 
 internal object DeviceFormat {
-    fun age(last: Instant?, now: Instant): String {
-        if (last == null || last.isAfter(now)) return "kein Empfang"
+    fun age(strings: Strings, last: Instant?, now: Instant): String {
+        if (last == null || last.isAfter(now)) return strings.get(R.string.dev_no_reception)
         val s = Duration.between(last, now).seconds
         return when {
-            s < 60 -> "vor $s s"
-            s < 3600 -> "vor ${s / 60} min"
-            s < 86_400 -> "vor ${s / 3600} h ${(s % 3600) / 60} min"
-            else -> "vor ${s / 86_400} Tagen"
+            s < 60 -> strings.get(R.string.dur_ago, strings.get(R.string.dur_s, s))
+            s < 3600 -> strings.get(R.string.dur_ago, strings.get(R.string.dur_min, s / 60))
+            s < 86_400 -> strings.get(R.string.dur_ago, strings.get(R.string.dur_h_min, s / 3600, (s % 3600) / 60))
+            s < 2 * 86_400 -> strings.get(R.string.dur_ago_day)
+            else -> strings.get(R.string.dur_ago_days, s / 86_400)
         }
     }
-    fun bytes(b: Long): String = when {
-        b >= 1_048_576 -> String.format(java.util.Locale.GERMANY, "%.1f MB", b / 1_048_576.0)
-        b >= 1024 -> String.format(java.util.Locale.GERMANY, "%d KB", b / 1024)
+    fun bytes(b: Long, locale: java.util.Locale): String = when {
+        b >= 1_048_576 -> String.format(locale, "%.1f MB", b / 1_048_576.0)
+        b >= 1024 -> String.format(locale, "%d KB", b / 1024)
         else -> "$b B"
     }
-    fun count(n: Long): String = java.text.NumberFormat.getIntegerInstance(java.util.Locale.GERMANY).format(n)
+    fun count(n: Long, locale: java.util.Locale): String = java.text.NumberFormat.getIntegerInstance(locale).format(n)
 }
 
 internal class DeviceStatsReader(private val context: Context) {

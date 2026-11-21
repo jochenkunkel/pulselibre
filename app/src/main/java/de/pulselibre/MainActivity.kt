@@ -172,7 +172,7 @@ class MainActivity : AppCompatActivity() {
     private val diagnosticRows = mutableMapOf<String, String>()
     private var cirqaBondAddress: String? = null
     private var cirqaScanMatch = false
-    private var cirqaGattState = "Nicht abgefragt"
+    private var cirqaGattState = ""
     private val cirqaConnectionHistory = CirqaConnectionHistory()
     private var lastScanDiagnostic = "Noch kein Scan gestartet."
 
@@ -263,7 +263,7 @@ class MainActivity : AppCompatActivity() {
             setOnClickListener {
                 androidx.appcompat.app.AlertDialog.Builder(this@MainActivity)
                     .setTitle(R.string.main_link_title)
-                    .setMessage(CirqaLinkStatus.contentDescription(cirqaLink))
+                    .setMessage(CirqaLinkStatus.contentDescription(Strings.of(this@MainActivity), cirqaLink))
                     .setPositiveButton(R.string.action_close, null)
                     .show()
             }
@@ -290,7 +290,7 @@ class MainActivity : AppCompatActivity() {
                 }
             }
             avatarButton.contentDescription = getString(R.string.main_open_settings)
-            linkInfoButton.contentDescription = getString(R.string.main_link_details_cd, CirqaLinkStatus.contentDescription(link))
+            linkInfoButton.contentDescription = getString(R.string.main_link_details_cd, CirqaLinkStatus.contentDescription(Strings.of(this), link))
             if (link.online == lastHeaderStatus?.online) { lastHeaderStatus = link; return }
             lastHeaderStatus = link
             linkInfoButton.background = GradientDrawable().apply {
@@ -1079,10 +1079,10 @@ class MainActivity : AppCompatActivity() {
         } catch (_: IllegalArgumentException) {
             CirqaConnectionHistory.State.UNKNOWN
         }
-        cirqaGattState = CirqaStateMapping.label(state)
+        cirqaGattState = CirqaStateMapping.label(Strings.of(this), state)
         val prefs = getSharedPreferences(CirqaContinuousRecordingService.PREFS, MODE_PRIVATE)
         val link = CirqaLinkStatus.evaluate(
-            RecorderStatus.isRunning(prefs), state,
+            Strings.of(this), RecorderStatus.isRunning(prefs), state,
             prefs.getLong(CirqaContinuousRecordingService.KEY_LAST_READING_MS, -1L).takeIf { it >= 0 },
             System.currentTimeMillis()
         )

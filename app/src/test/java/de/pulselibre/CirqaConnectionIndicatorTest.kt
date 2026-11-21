@@ -12,9 +12,9 @@ class CirqaConnectionIndicatorTest {
     }
 
     @Test fun accessibleLabelsDistinguishTransitionsAndUnknownOwnership() {
-        assertTrue(CirqaConnectionIndicator.contentDescription(State.CONNECTED).contains("App unbekannt"))
-        assertTrue(CirqaConnectionIndicator.contentDescription(State.CONNECTING).contains("GATT: verbindet"))
-        assertTrue(CirqaConnectionIndicator.contentDescription(State.DISCONNECTING).contains("GATT: trennt"))
-        assertTrue(CirqaConnectionIndicator.contentDescription(State.PERMISSION_DENIED).contains("Berechtigung fehlt"))
+        assertTrue(CirqaConnectionIndicator.contentDescription(GermanStrings, State.CONNECTED).contains("App unbekannt"))
+        assertTrue(CirqaConnectionIndicator.contentDescription(GermanStrings, State.CONNECTING).contains("GATT: verbindet"))
+        assertTrue(CirqaConnectionIndicator.contentDescription(GermanStrings, State.DISCONNECTING).contains("GATT: trennt"))
+        assertTrue(CirqaConnectionIndicator.contentDescription(GermanStrings, State.PERMISSION_DENIED).contains("Berechtigung fehlt"))
     }
 }

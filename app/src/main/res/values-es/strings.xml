@@ -645,4 +645,89 @@
     <string name="ex_rec_stop_failed">No se pudo detener la grabación; la base de datos permaneció sin cambios.</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="ex_rec_still">La grabación sigue en curso; la base de datos permaneció sin cambios.</string>
+    <!-- TODO-CHATGPT-REVIEW: Erstentwurf von Claude Code, Ticket #365 -->
+    <!-- Gerät: Verbindungsstatus, Akku, Empfang (#365) -->
+    <string name="dur_s">%1$d s</string>
+    <string name="dur_min">%1$d min</string>
+    <string name="dur_h">%1$d h</string>
+    <string name="dur_h_min">%1$d h %2$d min</string>
+    <string name="dur_ago">hace %1$s</string>
+    <string name="dur_ago_day">hace 1 día</string>
+    <string name="dur_ago_days">hace %1$d días</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="gatt_connected">Android GATT: conectado (app desconocida)</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="gatt_connecting">Android GATT: conectando</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="gatt_disconnecting">Android GATT: desconectando</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="gatt_disconnected">Android GATT: no conectado</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="gatt_permission">Android GATT: falta el permiso</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="gatt_not_paired">Ningún CIRQA emparejado</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="gatt_unknown">Android GATT: desconocido</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="link_bt_permission">Falta el permiso de Bluetooth</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="link_receiving">Conectado · última medición hace %1$s</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="link_waiting">Conectado · esperando mediciones</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="link_gatt_recorder_off">GATT conectado (grabación desactivada)</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="link_reconnecting">Grabación en curso · conexión interrumpida, reconectando</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="link_reconnecting_last">Grabación en curso · conexión interrumpida, reconectando · última medición hace %1$s</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="link_none">Sin conexión · grabación desactivada</string>
+    <string name="link_outline_green">borde verde</string>
+    <string name="link_outline_black">borde negro</string>
+    <string name="link_status_cd">Estado de la conexión CIRQA: %1$s. %2$s. Abrir los ajustes.</string>
+    <string name="bat_value">%1$d %%</string>
+    <string name="bat_value_charging">%1$d %% · cargando</string>
+    <string name="bat_fresh">Estado: %1$s</string>
+    <string name="bat_stale">Obsoleto · último estado conocido %1$s</string>
+    <string name="bat_time_unknown">Hora desconocida · último estado conocido</string>
+    <string name="bat_cd">Batería: %1$d por ciento. %2$s</string>
+    <string name="bat_cd_charging">Batería: %1$d por ciento, cargando. %2$s</string>
+    <string name="dev_src_pulse">Frecuencia cardíaca</string>
+    <string name="dev_src_oxygen">SpO₂</string>
+    <string name="dev_src_steps">Pasos</string>
+    <string name="dev_src_stress">Estrés</string>
+    <string name="dev_src_battery">Body Battery</string>
+    <string name="dev_src_rr">Intervalo RR</string>
+    <string name="dev_src_breath">Respiración</string>
+    <string name="dev_src_calories">Calorías</string>
+    <string name="dev_src_intensity">Intensidad</string>
+    <string name="dev_no_reception">sin recepción</string>
+    <string name="dev_hero_reading">Leyendo el estado …</string>
+    <string name="dev_hero_connected">Conectado</string>
+    <string name="dev_hero_reconnecting">Reconectando</string>
+    <string name="dev_hero_not_paired">No emparejado</string>
+    <string name="dev_hero_not_connected">No conectado</string>
+    <string name="dev_hero_cd_connected">CIRQA conectado. %1$s</string>
+    <string name="dev_hero_cd_not_connected">CIRQA no conectado. %1$s</string>
+    <string name="dev_chip_reception">Recepción · 1 h</string>
+    <string name="dev_chip_readings">%1$s mediciones</string>
+    <string name="dev_chip_storage">Almacenamiento</string>
+    <string name="dev_chip_entries">%1$s entradas\n%2$s</string>
+    <string name="dev_chip_sessions">Sesiones de hoy</string>
+    <string name="dev_chip_sessions_value">%1$d inicios\n%2$d reconexiones</string>
+    <string name="dev_chip_since">Grabación desde</string>
+    <string name="dev_pair_cd">%1$s: %2$s</string>
+    <string name="dev_reception_title">Última recepción por medición</string>
+    <string name="dev_being_read">leyendo</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="dev_meta_title">Información de la pulsera</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="dev_meta_note">Los valores del dispositivo solo se muestran con una fuente confirmada y una marca de tiempo actual.</string>
+    <string name="dev_meta_battery">Batería</string>
+    <string name="dev_meta_firmware">Firmware</string>
+    <string name="dev_meta_clock">Hora de la pulsera</string>
+    <string name="dev_meta_identity">Modelo / número de serie</string>
+    <string name="dev_unavailable">No disponible</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="dev_unavailable_cd">%1$s: no disponible; aún no hay ningún valor confirmado del dispositivo</string>
 </resources>
