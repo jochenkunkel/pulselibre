@@ -18,7 +18,7 @@ import org.junit.runner.RunWith
 /** #204 phase B: hint is hidden without data, shows the headline with data and opens a read-only list. */
 @RunWith(AndroidJUnit4::class)
 class UnknownFieldsViewTest {
-    private val context = ApplicationProvider.getApplicationContext<Context>()
+    private val context = AppLanguageSettings.wrap(ApplicationProvider.getApplicationContext<Context>())
     private fun all(v: View): List<View> =
         listOf(v) + ((v as? ViewGroup)?.let { g -> (0 until g.childCount).flatMap { all(g.getChildAt(it)) } } ?: emptyList())
 
