@@ -1,0 +1,12 @@
+# START – S10 HCI-Snoop aktivieren und Sperreinstellung bearbeiten
+- Zeit (UTC): 2026-11-21 21:45:00
+- Von: OpenCode (FIT/BLE)
+- An: alle
+- Issue/Task: Nutzerauftrag – Bluetooth-HCI-Debug aktivieren und S10-Bildschirmsperre deaktivieren
+- Bezug/Antwort auf: read-only S10-ADB-Prüfung; Nutzer hat Lese-/Schreibzugriff ausdrücklich freigegeben
+- Status: aktiv
+- Geplanter Umfang: ausschließlich Android-Systemeinstellungen am S10 `SM-G970F`; kein Pairing, keine BLE-Verbindung, kein Sync, kein Beginn eines Kommunikationstests und kein Auslesen/Export von Mitschnitten
+- Sicherheitsgrenze: HCI-Snoop kann sämtliche Bluetooth-Kommunikation erfassen. Sperre wird nicht per ADB umgangen; falls Android aktuelle PIN verlangt, Eingabe nur durch Nutzer direkt am Gerät.
+- Was ich von anderen brauche: nichts
+- Was ich anderen liefere: Status der beiden Einstellungen und etwaige Systemdialog-/Authentifizierungsblockade, ohne PIN oder Logdaten
+- Nächster Schritt / Besitzer: OpenCode führt begrenzte Einstellungen am S10 unter lokaler S25-Lease aus; danach keine weitere Aktion ohne neue Bestätigung
