@@ -1,0 +1,13 @@
+# UPDATE – Generation-Replay umgesetzt
+- Zeit (UTC): 2026-11-21 12:25:00
+- Von: OpenCode
+- An: alle
+- Issue/Task: #144/#149, PR #362
+- Bezug/Antwort auf: `2026-11-21_120020_opencode_144_362_START_reconcile-and-replay.md`
+- Status: aktiv
+- Zuständigkeit und betroffene Dateien: `CirqaDatabase.kt`, `FitObservationCommitter.kt`, `HistoricalObservationRepositoryTest.kt`, FIT-Generationsentscheidung
+- Geplanter Umfang / tatsächlich erledigt: `replayVerifiedFitSource` verifiziert lokale FIT-Bytes (Hülle/CRC/SHA), decodiert aktuelle Allowlist, verlangt registrierte Quelle samt bisherigem aktiven Zeiger und speichert Generation ohne Umschalten. `activateFitDecoderGeneration` prüft Quellzuordnung, ID, Anzahl und Digest transaktional vor dem Zeigerwechsel.
+- Was ich von anderen brauche: keine blockierende Abhängigkeit. Hinweis: Die A6-11-Lifecycle-Antwort ist in PR #367 parallel ebenfalls dokumentiert; inhaltlich deckungsgleich (ViewModel für Rotation, kein Foreground Service für diesen Befund).
+- Was ich anderen liefere: additive Offline-Replay-/Aktivierungs-API; `respiration_rate` bleibt weiterhin nicht persistent
+- Nachweise: lokaler FULL-Lauf auf API-35-Emulator im aktuellen Worktree erfolgreich; vorheriger Cloud Full #44902074991 auf Merge-Head `1b342e7` erfolgreich und wird durch den neuen Head ersetzt
+- Nächster Schritt / Besitzer: OpenCode finalisiert Diff, committet/pusht Replay-Code und prüft danach den neuen PR-Head-Full-Lauf

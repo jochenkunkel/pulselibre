@@ -91,8 +91,8 @@ Schema v7 migriert Altbestand und speichert neue kanonische Imports als
 unveränderliche Generation. Identischer Replay derselben Identität ist
 idempotent; abweichender Inhalt unter derselben Identität ist ein Konflikt.
 Die erste Generation einer Quelle wird aktiv. Ein späterer Decoderstand ersetzt
-den vorhandenen Aktivzeiger nicht automatisch. Ein eigener expliziter
-Replay-/Aktivierungspfad für abweichende Decoder-Versionen ist noch offen.
+den vorhandenen Aktivzeiger nicht automatisch. Der Feature-Branch ergänzt
+einen expliziten Replay-/Aktivierungspfad, der diese Invariante erhält.
 
 Die bisherige `observations`/`fit_observation_provenance`-Kombination bleibt
 bei der Migration unangetastet. Für vorhandene Quellen wird je Quelle eine
@@ -111,7 +111,30 @@ Fremdschlüssel und Digest vor dem Schreiben und erhält Restore v1–v6.
 FIT-Originalbytes bleiben weiterhin außerhalb des DB-Backups. Es gibt somit
 keine neue Cross-Store-Aktivierung: ein v7-Backup ist der konsistente Snapshot
 der kanonischen Datenbankgenerationen. Im lokalen Feature-Branch implementiert;
-Instrumentationsausführung und vollständiger CI-Nachweis stehen noch aus.
+der Generationen-/Backupstand selbst besteht Cloud Full #44902074991 auf
+Merge-Head `1b342e7` einschließlich API-35-Emulator.
+
+### Expliziter Replay-/Aktivierungspfad (Feature-Branch)
+
+`CirqaDatabase.replayVerifiedFitSource` nimmt lokal aufbewahrte FIT-Bytes an,
+prüft FIT-Hülle und CRC, berechnet den tatsächlichen SHA-256, decodiert mit dem
+aktuellen allowlist-basierten Decoder und verlangt eine bereits kanonisch
+registrierte Quelle mit aktivierter Ausgangsgeneration. Das Ergebnis wird als
+unveränderliche Generation gespeichert; Aktivzeiger, `fit_sources`, Legacy-
+Beobachtungen und Sync-Cursor bleiben unberührt. Identischer Replay ist
+idempotent, abweichender Output unter derselben Identität bricht ab.
+
+`activateFitDecoderGeneration` ist der explizite Umschaltpunkt: In einer
+Transaktion werden Quellenzugehörigkeit, Generation-ID, Output-Anzahl und
+vollständiger Digest geprüft, bevor der Aktivzeiger geändert wird. Abgelehnte
+Aktivierung lässt den bisherigen Zeiger unverändert.
+
+Ein API-35-Instrumentationstest deckt Inaktivität bis zur expliziten Aktivierung,
+idempotenten Replay, Cross-Source-Ablehnung und Zurückweisung korrupter FIT-Bytes
+ab. Auf dem Feature-Branch ist am 2026-11-21 der lokale FULL-Lauf einschließlich
+Emulator erfolgreich. Cloud Full #44902074991 deckt den synchronisierten
+Schema-/Backup-Branch-Head `1b342e7` ab; nach Aufnahme des Replay-Codes ist ein
+neuer PR-Head-Full-Lauf erforderlich. Keine Geräte-/BLE-Aktion.
 
 ### Reihenfolge
 
@@ -119,8 +142,9 @@ Instrumentationsausführung und vollständiger CI-Nachweis stehen noch aus.
    Feature-Branch prüfen; Unit- und Instrumentationstests ergänzen.
 2. Mit vollständigem PR-CI inklusive Emulator Migration, Backup-Roundtrip und
    Restore v1–v7 nachweisen.
-3. Danach den expliziten Replay-/Aktivierungspfad implementieren und separat
-   testen. Kein automatischer Austausch einer bereits aktiven Generation.
+3. Replay-/Aktivierungspfad auf dem aktualisierten PR-Head vollständig per CI
+   einschließlich Emulator nachweisen. Kein automatischer Austausch einer
+   bereits aktiven Generation.
 4. Erst nach abgesichertem Generationen-/Backupmodell `respiration_rate`
    einzeln für persistente Imports prüfen.
 

@@ -279,10 +279,10 @@ internal object FitObservationCommitter {
 
     /**
      * Store the exact canonical decoder output as an immutable generation.
-     * The first complete generation becomes active; later versions remain
-     * inactive until an explicit replay/activation operation is added.
+     * The first complete generation becomes active; later replay generations
+     * remain inactive until a caller explicitly activates a validated output.
      */
-    private fun persistDecoderGeneration(
+    internal fun persistDecoderGeneration(
         db: SQLiteDatabase,
         sourceSha256: String,
         decoderVersion: String,
