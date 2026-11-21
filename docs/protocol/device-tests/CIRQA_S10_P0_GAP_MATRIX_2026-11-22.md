@@ -1,0 +1,21 @@
+# P0-Gap-Matrix: S10-HCI → PulsLibre-Code (2026-11-22)
+
+- Analyst: FIT-/OpenCode-Agent
+- Grundlage: PR #404 (`9114745`), drei S10-HCI-Mitschnitte + reiner Garmin-Connect-Sync, offline und redaktiert
+- allein öffentlich: Strukturmetadaten, Zählungen, Protokollcodes — keine Tokens, UIDs, Gerätekennungen, Roh-Payloads oder Gesundheitswerte
+
+| # | Beobachtung (belegt) | Aktueller Codepfad | Fehlerursache / Hypothese | Korrektur | Regressionstest |
+|---:|---|---|---|---|---|
+| 1 | Garmin Connect fragt nach einer befüllten Item-List-Seite eine leere Wiederholung mit dem alten Token und **drei weitere leere Seiten mit unverändertem `next_transaction_id`** ab (`items=1/0/0/0/0`, `status=0`; Request-Token `alt, alt, neu, neu, neu`). | `CirqaMlHandshakeProbe.requestNextSyncItemListPage()` → `CirqaItemListContinuationPolicy` (vorher `maxTransactionFollowups=1`). | Produktpfad stoppte nach der ersten leeren Folge und konnte Einträge auf späteren Transaktionsseiten übersehen. | Gebundene Folie auf 3 angehoben (`CONNECT_OBSERVED_TRANSACTION_FOLLOWUPS`), fail-closed-Stopp und `coverage=device-history-unverified` unverändert; alte-Token-Wiederholung wegen unbekannter Semantik nicht nachgebildet. | `CirqaItemListContinuationPolicyTest.replayObservedConnectPagePatternDrainsAllBoundedFollowups` + angepasste Grenztests. |
+| 2 | `item_list_response` trägt `status=0` **explizit auf dem Draht**; bei Auslassung durch einen proto3-konformen Client fehlt das Feld. | `CirqaFileAccessItemListParser.parsePage()` → `status`; `CirqaItemListProgress.next()` → `FAILED` bei `null`. | Bewusstes Fail-Closed-Verhalten, kein Fehler. Der Offline-Fixture muss das explizite Zero senden, sonst testet er einen anderen Client. | Fixture-Builder sendet `varintField(1, 0)`; Produktcode unverändert. | Neuer Replay-Test schlägt ohne explizites Statusfeld fehl (während der Entwicklung nachgewiesen). |
+| 3 | Vollständige Mitschnitte enthalten Protobuf-Pulls: `5043`/Service 1 (`pull_item_request`) und `5044`/Service 2 (`pull_item_response`), `resultCode=0` in allen ausgewerteten Responses. | `CirqaFileAccessPullRequest` / `CirqaFileAccessItemListParser.parsePullResult()` — Felder 1/2/3/7. | Keine Codeabweichung erkennbar; die ältere Aussage „kein Transfer im HCI" war zu eng (nur Legacy-Typen geprüft). | Keine Produktänderung; Doku korrigiert. | Bestehende Parser-/Request-Tests unverändert grün. |
+| 4 | Keine `5002`/`5004`/`5011`/`5012`-Frames auf **irgendeinem** GFDI-Kanal (0–7), auch nicht im Gesamt-Log. | Separater Legacy-Pfad `CirqaMlHandshakeProbe.maybeSendLegacy5002AfterBootstrap()` wird vom Produkt-Download nicht genutzt. | Keine Abweichung; Legacy-Pfad ist bewusst getrennt. | Keine Änderung. Hardwaregrenze bleibt benannt. | Strukturauswertung `check_all_channels.py` (nur lokal). |
+| 5 | `item_list_request` von Garmin Connect enthält zusätzliche Felder 4/5/6 (Fixed64-/Varint-Nachrichten). | `CirqaFileAccessListRequest.smartRequest()` sendet nur Feld 1 (Session) **oder** 2 (Transaktion). | Semantik nicht belegt; eine Übernahme wäre spekulativ und ein aktiver Protokollversuch. | **Keine Codeänderung** — als offene Hypothese dokumentiert. | Kein Test; bewusst ausgelassen. |
+| 6 | Frühere Analyse ordnete die HCI-Richtungsbits vertauscht zu. | Nur Dokumentation (`CIRQA_S10_GARMIN_GFDI_SEQUENCE_2026-11-22.md`, `...PURE_SYNC_HCI...`). | Falsche Annahme über `flags & 1`; jetzt über ATT-Opcodes `0x52`/`0x1b` belegt. | Doku korrigiert, Device-Kennung redaktiert. | Kein Code-Test nötig; Strukturbeleg in der Doku. |
+
+## Ergebnis und verbleibende Grenze
+
+- Produktcode geändert: `CirqaItemListContinuationPolicy.kt`, `CirqaMlHandshakeProbe.kt` (nur Statusmeldungen).
+- Tests: `gradle :app:testDebugUnitTest :app:assembleDebug` grün; `python3 -m unittest discover -s tools -p 'test_*.py'` → 99 Tests, OK.
+- **Nicht erreicht:** ein vollständiger, bis zur FIT-Datei nachvollziehbarer historischer Transfer. Die Protobuf-Pulls enden mit `resultCode=0`, aber die FIT-Bytes sind in den HCI-Logs nicht als eigener Kanal rekonstruierbar; eine RFCOMM-/Classic-Seite wurde nicht mitgeschrieben. Ohne neue, gesondert freigegebene Gerätemitschrift ist das die präzise Hardware-/Evidenzgrenze.
+- `coverage=device-history-unverified` bleibt bewusst erhalten; aus leeren Folgeseiten wird nicht auf vollständige Historie geschlossen.
