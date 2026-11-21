@@ -459,7 +459,7 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
             }, LayoutParams(-1, dp(34)).apply { topMargin = dp(4) })
             // #334: band history (FIT) has its own line and sparkline; its clock is the band's measurement time.
             i.fit?.let { fit ->
-                val dayLabel = if (fit.date == java.time.LocalDate.now()) context.getString(R.string.ov_today_word) else fit.date.format(java.time.format.DateTimeFormatter.ofPattern("dd.MM."))
+                val dayLabel = if (fit.date == java.time.LocalDate.now()) context.getString(R.string.ov_today_word) else fit.date.format(java.time.format.DateTimeFormatter.ofPattern(context.shortDatePattern(false), context.displayLocale()))
                 val text = context.getString(R.string.ov_band_history, dayLabel, nf.format(fit.average, ""), nf.format(fit.min, ""), nf.format(fit.max, ""), unit, valuesText(fit.count))
                 box.addView(label(text, 11f, muted).apply { tag = "tile_fit_${metric.title}" },
                     LayoutParams(-1, -2).apply { topMargin = dp(if (i.count > 0) 8 else 0) })
@@ -731,7 +731,7 @@ private class ReceptionIndicatorView(
         val currentState = ReceptionFreshness.of(metric.receivedAt, now)
         val timestamp = metric.receivedAt
         val received = timestamp?.let {
-            val local = DateTimeFormatter.ofPattern("dd.MM.yyyy, HH:mm:ss z")
+            val local = DateTimeFormatter.ofPattern(android.text.format.DateFormat.getBestDateTimePattern(context.displayLocale(), "yMdHmsz"), context.displayLocale())
                 .withZone(ZoneId.systemDefault()).format(it)
             val seconds = Duration.between(it, now).seconds.coerceAtLeast(0)
             val age = when {
