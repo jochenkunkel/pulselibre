@@ -46,27 +46,19 @@ class ExportActivity : AppCompatActivity() {
         ActivityResultContracts.CreateDocument("application/zip")
     ) { uri ->
         if (uri == null) {
-            databaseFeedback.text = "Backup abgebrochen."
+            databaseFeedback.text = getString(R.string.ex_backup_cancelled)
         } else {
-            databaseFeedback.text = "Backup wird erstellt …"
+            databaseFeedback.text = getString(R.string.ex_backup_running)
             executor.execute {
                 try {
                     val output = contentResolver.openOutputStream(uri)
                         ?: error("Backup-Ziel kann nicht geöffnet werden")
                     val report = output.use { DatabaseBackup.write(this, it) }
                     runOnUiThread {
-                        databaseFeedback.text = "Backup gespeichert: ${report.events} Ereignisse, " +
-                            "${report.legacyReadings} historische Messwerte, " +
-                            "${report.fitSources} historische FIT-Quellen/${report.fitProvenance} Herkunftszeilen; " +
-                            "${report.canonicalReadings} kanonische Messwerte, " +
-                            "${report.canonicalFitSources} kanonische FIT-Quellen/" +
-                            "${report.canonicalFitProvenance} Herkunftszeilen und " +
-                            "${report.canonicalDeviceMetadata} FIT-Metadatenzeilen, " +
-                            "${report.rawDeviceMetadata} abgeleitete Raw-XML-Metadatenzeilen. " +
-                            "Originaldateien sind nicht enthalten; keine Pfade oder XML-IDs werden gespeichert."
+                        databaseFeedback.text = getString(R.string.ex_backup_done, report.events, report.legacyReadings, report.fitSources, report.fitProvenance, report.canonicalReadings, report.canonicalFitSources, report.canonicalFitProvenance, report.canonicalDeviceMetadata, report.rawDeviceMetadata)
                     }
                 } catch (_: Exception) {
-                    runOnUiThread { databaseFeedback.text = "Backup fehlgeschlagen. Bitte Speicherort prüfen; eine angelegte Zieldatei kann unvollständig sein und sollte gelöscht werden." }
+                    runOnUiThread { databaseFeedback.text = getString(R.string.ex_backup_failed) }
                 }
             }
         }
@@ -76,7 +68,7 @@ class ExportActivity : AppCompatActivity() {
         ActivityResultContracts.OpenDocument()
     ) { uri ->
         if (uri != null) {
-            databaseFeedback.text = "Backup wird geprüft …"
+            databaseFeedback.text = getString(R.string.ex_backup_checking)
             executor.execute {
                 try {
                     val input = contentResolver.openInputStream(uri)
@@ -86,7 +78,7 @@ class ExportActivity : AppCompatActivity() {
                         if (isFinishing || isDestroyed) plan.close() else confirmRestore(plan)
                     }
                 } catch (_: Exception) {
-                    runOnUiThread { databaseFeedback.text = "Backup ungültig oder nicht lesbar. Datenbank unverändert." }
+                    runOnUiThread { databaseFeedback.text = getString(R.string.ex_backup_invalid) }
                 }
             }
         }
@@ -97,21 +89,21 @@ class ExportActivity : AppCompatActivity() {
         ActivityResultContracts.CreateDocument("application/zip")
     ) { uri ->
         if (uri == null) {
-            databaseFeedback.text = "Export der FIT-Originale abgebrochen."
+            databaseFeedback.text = getString(R.string.ex_fit_cancelled)
         } else {
-            databaseFeedback.text = "FIT-Originale werden exportiert …"
+            databaseFeedback.text = getString(R.string.ex_fit_running)
             executor.execute {
                 try {
                     val output = contentResolver.openOutputStream(uri) ?: error("Ziel kann nicht geöffnet werden")
                     val result = output.use { FitOriginalsArchive.write(java.io.File(filesDir, "verified_fit"), it) }
                     runOnUiThread {
-                        databaseFeedback.text = "FIT-Originale gespeichert: ${result.files} Dateien" +
-                            (if (result.skipped > 0) ", ${result.skipped} wegen der Größengrenze übersprungen" else "") +
-                            ". Die ZIP-Datei ist unverschlüsselt."
+                        databaseFeedback.text = getString(R.string.ex_fit_done, result.files) +
+                            (if (result.skipped > 0) getString(R.string.ex_fit_skipped, result.skipped) else "") +
+                            getString(R.string.ex_zip_unencrypted)
                     }
                 } catch (_: Exception) {
                     runOnUiThread {
-                        databaseFeedback.text = "Export fehlgeschlagen. Bitte Speicherort prüfen; eine angelegte Zieldatei kann unvollständig sein und sollte gelöscht werden."
+                        databaseFeedback.text = getString(R.string.ex_export_failed)
                     }
                 }
             }
@@ -126,9 +118,9 @@ class ExportActivity : AppCompatActivity() {
         ActivityResultContracts.CreateDocument("application/zip")
     ) { uri ->
         if (uri == null) {
-            databaseFeedback.text = "Export der Rohdateien abgebrochen."
+            databaseFeedback.text = getString(R.string.ex_raw_cancelled)
         } else {
-            databaseFeedback.text = "Rohdateien werden exportiert …"
+            databaseFeedback.text = getString(R.string.ex_raw_running)
             executor.execute {
                 try {
                     val output = contentResolver.openOutputStream(uri) ?: error("Ziel kann nicht geöffnet werden")
@@ -136,13 +128,13 @@ class ExportActivity : AppCompatActivity() {
                         CirqaVerifiedRawArchive.write(java.io.File(filesDir, "verified_raw"), it)
                     }
                     runOnUiThread {
-                        databaseFeedback.text = "Rohdateien gespeichert: ${result.files} Dateien, ${result.bytes} Bytes" +
-                            (if (result.skipped > 0) ", ${result.skipped} übersprungen" else "") +
-                            ". Die ZIP-Datei ist unverschlüsselt; die Inhalte werden nicht automatisch dekodiert."
+                        databaseFeedback.text = getString(R.string.ex_raw_done, result.files, result.bytes) +
+                            (if (result.skipped > 0) getString(R.string.ex_raw_skipped, result.skipped) else "") +
+                            getString(R.string.ex_raw_tail)
                     }
                 } catch (_: Exception) {
                     runOnUiThread {
-                        databaseFeedback.text = "Export fehlgeschlagen. Bitte Speicherort prüfen; eine angelegte Zieldatei kann unvollständig sein und sollte gelöscht werden."
+                        databaseFeedback.text = getString(R.string.ex_export_failed)
                     }
                 }
             }
@@ -155,9 +147,9 @@ class ExportActivity : AppCompatActivity() {
         val window = pendingWindow
         pendingWindow = null
         if (uri == null || window == null) {
-            feedback.text = "Export abgebrochen."
+            feedback.text = getString(R.string.ex_csv_cancelled)
         } else {
-            feedback.text = "Export wird gespeichert …"
+            feedback.text = getString(R.string.ex_csv_running)
             executor.execute {
                 try {
                     val records = readUnifiedExport(window)
@@ -166,12 +158,12 @@ class ExportActivity : AppCompatActivity() {
                     stream.use { writeRawExport(it, records, window) }
                     runOnUiThread {
                         val unreadable = unreadableRows.get()
-                        feedback.text = "CSV gespeichert: ${records.size} Messungen. Enthält nur lokal verfügbare Daten." +
-                            (if (unreadable > 0) " $unreadable gespeicherte Zeilen waren nicht lesbar und wurden nicht exportiert." else "")
+                        feedback.text = getString(R.string.ex_csv_done, records.size) +
+                            (if (unreadable > 0) getString(R.string.ex_csv_unreadable, unreadable) else "")
                     }
                 } catch (error: Exception) {
                     runOnUiThread {
-                        feedback.text = "Export fehlgeschlagen. Bitte Speicherort prüfen und erneut versuchen; eine angelegte Zieldatei kann unvollständig sein und sollte gelöscht werden."
+                        feedback.text = getString(R.string.ex_csv_failed)
                     }
                 }
             }
@@ -221,18 +213,18 @@ class ExportActivity : AppCompatActivity() {
         headerRow.getChildAt(0).apply {
             isClickable = true
             isFocusable = true
-            contentDescription = "Zurück"
+            contentDescription = getString(R.string.ex_back)
             setOnClickListener { finish() }
         }
-        headerRow.addView(label("Daten", 22f, Color.WHITE, true),
+        headerRow.addView(label(getString(R.string.ex_title), 22f, Color.WHITE, true),
             LinearLayout.LayoutParams(0, -2, 1f))
         headerRow.addView(android.widget.ImageView(this).apply {
             setImageResource(R.drawable.ic_humerus_settings)
             scaleType = android.widget.ImageView.ScaleType.FIT_CENTER
-            contentDescription = "PulsLibre Armbruch-Symbol"
+            contentDescription = getString(R.string.ex_icon_cd)
         }, LinearLayout.LayoutParams(dp(38), dp(38)))
         header.addView(headerRow)
-        header.addView(label("Export · Backup · Wiederherstellung · lokal und offline", 12f, Color.WHITE))
+        header.addView(label(getString(R.string.ex_subtitle), 12f, Color.WHITE))
         screen.addView(header)
 
         val root = LinearLayout(this).apply {
@@ -250,7 +242,7 @@ class ExportActivity : AppCompatActivity() {
             background = rounded(palette.card)
         }
         root.addView(panel)
-        panel.addView(label("Zeitraum", 17f, ink, true),
+        panel.addView(label(getString(R.string.ex_period), 17f, ink, true),
             LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(12) })
         fun dateField(): TextView = label("", 14f, violet, true).apply {
             gravity = Gravity.CENTER_VERTICAL
@@ -285,21 +277,21 @@ class ExportActivity : AppCompatActivity() {
             row.addView(time, LinearLayout.LayoutParams(0, -2, 1f))
             return row
         }
-        panel.addView(intervalRow("Von", fromButton, fromTimeButton),
+        panel.addView(intervalRow(getString(R.string.ex_from), fromButton, fromTimeButton),
             LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(10) })
-        panel.addView(intervalRow("Bis", throughButton, throughTimeButton))
-        feedback = label("${zone.id} · Endminute inklusive", 11f, muted)
+        panel.addView(intervalRow(getString(R.string.ex_to), throughButton, throughTimeButton))
+        feedback = label(getString(R.string.ex_zone, zone.id), 11f, muted)
         panel.addView(feedback, LinearLayout.LayoutParams(-1, -2).apply {
             topMargin = dp(10)
             bottomMargin = dp(14)
         })
-        val exportButton = label("⬇  CSV exportieren", 16f, Color.WHITE, true).apply {
+        val exportButton = label(getString(R.string.ex_csv_button), 16f, Color.WHITE, true).apply {
             gravity = Gravity.CENTER
             minHeight = dp(54)
             background = rounded(palette.primary, 14)
             isClickable = true
             isFocusable = true
-            contentDescription = "Messwerte als CSV exportieren"
+            contentDescription = getString(R.string.ex_csv_cd)
             setOnClickListener {
                 try {
                     val start = from.atTime(fromTime).atZone(zone).toInstant().toEpochMilli()
@@ -308,12 +300,12 @@ class ExportActivity : AppCompatActivity() {
                     pendingWindow = ExportWindow(start, end)
                     createDocument.launch("pulselibre_${from}_${fromTime.toString().replace(':', '-')}_bis_${through}_${throughTime.toString().replace(':', '-')}.csv")
                 } catch (_: IllegalArgumentException) {
-                    feedback.text = "Ungültiger Zeitraum: Das Ende muss nach dem Beginn liegen."
+                    feedback.text = getString(R.string.ex_invalid_period)
                 }
             }
         }
         panel.addView(exportButton)
-        panel.addView(label("Nur auf deinem Gerät · Keine Cloud · Keine Anmeldung", 12f, muted).apply {
+        panel.addView(label(getString(R.string.ex_local_only), 12f, muted).apply {
             setCompoundDrawablesRelative(PlIcon.drawable(this@ExportActivity, PlIcon.STORAGE, 16, muted), null, null, null)
             compoundDrawablePadding = (8 * resources.displayMetrics.density).toInt()
         },
@@ -325,10 +317,9 @@ class ExportActivity : AppCompatActivity() {
             background = rounded(palette.card)
         }
         root.addView(dataPanel, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(12) })
-        dataPanel.addView(label("Lokale Datenbank", 17f, ink, true))
+        dataPanel.addView(label(getString(R.string.ex_db_title), 17f, ink, true))
         dataPanel.addView(label(
-            "Backup enthält CIRQA-Ereignisse, historische Messwerte und Synchronisationsstände. " +
-                "Die ZIP-Datei ist unverschlüsselt und enthält sensible Gesundheitsdaten.", 12f, muted
+            getString(R.string.ex_db_note), 12f, muted
         ), LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8); bottomMargin = dp(12) })
         fun databaseAction(title: String, description: String, background: Int, action: () -> Unit) =
             label(title, 15f, Color.WHITE, true).apply {
@@ -342,52 +333,47 @@ class ExportActivity : AppCompatActivity() {
                 setOnClickListener { action() }
             }
         dataPanel.addView(databaseAction(
-            "Backup erstellen", "Lokales Datenbankbackup erstellen", palette.primary
+            getString(R.string.ex_btn_backup), getString(R.string.ex_btn_backup_cd), palette.primary
         ) {
             createDatabaseBackup.launch("pulslibre_backup_${LocalDate.now()}.zip")
         })
         dataPanel.addView(databaseAction(
-            "FIT-Originale exportieren", "Rohe FIT-Originaldateien als ZIP exportieren", palette.accent
+            getString(R.string.ex_btn_fit), getString(R.string.ex_btn_fit_cd), palette.accent
         ) {
             AlertDialog.Builder(this)
-                .setTitle("FIT-Originale exportieren?")
-                .setMessage("Die ZIP-Datei enthält die rohen, geprüften FIT-Dateien deines Bands. Sie ist unverschlüsselt und " +
-                    "kann sensible Gesundheits- und Geräteinformationen enthalten. Es wird nichts verändert, gelöscht oder gesendet. " +
-                    "Speichere sie nur an einem Ort, dem du vertraust.")
-                .setNegativeButton("Abbrechen", null)
-                .setPositiveButton("Exportieren") { _, _ ->
+                .setTitle(getString(R.string.ex_fit_confirm_title))
+                .setMessage(getString(R.string.ex_fit_confirm_msg))
+                .setNegativeButton(getString(R.string.action_cancel), null)
+                .setPositiveButton(getString(R.string.ex_export_btn)) { _, _ ->
                     createFitOriginals.launch("pulselibre_fit_originale_${LocalDate.now()}.zip")
                 }
                 .show()
         }, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) })
         dataPanel.addView(databaseAction(
-            "Verifizierte Rohdateien exportieren",
-            "Opake, lokal gespeicherte CIRQA-Rohdateien als ZIP exportieren",
+            getString(R.string.ex_btn_raw),
+            getString(R.string.ex_btn_raw_cd),
             palette.accent
         ) {
             AlertDialog.Builder(this)
-                .setTitle("Rohdateien exportieren?")
+                .setTitle(getString(R.string.ex_raw_confirm_title))
                 .setMessage(
-                    "Das ZIP enthält unveränderte, verifizierte Rohdateien des Bands. " +
-                        "Es ist unverschlüsselt und kann sensible Gesundheits- und Geräteinformationen enthalten. " +
-                        "Die Dateien werden von PulseLibre nicht automatisch dekodiert. " +
-                        "Nichts wird verändert, gelöscht oder gesendet. Wähle einen vertrauenswürdigen Speicherort."
+                    getString(R.string.ex_raw_confirm_msg)
                 )
-                .setNegativeButton("Abbrechen", null)
-                .setPositiveButton("Exportieren") { _, _ ->
+                .setNegativeButton(getString(R.string.action_cancel), null)
+                .setPositiveButton(getString(R.string.ex_export_btn)) { _, _ ->
                     createVerifiedRawOriginals.launch("pulslibre_rohdateien_${LocalDate.now()}.zip")
                 }
                 .show()
         }, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) })
         dataPanel.addView(databaseAction(
-            "Backup wiederherstellen", "Datenbank aus einem Backup wiederherstellen", palette.accent
+            getString(R.string.ex_btn_restore), getString(R.string.ex_btn_restore_cd), palette.accent
         ) {
             restoreDatabaseBackup.launch(arrayOf("application/zip", "application/octet-stream"))
         }, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) })
         dataPanel.addView(databaseAction(
-            "Datenbank zurücksetzen", "Alle lokalen Datenbankeinträge löschen", Color.rgb(170, 52, 65)
+            getString(R.string.ex_btn_reset), getString(R.string.ex_btn_reset_cd), Color.rgb(170, 52, 65)
         ) { confirmReset() }, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) })
-        databaseFeedback = label("App-Einstellungen bleiben bei Wiederherstellung und Reset erhalten.", 12f, muted)
+        databaseFeedback = label(getString(R.string.ex_prefs_kept), 12f, muted)
         dataPanel.addView(databaseFeedback, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(10) })
         updateLabels()
         screen.addView(MainNavigationView(this, 4))
@@ -396,61 +382,51 @@ class ExportActivity : AppCompatActivity() {
 
     private fun confirmRestore(plan: PreparedDatabaseRestore) {
         AlertDialog.Builder(this)
-            .setTitle("Datenbank ersetzen?")
+            .setTitle(getString(R.string.ex_restore_title))
             .setMessage(
-                "Das Backup vom ${plan.createdAt} enthält ${plan.events} Ereignisse, " +
-                    "${plan.legacyReadings} historische Messwerte, ${plan.syncCursors} Synchronisationsstände, " +
-                    "${plan.fitSources} FIT-Quellen und ${plan.fitProvenance} FIT-Herkunftszeilen. " +
-                    "${plan.canonicalReadings} kanonische Messwerte und " +
-                    "${plan.canonicalFitSources} kanonische FIT-Quellen/" +
-                    "${plan.canonicalFitProvenance} Herkunftszeilen sowie " +
-                    "${plan.canonicalDeviceMetadata} FIT-Metadatenzeilen und " +
-                    "${plan.rawDeviceMetadata} abgeleitete Raw-XML-Metadatenzeilen. " +
-                    "Originaldateien sind nicht enthalten; Pfade und XML-IDs werden nicht gesichert.\n\n" +
-                    "Alle aktuell gespeicherten Datenbankeinträge werden ersetzt. " +
-                    "App-Einstellungen bleiben erhalten. Nur mit einem Backup aus vertrauenswürdiger Quelle fortfahren."
+                getString(R.string.ex_restore_msg, plan.createdAt, plan.events, plan.legacyReadings, plan.syncCursors, plan.fitSources, plan.fitProvenance,
+                    plan.canonicalReadings, plan.canonicalFitSources, plan.canonicalFitProvenance, plan.canonicalDeviceMetadata, plan.rawDeviceMetadata)
             )
-            .setNegativeButton("Abbrechen") { _, _ ->
+            .setNegativeButton(getString(R.string.action_cancel)) { _, _ ->
                 plan.close()
-                databaseFeedback.text = "Wiederherstellung abgebrochen."
+                databaseFeedback.text = getString(R.string.ex_restore_cancelled)
             }
-            .setPositiveButton("Ersetzen") { _, _ ->
+            .setPositiveButton(getString(R.string.ex_replace)) { _, _ ->
                 stopRecorderThen(onCancel = { plan.close() }) {
-                    databaseFeedback.text = "Datenbank wird wiederhergestellt …"
+                    databaseFeedback.text = getString(R.string.ex_restore_running)
                     executor.execute {
                         try {
                             DatabaseBackup.restore(this, plan); HistoryDataCache.invalidate()
-                            runOnUiThread { databaseFeedback.text = "Datenbank aus Backup wiederhergestellt." }
+                            runOnUiThread { databaseFeedback.text = getString(R.string.ex_restore_done) }
                         } catch (_: Exception) {
-                            runOnUiThread { databaseFeedback.text = "Wiederherstellung fehlgeschlagen. Bitte Datenbank prüfen." }
+                            runOnUiThread { databaseFeedback.text = getString(R.string.ex_restore_failed) }
                         } finally { plan.close() }
                     }
                 }
             }
             .setOnCancelListener {
                 plan.close()
-                databaseFeedback.text = "Wiederherstellung abgebrochen."
+                databaseFeedback.text = getString(R.string.ex_restore_cancelled)
             }
             .show()
     }
 
     private fun confirmReset() {
         AlertDialog.Builder(this)
-            .setTitle("Lokale Datenbank zurücksetzen?")
+            .setTitle(getString(R.string.ex_reset_title))
             .setMessage(
-                "Alle lokal gespeicherten CIRQA-Ereignisse, historischen Messwerte und Synchronisationsstände werden dauerhaft gelöscht. " +
-                    "App-Einstellungen bleiben erhalten. Diese Aktion kann nicht rückgängig gemacht werden."
+                getString(R.string.ex_reset_msg)
             )
-            .setNegativeButton("Abbrechen", null)
-            .setPositiveButton("Daten löschen") { _, _ ->
+            .setNegativeButton(getString(R.string.action_cancel), null)
+            .setPositiveButton(getString(R.string.ex_reset_delete)) { _, _ ->
                 stopRecorderThen {
-                    databaseFeedback.text = "Datenbank wird zurückgesetzt …"
+                    databaseFeedback.text = getString(R.string.ex_reset_running)
                     executor.execute {
                         try {
                             DatabaseBackup.reset(this); HistoryDataCache.invalidate()
-                            runOnUiThread { databaseFeedback.text = "Lokale Datenbank wurde geleert." }
+                            runOnUiThread { databaseFeedback.text = getString(R.string.ex_reset_done) }
                         } catch (_: Exception) {
-                            runOnUiThread { databaseFeedback.text = "Reset fehlgeschlagen. Datenbank bitte prüfen." }
+                            runOnUiThread { databaseFeedback.text = getString(R.string.ex_reset_failed) }
                         }
                     }
                 }
@@ -466,15 +442,15 @@ class ExportActivity : AppCompatActivity() {
             return
         }
         AlertDialog.Builder(this)
-            .setTitle("Aufzeichnung läuft")
-            .setMessage("Die laufende lokale CIRQA-Aufzeichnung muss vor dem Datenbankvorgang beendet werden.")
-            .setNegativeButton("Abbrechen") { _, _ -> onCancel() }
-            .setPositiveButton("Beenden und fortfahren") { _, _ ->
+            .setTitle(getString(R.string.ex_rec_title))
+            .setMessage(getString(R.string.ex_rec_msg))
+            .setNegativeButton(getString(R.string.action_cancel)) { _, _ -> onCancel() }
+            .setPositiveButton(getString(R.string.ex_rec_stop)) { _, _ ->
                 try {
                     startService(Intent(this, CirqaContinuousRecordingService::class.java)
                         .setAction(CirqaContinuousRecordingService.ACTION_STOP))
                 } catch (_: Exception) {
-                    databaseFeedback.text = "Aufzeichnung konnte nicht beendet werden; Datenbank blieb unverändert."
+                    databaseFeedback.text = getString(R.string.ex_rec_stop_failed)
                     onCancel()
                     return@setPositiveButton
                 }
@@ -483,7 +459,7 @@ class ExportActivity : AppCompatActivity() {
                     override fun run() {
                         if (!RecorderStatus.isRunning(prefs)) action()
                         else if (SystemClock.elapsedRealtime() >= deadline) {
-                            databaseFeedback.text = "Aufzeichnung läuft noch; Datenbank blieb unverändert."
+                            databaseFeedback.text = getString(R.string.ex_rec_still)
                             onCancel()
                         } else operationHandler.postDelayed(this, 100L)
                     }

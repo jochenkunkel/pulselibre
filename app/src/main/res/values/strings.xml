@@ -551,4 +551,89 @@
 
     <!-- Allgemein -->
     <string name="action_ok">OK</string>
+    <!-- Daten/Export: Backup, Wiederherstellung, Reset -->
+    <string name="ex_backup_cancelled">Backup cancelled.</string>
+    <string name="ex_backup_running">Creating backup …</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ex_backup_done">Backup saved: %1$d events, %2$d historical readings, %3$d historical FIT sources/%4$d provenance rows; %5$d canonical readings, %6$d canonical FIT sources/%7$d provenance rows and %8$d FIT metadata rows, %9$d derived raw XML metadata rows. Original files are not included; no paths or XML IDs are stored.</string>
+    <string name="ex_backup_failed">Backup failed. Please check the storage location; a created target file may be incomplete and should be deleted.</string>
+    <string name="ex_backup_checking">Checking backup …</string>
+    <string name="ex_backup_invalid">Backup invalid or not readable. Database unchanged.</string>
+    <string name="ex_fit_cancelled">FIT originals export cancelled.</string>
+    <string name="ex_fit_running">Exporting FIT originals …</string>
+    <string name="ex_fit_done">FIT originals saved: %1$d files</string>
+    <string name="ex_fit_skipped">, %1$d skipped because of the size limit</string>
+    <string name="ex_zip_unencrypted">. The ZIP file is not encrypted.</string>
+    <string name="ex_export_failed">Export failed. Please check the storage location; a created target file may be incomplete and should be deleted.</string>
+    <string name="ex_raw_cancelled">Raw files export cancelled.</string>
+    <string name="ex_raw_running">Exporting raw files …</string>
+    <string name="ex_raw_done">Raw files saved: %1$d files, %2$d bytes</string>
+    <string name="ex_raw_skipped">, %1$d skipped</string>
+    <string name="ex_raw_tail">. The ZIP file is not encrypted; the contents are not decoded automatically.</string>
+    <string name="ex_csv_cancelled">Export cancelled.</string>
+    <string name="ex_csv_running">Saving export …</string>
+    <string name="ex_csv_done">CSV saved: %1$d measurements. Contains only locally available data.</string>
+    <string name="ex_csv_unreadable"> %1$d stored rows were not readable and were not exported.</string>
+    <string name="ex_csv_failed">Export failed. Please check the storage location and try again; a created target file may be incomplete and should be deleted.</string>
+    <string name="ex_back">Back</string>
+    <string name="ex_title">Data</string>
+    <string name="ex_icon_cd">PulsLibre broken-arm symbol</string>
+    <string name="ex_subtitle">Export · Backup · Restore · local and offline</string>
+    <string name="ex_period">Period</string>
+    <string name="ex_from">From</string>
+    <string name="ex_to">To</string>
+    <string name="ex_zone">%1$s · end minute included</string>
+    <string name="ex_csv_button">⬇  Export CSV</string>
+    <string name="ex_csv_cd">Export measurements as CSV</string>
+    <string name="ex_invalid_period">Invalid period: the end must be after the start.</string>
+    <string name="ex_local_only">Only on your device · No cloud · No sign-in</string>
+    <string name="ex_db_title">Local database</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ex_db_note">A backup contains CIRQA events, historical readings and synchronization states. The ZIP file is not encrypted and contains sensitive health data.</string>
+    <string name="ex_btn_backup">Create backup</string>
+    <string name="ex_btn_backup_cd">Create a local database backup</string>
+    <string name="ex_btn_fit">Export FIT originals</string>
+    <string name="ex_btn_fit_cd">Export raw FIT original files as ZIP</string>
+    <string name="ex_fit_confirm_title">Export FIT originals?</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ex_fit_confirm_msg">The ZIP file contains the raw, verified FIT files of your band. It is not encrypted and may contain sensitive health and device information. Nothing is changed, deleted or sent. Save it only in a place you trust.</string>
+    <string name="ex_export_btn">Export</string>
+    <string name="ex_btn_raw">Export verified raw files</string>
+    <string name="ex_btn_raw_cd">Export opaque, locally stored CIRQA raw files as ZIP</string>
+    <string name="ex_raw_confirm_title">Export raw files?</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ex_raw_confirm_msg">The ZIP contains unchanged, verified raw files of the band. It is not encrypted and may contain sensitive health and device information. The files are not decoded automatically by PulseLibre. Nothing is changed, deleted or sent. Choose a trustworthy storage location.</string>
+    <string name="ex_btn_restore">Restore backup</string>
+    <string name="ex_btn_restore_cd">Restore the database from a backup</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ex_btn_reset">Reset database</string>
+    <string name="ex_btn_reset_cd">Delete all local database entries</string>
+    <string name="ex_prefs_kept">App settings are kept during restore and reset.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ex_restore_title">Replace database?</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ex_restore_msg">The backup from %1$s contains %2$d events, %3$d historical readings, %4$d synchronization states, %5$d FIT sources and %6$d FIT provenance rows. %7$d canonical readings and %8$d canonical FIT sources/%9$d provenance rows as well as %10$d FIT metadata rows and %11$d derived raw XML metadata rows. Original files are not included; paths and XML IDs are not backed up.\n\nAll currently stored database entries will be replaced. App settings are kept. Only continue with a backup from a trusted source.</string>
+    <string name="ex_replace">Replace</string>
+    <string name="ex_restore_cancelled">Restore cancelled.</string>
+    <string name="ex_restore_running">Restoring database …</string>
+    <string name="ex_restore_done">Database restored from backup.</string>
+    <string name="ex_restore_failed">Restore failed. Please check the database.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ex_reset_title">Reset local database?</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ex_reset_msg">All locally stored CIRQA events, historical readings and synchronization states will be permanently deleted. App settings are kept. This action cannot be undone.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ex_reset_delete">Delete data</string>
+    <string name="ex_reset_running">Resetting database …</string>
+    <string name="ex_reset_done">Local database was emptied.</string>
+    <string name="ex_reset_failed">Reset failed. Please check the database.</string>
+    <string name="ex_rec_title">Recording in progress</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ex_rec_msg">The running local CIRQA recording must be stopped before the database operation.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ex_rec_stop">Stop and continue</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ex_rec_stop_failed">Recording could not be stopped; database remained unchanged.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ex_rec_still">Recording is still running; database remained unchanged.</string>
 </resources>

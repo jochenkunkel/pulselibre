@@ -551,4 +551,89 @@
 
     <!-- Allgemein -->
     <string name="action_ok">OK</string>
+    <!-- Daten/Export: Backup, Wiederherstellung, Reset -->
+    <string name="ex_backup_cancelled">Backup abgebrochen.</string>
+    <string name="ex_backup_running">Backup wird erstellt …</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ex_backup_done">Backup gespeichert: %1$d Ereignisse, %2$d historische Messwerte, %3$d historische FIT-Quellen/%4$d Herkunftszeilen; %5$d kanonische Messwerte, %6$d kanonische FIT-Quellen/%7$d Herkunftszeilen und %8$d FIT-Metadatenzeilen, %9$d abgeleitete Raw-XML-Metadatenzeilen. Originaldateien sind nicht enthalten; keine Pfade oder XML-IDs werden gespeichert.</string>
+    <string name="ex_backup_failed">Backup fehlgeschlagen. Bitte Speicherort prüfen; eine angelegte Zieldatei kann unvollständig sein und sollte gelöscht werden.</string>
+    <string name="ex_backup_checking">Backup wird geprüft …</string>
+    <string name="ex_backup_invalid">Backup ungültig oder nicht lesbar. Datenbank unverändert.</string>
+    <string name="ex_fit_cancelled">Export der FIT-Originale abgebrochen.</string>
+    <string name="ex_fit_running">FIT-Originale werden exportiert …</string>
+    <string name="ex_fit_done">FIT-Originale gespeichert: %1$d Dateien</string>
+    <string name="ex_fit_skipped">, %1$d wegen der Größengrenze übersprungen</string>
+    <string name="ex_zip_unencrypted">. Die ZIP-Datei ist unverschlüsselt.</string>
+    <string name="ex_export_failed">Export fehlgeschlagen. Bitte Speicherort prüfen; eine angelegte Zieldatei kann unvollständig sein und sollte gelöscht werden.</string>
+    <string name="ex_raw_cancelled">Export der Rohdateien abgebrochen.</string>
+    <string name="ex_raw_running">Rohdateien werden exportiert …</string>
+    <string name="ex_raw_done">Rohdateien gespeichert: %1$d Dateien, %2$d Bytes</string>
+    <string name="ex_raw_skipped">, %1$d übersprungen</string>
+    <string name="ex_raw_tail">. Die ZIP-Datei ist unverschlüsselt; die Inhalte werden nicht automatisch dekodiert.</string>
+    <string name="ex_csv_cancelled">Export abgebrochen.</string>
+    <string name="ex_csv_running">Export wird gespeichert …</string>
+    <string name="ex_csv_done">CSV gespeichert: %1$d Messungen. Enthält nur lokal verfügbare Daten.</string>
+    <string name="ex_csv_unreadable"> %1$d gespeicherte Zeilen waren nicht lesbar und wurden nicht exportiert.</string>
+    <string name="ex_csv_failed">Export fehlgeschlagen. Bitte Speicherort prüfen und erneut versuchen; eine angelegte Zieldatei kann unvollständig sein und sollte gelöscht werden.</string>
+    <string name="ex_back">Zurück</string>
+    <string name="ex_title">Daten</string>
+    <string name="ex_icon_cd">PulsLibre Armbruch-Symbol</string>
+    <string name="ex_subtitle">Export · Backup · Wiederherstellung · lokal und offline</string>
+    <string name="ex_period">Zeitraum</string>
+    <string name="ex_from">Von</string>
+    <string name="ex_to">Bis</string>
+    <string name="ex_zone">%1$s · Endminute inklusive</string>
+    <string name="ex_csv_button">⬇  CSV exportieren</string>
+    <string name="ex_csv_cd">Messwerte als CSV exportieren</string>
+    <string name="ex_invalid_period">Ungültiger Zeitraum: Das Ende muss nach dem Beginn liegen.</string>
+    <string name="ex_local_only">Nur auf deinem Gerät · Keine Cloud · Keine Anmeldung</string>
+    <string name="ex_db_title">Lokale Datenbank</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ex_db_note">Backup enthält CIRQA-Ereignisse, historische Messwerte und Synchronisationsstände. Die ZIP-Datei ist unverschlüsselt und enthält sensible Gesundheitsdaten.</string>
+    <string name="ex_btn_backup">Backup erstellen</string>
+    <string name="ex_btn_backup_cd">Lokales Datenbankbackup erstellen</string>
+    <string name="ex_btn_fit">FIT-Originale exportieren</string>
+    <string name="ex_btn_fit_cd">Rohe FIT-Originaldateien als ZIP exportieren</string>
+    <string name="ex_fit_confirm_title">FIT-Originale exportieren?</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ex_fit_confirm_msg">Die ZIP-Datei enthält die rohen, geprüften FIT-Dateien deines Bands. Sie ist unverschlüsselt und kann sensible Gesundheits- und Geräteinformationen enthalten. Es wird nichts verändert, gelöscht oder gesendet. Speichere sie nur an einem Ort, dem du vertraust.</string>
+    <string name="ex_export_btn">Exportieren</string>
+    <string name="ex_btn_raw">Verifizierte Rohdateien exportieren</string>
+    <string name="ex_btn_raw_cd">Opake, lokal gespeicherte CIRQA-Rohdateien als ZIP exportieren</string>
+    <string name="ex_raw_confirm_title">Rohdateien exportieren?</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ex_raw_confirm_msg">Das ZIP enthält unveränderte, verifizierte Rohdateien des Bands. Es ist unverschlüsselt und kann sensible Gesundheits- und Geräteinformationen enthalten. Die Dateien werden von PulseLibre nicht automatisch dekodiert. Nichts wird verändert, gelöscht oder gesendet. Wähle einen vertrauenswürdigen Speicherort.</string>
+    <string name="ex_btn_restore">Backup wiederherstellen</string>
+    <string name="ex_btn_restore_cd">Datenbank aus einem Backup wiederherstellen</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ex_btn_reset">Datenbank zurücksetzen</string>
+    <string name="ex_btn_reset_cd">Alle lokalen Datenbankeinträge löschen</string>
+    <string name="ex_prefs_kept">App-Einstellungen bleiben bei Wiederherstellung und Reset erhalten.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ex_restore_title">Datenbank ersetzen?</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ex_restore_msg">Das Backup vom %1$s enthält %2$d Ereignisse, %3$d historische Messwerte, %4$d Synchronisationsstände, %5$d FIT-Quellen und %6$d FIT-Herkunftszeilen. %7$d kanonische Messwerte und %8$d kanonische FIT-Quellen/%9$d Herkunftszeilen sowie %10$d FIT-Metadatenzeilen und %11$d abgeleitete Raw-XML-Metadatenzeilen. Originaldateien sind nicht enthalten; Pfade und XML-IDs werden nicht gesichert.\n\nAlle aktuell gespeicherten Datenbankeinträge werden ersetzt. App-Einstellungen bleiben erhalten. Nur mit einem Backup aus vertrauenswürdiger Quelle fortfahren.</string>
+    <string name="ex_replace">Ersetzen</string>
+    <string name="ex_restore_cancelled">Wiederherstellung abgebrochen.</string>
+    <string name="ex_restore_running">Datenbank wird wiederhergestellt …</string>
+    <string name="ex_restore_done">Datenbank aus Backup wiederhergestellt.</string>
+    <string name="ex_restore_failed">Wiederherstellung fehlgeschlagen. Bitte Datenbank prüfen.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ex_reset_title">Lokale Datenbank zurücksetzen?</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ex_reset_msg">Alle lokal gespeicherten CIRQA-Ereignisse, historischen Messwerte und Synchronisationsstände werden dauerhaft gelöscht. App-Einstellungen bleiben erhalten. Diese Aktion kann nicht rückgängig gemacht werden.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ex_reset_delete">Daten löschen</string>
+    <string name="ex_reset_running">Datenbank wird zurückgesetzt …</string>
+    <string name="ex_reset_done">Lokale Datenbank wurde geleert.</string>
+    <string name="ex_reset_failed">Reset fehlgeschlagen. Datenbank bitte prüfen.</string>
+    <string name="ex_rec_title">Aufzeichnung läuft</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ex_rec_msg">Die laufende lokale CIRQA-Aufzeichnung muss vor dem Datenbankvorgang beendet werden.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ex_rec_stop">Beenden und fortfahren</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ex_rec_stop_failed">Aufzeichnung konnte nicht beendet werden; Datenbank blieb unverändert.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ex_rec_still">Aufzeichnung läuft noch; Datenbank blieb unverändert.</string>
 </resources>
