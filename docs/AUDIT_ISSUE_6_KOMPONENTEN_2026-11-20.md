@@ -245,3 +245,8 @@ Gelesen: `AppLanguage.kt`, `DomainText.kt`, `DomainTextAnalysis.kt`, `attachBase
 
 ## 26. A6-12 behoben: Dienst-Label aus Ressource (2026-11-22)
 Das Manifest-Label des Dienstes zeigt jetzt auf `@string/svc_channel` (gleicher Text wie der Benachrichtigungskanal, vier Sprachen). Der Text ist in Systemdialogen (Dienste/Task-Manager) damit in der Systemsprache sichtbar; die in der App gewählte Sprache gilt dort nicht, weil das System das Label selbst auflöst.
+
+## 27. A6-9 präzisiert: Namensregel „enthält CIRQA“ (2026-11-22)
+Die Zuordnung gekoppelter Geräte über `name.contains("CIRQA", ignoreCase = true)` steht **17-mal** im Produktionscode (`MainActivity` 2×, `CirqaGattProbe` 1×, `CirqaMlHandshakeProbe` 8×, `CirqaTestLaboratoryActivity` 6×), nicht nur in der Hauptansicht. Wirkung: Ein anderes gekoppeltes Gerät mit „CIRQA“ im Namen würde als Band gelten.
+- **Schutz vorhanden:** Der automatische Historien-Sync startet nur bei **genau einem** Treffer (`targetCount != 1 → return`, `MainActivity`); der Dienst und die manuellen Pfade verbinden nur nach Nutzeraktion. Kein Verbinden ohne Zustimmung, daher bleibt das Risiko niedrig.
+- **Empfehlung (A6-19, niedrig, Wartbarkeit/Sicherheit):** Eine gemeinsame Funktion (z. B. `CirqaBondedDevices.isCirqa(name)`) mit einem Unit-Test einführen und alle Stellen darauf umstellen; später Abgleich mit `CirqaAddressMatch` (Adresse statt Name). Die Probe-Dateien gehören OpenCode: Umsetzung dort oder nach Absprache per agent-sync; diese Notiz ist die Grundlage.
