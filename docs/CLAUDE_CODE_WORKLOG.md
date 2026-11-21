@@ -556,3 +556,6 @@ Noch sichtbar offen (P3): Nacht-Insights erste Spalte „22–6 Uhr / 22331 / We
 - **C (Darstellung):** Lückensumme und längste Lücke im Band-Verlauf sinken deutlich; keine neuen Metriken.
 - Befund GUI: Kachel zeigte „heute“ mit nur einem Wert kurz nach Mitternacht → jetzt fällt sie bei sehr dünnem heutigem Band-Tag auf den neuesten reicheren Tag zurück. Info-Text der Band-Karte nennt rückgerechnete Zeiten.
 - Rekonstruierte Zeiten sind in der DB nicht gekennzeichnet (CHECK nur PROFILE_VALID); Vorschlag für Herkunftsfeld an OpenCode.
+
+## 2026-11-21 – #334: Band-Herzfrequenz in der Tageszeitleiste der Übersicht
+- „Tag im Überblick“ bekommt eine dritte Spur „Herzfrequenz · Band (FIT)“ (Messzeit des Bandes, eigene Spur, nicht mit Telefonzeit-Werten vermischt); Lücken bleiben leer. Der Erklärtext unter dem Diagramm nennt beide Zeitbasen. Lesefehler der FIT-Daten blenden nur die Spur aus.
