@@ -90,7 +90,7 @@ internal fun showDashboardDay(
         }
         worker.execute {
             val series = try { DashboardDayReader(activity.applicationContext).read(metric, day, now) }
-                catch (_: android.database.sqlite.SQLiteException) { null }
+                catch (_: Exception) { null }
             activity.runOnUiThread {
                 if (!dialog.isShowing || generation != request || activity.isDestroyed) return@runOnUiThread
                 if (series == null) {

@@ -62,7 +62,7 @@ internal fun showDayTimeline(activity: MainActivity, worker: Executor) {
                         .points.map { DayObservation(it.receivedAt, it.value.toLong()) }
                 } catch (_: Exception) { emptyList() }
                 Day(reader.read(DashboardMeasurement.PULSE, day, now), reader.read(DashboardMeasurement.STEPS, day, now), band)
-            } catch (_: android.database.sqlite.SQLiteException) { null }
+            } catch (_: Exception) { null }
             activity.runOnUiThread {
                 if (!dialog.isShowing || generation != request || activity.isDestroyed) return@runOnUiThread
                 if (read == null) { summary.text = activity.getString(R.string.day_read_failed); return@runOnUiThread }

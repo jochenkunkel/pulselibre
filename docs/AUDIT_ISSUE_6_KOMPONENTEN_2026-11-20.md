@@ -224,3 +224,7 @@ Gelesen: `AppLanguage.kt`, `DomainText.kt`, `DomainTextAnalysis.kt`, `attachBase
 - **A6-12 (niedrig):** Das Manifest-Label des Dienstes (`CIRQA · Kontinuierliche Aufzeichnung`) ist fest deutsch und erscheint in Systemdialogen (z. B. Dienste in Einstellungen/Task-Manager). Auf `@string` umstellen (Ressource in vier Sprachen) – Vorschlag für den Sammel-PR nach ChatGPT-Review.
 - **A6-13 (niedrig):** Der Benachrichtigungskanal-Name wird bei jedem Dienststart neu gesetzt, ändert sich also erst nach einem Neustart des Dienstes in der neuen Sprache; die laufende Benachrichtigung bleibt bis zum nächsten Update in der alten. Akzeptabel, dokumentiert.
 - **Test-Lücke geschlossen:** `AppLanguageTest` (4 Fälle). `wrap`/`save` selbst sind kontextabhängig und werden am Emulator über die Einstellungs-Tests abgedeckt.
+
+## 22. `DayTimelineDialog`, `DashboardDayDialog`, `TileInsights` (Nebenläufigkeit, 2026-11-21)
+- **Gut:** Rückmeldung nur bei sichtbarem Dialog, passender Anfrage-Generation (`request`) und nicht zerstörter Activity; ein schnelles Datumswechseln verwirft veraltete Ergebnisse. Band-Lesepfad fängt alle Ausnahmen.
+- **A6-14 (niedrig, behoben):** Die Lesepfade für Puls/Schritte fingen nur `SQLiteException`. Jede andere Laufzeitausnahme (z. B. `IllegalStateException` beim Öffnen der Datenbank) wäre auf dem Worker-Thread unbehandelt geblieben und hätte die App beendet. Beide Dialoge fangen jetzt `Exception` und zeigen den vorhandenen Fehlertext („Tag konnte nicht gelesen werden“). `TileInsights` fing schon `Exception`.
