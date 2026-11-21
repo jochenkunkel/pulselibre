@@ -1088,12 +1088,12 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                 "next-transaction-followup-limit"
             }
             val detail = if (responseItems == 0) {
-                "Die einmalige nextTransaction-Folgeantwort enthielt 0 Einträge"
+                "Die letzte nextTransaction-Folgeantwort enthielt 0 Einträge"
             } else {
-                "Ein begrenzter nextTransaction-Folgeabruf wurde bereits verarbeitet"
+                "Der begrenzte nextTransaction-Folgeabruf wurde verarbeitet"
             }
             finish(
-                "$detail; keine weitere Transaktion angefordert. " +
+                "$detail; keine weitere Transaktion automatisch angefordert. " +
                     "Historienvollständigkeit unbekannt.",
                 g
             )
@@ -1132,7 +1132,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     handle, requestId, transactionId = continuation.transactionId
                 ))
                 main.post {
-                    mark("Ein separater nextTransaction-Folgeabruf angefordert; keine automatische Kette")
+                    mark("Separater nextTransaction-Folgeabruf angefordert; keine automatische Kette")
                 }
             }
             CirqaItemListContinuationPolicy.Decision.Complete,
