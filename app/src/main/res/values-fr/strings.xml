@@ -310,4 +310,53 @@
     <string name="dom_note_sleep_na">Durée et phases du sommeil pas encore disponibles</string>
     <string name="dom_note_ground">Pas de diagnostics ; pas de valeurs estimées ; pas de RR→RMSSD sans série temporelle</string>
     <string name="dom_unit_device_scale">Échelle de l’appareil 0–100</string>
+
+    <!-- Verlauf: Zeitfenster, Karten, Verteilung -->
+    <!-- TODO-CHATGPT-REVIEW: Erstentwurf von Claude Code, Ticket #365 -->
+    <string name="hv_window_current">Actuel · jusqu’à %1$s</string>
+    <string name="hv_window_cd">Fenêtre temporelle %1$s</string>
+    <string name="hv_window_previous">Fenêtre temporelle précédente</string>
+    <string name="hv_window_next">Fenêtre temporelle suivante</string>
+    <string name="hv_pick_date">Choisir la date</string>
+    <string name="hv_loading">Chargement des données pour %1$s …</string>
+    <string name="hv_header">Historique · points de mesure enregistrés localement</string>
+    <string name="hv_range_selected_cd">%1$s, sélectionné</string>
+    <string name="hv_info_cd">Afficher la source et l’échelle pour %1$s</string>
+    <string name="hv_card_summary">%1$d valeurs · %2$d fenêtres occupées · %3$s\nÉchelle %4$s–%5$s %6$s</string>
+    <string name="hv_mode_points">Points</string>
+    <string name="hv_mode_density">Répartition</string>
+    <string name="hv_mode_safe">Daltonisme</string>
+    <string name="hv_mode_cd">Affichage %1$s</string>
+    <string name="hv_density_title">%1$s · fenêtre temporelle</string>
+    <string name="hv_failed">L’historique local n’a pas pu être chargé.</string>
+    <string name="hv_no_norm">Aucune norme validée pour les mesures isolées.</string>
+    <string name="hv_basis_phone_legend">Axe du temps : heure du téléphone · point : médiane · anneau : moyenne (si plusieurs valeurs) · ligne : min–max · vides : pas de données</string>
+    <string name="hv_basis_phone_info">Horodatage = réception sur le téléphone.</string>
+    <string name="hv_basis_phone_empty">Aucune donnée sur cette période</string>
+    <string name="hv_basis_band_legend">Axe du temps : heure de mesure du bracelet (depuis les fichiers FIT) · point : médiane · anneau : moyenne (si plusieurs valeurs) · ligne : min–max · vides : pas de données</string>
+    <string name="hv_basis_band_info">Horodatage = mesuré par le bracelet (fichier FIT), pas la réception sur le téléphone. Pour une partie des valeurs, l’heure est reconstituée à partir de la forme abrégée du fichier.</string>
+    <string name="hv_basis_band_empty">Aucune donnée d’historique du bracelet sur cette période</string>
+    <string name="hv_title_fit">Fréquence cardiaque · historique du bracelet (FIT)</string>
+    <string name="hv_range_day">24 heures</string>
+    <string name="hv_range_week">7 jours</string>
+    <string name="hv_range_month">30 jours</string>
+    <string name="hv_res_15m">15 min</string>
+    <string name="hv_res_2h">2 h</string>
+    <string name="hv_res_1h">1 h</string>
+    <string name="hv_res_6h">6 h</string>
+    <string name="hv_res_1d">1 jour</string>
+    <string name="hv_chart_cd">%1$d mesures enregistrées dans %2$d fenêtres temporelles occupées, résolution %3$s. Le point plein est la médiane, l’anneau la moyenne arithmétique ; la barre indique le minimum et le maximum observés. Axe vertical de %4$d à %5$d. Axe horizontal %6$s. Les fenêtres vides restent vides. Il n’y a ni liaison ni interpolation entre les fenêtres.</string>
+    <string name="hd_window_empty">%1$s\nAucune mesure dans cette fenêtre temporelle (vide, rien d’interpolé).</string>
+    <string name="hd_peak">Intervalle le plus fréquent : %1$s %2$s (%3$d %% des %4$d valeurs dans la plage de l’axe)</string>
+    <string name="hd_peak_none">Toutes les valeurs sont en dehors de l’axe.</string>
+    <string name="hd_sample">Échantillon : %1$d valeurs</string>
+    <string name="hd_median_mean">Médiane %1$s %3$s · moyenne %2$s %3$s</string>
+    <string name="hd_observed">Observé : %1$d–%2$d %3$s</string>
+    <string name="hd_excluded">%1$d valeurs en dehors de l’axe affiché ne sont pas colorées.</string>
+    <string name="hd_footer">Répartition relative dans cette fenêtre ; pas un diagnostic.</string>
+    <string name="hd_legend">Répartition par fenêtre temporelle : couleur = fréquence relative des mesures dans la même fenêtre (rouge fréquent · jaune moyen · vert rare, plus intense = plus fréquent), échelle commune à toutes les fenêtres. Montre la forme de la répartition, pas le nombre de mesures. Vide = aucune mesure. Appuyer pour les détails.</string>
+    <string name="hd_legend_safe">Répartition par fenêtre temporelle (daltonisme) : couleur = fréquence relative des mesures dans la même fenêtre (jaune fréquent · turquoise moyen · bleu rare, plus intense = plus fréquent), échelle commune à toutes les fenêtres. Sans distinction rouge/vert. Vide = aucune mesure. Appuyer pour les détails.</string>
+    <string name="hd_density_empty">Graphique de répartition : aucune mesure sur la période choisie.</string>
+    <string name="hd_density_cd">Graphique de répartition : %1$d mesures dans %2$d des %3$d fenêtres temporelles, plage de valeurs de l’axe de %4$d à %5$d. Un double appui sur le graphique ouvre les valeurs individuelles de la fenêtre touchée ; la couleur indique la fréquence, les fenêtres sans valeurs restent vides.</string>
+    <string name="hd_axis_span">%1$s à %2$s</string>
 </resources>

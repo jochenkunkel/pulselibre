@@ -15,7 +15,7 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class HistoryOverviewViewTest {
     @Test fun rangeControlsRefreshAndEmptyStateHasNoSyntheticSamples() {
-        val context = ApplicationProvider.getApplicationContext<Context>()
+        val context = AppLanguageSettings.wrap(ApplicationProvider.getApplicationContext<Context>())
         val end = Instant.parse("2026-11-17T12:00:00Z")
         var requested = HistoryRange.DAY
         lateinit var view: HistoryOverviewView
@@ -53,7 +53,7 @@ class HistoryOverviewViewTest {
     }
 
     @Test fun chartCaptionsExplainTimeMedianRangeAndGaps() {
-        val context = ApplicationProvider.getApplicationContext<Context>()
+        val context = AppLanguageSettings.wrap(ApplicationProvider.getApplicationContext<Context>())
         val end = Instant.parse("2026-11-17T12:00:00Z")
         InstrumentationRegistry.getInstrumentation().runOnMainSync {
             val view = HistoryOverviewView(context) { range ->
@@ -76,7 +76,7 @@ class HistoryOverviewViewTest {
     }
 
     @Test fun chartAccessibilityReportsOnlyStoredPointsAndNoInterpolation() {
-        val context = ApplicationProvider.getApplicationContext<Context>()
+        val context = AppLanguageSettings.wrap(ApplicationProvider.getApplicationContext<Context>())
         val end = Instant.parse("2026-11-17T12:00:00Z")
         val start = HistoryRange.DAY.startAt(end)
         InstrumentationRegistry.getInstrumentation().runOnMainSync {
@@ -101,7 +101,7 @@ class HistoryOverviewViewTest {
         if (view is ViewGroup) (0 until view.childCount).flatMap { descendants(view.getChildAt(it)) } else emptyList()
 
     @Test fun asyncRefreshRendersOffTheUiThreadAndOnlyNewestRequestWins() {
-        val context = androidx.test.core.app.ApplicationProvider.getApplicationContext<android.content.Context>()
+        val context = AppLanguageSettings.wrap(androidx.test.core.app.ApplicationProvider.getApplicationContext<android.content.Context>())
             .let { androidx.appcompat.view.ContextThemeWrapper(it, androidx.appcompat.R.style.Theme_AppCompat) }
         val loadThreads = java.util.Collections.synchronizedList(mutableListOf<Boolean>())
         lateinit var view: HistoryOverviewView
@@ -121,7 +121,7 @@ class HistoryOverviewViewTest {
     }
 
     @Test fun windowNavigationStepsBackAndForthAndDisablesTheNewestEnd() {
-        val context = ApplicationProvider.getApplicationContext<Context>()
+        val context = AppLanguageSettings.wrap(ApplicationProvider.getApplicationContext<Context>())
         val now = Instant.parse("2026-11-18T12:00:00Z")
         val requested = mutableListOf<Int>()
         InstrumentationRegistry.getInstrumentation().runOnMainSync {

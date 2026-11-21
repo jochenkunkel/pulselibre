@@ -307,4 +307,52 @@
     <string name="dom_note_sleep_na">Sleep duration and sleep stages not available yet</string>
     <string name="dom_note_ground">No diagnoses; no estimated values; no RR→RMSSD without a time series</string>
     <string name="dom_unit_device_scale">Device scale 0–100</string>
+
+    <!-- Verlauf: Zeitfenster, Karten, Verteilung -->
+    <string name="hv_window_current">Current · until %1$s</string>
+    <string name="hv_window_cd">Time window %1$s</string>
+    <string name="hv_window_previous">Earlier time window</string>
+    <string name="hv_window_next">Later time window</string>
+    <string name="hv_pick_date">Choose date</string>
+    <string name="hv_loading">Loading data for %1$s …</string>
+    <string name="hv_header">History · locally stored data points</string>
+    <string name="hv_range_selected_cd">%1$s, selected</string>
+    <string name="hv_info_cd">Show source and scale for %1$s</string>
+    <string name="hv_card_summary">%1$d values · %2$d occupied windows · %3$s\nScale %4$s–%5$s %6$s</string>
+    <string name="hv_mode_points">Points</string>
+    <string name="hv_mode_density">Distribution</string>
+    <string name="hv_mode_safe">Color-safe</string>
+    <string name="hv_mode_cd">View %1$s</string>
+    <string name="hv_density_title">%1$s · time window</string>
+    <string name="hv_failed">The local history could not be loaded.</string>
+    <string name="hv_no_norm">No validated norm for single measurements.</string>
+    <string name="hv_basis_phone_legend">Time axis: phone time · dot: median · ring: mean (for several values) · line: min–max · gaps: no data</string>
+    <string name="hv_basis_phone_info">Timestamp = reception on the phone.</string>
+    <string name="hv_basis_phone_empty">No data in this period</string>
+    <string name="hv_basis_band_legend">Time axis: measurement time of the band (from FIT files) · dot: median · ring: mean (for several values) · line: min–max · gaps: no data</string>
+    <string name="hv_basis_band_info">Timestamp = measured by the band (FIT file), not the reception on the phone. For some values the time is reconstructed from the file’s short form.</string>
+    <string name="hv_basis_band_empty">No band history data in this period</string>
+    <string name="hv_title_fit">Heart rate · band history (FIT)</string>
+    <string name="hv_range_day">24 hours</string>
+    <string name="hv_range_week">7 days</string>
+    <string name="hv_range_month">30 days</string>
+    <string name="hv_res_15m">15 min</string>
+    <string name="hv_res_2h">2 h</string>
+    <string name="hv_res_1h">1 h</string>
+    <string name="hv_res_6h">6 h</string>
+    <string name="hv_res_1d">1 day</string>
+    <string name="hv_chart_cd">%1$d stored readings in %2$d occupied time windows, resolution %3$s. The filled dot is the median, the ring the arithmetic mean; the bar shows the observed minimum to maximum. Vertical axis %4$d to %5$d. Horizontal axis %6$s. Empty windows stay empty. There is no connection or interpolation between windows.</string>
+    <string name="hd_window_empty">%1$s\nNo readings in this time window (gap, nothing interpolated).</string>
+    <string name="hd_peak">Most frequent interval: %1$s %2$s (%3$d %% of the %4$d values within the axis range)</string>
+    <string name="hd_peak_none">All values are outside the axis.</string>
+    <string name="hd_sample">Sample: %1$d values</string>
+    <string name="hd_median_mean">Median %1$s %3$s · mean %2$s %3$s</string>
+    <string name="hd_observed">Observed: %1$d–%2$d %3$s</string>
+    <string name="hd_excluded">%1$d values outside the shown axis are not colored.</string>
+    <string name="hd_footer">Relative distribution within this window; not a diagnosis.</string>
+    <string name="hd_legend">Distribution per time window: color = relative frequency of the readings within the same window (red frequent · yellow medium · green rare, stronger = more frequent), common scale for all windows. Shows the shape of the distribution, not the number of readings. Empty = no readings. Tap for details.</string>
+    <string name="hd_legend_safe">Distribution per time window (color-safe): color = relative frequency of the readings within the same window (yellow frequent · turquoise medium · blue rare, stronger = more frequent), common scale for all windows. Without red/green distinction. Empty = no readings. Tap for details.</string>
+    <string name="hd_density_empty">Distribution chart: no readings in the selected period.</string>
+    <string name="hd_density_cd">Distribution chart: %1$d readings in %2$d of %3$d time windows, axis value range %4$d to %5$d. Double-tap on the chart opens the individual values of the tapped time window; the color shows the frequency, time windows without values stay empty.</string>
+    <string name="hd_axis_span">%1$s to %2$s</string>
 </resources>
