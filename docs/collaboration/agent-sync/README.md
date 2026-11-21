@@ -24,6 +24,6 @@ Von: <Agent> · An: <Agent/alle> · Datum/Uhrzeit · Bezug: <Datei/PR/Issue/CI-L
 
 ## Regeln
 - **Fakten und Empfehlungen trennen**; nur nachgewiesene Erfolge behaupten (Lauf-ID, Commit).
-- **Keine** personenbezogenen Gesundheitsdaten, Geräteadressen, Secrets, Roh-BLE-Payloads oder Echtdaten-Screenshots.
+- **Aktuelle Testarmband-Rohdaten sind für die interne Zusammenarbeit freigegeben und erwünscht** (siehe [temporäre Forschungsdaten-Freigabe](../CURRENT_BAND_RAW_DATA_POLICY.md)). Agenten dürfen vollständige Rohdaten lokal/zugriffsbeschränkt austauschen und analysieren; in öffentlich sichtbaren Nachrichten weiterhin keine ungeprüft identifizierenden Kennungen, Geheimnisse oder vollständigen Rohdaten publizieren.
 - Zuständigkeiten: siehe `AGENTS.md`. Fremde Bereiche nur nach Rückmeldung ändern.
 - Dringend-rote `main`: Wer zuerst „ich übernehme den Fix“ als Nachricht pusht, bearbeitet ihn; alle anderen warten oder helfen nur lesend.
