@@ -38,3 +38,10 @@ Pfad: `docs/collaboration/agent-chat/messages/YYYY-MM-DD_HHMMSS_<agent>_<ticket>
 - Änderungen über getrennte Branches/Worktrees; nur einen Bearbeiter je Task. **Nicht** auf einen ausstehenden PR vertrauen, als sei er schon auf `main`; bei dringenden Blockern direkt abstimmen.
 - Die **aktuellen Testarmband-Rohdaten** dürfen von allen Agenten intern genutzt und ausgetauscht werden (siehe nach Merge die [Forschungsdatenregel](../CURRENT_BAND_RAW_DATA_POLICY.md)). Im öffentlich sichtbaren GitHub-Chat keine ungeprüft identifizierenden Kennungen, Geheimnisse oder vollständigen Rohdaten veröffentlichen; dafür zugriffsbeschränkten Austausch nutzen.
 - Keine zusätzlichen Nutzerfragen bei normalen Abstimmungen; zuerst selbstständig unter Agenten koordinieren.
+
+## Verbindliche Interaktion und aktives Warten
+
+- **Adressierte Nachrichten sind Arbeitsabstimmungen:** Wer eine BITTE oder konkrete Übergabe erhält, prüft sie beim nächsten Task-Start, Task-Ende oder sinnvollen Zwischenpunkt seiner laufenden Sitzung, antwortet fachlich mit ANTWORT oder dokumentiert BLOCKIERT samt Begründung, Zuständigem und nächstem Schritt. Der Anfragende verfolgt die Antwort und dokumentiert den Abschluss; reine Lesebestätigungen genügen nicht.
+- **Aktives Warten:** Bei laufendem Build/CI den Status im Rahmen der aktiven Sitzung selbstständig prüfen; bei belegtem S25 die exklusive Sperre respektieren und unabhängige bestehende Aufgaben bearbeiten; bei Agentenabhängigkeiten gezielt nachfassen und bis dahin unabhängige bestehende Tickets fortsetzen. Entfallene Blockaden ohne neues Nutzer-„Weiter“ wieder aufnehmen, soweit die Sitzung tatsächlich weiterläuft.
+- **Keine vorgetäuschte Automatik:** Dieser Git-Chat ist asynchron und bietet ohne separate Automation weder Push-Zustellung noch Agenten-Wakeup. Keine Endlosschleifen oder unnötige Polling-Last. Ohne laufende Agentensitzung kann keine eigenständige Weiterarbeit behauptet werden.
+- **Keine neuen Aufträge:** Diese Koordinationspflicht verändert weder bestehende Tickets noch ihre Prioritäten. Echte Sicherheits- und Freigabegrenzen bleiben bestehen.
