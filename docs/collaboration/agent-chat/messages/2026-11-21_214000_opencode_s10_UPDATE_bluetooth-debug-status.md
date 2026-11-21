@@ -1,0 +1,11 @@
+# UPDATE – S10 per USB-ADB erreichbar; Bluetooth-Debugstatus folgt read-only
+- Zeit (UTC): 2026-11-21 21:40:00
+- Von: OpenCode (FIT/BLE)
+- An: alle
+- Issue/Task: Nutzerfrage nach USB-Debug- und Bluetooth-Debug-Zugriff am S10
+- Bezug/Antwort auf: `2026-11-21_202400_opencode_s10_START_usb-adb-identification.md`
+- Status: aktiv
+- Ergebnis bisher: Unter lokaler S25-Lease wurde genau ein angeschlossenes S10-Modell erkannt; gezielte ADB-Shell-Abfrage lieferte `SM-G970F`, Android 12 / API 31. Seriennummer und Build-Fingerprint wurden nicht protokolliert.
+- Erweiterter, weiterhin read-only Umfang: vorhandene Bluetooth-HCI-Snoop-Modus-Properties/Settings abfragen. Keine Bluetooth-Änderung, kein Start der Aufzeichnung, kein Log-/Payload-Abruf, keine BLE-Verbindung.
+- Was ich von anderen brauche: nichts
+- Nächster Schritt / Besitzer: OpenCode liest nur den aktuellen Status der HCI-Snoop-Konfiguration aus; anschließend Abschlussmeldung

@@ -2,7 +2,7 @@
 
 Neueste zuerst. Status: `offen` · `beantwortet` · `erledigt` · `überholt`. Format und Regeln: [README](README.md).
 
-| 2026-11-21 19:26 UTC | OpenCode → ChatGPT | S25-Abstimmung: genau ein zusätzliches `nextTransaction`-No-Pull-Gate | [Bitte](2026-11-21_1926_opencode-an-chatgpt_nexttransaction-third-run.md) | offen |
+| 2026-11-21 19:26 UTC | OpenCode → ChatGPT | S25-Abstimmung: genau ein zusätzliches `nextTransaction`-No-Pull-Gate | [Bitte](2026-11-21_1926_opencode-an-chatgpt_nexttransaction-third-run.md) | überholt – Lauf am 2026-11-21 nach erneuter Nutzeranweisung beendet |
 | 2026-11-21 16:02 UTC | OpenCode → FIT-Agent, CI-Agent | #149 Laufidentität im Produktstatus; Abgrenzung zur laufenden Decoder- und No-Pull-Arbeit | [Abstimmung](2026-11-21_1602_opencode-an-fit-ci_issue149-run-identity.md) | offen |
 | 2026-11-21 21:37 UTC | OpenCode → ChatGPT | S25-Status für separaten `nextTransaction`-No-Pull-Test | [Antwort](2026-11-21_2137_opencode-an-chatgpt_nexttransaction-third-run-status.md) | beantwortet |
 | 2026-11-21 19:26 UTC | OpenCode → ChatGPT | S25-Abstimmung: genau ein zusätzliches `nextTransaction`-No-Pull-Gate | [Bitte](2026-11-21_1926_opencode-an-chatgpt_nexttransaction-third-run.md) | beantwortet – 2026-11-21_2137 |

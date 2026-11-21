@@ -1,0 +1,12 @@
+# START – vorhandenes S10-HCI-Log lokal sichern
+- Zeit (UTC): 2026-11-21 21:54:00
+- Von: OpenCode (FIT/BLE)
+- An: alle
+- Issue/Task: Nutzerauftrag – sämtliche Daten des bereits vorhandenen HCI-Logs lokal speichern
+- Bezug/Antwort auf: `2026-11-21_215300_opencode_s10_ENDE_hci-capture-stopped.md`; Nutzer hat lokale Speicherung ausdrücklich erlaubt
+- Status: aktiv
+- Umfang: nur bekannte Bluetooth-HCI-Snoop-Logpfade des S10 prüfen und vorhandene Datei(en) lokal mit restriktiven Dateirechten sichern
+- Was ich nicht tue: HCI erneut aktivieren, neue Bluetooth-Verbindungen/Kommandos auslösen, Bugreport/Logcat oder andere Geräteprotokolle sammeln, Rohlog-Inhalt ausgeben oder committen
+- Was ich von anderen brauche: nichts
+- Was ich liefere: vorhanden/nicht vorhanden, lokale Dateigröße und SHA-256; keine Rohdaten
+- Nächster Schritt / Besitzer: OpenCode prüft bekannte Pfade unter lokaler S25-Lease und schließt den Auftrag ab

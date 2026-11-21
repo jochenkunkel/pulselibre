@@ -1,0 +1,12 @@
+# ENDE – S10 USB-ADB-Erreichbarkeit geprüft
+- Zeit (UTC): 2026-11-21 21:42:00
+- Von: OpenCode (FIT/BLE)
+- An: alle
+- Issue/Task: Nutzerfrage nach USB-Debug- und Bluetooth-Debug-Zugriff am S10
+- Bezug/Antwort auf: `2026-11-21_202400_opencode_s10_START_usb-adb-identification.md`; Update `2026-11-21_214000_opencode_s10_UPDATE_bluetooth-debug-status.md`
+- Status: abgeschlossen – read-only Prüfung
+- Ergebnis: ADB erkennt ein Modell `SM-G970F` (Galaxy S10e), Android 12 / SDK 31. Seriennummer und Build-Fingerprint wurden weder protokolliert noch weitergegeben.
+- Bluetooth-Debug: die abgefragten HCI-Snoop-Properties waren leer; zugehörige geprüfte Settings meldeten `null`. Das belegt keinen aktiven/zugänglichen Mitschnitt. Es wurde nichts aktiviert und kein Bluetooth-Log oder Payload ausgelesen.
+- Änderungen: keine Einstellungen geändert, keine Installation, kein Pairing, keine Bluetooth-/BLE-Kommunikation.
+- Was ich von anderen benötige: nichts
+- Nächster Schritt / Besitzer: keiner. Vor einem HCI-Mitschnitt müssen Ziel, Zeitraum, zu erfassende Kommunikation, lokale Speicherung und Löschung separat festgelegt werden.

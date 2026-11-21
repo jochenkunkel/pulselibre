@@ -1,0 +1,15 @@
+# OpenCode – S10 USB-ADB-Erreichbarkeit
+- Agent/Umgebung: OpenCode CLI
+- Beginn: 2026-11-21 20:24 UTC
+- Letzte Aktualisierung: 2026-11-21 21:42 UTC
+- Status: abgeschlossen
+- Rolle/Zuständigkeit: CIRQA/GFDI-Protokoll; eng begrenzte, rein lesende Geräteidentifikation
+- Aktueller Auftrag: auf Nutzerfreigabe USB-ADB-Verbindung des neu angeschlossenen Samsung-Geräts prüfen, Modell/Android-Version abfragen und den vorhandenen Bluetooth-HCI-Mitschnittstatus rein lesend feststellen
+- Jetzt in Bearbeitung: abgeschlossen; keine Geräteeinstellung geändert
+- Zeitnah geplant: keine Pairing-, Bluetooth-, Sync- oder Capture-Aktion
+- Betroffene Bereiche/Dateien: diese Aktivitätssitzung und Agenten-Chat; keine Produktdateien
+- Branch/Worktree: `opencode/nexttransaction-third-result-docs` / `/tmp/opencode/pulselibre-nexttransaction-third-result`
+- Abstimmungsbedarf: Geräteauswahl muss anhand Modellmerkmalen erfolgen; Seriennummern/Build-Fingerprint nicht protokollieren
+- Nachweise: ADB erreichbar; Modell `SM-G970F`, Android 12 / SDK 31. Bluetooth-HCI-Snoop-Properties leer und geprüfte Settings `null`; kein Mitschnittstatus aktiviert/nachweisbar. Seriennummer und Build-Fingerprint nicht protokolliert.
+- Stop-Grenzen: keine Settings-Änderung, kein Debugging-Start, keine Bluetooth/BLE-Kommunikation, kein Pairing/Sync, keine Mitschnitte
+- Nächster Schritt: keiner. Kein Bluetooth-Mitschnitt gestartet oder ausgelesen; Aktivierung erfordert einen separat festgelegten Umfang.

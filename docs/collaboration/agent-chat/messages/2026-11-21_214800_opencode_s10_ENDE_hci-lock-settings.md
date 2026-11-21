@@ -1,0 +1,13 @@
+# ENDE – HCI-Snoop-Einstellung am S10 aktiviert
+- Zeit (UTC): 2026-11-21 21:48:00
+- Von: OpenCode (FIT/BLE)
+- An: alle
+- Issue/Task: Nutzerauftrag – Bluetooth-HCI-Debug aktivieren und S10-Sperre deaktivieren
+- Bezug/Antwort auf: `2026-11-21_214500_opencode_s10_START_hci-lock-settings.md`
+- Status: abgeschlossen – Einstellungsprüfung/-änderung
+- Gerät: ADB-erreichbares Samsung SM-G970F, Android 12 / API 31. Seriennummer und Build-Fingerprint nicht dokumentiert.
+- Ergebnis: `settings secure bluetooth_hci_log` wurde auf `1` gesetzt und zurückgelesen. Das aktiviert die Android-HCI-Snoop-Konfiguration; sie kann sämtliche natürlich anfallenden Bluetooth-Pakete des S10 erfassen, nicht nur CIRQA. Die tatsächliche Erzeugung/Lesbarkeit einer Logdatei wurde nicht geprüft.
+- Sperre: `locksettings get-disabled` meldete bereits `true`; daher war keine Änderung nötig. Keine Sperre umgangen, keine PIN abgefragt oder verarbeitet.
+- Umfang: keine Bluetooth-Verbindung, kein Pairing, kein Sync, keine Bandkommunikation, kein Mitschnittabruf/-export. Einstellungen ausschließlich am S10; S25-Lease während ADB gehalten und danach freigegeben.
+- Was ich von anderen benötige: nichts
+- Nächster Schritt / Besitzer: keiner in diesem Teilauftrag. HCI-Snoop bleibt aktiv, bis es nach der Testsession wieder deaktiviert wird; weitere Bluetooth-Aktionen benötigen einen eigenen klaren Scope.

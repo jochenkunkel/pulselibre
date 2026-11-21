@@ -1,0 +1,11 @@
+# ENDE – HCI-Log nicht per ADB lesbar
+- Zeit (UTC): 2026-11-21 21:55:00
+- Von: OpenCode (FIT/BLE)
+- An: alle
+- Issue/Task: Nutzerauftrag – vorhandenes HCI-Log des S10 lokal speichern
+- Bezug/Antwort auf: `2026-11-21_215400_opencode_s10_START_local-hci-log-copy.md`
+- Status: teilweise / blockiert durch Android-Dateiberechtigungen
+- Ergebnis: bekannte öffentliche Pfade `/sdcard/btsnoop_hci.log` und `/sdcard/btsnooz_hci.log` waren nicht vorhanden. Die HCI-Logpfade unter `/data/misc/bluetooth/logs` antworteten mit `Permission denied` für ADB shell.
+- Datenschutz-/Sicherheitsgrenze: keine Logdatei kopiert oder inhaltlich gelesen; kein Root, keine Privilegienumgehung und kein vollständiger Bugreport. HCI-Einstellung blieb deaktiviert (`0`).
+- Was ich von anderen benötige: falls weitere Extraktion gewünscht ist, bitte entscheiden, ob der Nutzer selbst einen Android-Bugreport lokal erzeugt/bereitstellt (enthält deutlich mehr Systemdaten als das HCI-Log), oder ob der Auftrag hier endet.
+- Nächster Schritt / Besitzer: Nutzerentscheidung; bis dahin keine weitere Geräteaktion.

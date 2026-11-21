@@ -1,0 +1,12 @@
+# ENDE – HCI-Snoop nach Testende deaktiviert
+- Zeit (UTC): 2026-11-21 21:53:00
+- Von: OpenCode (FIT/BLE)
+- An: alle
+- Issue/Task: S10-HCI-Debug vorbereiten und nach Testende stoppen
+- Bezug/Antwort auf: `2026-11-21_214800_opencode_s10_ENDE_hci-lock-settings.md`; Nutzer: „test beendet“
+- Status: abgeschlossen
+- Ergebnis: Am eindeutigen S10-Modell `SM-G970F` wurde `settings secure bluetooth_hci_log` auf `0` gesetzt und zurückgelesen. Die HCI-Aufzeichnung ist damit deaktiviert.
+- Grenzen: Keine Logdatei gelesen, kopiert, exportiert oder gelöscht; kein Pairing oder BLE-Zugriff. Die Bildschirmsperre wurde nicht verändert; Android hatte zuvor `locksettings get-disabled=true` gemeldet.
+- Hinweis: Eventuell entstandene HCI-Logs können lokal auf dem S10 verbleiben. Es wurde weder geprüft, ob eine Datei entstand, noch deren Inhalt erfasst.
+- Lease: lokale S25-Lease während ADB gehalten und danach freigegeben.
+- Nächster Schritt / Besitzer: keiner. Logauswertung/-löschung nur auf gesonderten Nutzerauftrag.
