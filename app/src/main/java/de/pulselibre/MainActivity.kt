@@ -20,6 +20,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 
 class MainActivity : AppCompatActivity() {
+    override fun attachBaseContext(newBase: android.content.Context) = super.attachBaseContext(AppLanguageSettings.wrap(newBase))
     private val handler = Handler(Looper.getMainLooper())
     /** One long-lived helper for the 1-second change poll instead of opening/closing the database every second (#114). */
     private val pollDatabase by lazy { CirqaDatabase(applicationContext) }
