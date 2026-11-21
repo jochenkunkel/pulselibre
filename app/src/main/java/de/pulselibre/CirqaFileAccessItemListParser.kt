@@ -47,9 +47,6 @@ object CirqaFileAccessItemListParser {
     /** Maximum number of fields accepted before a message is considered non-canonical. */
     private const val MAX_FIELDS = 512
 
-    /** Sentinel for an oversized/overflowing field length. */
-    private const val INVALID_LENGTH = -1L
-
     /**
      * Parses a complete protobuf message. Returns null if the input is not a
      * complete, canonical protobuf with all declared lengths present. No partial
@@ -121,11 +118,15 @@ object CirqaFileAccessItemListParser {
             val flags = f.firstOrNull { it.number == 4 && it.wire == 0 }?.varint ?: 0L
             items.add(Item(uid, dataType, size, flags))
         }
+        val sessionId = responseFields.firstOrNull { it.number == 2 && it.wire == 0 }?.varint
+        val nextTransactionId = responseFields.firstOrNull { it.number == 3 && it.wire == 0 }?.varint
+        if (sessionId != null && sessionId !in 0..0xffff_ffffL) return null
+        if (nextTransactionId != null && nextTransactionId !in 0..0xffff_ffffL) return null
         return ItemListPage(
             items = items,
             status = responseFields.firstOrNull { it.number == 1 && it.wire == 0 }?.varint,
-            sessionId = responseFields.firstOrNull { it.number == 2 && it.wire == 0 }?.varint,
-            nextTransactionId = responseFields.firstOrNull { it.number == 3 && it.wire == 0 }?.varint,
+            sessionId = sessionId,
+            nextTransactionId = nextTransactionId,
             gdxmlStrings = gdxmlStrings,
             complete = true
         )
