@@ -1,15 +1,15 @@
 # OpenCode – Issue #149: funktionale FIT-Historienpipeline
 - Agent/Umgebung: OpenCode / Linux worktree
 - Beginn: 2026-11-21 15:23 UTC
-- Letzte Aktualisierung: 2026-11-21 15:43 UTC
+- Letzte Aktualisierung: 2026-11-21 17:31 UTC
 - Status: aktiv
 - Rolle/Zuständigkeit: CIRQA/GFDI/FIT/SQLite/Backfill
 - Aktueller Auftrag: #149 – den vom Nutzer bekräftigten Auftrag „funktionaler historischer Download samt verifiziertem FIT-Import und GUI-Anzeige“ umsetzen
-- Jetzt in Bearbeitung: redigierte Auswertung des einmalig freigegebenen Produktaktions-Follow-ups; Implementierung einer eindeutigen Laufidentität für den Status prüfen
-- Zeitnah geplant: Status-/Lauf-ID-Regressionstests; keine weitere Geräteaktion ohne neue Freigabe
+- Jetzt in Bearbeitung: PR für begrenzte Product-ItemList-Fortsetzung nach `nextTransactionId`, eindeutige Laufidentität und Regressionen
+- Zeitnah geplant: PR-/Full-CI; erneuter produktiver S25-Lauf erst nach ausdrücklicher Freigabe für den geänderten Pfad
 - Betroffene Bereiche/Dateien: zunächst bestehender Smart/MLR-Downloader, FIT-Validierung/Commit, `HistoricalObservationRepository`/`FitHistoryReader`; noch kein Eingriff in #378-Gate/Testlabor-Dateien
 - Branch/Worktree: `opencode/fit-history-end-to-end-20261121` / `/tmp/opencode/pulselibre-history-149-20261121`
 - Abstimmungsbedarf: PR #378 (`opencode/nexttransaction-second-shot`) wird auf denselben Issue-Kontext bezogen; mein Umfang ist der bestehende Download→Import→GUI-Pfad, nicht `nextTransaction`-Gate oder No-Pull-Sonde. Bitte melden, falls dessen Umfang in Produktionstransport übergeht.
 - Agent-chat/agent-sync: START 2026-11-21_152353_opencode_149_START_functional-history.md; Abstimmung 2026-11-21_1524_opencode-an-alle_issue149-scope.md
-- Nachweise: `:app:testDebugUnitTest` bestanden; Main-Full-CI `44919422926` und PR #378 Full-CI grün; einmalige Produktaktion nach Bestätigung ausgeführt, aber Status identisch zum schon vorher sichtbaren Status und deshalb nicht als neuer Lauf belegbar; redigierter Befund `CIRQA_PRODUCT_DOWNLOAD_FOLLOWUP_2026-11-21.md`
-- Nächster Schritt: lokalen Status an eindeutige Lauf-ID binden und Regressionstest ergänzen; keine weitere Geräte-/BLE-Aktion
+- Nachweise: `:app:testDebugUnitTest` bestanden; vollständige lokale CI auf aktuellem Branch inkl. 99 Python-Tests, JVM, Debug/R8-Release, Lint, APK-Diagnose und API-35-Emulator (15 Instrumentationstests) grün; zwei separate No-Pull-Transaktionsproben dokumentiert in PR #384; neue Produktaktion auf geändertem Code noch nicht ausgeführt
+- Nächster Schritt: finalen Diff prüfen, Agentenabgrenzung bestätigen, PR mit Branch-Full-CI eröffnen; kein weiterer S25-/BLE-Lauf ohne aktualisierte Einzelentscheidung

@@ -20,4 +20,5 @@ Da die Oberfläche für diesen Status keinen Zeitstempel oder Laufzähler anzeig
 - Eine vollständige Historie ist weiterhin nicht nachgewiesen.
 - Der sichtbare Status weist auf eine nicht abgeschlossene Item-List-Sitzung mit angekündigter separater Transaktion hin; der Produktionspfad meldet entsprechend `next-transaction-pending`.
 - Keine Behauptung, dass alle übertragenen Dateien neu importiert wurden oder dass sich die Datenbank durch diesen Follow-up geändert hat.
-- Nächster erforderlicher Schritt im Code: Resultatstatus mit einer eindeutigen lokalen Lauf-ID/Zeit verknüpfen, damit ein neuer Lauf von einem alten Ergebnis unterscheidbar ist. Keine weitere Geräteaktion ohne separate Freigabe.
+- Ergänzende Protokollevidenz: Zwei separat begrenzte No-Pull-Proben, zuletzt [PR #384](https://github.com/jochenkunkel/pulselibre/pull/384), erhielten jeweils nach einer einzelnen `transaction_id`-Anfrage `status=0` mit 0 Einträgen. Das erklärt, warum eine begrenzte Produkt-Folgeanfrage sinnvoll ist; es beweist weder weitere Dateien noch vollständige Gerätehistorie.
+- Nächster erforderlicher Schritt im Code: genau eine separate Transaktions-Folgeanfrage pro Produktlauf zulassen, mögliche Listeneinträge über den bestehenden Pull-/FIT-/SQLite-Pfad verarbeiten und danach fail-closed stoppen. Der Laufstatus bekommt eine eindeutige lokale ID. Keine weitere Gerätekette.
