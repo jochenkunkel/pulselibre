@@ -8,7 +8,8 @@ OpenCode-Arbeitspaket
 Neue FIT-Decoderstände werden als **unveränderliche Generationen pro
 Quellhash** gespeichert. Eine Generation wird separat als aktiv ausgewählt;
 ein Replay überschreibt keine ältere Dekodierung. Für Zeitstempel-Herkunft gilt
-`DIRECT`, `RECONSTRUCTED_TS16` oder `UNKNOWN` für Altbestand.
+`DIRECT`, `RECONSTRUCTED_TS16`, `RECONSTRUCTED_COMPRESSED` oder `UNKNOWN`
+für Altbestand.
 
 ## Warum nicht pro Quelle ersetzen?
 
@@ -40,10 +41,11 @@ auch wenn ein privates Original nicht mit dem DB-Backup vorhanden ist.
    rückwirkend klassifiziert.
 4. Der Aktivierungszustand und jede Generation müssen im Backup enthalten und
    beim Restore auf Quellen-/Observation-/Provenienzbeziehungen geprüft werden.
-5. Aktuelle Architektur enthält zwei Stores. Bevor eine Generation produktive
-   History-Leser erreicht, muss ein crash-sicheres Aktivierungs-/Reconciliation-
-   Protokoll für Store-Divergenz implementiert und getestet werden. Bis dahin
-   dürfen neue Decoderkandidaten nicht in die persistente Allowlist gelangen.
+5. Generationen und aktive Auswahl sind ausschließlich in
+   `cirqa_measurements.db` maßgeblich. `pulselibre_readings.db` bleibt
+   unveränderte Legacy-/Kopierquelle. Der History-Reader projiziert FIT-Werte
+   aus dem aktiven Generationenzeiger und Nicht-FIT-Werte aus der bisherigen
+   Beobachtungstabelle.
 6. Keine FIT-Originale, bestehenden Generationen oder vorhandenen Beobachtungen
    werden in diesem Arbeitsschritt gelöscht oder überschrieben.
 
@@ -76,23 +78,21 @@ cross-store Crash-Atomizitätsabhängigkeit.
 Additive Tabellen in der kanonischen DB:
 
 - `fit_decoder_generations`: stabile `generation_id`, Quellenhash,
-  Decoder-/Profilversion, Output-Digest, Status (`COMPLETE`), Abschlusszeit;
+  Decoder-/Profilversion, Output-Digest, Output-Anzahl und Abschlusszeit;
   eindeutige Identität `(source_sha256, decoder_version, profile_version)`.
 - `fit_generation_observations`: Generation + deterministische Sample-ID,
   Messwert-/Zeit-/Geräte-/Metrikfelder und vollständige FIT-Feldprovenienz.
   Schlüssel und Foreign Keys sind generation-scoped; `timestamp_origin` ist
-  `DIRECT`, `RECONSTRUCTED_TS16` oder `UNKNOWN`.
+  `DIRECT`, `RECONSTRUCTED_TS16`, `RECONSTRUCTED_COMPRESSED` oder `UNKNOWN`.
 - `fit_active_generations`: genau eine ausgewählte vollständige Generation je
   Quellenhash, Foreign Key auf Generation und auf dieselbe Quelle.
 
-Eine einzelne kanonische SQLite-Transaktion schreibt eine vollständige
-Generation, prüft Anzahl/Digest/Quellbindung und schaltet optional den
-Aktivzeiger um. Der Wechsel von `fit_active_generations` ist der einzige
-Aktivierungspunkt und liegt in derselben Transaktion; nach Prozessabbruch gilt
-damit entweder der alte Zeiger oder der vollständig geschriebene neue Zeiger.
-Fehlgeschlagene/abgebrochene Parse-Läufe schreiben keine aktive oder partielle
-Generation. Identischer Replay ist idempotent; gleicher Versionsschlüssel mit
-anderem Digest ist ein harter Konflikt.
+Schema v7 migriert Altbestand und speichert neue kanonische Imports als
+unveränderliche Generation. Identischer Replay derselben Identität ist
+idempotent; abweichender Inhalt unter derselben Identität ist ein Konflikt.
+Die erste Generation einer Quelle wird aktiv. Ein späterer Decoderstand ersetzt
+den vorhandenen Aktivzeiger nicht automatisch. Ein eigener expliziter
+Replay-/Aktivierungspfad für abweichende Decoder-Versionen ist noch offen.
 
 Die bisherige `observations`/`fit_observation_provenance`-Kombination bleibt
 bei der Migration unangetastet. Für vorhandene Quellen wird je Quelle eine
@@ -105,26 +105,23 @@ Rollbackbestand erhalten, ohne sie doppelt in der sichtbaren Historie zu
 zählen. Migration wird mit Quell-/Zielcounts, referenzieller Prüfung und Digest
 verifiziert; ein Fehler bricht die SQLite-Migration vollständig ab.
 
-Backupversion 7 ergänzt JSONL-Einträge für Generationen, Generation-Records,
-Provenienz und aktive Zeiger. Restore validiert Vollständigkeit, Eindeutigkeit,
-Fremdschlüssel, Status und Digest vor dem Schreiben und erhält Restore v1–v6.
+Backupversion 7 ergänzt JSONL-Einträge für Generationen, Generation-Records
+und aktive Zeiger. Restore validiert Vollständigkeit, Eindeutigkeit,
+Fremdschlüssel und Digest vor dem Schreiben und erhält Restore v1–v6.
 FIT-Originalbytes bleiben weiterhin außerhalb des DB-Backups. Es gibt somit
 keine neue Cross-Store-Aktivierung: ein v7-Backup ist der konsistente Snapshot
-der kanonischen Datenbankgenerationen.
+der kanonischen Datenbankgenerationen. Im lokalen Feature-Branch implementiert;
+Instrumentationsausführung und vollständiger CI-Nachweis stehen noch aus.
 
 ### Reihenfolge
 
-1. Das oben beschriebene Schema, Altbestand-Backfill und Active-Reader als
-   additive kanonische DB-Migration umsetzen; bestehende Tabellen nicht
-   umschreiben.
-2. Backup v7 samt v1–v6-Restore, Roundtrip-, Integritäts- und Fehler-Injection-
-   Tests ergänzen.
-3. Parser/Committer-Versionierung und Zeitstempelursprung an Generationen
-   anschließen. Den laufenden Decoder zunächst auf alte Quellen idempotent
-   migrieren, aber keine neue Generation automatisch über aktive Altgenerationen
-   setzen.
-4. Nach erfolgreicher Migration kann ein vollständiger Replay pro Quelle
-   transaction-local aktiviert und via History-API sichtbar werden.
-5. Erst danach `respiration_rate` einzeln in persistente Imports aufnehmen.
+1. Schema, Migration, History-Projektion und Backup-v7-Codec/Restore im
+   Feature-Branch prüfen; Unit- und Instrumentationstests ergänzen.
+2. Mit vollständigem PR-CI inklusive Emulator Migration, Backup-Roundtrip und
+   Restore v1–v7 nachweisen.
+3. Danach den expliziten Replay-/Aktivierungspfad implementieren und separat
+   testen. Kein automatischer Austausch einer bereits aktiven Generation.
+4. Erst nach abgesichertem Generationen-/Backupmodell `respiration_rate`
+   einzeln für persistente Imports prüfen.
 
 Keine Geräte-/BLE-Aktion. Keine privaten FIT-Rohdaten verwendet oder publiziert.

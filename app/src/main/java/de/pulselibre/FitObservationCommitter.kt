@@ -249,6 +249,18 @@ internal object FitObservationCommitter {
                 provenanceInsert.executeInsert()
             }
 
+            if (readingsTable == "observations") {
+                persistDecoderGeneration(
+                    db = db,
+                    sourceSha256 = sourceSha256,
+                    decoderVersion = decoderVersion,
+                    profileVersion = profileVersion,
+                    completedAtEpochMillis = validatedAtEpochMillis,
+                    observations = observations,
+                    records = records
+                )
+            }
+
             val newest = records.maxOfOrNull { it.measuredAtEpochMillis }
             if (newest != null) {
                 db.execSQL(
@@ -263,6 +275,120 @@ internal object FitObservationCommitter {
             db.endTransaction()
         }
         return records.size
+    }
+
+    /**
+     * Store the exact canonical decoder output as an immutable generation.
+     * The first complete generation becomes active; later versions remain
+     * inactive until an explicit replay/activation operation is added.
+     */
+    private fun persistDecoderGeneration(
+        db: SQLiteDatabase,
+        sourceSha256: String,
+        decoderVersion: String,
+        profileVersion: String,
+        completedAtEpochMillis: Long,
+        observations: List<FitHistoricalObservations.Observation>,
+        records: List<RawExportRecord>
+    ) {
+        val generationId = FitDecoderGeneration.id(sourceSha256, decoderVersion, profileVersion)
+        val generationRows = observations.zip(records).map { (observation, record) ->
+            StoredFitGenerationObservation(
+                generationId = generationId,
+                sampleId = requireNotNull(record.sampleId),
+                deviceId = record.deviceId,
+                metric = record.metric,
+                measuredAtEpochMillis = record.measuredAtEpochMillis,
+                value = record.value,
+                unit = record.unit,
+                receivedAtEpochMillis = record.receivedAtEpochMillis,
+                recordOrdinal = observation.recordOrdinal,
+                globalMessageNumber = observation.globalMessageNumber,
+                fieldNumber = observation.fieldNumber,
+                quality = observation.quality.name,
+                timestampOrigin = observation.timestampOrigin.name
+            )
+        }
+        val outputDigest = FitDecoderGeneration.outputDigest(generationRows)
+        db.execSQL(
+            """INSERT OR IGNORE INTO fit_decoder_generations
+               (generation_id, source_sha256, decoder_version, profile_version,
+                output_digest, output_count, completed_at_ms)
+               VALUES(?, ?, ?, ?, ?, ?, ?)""",
+            arrayOf<Any?>(
+                generationId, sourceSha256, decoderVersion, profileVersion, outputDigest,
+                generationRows.size, completedAtEpochMillis
+            )
+        )
+        db.rawQuery(
+            """SELECT source_sha256, decoder_version, profile_version, output_digest, output_count
+               FROM fit_decoder_generations WHERE generation_id = ?""",
+            arrayOf(generationId)
+        ).use { row ->
+            check(row.moveToFirst() && row.getString(0) == sourceSha256 &&
+                row.getString(1) == decoderVersion && row.getString(2) == profileVersion &&
+                row.getString(3) == outputDigest && row.getLong(4) == generationRows.size.toLong()) {
+                "FIT decoder output conflicts with immutable generation identity"
+            }
+        }
+
+        val insert = db.compileStatement(
+            """INSERT OR IGNORE INTO fit_generation_observations
+               (generation_id, sample_id, device_id, metric, measured_at_ms, value, unit,
+                received_at_ms, record_ordinal, global_message_number, field_number, quality,
+                timestamp_origin)
+               VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"""
+        )
+        generationRows.forEach { row ->
+            insert.clearBindings()
+            insert.bindString(1, row.generationId)
+            insert.bindString(2, row.sampleId)
+            insert.bindString(3, row.deviceId)
+            insert.bindString(4, row.metric)
+            insert.bindLong(5, row.measuredAtEpochMillis)
+            insert.bindDouble(6, row.value)
+            insert.bindString(7, row.unit)
+            if (row.receivedAtEpochMillis == null) insert.bindNull(8)
+            else insert.bindLong(8, row.receivedAtEpochMillis)
+            insert.bindLong(9, row.recordOrdinal.toLong())
+            insert.bindLong(10, row.globalMessageNumber.toLong())
+            insert.bindLong(11, row.fieldNumber.toLong())
+            insert.bindString(12, row.quality)
+            insert.bindString(13, row.timestampOrigin)
+            insert.executeInsert()
+            db.rawQuery(
+                """SELECT device_id, metric, measured_at_ms, value, unit, received_at_ms,
+                          record_ordinal, global_message_number, field_number, quality, timestamp_origin
+                   FROM fit_generation_observations WHERE generation_id = ? AND sample_id = ?""",
+                arrayOf(generationId, row.sampleId)
+            ).use { stored ->
+                check(stored.moveToFirst() &&
+                    stored.getString(0) == row.deviceId && stored.getString(1) == row.metric &&
+                    stored.getLong(2) == row.measuredAtEpochMillis &&
+                    stored.getDouble(3).toBits() == row.value.toBits() &&
+                    stored.getString(4) == row.unit &&
+                    (if (stored.isNull(5)) null else stored.getLong(5)) == row.receivedAtEpochMillis &&
+                    stored.getInt(6) == row.recordOrdinal &&
+                    stored.getInt(7) == row.globalMessageNumber &&
+                    stored.getInt(8) == row.fieldNumber &&
+                    stored.getString(9) == row.quality &&
+                    stored.getString(10) == row.timestampOrigin) {
+                    "FIT output conflicts with previously stored immutable generation"
+                }
+            }
+        }
+        db.execSQL(
+            """INSERT OR IGNORE INTO fit_active_generations(source_sha256, generation_id)
+               VALUES(?, ?)""",
+            arrayOf(sourceSha256, generationId)
+        )
+        db.rawQuery(
+            "SELECT generation_id FROM fit_active_generations WHERE source_sha256 = ?",
+            arrayOf(sourceSha256)
+        ).use { active ->
+            check(active.moveToFirst()) { "FIT source has no active complete generation" }
+            // Deliberately do not replace another active generation implicitly.
+        }
     }
 
     private fun bindNullableLong(statement: android.database.sqlite.SQLiteStatement, index: Int, value: Long?) {

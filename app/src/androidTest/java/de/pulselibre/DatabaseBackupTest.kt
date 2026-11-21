@@ -14,12 +14,129 @@ import java.io.ByteArrayOutputStream
 import java.io.File
 import java.nio.file.Files
 import java.security.MessageDigest
+import java.time.Instant
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 import org.json.JSONObject
 
 @RunWith(AndroidJUnit4::class)
 class DatabaseBackupTest {
+    @Test fun schemaSixUpgradeCreatesImmutableUnknownTimestampGenerationWithoutChangingLegacyRows() {
+        val base = ApplicationProvider.getApplicationContext<Context>()
+        val root = Files.createTempDirectory(base.cacheDir.toPath(), "fit-generation-migration-").toFile()
+        val context = isolatedContext(base, root)
+        val sourceSha = "f".repeat(64)
+        val observation = FitHistoricalObservations.Observation(
+            metric = FitHistoricalObservations.Metric.HEART_RATE,
+            timestampEpochMillis = 123_456,
+            value = 71.0,
+            unit = "bpm",
+            sourceFileSha256 = sourceSha,
+            recordOrdinal = 7,
+            globalMessageNumber = 20,
+            fieldNumber = 3,
+            quality = FitHistoricalObservations.Quality.PROFILE_VALID,
+            idempotencyKey = "generation-migration-sample",
+            duplicateFingerprint = "migration-fingerprint"
+        )
+        try {
+            CirqaDatabase(context).use { database ->
+                database.commitFitFile(
+                    sourceSha256 = sourceSha,
+                    fileBytes = 100,
+                    relativePath = "verified_fit/$sourceSha.fit",
+                    validatedAtEpochMillis = 987,
+                    decoderVersion = FitHistoricalObservations.DECODER_VERSION,
+                    profileVersion = FitHistoricalObservations.PROFILE_VERSION,
+                    observations = listOf(observation)
+                )
+                val db = database.writableDatabase
+                db.execSQL("DROP TABLE fit_active_generations")
+                db.execSQL("DROP TABLE fit_generation_observations")
+                db.execSQL("DROP TABLE fit_decoder_generations")
+                db.version = 6
+            }
+
+            CirqaDatabase(context).use { database ->
+                val db = database.readableDatabase
+                assertEquals(7, db.version)
+                db.rawQuery(
+                    """SELECT g.source_sha256, g.decoder_version, g.profile_version,
+                              g.output_count, a.generation_id
+                       FROM fit_decoder_generations g
+                       JOIN fit_active_generations a ON a.generation_id = g.generation_id
+                       WHERE g.source_sha256 = ?""",
+                    arrayOf(sourceSha)
+                ).use { rows ->
+                    assertTrue(rows.moveToFirst())
+                    assertEquals(sourceSha, rows.getString(0))
+                    assertEquals("legacy-unknown-v1", rows.getString(1))
+                    assertEquals(FitHistoricalObservations.PROFILE_VERSION, rows.getString(2))
+                    assertEquals(1, rows.getInt(3))
+                    assertEquals(64, rows.getString(4).length)
+                    assertFalse(rows.moveToNext())
+                }
+                db.rawQuery(
+                    """SELECT sample_id, value, record_ordinal, timestamp_origin
+                       FROM fit_generation_observations WHERE generation_id =
+                         (SELECT generation_id FROM fit_active_generations WHERE source_sha256 = ?)""",
+                    arrayOf(sourceSha)
+                ).use { rows ->
+                    assertTrue(rows.moveToFirst())
+                    assertEquals("generation-migration-sample", rows.getString(0))
+                    assertEquals(71.0, rows.getDouble(1), 0.0)
+                    assertEquals(7, rows.getInt(2))
+                    assertEquals("UNKNOWN", rows.getString(3))
+                    assertFalse(rows.moveToNext())
+                }
+                db.rawQuery(
+                    "SELECT value FROM observations WHERE sample_id = ?",
+                    arrayOf("generation-migration-sample")
+                ).use { rows ->
+                    assertTrue("Original row remains unchanged", rows.moveToFirst())
+                    assertEquals(71.0, rows.getDouble(0), 0.0)
+                }
+            }
+            val activePage = HistoricalObservationRepository(context).read(
+                HistoricalObservationQuery(
+                    startInclusive = Instant.EPOCH,
+                    endExclusive = Instant.ofEpochMilli(Long.MAX_VALUE),
+                    limit = 20
+                )
+            )
+            assertEquals(1, activePage.observations.size)
+            assertEquals("UNKNOWN", activePage.observations.single().provenance?.timestampOrigin)
+
+            val archive = ByteArrayOutputStream()
+            DatabaseBackup.write(context, archive)
+            val plan = DatabaseBackup.prepareRestore(context, ByteArrayInputStream(archive.toByteArray()))
+            plan.use {
+                assertEquals(1L, it.canonicalFitGenerations)
+                assertEquals(1L, it.canonicalFitGenerationObservations)
+                assertEquals(1L, it.canonicalActiveFitGenerations)
+                DatabaseBackup.restore(context, plan)
+            }
+            CirqaDatabase(context).use { database ->
+                val restoredCount = database.readableDatabase.rawQuery(
+                    "SELECT COUNT(*) FROM fit_generation_observations WHERE timestamp_origin = 'UNKNOWN'",
+                    null
+                ).use { it.moveToFirst(); it.getLong(0) }
+                assertEquals(1L, restoredCount)
+            }
+            val restoredPage = HistoricalObservationRepository(context).read(
+                HistoricalObservationQuery(
+                    startInclusive = Instant.EPOCH,
+                    endExclusive = Instant.ofEpochMilli(Long.MAX_VALUE),
+                    limit = 20
+                )
+            )
+            assertEquals(1, restoredPage.observations.size)
+            assertEquals("UNKNOWN", restoredPage.observations.single().provenance?.timestampOrigin)
+        } finally {
+            root.deleteRecursively()
+        }
+    }
+
     @Test fun schemaFiveUpgradeAddsInventoryWithoutChangingExistingFitSources() {
         val base = ApplicationProvider.getApplicationContext<Context>()
         val root = Files.createTempDirectory(base.cacheDir.toPath(), "fit-inventory-migration-").toFile()
@@ -40,11 +157,26 @@ class DatabaseBackupTest {
                 """INSERT INTO fit_sources VALUES (?, 100, ?, 10, '1', '21.222.0')""",
                 arrayOf("e".repeat(64), "verified_fit/${"e".repeat(64)}.fit")
             )
+            legacy.execSQL(
+                """CREATE TABLE observations (
+                    device_id TEXT NOT NULL, metric TEXT NOT NULL, measured_at_ms INTEGER NOT NULL,
+                    value REAL NOT NULL, unit TEXT NOT NULL, sample_id TEXT NOT NULL,
+                    received_at_ms INTEGER
+                )"""
+            )
+            legacy.execSQL(
+                """CREATE TABLE fit_observation_provenance (
+                    sample_id TEXT NOT NULL, device_id TEXT NOT NULL, metric TEXT NOT NULL,
+                    measured_at_ms INTEGER NOT NULL, source_sha256 TEXT NOT NULL,
+                    record_ordinal INTEGER NOT NULL, global_message_number INTEGER NOT NULL,
+                    field_number INTEGER NOT NULL, quality TEXT NOT NULL, decoder_version TEXT NOT NULL
+                )"""
+            )
             legacy.version = 5
             legacy.close()
 
             CirqaDatabase(context).use { database ->
-                assertEquals(6, database.readableDatabase.version)
+                assertEquals(7, database.readableDatabase.version)
                 val sourceCount = database.readableDatabase.rawQuery(
                     "SELECT COUNT(*) FROM fit_sources", null
                 ).use { it.moveToFirst(); it.getInt(0) }

@@ -1,15 +1,17 @@
 # OpenCode – FIT-Decoder-Generationen und Replay (#149/#144)
 - Agent/Umgebung: OpenCode / Linux worktree
 - Beginn: 2026-11-21 10:13 UTC
-- Letzte Aktualisierung: 2026-11-21 10:46 UTC
+- Letzte Aktualisierung: 2026-11-21 (Fortsetzung; Uhrzeit nicht festgehalten)
 - Status: aktiv
 - Rolle/Zuständigkeit: FIT-Decoder, SQLite-Import, Provenienz und Backfill
 - Aktueller Auftrag: #149/#144 – aufgrund Nutzerauftrags zwischen den Replay-Architekturen entscheiden und sicheren nächsten Implementierungsschritt ausführen
-- Jetzt in Bearbeitung: #144 – additives Generationenmodell konkretisiert; nächste Phase: kanonische DB-Migration, generation-scoped Output/Provenienz, aktiver Reader und v7-Backuptests
+- Jetzt in Bearbeitung: #144 – additive kanonische DB-Migration, generation-scoped Output/Provenienz, aktiver Reader und v7-Backuptests vorbereiten; bislang nur das Design gemergt
 - Zeitnah geplant: #149 – Persistierung weiterer geprüfter Felder erst nach Generationen-/Backup-Migration; bis dahin Candidate bleibt non-persistent
 - Betroffene Bereiche/Dateien: `CirqaDatabase.kt`, `HistoricalObservationRepository.kt`, `FitObservationCommitter.kt`, `DatabaseBackup.kt`, zugehörige DB-/Backup-Tests und Entscheidungsdokument
-- Branch/Worktree: `opencode/fit-generation-decision-20261121` / `/tmp/opencode/pulselibre-nexttransaction-test-20261121`
+- Branch/Worktree: `opencode/fit-generation-schema-20261121` / `/tmp/opencode/pulselibre-nexttransaction-test-20261121`
 - Abstimmungsbedarf: DDL/Backup sind gemeinsame sensible Dateien, aber Issue #144 autorisiert sichere additive Migrationen. Konkretes Design ist via neue agent-sync-Nachricht geteilt; keine konkurrierende offene PR ändert diese Dateien
 - Agent-sync-Nachrichten: neue Entscheidungsmeldung `2026-11-21_1013_opencode-an-alle_fit-generation-entscheidung.md`
-- Nachweise: `main` `7bd7924`; FIT-Parser-Unit-Tests bestanden; direkte Gradle-Aufgaben `testDebugUnitTest`, `assembleDebug`, `lintDebug`, `assembleDebugAndroidTest` und `assembleRelease` grün. Python-Tests 99/99 bestanden. Der S25-artige Bericht in den Python-Ausgaben stammt aus dem festen `FakeAdb`-Testdouble in `test_s25_acceptance.py`, kein realer Handyzugriff. Keine Installation, kein App-Start auf Handy, keine BLE-Anfrage
-- Nächster Schritt: Implementierung anhand des konkretisierten Ein-Store-Designs; vor Migration Tests für Legacy-Backfill, Generation-Digest, Transaktionsrollback und Backup-v7-Roundtrip ergänzen
+- Nachweise: PR #355 (`5f7ee83`) gemergt als `26ffd4c`, Full PR-CI inkl. Emulator und Full Main-CI #44895111031 erfolgreich. PR #356 (`0653bdd`) gemergt als `66ce2b8`, Full PR-CI #44896081380 inkl. API-35-Emulator sowie post-merge Full Main-CI #44896454585 erfolgreich. Keine Installation, kein App-Start auf Handy, keine BLE-Anfrage
+- Fortschritt: Schema-v7-Generationen, Altbestandmigration mit `UNKNOWN`, aktive History-Projektion und Backup-v7-Validierung/Restorepfad sind im lokalen Diff. Neue Migrations-/Roundtrip-Instrumentationstests wurden ergänzt und kompiliert; die Emulatorausführung steht aus. Ein erneuter lokaler Testlauf war erfolgreich, Gradle meldete alle Phasen `UP-TO-DATE`.
+- Nachweise: Branch liegt jetzt 7 Commits hinter `origin/main`; die neuen Main-Commits ändern keine der FIT-/Schema-/Backup-Code-Dateien, sondern Status-/Audit-/Handbuch- und Agentenabstimmungsdokumente. Änderungen bleiben uncommitted. Keine Geräte-/BLE-Aktion.
+- Nächster Schritt: Main-Dokumentationscommits ohne Verlust der lokalen Änderungen integrieren, Diff und Backup-/Restorekonsistenz weiterprüfen, anschließend frische lokale QUICK-Prüfung und PR mit CLOUD/FULL-CI inkl. Emulator. Erst nach CI fortfahren mit expliziter Replay-/Aktivierungs-API.
