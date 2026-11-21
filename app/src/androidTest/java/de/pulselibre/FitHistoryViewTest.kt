@@ -46,7 +46,7 @@ class FitHistoryViewTest {
             if (view is ViewGroup) (0 until view.childCount).flatMap { texts(view.getChildAt(it)) } else emptyList()
 
     @Test fun readerReturnsOnlyWindowedFitPointsAndAvailability() {
-        val base = ApplicationProvider.getApplicationContext<Context>()
+        val base = AppLanguageSettings.wrap(ApplicationProvider.getApplicationContext<Context>())
         val root = Files.createTempDirectory(base.cacheDir.toPath(), "fit-history-reader-").toFile()
         val context = isolatedContext(base, root)
         val sha = "b".repeat(64)
@@ -74,7 +74,7 @@ class FitHistoryViewTest {
     }
 
     @Test fun fitCardIsSeparateAndNamesTheBandClock() {
-        val context = ContextThemeWrapper(ApplicationProvider.getApplicationContext<Context>(), androidx.appcompat.R.style.Theme_AppCompat)
+        val context = ContextThemeWrapper(AppLanguageSettings.wrap(ApplicationProvider.getApplicationContext<Context>()), androidx.appcompat.R.style.Theme_AppCompat)
         val end = Instant.parse("2026-11-17T12:00:00Z")
         val live = listOf(HistoryPoint(end.minusSeconds(600), 80))
         val fit = listOf(HistoryPoint(end.minusSeconds(7_200), 61), HistoryPoint(end.minusSeconds(7_140), 63))
@@ -94,7 +94,7 @@ class FitHistoryViewTest {
     }
 
     @Test fun cardIsHiddenWithoutFitDataAndHonestWhenWindowIsEmpty() {
-        val context = ContextThemeWrapper(ApplicationProvider.getApplicationContext<Context>(), androidx.appcompat.R.style.Theme_AppCompat)
+        val context = ContextThemeWrapper(AppLanguageSettings.wrap(ApplicationProvider.getApplicationContext<Context>()), androidx.appcompat.R.style.Theme_AppCompat)
         val end = Instant.parse("2026-11-17T12:00:00Z")
         InstrumentationRegistry.getInstrumentation().runOnMainSync {
             val none = HistoryOverviewView(context) { r -> HistorySnapshot(r, r.startAt(end), end, emptyList(), emptyList()) }
