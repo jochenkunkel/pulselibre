@@ -62,11 +62,11 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
         addView(metricCard(overview.sleep, violet),
             LayoutParams(-1, -2).apply { bottomMargin = dp(8) })
         addNightOxygenCard()
-        heading("Heute auf einen Blick")
+        heading(context.getString(R.string.ov_today_glance))
         addStepContextChip()
         addView(stepCard(overview.steps, overview.stepGoal),
             LayoutParams(-1, -2).apply { bottomMargin = dp(8) })
-        heading("Weitere Gesundheitswerte")
+        heading(context.getString(R.string.ov_more_health))
         overview.details.chunked(2).forEach { pair ->
             addCardPair(pair) { metric -> metricCard(metric, ink) }
         }
@@ -77,7 +77,7 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
         val byKey = (overview.vitalSigns + overview.details).associateBy { it.title }
         val order = DashboardLayout.displayOrder(entries)
         if (order.isEmpty()) {
-            addView(label("Alle Kacheln sind ausgeblendet. Unter „Startseite anpassen“ lassen sie sich wieder einblenden.", 13f, muted).apply {
+            addView(label(context.getString(R.string.ov_all_hidden), 13f, muted).apply {
                 tag = "dashboard_all_hidden"
             }, LayoutParams(-1, -2).apply { topMargin = dp(8); bottomMargin = dp(8) })
             return
@@ -104,20 +104,20 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
         }
         val favorites = order.filter { it.favorite }
         if (favorites.isNotEmpty()) {
-            heading("Im Fokus")
+            heading(context.getString(R.string.ov_in_focus))
             renderRows(favorites)
             val rest = order.filterNot { it.favorite }
-            if (rest.isNotEmpty()) { heading("Weitere Kacheln"); renderRows(rest) }
+            if (rest.isNotEmpty()) { heading(context.getString(R.string.ov_more_tiles)); renderRows(rest) }
         } else renderRows(order)
     }
 
     private fun addCustomizeButton(entries: List<DashboardLayout.Entry>) {
-        addView(label("Startseite anpassen", 13f, palette.accent, true).apply {
+        addView(label(context.getString(R.string.ov_customize), 13f, palette.accent, true).apply {
             tag = "dashboard_customize"
             gravity = Gravity.CENTER
             minimumHeight = dp(48)
             isClickable = true; isFocusable = true
-            contentDescription = "Startseite anpassen. Kacheln ein- oder ausblenden, Reihenfolge ändern, Favoriten festlegen."
+            contentDescription = context.getString(R.string.ov_customize_cd)
             setOnClickListener {
                 showDashboardCustomize(context, entries,
                     onSave = { saved ->
@@ -138,23 +138,23 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
         val target = goal.value.toLongOrNull()?.takeIf { it > 0 }
         val progress = stepGoalProgress(steps, goal)
         val metric = steps.copy(title = "Schritte heute",
-            value = count?.let { "${integers.format(it)} Schritte" } ?: "Keine Messdaten")
+            value = count?.let { context.getString(R.string.ov_steps_count, integers.format(it)) } ?: MetricText.NO_DATA)
         return card(metric).apply {
             // Background layer: faint 15-minute bars behind all texts, clipped to the rounded tile (#122).
             val bars = StepBarsView(context, palette.accent)
             addView(bars, 0, android.widget.FrameLayout.LayoutParams(-1, -1))
             clipToOutline = true
             val trendNote = label("", 11f, muted).apply { tag = "dashboard_step_trend_note"; visibility = View.GONE }
+            var baseDescription = ""   // the tile's own description without the trend sentence; set once the tile is built
             fun showSteps(series: StepIntervals.Series?) {
                 bars.show(series)
-                val base = contentDescription.toString().substringBefore(" Aktivitätsverlauf").substringBefore(" Tagesverlauf noch")
                 if (series == null) return
                 if (series.observed > 0) {
-                    contentDescription = "$base Aktivitätsverlauf in 15-Minuten-Intervallen, teilweise verfügbar (${series.observed} von ${series.values.size} Intervallen)."
+                    contentDescription = context.getString(R.string.ov_steps_trend_partial_cd, baseDescription, series.observed, series.values.size)
                     trendNote.visibility = View.GONE
                 } else {
-                    contentDescription = "$base Tagesverlauf noch nicht verfügbar."
-                    trendNote.text = "Tagesverlauf noch nicht verfügbar"
+                    contentDescription = context.getString(R.string.ov_steps_trend_none_cd, baseDescription)
+                    trendNote.text = context.getString(R.string.ov_steps_trend_none)
                     trendNote.visibility = View.VISIBLE
                 }
             }
@@ -176,7 +176,7 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
                 contentDescription = null
             }, LayoutParams(-2, -2).apply { marginEnd = dp(34) })
             content.addView(titleRow)
-            val big = android.text.SpannableString(count?.let { integers.format(it) + " Schritte" } ?: "Keine Messdaten")
+            val big = android.text.SpannableString(count?.let { context.getString(R.string.ov_steps_count, integers.format(it)) } ?: context.getString(R.string.metric_no_data))
             if (count != null) {
                 val split = integers.format(count).length
                 big.setSpan(android.text.style.AbsoluteSizeSpan(38, true), 0, split, android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
@@ -185,17 +185,19 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
             }
             content.addView(label("", 22f, ink, true).apply { text = big; tag = "dashboard_step_value" },
                 LayoutParams(-1, -2).apply { topMargin = dp(10) })
-            val targetSource = if (goal.note == LOCAL_STEP_GOAL_NOTE) "eigenes" else "Gerät"
+            val targetSource = context.getString(if (goal.note == LOCAL_STEP_GOAL_NOTE) R.string.ov_step_goal_own else R.string.ov_step_goal_device)
             val reached = stepGoalStatus(steps, goal)
-            val targetText = target?.let { "Ziel ($targetSource): ${integers.format(it)} Schritte" + (reached?.let { r -> " · $r" } ?: "") }
-                ?: "Kein gültiges Schrittziel verfügbar (Gerät oder Einstellungen)"
+            val targetText = target?.let { context.getString(R.string.ov_step_target, targetSource, integers.format(it)) + (reached?.let { r -> " · $r" } ?: "") }
+                ?: context.getString(R.string.ov_step_target_none)
             contentDescription = "${MetricText.title(context, metric.title)}. ${MetricText.value(context, metric.value)}. $targetText."
+            baseDescription = contentDescription.toString()
             if (progress != null) {
                 val percentValue = progress
                 val percent = NumberFormat.getNumberInstance(Locale.GERMANY).apply {
                     maximumFractionDigits = 1
                 }.format(progress)
-                contentDescription = "$contentDescription $percent % des Tagesziels."
+                contentDescription = context.getString(R.string.ov_step_percent_cd, contentDescription, percent)
+                baseDescription = contentDescription.toString()
                 content.addView(android.widget.ProgressBar(context, null, android.R.attr.progressBarStyleHorizontal).apply {
                     tag = "dashboard_step_progress"
                     max = 1000
@@ -206,6 +208,7 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
             }
             content.addView(label(targetText, 13f, muted), LayoutParams(-1, -2).apply { topMargin = dp(6) })
             content.addView(trendNote, LayoutParams(-1, -2).apply { topMargin = dp(4) })
+            if (cachedStepSeries != null) showSteps(cachedStepSeries)
         }
     }
 
@@ -259,17 +262,17 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
                 UnvalidatedFeatures.mark(this, resources.displayMetrics.density, palette.dark)
             }
             tag = "dashboard_night_oxygen_insights"
-            contentDescription = "Nacht-Insights. SpO₂-Auswertung noch nicht berechenbar: Sampling und Signalqualität für CIRQA sind nicht validiert. Keine Diagnose."
+            contentDescription = context.getString(R.string.ov_night_cd)
         }
         val titleRow = LinearLayout(context).apply {
             orientation = HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
             addView(PlIcon.view(context, PlIcon.INFO_TIME, 24, palette.accent),
                 LayoutParams(dp(24), dp(24)).apply { marginEnd = dp(8) })
-            addView(label("Nacht-Insights", 15f, ink, true), LayoutParams(0, -2, 1f))
+            addView(label(context.getString(R.string.ov_night_title), 15f, ink, true), LayoutParams(0, -2, 1f))
             addView(android.widget.ImageView(context).apply {
                 setImageDrawable(PlIcon.drawable(context, PlIcon.HOURGLASS, 22, palette.muted))
-                contentDescription = "Nachtserie wird gelesen"
+                contentDescription = context.getString(R.string.ov_night_loading_cd)
                 tag = "night_status_icon"
             }, LayoutParams(dp(22), dp(22)))
         }
@@ -284,20 +287,21 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
         fun fill(night: NocturnalOxygen.Summary?) {
             insightRow.removeAllViews()
             if (night == null) {
-                addNightIndicator(insightRow, PlIcon.OXYGEN, "SpO₂", "Nachtserie wird gelesen …", palette.muted)
+                addNightIndicator(insightRow, PlIcon.OXYGEN, "SpO₂", context.getString(R.string.ov_night_loading), palette.muted)
                 return
             }
             val nf = java.text.NumberFormat.getNumberInstance(java.util.Locale.GERMANY).apply { maximumFractionDigits = 1 }
-            addNightIndicator(insightRow, PlIcon.RECOVERY, "22–6 Uhr",
+            val notComputable = context.getString(R.string.ov_not_computable)
+            addNightIndicator(insightRow, PlIcon.RECOVERY, context.getString(R.string.ov_night_hours),
                 java.text.NumberFormat.getIntegerInstance(java.util.Locale.GERMANY).format(night.samples), palette.muted,
-                description = "Nacht 22 bis 6 Uhr: ${night.samples} Messwerte")
-            addNightIndicator(insightRow, PlIcon.HOURGLASS, "Abdeckung",
-                night.coveragePercent?.let { "${nf.format(it)} %" } ?: "nicht berechenbar", palette.muted)
+                description = context.getString(R.string.ov_night_samples_cd, night.samples.toString()))
+            addNightIndicator(insightRow, PlIcon.HOURGLASS, context.getString(R.string.ov_night_coverage),
+                night.coveragePercent?.let { "${nf.format(it)} %" } ?: notComputable, palette.muted)
             addNightIndicator(insightRow, PlIcon.SIGNAL, "T90",
-                if (!night.computable) "nicht berechenbar" else "${nf.format(night.minutesBelow90)} min", palette.muted)
+                if (!night.computable) notComputable else context.getString(R.string.ov_night_minutes, nf.format(night.minutesBelow90)), palette.muted)
             addNightIndicator(insightRow, PlIcon.BREATHING, "ODI3 / ODI4",
-                if (!night.computable) "nicht berechenbar"
-                else night.odi3?.let { "${nf.format(it)} / ${nf.format(night.odi4)} je h" } ?: "nicht berechenbar", palette.muted)
+                if (!night.computable) notComputable
+                else night.odi3?.let { context.getString(R.string.ov_night_odi_value, nf.format(it), nf.format(night.odi4)) } ?: notComputable, palette.muted)
             // The hourglass only belongs to the loading state.
             findViewWithTag<View>("night_status_icon")?.apply { visibility = View.GONE; contentDescription = null }
             if (night.reason != "ok") nightReason.text = night.reason
@@ -309,9 +313,9 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
         card.addView(nightReason, LayoutParams(-1, -2).apply { topMargin = dp(6) })
         nightFill = ::fill
         if (cachedNight == null || System.currentTimeMillis() - cachedNightAt > NIGHT_CACHE_MS) loadNight()
-        card.addView(label("Nur Originalpunkte · keine Diagnose", 10f, muted).apply {
+        card.addView(label(context.getString(R.string.ov_night_footer), 10f, muted).apply {
             gravity = Gravity.END
-            contentDescription = "Nur gespeicherte Originalmessungen; keine Diagnose"
+            contentDescription = context.getString(R.string.ov_night_footer_cd)
         }, LayoutParams(-1, -2).apply { topMargin = dp(8) })
         card.isFocusable = true
         card.importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_YES
@@ -377,11 +381,11 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
                 cornerRadius = dp(12).toFloat()
             }
             isFocusable = true
-            contentDescription = "Tagesstand. Kumulativer Gerätezähler; Messpunkte werden nicht addiert."
+            contentDescription = context.getString(R.string.ov_step_day_state_cd)
             importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_YES
             val stepIconParams = LinearLayout.LayoutParams(dp(18), dp(18)).apply { rightMargin = dp(5) }
             addView(PlIcon.view(context, PlIcon.STEPS, 18, palette.indicator), stepIconParams)
-            addView(label("Tagesstand", 11f, muted, true), LinearLayout.LayoutParams(-2, -2))
+            addView(label(context.getString(R.string.ov_step_day_state), 11f, muted, true), LinearLayout.LayoutParams(-2, -2))
         }
         chip.getChildAt(0).importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
         chip.getChildAt(1).importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
@@ -443,9 +447,9 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
             val unit = if (measurement.unit.startsWith("Geräteskala")) "" else measurement.unit
             val nf = TileInsightCalc
             val range = when {
-                i.cumulative -> "Heute ${nf.format(i.current ?: 0.0, unit)}"
-                i.min == i.max -> "Heute ${nf.format(i.average ?: 0.0, unit)} (${i.count} ${if (i.count == 1) "Wert" else "Werte"})"
-                else -> "Heute Ø ${nf.format(i.average ?: 0.0, "")} · ${nf.format(i.min ?: 0.0, "")}–${nf.format(i.max ?: 0.0, "")}" +
+                i.cumulative -> context.getString(R.string.ov_today_value, nf.format(i.current ?: 0.0, unit))
+                i.min == i.max -> context.getString(R.string.ov_today_single, nf.format(i.average ?: 0.0, unit), valuesText(i.count))
+                else -> context.getString(R.string.ov_today_range, nf.format(i.average ?: 0.0, ""), nf.format(i.min ?: 0.0, ""), nf.format(i.max ?: 0.0, "")) +
                     if (unit.isBlank()) "" else " $unit"
             }
             if (i.count > 0 && !i.cumulative) box.addView(label(range, 11f, muted), LayoutParams(-1, -2))   // counters: the big value already says it
@@ -455,9 +459,8 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
             }, LayoutParams(-1, dp(34)).apply { topMargin = dp(4) })
             // #334: band history (FIT) has its own line and sparkline; its clock is the band's measurement time.
             i.fit?.let { fit ->
-                val dayLabel = if (fit.date == java.time.LocalDate.now()) "heute" else fit.date.format(java.time.format.DateTimeFormatter.ofPattern("dd.MM."))
-                val text = "Band-Verlauf $dayLabel (Messzeit): Ø ${nf.format(fit.average, "")} · ${nf.format(fit.min, "")}–${nf.format(fit.max, "")} $unit" +
-                    " (${fit.count} ${if (fit.count == 1) "Wert" else "Werte"})"
+                val dayLabel = if (fit.date == java.time.LocalDate.now()) context.getString(R.string.ov_today_word) else fit.date.format(java.time.format.DateTimeFormatter.ofPattern("dd.MM."))
+                val text = context.getString(R.string.ov_band_history, dayLabel, nf.format(fit.average, ""), nf.format(fit.min, ""), nf.format(fit.max, ""), unit, valuesText(fit.count))
                 box.addView(label(text, 11f, muted).apply { tag = "tile_fit_${metric.title}" },
                     LayoutParams(-1, -2).apply { topMargin = dp(if (i.count > 0) 8 else 0) })
                 if (fit.hourly.count { it != null } >= 2) box.addView(SparkView(context, accent, palette.track).apply {
@@ -478,16 +481,16 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
                     }
                 }.apply { importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO },
                     LayoutParams(-1, dp(7)).apply { topMargin = dp(8) })
-                box.addView(label("≥95 %: ${hi.toInt()} · 90–94 %: ${mid.toInt()} · <90 %: ${lo.toInt()}  (Anteil heute in %)", 10f, muted),
+                box.addView(label(context.getString(R.string.ov_spo2_bands, hi.toInt(), mid.toInt(), lo.toInt()), 10f, muted),
                     LayoutParams(-1, -2).apply { topMargin = dp(3) })
             }
             if (i.count == 0) { box.visibility = View.VISIBLE; return }   // only band history today: no live week comparison
             val week = i.weekAtThisTime
             val delta = i.deltaToWeek
-            val weekText = if (week == null) "Ø 7 Tage: folgt (${i.weekDays}/${TileInsightCalc.MIN_WEEK_DAYS})"
-                else "Ø 7 Tage jetzt: ${nf.format(week, unit)}" +
-                    (delta?.let { d -> "  ${if (d > 0.05) "▲" else if (d < -0.05) "▼" else "●"} ${if (d > 0) "+" else ""}${nf.format(d, "")}" } ?: "")
-            box.addView(label(weekText, 11f, if (week == null) muted else ink, week != null).apply { contentDescription = weekText.replace("Ø 7 Tage jetzt", "Durchschnitt der letzten 7 Tage zu dieser Uhrzeit") },
+            val deltaText = delta?.let { d -> "  ${if (d > 0.05) "▲" else if (d < -0.05) "▼" else "●"} ${if (d > 0) "+" else ""}${nf.format(d, "")}" } ?: ""
+            val weekText = if (week == null) context.getString(R.string.ov_week_pending, i.weekDays, TileInsightCalc.MIN_WEEK_DAYS)
+                else context.getString(R.string.ov_week_now, nf.format(week, unit)) + deltaText
+            box.addView(label(weekText, 11f, if (week == null) muted else ink, week != null).apply { if (week != null) contentDescription = context.getString(R.string.ov_week_now_cd, nf.format(week, unit) + deltaText) },
                 LayoutParams(-1, -2).apply { topMargin = dp(6) })
             box.visibility = View.VISIBLE
         }
@@ -500,6 +503,8 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
             if (insight != null) post { if (isAttachedToWindow) render(insight) }
         }.start()
     }
+
+    private fun valuesText(count: Int) = context.getString(if (count == 1) R.string.ov_values_one else R.string.ov_values_many, count)
 
     private fun card(metric: DashboardMetric) = MetricCard(metric)
 
@@ -632,7 +637,7 @@ internal class SpO2LungView(
     private val lung = android.graphics.Path()
 
     init {
-        contentDescription = "Dezente Lungengrafik${fillFraction?.let { ", Füllstand ${percent}%" } ?: ", keine Messdaten"}; Farbe nach konfigurierbarer SpO₂-Skala, keine Signalqualitätsanzeige"
+        contentDescription = if (fillFraction != null) context.getString(R.string.ov_lung_cd, percent) else context.getString(R.string.ov_lung_nodata_cd)
         importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO
     }
 
@@ -701,7 +706,7 @@ private class ReceptionIndicatorView(
     init {
         isClickable = true
         isFocusable = true
-        contentDescription = "Quelle, Skala und Empfangsinformationen zu ${MetricText.title(context, metric.title)}: ${state.label()}. Antippen für Details."
+        contentDescription = context.getString(R.string.ov_reception_cd, MetricText.title(context, metric.title), state.label())
         setOnClickListener { showDetails() }
     }
 
@@ -730,12 +735,12 @@ private class ReceptionIndicatorView(
                 .withZone(ZoneId.systemDefault()).format(it)
             val seconds = Duration.between(it, now).seconds.coerceAtLeast(0)
             val age = when {
-                seconds < 60 -> "vor $seconds Sekunden"
-                seconds < 3600 -> "vor ${seconds / 60} Minuten"
-                else -> "vor ${seconds / 3600} Stunden"
+                seconds < 60 -> context.getString(R.string.ov_recv_seconds, seconds.toInt())
+                seconds < 3600 -> context.getString(R.string.ov_recv_minutes, (seconds / 60).toInt())
+                else -> context.getString(R.string.ov_recv_hours, (seconds / 3600).toInt())
             }
-            "Empfangen: $local ($age)"
-        } ?: "Für diesen Wert liegt kein Empfangszeitpunkt vor."
+            context.getString(R.string.ov_recv_at, local, age)
+        } ?: context.getString(R.string.ov_recv_none)
         val details = LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(dp(22), dp(8), dp(22), dp(8))
@@ -767,39 +772,39 @@ private class ReceptionIndicatorView(
         val profile = MetricReferenceProfile.forMetric(metric, stepGoal)
         row("■", "${MetricText.title(context, metric.title)}  ·  ${MetricText.value(context, metric.value)}")
         if (profile != null) {
-            row("▬", "Skala  ${profile.minimum}–${profile.maximum} ${profile.unit}", palette.muted)
+            row("▬", context.getString(R.string.ov_scale, profile.minimum.toString(), profile.maximum.toString(), profile.unit), palette.muted)
             if (profile.referenceMinimum != null && profile.referenceMaximum != null) {
                 row("▰", "${profile.referenceMinimum}–${profile.referenceMaximum} ${profile.unit}  ·  ${profile.referenceLabel}", palette.muted)
             }
-            profile.sourceName?.let { row("↗", "Quelle  $it", palette.accent, profile.sourceUrl) }
+            profile.sourceName?.let { row("↗", context.getString(R.string.ov_source, it), palette.accent, profile.sourceUrl) }
             if (metric.title == "Sauerstoffsättigung · SpO₂") {
                 val displayBands = SpO2DisplaySettings.read(context)
-                row("▰", "Vorschau  ${displayBands.bandLabel()}", palette.muted)
-                row("⏳", if (displayBands.colorBandsEnabled) "Farbskala aktiv (vom Nutzer akzeptiert) · Sensor NICHT validiert, keine Signalqualität, keine Diagnose oder Alarmfunktion." else "Orientierung deaktiviert · Sensor nicht validiert.", palette.muted)
+                row("▰", context.getString(R.string.ov_preview, displayBands.bandLabel()), palette.muted)
+                row("⏳", context.getString(if (displayBands.colorBandsEnabled) R.string.ov_spo2_scale_on else R.string.ov_spo2_scale_off), palette.muted)
             }
             row("⚠", profile.caveat, palette.muted)
         } else if (metric.title == "Moderate Intensitätsminuten" || metric.title == "Intensive Intensitätsminuten") {
-            row("▱", "WHO: 150–300 min moderat oder 75–150 min intensiv/Woche", palette.muted)
-            row("↗", "Quelle  WHO", palette.accent, "https://www.who.int/initiatives/behealthy/physical-activity")
-            row("⚠", "CIRQA-Zeitraum unbestätigt; kein Wochenvergleich.", palette.muted)
+            row("▱", context.getString(R.string.ov_who), palette.muted)
+            row("↗", context.getString(R.string.ov_source, context.getString(R.string.ov_who_name)), palette.accent, "https://www.who.int/initiatives/behealthy/physical-activity")
+            row("⚠", context.getString(R.string.ov_cirqa_period), palette.muted)
         } else {
             row("▱", metric.note, palette.muted)
-            row("⚠", "Keine validierte Normskala für diesen Gerätewert.", palette.muted)
+            row("⚠", context.getString(R.string.ov_no_norm), palette.muted)
         }
         row("◷", received, palette.muted)
-        row("●", "Empfangsstatus  ${currentState.label()}", palette.muted)
-        row("i", "Punktfarbe oben zeigt nur Empfangsalter, keine Gesundheit.", palette.muted)
-        AlertDialog.Builder(context).setTitle("ⓘ  ${metric.title}").setView(details)
-            .setPositiveButton("Schließen", null).show()
+        row("●", context.getString(R.string.ov_reception_state, currentState.label()), palette.muted)
+        row("i", context.getString(R.string.ov_dot_hint), palette.muted)
+        AlertDialog.Builder(context).setTitle("ⓘ  ${MetricText.title(context, metric.title)}").setView(details)
+            .setPositiveButton(context.getString(R.string.action_close), null).show()
     }
 
     private fun dp(value: Int) = (value * resources.displayMetrics.density + 0.5f).toInt()
 
     fun ReceptionFreshness.label() = when (this) {
-        ReceptionFreshness.UNKNOWN -> "kein Empfangszeitpunkt"
-        ReceptionFreshness.FRESH -> "frisch"
-        ReceptionFreshness.RECENT -> "wenige Minuten alt"
-        ReceptionFreshness.DELAYED -> "verzögert"
-        ReceptionFreshness.OLD -> "lange ohne neuen Empfang"
+        ReceptionFreshness.UNKNOWN -> context.getString(R.string.reception_unknown)
+        ReceptionFreshness.FRESH -> context.getString(R.string.reception_fresh)
+        ReceptionFreshness.RECENT -> context.getString(R.string.reception_recent)
+        ReceptionFreshness.DELAYED -> context.getString(R.string.reception_delayed)
+        ReceptionFreshness.OLD -> context.getString(R.string.reception_old)
     }
 }
