@@ -200,6 +200,11 @@ Geprüft: Hintergrundarbeit und Lebenszyklus (Z. 40–135, 1141–1153), Diensts
 - **Befund A6-9 (niedrig):** Die Zuordnung des gekoppelten Armbands erfolgt über den Gerätenamen (`name.contains("CIRQA")`, Z. 1015). Ein anderes gekoppeltes Gerät mit gleichem Namensteil würde als CIRQA gelten. Wirkung nur auf Anzeige/Diagnose (die Aufzeichnung verbindet nicht über diese Zuordnung), daher niedrig. Vorschlag: Zuordnung mit dem Dienst/OpenCode abstimmen (gleiche Regel wie `CirqaAddressMatch`).
 - **Offen:** restliche Oberfläche (Z. 135–690, 730–1000, 1155–1209), Berechtigungsdialoge Z. 855–910 nur überflogen.
 
+## 18. DashboardOverviewView (Stichprobe der Nebenläufigkeit, 2026-11-21)
+- Hintergrund-Threads (Schrittreihe, Nachtserie, Kachel-Einsichten) melden nur zurück, wenn die Ansicht noch angehängt ist (`isAttachedToWindow`); Fehler beim Lesen führen zu leerem Zustand, nicht zu Absturz.
+- Gemeinsame Zwischenspeicher sind `@Volatile` bzw. `ConcurrentHashMap`; Schrittreihen-Ladeflag wird auch im Fehlerfall zurückgesetzt, weil Ausnahmen im `try` abgefangen werden.
+- Befund: keine neuen Fehler. Rest der Datei (Skalen/Dialoge) bleibt offen im Ticket #6.
+
 ## 19. CirqaDatabase (Stichprobe Wiederherstellung/Transaktionen, 2026-11-21; Bereich OpenCode, nur lesend)
 - `replaceAllStoredRows` (Backup-Wiederherstellung) löscht und füllt beide Speicher in **einer** Transaktion mit `setTransactionSuccessful` erst am Ende und `endTransaction` im `finally`: ein abgebrochenes Einspielen lässt den alten Stand unverändert. Eingehende Zeilen werden vor dem Einfügen per `require(isValidStored…)` geprüft.
 - Schreibende Methoden sind `@Synchronized`; Lesemethoden nutzen `use {}` für Cursor.
