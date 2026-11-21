@@ -24,7 +24,7 @@ object PersonalSettings {
         val palette = AppPalette.of(context)
         fun dp(v: Int) = (v * context.resources.displayMetrics.density + 0.5f).toInt()
         fun showInfo(title: String, text: String) {
-            AlertDialog.Builder(context).setTitle(title).setMessage(text).setPositiveButton("OK", null).show()
+            AlertDialog.Builder(context).setTitle(title).setMessage(text).setPositiveButton(R.string.settings_ok, null).show()
         }
         /** Compact section header: icon + title, optional ⓘ opening the long explanation. */
         fun heading(icon: PlIcon, label: String, info: String? = null) {
@@ -39,7 +39,7 @@ object PersonalSettings {
                 setTextColor(palette.accent)
             }, LinearLayout.LayoutParams(0, -2, 1f))
             if (info != null) row.addView(FrameLayout(context).apply {
-                contentDescription = "Erklärung zu $label"
+                contentDescription = context.getString(R.string.settings_explanation_for, label)
                 isClickable = true; isFocusable = true
                 setOnClickListener { showInfo(label, info) }
                 addView(PlIcon.view(context, PlIcon.INFO, 22), FrameLayout.LayoutParams(dp(22), dp(22), Gravity.CENTER))
@@ -83,25 +83,27 @@ object PersonalSettings {
         }
         fun field(label: String, key: String, numeric: Boolean = false, decimal: Boolean = false): EditText =
             fieldRow(Triple(label, key, null), numeric = numeric, decimal = decimal)[0]
-        fun choice(label: String, key: String, options: List<String>): Spinner {
+        /** [options]: stored value (language independent, unchanged from earlier versions) to displayed label. */
+        fun choice(label: String, key: String, options: List<Pair<String, String>>): Spinner {
             layout.addView(TextView(context).apply { text = label; textSize = 12f; setTextColor(palette.muted) })
             return Spinner(context).apply {
-                adapter = ArrayAdapter(context, android.R.layout.simple_spinner_dropdown_item, options)
-                setSelection(options.indexOf(p.getString(key, options[0])).coerceAtLeast(0))
+                adapter = ArrayAdapter(context, android.R.layout.simple_spinner_dropdown_item, options.map { it.second })
+                setSelection(options.indexOfFirst { it.first == p.getString(key, options[0].first) }.coerceAtLeast(0))
                 contentDescription = label
                 layout.addView(this)
             }
         }
 
-        heading(PlIcon.IDENTITY, "Profil",
-            "Der Körperprofil-Avatar richtet sich nach der freiwilligen Geschlechtsauswahl: Mann, Frau oder ein kleiner Jedi für Divers / andere. Ohne Angabe bleibt die neutrale Figur. Kein Benutzerkonto und keine Cloud. Die Angaben sind noch nicht mit medizinischen oder kalorischen Schätzformeln verknüpft. Aus dem Geburtsdatum wird das Alter für den jeweiligen Tag berechnet; es bleibt lokal gespeichert.")
-        val name = field("Anzeigename", "display_name")
-        val genderOptions = listOf("Keine Angabe", "Männlich", "Weiblich", "Divers / andere")
-        val gender = choice("Geschlecht (optional)", "gender", genderOptions)
+        heading(PlIcon.IDENTITY, context.getString(R.string.profile_heading), context.getString(R.string.profile_info))
+        val name = field(context.getString(R.string.profile_display_name), "display_name")
+        // Stored values stay the German originals (older versions and the avatar logic rely on them); only the labels are localized.
+        val genderOptions = listOf("Keine Angabe" to context.getString(R.string.gender_none), "Männlich" to context.getString(R.string.gender_male),
+            "Weiblich" to context.getString(R.string.gender_female), "Divers / andere" to context.getString(R.string.gender_other))
+        val gender = choice(context.getString(R.string.profile_gender), "gender", genderOptions)
         // Birth date instead of a static age (#117): the age is derived for today and never stored.
         var birthDate: java.time.LocalDate? = AgeCalculator.parse(p.getString("birth_date", ""))
         val dateFormat = java.time.format.DateTimeFormatter.ofPattern("dd.MM.uuuu")
-        layout.addView(TextView(context).apply { text = "Geburtsdatum (optional)"; textSize = 12f; setTextColor(palette.muted) })
+        layout.addView(TextView(context).apply { text = context.getString(R.string.profile_birth_date); textSize = 12f; setTextColor(palette.muted) })
         val birthButton = Button(context).apply {
             isAllCaps = false
             minHeight = dp(48)
@@ -114,14 +116,16 @@ object PersonalSettings {
         val legacyAge = p.getString("age_years", "").orEmpty().trim()
         val legacyNote = TextView(context).apply {
             textSize = 12f; setTextColor(palette.muted)
-            text = "Bisher gespeichertes Alter: $legacyAge Jahre. Bitte Geburtsdatum ergänzen; es wird nicht aus dem Alter geschätzt."
+            text = context.getString(R.string.profile_birth_legacy, legacyAge)
         }
         fun refreshBirth() {
             val today = java.time.LocalDate.now()
             val b = birthDate
-            birthButton.text = if (b == null) "Geburtsdatum wählen"
-                else "${b.format(dateFormat)}  ·  ${AgeCalculator.ageOn(b, today)?.let { "$it Jahre" } ?: "ungültig"}"
-            birthButton.contentDescription = if (b == null) "Geburtsdatum wählen" else "Geburtsdatum ${b.format(dateFormat)} ändern"
+            birthButton.text = if (b == null) context.getString(R.string.profile_birth_choose)
+                else context.getString(R.string.profile_birth_with_age, b.format(dateFormat),
+                    AgeCalculator.ageOn(b, today)?.let { context.getString(R.string.profile_age_years, it) } ?: context.getString(R.string.profile_age_invalid))
+            birthButton.contentDescription = if (b == null) context.getString(R.string.profile_birth_choose)
+                else context.getString(R.string.profile_birth_change_cd, b.format(dateFormat))
             legacyNote.visibility = if (b == null && legacyAge.toIntOrNull() != null) android.view.View.VISIBLE else android.view.View.GONE
         }
         birthButton.setOnClickListener {
@@ -136,35 +140,38 @@ object PersonalSettings {
         layout.addView(legacyNote)
         refreshBirth()
 
-        heading(PlIcon.FITNESS, "Körper & Ziele")
+        heading(PlIcon.FITNESS, context.getString(R.string.body_heading))
         val (height, weight) = fieldRow(
-            Triple("Größe (cm)", "height_cm", null), Triple("Gewicht (kg)", "weight_kg", null), decimal = true)
+            Triple(context.getString(R.string.body_height), "height_cm", null), Triple(context.getString(R.string.body_weight), "weight_kg", null), decimal = true)
         val (stepGoal, sleepGoal) = fieldRow(
-            Triple("Schrittziel/Tag", "step_goal", null), Triple("Schlafziel (h)", "sleep_goal_hours", null), decimal = true)
-        val resting = field("Bekannter Ruhepuls (bpm)", "resting_hr", true)
+            Triple(context.getString(R.string.body_step_goal), "step_goal", null), Triple(context.getString(R.string.body_sleep_goal), "sleep_goal_hours", null), decimal = true)
+        val resting = field(context.getString(R.string.body_resting_hr), "resting_hr", true)
 
-        heading(PlIcon.CIRQA_BAND, "Sonstiges")
-        val handedness = choice("Trageseite", "wrist", listOf("Nicht angegeben", "Links", "Rechts"))
-        val units = choice("Einheiten", "units", listOf("Metrisch (kg, cm)", "Imperial (Anzeige später)"))
-        val notes = field("Notiz (nur lokal)", "profile_note")
-        heading(PlIcon.RECORD_START, "Aufzeichnung",
-            "Wenn aktiv, startet PulsLibre beim Öffnen der App den Aufzeichnungsdienst automatisch und verbindet sich mit dem CIRQA-Armband. Das passiert nur, wenn Bluetooth bereits eingeschaltet ist und die Berechtigungen schon erteilt wurden; PulsLibre schaltet Bluetooth nie selbst ein. Standard: aus. Laufende Aufzeichnungen werden nicht doppelt gestartet. Stoppen geht weiterhin in der App oder über die Benachrichtigung.")
+        heading(PlIcon.CIRQA_BAND, context.getString(R.string.other_heading))
+        val wristOptions = listOf("Nicht angegeben" to context.getString(R.string.wear_none),
+            "Links" to context.getString(R.string.wear_left), "Rechts" to context.getString(R.string.wear_right))
+        val handedness = choice(context.getString(R.string.other_wear_side), "wrist", wristOptions)
+        val unitOptions = listOf("Metrisch (kg, cm)" to context.getString(R.string.units_metric),
+            "Imperial (Anzeige später)" to context.getString(R.string.units_imperial))
+        val units = choice(context.getString(R.string.other_units), "units", unitOptions)
+        val notes = field(context.getString(R.string.other_note), "profile_note")
+        heading(PlIcon.RECORD_START, context.getString(R.string.recording_heading), context.getString(R.string.recording_info))
         val autoStart = androidx.appcompat.widget.SwitchCompat(context).apply {
-            text = "Beim App-Start automatisch aufzeichnen"
+            text = context.getString(R.string.recording_autostart)
             isChecked = AutoStartRecording.isEnabled(context)
             tag = "settings_auto_start"
             setTextColor(palette.ink)
             minimumHeight = dp(48)
-            contentDescription = "Aufzeichnung beim App-Start automatisch starten, ein oder aus"
+            contentDescription = context.getString(R.string.recording_autostart_cd)
             layout.addView(this, LinearLayout.LayoutParams(-1, -2))
         }
 
-        heading(PlIcon.OVERVIEW, "Darstellung")
+        heading(PlIcon.OVERVIEW, context.getString(R.string.appearance_heading))
         val themeChoice = Spinner(context).apply {
             adapter = ArrayAdapter(context, android.R.layout.simple_spinner_dropdown_item,
-                ThemePreference.entries.map { it.label })
+                ThemePreference.entries.map { context.getString(it.labelRes) })
             setSelection(AppAppearance.preference(context).ordinal)
-            contentDescription = "App-Design auswählen"
+            contentDescription = context.getString(R.string.appearance_theme_cd)
             layout.addView(this)
         }
 
@@ -178,23 +185,22 @@ object PersonalSettings {
             layout.addView(this)
         }
 
-        heading(PlIcon.STEPS, "Aktivität aus Schritten",
-            "Aus kumulativen CIRQA-Schrittständen der letzten Minuten. Der Modus ist eine grobe Anzeige-Heuristik: Schritte belegen weder Sitzen noch eine bestimmte Sportart. Bei zu wenigen oder veralteten Werten bleibt er unbekannt.")
+        heading(PlIcon.STEPS, context.getString(R.string.activity_heading), context.getString(R.string.activity_info))
         val activitySettings = ActivityDetectionPreference.read(context)
         val (restSteps, sportSteps, activityWindow) = fieldRow(
-            Triple("Ruhe (/min)", "activity_rest_below", null),
-            Triple("Sport (/min)", "activity_sport_above", null),
-            Triple("Fenster (min)", "activity_window_minutes", null))
+            Triple(context.getString(R.string.activity_rest), "activity_rest_below", null),
+            Triple(context.getString(R.string.activity_sport), "activity_sport_above", null),
+            Triple(context.getString(R.string.activity_window), "activity_window_minutes", null))
         restSteps.setText(activitySettings.restBelowStepsPerMinute.toString())
         sportSteps.setText(activitySettings.sportAboveStepsPerMinute.toString())
         activityWindow.setText(activitySettings.windowMinutes.toString())
 
         val spo2Settings = SpO2DisplaySettings.read(context)
-        heading(PlIcon.OXYGEN, "SpO₂-Skala · nicht validiert",
-            "Vorschau ${spo2Settings.bandLabel()}\n\n${if (spo2Settings.colorBandsEnabled) "Farbskala aktiv (vom Nutzer akzeptiert); der violette Kartenrand kennzeichnet die fehlende Validierung." else "Farbskala bleibt neutral."} Der CIRQA-Handgelenksensor ist nicht gerätespezifisch validiert. Keine Diagnose oder Alarmfunktion; Signalqualität wird nicht übertragen.")
+        heading(PlIcon.OXYGEN, context.getString(R.string.spo2_heading), context.getString(R.string.spo2_info, spo2Settings.bandLabel(),
+            context.getString(if (spo2Settings.colorBandsEnabled) R.string.spo2_colors_on else R.string.spo2_colors_off)))
         val (spo2Green, spo2Orange) = fieldRow(
-            Triple("Grün ab (%)", "spo2_display_green_from", null),
-            Triple("Orange ab (%)", "spo2_display_red_below", null))
+            Triple(context.getString(R.string.spo2_green_from), "spo2_display_green_from", null),
+            Triple(context.getString(R.string.spo2_orange_from), "spo2_display_red_below", null))
         spo2Green.setText(spo2Settings.greenFrom.toString())
         spo2Orange.setText(spo2Settings.redBelow.toString())
 
@@ -208,7 +214,7 @@ object PersonalSettings {
             setTextColor(palette.ink)
             setTypeface(null, android.graphics.Typeface.BOLD)
             tag = "settings_version"
-            contentDescription = "App-Version ${versionInfo.detail()}"
+            contentDescription = context.getString(R.string.settings_version_cd, versionInfo.detail())
             setPadding(dp(12), dp(10), dp(12), dp(10))
             background = android.graphics.drawable.GradientDrawable().apply {
                 setColor(palette.tinted); cornerRadius = dp(12).toFloat()
@@ -216,13 +222,13 @@ object PersonalSettings {
         })
 
         layout.addView(TextView(context).apply {
-            text = "Entwickelt von Jochen Kunkel"
+            text = context.getString(R.string.settings_developer)
             compoundDrawablePadding = dp(8)
             setCompoundDrawablesRelativeWithIntrinsicBounds(PlIcon.drawable(context, PlIcon.IDENTITY, 18, palette.muted), null, null, null)
             textSize = 13f
             setTextColor(palette.muted)
             tag = "settings_developer"
-            contentDescription = "Entwickler: Jochen Kunkel"
+            contentDescription = context.getString(R.string.settings_developer_cd)
             setPadding(dp(4), dp(8), dp(4), 0)
         })
         // Explanation of the violet tile border (moved here from the dashboard): calm info bar, full wording kept.
@@ -242,11 +248,11 @@ object PersonalSettings {
         }, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) })
 
         // Destructive action sits apart at the end of the scrolling content, never next to "Speichern".
-        heading(PlIcon.STORAGE, "Profil löschen")
+        heading(PlIcon.STORAGE, context.getString(R.string.delete_heading))
         val deleteButton = Button(context).apply {
-            text = "Profil löschen …"
+            text = context.getString(R.string.delete_button)
             isAllCaps = false
-            contentDescription = "Profil löschen, erfordert zwei Bestätigungen"
+            contentDescription = context.getString(R.string.delete_button_cd)
             setTextColor(palette.ink)
             background = android.graphics.drawable.GradientDrawable().apply {
                 setColor(Color.TRANSPARENT); setStroke(dp(1), palette.muted); cornerRadius = dp(12).toFloat()
@@ -265,8 +271,8 @@ object PersonalSettings {
                 setColor(if (filled) palette.primary else palette.tinted); cornerRadius = dp(12).toFloat()
             }
         }
-        val closeButton = barButton("Schließen", false)
-        val saveButton = barButton("Speichern", true)
+        val closeButton = barButton(context.getString(R.string.action_close), false)
+        val saveButton = barButton(context.getString(R.string.action_save), true)
         val bar = LinearLayout(context).apply {
             orientation = LinearLayout.HORIZONTAL
             setPadding(dp(16), dp(8), dp(16), dp(12))
@@ -280,7 +286,7 @@ object PersonalSettings {
             layoutParams = ViewGroup.LayoutParams(-1, (context.resources.displayMetrics.heightPixels * 0.78f).toInt())
         }
         val dialog = AlertDialog.Builder(context)
-            .setTitle("Einstellungen")
+            .setTitle(R.string.settings_title)
             .setView(container)
             .create()
         closeButton.setOnClickListener { dialog.dismiss() }
@@ -288,15 +294,15 @@ object PersonalSettings {
             deleteButton.setOnClickListener {
                 // Two separate confirmations: scope first, then the irreversible final step.
                 DialogProbe.track(AlertDialog.Builder(context)
-                    .setTitle("Profil löschen?")
-                    .setMessage("Alle Profilangaben (Name, Körperdaten, Ziele) werden entfernt. SpO₂-Grenzwerte bleiben erhalten. Messdaten bleiben erhalten.")
-                    .setNegativeButton("Abbrechen", null)
-                    .setPositiveButton("Weiter") { _, _ ->
+                    .setTitle(R.string.delete_confirm_title)
+                    .setMessage(R.string.delete_confirm_message)
+                    .setNegativeButton(R.string.action_cancel, null)
+                    .setPositiveButton(R.string.action_continue) { _, _ ->
                         DialogProbe.track(AlertDialog.Builder(context)
-                            .setTitle("Wirklich endgültig löschen?")
-                            .setMessage("Das Löschen kann nicht rückgängig gemacht werden.")
-                            .setNegativeButton("Abbrechen", null)
-                            .setPositiveButton("Endgültig löschen") { _, _ ->
+                            .setTitle(R.string.delete_final_title)
+                            .setMessage(R.string.delete_final_message)
+                            .setNegativeButton(R.string.action_cancel, null)
+                            .setPositiveButton(R.string.delete_final_button) { _, _ ->
                                 // Only profile data goes; SpO2 thresholds and the validation gate share this store and stay.
                                 val edit = p.edit()
                                 p.all.keys.filter { it !in SpO2DisplaySettings.PRESERVED_KEYS }.forEach { edit.remove(it) }
@@ -320,7 +326,7 @@ object PersonalSettings {
                     (restSteps.text.toString().toIntOrNull() ?: 100) >= (sportSteps.text.toString().toIntOrNull() ?: 0) ||
                     spo2Green.text.toString().toIntOrNull()?.let { it !in 2..100 } != false ||
                     spo2Orange.text.toString().toIntOrNull()?.let { it !in 1 until (spo2Green.text.toString().toIntOrNull() ?: 0) } != false) {
-                    Toast.makeText(context, "Bitte die Zahlen prüfen (Größe, Gewicht, Ziele und SpO₂-Orientierungsbereiche).", Toast.LENGTH_LONG).show()
+                    Toast.makeText(context, R.string.settings_validation_toast, Toast.LENGTH_LONG).show()
                     return@setOnClickListener
                 }
                 AutoStartRecording.save(context, autoStart.isChecked)
@@ -336,20 +342,20 @@ object PersonalSettings {
                 val edit = p.edit()
                 fun save(key: String, value: String) { edit.putString(key, value) }
                 save("display_name", name.text.toString().trim().take(60))
-                save("gender", gender.selectedItem.toString())
+                save("gender", genderOptions[gender.selectedItemPosition].first)
                 // age_years / birth_year of older versions stay untouched; only a chosen birth date is written.
                 birthDate?.let { save("birth_date", it.toString()) }
                 save("height_cm", height.text.toString().trim())
                 save("weight_kg", weight.text.toString().trim().replace(',', '.'))
                 save("step_goal", stepGoal.text.toString().trim())
-                save("wrist", handedness.selectedItem.toString())
-                save("units", units.selectedItem.toString())
+                save("wrist", wristOptions[handedness.selectedItemPosition].first)
+                save("units", unitOptions[units.selectedItemPosition].first)
                 save("sleep_goal_hours", sleepGoal.text.toString().trim().replace(',', '.'))
                 save("resting_hr", resting.text.toString().trim())
                 save("profile_note", notes.text.toString().trim().take(300))
                 edit.apply()
                 onSaved()
-                Toast.makeText(context, "Profil lokal gespeichert", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, R.string.settings_saved_toast, Toast.LENGTH_SHORT).show()
                 dialog.dismiss()
                 AppAppearance.save(context, ThemePreference.entries[themeChoice.selectedItemPosition])
                 AppLanguage.entries[languageChoice.selectedItemPosition].let { chosen ->
