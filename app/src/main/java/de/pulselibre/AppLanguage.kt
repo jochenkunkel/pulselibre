@@ -34,6 +34,10 @@ object AppLanguageSettings {
      */
     fun save(context: Context, language: AppLanguage) {
         context.getSharedPreferences(STORE, Context.MODE_PRIVATE).edit().putString("language", language.storedValue).commit()
+        recreateVisibleActivity(context)
+    }
+
+    private fun recreateVisibleActivity(context: Context) {
         var c: Context? = context
         while (c is ContextWrapper && c !is android.app.Activity) c = c.baseContext
         (c as? android.app.Activity)?.recreate()

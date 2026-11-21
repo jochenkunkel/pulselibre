@@ -16,7 +16,10 @@ internal class MainNavigationView(
     private val showMainTab: (Int) -> Unit = {}
 ) : LinearLayout(activity) {
     private val palette = AppPalette.of(activity)
-    private val labels = listOf("Übersicht", "Verlauf", "Gerät", "Testlabor", "Daten", "Analysen")
+    /** Stable German ids: used for view tags and tests, never shown. */
+    private val ids = listOf("Übersicht", "Verlauf", "Gerät", "Testlabor", "Daten", "Analysen")
+    private val labels = listOf(R.string.nav_overview, R.string.nav_history, R.string.nav_device, R.string.nav_testlab, R.string.nav_data, R.string.nav_analyses)
+        .map { activity.getString(it) }
     private val icons = listOf(PlIcon.OVERVIEW, PlIcon.HISTORY, PlIcon.DEVICE, PlIcon.TESTLAB, PlIcon.DATA, PlIcon.FITNESS)
     private var selectedTab = initialTab
     /** Tab indexes shown in the strip. The test laboratory (index 3) is no longer a visible tab (#172): it opens by a 3 s long press on the CIRQA heading. */
@@ -30,6 +33,7 @@ internal class MainNavigationView(
         // Children are added in strip order (visibleTabs), so child i belongs to tab visibleTabs[i].
         visibleTabs.forEach { index ->
             val label = labels[index]
+            val id = ids[index]
             addView(LinearLayout(activity).apply {
                 orientation = VERTICAL
                 gravity = Gravity.CENTER
@@ -37,10 +41,10 @@ internal class MainNavigationView(
                 setPadding(dp(2), dp(3), dp(2), dp(3))
                 isFocusable = true
                 contentDescription = label
-                tag = "navigation_item_$label"
+                tag = "navigation_item_$id"
                 setOnClickListener { navigate(index) }
                 addView(PlIcon.view(activity, icons[index], 24, palette.muted).apply {
-                    tag = "navigation_icon_$label"
+                    tag = "navigation_icon_$id"
                 }, LayoutParams(dp(24), dp(24)))
                 addView(TextView(activity).apply {
                     text = label

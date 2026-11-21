@@ -83,4 +83,12 @@
     <string name="delete_final_button">Delete permanently</string>
     <string name="settings_validation_toast">Please check the numbers (height, weight, goals and SpO₂ reference ranges).</string>
     <string name="settings_saved_toast">Profile saved locally</string>
+
+    <!-- Navigation (MainNavigationView) -->
+    <string name="nav_overview">Overview</string>
+    <string name="nav_history">History</string>
+    <string name="nav_device">Device</string>
+    <string name="nav_testlab">Test lab</string>
+    <string name="nav_data">Data</string>
+    <string name="nav_analyses">Analyses</string>
 </resources>
