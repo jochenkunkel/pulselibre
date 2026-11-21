@@ -24,7 +24,7 @@ import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
 
 private const val BACKUP_FORMAT = "de.pulselibre.local-database-backup"
-private const val BACKUP_VERSION = 6
+private const val BACKUP_VERSION = 7
 private const val MAX_ARCHIVE_BYTES = 128L * 1024L * 1024L
 private const val MAX_ENTRY_BYTES = 120L * 1024L * 1024L
 private const val MAX_LINE_BYTES = 2 * 1024 * 1024
@@ -42,6 +42,9 @@ private const val CANONICAL_FIT_PROVENANCE_ENTRY = "canonical_fit_observation_pr
 private const val CANONICAL_DEVICE_METADATA_ENTRY = "canonical_fit_device_metadata.jsonl"
 private const val RAW_DEVICE_METADATA_ENTRY = "raw_device_metadata.jsonl"
 private const val CANONICAL_UNMAPPED_FIT_FIELDS_ENTRY = "canonical_fit_unmapped_fields.jsonl"
+private const val CANONICAL_FIT_GENERATIONS_ENTRY = "canonical_fit_decoder_generations.jsonl"
+private const val CANONICAL_FIT_GENERATION_OBSERVATIONS_ENTRY = "canonical_fit_generation_observations.jsonl"
+private const val CANONICAL_ACTIVE_FIT_GENERATIONS_ENTRY = "canonical_fit_active_generations.jsonl"
 private const val MANIFEST_ENTRY = "manifest.json"
 private val BACKUP_V1_ENTRIES = setOf(EVENTS_ENTRY, READINGS_ENTRY, CURSORS_ENTRY)
 private val BACKUP_V2_ENTRIES =
@@ -53,6 +56,11 @@ private val BACKUP_V3_ENTRIES = BACKUP_V2_ENTRIES + setOf(
 private val BACKUP_V4_ENTRIES = BACKUP_V3_ENTRIES + CANONICAL_DEVICE_METADATA_ENTRY
 private val BACKUP_V5_ENTRIES = BACKUP_V4_ENTRIES + RAW_DEVICE_METADATA_ENTRY
 private val BACKUP_V6_ENTRIES = BACKUP_V5_ENTRIES + CANONICAL_UNMAPPED_FIT_FIELDS_ENTRY
+private val BACKUP_V7_ENTRIES = BACKUP_V6_ENTRIES + setOf(
+    CANONICAL_FIT_GENERATIONS_ENTRY,
+    CANONICAL_FIT_GENERATION_OBSERVATIONS_ENTRY,
+    CANONICAL_ACTIVE_FIT_GENERATIONS_ENTRY
+)
 
 data class DatabaseBackupReport(
     val createdAt: String,
@@ -66,7 +74,10 @@ data class DatabaseBackupReport(
     val canonicalFitSources: Long = 0,
     val canonicalFitProvenance: Long = 0,
     val canonicalDeviceMetadata: Long = 0,
-    val rawDeviceMetadata: Long = 0
+    val rawDeviceMetadata: Long = 0,
+    val canonicalFitGenerations: Long = 0,
+    val canonicalFitGenerationObservations: Long = 0,
+    val canonicalActiveFitGenerations: Long = 0
 )
 
 /** A validated backup staged privately before any local database can be changed. */
@@ -84,7 +95,10 @@ class PreparedDatabaseRestore internal constructor(
     val canonicalFitSources: Long,
     val canonicalFitProvenance: Long,
     val canonicalDeviceMetadata: Long,
-    val rawDeviceMetadata: Long
+    val rawDeviceMetadata: Long,
+    val canonicalFitGenerations: Long,
+    val canonicalFitGenerationObservations: Long,
+    val canonicalActiveFitGenerations: Long
 ) : Closeable {
     override fun close() { directory.deleteRecursively() }
 }
@@ -132,7 +146,8 @@ object DatabaseBackup {
                 3 -> BACKUP_V3_ENTRIES
                 4 -> BACKUP_V4_ENTRIES
                 5 -> BACKUP_V5_ENTRIES
-                BACKUP_VERSION -> BACKUP_V6_ENTRIES
+                6 -> BACKUP_V6_ENTRIES
+                BACKUP_VERSION -> BACKUP_V7_ENTRIES
                 else -> throw IllegalArgumentException("Backup-Version wird nicht unterstützt")
             }
             require(extracted.keys == dataEntries + MANIFEST_ENTRY) {
@@ -171,6 +186,7 @@ object DatabaseBackup {
                 validateRawDeviceMetadataReferences(directory)
             }
             if (version >= 6) validateUnmappedFitFieldReferences(directory)
+            if (version >= 7) validateGenerationReferences(directory)
             return PreparedDatabaseRestore(
                 directory = directory,
                 createdAt = createdAt,
@@ -185,7 +201,12 @@ object DatabaseBackup {
                 canonicalFitSources = recordCounts[CANONICAL_FIT_SOURCES_ENTRY] ?: 0,
                 canonicalFitProvenance = recordCounts[CANONICAL_FIT_PROVENANCE_ENTRY] ?: 0,
                 canonicalDeviceMetadata = recordCounts[CANONICAL_DEVICE_METADATA_ENTRY] ?: 0,
-                rawDeviceMetadata = recordCounts[RAW_DEVICE_METADATA_ENTRY] ?: 0
+                rawDeviceMetadata = recordCounts[RAW_DEVICE_METADATA_ENTRY] ?: 0,
+                canonicalFitGenerations = recordCounts[CANONICAL_FIT_GENERATIONS_ENTRY] ?: 0,
+                canonicalFitGenerationObservations =
+                    recordCounts[CANONICAL_FIT_GENERATION_OBSERVATIONS_ENTRY] ?: 0,
+                canonicalActiveFitGenerations =
+                    recordCounts[CANONICAL_ACTIVE_FIT_GENERATIONS_ENTRY] ?: 0
             )
         } catch (error: Exception) {
             directory.deleteRecursively()
@@ -227,11 +248,15 @@ object DatabaseBackup {
                                 File(plan.directory, CANONICAL_CURSORS_ENTRY).bufferedReader(Charsets.UTF_8).use { canonicalCursors ->
                                     File(plan.directory, CANONICAL_FIT_SOURCES_ENTRY).bufferedReader(Charsets.UTF_8).use { canonicalSources ->
                                         File(plan.directory, CANONICAL_FIT_PROVENANCE_ENTRY).bufferedReader(Charsets.UTF_8).use { canonicalProvenance ->
-                                                val replace: (
-                                                Sequence<FitHistoricalObservations.DeviceMetadata>,
-                                                Sequence<RawDeviceMetadataRecord>,
-                                                Sequence<StoredFitUnmappedField>
-                                            ) -> Unit = { metadata, rawMetadata, unmappedFields ->
+                                                fun replace(
+                                                    metadata: Sequence<FitHistoricalObservations.DeviceMetadata>,
+                                                    rawMetadata: Sequence<RawDeviceMetadataRecord>,
+                                                    unmappedFields: Sequence<StoredFitUnmappedField>,
+                                                    generations: Sequence<StoredFitDecoderGeneration> = emptySequence(),
+                                                    generationObservations: Sequence<StoredFitGenerationObservation> = emptySequence(),
+                                                    activeGenerations: Sequence<StoredActiveFitGeneration> = emptySequence(),
+                                                    generationSnapshotProvided: Boolean = false
+                                                ) {
                                                 database.replaceAllStoredRows(
                                                     eventReader.lineSequence(),
                                                     readingReader.lineSequence().map(::parseReading),
@@ -245,6 +270,10 @@ object DatabaseBackup {
                                                     canonicalDeviceMetadata = metadata,
                                                     canonicalRawDeviceMetadata = rawMetadata,
                                                     canonicalUnmappedFitFields = unmappedFields,
+                                                    canonicalFitGenerations = generations,
+                                                    canonicalFitGenerationObservations = generationObservations,
+                                                    canonicalActiveFitGenerations = activeGenerations,
+                                                    generationSnapshotProvided = generationSnapshotProvided,
                                                     markHistoricalCopyComplete = true
                                                 )
                                             }
@@ -257,21 +286,32 @@ object DatabaseBackup {
                                                                     if (plan.version >= 6) {
                                                                         File(plan.directory, CANONICAL_UNMAPPED_FIT_FIELDS_ENTRY)
                                                                             .bufferedReader(Charsets.UTF_8).use { unknownReader ->
-                                                                            database.replaceAllStoredRows(
-                                                                                eventReader.lineSequence(),
-                                                                                readingReader.lineSequence().map(::parseReading),
-                                                                                cursorReader.lineSequence().map(::parseCursor),
-                                                                                sourceReader.lineSequence().map(::parseFitSource),
-                                                                                provenanceReader.lineSequence().map(::parseFitProvenance),
-                                                                                canonicalReadings.lineSequence().map(::parseReading),
-                                                                                canonicalCursors.lineSequence().map(::parseCursor),
-                                                                                canonicalSources.lineSequence().map(::parseFitSource),
-                                                                                canonicalProvenance.lineSequence().map(::parseFitProvenance),
-                                                                                metadataReader.lineSequence().map(::parseDeviceMetadata),
-                                                                                rawReader.lineSequence().map(::parseRawDeviceMetadata),
-                                                                                unknownReader.lineSequence().map(::parseUnmappedFitField),
-                                                                                markHistoricalCopyComplete = true
-                                                                            )
+                                                                            if (plan.version >= 7) {
+                                                                                File(plan.directory, CANONICAL_FIT_GENERATIONS_ENTRY)
+                                                                                    .bufferedReader(Charsets.UTF_8).use { generationReader ->
+                                                                                    File(plan.directory, CANONICAL_FIT_GENERATION_OBSERVATIONS_ENTRY)
+                                                                                        .bufferedReader(Charsets.UTF_8).use { observationReader ->
+                                                                                        File(plan.directory, CANONICAL_ACTIVE_FIT_GENERATIONS_ENTRY)
+                                                                                            .bufferedReader(Charsets.UTF_8).use { activeReader ->
+                                                                                            replace(
+                                                                                                metadataReader.lineSequence().map(::parseDeviceMetadata),
+                                                                                                rawReader.lineSequence().map(::parseRawDeviceMetadata),
+                                                                                                unknownReader.lineSequence().map(::parseUnmappedFitField),
+                                                                                                generationReader.lineSequence().map(::parseFitGeneration),
+                                                                                                observationReader.lineSequence().map(::parseFitGenerationObservation),
+                                                                                                activeReader.lineSequence().map(::parseActiveFitGeneration),
+                                                                                                generationSnapshotProvided = true
+                                                                                            )
+                                                                                        }
+                                                                                    }
+                                                                                }
+                                                                            } else {
+                                                                                replace(
+                                                                                    metadataReader.lineSequence().map(::parseDeviceMetadata),
+                                                                                    rawReader.lineSequence().map(::parseRawDeviceMetadata),
+                                                                                    unknownReader.lineSequence().map(::parseUnmappedFitField)
+                                                                                )
+                                                                            }
                                                                         }
                                                                     } else replace(
                                                                         metadataReader.lineSequence().map(::parseDeviceMetadata),
@@ -320,6 +360,9 @@ object DatabaseBackup {
         var canonicalFitProvenanceCount = 0L
         var canonicalDeviceMetadataCount = 0L
         var rawDeviceMetadataCount = 0L
+        var canonicalFitGenerationCount = 0L
+        var canonicalFitGenerationObservationCount = 0L
+        var canonicalActiveFitGenerationCount = 0L
         ZipOutputStream(BufferedOutputStream(FileOutputStream(target))).use { zip ->
             CirqaDatabase(context).use { database ->
                 database.ensureHistoricalStoreCopied()
@@ -532,11 +575,80 @@ object DatabaseBackup {
                         }
                     }
                     metadata.put(CANONICAL_UNMAPPED_FIT_FIELDS_ENTRY, entryMetadata(canonicalUnmappedFields))
+                    val generations = writeJsonLines(zip, CANONICAL_FIT_GENERATIONS_ENTRY) { emit ->
+                        db.rawQuery(
+                            """SELECT generation_id, source_sha256, decoder_version, profile_version,
+                                      output_digest, output_count, completed_at_ms
+                               FROM main.fit_decoder_generations ORDER BY generation_id""", null
+                        ).use { rows ->
+                            while (rows.moveToNext()) emit(encodeFitGeneration(StoredFitDecoderGeneration(
+                                generationId = rows.getString(0),
+                                sourceSha256 = rows.getString(1),
+                                decoderVersion = rows.getString(2),
+                                profileVersion = rows.getString(3),
+                                outputDigest = rows.getString(4),
+                                outputCount = rows.getLong(5),
+                                completedAtEpochMillis = rows.getLong(6)
+                            )))
+                        }
+                    }
+                    canonicalFitGenerationCount = generations.records
+                    metadata.put(CANONICAL_FIT_GENERATIONS_ENTRY, entryMetadata(generations))
+                    val generationObservations = writeJsonLines(
+                        zip, CANONICAL_FIT_GENERATION_OBSERVATIONS_ENTRY
+                    ) { emit ->
+                        db.rawQuery(
+                            """SELECT generation_id, sample_id, device_id, metric, measured_at_ms,
+                                      value, unit, received_at_ms, record_ordinal, global_message_number,
+                                      field_number, quality, timestamp_origin
+                               FROM main.fit_generation_observations
+                               ORDER BY generation_id, sample_id""", null
+                        ).use { rows ->
+                            while (rows.moveToNext()) emit(encodeFitGenerationObservation(
+                                StoredFitGenerationObservation(
+                                    generationId = rows.getString(0),
+                                    sampleId = rows.getString(1),
+                                    deviceId = rows.getString(2),
+                                    metric = rows.getString(3),
+                                    measuredAtEpochMillis = rows.getLong(4),
+                                    value = rows.getDouble(5),
+                                    unit = rows.getString(6),
+                                    receivedAtEpochMillis = if (rows.isNull(7)) null else rows.getLong(7),
+                                    recordOrdinal = rows.getInt(8),
+                                    globalMessageNumber = rows.getInt(9),
+                                    fieldNumber = rows.getInt(10),
+                                    quality = rows.getString(11),
+                                    timestampOrigin = rows.getString(12)
+                                )
+                            ))
+                        }
+                    }
+                    canonicalFitGenerationObservationCount = generationObservations.records
+                    metadata.put(
+                        CANONICAL_FIT_GENERATION_OBSERVATIONS_ENTRY,
+                        entryMetadata(generationObservations)
+                    )
+                    val activeGenerations = writeJsonLines(zip, CANONICAL_ACTIVE_FIT_GENERATIONS_ENTRY) { emit ->
+                        db.rawQuery(
+                            """SELECT source_sha256, generation_id FROM main.fit_active_generations
+                               ORDER BY source_sha256""", null
+                        ).use { rows ->
+                            while (rows.moveToNext()) emit(encodeActiveFitGeneration(
+                                StoredActiveFitGeneration(rows.getString(0), rows.getString(1))
+                            ))
+                        }
+                    }
+                    canonicalActiveFitGenerationCount = activeGenerations.records
+                    metadata.put(
+                        CANONICAL_ACTIVE_FIT_GENERATIONS_ENTRY,
+                        entryMetadata(activeGenerations)
+                    )
                     require(
                         events.bytes + readings.bytes + cursors.bytes + sources.bytes + provenance.bytes +
                             canonicalReadings.bytes + canonicalCursors.bytes + canonicalSources.bytes +
                             canonicalProvenance.bytes + canonicalDeviceMetadata.bytes +
-                            rawDeviceMetadata.bytes + canonicalUnmappedFields.bytes <= MAX_ARCHIVE_BYTES
+                            rawDeviceMetadata.bytes + canonicalUnmappedFields.bytes +
+                            generations.bytes + generationObservations.bytes + activeGenerations.bytes <= MAX_ARCHIVE_BYTES
                     ) {
                         "Lokale Datenbank ist zu groß für ein Backup"
                     }
@@ -557,7 +669,9 @@ object DatabaseBackup {
         return DatabaseBackupReport(
             now, eventCount, readingCount, cursorCount, fitSourceCount, fitProvenanceCount,
             canonicalReadingCount, canonicalCursorCount, canonicalFitSourceCount,
-            canonicalFitProvenanceCount, canonicalDeviceMetadataCount, rawDeviceMetadataCount
+            canonicalFitProvenanceCount, canonicalDeviceMetadataCount, rawDeviceMetadataCount,
+            canonicalFitGenerationCount, canonicalFitGenerationObservationCount,
+            canonicalActiveFitGenerationCount
         )
     }
 
@@ -590,7 +704,7 @@ object DatabaseBackup {
         .put("sha256", value.sha256)
 
     private fun extractArchive(source: InputStream, directory: File): Map<String, File> {
-        val allowed = BACKUP_V6_ENTRIES + MANIFEST_ENTRY
+        val allowed = BACKUP_V7_ENTRIES + MANIFEST_ENTRY
         val files = linkedMapOf<String, File>()
         var totalBytes = 0L
         ZipInputStream(BufferedInputStream(source)).use { zip ->
@@ -642,6 +756,9 @@ object DatabaseBackup {
                     CANONICAL_DEVICE_METADATA_ENTRY -> parseDeviceMetadata(line)
                     RAW_DEVICE_METADATA_ENTRY -> parseRawDeviceMetadata(line)
                     CANONICAL_UNMAPPED_FIT_FIELDS_ENTRY -> parseUnmappedFitField(line)
+                    CANONICAL_FIT_GENERATIONS_ENTRY -> parseFitGeneration(line)
+                    CANONICAL_FIT_GENERATION_OBSERVATIONS_ENTRY -> parseFitGenerationObservation(line)
+                    CANONICAL_ACTIVE_FIT_GENERATIONS_ENTRY -> parseActiveFitGeneration(line)
                 }
                 count++
                 require(count <= MAX_RECORDS) { "Zu viele Einträge in $name" }
@@ -803,6 +920,152 @@ object DatabaseBackup {
         }
     }
 
+    /** Validate the complete generation graph and each immutable output digest before restore. */
+    private fun validateGenerationReferences(directory: File) {
+        val stagingFile = File(directory, ".fit-generation-validation.db")
+        val db = SQLiteDatabase.openOrCreateDatabase(stagingFile, null)
+        try {
+            db.setForeignKeyConstraintsEnabled(true)
+            db.execSQL("CREATE TABLE sources(source_sha256 TEXT PRIMARY KEY NOT NULL)")
+            db.execSQL(
+                """CREATE TABLE generations(
+                   generation_id TEXT PRIMARY KEY NOT NULL,
+                   source_sha256 TEXT NOT NULL REFERENCES sources(source_sha256),
+                   decoder_version TEXT NOT NULL, profile_version TEXT NOT NULL,
+                   output_digest TEXT NOT NULL, output_count INTEGER NOT NULL,
+                   UNIQUE(generation_id, source_sha256),
+                   UNIQUE(source_sha256, decoder_version, profile_version)
+                )"""
+            )
+            db.execSQL(
+                """CREATE TABLE generation_observations(
+                   generation_id TEXT NOT NULL REFERENCES generations(generation_id),
+                   sample_id TEXT NOT NULL, device_id TEXT NOT NULL, metric TEXT NOT NULL,
+                   measured_at_ms INTEGER NOT NULL, value REAL NOT NULL, unit TEXT NOT NULL,
+                   received_at_ms INTEGER, record_ordinal INTEGER NOT NULL,
+                   global_message_number INTEGER NOT NULL, field_number INTEGER NOT NULL,
+                   quality TEXT NOT NULL, timestamp_origin TEXT NOT NULL,
+                   PRIMARY KEY(generation_id, sample_id)
+                )"""
+            )
+            db.execSQL(
+                """CREATE TABLE active_generations(
+                   source_sha256 TEXT PRIMARY KEY NOT NULL REFERENCES sources(source_sha256),
+                   generation_id TEXT NOT NULL UNIQUE,
+                   FOREIGN KEY(generation_id, source_sha256)
+                     REFERENCES generations(generation_id, source_sha256)
+                )"""
+            )
+            db.beginTransaction()
+            try {
+                File(directory, CANONICAL_FIT_SOURCES_ENTRY).bufferedReader(Charsets.UTF_8).useLines { lines ->
+                    lines.forEach { db.execSQL(
+                        "INSERT INTO sources(source_sha256) VALUES(?)",
+                        arrayOf(parseFitSource(it).sha256)
+                    ) }
+                }
+                File(directory, CANONICAL_FIT_GENERATIONS_ENTRY).bufferedReader(Charsets.UTF_8).useLines { lines ->
+                    lines.forEach { line ->
+                        val generation = parseFitGeneration(line)
+                        db.execSQL(
+                            """INSERT INTO generations(generation_id, source_sha256, decoder_version,
+                               profile_version, output_digest, output_count) VALUES(?, ?, ?, ?, ?, ?)""",
+                            arrayOf<Any?>(
+                                generation.generationId, generation.sourceSha256, generation.decoderVersion,
+                                generation.profileVersion, generation.outputDigest, generation.outputCount
+                            )
+                        )
+                    }
+                }
+                File(directory, CANONICAL_FIT_GENERATION_OBSERVATIONS_ENTRY)
+                    .bufferedReader(Charsets.UTF_8).useLines { lines ->
+                        lines.forEach { line ->
+                            val row = parseFitGenerationObservation(line)
+                            db.execSQL(
+                                """INSERT INTO generation_observations
+                                   (generation_id, sample_id, device_id, metric, measured_at_ms, value, unit,
+                                    received_at_ms, record_ordinal, global_message_number, field_number,
+                                    quality, timestamp_origin)
+                                   VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                                arrayOf<Any?>(
+                                    row.generationId, row.sampleId, row.deviceId, row.metric,
+                                    row.measuredAtEpochMillis, row.value, row.unit, row.receivedAtEpochMillis,
+                                    row.recordOrdinal, row.globalMessageNumber, row.fieldNumber,
+                                    row.quality, row.timestampOrigin
+                                )
+                            )
+                        }
+                    }
+                File(directory, CANONICAL_ACTIVE_FIT_GENERATIONS_ENTRY)
+                    .bufferedReader(Charsets.UTF_8).useLines { lines ->
+                        lines.forEach { line ->
+                            val active = parseActiveFitGeneration(line)
+                            db.execSQL(
+                                "INSERT INTO active_generations(source_sha256, generation_id) VALUES(?, ?)",
+                                arrayOf(active.sourceSha256, active.generationId)
+                            )
+                        }
+                    }
+
+                db.rawQuery(
+                    "SELECT generation_id, output_digest, output_count FROM generations ORDER BY generation_id",
+                    null
+                ).use { generations ->
+                    while (generations.moveToNext()) {
+                        val generationId = generations.getString(0)
+                        val expectedDigest = generations.getString(1)
+                        val expectedCount = generations.getLong(2)
+                        val accumulator = FitDecoderGeneration.OutputDigest()
+                        var actualCount = 0L
+                        db.rawQuery(
+                            """SELECT generation_id, sample_id, device_id, metric, measured_at_ms,
+                                      value, unit, received_at_ms, record_ordinal, global_message_number,
+                                      field_number, quality, timestamp_origin
+                               FROM generation_observations WHERE generation_id = ? ORDER BY sample_id""",
+                            arrayOf(generationId)
+                        ).use { rows ->
+                            while (rows.moveToNext()) {
+                                accumulator.add(StoredFitGenerationObservation(
+                                    generationId = rows.getString(0), sampleId = rows.getString(1),
+                                    deviceId = rows.getString(2), metric = rows.getString(3),
+                                    measuredAtEpochMillis = rows.getLong(4), value = rows.getDouble(5),
+                                    unit = rows.getString(6),
+                                    receivedAtEpochMillis = if (rows.isNull(7)) null else rows.getLong(7),
+                                    recordOrdinal = rows.getInt(8), globalMessageNumber = rows.getInt(9),
+                                    fieldNumber = rows.getInt(10), quality = rows.getString(11),
+                                    timestampOrigin = rows.getString(12)
+                                ))
+                                actualCount++
+                            }
+                        }
+                        require(actualCount == expectedCount && accumulator.finish() == expectedDigest) {
+                            "FIT-Decodergeneration ist unvollständig oder der Output-Digest stimmt nicht"
+                        }
+                    }
+                }
+                db.rawQuery("PRAGMA foreign_key_check", null).use {
+                    require(!it.moveToFirst()) { "FIT-Decodergenerationen enthalten verwaiste Referenzen" }
+                }
+                db.rawQuery(
+                    """SELECT COUNT(*) FROM sources s
+                       LEFT JOIN active_generations a ON a.source_sha256 = s.source_sha256
+                       WHERE a.source_sha256 IS NULL""", null
+                ).use {
+                    require(it.moveToFirst() && it.getLong(0) == 0L) {
+                        "Mindestens eine FIT-Quelle hat keine aktive Decodergeneration"
+                    }
+                }
+                db.setTransactionSuccessful()
+            } finally {
+                db.endTransaction()
+            }
+        } finally {
+            db.close()
+            stagingFile.delete()
+            File(stagingFile.path + "-journal").delete()
+        }
+    }
+
     private fun parseReading(line: String): RawExportRecord {
         val item = JSONObject(line)
         val record = RawExportRecord(
@@ -842,6 +1105,77 @@ object DatabaseBackup {
             "Ungültige FIT-Quellmetadaten im Backup"
         }
         return source
+    }
+
+    private fun parseFitGeneration(line: String): StoredFitDecoderGeneration {
+        val item = JSONObject(line)
+        val generation = StoredFitDecoderGeneration(
+            generationId = item.getString("generation_id"),
+            sourceSha256 = item.getString("source_sha256"),
+            decoderVersion = item.getString("decoder_version"),
+            profileVersion = item.getString("profile_version"),
+            outputDigest = item.getString("output_digest"),
+            outputCount = item.getLong("output_count"),
+            completedAtEpochMillis = item.getLong("completed_at_ms")
+        )
+        require(
+            generation.generationId.matches(Regex("[0-9a-f]{64}")) &&
+                generation.sourceSha256.matches(Regex("[0-9a-f]{64}")) &&
+                generation.generationId == FitDecoderGeneration.id(
+                    generation.sourceSha256, generation.decoderVersion, generation.profileVersion
+                ) &&
+                generation.decoderVersion.matches(Regex("[A-Za-z0-9._+-]{1,32}")) &&
+                generation.profileVersion.matches(Regex("[A-Za-z0-9._+-]{1,32}")) &&
+                generation.outputDigest.matches(Regex("[0-9a-f]{64}")) &&
+                generation.outputCount in 0..MAX_RECORDS &&
+                generation.completedAtEpochMillis >= 0
+        ) { "Ungültige FIT-Decodergeneration im Backup" }
+        return generation
+    }
+
+    private fun parseFitGenerationObservation(line: String): StoredFitGenerationObservation {
+        val item = JSONObject(line)
+        val row = StoredFitGenerationObservation(
+            generationId = item.getString("generation_id"),
+            sampleId = item.getString("sample_id"),
+            deviceId = item.getString("device_id"),
+            metric = item.getString("metric"),
+            measuredAtEpochMillis = item.getLong("measured_at_ms"),
+            value = item.getDouble("value"),
+            unit = item.getString("unit"),
+            receivedAtEpochMillis = if (!item.has("received_at_ms") || item.isNull("received_at_ms"))
+                null else item.getLong("received_at_ms"),
+            recordOrdinal = item.getInt("record_ordinal"),
+            globalMessageNumber = item.getInt("global_message_number"),
+            fieldNumber = item.getInt("field_number"),
+            quality = item.getString("quality"),
+            timestampOrigin = item.getString("timestamp_origin")
+        )
+        require(
+            row.generationId.matches(Regex("[0-9a-f]{64}")) &&
+                row.sampleId.isNotBlank() && row.deviceId.isNotBlank() && row.metric.isNotBlank() &&
+                row.measuredAtEpochMillis >= 0 && row.value.isFinite() && row.unit.isNotBlank() &&
+                (row.receivedAtEpochMillis == null || row.receivedAtEpochMillis >= 0) &&
+                row.recordOrdinal >= 0 && row.globalMessageNumber >= 0 && row.fieldNumber >= 0 &&
+                row.quality == "PROFILE_VALID" &&
+                row.timestampOrigin in setOf(
+                    "DIRECT", "RECONSTRUCTED_TS16", "RECONSTRUCTED_COMPRESSED", "UNKNOWN"
+                )
+        ) { "Ungültige FIT-Beobachtung in einer Decodergeneration" }
+        return row
+    }
+
+    private fun parseActiveFitGeneration(line: String): StoredActiveFitGeneration {
+        val item = JSONObject(line)
+        val active = StoredActiveFitGeneration(
+            sourceSha256 = item.getString("source_sha256"),
+            generationId = item.getString("generation_id")
+        )
+        require(
+            active.sourceSha256.matches(Regex("[0-9a-f]{64}")) &&
+                active.generationId.matches(Regex("[0-9a-f]{64}"))
+        ) { "Ungültiger aktiver FIT-Decoderstand im Backup" }
+        return active
     }
 
     private fun parseFitProvenance(line: String): StoredFitProvenance {
@@ -973,6 +1307,37 @@ object DatabaseBackup {
         .put("validated_at_ms", source.validatedAtEpochMillis)
         .put("decoder_version", source.decoderVersion)
         .put("profile_version", source.profileVersion)
+        .toString()
+
+    private fun encodeFitGeneration(value: StoredFitDecoderGeneration): String = JSONObject()
+        .put("generation_id", value.generationId)
+        .put("source_sha256", value.sourceSha256)
+        .put("decoder_version", value.decoderVersion)
+        .put("profile_version", value.profileVersion)
+        .put("output_digest", value.outputDigest)
+        .put("output_count", value.outputCount)
+        .put("completed_at_ms", value.completedAtEpochMillis)
+        .toString()
+
+    private fun encodeFitGenerationObservation(value: StoredFitGenerationObservation): String = JSONObject()
+        .put("generation_id", value.generationId)
+        .put("sample_id", value.sampleId)
+        .put("device_id", value.deviceId)
+        .put("metric", value.metric)
+        .put("measured_at_ms", value.measuredAtEpochMillis)
+        .put("value", value.value)
+        .put("unit", value.unit)
+        .put("received_at_ms", value.receivedAtEpochMillis ?: JSONObject.NULL)
+        .put("record_ordinal", value.recordOrdinal)
+        .put("global_message_number", value.globalMessageNumber)
+        .put("field_number", value.fieldNumber)
+        .put("quality", value.quality)
+        .put("timestamp_origin", value.timestampOrigin)
+        .toString()
+
+    private fun encodeActiveFitGeneration(value: StoredActiveFitGeneration): String = JSONObject()
+        .put("source_sha256", value.sourceSha256)
+        .put("generation_id", value.generationId)
         .toString()
 
     private fun encodeFitProvenance(value: StoredFitProvenance): String = JSONObject()

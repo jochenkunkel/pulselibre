@@ -28,6 +28,7 @@ object FitHistoricalObservations {
     }
 
     enum class Quality { PROFILE_VALID, MISSING_TIMESTAMP, OUTSIDE_DISPLAY_RANGE }
+    enum class TimestampOrigin { DIRECT, RECONSTRUCTED_TS16, RECONSTRUCTED_COMPRESSED, UNKNOWN }
 
     data class Observation(
         val metric: Metric,
@@ -39,6 +40,7 @@ object FitHistoricalObservations {
         val globalMessageNumber: Int,
         val fieldNumber: Int,
         val quality: Quality,
+        val timestampOrigin: TimestampOrigin = TimestampOrigin.UNKNOWN,
         /** Stable for idempotent re-import of the same original FIT file. */
         val idempotencyKey: String,
         /** Flags exact same-time/value observations across files without deleting them. */
@@ -89,7 +91,8 @@ object FitHistoricalObservations {
         val sourceFileSha256: String,
         val recordOrdinal: Int,
         val globalMessageNumber: Int,
-        val fieldNumber: Int
+        val fieldNumber: Int,
+        val timestampOrigin: TimestampOrigin = TimestampOrigin.UNKNOWN
     )
 
     enum class UnknownKind { UNKNOWN_MESSAGE, UNKNOWN_STANDARD_FIELD, DEVELOPER_FIELD, INCOMPATIBLE_KNOWN_FIELD }
@@ -230,19 +233,29 @@ object FitHistoricalObservations {
                 cursor += field.size
             }
 
-            val fitTimestamp = if (compressed) {
+            val compressedTimestamp = if (compressed) {
                 val old = previousFitTimestamp ?: return null
                 val delta = headerByte and 0x1f
                 var reconstructed = (old and -32L) + delta
                 if (reconstructed < old) reconstructed += 32
                 reconstructed
-            } else {
+            } else null
+            val directTimestamp = if (!compressed) {
                 val timestampField = definition.fields.firstOrNull { it.number == 253 }
                 val offset = timestampField?.let(fieldBytes::get)
-                val full = offset?.let {
+                offset?.let {
                     readUnsigned32(file, it, timestampField.size, definition.bigEndian, timestampField)
                 }
-                full ?: reconstructMonitoringTimestamp16(definition, fieldBytes, file, previousFitTimestamp)
+            } else null
+            val timestamp16 = if (!compressed && directTimestamp == null)
+                reconstructMonitoringTimestamp16(definition, fieldBytes, file, previousFitTimestamp)
+            else null
+            val fitTimestamp = compressedTimestamp ?: directTimestamp ?: timestamp16
+            val timestampOrigin = when {
+                compressedTimestamp != null -> TimestampOrigin.RECONSTRUCTED_COMPRESSED
+                timestamp16 != null -> TimestampOrigin.RECONSTRUCTED_TS16
+                directTimestamp != null && directTimestamp != 0xffff_ffffL -> TimestampOrigin.DIRECT
+                else -> TimestampOrigin.UNKNOWN
             }
             if (fitTimestamp != null && fitTimestamp != 0xffff_ffffL) {
                 previousFitTimestamp = fitTimestamp
@@ -299,7 +312,8 @@ object FitHistoricalObservations {
                                 sourceFileSha256 = fileSha,
                                 recordOrdinal = respirationRecordOrdinal,
                                 globalMessageNumber = GLOBAL_RESPIRATION_RATE,
-                                fieldNumber = 0
+                                fieldNumber = 0,
+                                timestampOrigin = timestampOrigin
                             )
                         }
                     }
@@ -340,6 +354,7 @@ object FitHistoricalObservations {
                         globalMessageNumber = definition.globalNumber,
                         fieldNumber = field.number,
                         quality = quality,
+                        timestampOrigin = timestampOrigin,
                         idempotencyKey = sha256("$fileSha:$recordOrdinal:${definition.globalNumber}:${field.number}".toByteArray()),
                         duplicateFingerprint = sha256(semanticKey.toByteArray())
                     )

@@ -20,7 +20,8 @@ data class HistoricalObservation(
         val globalMessageNumber: Int,
         val fieldNumber: Int,
         val quality: String,
-        val decoderVersion: String
+        val decoderVersion: String,
+        val timestampOrigin: String = "UNKNOWN"
     )
 }
 
@@ -94,13 +95,27 @@ class HistoricalObservationRepository(private val context: Context) {
 
             val rows = database.readableDatabase.rawQuery(
                 """SELECT o.device_id, o.metric, o.measured_at_ms, o.value, o.unit,
-                          o.sample_id, o.received_at_ms,
-                          p.source_sha256, p.record_ordinal, p.global_message_number,
-                          p.field_number, p.quality, p.decoder_version
-                   FROM observations AS o
-                   LEFT JOIN fit_observation_provenance AS p
-                     ON p.device_id = o.device_id AND p.metric = o.metric
-                    AND p.measured_at_ms = o.measured_at_ms AND p.sample_id = o.sample_id
+                          o.sample_id, o.received_at_ms, o.source_sha256, o.record_ordinal,
+                          o.global_message_number, o.field_number, o.quality, o.decoder_version,
+                          o.timestamp_origin
+                   FROM (
+                     SELECT r.device_id, r.metric, r.measured_at_ms, r.value, r.unit,
+                            r.sample_id, r.received_at_ms, NULL AS source_sha256,
+                            NULL AS record_ordinal, NULL AS global_message_number,
+                            NULL AS field_number, NULL AS quality, NULL AS decoder_version,
+                            NULL AS timestamp_origin
+                     FROM observations r
+                     LEFT JOIN fit_observation_provenance p ON p.sample_id = r.sample_id
+                     WHERE p.sample_id IS NULL
+                     UNION ALL
+                     SELECT g.device_id, g.metric, g.measured_at_ms, g.value, g.unit,
+                            g.sample_id, g.received_at_ms, f.source_sha256, g.record_ordinal,
+                            g.global_message_number, g.field_number, g.quality,
+                            f.decoder_version, g.timestamp_origin
+                     FROM fit_generation_observations g
+                     JOIN fit_active_generations a ON a.generation_id = g.generation_id
+                     JOIN fit_decoder_generations f ON f.generation_id = g.generation_id
+                   ) AS o
                    WHERE $where
                    ORDER BY o.measured_at_ms, o.device_id, o.metric, o.sample_id
                    LIMIT ?""",
@@ -115,7 +130,8 @@ class HistoricalObservationRepository(private val context: Context) {
                                 globalMessageNumber = cursor.getInt(9),
                                 fieldNumber = cursor.getInt(10),
                                 quality = cursor.getString(11),
-                                decoderVersion = cursor.getString(12)
+                                decoderVersion = cursor.getString(12),
+                                timestampOrigin = cursor.getString(13)
                             )
                         add(HistoricalObservation(
                             deviceId = cursor.getString(0),

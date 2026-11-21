@@ -180,6 +180,10 @@ class FitHistoricalObservationsTest {
             result.map { it.timestampEpochMillis })
         assertEquals(listOf(60.0, 70.0, 72.0), result.map { it.value })
         assertTrue(result.all { it.quality == FitHistoricalObservations.Quality.PROFILE_VALID })
+        assertEquals(
+            listOf("DIRECT", "RECONSTRUCTED_TS16", "RECONSTRUCTED_TS16"),
+            result.map { it.timestampOrigin.name }
+        )
     }
 
     @Test fun timestamp16WithoutEarlierFullTimestampOrWithInvalidMarkerStaysMissing() {

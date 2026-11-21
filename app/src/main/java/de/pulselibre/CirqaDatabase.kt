@@ -13,7 +13,7 @@ import java.security.MessageDigest
  * UNIQUE SHA-256 of each full line makes repeated imports idempotent.
  */
 class CirqaDatabase(private val contextRef: Context) :
-    SQLiteOpenHelper(contextRef, "cirqa_measurements.db", null, 6), FitObservationStore {
+    SQLiteOpenHelper(contextRef, "cirqa_measurements.db", null, 7), FitObservationStore {
 
     override fun onConfigure(db: SQLiteDatabase) {
         super.onConfigure(db)
@@ -37,11 +37,13 @@ class CirqaDatabase(private val contextRef: Context) :
         createFitDeviceMetadataSchema(db)
         createRawDeviceMetadataSchema(db)
         createUnmappedFitFieldSchema(db)
+        createFitGenerationSchema(db)
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-        require(oldVersion in 1..5 && newVersion == 6)
-        if (oldVersion <= 2) {
+        require(oldVersion in 1..6 && newVersion == 7)
+        if (oldVersion < 6) {
+          if (oldVersion <= 2) {
             if (oldVersion == 1) {
             db.execSQL("ALTER TABLE events ADD COLUMN dashboard_time TEXT")
             var lastId = 0L
@@ -64,11 +66,177 @@ class CirqaDatabase(private val contextRef: Context) :
             }
             createHistoricalSchema(db)
             createFitDeviceMetadataSchema(db)
-        } else if (oldVersion == 3) {
-            createFitDeviceMetadataSchema(db)
+          } else if (oldVersion == 3) {
+              createFitDeviceMetadataSchema(db)
+          }
+          if (oldVersion < 5) createRawDeviceMetadataSchema(db)
+          createUnmappedFitFieldSchema(db)
         }
-        if (oldVersion < 5) createRawDeviceMetadataSchema(db)
-        createUnmappedFitFieldSchema(db)
+        createFitGenerationSchema(db)
+        migrateExistingFitObservationsToGeneration(db)
+    }
+
+    private fun createFitGenerationSchema(db: SQLiteDatabase) {
+        db.execSQL("""CREATE TABLE fit_decoder_generations (
+            generation_id TEXT PRIMARY KEY NOT NULL CHECK(length(generation_id) = 64),
+            source_sha256 TEXT NOT NULL REFERENCES fit_sources(source_sha256) ON DELETE RESTRICT,
+            decoder_version TEXT NOT NULL,
+            profile_version TEXT NOT NULL,
+            output_digest TEXT NOT NULL CHECK(length(output_digest) = 64),
+            output_count INTEGER NOT NULL CHECK(output_count >= 0),
+            completed_at_ms INTEGER NOT NULL CHECK(completed_at_ms >= 0),
+            UNIQUE(source_sha256, decoder_version, profile_version),
+            UNIQUE(generation_id, source_sha256)
+        )""")
+        db.execSQL("""CREATE TABLE fit_generation_observations (
+            generation_id TEXT NOT NULL REFERENCES fit_decoder_generations(generation_id) ON DELETE RESTRICT,
+            sample_id TEXT NOT NULL,
+            device_id TEXT NOT NULL,
+            metric TEXT NOT NULL,
+            measured_at_ms INTEGER NOT NULL CHECK(measured_at_ms >= 0),
+            value REAL NOT NULL,
+            unit TEXT NOT NULL,
+            received_at_ms INTEGER CHECK(received_at_ms IS NULL OR received_at_ms >= 0),
+            record_ordinal INTEGER NOT NULL CHECK(record_ordinal >= 0),
+            global_message_number INTEGER NOT NULL CHECK(global_message_number >= 0),
+            field_number INTEGER NOT NULL CHECK(field_number >= 0),
+            quality TEXT NOT NULL CHECK(quality = 'PROFILE_VALID'),
+            timestamp_origin TEXT NOT NULL CHECK(timestamp_origin IN
+                ('DIRECT', 'RECONSTRUCTED_TS16', 'RECONSTRUCTED_COMPRESSED', 'UNKNOWN')),
+            PRIMARY KEY(generation_id, sample_id)
+        )""")
+        db.execSQL("CREATE INDEX fit_generation_observations_by_time ON fit_generation_observations(measured_at_ms)")
+        db.execSQL("""CREATE TABLE fit_active_generations (
+            source_sha256 TEXT PRIMARY KEY NOT NULL REFERENCES fit_sources(source_sha256) ON DELETE RESTRICT,
+            generation_id TEXT NOT NULL UNIQUE,
+            FOREIGN KEY(generation_id, source_sha256)
+                REFERENCES fit_decoder_generations(generation_id, source_sha256) ON DELETE RESTRICT
+        )""")
+    }
+
+    /**
+     * Preserve the existing FIT rows and create their first immutable generation.
+     * Their historical timestamp derivation is unknowable, so origin is UNKNOWN.
+     * SQLiteOpenHelper wraps onUpgrade in a transaction; any conflict aborts all DDL/data.
+     */
+    private fun migrateExistingFitObservationsToGeneration(db: SQLiteDatabase) {
+        val hasProfileVersion = hasColumn(db, "fit_sources", "profile_version")
+        val hasValidatedAt = hasColumn(db, "fit_sources", "validated_at_ms")
+        val profileExpression = if (hasProfileVersion) "profile_version" else "'legacy-profile-unknown-v1'"
+        val validatedAtExpression = if (hasValidatedAt) "validated_at_ms" else "0"
+        db.rawQuery(
+            """SELECT source_sha256, $profileExpression, $validatedAtExpression
+               FROM fit_sources
+               WHERE NOT EXISTS (
+                   SELECT 1 FROM fit_active_generations a
+                   WHERE a.source_sha256 = fit_sources.source_sha256
+               )
+               ORDER BY source_sha256""", null
+        ).use { sources ->
+            while (sources.moveToNext()) {
+                val sourceSha = sources.getString(0)
+                val profileVersion = sources.getString(1)
+                val completedAt = sources.getLong(2)
+                // Historical decoder provenance cannot be inferred after the fact.
+                val legacyDecoderVersion = "legacy-unknown-v1"
+                val generationId = FitDecoderGeneration.id(
+                    sourceSha, legacyDecoderVersion, profileVersion
+                )
+                val values = mutableListOf<StoredFitGenerationObservation>()
+                if (hasTable(db, "fit_observation_provenance") && hasTable(db, "observations")) {
+                    db.rawQuery(
+                        """SELECT p.sample_id, p.device_id, p.metric, p.measured_at_ms, o.value,
+                                  o.unit, o.received_at_ms, p.record_ordinal, p.global_message_number,
+                                  p.field_number, p.quality
+                           FROM fit_observation_provenance p
+                           JOIN observations o ON o.device_id = p.device_id AND o.metric = p.metric
+                             AND o.measured_at_ms = p.measured_at_ms AND o.sample_id = p.sample_id
+                           WHERE p.source_sha256 = ?
+                           ORDER BY p.sample_id""",
+                        arrayOf(sourceSha)
+                    ).use { cursor ->
+                        while (cursor.moveToNext()) {
+                            values += StoredFitGenerationObservation(
+                                generationId = generationId,
+                                sampleId = cursor.getString(0),
+                                deviceId = cursor.getString(1),
+                                metric = cursor.getString(2),
+                                measuredAtEpochMillis = cursor.getLong(3),
+                                value = cursor.getDouble(4),
+                                unit = cursor.getString(5),
+                                receivedAtEpochMillis = if (cursor.isNull(6)) null else cursor.getLong(6),
+                                recordOrdinal = cursor.getInt(7),
+                                globalMessageNumber = cursor.getInt(8),
+                                fieldNumber = cursor.getInt(9),
+                                quality = cursor.getString(10),
+                                timestampOrigin = "UNKNOWN"
+                            )
+                        }
+                    }
+                }
+                db.execSQL(
+                    """INSERT INTO fit_decoder_generations
+                       (generation_id, source_sha256, decoder_version, profile_version,
+                        output_digest, output_count, completed_at_ms)
+                       VALUES(?, ?, ?, ?, ?, ?, ?)""",
+                    arrayOf<Any?>(
+                        generationId, sourceSha, legacyDecoderVersion, profileVersion,
+                        FitDecoderGeneration.outputDigest(values), values.size, completedAt
+                    )
+                )
+                val insert = db.compileStatement(
+                    """INSERT INTO fit_generation_observations
+                       (generation_id, sample_id, device_id, metric, measured_at_ms, value, unit,
+                        received_at_ms, record_ordinal, global_message_number, field_number, quality,
+                        timestamp_origin)
+                       VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'UNKNOWN')"""
+                )
+                values.forEach { row ->
+                    insert.clearBindings()
+                    insert.bindString(1, generationId)
+                    insert.bindString(2, row.sampleId)
+                    insert.bindString(3, row.deviceId)
+                    insert.bindString(4, row.metric)
+                    insert.bindLong(5, row.measuredAtEpochMillis)
+                    insert.bindDouble(6, row.value)
+                    insert.bindString(7, row.unit)
+                    if (row.receivedAtEpochMillis == null) insert.bindNull(8)
+                    else insert.bindLong(8, row.receivedAtEpochMillis)
+                    insert.bindLong(9, row.recordOrdinal.toLong())
+                    insert.bindLong(10, row.globalMessageNumber.toLong())
+                    insert.bindLong(11, row.fieldNumber.toLong())
+                    insert.bindString(12, row.quality)
+                    insert.executeInsert()
+                }
+                db.execSQL(
+                    "INSERT INTO fit_active_generations(source_sha256, generation_id) VALUES(?, ?)",
+                    arrayOf(sourceSha, generationId)
+                )
+            }
+        }
+    }
+
+    private fun hasColumn(db: SQLiteDatabase, table: String, column: String): Boolean =
+        db.rawQuery("PRAGMA table_info($table)", null).use { cursor ->
+            var found = false
+            while (cursor.moveToNext()) if (cursor.getString(1) == column) found = true
+            found
+        }
+
+    private fun hasTable(db: SQLiteDatabase, table: String): Boolean =
+        db.rawQuery(
+            "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?",
+            arrayOf(table)
+        ).use { it.moveToFirst() }
+
+    private fun ensureMissingFitGenerations(db: SQLiteDatabase) {
+        db.beginTransaction()
+        try {
+            migrateExistingFitObservationsToGeneration(db)
+            db.setTransactionSuccessful()
+        } finally {
+            db.endTransaction()
+        }
     }
 
     private fun createHistoricalSchema(db: SQLiteDatabase) {
@@ -215,7 +383,10 @@ class CirqaDatabase(private val contextRef: Context) :
             ).use { row ->
                 if (!row.moveToFirst()) null else (0..3).map { row.getLong(it) }
             }
-            if (priorCopy == sourceCounts) return
+            if (priorCopy == sourceCounts) {
+                ensureMissingFitGenerations(destination)
+                return
+            }
 
             source.beginTransactionNonExclusive()
             try {
@@ -367,6 +538,7 @@ class CirqaDatabase(private val contextRef: Context) :
                         System.currentTimeMillis()
                     )
                 )
+                migrateExistingFitObservationsToGeneration(destination)
                 destination.setTransactionSuccessful()
                 } finally {
                     destination.endTransaction()
@@ -408,6 +580,177 @@ class CirqaDatabase(private val contextRef: Context) :
             validatedAtEpochMillis, decoderVersion, profileVersion, observations, deviceMetadata,
             unmappedFields, deviceKey
         )
+    }
+
+    /**
+     * Re-decode retained, verified FIT bytes with the current allowlisted
+     * decoder and persist a new immutable generation. The original must already
+     * be present in the canonical source registry; this never reads files or
+     * performs device/BLE I/O.
+     */
+    fun replayVerifiedFitSource(
+        sourceBytes: ByteArray,
+        replayedAtEpochMillis: Long,
+        deviceKey: String
+    ): String {
+        require(sourceBytes.isNotEmpty())
+        val sourceSha256 = MessageDigest.getInstance("SHA-256").digest(sourceBytes)
+            .joinToString("") { "%02x".format(it.toInt() and 0xff) }
+        check(FitFileHeader.inspectVerified(sourceBytes) != null) { "FIT replay source failed envelope/CRC validation" }
+        val decoded = FitHistoricalObservations.decode(sourceBytes)
+            ?: error("FIT replay decoder rejected the verified source")
+        return storeFitDecoderReplay(
+            sourceSha256 = sourceSha256,
+            decoderVersion = FitHistoricalObservations.DECODER_VERSION,
+            profileVersion = FitHistoricalObservations.PROFILE_VERSION,
+            replayedAtEpochMillis = replayedAtEpochMillis,
+            observations = decoded.observations,
+            deviceKey = deviceKey
+        )
+    }
+
+    /**
+     * Store already-decoded output for a specific decoder/profile identity.
+     * This never changes fit_sources, legacy readings, or an existing active
+     * pointer; the first normal import must establish that pointer.
+     */
+    internal fun storeFitDecoderReplay(
+        sourceSha256: String,
+        decoderVersion: String,
+        profileVersion: String,
+        replayedAtEpochMillis: Long,
+        observations: List<FitHistoricalObservations.Observation>,
+        deviceKey: String
+    ): String {
+        require(sourceSha256.matches(Regex("[0-9a-f]{64}")))
+        require(decoderVersion.isNotBlank() && profileVersion.isNotBlank())
+        require(replayedAtEpochMillis >= 0L && deviceKey.isNotBlank())
+        require(observations.all {
+                it.sourceFileSha256 == sourceSha256 &&
+                it.quality == FitHistoricalObservations.Quality.PROFILE_VALID &&
+                it.timestampEpochMillis != null && it.timestampEpochMillis >= 0L && it.metric.unit == it.unit &&
+                it.value.isFinite() && it.idempotencyKey.isNotBlank() &&
+                it.recordOrdinal >= 0 && it.globalMessageNumber >= 0 && it.fieldNumber >= 0
+        }) { "FIT replay output does not match the validated source" }
+        require(observations.map { it.idempotencyKey }.distinct().size == observations.size) {
+            "Duplicate FIT idempotency key in replay output"
+        }
+        ensureHistoricalStoreCopied()
+        val db = writableDatabase
+        db.beginTransaction()
+        try {
+            check(db.rawQuery(
+                "SELECT 1 FROM fit_sources WHERE source_sha256 = ?",
+                arrayOf(sourceSha256)
+            ).use { it.moveToFirst() }) { "FIT replay source is not committed in the canonical store" }
+            check(db.rawQuery(
+                "SELECT 1 FROM fit_active_generations WHERE source_sha256 = ?",
+                arrayOf(sourceSha256)
+            ).use { it.moveToFirst() }) {
+                "FIT replay requires an existing active generation; use the normal import path for first import"
+            }
+            val sourceDevices = mutableSetOf<String>()
+            db.rawQuery(
+                """SELECT DISTINCT g.device_id
+                   FROM fit_generation_observations g
+                   JOIN fit_active_generations a ON a.generation_id = g.generation_id
+                   WHERE a.source_sha256 = ?""",
+                arrayOf(sourceSha256)
+            ).use { rows -> while (rows.moveToNext()) sourceDevices += rows.getString(0) }
+            check(sourceDevices.isEmpty() || sourceDevices == setOf(deviceKey)) {
+                "FIT replay device mapping differs from the active source generation"
+            }
+            val records = observations.map {
+                RawExportRecord(
+                    deviceId = deviceKey,
+                    metric = it.metric.name.lowercase(),
+                    measuredAtEpochMillis = requireNotNull(it.timestampEpochMillis),
+                    value = it.value,
+                    unit = it.unit,
+                    sampleId = it.idempotencyKey,
+                    receivedAtEpochMillis = replayedAtEpochMillis
+                )
+            }
+            val generationId = FitDecoderGeneration.id(sourceSha256, decoderVersion, profileVersion)
+            FitObservationCommitter.persistDecoderGeneration(
+                db = db,
+                sourceSha256 = sourceSha256,
+                decoderVersion = decoderVersion,
+                profileVersion = profileVersion,
+                completedAtEpochMillis = replayedAtEpochMillis,
+                observations = observations,
+                records = records
+            )
+            check(db.rawQuery(
+                "SELECT 1 FROM fit_decoder_generations WHERE generation_id = ?",
+                arrayOf(generationId)
+            ).use { it.moveToFirst() }) { "FIT replay generation was not persisted" }
+            db.setTransactionSuccessful()
+            return generationId
+        } finally {
+            db.endTransaction()
+        }
+    }
+
+    /** Explicitly switch the History projection after validating the full immutable generation. */
+    fun activateFitDecoderGeneration(sourceSha256: String, generationId: String) {
+        require(sourceSha256.matches(Regex("[0-9a-f]{64}")))
+        require(generationId.matches(Regex("[0-9a-f]{64}")))
+        ensureHistoricalStoreCopied()
+        val db = writableDatabase
+        db.beginTransaction()
+        try {
+            val header = db.rawQuery(
+                """SELECT source_sha256, decoder_version, profile_version, output_digest, output_count
+                   FROM fit_decoder_generations WHERE generation_id = ?""",
+                arrayOf(generationId)
+            ).use { row ->
+                check(row.moveToFirst() && row.getString(0) == sourceSha256) {
+                    "FIT generation is missing or belongs to another source"
+                }
+                check(generationId == FitDecoderGeneration.id(sourceSha256, row.getString(1), row.getString(2))) {
+                    "FIT generation identity does not match its source and decoder"
+                }
+                listOf(row.getString(3), row.getLong(4).toString())
+            }
+            val generationRows = mutableListOf<StoredFitGenerationObservation>()
+            db.rawQuery(
+                """SELECT generation_id, sample_id, device_id, metric, measured_at_ms, value,
+                          unit, received_at_ms, record_ordinal, global_message_number,
+                          field_number, quality, timestamp_origin
+                   FROM fit_generation_observations WHERE generation_id = ? ORDER BY sample_id""",
+                arrayOf(generationId)
+            ).use { rows ->
+                while (rows.moveToNext()) generationRows += StoredFitGenerationObservation(
+                    generationId = rows.getString(0),
+                    sampleId = rows.getString(1),
+                    deviceId = rows.getString(2),
+                    metric = rows.getString(3),
+                    measuredAtEpochMillis = rows.getLong(4),
+                    value = rows.getDouble(5),
+                    unit = rows.getString(6),
+                    receivedAtEpochMillis = if (rows.isNull(7)) null else rows.getLong(7),
+                    recordOrdinal = rows.getInt(8),
+                    globalMessageNumber = rows.getInt(9),
+                    fieldNumber = rows.getInt(10),
+                    quality = rows.getString(11),
+                    timestampOrigin = rows.getString(12)
+                )
+            }
+            check(generationRows.size.toLong() == header[1].toLong() &&
+                FitDecoderGeneration.outputDigest(generationRows) == header[0]) {
+                "FIT generation is incomplete or its immutable output digest is invalid"
+            }
+            db.execSQL(
+                """INSERT INTO fit_active_generations(source_sha256, generation_id)
+                   VALUES(?, ?)
+                   ON CONFLICT(source_sha256) DO UPDATE SET generation_id = excluded.generation_id""",
+                arrayOf(sourceSha256, generationId)
+            )
+            db.setTransactionSuccessful()
+        } finally {
+            db.endTransaction()
+        }
     }
 
     fun storedFitUnmappedFields(): List<StoredFitUnmappedField> =
@@ -656,7 +999,7 @@ class CirqaDatabase(private val contextRef: Context) :
         }
 
     /** Replace both local stores in a single attached-database transaction. */
-    @Synchronized fun replaceAllStoredRows(
+    @Synchronized internal fun replaceAllStoredRows(
         events: Sequence<String>,
         readings: Sequence<RawExportRecord>,
         cursors: Sequence<LocalSyncCursor>,
@@ -669,11 +1012,18 @@ class CirqaDatabase(private val contextRef: Context) :
         canonicalDeviceMetadata: Sequence<FitHistoricalObservations.DeviceMetadata> = emptySequence(),
         canonicalRawDeviceMetadata: Sequence<RawDeviceMetadataRecord> = emptySequence(),
         canonicalUnmappedFitFields: Sequence<StoredFitUnmappedField> = emptySequence(),
+        canonicalFitGenerations: Sequence<StoredFitDecoderGeneration> = emptySequence(),
+        canonicalFitGenerationObservations: Sequence<StoredFitGenerationObservation> = emptySequence(),
+        canonicalActiveFitGenerations: Sequence<StoredActiveFitGeneration> = emptySequence(),
+        generationSnapshotProvided: Boolean = false,
         markHistoricalCopyComplete: Boolean = false
     ) = withLegacyDatabase { db ->
         db.beginTransaction()
         try {
             db.execSQL("DELETE FROM main.events")
+            db.execSQL("DELETE FROM main.fit_active_generations")
+            db.execSQL("DELETE FROM main.fit_generation_observations")
+            db.execSQL("DELETE FROM main.fit_decoder_generations")
             db.execSQL("DELETE FROM main.fit_observation_provenance")
             db.execSQL("DELETE FROM main.fit_unmapped_fields")
             db.execSQL("DELETE FROM main.fit_device_metadata")
@@ -952,6 +1302,107 @@ class CirqaDatabase(private val contextRef: Context) :
                 canonicalProvenanceInsert.bindString(9, item.quality)
                 canonicalProvenanceInsert.bindString(10, item.decoderVersion)
                 canonicalProvenanceInsert.executeInsert()
+            }
+            val generations = canonicalFitGenerations.toList()
+            val generationObservations = canonicalFitGenerationObservations.toList()
+            val activeGenerations = canonicalActiveFitGenerations.toList()
+            if (generationSnapshotProvided) {
+                require(generations.map { it.generationId }.distinct().size == generations.size)
+                val observationsByGeneration = generationObservations.groupBy { it.generationId }
+                require(
+                    observationsByGeneration.keys.all { id -> generations.any { it.generationId == id } } &&
+                        generations.all { generation ->
+                            val rows = observationsByGeneration[generation.generationId].orEmpty()
+                            rows.size.toLong() == generation.outputCount &&
+                                FitDecoderGeneration.outputDigest(rows) == generation.outputDigest
+                        }
+                ) { "FIT-Decodergenerationen im Backup sind unvollständig oder inkonsistent" }
+                require(generations.all { generation ->
+                    generation.sourceSha256.matches(Regex("[0-9a-f]{64}")) &&
+                        generation.generationId == FitDecoderGeneration.id(
+                            generation.sourceSha256, generation.decoderVersion, generation.profileVersion
+                        ) && generation.outputDigest.matches(Regex("[0-9a-f]{64}")) &&
+                        generation.outputCount >= 0 && generation.completedAtEpochMillis >= 0
+                }) { "Ungültige FIT-Decodergeneration im Backup" }
+                require(activeGenerations.map { it.sourceSha256 }.distinct().size == activeGenerations.size &&
+                    activeGenerations.all { active ->
+                        generations.any {
+                            it.generationId == active.generationId &&
+                                it.sourceSha256 == active.sourceSha256
+                        }
+                    }) { "Aktive FIT-Generation fehlt oder ist mehrdeutig" }
+
+                val generationInsert = db.compileStatement(
+                    """INSERT INTO main.fit_decoder_generations
+                       (generation_id, source_sha256, decoder_version, profile_version,
+                        output_digest, output_count, completed_at_ms) VALUES(?, ?, ?, ?, ?, ?, ?)"""
+                )
+                generations.forEach { item ->
+                    generationInsert.clearBindings()
+                    generationInsert.bindString(1, item.generationId)
+                    generationInsert.bindString(2, item.sourceSha256)
+                    generationInsert.bindString(3, item.decoderVersion)
+                    generationInsert.bindString(4, item.profileVersion)
+                    generationInsert.bindString(5, item.outputDigest)
+                    generationInsert.bindLong(6, item.outputCount)
+                    generationInsert.bindLong(7, item.completedAtEpochMillis)
+                    generationInsert.executeInsert()
+                }
+                val generationObservationInsert = db.compileStatement(
+                    """INSERT INTO main.fit_generation_observations
+                       (generation_id, sample_id, device_id, metric, measured_at_ms, value, unit,
+                        received_at_ms, record_ordinal, global_message_number, field_number, quality,
+                        timestamp_origin) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"""
+                )
+                generationObservations.forEach { item ->
+                    require(item.sampleId.isNotBlank() && item.deviceId.isNotBlank() &&
+                        item.metric.isNotBlank() && item.measuredAtEpochMillis >= 0 &&
+                        item.value.isFinite() && item.unit.isNotBlank() &&
+                        (item.receivedAtEpochMillis == null || item.receivedAtEpochMillis >= 0) &&
+                        item.recordOrdinal >= 0 && item.globalMessageNumber >= 0 && item.fieldNumber >= 0 &&
+                        item.quality == "PROFILE_VALID" &&
+                        item.timestampOrigin in setOf(
+                            "DIRECT", "RECONSTRUCTED_TS16", "RECONSTRUCTED_COMPRESSED", "UNKNOWN"
+                        )) {
+                        "Ungültige FIT-Beobachtung in einer Decodergeneration"
+                    }
+                    generationObservationInsert.clearBindings()
+                    generationObservationInsert.bindString(1, item.generationId)
+                    generationObservationInsert.bindString(2, item.sampleId)
+                    generationObservationInsert.bindString(3, item.deviceId)
+                    generationObservationInsert.bindString(4, item.metric)
+                    generationObservationInsert.bindLong(5, item.measuredAtEpochMillis)
+                    generationObservationInsert.bindDouble(6, item.value)
+                    generationObservationInsert.bindString(7, item.unit)
+                    if (item.receivedAtEpochMillis == null) generationObservationInsert.bindNull(8)
+                    else generationObservationInsert.bindLong(8, item.receivedAtEpochMillis)
+                    generationObservationInsert.bindLong(9, item.recordOrdinal.toLong())
+                    generationObservationInsert.bindLong(10, item.globalMessageNumber.toLong())
+                    generationObservationInsert.bindLong(11, item.fieldNumber.toLong())
+                    generationObservationInsert.bindString(12, item.quality)
+                    generationObservationInsert.bindString(13, item.timestampOrigin)
+                    generationObservationInsert.executeInsert()
+                }
+                val activeGenerationInsert = db.compileStatement(
+                    "INSERT INTO main.fit_active_generations(source_sha256, generation_id) VALUES(?, ?)"
+                )
+                activeGenerations.forEach { item ->
+                    activeGenerationInsert.clearBindings()
+                    activeGenerationInsert.bindString(1, item.sourceSha256)
+                    activeGenerationInsert.bindString(2, item.generationId)
+                    activeGenerationInsert.executeInsert()
+                }
+                db.rawQuery(
+                    """SELECT COUNT(*) FROM main.fit_sources s
+                       LEFT JOIN main.fit_active_generations a ON a.source_sha256 = s.source_sha256
+                       WHERE a.source_sha256 IS NULL""", null
+                ).use { missing ->
+                    check(missing.moveToFirst() && missing.getLong(0) == 0L) {
+                        "Mindestens eine FIT-Quelle hat keine aktive Decodergeneration"
+                    }
+                }
+            } else {
+                migrateExistingFitObservationsToGeneration(db)
             }
             if (markHistoricalCopyComplete) {
                 val historicalCounts = listOf(
