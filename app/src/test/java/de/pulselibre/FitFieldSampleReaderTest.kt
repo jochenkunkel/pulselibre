@@ -85,12 +85,12 @@ class FitFieldSampleReaderTest {
 
     @Test fun describeNamesFilesByOrdinalAndNeverByHash() {
         val preview = FitFieldSampleReader.read(standardFile(listOf(1, 2, 3, 4, 5)), 20, 85, null)
-        val text = FitFieldSampleReader.describe(2, preview)
+        val text = FitFieldSampleReader.describe(GermanStrings, 2, preview)
         assertTrue(text, text.startsWith("Datei 2: 5 Vorkommen, erste 3 Werte"))
         assertTrue(text, text.contains("… und 2 weitere"))
         assertTrue(text, text.contains("  1: 01 00"))
-        assertEquals("Datei 1: Original nicht lesbar oder nicht gültig.", FitFieldSampleReader.describe(1, null))
+        assertEquals("Datei 1: Original nicht lesbar oder nicht gültig.", FitFieldSampleReader.describe(GermanStrings, 1, null))
         assertEquals("Datei 1: Feld in dieser Datei nicht vorhanden.",
-            FitFieldSampleReader.describe(1, FitFieldSampleReader.read(standardFile(listOf(1)), 20, 99, null)))
+            FitFieldSampleReader.describe(GermanStrings, 1, FitFieldSampleReader.read(standardFile(listOf(1)), 20, 99, null)))
     }
 }

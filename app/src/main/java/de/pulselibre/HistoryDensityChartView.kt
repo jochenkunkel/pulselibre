@@ -31,7 +31,7 @@ internal class HistoryDensityChartView(
     private val rect = RectF()
     private val left = 34 * d; private val right get() = width - 6 * d
     private val top = 8 * d; private val bottom get() = height - 22 * d
-    private val fmt = DateTimeFormatter.ofPattern("d.M. HH:mm", Locale.GERMANY)
+    private val fmt = DateTimeFormatter.ofPattern(android.text.format.DateFormat.getBestDateTimePattern(context.displayLocale(), "dM") + " HH:mm", context.displayLocale())
 
     /** Umschaltbar: Ampel (rot/gelb/grün) oder farbsichere Skala. */
     var colorSafe: Boolean = false

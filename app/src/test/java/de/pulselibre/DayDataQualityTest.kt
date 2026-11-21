@@ -30,7 +30,7 @@ class DayDataQualityTest {
     }
     @Test fun dayNotStartedHasNoCoverage() {
         val q = DayDataQuality.assess(emptyList(), day, day.start.minusSeconds(5))
-        assertNull(q.coveragePercent); assertEquals("Tag noch nicht begonnen", q.summary())
+        assertNull(q.coveragePercent); assertEquals("Tag noch nicht begonnen", q.summary(GermanStrings))
     }
     @Test fun dstDayUsesRealElapsedMinutes() {
         val spring = DashboardDay(LocalDate.of(2026, 3, 29), zone)
@@ -39,6 +39,6 @@ class DayDataQualityTest {
     }
     @Test fun summaryIsGerman() {
         val q = DayDataQuality.assess(listOf(at(0, 0), at(0, 1)), day, at(0, 9))
-        assertTrue(q.summary().startsWith("Abdeckung 20 %"))
+        assertTrue(q.summary(GermanStrings).startsWith("Abdeckung 20 %"))
     }
 }

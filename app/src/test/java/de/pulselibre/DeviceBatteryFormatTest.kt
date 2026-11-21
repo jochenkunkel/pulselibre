@@ -10,7 +10,7 @@ class DeviceBatteryFormatTest {
     private val now = 1_800_000_000_000L
 
     @Test fun freshValueShowsPercentAndAge() {
-        val v = DeviceBatteryFormat.describe(BatteryReading(37, null, now - 5 * 60_000), now)
+        val v = DeviceBatteryFormat.describe(GermanStrings, BatteryReading(37, null, now - 5 * 60_000), now)
         assertEquals("37 %", v.valueText)
         assertEquals("Stand: vor 5 min", v.freshness)
         assertFalse(v.stale)
@@ -19,26 +19,26 @@ class DeviceBatteryFormatTest {
     }
 
     @Test fun oldValueIsMarkedAsLastKnownStateNotLive() {
-        val v = DeviceBatteryFormat.describe(BatteryReading(37, null, now - 30L * 60 * 60 * 1000), now)
+        val v = DeviceBatteryFormat.describe(GermanStrings, BatteryReading(37, null, now - 30L * 60 * 60 * 1000), now)
         assertTrue(v.stale)
         assertTrue(v.freshness.startsWith("Veraltet · letzter bekannter Stand vor 30 h"))
     }
 
     @Test fun missingTimestampIsNeverPresentedAsLive() {
-        val v = DeviceBatteryFormat.describe(BatteryReading(80, null, null), now)
+        val v = DeviceBatteryFormat.describe(GermanStrings, BatteryReading(80, null, null), now)
         assertTrue(v.stale)
         assertEquals("Zeitpunkt unbekannt · letzter bekannter Stand", v.freshness)
     }
 
     @Test fun onlyTheChargingCodeMakesAStatementAboutCharging() {
-        assertTrue(DeviceBatteryFormat.describe(BatteryReading(50, 6, now), now).charging)
-        assertEquals("50 % · lädt", DeviceBatteryFormat.describe(BatteryReading(50, 6, now), now).valueText)
-        listOf(1, 2, 3, 4, 5, 7, null).forEach { assertFalse(DeviceBatteryFormat.describe(BatteryReading(50, it, now), now).charging) }
+        assertTrue(DeviceBatteryFormat.describe(GermanStrings, BatteryReading(50, 6, now), now).charging)
+        assertEquals("50 % · lädt", DeviceBatteryFormat.describe(GermanStrings, BatteryReading(50, 6, now), now).valueText)
+        listOf(1, 2, 3, 4, 5, 7, null).forEach { assertFalse(DeviceBatteryFormat.describe(GermanStrings, BatteryReading(50, it, now), now).charging) }
     }
 
     @Test fun percentIsClampedAndFutureTimestampsAreTreatedAsUnknown() {
-        assertEquals("100 %", DeviceBatteryFormat.describe(BatteryReading(250, null, now), now).valueText)
-        assertTrue(DeviceBatteryFormat.describe(BatteryReading(50, null, now + 60_000), now).stale)
+        assertEquals("100 %", DeviceBatteryFormat.describe(GermanStrings, BatteryReading(250, null, now), now).valueText)
+        assertTrue(DeviceBatteryFormat.describe(GermanStrings, BatteryReading(50, null, now + 60_000), now).stale)
     }
 
     @Test fun levelColorsDifferByRangeInBothThemes() {
@@ -51,8 +51,8 @@ class DeviceBatteryFormatTest {
     }
 
     @Test fun ageTextUnits() {
-        assertEquals("vor 45 s", DeviceBatteryFormat.ageText(45_000))
-        assertEquals("vor 2 h", DeviceBatteryFormat.ageText(2 * 3600_000L))
-        assertEquals("vor 3 Tagen", DeviceBatteryFormat.ageText(3 * 86400_000L))
+        assertEquals("vor 45 s", DeviceBatteryFormat.ageText(GermanStrings, 45_000))
+        assertEquals("vor 2 h", DeviceBatteryFormat.ageText(GermanStrings, 2 * 3600_000L))
+        assertEquals("vor 3 Tagen", DeviceBatteryFormat.ageText(GermanStrings, 3 * 86400_000L))
     }
 }

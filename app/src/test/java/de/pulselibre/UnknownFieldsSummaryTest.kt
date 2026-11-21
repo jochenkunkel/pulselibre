@@ -13,13 +13,13 @@ class UnknownFieldsSummaryTest {
     ) = StoredFitUnmappedField(sha, global, kind, number, base, size, dev, cls, 1, messages, null, null, "d1", "p1", status)
 
     @Test fun emptyInventoryProducesNoHint() {
-        val s = UnknownFieldsSummary.summarize(emptyList())
+        val s = UnknownFieldsSummary.summarize(GermanStrings, emptyList())
         assertTrue(s.isEmpty)
         assertEquals(0, s.typeCount)
     }
 
     @Test fun sameFieldInSeveralFilesIsOneTypeWithSummedCounters() {
-        val s = UnknownFieldsSummary.summarize(listOf(field(sha = "a".repeat(64), messages = 3), field(sha = "b".repeat(64), messages = 5)))
+        val s = UnknownFieldsSummary.summarize(GermanStrings, listOf(field(sha = "a".repeat(64), messages = 3), field(sha = "b".repeat(64), messages = 5)))
         assertEquals(1, s.typeCount)
         assertEquals("Unbekanntes Datenfeld entdeckt (1 Typ)", s.headline)
         assertEquals("8 Meldungen in 2 Dateien", s.entries.single().occurrence)
@@ -28,7 +28,7 @@ class UnknownFieldsSummaryTest {
     }
 
     @Test fun differentCoordinatesAreDifferentTypesAndDeveloperFieldsAreLabelled() {
-        val s = UnknownFieldsSummary.summarize(listOf(
+        val s = UnknownFieldsSummary.summarize(GermanStrings, listOf(
             field(number = 85), field(number = 86),
             field(kind = StoredFitFieldKind.DEVELOPER, number = 1, base = null, dev = 2, cls = "DEVELOPER_FIELD_NOT_DECODED_BY_APP")
         ))
@@ -40,7 +40,7 @@ class UnknownFieldsSummaryTest {
     }
 
     @Test fun textsNeverClaimMeasurementsOrDiagnoses() {
-        val s = UnknownFieldsSummary.summarize(listOf(field()))
+        val s = UnknownFieldsSummary.summarize(GermanStrings, listOf(field()))
         val all = (listOf(s.headline, s.explanation) + s.entries.flatMap { listOf(it.title, it.detail, it.occurrence, it.classification, it.status) })
             .joinToString(" ").lowercase()
         assertFalse(all.contains("blutdruck"))
@@ -49,19 +49,19 @@ class UnknownFieldsSummaryTest {
 
     @Test fun listIsBoundedAndReportsOmittedTypes() {
         val many = (0 until UnknownFieldsSummary.MAX_ENTRIES + 5).map { field(number = it % 256, global = 1000 + it) }
-        val s = UnknownFieldsSummary.summarize(many)
+        val s = UnknownFieldsSummary.summarize(GermanStrings, many)
         assertEquals(UnknownFieldsSummary.MAX_ENTRIES + 5, s.typeCount)
         assertEquals(UnknownFieldsSummary.MAX_ENTRIES, s.entries.size)
         assertEquals(5, s.omitted)
     }
 
     @Test fun statusIsShownInGerman() {
-        val s = UnknownFieldsSummary.summarize(listOf(field(status = FitFieldInventoryStatus.INVESTIGATING)))
+        val s = UnknownFieldsSummary.summarize(GermanStrings, listOf(field(status = FitFieldInventoryStatus.INVESTIGATING)))
         assertEquals("in Prüfung", s.entries.single().status)
     }
 
     @Test fun typesAreGroupedByFitMessageNumber() {
-        val s = UnknownFieldsSummary.summarize(listOf(field(global = 0, number = 0), field(global = 0, number = 1, messages = 4), field(global = 20, number = 85)))
+        val s = UnknownFieldsSummary.summarize(GermanStrings, listOf(field(global = 0, number = 0), field(global = 0, number = 1, messages = 4), field(global = 20, number = 85)))
         assertEquals(2, s.groups.size)
         assertEquals("FIT-Nachricht 0 · 2 Feldtypen · 7 Meldungen", s.groups[0].title)
         assertEquals(2, s.groups[0].entries.size)

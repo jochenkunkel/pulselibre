@@ -25,7 +25,7 @@ internal class ActivityAtlasView(context: Context, private val onCell: (Activity
     private val headerHeight = 18 * d
     private val gap = 3 * d
     private val weekdays = listOf(R.string.an_wd_mo, R.string.an_wd_di, R.string.an_wd_mi, R.string.an_wd_do, R.string.an_wd_fr, R.string.an_wd_sa, R.string.an_wd_so).map { context.getString(it) }
-    private val oneDecimal = NumberFormat.getNumberInstance(Locale.GERMANY).apply { maximumFractionDigits = 1; minimumFractionDigits = 1 }
+    private val oneDecimal = NumberFormat.getNumberInstance(context.displayLocale()).apply { maximumFractionDigits = 1; minimumFractionDigits = 1 }
 
     init { tag = "activity_atlas" }
 

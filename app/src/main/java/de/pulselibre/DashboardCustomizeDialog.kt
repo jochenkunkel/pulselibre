@@ -22,7 +22,7 @@ internal fun showDashboardCustomize(
     var entries = initial
     val list = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(16), dp(8), dp(16), dp(8)) }
     list.addView(TextView(context).apply {
-        text = "Ausgeblendete Kacheln werden weiter aufgezeichnet, nur nicht angezeigt. Favoriten erscheinen zuerst unter „Im Fokus“."
+        text = context.getString(R.string.cust_note, context.getString(R.string.ov_in_focus))
         textSize = 12f; setTextColor(palette.muted)
     })
     fun small(label: String, description: String, enabled: Boolean = true, action: () -> Unit) = Button(context).apply {
@@ -34,27 +34,33 @@ internal fun showDashboardCustomize(
     render = {
         while (list.childCount > 1) list.removeViewAt(1)
         entries.forEachIndexed { index, e ->
-            val name = DashboardLayout.displayName(e.key)
+            val name = when (e.key) {
+                DashboardLayout.SPO2 -> MetricText.shortTitle(context, e.key)
+                DashboardLayout.STEPS -> MetricText.title(context, "Schritte heute")
+                DashboardLayout.NIGHT -> context.getString(R.string.ov_night_title)
+                else -> MetricText.title(context, e.key)
+            }
             val row = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL; setPadding(0, dp(8), 0, dp(4)); tag = "customize_row_${e.key}" }
             row.addView(CheckBox(context).apply {
                 text = name; isChecked = e.visible; textSize = 15f; setTextColor(palette.ink); tag = "customize_visible_${e.key}"
-                contentDescription = "$name anzeigen"
+                contentDescription = context.getString(R.string.cust_show_cd, name)
                 setOnCheckedChangeListener { _, _ -> entries = DashboardLayout.toggleVisible(entries, e.key); render() }
             })
             val controls = LinearLayout(context).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.END }
-            controls.addView(small(if (e.favorite) "★ Favorit" else "☆ Favorit", "$name ${if (e.favorite) "aus Im Fokus entfernen" else "zu Im Fokus hinzufügen"}") {
+            controls.addView(small(context.getString(if (e.favorite) R.string.cust_fav_on else R.string.cust_fav_off),
+                context.getString(if (e.favorite) R.string.cust_fav_remove_cd else R.string.cust_fav_add_cd, name, context.getString(R.string.ov_in_focus))) {
                 entries = DashboardLayout.toggleFavorite(entries, e.key); render()
             })
-            controls.addView(small("▲ Hoch", "$name nach oben", index > 0) { entries = DashboardLayout.moveUp(entries, e.key); render() })
-            controls.addView(small("▼ Runter", "$name nach unten", index < entries.lastIndex) { entries = DashboardLayout.moveDown(entries, e.key); render() })
+            controls.addView(small(context.getString(R.string.cust_up), context.getString(R.string.cust_up_cd, name), index > 0) { entries = DashboardLayout.moveUp(entries, e.key); render() })
+            controls.addView(small(context.getString(R.string.cust_down), context.getString(R.string.cust_down_cd, name), index < entries.lastIndex) { entries = DashboardLayout.moveDown(entries, e.key); render() })
             row.addView(controls)
             list.addView(row)
         }
     }
     render()
-    AlertDialog.Builder(context).setTitle("Startseite anpassen")
+    AlertDialog.Builder(context).setTitle(R.string.cust_title)
         .setView(ScrollView(context).apply { addView(list) })
-        .setPositiveButton("Speichern") { _, _ -> onSave(entries) }
-        .setNeutralButton("Zurücksetzen") { _, _ -> onReset() }
-        .setNegativeButton("Abbrechen", null).show()
+        .setPositiveButton(R.string.action_save) { _, _ -> onSave(entries) }
+        .setNeutralButton(R.string.cust_reset) { _, _ -> onReset() }
+        .setNegativeButton(R.string.action_cancel, null).show()
 }

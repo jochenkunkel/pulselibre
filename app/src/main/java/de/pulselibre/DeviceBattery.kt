@@ -16,28 +16,29 @@ internal object DeviceBatteryFormat {
 
     data class View(val valueText: String, val freshness: String, val stale: Boolean, val charging: Boolean, val description: String)
 
-    fun describe(reading: BatteryReading, nowMs: Long): View {
+    fun describe(strings: Strings, reading: BatteryReading, nowMs: Long): View {
         val percent = reading.percent.coerceIn(0, 100)
         val age = reading.observedAtMs?.let { nowMs - it }?.takeIf { it >= 0 }
-        val ageText = age?.let { ageText(it) }
+        val ageText = age?.let { ageText(strings, it) }
         val stale = age == null || age > STALE_AFTER_MS
         val freshness = when {
-            age == null -> "Zeitpunkt unbekannt · letzter bekannter Stand"
-            stale -> "Veraltet · letzter bekannter Stand $ageText"
-            else -> "Stand: $ageText"
+            age == null -> strings.get(R.string.bat_time_unknown)
+            stale -> strings.get(R.string.bat_stale, ageText!!)
+            else -> strings.get(R.string.bat_fresh, ageText!!)
         }
         val charging = reading.statusCode == FIT_CHARGING
-        val value = "$percent %" + if (charging) " · lädt" else ""
-        return View(value, freshness, stale, charging, "Akku: $percent Prozent${if (charging) ", lädt" else ""}. $freshness")
+        val value = strings.get(if (charging) R.string.bat_value_charging else R.string.bat_value, percent)
+        return View(value, freshness, stale, charging,
+            strings.get(if (charging) R.string.bat_cd_charging else R.string.bat_cd, percent, freshness))
     }
 
-    fun ageText(ms: Long): String {
+    fun ageText(strings: Strings, ms: Long): String {
         val s = ms / 1000
         return when {
-            s < 60 -> "vor $s s"
-            s < 3600 -> "vor ${s / 60} min"
-            s < 172800 -> "vor ${s / 3600} h"
-            else -> "vor ${s / 86400} Tagen"
+            s < 60 -> strings.get(R.string.dur_ago, strings.get(R.string.dur_s, s))
+            s < 3600 -> strings.get(R.string.dur_ago, strings.get(R.string.dur_min, s / 60))
+            s < 172800 -> strings.get(R.string.dur_ago, strings.get(R.string.dur_h, s / 3600))
+            else -> strings.get(R.string.dur_ago_days, s / 86400)
         }
     }
 

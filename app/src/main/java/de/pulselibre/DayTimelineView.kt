@@ -40,6 +40,7 @@ internal class DayTimelineView(
     private val laneHeight = 88 * density
     private val touchSlop = ViewConfiguration.get(context).scaledTouchSlop
     private val timeFormat = DateTimeFormatter.ofPattern("HH:mm").withZone(zone)
+    private val noData: String = context.getString(R.string.tl_no_data)
     private var downX = 0f
     private var downY = 0f
     private var dragging = false
@@ -119,9 +120,9 @@ internal class DayTimelineView(
                 var sx = a - laneHeight
                 while (sx < b) { canvas.drawLine(sx, bottom, sx + laneHeight, top, hatch); sx += 10 * density }
                 canvas.restore()
-                if (b - a > text.measureText("keine Daten") + 8 * density) {
+                if (b - a > text.measureText(noData) + 8 * density) {
                     text.textAlign = Paint.Align.CENTER
-                    canvas.drawText("keine Daten", (a + b) / 2, (top + bottom) / 2, text)
+                    canvas.drawText(noData, (a + b) / 2, (top + bottom) / 2, text)
                 }
             }
             if (lane.points.isEmpty()) { canvas.restore(); return@forEachIndexed }
@@ -194,8 +195,8 @@ internal class DayTimelineView(
     /** Text for the instant [t]: time and the value of each lane, or "keine Daten". */
     internal fun valuesAt(t: Instant): String = timeFormat.format(t) + " · " + lanes.joinToString(" · ") { lane ->
         val i = lane.nearestIndex(t)
-        if (i == null) "${lane.title}: keine Daten"
-        else "${lane.title}: ${lane.points[i].value}${if (lane.unit.isEmpty()) "" else " " + lane.unit}"
+        if (i == null) context.getString(R.string.tl_lane_value, lane.title, noData)
+        else context.getString(R.string.tl_lane_value, lane.title, "${lane.points[i].value}${if (lane.unit.isEmpty()) "" else " " + lane.unit}")
     }
 
     fun select(fraction: Float) {

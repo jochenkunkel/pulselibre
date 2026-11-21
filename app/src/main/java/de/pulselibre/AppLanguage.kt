@@ -56,3 +56,6 @@ object AppLanguageSettings {
         return base.createConfigurationContext(configuration)
     }
 }
+
+/** Locale of the language the UI is shown in (the chosen app language, else the system language); for number and date formats in views. */
+internal fun Context.displayLocale(): Locale = resources.configuration.locales[0]

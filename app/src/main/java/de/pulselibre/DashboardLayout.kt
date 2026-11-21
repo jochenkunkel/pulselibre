@@ -18,12 +18,6 @@ internal object DashboardLayout {
 
     fun defaultKeys(details: List<String>): List<String> = listOf(HEART, SPO2, SLEEP, NIGHT, STEPS) + details
 
-    fun displayName(key: String) = when (key) {
-        SPO2 -> "SpO₂"
-        STEPS -> "Schritte heute"
-        else -> key
-    }
-
     /**
      * Stored entries mapped onto the keys that exist now: stored order and flags are kept for known keys, keys that
      * are new appear at the end (visible), keys that no longer exist are dropped (a vanished tile is not remembered).

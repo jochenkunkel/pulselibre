@@ -636,4 +636,255 @@
     <string name="ex_rec_stop_failed">Aufzeichnung konnte nicht beendet werden; Datenbank blieb unverändert.</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="ex_rec_still">Aufzeichnung läuft noch; Datenbank blieb unverändert.</string>
+    <!-- Gerät: Verbindungsstatus, Akku, Empfang (#365) -->
+    <string name="dur_s">%1$d s</string>
+    <string name="dur_min">%1$d min</string>
+    <string name="dur_h">%1$d h</string>
+    <string name="dur_h_min">%1$d h %2$d min</string>
+    <string name="dur_ago">vor %1$s</string>
+    <string name="dur_ago_day">vor 1 Tag</string>
+    <string name="dur_ago_days">vor %1$d Tagen</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="gatt_connected">Android GATT: verbunden (App unbekannt)</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="gatt_connecting">Android GATT: verbindet</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="gatt_disconnecting">Android GATT: trennt</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="gatt_disconnected">Android GATT: nicht verbunden</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="gatt_permission">Android GATT: Berechtigung fehlt</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="gatt_not_paired">Kein gekoppeltes CIRQA</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="gatt_unknown">Android GATT: unbekannt</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="link_bt_permission">Bluetooth-Berechtigung fehlt</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="link_receiving">Verbunden · letzte Messung vor %1$s</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="link_waiting">Verbunden · warte auf Messwerte</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="link_gatt_recorder_off">GATT verbunden (Aufzeichnung aus)</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="link_reconnecting">Aufzeichnung läuft · Verbindung unterbrochen, Wiederverbindung</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="link_reconnecting_last">Aufzeichnung läuft · Verbindung unterbrochen, Wiederverbindung · letzte Messung vor %1$s</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="link_none">Keine Verbindung · Aufzeichnung aus</string>
+    <string name="link_outline_green">grüner Rand</string>
+    <string name="link_outline_black">schwarzer Rand</string>
+    <string name="link_status_cd">CIRQA-Verbindungsstatus: %1$s. %2$s. Einstellungen öffnen.</string>
+    <string name="bat_value">%1$d %%</string>
+    <string name="bat_value_charging">%1$d %% · lädt</string>
+    <string name="bat_fresh">Stand: %1$s</string>
+    <string name="bat_stale">Veraltet · letzter bekannter Stand %1$s</string>
+    <string name="bat_time_unknown">Zeitpunkt unbekannt · letzter bekannter Stand</string>
+    <string name="bat_cd">Akku: %1$d Prozent. %2$s</string>
+    <string name="bat_cd_charging">Akku: %1$d Prozent, lädt. %2$s</string>
+    <string name="dev_src_pulse">Herzfrequenz</string>
+    <string name="dev_src_oxygen">SpO₂</string>
+    <string name="dev_src_steps">Schritte</string>
+    <string name="dev_src_stress">Stress</string>
+    <string name="dev_src_battery">Body Battery</string>
+    <string name="dev_src_rr">RR-Intervall</string>
+    <string name="dev_src_breath">Atmung</string>
+    <string name="dev_src_calories">Kalorien</string>
+    <string name="dev_src_intensity">Intensität</string>
+    <string name="dev_no_reception">kein Empfang</string>
+    <string name="dev_hero_reading">Status wird gelesen …</string>
+    <string name="dev_hero_connected">Verbunden</string>
+    <string name="dev_hero_reconnecting">Wiederverbindung</string>
+    <string name="dev_hero_not_paired">Nicht gekoppelt</string>
+    <string name="dev_hero_not_connected">Nicht verbunden</string>
+    <string name="dev_hero_cd_connected">CIRQA verbunden. %1$s</string>
+    <string name="dev_hero_cd_not_connected">CIRQA nicht verbunden. %1$s</string>
+    <string name="dev_chip_reception">Empfang · 1 Std.</string>
+    <string name="dev_chip_readings">%1$s Messwerte</string>
+    <string name="dev_chip_storage">Speicher</string>
+    <string name="dev_chip_entries">%1$s Einträge\n%2$s</string>
+    <string name="dev_chip_sessions">Sitzungen heute</string>
+    <string name="dev_chip_sessions_value">%1$d Starts\n%2$d Wiederverbindungen</string>
+    <string name="dev_chip_since">Aufzeichnung seit</string>
+    <string name="dev_pair_cd">%1$s: %2$s</string>
+    <string name="dev_reception_title">Letzter Empfang je Messgröße</string>
+    <string name="dev_being_read">wird gelesen</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="dev_meta_title">Bandinformationen</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="dev_meta_note">Gerätewerte werden nur mit bestätigter Quelle und aktuellem Zeitstempel angezeigt.</string>
+    <string name="dev_meta_battery">Akku</string>
+    <string name="dev_meta_firmware">Firmware</string>
+    <string name="dev_meta_clock">Uhrzeit des Bands</string>
+    <string name="dev_meta_identity">Modell / Seriennummer</string>
+    <string name="dev_unavailable">Nicht verfügbar</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="dev_unavailable_cd">%1$s: nicht verfügbar; bisher kein bestätigter Gerätewert</string>
+    <!-- Gerät: unbekannte FIT-Felder (#365) -->
+    <string name="unk_headline_one">Unbekanntes Datenfeld entdeckt (1 Typ)</string>
+    <string name="unk_headline_many">Unbekannte Datenfelder entdeckt (%1$d Typen)</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="unk_explanation">Von der App noch nicht entschlüsselt. Das sind keine Messwerte und keine Diagnose.</string>
+    <string name="unk_hint_cd">%1$s. %2$s Tippen für Details.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="unk_intro">Unbekannt heißt: nicht entschlüsselt. Diese Einträge sind weder Messwerte noch Diagnosen; sie zeigen nur, welche Felder die Dateien des Bands enthalten, die PulsLibre noch nicht versteht.</string>
+    <string name="unk_title_std">FIT-Nachricht %1$d · Feld %2$d</string>
+    <string name="unk_title_dev">FIT-Nachricht %1$d · Developer-Feld %2$d</string>
+    <string name="unk_base_unknown">unbekannt</string>
+    <string name="unk_detail">Basistyp %1$s · %2$d Byte</string>
+    <string name="unk_detail_dev">Basistyp %1$s · %2$d Byte · Developer-Index %3$d</string>
+    <string name="unk_occ_11">%1$d Meldung in %2$d Datei</string>
+    <string name="unk_occ_1n">%1$d Meldung in %2$d Dateien</string>
+    <string name="unk_occ_n1">%1$d Meldungen in %2$d Datei</string>
+    <string name="unk_occ_nn">%1$d Meldungen in %2$d Dateien</string>
+    <string name="unk_group_11">FIT-Nachricht %1$d · %2$d Feldtyp · %3$d Meldung</string>
+    <string name="unk_group_1n">FIT-Nachricht %1$d · %2$d Feldtyp · %3$d Meldungen</string>
+    <string name="unk_group_n1">FIT-Nachricht %1$d · %2$d Feldtypen · %3$d Meldung</string>
+    <string name="unk_group_nn">FIT-Nachricht %1$d · %2$d Feldtypen · %3$d Meldungen</string>
+    <string name="unk_group_cd">%1$s. Tippen zum Ein- oder Ausklappen.</string>
+    <string name="unk_cls_message">Nachrichtentyp von der App nicht dekodiert</string>
+    <string name="unk_cls_field">Feld von der App nicht dekodiert</string>
+    <string name="unk_cls_incompatible">Bekanntes Feld mit unpassendem Datentyp</string>
+    <string name="unk_cls_developer">Developer-Feld nicht dekodiert</string>
+    <string name="unk_cls_other">Nicht dekodiert</string>
+    <string name="unk_status_unreviewed">ungeprüft</string>
+    <string name="unk_status_investigating">in Prüfung</string>
+    <string name="unk_status_supported">unterstützt</string>
+    <string name="unk_status_ignored">ignoriert</string>
+    <string name="unk_status_line">%1$s · Status: %2$s</string>
+    <string name="unk_status_save_failed">%1$s · Status konnte nicht gespeichert werden</string>
+    <string name="unk_status_change">Status ändern</string>
+    <string name="unk_status_change_cd">Status ändern für %1$s</string>
+    <string name="unk_status_title">Status: %1$s</string>
+    <string name="unk_status_note">Nur deine Prüfmarke für dieses Feld. Es werden keine Messdaten verändert.</string>
+    <string name="unk_status_selected_cd">%1$s, aktuell gewählt</string>
+    <string name="unk_bytes_action">Beispielbytes ansehen</string>
+    <string name="unk_bytes_action_cd">Beispielbytes ansehen für %1$s</string>
+    <string name="unk_bytes_title">Beispielbytes ansehen?</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="unk_bytes_warning">Zeigt wenige Rohbytes dieses Feldes aus deinen lokal gespeicherten Dateien. Sie können sensible Gesundheits- und Geräteinformationen enthalten und werden weder gedeutet noch gespeichert noch gesendet. Gib sie nicht in Tickets, Protokollen oder Screenshots weiter.</string>
+    <string name="unk_bytes_confirm">Anzeigen</string>
+    <string name="unk_bytes_more_files">… und %1$d weitere Dateien</string>
+    <string name="unk_file">Datei %1$d</string>
+    <string name="unk_sample_unreadable">%1$s: Original nicht lesbar oder nicht gültig.</string>
+    <string name="unk_sample_absent">%1$s: Feld in dieser Datei nicht vorhanden.</string>
+    <string name="unk_sample_head_one">%1$s: 1 Vorkommen, erster Wert</string>
+    <string name="unk_sample_head">%1$s: %2$d Vorkommen, erste %3$d Werte</string>
+    <string name="unk_sample_more">  … und %1$d weitere</string>
+    <string name="unk_sample_cut">  (je Wert auf %1$d Byte gekürzt)</string>
+    <!-- Dialoge: Anpassen, Tagesansicht, Tageszeitleiste (#365) -->
+    <string name="cust_title">Startseite anpassen</string>
+    <string name="cust_note">Ausgeblendete Kacheln werden weiter aufgezeichnet, nur nicht angezeigt. Favoriten erscheinen zuerst unter „%1$s“.</string>
+    <string name="cust_show_cd">%1$s anzeigen</string>
+    <string name="cust_fav_on">★ Favorit</string>
+    <string name="cust_fav_off">☆ Favorit</string>
+    <string name="cust_fav_remove_cd">%1$s aus „%2$s“ entfernen</string>
+    <string name="cust_fav_add_cd">%1$s zu „%2$s“ hinzufügen</string>
+    <string name="cust_up">▲ Hoch</string>
+    <string name="cust_down">▼ Runter</string>
+    <string name="cust_up_cd">%1$s nach oben</string>
+    <string name="cust_down_cd">%1$s nach unten</string>
+    <string name="cust_reset">Zurücksetzen</string>
+    <string name="day_reading">Daten werden gelesen …</string>
+    <string name="day_read_failed">Lokale Messdaten konnten nicht gelesen werden.</string>
+    <string name="dq_not_started">Tag noch nicht begonnen</string>
+    <string name="dq_coverage">Abdeckung %1$s %% (%2$d von %3$d min)</string>
+    <string name="dq_gaps_one">%1$s · 1 Lücke, längste %2$d min</string>
+    <string name="dq_gaps_many">%1$s · %2$d Lücken, längste %3$d min</string>
+    <string name="ma_not_available">nicht verfügbar</string>
+    <string name="ma_insufficient">unzureichende Daten</string>
+    <string name="ma_experimental">experimentell</string>
+    <string name="ma_available">verfügbar</string>
+    <string name="tl_not_started">Tag noch nicht begonnen.</string>
+    <string name="tl_no_data_lane">%1$s: keine Daten an diesem Tag.</string>
+    <string name="tl_last">%1$s zuletzt</string>
+    <string name="tl_no_gaps">keine Lücken</string>
+    <string name="tl_gap_one">1 Lücke, längste %1$d min (%2$s–%3$s)</string>
+    <string name="tl_gap_many">%1$d Lücken, längste %2$d min (%3$s–%4$s)</string>
+    <string name="tl_lane_line">%1$s: %2$s, %3$d Messwerte, %4$s.</string>
+    <string name="tl_no_data">keine Daten</string>
+    <string name="tl_lane_band">Herzfrequenz · Band (FIT)</string>
+    <string name="tl_lane_value">%1$s: %2$s</string>
+    <string name="tl_note_phone">Herzfrequenz und Schritte: Empfangszeit am Telefon.</string>
+    <string name="tl_note_band">%1$s: vom Band gemessene Zeit, nicht der Empfang.</string>
+    <string name="tl_note_gaps">%1$s. Lücken bleiben leer und werden nicht überbrückt.</string>
+    <string name="tl_zoom_full">Ganzer Tag. Zwei Finger zum Zoomen, oder Tasten.</string>
+    <string name="tl_zoom_part">Ausschnitt %1$s h von 24 h (Rohpunkte, keine Mittelwerte).</string>
+    <string name="tl_pan_back">Ausschnitt zurück</string>
+    <string name="tl_zoom_out">Herauszoomen</string>
+    <string name="tl_zoom_in">Hineinzoomen</string>
+    <string name="tl_pan_forward">Ausschnitt vor</string>
+    <string name="tl_day_button">Tag</string>
+    <string name="tl_day_button_cd">Ganzen Tag anzeigen</string>
+    <string name="tl_hint">Tippen oder ziehen, um Werte zu einer Uhrzeit zu sehen.</string>
+    <string name="dd_prev">‹ Vorheriger</string>
+    <string name="dd_next">Nächster ›</string>
+    <string name="dd_prev_cd">Vorheriger Datenpunkt</string>
+    <string name="dd_next_cd">Nächster Datenpunkt</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="dd_no_sleep">Noch kein Tagesverlauf verfügbar. Validierte Schlafdaten fehlen.</string>
+    <string name="dd_no_course">Noch kein Tagesverlauf verfügbar.</string>
+    <string name="dd_unit_steps">Schritte</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="dd_unit_device">Geräteeinheit ungeprüft</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="dd_ctx_oxygen">CIRQA-Sensor nicht validiert</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="dd_ctx_resting">Gerätefeld, Messbedingungen ungeprüft</string>
+    <string name="dd_basis">Empfangszeit · %1$s</string>
+    <string name="dd_valid">%1$d gültige Messwerte</string>
+    <string name="dd_invalid">%1$d ohne gültigen Wert</string>
+    <string name="dd_duplicates">%1$d Duplikate</string>
+    <string name="dd_minutes">Minuten mit gültigem Empfang: %1$d von %2$d</string>
+    <string name="dd_status">Datenstatus: %1$s</string>
+    <string name="dd_chart_note">Diagramm: Minimum, Maximum und letzter Wert je Empfangsminute.</string>
+    <string name="dd_last_today">Letzter Empfang heute %1$s</string>
+    <string name="dd_goal">Letztes Geräte-Schrittziel: %1$s</string>
+    <string name="dd_scale">Skala · %1$s–%2$s %3$s</string>
+    <!-- Dienst-Benachrichtigung (#365) -->
+    <string name="svc_channel">CIRQA · Kontinuierliche Aufzeichnung</string>
+    <string name="svc_title">PulsLibre · Kontinuierliche Aufzeichnung</string>
+    <string name="svc_collecting">Lokal sammeln · noch keine Messwerte</string>
+    <string name="svc_bt_off">Bluetooth ausgeschaltet – bitte einschalten</string>
+    <string name="svc_received">Lokal: %1$d Messwerte · CIRQA-Daten empfangen</string>
+    <string name="svc_connecting">CIRQA-Verbindung wird aufgebaut</string>
+    <string name="svc_reconnect">CIRQA getrennt · neuer Versuch in %1$d s</string>
+    <string name="svc_stop">Sammlung beenden</string>
+    <!-- Hauptansicht: Bluetooth, Gewicht, BMI (#365) -->
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="bmi_underweight">Untergewicht</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="bmi_normal">Normalgewicht</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="bmi_pre_obesity">Präadipositas</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="bmi_obesity_1">Adipositas Grad I</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="bmi_obesity_2">Adipositas Grad II</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="bmi_obesity_3">Adipositas Grad III</string>
+    <string name="bmi_note_missing">Größe und Gewicht eintragen, um den BMI zu sehen.</string>
+    <string name="bmi_note_birth">Geburtsdatum ergänzen, um den BMI einzuordnen.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="bmi_note_age">Für diese Altersgruppe keine BMI-Bewertung verfügbar.</string>
+    <string name="bmi_info_title">BMI · Einordnung</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="bmi_info_body">BMI = Gewicht (kg) / Größe (m)². Er ist ein Screening-Hinweis, keine Diagnose.\n\nEinordnung für Erwachsene ab 20 Jahren nach WHO (gleiche Grenzen für Frauen und Männer):\nunter 18,5 Untergewicht · 18,5–24,9 Normalgewicht · 25–29,9 Präadipositas · 30–34,9 Adipositas Grad I · 35–39,9 Grad II · ab 40 Grad III.\n\nGrenzen: Muskelmasse, Körperbau, Schwangerschaft und Alter beeinflussen die Aussagekraft. Für Menschen unter 20 Jahren gibt es hier keine Bewertung (BMI-für-Alter-Referenzen nicht umgesetzt). Für ältere Erwachsene werden keine Sondergrenzen angewandt.</string>
+    <string name="bmi_info_note">Hinweis: %1$s</string>
+    <string name="main_bt_off_title">Bluetooth ausgeschaltet</string>
+    <string name="main_bt_off_msg">Bluetooth ist ausgeschaltet. Bitte aktiviere Bluetooth, damit PulsLibre CIRQA-Messwerte empfangen kann.</string>
+    <string name="main_later">Später</string>
+    <string name="main_bt_enable">Bluetooth aktivieren</string>
+    <string name="main_bt_enable_toast">Bluetooth bitte in den Android-Einstellungen einschalten.</string>
+    <string name="main_perm_needed">Bluetooth-Berechtigung benötigt: Geräte in der Android-Abfrage zulassen</string>
+    <string name="main_perm_granted">Bluetooth-Berechtigung erteilt · Scan erneut starten</string>
+    <string name="main_perm_denied">Bluetooth-Berechtigung abgelehnt · Einstellungen → Apps → PulsLibre → Berechtigungen → Geräte in der Nähe</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="main_notif_off">Benachrichtigungen sind aus: Die Aufzeichnung läuft, die Benachrichtigung mit Stopp-Taste ist aber unsichtbar. Beenden über „Stoppen“ in der App oder Benachrichtigungen in den Android-Einstellungen erlauben.</string>
+    <string name="main_weight_title">Gewicht (kg)</string>
+    <string name="main_weight_input_cd">Aktuelles Gewicht in Kilogramm</string>
+    <string name="main_weight_minus_cd">Gewicht um 0,1 Kilogramm verringern</string>
+    <string name="main_weight_plus_cd">Gewicht um 0,1 Kilogramm erhöhen</string>
+    <string name="main_weight_step">Schritt: 0,1 kg · gedrückt halten für schnelleres Ändern</string>
+    <string name="main_weight_invalid">Bitte ein Gewicht zwischen 15 und 400 kg eingeben.</string>
 </resources>

@@ -18,7 +18,7 @@ internal class ScatterView(
     private val grid: Int
 ) : View(context) {
     private val d = resources.displayMetrics.density
-    private val nf = NumberFormat.getNumberInstance(Locale.GERMANY).apply { maximumFractionDigits = 0 }
+    private val nf = NumberFormat.getNumberInstance(context.displayLocale()).apply { maximumFractionDigits = 0 }
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
 
     init {

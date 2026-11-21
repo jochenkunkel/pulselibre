@@ -63,6 +63,15 @@ internal object DomainText {
         "Schlafdauer und Schlafphasen noch nicht verfügbar" to R.string.dom_note_sleep_na,
         "Keine Diagnosen; keine geschätzten Werte; kein RR→RMSSD ohne Zeitreihe" to R.string.dom_note_ground,
         "Geräteskala 0–100" to R.string.dom_unit_device_scale,
+        Bmi.Category.UNDERWEIGHT.label to R.string.bmi_underweight,
+        Bmi.Category.NORMAL.label to R.string.bmi_normal,
+        Bmi.Category.PRE_OBESITY.label to R.string.bmi_pre_obesity,
+        Bmi.Category.OBESITY_1.label to R.string.bmi_obesity_1,
+        Bmi.Category.OBESITY_2.label to R.string.bmi_obesity_2,
+        Bmi.Category.OBESITY_3.label to R.string.bmi_obesity_3,
+        "Größe und Gewicht eintragen, um den BMI zu sehen." to R.string.bmi_note_missing,
+        "Geburtsdatum ergänzen, um den BMI einzuordnen." to R.string.bmi_note_birth,
+        "Für diese Altersgruppe keine BMI-Bewertung verfügbar." to R.string.bmi_note_age,
     )
 
     private val sourceRx = Regex("^Quelle: CIRQA-Service (\\S+)$")

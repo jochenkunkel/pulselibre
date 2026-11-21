@@ -13,12 +13,14 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.concurrent.Executor
 
-internal const val BAND_LANE_TITLE = "Herzfrequenz · Band (FIT)"
 private data class Day(val pulse: DashboardDaySeries, val steps: DashboardDaySeries, val band: List<DayObservation>)
 
 /** #263: heart rate and the step counter of one local day on one shared time axis, read from local data only. */
 internal fun showDayTimeline(activity: MainActivity, worker: Executor) {
     val zone = ZoneId.systemDefault()
+    val strings = Strings.of(activity)
+    val locale: java.util.Locale = activity.resources.configuration.locales[0]
+    val bandLaneTitle = activity.getString(R.string.tl_lane_band)
     val palette = AppPalette.of(activity)
     val density = activity.resources.displayMetrics.density
     fun text(size: Float, color: Int) = TextView(activity).apply { textSize = size; setTextColor(color) }
@@ -39,17 +41,17 @@ internal fun showDayTimeline(activity: MainActivity, worker: Executor) {
     content.addView(selected)
     val summary = text(13f, palette.muted).apply { tag = "day_timeline_summary" }
     content.addView(summary)
-    val dialog = AlertDialog.Builder(activity).setTitle("Tag im Überblick")
+    val dialog = AlertDialog.Builder(activity).setTitle(R.string.main_day_link_title)
         .setView(ScrollView(activity).apply { addView(content) })
-        .setPositiveButton("Schließen", null).create()
-    val dateFormat = DateTimeFormatter.ofPattern("dd.MM.uuuu")
+        .setPositiveButton(R.string.action_close, null).create()
+    val dateFormat = DateTimeFormatter.ofLocalizedDate(java.time.format.FormatStyle.MEDIUM).withLocale(locale)
     var request = 0
     var date = LocalDate.now(zone)
     fun load() {
         val generation = ++request
         val day = DashboardDay(date, zone)
         dateButton.text = date.format(dateFormat)
-        summary.text = "Daten werden gelesen …"; selected.text = ""; chartHolder.removeAllViews()
+        summary.text = activity.getString(R.string.day_reading); selected.text = ""; chartHolder.removeAllViews()
         val now = Instant.now()
         worker.execute {
             val read = try {
@@ -63,18 +65,18 @@ internal fun showDayTimeline(activity: MainActivity, worker: Executor) {
             } catch (_: android.database.sqlite.SQLiteException) { null }
             activity.runOnUiThread {
                 if (!dialog.isShowing || generation != request || activity.isDestroyed) return@runOnUiThread
-                if (read == null) { summary.text = "Lokale Messdaten konnten nicht gelesen werden."; return@runOnUiThread }
+                if (read == null) { summary.text = activity.getString(R.string.day_read_failed); return@runOnUiThread }
                 val (pulse, steps, band) = read
                 val allLanes = listOf(
-                    DayTimeline.lane(DashboardMeasurement.PULSE, "Herzfrequenz", "bpm", pulse.points, day, now),
-                    DayTimeline.lane(DashboardMeasurement.STEPS, "Schritte (Tageszähler)", "", steps.points, day, now),
-                    DayTimeline.lane(DashboardMeasurement.PULSE, BAND_LANE_TITLE, "bpm", band, day, now),
+                    DayTimeline.lane(DashboardMeasurement.PULSE, MetricText.title(activity, "Herzfrequenz"), "bpm", pulse.points, day, now),
+                    DayTimeline.lane(DashboardMeasurement.STEPS, MetricText.title(activity, "Schritte (Tageszähler)"), "", steps.points, day, now),
+                    DayTimeline.lane(DashboardMeasurement.PULSE, bandLaneTitle, "bpm", band, day, now),
                 )
                 val lanes = allLanes.filter { it.points.isNotEmpty() }
-                val description = DayTimeline.describe(allLanes, day, now, zone)
-                summary.text = description + "\nHerzfrequenz und Schritte: Empfangszeit am Telefon. " +
-                    (if (band.isNotEmpty()) "$BAND_LANE_TITLE: vom Band gemessene Zeit, nicht der Empfang. " else "") +
-                    "${zone.id}. Lücken bleiben leer und werden nicht überbrückt."
+                val description = DayTimeline.describe(strings, allLanes, day, now, zone)
+                summary.text = description + "\n" + activity.getString(R.string.tl_note_phone) + " " +
+                    (if (band.isNotEmpty()) activity.getString(R.string.tl_note_band, bandLaneTitle) + " " else "") +
+                    activity.getString(R.string.tl_note_gaps, zone.id)
                 if (lanes.isEmpty()) return@runOnUiThread
                 val chart = DayTimelineView(activity, day, lanes, zone,
                     effectiveStepGoal(activity.getSharedPreferences(SpO2DisplaySettings.STORE, android.content.Context.MODE_PRIVATE).getString("step_goal", null), steps.goal), palette.ink, palette.track,
@@ -85,8 +87,8 @@ internal fun showDayTimeline(activity: MainActivity, worker: Executor) {
                 chartHolder.addView(chart, LinearLayout.LayoutParams(-1, -2))
                 val zoomInfo = text(12f, palette.muted).apply { tag = "day_timeline_zoom_info" }
                 fun describeViewport(v: DayViewport) {
-                    zoomInfo.text = if (v.isFull) "Ganzer Tag. Zwei Finger zum Zoomen, oder Tasten."
-                    else "Ausschnitt ${"%.1f".format(java.util.Locale.GERMANY, v.span * 24)} h von 24 h (Rohpunkte, keine Mittelwerte)."
+                    zoomInfo.text = if (v.isFull) activity.getString(R.string.tl_zoom_full)
+                    else activity.getString(R.string.tl_zoom_part, "%.1f".format(locale, v.span * 24))
                 }
                 chart.onViewport = ::describeViewport
                 describeViewport(chart.viewport)
@@ -98,14 +100,14 @@ internal fun showDayTimeline(activity: MainActivity, worker: Executor) {
                     setOnClickListener { action() }
                     tools.addView(this, LinearLayout.LayoutParams(0, -2, 1f).apply { marginEnd = (4 * density).toInt() })
                 }
-                tool("‹", "Ausschnitt zurück") { chart.panBy(-1) }
-                tool("−", "Herauszoomen") { chart.zoomOut() }
-                tool("+", "Hineinzoomen") { chart.zoomIn() }
-                tool("›", "Ausschnitt vor") { chart.panBy(1) }
-                tool("Tag", "Ganzen Tag anzeigen") { chart.resetZoom() }
+                tool("‹", activity.getString(R.string.tl_pan_back)) { chart.panBy(-1) }
+                tool("−", activity.getString(R.string.tl_zoom_out)) { chart.zoomOut() }
+                tool("+", activity.getString(R.string.tl_zoom_in)) { chart.zoomIn() }
+                tool("›", activity.getString(R.string.tl_pan_forward)) { chart.panBy(1) }
+                tool(activity.getString(R.string.tl_day_button), activity.getString(R.string.tl_day_button_cd)) { chart.resetZoom() }
                 chartHolder.addView(tools)
                 chartHolder.addView(zoomInfo)
-                selected.text = "Tippen oder ziehen, um Werte zu einer Uhrzeit zu sehen."
+                selected.text = activity.getString(R.string.tl_hint)
             }
         }
     }
