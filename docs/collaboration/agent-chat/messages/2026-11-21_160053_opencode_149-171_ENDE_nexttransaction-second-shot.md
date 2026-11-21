@@ -1,0 +1,14 @@
+# ENDE – #149/#171: begrenzter weiterer nextTransaction-No-Pull-Versuch
+- Zeit (UTC): 2026-11-21 16:00:53
+- Von: OpenCode (FIT/BLE)
+- An: alle
+- Issue/Task: #149 / #171
+- Bezug: START `2026-11-21_151748_opencode_149-171_START_nexttransaction-second-shot.md`; Scope `2026-11-21_1517_opencode-an-alle_nexttransaction-gate-extension.md`; PR #378
+- Status: abgeschlossen
+- Zuständigkeit und betroffene Dateien: Gate von 1 auf 2 Gesamtversuche, Regressionstests, Testlabor-Bestätigungstext; Ergebnisbericht und Übergabe
+- Ergebnis: PR #378 (Merge `b4e0ba2`) erlaubt genau einen Zusatzversuch ohne Zähler-Reset; das gemeinsame 15/15-Gate blieb unverändert. Nach grüner PR-Full-CI, Dependency Review und Main-Full-CI wurde die signaturkompatible Main-APK als Update installiert. Die zweite manuell bestätigte Probe lieferte zunächst 35 Einträge; genau eine Folgeantwort: `status=0`, 0 Einträge, `session=false`, `nextTransaction=true`. Stopp danach.
+- Sicherheitsnachweis: kein Datei-Pull oder Import (`pullSent=false`), MLR 0 Chunks/Bytes, keine weitere Transaktion; Gate nach dem Lauf 2/2 verbraucht. Keine UIDs, IDs, Rohframes oder Gesundheitsdaten committet. Möglicher geräteseitiger Sync-Request-Effekt war angezeigt und ausdrücklich akzeptiert.
+- Tests: gezielter OneShot-Gate-Test und vollständige lokale JVM-Unit-Tests bestanden; lokaler QUICK-CI erfolgreich. PR-Full-CI Run `44919084584`, Dependency Review `44919084558`, Main-Full-CI auf Vor-Merge-Head `44919422926` und Merge-Commit `44920440011` erfolgreich.
+- Abweichungen/offene Punkte: lokaler Quick-Lauf führte S25-UI-Akzeptanzchecks aus; zwei UI-Prüfpunkte schlugen fehl, die Systemeinstellungen wurden laut Report wiederhergestellt. Es wurden in diesen Checks keine BLE-Befehle gesendet. `ci-local.sh --quick` ist deshalb nicht als fehlerfreier S25-Akzeptanzlauf zu werten.
+- Was ich von anderen brauche: nichts.
+- Übergabe: keine weiteren nextTransaction-/BLE-Versuche aus dieser Freigabe ableiten; beide Läufe mit 0 Einträgen in `CIRQA_NEXT_TRANSACTION_PROBE_RESULT_2026-11-21.md` dokumentiert.

@@ -1,15 +1,17 @@
 # OpenCode – ein weiterer begrenzter nextTransaction-Versuch
 - Agent/Umgebung: OpenCode CLI
 - Beginn: 2026-11-21 15:17 UTC
-- Letzte Aktualisierung: 2026-11-21 15:17 UTC
-- Status: aktiv – neue Freigabe erhalten; vor Gerätezugriff Gate-/CI-/Lease-Prüfung
+- Letzte Aktualisierung: 2026-11-21 16:00 UTC
+- Status: abgeschlossen – genau ein Zusatzversuch ausgeführt und redigiert dokumentiert
 - Rolle/Zuständigkeit: CIRQA/GFDI-Protokoll und S25-Test
-- Aktueller Auftrag: auf Nutzeranweisung genau einen weiteren separaten nextTransaction-No-Pull-Versuch ermöglichen und ausführen
-- Jetzt in Bearbeitung: #149 / #171 – Gate von 1 auf 2 erweitern, ohne den gespeicherten Zähler oder das gemeinsame 15/15-Gate zurückzusetzen
+- Aktueller Auftrag: genau einen weiteren separaten nextTransaction-No-Pull-Versuch ermöglichen und ausführen
+- Jetzt in Bearbeitung: keine
 - Zeitnah geplant: keine weiteren Geräteversuche
 - Betroffene Bereiche/Dateien: `CirqaNextTransactionProbeAttemptGate.kt`, Gate-Unit-Tests, Testlabor-Warntext, datierter Probebericht und Koordination
-- Branch/Worktree: `opencode/nexttransaction-second-shot` / `/home/smiler/04_src/pulselibre-de-ci-agent`
-- Abstimmungsbedarf: S25 exklusiv über das lokale Lease-Tool aus offenem PR #353 reservieren; vor Hardwarelauf Full-CI auf Branch und anschließend `main`; Installations-/Signaturkontinuität prüfen
+- Branch/Worktree: `opencode/nexttransaction-second-shot-result` / `/home/smiler/04_src/pulselibre-de-ci-agent`
+- Abstimmungsbedarf: erledigt; Nutzer erteilte exklusive S25-Freigabe. PR- und Main-Full-CI, Signaturkontinuität und Upgrade-Version wurden vor dem No-Pull-Versuch verifiziert.
 - Sicherheitsgrenze: 1 zusätzliche manuell bestätigte No-Pull-Probe, genau eine transaction-id-Folgeanfrage, kein retry, keine Datei-Pulls/MLR/Import, keine Änderung am gemeinsamen Item-List-Gate. Keine Erhöhung auf 100.
-- Nachweise: bisheriger Lauf dokumentiert: erste Liste 28 Einträge; genau eine Folgeliste `status=0`, 0 Einträge; Gate 1/1 verbraucht. Noch keine Änderung oder Geräteaktion in dieser Sitzung.
-- Nächster Schritt: START/Abstimmung veröffentlichen, Gate-Code und Regressionstest vorbereiten; Gerätekontakt erst nach grünen CI-Gates und erfolgreicher Lease-Reservierung.
+- Nachweise: PR #378 (`f904aad` + Regressionstestkorrektur `b66b296`) gemergt als `b4e0ba2`; PR-Full-CI und Dependency Review bestanden; Main-Full-CI Run `44920440011` bestanden. Lokale JVM-Unit-Tests und `ci-local.sh --quick` bestanden. Installierte Signatur entsprach Main-APK; App-Version `1667→1680`.
+- Geräteergebnis: zweite manuell bestätigte Probe initial 35 Einträge; genau eine Folgeantwort `status=0`, 0 Einträge, `session=false`, `nextTransaction=true`; danach Stopp. `pullSent=false`; MLR 0 Chunks/Bytes; Gate 2/2.
+- Weitere S25-Diagnose: lokaler Quick-CI führte erlaubte UI-Akzeptanzchecks aus; zwei unabhängige UI-Prüfpunkte schlugen fehl, Systemeinstellungen wurden laut Bericht wiederhergestellt. Keine BLE-Befehle in dieser Phase.
+- Nächster Schritt: keine weiteren Probe-/Geräteversuche. Ergebnis und Grenzen sind im datierten Protokollbericht dokumentiert.
