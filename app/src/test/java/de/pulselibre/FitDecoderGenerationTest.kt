@@ -36,8 +36,10 @@ class FitDecoderGenerationTest {
         val first = row("sample-a")
         val second = row("sample-b", value = 75.0)
         val digest = FitDecoderGeneration.outputDigest(listOf(first, second))
+        val laterReceipt = first.copy(receivedAtEpochMillis = 999_999)
 
         assertEquals(digest, FitDecoderGeneration.outputDigest(listOf(second, first)))
+        assertEquals(digest, FitDecoderGeneration.outputDigest(listOf(laterReceipt, second)))
         assertNotEquals(digest, FitDecoderGeneration.outputDigest(listOf(first, row("sample-b", 76.0))))
         assertNotEquals(digest, FitDecoderGeneration.outputDigest(listOf(first)))
     }

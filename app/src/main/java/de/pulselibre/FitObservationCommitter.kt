@@ -367,7 +367,6 @@ internal object FitObservationCommitter {
                     stored.getLong(2) == row.measuredAtEpochMillis &&
                     stored.getDouble(3).toBits() == row.value.toBits() &&
                     stored.getString(4) == row.unit &&
-                    (if (stored.isNull(5)) null else stored.getLong(5)) == row.receivedAtEpochMillis &&
                     stored.getInt(6) == row.recordOrdinal &&
                     stored.getInt(7) == row.globalMessageNumber &&
                     stored.getInt(8) == row.fieldNumber &&

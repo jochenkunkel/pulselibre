@@ -355,6 +355,9 @@ class DatabaseBackupTest {
             assertEquals(2L, report.canonicalFitProvenance)
             assertEquals(1L, report.canonicalDeviceMetadata)
             assertEquals(1L, report.rawDeviceMetadata)
+            assertEquals(2L, report.canonicalFitGenerations)
+            assertEquals(2L, report.canonicalFitGenerationObservations)
+            assertEquals(2L, report.canonicalActiveFitGenerations)
 
             DatabaseBackup.reset(context)
             CirqaDatabase(context).use { assertEquals(0L, it.eventCount()) }
@@ -365,7 +368,7 @@ class DatabaseBackupTest {
 
             val plan = DatabaseBackup.prepareRestore(context, ByteArrayInputStream(bytes.toByteArray()))
             try {
-                assertEquals(6, plan.version)
+                assertEquals(7, plan.version)
                 assertEquals(3L, plan.canonicalReadings)
                 assertEquals(1L, plan.canonicalDeviceMetadata)
                 assertEquals(1L, plan.rawDeviceMetadata)

@@ -55,7 +55,7 @@ internal object FitDecoderGeneration {
             listOf(
                 row.sampleId, row.deviceId, row.metric, row.measuredAtEpochMillis.toString(),
                 java.lang.Double.doubleToLongBits(row.value).toString(), row.unit,
-                row.receivedAtEpochMillis?.toString().orEmpty(), row.recordOrdinal.toString(),
+                row.recordOrdinal.toString(),
                 row.globalMessageNumber.toString(), row.fieldNumber.toString(), row.quality,
                 row.timestampOrigin
             ).forEach { value ->

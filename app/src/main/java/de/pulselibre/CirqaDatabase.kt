@@ -120,8 +120,12 @@ class CirqaDatabase(private val contextRef: Context) :
      * SQLiteOpenHelper wraps onUpgrade in a transaction; any conflict aborts all DDL/data.
      */
     private fun migrateExistingFitObservationsToGeneration(db: SQLiteDatabase) {
+        val hasProfileVersion = hasColumn(db, "fit_sources", "profile_version")
+        val hasValidatedAt = hasColumn(db, "fit_sources", "validated_at_ms")
+        val profileExpression = if (hasProfileVersion) "profile_version" else "'legacy-profile-unknown-v1'"
+        val validatedAtExpression = if (hasValidatedAt) "validated_at_ms" else "0"
         db.rawQuery(
-            """SELECT source_sha256, decoder_version, profile_version, validated_at_ms
+            """SELECT source_sha256, $profileExpression, $validatedAtExpression
                FROM fit_sources
                WHERE NOT EXISTS (
                    SELECT 1 FROM fit_active_generations a
@@ -131,42 +135,43 @@ class CirqaDatabase(private val contextRef: Context) :
         ).use { sources ->
             while (sources.moveToNext()) {
                 val sourceSha = sources.getString(0)
-                val profileVersion = sources.getString(2)
-                val completedAt = sources.getLong(3)
+                val profileVersion = sources.getString(1)
+                val completedAt = sources.getLong(2)
                 // Historical decoder provenance cannot be inferred after the fact.
                 val legacyDecoderVersion = "legacy-unknown-v1"
                 val generationId = FitDecoderGeneration.id(
                     sourceSha, legacyDecoderVersion, profileVersion
                 )
-                val rows = db.rawQuery(
-                    """SELECT p.sample_id, p.device_id, p.metric, p.measured_at_ms, o.value,
-                              o.unit, o.received_at_ms, p.record_ordinal, p.global_message_number,
-                              p.field_number, p.quality
-                       FROM fit_observation_provenance p
-                       JOIN observations o ON o.device_id = p.device_id AND o.metric = p.metric
-                         AND o.measured_at_ms = p.measured_at_ms AND o.sample_id = p.sample_id
-                       WHERE p.source_sha256 = ?
-                       ORDER BY p.sample_id""",
-                    arrayOf(sourceSha)
-                )
                 val values = mutableListOf<StoredFitGenerationObservation>()
-                rows.use { cursor ->
-                    while (cursor.moveToNext()) {
-                        values += StoredFitGenerationObservation(
-                            generationId = generationId,
-                            sampleId = cursor.getString(0),
-                            deviceId = cursor.getString(1),
-                            metric = cursor.getString(2),
-                            measuredAtEpochMillis = cursor.getLong(3),
-                            value = cursor.getDouble(4),
-                            unit = cursor.getString(5),
-                            receivedAtEpochMillis = if (cursor.isNull(6)) null else cursor.getLong(6),
-                            recordOrdinal = cursor.getInt(7),
-                            globalMessageNumber = cursor.getInt(8),
-                            fieldNumber = cursor.getInt(9),
-                            quality = cursor.getString(10),
-                            timestampOrigin = "UNKNOWN"
-                        )
+                if (hasTable(db, "fit_observation_provenance") && hasTable(db, "observations")) {
+                    db.rawQuery(
+                        """SELECT p.sample_id, p.device_id, p.metric, p.measured_at_ms, o.value,
+                                  o.unit, o.received_at_ms, p.record_ordinal, p.global_message_number,
+                                  p.field_number, p.quality
+                           FROM fit_observation_provenance p
+                           JOIN observations o ON o.device_id = p.device_id AND o.metric = p.metric
+                             AND o.measured_at_ms = p.measured_at_ms AND o.sample_id = p.sample_id
+                           WHERE p.source_sha256 = ?
+                           ORDER BY p.sample_id""",
+                        arrayOf(sourceSha)
+                    ).use { cursor ->
+                        while (cursor.moveToNext()) {
+                            values += StoredFitGenerationObservation(
+                                generationId = generationId,
+                                sampleId = cursor.getString(0),
+                                deviceId = cursor.getString(1),
+                                metric = cursor.getString(2),
+                                measuredAtEpochMillis = cursor.getLong(3),
+                                value = cursor.getDouble(4),
+                                unit = cursor.getString(5),
+                                receivedAtEpochMillis = if (cursor.isNull(6)) null else cursor.getLong(6),
+                                recordOrdinal = cursor.getInt(7),
+                                globalMessageNumber = cursor.getInt(8),
+                                fieldNumber = cursor.getInt(9),
+                                quality = cursor.getString(10),
+                                timestampOrigin = "UNKNOWN"
+                            )
+                        }
                     }
                 }
                 db.execSQL(
@@ -210,6 +215,19 @@ class CirqaDatabase(private val contextRef: Context) :
             }
         }
     }
+
+    private fun hasColumn(db: SQLiteDatabase, table: String, column: String): Boolean =
+        db.rawQuery("PRAGMA table_info($table)", null).use { cursor ->
+            var found = false
+            while (cursor.moveToNext()) if (cursor.getString(1) == column) found = true
+            found
+        }
+
+    private fun hasTable(db: SQLiteDatabase, table: String): Boolean =
+        db.rawQuery(
+            "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?",
+            arrayOf(table)
+        ).use { it.moveToFirst() }
 
     private fun ensureMissingFitGenerations(db: SQLiteDatabase) {
         db.beginTransaction()

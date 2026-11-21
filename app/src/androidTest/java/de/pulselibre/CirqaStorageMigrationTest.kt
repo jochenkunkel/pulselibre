@@ -60,12 +60,15 @@ class CirqaStorageMigrationTest {
                 val db = database.writableDatabase
                 db.execSQL("DROP TABLE raw_device_metadata")
                 db.execSQL("DROP TABLE fit_unmapped_fields")
+                db.execSQL("DROP TABLE fit_active_generations")
+                db.execSQL("DROP TABLE fit_generation_observations")
+                db.execSQL("DROP TABLE fit_decoder_generations")
                 db.version = 4
             }
             CirqaDatabase(context).use { database ->
                 assertEquals(listOf(event), database.allLines())
                 assertTrue(database.rawDeviceMetadata().isEmpty())
-                assertEquals(6, database.writableDatabase.version)
+                assertEquals(7, database.writableDatabase.version)
             }
         } finally {
             root.deleteRecursively()
