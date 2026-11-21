@@ -15,12 +15,24 @@ class GermanUiRule : ExternalResource() {
         val context = instrumentation.targetContext
         before = AppLanguageSettings.preference(context)
         instrumentation.runOnMainSync { AppLanguageSettings.save(context, AppLanguage.GERMAN) }
-        instrumentation.waitForIdleSync()
+        awaitLanguage(context, "de")
+    }
+
+    /** On Android 13+ the system applies the app locale asynchronously; wait until the resources really speak German. */
+    private fun awaitLanguage(context: android.content.Context, language: String) {
+        val deadline = System.currentTimeMillis() + 10_000
+        while (System.currentTimeMillis() < deadline) {
+            InstrumentationRegistry.getInstrumentation().waitForIdleSync()
+            if (context.resources.configuration.locales[0].language == language) return
+            Thread.sleep(100)
+        }
+        throw AssertionError("App-Sprache $language wurde nicht wirksam (aktuell ${context.resources.configuration.locales[0]})")
     }
 
     override fun after() {
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         val context = instrumentation.targetContext
         instrumentation.runOnMainSync { AppLanguageSettings.save(context, before) }
+        instrumentation.waitForIdleSync()
     }
 }
