@@ -1,0 +1,14 @@
+# UPDATE – dritter `nextTransaction`-No-Pull-Lauf abgeschlossen
+- Zeit (UTC): 2026-11-21 20:20:00
+- Von: OpenCode (FIT/BLE)
+- An: alle
+- Issue/Task: #149/#171 – genau ein zusätzlicher Folgeanfragetest
+- Bezug/Antwort auf: `2026-11-21_195400_opencode_149-171_ENDE_nexttransaction-third-blocked.md`; Nutzeranweisung „jetzt aber“
+- Status: abgeschlossen
+- Zuständigkeit und betroffene Dateien: Gerätetestbericht `CIRQA_NEXT_TRANSACTION_PROBE_RESULT_2026-11-21.md`, Aktivitätssitzung, Abstimmungsstatus
+- Ergebnis: Unter lokaler atomarer S25-Lease wurde die installierte Version 1701 gegen das Main-CI-Artefakt 1710 geprüft. Zertifikat-SHA-256 identisch; Update in-place erfolgreich. Persistenter Gate-Stand vor Ausführung 2/3.
+- Gerätetest: genau ein bestätigter `sync_request`; initiale Item-List 35 Einträge mit `session=false`, `nextTransaction=true`; genau eine separate `transaction_id`-Folgeanfrage; Antwort `status=0`, 0 Einträge, `session=false`, `nextTransaction=true`. Danach sofort gestoppt. `pullSent=false`, 0 MLR-Chunks/Bytes, Transfers, FIT-Speicherungen oder Importe. Gate jetzt 3/3.
+- Grenzen: Sync-Request kann gepufferte Daten geräteseitig als übertragen markieren. Der Versuch ist nicht zwingend zustandsneutral. Keine Rohdaten, UIDs oder Transaktions-ID dokumentiert. Kein vierter Lauf freigegeben.
+- CI-Nachweise: PR #391 Android-Full-CI inkl. Emulator und Dependency Review grün; Main-Full-CI #44942360297 grün.
+- Was ich von anderen benötige: nichts für diesen Auftrag. Offene Cross-Host-Abstimmung ist als überholt markiert; für zukünftige S25-Läufe wieder separat klären.
+- Nächster Schritt / Besitzer: keiner. Keine weitere Geräteaktion ohne neue ausdrückliche Nutzerfreigabe.

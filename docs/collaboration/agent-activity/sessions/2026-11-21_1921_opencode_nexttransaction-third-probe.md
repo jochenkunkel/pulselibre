@@ -1,16 +1,16 @@
 # OpenCode – ein zusätzlicher `nextTransaction`-No-Pull-Test
 - Agent/Umgebung: OpenCode CLI
 - Beginn: 2026-11-21 19:21 UTC
-- Letzte Aktualisierung: 2026-11-21 19:31 UTC
-- Status: aktiv
+- Letzte Aktualisierung: 2026-11-21 20:20 UTC
+- Status: abgeschlossen – genau ein freigegebener Geräteversuch
 - Rolle/Zuständigkeit: CIRQA/GFDI-Protokoll und begrenzte Gerätetests
 - Aktueller Auftrag: auf ausdrückliche Nutzeranweisung das persistente `nextTransaction`-Gate von 2 auf 3 erhöhen und höchstens einen zusätzlichen S25-Test ausführen
-- Jetzt in Bearbeitung: ein separater, begrenzter Gate-Change samt Regressionstest; danach PR-/Main-Full-CI, Signatur-/Updateprüfung und exklusiver S25-Lease vor höchstens einem Test
+- Jetzt in Bearbeitung: abgeschlossen; kein weiterer Geräteversuch beauftragt
 - Zeitnah geplant: keine weiteren Geräteversuche
 - Betroffene Bereiche/Dateien: `CirqaNextTransactionProbeAttemptGate.kt`, `OneShotGatesTest.kt`, Testlabor-Text, redigierter Gerätetestbericht; agent-activity/chat
-- Branch/Worktree: `opencode/nexttransaction-third-probe` / `/tmp/opencode/pulselibre-nexttransaction-third`, Basis `origin/main` `284601d`
-- Abstimmungsbedarf: exklusive Gerätesperre gemäß PR #353 prüfen; geöffneter PR ist noch nicht gemergt. Keine Instrumentation am S25.
-- Nachweise: User request: genau einen weiteren Versuch; bestehender Zähler 2 wird nicht zurückgesetzt. Gezielter lokaler `OneShotGatesTest` bestanden. PR #391 Full-CI Run 44940983500 zunächst fehlgeschlagen: separate `CirqaNextTransactionProbeAttemptGateTest` hatte noch Erwartung 2. Dieser Test wird jetzt angepasst; kein Gerätezugriff.
+- Branch/Worktree: `opencode/nexttransaction-third-probe` / `/tmp/opencode/pulselibre-nexttransaction-third`; Gate-Änderung gemergt in `fb8da57`, aktueller `origin/main` bei Abschluss `98a3640`
+- Abstimmungsbedarf: Für zukünftige Gerätearbeit bleibt Cross-Host-Abgleich erforderlich. Dieser Versuch erfolgte nach erneuter Nutzeranweisung „jetzt aber“ innerhalb der lokalen atomaren Lease; kein anderer lokaler Lease-Inhaber wurde beobachtet. PR #353 ist weiterhin nicht gemergt.
+- Nachweise: Gate-Änderung PR #391 (`fb8da571`); lokale JVM-Suite, PR-Full-CI `44941360187` inklusive API-35-Emulator und Dependency Review `44941360177` grün; Main-Full-CI `44942360297` grün. Build 1701 → 1710 in-place, identische Signatur-SHA-256 `36e7f3b664fedb04f175a97a45079a845d781a1769db1a4b02b1c8bf51439177`. S25-Lauf: `session=false`, initial 35, Folgeantwort Status 0 / 0 Einträge, `nextTransaction=true`; 0 Pull/MLR/Transfer/Import; Gate 3/3. Ergebnisbericht: `CIRQA_NEXT_TRANSACTION_PROBE_RESULT_2026-11-21.md`.
 - Stop-Grenzen: 1 manueller Sync-Request, initiale Item-List, maximal 1 `transaction_id`-Folgeanfrage; sofortiger Stopp danach. Kein Retry, Pagination, MLR, Pull, Import, Löschung/Archivierung oder weitere Transaktion.
 - Risiko: Sync-Request kann gepufferte Gerätedaten geräteseitig als übertragen markieren; Probe ist No-Pull, nicht zwingend zustandsneutral.
-- Nächster Schritt: Gate auf aktuellem main inkrementieren, Regressionstest anpassen und lokal prüfen; Hardwareaktion erst nach branch-/main-Full-CI, stabiler Signaturkontinuität und exklusivem Lease.
+- Nächster Schritt: keiner – Nutzerauftrag abgeschlossen. Keine weitere Transaktion oder Geräteprobe ohne neue ausdrückliche Freigabe.
