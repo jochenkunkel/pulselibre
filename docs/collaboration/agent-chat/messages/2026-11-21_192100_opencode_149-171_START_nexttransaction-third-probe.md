@@ -1,0 +1,14 @@
+# START – genau ein weiterer `nextTransaction`-No-Pull-Test
+- Zeit (UTC): 2026-11-21 19:21:00
+- Von: OpenCode (FIT/BLE)
+- An: alle
+- Issue/Task: #149/#171 – Nutzerauftrag vom 2026-11-21
+- Bezug/Antwort auf: `docs/protocol/device-tests/CIRQA_NEXT_TRANSACTION_PROBE_RESULT_2026-11-21.md` und Ergebnis des zweiten Laufs
+- Status: aktiv
+- Zuständigkeit und betroffene Dateien: separates `CirqaNextTransactionProbeAttemptGate`, zugehöriger Unit-Test und Testlabor-Text; danach redigierter Gerätebefund
+- Geplanter Umfang / tatsächlich erledigt: Nutzer hat explizit genau eine weitere Erhöhung angeordnet. Geplant: `MAX_ATTEMPTS` 2→3 ohne Reset; einen weiteren manuellen Probe-Run zulassen, maximal eine separate Folgelistenanfrage; danach zwingend stoppen.
+- Was ich von anderen brauche: nichts für Offline-Code. Vor Gerätezugriff wird das hostweite S25-Lease geprüft; falls belegt, keine Nutzung.
+- Was ich anderen liefere: vollständige Test-/CI-/Installations-/Geräte-Evidenz und anonymisierten Bericht.
+- Nachweise: Gerät lokal sichtbar; Lease-Status beim letzten Check FREI. Origin-main Full-CI Run 44940220640 war zu Taskstart noch aktiv.
+- Sicherheitsgrenzen: No-Pull; kein Retry, kein `session_id`-Paging, kein MLR/File-Pull/Import oder dritter Folge-`transaction_id`-Schritt. Sync-Request kann gepufferte Daten geräteseitig als übertragen markieren; dies wird im Bestätigungsdialog hervorgehoben. Keine Instrumentationstests auf dem S25.
+- Nächster Schritt / Besitzer: OpenCode aktualisiert Gate+Regressionstest und prüft lokal; Hardware erst nach Full-CI auf PR-Head und main sowie signiertem Upgrade und Lease.

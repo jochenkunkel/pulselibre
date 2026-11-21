@@ -8,9 +8,9 @@ internal object CirqaNextTransactionProbeAttemptGate {
     const val PREFS_NAME = "cirqa_next_transaction_probe"
     const val ATTEMPT_COUNT_KEY = "attemptCountV1"
     const val SUMMARY_KEY = "summary"
-    // The first authorized probe is already consumed. This permits exactly one
-    // separately authorized follow-up run without resetting its persisted count.
-    const val MAX_ATTEMPTS = 2
+    // Two authorized probes are already consumed. This permits exactly one
+    // separately authorized third run without resetting its persisted count.
+    const val MAX_ATTEMPTS = 3
 
     fun attemptsUsed(prefs: SharedPreferences): Int =
         attemptsUsed(prefs.getInt(ATTEMPT_COUNT_KEY, 0))
