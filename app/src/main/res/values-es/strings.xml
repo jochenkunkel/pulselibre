@@ -554,4 +554,90 @@
     <!-- Allgemein -->
     <!-- TODO-CHATGPT-REVIEW: Erstentwurf von Claude Code, Ticket #365 -->
     <string name="action_ok">OK</string>
+    <!-- Daten/Export: Backup, Wiederherstellung, Reset -->
+    <!-- TODO-CHATGPT-REVIEW: Erstentwurf von Claude Code, Ticket #365 -->
+    <string name="ex_backup_cancelled">Copia de seguridad cancelada.</string>
+    <string name="ex_backup_running">Creando la copia de seguridad …</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ex_backup_done">Copia de seguridad guardada: %1$d eventos, %2$d mediciones históricas, %3$d fuentes FIT históricas/%4$d filas de procedencia; %5$d mediciones canónicas, %6$d fuentes FIT canónicas/%7$d filas de procedencia y %8$d filas de metadatos FIT, %9$d filas de metadatos XML sin procesar derivadas. Los archivos originales no están incluidos; no se guardan rutas ni identificadores XML.</string>
+    <string name="ex_backup_failed">Error en la copia de seguridad. Comprueba la ubicación; un archivo de destino creado puede estar incompleto y debería borrarse.</string>
+    <string name="ex_backup_checking">Comprobando la copia de seguridad …</string>
+    <string name="ex_backup_invalid">Copia de seguridad no válida o ilegible. Base de datos sin cambios.</string>
+    <string name="ex_fit_cancelled">Exportación de los originales FIT cancelada.</string>
+    <string name="ex_fit_running">Exportando los originales FIT …</string>
+    <string name="ex_fit_done">Originales FIT guardados: %1$d archivos</string>
+    <string name="ex_fit_skipped">, %1$d omitidos por el límite de tamaño</string>
+    <string name="ex_zip_unencrypted">. El archivo ZIP no está cifrado.</string>
+    <string name="ex_export_failed">Error en la exportación. Comprueba la ubicación; un archivo de destino creado puede estar incompleto y debería borrarse.</string>
+    <string name="ex_raw_cancelled">Exportación de los archivos sin procesar cancelada.</string>
+    <string name="ex_raw_running">Exportando los archivos sin procesar …</string>
+    <string name="ex_raw_done">Archivos sin procesar guardados: %1$d archivos, %2$d bytes</string>
+    <string name="ex_raw_skipped">, %1$d omitidos</string>
+    <string name="ex_raw_tail">. El archivo ZIP no está cifrado; el contenido no se descodifica automáticamente.</string>
+    <string name="ex_csv_cancelled">Exportación cancelada.</string>
+    <string name="ex_csv_running">Guardando la exportación …</string>
+    <string name="ex_csv_done">CSV guardado: %1$d mediciones. Contiene solo datos disponibles localmente.</string>
+    <string name="ex_csv_unreadable"> %1$d filas guardadas no eran legibles y no se exportaron.</string>
+    <string name="ex_csv_failed">Error en la exportación. Comprueba la ubicación e inténtalo de nuevo; un archivo de destino creado puede estar incompleto y debería borrarse.</string>
+    <string name="ex_back">Atrás</string>
+    <string name="ex_title">Datos</string>
+    <string name="ex_icon_cd">Símbolo del brazo roto de PulsLibre</string>
+    <string name="ex_subtitle">Exportación · Copia de seguridad · Restauración · local y sin conexión</string>
+    <string name="ex_period">Período</string>
+    <string name="ex_from">Desde</string>
+    <string name="ex_to">Hasta</string>
+    <string name="ex_zone">%1$s · minuto final incluido</string>
+    <string name="ex_csv_button">⬇  Exportar CSV</string>
+    <string name="ex_csv_cd">Exportar las mediciones como CSV</string>
+    <string name="ex_invalid_period">Período no válido: el final debe ser posterior al inicio.</string>
+    <string name="ex_local_only">Solo en tu dispositivo · Sin nube · Sin inicio de sesión</string>
+    <string name="ex_db_title">Base de datos local</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ex_db_note">La copia de seguridad contiene eventos CIRQA, mediciones históricas y estados de sincronización. El archivo ZIP no está cifrado y contiene datos de salud sensibles.</string>
+    <string name="ex_btn_backup">Crear copia de seguridad</string>
+    <string name="ex_btn_backup_cd">Crear una copia de seguridad local de la base de datos</string>
+    <string name="ex_btn_fit">Exportar los originales FIT</string>
+    <string name="ex_btn_fit_cd">Exportar los archivos FIT originales sin procesar como ZIP</string>
+    <string name="ex_fit_confirm_title">¿Exportar los originales FIT?</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ex_fit_confirm_msg">El archivo ZIP contiene los archivos FIT sin procesar y verificados de tu pulsera. No está cifrado y puede contener información sensible de salud y del dispositivo. No se modifica, borra ni envía nada. Guárdalo solo en un lugar de confianza.</string>
+    <string name="ex_export_btn">Exportar</string>
+    <string name="ex_btn_raw">Exportar archivos sin procesar verificados</string>
+    <string name="ex_btn_raw_cd">Exportar como ZIP los archivos sin procesar CIRQA opacos guardados localmente</string>
+    <string name="ex_raw_confirm_title">¿Exportar archivos sin procesar?</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ex_raw_confirm_msg">El ZIP contiene archivos sin procesar verificados y sin cambios de la pulsera. No está cifrado y puede contener información sensible de salud y del dispositivo. PulseLibre no descodifica los archivos automáticamente. No se modifica, borra ni envía nada. Elige una ubicación de confianza.</string>
+    <string name="ex_btn_restore">Restaurar copia de seguridad</string>
+    <string name="ex_btn_restore_cd">Restaurar la base de datos desde una copia de seguridad</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ex_btn_reset">Restablecer la base de datos</string>
+    <string name="ex_btn_reset_cd">Borrar todas las entradas locales de la base de datos</string>
+    <string name="ex_prefs_kept">Los ajustes de la app se conservan al restaurar y al restablecer.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ex_restore_title">¿Reemplazar la base de datos?</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ex_restore_msg">La copia de seguridad del %1$s contiene %2$d eventos, %3$d mediciones históricas, %4$d estados de sincronización, %5$d fuentes FIT y %6$d filas de procedencia FIT. %7$d mediciones canónicas y %8$d fuentes FIT canónicas/%9$d filas de procedencia, así como %10$d filas de metadatos FIT y %11$d filas de metadatos XML sin procesar derivadas. Los archivos originales no están incluidos; las rutas y los identificadores XML no se guardan.\n\nSe reemplazarán todas las entradas de la base de datos almacenadas actualmente. Los ajustes de la app se conservan. Continúa solo con una copia de seguridad de una fuente de confianza.</string>
+    <string name="ex_replace">Reemplazar</string>
+    <string name="ex_restore_cancelled">Restauración cancelada.</string>
+    <string name="ex_restore_running">Restaurando la base de datos …</string>
+    <string name="ex_restore_done">Base de datos restaurada desde la copia de seguridad.</string>
+    <string name="ex_restore_failed">Error en la restauración. Comprueba la base de datos.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ex_reset_title">¿Restablecer la base de datos local?</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ex_reset_msg">Todos los eventos CIRQA, mediciones históricas y estados de sincronización almacenados localmente se borrarán de forma permanente. Los ajustes de la app se conservan. Esta acción no se puede deshacer.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ex_reset_delete">Borrar datos</string>
+    <string name="ex_reset_running">Restableciendo la base de datos …</string>
+    <string name="ex_reset_done">La base de datos local se vació.</string>
+    <string name="ex_reset_failed">Error al restablecer. Comprueba la base de datos.</string>
+    <string name="ex_rec_title">Grabación en curso</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ex_rec_msg">La grabación CIRQA local en curso debe detenerse antes de la operación en la base de datos.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ex_rec_stop">Detener y continuar</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ex_rec_stop_failed">No se pudo detener la grabación; la base de datos permaneció sin cambios.</string>
+    <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
+    <string name="ex_rec_still">La grabación sigue en curso; la base de datos permaneció sin cambios.</string>
 </resources>
