@@ -1,0 +1,15 @@
+# OpenCode – Offline-Audit FIT→SQLite #149
+- Agent/Umgebung: OpenCode / Linux worktree
+- Beginn: 2026-11-21 08:01 UTC
+- Letzte Aktualisierung: 2026-11-21 08:03 UTC
+- Status: pausiert – statischer Audit abgeschlossen; nächste Schemaentscheidung mit #144 abstimmen
+- Rolle/Zuständigkeit: BLE/GFDI/FIT/Protokoll, Offline-Import und Decoder
+- Aktueller Auftrag: #149 – verbleibende Evidenz- und Importlücken nach ItemList-Abschluss offline auditieren
+- Abgeschlossen: #149 – Startpfad für neue Quellen, Decoder-Allowlist und Versionierungs-/Provenienzrisiko statisch geprüft; keine Geräteaktion
+- Zeitnah geplant: Provenienzoption `DIRECT`/`RECONSTRUCTED_TS16` abstimmen; DDL bleibt bis #144-Koordination unangetastet
+- Betroffene Bereiche/Dateien: `MainActivity.kt`, `CirqaFitBackfill.kt`, `FitHistoricalObservations.kt`, `FitObservationCommitter.kt`, Tests und Issue-Dokumentation
+- Branch/Worktree: `opencode/issue149-offline-audit-20261121` / `/tmp/opencode/pulselibre-nexttransaction-test-20261121`
+- Abstimmungsbedarf: #144 für jede Änderung an Schema/Migration/Backupformat; GUI-Agent hat Provenienzvorschlag in Nachricht 2026-11-21 08:30 gestellt
+- Agent-sync-Nachrichten: `docs/collaboration/agent-sync/INDEX.md` geprüft; GUI-Agent-Nachricht zum S25-Update und timestamp_16-Provenienz berücksichtigt
+- Nachweise: Main `76e1022`; Befunde in #149 kommentiert (`issuecomment-7059644839`); GUI-Agent-Koordination dokumentiert; kein Gerätezugriff
+- Nächster Schritt: mit #144-Abstimmung Decoder-Replay-/Provenienzvertrag festlegen, bevor Schema oder Metrik-Allowlist erweitert wird; keine BLE-Anfrage
