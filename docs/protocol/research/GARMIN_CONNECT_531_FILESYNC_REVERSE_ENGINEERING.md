@@ -183,6 +183,35 @@ außerhalb des Repositories) erlaubt jetzt eine genauere Call-Graph-Prüfung:
   Transaktionen belegt; wer und unter welchen Stop-/Policy-Bedingungen den
   nächsten Aufruf auslöst, bleibt separat zu verfolgen.
 
+#### Einordnung der leeren S25-Folgeantwort
+
+- `nextTransaction=true` in der App-Diagnose ist eine **Presence-Anzeige** für
+  Responsefeld `next_transaction_id=3`; es ist kein boolesches Protobuf-Feld.
+  Der Wert `status=0` bedeutet `SUCCESS`, auch wenn `items` leer ist.
+- Der S25-Lauf belegt: Nach `sync_request` war eine initiale Liste mit 28 Items
+  erreichbar; eine nachfolgende Anfrage mit dem Token allein lieferte eine
+  erfolgreiche leere Liste und wieder einen Token. Das belegt weder einen
+  zusätzlichen Dateibestand noch einen Fehlerzustand.
+- Der Connect-5.31-Builder stellt eine wichtige Vergleichsgröße bereit:
+  `ItemListRequest` setzt nicht nur `transaction_id`, sondern kann im selben
+  Request außerdem `exclude_all_flags`, `get_flags` und `included_data_types`
+  aus dem agentbezogenen `Filter` mitführen. Die begrenzte S25-Folgeprobe
+  übermittelte nur den Transaktionstoken. Ein abweichender Filterkontext ist
+  daher eine **plausible, aber unbestätigte** Erklärung für abweichende
+  Ergebnislisten; der Reverse-build beweist nicht, dass gerade dieser
+  Unterschied die leere Antwort verursacht hat. Auch ein leerer/erschöpfter
+  Gerätebestand bleibt möglich.
+- Connects Aufrufer fragt die Liste je `UploadDestinationAgent` an und filtert
+  anschließend die Referenzen über die Agent-Regeln, bevor `TransferItem`s
+  vorbereitet werden. `ItemList` ist somit nicht gleichbedeutend mit „alle
+  Dateien werden geladen“; tatsächliche Pulls sind eine getrennte Stufe.
+- Die aktuelle CIRQA-Integration bildet `session_id`-Seiten ab. Wenn die
+  Session-ID fehlt und `next_transaction_id` vorhanden ist, muss der Lauf als
+  **unvollständig / weitere Transaktion angekündigt** ausgewiesen werden.
+  Ohne neue aktive Gerätefreigabe wird der Token nicht automatisch erneut
+  angefragt. Das ist ein konservativer Produktzustand, kein Beweis dafür, dass
+  weitere Dateien existieren.
+
 Abgleich mit dem einzelnen S25-Lauf: Die Folgeantwort mit 0 Items und
 `status=0` ist protokollseitig ein erfolgreicher, aber leerer
 `ListFilesResult`; das weiterhin vorhandene `next_transaction_id` ist ein
