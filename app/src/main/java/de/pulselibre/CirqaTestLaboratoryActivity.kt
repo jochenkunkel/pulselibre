@@ -326,6 +326,9 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
         syncCard.addView(button("Sync + Item-List zweimal vergleichen (kein Pull)") {
             confirmSyncItemListNoPull(repeatItemLists = true)
         }.apply { isEnabled = CirqaSyncItemListNoPullAttemptGate.RELEASED_FOR_DEVICE_TEST })
+        syncCard.addView(button("nextTransaction-Folgeanfrage testen (kein Pull)") {
+            confirmNextTransactionProbe()
+        }.apply { isEnabled = CirqaNextTransactionProbeAttemptGate.RELEASED_FOR_DEVICE_TEST })
         syncCard.addView(button("Sync+Item-List-Status (kein Pull)") {
             val prefs = getSharedPreferences(
                 CirqaSyncItemListNoPullAttemptGate.PREFS_NAME, MODE_PRIVATE
@@ -334,6 +337,15 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
                 (prefs.getString(CirqaSyncItemListNoPullAttemptGate.SUMMARY_KEY, null) ?: "Noch kein Lauf.") +
                 "\nVersuche=${CirqaSyncItemListNoPullAttemptGate.attemptsUsed(prefs)}/" +
                 CirqaSyncItemListNoPullAttemptGate.MAX_ATTEMPTS
+        })
+        syncCard.addView(button("nextTransaction-Teststatus") {
+            val prefs = getSharedPreferences(
+                CirqaNextTransactionProbeAttemptGate.PREFS_NAME, MODE_PRIVATE
+            )
+            statusOutput.text = "nextTransaction-Probe:\n" +
+                (prefs.getString(CirqaNextTransactionProbeAttemptGate.SUMMARY_KEY, null) ?: "Noch kein Lauf.") +
+                "\nVersuche=${CirqaNextTransactionProbeAttemptGate.attemptsUsed(prefs)}/" +
+                CirqaNextTransactionProbeAttemptGate.MAX_ATTEMPTS
         })
         syncCard.addView(button("V27-Sync-Status") {
             val syncPrefs = getSharedPreferences(CirqaSyncAttemptGate.PREFS_NAME, MODE_PRIVATE)
@@ -601,6 +613,43 @@ class CirqaTestLaboratoryActivity : AppCompatActivity() {
                             statusOutput.text = message
                             prefs.edit().putString(
                                 CirqaSyncItemListNoPullAttemptGate.SUMMARY_KEY, message
+                            ).apply()
+                        }
+                    }
+                }
+            }
+            .show()
+    }
+
+    private fun confirmNextTransactionProbe() {
+        val prefs = getSharedPreferences(
+            CirqaNextTransactionProbeAttemptGate.PREFS_NAME, MODE_PRIVATE
+        )
+        if (!CirqaNextTransactionProbeAttemptGate.hasAttemptsRemaining(prefs)) {
+            statusOutput.text = "nextTransaction-Probe gesperrt oder Einmal-Gate verbraucht."
+            return
+        }
+        AlertDialog.Builder(this)
+            .setTitle("Eine nextTransaction-Folgeanfrage testen?")
+            .setMessage(
+                "Ein einzelner, begrenzter BLE-Lauf: frischer Bootstrap, genau ein sync_request, " +
+                    "eine erste Item-List und höchstens eine zweite Item-List mit dem zurückgegebenen " +
+                    "next_transaction_id. Der Sync-Request kann gepufferte Banddaten als übertragen markieren. " +
+                    "Kein Datei-Pull, keine MLR-Datei-Registrierung, kein Import, keine Wiederholung; " +
+                    "keine Archiv-, Flag-, Lösch-, Reset- oder CLOSE_ALL-Anfrage. Das Ergebnis enthält " +
+                    "nur Counts/Status, keine UID oder Transaktions-ID. 40-s-Limit. Der separate " +
+                    "Einmal-Gate wird vor der Verbindung dauerhaft verbraucht; kein Reset."
+            )
+            .setNegativeButton("Abbrechen", null)
+            .setPositiveButton("Einmal ausführen") { _, _ ->
+                withBluetoothPermissions(needsScan = false) {
+                    val probe = CirqaMlHandshakeProbe(this, adapter)
+                    systemEventProbe = probe
+                    probe.startNextTransactionProbeTest(userConfirmed = true) { message ->
+                        runOnUiThread {
+                            statusOutput.text = message
+                            prefs.edit().putString(
+                                CirqaNextTransactionProbeAttemptGate.SUMMARY_KEY, message
                             ).apply()
                         }
                     }
