@@ -1,16 +1,16 @@
 # OpenCode – S10 HCI-Snoop- und Sperreinstellungen
 - Agent/Umgebung: OpenCode CLI
 - Beginn: 2026-11-21 21:45 UTC
-- Letzte Aktualisierung: 2026-11-21 21:48 UTC
-- Status: abgeschlossen – HCI-Snoop aktiviert, Sperre war bereits deaktiviert
+- Letzte Aktualisierung: 2026-11-21 21:53 UTC
+- Status: abgeschlossen – HCI-Snoop nach Testende deaktiviert
 - Rolle/Zuständigkeit: eng begrenzte Geräte-Einstellungen nach ausdrücklichem Nutzerauftrag
 - Aktueller Auftrag: HCI-Snoop am S10 aktivieren; Bildschirmsperre in Android-Einstellungen deaktivieren, falls ohne Umgehung/ohne PIN-Übernahme möglich
-- Jetzt in Bearbeitung: abgeschlossen. Nur S10; lokale S25-Lease vor ADB-Auflistung und Einstellungsänderung genutzt. Keine Verbindung zum Band, kein Sync und kein Mitschnittabruf.
+- Jetzt in Bearbeitung: abgeschlossen. Nur S10; lokale S25-Lease für die Einstellungsänderungen genutzt. Kein Log ausgelesen oder exportiert.
 - Zeitnah geplant: Nutzer muss eine eventuell verlangte aktuelle PIN direkt am Gerät eingeben; nach der begrenzten Testsession Einstellungen wiederherstellen, sofern ohne erneute Authentifizierungsdaten möglich.
 - Betroffene Bereiche/Dateien: Agenten-Aktivitäts- und Chatdokumentation; keine Produktdateien
 - Branch/Worktree: `opencode/nexttransaction-third-result-docs` / `/tmp/opencode/pulselibre-nexttransaction-third-result`
 - Abstimmungsbedarf: HCI-Snoop erfasst potentiell gesamten Bluetooth-Verkehr, inklusive nicht zur Probe gehörender Daten. Keine Logs exportieren oder auslesen.
 - Nachweise: Nutzerauftrag 2026-11-21; read-only Vorprüfung erkannte `SM-G970F`, Android 12/API 31; HCI-Snoop war zuvor nicht aktiviert/nachweisbar.
 - Stop-Grenzen: Keine ADB-Umgehung der Sperre, kein Reset, keine PIN-Abfrage im Chat. HCI-Snoop secure-setting auf `1` gesetzt; dadurch können sämtliche natürlich anfallenden Bluetooth-Pakete des S10 lokal protokolliert werden. Kein Pairing, keine Verbindung zum CIRQA-Band, kein Sync und kein Log-/Payload-Abruf.
-- Ergebnis: `locksettings get-disabled` meldete bereits `true`; es wurde keine Sperreinstellung verändert. HCI-Snoop secure-setting ließ sich auf `1` setzen und zurücklesen. Keine Prüfung eines Logfiles, deshalb tatsächliche Log-Erzeugung nicht unabhängig bestätigt.
-- Nächster Schritt: keiner in diesem Teilauftrag. HCI-Snoop bleibt eingeschaltet und sollte nach der geplanten Testsession wieder deaktiviert werden; keine Kommunikation/Testaktion ohne eigenen Scope.
+- Ergebnis: `locksettings get-disabled` meldete bereits `true`; es wurde keine Sperreinstellung verändert. HCI-Snoop secure-setting wurde auf `1` gesetzt, nach der Nutzerbestätigung „test beendet“ auf `0` zurückgesetzt und verifiziert. Keine Prüfung oder Löschung einer Logdatei; tatsächliche Log-Erzeugung nicht unabhängig bestätigt.
+- Nächster Schritt: keiner. Eventuell vorhandene HCI-Logs verbleiben unangetastet auf dem Gerät, bis der Nutzer über deren Auswertung oder Löschung entscheidet.
