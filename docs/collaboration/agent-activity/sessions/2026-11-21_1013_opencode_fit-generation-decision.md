@@ -1,0 +1,15 @@
+# OpenCode – FIT-Decoder-Generationen und Replay (#149/#144)
+- Agent/Umgebung: OpenCode / Linux worktree
+- Beginn: 2026-11-21 10:13 UTC
+- Letzte Aktualisierung: 2026-11-21 10:29 UTC
+- Status: aktiv
+- Rolle/Zuständigkeit: FIT-Decoder, SQLite-Import, Provenienz und Backfill
+- Aktueller Auftrag: #149/#144 – aufgrund Nutzerauftrags zwischen den Replay-Architekturen entscheiden und sicheren nächsten Implementierungsschritt ausführen
+- Jetzt in Bearbeitung: #149 – nichtpersistierenden FIT-Profilkandidaten-Decoder für respiration_rate plus Parser-Regressionstests; #144-Entscheidung dokumentiert, noch kein Schema/DDL
+- Zeitnah geplant: #149 – nach Architekturmodell synthetische Parser-/Importtests und Replay-Sicherungen
+- Betroffene Bereiche/Dateien: `FitHistoricalObservations.kt`, `FitHistoricalObservationsTest.kt`, FIT-Generationen-Entscheidungsdokument und Agentenkoordination
+- Branch/Worktree: `opencode/fit-generation-decision-20261121` / `/tmp/opencode/pulselibre-nexttransaction-test-20261121`
+- Abstimmungsbedarf: Generation-Schema/Backup ist als gewählte Richtung in #144 dokumentiert; vor DDL folgt ein konkretes Änderungsdesign. Keine gemeinsam genutzten DB-/Backupdateien in diesem Schritt geändert
+- Agent-sync-Nachrichten: neue Entscheidungsmeldung `2026-11-21_1013_opencode-an-alle_fit-generation-entscheidung.md`
+- Nachweise: `main` `7bd7924`; FIT-Parser-Unit-Tests bestanden; direkte Gradle-Aufgaben `testDebugUnitTest`, `assembleDebug`, `lintDebug`, `assembleDebugAndroidTest` und `assembleRelease` grün. Python-Tests 99/99 bestanden. Der S25-artige Bericht in den Python-Ausgaben stammt aus dem festen `FakeAdb`-Testdouble in `test_s25_acceptance.py`, kein realer Handyzugriff. Keine Installation, kein App-Start auf Handy, keine BLE-Anfrage
+- Nächster Schritt: Diff final reviewen, Issue-Kommentare und PR mit Cloud-FULL-Checks (Emulator, kein physisches Gerät) eröffnen; danach Generationenschema als Folgeabschnitt angehen

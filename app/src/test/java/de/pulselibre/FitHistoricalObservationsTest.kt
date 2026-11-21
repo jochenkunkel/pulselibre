@@ -28,6 +28,7 @@ class FitHistoricalObservationsTest {
     )
 
     private fun u16(value: Int) = byteArrayOf(value.toByte(), (value ushr 8).toByte())
+    private fun s16(value: Int) = u16(value and 0xffff)
 
     @Test fun extractsWhitelistedTimestampedDeviceMetadataAndIgnoresSerialNumber() {
         val data = byteArrayOf(
@@ -113,6 +114,54 @@ class FitHistoricalObservationsTest {
         ) + u32(200_000) + u32(0x1234)
         val result = FitHistoricalObservations.decode(fit(data))!!
         assertTrue(result.observations.isEmpty())
+    }
+
+    @Test fun respirationRateIsDecodedAsAnUnpersistedSignedProfileCandidate() {
+        val definition = byteArrayOf(
+            0x40, 0, 0, 0x29, 0x01, 2, // global message 297
+            253.toByte(), 4, 0x86.toByte(), // FIT timestamp
+            0, 2, 0x83.toByte() // respiration_rate: sint16
+        )
+        val data = definition +
+            byteArrayOf(0) + u32(210_000) + s16(1_234) +
+            byteArrayOf(0) + u32(210_060) + s16(-125) +
+            byteArrayOf(0) + u32(210_120) + s16(0x7fff)
+
+        val result = FitHistoricalObservations.decode(fit(data))!!
+
+        assertTrue("Candidate must not enter the persistence allowlist", result.observations.isEmpty())
+        assertEquals(listOf(12.34, -1.25), result.reviewCandidates.map { it.value })
+        assertEquals(listOf("breaths/min", "breaths/min"), result.reviewCandidates.map { it.unit })
+        assertEquals(
+            listOf(fitTime(210_000), fitTime(210_060)),
+            result.reviewCandidates.map { it.timestampEpochMillis }
+        )
+        assertEquals(listOf(1, 2), result.reviewCandidates.map { it.recordOrdinal })
+        assertEquals(1, result.invalidMeasurementFieldCount)
+        assertTrue(result.reviewCandidates.all {
+            it.profileFieldName == "respiration_rate" &&
+                it.globalMessageNumber == 297 && it.fieldNumber == 0
+        })
+    }
+
+    @Test fun respirationRateCandidateRejectsWrongBaseTypeAndRetainsMissingTimestamp() {
+        val wrongType = byteArrayOf(
+            0x40, 0, 0, 0x29, 0x01, 1,
+            0, 2, 0x84.toByte(), // profile field with incompatible uint16 type
+            0
+        ) + u16(1_234)
+        val unsupported = FitHistoricalObservations.decode(fit(wrongType))!!
+        assertTrue(unsupported.reviewCandidates.isEmpty())
+        assertEquals(1, unsupported.unsupportedMeasurementFieldCount)
+
+        val noTimestamp = byteArrayOf(
+            0x40, 0, 0, 0x29, 0x01, 1,
+            0, 2, 0x83.toByte(),
+            0
+        ) + s16(1_234)
+        val candidate = FitHistoricalObservations.decode(fit(noTimestamp))!!.reviewCandidates.single()
+        assertEquals(12.34, candidate.value, 0.0)
+        assertNull(candidate.timestampEpochMillis)
     }
 
     // FIT profile: monitoring.timestamp_16 (field 26) = last full timestamp + 16-bit difference (mod 2^16).
