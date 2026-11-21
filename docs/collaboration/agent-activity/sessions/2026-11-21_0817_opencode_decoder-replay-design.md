@@ -1,0 +1,14 @@
+# OpenCode – FIT-Decoder-Replay-Entwurf (#149/#144)
+- Agent/Umgebung: OpenCode / Linux worktree
+- Beginn: 2026-11-21 08:17 UTC
+- Letzte Aktualisierung: 2026-11-21 08:18 UTC
+- Status: pausiert – Entwurf fertig; produktive Metrik-Erweiterung erfordert #144-Entscheidung
+- Rolle/Zuständigkeit: FIT-Decoder, SQLite-Import, Protokollforschung
+- Aktueller Auftrag: #149 – nächstes valides Importfeld und sichere Decoder-Replay-Voraussetzungen offline prüfen
+- Abgeschlossen: Vorschlag zum Reprocessing-Vertrag und zur Zeitstempel-Provenienz; kein Produktcode/DDL
+- Zeitnah geplant: nach #144-Abstimmung ggf. implementieren; vorerst keine persistente Metrik-Erweiterung
+- Betroffene Bereiche/Dateien: FIT-Forschungsvorschlag, Agentenkoordination, Issue #149/#144
+- Branch/Worktree: `opencode/fit-decoder-replay-proposal-20261121` / `/tmp/opencode/pulselibre-nexttransaction-test-20261121`
+- Abstimmungsbedarf: #144 soll zwischen kontrolliertem pro-Quelle-Replay und Multi-Generation-Schema entscheiden; Backup-/Restore-Auswirkung abstimmen
+- Nachweise: Main `c0809dd`; Profilbefunde und redigierte Inventur referenziert; PR #352 und Issue #144 verlinkt; keine Rohdaten, Geräte- oder BLE-Aktion
+- Nächster Schritt: erst nach Architekturentscheidung produktive Allowlist oder Schema verändern
