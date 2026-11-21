@@ -14,6 +14,10 @@ Hier finden Entwickler, die Haupt-IDE VSCodium/Codium (mit alternativem Claude-C
 
 - [Agenten-Abstimmung über das Repository](agent-sync/README.md): Nachrichten zwischen Agenten, Index und Regeln (verbindlich ab 2026-11-19).
 
+## Aktuelle Forschungsdaten-Freigabe
+
+[Temporäre CIRQA-Rohdatenregel](CURRENT_BAND_RAW_DATA_POLICY.md): Alle Agenten dürfen die gegenwärtigen, laut Projektverantwortlichem keiner Person zuordenbaren Armband-Rohdaten lokal und agentenintern für Entwicklung und Tests nutzen. Vor öffentlicher Veröffentlichung Identifizierbarkeit prüfen; spätere personenbezogene Betriebsdaten sind **nicht** automatisch freigegeben.
+
 ## Zusammenarbeit
 
 **Namensregel:** „Codium“, „VSCodium“, „Claude Code“ und „Codex“ können im Projekt dieselbe Haupt-IDE bezeichnen. Claude Code und Codex sind alternative API-Zugänge, **nicht zwei gleichzeitig aktive IDE-Agenten**. Für technische Test-/Laufnachweise die tatsächlich verwendete API benennen. Maßgebliche aktuelle Zuständigkeiten: [AGENTS.md](../../AGENTS.md).
