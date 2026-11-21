@@ -253,3 +253,6 @@ Die Zuordnung gekoppelter Geräte über `name.contains("CIRQA", ignoreCase = tru
 
 ## 28. `TileInsightReader` (2026-11-22)
 Gelesen: `TileInsights.kt` (Leser). Datenbank wird per `use` geschlossen, alle SQL-Abfragen sind parametrisiert (`?`; der `LIKE`-Teil nutzt `metric.key` aus dem festen Enum `DashboardMeasurement`, kein Nutzer- oder Gerätetext), beschädigte JSON-Zeilen werden übersprungen (`runCatching`), der Band-Teil fängt alle Ausnahmen und liefert dann keinen Verlauf. Aufrufer (`DashboardOverviewView`) fängt Ausnahmen des gesamten Lesers und zeigt dann nichts. Keine Befunde.
+
+## 29. `DashboardLayout` (2026-11-22)
+Gelesen: `DashboardLayout.kt` und `DashboardLayoutTest`. `decode` ist tolerant (falsche Feldzahl, leere Schlüssel, ungültige Flags werden verworfen, Duplikate entfernt), `resolve` ordnet gespeicherte Einträge den vorhandenen Kacheln zu (neue am Ende sichtbar, verschwundene gelöscht). Eine beschädigte Einstellung fällt auf das eingebaute Layout zurück; der Test deckt Hin- und Rückweg und Müll-Eingaben ab. Schlüssel stammen aus einer festen Liste, keine Trennzeichen-Kollision. Keine Befunde.
