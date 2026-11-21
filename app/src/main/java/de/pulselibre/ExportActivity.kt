@@ -117,6 +117,9 @@ class ExportActivity : AppCompatActivity() {
         }
     }
 
+    /** Stored rows that could not be parsed during the current export read (A6-8); shown to the user, never hidden. */
+    private val unreadableRows = java.util.concurrent.atomic.AtomicInteger()
+
     private val createDocument = registerForActivityResult(
         ActivityResultContracts.CreateDocument("text/csv")
     ) { uri ->
@@ -133,7 +136,9 @@ class ExportActivity : AppCompatActivity() {
                         ?: throw IllegalStateException("Datei kann nicht geöffnet werden")
                     stream.use { writeRawExport(it, records, window) }
                     runOnUiThread {
-                        feedback.text = "CSV gespeichert: ${records.size} Messungen. Enthält nur lokal verfügbare Daten."
+                        val unreadable = unreadableRows.get()
+                        feedback.text = "CSV gespeichert: ${records.size} Messungen. Enthält nur lokal verfügbare Daten." +
+                            (if (unreadable > 0) " $unreadable gespeicherte Zeilen waren nicht lesbar und wurden nicht exportiert." else "")
                     }
                 } catch (error: Exception) {
                     runOnUiThread {
@@ -497,6 +502,7 @@ class ExportActivity : AppCompatActivity() {
      * No invented device identifier, history or sensor values.
      */
     private fun readUnifiedExport(window: ExportWindow): List<RawExportRecord> {
+        unreadableRows.set(0)
         val (legacy, normalized) = CirqaDatabase(this).use { db ->
             db.ensureHistoricalStoreCopied()
             db.importLegacyReadings()
@@ -516,7 +522,7 @@ class ExportActivity : AppCompatActivity() {
                         receivedAtEpochMillis = if (item.isNull("received_at_ms")) null
                             else item.getLong("received_at_ms")
                     )
-                } catch (_: Exception) { null }
+                } catch (_: Exception) { unreadableRows.incrementAndGet(); null }
             }
             legacyRows to db.historicalObservationWindow(window)
         }
@@ -540,13 +546,13 @@ class ExportActivity : AppCompatActivity() {
         )
         return CirqaDatabase(this).use { db ->
             db.readingLines().flatMapIndexed { index, line ->
-                val item = try { JSONObject(line) } catch (_: Exception) { return@flatMapIndexed emptyList() }
+                val item = try { JSONObject(line) } catch (_: Exception) { unreadableRows.incrementAndGet(); return@flatMapIndexed emptyList() }
                 if (item.optInt("schema") != 1 || item.optString("type") != "reading") {
                     return@flatMapIndexed emptyList()
                 }
                 val received = try {
                     Instant.parse(item.getString("received_at_utc")).toEpochMilli()
-                } catch (_: Exception) { return@flatMapIndexed emptyList() }
+                } catch (_: Exception) { unreadableRows.incrementAndGet(); return@flatMapIndexed emptyList() }
                 if (received < window.startInclusiveEpochMillis ||
                     received >= window.endExclusiveEpochMillis) return@flatMapIndexed emptyList()
                 val service = item.optInt("service", -1)
