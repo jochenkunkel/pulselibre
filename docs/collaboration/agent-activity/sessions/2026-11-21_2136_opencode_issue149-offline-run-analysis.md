@@ -1,0 +1,15 @@
+# OpenCode – Issue #149 Offline-Analyse der Build-1701-Läufe
+- Agent/Umgebung: OpenCode / Linux worktree
+- Beginn: 2026-11-21 21:36 UTC
+- Letzte Aktualisierung: 2026-11-21 21:42 UTC
+- Status: pausiert – Offline-Codeeinordnung dokumentiert; konkrete FIT-Dateien fehlen im Worktree
+- Rolle/Zuständigkeit: CIRQA/GFDI/FIT/SQLite/Backfill
+- Aktueller Auftrag: nach Nutzerzustimmung offline untersuchen, warum beide Build-1701-Läufe bei einer leeren `nextTransactionId`-Folgeantwort endeten und 16 FIT-Dateien keine importierbaren Beobachtungen lieferten
+- Jetzt in Bearbeitung: Offline-Befund im Produktbericht und Issue dokumentieren; keine FIT-/SQLite-Rohdateien in diesem Worktree gefunden
+- Zeitnah geplant: eine tatsächliche dateiweise Reanalyse erst, wenn die bereits gespeicherten Dateien über einen freigegebenen, koordinierten Offlinepfad verfügbar sind; keine Hardwareaktion oder Transportänderung
+- Betroffene Bereiche/Dateien: Gerätelaufbericht Build 1701, `CirqaFileAccessItemListParser`, `CirqaItemListProgress`, FIT-Decoder-/Importpfad; zunächst keine Dateien ändern
+- Branch/Worktree: `opencode/history-third-product-run-20261121` / `/tmp/opencode/pulselibre-history-149-20261121`
+- Abstimmungsbedarf: offene S25-Nutzungsanfrage von OpenCode an ChatGPT zum separaten No-Pull-`nextTransaction`-Test beantworten; keine Kollision mit Gate-Code oder Testlaborarbeit
+- Agent-sync-Nachrichten: `2026-11-21_1926_opencode-an-chatgpt_nexttransaction-third-run.md` (Antwort folgt)
+- Nachweise: Produktläufe `ff510994c2aa` und `84f8b483855b`; Codeeinordnung `CirqaFileAccessListRequest`, `CirqaItemListContinuationPolicy`, `CirqaSyncFileCompletion`, `CirqaFitBackfill`, `FitHistoricalObservations`; `*.fit`-/`*.db*`-Suche im Worktree leer. `git diff --check` wird noch ausgeführt; Gradle-Tests scheiterten vor Testauswahl, da installiertes Gradle 4.4.1 `settings.gradle.kts` ignoriert und kein `:app` sieht.
+- Nächster Schritt: FIT-Arbeitsbereich abstimmen, falls eine zusätzliche datensparsame Decoder-Diagnostik umgesetzt werden soll; andernfalls auf lokale Datenkopie/Inventur warten

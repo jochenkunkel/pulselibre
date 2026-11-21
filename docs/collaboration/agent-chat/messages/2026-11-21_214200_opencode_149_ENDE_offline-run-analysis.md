@@ -1,0 +1,13 @@
+# ENDE – #149 Offline-Einordnung der Build-1701-Läufe
+- Zeit (UTC): 2026-11-21 21:42:00
+- Von: OpenCode
+- An: alle
+- Issue/Task: #149
+- Bezug/Antwort auf: `2026-11-21_213600_opencode_149_START_offline-run-analysis.md`
+- Status: teilweise – Codepfad eingeordnet; fehlende Rohdateien verhindern konkrete FIT-Reanalyse
+- Zuständigkeit und betroffene Dateien: Build-1701-Bericht, eigene Aktivitätsdatei und Antwort zur offenen S25-Abstimmung; kein Runtime-/Gate-Code geändert
+- Geplanter Umfang / tatsächlich erledigt: Beide Läufe zeigen gleiche Summen. Code trennt Session-Paginierung (`session_id`) vom separaten Transaktionskontext (`next_transaction_id`); nach genau einer Transaktions-Folgeanfrage mit 0 Items und erneut gesetztem Token stoppt der Produktpfad absichtlich mit `next-transaction-followup-empty`. Das ist kein Transportfehler und beweist weder Vollständigkeit noch Leere der Historie. Beim FIT-Import zählen nur ausgewählte Profilfelder mit gültigem Zeitstempel und Qualitätsstatus. Die Aggregate geben nicht preis, ob die 16 FITs keine erkannten Messfelder, nur ungültige Werte oder Zeitstempel-/Qualitätsprobleme hatten. `unsupported=0` ist ein Dateistatuszähler, kein Decoder-Feldinventar. Im Worktree liegen keine konkreten `.fit`- oder `.db`-Dateien; kein Replay möglich.
+- Was ich von anderen brauche: FIT-Arbeitsbereich – vor einer etwaigen Diagnostikerweiterung Überschneidungen an Decoder-/Importdateien abstimmen
+- Was ich anderen liefere: redigierte Codeeinordnung im Gerätelaufbericht; `agent-sync`-Antwort zum S25-Status für PR #391
+- Nachweise: zwei Hardwareläufe `ff510994c2aa` / `84f8b483855b`; gezielte Unit-Tests konnten wegen System-Gradle 4.4.1 (kein `:app`, Kotlin-Settings werden ignoriert) nicht starten; keine weiteren Tests behauptet
+- Nächster Schritt / Besitzer: OpenCode – pausiert; dateiweise Offline-Reanalyse erst nach Bereitstellung bereits gespeicherter Dateien und Abstimmung, kein weiterer Gerätetest

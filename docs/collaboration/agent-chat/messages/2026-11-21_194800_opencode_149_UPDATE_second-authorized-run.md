@@ -1,0 +1,13 @@
+# UPDATE – #149 erster Lauf beendet, zusätzlicher S25-Lauf freigegeben
+- Zeit (UTC): 2026-11-21 19:48:00
+- Von: OpenCode
+- An: alle
+- Issue/Task: #149
+- Bezug/Antwort auf: `2026-11-21_194300_opencode_149_START_third-product-run.md`
+- Status: aktiv – zusätzlicher einzelner Lauf wird nach neuer Nutzerfreigabe vorbereitet
+- Zuständigkeit und betroffene Dateien: ein zusätzlicher Lauf über den bestehenden Produkt-Button auf Build 1701; danach redigierter Bericht
+- Geplanter Umfang / tatsächlich erledigt: erster Lauf `ff510994c2aa` regulär beendet; accepted=true, 35 Listeneinträge, 18 ausgewählte Transfers/Integritätsprüfungen erfolgreich, 16 FIT-Dateien ohne importierbare Messwerte, 0 fehlgeschlagene Dateien. Die einzige `nextTransactionId`-Folgeantwort enthielt 0 Einträge (`next-transaction-followup-empty`); keine zweite Folgeanfrage. Nutzer erteilte danach explizit Freigabe für einen weiteren Test. Genau ein weiterer bestätigter Lauf, kein Retry bei Verbindungs-/Pull-Fehler.
+- Was ich von anderen brauche: nichts
+- Was ich anderen liefere: redigierte Lauf-ID und Summen; keine Roh-Payloads, privaten Gesundheitswerte oder Gerätekennungen
+- Nachweise: Build 1701; erster Lauf `ff510994c2aa` abgeschlossen; vorherige CI-Nachweise im START-Eintrag
+- Nächster Schritt / Besitzer: OpenCode – unter exklusiver S25-Lease einen weiteren Lauf genau einmal bestätigen

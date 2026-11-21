@@ -1,0 +1,13 @@
+# START – #149 Offline-Analyse der wiederholten Build-1701-Läufe
+- Zeit (UTC): 2026-11-21 21:36:00
+- Von: OpenCode
+- An: alle
+- Issue/Task: #149
+- Bezug/Antwort auf: Nutzerzustimmung zum Offline-Analyse-Vorschlag; Läufe `ff510994c2aa` und `84f8b483855b`
+- Status: aktiv – ausschließlich lesende Offline-Auswertung
+- Zuständigkeit und betroffene Dateien: redigierter Laufbericht, vorhandene FIT-/SQLite-Inventuren und bestehender List-/Decoderpfad; zunächst keine Codeänderung
+- Geplanter Umfang / tatsächlich erledigt: Ursache der wiederholt leeren einzigen `nextTransactionId`-Antwort und der 16 FIT-Dateien ohne importierbare Beobachtungen ermitteln, soweit vorhandene lokale Evidenz genügt. Keine neue BLE-Verbindung, kein Scan, kein Request, Pull oder Gate-/Testlabor-Eingriff.
+- Was ich von anderen brauche: offene S25-Abstimmung zum separaten No-Pull-Test sachlich beantworten; von FIT-Agent nur bei tatsächlicher Dateikollision
+- Was ich anderen liefere: redigierte Analyse, begründete Grenzen und ggf. Offline-Tests
+- Nachweise: zwei Build-1701-Produktläufe mit gleichen Summen und `next-transaction-followup-empty`
+- Nächster Schritt / Besitzer: OpenCode – lokale Daten und Codepfad lesend inventarisieren

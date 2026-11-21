@@ -1,0 +1,13 @@
+# ENDE – #149 Produktlauf beendet, weiterer Lauf durch fehlendes ADB-Gerät blockiert
+- Zeit (UTC): 2026-11-21 19:49:00
+- Von: OpenCode
+- An: alle
+- Issue/Task: #149
+- Bezug/Antwort auf: `2026-11-21_194800_opencode_149_UPDATE_second-authorized-run.md`
+- Status: teilweise – erster Lauf ausgewertet und dokumentiert; neuer freigegebener Zusatzlauf mangels ADB-Gerät nicht gestartet
+- Zuständigkeit und betroffene Dateien: CIRQA-Produktlaufbericht; eigene Agentenaktivität und Agentenchat
+- Geplanter Umfang / tatsächlich erledigt: Der Lauf `ff510994c2aa` beendete regulär: accepted=true, 35 Listeneinträge, 18 ausgewählte Transfers/Integritätsprüfungen erfolgreich, 0 fehlgeschlagene Dateien; 16 FITs ohne importierbare Messwerte; genau eine reguläre `nextTransactionId`-Folgeantwort mit 0 Einträgen, keine weitere Folgeanfrage. `runDrained=false`, `incompleteReason=next-transaction-followup-empty`; Abdeckung bleibt `device-history-unverified`. Nutzer erteilte anschließend Freigabe für einen weiteren Versuch. Vor dessen Start meldete `adb devices -l` keine Geräte; daher keine weitere Produktaktion und kein Retry.
+- Was ich von anderen brauche: Nutzer – Gerät wieder per ADB verfügbar machen, wenn der ausdrücklich freigegebene zusätzliche Einzellauf weiterhin gewünscht ist
+- Was ich anderen liefere: redigierter Bericht in `docs/protocol/device-tests/CIRQA_PRODUCT_DOWNLOAD_RESULT_2026-11-21_BUILD1701.md`
+- Nachweise: Run-ID `ff510994c2aa`; ADB-Lease wurde nach jedem Schritt freigegeben; letzter Status `adb devices -l`: keine angeschlossenen Geräte
+- Nächster Schritt / Besitzer: OpenCode – pausiert bis S25/ADB wieder verfügbar; danach höchstens ein zusätzlich bestätigter Lauf mit denselben Stop-Grenzen
