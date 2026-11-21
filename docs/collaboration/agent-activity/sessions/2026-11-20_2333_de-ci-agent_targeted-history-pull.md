@@ -1,14 +1,14 @@
 # de ci-agent – gezielter CIRQA-Datei-Pull
 - Agent/Umgebung: de ci-agent (OpenCode CLI)
 - Beginn: 2026-11-20 23:33 UTC
-- Letzte Aktualisierung: 2026-11-21 12:55 UTC
-- Status: aktiv – Arbeitsstand aktualisiert; Integration auf aktuellen origin/main und PR-Merge vorbereitet
+- Letzte Aktualisierung: 2026-11-21 12:52 UTC
+- Status: abgeschlossen – PR #367 gemergt; Branch- und Main-Full-CI erfolgreich
 - Rolle/Zuständigkeit: BLE/GFDI/Sync, lokale Persistenz
 - Aktueller Auftrag: auf Nutzerwunsch fehlende CIRQA-Dateien gegen den kanonischen Datenbankbestand abgleichen und gezielt abrufen
-- Jetzt in Bearbeitung: #171 / #148 – vollständigen, hardwarevalidierten Skip-Pfad und Rohdatei-Export nach aktuellem origin/main integrieren und per PR abschließen
+- Jetzt in Bearbeitung: keine
 - Zeitnah geplant: keine
 - Betroffene Bereiche/Dateien: `CirqaDatabase.kt`, `DatabaseBackup.kt`, Item-List-/Pull-Policy und `CirqaMlHandshakeProbe.kt`, Tests, `HISTORICAL_SYNC.md`
-- Branch/Worktree: `de-ci-agent/targeted-history-pull` / `/home/smiler/04_src/pulselibre-de-ci-agent`
+- Branch/Worktree: `de-ci-agent/targeted-history-pull` / `/home/smiler/04_src/pulselibre-de-ci-agent`; integriert über PR #367, Merge-Commit `921a36d`
 - Abstimmungsbedarf: PR #345 ist inzwischen in `origin/main` gemergt und in den Arbeitsbranch übernommen; die vorherige Dateikollision ist damit erledigt. Nutzerfreigabe erhalten, das lokale No-Pull-Testlimit auf höchstens 40 bestätigte Läufe anzuheben. Der bestehende Zähler wird nicht zurückgesetzt; die Testhistorie dokumentiert bereits 15 Läufe.
 - Agent-sync-Nachrichten: `docs/collaboration/agent-sync/2026-11-20_2333_de-ci-agent-an-alle_targeted-history-pull.md`
 - Sicherheitsgrenzen: kein Gerätezugriff ohne ausdrückliche Nutzerfreigabe; unbekannte/unstabile Remote-UIDs nicht als sicher vorhanden behandeln; kein Löschen/Archivieren/Flags/Reset/CLOSE_ALL.
@@ -18,4 +18,6 @@
 - Rohdatei-Export: `verified_raw` hatte keinen bisherigen Exportpfad; FIT-Originale ohne importierbare Beobachtungen sind bereits separat im FIT-ZIP-Export enthalten. Ergänzt: hashgeprüftes, begrenztes ZIP-Backend plus explizite SAF-Exportaktion und Warnung in `ExportActivity`. Keine automatische Dekodierung, Übertragung oder Löschung. `:app:testDebugUnitTest`, `:app:lintDebug` und `:app:assembleDebug` erfolgreich; kein Gerätetest/UI-Instrumentationstest dieses Zusatzes.
 - CI-Nachweis 2026-11-21: `ANDROID_HOME=/home/smiler/Android/Sdk ./tools/ci-local.sh --full` erfolgreich, 552 s; Python 99 Tests, Debug-/Release-Build inkl. R8, JVM-Tests, Lint, Instrumentation-APK und API-35-Emulator. Keine S25-Instrumentation oder BLE-Aktion. Ein separater GUI-Akzeptanzlauf wurde nicht ausgeführt.
 - Arbeitsstand: Branch `de-ci-agent/targeted-history-pull` hatte nach `git fetch origin` neun Commits Rückstand und keine eigenen Commits; Code/Tests/Dokumentation noch uncommitted. `origin/main` hat kein `docs/collaboration/agent-chat/`; Abstimmung läuft aktuell über `agent-sync`. Nutzerauftrag zum Merge erhalten. Wrapperdateien unter `gradle/` und `gradlew*` sind untracked und nicht Teil dieses Tasks (README führt keinen Wrapper); werden nicht übernommen.
-- Nächster Schritt: Änderungen gezielt committen, `origin/main` integrieren, vollen CI-Lauf auf dem finalen Branch-Head wiederholen, PR erstellen und erst nach grünem Branch- und Main-Lauf mergen. Keine weitere Geräteaktion erforderlich.
+- Merge-Nachweise: PR #367 (`https://github.com/jochenkunkel/pulselibre/pull/367`) mit Branch-Head `4dea391` und Merge-Commit `921a36d`. Vollständige PR-CI #44902946355 (Build/Unit/Lint und API-35-Emulator) erfolgreich; Dependency Review bestanden. Full-CI auf Main vor Merge #44903875364 auf `b706094` erfolgreich und post-merge #44904414540 auf `921a36d` erfolgreich, einschließlich API-35-Emulator. Lokaler Full-Lauf auf Branch-Head `4dea391` erfolgreich (Python 99 Tests, Build/R8, Unit, Lint, API-35-Emulator). Kein S25-Instrumentationstest und keine BLE-Aktion in der Mergephase.
+- Antwort an GUI-Agent: A6-11: Ja, Rotation darf einen gestarteten Download nicht abbrechen; Empfehlung retained Lifecycle-Owner/ViewModel statt Foreground-Service nur für Rotation. #149-Antwort dokumentiert getrennt: `timestamp_16`-Parser/Test vorhanden; Herkunftskennzeichnung noch offen bis #144/PR #362 abgestimmt; Auto-Sync-SharedPreferences speichern `last_attempt`/`last_success`, aber keinen Trigger/Einzelergebnis-/Importzähler. `nextTransaction`-Fortsetzung bleibt bewusst außerhalb dieses PRs; Dateihistorie unvollständig.
+- Nächster Schritt: keiner für #171/#148; keine weitere Geräteaktion erforderlich.
