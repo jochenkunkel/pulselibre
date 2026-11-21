@@ -22,3 +22,9 @@
 
 ## Nicht anfassen
 - Nicht das gemeinsame 15/15-Gate, keine Gate-Resets, keine automatischen Wiederholungen, keine Roh-UIDs/Transaktions-IDs/Frames im Git.
+
+## Abschluss (2026-11-21)
+- Genau ein zusätzlicher Lauf wurde nach bestandenen Gates und expliziter exklusiver S25-Freigabe durchgeführt.
+- Ergebnis: initial 35 Einträge; genau eine Folgeantwort `status=0` / 0 Einträge; `pullSent=false`; MLR 0 Chunks/Bytes; Gate 2/2. Details und Grenzen stehen im datierten Ergebnisbericht.
+- PR #378 wurde gemergt (`b4e0ba2`); Branch-Full-CI, Dependency Review und Main-Full-CI vor und nach Merge bestanden.
+- Keine weiteren BLE-Versuche aus diesem Scope.
