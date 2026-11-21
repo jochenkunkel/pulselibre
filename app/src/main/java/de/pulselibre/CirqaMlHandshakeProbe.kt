@@ -87,6 +87,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private var syncHasNextTransactionId = false
     private var syncPageSessionId: Long? = null
     private var syncPageNextTransactionId: Long? = null
+    private val syncListContinuation = CirqaItemListContinuationPolicy()
+    private var syncTransactionFollowupResponseItems: Int? = null
     private var syncListPageCount = 0
     private var syncQueuedFiles = 0
     private var syncQueuedBytes = 0L
@@ -1070,33 +1072,72 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             finish("Item-List-Seitenlimit erreicht; keine Vollständigkeit behauptet.", g)
             return
         }
-        val sessionId = syncPageSessionId
-        if (sessionId == null) {
-            if (syncPageNextTransactionId != null) {
-                syncIncompleteReason = "next-transaction-pending"
-                finish(
-                    "Item-List-Session beendet; separate Transaktion angekündigt. " +
-                        "Stopp ohne weitere Anfrage; Historienvollständigkeit unbekannt.",
-                    g
-                )
+        val continuation = syncListContinuation.next(
+            sessionId = syncPageSessionId,
+            nextTransactionId = syncPageNextTransactionId
+        )
+        if (continuation == CirqaItemListContinuationPolicy.Decision.Complete) {
+            finish("Item-List abgeschlossen; Datei-Queue abgearbeitet.", g)
+            return
+        }
+        if (continuation == CirqaItemListContinuationPolicy.Decision.TransactionLimitReached) {
+            val responseItems = syncTransactionFollowupResponseItems
+            syncIncompleteReason = if (responseItems == 0) {
+                "next-transaction-followup-empty"
             } else {
-                finish("Item-List vollständig; Datei-Queue abgearbeitet.", g)
+                "next-transaction-followup-limit"
             }
+            val detail = if (responseItems == 0) {
+                "Die einmalige nextTransaction-Folgeantwort enthielt 0 Einträge"
+            } else {
+                "Ein begrenzter nextTransaction-Folgeabruf wurde bereits verarbeitet"
+            }
+            finish(
+                "$detail; keine weitere Transaktion angefordert. " +
+                    "Historienvollständigkeit unbekannt.",
+                g
+            )
             return
         }
         val handle = historyHandle ?: run {
+            syncIncompleteReason = "item-list-continuation-handle-missing"
             finish("GFDI-Handle fehlt vor der Item-List-Fortsetzung.", g)
             return
         }
         val requestId = syncNextRequestId
         syncNextRequestId = if (syncNextRequestId >= 0xffff) 1 else syncNextRequestId + 1
-        syncPageSessionId = null
-        syncPageNextTransactionId = null
-        syncPullDiag = (syncPullDiag + "|list#$requestId:continuation=true").take(1000)
-        queueAck(g, CirqaFileAccessListRequest.mlValue(
-            handle, requestId, sessionId = sessionId
-        ))
-        main.post { mark("FileAccess-Item-List-Fortsetzung angefordert (read-only)") }
+        when (continuation) {
+            is CirqaItemListContinuationPolicy.Decision.SessionPage -> {
+                syncPageSessionId = null
+                syncPageNextTransactionId = null
+                syncIncompleteReason = "item-list-session-followup-pending"
+                syncPullDiag = (syncPullDiag + "|list#$requestId:continuation=session")
+                    .take(1000)
+                queueAck(g, CirqaFileAccessListRequest.mlValue(
+                    handle, requestId, sessionId = continuation.sessionId
+                ))
+                main.post { mark("FileAccess-Item-List-Session-Fortsetzung angefordert (read-only)") }
+            }
+            is CirqaItemListContinuationPolicy.Decision.TransactionFollowup -> {
+                if (!syncListContinuation.recordTransactionFollowupSent()) {
+                    syncIncompleteReason = "next-transaction-followup-limit"
+                    finish("nextTransaction-Folgeabruf bereits ausgeschöpft; Stopp.", g)
+                    return
+                }
+                syncPageNextTransactionId = null
+                syncIncompleteReason = "next-transaction-followup-pending"
+                syncPullDiag = (syncPullDiag + "|list#$requestId:continuation=transaction")
+                    .take(1000)
+                queueAck(g, CirqaFileAccessListRequest.mlValue(
+                    handle, requestId, transactionId = continuation.transactionId
+                ))
+                main.post {
+                    mark("Ein separater nextTransaction-Folgeabruf angefordert; keine automatische Kette")
+                }
+            }
+            CirqaItemListContinuationPolicy.Decision.Complete,
+            CirqaItemListContinuationPolicy.Decision.TransactionLimitReached -> Unit
+        }
     }
 
     private fun appendSyncItemListPage(g: BluetoothGatt, page: CirqaFileAccessItemListParser.ItemListPage) {
@@ -1105,6 +1146,13 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             syncIncompleteReason = "item-list-status"
             finish("Item-List meldete Status ${page.status ?: "fehlt"}; Fortsetzung gestoppt.", g)
             return
+        }
+        when (syncIncompleteReason) {
+            "next-transaction-followup-pending" -> {
+                syncTransactionFollowupResponseItems = page.items.size
+                syncIncompleteReason = null
+            }
+            "item-list-session-followup-pending" -> syncIncompleteReason = null
         }
         val sessionId = syncSessionId
         if (syncRequestMode && syncAccepted && sessionId != null) {
@@ -1977,6 +2025,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         syncHasNextTransactionId = false
         syncPageSessionId = null
         syncPageNextTransactionId = null
+        syncListContinuation.reset()
+        syncTransactionFollowupResponseItems = null
         syncListPageCount = 0
         syncQueuedFiles = 0
         syncQueuedBytes = 0L
@@ -2235,7 +2285,10 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                         }
                         syncPullDiag = (syncPullDiag + "|result=${pull.resultCode},transport=${pull.transport}," +
                             "handle=${pull.transferHandle},path=${pull.hasFilePath}," +
-                            "window=${pull.compressionWindow}]").take(1000)
+                            "window=${pull.compressionWindow},errorCode=${pull.errorCode ?: "none"}," +
+                            "errorSource=${pull.errorSource ?: "none"}," +
+                            "dataErrorSource=${pull.dataSpecificErrorSource ?: "none"}," +
+                            "dataErrorCode=${pull.dataSpecificErrorCode ?: "none"}]").take(1000)
                         syncTransferHandle = pull.transferHandle
                         if (pull.resultCode != 0L || pull.transport != 0L ||
                             pull.transferHandle !in 1..0xffff_ffffL
@@ -3010,7 +3063,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             val runDrained = syncAccepted && syncIncompleteReason == null &&
                 syncFailedFiles == 0 && syncPendingItems.isEmpty() && syncCurrentItem == null &&
                 syncPageSessionId == null && syncPageNextTransactionId == null
-            syncFinalReport = "Sync-Beobachtung: $message; runDrained=$runDrained; " +
+            syncFinalReport = "Sync-Beobachtung: ${CirqaSyncRunIdentity.reportField(syncSessionId)}; " +
+                "$message; runDrained=$runDrained; " +
                 "coverage=device-history-unverified; " +
                 "incompleteReason=${syncIncompleteReason ?: when {
                     !syncAccepted -> "sync-not-accepted"
@@ -3024,7 +3078,9 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                 "$syncPullDiag; $mlrDiag; mlr=[chunks=$mlrChunks,bytes=$mlrBytes]; " +
                  "files=[successful=$syncCompletedFiles,notSuccessful=$syncFailedFiles," +
                  "stages=[${syncFileStageCounts.redactedSummary()}],queued=${syncPendingItems.size}," +
-                "selected=$syncQueuedFiles,selectedBytes=$syncQueuedBytes,skipped=$syncSkippedFiles," +
+                 "transactionFollowups=${syncListContinuation.transactionFollowups}," +
+                 "transactionFollowupResponseItems=${syncTransactionFollowupResponseItems ?: "none"}," +
+                 "selected=$syncQueuedFiles,selectedBytes=$syncQueuedBytes,skipped=$syncSkippedFiles," +
                 "pages=$syncListPageCount,currentBytes=${mlrData.size()},details=$syncFileResults]; " +
                 "validate=[${if (syncCurrentItem != null) mlrValidation().redactedSummary() else "complete"}]; " +
                 "frames=$counts; proto=[$syncProtoShapes]"
@@ -3125,6 +3181,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             syncHasNextTransactionId = false
             syncPageSessionId = null
             syncPageNextTransactionId = null
+            syncListContinuation.reset()
+            syncTransactionFollowupResponseItems = null
             syncListPageCount = 0
             syncQueuedFiles = 0
             syncQueuedBytes = 0L

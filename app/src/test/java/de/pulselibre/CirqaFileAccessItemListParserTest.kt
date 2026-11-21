@@ -57,6 +57,37 @@ class CirqaFileAccessItemListParserTest {
         assertArrayEquals(smart, body.copyOfRange(14, body.size))
     }
 
+    @Test fun parsesRedactedPullErrorMetadataIncludingSignedCodes() {
+        fun sint32(value: Int): Long =
+            ((value shl 1) xor (value shr 31)).toLong() and 0xffff_ffffL
+
+        val response = scalarField(1, 3) + scalarField(2, 0) +
+            scalarField(5, sint32(-7)) + scalarField(6, 2) +
+            scalarField(8, 4) + scalarField(9, sint32(11))
+        val smart = field(43, field(2, response))
+
+        val parsed = CirqaFileAccessItemListParser.parsePullResult(smart)!!
+        assertEquals(3L, parsed.resultCode)
+        assertEquals(0L, parsed.transport)
+        assertEquals(0L, parsed.transferHandle)
+        assertEquals(-7, parsed.errorCode)
+        assertEquals(2L, parsed.errorSource)
+        assertEquals(4L, parsed.dataSpecificErrorSource)
+        assertEquals(11, parsed.dataSpecificErrorCode)
+        assertFalse(parsed.hasFilePath)
+    }
+
+    @Test fun omittedPullErrorMetadataRemainsAbsent() {
+        val parsed = CirqaFileAccessItemListParser.parsePullResult(
+            field(43, field(2, scalarField(1, 0)))
+        )!!
+
+        assertNull(parsed.errorCode)
+        assertNull(parsed.errorSource)
+        assertNull(parsed.dataSpecificErrorSource)
+        assertNull(parsed.dataSpecificErrorCode)
+    }
+
     @Test fun redactedSummaryClassifiesKnownFitTypesWithoutUid() {
         val uid = ByteArray(16) { (it + 1).toByte() }
         val typeText = "FIT_TYPE_72".toByteArray(Charsets.UTF_8)

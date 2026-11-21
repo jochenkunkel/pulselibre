@@ -184,7 +184,6 @@
     <string name="reception_old">aucune nouvelle réception depuis longtemps</string>
 
     <!-- Übersicht: Kacheln, Nacht, Schritte, Empfangsdialog -->
-    <!-- TODO-CHATGPT-REVIEW: Erstentwurf von Claude Code, Ticket #365 -->
     <string name="ov_today_glance">Aujourd’hui en un coup d’œil</string>
     <string name="ov_more_health">Autres valeurs de santé</string>
     <string name="ov_all_hidden">Toutes les tuiles sont masquées. Vous pouvez les afficher à nouveau sous « Personnaliser l’accueil ».</string>
@@ -254,7 +253,6 @@
     <string name="ov_dot_hint">La couleur du point en haut indique seulement l’ancienneté de la réception, pas la santé.</string>
 
     <!-- Fachlogik-Texte: Aktivität, Skalen, Nacht, Zielstatus -->
-    <!-- TODO-CHATGPT-REVIEW: Erstentwurf von Claude Code, Ticket #365 -->
     <string name="dom_mode_unknown">Mode inconnu</string>
     <string name="dom_mode_rest">Repos</string>
     <string name="dom_mode_movement">Mouvement léger</string>
@@ -303,7 +301,6 @@
     <string name="dom_night_unreadable">Série de nuit illisible.</string>
 
     <!-- Fachlogik-Texte: Hinweise der Kacheln -->
-    <!-- TODO-CHATGPT-REVIEW: Erstentwurf von Claude Code, Ticket #365 -->
     <string name="dom_note_not_measured">Non mesuré ou non valide</string>
     <string name="dom_note_source">Source : service CIRQA %1$s</string>
     <string name="dom_note_sleep_fit">Les phases/la durée du sommeil nécessitent un historique FIT validé</string>
@@ -312,7 +309,6 @@
     <string name="dom_unit_device_scale">Échelle de l’appareil 0–100</string>
 
     <!-- Verlauf: Zeitfenster, Karten, Verteilung -->
-    <!-- TODO-CHATGPT-REVIEW: Erstentwurf von Claude Code, Ticket #365 -->
     <string name="hv_window_current">Actuel · jusqu’à %1$s</string>
     <string name="hv_window_cd">Fenêtre temporelle %1$s</string>
     <string name="hv_window_previous">Fenêtre temporelle précédente</string>
@@ -325,7 +321,7 @@
     <string name="hv_card_summary">%1$d valeurs · %2$d fenêtres occupées · %3$s\nÉchelle %4$s–%5$s %6$s</string>
     <string name="hv_mode_points">Points</string>
     <string name="hv_mode_density">Répartition</string>
-    <string name="hv_mode_safe">Daltonisme</string>
+    <string name="hv_mode_safe">Couleurs accessibles</string>
     <string name="hv_mode_cd">Affichage %1$s</string>
     <string name="hv_density_title">%1$s · fenêtre temporelle</string>
     <string name="hv_failed">L’historique local n’a pas pu être chargé.</string>
@@ -355,7 +351,7 @@
     <string name="hd_excluded">%1$d valeurs en dehors de l’axe affiché ne sont pas colorées.</string>
     <string name="hd_footer">Répartition relative dans cette fenêtre ; pas un diagnostic.</string>
     <string name="hd_legend">Répartition par fenêtre temporelle : couleur = fréquence relative des mesures dans la même fenêtre (rouge fréquent · jaune moyen · vert rare, plus intense = plus fréquent), échelle commune à toutes les fenêtres. Montre la forme de la répartition, pas le nombre de mesures. Vide = aucune mesure. Appuyer pour les détails.</string>
-    <string name="hd_legend_safe">Répartition par fenêtre temporelle (daltonisme) : couleur = fréquence relative des mesures dans la même fenêtre (jaune fréquent · turquoise moyen · bleu rare, plus intense = plus fréquent), échelle commune à toutes les fenêtres. Sans distinction rouge/vert. Vide = aucune mesure. Appuyer pour les détails.</string>
+    <string name="hd_legend_safe">Répartition par fenêtre temporelle (couleurs accessibles) : couleur = fréquence relative des mesures dans la même fenêtre (jaune fréquent · turquoise moyen · bleu rare, plus intense = plus fréquent), échelle commune à toutes les fenêtres. Sans distinction rouge/vert. Vide = aucune mesure. Appuyer pour les détails.</string>
     <string name="hd_density_empty">Graphique de répartition : aucune mesure sur la période choisie.</string>
     <string name="hd_density_cd">Graphique de répartition : %1$d mesures dans %2$d des %3$d fenêtres temporelles, plage de valeurs de l’axe de %4$d à %5$d. Un double appui sur le graphique ouvre les valeurs individuelles de la fenêtre touchée ; la couleur indique la fréquence, les fenêtres sans valeurs restent vides.</string>
     <string name="hd_axis_span">%1$s à %2$s</string>
