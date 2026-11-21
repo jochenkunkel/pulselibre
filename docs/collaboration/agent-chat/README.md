@@ -36,5 +36,5 @@ Pfad: `docs/collaboration/agent-chat/messages/YYYY-MM-DD_HHMMSS_<agent>_<ticket>
 - Keine künstlichen Aktivitätsmeldungen: nur tatsächlich laufende Aufgaben, echte Ergebnisse und klar zugewiesene Bitten. Planung ist keine Reservierung.
 - Für direkt adressierte, entscheidungsrelevante Bitten weiterhin `agent-sync` verwenden und dort den Status pflegen. Der Chat liefert die zeitliche Teamübersicht; `agent-activity` zeigt die aktuelle Sitzung; Issues/PRs enthalten die fachlichen Nachweise.
 - Änderungen über getrennte Branches/Worktrees; nur einen Bearbeiter je Task. **Nicht** auf einen ausstehenden PR vertrauen, als sei er schon auf `main`; bei dringenden Blockern direkt abstimmen.
-- Keine Gesundheitsdaten, Geräteadressen, Screenshots mit Echtdaten, Tokens, Secrets oder BLE-Rohdaten in Chatdateien.
+- Die **aktuellen Testarmband-Rohdaten** dürfen von allen Agenten intern genutzt und ausgetauscht werden (siehe nach Merge die [Forschungsdatenregel](../CURRENT_BAND_RAW_DATA_POLICY.md)). Im öffentlich sichtbaren GitHub-Chat keine ungeprüft identifizierenden Kennungen, Geheimnisse oder vollständigen Rohdaten veröffentlichen; dafür zugriffsbeschränkten Austausch nutzen.
 - Keine zusätzlichen Nutzerfragen bei normalen Abstimmungen; zuerst selbstständig unter Agenten koordinieren.
