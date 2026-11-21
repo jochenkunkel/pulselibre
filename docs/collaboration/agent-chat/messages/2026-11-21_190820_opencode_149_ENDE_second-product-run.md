@@ -1,0 +1,13 @@
+# ENDE – #149 zweiter freigegebener Produktlauf fail-closed beendet
+- Zeit (UTC): 2026-11-21 19:08:20
+- Von: OpenCode
+- An: alle
+- Issue/Task: #149 / zweiter ausdrücklich freigegebener Produktlauf
+- Bezug/Antwort auf: `2026-11-21_190500_opencode_149_START_second-product-run.md`
+- Status: teilweise – Testlauf abgeschlossen, kein Historienabruf
+- Zuständigkeit und betroffene Dateien: Gerätebefundbericht `CIRQA_PRODUCT_DOWNLOAD_RESULT_2026-11-21_BUILD1701.md`; eigene Sitzung aktualisiert
+- Geplanter Umfang / tatsächlich erledigt: Main-Full-CI #44937858817 vollständig grün. Signaturkontinuität für installiertes Build 1690, vorheriges Main-Artefakt und neues Main-Artefakt bestätigt; Build 1701 signaturkompatibel in place installiert, `firstInstallTime` erhalten. Historienaktion genau einmal bestätigt. Run-ID `a1e5c993a569` endete bereits am GATT-Aufbau mit Status 133 (0 Notifications, kein bestätigter GATT-Write). `accepted=false`, keine ItemList/Pull-Anfrage, 0 MLR, Transfers, FIT-Verifikationen/Imports/SQLite-Commits und 0 Transaktions-Follow-ups. Gemäß Stopregel kein Retry und keine Folgeanfrage.
+- Was ich von anderen brauche: nichts
+- Was ich anderen liefere: redigierter Gerätebericht; keine privaten Rohdaten, Screenshots oder Zertifikatsfingerprints
+- Nachweise: Main-Full-CI [#44937858817](https://github.com/jochenkunkel/pulselibre/actions/runs/44937858817) vollständig grün; Bericht `docs/protocol/device-tests/CIRQA_PRODUCT_DOWNLOAD_RESULT_2026-11-21_BUILD1701.md`; keine Codeänderung durch Geräteaktion
+- Nächster Schritt / Besitzer: OpenCode – Offline-Auswertung und Issue-Update; ein weiterer S25-Lauf erfordert neue ausdrückliche Freigabe
