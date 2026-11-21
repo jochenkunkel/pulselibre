@@ -1,0 +1,15 @@
+# OpenCode – nextTransaction-Fortsetzungstest
+- Agent/Umgebung: OpenCode CLI-Agent
+- Beginn: 2026-11-20 22:54 UTC
+- Letzte Aktualisierung: 2026-11-21 00:50 lokal
+- Status: pausiert – PR-Review/CI und Merge ausstehend
+- Rolle/Zuständigkeit: CIRQA/FIT/GFDI-Protokoll und Offline-/S25-Tests
+- Aktueller Auftrag: auf Nutzeranweisung klären, ob `nextTransactionId` nach einer FileAccess-Item-List eine weitere Liste/Transaktion eröffnet; einen engen Test erstellen und bei grünen Gates einmal am S25 prüfen
+- Jetzt in Bearbeitung: Reverse-build Call-Graph-Prüfung abgeschlossen; PR #345 wartet auf erneute Full-CI nach Forschungsnotiz und Review
+- Zeitnah geplant: keine
+- Betroffene Bereiche/Dateien: `CirqaFileAccessListRequest`, `CirqaMlHandshakeProbe`, Testlabor-Gates und zugehörige Tests/Dokumentation
+- Branch/Worktree: `opencode/nexttransaction-s25-test-20261121` / `/tmp/opencode/pulselibre-nexttransaction-test-20261121`
+- Abstimmungsbedarf: Nutzer hat die mögliche geräteseitige Transfer-Markierung ausdrücklich freigegeben. S25-Probe wurde nach erfolgreichem Full-CI ausgeführt. Vor Merge gelten weiterhin Review und Full-CI auf PR-Head und main. Die vorhandenen 15/15 Item-List-Läufe bleiben verbraucht; kein Gate-Reset.
+- Agent-sync-Nachrichten: neue Nachricht zur Scope-/Gerätekoordination wird mit Test-PR veröffentlicht
+- Nachweise: Implementierung PR #345; GitHub CLOUD/FULL Dispatch 44836776836 auf Head `d5b90b0` erfolgreich inkl. Emulator. Mit stabil signiertem Build 1583 auf S25 einmalige Probe: erste Liste 28 Einträge, `session=false`, `nextTransaction=true`; eine `transaction_id`-Folgeanfrage lieferte `status=0`, 0 Einträge, erneut `session=false`, `nextTransaction=true`; danach Stopp. `pullSent=false`, MLR 0 Chunks/Bytes. Details: `docs/protocol/device-tests/CIRQA_NEXT_TRANSACTION_PROBE_RESULT_2026-11-21.md`. Zusätzliche statische Auswertung des lokalen Connect-5.31-JADX-Exports: Responsefeld 3 ist Token für separate Anfrage; `sendListFiles` setzt `session_id` intern fort, gibt bei fehlender Session-ID den `next_transaction_id` als `ListFilesResult` zurück; AgentQueueHelper speichert Tokens je Agent. Keine automatische unbegrenzte Transaktionsschleife in den geprüften Methoden belegt.
+- Nächster Schritt: Forschungsnotiz veröffentlichen; PR-Full-CI und Review abwarten. Keine weitere Folgeanfrage und kein Gate-Reset.

@@ -21,12 +21,27 @@ internal data class TileInsight(
     val weekAtThisTime: Double?,
     val weekDays: Int,
     /** SpO₂ only: share of today's readings in the orientation bands (≥95, 90–94, <90), percent; else null. */
-    val bands: Triple<Double, Double, Double>?
+    val bands: Triple<Double, Double, Double>?,
+    /** Heart rate only: today's values from band FIT files (band MEASUREMENT time); kept apart from the live values above (#334). */
+    val fit: FitDaySummary? = null
 ) {
     val deltaToWeek: Double? get() = if (current != null && weekAtThisTime != null) current - weekAtThisTime else null
 }
 
+/** Today's band-measured (FIT) values of one metric; never combined with live reception-time values. */
+internal data class FitDaySummary(val date: LocalDate, val count: Int, val min: Double, val max: Double, val average: Double, val hourly: List<Double?>)
+
 internal object TileInsightCalc {
+    /** Null when the band delivered nothing for [day] (up to [now]); hourly means use the band's measurement time. */
+    fun summarizeFit(points: List<HistoryPoint>, day: DashboardDay, now: Instant): FitDaySummary? {
+        val valid = points.filter { day.includes(it.receivedAt, now) }
+        if (valid.isEmpty()) return null
+        val hourly = arrayOfNulls<Double>(24)
+        valid.groupBy { it.receivedAt.atZone(day.zone).hour }.forEach { (h, list) -> hourly[h] = list.map { it.value.toDouble() }.average() }
+        val values = valid.map { it.value.toDouble() }
+        return FitDaySummary(day.date, values.size, values.min(), values.max(), values.average(), hourly.toList())
+    }
+
     val CUMULATIVE = setOf(DashboardMeasurement.STEPS, DashboardMeasurement.CALORIES_TOTAL,
         DashboardMeasurement.CALORIES_ACTIVE, DashboardMeasurement.MODERATE, DashboardMeasurement.VIGOROUS)
 
@@ -97,6 +112,16 @@ internal class TileInsightReader(private val context: Context) {
                 if (values.isNotEmpty()) weekValues.add(if (cumulative) values.last() else values.average())
             }
         }
-        return TileInsightCalc.summarize(metric, today, day, now, weekValues)
+        val fit = if (metric != DashboardMeasurement.PULSE) null else try {
+            val reader = FitHistoryReader(context)
+            // Band history is usually older than today: show today's band values, else the newest day that has some (labelled with its date).
+            val latest = reader.latestMeasuredAt(now)
+            if (latest == null) null else {
+                val fitDay = if (latest >= day.start) day else DashboardDay(latest.atZone(zone).toLocalDate(), zone)
+                val window = reader.read(fitDay.start, maxOf(fitDay.start.plusSeconds(1), minOf(fitDay.end, now.plusSeconds(60))))
+                TileInsightCalc.summarizeFit(window.points, fitDay, now)
+            }
+        } catch (_: Exception) { null }
+        return TileInsightCalc.summarize(metric, today, day, now, weekValues).copy(fit = fit)
     }
 }

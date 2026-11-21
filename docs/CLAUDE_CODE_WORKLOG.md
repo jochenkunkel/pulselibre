@@ -466,3 +466,85 @@ Noch sichtbar offen (P3): Nacht-Insights erste Spalte „22–6 Uhr / 22331 / We
 - **FAIL war ein Werkzeugfehler:** „Schritte heute“ nicht gefunden, weil `input swipe` einen Fling auslöste und die sequentielle Suche die Kachel übersprang; die Kachel war vorhanden. Behoben: langsamer kurzer Zug (900 ms, 28 %) und `scan_page` (einmaliger Durchlauf, Vereinigung aller Knoten). Wiederholung der Phasen preflight/navigation/overview: alle PASS, **#312 am Gerät belegt (Kachel 0,5 % = Begründung 0,5 %)**.
 - **INFO:** Akku 100 %, lädt; CIRQA-Batteriestand wird auf der Geräteseite nicht angezeigt (#159 hängt an OpenCode); nach 90 s im Hintergrund kein Vordergrunddienst aktiv (Zustand „Aufzeichnung aus“; Beleg für #171/#25/#3, keine Aussage über Dauerbetrieb).
 - **Offen/manuell:** TalkBack durch die neuen Dialoge, Beispielbytes bewusst anzeigen (nur „Datei n“), Plausibilität Fitness-Ansicht, Gestaltungswunsch Geräteseite. Bericht und Screenshots liegen lokal (`~/s25-acceptance/…`), enthalten echte Werte, nicht im Repo.
+
+## 2026-11-20 – Kosmetik: App-Symbol im Kopfbereich in der Hell-Ansicht
+- Befund aus der S25-Prüfung: Logo-Quadrat (#5127C9) und Banner (#5A33C7 im Hellmodus) fast gleich. `PulseLogoView` zeichnet in Hell eine 1,5-dp-Kontur (weiß, 80 %); Dunkel unverändert. Parameter `outline` injizierbar; Emulator-Test `PulseLogoViewTest` prüft per Pixel, dass die Kante deutlich heller ist als die Füllung. Wartet auf stabile CI (kein Push während der LOCAL-Läufe).
+
+## 2026-11-20 – S25-Sammelabnahme, zweiter Komplettlauf mit korrigiertem Werkzeug (Build 1520, 18:11–18:22)
+- **53 PASS, 0 FAIL, 3 INFO** (Akku 100 % lädt; CIRQA-Batteriestand nicht angezeigt (#159); kein Vordergrunddienst nach 90 s Hintergrund). Alle Phasen inkl. Überlappungs-Heuristik in Hell/Schrift 1,3/Schrift 2,0/320 dp, #312 (Kachel = Begründung), #309, #267, #172, #204-Warnung. Einstellungen wiederhergestellt (Nachtmodus an, Schrift 1,0, Dichte 480). Bericht lokal (echte Werte, nicht im Repo).
+
+## 2026-11-20 (abends) – Offline-Nachweis nach Umstellung auf LOCAL
+
+- Stand: PR-/Fork-Läufe bleiben CLOUD (Billing-Blocker, wird nicht umgangen); PR #330 (direktes LOCAL-Routing) ist offen. Keine Pushes/Merges von mir, solange kein grüner voller Lauf auf dem Branch-Kopf lesbar ist.
+- Branch `claude/header-icon-kontrast` auf aktuellen `origin/main` rebased (konfliktfrei). Lokal offline grün: `:app:testDebugUnitTest` und `:app:compileDebugAndroidTestKotlin` (inkl. `PulseLogoViewTest`). Emulator-Tests laufen weiterhin nur in der CI.
+- Nächster Schritt: sobald PR #330 integriert und Billing geklärt ist, LOCAL QUICK/FULL per `workflow_dispatch` auf dem Branch auslösen (mit CI-Agent abstimmen, Concurrency #321), dann #327 und den Logo-PR mergen.
+
+## 2026-11-20 (abends) – Audit #6: ExportActivity abgeschlossen
+
+- A6-7 umgesetzt: Fehlermeldungen bei Backup/CSV-Export nennen die mögliche unvollständige Zieldatei (reiner Text, `compileDebugKotlin` offline grün, keine Tests an den Texten).
+- A6-8 (still verworfene beschädigte Zeilen, Speicherlast von `readingLines()`) im Audit Abschnitt 16 dokumentiert, nicht umgesetzt.
+- Nur lokal committet; kein Push bis LOCAL-Nachweis (siehe oben).
+
+## 2026-11-20 (spät) – PR #332: Emulator-Test `PulseLogoViewTest` korrigiert
+
+- Cloud-FULL (Lauf 44808320489): 112 Emulator-Tests, 1 Fehler – mein eigener neuer Test: `plain=107 outlined=225`. Die Produktionskontur wirkt (225 gegenüber 107), die Schwelle `plain < 90` war falsch gerechnet (Kanalmittel von #5127C9 = 107). Schwelle auf `< 130` angepasst, Unterschied weiter `> +70`. Der Fehler ist damit ein Testfehler, kein Produktfehler.
+
+## 2026-11-20 (nachts) – #334: FIT-Historie im Verlauf
+
+- Ticket #334 angelegt (Folgepunkt zu #149). Die genannte agent-sync-Datei (22:08) und der Geräte-Befund liegen auf `origin` nicht vor; Umsetzung nach Auftragsbeschreibung und Code, Rückfrage im agent-sync (22:30).
+- Neue Karte „Herzfrequenz · Band-Verlauf (FIT)“ im Reiter Verlauf: Zeitachse Messzeit des Bandes, getrennt von der bestehenden Karte (Telefonzeit). `FitHistoryReader` liest nur lesend über `HistoricalObservationRepository`, nur Beobachtungen mit FIT-Herkunft, `heart_rate`, 1–240 bpm. Karte nur sichtbar, wenn FIT-Daten existieren; sonst ehrlicher Leertext.
+- Tests: JVM `FitHistoryMappingTest` (Zeit, Herkunft, Wertebereich, Zeitbasen), Emulator `FitHistoryViewTest` (Reader-Fenster halboffen, Karten getrennt, Leerzustand). Offline: Unit-Tests grün, Emulator-Tests kompilieren; Emulator-Lauf in der CI.
+- Bekanntes Risiko: Der Verlauf lädt bei jedem Refresh das FIT-Fenster neu (Hintergrundthread, bis 150.000 Punkte pro Fenster). Falls das auf dem S25 spürbar ist, Cache ergänzen.
+
+## 2026-11-20 (nachts) – #334 Teil 2: Übersicht zeigt Band-Verlauf (FIT)
+
+- Nutzerhinweis: Die Graphen der Übersicht zeigen die historischen Daten ebenfalls nicht (gleiche Ursache: nur Echtzeit-`events`).
+- Herzfrequenz-Kachel: zusätzliche Zeile „Band-Verlauf heute (Messzeit): Ø · min–max (n Werte)“ und eigene Sparkline (24 Stunden, Messzeit des Bandes). Live-Werte und Band-Werte werden nicht gemischt. Hat die Kachel heute nur Band-Daten, erscheint nur dieser Block (kein Wochenvergleich, der wäre live-only).
+- Tests: `FitDaySummaryTest` (nur heute bis jetzt, Stundenmittel nach Messzeit, leer = null). Offline Unit-Tests grün, Emulator-Tests kompilieren.
+- Offen: Tageszeitleiste (`DayTimeline`) und Tagesdialoge lesen weiter nur Live-Events; weitere FIT-Metriken gibt es im Import nicht für diese Kacheln.
+
+## 2026-11-21 – S25-Sichtprüfung #334 (CI-signiertes APK, Build 1561)
+
+- Installiert: `app-release.apk` aus dem main-Lauf 44821236628 (enthält #335/#336), `adb install -r`, Daten erhalten. Nur lesend bedient (Tabs, Zeitraumwahl, Scrollen); keine BLE-Aktion, keine Instrumentation.
+- **Verlauf, 30 Tage:** zweite Karte „Herzfrequenz · Band-Verlauf (FIT)“ vorhanden, Werte in mehreren belegten Tagesfenstern, Legende „Zeitachse: Messzeit des Bandes (aus FIT-Dateien)“; die Live-Karte bleibt „Telefonzeit“ (eigene Werte, Telefonzeit). Beide Reihen getrennt.
+- **Übersicht:** Herzfrequenz-Kachel zeigt die Live-Zeile („Heute Ø … bpm“); die Zeile „Band-Verlauf heute (Messzeit)“ erscheint nicht, weil die FIT-Daten nicht von heute sind (erwartetes Verhalten: nur heutige Band-Werte).
+- **Performance:** Wechsel 7 → 30 Tage bis zur sichtbaren Karte unter etwa 2 s (grobe Messung inklusive UI-Dump); kein Absturz im Crash-Log. Kein Anlass für Rollups (#140).
+- Offen: die Übersicht zeigt historische Band-Werte nur für den heutigen Tag; Tage davor wären ein eigener Schritt (Wochenkarte, #329) und braucht belegte weitere Metriken.
+
+## 2026-11-21 – Übersicht: neuester Band-Tag, wenn heute keiner vorhanden ist
+
+- Befund am S25: Die Band-Zeile der Herzfrequenz-Kachel erschien nicht, weil die FIT-Daten nicht von heute sind. Das erfüllt den Nutzerwunsch („historische Daten in der Übersicht“) nicht.
+- Jetzt: ohne heutige Band-Werte zeigt die Kachel den neuesten Tag mit Band-Werten, mit Datum in der Zeile („Band-Verlauf 17.11. (Messzeit): Ø … (n Werte)“) und eigener Sparkline. `FitHistoryReader.latestMeasuredAt` (nur lesend). Live-Werte bleiben getrennt.
+- Tests: `FitDaySummaryTest` (Datum des Vortags), `FitHistoryViewTest` (latestMeasuredAt halboffen). Unit-Tests grün, Emulator-Tests kompilieren.
+
+## 2026-11-21 – S25-Abnahme #334: Messtag der FIT-Herzfrequenz (Build 1569, nur lesend)
+
+- Aufbau: CI-signiertes APK aus dem main-Lauf 44827310290 (Stand nach #339), `adb install -r` (Daten erhalten), nur Tabs/Zeitraum/Zurückblättern/Scrollen; **keine BLE-Synchronisation, keine Instrumentation**.
+- Aus Datenschutzgründen stehen hier bewusst **keine Messwerte, Zählwerte oder Messdaten-Tage** (Regel: keine Gesundheitsdaten im Repo); die Zahlen liegen nur im lokalen Gerätebericht.
+- **Übersicht:** Die Herzfrequenz-Kachel zeigt neben der Live-Zeile eine getrennte Zeile „Band-Verlauf <Datum> (Messzeit)“ mit dem Datum des neuesten Messtags, weil heute keine Band-Werte vorliegen.
+- **Verlauf:** 30 Tage und ein 24-h-Fenster zurück zeigen die getrennte Band-Karte („Zeitachse: Messzeit des Bandes“); die Live-Karte im selben Fenster hat eigene Werte (Telefonzeit). Beide Reihen getrennt.
+- **Konsistenz:** Der Messtag der Kachel liegt im Verlaufsfenster, in dem die Band-Karte ihre Werte hat; Ortsdarstellung und UTC-Epoche entsprechen der Zusage von OpenCode. Grenze: keine unabhängige Referenz für den absoluten Tag (kein Garmin-Connect-Vergleich); geprüft ist die interne Konsistenz von Kachel, Verlauf und Fensterachse.
+- **Performance:** Zeitraumwechsel und Zurückblättern ohne spürbare Verzögerung, kein Absturz im Crash-Log. Rollups (#140) nicht nötig.
+- **Offen:** Metrikverteilung der 17 importierten Dateien (OpenCode); Tageszeitleiste/Tagesdialoge lesen weiter nur Live-Daten; weitere Metriken erst nach Import.
+
+## 2026-11-21 – Lücken-Auswertung und zweiter Historien-Download (Nutzerfreigabe)
+
+- Aus einem App-Backup (lokal, nicht im Repo) mit `tools/db_gap_report.py` ausgewertet: Die Herzfrequenz (Live + FIT) hat über mehrere Tage sehr viele Lücken über 5 Minuten; Live-Lücken folgen den Aufzeichnungszeiten, die FIT-Reihe deckt nur wenige Tage ab. Keine Messwerte oder Zeiten hier.
+- Auf Nutzerfreigabe einmal „Historie herunterladen“ ausgeführt (Dialog gelesen, bestätigt; keine Gate-Änderung, kein Reset, keine Instrumentation). Ergebnis: dieselben 25 Dateien/488.067 Bytes wie beim ersten Lauf, `ALREADY_PRESENT`, nichts Neues importiert, `coverage=device-history-unverified`, `nextTransaction=true`. Details und Fragen an OpenCode im agent-sync (00:30).
+- Folgerung: Weitere Daten kommen so nicht; das Listenende/`nextTransaction` und die Werte ohne Zeitstempel sind Sache von OpenCode.
+## 2026-11-21 – Export der FIT-Originale (#328, optionaler Export) auf Nutzerwunsch
+
+- Anlass: Nutzer will die unbekannten Feldtypen lokal analysieren (Daten sind synthetisch). Das App-Backup enthält nur das Feldinventar (Koordinaten, Typ, Größe, Zähler), keine Rohwerte; die Originale liegen im privaten App-Ordner (Release-App nicht debugbar, kein `run-as`).
+- Neu: Daten-Seite „FIT-Originale exportieren“: Warnhinweis, dann ZIP in einen vom Nutzer gewählten Ort (Dateiauswahl). `FitOriginalsArchive` nimmt nur reguläre Dateien `<64 hex>.fit`, keine Links, Obergrenzen 2.000 Dateien/64 MB; verändert, löscht und sendet nichts. Tests: `FitOriginalsArchiveTest` (JVM, grün).
+- Die ZIP-Datei bleibt lokal (nicht im Repo); Auswertung der Feldinventur lokal, Ergebnisse hier nur ohne Werte.
+
+## 2026-11-21 – FIT-Feldanalyse der 45 Originale
+
+- Signiertes APK Build 1580 (CI-grün, #344) auf dem S25 installiert, „FIT-Originale exportieren“ ausgelöst (Warnung gelesen), ZIP per `adb pull` lokal (nicht im Repo). 45 Dateien, rund 0,6 MB.
+- Eigener Parser `tools/fit_field_survey.py`; Ergebnis in `docs/protocol/FIT_FELDANALYSE_2026-11-21.md` (ohne Rohwerte). Hauptbefund: Die 1.622 Herzfrequenzwerte ohne Zeitstempel sind Monitoring-Werte mit `timestamp_16` und per FIT-Regel zeitlich zuordenbar (Lücken sinken um etwa einen Tag). Aufgabe an OpenCode im agent-sync (00:45).
+
+## 2026-11-21 – timestamp_16 im FIT-Decoder (Nutzerauftrag)
+
+- Auf Nutzerwunsch Erkenntnis umgesetzt: Monitoring-Herzfrequenz mit `timestamp_16` bekommt den Zeitstempel per FIT-Regel (3 neue Unit-Tests, alle Unit-Tests grün). Auf den 45 echten Originalen (lokal, temporärer Test, nicht eingecheckt): 29.358 importierbar statt 27.736, 0 ohne Zeitstempel.
+- Bewusst unverändert: `DECODER_VERSION` und Qualitätswert (Schema-CHECK, Quellenabgleich). Hinweis an OpenCode im agent-sync (01:20).
+- Zuständigkeit: Eingriff im Bereich von OpenCode nur wegen des ausdrücklichen Nutzerauftrags und mit Meldung.

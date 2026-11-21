@@ -53,9 +53,12 @@ internal object HistoryDataCache {
     @Synchronized fun snapshot(context: Context, range: HistoryRange, now: Instant, windowEnd: Instant = now): HistorySnapshot {
         try { sync(context, now) } catch (e: Exception) { invalidate(); throw e }
         val start = range.startAt(windowEnd)
+        // FIT history (band measurement time) is read separately and kept apart from the reception-time series (#334).
+        val fit = try { FitHistoryReader(context).read(start, windowEnd) } catch (_: Exception) { null }
         return HistorySnapshot(range, start, windowEnd,
             pulse.slice(start.toEpochMilli(), windowEnd.toEpochMilli()),
-            oxygen.slice(start.toEpochMilli(), windowEnd.toEpochMilli()))
+            oxygen.slice(start.toEpochMilli(), windowEnd.toEpochMilli()),
+            fit?.points.orEmpty(), fit?.available ?: false)
     }
 
     private fun sync(context: Context, now: Instant) {

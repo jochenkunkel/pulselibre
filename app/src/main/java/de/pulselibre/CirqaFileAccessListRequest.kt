@@ -68,6 +68,15 @@ object CirqaFileAccessListRequest {
             GarminFileListRequest.cobs(gfdiFrame(requestId, smartRequest(sessionId, transactionId)))
     }
 
+    /** Build exactly one separate transaction-context request from a prior response. */
+    fun nextTransactionMlValue(
+        handle: Int,
+        requestId: Int,
+        page: CirqaFileAccessItemListParser.ItemListPage
+    ): ByteArray? = page.nextTransactionId?.let { transactionId ->
+        mlValue(handle, requestId, transactionId = transactionId)
+    }
+
     private fun varintField(number: Int, value: Long): ByteArray {
         require(number in 1..15 && value >= 0)
         val out = java.io.ByteArrayOutputStream()

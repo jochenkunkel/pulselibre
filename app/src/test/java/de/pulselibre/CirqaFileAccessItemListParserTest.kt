@@ -91,6 +91,25 @@ class CirqaFileAccessItemListParserTest {
         assertNull(CirqaFileAccessListRequest.nextPageSessionId(page))
     }
 
+    @Test fun nextTransactionProbeBuildsOneSeparateTransactionContextRequest() {
+        val page = CirqaFileAccessItemListParser.ItemListPage(
+            items = emptyList(),
+            status = 0,
+            sessionId = null,
+            nextTransactionId = 42,
+            gdxmlStrings = emptyMap()
+        )
+        assertArrayEquals(
+            CirqaFileAccessListRequest.mlValue(handle = 7, requestId = 9, transactionId = 42),
+            CirqaFileAccessListRequest.nextTransactionMlValue(7, 9, page)
+        )
+        assertNull(
+            CirqaFileAccessListRequest.nextTransactionMlValue(
+                7, 9, page.copy(nextTransactionId = null)
+            )
+        )
+    }
+
     @Test fun buildsSessionOrTransactionContinuationWithVerifiedFieldNumbers() {
         val initial = CirqaFileAccessListRequest.smartRequest()
         val session = CirqaFileAccessListRequest.smartRequest(sessionId = 0x1234)

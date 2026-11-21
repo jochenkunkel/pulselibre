@@ -439,7 +439,7 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
         card.content.addView(box, LayoutParams(-1, -2).apply { topMargin = dp(8) })
         fun render(i: TileInsight) {
             box.removeAllViews()
-            if (i.count == 0) { box.visibility = View.GONE; return }
+            if (i.count == 0 && i.fit == null) { box.visibility = View.GONE; return }
             val unit = if (measurement.unit.startsWith("Geräteskala")) "" else measurement.unit
             val nf = TileInsightCalc
             val range = when {
@@ -448,11 +448,22 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
                 else -> "Heute Ø ${nf.format(i.average ?: 0.0, "")} · ${nf.format(i.min ?: 0.0, "")}–${nf.format(i.max ?: 0.0, "")}" +
                     if (unit.isBlank()) "" else " $unit"
             }
-            if (!i.cumulative) box.addView(label(range, 11f, muted), LayoutParams(-1, -2))   // counters: the big value already says it
+            if (i.count > 0 && !i.cumulative) box.addView(label(range, 11f, muted), LayoutParams(-1, -2))   // counters: the big value already says it
             // a line needs at least two hours with data; otherwise it would only be an empty axis
-            if (i.hourly.count { it != null } >= 2) box.addView(SparkView(context, accent, palette.track).apply {
+            if (i.count > 0 && i.hourly.count { it != null } >= 2) box.addView(SparkView(context, accent, palette.track).apply {
                 show(i.hourly, java.time.LocalTime.now().hour)
             }, LayoutParams(-1, dp(34)).apply { topMargin = dp(4) })
+            // #334: band history (FIT) has its own line and sparkline; its clock is the band's measurement time.
+            i.fit?.let { fit ->
+                val dayLabel = if (fit.date == java.time.LocalDate.now()) "heute" else fit.date.format(java.time.format.DateTimeFormatter.ofPattern("dd.MM."))
+                val text = "Band-Verlauf $dayLabel (Messzeit): Ø ${nf.format(fit.average, "")} · ${nf.format(fit.min, "")}–${nf.format(fit.max, "")} $unit" +
+                    " (${fit.count} ${if (fit.count == 1) "Wert" else "Werte"})"
+                box.addView(label(text, 11f, muted).apply { tag = "tile_fit_${metric.title}" },
+                    LayoutParams(-1, -2).apply { topMargin = dp(if (i.count > 0) 8 else 0) })
+                if (fit.hourly.count { it != null } >= 2) box.addView(SparkView(context, accent, palette.track).apply {
+                    alpha = 0.7f; tag = "tile_fit_spark_${metric.title}"; show(fit.hourly, java.time.LocalTime.now().hour)
+                }, LayoutParams(-1, dp(34)).apply { topMargin = dp(4) })
+            }
             i.bands?.let { (hi, mid, lo) ->
                 box.addView(object : View(context) {
                     private val p = Paint(Paint.ANTI_ALIAS_FLAG)
@@ -470,6 +481,7 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
                 box.addView(label("≥95 %: ${hi.toInt()} · 90–94 %: ${mid.toInt()} · <90 %: ${lo.toInt()}  (Anteil heute in %)", 10f, muted),
                     LayoutParams(-1, -2).apply { topMargin = dp(3) })
             }
+            if (i.count == 0) { box.visibility = View.VISIBLE; return }   // only band history today: no live week comparison
             val week = i.weekAtThisTime
             val delta = i.deltaToWeek
             val weekText = if (week == null) "Ø 7 Tage: folgt (${i.weekDays}/${TileInsightCalc.MIN_WEEK_DAYS})"

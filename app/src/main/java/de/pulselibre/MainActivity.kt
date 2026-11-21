@@ -41,6 +41,8 @@ class MainActivity : AppCompatActivity() {
     private var dashboardLastRefreshAt = 0L
     private val dashboardWorker = java.util.concurrent.Executors.newSingleThreadExecutor()
     private var historicalDownloadProbe: CirqaMlHandshakeProbe? = null
+    private var historicalSyncStatusView: TextView? = null
+    private var automaticHistoricalSyncActive = false
 
     private var pollInFlight = false
     private var readingDashboard = false
@@ -141,6 +143,7 @@ class MainActivity : AppCompatActivity() {
         if (::adapter.isInitialized && ::status.isInitialized && !adapter.isEnabled) {
             status.text = "Bluetooth ist ausgeschaltet – CIRQA-Messwerte können nicht empfangen werden."
         }
+        maybeStartAutomaticHistoricalSync()
     }
     override fun onPause() {
         stopDashboardPolling()
@@ -614,6 +617,7 @@ class MainActivity : AppCompatActivity() {
             background = rounded(palette.card)
             contentDescription = text.toString()
         }
+        historicalSyncStatusView = historicalSyncStatus
         deviceView(text("Historische Gerätedaten", 17f, ink, true), 16)
         deviceView(text(
             "Dateien werden lokal und privat gespeichert. FIT-Messwerte werden zusätzlich in SQLite importiert; unbekannte Dateitypen bleiben als Original erhalten.",
@@ -635,6 +639,8 @@ class MainActivity : AppCompatActivity() {
                 .setNegativeButton("Abbrechen", null)
                 .setPositiveButton("Herunterladen") { _, _ ->
                     historicalSyncStatus.text = "Historischer Download läuft …"
+                    val prefs = getSharedPreferences("historical_sync_energy_policy", MODE_PRIVATE)
+                    prefs.edit().putLong("last_attempt", System.currentTimeMillis()).commit()
                     val probe = CirqaMlHandshakeProbe(this@MainActivity, adapter)
                     historicalDownloadProbe?.close()
                     historicalDownloadProbe = probe
@@ -642,6 +648,7 @@ class MainActivity : AppCompatActivity() {
                         runOnUiThread {
                             if (!destroyed) {
                                 historicalSyncStatus.text = message
+                                recordHistoricalSyncResult(prefs, message)
                                 historyRefresh?.invoke()
                             }
                         }
@@ -866,6 +873,55 @@ class MainActivity : AppCompatActivity() {
             return false
         }
         return ensureBluetoothEnabled()
+    }
+
+    /** Only called by Activity resume/start. Never prompts for permissions or schedules background work. */
+    private fun maybeStartAutomaticHistoricalSync() {
+        val statusView = historicalSyncStatusView ?: return
+        if (automaticHistoricalSyncActive || destroyed ||
+            ActivityCompat.checkSelfPermission(
+                this,
+                if (Build.VERSION.SDK_INT >= 31) Manifest.permission.BLUETOOTH_CONNECT
+                else Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED ||
+            !::adapter.isInitialized || !adapter.isEnabled || CirqaBleSessionGate.isBusy()
+        ) return
+        val prefs = getSharedPreferences("historical_sync_energy_policy", MODE_PRIVATE)
+        val now = System.currentTimeMillis()
+        val lastAttempt = prefs.getLong("last_attempt", 0L)
+        val lastSuccess = prefs.getLong("last_success", 0L)
+        if (!HistoricalSyncPolicy.isDue(now, lastAttempt, lastSuccess)) return
+        val targetCount = try {
+            adapter.bondedDevices.orEmpty().count { it.name?.contains("CIRQA", ignoreCase = true) == true }
+        } catch (_: SecurityException) { return }
+        if (targetCount != 1) return
+
+        if (!prefs.edit().putLong("last_attempt", now).commit()) return
+        automaticHistoricalSyncActive = true
+        statusView.text = "Automatischer historischer Sync läuft …"
+        val probe = CirqaMlHandshakeProbe(this, adapter)
+        historicalDownloadProbe?.close()
+        historicalDownloadProbe = probe
+        probe.startHistoricalDownload(userConfirmed = true) { message ->
+            runOnUiThread {
+                automaticHistoricalSyncActive = false
+                if (destroyed) return@runOnUiThread
+                statusView.text = message
+                // Persist success only for a completely drained run; partial/error runs remain retryable
+                // after the five-minute attempt cooldown.
+                recordHistoricalSyncResult(prefs, message)
+                historyRefresh?.invoke()
+            }
+        }
+    }
+
+    private fun recordHistoricalSyncResult(
+        preferences: android.content.SharedPreferences,
+        report: String
+    ) {
+        if (report.contains("runDrained=true") && report.contains("incompleteReason=none")) {
+            preferences.edit().putLong("last_success", System.currentTimeMillis()).apply()
+        }
     }
 
     /** Ask once on first launch; never turn Bluetooth on or initiate a connection. */

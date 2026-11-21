@@ -152,7 +152,44 @@ Bei unkomprimiertem 5004-Offsetfehler sendet `yw40.e(4)` fünf Bytes (`result + 
 
 ### Separate Protobuf-Route und offene Schemafelder
 
-`CoreTransferManager → AgentQueueHelper → FileTransferManager` baut `GDISmartProto.Smart` mit Extension `GDIFileAccessExtension.fileAccessService` und `GDIFileAccess.Service`. Pull-Builder setzt Item/UID, Priority, SupportedTransports, Offset sowie optional RequestedCompressionWindow; Response erwartet Result, Transport und TransferHandle. Die generated Schema-Descriptoren fehlen in den verfügbaren JADX-Quellen: Extensionnummer, Service-oneof-Nummern und konkrete serialized Bytes sind **unbekannt**. Kein nachgewiesener Aufruf von `v5d`/Legacy nach `ItemListRequest`; keine Vermischung mit Legacy-Dateiindex oder Chunkformat.
+`CoreTransferManager → AgentQueueHelper → FileTransferManager` baut `GDISmartProto.Smart` mit Extension `GDIFileAccessExtension.fileAccessService` und `GDIFileAccess.Service`. Pull-Builder setzt Item/UID, Priority, SupportedTransports, Offset sowie optional RequestedCompressionWindow; Response erwartet Result, Transport und TransferHandle. Der zum lokalen Forschungsbestand gehörende `classes12.dex`-JADX-Export enthält die generierte `GDIFileAccess`-Schemaquelle; die konkreten serialized Bytes des vollständigen Smart-Envelopes sind damit noch nicht durch einen CIRQA-Transportmitschnitt bestätigt. Kein nachgewiesener Aufruf von `v5d`/Legacy nach `ItemListRequest`; keine Vermischung mit Legacy-Dateiindex oder Chunkformat.
+
+### 2026-11-21: statischer `ItemList`-Transaktionspfad in Connect 5.31
+
+Der lokale JADX-Export (proprietäre APK und dekompilierte Quellen verbleiben
+außerhalb des Repositories) erlaubt jetzt eine genauere Call-Graph-Prüfung:
+
+- Generated `GDIFileAccess.ItemListRequest`: `session_id=1`,
+  `transaction_id=2`, `max_item_count=3`, danach Filter/Metadatenfelder.
+- Generated `ItemListResponse`: `status=1`, `session_id=2`,
+  `next_transaction_id=3`, `items=4`, `error_code=5`,
+  `abandoned_session_id=6`, `malformed_data_type=7`.
+  `ItemListResponse.Status.SUCCESS` ist numerisch **0**.
+- `ItemReference` besitzt zusätzlich ein eigenes `transaction_id=5`;
+  dieses darf nicht mit der Response `next_transaction_id` verwechselt werden.
+- `FileTransferProtoRequests.sendListFiles` (JADX-Klasse
+  `com.garmin.device.filetransfer.b`, Methode `e`; der normale Restructure-
+  Decompiler übersprang sie, Simple-Modus zeigte den Kontrollfluss) folgt
+  `session_id` intern für Listenseiten. Wenn die Antwort keine Session-ID,
+  aber eine `next_transaction_id` enthält, gibt die Methode stattdessen
+  `ListFilesResult(files, token)` an den Aufrufer zurück. Beim folgenden
+  Aufruf wird der Token im Filter als `transaction_id` in Requestfeld 2
+  eingesetzt. Das ist eine getrennte Transaktion, keine Seite derselben
+  Session.
+- `AgentQueueHelper.requestDeviceFileList` reicht den Filter an den
+  `FileTransferHandler` weiter und erhält dieses Ergebnis. `AgentQueueHelper`
+  speichert den Ergebnis-Token agentbezogen für spätere Filter. In den
+  geprüften Methoden ist kein automatisches, unbegrenztes Durchlaufen aller
+  Transaktionen belegt; wer und unter welchen Stop-/Policy-Bedingungen den
+  nächsten Aufruf auslöst, bleibt separat zu verfolgen.
+
+Abgleich mit dem einzelnen S25-Lauf: Die Folgeantwort mit 0 Items und
+`status=0` ist protokollseitig ein erfolgreicher, aber leerer
+`ListFilesResult`; das weiterhin vorhandene `next_transaction_id` ist ein
+Token für eine mögliche weitere Transaktionsanfrage. Der S25-Test stoppte nach
+der vereinbarten einen Folgeanfrage. Er beweist weder, dass die nächste
+Transaktion Dateien enthält, noch, dass Connect sie unter CIRQA-Bedingungen
+automatisch abruft.
 
 ### CIRQA-Testentscheidung
 
