@@ -879,6 +879,8 @@
     <string name="main_perm_needed">Bluetooth permission needed: allow nearby devices in the Android prompt</string>
     <string name="main_perm_granted">Bluetooth permission granted · start the scan again</string>
     <string name="main_perm_denied">Bluetooth permission denied · Settings → Apps → PulsLibre → Permissions → Nearby devices</string>
+    <string name="main_sync_perm_granted">Bluetooth connection permission granted · start the sync again</string>
+    <string name="main_sync_perm_denied">Bluetooth connection permission denied.</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="main_notif_off">Notifications are off: the recording is running, but the notification with the stop button is invisible. Stop it with “Stop” in the app, or allow notifications in the Android settings.</string>
     <string name="main_weight_title">Weight (kg)</string>

@@ -879,6 +879,8 @@
     <string name="main_perm_needed">Bluetooth-Berechtigung benötigt: Geräte in der Android-Abfrage zulassen</string>
     <string name="main_perm_granted">Bluetooth-Berechtigung erteilt · Scan erneut starten</string>
     <string name="main_perm_denied">Bluetooth-Berechtigung abgelehnt · Einstellungen → Apps → PulsLibre → Berechtigungen → Geräte in der Nähe</string>
+    <string name="main_sync_perm_granted">Bluetooth-Verbindungsberechtigung erteilt · Sync erneut starten</string>
+    <string name="main_sync_perm_denied">Bluetooth-Verbindungsberechtigung abgelehnt.</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="main_notif_off">Benachrichtigungen sind aus: Die Aufzeichnung läuft, die Benachrichtigung mit Stopp-Taste ist aber unsichtbar. Beenden über „Stoppen“ in der App oder Benachrichtigungen in den Android-Einstellungen erlauben.</string>
     <string name="main_weight_title">Gewicht (kg)</string>

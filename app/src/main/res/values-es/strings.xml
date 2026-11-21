@@ -888,6 +888,8 @@
     <string name="main_perm_needed">Se necesita el permiso de Bluetooth: permite los dispositivos cercanos en el aviso de Android</string>
     <string name="main_perm_granted">Permiso de Bluetooth concedido · inicia de nuevo la búsqueda</string>
     <string name="main_perm_denied">Permiso de Bluetooth denegado · Ajustes → Aplicaciones → PulsLibre → Permisos → Dispositivos cercanos</string>
+    <string name="main_sync_perm_granted">Permiso de conexión Bluetooth concedido · inicia de nuevo la sincronización</string>
+    <string name="main_sync_perm_denied">Permiso de conexión Bluetooth denegado.</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="main_notif_off">Las notificaciones están desactivadas: la grabación está en curso, pero la notificación con el botón de detener no se ve. Detenla con «Detener» en la app o permite las notificaciones en los ajustes de Android.</string>
     <string name="main_weight_title">Peso (kg)</string>
