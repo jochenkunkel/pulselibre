@@ -16,7 +16,7 @@ import java.time.LocalDate
 /** #41 stage 1: the atlas view reports a summary and opens the day detail with honest wording. */
 @RunWith(AndroidJUnit4::class)
 class ActivityAtlasViewTest {
-    private val context = ApplicationProvider.getApplicationContext<Context>()
+    private val context = AppLanguageSettings.wrap(ApplicationProvider.getApplicationContext<Context>())
     private val today = LocalDate.of(2026, 11, 19)
 
     @Test fun viewDescribesCoverageAndMeasuresToTheCalendarHeight() {
