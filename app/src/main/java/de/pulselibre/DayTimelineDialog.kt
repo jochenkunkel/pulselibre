@@ -13,6 +13,9 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.concurrent.Executor
 
+internal const val BAND_LANE_TITLE = "Herzfrequenz · Band (FIT)"
+private data class Day(val pulse: DashboardDaySeries, val steps: DashboardDaySeries, val band: List<DayObservation>)
+
 /** #263: heart rate and the step counter of one local day on one shared time axis, read from local data only. */
 internal fun showDayTimeline(activity: MainActivity, worker: Executor) {
     val zone = ZoneId.systemDefault()
@@ -51,23 +54,31 @@ internal fun showDayTimeline(activity: MainActivity, worker: Executor) {
         worker.execute {
             val read = try {
                 val reader = DashboardDayReader(activity.applicationContext)
-                Triple(reader.read(DashboardMeasurement.PULSE, day, now), reader.read(DashboardMeasurement.STEPS, day, now), true)
+                // Band history (FIT) follows the band's measurement time and is its own lane, never merged with phone-time readings (#334).
+                val band = try {
+                    FitHistoryReader(activity.applicationContext).read(day.start, maxOf(day.start.plusSeconds(1), minOf(day.end, now.plusSeconds(60))))
+                        .points.map { DayObservation(it.receivedAt, it.value.toLong()) }
+                } catch (_: Exception) { emptyList() }
+                Day(reader.read(DashboardMeasurement.PULSE, day, now), reader.read(DashboardMeasurement.STEPS, day, now), band)
             } catch (_: android.database.sqlite.SQLiteException) { null }
             activity.runOnUiThread {
                 if (!dialog.isShowing || generation != request || activity.isDestroyed) return@runOnUiThread
                 if (read == null) { summary.text = "Lokale Messdaten konnten nicht gelesen werden."; return@runOnUiThread }
-                val (pulse, steps, _) = read
+                val (pulse, steps, band) = read
                 val allLanes = listOf(
                     DayTimeline.lane(DashboardMeasurement.PULSE, "Herzfrequenz", "bpm", pulse.points, day, now),
                     DayTimeline.lane(DashboardMeasurement.STEPS, "Schritte (Tageszähler)", "", steps.points, day, now),
+                    DayTimeline.lane(DashboardMeasurement.PULSE, BAND_LANE_TITLE, "bpm", band, day, now),
                 )
                 val lanes = allLanes.filter { it.points.isNotEmpty() }
                 val description = DayTimeline.describe(allLanes, day, now, zone)
-                summary.text = description + "\nEmpfangszeit · ${zone.id}. Lücken bleiben leer und werden nicht überbrückt."
+                summary.text = description + "\nHerzfrequenz und Schritte: Empfangszeit am Telefon. " +
+                    (if (band.isNotEmpty()) "$BAND_LANE_TITLE: vom Band gemessene Zeit, nicht der Empfang. " else "") +
+                    "${zone.id}. Lücken bleiben leer und werden nicht überbrückt."
                 if (lanes.isEmpty()) return@runOnUiThread
                 val chart = DayTimelineView(activity, day, lanes, zone,
                     effectiveStepGoal(activity.getSharedPreferences(SpO2DisplaySettings.STORE, android.content.Context.MODE_PRIVATE).getString("step_goal", null), steps.goal), palette.ink, palette.track,
-                    listOf(palette.indicator, palette.accent))
+                    listOf(palette.indicator, palette.accent, palette.muted))
                 chart.contentDescription = description
                 chart.importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_YES
                 chart.onSelect = { _, line -> selected.text = line }
