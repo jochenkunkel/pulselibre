@@ -155,7 +155,6 @@
     <string name="main_auto_sync_running">Sincronización automática del historial en curso …</string>
 
     <!-- Messgrößen-Namen (Anzeige; Kennungen bleiben deutsch) -->
-    <!-- TODO-CHATGPT-REVIEW: Erstentwurf von Claude Code, Ticket #365 -->
     <string name="metric_pulse">Frecuencia cardíaca</string>
     <string name="metric_resting_pulse">Frecuencia cardíaca en reposo</string>
     <string name="metric_steps_counter">Pasos (contador diario)</string>
@@ -181,10 +180,9 @@
     <string name="metric_last_reception_cd">%1$s: %2$s. Última recepción: %3$s.</string>
 
     <!-- Empfangsstatus (Kacheln) -->
-    <!-- TODO-CHATGPT-REVIEW: Erstentwurf von Claude Code, Ticket #365 -->
-    <string name="reception_unknown">sin hora de recepción</string>
-    <string name="reception_fresh">reciente</string>
-    <string name="reception_recent">de hace unos minutos</string>
-    <string name="reception_delayed">retrasado</string>
-    <string name="reception_old">mucho tiempo sin nueva recepción</string>
+    <string name="reception_unknown">hora de recepción desconocida</string>
+    <string name="reception_fresh">recepción reciente</string>
+    <string name="reception_recent">recibido hace unos minutos</string>
+    <string name="reception_delayed">recepción retrasada</string>
+    <string name="reception_old">sin nuevas recepciones desde hace tiempo</string>
 </resources>
