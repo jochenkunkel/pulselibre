@@ -150,4 +150,36 @@
     <string name="main_rec_autostart_failed">Automatic start of recording not possible – please start manually.</string>
     <string name="main_bt_permission_needed">Bluetooth connection permission required for the historical sync.</string>
     <string name="main_auto_sync_running">Automatic historical sync running …</string>
+
+    <!-- Messgrößen-Namen (Anzeige; Kennungen bleiben deutsch) -->
+    <string name="metric_pulse">Heart rate</string>
+    <string name="metric_resting_pulse">Resting heart rate</string>
+    <string name="metric_steps_counter">Steps (daily counter)</string>
+    <string name="metric_step_goal">Step goal</string>
+    <string name="metric_spo2">Oxygen saturation · SpO₂</string>
+    <string name="metric_spo2_short">SpO₂</string>
+    <string name="metric_rr">RR interval (not RMSSD)</string>
+    <string name="metric_stress">Stress (device scale)</string>
+    <string name="metric_body_battery">Body Battery (device scale)</string>
+    <string name="metric_respiration">Respiration rate</string>
+    <string name="metric_calories_total">Calories total (device value)</string>
+    <string name="metric_calories_total_short">Calories total</string>
+    <string name="metric_calories_active">Calories active (device value)</string>
+    <string name="metric_calories_active_short">Calories active</string>
+    <string name="metric_moderate">Moderate intensity minutes</string>
+    <string name="metric_moderate_short">Intensity moderate</string>
+    <string name="metric_vigorous">Vigorous intensity minutes</string>
+    <string name="metric_vigorous_short">Intensity high</string>
+    <string name="metric_sleep">Sleep</string>
+    <string name="metric_steps">Steps</string>
+    <string name="metric_steps_today">Steps today</string>
+    <string name="metric_no_data">No measurement data</string>
+    <string name="metric_last_reception_cd">%1$s: %2$s. Last reception: %3$s.</string>
+
+    <!-- Empfangsstatus (Kacheln) -->
+    <string name="reception_unknown">no reception time</string>
+    <string name="reception_fresh">fresh</string>
+    <string name="reception_recent">a few minutes old</string>
+    <string name="reception_delayed">delayed</string>
+    <string name="reception_old">long without new reception</string>
 </resources>
