@@ -55,6 +55,10 @@ Diese Datei gilt repositoryweit. **GitHub ist die verbindliche, versionierte Wis
 
 Diese Regel ersetzt widersprechende pauschale Einmal-Gate-Formulierungen für *passive, offline oder rein lesende* Arbeiten in älteren Notizen; historische Protokollversuche sind keine generelle Autorisierung für neue aktive Gerätebefehle. Qualitätssicherung und nachweisbare CI-/Geräteabnahme werden dadurch nicht aufgehoben. Siehe #204.
 
+## Aktuelle Freigabe: Armband-Rohdaten (21.11.2026)
+
+**Alle beauftragten Agenten dürfen und sollen die derzeitigen CIRQA-Armband-Rohdaten für Entwicklung und Tests lokal sowie agentenintern verwenden.** Der Projektverantwortliche erklärt diese aktuellen Testdaten als keiner Person zuordenbar. Maßgebliche Details, Grenzen für öffentliche Veröffentlichung und Umschaltung bei späteren Echtdaten: [Temporäre Rohdatenregel](docs/collaboration/CURRENT_BAND_RAW_DATA_POLICY.md). Ältere pauschale Rohdatenverbote gelten für diese **interne Nutzung** nicht mehr. Geräte-Sicherheitsfreigaben und S25-Sperre bleiben unberührt.
+
 ## Architektur, Datenschutz und Gerätesicherheit
 
 - Bestehende Kotlin/Android-Architektur erhalten. BLE-Transport, Protokoll-Decoder, lokale Speicherung, Domainlogik und UI möglichst getrennt halten; vor Refactoring Code und Tests lesen.

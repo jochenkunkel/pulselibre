@@ -51,6 +51,6 @@ Beispiel: `2026-11-20_0830_codex_hybrid-ci.md`. Verwende UTC oder eine explizit 
 - **Aktiv**, **geplant**, **blockiert** und **abgeschlossen** sauber unterscheiden. Nur eine bestätigte, dokumentierte Übernahme beansprucht ein Ticket; eine Planung blockiert keine anderen Agenten.
 - Keine Behauptung einer aktiven Sitzung oder eines Testerfolgs ohne Nachweis.
 - Nur die **eigene** Sitzungsdatei bearbeiten; fremde Einträge nicht überschreiben. Veraltete fremde Aktivität über `agent-sync` klären.
-- Keine Secrets, Tokens, personenbezogenen Gesundheitsdaten, privaten Screenshots oder Gerätekennungen eintragen.
+- Für aktuelle CIRQA-Testarmband-Rohdaten gilt die [temporäre Forschungsdaten-Freigabe](../CURRENT_BAND_RAW_DATA_POLICY.md): lokale und agenteninterne Auswertung ist ausdrücklich erwünscht. In öffentlichen Sitzungslogs weiterhin keine identifizierenden Gerätekennungen, Geheimnisse oder ungeprüften Rohdaten veröffentlichen.
 - Bei parallelen Arbeiten getrennte Branches/Worktrees und die Sicherheits-/CI-Regeln aus `AGENTS.md` einhalten.
 - **Autonom arbeiten:** Nur bei echten Sicherheitsfreigaben, nicht auflösbaren Konflikten, fehlenden Berechtigungen oder erforderlichen Nutzerentscheidungen rückfragen. Ansonsten eigenständig implementieren, testen, dokumentieren und weiterarbeiten.
