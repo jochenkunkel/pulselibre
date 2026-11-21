@@ -100,7 +100,12 @@ object CirqaFileAccessItemListParser {
         val transport: Long,
         val transferHandle: Long,
         val hasFilePath: Boolean,
-        val compressionWindow: Long?
+        val compressionWindow: Long?,
+        /** Optional protocol diagnostics; never include file paths or payload bytes. */
+        val errorCode: Int?,
+        val errorSource: Long?,
+        val dataSpecificErrorSource: Long?,
+        val dataSpecificErrorCode: Int?
     )
 
     /** Extract Service.pull_item_response(2) -> PullItemDataResponse from a Smart message. */
@@ -109,13 +114,21 @@ object CirqaFileAccessItemListParser {
         val response = fields(service).firstOrNull { it.number == 2 && it.wire == 2 }?.bytes ?: return null
         val f = fields(response)
         fun v(number: Int) = f.firstOrNull { it.number == number && it.wire == 0 }?.varint
+        fun signed32(number: Int): Int? = v(number)?.let { encoded ->
+            val value = encoded.toInt()
+            (value ushr 1) xor -(value and 1)
+        }
         // proto3 omits default values, so SUCCESS=0 / transport=0 may be absent.
         return PullResult(
             resultCode = v(1) ?: 0,
             transport = v(2) ?: 0,
             transferHandle = v(3) ?: 0,
             hasFilePath = f.any { it.number == 4 && it.wire == 2 },
-            compressionWindow = v(7)
+            compressionWindow = v(7),
+            errorCode = signed32(5),
+            errorSource = v(6),
+            dataSpecificErrorSource = v(8),
+            dataSpecificErrorCode = signed32(9)
         )
     }
 
