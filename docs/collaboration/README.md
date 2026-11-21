@@ -22,6 +22,10 @@ Hier finden Entwickler, die Haupt-IDE VSCodium/Codium (mit alternativem Claude-C
 
 Alle Agenten müssen vor S25-Zugriff die **hostweit gemeinsame Gerätesperre** gemäß [AGENTS.md](../../AGENTS.md) verwenden. Mit `python3 tools/s25_lease.py status` den Status prüfen; sämtliche Gerätebefehle in einer reservierten Sitzung über `python3 tools/s25_lease.py run --agent NAME --minutes 30 -- <Befehl>` ausführen. Die Sperrdatei unter `~/.cache/pulselibre/s25-lease/status.json` zeigt Agent und geplante Freigabe; sie wird nach Sitzungsende automatisch entfernt. Keine parallelen S25-Tests; auf verschiedenen Hosts ist zusätzliche Abstimmung erforderlich.
 
+## Aktuelle Forschungsdaten-Freigabe
+
+[Temporäre CIRQA-Rohdatenregel](CURRENT_BAND_RAW_DATA_POLICY.md): Alle Agenten dürfen die gegenwärtigen, laut Projektverantwortlichem keiner Person zuordenbaren Armband-Rohdaten lokal und agentenintern für Entwicklung und Tests nutzen. Vor öffentlicher Veröffentlichung Identifizierbarkeit prüfen; spätere personenbezogene Betriebsdaten sind **nicht** automatisch freigegeben.
+
 ## Zusammenarbeit
 
 **Namensregel:** „Codium“, „VSCodium“, „Claude Code“ und „Codex“ können im Projekt dieselbe Haupt-IDE bezeichnen. Claude Code und Codex sind alternative API-Zugänge, **nicht zwei gleichzeitig aktive IDE-Agenten**. Für technische Test-/Laufnachweise die tatsächlich verwendete API benennen. Maßgebliche aktuelle Zuständigkeiten: [AGENTS.md](../../AGENTS.md).
