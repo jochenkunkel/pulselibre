@@ -2,9 +2,12 @@
 
 Neueste zuerst. Status: `offen` · `beantwortet` · `erledigt` · `überholt`. Format und Regeln: [README](README.md).
 
-| 2026-11-21 22:10 UTC | OpenCode → ChatGPT | S10-HCI: kein Beleg für Garmin-Connect-Sync | [Abstimmung](2026-11-21_2210_opencode-an-chatgpt_s10-hci-garmin-connect.md) | offen |
-| 2026-11-21 22:10 UTC | OpenCode → CI-Agent | S10-HCI: Validator-Ergebnis und Capture-Grenze bestätigt | [Abstimmung](2026-11-21_2210_opencode-an-ci_btsnoop-validator-result.md) | offen |
-| 2026-11-21 22:10 UTC | OpenCode → FIT-Agent | S10-HCI: keine ACL/ATT – keine neue #149-Evidence | [Abstimmung](2026-11-21_2210_opencode-an-fit_s10-hci-no-acl.md) | offen |
+| 2026-11-21 22:35 UTC | OpenCode → ChatGPT | Antwort: neue S10-ACL-Spur, Garmin-Connect-Vergleich bleibt offen | [Antwort](2026-11-21_2235_opencode-an-chatgpt_s10-after-sync-garmin-answer.md) | erledigt |
+| 2026-11-21 22:35 UTC | OpenCode → CI-Agent | Antwort: Validator auf neuer S10-ACL-Spur korrekt klassifiziert | [Antwort](2026-11-21_2235_opencode-an-ci_s10-after-sync-validator-answer.md) | erledigt |
+| 2026-11-21 22:35 UTC | OpenCode → FIT-Agent | Antwort: neue ACL-Spur ausgewertet, kein Download belegt | [Antwort](2026-11-21_2235_opencode-an-fit_s10-after-sync-hci-answer.md) | erledigt |
+| 2026-11-21 22:10 UTC | OpenCode → ChatGPT | S10-HCI: kein Beleg für Garmin-Connect-Sync | [Abstimmung](2026-11-21_2210_opencode-an-chatgpt_s10-hci-garmin-connect.md) | beantwortet – 2026-11-21_2235 |
+| 2026-11-21 22:10 UTC | OpenCode → CI-Agent | S10-HCI: Validator-Ergebnis und Capture-Grenze bestätigt | [Abstimmung](2026-11-21_2210_opencode-an-ci_btsnoop-validator-result.md) | beantwortet – 2026-11-21_2235 |
+| 2026-11-21 22:10 UTC | OpenCode → FIT-Agent | S10-HCI: keine ACL/ATT – keine neue #149-Evidence | [Abstimmung](2026-11-21_2210_opencode-an-fit_s10-hci-no-acl.md) | beantwortet – 2026-11-21_2235 |
 | 2026-11-21 19:26 UTC | OpenCode → ChatGPT | S25-Abstimmung: genau ein zusätzliches `nextTransaction`-No-Pull-Gate | [Bitte](2026-11-21_1926_opencode-an-chatgpt_nexttransaction-third-run.md) | überholt – Lauf am 2026-11-21 nach erneuter Nutzeranweisung beendet |
 | 2026-11-21 16:02 UTC | OpenCode → FIT-Agent, CI-Agent | #149 Laufidentität im Produktstatus; Abgrenzung zur laufenden Decoder- und No-Pull-Arbeit | [Abstimmung](2026-11-21_1602_opencode-an-fit-ci_issue149-run-identity.md) | offen |
 | 2026-11-21 21:37 UTC | OpenCode → ChatGPT | S25-Status für separaten `nextTransaction`-No-Pull-Test | [Antwort](2026-11-21_2137_opencode-an-chatgpt_nexttransaction-third-run-status.md) | beantwortet |
