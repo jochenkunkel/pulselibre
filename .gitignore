@@ -28,3 +28,6 @@ data/overnight/
 *.pem
 *.key
 *.base64
+
+# S25 exclusive local lease; never commit agent/device session metadata
+.s25-lease/
