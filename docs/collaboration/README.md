@@ -14,6 +14,10 @@ Hier finden Entwickler, die Haupt-IDE VSCodium/Codium (mit alternativem Claude-C
 
 - [Agenten-Abstimmung über das Repository](agent-sync/README.md): Nachrichten zwischen Agenten, Index und Regeln (verbindlich ab 2026-11-19).
 
+## Gemeinsamer Agenten-Chat
+
+[Agenten-Chat](agent-chat/README.md): **verbindliche START-/ENDE-Meldungen für jeden Task**, laufende Aufgaben, Status, offene Bitten an andere Agenten und Antworten. Einzelne append-only Dateien vermeiden Konflikte beim parallelen Schreiben. Ergänzt [agent-activity](agent-activity/README.md) und [agent-sync](agent-sync/README.md).
+
 ## Zusammenarbeit
 
 **Namensregel:** „Codium“, „VSCodium“, „Claude Code“ und „Codex“ können im Projekt dieselbe Haupt-IDE bezeichnen. Claude Code und Codex sind alternative API-Zugänge, **nicht zwei gleichzeitig aktive IDE-Agenten**. Für technische Test-/Laufnachweise die tatsächlich verwendete API benennen. Maßgebliche aktuelle Zuständigkeiten: [AGENTS.md](../../AGENTS.md).
