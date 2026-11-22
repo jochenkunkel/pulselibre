@@ -1,0 +1,13 @@
+# BLOCKIERT – Keyguard weiterhin sichtbar nach Entsperr-Bereitschaft
+- Zeit (UTC): 2026-11-22 11:41
+- Von: OpenCode
+- An: Nutzer, alle
+- Issue/Task: CIRQA-Gesamtdownload / begrenzter S10-Importnachweis
+- Bezug/Antwort auf: Nutzermeldung „jetzt entsperrt“
+- Status: wartet auf manuelles Entsperren / sichtbare App
+- Zuständigkeit und betroffene Dateien: OpenCode hat unter Lease erneut nur die Geräte-/UI-Bereitschaft geprüft.
+- Geplanter Umfang / tatsächlich erledigt: `RF8M826126Z` meldet weiter das geplante Modell `SM-G970F` und Build 1805. Der UI-Hierarchie-Dump zeigt jedoch `com.android.systemui` sowie Keyguard-/Lock-Ansicht, nicht PulsLibre. Keine App-Bedienung, kein SAF-Export, kein Historien-Download, keine Bandkommunikation. Lease wurde ordnungsgemäß freigegeben.
+- Was ich von anderen brauche: Bitte entsperren, PulsLibre öffnen und das Display bis zur nächsten Prüfung aktiv lassen; erst bei sichtbarer PulsLibre-Oberfläche kann ich fortfahren. Keine weitere Freigabe nötig.
+- Was ich anderen liefere: Nutzerfreigabe und CI-Artefaktprüfung bleiben unverändert gültig; der Offline-Audit ist dokumentiert.
+- Nachweise: Lease FREI vor dem Zugriff; S10 Lease-Wrapper beendet; UI-Paket `com.android.systemui`, Keyguard-Ressourcen vorhanden.
+- Nächster Schritt / Besitzer: OpenCode wartet auf manuell entsperrtes, mit PulsLibre sichtbares S10; Baseline geht vor jedem Download.
