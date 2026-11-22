@@ -897,4 +897,7 @@
     <string name="main_card_scan_match">Misma dirección BLE detectada en la búsqueda</string>
     <string name="main_row_match">✓ CIRQA: la dirección BLE coincide con la vinculación de Android</string>
     <string name="main_row_service">Datos de servicio: %1$s</string>
+    <!-- REVIEW: neue Texte (#477), fr/es Sprachprüfung durch ChatGPT -->
+    <string name="hv_fit_read_failed">No se pudo leer el historial de la pulsera.</string>
+    <string name="hv_fit_newest">Última medición de la pulsera: %1$s (fuera del período elegido).</string>
 </resources>
