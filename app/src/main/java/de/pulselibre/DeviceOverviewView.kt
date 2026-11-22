@@ -24,11 +24,23 @@ internal class DeviceOverviewView(context: Context) : LinearLayout(context) {
     private var stats: DeviceStats? = null
     private var recorderRunning = false
     private var battery: BatteryReading? = null
+    private var metadata: List<LiveDeviceMetadata> = emptyList()
 
     init { orientation = VERTICAL; tag = "device_overview"; render() }
 
     /** Stored band battery (#159); null keeps the honest "not available" state. */
     fun showBattery(reading: BatteryReading?) { if (battery != reading) { battery = reading; render() } }
+
+    /**
+     * Newest observed live values (#142/#159). Every value supplied by the band is displayed,
+     * not only the four known placeholders, and its source/time stay visible with it.
+     */
+    fun showMetadata(values: List<LiveDeviceMetadata>) {
+        if (values == metadata) return
+        metadata = values
+        DeviceMetadataFormat.batteryReading(values)?.let { battery = it }
+        render()
+    }
 
     fun update(link: CirqaLinkStatus.Result, running: Boolean) {
         val changed = this.link?.kind != link.kind || this.link?.online != link.online || recorderRunning != running
@@ -174,6 +186,28 @@ internal class DeviceOverviewView(context: Context) : LinearLayout(context) {
             }
             meta.addView(row, LayoutParams(-1, -2).apply { topMargin = dp(4) })
         }
+        // Additional values actually offered by the band. Nothing is invented here: a row exists
+        // only for a stored observation, and identifiers are masked by DeviceMetadataFormat.
+        metadata.filterNot { it.fieldKey in DeviceMetadataFields.PROMINENT || it.fieldKey == DeviceMetadataFields.BATTERY_LEVEL }
+            .forEach { entry ->
+                val row = LinearLayout(context).apply { orientation = HORIZONTAL; gravity = Gravity.CENTER_VERTICAL; minimumHeight = dp(34) }
+                row.addView(PlIcon.view(context, PlIcon.INFO, 22), LayoutParams(dp(28), dp(22)))
+                row.addView(label(DeviceMetadataFormat.label(entry, strings), 13f, palette.ink), LayoutParams(0, -2, 1f))
+                val column = LinearLayout(context).apply { orientation = VERTICAL; gravity = Gravity.END }
+                column.addView(label(DeviceMetadataFormat.displayValue(entry, strings), 13f, palette.ink, true))
+                val age = System.currentTimeMillis() - entry.observedAtMs
+                val freshness = if (age in 0..DeviceBatteryFormat.STALE_AFTER_MS)
+                    DeviceBatteryFormat.ageText(strings, age)
+                else strings.get(R.string.bat_time_unknown)
+                column.addView(label(freshness, 11f, if (age in 0..DeviceBatteryFormat.STALE_AFTER_MS) palette.muted else palette.ink),
+                    LayoutParams(-2, -2).apply { topMargin = dp(3) })
+                row.addView(column)
+                val sourceLabel = DeviceBatteryFormat.sourceLabel(strings, entry.source)
+                row.contentDescription = strings.get(R.string.dev_meta_value_cd,
+                    DeviceMetadataFormat.label(entry, strings), DeviceMetadataFormat.displayValue(entry, strings), sourceLabel, freshness)
+                row.tag = "device_metadata_${entry.fieldKey}"
+                meta.addView(row, LayoutParams(-1, -2).apply { topMargin = dp(4) })
+            }
         addView(meta, LayoutParams(-1, -2).apply { bottomMargin = dp(12) })
     }
 

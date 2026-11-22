@@ -916,6 +916,23 @@
     <string name="ht_note">En vivo: hora de recepción en el teléfono · Pulsera: hora de medición de la pulsera · Importación: como se guardó. Una fila por día, fuente y medida; no se interpola ni se mezcla nada.</string>
     <string name="ht_empty">No hay valores en este período.</string>
     <string name="ht_row_cd">%1$s, %2$s, %3$s: %4$d valores, rango %5$s, media %6$s</string>
+    <!-- REVIEW: neue Texte (#142/#159), fr/es Sprachprüfung durch ChatGPT -->
+    <string name="dev_meta_masked">Enmascarado</string>
+    <string name="dev_meta_software">Software</string>
+    <string name="dev_meta_hardware">Hardware</string>
+    <string name="dev_meta_model">Modelo</string>
+    <string name="dev_meta_manufacturer">Fabricante</string>
+    <string name="dev_meta_device_name">Nombre del dispositivo</string>
+    <string name="dev_meta_protocol">Protocolo</string>
+    <string name="dev_meta_product">Producto</string>
+    <string name="dev_meta_packet">Paquete máx.</string>
+    <string name="dev_meta_runtime">Autonomía</string>
+    <string name="dev_meta_value_cd">%1$s: %2$s. Fuente: %3$s. %4$s</string>
+    <string name="bat_cd_status">Estado: %1$s</string>
+    <string name="bat_cd_source">Fuente: %1$s</string>
+    <string name="src_gatt_battery">servicio de batería GATT estándar</string>
+    <string name="src_garmin_status">estado del dispositivo Garmin</string>
+    <string name="src_fit">historial FIT almacenado</string>
     <!-- REVIEW: neue Texte (Messgroessen-Namen), fr/es Sprachprüfung durch ChatGPT -->
     <string name="ht_m_resting">Pulso en reposo</string>
     <string name="ht_m_steps">Pasos</string>

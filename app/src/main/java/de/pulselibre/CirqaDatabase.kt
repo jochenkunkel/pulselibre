@@ -39,6 +39,8 @@ class CirqaDatabase(private val contextRef: Context) :
         createUnmappedFitFieldSchema(db)
         createFitGenerationSchema(db)
         createFitReviewCandidateSchema(db)
+        createLiveDeviceMetadataSchema(db)
+        backfillLiveFromFit(db)
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
@@ -78,6 +80,69 @@ class CirqaDatabase(private val contextRef: Context) :
             migrateExistingFitObservationsToGeneration(db)
         }
         createFitReviewCandidateSchema(db)
+        createLiveDeviceMetadataSchema(db)
+        backfillLiveFromFit(db)
+    }
+
+    /**
+     * Passive one-time import of device values already present in stored FIT metadata (#142/#159).
+     * Only fields that are actually stored are imported; nothing is derived or invented. The
+     * original observation time and FIT provenance are preserved so the UI can mark them stale.
+     */
+    private fun backfillLiveFromFit(db: SQLiteDatabase) {
+        // Legacy fixtures and damaged databases may predate this table; nothing can be backfilled
+        // then, and an upgrade must stay safe and idempotent.
+        val hasFitMetadata = db.rawQuery(
+            "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'fit_device_metadata' LIMIT 1",
+            null
+        ).use { it.moveToFirst() }
+        if (!hasFitMetadata) return
+        val insert = db.compileStatement(
+            """INSERT OR IGNORE INTO live_device_metadata
+               (field_key, value_text, unit, source, observed_at_ms, stored_at_ms)
+               VALUES (?, ?, ?, ?, ?, ?)"""
+        )
+        db.rawQuery(
+            """SELECT observed_at_ms, software_version, battery_level_percent, battery_status_code
+               FROM fit_device_metadata WHERE observed_at_ms IS NOT NULL ORDER BY observed_at_ms""", null
+        ).use { rows ->
+            while (rows.moveToNext()) {
+                val at = rows.getLong(0)
+                fun add(field: String, value: String?, unit: String?) {
+                    if (value.isNullOrBlank()) return
+                    insert.clearBindings()
+                    insert.bindString(1, field)
+                    insert.bindString(2, value.take(256))
+                    if (unit == null) insert.bindNull(3) else insert.bindString(3, unit)
+                    insert.bindString(4, DeviceMetadataSources.FIT_DEVICE_INFO)
+                    insert.bindLong(5, at)
+                    insert.bindLong(6, at)
+                    insert.executeInsert()
+                }
+                add(DeviceMetadataFields.SOFTWARE_VERSION, if (rows.isNull(1)) null else rows.getString(1), null)
+                add(DeviceMetadataFields.BATTERY_LEVEL, if (rows.isNull(2)) null else rows.getString(2), "%")
+                add(DeviceMetadataFields.BATTERY_STATUS, if (rows.isNull(3)) null else rows.getString(3), null)
+            }
+        }
+    }
+
+    /**
+     * Latest observed device values (#142/#159). Additive key/value table: a band may offer
+     * fields we do not know yet, and every observed field must be persisted with its source
+     * and observation time. No value is derived from other values here.
+     */
+    private fun createLiveDeviceMetadataSchema(db: SQLiteDatabase) {
+        db.execSQL("""CREATE TABLE IF NOT EXISTS live_device_metadata (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            field_key TEXT NOT NULL CHECK(length(field_key) BETWEEN 1 AND 64),
+            value_text TEXT NOT NULL CHECK(length(value_text) BETWEEN 1 AND 256),
+            unit TEXT CHECK(unit IS NULL OR length(unit) BETWEEN 1 AND 16),
+            source TEXT NOT NULL CHECK(length(source) BETWEEN 1 AND 32),
+            observed_at_ms INTEGER NOT NULL CHECK(observed_at_ms >= 0),
+            stored_at_ms INTEGER NOT NULL CHECK(stored_at_ms >= 0),
+            UNIQUE(field_key, source, observed_at_ms)
+        )""")
+        db.execSQL("CREATE INDEX IF NOT EXISTS live_device_metadata_latest ON live_device_metadata(field_key, observed_at_ms DESC, id DESC)")
     }
 
     private fun createFitGenerationSchema(db: SQLiteDatabase) {
@@ -382,10 +447,57 @@ class CirqaDatabase(private val contextRef: Context) :
 
     override fun onOpen(db: SQLiteDatabase) {
         super.onOpen(db)
+        // A device may already carry user_version 8 from another feature branch (#500 or #142/#159).
+        // SQLiteOpenHelper will not call onUpgrade then, so add both v8 tables idempotently on open.
+        ensureFitReviewCandidateAvailable(db)
+        ensureLiveDeviceMetadataAvailable(db)
         // Explicit user decision: discard the former JSONL night recording.
         // SQLite events are preserved. Retry on a later open if deletion fails.
         // One stat() call when nothing is left; with the shared poll helper this runs once per open, not once per second.
         LegacyNightRecording.remove(contextRef.filesDir)
+    }
+
+    private fun ensureFitReviewCandidateAvailable(db: SQLiteDatabase) {
+        val required = listOf(
+            "sample_id", "device_id", "metric", "measured_at_ms", "value", "unit",
+            "source_sha256", "record_ordinal", "global_message_number", "field_number",
+            "quality", "timestamp_origin", "decoder_version"
+        )
+        if (!hasTable(db, "fit_review_candidates")) {
+            db.beginTransaction()
+            try {
+                createFitReviewCandidateSchema(db)
+                db.setTransactionSuccessful()
+            } finally {
+                db.endTransaction()
+            }
+            return
+        }
+        val missing = required.filterNot { hasColumn(db, "fit_review_candidates", it) }
+        require(missing.isEmpty()) {
+            "fit_review_candidates has an incompatible schema (missing ${missing.joinToString()})"
+        }
+    }
+
+    private fun ensureLiveDeviceMetadataAvailable(db: SQLiteDatabase) {
+        val required = listOf(
+            "id", "field_key", "value_text", "unit", "source", "observed_at_ms", "stored_at_ms"
+        )
+        if (!hasTable(db, "live_device_metadata")) {
+            db.beginTransaction()
+            try {
+                createLiveDeviceMetadataSchema(db)
+                backfillLiveFromFit(db)
+                db.setTransactionSuccessful()
+            } finally {
+                db.endTransaction()
+            }
+            return
+        }
+        val missing = required.filterNot { hasColumn(db, "live_device_metadata", it) }
+        require(missing.isEmpty()) {
+            "live_device_metadata has an incompatible schema (missing ${missing.joinToString()})"
+        }
     }
 
     /**
@@ -840,6 +952,63 @@ class CirqaDatabase(private val contextRef: Context) :
             }
         }
 
+    /** Idempotent; repeated observations with the same key/source/time are ignored. */
+    @Synchronized internal fun storeLiveDeviceMetadata(
+        values: Collection<LiveDeviceMetadata>,
+        storedAtMs: Long = System.currentTimeMillis()
+    ) {
+        require(values.all {
+            it.fieldKey.length in 1..64 && it.valueText.length in 1..256 &&
+                (it.unit == null || it.unit.length in 1..16) && it.source.length in 1..32 &&
+                it.observedAtMs >= 0 && storedAtMs >= 0
+        }) { "Ungültiger Live-Gerätemetadatenwert" }
+        if (values.isEmpty()) return
+        writableDatabase.beginTransaction()
+        try {
+            val insert = writableDatabase.compileStatement(
+                """INSERT OR IGNORE INTO live_device_metadata
+                   (field_key, value_text, unit, source, observed_at_ms, stored_at_ms)
+                   VALUES (?, ?, ?, ?, ?, ?)"""
+            )
+            values.forEach { value ->
+                insert.clearBindings()
+                insert.bindString(1, value.fieldKey)
+                insert.bindString(2, value.valueText)
+                if (value.unit == null) insert.bindNull(3) else insert.bindString(3, value.unit)
+                insert.bindString(4, value.source)
+                insert.bindLong(5, value.observedAtMs)
+                insert.bindLong(6, storedAtMs)
+                insert.executeInsert()
+            }
+            writableDatabase.setTransactionSuccessful()
+        } finally {
+            writableDatabase.endTransaction()
+        }
+    }
+
+    /** Newest value per field, newest first. Call on a worker thread. */
+    internal fun latestLiveDeviceMetadata(): List<LiveDeviceMetadata> =
+        readableDatabase.rawQuery(
+            """SELECT field_key, value_text, unit, source, observed_at_ms
+               FROM live_device_metadata AS l
+               WHERE l.id = (
+                   SELECT x.id FROM live_device_metadata AS x
+                   WHERE x.field_key = l.field_key
+                   ORDER BY x.observed_at_ms DESC, x.id DESC LIMIT 1
+               )
+               ORDER BY l.observed_at_ms DESC, l.field_key""", null
+        ).use { rows ->
+            buildList {
+                while (rows.moveToNext()) add(LiveDeviceMetadata(
+                    fieldKey = rows.getString(0),
+                    valueText = rows.getString(1),
+                    unit = if (rows.isNull(2)) null else rows.getString(2),
+                    source = rows.getString(3),
+                    observedAtMs = rows.getLong(4)
+                ))
+            }
+        }
+
     @Synchronized fun updateFitUnmappedFieldStatus(
         field: StoredFitUnmappedField,
         status: FitFieldInventoryStatus
@@ -1073,6 +1242,7 @@ class CirqaDatabase(private val contextRef: Context) :
         canonicalFitGenerationObservations: Sequence<StoredFitGenerationObservation> = emptySequence(),
         canonicalActiveFitGenerations: Sequence<StoredActiveFitGeneration> = emptySequence(),
         canonicalFitReviewCandidates: Sequence<StoredFitReviewCandidate> = emptySequence(),
+        liveDeviceMetadata: Sequence<LiveDeviceMetadata> = emptySequence(),
         generationSnapshotProvided: Boolean = false,
         markHistoricalCopyComplete: Boolean = false
     ) = withLegacyDatabase { db ->
@@ -1087,6 +1257,7 @@ class CirqaDatabase(private val contextRef: Context) :
             db.execSQL("DELETE FROM main.fit_unmapped_fields")
             db.execSQL("DELETE FROM main.fit_device_metadata")
             db.execSQL("DELETE FROM main.raw_device_metadata")
+            db.execSQL("DELETE FROM main.live_device_metadata")
             db.execSQL("DELETE FROM main.observations")
             db.execSQL("DELETE FROM main.fit_sources")
             db.execSQL("DELETE FROM main.sync_cursors")
@@ -1467,6 +1638,29 @@ class CirqaDatabase(private val contextRef: Context) :
                 migrateExistingFitObservationsToGeneration(db)
             }
             insertFitReviewCandidates(db, "main.fit_review_candidates", reviewCandidates.asSequence())
+
+            val liveMetadataInsert = db.compileStatement(
+                """INSERT INTO main.live_device_metadata
+                   (field_key, value_text, unit, source, observed_at_ms, stored_at_ms)
+                   VALUES(?, ?, ?, ?, ?, ?)"""
+            )
+            liveDeviceMetadata.forEach { item ->
+                require(item.fieldKey.length in 1..64 && item.valueText.length in 1..256 &&
+                    (item.unit == null || item.unit.length in 1..16) &&
+                    item.source.length in 1..32 && item.observedAtMs >= 0) {
+                    "Ungültiger Live-Gerätemetadatenwert im Backup"
+                }
+                liveMetadataInsert.clearBindings()
+                liveMetadataInsert.bindString(1, item.fieldKey)
+                liveMetadataInsert.bindString(2, item.valueText)
+                if (item.unit == null) liveMetadataInsert.bindNull(3)
+                else liveMetadataInsert.bindString(3, item.unit)
+                liveMetadataInsert.bindString(4, item.source)
+                liveMetadataInsert.bindLong(5, item.observedAtMs)
+                liveMetadataInsert.bindLong(6, item.observedAtMs)
+                liveMetadataInsert.executeInsert()
+            }
+
             if (markHistoricalCopyComplete) {
                 val historicalCounts = listOf(
                     "readings", "sync_cursors", "fit_sources", "fit_observation_provenance"

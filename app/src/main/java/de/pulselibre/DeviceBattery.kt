@@ -6,7 +6,15 @@ import android.content.Context
  * Band battery as far as it is actually stored (#159): never hard-coded, never guessed from other values.
  * Source: the newest stored FIT device-info record that carries a battery level.
  */
-internal data class BatteryReading(val percent: Int, val statusCode: Int?, val observedAtMs: Long?)
+internal data class BatteryReading(
+    val percent: Int,
+    val statusCode: Int?,
+    val observedAtMs: Long?,
+    /** Source of the live value, e.g. GATT_BATTERY or GARMIN_GDI_STATUS. FIT rows leave it null. */
+    val source: String? = null,
+    /** Named charging state from a decoded device status (GDI enum), if one was supplied. */
+    val statusLabel: String? = null
+)
 
 internal object DeviceBatteryFormat {
     /** A stored value older than this is shown as "last known state" instead of a live value. */
@@ -26,10 +34,23 @@ internal object DeviceBatteryFormat {
             stale -> strings.get(R.string.bat_stale, ageText!!)
             else -> strings.get(R.string.bat_fresh, ageText!!)
         }
-        val charging = reading.statusCode == FIT_CHARGING
+        val charging = reading.statusCode == FIT_CHARGING || DeviceMetadataFormat.isCharging(reading.statusLabel)
         val value = strings.get(if (charging) R.string.bat_value_charging else R.string.bat_value, percent)
-        return View(value, freshness, stale, charging,
-            strings.get(if (charging) R.string.bat_cd_charging else R.string.bat_cd, percent, freshness))
+        var description = strings.get(if (charging) R.string.bat_cd_charging else R.string.bat_cd, percent, freshness)
+        if (reading.statusLabel != null && !charging) {
+            description += " " + strings.get(R.string.bat_cd_status, reading.statusLabel)
+        }
+        if (reading.source != null) {
+            description += " " + strings.get(R.string.bat_cd_source, sourceLabel(strings, reading.source))
+        }
+        return View(value, freshness, stale, charging, description)
+    }
+
+    fun sourceLabel(strings: Strings, source: String): String = when (source) {
+        DeviceMetadataSources.GATT_BATTERY -> strings.get(R.string.src_gatt_battery)
+        DeviceMetadataSources.GARMIN_GDI_STATUS -> strings.get(R.string.src_garmin_status)
+        DeviceMetadataSources.FIT_DEVICE_INFO -> strings.get(R.string.src_fit)
+        else -> source.replace('_', ' ').lowercase(java.util.Locale.ROOT)
     }
 
     fun ageText(strings: Strings, ms: Long): String {

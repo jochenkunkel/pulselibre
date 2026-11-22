@@ -913,6 +913,23 @@
     <string name="ht_note">Live: Empfangszeit am Telefon · Band: Messzeit des Bandes · Import: wie gespeichert. Eine Zeile je Tag, Quelle und Messgröße; nichts wird interpoliert oder vermischt.</string>
     <string name="ht_empty">Keine Werte in diesem Zeitraum.</string>
     <string name="ht_row_cd">%1$s, %2$s, %3$s: %4$d Werte, Bereich %5$s, Mittel %6$s</string>
+    <!-- #142/#159 Live-Gerätemetadaten: Bezeichnungen und Herkunft -->
+    <string name="dev_meta_masked">Maskiert</string>
+    <string name="dev_meta_software">Software</string>
+    <string name="dev_meta_hardware">Hardware</string>
+    <string name="dev_meta_model">Modell</string>
+    <string name="dev_meta_manufacturer">Hersteller</string>
+    <string name="dev_meta_device_name">Gerätename</string>
+    <string name="dev_meta_protocol">Protokoll</string>
+    <string name="dev_meta_product">Produkt</string>
+    <string name="dev_meta_packet">Max. Paket</string>
+    <string name="dev_meta_runtime">Laufzeit</string>
+    <string name="dev_meta_value_cd">%1$s: %2$s. Quelle: %3$s. %4$s</string>
+    <string name="bat_cd_status">Status: %1$s</string>
+    <string name="bat_cd_source">Quelle: %1$s</string>
+    <string name="src_gatt_battery">Standard-GATT-Akkudienst</string>
+    <string name="src_garmin_status">Garmin-Gerätestatus</string>
+    <string name="src_fit">gespeicherte FIT-Historie</string>
     <string name="ht_m_resting">Ruhepuls</string>
     <string name="ht_m_steps">Schritte</string>
     <string name="ht_m_goal">Schrittziel</string>
