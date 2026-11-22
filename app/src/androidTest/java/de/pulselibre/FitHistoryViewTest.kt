@@ -94,6 +94,11 @@ class FitHistoryViewTest {
             assertEquals(listOf(70, 75), window.points.map { it.value })
             assertTrue("the FIT card must be offered", window.available)
             assertEquals(Instant.ofEpochMilli(5_000), reader.latestMeasuredAt(Instant.ofEpochMilli(20_000)))
+            // An empty window still reports the newest band measurement, so the card can explain itself.
+            val empty = reader.read(Instant.ofEpochMilli(6_000), Instant.ofEpochMilli(9_000))
+            assertTrue(empty.points.isEmpty())
+            assertTrue(empty.available)
+            assertEquals(Instant.ofEpochMilli(5_000), empty.newest)
         } finally { root.deleteRecursively() }
     }
 

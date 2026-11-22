@@ -47,7 +47,11 @@ data class HistorySnapshot(
     /** Heart rate imported from band FIT files; its points carry the band's MEASUREMENT time, not phone reception (#334). */
     val fitHeartRate: List<HistoryPoint> = emptyList(),
     /** True when any FIT heart-rate observation exists at all, so the card can say "nothing in this window". */
-    val fitAvailable: Boolean = false
+    val fitAvailable: Boolean = false,
+    /** True when reading the FIT series failed; the card then says so instead of "no data" (A6-29). */
+    val fitReadFailed: Boolean = false,
+    /** Newest band heart-rate measurement of any time, to explain an empty window. */
+    val fitNewest: Instant? = null
 )
 
 /** Fixed display resolutions sized to keep selected ranges readable on a phone chart. */

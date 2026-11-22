@@ -897,4 +897,7 @@
     <string name="main_card_scan_match">Même adresse BLE détectée lors de la recherche</string>
     <string name="main_row_match">✓ CIRQA : l’adresse BLE correspond à l’association Android</string>
     <string name="main_row_service">Données de service : %1$s</string>
+    <!-- REVIEW: neue Texte (#477), fr/es Sprachprüfung durch ChatGPT -->
+    <string name="hv_fit_read_failed">L’historique du bracelet n’a pas pu être lu.</string>
+    <string name="hv_fit_newest">Dernière mesure du bracelet : %1$s (hors de la période choisie).</string>
 </resources>

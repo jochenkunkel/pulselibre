@@ -179,11 +179,20 @@ class HistoryOverviewView(
         metricCard("Herzfrequenz", "bpm", snapshot.heartRate, snapshot, 240, palette.pulse, resolution)
         metricCard("Sauerstoffsättigung · SpO₂", "%", snapshot.oxygen, snapshot, 100, palette.oxygen, resolution)
         // #334: FIT-Historie des Bands in eigener Karte mit eigener Zeitbasis (Messzeit), nie mit Empfangszeit vermischt.
-        if (snapshot.fitAvailable || snapshot.fitHeartRate.isNotEmpty()) {
+        if (snapshot.fitAvailable || snapshot.fitHeartRate.isNotEmpty() || snapshot.fitReadFailed) {
             metricCard(FIT_HEART_RATE_TITLE, "bpm", snapshot.fitHeartRate, snapshot, 240, palette.pulse, resolution,
-                TimeBasis.DEVICE_MEASURED)
+                TimeBasis.DEVICE_MEASURED, fitEmptyNote(snapshot))
         }
         // The scientific trend block now lives in the main tab "Analysen" (#227).
+    }
+
+    /** Why the band card is empty: read error (A6-29) or the date of the newest band measurement outside the window (#477). */
+    private fun fitEmptyNote(snapshot: HistorySnapshot): String? = when {
+        snapshot.fitReadFailed -> context.getString(R.string.hv_fit_read_failed)
+        snapshot.fitHeartRate.isEmpty() && snapshot.fitNewest != null -> context.getString(R.string.hv_fit_newest,
+            java.time.format.DateTimeFormatter.ofLocalizedDateTime(java.time.format.FormatStyle.MEDIUM)
+                .withLocale(context.resources.configuration.locales[0]).withZone(java.time.ZoneId.systemDefault()).format(snapshot.fitNewest))
+        else -> null
     }
 
     /** Cards switched to "Verteilung" (#219). The view re-renders on every new reading; the mode must survive that. */
@@ -198,7 +207,8 @@ class HistoryOverviewView(
         hardMaximum: Int,
         accent: Int,
         resolution: HistoryResolution,
-        basis: TimeBasis = TimeBasis.PHONE_RECEIVED
+        basis: TimeBasis = TimeBasis.PHONE_RECEIVED,
+        emptyNote: String? = null
     ) {
         val buckets = aggregateHistoryPoints(points, snapshot.start, snapshot.end, resolution)
         // Fit the vertical range to the observed data (e.g. SpO₂ 89–100 % no longer squeezed into the top of 0–100).
@@ -240,6 +250,10 @@ class HistoryOverviewView(
         if (points.isEmpty()) {
             card.addView(label(DomainText.tr(context, basis.emptyText), 14f, palette.muted),
                 LayoutParams(-1, -2).apply { topMargin = dp(18); bottomMargin = dp(18) })
+            emptyNote?.let { note ->
+                card.addView(label(note, 12f, palette.ink).apply { tag = "history_empty_note" },
+                    LayoutParams(-1, -2).apply { bottomMargin = dp(8) })
+            }
             // The explanatory caption stays even without data (consistent per card, see #182).
             card.addView(label(
                 DomainText.tr(context, basis.legend), 11f, palette.muted
