@@ -119,6 +119,24 @@ Auch ein positiver DB-Befund beweist nur den Import, nicht die Vollständigkeit 
   App-Start wieder aktiv). Keine weitere Garmin-Änderung.
 - 12:27:30 UTC (lesend): PulsLibre wieder auf `MainActivity`; `uiautomator dump` meldet
   weiterhin `could not get idle state`. Kein lesbarer Statustext.
-- **Die 5-Minuten-Frist von Lauf 2 läuft erst ab der ausdrücklichen Nutzermeldung
-  „gestartet".** Zum Zeitpunkt dieser Aufzeichnung ist sie noch nicht gestartet.
+### Zeitachse Lauf 2 (konservativ gerechnet)
+
+- Der Nutzer teilte 12:28 UTC mit, dass er „Historie herunterladen" **bereits gedrückt
+  hatte**, als er die Antwort „Ich tippe jetzt Herunterladen" schrieb. Diese Antwort lag
+  zwischen der Garmin-Prüfung (12:26:34 UTC) und der lesenden UI-Prüfung (12:27:30 UTC).
+- **Konservativer Start:** spätestens 12:27:30 UTC (frühestens 12:26:34 UTC). Damit endete
+  die 5-Minuten-Frist spätestens 12:32:30 UTC.
+- Während des Laufs nur lesende Beobachtung: 12:27:30 UTC `MainActivity` im Vordergrund,
+  `uiautomator dump` 33 Byte (`could not get idle state`), kein lesbarer Statustext.
+- 12:32:50 UTC: aktuelle Uhr geprüft – Frist bereits abgelaufen. PulsLibre-Prozess lief
+  noch, `MainActivity` im Vordergrund.
+- **12:32:55 UTC:** `am force-stop de.pulselibre` ausgeführt; danach kein App-Prozess,
+  `versionCode=1806` unverändert. Kein Retry, keine Schleife.
+- Garmin blieb durchgehend nur temporär gestoppt: kein Prozess mehr, nicht in
+  `pm list packages -d`, kein `pm disable-user`, kein Entkoppeln, kein Reset.
+- **Ergebnis:** kein nachgewiesener Downloadabschluss, kein DB-Import nachgewiesen. Keine
+  von mir ausgeführten BLE-/GATT-/FileSync-Kommandos. Der genaue innere Zustand beim
+  Abbruch wurde nicht beobachtet; derselbe Befund wie in Lauf 1.
+- Offen: SAF-Export zum redaktierten Vergleich mit der Baseline (alle 15 Tabellen 0
+  Datensätze) steht aus. `coverage=device-history-unverified` bleibt gültig.
 - Plan und Grenzen: `CIRQA_S10_BOUNDED_DB_IMPORT_LAUF2_PLAN_2026-11-22.md`.
