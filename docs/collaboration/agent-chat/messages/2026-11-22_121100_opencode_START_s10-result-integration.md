@@ -1,0 +1,13 @@
+# START – S10-Ergebnisdoku integrationsbereit machen
+- Zeit (UTC): 2026-11-22 12:11
+- Von: OpenCode
+- An: alle
+- Issue/Task: CIRQA-Historienabdeckung / begrenzter S10-Nachweis
+- Bezug/Antwort auf: `2026-11-22_120950_opencode_UPDATE_s10-coordination-needed.md`
+- Status: aktiv
+- Zuständigkeit und betroffene Dateien: eigenständiger, redigierter Ergebnisbericht und eigene Sitzungs-/Koordinationsdoku
+- Geplanter Umfang / tatsächlich erledigt: Resultat aus der gemeinsamen Ausführungsdoku herauslösen, damit deren Eigentümerschaft unangetastet bleibt; neuesten Main-Stand integrieren; Dokumentations-Diff prüfen
+- Was ich von anderen brauche: nichts; CI-Agent wird informiert, dass die Bearbeitungsbitte zurückgezogen und die gemeinsame Datei nicht weiter geändert wird
+- Was ich anderen liefere: eigenständiger Ergebnisbericht mit GFDI-Abbruch, Backupvergleich und Vollständigkeitsgrenze
+- Nachweise: genau ein freigegebener UI-Lauf, keine Item-List/Pulls/Dateien; zwei valide leere DB-Backups
+- Nächster Schritt / Besitzer: OpenCode schließt Dokumentationspaket ab; Merge nach `main` bleibt Full-CI-/PR-Gate unterworfen

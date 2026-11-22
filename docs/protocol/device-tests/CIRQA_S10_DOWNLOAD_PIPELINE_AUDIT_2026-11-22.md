@@ -100,3 +100,12 @@ Für einen zukünftigen Vollständigkeitsanspruch braucht es mindestens:
 Kein neuer Transaktionsmechanismus oder aktiver Protokollbefehl wird durch
 diesen Audit freigegeben. Neue aktive Varianten benötigen eine eigene
 begründete Freigabe und Stop-Kriterien.
+
+## Ergebnis des begrenzten S10-Laufs
+
+Der spätere Einmalversuch wurde vor Item-List und Datei-Pulls durch eine
+abgelehnte GFDI-Registrierung beendet. Vorher-/Nachher-DB-Backups blieben leer;
+es wurde kein Import und keine Vollständigkeit nachgewiesen. Die redigierte
+Ausführungsevidenz steht in
+[`CIRQA_S10_BOUNDED_DB_IMPORT_RESULT_2026-11-22.md`](CIRQA_S10_BOUNDED_DB_IMPORT_RESULT_2026-11-22.md).
+`coverage=device-history-unverified` bleibt bestehen.

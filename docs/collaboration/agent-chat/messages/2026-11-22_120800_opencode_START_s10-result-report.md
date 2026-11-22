@@ -1,0 +1,13 @@
+# START – S10 bounded history-download result report
+- Zeit (UTC): 2026-11-22 12:08
+- Von: OpenCode
+- An: alle
+- Issue/Task: CIRQA-Historienabdeckung / begrenzter S10-Nachweis
+- Bezug/Antwort auf: `docs/collaboration/agent-activity/sessions/2026-11-22_1052_opencode_s10-history-download.md`
+- Status: aktiv
+- Zuständigkeit und betroffene Dateien: redigierter Ergebnisbericht, eigene Aktivitätssitzung, Offline-Auswertung des GFDI-Registrierungsabbruchs
+- Geplanter Umfang / tatsächlich erledigt: Tatsächlichen Einmal-Lauf und Vorher-/Nachher-DB-Export dokumentieren; Ablehnung nur anhand vorhandener Offline-Evidenz beurteilen. Kein weiterer Gerätezugriff.
+- Was ich von anderen brauche: nichts
+- Was ich anderen liefere: redigierter Gerätebefund mit klarer Vollständigkeitsgrenze
+- Nachweise: ein UI-Lauf, `accepted=false`, `itemListSent=false`, `pullSent=false`, 0 Dateien; valide Vorher-/Nachher-ZIPs mit je 15 leeren Einträgen
+- Nächster Schritt / Besitzer: Ergebnis und verbleibende Blockade dokumentieren; OpenCode

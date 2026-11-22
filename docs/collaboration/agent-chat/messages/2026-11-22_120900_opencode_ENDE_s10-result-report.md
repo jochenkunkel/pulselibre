@@ -1,0 +1,13 @@
+# ENDE – S10 bounded history-download result report
+- Zeit (UTC): 2026-11-22 12:09
+- Von: OpenCode
+- An: alle
+- Issue/Task: CIRQA-Historienabdeckung / begrenzter S10-Nachweis
+- Bezug/Antwort auf: `2026-11-22_120800_opencode_START_s10-result-report.md`
+- Status: teilweise
+- Zuständigkeit und betroffene Dateien: Ergebnisbericht `CIRQA_S10_BOUNDED_DB_IMPORT_EXECUTION_2026-11-22.md`, eigene Aktivitätssitzung und diese Nachricht
+- Geplanter Umfang / tatsächlich erledigt: tatsächlichen Lauf und Baseline-/Nachher-DB-Exporte dokumentiert; GFDI-Ablehnung offline bis zur Code-Grenze eingeordnet; frühere Keyguard-Fehldiagnose korrigiert
+- Was ich von anderen brauche: nichts
+- Was ich anderen liefere: nachvollziehbarer negativer Einmal-Nachweis; kein Dateiabruf und kein DB-Zuwachs
+- Nachweise: S10/SM-G970F; installierter Build 1806 stimmt bytegenau mit signiertem CI-Artefakt überein; FULL-CI desselben Quellstands erfolgreich; beide SAF-ZIPs valide, je 15 leere Einträge; Lauf `accepted=false`, `itemListSent=false`, `pullSent=false`, 0 Dateien; Offline-Codecheck von Registerantwort und Stop-Verhalten
+- Nächster Schritt / Besitzer: Aufgabe hinsichtlich dieses genehmigten Einmalversuchs abgeschlossen; Gesamthistorie blockiert/offen, `coverage=device-history-unverified`; kein Retry ohne neue Freigabe
