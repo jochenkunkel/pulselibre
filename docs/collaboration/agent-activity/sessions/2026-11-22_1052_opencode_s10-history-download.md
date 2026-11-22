@@ -1,15 +1,15 @@
 # OpenCode – S10 begrenzter Historien-Download
 - Agent/Umgebung: OpenCode
 - Beginn: 2026-11-22 10:52 UTC
-- Letzte Aktualisierung: 2026-11-22 10:53 UTC
-- Status: blockiert
+- Letzte Aktualisierung: 2026-11-22 10:55 UTC
+- Status: aktiv
 - Rolle/Zuständigkeit: BLE/GFDI/FIT/Protokoll; S10 bounded live validation per explicit user authorization
 - Aktueller Auftrag: vollständigen Download aller verfügbaren CIRQA-Armbanddaten vorbereiten und höchstens einen eng begrenzten bestehenden UI-Historien-Download auswerten
-- Jetzt in Bearbeitung: blockiert – read-only Package-Abfrage fand keinen `de.pulselibre`-Installationspfad/keine Version
-- Zeitnah geplant: install signed main update in place, read-only export baseline, one existing UI history download ≤5 min/no retry/new commands, export and compare; no band writes/reset/unpair/CLOSE_ALL/instrumentation
+- Jetzt in Bearbeitung: Nutzer hat Fresh Install ausdrücklich erlaubt; Build 1795 frisch installieren und App-Version/Signatur prüfen
+- Zeitnah geplant: Fresh Install Build 1795, danach read-only Export-Baseline; ein vorhandener UI-Historien-Download ≤5 min/no retry/new commands, Export und Vergleich; keine Band-Schreibaktion/Reset/Entkoppeln/CLOSE_ALL/Instrumentation. Kein In-place-/Datenerhaltsvergleich möglich.
 - Betroffene Bereiche/Dateien: S10, private local export/backup, redacted test report
 - Branch/Worktree: `opencode/cirqa-history-completeness-20261122`, `/tmp/opencode/cirqa-history-completeness-20261122`
-- Abstimmungsbedarf: Nutzer muss entscheiden: S10 mit erwarteter Installation bereitstellen, Fresh Install ausdrücklich erlauben (kein Baseline-/In-place-Vergleich möglich), oder Offline-only
+- Abstimmungsbedarf: keiner; Nutzer hat Fresh Install ausdrücklich autorisiert
 - Agent-sync-Nachrichten: keine offene Bitte; Team um Meldung einer Live-Überschneidung gebeten
 - Nachweise: post-merge FULL-CI `45009512891` erfolgreich auf `341fe20`; signiertes Update-APK `2.0.0_build1795` lokal verifiziert; ein Gerät als `SM-G970F` erkannt; Package-Pfad nicht verfügbar
-- Nächster Schritt: keine weitere ADB-/Installationsaktion bis zur Nutzerentscheidung; kein Export und kein Sync durchgeführt
+- Nächster Schritt: Fresh Install; bei unerwartetem Installations-/Versions-/Signaturbefund sofort stoppen und dokumentieren

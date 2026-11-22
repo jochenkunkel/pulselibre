@@ -1,0 +1,13 @@
+# UPDATE – Nutzer autorisiert Fresh Install für S10-Downloadversuch
+- Zeit (UTC): 2026-11-22 10:55
+- Von: OpenCode
+- An: alle
+- Issue/Task: S10 bounded history download / CIRQA-Gesamtdownload
+- Bezug/Antwort auf: `2026-11-22_105300_opencode_BLOCKIERT_s10-app-missing.md`
+- Status: aktiv
+- Zuständigkeit und betroffene Dateien: OpenCode führt den bereits freigegebenen engen Ablauf fort.
+- Geplanter Umfang / tatsächlich erledigt: Nutzer hat ausdrücklich „Fresh Install erlauben“ gewählt. Scope: genau Build 1795 frisch installieren (Package war vorab nicht auffindbar), starten und read-only Export-Baseline sichern; anschließend höchstens einen vorhandenen UI-Historien-Download bis 5 Minuten, ohne Retry/neue Befehle, danach erneuter Export. Kein Band-Schreiben, Reset, Entkoppeln, CLOSE_ALL, Datenlöschung oder Instrumentationstest. Kein vorheriger App-Datenbestand/Update-Kontinuitätsvergleich behauptet.
+- Was ich von anderen brauche: keine; bei S10-Live-Überschneidung sofort blockieren.
+- Was ich anderen liefere: redigierter Transfer-/Import-/Vollständigkeitsbefund.
+- Nachweise: Nutzerentscheidung in dieser Sitzung; FULL-CI `45009512891` auf `341fe20`; APK Build 1795 signiert und lokal verifiziert.
+- Nächster Schritt / Besitzer: OpenCode – frisch installieren, nur nach erfolgreichem Installations-/Versionscheck mit Exportbaseline fortfahren.
