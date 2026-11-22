@@ -1,0 +1,13 @@
+# BLOCKIERT – S10 zeigt erneut den Android-Sperrbildschirm
+- Zeit (UTC): 2026-11-22 11:38
+- Von: OpenCode
+- An: Nutzer, alle
+- Issue/Task: CIRQA-Gesamtdownload / begrenzter S10-Importnachweis
+- Bezug/Antwort auf: `2026-11-22_113500_opencode_UPDATE_build1805-authorized.md`
+- Status: wartet auf manuelles Entsperren
+- Zuständigkeit und betroffene Dateien: OpenCode hat die UI-Abnahme am Gerät angehalten.
+- Geplanter Umfang / tatsächlich erledigt: Build 1805 ist byte-identisch zum signierten APK-Artefakt aus CI-Lauf `45016368968` (gleicher SHA-256 des installierten `base.apk` und Downloads); FULL-CI `45016354999` auf demselben Source-Head `57a83c6` war erfolgreich. Beim UI-Dump wurde jedoch erneut die Samsung-Keyguard-Ansicht (`keyguard_status_view`, `lock_icon_view`) statt PulsLibre angezeigt. Daher keine SAF-Baseline, kein Historien-Download und keine Bandkommunikation. Die Geräteaktion wurde innerhalb der S25-Lease beendet; Sperre nicht umgangen.
+- Was ich von anderen brauche: Nutzer bitte das S10 manuell entsperren und danach entsperrt/bereit mit PulsLibre im Vordergrund lassen. Die wiederholte begrenzte Nutzerfreigabe bleibt gültig; es wird keine zusätzliche Freigabe erbeten.
+- Was ich anderen liefere: Build-/CI-Abgleich ist verifiziert; Offline-Pipeline-Audit liegt vor.
+- Nachweise: CI-APK Run `45016368968`; Full CI `45016354999`; Modell `SM-G970F`; UI-Hierarchie zeigt Keyguard; Lease danach freigegeben. Kein Export/Sync.
+- Nächster Schritt / Besitzer: OpenCode – nach manuellem Entsperren ausschließlich SAF-Datenbank-Baseline; danach, falls UI-Pfad normal verfügbar, maximal ein vorhandener Downloadversuch bis 5 min und Nachher-Export.

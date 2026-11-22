@@ -1,15 +1,15 @@
 # OpenCode – S10 begrenzter Historien-Download
 - Agent/Umgebung: OpenCode
 - Beginn: 2026-11-22 10:52 UTC
-- Letzte Aktualisierung: 2026-11-22 11:36 UTC
-- Status: aktiv – Build 1805 ausdrücklich freigegeben und CI-Nachweis verifiziert
+- Letzte Aktualisierung: 2026-11-22 11:38 UTC
+- Status: blockiert – S10 zeigt Samsung-Keyguard statt PulsLibre
 - Rolle/Zuständigkeit: BLE/GFDI/FIT/Protokoll; S10 bounded live validation per explicit user authorization
 - Aktueller Auftrag: vollständigen Download aller verfügbaren CIRQA-Armbanddaten vorbereiten und höchstens einen eng begrenzten bestehenden UI-Historien-Download auswerten
-- Jetzt in Bearbeitung: Nutzer hat Build 1805 freigegeben; APK-Metadaten/Signer und erfolgreicher FULL-CI auf demselben Source-Head geprüft; S10 ist entsperrt
+- Jetzt in Bearbeitung: Build 1805 ist byte-identisch zum signierten CI-Artefakt und FULL-CI auf identischem Source-Head ist grün; beim UI-Dump wurde aber Keyguard statt PulsLibre angezeigt
 - Zeitnah geplant: read-only SAF-Datenbank-Baseline; ein vorhandener UI-Historien-Download ≤5 min/no retry/new commands; Nachher-Export und Vergleich. Keine Band-Schreibaktion/Reset/Entkoppeln/CLOSE_ALL/Instrumentation. Kein In-place-/Datenerhaltsvergleich möglich.
 - Betroffene Bereiche/Dateien: S10, private local export/backup, redacted test report
 - Branch/Worktree: `opencode/cirqa-history-completeness-20261122`, `/tmp/opencode/cirqa-history-completeness-20261122`
-- Abstimmungsbedarf: keiner; Nutzer hat Build 1805 freigegeben und bestätigt, dass Freigaben für diesen exakt begrenzten Ablauf fortlaufend gelten
-- Agent-sync-Nachrichten: zusätzlich `2026-11-22_113300_opencode_BLOCKIERT_s10-version-mismatch.md` und `2026-11-22_113500_opencode_UPDATE_build1805-authorized.md`
-- Nachweise: Offline-Audit dokumentiert; Build 1805 vom signierten Artefakt Run `45016368968` und Signer geprüft; vollständiger CI-Lauf `45016354999` auf identischem Source-Head `57a83c6` erfolgreich; S10 `SM-G970F` entsperrt; bisher kein Export/Sync
-- Nächster Schritt: geschützte UI-Sitzung beginnen, erst Baseline; nur dann maximal einen genehmigten UI-Downloadversuch
+- Abstimmungsbedarf: Nutzer muss S10 manuell entsperrt und mit PulsLibre im Vordergrund bereitstellen; die eng begrenzte laufende Nutzerfreigabe ist bereits dokumentiert
+- Agent-sync-Nachrichten: zusätzlich `2026-11-22_113300_opencode_BLOCKIERT_s10-version-mismatch.md`, `2026-11-22_113500_opencode_UPDATE_build1805-authorized.md` und `2026-11-22_113800_opencode_BLOCKIERT_s10-screen-locked.md`
+- Nachweise: Offline-Audit dokumentiert; installierter Build 1805 ist byte-identisch zum signierten Artefakt Run `45016368968`; FULL-CI `45016354999` auf identischem Head `57a83c6` erfolgreich; S10 `SM-G970F`; UI-Hierarchie zeigt Keyguard; kein Export/Sync, Lease freigegeben
+- Nächster Schritt: nach manuellem Entsperren nur SAF-Datenbank-Baseline; anschließend maximal ein genehmigter UI-Downloadversuch
