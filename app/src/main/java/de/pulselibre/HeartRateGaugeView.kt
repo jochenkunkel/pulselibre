@@ -18,6 +18,9 @@ class HeartRateGaugeView(context: Context) : View(context) {
     private var mode = PulseContext.UNKNOWN
     private var shownFraction = 0f
     private var animator: ValueAnimator? = null
+    private val ramp = intArrayOf(0xFF26A879.toInt(), 0xFFE4C441.toInt(), 0xFFE78A31.toInt(), 0xFFD84B52.toInt())
+    private val typefaceNormal = android.graphics.Typeface.create("sans-serif", android.graphics.Typeface.NORMAL)
+    private val typefaceBold = android.graphics.Typeface.create("sans-serif", android.graphics.Typeface.BOLD)
 
     init { importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_YES }
 
@@ -74,7 +77,6 @@ class HeartRateGaugeView(context: Context) : View(context) {
             cx, cy, HeartRateGaugeModel.ARC_START_DEGREES, paint)
 
         // Continuous green→yellow→orange→red display gradient; colors are not medical bands.
-        val ramp = intArrayOf(0xFF26A879.toInt(), 0xFFE4C441.toInt(), 0xFFE78A31.toInt(), 0xFFD84B52.toInt())
         val segments = 120
         for (i in 0 until segments) {
             paint.color = rampColor(ramp, i.toFloat() / (segments - 1))
@@ -84,10 +86,10 @@ class HeartRateGaugeView(context: Context) : View(context) {
                 cx, cy, HeartRateGaugeModel.ARC_START_DEGREES, paint)
         }
 
-        for (i in 0..70) {
+        for (i in 0..HeartRateGaugeModel.TICK_INTERVALS) {
             val angle = HeartRateGaugeModel.ARC_START_DEGREES +
-                i / 70f * HeartRateGaugeModel.ARC_SWEEP_DEGREES
-            val major = i % 10 == 0
+                i / HeartRateGaugeModel.TICK_INTERVALS.toFloat() * HeartRateGaugeModel.ARC_SWEEP_DEGREES
+            val major = i % HeartRateGaugeModel.MAJOR_EVERY == 0
             val (x1, y1) = point(angle, radius - w * (if (major) 0.045f else 0.020f))
             val (x2, y2) = point(angle, radius + w * 0.015f)
             paint.color = if (major) colors.ink else colors.muted
@@ -95,7 +97,7 @@ class HeartRateGaugeView(context: Context) : View(context) {
             canvas.drawLine(x1, y1, x2, y2, paint)
             if (major) {
                 val (tx, ty) = point(angle, radius + w * HeartRateGaugeModel.MAJOR_LABEL_OUTSET_PER_WIDTH)
-                drawText(canvas, (40 + i * 2).toString(), tx, ty, w * 0.047f, colors.muted)
+                drawText(canvas, HeartRateGaugeModel.tickValue(i).toString(), tx, ty, w * 0.047f, colors.muted)
             }
         }
 
@@ -141,8 +143,7 @@ class HeartRateGaugeView(context: Context) : View(context) {
         paint.shader = null
         paint.style = Paint.Style.FILL
         paint.color = color
-        paint.typeface = android.graphics.Typeface.create("sans-serif",
-            if (bold) android.graphics.Typeface.BOLD else android.graphics.Typeface.NORMAL)
+        paint.typeface = if (bold) typefaceBold else typefaceNormal
         paint.textSize = size
         paint.textAlign = Paint.Align.CENTER
         val baseline = y - (paint.ascent() + paint.descent()) / 2
