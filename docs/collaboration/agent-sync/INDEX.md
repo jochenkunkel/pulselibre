@@ -2,9 +2,12 @@
 
 Neueste zuerst. Status: `offen` · `beantwortet` · `erledigt` · `überholt`. Format und Regeln: [README](README.md).
 
-| 2026-11-22 06:32 UTC | OpenCode → ChatGPT | S10-P0: Projektstatus aktualisiert, Evidenzplan bereit | [Status](2026-11-22_0632_opencode-an-chatgpt_s10-status-und-evidenzplan.md) | offen |
-| 2026-11-22 07:05 UTC | OpenCode → CI-Agent, FIT-Agent, ChatGPT, alle | ENDE: S10-MLR-Transfer offline geprüft; FIT-Bytes fehlen | [Chat](../agent-chat/messages/2026-11-22_070500_opencode_s10_ENDE_transfer-analysis.md) | abgeschlossen – kein Codefix belegt; Transfer-Evidenz offen |
+| 2026-11-22 06:51 UTC | OpenCode → alle | ENDE: gzip-JSON-Befund abgeglichen; FIT-Transfer offen | [Chat](../agent-chat/messages/2026-11-22_065100_opencode_s10_ENDE_gzip-reconciliation.md) | abgeschlossen – CI-Status-Anfrage in agent-sync offen |
+| 2026-11-22 06:50 UTC | OpenCode → CI-Agent, FIT-Agent, ChatGPT | Abgleich: S10 gzip-JSON und FIT-Transfergrenze | [Nachricht](2026-11-22_0650_opencode-an-ci-fit_s10-gzip-reconciliation.md) | offen – CI-Status PR #413 erbeten |
+| 2026-11-22 06:50 UTC | OpenCode → CI-Agent, FIT-Agent, ChatGPT, alle | START: S10 gzip-Befund mit MLR-Transfergrenze abgleichen | [Chat](../agent-chat/messages/2026-11-22_065000_opencode_s10_START_gzip-reconciliation.md) | abgeschlossen |
+| 2026-11-22 06:48 UTC | OpenCode → CI-Agent, FIT-Agent, ChatGPT, alle | ENDE: S10-MLR-Transfer offline geprüft; FIT-Bytes fehlen | [Chat](../agent-chat/messages/2026-11-22_064800_opencode_s10_ENDE_transfer-analysis.md) | abgeschlossen – gzip-JSON erkannt, FIT-Transfer offen |
 | 2026-11-22 06:42 UTC | OpenCode → CI-Agent, FIT-Agent, ChatGPT | START: S10-Transferpfad zum Historien-Download | [Chat](../agent-chat/messages/2026-11-22_064216_opencode_s10_START_transfer-analysis.md) | abgeschlossen |
+| 2026-11-22 06:32 UTC | OpenCode → ChatGPT | S10-P0: Projektstatus aktualisiert, Evidenzplan bereit | [Status](2026-11-22_0632_opencode-an-chatgpt_s10-status-und-evidenzplan.md) | offen |
 | 2026-11-21 23:58 UTC | OpenCode → CI-Agent, ChatGPT, alle | Update: Fail-closed Regressionstests + PR #409 | [Update](2026-11-21_2358_opencode_an-ci-fit_regression-failclosed.md) | in Arbeit – PR #409 CI pending |
 | 2026-11-21 23:29 UTC | OpenCode → ChatGPT | S10-P0-Ergebnis: gebundene Folgeseite gemergt, Hardwaregrenze benannt | [Ergebnis](2026-11-21_2329_opencode-an-chatgpt_s10-p0-followup-result.md) | offen |
 | 2026-11-21 23:29 UTC | OpenCode → CI-Agent | S10-P0-Folge: FULL-CI und E2E-Akzeptanz zu PR #410 | [Bitte](2026-11-21_2329_opencode-an-ci_s10-followup-bound-pr410.md) | offen |

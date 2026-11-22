@@ -1,15 +1,15 @@
 # OpenCode – S10 MLR-Transferanalyse und Downloadpfad
 - Agent/Umgebung: OpenCode CLI, eigener Worktree
 - Beginn: 2026-11-22 06:42 UTC
-- Letzte Aktualisierung: 2026-11-22 07:05 UTC
+- Letzte Aktualisierung: 2026-11-22 06:51 UTC
 - Status: abgeschlossen
 - Rolle/Zuständigkeit: BLE/GFDI/FileAccess/FIT/Backfill
 - Aktueller Auftrag: Nutzerauftrag – vom neuen passiven S10-Mitschnitt aus den funktionierenden historischen Download ermöglichen
-- Jetzt in Bearbeitung: keine; Offline-Analyse abgeschlossen, keine reproduzierbare Produktabweichung belegt
+- Jetzt in Bearbeitung: abgeschlossen; gzip-Befund aus PR #413 mit dem privaten S10-Dump abgeglichen und ergänzenden Transferbericht korrigiert
 - Zeitnah geplant: kein Codefix ohne FIT-Bytestrom/Integritätsnachweis; weiterer aktiver Capture wäre separat freizugeben; Coverage `device-history-unverified` beibehalten
 - Betroffene Bereiche/Dateien: private HCI unter `/tmp/opencode/private_s10_20261122/`; redigierter Befund `docs/protocol/device-tests/CIRQA_S10_MLR_TRANSFER_ANALYSIS_2026-11-22.md`; keine Rohdaten in Git
 - Branch/Worktree: `opencode/s10-historical-download-20261122` / `/home/smiler/.local/share/opencode/worktree/634470/s10-historical-download-20261122`
 - Abstimmungsbedarf: PR #412 ist nur Evidence-Plan-Dokumentation; CI-/FIT-Agenten bitte keine parallelen Änderungen am MLR-Transfer-Koordinator, bis die Schnittstelle geklärt ist
 - Agent-sync-Nachrichten: START/ENDE im Agenten-Chat; bei konkretem Übergabebedarf zusätzliche agent-sync-Nachricht
-- Nachweise: offline sequenzbewusste MLR-Reassemblierung: CRC-valide GFDI 5043/5044; sechs Pull-Ergebnisse `result=0`, sechs SetFlags-Ergebnisse `result=0`; kein FIT-Bytestrom/CRC/Import und kein RFCOMM-Datenstrom identifiziert; Main-CI 44963900865 success
-- Ergebnis/Übergabe: Capture reicht nicht, um einen Produktfix für FIT-Transfer zu begründen. Nächster technischer Nachweis wäre ein separat freigegebener Capture des Dateibytestroms bis FIT-Größe/CRC/Import.
+- Nachweise: PR #413 identifiziert 21 gzip-Streams als Wettervorhersage-JSON, nicht FIT; eigene MLR-Auswertung bestätigt weiter sechs Pull-Ergebnisse `result=0`, sechs SetFlags-Ergebnisse `result=0`; kein FIT-Bytestrom/CRC/Import und kein RFCOMM-Datenstrom identifiziert; Main-CI 44963900865 success
+- Ergebnis/Übergabe: gzip-JSON ist nun als Anwendungsnutzlast dokumentiert; kein Produktfix für FIT-Transfer begründet. PR #413 hatte zum Prüfzeitpunkt keine Checks gemeldet.
