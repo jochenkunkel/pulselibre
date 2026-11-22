@@ -889,4 +889,11 @@
     <string name="main_weight_plus_cd">Increase weight by 0.1 kilogram</string>
     <string name="main_weight_step">Step: 0.1 kg · press and hold to change faster</string>
     <string name="main_weight_invalid">Please enter a weight between 15 and 400 kg.</string>
+    <string name="main_scan_running">Scanning (60 seconds) · passive detection …</string>
+    <string name="main_scan_finished">Scan finished · %1$d devices</string>
+    <string name="main_scan_failed">Scan error: %1$s</string>
+    <string name="main_card_bonded">Paired with Android</string>
+    <string name="main_card_scan_match">Same BLE address seen in the scan</string>
+    <string name="main_row_match">✓ CIRQA: BLE address matches the Android pairing</string>
+    <string name="main_row_service">Service data: %1$s</string>
 </resources>

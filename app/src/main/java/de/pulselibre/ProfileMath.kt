@@ -97,6 +97,6 @@ internal object WeightStepper {
         return raw.coerceIn(MIN_KG, MAX_KG)
     }
 
-    /** "80" for whole numbers is shown as "80,0" so the decimal step is visible; German decimal comma. */
-    fun format(kg: Double): String = String.format(java.util.Locale.GERMANY, "%.1f", kg)
+    /** "80" for whole numbers is shown as "80,0" so the decimal step is visible; decimal separator of [locale] (default German). */
+    fun format(kg: Double, locale: java.util.Locale = java.util.Locale.GERMANY): String = String.format(locale, "%.1f", kg)
 }
