@@ -3152,7 +3152,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                 syncPageSessionId == null && syncPageNextTransactionId == null
             syncFinalReport = "Sync-Beobachtung: ${CirqaSyncRunIdentity.reportField(syncSessionId)}; " +
                 "$message; runDrained=$runDrained; " +
-                "coverage=device-history-unverified; " +
+                "${CirqaSyncCoverage.marker(runDrained, syncIncompleteReason)} " +
                 "incompleteReason=${syncIncompleteReason ?: when {
                     !syncAccepted -> "sync-not-accepted"
                     syncFailedFiles > 0 -> "file-processing-failed"
