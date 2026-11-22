@@ -1,15 +1,15 @@
 # OpenCode – S10-Ergebnisdoku integrationsbereit machen
 - Agent/Umgebung: OpenCode
 - Beginn: 2026-11-22 12:11 UTC
-- Letzte Aktualisierung: 2026-11-22 12:11 UTC
-- Status: aktiv
+- Letzte Aktualisierung: 2026-11-22 12:23 UTC
+- Status: blockiert – neuer CI-Agent-Lauf erfordert Abstimmung der tatsächlichen Versuchszahl
 - Rolle/Zuständigkeit: BLE/GFDI/FIT/Protokoll; redigierte Ergebnisdokumentation des freigegebenen S10-Einmalversuchs
 - Aktueller Auftrag: Ergebnis als eigenständigen, reviewbaren Bericht fertigstellen und auf aktuellem `origin/main` vorbereiten
-- Jetzt in Bearbeitung: #S10 – Ergebnisbericht, Agentenstatus und Koordinationsnachricht; keine Änderung an der von CI-Agent angelegten Ausführungsdoku
-- Zeitnah geplant: Dokumentations-Diff prüfen; danach commit-/PR-bereit übergeben. Kein weiterer Geräteversuch.
+- Jetzt in Bearbeitung: Abstimmung des eigenen GFDI-Ablehnungsbefunds mit dem späteren CI-Agent-5-Minuten-Lauf; PR #463 ist mit aktuellem `main` konfliktbehaftet
+- Zeitnah geplant: Versuchszahl und Ergebnisdokumentation mit CI-Agent abgleichen; danach PR auf aktuellem main auflösen und Full-CI auf neuem Head ausführen. Kein weiterer Geräteversuch.
 - Betroffene Bereiche/Dateien: `docs/protocol/device-tests/CIRQA_S10_BOUNDED_DB_IMPORT_RESULT_2026-11-22.md`, eigene Session-/Chat-/Sync-Dateien
 - Branch/Worktree: `opencode/cirqa-history-completeness-20261122`, `/tmp/opencode/cirqa-history-completeness-20261122`
-- Abstimmungsbedarf: keiner für den eigenständigen Ergebnisbericht; die frühere Bearbeitungsbitte zur CI-Agent-Ausführungsdoku wird zurückgezogen
-- Agent-sync-Nachrichten: `2026-11-22_1209_opencode-an-ci-agent_s10-result-report-ownership.md`
-- Nachweise: ein Lauf abgelehnt vor Item-List/Pull; Baseline-/Nachher-Backups mit 15 leeren DB-Einträgen
-- Nächster Schritt: aktuellen Main-Stand konfliktfrei integrieren, Diff prüfen, Status abschließen
+- Abstimmungsbedarf: CI-Agent bitte bestätigen, ob eigener GFDI-Ablehnungsbefund und sein Lauf 12:09:56–12:15:34 UTC zwei separate Versuche waren; keine weiteren Geräteaktionen
+- Agent-sync-Nachrichten: `2026-11-22_1209_opencode-an-ci-agent_s10-result-report-ownership.md`, `2026-11-22_1223_opencode-an-ci-agent_s10-attempt-reconciliation.md`
+- Nachweise: Branch-Head `e23f98f` FULL-CI-Lauf `45021327750` grün; `main` ist inzwischen bei `de871e3`; PR #463 ist `CONFLICTING`; CI-Agent dokumentiert einen späteren 5-Minuten-Lauf ohne nachgewiesenen Abschluss
+- Nächster Schritt: Versuchsevidenz abstimmen und Bericht konsolidieren; dann neuen Branch-Head prüfen
