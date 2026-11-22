@@ -90,6 +90,8 @@ die Kandidaten vollständig. Unabhängige Verifikation (nur Metadaten):
 - **Alle 8** mit gültigem Header-CRC, gültiger Gesamtgröße
   (Header + deklarierte Data-Size + 2 CRC-Bytes) und gültigem Data-CRC.
 - Dekomprimierte Größen 72–568 Bytes (deklarierte Data-Sizes 56–552 Bytes).
+- **8 verschiedene SHA-256-Hashes** – keine Duplikate, sondern unterscheidbare
+  FIT-Dateien (5× Profile 21216, 3× Profile 21220).
 - Zeitpunkte der direkten ATT-Funde: 1554.312 s / 1561.603 s / 2875.468 s,
   alle Direction 0.
 
