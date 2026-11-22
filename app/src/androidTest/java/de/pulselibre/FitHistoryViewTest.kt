@@ -73,6 +73,30 @@ class FitHistoryViewTest {
         } finally { root.deleteRecursively() }
     }
 
+    /** #477: after a product download only the active-generation tables are filled; the legacy provenance table is empty. */
+    @Test fun availabilityAndLatestWorkWhenOnlyTheActiveGenerationHoldsTheImport() {
+        val base = AppLanguageSettings.wrap(ApplicationProvider.getApplicationContext<Context>())
+        val root = Files.createTempDirectory(base.cacheDir.toPath(), "fit-history-generation-only-").toFile()
+        val context = isolatedContext(base, root)
+        val sha = "c".repeat(64)
+        try {
+            CirqaDatabase(context).use { db ->
+                db.commitFitFile(
+                    sourceSha256 = sha, fileBytes = 128, relativePath = "verified_fit/$sha.fit",
+                    validatedAtEpochMillis = 10_000, decoderVersion = FitHistoricalObservations.DECODER_VERSION,
+                    profileVersion = FitHistoricalObservations.PROFILE_VERSION,
+                    observations = listOf(observation(sha, "a", 1_000, 70.0, 1), observation(sha, "b", 5_000, 75.0, 2)),
+                    deviceKey = "history-test-device")
+                db.writableDatabase.execSQL("DELETE FROM fit_observation_provenance") // reproduce the S10 state
+            }
+            val reader = FitHistoryReader(context)
+            val window = reader.read(Instant.ofEpochMilli(0), Instant.ofEpochMilli(10_000))
+            assertEquals(listOf(70, 75), window.points.map { it.value })
+            assertTrue("the FIT card must be offered", window.available)
+            assertEquals(Instant.ofEpochMilli(5_000), reader.latestMeasuredAt(Instant.ofEpochMilli(20_000)))
+        } finally { root.deleteRecursively() }
+    }
+
     @Test fun fitCardIsSeparateAndNamesTheBandClock() {
         val context = ContextThemeWrapper(AppLanguageSettings.wrap(ApplicationProvider.getApplicationContext<Context>()), androidx.appcompat.R.style.Theme_AppCompat)
         val end = Instant.parse("2026-11-17T12:00:00Z")
