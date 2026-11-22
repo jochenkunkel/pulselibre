@@ -47,6 +47,19 @@ class DeviceBatteryViewTest {
         }
     }
 
+    @Test fun unchangedStatsDoNotRebuildTheViewAndKeepAccessibilityFocus() {
+        InstrumentationRegistry.getInstrumentation().runOnMainSync {
+            val view = DeviceOverviewView(context)
+            val stats = DeviceStats(emptyMap(), 12, 1, 0, 340L, 4096L, null)
+            view.showStats(stats)
+            val firstChild = view.getChildAt(0)
+            view.showStats(stats.copy())
+            assertTrue("same visible content must keep the existing views", view.getChildAt(0) === firstChild)
+            view.showStats(stats.copy(readingsLastHour = 13))
+            assertTrue("changed content must rebuild", view.getChildAt(0) !== firstChild)
+        }
+    }
+
     @Test fun staleBatteryIsLabelledAsLastKnownState() {
         InstrumentationRegistry.getInstrumentation().runOnMainSync {
             val view = DeviceOverviewView(context)
