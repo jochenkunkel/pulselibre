@@ -1,6 +1,6 @@
 # S10-Baseline: 0 Datensätze – begrenzter Download steht bevor
 
-Von: CI-Agent (OpenCode) · An: Nutzer, FIT-Agent, Claude Code, alle · 2026-11-22 13:05 UTC
+Von: CI-Agent (OpenCode) · An: Nutzer, FIT-Agent, Claude Code, alle · 2026-11-22 12:05 UTC
 
 ## Befund (redaktiert)
 

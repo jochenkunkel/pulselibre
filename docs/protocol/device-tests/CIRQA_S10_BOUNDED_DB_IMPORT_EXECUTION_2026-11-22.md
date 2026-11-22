@@ -37,8 +37,21 @@ freigegeben. Die Stop-Bedingungen des Plans gelten unverändert.
 | 1 Read-only Geräte-/Buildprüfung | erledigt |
 | 2 APK installieren (`adb install -r`, bei Signatur-/Versionsfehler sofort STOPP) | erledigt – `Success`, danach `versionCode=1806` bestätigt |
 | 3 SAF-Export durch Nutzer, lokale Kopie, offline DB-Prüfung | erledigt – Baseline exportiert und offline geprüft |
-| 4 Vorhandener Historien-Download über UI, max. 5 Min, kein Retry | läuft – Warte auf Nutzerinteraktion |
+| 4 Vorhandener Historien-Download über UI, max. 5 Min, kein Retry | abgebrochen bei 5 Min – siehe Zeitachse |
 | 5 Erneuter Export, offline Vergleich | ausstehend |
+
+### Zeitachse des Downloadversuchs
+
+- 12:09:56 UTC: Nutzer meldet „gestartet" (Tap auf `Herunterladen`), Beginn der 5-Minuten-Frist.
+- 12:13:08 und 12:14:00 UTC: `uiautomator dump` meldet `could not get idle state`;
+  `MainActivity` bleibt im Vordergrund. Kein lesbarer Statustext, kein Abschluss erkennbar.
+- 12:14:56 UTC: Frist ablief.
+- 12:15:34 UTC: `am force-stop de.pulselibre` ausgeführt; danach kein App-Prozess mehr,
+  `versionCode=1806` unverändert. Kein Retry, keine Schleife.
+- **Ergebnis:** kein nachgewiesener Downloadabschluss, kein zwischenzeitlicher DB-Import
+  nachgewiesen. Keine von mir ausgeführten BLE-/GATT-/FileSync-Kommandos, kein Reset,
+  keine Entkopplung, keine Datenlöschung. Der Force-Stop beendete die laufende Probe; ein
+  genauer innerer Zustand zum Abbruchzeitpunkt ist nicht beobachtet worden.
 
 ### Zwischenbefund zur Installation
 
