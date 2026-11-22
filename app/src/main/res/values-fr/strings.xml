@@ -889,4 +889,12 @@
     <string name="main_weight_plus_cd">Augmenter le poids de 0,1 kilogramme</string>
     <string name="main_weight_step">Pas : 0,1 kg · maintenez appuyé pour changer plus vite</string>
     <string name="main_weight_invalid">Veuillez saisir un poids compris entre 15 et 400 kg.</string>
+    <!-- REVIEW: neue Texte (A6-43), fr/es Sprachprüfung durch ChatGPT -->
+    <string name="main_scan_running">Recherche en cours (60 secondes) · détection passive …</string>
+    <string name="main_scan_finished">Recherche terminée · %1$d appareils</string>
+    <string name="main_scan_failed">Erreur de recherche : %1$d</string>
+    <string name="main_card_bonded">Associé à Android</string>
+    <string name="main_card_scan_match">Même adresse BLE détectée lors de la recherche</string>
+    <string name="main_row_match">✓ CIRQA : l’adresse BLE correspond à l’association Android</string>
+    <string name="main_row_service">Données de service : %1$s</string>
 </resources>
