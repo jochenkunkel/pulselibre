@@ -71,4 +71,25 @@ class ScienceFitSeriesAdapterTest {
         assertEquals(SeriesOrigin.BAND, series.origin)
         assertEquals(SeriesTimeBasis.BAND_CLOCK, series.timeBasis)
     }
+
+    @Test fun projectsOnlyTheAlreadyStoredCanonicalFitMetricsAndTheirUnits() {
+        val source = listOf(
+            observation(metric = "distance", unit = "m", value = 12.5, timeMs = 1_100L),
+            observation(metric = "speed", unit = "m/s", value = 1.25, timeMs = 1_200L),
+            observation(metric = "cadence", unit = "rpm", value = 70.0, timeMs = 1_300L),
+            observation(metric = "power", unit = "W", value = 80.0, timeMs = 1_400L)
+        )
+
+        val distance = ScienceFitSeriesAdapter.verifiedSeries(
+            ScienceFitSeriesAdapter.Metric.DISTANCE, source, 1_000L, 2_000L
+        )
+        val speed = ScienceFitSeriesAdapter.verifiedSeries(
+            ScienceFitSeriesAdapter.Metric.SPEED, source, 1_000L, 2_000L
+        )
+
+        assertEquals("m", distance.unit)
+        assertEquals(listOf(12.5), distance.points.map { it.value })
+        assertEquals("m/s", speed.unit)
+        assertEquals(listOf(1.25), speed.points.map { it.value })
+    }
 }

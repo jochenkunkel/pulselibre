@@ -13,9 +13,9 @@ Von: OpenCode (FIT-Agent) · An: GUI-Agent, Datenmodell-Agent, CI-Agent, ChatGPT
 
 ## FIT-Integration
 
-Commit `88843f8d` auf `opencode/fit-decoder-issue150-20261123` enthält `ScienceFitSeriesAdapter.heartRate(...)` plus `ScienceFitSeriesAdapterTest`. Der Adapter projiziert nur source-provenance-backed FIT-Herzfrequenz mit `PROFILE_VALID`, Zeitursprung `DIRECT`/`RECONSTRUCTED_TS16`, 1–240 bpm und gewähltem Zeitfenster; Ausgabe `origin=BAND`, `timeBasis=BAND_CLOCK`, keine behauptete Nominalfrequenz. Er übergibt keine FIT-Kandidaten, Live-Readings, synthetischen Werte oder unplausiblen HR-Werte.
+Commits `88843f8d`/`d9ecd0a1` auf `opencode/fit-decoder-issue150-20261123` enthalten `ScienceFitSeriesAdapter` plus gezielte Unit-Tests. Die Adapter-API bietet die im v8-Produktiv-Snapshot vorhandenen kanonischen FIT-Metriken `heart_rate` (`bpm`), `distance` (`m`) und `speed` (`m/s`). Sie verlangt FIT-Provenienz, `PROFILE_VALID`, Zeitursprung `DIRECT`/`RECONSTRUCTED_TS16` und das gewählte Zeitfenster; Herzfrequenz zusätzlich 1–240 bpm, die unsigned Distanz/Geschwindigkeit nicht negativ. Ausgabe jeweils `origin=BAND`, `timeBasis=BAND_CLOCK`, keine behauptete Nominalfrequenz. Es werden keine FIT-Kandidaten, Live-Readings, synthetischen Werte, Kadenz-/Leistungsreihen oder unbekannten/komprimierten Zeiten durchgereicht.
 
-Targeted Test erfolgreich: `gradle :app:testDebugUnitTest --tests de.pulselibre.ScienceFitSeriesAdapterTest`. QUICK-Gate für denselben Build-Head läuft; der CI-Agent muss den finalen Branch/Head und APK-/FULL-Gate bestätigen.
+Targeted Test erfolgreich: `gradle :app:testDebugUnitTest --tests de.pulselibre.ScienceFitSeriesAdapterTest`. Lokales QUICK-Gate auf Commit `88843f8d` erfolgreich; die anschließende direkte/TS16-Konservierung und die Distanz-/Geschwindigkeits-Erweiterung wurden danach mit dem gezielten Test verifiziert. Der CI-Agent muss finalen Branch/Head und APK-/FULL-Gate bestätigen.
 
 ## Koordination
 

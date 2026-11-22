@@ -4,11 +4,18 @@ package de.pulselibre
  * FIT-only projection for the science dashboard.
  *
  * The S10 test build must not pass untrusted FIT review candidates or unrelated
- * live/import rows into a verified band series. Until metric-specific validation
- * is agreed, only the existing provenance-backed heart-rate mapping is exposed.
+ * live/import rows into a verified band series. Only FIT metrics already present
+ * in the canonical production store are exposed.
  */
 internal object ScienceFitSeriesAdapter {
-    fun heartRate(
+    enum class Metric(val key: String, val unit: String) {
+        HEART_RATE("heart_rate", "bpm"),
+        DISTANCE("distance", "m"),
+        SPEED("speed", "m/s")
+    }
+
+    fun verifiedSeries(
+        metric: Metric,
         observations: List<HistoricalObservation>,
         rangeStartMs: Long,
         rangeEndExclusiveMs: Long
@@ -17,15 +24,16 @@ internal object ScienceFitSeriesAdapter {
 
         val points = observations.asSequence()
             .filter { observation ->
-                observation.metric == FitHistoryMapping.METRIC &&
-                    observation.unit == "bpm" &&
+                observation.metric == metric.key &&
+                    observation.unit == metric.unit &&
                     observation.provenance?.quality == FitHistoricalObservations.Quality.PROFILE_VALID.name &&
                     observation.provenance.timestampOrigin in setOf(
                         FitHistoricalObservations.TimestampOrigin.DIRECT.name,
                         FitHistoricalObservations.TimestampOrigin.RECONSTRUCTED_TS16.name
                     ) &&
                     observation.value.isFinite() &&
-                    observation.value in 1.0..240.0 &&
+                    (metric != Metric.HEART_RATE || observation.value in 1.0..240.0) &&
+                    observation.value >= 0.0 &&
                     observation.measuredAt.toEpochMilli() >= rangeStartMs &&
                     observation.measuredAt.toEpochMilli() < rangeEndExclusiveMs
             }
@@ -40,8 +48,8 @@ internal object ScienceFitSeriesAdapter {
             .toList()
 
         return SeriesData(
-            metricKey = "heart_rate",
-            unit = "bpm",
+            metricKey = metric.key,
+            unit = metric.unit,
             origin = SeriesOrigin.BAND,
             timeBasis = SeriesTimeBasis.BAND_CLOCK,
             rangeStartMs = rangeStartMs,
@@ -52,4 +60,10 @@ internal object ScienceFitSeriesAdapter {
             points = points
         )
     }
+
+    fun heartRate(
+        observations: List<HistoricalObservation>,
+        rangeStartMs: Long,
+        rangeEndExclusiveMs: Long
+    ): SeriesData = verifiedSeries(Metric.HEART_RATE, observations, rangeStartMs, rangeEndExclusiveMs)
 }
