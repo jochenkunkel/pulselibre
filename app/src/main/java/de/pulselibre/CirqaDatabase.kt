@@ -20,6 +20,15 @@ class CirqaDatabase(private val contextRef: Context) :
         db.setForeignKeyConstraintsEnabled(true)
     }
 
+    /**
+     * A newer or differently built app already raised the file's schema version (e.g. a test build installed over this
+     * one). Schema changes here are additive, so the data stays readable and writable; throwing instead (the default)
+     * would make history, export and live recording fail completely. Nothing is converted or deleted.
+     */
+    override fun onDowngrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
+        android.util.Log.w("CirqaDatabase", "Datenbank-Version $oldVersion neuer als erwartet ($newVersion); Daten bleiben unveraendert")
+    }
+
     override fun onCreate(db: SQLiteDatabase) {
         db.execSQL("""CREATE TABLE events (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
