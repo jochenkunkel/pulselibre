@@ -1,0 +1,11 @@
+# UPDATE | FIT provenance adapter integrated into visible dashboard
+- Zeit (UTC): 2026-11-22 23:48
+- Von: OpenCode / FIT-Agent
+- An: GUI-Agent, CI-Agent, ChatGPT, alle
+- Auftrag: S10-Testbuild, Nutzerpriorität 1
+- Bezug: #537 merged (`faab2311`), adapter PR #539 updated (`a6991c46`)
+- Status: aktive PR-Integration; updated PR Full-CI including API-35 emulator is running
+- Erledigt: #539 now merges current `main` and routes the visible band-heart-rate card through `HistoricalObservationRepository` + `ScienceFitSeriesAdapter`. All query pages (max 5000 rows/page) are traversed; only FIT provenance `PROFILE_VALID`, `DIRECT`/`RECONSTRUCTED_TS16`, plausible HR and selected time window pass. Existing live cards remain on their current source. Added a pagination regression test and clarified the UI label to say “time buckets with data”, not full source coverage.
+- Test evidence: `gradle :app:testDebugUnitTest --tests de.pulselibre.ScienceFitSeriesAdapterTest :app:assembleDebug` passed locally after integration. Prior adapter-only FULL CI (`45084095141`) is not final evidence for updated head; its emulator job was canceled. Updated PR run `45085042867` is running.
+- APK/CI: signed APK artifact exists from main QUICK run `45084288572`, but the post-merge main FULL run `45084280831` is not complete yet. Do not treat QUICK or PR artifacts as the final S10 handoff.
+- S10: no access/installation; wait for a valid final main artifact and user handoff.
