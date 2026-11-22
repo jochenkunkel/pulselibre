@@ -174,7 +174,6 @@ class MainActivity : AppCompatActivity() {
     private var cirqaScanMatch = false
     private var cirqaGattState = ""
     private val cirqaConnectionHistory = CirqaConnectionHistory()
-    private var lastScanDiagnostic = "Noch kein Scan gestartet."
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -935,7 +934,6 @@ class MainActivity : AppCompatActivity() {
         val message = getString(R.string.main_bt_off_msg)
         status.text = message
         if (::output.isInitialized) output.text = message
-        lastScanDiagnostic = message
         androidx.appcompat.app.AlertDialog.Builder(this)
             .setTitle(R.string.main_bt_off_title)
             .setMessage(message)
@@ -972,7 +970,6 @@ class MainActivity : AppCompatActivity() {
         if (requestCode == 10 && ::status.isInitialized) {
             val granted = grantResults.isNotEmpty() && grantResults.all { it == PackageManager.PERMISSION_GRANTED }
             status.text = getString(if (granted) R.string.main_perm_granted else R.string.main_perm_denied)
-            lastScanDiagnostic = status.text.toString()
             connectionIndicatorRefresh?.invoke()
         }
         if (requestCode == 12 && ::status.isInitialized) {
@@ -986,7 +983,7 @@ class MainActivity : AppCompatActivity() {
     @SuppressLint("MissingPermission")
     private fun startScan() {
         if (!ensurePermissions()) return
-        if (!adapter.isEnabled) { status.text = "Bitte Bluetooth aktivieren"; lastScanDiagnostic = status.text.toString(); return }
+        if (!adapter.isEnabled) { status.text = getString(R.string.main_bt_off_msg); return }
         if (scanning) return
         val scanner = adapter.bluetoothLeScanner ?: run { status.text = "BLE-Scanner nicht verfügbar"; return }
         devices.removeAllViews(); found.clear(); deviceRows.clear(); diagnosticRows.clear()
@@ -1005,8 +1002,7 @@ class MainActivity : AppCompatActivity() {
         scanning = true
         val generation = ++scanGeneration
         applyEvent(BleEvent.START_SCAN)
-        status.text = "Suche läuft (60 Sekunden) · passive Erkennung …"
-        lastScanDiagnostic = "Scan gestartet; Android hat den Startaufruf angenommen."
+        status.text = getString(R.string.main_scan_running)
         handler.postDelayed({ if (generation == scanGeneration && !destroyed) stopScan() }, BleSafetyPolicy.scanDurationMillis)
     }
 
@@ -1019,8 +1015,7 @@ class MainActivity : AppCompatActivity() {
         scanning = false
         scanGeneration++
         applyEvent(BleEvent.STOP_SCAN)
-        status.text = "Suche abgeschlossen · ${found.size} Geräte"
-        lastScanDiagnostic = if (found.isEmpty()) "60 Sekunden ohne BLE-Werbeergebnis; kein Beweis für fehlende Kopplung." else "Scan abgeschlossen mit ${found.size} Geräten."
+        status.text = getString(R.string.main_scan_finished, found.size)
         refreshCirqaCard()
     }
 
@@ -1041,8 +1036,7 @@ class MainActivity : AppCompatActivity() {
                     scanning = false
                     scanGeneration++
                     applyEvent(BleEvent.FAILED)
-                    status.text = "Scan-Fehler: $errorCode"
-                    lastScanDiagnostic = "Android BLE ScanCallback Fehlercode: $errorCode"
+                    status.text = getString(R.string.main_scan_failed, errorCode)
                 }
             }
         }
@@ -1088,8 +1082,8 @@ class MainActivity : AppCompatActivity() {
         val message = buildString {
             appendLine("CIRQA Smart Band")
             if (cirqaBondAddress != null) {
-                appendLine("Mit Android gekoppelt")
-                if (cirqaScanMatch) appendLine("Gleiche BLE-Adresse im Scan erkannt")
+                appendLine(getString(R.string.main_card_bonded))
+                if (cirqaScanMatch) appendLine(getString(R.string.main_card_scan_match))
             }
             appendLine(cirqaGattState)
             append(link.label)
@@ -1121,7 +1115,7 @@ class MainActivity : AppCompatActivity() {
             background = GradientDrawable().apply { setColor(DesignTokens.BRAND_PURPLE); cornerRadius = 14 * d }
             contentDescription = description
             isClickable = true; isFocusable = true
-            setOnClickListener { input.setText(WeightStepper.format(WeightStepper.step(input.text.toString(), delta))); input.setSelection(input.text.length) }
+            setOnClickListener { input.setText(WeightStepper.format(WeightStepper.step(input.text.toString(), delta), resources.configuration.locales[0])); input.setSelection(input.text.length) }
             // press-and-hold repeats the step
             val repeat = object : Runnable {
                 override fun run() { performClick(); postDelayed(this, 120L) }
@@ -1220,8 +1214,8 @@ class MainActivity : AppCompatActivity() {
             label ?: record?.deviceName, companyIds, services, result.rssi
         )
         val isCirqaMatch = CirqaAddressMatch.matches(cirqaBondAddress, address)
-        val details = (if (isCirqaMatch) "✓ CIRQA: BLE-Adresse stimmt mit Android-Kopplung überein\n" else "") +
-            "$description\nService-Daten: $serviceData"
+        val details = (if (isCirqaMatch) getString(R.string.main_row_match) + "\n" else "") +
+            "$description\n" + getString(R.string.main_row_service, serviceData)
         diagnosticRows[address] = details
         val row = deviceRows[address]
         if (row != null) {
