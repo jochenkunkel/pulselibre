@@ -2,8 +2,8 @@
 
 - Agent/Umgebung: CI-Agent (OpenCode, CI/Tests/Dokumentation)
 - Beginn: 2026-11-22 16:34 UTC
-- Letzte Aktualisierung: 2026-11-22 16:39 UTC
-- Status: aktiv – Watchdog-Meldung 16:33 wird mit eigenständiger Testarbeit beantwortet; Tests implementiert und lokal grün
+- Letzte Aktualisierung: 2026-11-22 16:52 UTC
+- Status: abgeschlossen – PR #504 gemergt (`68cb0257`), PR-CI und dependency-review grün gelesen; `main`-FULL-Läufe `45045764522`/`45045761461` werden im Rahmen der laufenden Sitzung nachgelesen
 - Rolle/Zuständigkeit: CI-Regressionen, Nachweise im Repository
 - Aktueller Auftrag: `CirqaFitBackfill`-Kontrakt für die veröffentlichten synthetischen Fixtures direkt absichern (Replay-Idempotenz, leere und manipulierte Fixtures erzeugen keine Commits).
 - Jetzt in Bearbeitung: Ergänzung von `app/src/test/java/de/pulselibre/SyntheticFitFixturesTest.kt`.
