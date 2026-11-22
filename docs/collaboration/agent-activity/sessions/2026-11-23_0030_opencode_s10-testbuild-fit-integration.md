@@ -1,14 +1,14 @@
 # OpenCode – FIT-Integration für S10-Testbuild
 - Agent/Umgebung: OpenCode (FIT-Agent)
 - Beginn: 2026-11-23 00:30 UTC
-- Letzte Aktualisierung: 2026-11-22 23:48 UTC
-- Status: aktiv – provenance-sichere FIT-HF-Integration in PR #539 umgesetzt; updated branch FULL-CI und finaler main FULL/APK gate offen
+- Letzte Aktualisierung: 2026-11-22 23:58 UTC
+- Status: aktiv – PR #539 gemergt nach grünem Branch-FULL-CI; post-merge main FULL/APK-Gate läuft
 - Rolle/Zuständigkeit: Bereits verifizierte FIT-Messwerte für das Wissenschaftsdashboard bereitstellen, FIT-/GUI-Integrationskanten und Konflikte lösen
 - Aktueller Auftrag: Nutzerpriorität 1 – installierbarer S10-Testbuild binnen 48 Stunden
 - Jetzt bearbeitet: nur S10-Testbuild, keine neue FIT-Forschung
 - Zeitnah geplant: Adapter nach GUI-Bestätigung in den Dashboard-Aufruf integrieren; gemeinsamer Branch/Head und CI-/APK-Gates mit GUI- und CI-Agent abstimmen
 - Betroffene Dateien: `ScienceFitSeriesAdapter.kt`, `ScienceFitSeriesAdapterTest.kt`, nur nach Zustimmung GUI-Integration; Koordinationsdateien
 - Branch/Worktree: `opencode/fit-decoder-issue150-20261123`, `/home/smiler/.local/share/opencode/worktree/634470/fit-decoder-20261123`
-- Abstimmungsbedarf: CI-Agent soll updated PR-FULL und post-merge main-FULL/Artefakt bestätigen. GUI-Agent über Integration informiert; PR #539 liegt auf aktualisiertem main. S10 nicht vor fertiger APK und erneuter Nutzeranforderung anfassen.
-- Fortschritt/Nachweise: targeted `ScienceFitSeriesAdapterTest` + `assembleDebug` nach Integration grün; visible `hr_band` card in `ScienceDashboardView` routes via provenance-bearing repository and adapter with all pages (max 5000/page). Dashboard PR #537 branch FULL inkl. Emulator `45083460437` grün. Main post-merge QUICK `45084288572` erzeugte signed APK, aber kein FULL. Main post-merge FULL `45084280831` läuft. Updated #539 head `a6991c46` Full-CI `45085042867` läuft; kein Gerätezugriff.
-- Nächster Schritt: Ergebnisse des updated PR-FULL und post-merge main-FULL lesen; erst nach grünem finalem main-Head APK-Artefakt verifizieren und dann Nutzer für S10-Test ansprechen.
+- Abstimmungsbedarf: CI-Agent soll finalen Main-FULL-Lauf `45085982396` und signiertes Artefakt verifizieren. GUI-Agent über Integration und Merge informiert. S10 nicht vor fertiger APK und Nutzer-Handoff anfassen.
+- Fortschritt/Nachweise: targeted `ScienceFitSeriesAdapterTest` + `assembleDebug` und lokaler QUICK nach Integration erfolgreich; PR #539 head `a6991c46` Full-CI inkl. API-35-Emulator `45085042867` grün und als `42b1f242` gemergt. Vorheriger Main-FULL `45084280831` war grün aber vor Integration. Main post-merge FULL `45085982396` läuft. Kein Gerätezugriff.
+- Nächster Schritt: finales Main-Gate abwarten, signiertes Artefakt gegen Head/Metadaten prüfen; dann APK-Link und Testhinweise an Nutzer übergeben.
