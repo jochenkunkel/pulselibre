@@ -2975,14 +2975,20 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         // offline decoder only when the received bytes are not already a valid FIT
         // and carry a plausible zlib header; the inflated result must itself pass
         // full FIT header/CRC verification. Nothing is stored or imported before
-        // that check succeeds. Size and SHA above always refer to the wire bytes.
+        // that check succeeds. For incremental assembly, data already contains
+        // the complete raw or inflated file; size and SHA describe that file.
         val zlibDecoded = if (FitFileHeader.inspectVerified(data) == null &&
             CirqaZlibFileDecoder.isZlibCandidate(data)
         ) {
             CirqaZlibFileDecoder.decode(data)?.takeIf { FitFileHeader.inspectVerified(it) != null }
         } else null
         val fitData = zlibDecoded ?: data
-        val zlibMark = if (zlibDecoded != null) "zlib=decoded(${zlibDecoded.size})" else "zlib=none"
+        val zlibMark = when {
+            mlrFileAssembler?.mode == CirqaMlrFileTransferAssembler.Mode.ZLIB ->
+                "zlib=assembled(${data.size})"
+            zlibDecoded != null -> "zlib=decoded(${zlibDecoded.size})"
+            else -> "zlib=none"
+        }
         if (!declaredFit && !looksFit && zlibDecoded == null) {
             val saved = try {
                 CirqaVerifiedRawFileStore(java.io.File(context.filesDir, "verified_raw"))
