@@ -50,6 +50,35 @@ zusätzlichen unabhängigen Extraktion der privaten App-Datenbank.
 
 ## Grenzen und Abschluss
 
+- **Folgediagnose auf Nutzeranweisung, read-only (22.11.2026):** ADB bestätigte
+  erneut SM-G970F / Android 12 / API 31, Build 1757 sowie gewährte
+  `BLUETOOTH_SCAN`- und `BLUETOOTH_CONNECT`-Berechtigungen. Zum Diagnosezeitpunkt
+  wurde kein `CirqaContinuousRecordingService` als aktiv gemeldet. Das ist
+  lediglich der aktuelle Zustand, kein Beleg für den Ausgang eines früheren
+  Startversuchs. Die gefilterte aktuelle Logcat-Rückschau enthielt keine
+  einschlägigen App-/GATT-Zeilen.
+- Eine private SQLite-Prüfung war mit dieser nicht-debuggbaren Release-App nicht
+  möglich (`run-as` verweigert den Zugriff); `allowBackup=false`. Es wurde
+  weder die App neu gestartet noch ein Export/Backup, Sync, Scan oder GATT-
+  Verbindungsaufbau ausgelöst, um keinen unbeabsichtigten automatischen Sync
+  oder zusätzliche Datenoperation zu verursachen. Die tatsächliche Zahl und
+  Metrik der importierten Beobachtungen bleibt daher ungeprüft.
+- Codeabgleich: In `MainActivity` und `CirqaMlHandshakeProbe.start()` ist keine
+  fest codierte S25-MAC vorhanden. Beide Geräteauswahlpfade verwenden gekoppelte
+  Geräte mit Namen, die „CIRQA“ enthalten; die ML-Probe nimmt den ersten
+  passenden Eintrag. Mehrere gleichnamige Kopplungen wären ein möglicher
+  Auswahlkonflikt, aber nicht als Ursache belegt. Live-Aufzeichnung erfordert
+  zusätzlich eine erfolgreiche GATT-Dienstsuche, Notify-/Write-Characteristics,
+  CCCD-Aktivierung, ML-Registrierung und anschließende Messwert-Notifications.
+- Der Verlauf projiziert FIT-Herzfrequenz (Metrik `heart_rate`, Einheit `bpm`,
+  plausible Werte 1–240) separat von Live-Ereignissen. Standardmäßig ist nur
+  das letzte 24-Stunden-Fenster ausgewählt; rückwärts navigierbar ist höchstens
+  der lokale 30-Tage-Horizont. `imported=17` belegt weder, dass darin
+  Herzfrequenz enthalten ist, noch dass deren Messzeit in diesem Fenster liegt.
+  Build 1757 enthält zudem den nachfolgenden Decoder-Fix #416 nicht; ob genau
+  das die fehlenden Verlaufspunkte erklärt, wurde auf diesem Gerät nicht
+  nachgewiesen.
+
 - Dies ist ein realer S10-Produktdownload mit gemeldeter Integritätsprüfung und
   Importstufen, aber **kein Nachweis vollständiger Gerätehistorie**.
 - Build 1757 enthält den neuen Offline-zlib-Decoder aus PR #416 nicht. Dieser
