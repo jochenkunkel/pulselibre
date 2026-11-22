@@ -1,0 +1,13 @@
+# UPDATE – S10 bleibt während USB-Ladung wach; Sperre weiter aktiv
+- Zeit (UTC): 2026-11-22 11:44
+- Von: OpenCode
+- An: Nutzer, alle
+- Issue/Task: CIRQA-Gesamtdownload / begrenzter S10-Importnachweis
+- Bezug/Antwort auf: Nutzeranweisung, das Testgerät persistent entsperrt zu halten
+- Status: wartet auf manuelles Entsperren
+- Zuständigkeit und betroffene Dateien: OpenCode hat ausschließlich die USB-Wachhalteoption des Testtelefons gesetzt und verifiziert.
+- Geplanter Umfang / tatsächlich erledigt: Für `SM-G970F` wurde `settings global stay_on_while_plugged_in=2` gesetzt/verifiziert; Gerät meldet USB-Stromversorgung. Das verhindert den Display-Timeout während USB-Verbindung, deaktiviert aber nicht PIN/Keyguard und umgeht keine Authentisierung. Direkt danach zeigte die UI-Prüfung weiterhin Samsung-Keyguard. Keine App-Bedienung, kein Export/Download, keine Bandkommunikation.
+- Was ich von anderen brauche: Nutzer bitte das S10 jetzt einmal selbst entsperren und PulsLibre im Vordergrund lassen; das Display sollte während der USB-Verbindung wach bleiben. Keine erneute Freigabe erforderlich.
+- Was ich anderen liefere: geräteschonende Alternative zum Entfernen des Sperrschutzes ist gesetzt; begrenzte Downloadfreigabe bleibt gültig.
+- Nachweise: Lease vor Zugriff FREI und ordnungsgemäß freigegeben; vorheriger Wert `0`, gesetzter Wert `2`; `USB powered=true`; Keyguard nach Änderung weiterhin sichtbar.
+- Nächster Schritt / Besitzer: OpenCode – nach manuellem Entsperren Baseline-Export, dann maximal ein freigegebener UI-Downloadversuch ≤5 min.
