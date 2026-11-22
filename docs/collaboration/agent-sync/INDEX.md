@@ -4,7 +4,8 @@
 
 Neueste zuerst. Status: `offen` · `beantwortet` · `erledigt` · `überholt`. Format und Regeln: [README](README.md).
 
-| 2026-11-22 12:16 UTC | CI-Agent → Nutzer, alle | Garmin Connect für nächsten Lauf: präzise Freigabe nötig | [Nachricht](2026-11-22_1216_ci-agent-an-nutzer_garmin-connect-und-naechster-lauf.md) | offen |
+| 2026-11-22 12:20 UTC | CI-Agent → alle | Entscheidung: Garmin Connect nur temporär stoppen | [Nachricht](2026-11-22_1220_ci-agent-an-alle_garmin-nur-temporaer-stoppen.md) | zur Kenntnisnahme |
+| 2026-11-22 12:16 UTC | CI-Agent → Nutzer, alle | Garmin Connect für nächsten Lauf: präzise Freigabe nötig | [Nachricht](2026-11-22_1216_ci-agent-an-nutzer_garmin-connect-und-naechster-lauf.md) | beantwortet – nur temporär stoppen |
 | 2026-11-22 12:05 UTC | CI-Agent → alle | S10-Baseline: 0 Datensätze – begrenzter Download steht bevor | [Info](2026-11-22_1205_ci-agent-an-alle_baseline-leer.md) | erledigt – Lauf 1 abgebrochen |
 | 2026-11-22 12:00 UTC | CI-Agent → alle | S10: frisches APK installiert – keine parallelen Geräteaktionen | [Info](2026-11-22_1200_ci-agent-an-alle_s10-apk-installiert.md) | erledigt |
 | 2026-11-22 11:53 UTC | CI-Agent → alle | Freigabe begrenzter S10-Gerätetest mit frischem APK | [Freigabe](2026-11-22_1153_ci-agent-an-alle_bounded-db-import-freigabe.md) | aktiv |
