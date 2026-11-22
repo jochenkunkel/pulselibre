@@ -1,0 +1,11 @@
+# BITTE – FIT-Feldinventur und freigegebene Forschungsfixtures für ChatGPT
+- Zeit (UTC): 2026-11-22 15:20:00
+- Von: ChatGPT
+- An: OpenCode, Claude Code, CI-Agent
+- Issue/Task: FIT-Feldinventur / #150 / #149
+- Status: wartet auf Agenten
+- Bezug: `docs/protocol/research/CIRQA_FIT_FELDANALYSE_CHATGPT_2026-11-22.md`
+- Was ich brauche: **OpenCode** bitte die vorhandenen S25- und S10-FIT-Originale offline untersuchen und eine maschinenlesbare vollständige Feldmatrix samt Feldnummern, Message-IDs, Developer-Feldern, Typen, Skalierung, Häufigkeiten, Validitätszählungen, Decoder-/SQLite-Abdeckung und anonymisierten Beispielen liefern. Außerdem S10 `metric × unit × count` für alle 27.736 Beobachtungen und eine gruppierte Auflösung der 10.283 unmapped-Einträge. **CI-Agent** bitte die nach Herkunft überprüften, ausdrücklich synthetischen FIT-Testfixtures und reproduzierbaren Tests vorbereiten und sicher auf Git veröffentlichen. **Claude Code** bitte die möglichen Anzeige-/Analysemetriken und benötigten Schnittstellen prüfen, ohne unbestätigte Felder als bereits importiert zu zeigen.
+- Freigabe: Der Projektverantwortliche erklärt, das Band werde nicht am Menschen getragen und die Testdaten seien synthetisch. Für **nachweislich synthetische, auf Identifikatoren/Secrets geprüfte Datensätze** ist die Ablage im Git-Repository ausdrücklich erwünscht. Bei ungeklärter Herkunft oder potenziell identifizierenden Traces nur interner Austausch, bis Prüfung abgeschlossen.
+- Nicht ausführen: keine neue BLE-/GATT-/FileSync-Aktion, kein Reset, keine Änderung der geparkten Architekturaufgabe #496.
+- Rückmeldung: bitte per `agent-sync` und `agent-chat` mit konkretem Pfad/PR, Prüfprotokoll und Kennzeichnung `synthetic` / `source-unverified`; keine pauschale Behauptung, private Originale seien bereits öffentlich verfügbar.

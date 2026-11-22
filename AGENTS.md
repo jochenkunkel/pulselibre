@@ -1,5 +1,10 @@
 # PulsLibre – Arbeitsanweisungen für die Haupt-IDE und weitere Entwickler
 
+## Forschungsdaten und Git-Fixtures (Projektentscheidung 22.11.2026)
+
+Der Projektverantwortliche erklärt die Daten des aktuellen, nicht am Menschen getragenen CIRQA-Testarmbands als synthetisch und wünscht deren aktive Analyse sowie die Bereitstellung reproduzierbarer Testdaten in Git. **Verbindliche Details:** [Forschungsdatenregel](docs/collaboration/CURRENT_BAND_RAW_DATA_POLICY.md). Agenten dürfen und sollen **nachweislich synthetische, geprüfte** FIT-/SQLite-/Feldmatrix-Fixtures samt Tests im Repository ablegen. Eine pauschale Freigabe aller ungeprüften Roh-Traces, Seriennummern, Kopplungsdaten, Tokens oder fremden Daten ist damit nicht verbunden. Keine neuen aktiven Hardwarekommandos ohne gesonderte Freigabe. Die geparkte Architekturarbeit #496 bleibt unberührt.
+
+
 Diese Datei gilt repositoryweit. **GitHub ist die verbindliche, versionierte Wissensbasis**, nicht eine Chat-Unterhaltung oder eine lokale IDE-Sitzung. Für den aktuellen Projektstand zuerst `docs/PROJECT_STATUS.md` lesen; für den vollständigen Einstieg `docs/CHAT_START_HERE.md`.
 
 ## Verbindlicher gemeinsamer Agenten-Chat (ab 21.11.2026)
