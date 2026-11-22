@@ -357,7 +357,6 @@
     <string name="hd_axis_span">%1$s a %2$s</string>
 
     <!-- Analysen: Katalog, Trendkarte, Modellsätze -->
-    <!-- TODO-CHATGPT-REVIEW: Erstentwurf von Claude Code, Ticket #365 -->
     <string name="an_title">Análisis</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="an_intro">Análisis científicos y exploratorios de tus datos registrados – no es un diagnóstico. Los módulos sin datos verificados se marcan como «Aún no disponible» con el motivo.</string>
@@ -540,7 +539,6 @@
     <string name="md_goal_reg">Objetivo propio (%1$s) alcanzado en %2$s de %3$s días con datos (ventana de %4$s días)</string>
 
     <!-- Analysen: Marker und Wochentage -->
-    <!-- TODO-CHATGPT-REVIEW: Erstentwurf von Claude Code, Ticket #365 -->
     <string name="uv_legend">Borde violeta = medición o análisis no validado (sensor/campo del dispositivo sin verificar, sin diagnóstico).</string>
     <string name="uv_suffix"> No validado, borde violeta.</string>
     <string name="an_wd_mo">Lun</string>
@@ -552,10 +550,8 @@
     <string name="an_wd_so">Dom</string>
 
     <!-- Allgemein -->
-    <!-- TODO-CHATGPT-REVIEW: Erstentwurf von Claude Code, Ticket #365 -->
     <string name="action_ok">OK</string>
     <!-- Daten/Export: Backup, Wiederherstellung, Reset -->
-    <!-- TODO-CHATGPT-REVIEW: Erstentwurf von Claude Code, Ticket #365 -->
     <string name="ex_backup_cancelled">Copia de seguridad cancelada.</string>
     <string name="ex_backup_running">Creando la copia de seguridad …</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
@@ -640,7 +636,6 @@
     <string name="ex_rec_stop_failed">No se pudo detener la grabación; la base de datos permaneció sin cambios.</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="ex_rec_still">La grabación sigue en curso; la base de datos permaneció sin cambios.</string>
-    <!-- TODO-CHATGPT-REVIEW: Erstentwurf von Claude Code, Ticket #365 -->
     <!-- Gerät: Verbindungsstatus, Akku, Empfang (#365) -->
     <string name="dur_s">%1$d s</string>
     <string name="dur_min">%1$d min</string>
@@ -725,7 +720,6 @@
     <string name="dev_unavailable">No disponible</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="dev_unavailable_cd">%1$s: no disponible; aún no hay ningún valor confirmado del dispositivo</string>
-    <!-- TODO-CHATGPT-REVIEW: Erstentwurf von Claude Code, Ticket #365 -->
     <!-- Gerät: unbekannte FIT-Felder (#365) -->
     <string name="unk_headline_one">Campo de datos desconocido detectado (1 tipo)</string>
     <string name="unk_headline_many">Campos de datos desconocidos detectados (%1$d tipos)</string>
@@ -778,10 +772,9 @@
     <string name="unk_sample_head">%1$s: %2$d apariciones, primeros %3$d valores</string>
     <string name="unk_sample_more">  … y %1$d más</string>
     <string name="unk_sample_cut">  (cada valor truncado a %1$d bytes)</string>
-    <!-- TODO-CHATGPT-REVIEW: Erstentwurf von Claude Code, Ticket #365 -->
     <!-- Dialoge: Anpassen, Tagesansicht, Tageszeitleiste (#365) -->
     <string name="cust_title">Personalizar la pantalla de inicio</string>
-    <string name="cust_note">Las tarjetas ocultas se siguen registrando, solo que no se muestran. Los favoritos aparecen primero en «%1$s».</string>
+    <string name="cust_note">Los datos de las tarjetas ocultas se siguen registrando; solo se ocultan las tarjetas. Los favoritos aparecen primero en «%1$s».</string>
     <string name="cust_show_cd">Mostrar %1$s</string>
     <string name="cust_fav_on">★ Favorito</string>
     <string name="cust_fav_off">☆ Favorito</string>
@@ -848,7 +841,6 @@
     <string name="dd_last_today">Última recepción hoy %1$s</string>
     <string name="dd_goal">Último objetivo de pasos del dispositivo: %1$s</string>
     <string name="dd_scale">Escala · %1$s–%2$s %3$s</string>
-    <!-- TODO-CHATGPT-REVIEW: Erstentwurf von Claude Code, Ticket #365 -->
     <!-- Dienst-Benachrichtigung (#365) -->
     <string name="svc_channel">CIRQA · Grabación continua</string>
     <string name="svc_title">PulsLibre · Grabación continua</string>
@@ -858,7 +850,6 @@
     <string name="svc_connecting">Conectando con CIRQA …</string>
     <string name="svc_reconnect">CIRQA desconectado · nuevo intento en %1$d s</string>
     <string name="svc_stop">Detener la recopilación</string>
-    <!-- TODO-CHATGPT-REVIEW: Erstentwurf von Claude Code, Ticket #365 -->
     <!-- Hauptansicht: Bluetooth, Gewicht, BMI (#365) -->
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="bmi_underweight">Bajo peso</string>
