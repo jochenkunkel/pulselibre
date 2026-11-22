@@ -36,6 +36,17 @@ freigegeben. Details: `docs/ci/COMBINED_COVERAGE_2026-11-22.md` und Chat 10:20.
   `ANDROID_SERIAL=emulator-5554`: Exit 0. Dabei wurde nur `adb devices`
   gelesen – keine Instrumentation, keine Installation, keine Geräteänderung.
 
+## CI-Nachweis
+
+PR #450 wurde als `53e03a4` gemergt. Volle CI auf Branch-Head `8ed2964` grün
+(`45016104283` inkl. Emulator API 35, `45016104281` dependency-review,
+`45016104272` Dependency-Graph); anschließender main-Lauf `45016725356`
+ebenfalls grün. In beiden Emulator-Logs steht
+`Instrumentation-Coverage: ANDROID_SERIAL=emulator-5554 (Emulator)`, d. h. die
+Schranke wurde im echten CI-Pfad ausgeführt und hat den Emulator-Serial
+akzeptiert. Der main-Lauf enthält weiterhin das Artefakt
+`pulselibre-combined-jacoco`.
+
 ## Grenzen
 
 Die Schranke ersetzt keine Nutzerfreigabe für Gerätetests. Sie verhindert nur,
