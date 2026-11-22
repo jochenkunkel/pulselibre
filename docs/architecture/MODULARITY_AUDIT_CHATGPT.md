@@ -55,3 +55,107 @@ GUI, Anwendungslogik, herstellerunabhängige Domäne und Datenmodelle, Persisten
 3. Keine unerlaubten BLE-/GATT-/FileSync-Aktivitäten, keine physischen Gerätetests ohne Freigabe.
 4. Bereits funktionierende FIT-Imports, SQLite-Daten, Provenienz, Exporte und Sicherheitsschranken durch Regressionstests schützen.
 5. Refactoring nur über separate, klein zugeschnittene Umsetzungstickets.
+
+
+## Runde 1b – Abgleich mit Referenzprojekten und Architekturstandards (2026-11-22)
+
+**Status:** Architekturvergleich und Sollbild ergänzt; keine Implementierung, keine Geräteaktion, keine Tests. Die Aussagen über PulsLibre beruhen auf der vorläufigen Codeprüfung aus Runde 1, nicht auf einem vollständigen statischen Importgraphen.
+
+### Externe Referenzen und übertragbare Erkenntnisse
+
+| Quelle | Beobachtetes Architekturprinzip | Übertragung auf PulsLibre | Einschränkung |
+|---|---|---|---|
+| [Android – Guide to app architecture](https://developer.android.com/topic/architecture) und [Recommendations](https://developer.android.com/topic/architecture/recommendations) | UI-State, unidirektionaler Datenfluss, Repository, klare Zuständigkeiten, Coroutines/Flows | UI kennt nur ViewModel/Use-Cases; Datenbank und Bluetooth sind keine UI-Datenquellen | Kein Zwang, sofort die bestehende View-UI auf Compose umzustellen |
+| [Android – Modularization](https://developer.android.com/topic/modularization) und [Patterns](https://developer.android.com/topic/modularization/patterns) | Hohe Kohäsion, geringe Kopplung, API-/Implementierungstrennung, explizite Dependency-Richtung | Klein starten, Grenzen durch Gradle und Architekturtests absichern; `implementation` bevorzugen | Zu feingranulare Module erhöhen Build- und Wartungsaufwand |
+| [Gadgetbridge – Projektüberblick](https://gadgetbridge.org/internals/development/project-overview/) und [DeviceCoordinator](https://github.com/Freeyourgadget/Gadgetbridge/blob/master/app/src/main/java/nodomain/freeyourgadget/gadgetbridge/devices/DeviceCoordinator.java) | Geräteunabhängige Koordination, herstellerspezifische `DeviceSupport`-Implementierungen, gemeinsame Bluetooth-Kommunikation | `TrackerAdapter`, `DeviceCapabilities`, `TransportPort`, Registry; CIRQA als ein Adapter | Kein ungeprüftes Kopieren von Code, API-Design oder Lizenzannahmen |
+| [OpenTracks](https://github.com/OpenTracksApp/OpenTracks/blob/main/README.md) | Datenschutzorientierte lokale Sportdatenverarbeitung und interoperable Exporte | Offline-first, explizite Exportformate und Datenportabilität beibehalten | Kein direktes Referenzdesign für Multi-Hersteller-FIT-Synchronisation |
+
+### Verbesserungen gegenüber der ersten Soll-Architektur
+
+1. **Fähigkeitsbasiertes Geräte-API statt Garmin-Fallunterscheidungen:** `DeviceCapabilities` beschreibt verfügbare Metriken, Historienabruf, Echtzeitmodus, Batterieinformationen, unterstützte Transporte und Authentifizierung. `UNKNOWN`/nicht verfügbar sind explizite Zustände, nicht Nullwerte mit stillschweigender Bedeutung.
+2. **Geräte- und Transportport getrennt:** `TrackerAdapter` kennt Garmin-Protokoll und Decoder; `TransportPort` kapselt BLE/GATT bzw. RFCOMM. Allgemeine Verbindungs- und Sitzungsregeln liegen in einer gemeinsamen Orchestrierung; aktive Schreibkommandos bleiben sicherheitsgeprüft.
+3. **Anwendungsfälle und Synchronisationszustandsmaschine:** `DiscoverDevices`, `SyncHistory`, `ObserveMeasurements` und `ExportData` sind UI-unabhängig. Fortschritt, Wiederaufnahme, Abbruch, Timeouts, Idempotenz und Fehler werden typisiert modelliert.
+4. **Datenpipeline mit getrennten Verantwortlichkeiten:** unveränderte Originaldatei/Byte-Hash → formatbezogener Parser → validierter kanonischer Messwert → transaktionale Speicherung → abgeleitete wissenschaftliche Analyse. Die Provenienz enthält Geräteidentität, Quellhash, Parser-/Profilversion, Zeitstempelherkunft, Einheiten und Qualitätskennzeichen.
+5. **Analyse-Ergebnisse versionieren:** Algorithmusversion, Eingabezeitraum, Datenstand/Quellverweise, Parameter, Unsicherheit und Validierungsstatus sind Teil jedes abgeleiteten Ergebnisses. Wissenschaftliche Aussagen dürfen nicht mit medizinischer Diagnostik gleichgesetzt werden.
+6. **Architektur- und Vertragsprüfungen:** JVM-Tests für Domain/Analysis/Parser, Fake-Tracker für Adapter-Vertrag, aufgezeichnete Frames für Decoder, SQLite-Migrationstests, CI-Importregeln und Regressionen für bisherige CIRQA-Daten.
+7. **Sicherheit als Querschnitt:** keine ungeprüften Bluetooth-Schreibaktionen, explizite Gerätesitzungs-Lease, Privacy-by-default bei Logs/Exporten, keine Rohdaten in CI-Artefakten.
+8. **Pragmatische Modulreihenfolge:** erst `core:domain` und `device:api` als reine Kotlin-Module, danach schrittweise `core:analysis`, `data:storage`, `transport:bluetooth`, `device:garmin-cirqa`; Feature-Module nur bei tatsächlichem Nutzen. Dynamisches Plugin-Laden vorerst nicht erforderlich.
+
+### Schaubild – fachlicher Datenfluss und technische Grenzen
+
+Das folgende Mermaid-Diagramm ist **editierbarer Quelltext**, wird direkt auf GitHub gerendert und zeigt die *vorgeschlagene Zielarchitektur*, **nicht** die bereits implementierte Struktur. Durchgezogene Pfeile sind Laufzeit-/Datenflüsse; Implementierungsabhängigkeiten müssen nach dem Dependency-Inversion-Prinzip auf die jeweiligen Ports zeigen.
+
+```mermaid
+flowchart TB
+  subgraph UI["Präsentation – :app / :feature:*"]
+    Screen["Dashboard · Historie · Geräte"]
+    VM["ViewModel · UI-State · UDF"]
+    Screen <--> VM
+  end
+
+  subgraph APP["Anwendung – Use-Cases und Orchestrierung"]
+    UC["Discover · SyncHistory · Export · Analyze"]
+    Sync["Sync-State-Machine · Safety-Gates · Session-Lease"]
+    UC --> Sync
+  end
+
+  subgraph CORE["Herstellerunabhängiger Kern – reine Kotlin-APIs"]
+    Domain["Messwerte · Metadaten · Provenienz · Qualität"]
+    Ports["RepositoryPort · TrackerPort · TransportPort"]
+    Analysis["Wissenschaftliche Analyse · Algorithmusversion"]
+    Analysis --> Domain
+    Ports --> Domain
+  end
+
+  subgraph DEVICE["Geräteadapter"]
+    Registry["Adapter-Registry · Capabilities"]
+    Garmin["Garmin CIRQA · Protokoll · FIT-Decoder"]
+    Future["Zukünftiger Tracker · eigener Decoder"]
+    Registry --> Garmin
+    Registry --> Future
+  end
+
+  subgraph INFRA["Infrastruktur"]
+    BT["Android BLE/GATT · Classic/RFCOMM"]
+    Store["SQLite · Migrationen · Originalarchiv"]
+    Export["Export-Adapter"]
+  end
+
+  VM --> UC
+  UC --> Ports
+  UC --> Analysis
+  Sync --> Registry
+  Registry --> Ports
+  Garmin --> BT
+  Future --> BT
+  BT -. "implementiert TransportPort" .-> Ports
+  Store -. "implementiert RepositoryPort" .-> Ports
+  UC --> Export
+  Garmin --> Domain
+  Future --> Domain
+  Domain --> Store
+```
+
+**Leseregel:** Die Pfeile `Domain --> Store` und `Garmin --> BT` beschreiben ausschließlich den fachlichen Datenfluss bzw. die Nutzung zur Laufzeit. Im **statischen Gradle-Abhängigkeitsgraphen** darf `:core:domain` nicht von `:data:storage` abhängen; der Garmin-Adapter hängt nur von der Transport-API ab, die konkrete Bluetooth-Implementierung wird in `:app` verdrahtet. Das Schaubild ersetzt deshalb keinen gesonderten statischen Dependency-Graphen.
+
+### Empfohlene Priorität der zusätzlichen Prüfungen
+
+| Priorität | Arbeitspaket | Akzeptanzkriterium |
+|---|---|---|
+| P0 | CIRQA-Datenpfad Ende-zu-Ende kartieren | Jeder Schritt von Geräteframe bis Dashboard hat dokumentierten Owner und Übergabetyp |
+| P0 | Safety-/Session-Grenze spezifizieren | Kein Geräteadapter umgeht Lease, Schreibfreigabe, Timeout oder Abbruch |
+| P0 | Domänenmodell und Provenienzvertrag spezifizieren | Alle bestehenden kanonischen Felder einschließlich unbekannter/fehlender Werte verlustfrei abbildbar |
+| P1 | Gerätefähigkeiten und Adapter-Vertrag entwerfen | Zweiter Fake-Tracker ohne Änderung an Dashboard/Analyse anschließbar |
+| P1 | UI-State- und Repository-Verträge definieren | Keine direkten SQL-/Bluetooth-Imports in künftigen UI-Modulen |
+| P1 | Wissenschaftliche Resultate versionieren | Algorithmus, Eingabedatenstand und Unsicherheit reproduzierbar |
+| P2 | Modulgrenzen in CI durchsetzen | Architekturtests schlagen bei verbotenen Abhängigkeiten fehl |
+
+### Offene Architekturentscheidungen
+
+- Wo werden Synchronisationsfortschritt und Wiederaufnahme dauerhaft gespeichert?
+- Welche FIT-Felder sind universell und welche nur als herstellerspezifische Erweiterung modellierbar?
+- Wie werden mehrere gleichzeitig erkannte Geräte priorisiert, ohne den exklusiven CIRQA-Geräteschutz zu verlieren?
+- Wann rechtfertigt die Projektgröße zusätzliche Feature-Gradle-Module?
+- Welche Daten-/Analysevorgänge benötigen einen eingefrorenen Eingabedatenstand?
+
+**Nächste Iteration:** Vollständigen Importgraphen und Testinventar am dann aktuellen `main` erstellen; anhand der konkreten Abhängigkeiten die Modulgrenzen und das Diagramm nachschärfen.
