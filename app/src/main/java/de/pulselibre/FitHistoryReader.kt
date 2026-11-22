@@ -45,17 +45,35 @@ class FitHistoryReader(private val context: Context) {
         return Window(points, available(), truncated)
     }
 
-    /** Measurement time of the newest FIT heart-rate observation not after [notAfter], or null when there is none. */
+    /**
+     * Measurement time of the newest FIT heart-rate observation not after [notAfter], or null when there is none.
+     * Reads the active decoder generations (the production import path) and the legacy provenance table (#477);
+     * the legacy table alone is empty after a product download.
+     */
     fun latestMeasuredAt(notAfter: Instant): Instant? = CirqaDatabase(context).use { db ->
+        db.ensureHistoricalStoreCopied()
+        val limit = notAfter.toEpochMilli().toString()
         db.readableDatabase.rawQuery(
-            "SELECT MAX(measured_at_ms) FROM fit_observation_provenance WHERE metric = ? AND measured_at_ms <= ?",
-            arrayOf(FitHistoryMapping.METRIC, notAfter.toEpochMilli().toString())
+            """SELECT MAX(t) FROM (
+                 SELECT MAX(g.measured_at_ms) AS t FROM fit_generation_observations g
+                   JOIN fit_active_generations a ON a.generation_id = g.generation_id
+                   WHERE g.metric = ? AND g.measured_at_ms <= ?
+                 UNION ALL
+                 SELECT MAX(measured_at_ms) FROM fit_observation_provenance WHERE metric = ? AND measured_at_ms <= ?
+               )""",
+            arrayOf(FitHistoryMapping.METRIC, limit, FitHistoryMapping.METRIC, limit)
         ).use { if (it.moveToFirst() && !it.isNull(0)) Instant.ofEpochMilli(it.getLong(0)) else null }
     }
 
+    /** True when any FIT heart-rate observation exists, in an active generation or the legacy table (#477, A6-28). */
     private fun available(): Boolean = CirqaDatabase(context).use { db ->
+        db.ensureHistoricalStoreCopied()
         db.readableDatabase.rawQuery(
-            "SELECT 1 FROM fit_observation_provenance WHERE metric = ? LIMIT 1", arrayOf(FitHistoryMapping.METRIC)
+            """SELECT 1 WHERE EXISTS (
+                 SELECT 1 FROM fit_generation_observations g
+                   JOIN fit_active_generations a ON a.generation_id = g.generation_id WHERE g.metric = ?)
+               OR EXISTS (SELECT 1 FROM fit_observation_provenance WHERE metric = ?)""",
+            arrayOf(FitHistoryMapping.METRIC, FitHistoryMapping.METRIC)
         ).use { it.moveToFirst() }
     }
 }
