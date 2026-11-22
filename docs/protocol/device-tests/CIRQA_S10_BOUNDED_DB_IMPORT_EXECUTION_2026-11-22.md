@@ -36,19 +36,47 @@ freigegeben. Die Stop-Bedingungen des Plans gelten unverändert.
 |---|---|
 | 1 Read-only Geräte-/Buildprüfung | erledigt |
 | 2 APK installieren (`adb install -r`, bei Signatur-/Versionsfehler sofort STOPP) | erledigt – `Success`, danach `versionCode=1806` bestätigt |
-| 3 SAF-Export durch Nutzer, lokale Kopie, offline DB-Prüfung | läuft – Warte auf Nutzerinteraktion |
+| 3 SAF-Export durch Nutzer, lokale Kopie, offline DB-Prüfung | erledigt – Baseline exportiert und offline geprüft |
+| 4 Vorhandener Historien-Download über UI, max. 5 Min, kein Retry | läuft – Warte auf Nutzerinteraktion |
+| 5 Erneuter Export, offline Vergleich | ausstehend |
 
 ### Zwischenbefund zur Installation
 
 - `adb install -r` war erfolgreich; keine Signatur-, Versions- oder Kapazitätsfehler, kein
   `-d`/`-f` und kein Downgrade nötig.
 - Der Versuch, `ExportActivity` per `am start` zu öffnen, wurde vom System korrekt abgewiesen
-  (`not exported`). Kein Umweg, kein Root, keine Instrumentation. Die App läuft im
-  Vordergrund auf `MainActivity`; der Nutzer öffnet den Export selbst über den Reiter „Data"
-  und die Schaltfläche „Create backup".
+  (`not exported`). Kein Umweg, kein Root, keine Instrumentation. Der Nutzer öffnet den
+  Export selbst über den Reiter „Daten" und die Schaltfläche „Backup erstellen".
 - Keine BLE-/GATT-/FileSync-Kommandos, kein Download, kein Reset, keine Entkopplung.
-| 4 Vorhandener Historien-Download über UI, max. 5 Min, kein Retry | ausstehend |
-| 5 Erneuter Export, offline Vergleich | ausstehend |
+
+### Baseline-Befund (redaktiert)
+
+- Backup-Archiv: Format `de.pulselibre.local-database-backup`, Version 7,
+  `app_id=de.pulselibre`, `encryption=none`; 15 Dateneinträge + Manifest; **alle
+  Prüfsummen und Bytezahlen stimmen**.
+- **Alle 15 Tabellen haben 0 Datensätze**, u. a. `canonical_observations`,
+  `canonical_fit_sources`, `canonical_fit_observation_provenance`, `legacy_readings`,
+  `cirqa_events` und alle Generierungs-/Metadatentabellen.
+- Damit: kein DB-Import im aktuellen App-Profil. Das ist ein negativer Befund für den
+  aktuellen Produktpfad, **kein** Beweis gegen die Geräteunterstützung.
+- Bekannte Einschränkung: die früheren lokalen Instrumentationstests auf dem S10 können
+  Profil-/Einstellungswerte verändert haben; ein vorheriger Vergleichsstand liegt nicht vor.
+- In GitHub stehen ausschließlich Anzahlen, Größen und Prüfsummenstatus – keine
+  Nutzerdaten, Gerätekennungen oder Gesundheitswerte.
+
+### Bedienkette für Schritt 4 (aus Code und Gerät bestätigt)
+
+Reiter `Gerät` → Schaltfläche `Historie herunterladen` → Bestätigungsdialog
+`CIRQA-Historie herunterladen?` → `Herunterladen`. Die vorhandene UI ruft
+`startHistoricalDownload(userConfirmed = true)` auf; keine neuen BLE-Kommandos, kein
+Testlabor, kein `CLOSE_ALL`, kein Reset. Die Probe verlangt genau eine gepaarte CIRQA-
+Kopplung und bricht sonst sicher ab.
+
+### Stopp bei Zeitüberschreitung
+
+Höchstens 5 Minuten ab Betätigung von `Herunterladen`. Danach kein Retry: App aus dem
+Hintergrund entfernen oder, falls das nicht greift, `am force-stop de.pulselibre`
+(beendet die Probe über `onDestroy`; keine Datenlöschung). Danach Abbruch und Dokumentation.
 
 ## Datenschutz / GitHub
 
