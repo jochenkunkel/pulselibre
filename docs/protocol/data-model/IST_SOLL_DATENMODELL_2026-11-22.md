@@ -132,7 +132,9 @@ Entscheidung: **eine kanonische SQLite-Datenbank** `cirqa_measurements.db` bleib
 | Idempotenz | `sample_id` + generation key + `INSERT OR IGNORE` | `idempotency_key` UNIQUE auch für Statuszeilen; Re-Import erzeugt keine Duplikate |
 | Fehlerbehandlung | `IOException`/`SQLiteException` pro Datei; `IllegalStateException`/`IllegalArgumentException` brachen den Lauf ab [CODE, jetzt dateiweise abgefangen] | `SOURCE_CONFLICT` als dritter dateiweiser Fehlerstage; strukturierte `import_errors` später; Integritätsprüfungen bleiben aktiv; whole-run abort nur bei echter Systemschädigung |
 
-### 3.2 Vorgeschlagene Tabellen (Entwurf, noch nicht implementiert)
+### 3.2 Implementierte Tabellen (v9, 22.11.2026)
+
+> Das folgende DDL entspricht `CirqaDatabase.createObservationQualitySchema(...)`. Katalog-FKs tragen `ON DELETE RESTRICT`, damit bestätigte Semantiken nicht stillschweigend gelöscht werden können. `observation_status_events.source_sha256` ist nullable und erlaubt damit auch Nicht-FIT-Kontexte; wenn gesetzt, muss die Quelle in `fit_sources` existieren.
 
 ```sql
 CREATE TABLE IF NOT EXISTS quality_status_catalog (
@@ -151,8 +153,8 @@ CREATE TABLE IF NOT EXISTS observation_quality (
     metric TEXT NOT NULL,
     measured_at_ms INTEGER NOT NULL CHECK(measured_at_ms >= 0),
     sample_id TEXT NOT NULL,
-    quality_status TEXT NOT NULL REFERENCES quality_status_catalog(status_code),
-    measurement_mode TEXT NOT NULL REFERENCES measurement_modes(mode_code),
+    quality_status TEXT NOT NULL REFERENCES quality_status_catalog(status_code) ON DELETE RESTRICT,
+    measurement_mode TEXT NOT NULL REFERENCES measurement_modes(mode_code) ON DELETE RESTRICT,
     sensor_context TEXT NOT NULL DEFAULT 'UNKNOWN',
     confidence INTEGER CHECK(confidence IS NULL OR confidence BETWEEN 0 AND 100),
     raw_status_code INTEGER,
@@ -181,8 +183,8 @@ CREATE TABLE IF NOT EXISTS observation_status_events (
         ('DIRECT','RECONSTRUCTED_TS16','RECONSTRUCTED_COMPRESSED','UNKNOWN','NOT_APPLICABLE')),
     raw_code INTEGER,
     raw_value_text TEXT,
-    status_code TEXT NOT NULL REFERENCES quality_status_catalog(status_code),
-    measurement_mode TEXT NOT NULL REFERENCES measurement_modes(mode_code),
+    status_code TEXT NOT NULL REFERENCES quality_status_catalog(status_code) ON DELETE RESTRICT,
+    measurement_mode TEXT NOT NULL REFERENCES measurement_modes(mode_code) ON DELETE RESTRICT,
     sensor_context TEXT NOT NULL DEFAULT 'UNKNOWN',
     source_kind TEXT NOT NULL,
     source_sha256 TEXT,
@@ -193,7 +195,9 @@ CREATE TABLE IF NOT EXISTS observation_status_events (
     profile_version TEXT NOT NULL,
     observed_at_ms INTEGER,
     stored_at_ms INTEGER NOT NULL CHECK(stored_at_ms >= 0),
-    CHECK (measured_at_ms IS NOT NULL OR timestamp_origin IN ('UNKNOWN','NOT_APPLICABLE')),
+    CHECK ((measured_at_ms IS NOT NULL AND timestamp_origin IN
+              ('DIRECT','RECONSTRUCTED_TS16','RECONSTRUCTED_COMPRESSED'))
+           OR (measured_at_ms IS NULL AND timestamp_origin IN ('UNKNOWN','NOT_APPLICABLE'))),
     FOREIGN KEY(source_sha256) REFERENCES fit_sources(source_sha256) ON DELETE RESTRICT
 );
 CREATE TABLE IF NOT EXISTS import_runs (

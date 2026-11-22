@@ -1,6 +1,6 @@
 # #144 – Migrationsplan: v8 → v9, additiv und verlustfrei
 
-Stand: 2026-11-22 · Owner: Datenmodell-/Persistenz-Agent (OpenCode) · Status: **Entwurf, noch nicht implementiert**
+Stand: 2026-11-22 · Owner: Datenmodell-/Persistenz-Agent (OpenCode) · Status: **v9-DDL/Migration implementiert und lokal getestet; volle Android-CI (Emulator) offen**
 
 > Dieser Plan steht **vor** jeder DDL-Änderung. Er gilt für die kanonische Datenbank `cirqa_measurements.db`. `pulselibre_readings.db` bleibt aus Kompatibilitätsgründen erhalten; es wird keine dritte Datenbank eingeführt. #140 bleibt zurückgestellt, #496 gesperrt. Fachliche Grundlage: [IST-/SOLL-Datenmodell](IST_SOLL_DATENMODELL_2026-11-22.md).
 
@@ -33,17 +33,18 @@ Digestmethode nur für diesen Nachweis: deterministisch sortierte Zeilen, Python
 - Datei-SHA-256 vor und nach der Migration vergleichen (für die Testkopie); in Produktion stattdessen Backup-Manifest prüfen.
 - Kein Zugriff auf S25, keine BLE-/FileSync-Kommandos.
 
-### Schritt 1 – Backup vor DDL
-- Bestehenden `DatabaseBackup`-Pfad nutzen und um **v9-JSONL-Einträge** für `quality_status_catalog`, `measurement_modes`, `observation_quality`, `observation_status_events`, `import_runs`, `import_errors` erweitern.
-- Alle bisherigen v1–v8-Einträge unverändert beibehalten und beim Restore in der bisherigen Reihenfolge replayen. Neue Tabellen werden bedingungsweise gesichert (`table_info` statt Versionsannahme).
-- Backupdatei vor DDL erzeugen und ihr Manifest/Prüfsumme verifizieren. Original-FIT-Dateien bleiben außerhalb des SQLite-Backups; ihre Referenzintegrität wird separat über `fit_sources.source_sha256` geprüft.
+### Schritt 1 – Backup vor DDL (implementierte Entscheidung: Backup-Format bleibt v8)
+- **Entscheidung:** `DatabaseBackup.BACKUP_VERSION` bleibt **8**. Es werden **keine** v9-JSONL-Einträge eingeführt, solange `observation_status_events` und `import_runs`/`import_errors` noch nicht aus dem Importpfad befüllt werden (FIT-Freigabe offen). Ein v9-Backup würde derzeit keine neuen, noch nicht semantisch gesicherten Daten transportieren.
+- `quality_status_catalog`, `measurement_modes` und `observation_quality` sind **deterministisch rebuildbar**: `CirqaDatabase.replaceAllStoredRows(...)` ruft nach dem Replay der unveränderten v1–v8-Einträge `rebuildObservationQuality(db)` **innerhalb derselben Transaktion** auf. Kataloge werden beim Schema-Arbeiten aus dokumentierten Konstanten geseedet. Damit bleibt ein v8-Backup auf v9 verlustfrei, ohne das Backup-Format zu ändern.
+- **Voraussetzung für Backup v9:** sobald Statusereignisse oder Importprotokolle tatsächlich geschrieben werden, müssen sie als eigene JSONL-Einträge mit Manifest-SHA/Record-Counts ergänzt und in `prepareRestore()` validiert werden. Bis dahin werden diese Tabellen nicht als Datenquelle des Backups behandelt.
+- Original-FIT-Dateien bleiben außerhalb des SQLite-Backups; ihre Referenzintegrität wird separat über `fit_sources.source_sha256` geprüft.
 
 ### Schritt 2 – Additive DDL (eine Transaktion)
 Reihenfolge:
 1. `quality_status_catalog`, `measurement_modes` mit `status_code`/`mode_code` als PK und `source_of_semantics`.
 2. Seed: `UNKNOWN` für beide Kataloge; `LEGACY_PROFILE_VALID` nur mit `source_of_semantics = 'MIGRATION_v9_LEGACY_COPY'`.
 3. `observation_quality` mit FK auf `observations(device_id, metric, measured_at_ms, sample_id)` `ON DELETE CASCADE` und optionalem FK auf `fit_sources.source_sha256` `ON DELETE RESTRICT`; UNIQUE-Schlüssel entspricht dem Observations-PK.
-4. `observation_status_events` mit `measured_at_ms NULL`-Erlaubnis und CHECK `measured_at_ms IS NOT NULL OR timestamp_origin IN ('UNKNOWN','NOT_APPLICABLE')`; `idempotency_key UNIQUE`.
+4. `observation_status_events` mit `measured_at_ms NULL`-Erlaubnis und dem bidirektionalen CHECK `(measured_at_ms IS NOT NULL AND timestamp_origin IN ('DIRECT','RECONSTRUCTED_TS16','RECONSTRUCTED_COMPRESSED')) OR (measured_at_ms IS NULL AND timestamp_origin IN ('UNKNOWN','NOT_APPLICABLE'))`; `idempotency_key UNIQUE`. Damit kann eine gemessene Zeit nie ohne rekonstruierenden Ursprung stehen und eine unbekannte Zeit nie erfunden werden.
 5. `import_runs`, `import_errors` mit FK `import_run_id`.
 6. Indizes auf `(metric, measured_at_ms)`, `(source_sha256, measured_at_ms)`, `(status_code)`, `(import_run_id)`.
 7. `PRAGMA user_version = 9`.
@@ -53,7 +54,7 @@ Alle Tabellen/Indizes mit `IF NOT EXISTS`; die exakten DDL-Entwürfe stehen im I
 ### Schritt 3 – Backfill (nur dokumentierte Kopie, keine Neubewertung)
 - Für jede bestehende `fit_generation_observations`-Zeile wird **eine** `observation_quality`-Zeile mit `quality_status='LEGACY_PROFILE_VALID'`, `timestamp_origin`, `record_ordinal`, `global_message_number`, `field_number`, `decoder_version`/`profile_version` aus der vorhandenen Generation bzw. Provenienz eingefügt.
 - `measurement_mode`, `sensor_context` und `confidence` bleiben `UNKNOWN` bzw. `NULL`; es wird nichts aus dem Wert abgeleitet.
-- Join über `(generation_id, sample_id)` zur Generierungstabelle und `fit_observation_provenance` für `source_sha256`/`decoder_version`. Bei fehlender Trefferquote wird die Migration abgebrochen, nicht durch Default-Werte aufgefüllt.
+- Join über `generation_id` zur Generierungstabelle (liefert `source_sha256`, `decoder_version`, `profile_version`, `completed_at_ms`) und zusätzlicher Join auf `observations(device_id, metric, measured_at_ms, sample_id)`. Der Observations-Join garantiert die FK-Integrität; `INSERT OR IGNORE` überspringt verwaiste Generierungszeilen, ohne Default-Werte zu erfinden. Auf der lokalen v8-Kopie trafen alle 27.884 Generierungszeilen eine Observationszeile (quality_count == observation_count).
 - Es werden **keine** `observation_status_events` aus historischen Zahlenwerten erzeugt. Insbesondere bleiben alle 27.884 vorhandenen Werte in `observations` unverändert; die lokale Kopie enthält keine negativen Werte.
 
 ### Schritt 4 – Importpfad (nach FIT-Freigabe)
@@ -93,3 +94,21 @@ Der abschließende SQLite-Importtest verwendet lokal vorhandene FIT-Originale un
 - [OFFEN] GUI-Agent: Kenntnisnahme der additiven Lese-Schnittstelle; keine UI-Änderung ohne dokumentierte Felder.
 - [ERLEDIGT] Code-IST: `IllegalStateException`/`IllegalArgumentException`-Kette bestätigt und dateiweise abgefangen; Legacy-Store ist Version 3. Regressionstests vorhanden (JVM-Zieltest `CirqaFitBackfillTest` grün, 22.11.2026). Voller CI-Lauf weiterhin offen.
 - Vor Merge: volle Android-CI inkl. Emulator auf Branch-Head und anschließend auf `main`; Ergebnisse lesen, bevor gemergt wird.
+
+## 5. Implementierungsstand und lokale Nachweise (22.11.2026)
+
+**Implementiert:** `CirqaDatabase.kt` Version 9, `createObservationQualitySchema(...)`, `rebuildObservationQuality(...)`, `ensureObservationQualityAvailable(...)` in `onOpen`, Rebuild in `replaceAllStoredRows(...)`. Alle DDL nutzt `IF NOT EXISTS`; Kataloge per FK statt CHECK-Enum; CHECKs bleiben aktiv. `BACKUP_VERSION` bleibt 8 (siehe Schritt 1).
+
+**Lokal geprüft (keine Hardware, kein BLE, kein Gerät):**
+
+| Nachweis | Kommando | Ergebnis |
+|---|---|---|
+| Migrationsnachweis auf Kopie der echten v8-DB (Quelle unverändert) | `python3 tools/verify_issue144_migration.py /tmp/opencode/s25-device-metadata-20261122/cirqa_measurements.db` | 27.884 Baseline-Digests identisch, 27.884 Quality-Zeilen (`LEGACY_PROFILE_VALID`/`UNKNOWN`), 0 negative Werte, `integrity_check=ok`, `foreign_key_check=[]`, `user_version=9`, zweite Anwendung idempotent |
+| Synthetische v9-/Statuscode-Tests | `python3 -m unittest discover -s tools -p 'test_issue144_migration.py' -v` | 4 Tests OK (Additivität, Idempotenz, Metrik-Trennung, Statuscodes als Events, CHECK/FK-Schutz) |
+| Gesamte Python-Toolsuite | `python3 -m unittest discover -s tools -p 'test_*.py'` | 116 Tests OK |
+| JVM + Debug-APK | `gradle :app:testDebugUnitTest :app:assembleDebug --offline` | 218 Suites / 957 Tests, 0 Fehler; APK gebaut |
+| Android-Testquellen kompiliert | `gradle :app:compileDebugAndroidTestKotlin --offline` | BUILD SUCCESSFUL |
+
+**Neu hinzugefügter Instrumentationstest:** `CirqaDataModelV9InstrumentedTest.kt` (3 Tests: echter v8→v9-Upgrade mit Quality-Backfill und Idempotenz, Statuscodes als Events ohne physiologische Werte, aktive CHECK/FK-Constraints). Nur kompiliert, **nicht** auf Emulator/Gerät ausgeführt — Ausführung erfolgt in der Android-CI.
+
+**Nicht behauptet:** voller Android-CI-Lauf inkl. Emulator, S25-/Gerätetest, BLE-Transfer, vollständige Gerätehistorie (`coverage=device-history-unverified`), medizinische Validierung, Backup-Format v9.

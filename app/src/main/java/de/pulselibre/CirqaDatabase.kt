@@ -13,7 +13,7 @@ import java.security.MessageDigest
  * UNIQUE SHA-256 of each full line makes repeated imports idempotent.
  */
 class CirqaDatabase(private val contextRef: Context) :
-    SQLiteOpenHelper(contextRef, "cirqa_measurements.db", null, 8), FitObservationStore {
+    SQLiteOpenHelper(contextRef, "cirqa_measurements.db", null, 9), FitObservationStore {
 
     override fun onConfigure(db: SQLiteDatabase) {
         super.onConfigure(db)
@@ -40,11 +40,12 @@ class CirqaDatabase(private val contextRef: Context) :
         createFitGenerationSchema(db)
         createFitReviewCandidateSchema(db)
         createLiveDeviceMetadataSchema(db)
+        createObservationQualitySchema(db)
         backfillLiveFromFit(db)
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-        require(oldVersion in 1..7 && newVersion == 8)
+        require(oldVersion in 1..8 && newVersion == 9)
         if (oldVersion < 6) {
           if (oldVersion <= 2) {
             if (oldVersion == 1) {
@@ -82,6 +83,10 @@ class CirqaDatabase(private val contextRef: Context) :
         createFitReviewCandidateSchema(db)
         createLiveDeviceMetadataSchema(db)
         backfillLiveFromFit(db)
+        if (oldVersion < 9) {
+            createObservationQualitySchema(db)
+            rebuildObservationQuality(db)
+        }
     }
 
     /**
@@ -143,6 +148,141 @@ class CirqaDatabase(private val contextRef: Context) :
             UNIQUE(field_key, source, observed_at_ms)
         )""")
         db.execSQL("CREATE INDEX IF NOT EXISTS live_device_metadata_latest ON live_device_metadata(field_key, observed_at_ms DESC, id DESC)")
+    }
+
+    /**
+     * #144: quality, mode, status and provenance are first-class dimensions instead of being
+     * encoded in the numeric value. Strictly additive; existing tables and values are untouched.
+     * Catalogues use FK instead of CHECK enums so a confirmed new mode or status needs no DDL.
+     */
+    private fun createObservationQualitySchema(db: SQLiteDatabase) {
+        db.execSQL("""CREATE TABLE IF NOT EXISTS quality_status_catalog (
+            status_code TEXT PRIMARY KEY NOT NULL,
+            description TEXT NOT NULL,
+            source_of_semantics TEXT NOT NULL
+        )""")
+        db.execSQL("""CREATE TABLE IF NOT EXISTS measurement_modes (
+            mode_code TEXT PRIMARY KEY NOT NULL,
+            description TEXT NOT NULL,
+            source_of_semantics TEXT NOT NULL
+        )""")
+        db.execSQL(
+            """INSERT OR IGNORE INTO quality_status_catalog(status_code, description, source_of_semantics)
+               VALUES ('UNKNOWN', 'No confirmed quality semantics', 'SCHEMA_v9_FALLBACK'),
+                      ('LEGACY_PROFILE_VALID',
+                       'Faithful copy of the pre-v9 PROFILE_VALID classification; not a new validation',
+                       'MIGRATION_v9_LEGACY_COPY')"""
+        )
+        db.execSQL(
+            """INSERT OR IGNORE INTO measurement_modes(mode_code, description, source_of_semantics)
+               VALUES ('UNKNOWN', 'Measurement mode not available in the stored source', 'SCHEMA_v9_FALLBACK')"""
+        )
+        db.execSQL("""CREATE TABLE IF NOT EXISTS observation_quality (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            device_id TEXT NOT NULL,
+            metric TEXT NOT NULL,
+            measured_at_ms INTEGER NOT NULL CHECK(measured_at_ms >= 0),
+            sample_id TEXT NOT NULL,
+            quality_status TEXT NOT NULL REFERENCES quality_status_catalog(status_code) ON DELETE RESTRICT,
+            measurement_mode TEXT NOT NULL REFERENCES measurement_modes(mode_code) ON DELETE RESTRICT,
+            sensor_context TEXT NOT NULL DEFAULT 'UNKNOWN',
+            confidence INTEGER CHECK(confidence IS NULL OR confidence BETWEEN 0 AND 100),
+            raw_status_code INTEGER,
+            timestamp_origin TEXT NOT NULL CHECK(timestamp_origin IN
+                ('DIRECT', 'RECONSTRUCTED_TS16', 'RECONSTRUCTED_COMPRESSED', 'UNKNOWN')),
+            source_kind TEXT NOT NULL,
+            source_sha256 TEXT,
+            record_ordinal INTEGER,
+            global_message_number INTEGER,
+            field_number INTEGER,
+            decoder_version TEXT NOT NULL,
+            profile_version TEXT NOT NULL,
+            stored_at_ms INTEGER NOT NULL CHECK(stored_at_ms >= 0),
+            UNIQUE(device_id, metric, measured_at_ms, sample_id),
+            FOREIGN KEY(device_id, metric, measured_at_ms, sample_id)
+                REFERENCES observations(device_id, metric, measured_at_ms, sample_id) ON DELETE CASCADE,
+            FOREIGN KEY(source_sha256) REFERENCES fit_sources(source_sha256) ON DELETE RESTRICT
+        )""")
+        db.execSQL("CREATE INDEX IF NOT EXISTS observation_quality_by_time ON observation_quality(metric, measured_at_ms)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS observation_quality_by_source ON observation_quality(source_sha256, measured_at_ms)")
+        db.execSQL("""CREATE TABLE IF NOT EXISTS observation_status_events (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            idempotency_key TEXT NOT NULL UNIQUE,
+            device_id TEXT NOT NULL,
+            metric TEXT NOT NULL,
+            measured_at_ms INTEGER CHECK(measured_at_ms IS NULL OR measured_at_ms >= 0),
+            timestamp_origin TEXT NOT NULL CHECK(timestamp_origin IN
+                ('DIRECT', 'RECONSTRUCTED_TS16', 'RECONSTRUCTED_COMPRESSED', 'UNKNOWN', 'NOT_APPLICABLE')),
+            raw_code INTEGER,
+            raw_value_text TEXT,
+            status_code TEXT NOT NULL REFERENCES quality_status_catalog(status_code) ON DELETE RESTRICT,
+            measurement_mode TEXT NOT NULL REFERENCES measurement_modes(mode_code) ON DELETE RESTRICT,
+            sensor_context TEXT NOT NULL DEFAULT 'UNKNOWN',
+            source_kind TEXT NOT NULL,
+            source_sha256 TEXT,
+            record_ordinal INTEGER,
+            global_message_number INTEGER,
+            field_number INTEGER,
+            decoder_version TEXT NOT NULL,
+            profile_version TEXT NOT NULL,
+            observed_at_ms INTEGER,
+            stored_at_ms INTEGER NOT NULL CHECK(stored_at_ms >= 0),
+            CHECK ((measured_at_ms IS NOT NULL AND timestamp_origin IN
+                        ('DIRECT', 'RECONSTRUCTED_TS16', 'RECONSTRUCTED_COMPRESSED'))
+                   OR (measured_at_ms IS NULL AND timestamp_origin IN ('UNKNOWN', 'NOT_APPLICABLE'))),
+            FOREIGN KEY(source_sha256) REFERENCES fit_sources(source_sha256) ON DELETE RESTRICT
+        )""")
+        db.execSQL("CREATE INDEX IF NOT EXISTS observation_status_events_by_time ON observation_status_events(metric, measured_at_ms)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS observation_status_events_by_status ON observation_status_events(status_code)")
+        db.execSQL("""CREATE TABLE IF NOT EXISTS import_runs (
+            import_run_id TEXT PRIMARY KEY NOT NULL,
+            started_at_ms INTEGER NOT NULL,
+            finished_at_ms INTEGER,
+            source_sha256 TEXT,
+            decoder_version TEXT NOT NULL,
+            profile_version TEXT NOT NULL,
+            status TEXT NOT NULL CHECK(status IN ('RUNNING', 'COMPLETED', 'PARTIAL', 'FAILED')),
+            observed_count INTEGER NOT NULL DEFAULT 0,
+            status_count INTEGER NOT NULL DEFAULT 0,
+            error_count INTEGER NOT NULL DEFAULT 0
+        )""")
+        db.execSQL("""CREATE TABLE IF NOT EXISTS import_errors (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            import_run_id TEXT NOT NULL REFERENCES import_runs(import_run_id) ON DELETE RESTRICT,
+            source_sha256 TEXT,
+            error_class TEXT NOT NULL,
+            redacted_message TEXT NOT NULL,
+            occurred_at_ms INTEGER NOT NULL,
+            decision TEXT NOT NULL CHECK(decision IN ('FILE_SKIPPED', 'RUN_ABORTED'))
+        )""")
+        db.execSQL("CREATE INDEX IF NOT EXISTS import_errors_by_run ON import_errors(import_run_id)")
+    }
+
+    /**
+     * Deterministic projection of already stored, immutable FIT generations into the new
+     * per-metric quality dimension. No numeric value is changed and no semantics are invented:
+     * the old classification is copied as LEGACY_PROFILE_VALID, mode/confidence stay unknown.
+     * Joins against observations guarantee the foreign key; orphan generation rows are skipped.
+     */
+    private fun rebuildObservationQuality(db: SQLiteDatabase) {
+        if (!hasTable(db, "observation_quality") || !hasTable(db, "fit_generation_observations") ||
+            !hasTable(db, "fit_decoder_generations") || !hasTable(db, "observations")
+        ) return
+        db.execSQL(
+            """INSERT OR IGNORE INTO observation_quality
+               (device_id, metric, measured_at_ms, sample_id, quality_status, measurement_mode,
+                sensor_context, confidence, raw_status_code, timestamp_origin, source_kind,
+                source_sha256, record_ordinal, global_message_number, field_number,
+                decoder_version, profile_version, stored_at_ms)
+               SELECT fog.device_id, fog.metric, fog.measured_at_ms, fog.sample_id,
+                      'LEGACY_PROFILE_VALID', 'UNKNOWN', 'UNKNOWN', NULL, NULL, fog.timestamp_origin,
+                      'FIT', g.source_sha256, fog.record_ordinal, fog.global_message_number,
+                      fog.field_number, g.decoder_version, g.profile_version, g.completed_at_ms
+               FROM fit_generation_observations fog
+               JOIN fit_decoder_generations g ON g.generation_id = fog.generation_id
+               JOIN observations o ON o.device_id = fog.device_id AND o.metric = fog.metric
+                 AND o.measured_at_ms = fog.measured_at_ms AND o.sample_id = fog.sample_id"""
+        )
     }
 
     private fun createFitGenerationSchema(db: SQLiteDatabase) {
@@ -451,6 +591,7 @@ class CirqaDatabase(private val contextRef: Context) :
         // SQLiteOpenHelper will not call onUpgrade then, so add both v8 tables idempotently on open.
         ensureFitReviewCandidateAvailable(db)
         ensureLiveDeviceMetadataAvailable(db)
+        ensureObservationQualityAvailable(db)
         // Explicit user decision: discard the former JSONL night recording.
         // SQLite events are preserved. Retry on a later open if deletion fails.
         // One stat() call when nothing is left; with the shared poll helper this runs once per open, not once per second.
@@ -497,6 +638,30 @@ class CirqaDatabase(private val contextRef: Context) :
         val missing = required.filterNot { hasColumn(db, "live_device_metadata", it) }
         require(missing.isEmpty()) {
             "live_device_metadata has an incompatible schema (missing ${missing.joinToString()})"
+        }
+    }
+
+    private fun ensureObservationQualityAvailable(db: SQLiteDatabase) {
+        val required = listOf(
+            "id", "device_id", "metric", "measured_at_ms", "sample_id", "quality_status",
+            "measurement_mode", "sensor_context", "confidence", "raw_status_code",
+            "timestamp_origin", "source_kind", "source_sha256", "record_ordinal",
+            "global_message_number", "field_number", "decoder_version", "profile_version", "stored_at_ms"
+        )
+        if (!hasTable(db, "observation_quality")) {
+            db.beginTransaction()
+            try {
+                createObservationQualitySchema(db)
+                rebuildObservationQuality(db)
+                db.setTransactionSuccessful()
+            } finally {
+                db.endTransaction()
+            }
+            return
+        }
+        val missing = required.filterNot { hasColumn(db, "observation_quality", it) }
+        require(missing.isEmpty()) {
+            "observation_quality has an incompatible schema (missing ${missing.joinToString()})"
         }
     }
 
@@ -1681,6 +1846,9 @@ class CirqaDatabase(private val contextRef: Context) :
                     )
                 )
             }
+            // #144: quality is a deterministic projection of the restored generations.
+            // Rebuilding inside the same transaction keeps the v8 backup format lossless.
+            rebuildObservationQuality(db)
             db.setTransactionSuccessful()
         } finally {
             db.endTransaction()
