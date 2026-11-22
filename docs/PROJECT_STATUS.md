@@ -38,6 +38,14 @@ Ausführliches Protokoll mit Nachweisen: `docs/CLAUDE_CODE_WORKLOG.md`. Alle Aus
 - **Validierungsgates:** vom Nutzer am 2026-11-18 akzeptiert. Betroffene Kacheln sind **nicht validiert** und tragen einen dunkelvioletten Rand (`UnvalidatedFeatures`).
 - **CI:** nur manuell/`v*`-Tags; Lauftitel nennen Branch und Testumfang.
 
+## GUI-/Audit-Stand – 2026-11-22 (Haupt-IDE, API-Zugang Claude Code)
+
+- **Auf `main` (alle mit grünem vollem PR-CI inkl. Emulator):** #447 (A6-36/37/42 in der Probe), #449 (#172 echtes Bottom Sheet), #455 (Gauge-Skala, A6-54/55), #459 (A6-59 Geräteübersicht baut nur bei Änderung neu; A6-60 Timeline-Ticks einmal je Frame), dazu Audit #6 Abschnitte 41–47 (A6-46…A6-61). A6-33/35/38 zuvor behoben und am S10 bestätigt.
+- **S10-Sichtprüfung #172:** Build 1805, 3-s-Druck öffnet das Sheet, Wischen am Kopf schließt es; nicht geprüft: Light-Modus, TalkBack, Querformat.
+- **Offen, bei anderen:** A6-46/57 (ein Eintrag mit `data_size` 0/negativ/zu groß beendet den ganzen Sync), A6-53 (`decode == FAILED` nicht auf `FAILED` abgebildet, latent), A6-56/58 (Protobuf „letzter Wert gewinnt", zlib-Erkennung über zwei Bytes) – alle OpenCode/FIT-Bereich, im Chat gemeldet.
+- **Offen, GUI:** #172 C (Trace-Recorder, OpenCode-Schnittstelle) und Hex-/Export-Detail (#204/#328, nur auf ausdrücklichen Wunsch), #159 und #43–#47 blockiert (Datenbasis/OpenCode), A6-30 Produktentscheidung (50 000er-Obergrenze), A6-2 Dienst-Test, Stall-Watchdog, A6-44, A6-61 (Achsenbeschriftung bei flacher Reihe), A6-43/48 (i18n-Reste).
+- **Nicht ausgeführt:** lokales Gradle ist in diesem Worktree nicht lauffähig; Nachweise kommen aus der CI.
+
 ## GUI, Icons und Build – Stand 2026-11-19 (Haupt-IDE VSCodium, API-Zugang Claude Code)
 
 Ausführliches Protokoll: `docs/CLAUDE_CODE_WORKLOG.md`, Review: `docs/CODE_REVIEW_2026-11-19.md`. **`main` = `90e440e`, voller CI-Lauf [44492240320](https://github.com/jochenkunkel/pulselibre/actions/runs/44492240320) grün** (Build, Unit, Lint, Emulator API 35). Kein S25-Gerätetest der neuen Oberfläche; auf dem S25 läuft Build 1144 (CI-signiert).
