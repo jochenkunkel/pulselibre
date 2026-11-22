@@ -30,6 +30,12 @@ class HistorySeriesTest {
         assertEquals(24 * 60 * 60, HistoryResolution.forRange(HistoryRange.MONTH).duration.seconds)
     }
 
+    @Test fun bandChartUsesFinerBucketsThanThePhoneChart() {
+        assertEquals(15 * 60, HistoryResolution.forFitRange(HistoryRange.DAY).duration.seconds)
+        assertEquals(60 * 60, HistoryResolution.forFitRange(HistoryRange.WEEK).duration.seconds)
+        assertEquals(6 * 60 * 60, HistoryResolution.forFitRange(HistoryRange.MONTH).duration.seconds)
+    }
+
     @Test fun minuteSamplesAggregateToTwentyFourReadableDailyBuckets() {
         val start = HistoryRange.DAY.startAt(end)
         val points = (0 until 24 * 60).map { minute ->
