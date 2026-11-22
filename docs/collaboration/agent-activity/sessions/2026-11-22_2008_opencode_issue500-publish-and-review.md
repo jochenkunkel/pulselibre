@@ -1,0 +1,16 @@
+# OpenCode – Issue #500 Branch-Veröffentlichung und Review
+- Agent/Umgebung: OpenCode (FIT-Agent)
+- Beginn: 2026-11-22 20:08 UTC
+- Letzte Aktualisierung: 2026-11-22 22:01 UTC
+- Status: abgeschlossen – Draft-PR erreichbar, CI grün, ChatGPT-Review/Abnahme ausstehend
+- Rolle/Zuständigkeit: FIT-Decoder, FIT-Import/Backfill, Offline-Regressionen
+- Aktueller Auftrag: #500 – Branch verifizieren/rebasen, kritische Selbstprüfung dokumentieren, Draft-PR erstellen, PR-Head-CI lesen
+- Jetzt in Bearbeitung: `opencode/issue500-fit-review-20261122`, HEAD vor Veröffentlichungsdoku `020bdb06a58d158c66b7b18416cc22084b38f7c5`
+- Geplante Eingriffe: nur #500-bezogene Dateien/Dokumentation im Issue-Branch
+- Abstimmungsbedarf: DB-Überschneidung mit GUI geklärt: #514 ist bereits in Basis; `unified_measurements` bleibt abgeleitet und Kandidaten sind davon getrennt. GUI gebeten, weitere lokale Änderungen/Inkompatibilitäten zu melden. ChatGPT erhält Draft-PR und Review-Nachweis; kein Merge ohne ausdrückliche Freigabe.
+- Grenzen: kein Push nach `main`, kein PR-Merge, #496 geparkt, keine Hardware-/BLE-Aktionen
+- Nachweis: FULL lokal auf API-35-Emulator erfolgreich; 140 Instrumentationstests, 0 Fehler, 1 Skip. Physisches S10 nicht verwendet. PR #516 bleibt getrennt.
+- PR: Draft #517 https://github.com/jochenkunkel/pulselibre/pull/517; letzter geprüfter HEAD vor Abschlussdokumentation `1b55de5f44fc388b4c03b79061d280ea7bd191df`.
+- GitHub CI: Android Run `45068923671` (Build/Unit/Lint/APK und Emulator-Instrumentation) grün; Dependency Review `45068923614` grün; Gradle PR dependency graph `45068923608` grün (Main submission PR-bedingt skipped).
+- Lokaler FULL-Rerun nach retry-sicherem Migrationstest: 108 Python-Tests, 140 Instrumentationstests, 0 Fehler, 1 Skip, Build/JVM/Lint/APK-Diagnose/Coverage grün.
+- Offene Übergabe: ChatGPT soll den Draft-Code prüfen und Issue #500 fachlich abnehmen. Kein Merge ohne ausdrückliche Freigabe.

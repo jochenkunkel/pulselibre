@@ -15,6 +15,99 @@ import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 class CirqaStorageMigrationTest {
+    @Test fun canonicalSchemaV8DowngradeThenUpgradeKeepsCandidateTableAndRows() {
+        val base = ApplicationProvider.getApplicationContext<Context>()
+        val root = Files.createTempDirectory(base.cacheDir.toPath(), "cirqa-schema-v8-reupgrade-").toFile()
+        val context = isolatedContext(base, root)
+        val sourceSha = "b".repeat(64)
+        val sampleId = "retry-safe-review-candidate"
+        try {
+            CirqaDatabase(context).use { database ->
+                val db = database.writableDatabase
+                db.execSQL(
+                    """INSERT INTO fit_sources
+                       (source_sha256, file_bytes, relative_path, validated_at_ms, decoder_version, profile_version)
+                       VALUES(?, 12, 'synthetic/retry.fit', 1000, '1', 'test')""",
+                    arrayOf(sourceSha)
+                )
+                db.execSQL(
+                    """INSERT INTO fit_review_candidates
+                       (sample_id, device_id, metric, measured_at_ms, value, unit, source_sha256,
+                        record_ordinal, global_message_number, field_number, quality, timestamp_origin,
+                        decoder_version)
+                       VALUES(?, 'synthetic', 'spo2', NULL, 97, 'percent', ?, 1, 269, 0,
+                              'UNTRUSTED_PROFILE_CANDIDATE', 'UNKNOWN', '1')""",
+                    arrayOf(sampleId, sourceSha)
+                )
+                db.version = 7
+            }
+
+            CirqaDatabase(context).use { database ->
+                val db = database.writableDatabase
+                assertEquals(8, db.version)
+                assertEquals(13, db.rawQuery("PRAGMA table_info(fit_review_candidates)", null).use { rows ->
+                    var count = 0
+                    while (rows.moveToNext()) count++
+                    count
+                })
+                db.rawQuery(
+                    """SELECT measured_at_ms, value, quality, source_sha256
+                       FROM fit_review_candidates WHERE sample_id = ?""",
+                    arrayOf(sampleId)
+                ).use { rows ->
+                    assertTrue(rows.moveToFirst())
+                    assertTrue(rows.isNull(0))
+                    assertEquals(97.0, rows.getDouble(1), 0.0)
+                    assertEquals("UNTRUSTED_PROFILE_CANDIDATE", rows.getString(2))
+                    assertEquals(sourceSha, rows.getString(3))
+                    assertTrue(!rows.moveToNext())
+                }
+            }
+        } finally {
+            root.deleteRecursively()
+        }
+    }
+
+    @Test fun canonicalSchemaV7UpgradePreservesGenerationTablesAndAddsReviewCandidates() {
+        val base = ApplicationProvider.getApplicationContext<Context>()
+        val root = Files.createTempDirectory(base.cacheDir.toPath(), "cirqa-schema-v7-upgrade-").toFile()
+        val context = isolatedContext(base, root)
+        val event = """{"schema":1,"type":"reading","received_at_utc":"2026-11-22T08:00:00Z","service":6,"bpm":72}"""
+        try {
+            CirqaDatabase(context).use { database ->
+                assertTrue(database.insertLine(event))
+                val db = database.writableDatabase
+                val generationTablesBefore = db.rawQuery(
+                    """SELECT COUNT(*) FROM sqlite_master WHERE type = 'table'
+                       AND name IN ('fit_decoder_generations', 'fit_generation_observations',
+                                    'fit_active_generations')""",
+                    null
+                ).use { it.moveToFirst(); it.getInt(0) }
+                assertEquals(3, generationTablesBefore)
+                db.execSQL("DROP TABLE fit_review_candidates")
+                db.version = 7
+            }
+
+            CirqaDatabase(context).use { database ->
+                val db = database.writableDatabase
+                assertEquals(8, db.version)
+                assertEquals(listOf(event), database.allLines())
+                assertEquals(3, db.rawQuery(
+                    """SELECT COUNT(*) FROM sqlite_master WHERE type = 'table'
+                       AND name IN ('fit_decoder_generations', 'fit_generation_observations',
+                                    'fit_active_generations')""",
+                    null
+                ).use { it.moveToFirst(); it.getInt(0) })
+                assertEquals(1, db.rawQuery(
+                    "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'fit_review_candidates'",
+                    null
+                ).use { it.moveToFirst(); it.getInt(0) })
+            }
+        } finally {
+            root.deleteRecursively()
+        }
+    }
+
     @Test fun canonicalSchemaV3UpgradeAddsMetadataWithoutChangingExistingFitSources() {
         val base = ApplicationProvider.getApplicationContext<Context>()
         val root = Files.createTempDirectory(base.cacheDir.toPath(), "cirqa-metadata-upgrade-").toFile()
@@ -68,7 +161,7 @@ class CirqaStorageMigrationTest {
             CirqaDatabase(context).use { database ->
                 assertEquals(listOf(event), database.allLines())
                 assertTrue(database.rawDeviceMetadata().isEmpty())
-                assertEquals(7, database.writableDatabase.version)
+                assertEquals(8, database.writableDatabase.version)
             }
         } finally {
             root.deleteRecursively()

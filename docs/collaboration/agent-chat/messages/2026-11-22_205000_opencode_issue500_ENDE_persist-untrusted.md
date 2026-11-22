@@ -1,0 +1,11 @@
+# ENDE – Issue #500: untrusted FIT-Werte werden persistiert
+- Zeit (UTC): 2026-11-22 20:50
+- Von: OpenCode (FIT-Agent)
+- An: ChatGPT (Abnahme), alle
+- Issue/Task: #500 – FIT-SpO₂, Stress, Atemfrequenz in SQLite integrieren
+- Bezug: `2026-11-22_190218_opencode_issue500_UPDATE_persist-untrusted-values.md`; ausdrückliche Nutzerentscheidung, Bandwerte trotz Misstrauen zu speichern
+- Status: Implementierung im lokalen Worktree abgeschlossen; Branch/PR-Abnahme noch offen
+- Ergebnis: additive `fit_review_candidates`-Tabelle in kanonischem und Legacy-Store; nullbare Messzeit; Rohwert, Quell-/Feldprovenienz, Timestamp-Origin, stabile Idempotenz und `UNTRUSTED_PROFILE_CANDIDATE`; FIT-Backfill übergibt 269/227/297 Kandidaten. `stress_level_time` wird nicht als FIT-Epoch fehlinterpretiert. Backup-Format v8 enthält die Kandidaten; Restore/Reset/Migration und lesender DB-Zugriff ergänzt.
+- Tests: `./tools/ci-local.sh --full` erfolgreich nach allen Änderungen; 108 Python-Tests, Build/JVM-Unit-Tests/Lint und 130 API-35-Instrumentationstests (0 Fehler, 1 übersprungen), kombinierte Coverage. Emulator `emulator-5560`; kein S25/BLE/HW-Zugriff. Vorangegangener FULL-Fehler wurde durch Reparatur der v8-Archiveinträge, idempotente Schemaanlage und Versionsassertions behoben.
+- Grenzen/offen: keine Messgenauigkeit, Zeitsemantik von `stress_level_time`, CIRQA-Herkunft oder Historienvollständigkeit behauptet. Kein CI-Lauf auf gepushtem Head, keine ChatGPT-Abnahme; Branch ist 15 Commits hinter `origin/main` und muss vor PR/Push aktualisiert/reviewt werden.
+- Übergabe: ChatGPT bitte den neuen SQLite-/Backup-Pfad und die getrennte untrusted Speicherung abnehmen. OpenCode erstellt/aktualisiert nach Reconciliation einen PR-Head und liefert dessen CI-Nachweis.

@@ -59,7 +59,7 @@ class DatabaseBackupTest {
 
             CirqaDatabase(context).use { database ->
                 val db = database.readableDatabase
-                assertEquals(7, db.version)
+                assertEquals(8, db.version)
                 db.rawQuery(
                     """SELECT g.source_sha256, g.decoder_version, g.profile_version,
                               g.output_count, a.generation_id
@@ -176,7 +176,7 @@ class DatabaseBackupTest {
             legacy.close()
 
             CirqaDatabase(context).use { database ->
-                assertEquals(7, database.readableDatabase.version)
+                assertEquals(8, database.readableDatabase.version)
                 val sourceCount = database.readableDatabase.rawQuery(
                     "SELECT COUNT(*) FROM fit_sources", null
                 ).use { it.moveToFirst(); it.getInt(0) }
@@ -284,6 +284,17 @@ class DatabaseBackupTest {
                 idempotencyKey = "fit-sample",
                 duplicateFingerprint = "semantic-fingerprint"
             )
+            val legacyUntrustedSpo2 = FitHistoricalObservations.ReviewCandidate(
+                profileFieldName = "reading_spo2",
+                value = 98.0,
+                unit = "percent",
+                timestampEpochMillis = null,
+                sourceFileSha256 = sourceSha,
+                recordOrdinal = 2,
+                globalMessageNumber = 269,
+                fieldNumber = 0,
+                timestampOrigin = FitHistoricalObservations.TimestampOrigin.UNKNOWN
+            )
             LocalReadingStore(context).use {
                 it.commitBatch("test-device", listOf(historical))
                 it.commitFitFile(
@@ -293,7 +304,8 @@ class DatabaseBackupTest {
                     validatedAtEpochMillis = 5_000,
                     decoderVersion = FitHistoricalObservations.DECODER_VERSION,
                     profileVersion = FitHistoricalObservations.PROFILE_VERSION,
-                    observations = listOf(fitObservation)
+                    observations = listOf(fitObservation),
+                    reviewCandidates = listOf(legacyUntrustedSpo2)
                 )
             }
             val canonicalSha = "b".repeat(64)
@@ -305,6 +317,17 @@ class DatabaseBackupTest {
                 globalMessageNumber = 21,
                 idempotencyKey = "canonical-only-sample",
                 duplicateFingerprint = "canonical-only-fingerprint"
+            )
+            val untrustedStress = FitHistoricalObservations.ReviewCandidate(
+                profileFieldName = "stress_level_value",
+                value = 42.0,
+                unit = "profile_raw",
+                timestampEpochMillis = null,
+                sourceFileSha256 = canonicalSha,
+                recordOrdinal = 3,
+                globalMessageNumber = 227,
+                fieldNumber = 0,
+                timestampOrigin = FitHistoricalObservations.TimestampOrigin.UNKNOWN
             )
             val canonicalMetadata = FitHistoricalObservations.DeviceMetadata(
                 sourceFileSha256 = canonicalSha,
@@ -337,7 +360,8 @@ class DatabaseBackupTest {
                     decoderVersion = FitHistoricalObservations.DECODER_VERSION,
                     profileVersion = FitHistoricalObservations.PROFILE_VERSION,
                     observations = listOf(canonicalObservation),
-                    deviceMetadata = listOf(canonicalMetadata)
+                    deviceMetadata = listOf(canonicalMetadata),
+                    reviewCandidates = listOf(untrustedStress)
                 )
                 database.storeRawDeviceMetadata(rawMetadata)
                 database.storeRawDeviceMetadata(rawMetadata.copy(verifiedAtEpochMillis = 9_000))
@@ -358,6 +382,8 @@ class DatabaseBackupTest {
             assertEquals(2L, report.canonicalFitGenerations)
             assertEquals(2L, report.canonicalFitGenerationObservations)
             assertEquals(2L, report.canonicalActiveFitGenerations)
+            assertEquals(1L, report.canonicalFitReviewCandidates)
+            assertEquals(1L, report.legacyFitReviewCandidates)
 
             DatabaseBackup.reset(context)
             CirqaDatabase(context).use { assertEquals(0L, it.eventCount()) }
@@ -368,16 +394,24 @@ class DatabaseBackupTest {
 
             val plan = DatabaseBackup.prepareRestore(context, ByteArrayInputStream(bytes.toByteArray()))
             try {
-                assertEquals(7, plan.version)
+                assertEquals(8, plan.version)
                 assertEquals(3L, plan.canonicalReadings)
                 assertEquals(1L, plan.canonicalDeviceMetadata)
                 assertEquals(1L, plan.rawDeviceMetadata)
+                assertEquals(1L, plan.canonicalFitReviewCandidates)
+                assertEquals(1L, plan.legacyFitReviewCandidates)
                 DatabaseBackup.restore(context, plan)
             } finally { plan.close() }
 
             CirqaDatabase(context).use { db ->
                 assertEquals(1L, db.eventCount())
                 assertEquals(listOf(event), db.allLines())
+                val restored = db.readUntrustedFitCandidates().single()
+                assertEquals("stress", restored.metric)
+                assertEquals(42.0, restored.value, 0.0)
+                assertNull(restored.measuredAtEpochMillis)
+                assertEquals("UNTRUSTED_PROFILE_CANDIDATE", restored.quality)
+                assertEquals("UNKNOWN", restored.timestampOrigin)
             }
             LocalReadingStore(context).use {
                 val restored = it.readWindow(ExportWindow(0, Long.MAX_VALUE))
@@ -393,6 +427,27 @@ class DatabaseBackupTest {
                 assertEquals(1, db.rawQuery("SELECT COUNT(*) FROM fit_observation_provenance WHERE sample_id = 'fit-sample'", null).use {
                     it.moveToFirst(); it.getInt(0)
                 })
+                db.rawQuery(
+                    """SELECT metric, measured_at_ms, value, unit, quality, timestamp_origin,
+                              source_sha256, record_ordinal, global_message_number, field_number,
+                              decoder_version
+                       FROM fit_review_candidates WHERE sample_id = ?""",
+                    arrayOf(legacyUntrustedSpo2.idempotencyKey)
+                ).use { rows ->
+                    assertTrue(rows.moveToFirst())
+                    assertEquals("spo2", rows.getString(0))
+                    assertTrue(rows.isNull(1))
+                    assertEquals(98.0, rows.getDouble(2), 0.0)
+                    assertEquals("percent", rows.getString(3))
+                    assertEquals("UNTRUSTED_PROFILE_CANDIDATE", rows.getString(4))
+                    assertEquals("UNKNOWN", rows.getString(5))
+                    assertEquals(sourceSha, rows.getString(6))
+                    assertEquals(2, rows.getInt(7))
+                    assertEquals(269, rows.getInt(8))
+                    assertEquals(0, rows.getInt(9))
+                    assertEquals(FitHistoricalObservations.DECODER_VERSION, rows.getString(10))
+                    assertFalse(rows.moveToNext())
+                }
                 assertEquals(0, db.rawQuery("PRAGMA foreign_key_check", null).use {
                     var violations = 0
                     while (it.moveToNext()) violations++

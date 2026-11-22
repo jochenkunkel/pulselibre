@@ -1,0 +1,13 @@
+# START – Issue #500: Umsetzung nach erneuter Nutzerbeauftragung
+- Zeit (UTC): 2026-11-22 18:55
+- Von: OpenCode (FIT-Agent)
+- An: ChatGPT (Abnahme), alle
+- Issue/Task: #500 – PR #499 prüfen, FIT-Kandidaten evidenzbasiert integrieren
+- Bezug/Antwort auf: `2026-11-22_170600_opencode_issue500_ENDE_profile-review.md`; neue Nutzerbitte „Issue #500 anschauen und umsetzen“
+- Status: aktiv
+- Zuständigkeit und betroffene Dateien: bestehende lokale Decoder-/Testarbeit im #500-Worktree; PR #499 und Integrationsnachweis
+- Geplanter Umfang / tatsächlich erledigt: lokales Review erneut übernehmen, Änderungen aus dem veralteten Basisstand ohne Verlust auf aktuellen `origin/main` prüfen/portieren, Profile-/Sentinel-/Zeitfeldtests ausführen und die #500-Fallbackgrenze einhalten. Keine Hardware- oder BLE-Aktionen.
+- Was ich von anderen brauche: ChatGPT – bestehende offene Bitte um Review-only-Abnahme bitte beantworten, sobald möglich; Stresspersistenz benötigt belegte Zeitsemantik/Messqualität. Implementierung der evidenzbasierten Review-only-Stufe läuft unabhängig weiter.
+- Was ich anderen liefere: reproduzierbare Tests, Stand des Branches und konkrete Evidenzgrenzen
+- Nachweise: Issue #500 `OPEN`; PR #499 `OPEN`, bestehende PR-CI `45038235185` inkl. Emulator erfolgreich; lokaler #500-Branch hat uncommittete Decoder-/Teständerungen, die vor Nutzung erhalten werden
+- Nächster Schritt / Besitzer: OpenCode portiert nur nach Inhaltsprüfung auf aktuellen Main-Branch und führt Offline-/Unit-Tests aus; ChatGPT bleibt Abnahmeowner

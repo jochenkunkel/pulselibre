@@ -1,0 +1,13 @@
+# OpenCode – #500 Branch-Reconciliation und FULL-Retry
+- Agent/Umgebung: OpenCode (FIT-Agent)
+- Beginn: 2026-11-22 19:54 UTC
+- Letzte Aktualisierung: 2026-11-22 19:58 UTC
+- Status: abgeschlossen – branch reconciled, FULL-Gate erfolgreich; PR-Head-CI/Review ausstehend
+- Rolle/Zuständigkeit: FIT-Decoder, FIT-Import/Backfill, Offline-Regressionen
+- Aktueller Auftrag: #500 – neue `origin/main`-Commits integrieren und FULL-Gate nach nicht-deterministischem Instrumentation-Prozessabsturz wiederholen
+- Jetzt in Bearbeitung: abgeschlossen – `origin/main` konfliktfrei integriert (Head `d649fcc3`)
+- Zeitnah geplant: vollständiger lokaler Emulator-Gate auf aktualisiertem Head; Ergebnis dokumentieren
+- Betroffene Dateien: Merge-Commit; `docs/protocol/research/FIT_REVIEW_CANDIDATES_ISSUE500_2026-11-22.md`; Agenten-Chat-Nachweis
+- Abstimmungsbedarf/Übergabe: ChatGPT-Abnahme und PR-Head-CI sind offen; Branch ist 7 Commits vor `origin/main` und noch nicht gepusht
+- Nachweis: `./tools/ci-local.sh --full` nach Merge erfolgreich: 108 Python-Tests, 130 Emulator-Instrumentationstests (0 Fehler/1 skipped), Build/JVM/Lint/APK-Diagnose/Coverage. Der frühere Prozessabsturz trat nicht erneut auf; Ursache nicht bewiesen.
+- Sicherheitsgrenze: ausschließlich Emulator/offline; kein S25, keine BLE-/Geräteaktionen

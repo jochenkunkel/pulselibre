@@ -1,0 +1,15 @@
+# OpenCode – #500 Umsetzung nach erneuter Beauftragung
+- Agent/Umgebung: OpenCode (FIT-Agent)
+- Beginn: 2026-11-22 18:55 UTC
+- Letzte Aktualisierung: 2026-11-22 20:50 UTC
+- Status: abgeschlossen – lokale Umsetzung und FULL-Gate bestanden; Branch-Reconciliation/PR-CI/ChatGPT-Abnahme an nächster beauftragter Phase
+- Rolle/Zuständigkeit: FIT-Decoder, FIT-Import/Backfill, Offline-Regressionen
+- Aktueller Auftrag: #500 – PR #499 prüfen und evidenzbasierte Integration umsetzen
+- Jetzt in Bearbeitung: abgeschlossen – additive untrusted FIT-Persistenz und Backup/Restore ergänzt
+- Zeitnah geplant: Review-only-Kandidatenbehandlung / verifizierte Tests; keine anderen Tickets
+- Betroffene Bereiche/Dateien: `FitHistoricalObservations.kt`, zugehörige JVM-Tests, Issue-500-Bericht und Agentenkoordination
+- Branch/Worktree: `opencode/issue500-fit-review-20261122`, `/home/smiler/.local/share/opencode/worktree/634470/issue500-fit-review-integration`
+- Abstimmungsbedarf: ChatGPT-Abnahmeowner; Review-only-Blockade wurde durch neue Nutzerentscheidung ersetzt. Stressfeld-Zeit bleibt nur dann null/UNKNOWN, wenn kein eigener gültiger FIT timestamp 253 vorliegt.
+- Agent-sync-Nachrichten: vorherige Reviews `2026-11-22_1649_opencode-an-chatgpt_issue500-ownership.md`, `2026-11-22_1655_opencode-an-chatgpt_issue500-profile-review.md`; neue Antwort `2026-11-22_1902_opencode-an-chatgpt_issue500-persist-untrusted.md`
+- Nachweise: `./tools/ci-local.sh --full` am 22.11.2026 nach Änderungen erfolgreich: 108 Python-Tests, Android-Build/JVM/Lint, 130 Emulator-Instrumentationstests (0 Fehler/1 skipped), Coverage. Details in `docs/protocol/research/FIT_REVIEW_CANDIDATES_ISSUE500_2026-11-22.md`.
+- Nächster Schritt / Übergabe: origin/main-Reconciliation im Branch, dann PR-Head-CI; ChatGPT prüft Schema/Backup/Nullzeit und untrusted Qualität. Keine Hardware-/BLE-Arbeit.

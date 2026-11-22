@@ -30,7 +30,8 @@ class CirqaCompressedFitImportChainTest {
             observations: List<FitHistoricalObservations.Observation>,
             deviceMetadata: List<FitHistoricalObservations.DeviceMetadata>,
             unmappedFields: List<FitFieldInventoryRecord>,
-            deviceKey: String
+            deviceKey: String,
+            reviewCandidates: List<FitHistoricalObservations.ReviewCandidate>
         ): Int {
             committed += observations.size
             return observations.size

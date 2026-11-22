@@ -16,7 +16,8 @@ internal object FitObservationCommitter {
         observations: List<FitHistoricalObservations.Observation>,
         deviceMetadata: List<FitHistoricalObservations.DeviceMetadata>,
         unmappedFields: List<FitFieldInventoryRecord>,
-        deviceKey: String
+        deviceKey: String,
+        reviewCandidates: List<FitHistoricalObservations.ReviewCandidate> = emptyList()
     ): Int {
         require(readingsTable == "readings" || readingsTable == "observations")
         require(sourceSha256.matches(Regex("[0-9a-f]{64}")))
@@ -32,6 +33,16 @@ internal object FitObservationCommitter {
         }) { "FIT provenance does not match validated source" }
         require(observations.map { it.idempotencyKey }.distinct().size == observations.size) {
             "Duplicate FIT idempotency key in one file"
+        }
+        require(reviewCandidates.all {
+            it.sourceFileSha256 == sourceSha256 && it.value.isFinite() &&
+                it.idempotencyKey.isNotBlank() && it.recordOrdinal > 0 &&
+                it.globalMessageNumber >= 0 && it.fieldNumber >= 0 &&
+                (it.timestampEpochMillis == null || it.timestampEpochMillis >= 0) &&
+                it.quality == "UNTRUSTED_PROFILE_CANDIDATE"
+        }) { "FIT review candidate does not match validated source" }
+        require(reviewCandidates.map { it.idempotencyKey }.distinct().size == reviewCandidates.size) {
+            "Duplicate FIT review candidate idempotency key in one file"
         }
         require(deviceMetadata.all {
             it.sourceFileSha256 == sourceSha256 && it.recordOrdinal > 0 &&
@@ -88,6 +99,56 @@ internal object FitObservationCommitter {
                 check(row.moveToFirst() && row.getLong(0) == fileBytes && row.getString(1) == relativePath &&
                     row.getString(2) == decoderVersion && row.getString(3) == profileVersion) {
                     "Stored FIT source metadata conflicts with content hash"
+                }
+            }
+            val candidateInsert = db.compileStatement(
+                """INSERT OR IGNORE INTO fit_review_candidates
+                   (sample_id, device_id, metric, measured_at_ms, value, unit, source_sha256,
+                    record_ordinal, global_message_number, field_number, quality, timestamp_origin,
+                    decoder_version)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"""
+            )
+            for (candidate in reviewCandidates) {
+                val metric = when (candidate.profileFieldName) {
+                    "reading_spo2" -> "spo2"
+                    "stress_level_value" -> "stress"
+                    "respiration_rate" -> "respiration"
+                    else -> error("Unsupported FIT review candidate")
+                }
+                candidateInsert.clearBindings()
+                candidateInsert.bindString(1, candidate.idempotencyKey)
+                candidateInsert.bindString(2, deviceKey)
+                candidateInsert.bindString(3, metric)
+                bindNullableLong(candidateInsert, 4, candidate.timestampEpochMillis)
+                candidateInsert.bindDouble(5, candidate.value)
+                candidateInsert.bindString(6, candidate.unit)
+                candidateInsert.bindString(7, sourceSha256)
+                candidateInsert.bindLong(8, candidate.recordOrdinal.toLong())
+                candidateInsert.bindLong(9, candidate.globalMessageNumber.toLong())
+                candidateInsert.bindLong(10, candidate.fieldNumber.toLong())
+                candidateInsert.bindString(11, candidate.quality)
+                candidateInsert.bindString(12, candidate.timestampOrigin.name)
+                candidateInsert.bindString(13, decoderVersion)
+                candidateInsert.executeInsert()
+                db.rawQuery(
+                    """SELECT device_id, metric, measured_at_ms, value, unit, source_sha256,
+                              record_ordinal, global_message_number, field_number, quality,
+                              timestamp_origin, decoder_version
+                       FROM fit_review_candidates WHERE sample_id = ?""",
+                    arrayOf(candidate.idempotencyKey)
+                ).use { row ->
+                    check(row.moveToFirst() && row.getString(0) == deviceKey &&
+                        row.getString(1) == metric &&
+                        sameNullableLong(row, 2, candidate.timestampEpochMillis) &&
+                        row.getDouble(3).toBits() == candidate.value.toBits() &&
+                        row.getString(4) == candidate.unit && row.getString(5) == sourceSha256 &&
+                        row.getInt(6) == candidate.recordOrdinal &&
+                        row.getInt(7) == candidate.globalMessageNumber &&
+                        row.getInt(8) == candidate.fieldNumber && row.getString(9) == candidate.quality &&
+                        row.getString(10) == candidate.timestampOrigin.name &&
+                        row.getString(11) == decoderVersion) {
+                        "FIT review candidate conflicts with previously committed source"
+                    }
                 }
             }
 
