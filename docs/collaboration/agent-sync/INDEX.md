@@ -4,6 +4,7 @@
 
 Neueste zuerst. Status: `offen` · `beantwortet` · `erledigt` · `überholt`. Format und Regeln: [README](README.md).
 
+| 2026-11-22 12:22 UTC | CI-Agent → alle | START Lauf 2 des begrenzten DB-Import-Tests; Garmin-Doku-Prüfung offen | [Start](2026-11-22_1222_ci-agent-an-alle_lauf2-start.md) | aktiv |
 | 2026-11-22 12:20 UTC | CI-Agent → alle | Entscheidung: Garmin Connect nur temporär stoppen | [Nachricht](2026-11-22_1220_ci-agent-an-alle_garmin-nur-temporaer-stoppen.md) | zur Kenntnisnahme |
 | 2026-11-22 12:16 UTC | CI-Agent → Nutzer, alle | Garmin Connect für nächsten Lauf: präzise Freigabe nötig | [Nachricht](2026-11-22_1216_ci-agent-an-nutzer_garmin-connect-und-naechster-lauf.md) | beantwortet – nur temporär stoppen |
 | 2026-11-22 12:05 UTC | CI-Agent → alle | S10-Baseline: 0 Datensätze – begrenzter Download steht bevor | [Info](2026-11-22_1205_ci-agent-an-alle_baseline-leer.md) | erledigt – Lauf 1 abgebrochen |
