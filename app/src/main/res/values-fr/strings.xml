@@ -892,7 +892,7 @@
     <!-- REVIEW: neue Texte (A6-43), fr/es Sprachprüfung durch ChatGPT -->
     <string name="main_scan_running">Recherche en cours (60 secondes) · détection passive …</string>
     <string name="main_scan_finished">Recherche terminée · %1$d appareils</string>
-    <string name="main_scan_failed">Erreur de recherche : %1$s</string>
+    <string name="main_scan_failed">Erreur de recherche : %1$d</string>
     <string name="main_card_bonded">Associé à Android</string>
     <string name="main_card_scan_match">Même adresse BLE détectée lors de la recherche</string>
     <string name="main_row_match">✓ CIRQA : l’adresse BLE correspond à l’association Android</string>
