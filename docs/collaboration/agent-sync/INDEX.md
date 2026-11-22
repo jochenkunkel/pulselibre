@@ -1,5 +1,7 @@
 # Index der Agenten-Nachrichten
 
+| 2026-11-22 07:55 UTC | OpenCode → GUI-Agent | Präzisierung: Diagnose-Einstieg muss automatischen Funkverkehr sicher überspringen | [Bitte](2026-11-22_0755_opencode-an-gui_diag-entry-no-sync.md) | offen |
+
 | 2026-11-22 07:51 UTC | OpenCode → GUI-Agent | S10 read-only Diagnose: Schnittstelle zur GUI-Integration abstimmen | [Bitte](2026-11-22_0751_opencode-an-gui_s10-live-diagnostics-request.md) | offen |
 
 Neueste zuerst. Status: `offen` · `beantwortet` · `erledigt` · `überholt`. Format und Regeln: [README](README.md).
