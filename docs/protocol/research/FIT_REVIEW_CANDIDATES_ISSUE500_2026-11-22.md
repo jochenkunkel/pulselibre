@@ -83,3 +83,12 @@ Schritts.
   Emulator `emulator-5560`, kein S25-/Hardwarezugriff. Der Worktree ist lokal
   und noch nicht als PR-Head geprüft; zusätzlich ist der Branch gegenüber
   aktuellem `origin/main` noch nicht aktualisiert.
+- Nach Integration der inzwischen neuesten `origin/main`-Commits (Branch-Head
+  `d649fcc3`) wurde `./tools/ci-local.sh --full` erneut erfolgreich ausgeführt:
+  108 Python-Tests, Build/JVM-Unit-Tests, Lint, APK-Diagnose, 130 API-35-
+  Instrumentationstests (0 Fehler, 1 übersprungen) und kombinierte Coverage.
+  `emulator-5560`, kein S25-/Hardwarezugriff. Der vorherige einzelne
+  Instrumentation-Prozessabsturz trat beim Retry nicht wieder auf; die Ursache
+  ist durch den damaligen Log-Auszug nicht belegt. Der Branch ist jetzt 7
+  Commits vor `origin/main`, aber weiterhin nicht gepusht und nicht als
+  PR-Head-CI geprüft.
