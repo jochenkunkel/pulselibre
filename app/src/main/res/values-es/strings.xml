@@ -953,4 +953,32 @@
     <string name="main_hist_status_toggle">Mostrar u ocultar los detalles técnicos</string>
     <!-- REVIEW: neuer Text (ungültige Werte), fr/es Sprachprüfung durch ChatGPT -->
     <string name="ht_invalid">%1$d no válido(s) (no contados)</string>
+    <!-- REVIEW: neue Texte (Dashboard), fr/es Sprachprüfung durch ChatGPT -->
+    <string name="sd_title">Panel</string>
+    <string name="sd_intro">Valores medidos de la pulsera y del teléfono. Los valores no válidos, los estados del dispositivo y los huecos siguen visibles y no se rellenan.</string>
+    <string name="sd_r24">24 horas</string>
+    <string name="sd_r7">7 días</string>
+    <string name="sd_r30">30 días</string>
+    <string name="sd_hr_band">Frecuencia cardíaca · pulsera (FIT)</string>
+    <string name="sd_hr_live">Frecuencia cardíaca · teléfono (en vivo)</string>
+    <string name="sd_spo2">SpO₂ · calidad sin verificar</string>
+    <string name="sd_resp">Frecuencia respiratoria</string>
+    <string name="sd_stress">Estrés (escala del dispositivo)</string>
+    <string name="sd_src_band">Fuente: pulsera · Base de tiempo: hora de medición de la pulsera</string>
+    <string name="sd_src_live">Fuente: teléfono (en vivo) · Base de tiempo: hora de recepción</string>
+    <string name="sd_loading">Leyendo los datos …</string>
+    <string name="sd_error">No se pudieron leer los datos. No se muestra nada en su lugar.</string>
+    <string name="sd_empty">No hay mediciones en el período elegido.</string>
+    <string name="sd_only_invalid">En el período solo hay valores no válidos o estados del dispositivo; no se dibuja nada.</string>
+    <string name="sd_summary">%1$d valores válidos · media %2$s · mín %3$s · máx %4$s · cobertura %5$d %%</string>
+    <string name="sd_summary_no_valid">%1$d valores, ninguno dibujado como válido · cobertura %2$d %%</string>
+    <string name="sd_flags">%1$d no válidos, %2$d estados del dispositivo (no dibujados)</string>
+    <string name="sd_unverified">Valores de calidad sin verificar (círculos huecos)</string>
+    <string name="sd_gaps">%1$d huecos (rayados, no rellenados)</string>
+    <string name="sd_na_title">Aún no disponible</string>
+    <string name="sd_na_sleep">Sueño: no hay intervalos de sueño verificados.</string>
+    <string name="sd_na_activity">Curva de actividad: la base de tiempo de la actividad de la pulsera no está establecida.</string>
+    <string name="sd_na_hrv">VFC: solo hay intervalos RR, no un análisis de VFC verificado.</string>
+    <string name="sd_na_temp">Temperatura: la compatibilidad de la pulsera no está establecida.</string>
+    <string name="sd_cd">%1$s. %2$s</string>
 </resources>
