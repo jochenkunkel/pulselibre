@@ -949,4 +949,8 @@
     <string name="ht_m_speed">Velocidad (m/s)</string>
     <string name="ht_m_cadence">Cadencia (rpm)</string>
     <string name="ht_m_power">Potencia (W)</string>
+    <!-- REVIEW: neuer Text (Gerät: Details), fr/es Sprachprüfung durch ChatGPT -->
+    <string name="main_hist_status_toggle">Mostrar u ocultar los detalles técnicos</string>
+    <!-- REVIEW: neuer Text (ungültige Werte), fr/es Sprachprüfung durch ChatGPT -->
+    <string name="ht_invalid">%1$d no válido(s) (no contados)</string>
 </resources>

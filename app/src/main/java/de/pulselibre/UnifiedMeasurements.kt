@@ -52,7 +52,10 @@ object LiveReadingFields {
 /** One aggregated line of the Verlauf "Alle Daten" table. */
 data class UnifiedDaySummary(
     val dayIndex: Long, val origin: MeasurementOrigin, val metric: String, val unit: String,
-    val count: Int, val minimum: Double, val mean: Double, val maximum: Double
+    /** Number of VALID values; invalid sentinels (see [UnifiedMeasurements.INVALID_SQL]) are not part of min/mean/max. */
+    val count: Int, val minimum: Double, val mean: Double, val maximum: Double,
+    /** Values stored for this metric that are not measurements (e.g. heart rate 0, negative respiration/stress codes). */
+    val invalid: Int = 0
 )
 
 /**
@@ -64,6 +67,15 @@ data class UnifiedDaySummary(
  * are never merged or interpolated across origins.
  */
 class UnifiedMeasurements(private val db: SQLiteDatabase) {
+    companion object {
+        /**
+         * Stored values that are NOT measurements and must never be shown as normal values: heart rate 0 and the
+         * negative Garmin status codes of respiration (-100 off wrist, -200 large motion, -300 invalid) and stress
+         * (meaning not yet established). Only these documented cases are excluded; no quality thresholds are invented.
+         */
+        const val VALID_SQL = "NOT ((metric IN ('bpm', 'resting_bpm', 'heart_rate') AND value <= 0) OR (metric IN ('breaths_per_min', 'stress') AND value < 0))"
+    }
+
     fun ensureSchema() {
         db.execSQL("""CREATE TABLE IF NOT EXISTS unified_measurements (
             origin TEXT NOT NULL CHECK(origin IN ('live', 'import', 'band')),
@@ -208,7 +220,10 @@ class UnifiedMeasurements(private val db: SQLiteDatabase) {
     fun dailySummary(startMs: Long, endMs: Long, offsetMs: Long): List<UnifiedDaySummary> {
         val out = ArrayList<UnifiedDaySummary>()
         db.rawQuery(
-            """SELECT (measured_at_ms + ?) / 86400000 AS day, origin, metric, unit, COUNT(*), MIN(value), AVG(value), MAX(value)
+            """SELECT (measured_at_ms + ?) / 86400000 AS day, origin, metric, unit,
+                      COUNT(CASE WHEN $VALID_SQL THEN 1 END), SUM(CASE WHEN $VALID_SQL THEN 0 ELSE 1 END),
+                      MIN(CASE WHEN $VALID_SQL THEN value END), AVG(CASE WHEN $VALID_SQL THEN value END),
+                      MAX(CASE WHEN $VALID_SQL THEN value END)
                FROM unified_measurements WHERE measured_at_ms >= ? AND measured_at_ms <= ?
                GROUP BY day, origin, metric, unit ORDER BY day DESC, origin, metric""",
             arrayOf(offsetMs.toString(), startMs.toString(), endMs.toString())
@@ -216,7 +231,7 @@ class UnifiedMeasurements(private val db: SQLiteDatabase) {
             while (c.moveToNext()) {
                 val origin = MeasurementOrigin.entries.firstOrNull { it.code == c.getString(1) } ?: continue
                 out += UnifiedDaySummary(c.getLong(0), origin, c.getString(2), c.getString(3),
-                    c.getInt(4), c.getDouble(5), c.getDouble(6), c.getDouble(7))
+                    c.getInt(4), c.getDouble(6), c.getDouble(7), c.getDouble(8), c.getInt(5))
             }
         }
         return out

@@ -234,15 +234,20 @@ class HistoryOverviewView(
                 })
                 val metric = metricLabel(row.metric)?.let { context.getString(it) } ?: "${row.metric} (${row.unit})"
                 val day = dayFormat.format(java.time.LocalDate.ofEpochDay(row.dayIndex))
-                val range = "${number.format(row.minimum)}–${number.format(row.maximum)}"
-                val mean = number.format(row.mean)
+                val noValid = row.count == 0
+                val range = if (noValid) "–" else "${number.format(row.minimum)}–${number.format(row.maximum)}"
+                val mean = if (noValid) "–" else number.format(row.mean)
+                val invalidNote = if (row.invalid > 0) context.getString(R.string.ht_invalid, row.invalid) else null
+                val label = if (invalidNote == null) "$source · $metric" else "$source · $metric\n$invalidNote"
+                val description = context.getString(R.string.ht_row_cd, day, source, metric, row.count, range, mean) +
+                    (invalidNote?.let { ", $it" } ?: "")
                 card.addView(line(listOf(
                     cell(day, 1.0f),
-                    cell("$source · $metric", 1.9f),
+                    cell(label, 1.9f),
                     cell(row.count.toString(), 0.9f, align = Gravity.END),
                     cell(range, 1.3f, align = Gravity.END),
                     cell(mean, 0.9f, align = Gravity.END)),
-                    context.getString(R.string.ht_row_cd, day, source, metric, row.count, range, mean)),
+                    description),
                     LayoutParams(-1, -2))
             }
         }
