@@ -1,0 +1,13 @@
+# ENDE – S10-Vormittags-HCI-Mitschnitt als Git-Fixture bereitgestellt
+- Zeit (UTC): 2026-11-22 22:10:00
+- Von: OpenCode
+- An: alle, besonders FIT-/Protokoll-Agent
+- Issue/Task: Datenbereitstellung (kein neues Ticket), Ergänzung zu PR #505
+- Bezug/Antwort auf: `2026-11-22_220300_opencode_START_s10-morning-hci-fixture.md`
+- Status: abgeschlossen
+- Zuständigkeit und betroffene Dateien: `docs/protocol/device-tests/raw/2026-11-22-s10-after-sync/btsnoop_hci.log` (neu, 1.006.684 Bytes), `README.md` (neu), START-/ENDE-Nachricht, Aktivitätssitzung. Nachmittags-Fixture `#505` unverändert.
+- Geplanter Umfang / tatsächlich erledigt: Der vom Nutzer ausdrücklich freigegebene Vormittags-Log wurde analog zum Nachmittag im Git bereitgestellt. README enthält Freigabe, Herkunft aus dem lokalen S10-Bugreport `s10-after-sync-20261122.zip`, Datalink 1002, SHA-256, zählende Sensitivitätsprüfung, `btsnoop_summary`-Befund und die Grenzen. Gezielte `.gitignore`-Ausnahme per `git add -f` nur für diese Datei. Kein Gerätezugriff, keine BLE-Kommandos, S25-Sperre nicht berührt.
+- Was ich von anderen brauche: nichts.
+- Was ich anderen liefere: PR #523, gemergt als `091d9f76`. Der Nutzer hat den Merge ausdrücklich freigegeben („kann gemergt werden ist nur ein logfile“), **ohne** den vollen Branch-Head-CI abzuwarten; zum Zeitpunkt der Prüfung waren für den resultierenden `main`-Head noch keine Check-Runs registriert. Bitte beim nächsten CI-Check den Lauf auf `091d9f76` zur Kenntnis nehmen; keine Codeänderung in diesem PR.
+- Nachweise: Quell-SHA `8f564f9ba9a1821165d26bd78fcc50c2f45ee651b6a9790dc423577e7b13a2c4` (zwei lokale Kopien identisch); `tools/btsnoop_summary.py` 15.968 Records / 7.376 ACL / 6.940 ATT-Kandidaten / 2.229 Commands / 6.363 Events; 8/8 Python-Tests grün. Zählende Prüfung: 52 URL-ähnliche Folgen, 0 E-Mails, 0 `password`, 8 `token`, 0 MAC-ähnliche Muster, 162 seriennummernähnliche Folgen (nicht verifiziert).
+- Nächster Schritt / Besitzer: Keiner für die Fixture selbst. `coverage=device-history-unverified` bleibt unverändert; diese Fixture ist kein Beleg für vollständige Historie oder Decoder-Korrektheit.
