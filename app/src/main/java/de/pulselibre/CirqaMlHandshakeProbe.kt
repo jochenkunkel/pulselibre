@@ -120,6 +120,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private var syncTransferHandle = 0L
     private var syncExpectedSize = 0L
     private val mlrData = java.io.ByteArrayOutputStream()
+    private var mlrFileAssembler: CirqaMlrFileTransferAssembler? = null
     private var syncFinalReport = ""
     private var fileAccessRequestClaimed = false
     private var itemListRepeatabilityMode = false
@@ -441,6 +442,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             syncTransferHandle = 0L
             syncExpectedSize = 0L
             mlrData.reset()
+            mlrFileAssembler?.close()
+            mlrFileAssembler = null
             fileAccessRequestClaimed = false
             bootstrapAckMode = false
             configurationTestMode = false
@@ -491,6 +494,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             syncTransferHandle = 0L
             syncExpectedSize = 0L
             mlrData.reset()
+            mlrFileAssembler?.close()
+            mlrFileAssembler = null
             fileAccessRequestClaimed = false
             bootstrapAckMode = false
             configurationTestMode = false
@@ -960,6 +965,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         syncCurrentItem = item
         syncExpectedSize = item.dataSize
         mlrData.reset()
+        mlrFileAssembler?.close()
+        mlrFileAssembler = CirqaMlrFileTransferAssembler(item.dataSize.toInt())
         mlrConfigureResponseSeen = false
         mlrTransferActive = false
         val requestId = syncNextRequestId
@@ -999,6 +1006,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         syncCurrentItem = null
         syncExpectedSize = 0L
         mlrData.reset()
+        mlrFileAssembler?.close()
+        mlrFileAssembler = null
         mlrTransferActive = false
         mlrConfigureResponseSeen = false
         mlrHandle = null
@@ -1393,12 +1402,14 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                 // trigger the one-shot FileAccess request here, not from earlier writes.
                 maybeSendFileAccessList(g)
             } else {
-                val first = bytes.firstOrNull()?.toInt()?.and(255)
-                if (first != null && first == mlrHandle && syncRequestMode) {
+                if (bytes.size < 2) return
+                val routedHandle = GarminMlOffline.inspectDataHandle(bytes)
+                val routedPayload = bytes.copyOfRange(1, bytes.size)
+                if (routedHandle != null && routedHandle == mlrHandle && syncRequestMode) {
                     // Connect's MLRTransportPipe consumes the first MLR callback
                     // as [response-kind, general-status, configure-status], not
                     // as file data. Never append this control response to the file.
-                    val payload = bytes.copyOfRange(1, bytes.size)
+                    val payload = routedPayload
                     if (!mlrConfigureResponseSeen) {
                         if (!CirqaMlrConfigureResponse.isSuccessful(payload)) {
                             mlrDiag += ";configureResponse=invalid"
@@ -1411,24 +1422,39 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                         return
                     }
                     if (!mlrTransferActive || syncCurrentItem == null) return
-                    // Subsequent callbacks are raw transfer bytes, passed
-                    // unchanged by Connect's MLRTransportPipe to its data sink.
+                    // The observed file channel can carry a 2-byte per-ATT
+                    // transport prefix followed by a zlib stream. The assembler
+                    // only strips that prefix after validating a zlib header;
+                    // uncompressed file payloads retain the original path.
                     mlrChunks++
                     mlrBytes += payload.size
-                    if (syncExpectedSize <= 0 ||
-                        mlrData.size().toLong() + payload.size > syncExpectedSize
+                    val assembler = mlrFileAssembler
+                    if (syncExpectedSize !in 1..CirqaZlibFileDecoder.MAX_BYTES.toLong() ||
+                        assembler == null
                     ) {
                         mlrDiag += ";dataOverflow=true"
                         finish("MLR-Daten überschreiten die erwartete Dateigröße; Transfer gestoppt.", g)
                         return
                     }
-                    mlrData.write(payload)
-                    if (mlrData.size().toLong() == syncExpectedSize) {
+                    val chunk = assembler.accept(payload)
+                    if (chunk.rejected) {
+                        mlrDiag += ";fileAssembly=rejected;mode=${chunk.mode}"
+                        finish("MLR-Dateiübertragung ungültig oder überschreitet Größenlimit; Transfer gestoppt.", g)
+                        return
+                    }
+                    if (chunk.complete) {
+                        val completeBytes = assembler.assembledBytes() ?: run {
+                            finish("MLR-Dateiübertragung ohne vollständige Dateibytes; Transfer gestoppt.", g)
+                            return
+                        }
+                        mlrData.reset()
+                        mlrData.write(completeBytes)
+                        mlrDiag += ";fileAssembly=complete;mode=${chunk.mode}"
                         completeSyncFile(g)
                     }
                     return
                 }
-                if (first != null && first == historyHandle) {
+                if (routedHandle != null && routedHandle == historyHandle) {
                     historyRouted++
                     val hsv1 = historicalSyncV1
                     if (hsv1 != null && hsv1.phase in setOf(
@@ -2284,9 +2310,26 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     return
                 }
                 if (syncRequestMode) {
+                    if (!syncAccepted) {
+                        if (!CirqaSyncResponseParser.isSyncResponse(msg)) {
+                            syncProtoShapes = (syncProtoShapes +
+                                "unexpected-before-sync-response:${CirqaProtobufShapeInspector.nestedShape(msg)};")
+                                .take(400)
+                            return@let
+                        }
+                        syncAccepted = true
+                        syncProtoShapes = (syncProtoShapes +
+                            "${CirqaProtobufShapeInspector.nestedShape(msg)};").take(400)
+                        val handle = historyHandle
+                        if (handle != null && !syncItemListSent) {
+                            syncItemListSent = true
+                            queueAck(g, CirqaFileAccessListRequest.mlValue(handle, 2))
+                            serial.post { mark("Sync-Response erkannt; FileAccess-Item-List angefordert") }
+                        }
+                        return@let
+                    }
                     // Connect keeps the connection open after sync_response: the device
                     // begins delivering buffered files only afterwards.
-                    syncAccepted = true
                     syncProtoShapes = (syncProtoShapes + "${CirqaProtobufShapeInspector.nestedShape(msg)};").take(400)
                     // An item_list_response carries real, readable items. Parse it and
                     // request the first one; UIDs stay in memory and are never reported.
@@ -3216,6 +3259,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             syncTransferHandle = 0L
             syncExpectedSize = 0L
             mlrData.reset()
+            mlrFileAssembler?.close()
+            mlrFileAssembler = null
             fileAccessRequestClaimed = false
             bootstrapAckMode = false
             configurationTestMode = false
