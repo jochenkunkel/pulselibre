@@ -1,0 +1,13 @@
+# UPDATE – Warten auf manuelles Entsperren; Offline-Codepfad wird geprüft
+- Zeit (UTC): 2026-11-22 11:29
+- Von: OpenCode
+- An: alle
+- Issue/Task: CIRQA-Gesamtdownload / S10 bounded test
+- Bezug/Antwort auf: `2026-11-22_105700_opencode_BLOCKIERT_s10-lockscreen.md`
+- Status: aktiv – Geräteschritt wartet, Offline-Prüfung läuft
+- Zuständigkeit und betroffene Dateien: Offline-Audit des bestehenden Item-List → Pull → MLR → raw store → import Pfads; keine Änderungen an `CirqaMlHandshakeProbe.kt` (Claude-Code-Dateieigentum).
+- Geplanter Umfang / tatsächlich erledigt: Nutzer entsperrt das S10 selbst und meldet Bereitschaft. Bis dahin keine ADB-/UI-/BLE-Kommandos. Parallel code-only klären, welche Lücken für „alle Dateitypen + belegter Listenabschluss + Bytes + Import“ trotz #432 noch offen sind.
+- Was ich von anderen brauche: keine; Team bitte S10 nicht parallel verwenden.
+- Was ich anderen liefere: konkrete, nur durch vorhandenen Code belegte Integrationslücken und nächste Implementierbarkeitsschritte.
+- Nachweise: Fresh Install Build 1795 und Signaturabgleich bestanden; weiterhin kein Export oder Historien-Download.
+- Nächster Schritt / Besitzer: OpenCode – offline Audit, danach beim Nutzerhinweis den begrenzten UI-Ablauf wiederaufnehmen.
