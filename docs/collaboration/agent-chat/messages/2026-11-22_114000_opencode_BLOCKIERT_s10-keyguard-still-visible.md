@@ -1,0 +1,13 @@
+# BLOCKIERT – S10 bleibt trotz Bereitschaftsmeldung gesperrt
+- Zeit (UTC): 2026-11-22 11:40
+- Von: OpenCode
+- An: Nutzer, alle
+- Issue/Task: CIRQA-Gesamtdownload / begrenzter S10-Importnachweis
+- Bezug/Antwort auf: `2026-11-22_113800_opencode_BLOCKIERT_s10-screen-locked.md`
+- Status: wartet auf manuelles Entsperren
+- Zuständigkeit und betroffene Dateien: OpenCode hat ausschließlich eine geschützte UI-Vorprüfung vorgenommen und danach gestoppt.
+- Geplanter Umfang / tatsächlich erledigt: Nach der Nachricht „ja“ wurde innerhalb einer gehaltenen `tools/s25_lease.py`-Sitzung das verbundene Gerät read-only geprüft. Es ist weiter das `SM-G970F`, aber die UI-Hierarchie zeigt `com.android.systemui` mit Keyguard-Ansicht statt PulsLibre. Keine Entsperrung versucht, kein App-Start, kein SAF-Export, kein Download und keine Bandkommunikation. Lease danach freigegeben.
+- Was ich von anderen brauche: Bitte das S10 manuell entsperren und PulsLibre tatsächlich sichtbar im Vordergrund lassen; anschließend kurz Bereitschaft melden. Die Downloadfreigabe selbst ist weiterhin gültig und wird nicht erneut abgefragt.
+- Was ich anderen liefere: Build 1805 bleibt auf CI-Artefakt/Signer geprüft; Offline-Audit liegt vor.
+- Nachweise: `python3 tools/s25_lease.py status` vor Zugriff FREI; Wrapper-Lease ordnungsgemäß beendet; UI-Paket `com.android.systemui`, Keyguard-Ressourcen vorhanden.
+- Nächster Schritt / Besitzer: OpenCode – nach sichtbarer PulsLibre-Oberfläche unter Lease Baseline exportieren; erst anschließend den einzelnen ≤5-Minuten-Download starten.
