@@ -6,6 +6,7 @@ import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.os.Build
 import android.os.Handler
+import android.os.HandlerThread
 import android.os.Looper
 import java.io.File
 import java.io.FileOutputStream
@@ -17,10 +18,22 @@ import java.util.UUID
  * The separately gated legacy-5007 mode sends at most one filter request and
  * never performs a file request, sync follow-up, health persistence or retry.
  */
+/** One process-wide serial worker for every probe; only one BLE session exists at a time (CirqaBleSessionGate). */
+private object CirqaProbeThread {
+    val looper: Looper by lazy { HandlerThread("pulselibre-cirqa-probe").apply { start() }.looper }
+}
+
 private const val MLR_SERVICE_ID = 8216 // 0x2018, Connect MLRTransportPipe.ML_SERVICE_IDS
 
 class CirqaMlHandshakeProbe(private val context: Context, private val adapter: BluetoothAdapter) {
-    private val main = Handler(Looper.getMainLooper())
+    /**
+     * All GATT callbacks, timeouts and the termination in [finish] run on this ONE background thread (audit #6 A6-35).
+     * Before, callbacks came from Binder threads while timeouts and [finish] ran on the main thread, so the ~150 mutable
+     * state fields were touched by several threads. The result callback is still delivered on the main thread ([ui]).
+     * Heavy work in callbacks (fsync, FIT decode, SQLite) therefore never blocks the UI.
+     */
+    private val serial = Handler(CirqaProbeThread.looper)
+    private val ui = Handler(Looper.getMainLooper())
     private val cccd = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")
     private var active = false
     @Volatile private var terminationRequested = false
@@ -302,7 +315,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         configurationTestMode = true
         historyDiagnosticMode = true
         start(false, result)
-        if (active) main.postDelayed({
+        if (active) serial.postDelayed({
             if (active) {
                 model.tick(model.token, android.os.SystemClock.elapsedRealtime())
                 finish("5030-only: Gesamtlaufzeit beendet.", gatt)
@@ -349,7 +362,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         configurationTestMode = true
         historyDiagnosticMode = true
         start(false, result)
-        if (active) main.postDelayed({
+        if (active) serial.postDelayed({
             if (active) {
                 model.tick(model.token, android.os.SystemClock.elapsedRealtime())
                 finish("Historical Sync V1: Gesamtlaufzeit beendet.", gatt)
@@ -844,17 +857,17 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                                 // This replaces, rather than duplicates, the original timeout.
                                 if (configurationTestMode && !configurationObservationExtended) {
                                     configurationObservationExtended = true
-                                    main.removeCallbacks(configurationTimeout)
-                                    main.postDelayed(configurationTimeout, 10_000L)
+                                    serial.removeCallbacks(configurationTimeout)
+                                    serial.postDelayed(configurationTimeout, 10_000L)
                                 }
                                 phase = "5050-Schreibfolge bestätigt; beobachte Antworten 10 Sekunden"
                                 mark(phase)
                             }
                         }
                         if (bootstrapAckMode && bootstrapAckSent && bootstrapAckChunks.isNotEmpty()) {
-                            main.postDelayed({ if (active) sendNextBootstrapAckChunk(g) }, 80L)
+                            serial.postDelayed({ if (active) sendNextBootstrapAckChunk(g) }, 80L)
                         } else if (legacyHistoryDownloadMode && legacyCurrentTransferCompleted) {
-                            main.post {
+                            serial.post {
                                 if (active && legacyHistoryDownloadMode) completeLegacyTransferAndContinue(g)
                             }
                         } else {
@@ -867,10 +880,10 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                         }
                     }
                 }
-            }, BluetoothDevice.TRANSPORT_LE)
-            if (configurationTestMode && historicalSyncV1 == null) main.postDelayed(configurationTimeout, 20_000L)
+            }, BluetoothDevice.TRANSPORT_LE, BluetoothDevice.PHY_LE_1M_MASK, serial)
+            if (configurationTestMode && historicalSyncV1 == null) serial.postDelayed(configurationTimeout, 20_000L)
             /* Legacy timeout for non-configuration modes. */
-            if (!configurationTestMode && !continuousRecordingMode) main.postDelayed({ if (active) finish(if (historyDiagnosticMode) "CIRQA Historien-Diagnose: Beobachtungsfenster beendet." else if (realtimeMode) realtimeSummary("Zeitlimit (20 Sekunden)") else "ML-Handshake: Zeitlimit (20 Sekunden). Letzte Phase: $phase; Notifications: $notificationsReceived; GATT-Schreiben bestätigt: $writeConfirmed; Protokollzustand: ${session?.stage}; Antwortformen: ${notificationShapes.joinToString(" | ")}.", gatt) }, 20_000)
+            if (!configurationTestMode && !continuousRecordingMode) serial.postDelayed({ if (active) finish(if (historyDiagnosticMode) "CIRQA Historien-Diagnose: Beobachtungsfenster beendet." else if (realtimeMode) realtimeSummary("Zeitlimit (20 Sekunden)") else "ML-Handshake: Zeitlimit (20 Sekunden). Letzte Phase: $phase; Notifications: $notificationsReceived; GATT-Schreiben bestätigt: $writeConfirmed; Protokollzustand: ${session?.stage}; Antwortformen: ${notificationShapes.joinToString(" | ")}.", gatt) }, 20_000)
         } catch (_: SecurityException) { finish("Bluetooth-Berechtigung fehlt.", gatt) }
         catch (e: IllegalArgumentException) { finish("Verbindungsfehler: ${e.javaClass.simpleName}", gatt) }
     }
@@ -905,7 +918,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private fun queueAck(g: BluetoothGatt, bytes: ByteArray) {
         deferredAckWrites.addLast(bytes)
         drainDeferredAcks(g)
-        main.postDelayed({ if (active) drainDeferredAcks(g) }, 80L)
+        serial.postDelayed({ if (active) drainDeferredAcks(g) }, 80L)
     }
 
     private fun configureMlrTransfer(g: BluetoothGatt, handle: Int) {
@@ -923,7 +936,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             transfer.toByte(), (transfer ushr 8).toByte(),
             (transfer ushr 16).toByte(), (transfer ushr 24).toByte()
         ))
-        main.post { mark("MLR-Pipe konfiguriert: handle=$transfer") }
+        serial.post { mark("MLR-Pipe konfiguriert: handle=$transfer") }
     }
 
     private fun sendNextSyncFile(g: BluetoothGatt) {
@@ -955,7 +968,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         syncPullDiag = (syncPullDiag + "|pull#$requestId:size=${item.dataSize}")
             .take(1000)
         queueAck(g, CirqaFileAccessPullRequest.mlValue(handle, requestId, item))
-        main.post {
+        serial.post {
             mark("FileAccess-Pull $requestId gesendet; Größe=${item.dataSize}, Typ=" +
                 CirqaFileAccessItemListParser.safeTypeLabel(item, syncGdxmlStrings))
         }
@@ -1116,7 +1129,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                 queueAck(g, CirqaFileAccessListRequest.mlValue(
                     handle, requestId, sessionId = continuation.sessionId
                 ))
-                main.post { mark("FileAccess-Item-List-Session-Fortsetzung angefordert (read-only)") }
+                serial.post { mark("FileAccess-Item-List-Session-Fortsetzung angefordert (read-only)") }
             }
             is CirqaItemListContinuationPolicy.Decision.TransactionFollowup -> {
                 if (!syncListContinuation.recordTransactionFollowupSent()) {
@@ -1131,7 +1144,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                 queueAck(g, CirqaFileAccessListRequest.mlValue(
                     handle, requestId, transactionId = continuation.transactionId
                 ))
-                main.post {
+                serial.post {
                     mark("Separater nextTransaction-Folgeabruf angefordert; keine automatische Kette")
                 }
             }
@@ -1184,7 +1197,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                 syncNextTransactionFollowupSent = true
                 fileAccessReassembler.reset()
                 queueAck(g, nextRequest)
-                main.post { mark("nextTransaction-Kontext einmal angefragt; Stopp vor Datei-Pulls") }
+                serial.post { mark("nextTransaction-Kontext einmal angefragt; Stopp vor Datei-Pulls") }
             } else {
                 syncItemSummary =
                     "erste=${syncNextTransactionFirstItemCount ?: 0}; " +
@@ -1212,7 +1225,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                 val requestId = syncNextRequestId
                 syncNextRequestId = if (syncNextRequestId >= 0xffff) 1 else syncNextRequestId + 1
                 queueAck(g, CirqaFileAccessListRequest.mlValue(handle, requestId))
-                main.post { mark("Zweite Item-List nach sync_request angefordert; kein Pull") }
+                serial.post { mark("Zweite Item-List nach sync_request angefordert; kein Pull") }
                 return
             }
             if (syncRepeatItemListsMode && firstItems != null) {
@@ -1336,13 +1349,13 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                 )
                 if (legacy5007TestMode && legacy5007WriteClaimed && !legacyHistoryDownloadMode) {
                     legacy5007RequestSent = true
-                    main.removeCallbacks(legacy5007Timeout)
-                    main.postDelayed(legacy5007Timeout, 5_000L)
+                    serial.removeCallbacks(legacy5007Timeout)
+                    serial.postDelayed(legacy5007Timeout, 5_000L)
                 }
                 if (legacy5031TestMode && legacy5031WriteClaimed && !legacyHistoryDownloadMode) {
                     legacy5031RequestSent = true
-                    main.removeCallbacks(legacy5007Timeout)
-                    main.postDelayed(legacy5007Timeout, 5_000L)
+                    serial.removeCallbacks(legacy5007Timeout)
+                    serial.postDelayed(legacy5007Timeout, 5_000L)
                 }
                 if (legacyHistoryDownloadMode && legacy5002RequestWriteClaimed) {
                     legacy5002RequestSent = true
@@ -1609,7 +1622,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                             framed.toList().chunked(19).forEach { part ->
                                 bootstrapAckChunks.addLast(byteArrayOf(handle.toByte()) + part.toByteArray())
                             }
-                            main.post { if (active) sendNextBootstrapAckChunk(g) }
+                            serial.post { if (active) sendNextBootstrapAckChunk(g) }
                         }
                     }
                     if (configurationTestMode && !configurationResponseQueued &&
@@ -1637,7 +1650,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                                 }
                             }
                             mark("5050 empfangen; sende einmalig ACK und konservative 15-Byte-Hostmaske")
-                            main.post { if (active) sendNextBootstrapAckChunk(g) }
+                            serial.post { if (active) sendNextBootstrapAckChunk(g) }
                         }
                     }
                     // Fail closed on repetitive protocol traffic: do not let a read-only
@@ -1798,11 +1811,11 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             finish5030IfTerminal(g)
             return
         }
-        main.removeCallbacks(configurationTimeout)
+        serial.removeCallbacks(configurationTimeout)
         legacy5030WriteOutstanding = true
         val value = byteArrayOf(handle.toByte()) +
             GarminFileListRequest.cobs(CirqaLegacy5030RequestCandidate.gfdiFrame())
-        main.postDelayed({
+        serial.postDelayed({
             if (active && legacy5030Only === model) {
                 model.tick(model.token, android.os.SystemClock.elapsedRealtime())
                 finish("5030-only: Antwort-/Write-Zeitlimit, kein Retry.", g)
@@ -1853,10 +1866,10 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                 CirqaHistoricalSyncV1Wire.directoryRead(handle, 0) to 5002
             else -> { finish("Historical Sync V1: unerwartete Sendephase $phase.", g); return }
         }
-        main.removeCallbacks(configurationTimeout)
+        serial.removeCallbacks(configurationTimeout)
         hsv1WriteOutstanding = true
         hsv1Type = type
-        main.postDelayed({
+        serial.postDelayed({
             if (active && historicalSyncV1 === s) {
                 s.tick(s.token, android.os.SystemClock.elapsedRealtime())
                 finish("Historical Sync V1: Antwort-Timeout, kein Retry.", g)
@@ -1887,8 +1900,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         // Cancel the stale 5 s response timer from the 5002 request; the body stream
         // has its own 20 s budget below.
         historicalSyncV1 = null
-        main.removeCallbacks(configurationTimeout)
-        main.postDelayed({
+        serial.removeCallbacks(configurationTimeout)
+        serial.postDelayed({
             if (active && dirReadSession === session && session.phase == CirqaDirectoryReadV2Session.Phase.RECEIVING) {
                 finish("Directory-Body Zeitlimit; kein Retry. ${session.summary()}", g)
             }
@@ -2059,7 +2072,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             configurationTestMode = false
             historyDiagnosticMode = false
         } else {
-            main.postDelayed({
+            serial.postDelayed({
                 if (active && fileAccessListMode) {
                     // finish() builds the single canonical report (including validation).
                     finish("${if (stopBeforePull) "40-s" else "120-s"}-Zeitlimit; $fileAccessDiag", gatt)
@@ -2110,7 +2123,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             configurationTestMode = false
             historyDiagnosticMode = false
         } else {
-            main.postDelayed({
+            serial.postDelayed({
                 if (active && fileAccessListMode) {
                     finish("FileAccess-Liste: 20-s-Zeitlimit ohne vollständige 5044-Antwort.$fileAccessDiag", gatt)
                 }
@@ -2166,7 +2179,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             configurationTestMode = false
             historyDiagnosticMode = false
         } else {
-            main.postDelayed({
+            serial.postDelayed({
                 if (active && itemListRepeatabilityMode) {
                     finish("Item-List-Wiederholbarkeit: Zeitlimit; kein Retry. $fileAccessDiag", gatt)
                 }
@@ -2181,7 +2194,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         if (handle == null) return // wait for the ML register response
         fileAccessRequestClaimed = true
         configurationTestMode = false
-        main.removeCallbacks(configurationTimeout)
+        serial.removeCallbacks(configurationTimeout)
         if (syncRequestMode) {
             mark("Sync-Request: sende genau einen Connect-kompatiblen 5043-sync_request")
             send(g, CirqaSyncRequestCandidate.mlValue(handle, 1))
@@ -2217,7 +2230,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                         "5000[to=5043,gfdiAck=${h.responseStatus},frameLen=${frame.size}," +
                             "ACK-Form=nicht verifiziert]"
                     }
-                    main.post { mark("FileAccess: $fileAccessDiag") }
+                    serial.post { mark("FileAccess: $fileAccessDiag") }
                 }
                 continue
             }
@@ -2253,7 +2266,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                         }
                         fileAccessReassembler.reset()
                         queueAck(g, CirqaFileAccessListRequest.mlValue(handle, 2))
-                        main.post { mark("Item-List-Wiederholbarkeit: zweite read-only Item-List angefordert; kein Pull") }
+                        serial.post { mark("Item-List-Wiederholbarkeit: zweite read-only Item-List angefordert; kein Pull") }
                     } else {
                         val comparison = CirqaItemListRepeatability.compare(first.items, page.items)
                         val reportText =
@@ -2305,7 +2318,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                             // Connect registers one of its MLR services (0x2018) to
                             // receive the raw transfer bytes for each transfer pipe.
                             queueAck(g, GarminMlHandshake.registerRequest(MLR_SERVICE_ID))
-                            main.post { mark("MLR-Service 0x2018 angefordert") }
+                            serial.post { mark("MLR-Service 0x2018 angefordert") }
                         } else {
                             val registeredHandle = mlrHandle
                             if (registeredHandle == null) {
@@ -2324,9 +2337,9 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     if (handle != null && !syncItemListSent) {
                         syncItemListSent = true
                         queueAck(g, CirqaFileAccessListRequest.mlValue(handle, 2))
-                        main.post { mark("Sync akzeptiert; FileAccess-Item-List nachgesendet") }
+                        serial.post { mark("Sync akzeptiert; FileAccess-Item-List nachgesendet") }
                     } else {
-                        main.post { mark("Sync akzeptiert ($report); beobachte weitere Frames") }
+                        serial.post { mark("Sync akzeptiert ($report); beobachte weitere Frames") }
                     }
                 } else {
                     finish("FileAccess ItemList: $report. ${fileAccessReassembler.summary()}", g)
@@ -2375,7 +2388,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         configurationTestMode = true
         historyDiagnosticMode = true
         start(false, result)
-        if (active) main.postDelayed({
+        if (active) serial.postDelayed({
             if (active) {
                 model.tick(model.token, android.os.SystemClock.elapsedRealtime())
                 finish("Directory-nach-Kette: Gesamtlaufzeit beendet.", gatt)
@@ -2483,9 +2496,9 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         }
         configurationTestMode = false
         legacyHistorySessionStartedAt = System.nanoTime()
-        main.removeCallbacks(configurationTimeout)
-        main.removeCallbacks(legacy5007Timeout)
-        main.postDelayed(legacyHistoryTimeout, CirqaLegacyDownloadLimits.MAX_SESSION_MILLIS)
+        serial.removeCallbacks(configurationTimeout)
+        serial.removeCallbacks(legacy5007Timeout)
+        serial.postDelayed(legacyHistoryTimeout, CirqaLegacyDownloadLimits.MAX_SESSION_MILLIS)
         legacyCurrentFileIndex = 0
         legacy5002Response = CirqaLegacy5002ResponseObserver()
         legacy5004Response = CirqaLegacy5004ResponseObserver()
@@ -3088,10 +3101,10 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         terminationRequested = true
         legacy5030Only?.let { it.abort(it.token) }
         passive5050Session.stop()
-        main.post {
+        serial.post {
             if (!active) return@post
             active = false
-            main.removeCallbacksAndMessages(null)
+            serial.removeCallbacksAndMessages(null)
             // Keep the session gate until GATT has actually been closed.
             // Best-effort MousePods stop command before GATT disconnect; never CLOSE_ALL.
             val stopHandle = if (mousePodsMode && motionStartIssued) motionHandle else null
@@ -3113,7 +3126,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                         g.writeCharacteristic(characteristic)
                     }
                 } catch (_: Exception) { /* Disconnect remains mandatory even if stop fails. */ }
-                main.postDelayed({
+                serial.postDelayed({
                     safeClose(g)
                     CirqaBleSessionGate.release(this)
                 }, 400L)
@@ -3122,7 +3135,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                 CirqaBleSessionGate.release(this)
             }
             gatt = null
-            callback?.invoke(
+            val finalCallback = callback
+            val finalReport: String = (
                 if (syncFinalReport.isNotEmpty()) syncFinalReport
                 else if (fileAccessListMode) "${if (syncRequestMode) "SyncRequest" else "FileAccess-ItemList"}: $message; " +
                     "${fileAccessReassembler.summary()}; requestSent=$fileAccessRequestClaimed; " +
@@ -3141,6 +3155,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                 else if (historyDiagnosticMode) historyReport(message)
                 else message
             )
+            ui.post { finalCallback?.invoke(finalReport) } // result stays on the main thread (A6-35)
             callback = null
             tx = null
             session = null
@@ -3213,7 +3228,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     fun close() {
         terminationRequested = true
         active = false
-        main.removeCallbacksAndMessages(null)
+        serial.removeCallbacksAndMessages(null)
+        ui.removeCallbacksAndMessages(null) // an undelivered result must not reach a closed screen (as before)
         safeClose(gatt)
         CirqaBleSessionGate.release(this)
         gatt = null
