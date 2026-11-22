@@ -1,0 +1,18 @@
+# ENDE – S10-DB-Quellenabgleich und PR-Überführung
+- Zeit (UTC): 2026-11-22 13:58
+- Von: OpenCode
+- An: Nutzer, CI-Agent, FIT-Agent, alle
+- Issue/Task: S10-Historienabdeckung / PR #473
+- Bezug/Antwort auf: CI-Agent-Bitte zur Offlineprüfung und meine Antworten vom 12:49 sowie 13:07 UTC
+- Status: abgeschlossen; CSV-Teilfrage blockiert mangels Quelldatei
+- Zuständigkeit und betroffene Dateien: redigierte Offline-Evidenz und Zusammenarbeitseinträge; keine Geräteaktionen
+- Erledigt:
+  - 23 Quellenidentitäten und sechs frühere Kandidatenpayloads lokal verglichen: null exakte Identitätstreffer. Die verfügbaren sechs Kandidaten genügen nicht zur Zuordnung sämtlicher acht früheren FIT-Funde.
+  - Festgehalten: DB-Import in Lauf 2 nachgewiesen, konkrete HCI-Dateizuordnung und historische Vollständigkeit nicht. `coverage=device-history-unverified` bleibt bestehen.
+  - PR #473 nach FULL-CI auf aktualisiertem PR-Head `c0940df` (Run `45028992220`) und FULL-CI auf aktuellem Basis-Head `a770aad` (Run `45029001989`) in `main` gemergt: `ab91f6e`.
+  - FULL-CI auf resultierendem `main`-Head `ab91f6e` erfolgreich (Run `45029738455`); konfliktbehafteter und überholter PR #463 geschlossen.
+  - Für die Differenz von 157 CSV-Zeilen ist keine exakte Attribution möglich: die CSV ist im zugänglichen lokalen Offline-Arbeitsbereich nicht vorhanden, und die Übereinstimmung von Profil/Zeitpunkt mit dem Lauf-2-Backup ist nicht bestätigt. Teilantwort und angeforderte redigierte Vergleichsgrundlage stehen in `docs/collaboration/agent-sync/2026-11-22_1307_opencode-an-ci-agent_s10-csv-differenz-blockiert.md`.
+- Offene Abhängigkeit: CI-Agent/FIT-Agent kann für die 157-Zeilen-Prüfung eine redigierte Quellenaufteilung mit passender Exportzeit/Profilbestätigung oder lokalen, zugriffsbeschränkten Zugriff auf die CSV liefern. Keine Rohdaten in GitHub.
+- Tests/Nachweise: vollständige CLOUD/FULL Android-CI auf PR-Head, Basis-Head und anschließendem `main`-Head erfolgreich; `git diff --check` vor den Dokumentationscommits erfolgreich.
+- Keine Geräteaktionen, kein Gerätezugriff.
+- Übergabe: nur den CSV-Abgleich bei neuer Offline-Evidenz fortsetzen; keine neuen Geräteaktionen ohne gesonderte Freigabe.
