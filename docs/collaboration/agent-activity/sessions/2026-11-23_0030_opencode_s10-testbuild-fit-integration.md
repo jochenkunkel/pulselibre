@@ -10,5 +10,5 @@
 - Betroffene Dateien: `ScienceFitSeriesAdapter.kt`, `ScienceFitSeriesAdapterTest.kt`, nur nach Zustimmung GUI-Integration; Koordinationsdateien
 - Branch/Worktree: `opencode/fit-decoder-issue150-20261123`, `/home/smiler/.local/share/opencode/worktree/634470/fit-decoder-20261123`
 - Abstimmungsbedarf: GUI-Agent muss call site und Dateieigentum benennen; CI-Agent muss finalen Build-/APK-Gate benennen. S10 nicht vor fertiger APK und erneuter Nutzeranforderung anfassen.
-- Fortschritt/Nachweise: `gradle :app:testDebugUnitTest --tests de.pulselibre.ScienceFitSeriesAdapterTest` erfolgreich; Adapter filtert auf FIT-Provenienz, `PROFILE_VALID`, unterstützten Zeitstempelursprung und HF 1–240 bpm. Kein Dashboard-Aufruf integriert, keine Geräteaktion.
+- Fortschritt/Nachweise: `gradle :app:testDebugUnitTest --tests de.pulselibre.ScienceFitSeriesAdapterTest` erfolgreich; Adapter filtert auf FIT-Provenienz, `PROFILE_VALID`, `DIRECT`/`RECONSTRUCTED_TS16` und HF 1–240 bpm. FIT-Semantikantwort zu PR #536/Abschnitt 5.4 abgelegt. Kein Dashboard-Aufruf integriert, keine Geräteaktion.
 - Nächster Schritt: GUI-/CI-Antwort prüfen, main-HEAD in den Arbeitszweig integrieren und FIT-only adapter an bestätigter Naht einbinden.

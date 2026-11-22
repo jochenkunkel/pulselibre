@@ -22,7 +22,6 @@ internal object ScienceFitSeriesAdapter {
                     observation.provenance?.quality == FitHistoricalObservations.Quality.PROFILE_VALID.name &&
                     observation.provenance.timestampOrigin in setOf(
                         FitHistoricalObservations.TimestampOrigin.DIRECT.name,
-                        FitHistoricalObservations.TimestampOrigin.RECONSTRUCTED_COMPRESSED.name,
                         FitHistoricalObservations.TimestampOrigin.RECONSTRUCTED_TS16.name
                     ) &&
                     observation.value.isFinite() &&

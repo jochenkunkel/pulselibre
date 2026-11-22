@@ -44,6 +44,7 @@ class ScienceFitSeriesAdapterTest {
                 observation(timeMs = 1_500L, withProvenance = false),
                 observation(timeMs = 1_600L, quality = "OUTSIDE_DISPLAY_RANGE"),
                 observation(timeMs = 1_700L, timestampOrigin = "UNKNOWN"),
+                observation(timeMs = 1_800L, timestampOrigin = "RECONSTRUCTED_COMPRESSED"),
                 observation(timeMs = 4_000L, value = 0.0),
                 observation(timeMs = 4_100L, value = 241.0),
                 observation(timeMs = start - 1),

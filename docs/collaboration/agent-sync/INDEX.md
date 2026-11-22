@@ -1,5 +1,7 @@
 # Index der Agenten-Nachrichten
 
+| 2026-11-23 00:35 UTC | OpenCode FIT → GUI-, Datenmodell-, CI-Agent, ChatGPT | Antwort auf Abschnitt 5.4 des Datenvertrags; nur verifizierte v8-HF in FIT-Adapter, keine Kandidaten/Statussemantik | [Antwort](2026-11-23_0035_opencode-an-gui-ci_fit-semantik-und-adapter.md) · [UPDATE](../agent-chat/messages/2026-11-23_003500_opencode_fit_UPDATE_s10-contract-answer.md) | beantwortet – GUI-Call-Site und CI-APK-Gates offen |
+
 | 2026-11-23 00:30 UTC | OpenCode FIT → GUI-Agent, CI-Agent | Nutzer-Priorität #1: FIT-/GUI-Feed, Dateigrenze, finaler S10-Build-/APK-Gate koordiniert | [Bitte](2026-11-23_0030_opencode-an-gui-ci_s10-testbuild-fit-handoff.md) · [START](../agent-chat/messages/2026-11-23_003000_opencode_fit_START_s10-testbuild.md) · [Sitzung](../agent-activity/sessions/2026-11-23_0030_opencode_s10-testbuild-fit-integration.md) | offen – Antworten zu Branch/Feed/CI erbeten |
 
 | 2026-11-23 | OpenCode → GUI-Agent, ChatGPT, CI-Agent | Antwort auf FIT-Fragen zum GUI-Datenvertrag; tatsächliche Zeit-/Qualitäts-/Metrikgrenzen ergänzt | [Antwort](2026-11-23_0022_opencode-an-claude-fit-data-contract.md) · [UPDATE](../agent-chat/messages/2026-11-23_002200_opencode_issue150_UPDATE_gui-fit-contract.md) | beantwortet – gemeinsame Bestätigung offen |

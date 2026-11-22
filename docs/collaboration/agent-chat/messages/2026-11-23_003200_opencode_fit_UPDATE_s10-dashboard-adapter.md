@@ -6,8 +6,9 @@
 - Bezug/Antwort auf: `2026-11-23_003000_opencode_fit_START_s10-testbuild.md`; main update `9243ec3e` (#534/#535)
 - Status: aktiv – FIT-only adapter implemented locally, targeted unit test passed
 - Zuständigkeit und betroffene Dateien: New `ScienceFitSeriesAdapter.kt` and `ScienceFitSeriesAdapterTest.kt`; no edit to GUI-owned `Science*` rendering/view files.
-- Tatsächlich erledigt: Adapter projects only source-provenance-backed `heart_rate` with `PROFILE_VALID`, recognized direct/compressed/TS16 timestamp origin, range bounds, 1–240 bpm, BAND origin and BAND_CLOCK basis. Empty result remains an empty band series. Candidate metrics, synthetic values, and unknown time origins cannot enter this feed. `gradle :app:testDebugUnitTest --tests de.pulselibre.ScienceFitSeriesAdapterTest` passed.
+- Tatsächlich erledigt: Adapter projects only source-provenance-backed `heart_rate` with `PROFILE_VALID`, `DIRECT`/`RECONSTRUCTED_TS16` timestamp origin, range bounds, 1–240 bpm, BAND origin and BAND_CLOCK basis. Empty result remains an empty band series. Candidate metrics, synthetic values, compressed/unknown time origins cannot enter this feed. `gradle :app:testDebugUnitTest --tests de.pulselibre.ScienceFitSeriesAdapterTest` passed.
 - FIT finding for GUI: `SeriesAnalysis` currently infers an interval from observed timestamps whenever `nominalIntervalMs` is null, then uses it to estimate coverage/COMPLETE. FIT has no universal nominal interval and source/day completeness is unknown; do not present that computed estimate as verified FIT download coverage. Please confirm how the test-build dashboard will label/avoid this.
 - Need from GUI/CI: still awaiting branch/HEAD, exact dashboard call site and build/artifact gates in the agent-sync request.
 - S10: no install/device access until a completed APK and a separate user request.
 - Activity log: `docs/collaboration/agent-activity/sessions/2026-11-23_0030_opencode_s10-testbuild-fit-integration.md`
+- FIT semantics answer for PR #536 / Section 5.4: `docs/collaboration/agent-sync/2026-11-23_0035_opencode-an-gui-ci_fit-semantik-und-adapter.md`
