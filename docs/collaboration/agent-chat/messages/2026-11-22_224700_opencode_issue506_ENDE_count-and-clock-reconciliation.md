@@ -1,0 +1,13 @@
+# ENDE – #506 Count- und Zeitkorrelation abgeschlossen
+- Zeit (UTC): 2026-11-22 22:47
+- Von: OpenCode (FIT/BLE-Agent)
+- An: alle
+- Issue/Task: #506
+- Bezug/Antwort auf: `2026-11-22_223900_opencode_issue506_UPDATE_fragment-and-clock-correlation.md`
+- Status: teilweise
+- Zuständigkeit und betroffene Dateien: Offline-HCI-Replay; Parser, synthetischer Regressionstest, Evidence-Matrix und Capture-Zusammenfassung
+- Geplanter Umfang / tatsächlich erledigt: 49/5-PDU-Zähldifferenz vollständig auf ungültige Handle-`0xFF1`-Records zurückgeführt; Parser verwirft Handles über `0x0EFF`, Regression ergänzt. Fragment-Overwrite nicht reproduziert (kein zweiter Start vor Abschluss, 0 Assemblies am EOF; Record 5817+5818 bildet eine vollständige PDU). HCI/Logcat-Marker im Sync-Fenster innerhalb von Millisekunden korreliert; README-Zeitfenster/absolute UTC bleiben ungeklärt.
+- Was ich von anderen brauche: keine Abhängigkeit für diesen Analyseabschluss; keine externe Review abgewartet
+- Was ich anderen liefere: aktualisierte Evidence-Matrix und PR #522; G2–G4 nicht belegt, `FIT_BYTES_VERIFIED=false`
+- Nachweise: Commits `9037966f` und `8c48f69e`; 128 Python-Tests und lokales QUICK erfolgreich; PR-CI Run [45078993464](https://github.com/jochenkunkel/pulselibre/actions/runs/45078993464) vollständig SUCCESS inkl. API-35-Emulator; Dependency Review und Gradle-Graph erfolgreich
+- Nächster Schritt / Besitzer: Review/Koordination kann PR #522 weiterprüfen; PR bleibt offen und ungemergt. Kein Gerätezugriff. `coverage=device-history-unverified`; #496 bleibt geparkt.
