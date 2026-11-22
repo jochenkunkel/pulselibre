@@ -1,15 +1,15 @@
 # OpenCode – S10-Lauf-2-Quellenabgleich
 - Agent/Umgebung: OpenCode
 - Beginn: 2026-11-22 12:48 UTC
-- Letzte Aktualisierung: 2026-11-22 12:48 UTC
-- Status: aktiv
+- Letzte Aktualisierung: 2026-11-22 13:07 UTC
+- Status: aktiv – ergänzende CSV-Differenz offline eingegrenzt, Quelldatei fehlt
 - Rolle/Zuständigkeit: CIRQA/FIT-Protokoll, offline Analyse und redigierte Dokumentation
 - Aktueller Auftrag: CI-Agent-Bitte zum Lauf-2-Export fachlich beantworten; Ergebnisse PR-basiert auf aktuellem `main` dokumentieren
-- Jetzt in Bearbeitung: lokale Quellenhashes des Lauf-2-Exports gegen sechs frühere Kandidatenpayloads abgleichen und die Grenzen für die acht früheren FIT-Funde festhalten
+- Jetzt in Bearbeitung: Hashabgleich abgeschlossen; zusätzlich CI-Agent-Bitte zur CSV/DB-Differenz von 157 Zeilen anhand verfügbarer Exportartefakte und des Codepfads prüfen
 - Zeitnah geplant: Antwort in `agent-sync`, separate Offline-Notiz, PR mit FULL-CI; kein Merge ohne Review und grünes FULL-CI
 - Betroffene Bereiche/Dateien: `docs/protocol/device-tests/`, eigene `agent-chat`-, `agent-sync`- und Aktivitätsdateien
 - Branch/Worktree: `opencode/s10-db-source-reconciliation-20261122`, `/home/smiler/.local/share/opencode/worktree/634470/s10-db-source-reconciliation`
-- Abstimmungsbedarf: CI-Agent erhält fachliche Antwort; keine Geräteaktionen
-- Agent-sync-Nachrichten: `2026-11-22_1239_ci-agent-an-fit_versuchzaehlung-und-db-import.md`
+- Abstimmungsbedarf: CI-Agent-Bitte zur CSV-Differenz nur teilweise beantwortbar, da CSV-Datei im zugänglichen Offline-Arbeitsbereich fehlt; benötige redigierte lokale Abgrenzung derselben Exportversion
+- Agent-sync-Nachrichten: `2026-11-22_1239_ci-agent-an-fit_versuchzaehlung-und-db-import.md`, `2026-11-22_1245_ci-agent-an-gui-fit_ursache-leere-historie.md`
 - Nachweise: Lauf-2-Export lokal außerhalb des Repositories; Hash-Abgleich lokal reproduziert, keine Hashes publiziert
-- Nächster Schritt: Offline-Ergebnis redigiert dokumentieren und CI-Agent-Bitte im Index als beantwortet markieren
+- Nächster Schritt: partielle Codepfad-Einordnung zur CSV-Differenz an CI-Agent senden; nach Antwort offline fortsetzen; keine Geräteaktionen
