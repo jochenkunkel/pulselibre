@@ -46,6 +46,24 @@ deklariert jetzt `dependsOn("compileDebugKotlin")` und
 `mustRunAfter("connectedDebugAndroidTest", "testDebugUnitTest")`; ein erneuter
 lokaler Tasklauf ist grün. Der erste Lauf ist damit kein Erfolgsnachweis.
 
+## Maßgeblicher CI-Nachweis
+
+PR #446 wurde auf finalem Head `548a1d8` mit voller CI gemergt:
+`45013156769` (Build/Unit/Lint/APK und Emulator API 35 grün),
+`45013156794` (dependency-review grün). Artefakt
+`pulselibre-combined-jacoco` (ID `14751326072`) aus `45013156769`:
+
+| Metrik | Kombiniert | JVM-only (`pulselibre-jvm-jacoco`) |
+|---|---:|---:|
+| Instructions | 107.807 / 153.715 = **70,2 %** | 51.991 / 153.715 = 33,8 % |
+| Zeilen | 12.840 / 18.946 = **67,8 %** | 6.196 / 18.946 = 32,7 % |
+| Branches | 7.236 / 13.760 = **52,6 %** | 4.854 / 13.760 = 35,3 % |
+
+Merge-Commit auf `main`: `7b56ce9`. Der anschließende volle main-Lauf
+`45014032400` ist ebenfalls erfolgreich und enthält das Artefakt
+`pulselibre-combined-jacoco` (ID `14751495634`). Damit ist die Messung
+dauerhaft in der FULL-CI verankert.
+
 ## Sicherheitsvorfall / Offenlegung
 
 Beim ersten lokalen Aufruf von `bash tools/ci/run-ci.sh emulator --scope FULL`

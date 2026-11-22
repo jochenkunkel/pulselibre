@@ -901,6 +901,11 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             finish("5007-Test: Fünf-Sekunden-Beobachtungsfenster ohne passende Antwort beendet.", gatt)
         }
     }
+    private val legacy5031Timeout = Runnable {
+        if (active && legacy5031TestMode) {
+            finish("5031-Test: Fünf-Sekunden-Beobachtungsfenster ohne passende Antwort beendet.", gatt)
+        }
+    }
     private val legacyHistoryTimeout = Runnable {
         if (active && legacyHistoryDownloadMode) {
             finish("Begrenzter Verzeichnis-/FIT-Transfer nach fünf Minuten beendet.", gatt)
@@ -1372,8 +1377,10 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                 }
                 if (legacy5031TestMode && legacy5031WriteClaimed && !legacyHistoryDownloadMode) {
                     legacy5031RequestSent = true
+                    // The 5031 test has its own window; the 5007 prerequisite window ends here.
                     serial.removeCallbacks(legacy5007Timeout)
-                    serial.postDelayed(legacy5007Timeout, 5_000L)
+                    serial.removeCallbacks(legacy5031Timeout)
+                    serial.postDelayed(legacy5031Timeout, 5_000L)
                 }
                 if (legacyHistoryDownloadMode && legacy5002RequestWriteClaimed) {
                     legacy5002RequestSent = true
@@ -1420,7 +1427,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     // Connect's MLRTransportPipe consumes the first MLR callback
                     // as [response-kind, general-status, configure-status], not
                     // as file data. Never append this control response to the file.
-                    val payload = bytes.copyOfRange(1, bytes.size)
+                    val payload = payloadAfterHandle(bytes)
                     if (!mlrConfigureResponseSeen) {
                         if (!CirqaMlrConfigureResponse.isSuccessful(payload)) {
                             mlrDiag += ";configureResponse=invalid"
@@ -1472,7 +1479,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                             CirqaHistoricalSyncV1MultiPhaseSession.Phase.WAITING_5007_RESPONSE,
                             CirqaHistoricalSyncV1MultiPhaseSession.Phase.WAITING_5031_RESPONSE,
                             CirqaHistoricalSyncV1MultiPhaseSession.Phase.WAITING_DIR_RESPONSE)) {
-                        hsv1.receive(hsv1.token, bytes.copyOfRange(1, bytes.size),
+                        hsv1.receive(hsv1.token, payloadAfterHandle(bytes),
                             android.os.SystemClock.elapsedRealtime())
                         val nextPhase = hsv1.phase
                         if (nextPhase in setOf(
@@ -1486,19 +1493,19 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     }
                     val eventSession = legacy5030Only
                     if (eventSession?.phase == CirqaLegacy5030OnlySession.Phase.WAITING) {
-                        eventSession.receive(eventSession.token, bytes.copyOfRange(1, bytes.size),
+                        eventSession.receive(eventSession.token, payloadAfterHandle(bytes),
                             android.os.SystemClock.elapsedRealtime())
                         finish5030IfTerminal(g)
                         return
                     }
                     if (fileAccessListMode) {
-                        handleFileAccessResponse(g, bytes.copyOfRange(1, bytes.size))
+                        handleFileAccessResponse(g, payloadAfterHandle(bytes))
                         return
                     }
                     // Full-chain directory-body read: route 5004 chunks to the dedicated session.
                     dirReadSession?.let { d ->
                         val beforeDataFrames = d.dataFramesProcessed
-                        val result = d.onNotification(bytes.copyOfRange(1, bytes.size))
+                        val result = d.onNotification(payloadAfterHandle(bytes))
                         val pbAcks = d.drainProtobufAcks()
                         val handle = historyHandle
                         if (handle == null) { finish("Directory-Body: Handle fehlt.", g); return }
@@ -1545,12 +1552,12 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                         }
                     }
                     if (legacyHistoryDownloadMode && legacy5002RequestSent) {
-                        receiveLegacyDirectoryOrFitData(g, bytes.copyOfRange(1, bytes.size))
+                        receiveLegacyDirectoryOrFitData(g, payloadAfterHandle(bytes))
                         return
                     }
                     if (legacy5007TestMode && legacy5007WriteClaimed) {
                         if (legacy5031TestMode && legacy5031RequestSent) {
-                            when (legacy5031Response.observeMlPayload(bytes.copyOfRange(1, bytes.size))) {
+                            when (legacy5031Response.observeMlPayload(payloadAfterHandle(bytes))) {
                                 CirqaLegacy5031ResponseObserver.Result.PENDING -> Unit
                                 CirqaLegacy5031ResponseObserver.Result.SUPPORTED ->
                                     finish("5031-Antwort CRC-validiert; Status 0; Dateitypen=${legacy5031Response.fileTypes?.size ?: 0}. Stopp vor 5002.", g)
@@ -1563,7 +1570,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                             }
                             return
                         }
-                        when (legacy5007Response.observeMlPayload(bytes.copyOfRange(1, bytes.size))) {
+                        when (legacy5007Response.observeMlPayload(payloadAfterHandle(bytes))) {
                             CirqaLegacy5007ResponseObserver.Result.PENDING -> Unit
                             CirqaLegacy5007ResponseObserver.Result.SUPPORTED -> {
                                 if (legacy5031TestMode) {
@@ -1588,7 +1595,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                         }
                         return
                     }
-                    fileListProbe.observeMlPayload(bytes.copyOfRange(1, bytes.size))
+                    fileListProbe.observeMlPayload(payloadAfterHandle(bytes))
                     if (configurationTestMode) post5050Evidence.observe(fileListProbe.frameTypes)
                     if (configurationTestMode && configurationResponseQueued &&
                         Cirqa5050Malformed5037Guard.shouldAbort(
@@ -2546,6 +2553,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         legacyHistorySessionStartedAt = System.nanoTime()
         serial.removeCallbacks(configurationTimeout)
         serial.removeCallbacks(legacy5007Timeout)
+        serial.removeCallbacks(legacy5031Timeout)
         serial.postDelayed(legacyHistoryTimeout, CirqaLegacyDownloadLimits.MAX_SESSION_MILLIS)
         legacyCurrentFileIndex = 0
         legacy5002Response = CirqaLegacy5002ResponseObserver()
@@ -3296,6 +3304,9 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     fun close() {
         terminationRequested = true
         active = false
+        // Same state-object cleanup as finish(): nothing may stay "running" after close().
+        legacy5030Only?.let { it.abort(it.token) }
+        passive5050Session.stop()
         serial.removeCallbacksAndMessages(null)
         ui.removeCallbacksAndMessages(null) // an undelivered result must not reach a closed screen (as before)
         safeClose(gatt)

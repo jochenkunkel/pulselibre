@@ -10,7 +10,10 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
+import android.view.MotionEvent
+import android.view.VelocityTracker
 import androidx.appcompat.app.AlertDialog
+import androidx.core.content.ContextCompat
 import androidx.appcompat.app.AppCompatActivity
 
 /**
@@ -68,16 +71,70 @@ internal object DiagnosticsSheet {
         }
         content.addView(advanced)
 
-        val dialog = DialogProbe.track(AlertDialog.Builder(activity)
-            .setTitle("Testlabor")
-            .setView(ScrollView(activity).apply { addView(content) })
-            .setPositiveButton("Schließen", null)
-            .create())
+        val maxScroll = (activity.resources.displayMetrics.heightPixels * 0.8f).toInt()
+        val scroll = object : ScrollView(activity) {
+            override fun onMeasure(w: Int, h: Int) =
+                super.onMeasure(w, View.MeasureSpec.makeMeasureSpec(maxScroll, View.MeasureSpec.AT_MOST))
+        }.apply { addView(content) }
+        val sheet = LinearLayout(activity).apply { orientation = LinearLayout.VERTICAL }
+        val closeLabel = text("Schließen", 14f, palette.accent, true).apply {
+            setPadding(dp(16), dp(12), dp(16), dp(12)); minimumHeight = dp(48); gravity = Gravity.CENTER_VERTICAL
+            isClickable = true; isFocusable = true; tag = "diagnostics_close"
+        }
+        val header = LinearLayout(activity).apply {
+            orientation = LinearLayout.VERTICAL; tag = "diagnostics_header"
+            addView(View(activity).apply {
+                background = GradientDrawable().apply { setColor(palette.muted); alpha = 120; cornerRadius = dp(2).toFloat() }
+                importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+            }, LinearLayout.LayoutParams(dp(36), dp(4)).apply { gravity = Gravity.CENTER_HORIZONTAL; topMargin = dp(10); bottomMargin = dp(2) })
+            val row = LinearLayout(activity).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
+            row.addView(text("Testlabor", 18f, palette.ink, true).apply {
+                setPadding(dp(16), dp(8), dp(8), dp(8)); androidx.core.view.ViewCompat.setAccessibilityHeading(this, true)
+            }, LinearLayout.LayoutParams(0, -2, 1f))
+            row.addView(closeLabel)
+            addView(row)
+        }
+        sheet.addView(header)
+        sheet.addView(scroll, LinearLayout.LayoutParams(-1, -2))
+        val dialog = DialogProbe.track(AlertDialog.Builder(activity).setView(sheet).create())
+        closeLabel.setOnClickListener { dialog.dismiss() }
+        // Swipe down on the header (handle + title) drags the sheet and dismisses it past 1/4 of its height or on a fast fling.
+        var downY = 0f
+        var tracker: VelocityTracker? = null
+        header.setOnTouchListener { _, e ->
+            when (e.actionMasked) {
+                MotionEvent.ACTION_DOWN -> { downY = e.rawY; tracker = VelocityTracker.obtain().also { it.addMovement(e) }; true }
+                MotionEvent.ACTION_MOVE -> {
+                    tracker?.addMovement(e)
+                    sheet.translationY = (e.rawY - downY).coerceAtLeast(0f); true
+                }
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                    tracker?.addMovement(e); tracker?.computeCurrentVelocity(1000)
+                    val fling = (tracker?.yVelocity ?: 0f) > dp(900)
+                    tracker?.recycle(); tracker = null
+                    if (e.actionMasked == MotionEvent.ACTION_UP && (fling || sheet.translationY > sheet.height / 4f)) dialog.dismiss()
+                    else sheet.animate().translationY(0f).setDuration(150).start()
+                    true
+                }
+                else -> false
+            }
+        }
         advanced.setOnClickListener {
             dialog.dismiss()
             activity.startActivity(Intent(activity, CirqaTestLaboratoryActivity::class.java))
         }
-        dialog.setOnShowListener { dialog.window?.setGravity(Gravity.BOTTOM); dialog.window?.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT) }
+        dialog.setOnShowListener {
+            dialog.window?.apply {
+                setGravity(Gravity.BOTTOM)
+                setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+                // Top-rounded sheet surface without the alert-dialog insets; slides in from the bottom.
+                setBackgroundDrawable(GradientDrawable().apply {
+                    setColor(ContextCompat.getColor(activity, R.color.pl_card))
+                    cornerRadii = floatArrayOf(dp(24).toFloat(), dp(24).toFloat(), dp(24).toFloat(), dp(24).toFloat(), 0f, 0f, 0f, 0f)
+                })
+                setWindowAnimations(android.R.style.Animation_InputMethod)
+            }
+        }
         dialog.show()
 
         Thread {

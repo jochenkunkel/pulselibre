@@ -165,19 +165,11 @@ emulator() {
   if ! { [ -r /dev/kvm ] && [ -w /dev/kvm ]; }; then
     ci_die "KVM nicht verfügbar: Emulator-Tests können nicht ehrlich ausgeführt werden. Siehe docs/ci/HYBRID_CI.md#kvm."
   fi
-  # Safety gate: instrumentation tests must never overwrite a physical test
-  # device's profile/settings. tools/ci/emulator.sh exports an emulator serial;
-  # a direct call without one must not silently pick a USB-attached phone.
-  if [ -n "${ANDROID_SERIAL:-}" ] && [[ "$ANDROID_SERIAL" != emulator-* ]]; then
-    ci_die "ANDROID_SERIAL zeigt auf ein physisches Gerät; Instrumentationstests nur auf dem Emulator."
-  fi
-  if [ -z "${ANDROID_SERIAL:-}" ]; then
-    local physical
-    physical="$(adb devices | awk 'NR > 1 && $2 == "device" && $1 !~ /^emulator-/ { print "physical"; exit }')"
-    if [ -n "$physical" ]; then
-      ci_die "Physisches Android-Gerät sichtbar: Instrumentationstests nur mit ANDROID_SERIAL=emulator-... ausführen."
-    fi
-  fi
+  # Fail-closed safety gate: instrumentation tests must never overwrite a
+  # physical test device's profile/settings. Extracted into its own script so
+  # tools/test_device_safety_gate.py can exercise every branch offline.
+  bash "$CI_REPO_ROOT/.github/scripts/require-emulator-serial.sh" || \
+    ci_die "Instrumentationstests auf physischem Gerät verhindert."
   ci_gradle :app:connectedDebugAndroidTest --stacktrace
   bash "$CI_REPO_ROOT/.github/scripts/verify-instrumentation-coverage.sh"
   ci_group_end

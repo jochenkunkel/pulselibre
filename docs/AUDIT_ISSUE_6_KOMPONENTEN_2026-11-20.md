@@ -343,3 +343,13 @@ Gelesen: Zustandskarte (`refreshCirqaCard`), `showQuickWeight`, `onDestroy`, `sh
 - **A6-43 (niedrig, i18n):** Die Scan-Anzeige und die CIRQA-Karte enthalten fest deutsche Texte ohne Ressource („Bitte Bluetooth aktivieren", „Suche läuft (60 Sekunden)…", „Mit Android gekoppelt", „Gleiche BLE-Adresse im Scan erkannt", „✓ CIRQA: BLE-Adresse stimmt …", „Service-Daten: …", `lastScanDiagnostic`). Für die Sprachwahl (#365) fehlen sie; die Karte ist im Alltag sichtbar.
 - **A6-44 (niedrig, zu prüfen):** Der automatische Historien-Sync setzt `automaticHistoricalSyncActive = true` und löscht es erst im Ergebnis-Rückruf. Startet der Nutzer währenddessen den manuellen Download, schließt dieser die laufende automatische Probe (`historicalDownloadProbe?.close()`), deren Rückruf wird dabei verworfen (`close()` setzt den Rückruf auf `null`); der Merker bleibt dann bis zum Neuaufbau der Activity auf `true` und verhindert weitere automatische Syncs. Ob der manuelle Start in dieser Lage überhaupt freigegeben ist (Sitzungssperre), wurde nicht geprüft.
 - **A6-45 (niedrig):** Die Wiederholung beim Gedrückthalten der Gewichtstasten läuft über `postDelayed` auf der Taste und wird nur durch `ACTION_UP`/`ACTION_CANCEL` beendet. Wird der Dialog währenddessen geschlossen oder die Activity zerstört (Drehung, vgl. A6-11), gibt es keinen eigenen Abbruch; die Schleife endet erst, wenn Android die Ansicht freigibt. Praktisch kaum erreichbar, ein `removeCallbacks` beim Abhängen der Ansicht würde es schließen.
+
+## 41. A6-36, A6-37, A6-42 umgesetzt (2026-11-22, PR #447)
+
+Nach der Übergabe der Probe-Datei durch OpenCode (PR #432 gemergt, ENDE-Nachricht 09:52 UTC) sind die drei Wartbarkeitsbefunde behoben, ohne Protokoll- oder Gate-Änderung:
+
+- **A6-42:** `payloadAfterHandle(bytes)` (`CirqaMlPayload.kt`) ersetzt alle 9 Stellen `bytes.copyOfRange(1, bytes.size)`. Ein leeres oder nur aus dem Routing-Byte bestehendes Paket liefert eine leere Nutzlast statt einer Exception. Test `CirqaMlPayloadTest` (4 Fälle).
+- **A6-36:** `close()` bricht `legacy5030Only` (`abort`) und `passive5050Session` (`stop`) wie `finish()` ab.
+- **A6-37:** eigener Zeitgeber `legacy5031Timeout` (5 s). Beim Senden der 5031-Anfrage endet das 5007-Vorbedingungsfenster; die Dauer ist unverändert, die Zeitüberschreitungsmeldung nennt nun „5031-Test".
+
+Nachweis: CI des PR (lokales Gradle ist in diesem Worktree nicht lauffähig, siehe offener Punkt „Gradle lokal").
