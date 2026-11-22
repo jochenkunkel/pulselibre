@@ -102,3 +102,23 @@ Gesundheitswerte.
 
 Auch ein positiver DB-Befund beweist nur den Import, nicht die Vollständigkeit der Historie.
 `coverage=device-history-unverified` bleibt bis zu beiden Nachweisen gültig.
+
+## Lauf 2 (separat freigegeben, 2026-11-22)
+
+- 12:19 UTC: Nutzer gibt „Freigabe für den neuen Lauf erteilt" und entscheidet: Garmin
+  Connect **nur temporär** stoppen. Kein `pm disable-user`, kein Entkoppeln, kein Reset.
+- 12:24 UTC: Dokumentationsprüfung abgeschlossen – kein konkreter Garmin-Dienst dokumentiert,
+  nur app-weite Nutzerangaben vom 15.11./21.11. Das Paket ist aktuell in
+  `pm list packages -e` und nicht in `-d`; `pm dump` zeigt `enabled=0` (Default).
+- 12:26:25 UTC (lesend): S10 erreichbar, `versionCode=1806`, PulsLibre im Vordergrund
+  (zu diesem Zeitpunkt noch `ExportActivity`), Garmin-Prozess vorhanden.
+- **12:26:31 UTC:** genau der freigegebene Befehl
+  `am force-stop com.garmin.android.apps.connectmobile` ausgeführt. Danach kein
+  Garmin-Prozess mehr; Paket weiterhin in `pm list packages -e`, nicht in `-d`,
+  `enabled=0` unverändert, lediglich `stopped=true` (temporärer Force-Stop; beim nächsten
+  App-Start wieder aktiv). Keine weitere Garmin-Änderung.
+- 12:27:30 UTC (lesend): PulsLibre wieder auf `MainActivity`; `uiautomator dump` meldet
+  weiterhin `could not get idle state`. Kein lesbarer Statustext.
+- **Die 5-Minuten-Frist von Lauf 2 läuft erst ab der ausdrücklichen Nutzermeldung
+  „gestartet".** Zum Zeitpunkt dieser Aufzeichnung ist sie noch nicht gestartet.
+- Plan und Grenzen: `CIRQA_S10_BOUNDED_DB_IMPORT_LAUF2_PLAN_2026-11-22.md`.
