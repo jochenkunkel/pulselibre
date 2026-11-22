@@ -11,9 +11,10 @@ Der Nutzer sieht 27.893 CSV-Datensätze (lokal geprüft: Datei `pulselibre_2026-
 - Übersicht/Kernkarten: `CirqaDashboardReader.kt:31-50`, `DashboardDayReader.kt:28-34`, `DailyValueReader.kt:28-32`, `DeviceOverview.kt:54-67` – alle nur `events`.
 - Im Export: `cirqa_events.jsonl` = **0 Datensätze**. Die importierten Daten liegen dagegen in `canonical_observations` (27.736) und werden von diesen Lesern nicht berührt.
 
-**Ursache 2 – FIT-Karte ist auf 24 h eingestellt:**
+**Ursache 2 – Zeitfenster (korrigiert 12:48 UTC): als alleinige Ursache widerlegt.**
 - `FitHistoryReader.kt:14,20-24,32-44` verlangt `heart_rate`/`bpm`, Provenanz, aktive Generation und Messzeit im gewählten Fenster; Default `DAY` = 24 h (`HistoryOverviewView.kt:26`).
-- Offline-Zählung im lokalen Export: 12.730 HR-/`bpm`-Punkte mit aktiver Generation und Provenanz; **0 davon in den letzten 24 h**, 12.730 im 7-Tage-Fenster. Alle 27.736 liegen im 30-Tage-Fenster.
+- Offline-Zählung im lokalen Export: 12.730 HR-/`bpm`-Punkte mit aktiver Generation und Provenanz; **0 davon in den letzten 24 h**, 12.730 im 7-Tage-Fenster, 12.730 im 30-Tage-Fenster.
+- Der Nutzer hat 12:47 UTC ausdrücklich gemeldet, dass auch die **7-Tage-Ansicht nichts zeigt**. Damit ist das 24h-Defaultfenster nicht die alleinige Erklärung; Ursache 3 (alte Provenanz-Tabelle) und A6-29 (Lesefehler als „keine Daten") stehen im Vordergrund.
 
 **Ursache 3 – bekannter Sichtbarkeitsfehler (A6-28):**
 - `FitHistoryReader.available()` prüft die **alte** Tabelle `fit_observation_provenance` (`FitHistoryReader.kt:56-59`); die ist im Export **0**, während `canonical_fit_observation_provenance` 27.736 Einträge hat. Die Karte kann deshalb auch bei passenden Daten ausgeblendet bleiben. A6-29: Lesefehler werden als „keine FIT-Daten" dargestellt.
@@ -24,7 +25,8 @@ CSV 27.893 Datenzeilen vs. 27.736 `canonical_observations` = **157 Differenz**. 
 
 ## Bitte
 
-- **GUI-Agent:** kleinstmögliche, datensparsame Klärung/Korrektur im UI-Pfad: (a) Fokus auf 7/30 Tage oder Hinweis, dass FIT-Daten nicht in der `events`-Serie erscheinen; (b) Sichtbarkeitsprüfung `available()` auf kanonische Provenanz umstellen oder als bekanntes Ticket A6-28 führen. Keine Geräteaktion ohne Freigabe.
+- **GUI-Agent:** Ticket **[GitHub #477](https://github.com/jochenkunkel/pulselibre/issues/477)** ist für dich angelegt (12:48 UTC). Bitte Sichtbarkeitsprüfung `available()` auf kanonische Provenanz umstellen bzw. A6-28 auflösen und prüfen, ob die getrennte Band-Karte aus #334 mit dem neuen Importpfad noch greift. Keine Geräteaktion ohne Freigabe; offline reproduzierbar mit dem lokalen Export.
+- **FIT-Agent:** weiterhin Bitte zum Abgleich der 157-Zeilen-Differenz.
 - **FIT-Agent:** Bitte die 157-Zeilen-Differenz offline gegen den CSV-Exportpfad (`ExportActivity.kt:528-556`, `CirqaDatabase.kt:905-923`) abgleichen, falls du eine Erklärung aus den Inventurdaten hast.
 
 ## Grenzen
