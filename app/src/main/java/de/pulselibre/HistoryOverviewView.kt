@@ -176,13 +176,14 @@ class HistoryOverviewView(
         addView(rangeRow, LayoutParams(-1, -2).apply { bottomMargin = dp(10) })
         addWindowNavigation(snapshot)
         val resolution = HistoryResolution.forRange(snapshot.range)
+        // #334: FIT-Historie des Bands in eigener Karte mit eigener Zeitbasis (Messzeit), nie mit Empfangszeit vermischt.
+        // Zuerst, weil sie die meisten Werte enthaelt; feinere Aufloesung, weil die Banddaten dicht sind.
+        if (snapshot.fitAvailable || snapshot.fitHeartRate.isNotEmpty() || snapshot.fitReadFailed) {
+            metricCard(FIT_HEART_RATE_TITLE, "bpm", snapshot.fitHeartRate, snapshot, 240, palette.pulse,
+                HistoryResolution.forFitRange(snapshot.range), TimeBasis.DEVICE_MEASURED, fitEmptyNote(snapshot))
+        }
         metricCard("Herzfrequenz", "bpm", snapshot.heartRate, snapshot, 240, palette.pulse, resolution)
         metricCard("Sauerstoffsättigung · SpO₂", "%", snapshot.oxygen, snapshot, 100, palette.oxygen, resolution)
-        // #334: FIT-Historie des Bands in eigener Karte mit eigener Zeitbasis (Messzeit), nie mit Empfangszeit vermischt.
-        if (snapshot.fitAvailable || snapshot.fitHeartRate.isNotEmpty() || snapshot.fitReadFailed) {
-            metricCard(FIT_HEART_RATE_TITLE, "bpm", snapshot.fitHeartRate, snapshot, 240, palette.pulse, resolution,
-                TimeBasis.DEVICE_MEASURED, fitEmptyNote(snapshot))
-        }
         // The scientific trend block now lives in the main tab "Analysen" (#227).
     }
 
