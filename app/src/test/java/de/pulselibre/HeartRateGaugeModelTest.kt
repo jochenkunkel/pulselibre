@@ -50,6 +50,13 @@ class HeartRateGaugeModelTest {
         assertEquals(PulseContext.UNKNOWN, StepActivityEstimate.UNKNOWN.context)
         assertEquals(PulseContext.SPORT, PulseActivityFixture.sport.context)
     }
+    @Test fun tickLabelsAreDerivedFromTheScaleEndpoints() {
+        val m = HeartRateGaugeModel
+        assertEquals(m.SCALE_MIN, m.tickValue(0))
+        assertEquals(m.SCALE_MAX, m.tickValue(m.TICK_INTERVALS))
+        val labels = (0..m.TICK_INTERVALS step m.MAJOR_EVERY).map { m.tickValue(it) }
+        assertEquals(listOf(40, 60, 80, 100, 120, 140, 160, 180), labels)
+    }
 }
 
 private object PulseActivityFixture {
