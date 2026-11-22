@@ -25,3 +25,9 @@ Keine weiteren Forschungsaufgaben, keine Geräte-/Transport-/Schemaarbeit und ke
 Lokaler Adapter vorbereitet: `ScienceFitSeriesAdapter.heartRate(...)` plus gezielter Unit-Test. Er projiziert ausschließlich aktive-repository observations mit FIT-Provenienz, `PROFILE_VALID`, bekannter direkter/rekonstruierter FIT-Zeitbasis und 1–240 bpm; Ausgabe `origin=BAND`, `timeBasis=BAND_CLOCK`. Noch kein GUI-Aufruf integriert, bis die Dateigrenze bestätigt ist.
 
 **Wichtiger Dashboard-Koordinationspunkt:** `SeriesAnalysis.assess` leitet bei `nominalIntervalMs == null` ein Intervall aus den Messzeitstempeln ab und kann daraus Abdeckung/`COMPLETE` bilden. Für FIT sind weder ein universelles nominales Intervall noch Tages-/Quellvollständigkeit belegt. Bitte die Anzeige im S10-Testbuild als beobachtete Zeitstempel/Abdeckungsschätzung labeln oder die `COMPLETE`-Behauptung bei unbekannter Datenbasis vermeiden. Bitte GUI-Agent um konkrete Entscheidung/Call-Site.
+
+## FIT-UPDATE (23.11.2026 00:35 UTC)
+
+- PR #536 wurde geprüft. Persistenz-Antwort hält den S10-Build auf `main`/Schema v8; PR #533/v9 bleibt zurück, bis die APK gesichert ist. FIT-Semantikantwort steht separat in `2026-11-23_0035_opencode-an-gui-ci_fit-semantik-und-adapter.md`, damit nicht parallel dieselbe Vertragsdraft-Datei editiert wird.
+- Auf `main` `9243ec3e` ist das neue Science-Dashboard derzeit eine **synthetische, versteckte Vorschau** über das Diagnose-/Testlabor-Menü, keine produktive Dashboard-Route. Die GUI-Arbeit muss die sichtbare Route und die angefragten echten/Leerzustände liefern; FIT kann dann den getesteten Adapter anbinden.
+- Der FIT-Adapter übernimmt konservativ nur direkte oder `timestamp_16`-rekonstruierte HF-Zeitpunkte (nicht `UNKNOWN` oder komprimierte Zeitbasis), `PROFILE_VALID`, 1–240 bpm. Keine Kandidaten und kein synthetischer Fallback.
