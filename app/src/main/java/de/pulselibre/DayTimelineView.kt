@@ -93,12 +93,15 @@ internal class DayTimelineView(
         return laneTop(index) + laneHeight * (1f - ((value - lo).toFloat() / (hi - lo)))
     }
 
+    private val goalDash = android.graphics.DashPathEffect(floatArrayOf(6 * density, 4 * density), 0f)
+
     override fun onDraw(canvas: Canvas) {
+        val ticks = visibleTicks()   // once per frame, not once per lane (audit A6-60)
         lanes.forEachIndexed { index, lane ->
             val top = laneTop(index)
             val bottom = top + laneHeight
             paint.color = track; paint.style = Paint.Style.STROKE; paint.strokeWidth = density
-            visibleTicks().forEach { canvas.drawLine(x(it.first), top, x(it.first), bottom, paint) }
+            ticks.forEach { canvas.drawLine(x(it.first), top, x(it.first), bottom, paint) }
             canvas.drawLine(left, bottom, width - margin, bottom, paint)
             text.textAlign = Paint.Align.LEFT
             canvas.drawText(lane.title, left, top - 4 * density, text)
@@ -129,7 +132,7 @@ internal class DayTimelineView(
             val color = accents[index % accents.size]
             if (lane.cumulative && goal != null && goal > 0) {
                 paint.color = color; paint.alpha = 140
-                paint.pathEffect = android.graphics.DashPathEffect(floatArrayOf(6 * density, 4 * density), 0f)
+                paint.pathEffect = goalDash
                 canvas.drawLine(left, y(lane, index, goal), width - margin, y(lane, index, goal), paint)
                 paint.pathEffect = null; paint.alpha = 255
             }
@@ -152,7 +155,6 @@ internal class DayTimelineView(
         text.textAlign = Paint.Align.CENTER; text.color = ink
         val labelY = laneTop(lanes.size - 1) + laneHeight + text.textSize + 2 * density
         val showMiddle = width >= 5 * (text.measureText("00:00") + margin)
-        val ticks = visibleTicks()
         // Collect label boxes first; on a collision the later label is dropped, except the last one (the end of the
         // axis), which replaces its crowded neighbour.
         class Label(val text: String, val x: Float, val align: Paint.Align, val left: Float, val right: Float)
