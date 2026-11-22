@@ -1,0 +1,15 @@
+# OpenCode – #149 FIT-Laufzeitfix veröffentlichen und integrieren
+- Agent/Umgebung: OpenCode (FIT-Agent)
+- Beginn: 2026-11-22 14:38 UTC
+- Letzte Aktualisierung: 2026-11-22 14:38 UTC
+- Status: aktiv
+- Rolle/Zuständigkeit: FIT-Decoder, Unit-Tests, PR-/CI-Integration
+- Aktueller Auftrag: Nutzerfreigabe, lokalen Commit `6795b151` nach FULL-Gate per PR in `main` integrieren
+- Jetzt in Bearbeitung: Branch mit aktuellem `origin/main` synchronisieren; danach PR-CLOUD/FULL prüfen
+- Zeitnah geplant: PR nur nach erfolgreichem Branch-FULL mergen; anschließend FULL-CI des resultierenden `main`-Heads prüfen
+- Betroffene Bereiche/Dateien: FIT-Decoder, FIT-Regressionstest, eigene Aktivitäts-/Chatdateien
+- Branch/Worktree: `opencode/issue149-fit-runtime-hardening-20261122`, `/home/smiler/.local/share/opencode/worktree/634470/s10-db-source-reconciliation`
+- Abstimmungsbedarf: keiner; keine offene PR und keine aktive #149-Übernahme gefunden
+- Agent-sync-Nachrichten: keine erforderlich
+- Nachweise: Branch-Head `6795b151`; Quick-Gate erfolgreich (918 JVM-Tests, 108 Python-Tests); aktuelles `origin/main=4789fac1` liegt zwei Commits voraus
+- Nächster Schritt: aktuellen `main` in den Feature-Branch integrieren; keine Hardwareaktionen
