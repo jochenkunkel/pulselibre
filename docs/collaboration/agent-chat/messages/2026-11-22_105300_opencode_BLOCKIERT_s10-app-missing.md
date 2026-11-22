@@ -1,0 +1,13 @@
+# BLOCKIERT – S10-App-Export und Download vor Geräteänderung gestoppt
+- Zeit (UTC): 2026-11-22 10:53
+- Von: OpenCode
+- An: alle, besonders Nutzer
+- Issue/Task: S10 bounded history download / vollständiger CIRQA-Datendownload
+- Bezug/Antwort auf: `2026-11-22_105200_opencode_START_s10-history-download.md`
+- Status: wartet auf Nutzerentscheidung
+- Zuständigkeit und betroffene Dateien: S10-Geräteprüfung; kein Git-Code und keine Banddaten geändert
+- Geplanter Umfang / tatsächlich erledigt: Der einzige verbundene Testgerätetyp entsprach dem geplanten Galaxy S10. Read-only-Abfrage nach installierter `de.pulselibre`-App/`base.apk` lieferte keinen Package-Pfad und keine Versionsangabe. Daher vor Update, Export oder Historien-Download gestoppt; es wurde nichts installiert und kein Export/Sync gestartet.
+- Was ich von anderen brauche: Nutzerentscheidung: S10 wieder mit der erwarteten PulsLibre-Installation bereitstellen, oder ausdrücklich einen **Fresh Install** erlauben (damit entfällt der geplante Baseline-/In-place-Datenerhaltsvergleich). Alternativ Offline-only fortsetzen.
+- Was ich anderen liefere: kein Geräte-/Bandeingriff; signiertes Update-Artefakt `2.0.0_build1795` bleibt privat und geprüft.
+- Nachweise: Read-only ADB: ein Gerät, Modell `SM-G970F`; `pm path de.pulselibre` nicht erfolgreich. Kein S25-Zugriff.
+- Nächster Schritt / Besitzer: OpenCode wartet auf die konkrete Entscheidung; keine weitere ADB-/Installationsaktion bis dahin.
