@@ -18,6 +18,7 @@ class SyntheticFitFixturesTest {
         var committedObservations = 0
         var decoderVersion = ""
         var profileVersion = ""
+        val idempotencyKeys = mutableListOf<String>()
 
         override fun commitFitFile(
             sourceSha256: String,
@@ -37,6 +38,7 @@ class SyntheticFitFixturesTest {
             this.decoderVersion = decoderVersion
             this.profileVersion = profileVersion
             committedObservations += observations.size
+            idempotencyKeys += observations.map { it.idempotencyKey }
             return observations.size
         }
     }
@@ -144,6 +146,63 @@ class SyntheticFitFixturesTest {
         } finally {
             root.listFiles()?.forEach { it.delete() }
             root.delete()
+        }
+    }
+
+    @Test fun replayOfPublishedFixtureKeepsIdempotencyKeysStable() {
+        val root = Files.createTempDirectory("synthetic-fit-fixture-replay").toFile()
+        try {
+            val fixture = SyntheticFitFixtures.heartRatePlaceholder
+            File(root, CirqaFitBackfill.expectedFileName(fixture.bytes)).writeBytes(fixture.bytes)
+            val firstStore = RecordingStore()
+            val secondStore = RecordingStore()
+            val backfill = CirqaFitBackfill(root, firstStore)
+
+            val first = backfill.run()
+            val second = CirqaFitBackfill(root, secondStore).run()
+
+            assertEquals(1, first.importableObservations)
+            assertEquals(1, second.importableObservations)
+            val key = firstStore.idempotencyKeys.single()
+            assertEquals(64, key.length)
+            assertTrue(key.all { it in '0'..'9' || it in 'a'..'f' })
+            assertEquals(firstStore.idempotencyKeys, secondStore.idempotencyKeys)
+        } finally {
+            root.listFiles()?.forEach { it.delete() }
+            root.delete()
+        }
+    }
+
+    @Test fun emptyAndTamperedFixturesProduceNoCommits() {
+        listOf(
+            SyntheticFitFixtures.emptyPayload to CirqaFitBackfill.FileStatus.NO_IMPORTABLE_OBSERVATIONS,
+            SyntheticFitFixtures.fileCrcTampered to CirqaFitBackfill.FileStatus.INVALID_FILE
+        ).forEach { (fixture, expectedStatus) ->
+            val root = Files.createTempDirectory("synthetic-fit-fixture-invalid").toFile()
+            try {
+                File(root, CirqaFitBackfill.expectedFileName(fixture.bytes)).writeBytes(fixture.bytes)
+                val store = RecordingStore()
+
+                val result = CirqaFitBackfill(root, store).run()
+
+                assertEquals("${fixture.id}: files seen", 1, result.filesSeen)
+                assertEquals("${fixture.id}: committed observations", 0, result.committedObservations)
+                assertEquals("${fixture.id}: file status", expectedStatus, result.fileResults.single().status)
+                if (expectedStatus == CirqaFitBackfill.FileStatus.INVALID_FILE) {
+                    assertEquals("${fixture.id}: invalid files", 1, result.invalidFiles)
+                    assertEquals("${fixture.id}: imported files", 0, result.filesImported)
+                    assertEquals("${fixture.id}: commits", 0, store.commits)
+                } else {
+                    assertEquals("${fixture.id}: imported files", 1, result.filesImported)
+                    assertEquals("${fixture.id}: importable observations", 0, result.importableObservations)
+                    // A valid empty envelope still records provenance, but no observation.
+                    assertEquals("${fixture.id}: provenance commits", 1, store.commits)
+                    assertEquals(fixture.expectedSha256, store.sourceSha256)
+                }
+            } finally {
+                root.listFiles()?.forEach { it.delete() }
+                root.delete()
+            }
         }
     }
 }
