@@ -916,4 +916,20 @@
     <string name="ht_note">En vivo: hora de recepción en el teléfono · Pulsera: hora de medición de la pulsera · Importación: como se guardó. Una fila por día, fuente y medida; no se interpola ni se mezcla nada.</string>
     <string name="ht_empty">No hay valores en este período.</string>
     <string name="ht_row_cd">%1$s, %2$s, %3$s: %4$d valores, rango %5$s, media %6$s</string>
+    <!-- REVIEW: neue Texte (Messgroessen-Namen), fr/es Sprachprüfung durch ChatGPT -->
+    <string name="ht_m_resting">Pulso en reposo</string>
+    <string name="ht_m_steps">Pasos</string>
+    <string name="ht_m_goal">Objetivo de pasos</string>
+    <string name="ht_m_kcal_total">Calorías totales (kcal)</string>
+    <string name="ht_m_kcal_active">Calorías activas (kcal)</string>
+    <string name="ht_m_min_moderate">Minutos moderados</string>
+    <string name="ht_m_min_vigorous">Minutos intensos</string>
+    <string name="ht_m_rr">Intervalo RR (ms)</string>
+    <string name="ht_m_stress">Estrés</string>
+    <string name="ht_m_battery">Body Battery</string>
+    <string name="ht_m_breath">Frecuencia respiratoria</string>
+    <string name="ht_m_distance">Distancia (m)</string>
+    <string name="ht_m_speed">Velocidad (m/s)</string>
+    <string name="ht_m_cadence">Cadencia (rpm)</string>
+    <string name="ht_m_power">Potencia (W)</string>
 </resources>

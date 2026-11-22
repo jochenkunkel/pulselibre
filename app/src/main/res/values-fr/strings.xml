@@ -916,4 +916,20 @@
     <string name="ht_note">En direct : heure de réception sur le téléphone · Bracelet : heure de mesure du bracelet · Import : tel que stocké. Une ligne par jour, source et mesure ; rien n’est interpolé ni mélangé.</string>
     <string name="ht_empty">Aucune valeur sur cette période.</string>
     <string name="ht_row_cd">%1$s, %2$s, %3$s : %4$d valeurs, plage %5$s, moyenne %6$s</string>
+    <!-- REVIEW: neue Texte (Messgroessen-Namen), fr/es Sprachprüfung durch ChatGPT -->
+    <string name="ht_m_resting">Pouls au repos</string>
+    <string name="ht_m_steps">Pas</string>
+    <string name="ht_m_goal">Objectif de pas</string>
+    <string name="ht_m_kcal_total">Calories totales (kcal)</string>
+    <string name="ht_m_kcal_active">Calories actives (kcal)</string>
+    <string name="ht_m_min_moderate">Minutes modérées</string>
+    <string name="ht_m_min_vigorous">Minutes intenses</string>
+    <string name="ht_m_rr">Intervalle RR (ms)</string>
+    <string name="ht_m_stress">Stress</string>
+    <string name="ht_m_battery">Body Battery</string>
+    <string name="ht_m_breath">Fréquence respiratoire</string>
+    <string name="ht_m_distance">Distance (m)</string>
+    <string name="ht_m_speed">Vitesse (m/s)</string>
+    <string name="ht_m_cadence">Cadence (tr/min)</string>
+    <string name="ht_m_power">Puissance (W)</string>
 </resources>
