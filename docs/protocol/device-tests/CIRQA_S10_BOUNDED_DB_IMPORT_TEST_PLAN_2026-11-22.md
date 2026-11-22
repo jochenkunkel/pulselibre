@@ -58,8 +58,23 @@ in ihre lokale Datenbank importiert. Offen ist weiterhin die Vollständigkeit.
   dann separat offen.
 - `coverage=device-history-unverified` bleibt bis zu beiden Nachweisen gültig.
 
+## Build-Stand (passiv aus CI und Git ermittelt, 2026-11-22 09:40 UTC)
+
+- Auf dem S10 wurde zwischenzeitlich `2.0.0_build1781` statt `build1757` festgestellt.
+- Build 1781 stammt aus CI-Lauf `45004884778` (08:53 UTC) auf Commit `7e223ad`
+  (PR #434, A6-38-Bluetooth-Fix). Der Merge von PR #433 (`6dee48e`, zlib/MLR/
+  sync_response-Härtung) erfolgte erst um 09:14 UTC; PR #432 wurde um 09:50 UTC
+  gemergt (`341fe20`).
+- **Folge:** Build 1781 enthält weder die #433-Verdrahtung noch die #432-
+  Reassemblierung. Ein Gerätelauf mit Build 1781 kann den Produktpfad aus
+  #432/#433 nicht bestätigen. Vor einem erneuten begrenzten Gerätetest ist ein
+  frischer Build vom Stand nach dem #432-Merge nötig.
+- Diese Feststellung ist rein passiv (Git/CI-Laufmetadaten); es wurde kein
+  Gerätebefehl ausgeführt und kein Installations-/Exportvorgang gestartet.
+
 ## Status
 
 **Geplant – nicht ausgeführt.** Ausführung erst nach Abschluss von PR #425
 (Offline-Test + volle CI) und nach bestätigter Abwesenheit paralleler Arbeiten
-anderer Agenten (agent-sync 08:00).
+anderer Agenten (agent-sync 08:00). Zusätzlich ist der oben genannte frische
+Build nach dem #432-Merge erforderlich.
