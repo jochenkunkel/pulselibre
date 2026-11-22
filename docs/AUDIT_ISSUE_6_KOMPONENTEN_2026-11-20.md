@@ -369,3 +369,17 @@ Gelesen: `requestNextSyncItemListPage`, `appendSyncItemListPage`, `handleFileAcc
 - **A6-47 (niedrig, Diagnose):** `syncPullDiag` wird bei jedem übersprungenen Eintrag um `|manifest-skip:verified-local-import` ergänzt und auf 1000 Zeichen gekürzt (Z. 1292). Bei vielen Überspringungen verdrängt das die späteren Pull-Diagnosen. Besser einen Zähler `manifestSkips` ausgeben.
 
 Keine Änderungen am Code in diesem Abschnitt.
+
+## 43. `receiveLegacyDirectoryOrFitData`, `ProfileMath`, `PairedCorrelation` (2026-11-22, offline)
+
+**`CirqaMlHandshakeProbe.receiveLegacyDirectoryOrFitData` (Z. 2573–2700) – kein Befund.** 5002-Größe wird gegen Obergrenze und Verzeichniseintrag geprüft (Abweichung beendet den Transfer), Chunks nur nach CRC-/Offset-Validierung bestätigt, `toInt()`-Umwandlungen stehen hinter den Größenlimits. Zur Einordnung von A6-46: Dieser ältere Pfad klassifiziert Verzeichniseinträge einzeln (`classifyEntries`, Gründe `file-count-limit`/`total-size-limit`) und überspringt unpassende, statt den Lauf zu beenden.
+
+**`ProfileMath.kt` – kein Befund.** Alter (Schaltjahr über `Period`), BMI-Plausibilitätsbereiche, WHO-Schwellen auf dem ungerundeten Wert, Gewichtsschritt mit Begrenzung; die BMI-Beschriftungen laufen über `DomainText` (übersetzt). Nur eine Kleinigkeit:
+- **A6-48 (niedrig, i18n):** `WeightStepper.format` formatiert fest mit `Locale.GERMANY`, die Eingabe akzeptiert Komma und Punkt. In der französischen/spanischen Oberfläche erscheint daher stets das deutsche Dezimalkomma (zufällig auch dort üblich). Mit `Locale.getDefault()` wäre es konsequent.
+
+**`PairedCorrelation.kt` – drei methodische Hinweise, Ergebnisse bleiben als „explorativ" gekennzeichnet:**
+- **A6-49 (niedrig):** Das 95-%-Intervall nutzt für Spearman die Standardabweichung `1/√(n_eff−3)` der Pearson-Fisher-Transformation. Für Spearman empfehlen Fieller/Hartley/Pearson (1957) einen um etwa 3 % größeren Wert (Varianz `1,06/(n−3)`); das Intervall ist damit minimal zu schmal (liberal). Auswirkung klein, aber wegen der Grenzfälle „Intervall schließt 0 knapp aus" im Verdikt relevant.
+- **A6-50 (niedrig):** Die Autokorrelation (Lag 1) wird auf der Folge der **gepaarten** Tage in Datumsreihenfolge berechnet. Bei Lücken sind aufeinanderfolgende Einträge nicht aufeinanderfolgende Kalendertage; die Schätzung des effektiven n ist dann ungenau. Außerdem wird die Autokorrelation der Rohwerte (Pearson) verwendet, die Korrelation selbst ist aber rangbasiert. Beides verändert `n_eff` nur leicht, sollte im Methodentext stehen.
+- **A6-51 (niedrig, Leistung):** `sensitivity` (Leave-one-out) ist O(n² log n). Bei einem Jahr (n≈365) unkritisch; bei mehrjährigen Reihen sollte der Aufruf (`TrendCardView` Z. 88) auf dem Hintergrund-Thread und mit Obergrenze für n erfolgen. Ob das heute so ist, habe ich nicht verfolgt (`TrendCache` und die Lade-Generation sind in Abschnitt 34/35 geprüft).
+
+Positiv: Mindestzahl 30 Paare, konstante Reihen werden abgefangen, Benjamini–Hochberg korrekt (absteigend, kumuliertes Minimum), Bretherton-Formel korrekt umgesetzt, Mehrdeutigkeiten bei Rangbindungen mit Durchschnittsrängen gelöst, Tests decken Lücken, Konstanz und Instabilität ab.
