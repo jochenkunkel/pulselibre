@@ -31,54 +31,30 @@ class FitHistoryReader(private val context: Context) {
                       /** Newest FIT heart-rate measurement of any time; explains an empty window (older data or a band clock offset). */
                       val newest: Instant? = null)
 
-    fun read(start: Instant, end: Instant): Window {
-        val repository = HistoricalObservationRepository(context)
-        val points = ArrayList<HistoryPoint>()
-        var cursor: HistoricalObservationQuery.Cursor? = null
-        var truncated = false
-        while (true) {
-            val page = repository.read(HistoricalObservationQuery(
-                startInclusive = start, endExclusive = end, metric = FitHistoryMapping.METRIC,
-                limit = 5_000, after = cursor))
-            points += FitHistoryMapping.toPoints(page.observations)
-            cursor = page.next ?: break
-            if (points.size >= FitHistoryMapping.MAX_POINTS) { truncated = true; break }
-        }
-        return Window(points, available(), truncated, newestMeasuredAt())
-    }
-
-    /**
-     * Measurement time of the newest FIT heart-rate observation not after [notAfter], or null when there is none.
-     * Reads the active decoder generations (the production import path) and the legacy provenance table (#477);
-     * the legacy table alone is empty after a product download.
-     */
-    fun latestMeasuredAt(notAfter: Instant): Instant? = CirqaDatabase(context).use { db ->
+    /** Runs [block] on the unified measurements (live, import and band in one table), brought up to date first. */
+    private fun <T> unified(block: (UnifiedMeasurements) -> T): T = CirqaDatabase(context).use { db ->
         db.ensureHistoricalStoreCopied()
-        val limit = notAfter.toEpochMilli().toString()
-        db.readableDatabase.rawQuery(
-            """SELECT MAX(t) FROM (
-                 SELECT MAX(g.measured_at_ms) AS t FROM fit_generation_observations g
-                   JOIN fit_active_generations a ON a.generation_id = g.generation_id
-                   WHERE g.metric = ? AND g.measured_at_ms <= ?
-                 UNION ALL
-                 SELECT MAX(measured_at_ms) FROM fit_observation_provenance WHERE metric = ? AND measured_at_ms <= ?
-               )""",
-            arrayOf(FitHistoryMapping.METRIC, limit, FitHistoryMapping.METRIC, limit)
-        ).use { if (it.moveToFirst() && !it.isNull(0)) Instant.ofEpochMilli(it.getLong(0)) else null }
+        val unified = UnifiedMeasurements(db.writableDatabase)
+        unified.refresh()
+        block(unified)
     }
 
-    /** Newest FIT heart-rate measurement regardless of the window (also later than "now" if the band clock is ahead). */
+    fun read(start: Instant, end: Instant): Window = unified { u ->
+        val rows = u.points(MeasurementOrigin.BAND, FitHistoryMapping.METRIC, start.toEpochMilli(), end.toEpochMilli(), FitHistoryMapping.MAX_POINTS + 1)
+        val truncated = rows.size > FitHistoryMapping.MAX_POINTS
+        val points = rows.asSequence().take(FitHistoryMapping.MAX_POINTS)
+            .filter { it.third == "bpm" && it.second.isFinite() }
+            .mapNotNull { (t, v, _) -> Math.round(v).takeIf { it in 1..240 }?.let { HistoryPoint(Instant.ofEpochMilli(t), it.toInt()) } }
+            .toList()
+        Window(points, u.exists(MeasurementOrigin.BAND, FitHistoryMapping.METRIC), truncated,
+            u.latest(MeasurementOrigin.BAND, FitHistoryMapping.METRIC, Long.MAX_VALUE / 4)?.let { Instant.ofEpochMilli(it) })
+    }
+
+    /** Measurement time of the newest band heart-rate observation not after [notAfter], or null when there is none. */
+    fun latestMeasuredAt(notAfter: Instant): Instant? = unified { u ->
+        u.latest(MeasurementOrigin.BAND, FitHistoryMapping.METRIC, notAfter.toEpochMilli())?.let { Instant.ofEpochMilli(it) }
+    }
+
+    /** Newest band heart-rate measurement regardless of the window (also later than "now" if the band clock is ahead). */
     fun newestMeasuredAt(): Instant? = latestMeasuredAt(Instant.ofEpochMilli(Long.MAX_VALUE / 4))
-
-    /** True when any FIT heart-rate observation exists, in an active generation or the legacy table (#477, A6-28). */
-    private fun available(): Boolean = CirqaDatabase(context).use { db ->
-        db.ensureHistoricalStoreCopied()
-        db.readableDatabase.rawQuery(
-            """SELECT 1 WHERE EXISTS (
-                 SELECT 1 FROM fit_generation_observations g
-                   JOIN fit_active_generations a ON a.generation_id = g.generation_id WHERE g.metric = ?)
-               OR EXISTS (SELECT 1 FROM fit_observation_provenance WHERE metric = ?)""",
-            arrayOf(FitHistoryMapping.METRIC, FitHistoryMapping.METRIC)
-        ).use { it.moveToFirst() }
-    }
 }

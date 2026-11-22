@@ -232,11 +232,7 @@ class HistoryOverviewView(
                     MeasurementOrigin.LIVE -> R.string.ht_src_phone
                     MeasurementOrigin.IMPORT -> R.string.ht_src_import
                 })
-                val metric = when (row.metric) {
-                    "heart_rate", "bpm" -> context.getString(R.string.ht_metric_pulse)
-                    "spo2_percent" -> context.getString(R.string.ht_metric_spo2)
-                    else -> "${row.metric} (${row.unit})"
-                }
+                val metric = metricLabel(row.metric)?.let { context.getString(it) } ?: "${row.metric} (${row.unit})"
                 val day = dayFormat.format(java.time.LocalDate.ofEpochDay(row.dayIndex))
                 val range = "${number.format(row.minimum)}–${number.format(row.maximum)}"
                 val mean = number.format(row.mean)
@@ -253,6 +249,28 @@ class HistoryOverviewView(
         card.addView(label(context.getString(R.string.ht_note), 11f, palette.muted).apply { tag = "history_all_data_note" },
             LayoutParams(-1, -2).apply { topMargin = dp(8) })
         addView(card, LayoutParams(-1, -2).apply { bottomMargin = dp(12) })
+    }
+
+    /** Readable name of a stored metric key; null for keys this version does not know (shown as stored). */
+    private fun metricLabel(metric: String): Int? = when (metric) {
+        "heart_rate", "bpm" -> R.string.ht_metric_pulse
+        "resting_bpm" -> R.string.ht_m_resting
+        "spo2_percent" -> R.string.ht_metric_spo2
+        "steps" -> R.string.ht_m_steps
+        "goal" -> R.string.ht_m_goal
+        "total" -> R.string.ht_m_kcal_total
+        "active" -> R.string.ht_m_kcal_active
+        "moderate" -> R.string.ht_m_min_moderate
+        "vigorous" -> R.string.ht_m_min_vigorous
+        "rr_ms" -> R.string.ht_m_rr
+        "stress" -> R.string.ht_m_stress
+        "body_battery" -> R.string.ht_m_battery
+        "breaths_per_min" -> R.string.ht_m_breath
+        "distance" -> R.string.ht_m_distance
+        "speed" -> R.string.ht_m_speed
+        "cadence" -> R.string.ht_m_cadence
+        "power" -> R.string.ht_m_power
+        else -> null
     }
 
     /** Why the band card is empty: read error (A6-29) or the date of the newest band measurement outside the window (#477). */

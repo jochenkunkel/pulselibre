@@ -97,4 +97,21 @@ class UnifiedMeasurementsTest {
         assertTrue(rows[0].dayIndex > rows[1].dayIndex)
         assertEquals(t0 / day + 1, rows[1].dayIndex) // +1 h pushes 23:59:59 UTC to the next local day
     }
+
+    @Test fun readersServeBandPointsExportRecordsAndUnreadableEvents() {
+        live(80, t0 + 1000)
+        db.execSQL("INSERT INTO events(kind, payload_json) VALUES('reading', 'kaputt')")
+        db.execSQL("INSERT INTO events(kind, payload_json) VALUES('reading', ?)",
+            arrayOf("""{"schema":1,"type":"reading","service":6,"received_at_utc":"gestern","bpm":70}"""))
+        band("b1", 61.0, t0 + 2000); band("b2", 62.0, t0 + 3000)
+        val unified = UnifiedMeasurements(db)
+        unified.refresh()
+        assertEquals(2L, unified.unreadableLiveEvents())
+        assertEquals(listOf(61.0, 62.0), unified.points(MeasurementOrigin.BAND, "heart_rate", t0, t0 + day).map { it.second })
+        assertEquals(1, unified.points(MeasurementOrigin.BAND, "heart_rate", t0, t0 + day, limit = 1).size)
+        assertEquals(t0 + 3000, unified.latest(MeasurementOrigin.BAND, "heart_rate", Long.MAX_VALUE / 4))
+        assertTrue(unified.exists(MeasurementOrigin.BAND, "heart_rate"))
+        assertEquals(3, unified.records(t0, t0 + day).size)
+        assertEquals(0, unified.records(t0 + day, t0 + 2 * day).size)
+    }
 }

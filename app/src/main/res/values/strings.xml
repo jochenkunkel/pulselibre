@@ -930,4 +930,19 @@
     <string name="src_gatt_battery">standard GATT battery service</string>
     <string name="src_garmin_status">Garmin device status</string>
     <string name="src_fit">stored FIT history</string>
+    <string name="ht_m_resting">Resting pulse</string>
+    <string name="ht_m_steps">Steps</string>
+    <string name="ht_m_goal">Step goal</string>
+    <string name="ht_m_kcal_total">Calories total (kcal)</string>
+    <string name="ht_m_kcal_active">Calories active (kcal)</string>
+    <string name="ht_m_min_moderate">Moderate minutes</string>
+    <string name="ht_m_min_vigorous">Vigorous minutes</string>
+    <string name="ht_m_rr">RR interval (ms)</string>
+    <string name="ht_m_stress">Stress</string>
+    <string name="ht_m_battery">Body Battery</string>
+    <string name="ht_m_breath">Respiration rate</string>
+    <string name="ht_m_distance">Distance (m)</string>
+    <string name="ht_m_speed">Speed (m/s)</string>
+    <string name="ht_m_cadence">Cadence (rpm)</string>
+    <string name="ht_m_power">Power (W)</string>
 </resources>

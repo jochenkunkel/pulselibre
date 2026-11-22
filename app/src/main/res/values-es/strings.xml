@@ -933,4 +933,20 @@
     <string name="src_gatt_battery">servicio de batería GATT estándar</string>
     <string name="src_garmin_status">estado del dispositivo Garmin</string>
     <string name="src_fit">historial FIT almacenado</string>
+    <!-- REVIEW: neue Texte (Messgroessen-Namen), fr/es Sprachprüfung durch ChatGPT -->
+    <string name="ht_m_resting">Pulso en reposo</string>
+    <string name="ht_m_steps">Pasos</string>
+    <string name="ht_m_goal">Objetivo de pasos</string>
+    <string name="ht_m_kcal_total">Calorías totales (kcal)</string>
+    <string name="ht_m_kcal_active">Calorías activas (kcal)</string>
+    <string name="ht_m_min_moderate">Minutos moderados</string>
+    <string name="ht_m_min_vigorous">Minutos intensos</string>
+    <string name="ht_m_rr">Intervalo RR (ms)</string>
+    <string name="ht_m_stress">Estrés</string>
+    <string name="ht_m_battery">Body Battery</string>
+    <string name="ht_m_breath">Frecuencia respiratoria</string>
+    <string name="ht_m_distance">Distancia (m)</string>
+    <string name="ht_m_speed">Velocidad (m/s)</string>
+    <string name="ht_m_cadence">Cadencia (rpm)</string>
+    <string name="ht_m_power">Potencia (W)</string>
 </resources>
