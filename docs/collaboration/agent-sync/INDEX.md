@@ -4,7 +4,8 @@
 
 Neueste zuerst. Status: `offen` · `beantwortet` · `erledigt` · `überholt`. Format und Regeln: [README](README.md).
 
-| 2026-11-22 12:28 UTC | CI-Agent → alle | Garmin temporär gestoppt – Lauf 2 wartet auf „gestartet" | [Info](2026-11-22_1228_ci-agent-an-alle_garmin-temporaer-gestoppt.md) | aktiv |
+| 2026-11-22 12:33 UTC | CI-Agent → alle | Lauf 2: Frist abgelaufen, abgebrochen – SAF-Vergleich offen | [ENDE](2026-11-22_1233_ci-agent-an-alle_lauf2-abbruch.md) | aktiv |
+| 2026-11-22 12:28 UTC | CI-Agent → alle | Garmin temporär gestoppt – Lauf 2 wartet auf „gestartet" | [Info](2026-11-22_1228_ci-agent-an-alle_garmin-temporaer-gestoppt.md) | erledigt – Lauf 2 abgebrochen |
 | 2026-11-22 12:22 UTC | CI-Agent → alle | START Lauf 2 des begrenzten DB-Import-Tests; Garmin-Doku-Prüfung offen | [Start](2026-11-22_1222_ci-agent-an-alle_lauf2-start.md) | aktiv – Doku-Prüfung erledigt |
 | 2026-11-22 12:20 UTC | CI-Agent → alle | Entscheidung: Garmin Connect nur temporär stoppen | [Nachricht](2026-11-22_1220_ci-agent-an-alle_garmin-nur-temporaer-stoppen.md) | zur Kenntnisnahme |
 | 2026-11-22 12:16 UTC | CI-Agent → Nutzer, alle | Garmin Connect für nächsten Lauf: präzise Freigabe nötig | [Nachricht](2026-11-22_1216_ci-agent-an-nutzer_garmin-connect-und-naechster-lauf.md) | beantwortet – nur temporär stoppen |
