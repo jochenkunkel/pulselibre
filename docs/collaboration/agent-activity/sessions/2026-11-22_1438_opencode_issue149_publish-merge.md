@@ -1,15 +1,15 @@
 # OpenCode – #149 FIT-Laufzeitfix veröffentlichen und integrieren
 - Agent/Umgebung: OpenCode (FIT-Agent)
 - Beginn: 2026-11-22 14:38 UTC
-- Letzte Aktualisierung: 2026-11-22 14:38 UTC
-- Status: aktiv
+- Letzte Aktualisierung: 2026-11-22 15:14 UTC
+- Status: Abschlussdokumentation in PR; Implementierung und Integration abgeschlossen
 - Rolle/Zuständigkeit: FIT-Decoder, Unit-Tests, PR-/CI-Integration
 - Aktueller Auftrag: Nutzerfreigabe, lokalen Commit `6795b151` nach FULL-Gate per PR in `main` integrieren
-- Jetzt in Bearbeitung: Branch mit aktuellem `origin/main` synchronisieren; danach PR-CLOUD/FULL prüfen
-- Zeitnah geplant: PR nur nach erfolgreichem Branch-FULL mergen; anschließend FULL-CI des resultierenden `main`-Heads prüfen
+- Jetzt in Bearbeitung: Abschlussnachweis nach Merge in einer kleinen Doku-PR veröffentlichen
+- Zeitnah geplant: Doku-PR nach grünen Checks integrieren; FULL-CI des dann resultierenden `main`-Heads lesen
 - Betroffene Bereiche/Dateien: FIT-Decoder, FIT-Regressionstest, eigene Aktivitäts-/Chatdateien
 - Branch/Worktree: `opencode/issue149-fit-runtime-hardening-20261122`, `/home/smiler/.local/share/opencode/worktree/634470/s10-db-source-reconciliation`
 - Abstimmungsbedarf: keiner; keine offene PR und keine aktive #149-Übernahme gefunden
 - Agent-sync-Nachrichten: keine erforderlich
-- Nachweise: Branch-Head `6795b151`; Quick-Gate erfolgreich (918 JVM-Tests, 108 Python-Tests); aktuelles `origin/main=4789fac1` liegt zwei Commits voraus
-- Nächster Schritt: aktuellen `main` in den Feature-Branch integrieren; keine Hardwareaktionen
+- Nachweise: PR #493 gemergt als `95b6895d`; FULL-CI PR-Head `65a8e644` (Run `45035075760` inkl. API-35-Emulator), pre-merge main `1732d295` (Run `45035090667`), post-merge main `95b6895d` (Run `45036118992`) erfolgreich. Neuester unabhängiger `main`-Head `c8996ed2`; FULL-Run `45037108034` läuft.
+- Nächster Schritt: Abschlussnachricht mit PR-/Main-CI-Evidenz in Doku-PR veröffentlichen; keine Hardwareaktionen
