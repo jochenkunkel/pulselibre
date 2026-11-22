@@ -94,3 +94,25 @@ class ScienceModelTest {
 
     @Test fun fixturesAreDeterministic() = assertEquals(ScienceFixtures.heartRate(0), ScienceFixtures.heartRate(0))
 }
+
+class ScienceAggregatedSeriesTest {
+    private val minute = 60_000L
+
+    @Test fun bucketPointsKeepExtremesAndWeightedMeanAndSkipStandardDeviation() {
+        val data = SeriesData("m", "u", SeriesOrigin.BAND, SeriesTimeBasis.BAND_CLOCK, 0, 4 * minute, minute, listOf(
+            SeriesPoint(minute / 2, 10.0, count = 3, low = 8.0, high = 12.0), SeriesPoint(minute + minute / 2, 20.0, count = 1, low = 20.0, high = 20.0),
+            SeriesPoint(2 * minute + minute / 2, 30.0, count = 1), SeriesPoint(3 * minute + minute / 2, 30.0, count = 1)))
+        val a = SeriesAnalysis.assess(data)
+        assertEquals(6, a.valid); assertEquals(6, a.total)
+        assertEquals(8.0, a.minimum!!, 0.0); assertEquals(30.0, a.maximum!!, 0.0)
+        assertEquals((10.0 * 3 + 20 + 30 + 30) / 6, a.mean!!, 1e-9)
+        assertNull(a.standardDeviation)
+    }
+
+    @Test fun flaggedPointsCountTowardsTheirQualityNotTheValues() {
+        val data = SeriesData("m", "u", SeriesOrigin.LIVE, SeriesTimeBasis.PHONE_RECEPTION, 0, 4 * minute, minute, listOf(
+            SeriesPoint(minute, 70.0), SeriesPoint(2 * minute, null, SeriesQuality.INVALID, 0), SeriesPoint(3 * minute, null, SeriesQuality.STATUS, -100)))
+        val a = SeriesAnalysis.assess(data)
+        assertEquals(1, a.valid); assertEquals(1, a.invalid); assertEquals(1, a.status)
+    }
+}

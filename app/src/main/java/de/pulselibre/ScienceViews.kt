@@ -24,10 +24,10 @@ class ScienceSeriesView(context: Context, private val palette: AppPalette) : Vie
     private val density = resources.displayMetrics.density
     private val timeFormat = DateTimeFormatter.ofPattern("d.M. HH:mm").withZone(ZoneId.systemDefault())
 
-    fun show(data: SeriesData) {
+    fun show(data: SeriesData, description: String? = null) {
         series = data
         assessment = SeriesAnalysis.assess(data)
-        contentDescription = ScienceText.describe(data, assessment!!)
+        contentDescription = description ?: ScienceText.describe(data, assessment!!)
         importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_YES
         requestLayout(); invalidate()
     }
@@ -45,9 +45,9 @@ class ScienceSeriesView(context: Context, private val palette: AppPalette) : Vie
         val span = (data.rangeEndMs - data.rangeStartMs).coerceAtLeast(1L)
         fun x(t: Long) = plot.left + (t - data.rangeStartMs).toFloat() / span * plot.width()
         val shown = data.points.filter { it.timeMs != null && it.timeMs in data.rangeStartMs..data.rangeEndMs }
-        val values = shown.filter { it.value != null && it.quality !in NON_VALUE }.map { it.value!! }
-        val lo = values.minOrNull() ?: 0.0
-        val hi = values.maxOrNull() ?: 1.0
+        val drawnPoints = shown.filter { it.value != null && it.quality !in NON_VALUE }
+        val lo = drawnPoints.minOfOrNull { it.low ?: it.value!! } ?: 0.0
+        val hi = drawnPoints.maxOfOrNull { it.high ?: it.value!! } ?: 1.0
         val pad = ((hi - lo) * 0.1).coerceAtLeast(1.0)
         val vMin = lo - pad; val vMax = hi + pad
         fun y(v: Double) = plot.bottom - ((v - vMin) / (vMax - vMin)).toFloat() * plot.height()
@@ -77,8 +77,9 @@ class ScienceSeriesView(context: Context, private val palette: AppPalette) : Vie
         val minV = DoubleArray(cols) { Double.NaN }; val maxV = DoubleArray(cols) { Double.NaN }; val sum = DoubleArray(cols); val cnt = IntArray(cols)
         shown.filter { it.quality == SeriesQuality.VALID && it.value != null }.forEach { p ->
             val c = (((p.timeMs!! - data.rangeStartMs).toDouble() / span) * (cols - 1)).toInt().coerceIn(0, cols - 1)
-            minV[c] = if (minV[c].isNaN()) p.value!! else minOf(minV[c], p.value!!)
-            maxV[c] = if (maxV[c].isNaN()) p.value!! else maxOf(maxV[c], p.value!!)
+            val pl = p.low ?: p.value!!; val ph = p.high ?: p.value!!
+            minV[c] = if (minV[c].isNaN()) pl else minOf(minV[c], pl)
+            maxV[c] = if (maxV[c].isNaN()) ph else maxOf(maxV[c], ph)
             sum[c] += p.value!!; cnt[c]++
         }
         fun inGap(col: Int): Boolean { val t = data.rangeStartMs + span * col / cols.toDouble(); return a.gaps.any { t >= it.startMs && t <= it.endMs } }
@@ -106,9 +107,9 @@ class ScienceSeriesView(context: Context, private val palette: AppPalette) : Vie
         }
         // time axis
         paint.style = Paint.Style.FILL; paint.color = palette.muted; paint.textSize = 10 * density; paint.textAlign = Paint.Align.CENTER
-        for (i in 0..3) {
-            val t = data.rangeStartMs + span * i / 3
-            paint.textAlign = when (i) { 0 -> Paint.Align.LEFT; 3 -> Paint.Align.RIGHT; else -> Paint.Align.CENTER }
+        for (i in 0..2) {
+            val t = data.rangeStartMs + span * i / 2
+            paint.textAlign = when (i) { 0 -> Paint.Align.LEFT; 2 -> Paint.Align.RIGHT; else -> Paint.Align.CENTER }
             canvas.drawText(timeFormat.format(Instant.ofEpochMilli(t)), x(t), height - 4 * density, paint)
         }
     }
