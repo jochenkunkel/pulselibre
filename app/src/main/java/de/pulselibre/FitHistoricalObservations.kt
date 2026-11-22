@@ -162,6 +162,8 @@ object FitHistoricalObservations {
         var invalidMeasurementFields = 0
         var deviceInfoOrdinal = 0
         var respirationRecordOrdinal = 0
+        var spo2RecordOrdinal = 0
+        var stressRecordOrdinal = 0
 
         fun requireBytes(count: Int): Boolean =
             count >= 0 && cursor <= dataEnd - count
@@ -312,6 +314,8 @@ object FitHistoricalObservations {
             // semantics and avoid guessing missing timestamps or manufacturer fields.
             if (definition.globalNumber == GLOBAL_SPO2_DATA ||
                 definition.globalNumber == GLOBAL_STRESS_LEVEL) {
+                if (definition.globalNumber == GLOBAL_SPO2_DATA) spo2RecordOrdinal++
+                else stressRecordOrdinal++
                 val candidateField = definition.fields.firstOrNull { it.number == 0 }
                 val candidateOffset = candidateField?.let(fieldBytes::get)
                 if (candidateField != null && candidateOffset != null) {
@@ -334,9 +338,8 @@ object FitHistoricalObservations {
                                     "percent" else "profile_raw",
                                 timestampEpochMillis = timestampMillis,
                                 sourceFileSha256 = fileSha,
-                                recordOrdinal = reviewCandidates.count {
-                                    it.globalMessageNumber == definition.globalNumber
-                                } + 1,
+                                recordOrdinal = if (definition.globalNumber == GLOBAL_SPO2_DATA)
+                                    spo2RecordOrdinal else stressRecordOrdinal,
                                 globalMessageNumber = definition.globalNumber,
                                 fieldNumber = 0,
                                 timestampOrigin = timestampOrigin
