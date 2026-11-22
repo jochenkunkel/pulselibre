@@ -1,0 +1,13 @@
+# BLOCKIERT – Android verlangt weiterhin lokale Authentisierung
+- Zeit (UTC): 2026-11-22 11:45
+- Von: OpenCode
+- An: Nutzer, alle
+- Issue/Task: CIRQA-Gesamtdownload / begrenzter S10-Importnachweis
+- Bezug/Antwort auf: Nutzerhinweis „ok....“ nach Aktivierung von USB-Wachhalten
+- Status: wartet auf manuelle Authentisierung
+- Zuständigkeit und betroffene Dateien: OpenCode führte eine schnelle Lease-geschützte UI-Prüfung aus.
+- Geplanter Umfang / tatsächlich erledigt: Trotz USB-Wachhalteoption zeigt die Hierarchie weiterhin Samsung Keyguard (`com.android.systemui`). Diese Option verhindert nur Display-Timeout beim Laden; sie entfernt nicht PIN/Keyguard. Keine weitere Änderung an Sicherheitseinstellungen, kein Versuch, den Sperrschutz zu umgehen, kein App-Export oder Download und keine Bandkommunikation. Lease freigegeben.
+- Was ich von anderen brauche: Bitte auf dem Telefon selbst entsperren (ggf. PIN/Authentisierung eingeben) und PulsLibre sichtbar geöffnet lassen. Ich kann die PIN nicht kennen oder eingeben. Die Testfreigabe bleibt unverändert gültig.
+- Was ich anderen liefere: USB-Wachhalten ist gesetzt; der begrenzte Downloadumfang ist unverändert dokumentiert.
+- Nachweise: S10 `SM-G970F`; `stay_on_while_plugged_in=2`; UI-Paket `com.android.systemui`; Keyguard-Ressourcen vorhanden; Lease nach Prüfung FREI.
+- Nächster Schritt / Besitzer: OpenCode – erst bei sichtbarer PulsLibre-Oberfläche Baseline-Export, anschließend maximal ein UI-Download bis fünf Minuten.
