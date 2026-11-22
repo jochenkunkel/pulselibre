@@ -24,5 +24,5 @@
 ## Format und Erwartungswerte
 
 - FIT-Header: `headerSize=14`, `protocolVersion=0x20`, `profileVersion=100` (Rohwert im Header, entsprechend dem bestehenden synthetischen Testmuster in `CirqaFitBackfillTest`; **nicht** zu verwechseln mit der Produktions-Profilkennzeichnung `FitHistoricalObservations.PROFILE_VERSION = 21.222.0`).
-- Erwartete Importresultate: `hr-placeholder-v1` → 1 Datei importiert, 1 importierbare und 1 committete Beobachtung, Provenienz-SHA-256 gleich dem obigen SHA-256; `empty-payload-v1` und `file-crc-tampered-v1` → keine committeten Beobachtungen.
+- Erwartete Importresultate: `hr-placeholder-v1` → 1 Datei importiert, 1 importierbare und 1 committete Beobachtung, Provenienz-SHA-256 gleich dem obigen SHA-256; Replay erwartet denselben Idempotenz-Key. `empty-payload-v1` → gültige Datei ohne importierbare Beobachtungen; `CirqaFitBackfill` schreibt einen Provenienz-Eintrag, aber **keine** Beobachtung. `file-crc-tampered-v1` → `INVALID_FILE`, kein Provenienz-Eintrag, keine Beobachtung.
 - Lizenz-/Nutzungsgrenze: ausschließlich für PulsLibre-Tests und -Forschung. Keine Weitergabe als Geräte-, Patienten- oder Produktivdaten, keine Ableitung von Geräteidentität oder Historienvollständigkeit.
