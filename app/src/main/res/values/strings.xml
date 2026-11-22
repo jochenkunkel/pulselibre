@@ -896,4 +896,6 @@
     <string name="main_card_scan_match">Same BLE address seen in the scan</string>
     <string name="main_row_match">✓ CIRQA: BLE address matches the Android pairing</string>
     <string name="main_row_service">Service data: %1$s</string>
+    <string name="hv_fit_read_failed">Band history could not be read.</string>
+    <string name="hv_fit_newest">Newest band measurement: %1$s (outside the selected window).</string>
 </resources>

@@ -27,7 +27,9 @@ internal object FitHistoryMapping {
 
 class FitHistoryReader(private val context: Context) {
     /** Result of one window read; [truncated] is true when [FitHistoryMapping.MAX_POINTS] cut the window. */
-    data class Window(val points: List<HistoryPoint>, val available: Boolean, val truncated: Boolean)
+    data class Window(val points: List<HistoryPoint>, val available: Boolean, val truncated: Boolean,
+                      /** Newest FIT heart-rate measurement of any time; explains an empty window (older data or a band clock offset). */
+                      val newest: Instant? = null)
 
     fun read(start: Instant, end: Instant): Window {
         val repository = HistoricalObservationRepository(context)
@@ -42,7 +44,7 @@ class FitHistoryReader(private val context: Context) {
             cursor = page.next ?: break
             if (points.size >= FitHistoryMapping.MAX_POINTS) { truncated = true; break }
         }
-        return Window(points, available(), truncated)
+        return Window(points, available(), truncated, newestMeasuredAt())
     }
 
     /**
@@ -64,6 +66,9 @@ class FitHistoryReader(private val context: Context) {
             arrayOf(FitHistoryMapping.METRIC, limit, FitHistoryMapping.METRIC, limit)
         ).use { if (it.moveToFirst() && !it.isNull(0)) Instant.ofEpochMilli(it.getLong(0)) else null }
     }
+
+    /** Newest FIT heart-rate measurement regardless of the window (also later than "now" if the band clock is ahead). */
+    fun newestMeasuredAt(): Instant? = latestMeasuredAt(Instant.ofEpochMilli(Long.MAX_VALUE / 4))
 
     /** True when any FIT heart-rate observation exists, in an active generation or the legacy table (#477, A6-28). */
     private fun available(): Boolean = CirqaDatabase(context).use { db ->

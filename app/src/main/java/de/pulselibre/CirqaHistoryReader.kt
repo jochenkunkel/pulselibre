@@ -54,11 +54,12 @@ internal object HistoryDataCache {
         try { sync(context, now) } catch (e: Exception) { invalidate(); throw e }
         val start = range.startAt(windowEnd)
         // FIT history (band measurement time) is read separately and kept apart from the reception-time series (#334).
-        val fit = try { FitHistoryReader(context).read(start, windowEnd) } catch (_: Exception) { null }
+        var fitFailed = false
+        val fit = try { FitHistoryReader(context).read(start, windowEnd) } catch (_: Exception) { fitFailed = true; null }
         return HistorySnapshot(range, start, windowEnd,
             pulse.slice(start.toEpochMilli(), windowEnd.toEpochMilli()),
             oxygen.slice(start.toEpochMilli(), windowEnd.toEpochMilli()),
-            fit?.points.orEmpty(), fit?.available ?: false)
+            fit?.points.orEmpty(), fit?.available ?: false, fitFailed, fit?.newest)
     }
 
     private fun sync(context: Context, now: Instant) {
