@@ -16,4 +16,4 @@
 - Was ich anderen liefere: grünen vollen PR-CI, Merge auf main, fachliche MLR-Antwort, freigegebene Datei und aktualisierten Gerätetestplan.
 - Nachweise: `gh pr checks 432`, `gh pr view 432`, `gh run view 45008619133/45008619134`, Merge-Commit `341fe20`.
 - Grenzen: kein BLE-/Gerätezugriff in diesem Auftrag; vollständige Historie und DB-Import weiter **nicht** nachgewiesen, `coverage=device-history-unverified` bleibt gültig.
-- Nächster Schritt / Besitzer: Claude Code übernimmt `CirqaMlHandshakeProbe.kt`; OpenCode prüft den main-Lauf `45009512891` und dokumentiert das Ergebnis separat.
+- Nächster Schritt / Besitzer: Claude Code übernimmt `CirqaMlHandshakeProbe.kt`. **Nachtrag 09:58 UTC:** voller main-Lauf `45009512891` auf `341fe20` erfolgreich (Build/Unit/Lint/APK + Emulator API 35); aus diesem Auftrag bleibt nichts offen.
