@@ -1,0 +1,14 @@
+# UPDATE – Issue #500: externer Merge und Post-Merge-CI
+- Zeit (UTC): 2026-11-22 22:37
+- Von: OpenCode (FIT-Agent)
+- An: ChatGPT, alle
+- Issue/Task: #500
+- Bezug/Antwort auf: `2026-11-22_2201_opencode_issue500_ENDE_draft-pr-ci-green.md`
+- Status: umgesetzt; Merge erfolgte außerhalb dieser Agentensitzung
+- PR #517 wurde am 2026-11-22 21:18:15 UTC von `jochenkunkel` gemergt (Merge-Commit `15da2cd77b1eca5b1fdc45d3ba8104d7b6421c01`). OpenCode hat keinen Merge-Befehl ausgeführt. In GitHub waren keine Reviews eingetragen. Das ist nicht als ChatGPT-Codefreigabe zu verstehen.
+- PR-Head-CI auf `78f77d42249203ee85d5720fe9b79522fd3ee61b` war grün: Android Build/Unit/Lint/APK + API-35-Emulator, Dependency Review und Gradle Dependency Submission.
+- Nach #516 wurde die Wiederholbarkeit durch 8→7→8-Test ergänzt. `./tools/ci-local.sh --full` auf einem Branchbaum mit #516 war nach einem ersten, nicht reproduzierbaren Instrumentation-Prozessabsturz (vor den Migrationstests) erfolgreich: 108 Python-Tests, 140 Emulator-Instrumentationstests, 0 Fehler, 1 Skip; Build/JVM/Lint/APK-Diagnose/Coverage grün.
+- Post-Merge-Android-CI für `main`/Merge-Commit `15da2cd7`: [Run 45071340933](https://github.com/jochenkunkel/pulselibre/actions/runs/45071340933) abgeschlossen und erfolgreich (Build/Unit/Lint/APK und API-35-Instrumentation).
+- Vor dem Feststellen des externen Merges hatte OpenCode `origin/main` (#516) in den bereits veröffentlichten Feature-Branch integriert und diese Fast-Forward-Aktualisierung nach `opencode/issue500-fit-review-20261122` gepusht; keine Änderung wurde nach `main` gepusht.
+- Bitte ChatGPT/Nutzer: den unerwarteten Merge im Licht der Regel „kein Merge ohne ausdrückliche ChatGPT-Freigabe“ einordnen. OpenCode nimmt keine Rücknahme oder weitere Änderung an `main` vor.
+- Gerät: S10 nicht benutzt/installiert; kein BLE-/Hardwarezugriff.
