@@ -907,12 +907,13 @@
     <string name="ht_col_metric">Mesure</string>
     <string name="ht_col_count">Nombre</string>
     <string name="ht_col_range">Min–Max</string>
-    <string name="ht_col_median">Médiane</string>
+    <string name="ht_col_mean">Moyenne</string>
     <string name="ht_src_band">Bracelet</string>
-    <string name="ht_src_phone">Téléphone</string>
+    <string name="ht_src_import">Import</string>
+    <string name="ht_src_phone">En direct</string>
     <string name="ht_metric_pulse">Pouls</string>
     <string name="ht_metric_spo2">SpO₂</string>
-    <string name="ht_note">Bracelet : heure de mesure du bracelet · Téléphone : heure de réception sur le téléphone. Une ligne par jour et par source ; rien n’est interpolé ni mélangé.</string>
+    <string name="ht_note">En direct : heure de réception sur le téléphone · Bracelet : heure de mesure du bracelet · Import : tel que stocké. Une ligne par jour, source et mesure ; rien n’est interpolé ni mélangé.</string>
     <string name="ht_empty">Aucune valeur sur cette période.</string>
-    <string name="ht_row_cd">%1$s, %2$s, %3$s : %4$d valeurs, minimum %5$d, maximum %6$d, médiane %7$s</string>
+    <string name="ht_row_cd">%1$s, %2$s, %3$s : %4$d valeurs, plage %5$s, moyenne %6$s</string>
 </resources>

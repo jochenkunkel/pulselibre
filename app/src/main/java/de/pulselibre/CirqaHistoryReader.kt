@@ -56,10 +56,20 @@ internal object HistoryDataCache {
         // FIT history (band measurement time) is read separately and kept apart from the reception-time series (#334).
         var fitFailed = false
         val fit = try { FitHistoryReader(context).read(start, windowEnd) } catch (_: Exception) { fitFailed = true; null }
+        // One table for live, imported and band data (derived `unified_measurements`, refreshed incrementally).
+        val allData = try {
+            CirqaDatabase(context).use { db ->
+                db.ensureHistoricalStoreCopied()
+                val unified = UnifiedMeasurements(db.writableDatabase)
+                unified.refresh()
+                val offset = java.time.ZoneId.systemDefault().rules.getOffset(windowEnd).totalSeconds * 1000L
+                unified.dailySummary(start.toEpochMilli(), windowEnd.toEpochMilli(), offset)
+            }
+        } catch (_: Exception) { emptyList() }
         return HistorySnapshot(range, start, windowEnd,
             pulse.slice(start.toEpochMilli(), windowEnd.toEpochMilli()),
             oxygen.slice(start.toEpochMilli(), windowEnd.toEpochMilli()),
-            fit?.points.orEmpty(), fit?.available ?: false, fitFailed, fit?.newest)
+            fit?.points.orEmpty(), fit?.available ?: false, fitFailed, fit?.newest, allData)
     }
 
     private fun sync(context: Context, now: Instant) {
