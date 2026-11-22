@@ -17,6 +17,10 @@
 - PR #504 gemergt (`68cb0257`); `main`-FULL CLOUD `45045764522` und AUTO `45045761461` beide `success`, inkl. Emulator API 35. `dependency-review` grün (Scorecard-Hinweis 2.5 < 3 nicht blockierend).
 - Lokal: JVM-Suite 926/926 grün; `btsnoop_summary` 8/8; `git diff --check` grün.
 
+## Abschluss (18:10 UTC nachgetragen)
+
+PR #505 wurde gemergt (`607fe21d`). Volle CI auf dem finalen Branch-Head `58b57207` (`45047514538`) und `main`-FULL (`45048196449`) beide `success`, jeweils inkl. Emulator API 35. Der FIT-Agenten-Auftrag #506 hat die Rohdaten übernommen.
+
 ## Offene Abhängigkeiten / Übergaben
 
 - An FIT-Agenten: Abstimmungsdatei `2026-11-22_1651_ci-agent-an-fit-agent_garmin-sync-passive-mitschrift.md` – keine Gegenmeldung; passive Mitschrift abgeschlossen, keine Geräteüberschneidung beobachtet. Rohdaten jetzt für FIT-Deep-Dive verfügbar.
