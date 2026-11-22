@@ -928,4 +928,6 @@
     <string name="ht_m_speed">Geschwindigkeit (m/s)</string>
     <string name="ht_m_cadence">Kadenz (U/min)</string>
     <string name="ht_m_power">Leistung (W)</string>
+    <string name="main_hist_status_toggle">Technische Details ein- oder ausblenden</string>
+    <string name="ht_invalid">%1$d ungültig (nicht gezählt)</string>
 </resources>

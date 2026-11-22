@@ -928,4 +928,6 @@
     <string name="ht_m_speed">Speed (m/s)</string>
     <string name="ht_m_cadence">Cadence (rpm)</string>
     <string name="ht_m_power">Power (W)</string>
+    <string name="main_hist_status_toggle">Show or hide technical details</string>
+    <string name="ht_invalid">%1$d invalid (not counted)</string>
 </resources>

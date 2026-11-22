@@ -114,4 +114,32 @@ class UnifiedMeasurementsTest {
         assertEquals(3, unified.records(t0, t0 + day).size)
         assertEquals(0, unified.records(t0 + day, t0 + 2 * day).size)
     }
+
+    private fun liveRaw(service: Int, field: String, value: Int, ms: Long) = db.execSQL("INSERT INTO events(kind, payload_json) VALUES('reading', ?)",
+        arrayOf("""{"schema":1,"type":"reading","service":$service,"received_at_utc":"${java.time.Instant.ofEpochMilli(ms)}","$field":$value}"""))
+
+    @Test fun statusCodesAreCountedAsInvalidAndNeverAsMeasurements() {
+        liveRaw(21, "breaths_per_min", 14, t0 + 1000); liveRaw(21, "breaths_per_min", -100, t0 + 2000)
+        liveRaw(21, "breaths_per_min", -200, t0 + 3000); liveRaw(21, "breaths_per_min", -300, t0 + 4000)
+        liveRaw(6, "bpm", 0, t0 + 5000); liveRaw(6, "bpm", 70, t0 + 6000)
+        liveRaw(13, "stress", -1, t0 + 7000); liveRaw(13, "stress", 30, t0 + 8000)
+        val unified = UnifiedMeasurements(db)
+        unified.refresh()
+        val rows = unified.dailySummary(t0, t0 + day, 0).associateBy { it.metric }
+        val breath = rows.getValue("breaths_per_min")
+        assertEquals(1, breath.count); assertEquals(3, breath.invalid)
+        assertEquals(14.0, breath.minimum, 0.0); assertEquals(14.0, breath.maximum, 0.0)
+        val pulse = rows.getValue("bpm")
+        assertEquals(1, pulse.count); assertEquals(1, pulse.invalid); assertEquals(70.0, pulse.minimum, 0.0)
+        val stress = rows.getValue("stress")
+        assertEquals(1, stress.count); assertEquals(1, stress.invalid); assertEquals(30.0, stress.mean, 0.0)
+    }
+
+    @Test fun aRowWithOnlyInvalidValuesHasNoValidCount() {
+        liveRaw(21, "breaths_per_min", -100, t0 + 1000)
+        val unified = UnifiedMeasurements(db)
+        unified.refresh()
+        val row = unified.dailySummary(t0, t0 + day, 0).single()
+        assertEquals(0, row.count); assertEquals(1, row.invalid)
+    }
 }

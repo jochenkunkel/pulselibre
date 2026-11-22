@@ -932,4 +932,8 @@
     <string name="ht_m_speed">Vitesse (m/s)</string>
     <string name="ht_m_cadence">Cadence (tr/min)</string>
     <string name="ht_m_power">Puissance (W)</string>
+    <!-- REVIEW: neuer Text (Gerät: Details), fr/es Sprachprüfung durch ChatGPT -->
+    <string name="main_hist_status_toggle">Afficher ou masquer les détails techniques</string>
+    <!-- REVIEW: neuer Text (ungültige Werte), fr/es Sprachprüfung durch ChatGPT -->
+    <string name="ht_invalid">%1$d invalide(s) (non comptées)</string>
 </resources>

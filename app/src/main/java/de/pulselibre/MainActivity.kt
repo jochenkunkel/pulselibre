@@ -615,6 +615,43 @@ class MainActivity : AppCompatActivity() {
             contentDescription = text.toString()
         }
         historicalSyncStatusView = historicalSyncStatus
+        // The report is a technical diagnostic string: show a short preview, expand on tap (#172: no reverse-engineering wall for normal users).
+        historicalSyncStatus.maxLines = 4
+        historicalSyncStatus.ellipsize = android.text.TextUtils.TruncateAt.END
+        historicalSyncStatus.isClickable = true
+        historicalSyncStatus.isFocusable = true
+        historicalSyncStatus.setOnClickListener {
+            val expanded = historicalSyncStatus.maxLines == Int.MAX_VALUE
+            historicalSyncStatus.maxLines = if (expanded) 4 else Int.MAX_VALUE
+            historicalSyncStatus.ellipsize = if (expanded) android.text.TextUtils.TruncateAt.END else null
+        }
+        androidx.core.view.ViewCompat.setAccessibilityDelegate(historicalSyncStatus, object : androidx.core.view.AccessibilityDelegateCompat() {
+            override fun onInitializeAccessibilityNodeInfo(host: android.view.View, info: androidx.core.view.accessibility.AccessibilityNodeInfoCompat) {
+                super.onInitializeAccessibilityNodeInfo(host, info)
+                info.addAction(androidx.core.view.accessibility.AccessibilityNodeInfoCompat.AccessibilityActionCompat(
+                    androidx.core.view.accessibility.AccessibilityNodeInfoCompat.ACTION_CLICK, getString(R.string.main_hist_status_toggle)))
+            }
+        })
+        // Modern device overview FIRST (connection, battery, facts); the technical download block follows (#159, #172).
+        val deviceOverview = DeviceOverviewView(this)
+        deviceView(deviceOverview, 8)
+        deviceOverviewRef = deviceOverview
+        // #204 phase B: discreet hint for not-yet-decoded FIT fields (only when the stored inventory has entries).
+        val unknownFieldsView = UnknownFieldsView(this)
+        deviceView(unknownFieldsView, 0)
+        fun refreshUnknownFields() {
+            Thread {
+                val summary = try {
+                    CirqaDatabase(applicationContext).use { UnknownFieldsSummary.summarize(Strings.of(this), it.storedFitUnmappedFields()) }
+                } catch (_: Exception) { UnknownFieldsSummary.summarize(Strings.of(this), emptyList()) }
+                runOnUiThread {
+                    if (destroyed) return@runOnUiThread
+                    unknownFieldsView.show(summary)
+                    (unknownFieldsView.layoutParams as? LinearLayout.LayoutParams)?.bottomMargin = if (summary.isEmpty) 0 else dp(8)
+                }
+            }.start()
+        }
+        unknownFieldsView.onStatusChanged = { refreshUnknownFields() }
         deviceView(text(getString(R.string.main_hist_heading), 17f, ink, true), 16)
         deviceView(text(
             getString(R.string.main_hist_info),
@@ -653,26 +690,6 @@ class MainActivity : AppCompatActivity() {
             setPadding(dp(16), dp(16), dp(16), dp(16))
             background = rounded(palette.card)
         }
-        // Modern device overview on top (link hero, facts, reception per source, band metadata placeholders).
-        val deviceOverview = DeviceOverviewView(this)
-        deviceView(deviceOverview, 8)
-        deviceOverviewRef = deviceOverview
-        // #204 phase B: discreet hint for not-yet-decoded FIT fields (only when the stored inventory has entries).
-        val unknownFieldsView = UnknownFieldsView(this)
-        deviceView(unknownFieldsView, 0)
-        fun refreshUnknownFields() {
-            Thread {
-                val summary = try {
-                    CirqaDatabase(applicationContext).use { UnknownFieldsSummary.summarize(Strings.of(this), it.storedFitUnmappedFields()) }
-                } catch (_: Exception) { UnknownFieldsSummary.summarize(Strings.of(this), emptyList()) }
-                runOnUiThread {
-                    if (destroyed) return@runOnUiThread
-                    unknownFieldsView.show(summary)
-                    (unknownFieldsView.layoutParams as? LinearLayout.LayoutParams)?.bottomMargin = if (summary.isEmpty) 0 else dp(8)
-                }
-            }.start()
-        }
-        unknownFieldsView.onStatusChanged = { refreshUnknownFields() }
         debugView(cirqaCard)
         cirqaEvidenceView = text(cirqaScanEvidence.summary(), 13f, muted).apply {
             setPadding(dp(16), dp(12), dp(16), dp(12))
