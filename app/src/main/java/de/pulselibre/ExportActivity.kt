@@ -527,7 +527,7 @@ class ExportActivity : AppCompatActivity() {
      */
     private fun readUnifiedExport(window: ExportWindow): List<RawExportRecord> {
         unreadableRows.set(0)
-        val (legacy, normalized) = CirqaDatabase(this).use { db ->
+        val (legacy, unified, unreadable) = CirqaDatabase(this).use { db ->
             db.ensureHistoricalStoreCopied()
             db.importLegacyReadings()
             val legacyRows = db.legacyLines().mapNotNull { line ->
@@ -548,44 +548,16 @@ class ExportActivity : AppCompatActivity() {
                     )
                 } catch (_: Exception) { unreadableRows.incrementAndGet(); null }
             }
-            legacyRows to db.historicalObservationWindow(window)
+            // Live, imported and band values all come from the one unified table (#514).
+            val table = UnifiedMeasurements(db.writableDatabase)
+            table.refresh()
+            Triple(legacyRows, table.records(window.startInclusiveEpochMillis, window.endExclusiveEpochMillis),
+                table.unreadableLiveEvents())
         }
-        return (legacy + normalized + readCirqaExport(window)).distinctBy {
+        unreadableRows.addAndGet(unreadable.toInt())
+        return (legacy + unified).distinctBy {
             listOf(it.deviceId, it.metric, it.measuredAtEpochMillis.toString(), it.sampleId.orEmpty())
                 .joinToString("\u0000")
-        }
-    }
-
-    private fun readCirqaExport(window: ExportWindow): List<RawExportRecord> {
-        val fields = LiveReadingFields.FIELDS.mapValues { (_, list) -> list.map { it.first to it.second } }
-        return CirqaDatabase(this).use { db ->
-            db.readingLines().flatMapIndexed { index, line ->
-                val item = try { JSONObject(line) } catch (_: Exception) { unreadableRows.incrementAndGet(); return@flatMapIndexed emptyList() }
-                if (item.optInt("schema") != 1 || item.optString("type") != "reading") {
-                    return@flatMapIndexed emptyList()
-                }
-                val received = try {
-                    Instant.parse(item.getString("received_at_utc")).toEpochMilli()
-                } catch (_: Exception) { unreadableRows.incrementAndGet(); return@flatMapIndexed emptyList() }
-                if (received < window.startInclusiveEpochMillis ||
-                    received >= window.endExclusiveEpochMillis) return@flatMapIndexed emptyList()
-                val service = item.optInt("service", -1)
-                fields[service].orEmpty().mapNotNull { (key, unit) ->
-                    if (!item.has(key) || item.isNull(key)) return@mapNotNull null
-                    val number = item.opt(key) as? Number ?: return@mapNotNull null
-                    val value = number.toDouble()
-                    if (!value.isFinite()) return@mapNotNull null
-                    RawExportRecord(
-                        deviceId = "CIRQA",
-                        metric = key,
-                        measuredAtEpochMillis = received,
-                        value = value,
-                        unit = unit,
-                        sampleId = "cirqa-$index-$key",
-                        receivedAtEpochMillis = received
-                    )
-                }
-            }
         }
     }
 

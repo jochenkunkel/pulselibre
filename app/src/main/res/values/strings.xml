@@ -913,4 +913,19 @@
     <string name="ht_note">Live: reception time on the phone · Band: measurement time of the band · Import: as stored. One row per day, source and measure; nothing is interpolated or merged.</string>
     <string name="ht_empty">No values in this period.</string>
     <string name="ht_row_cd">%1$s, %2$s, %3$s: %4$d values, range %5$s, mean %6$s</string>
+    <string name="ht_m_resting">Resting pulse</string>
+    <string name="ht_m_steps">Steps</string>
+    <string name="ht_m_goal">Step goal</string>
+    <string name="ht_m_kcal_total">Calories total (kcal)</string>
+    <string name="ht_m_kcal_active">Calories active (kcal)</string>
+    <string name="ht_m_min_moderate">Moderate minutes</string>
+    <string name="ht_m_min_vigorous">Vigorous minutes</string>
+    <string name="ht_m_rr">RR interval (ms)</string>
+    <string name="ht_m_stress">Stress</string>
+    <string name="ht_m_battery">Body Battery</string>
+    <string name="ht_m_breath">Respiration rate</string>
+    <string name="ht_m_distance">Distance (m)</string>
+    <string name="ht_m_speed">Speed (m/s)</string>
+    <string name="ht_m_cadence">Cadence (rpm)</string>
+    <string name="ht_m_power">Power (W)</string>
 </resources>

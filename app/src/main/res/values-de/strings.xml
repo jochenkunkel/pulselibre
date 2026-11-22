@@ -913,4 +913,19 @@
     <string name="ht_note">Live: Empfangszeit am Telefon · Band: Messzeit des Bandes · Import: wie gespeichert. Eine Zeile je Tag, Quelle und Messgröße; nichts wird interpoliert oder vermischt.</string>
     <string name="ht_empty">Keine Werte in diesem Zeitraum.</string>
     <string name="ht_row_cd">%1$s, %2$s, %3$s: %4$d Werte, Bereich %5$s, Mittel %6$s</string>
+    <string name="ht_m_resting">Ruhepuls</string>
+    <string name="ht_m_steps">Schritte</string>
+    <string name="ht_m_goal">Schrittziel</string>
+    <string name="ht_m_kcal_total">Kalorien gesamt (kcal)</string>
+    <string name="ht_m_kcal_active">Kalorien aktiv (kcal)</string>
+    <string name="ht_m_min_moderate">Minuten moderat</string>
+    <string name="ht_m_min_vigorous">Minuten intensiv</string>
+    <string name="ht_m_rr">RR-Intervall (ms)</string>
+    <string name="ht_m_stress">Stress</string>
+    <string name="ht_m_battery">Body Battery</string>
+    <string name="ht_m_breath">Atemfrequenz</string>
+    <string name="ht_m_distance">Distanz (m)</string>
+    <string name="ht_m_speed">Geschwindigkeit (m/s)</string>
+    <string name="ht_m_cadence">Kadenz (U/min)</string>
+    <string name="ht_m_power">Leistung (W)</string>
 </resources>

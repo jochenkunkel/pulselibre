@@ -31,6 +31,11 @@ object LiveReadingFields {
 
     data class Row(val metric: String, val value: Double, val unit: String, val timeMs: Long, val sampleId: String)
 
+    /** True for a reading whose reception time cannot be parsed (counted as unreadable, A6-8). */
+    fun hasUnreadableTime(item: JSONObject): Boolean =
+        item.optInt("schema") == 1 && item.optString("type") == "reading" &&
+            try { Instant.parse(item.getString("received_at_utc")); false } catch (_: Exception) { true }
+
     /** Pure mapping of one stored reading event to measurement rows; unreadable or foreign items give an empty list. */
     fun rows(eventId: Long, item: JSONObject): List<Row> {
         if (item.optInt("schema") != 1 || item.optString("type") != "reading") return emptyList()
@@ -94,9 +99,11 @@ class UnifiedMeasurements(private val db: SQLiteDatabase) {
     private fun refreshLive() {
         val maxId = scalar("SELECT MAX(id) FROM events")
         var cursor = state("live_event_id")?.toLongOrNull() ?: 0L
+        var unreadable = state("live_unreadable")?.toLongOrNull() ?: 0L
         if (maxId < cursor) { // events were replaced (restore/reset): rebuild this origin
             db.execSQL("DELETE FROM unified_measurements WHERE origin = 'live'")
             cursor = 0L
+            unreadable = 0L
         }
         val insert = db.compileStatement(
             """INSERT OR IGNORE INTO unified_measurements(origin, device_id, metric, measured_at_ms, value, unit, sample_id, received_at_ms)
@@ -109,7 +116,8 @@ class UnifiedMeasurements(private val db: SQLiteDatabase) {
             db.beginTransaction()
             try {
                 for ((id, json) in batch) {
-                    val item = try { JSONObject(json) } catch (_: Exception) { continue }
+                    val item = try { JSONObject(json) } catch (_: Exception) { unreadable++; continue }
+                    if (LiveReadingFields.hasUnreadableTime(item)) { unreadable++; continue }
                     for (row in LiveReadingFields.rows(id, item)) {
                         insert.clearBindings()
                         insert.bindString(1, LiveReadingFields.DEVICE_ID); insert.bindString(2, row.metric)
@@ -120,10 +128,49 @@ class UnifiedMeasurements(private val db: SQLiteDatabase) {
                 }
                 cursor = batch.last().first
                 setState("live_event_id", cursor.toString())
+                setState("live_unreadable", unreadable.toString())
                 db.setTransactionSuccessful()
             } finally { db.endTransaction() }
         }
         if (state("live_event_id")?.toLongOrNull() != cursor) setState("live_event_id", cursor.toString())
+        if (state("live_unreadable")?.toLongOrNull() != unreadable) setState("live_unreadable", unreadable.toString())
+    }
+
+    /** Number of stored live events that could not be read (broken JSON or time); reported by the CSV export (A6-8). */
+    fun unreadableLiveEvents(): Long = state("live_unreadable")?.toLongOrNull() ?: 0L
+
+    /** Values of one origin and metric in [startMs, endMs), oldest first, at most [limit] (null = all). */
+    fun points(origin: MeasurementOrigin, metric: String, startMs: Long, endMs: Long, limit: Int? = null): List<Triple<Long, Double, String>> {
+        val out = ArrayList<Triple<Long, Double, String>>()
+        db.rawQuery(
+            """SELECT measured_at_ms, value, unit FROM unified_measurements
+               WHERE origin = ? AND metric = ? AND measured_at_ms >= ? AND measured_at_ms < ?
+               ORDER BY measured_at_ms, device_id, sample_id""" + (limit?.let { " LIMIT $it" } ?: ""),
+            arrayOf(origin.code, metric, startMs.toString(), endMs.toString())
+        ).use { c -> while (c.moveToNext()) out += Triple(c.getLong(0), c.getDouble(1), c.getString(2)) }
+        return out
+    }
+
+    /** Newest measurement time of one origin and metric not after [notAfterMs], or null. */
+    fun latest(origin: MeasurementOrigin, metric: String, notAfterMs: Long): Long? =
+        db.rawQuery("SELECT MAX(measured_at_ms) FROM unified_measurements WHERE origin = ? AND metric = ? AND measured_at_ms <= ?",
+            arrayOf(origin.code, metric, notAfterMs.toString())).use { if (it.moveToFirst() && !it.isNull(0)) it.getLong(0) else null }
+
+    fun exists(origin: MeasurementOrigin, metric: String): Boolean =
+        db.rawQuery("SELECT 1 FROM unified_measurements WHERE origin = ? AND metric = ? LIMIT 1", arrayOf(origin.code, metric)).use { it.moveToFirst() }
+
+    /** Everything in [startMs, endMs) as export records, oldest first; the single source for the CSV export. */
+    fun records(startMs: Long, endMs: Long): List<RawExportRecord> {
+        val out = ArrayList<RawExportRecord>()
+        db.rawQuery(
+            """SELECT device_id, metric, measured_at_ms, value, unit, sample_id, received_at_ms FROM unified_measurements
+               WHERE measured_at_ms >= ? AND measured_at_ms < ? ORDER BY measured_at_ms, device_id, metric, sample_id""",
+            arrayOf(startMs.toString(), endMs.toString())
+        ).use { c ->
+            while (c.moveToNext()) out += RawExportRecord(c.getString(0), c.getString(1), c.getLong(2), c.getDouble(3),
+                c.getString(4), c.getString(5).ifEmpty { null }, if (c.isNull(6)) null else c.getLong(6))
+        }
+        return out
     }
 
     private fun refreshHistorical() {
