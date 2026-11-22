@@ -101,7 +101,14 @@ Schritts.
   `canonicalSchemaV8DowngradeThenUpgradeKeepsCandidateTableAndRows` und
   `DatabaseBackupTest` enthält den Store-übergreifenden Roundtrip. Der Lauf
   umfasst außerdem Python-/JVM-Tests, Build, Lint, APK-Diagnose und Coverage.
-  Kein physisches Gerät wurde verwendet. Die PR-Head-CI ist noch nicht gelaufen.
+  Kein physisches Gerät wurde verwendet. Anschließend lief PR-Head-CI auf
+  `1b55de5f44fc388b4c03b79061d280ea7bd191df` erfolgreich: Android Build/Unit/
+  Lint/APK und API-35-Emulator-Instrumentation (Run
+  [45068923671](https://github.com/jochenkunkel/pulselibre/actions/runs/45068923671)),
+  Dependency Review ([45068923614](https://github.com/jochenkunkel/pulselibre/actions/runs/45068923614))
+  und Gradle Dependency Submission PR
+  ([45068923608](https://github.com/jochenkunkel/pulselibre/actions/runs/45068923608))
+  erfolgreich; die Main-Submission wurde im PR erwartungsgemäß übersprungen.
 
 ## DB-Umbau #514 und Backup-Abgrenzung
 
