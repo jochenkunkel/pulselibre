@@ -131,6 +131,37 @@ sind aus dem Mitschnitt belegt (siehe oben). Weiterhin fehlen:
 Vollständigkeit offen). Es wurden keine neuen Geräteaktionen unternommen oder
 freigegeben; eine Produktänderung steht beim FIT-Agenten.
 
+## Codepfad-Abgleich: FIT-Bytes → Import (offline, 07:30 UTC)
+
+Ich habe den Importpfad im App-Code nachverfolgt (rein lesend, keine Änderung):
+
+**Vorhandene Kette für unkomprimierte FIT-Bytes:**
+`mlrData` (`CirqaMlHandshakeProbe`, Roh-MLR-Callbacks) →
+`FitFileHeader.inspectVerified` (Header/CRC/Größe) →
+`CirqaVerifiedFitStore.saveVerified` (`filesDir/verified_fit`, hash-benannt, atomar) →
+`FitHistoricalObservations.decode` →
+`CirqaFitBackfill.importVerifiedFile(…, CirqaDatabase)` → SQLite.
+Beim App-Start scannt `MainActivity.scheduleUnknownFitInventoryScan()` denselben
+`verified_fit`-Ordner erneut (idempotent).
+
+**Wichtiger Befund:** Im App-Code gibt es **keinen zlib-/Inflater-Pfad**. Die
+MLR-Callbacks werden unverändert in `mlrData` geschrieben; die Legacy-5002-Requests
+setzen ausdrücklich `compressed = false`. Die acht im Mitschnitt verifizierten
+FIT-Dateien kamen jedoch **zlib-komprimiert** über die MLR-Kanäle. Sie gehören
+damit zum Transport der Garmin-Connect-App, nicht zum unkomprimierten Lesepfad
+von PulsLibre. Der Mitschnitt beweist also die Geräte-/Garmin-Seite, aber
+**nicht**, dass PulsLibre diese Bytes übernommen hat.
+
+**Zweite Lücke:** Der Legacy-Historienpfad speichert verifizierte FIT-Dateien
+unter `filesDir/cirqa_fit_history/session_*`; der Backfill scannt jedoch nur
+`filesDir/verified_fit`. Ein erfolgreicher Legacy-Download würde daher nicht
+automatisch in die Datenbank importiert.
+
+**Einordnung:** `coverage=device-history-unverified` bleibt gültig. Dies ist
+ausschließlich eine Codeanalyse – keine Produktänderung, keine Geräteaktion.
+Tests vorhanden: `CirqaVerifiedFitStoreTest`, `CirqaBoundedLegacyFileTest`;
+ein Ende-zu-Ende-Nachweis „HCI-Bytes → SQLite“ existiert nicht.
+
 ## Erzeugte Analysen (nur privat)
 
 Im Backup unter `analysis/`:
