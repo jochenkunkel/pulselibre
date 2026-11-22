@@ -5,9 +5,10 @@
 Die ursprüngliche Prüfung erfolgte auf `origin/main=3ea315f`. Die dort
 identifizierten Decoder-, Handle- und Response-Parser-Korrekturen wurden
 inzwischen in PR #433 nach `main` gemergt (`6dee48e`). Dieser Folge-PR trägt
-ausschließlich die noch fehlende inkrementelle MLR-Reassemblierung samt
-synthetischen JVM-Regressionstests auf aktuellem `main`. Es fand kein
-BLE-/Gerätezugriff statt.
+die noch fehlende inkrementelle MLR-Reassemblierung und korrigiert zusätzlich
+einen vom Regressionstest entdeckten Parser-Randfall: eine leere, aber gültige
+verschachtelte `sync_response`-Nachricht wird akzeptiert; doppelte
+Response-Arme werden abgelehnt. Es fand kein BLE-/Gerätezugriff statt.
 
 ## Änderungen
 
@@ -22,10 +23,12 @@ BLE-/Gerätezugriff statt.
 2. **MLR-Handle-Routing (bereits in #433):** Der Empfangspfad verwendet
    `GarminMlOffline.inspectDataHandle()` für unmarkierte und markierte
    Datenframes; die Nutzdaten beginnen weiterhin nach dem Routing-Byte.
-3. **Sync-Antwort (bereits in #433):** `syncAccepted` wird nicht mehr bei beliebigen vollständigen
+3. **Sync-Antwort:** `syncAccepted` wird nicht mehr bei beliebigen vollständigen
    5044-Protobufs gesetzt. Der neue Parser verlangt ein kanonisches
    `Smart.core_service.sync_response` (CoreService-Feld 2); erst dann wird die
-   FileAccess-Item-Liste angefordert. Der bekannte CIRQA-Erfolgsbefund enthält
+   FileAccess-Item-Liste angefordert. Eine strukturell gültige leere
+   Unter-Nachricht ist zulässig; doppelte oder malformed Response-Arme werden
+   fail-closed abgelehnt. Der bekannte CIRQA-Erfolgsbefund enthält
    dieses Response-Element, aber keine dokumentierte numerische Status-/Code-
    Definition. Die Änderung erfindet daher keinen Status-Enum. Ein künftiger
    bestätigter Fehlerstatus muss zusätzlich explizit ausgewertet werden.
@@ -34,8 +37,8 @@ BLE-/Gerätezugriff statt.
 
 - Synthetische JVM-Tests decken den unveränderten Raw-Pfad, chunkweise zlib-
   Reassembly mit Zwei-Byte-Präfix, Größenabweichungen, Überlauf und nachlaufende
-  Bytes ab. Handle-Routing und strukturelle `sync_response`-Erkennung wurden in
-  #433 separat getestet.
+  Bytes sowie leere/mehrdeutige/malformed `sync_response`-Strukturen ab.
+  Handle-Routing wurde in #433 separat getestet.
 - Die Tests beweisen die lokale Verarbeitungskette, nicht den Live-Funkpfad.
   Vollständiger Historien-Download, Coverage und Garmin-Connect-Interoperabilität
   bleiben getrennte Geräteevidenz.
