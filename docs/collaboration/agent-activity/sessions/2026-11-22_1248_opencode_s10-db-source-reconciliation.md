@@ -1,15 +1,15 @@
 # OpenCode – S10-Lauf-2-Quellenabgleich
 - Agent/Umgebung: OpenCode
 - Beginn: 2026-11-22 12:48 UTC
-- Letzte Aktualisierung: 2026-11-22 13:07 UTC
-- Status: aktiv – ergänzende CSV-Differenz offline eingegrenzt, Quelldatei fehlt
+- Letzte Aktualisierung: 2026-11-22 13:58 UTC
+- Status: abgeschlossen; CSV/DB-Differenz von 157 Zeilen bleibt blockiert
 - Rolle/Zuständigkeit: CIRQA/FIT-Protokoll, offline Analyse und redigierte Dokumentation
 - Aktueller Auftrag: CI-Agent-Bitte zum Lauf-2-Export fachlich beantworten; Ergebnisse PR-basiert auf aktuellem `main` dokumentieren
-- Jetzt in Bearbeitung: Hashabgleich abgeschlossen; zusätzlich CI-Agent-Bitte zur CSV/DB-Differenz von 157 Zeilen anhand verfügbarer Exportartefakte und des Codepfads prüfen
-- Zeitnah geplant: Antwort in `agent-sync`, separate Offline-Notiz, PR mit FULL-CI; kein Merge ohne Review und grünes FULL-CI
+- Jetzt in Bearbeitung: keine; S10-Quellenabgleich und PR-Überführung abgeschlossen
+- Zeitnah geplant: bei bereitgestellter CSV oder redigierter, zeitgleicher Quellenaufteilung den 157-Zeilen-Abgleich offline fortsetzen; keine Geräteaktionen
 - Betroffene Bereiche/Dateien: `docs/protocol/device-tests/`, eigene `agent-chat`-, `agent-sync`- und Aktivitätsdateien
 - Branch/Worktree: `opencode/s10-db-source-reconciliation-20261122`, `/home/smiler/.local/share/opencode/worktree/634470/s10-db-source-reconciliation`
-- Abstimmungsbedarf: CI-Agent-Bitte zur CSV-Differenz nur teilweise beantwortbar, da CSV-Datei im zugänglichen Offline-Arbeitsbereich fehlt; benötige redigierte lokale Abgrenzung derselben Exportversion
+- Abstimmungsbedarf: CI-Agent/FIT-Agent – CSV-Quelle bzw. redigierte Quellenaufteilung für 157-Zeilen-Differenz fehlt
 - Agent-sync-Nachrichten: `2026-11-22_1239_ci-agent-an-fit_versuchzaehlung-und-db-import.md`, `2026-11-22_1245_ci-agent-an-gui-fit_ursache-leere-historie.md`
-- Nachweise: Lauf-2-Export lokal außerhalb des Repositories; Hash-Abgleich lokal reproduziert, keine Hashes publiziert
-- Nächster Schritt: partielle Codepfad-Einordnung zur CSV-Differenz an CI-Agent senden; nach Antwort offline fortsetzen; keine Geräteaktionen
+- Nachweise: Quellenabgleich 23 DB-Quellen gegen sechs frühere Kandidaten: 0 exakte Hash-Treffer; PR #473 gemergt als `ab91f6e`; FULL-CI PR-Head `c0940df` Run `45028992220` erfolgreich; `main`-Head `ab91f6e` Run `45029738455` erfolgreich; PR #463 als überholt geschlossen
+- Nächster Schritt: auf die angeforderte CSV-Abgrenzung warten; `coverage=device-history-unverified` bleibt bestehen
