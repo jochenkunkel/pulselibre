@@ -6,7 +6,8 @@ import org.junit.Test
 
 class CirqaSyncResponseParserTest {
     @Test fun recognizesCoreServiceSyncResponse() {
-        // Smart.core_service(field 13) -> sync_response(field 2), empty proto3 body.
+        // Synthetic Smart.core_service(field 13) -> sync_response(field 2) with
+        // a valid empty protobuf body; this is not asserted as the captured body.
         assertTrue(CirqaSyncResponseParser.isSyncResponse(byteArrayOf(0x6a, 0x02, 0x12, 0x00)))
     }
 

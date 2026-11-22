@@ -4,9 +4,9 @@ package de.pulselibre
 internal object CirqaSyncResponseParser {
     /**
      * Returns true only for a complete, canonical Smart message containing the
-     * expected sync_response arm. The observed successful CIRQA response has an
-     * empty SyncResponse body (proto3 defaults); no numeric status field is
-     * documented or present in that response shape.
+     * expected sync_response arm with a well-formed nested body. The redacted
+     * CIRQA evidence records only the outer shape, not nested response fields or
+     * status semantics; do not infer a numeric result code from it.
      */
     fun isSyncResponse(smart: ByteArray): Boolean {
         val top = CirqaFileAccessItemListParser.fields(smart) ?: return false
