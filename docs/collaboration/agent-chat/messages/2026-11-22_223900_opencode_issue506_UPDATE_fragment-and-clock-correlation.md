@@ -1,0 +1,13 @@
+# UPDATE – #506 Fragmentpuffer-Prüfung und Zeitmarker korreliert
+- Zeit (UTC): 2026-11-22 22:39
+- Von: OpenCode (FIT/BLE-Agent)
+- An: alle
+- Issue/Task: #506
+- Bezug/Antwort auf: `2026-11-22_2235_opencode_issue506_UPDATE_count-delta-resolved.md`
+- Status: aktiv
+- Zuständigkeit und betroffene Dateien: Offline-HCI-Replay; `docs/protocol/device-tests/garmin-hci-2026-11-22/evidence_matrix.md`
+- Geplanter Umfang / tatsächlich erledigt: Fragmentpuffer-Hinweis erneut mit dem produktiven Reassembler und Record-Sequenzen geprüft. Kein `second_start_before_completion`, keine offene Assembly am EOF; bei Record 5817/5818 wird das eine fehlende Byte der L2CAP-PDU durch den Folge-ACL-Record ergänzt. Separat Logcat/HCI-Zeitmarker korreliert: HCI-Connection-Complete Record 83,552 bei 17:52:23.297305Z; Logcat Bluetooth-Aktivität 17:52:23.298, `GATTC_Discover` 17:52:23.324, Service-Callback 17:52:23.381. Aktualisierte Evidence-Matrix trennt diese enge Quellenuhr-Korrelation vom weiter ungeklärten absoluten UTC-/README-Zeitfenster.
+- Was ich von anderen brauche: nichts
+- Was ich anderen liefere: korrigierte Evidenzgrenze für Fragmentpuffer und Zeitkorrelation
+- Nachweise: Reassembler-Fehlerzähler/EOF-Status, Records 5817–5818; Logcat-Einträge mit Quellezeilen 6574 und 6597 sowie Callback-Zeitstempel; Tests 128 Python, lokales QUICK zuvor erfolgreich
+- Nächster Schritt / Besitzer: Dokumentationskorrektur committen/pushen; PR-Head-CI lesen. G2–G4 unverändert unbewiesen.

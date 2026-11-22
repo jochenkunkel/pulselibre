@@ -13,7 +13,7 @@ The Bluetooth Core 5.4 HCI specification defines `Connection_Handle` range
 | ID | Claim | Evidence / record range | Status | Limits / counterevidence |
 |---|---|---|---|---|
 | E1 | The full btsnoop file is parseable as H4/datalink 1002 | 85,154 records; source SHA in `capture_summary.json` | Observed | 49 ACL records on reserved HCI handle `0xFF1` are excluded before L2CAP parsing; they are controller-to-host and have declared L2CAP lengths shorter than their ACL bodies. One-based record ranges by CID: 0x0001 `1031–1035`; 0x0002 `16859–16863`; 0x0003 `16864–16865, 16867–16869`; 0x0004 `17427–17431`; 0x0005 `17432–17434, 17436–17437`; 0x0006 `49277–49281`; 0x0007 `49282–49286`; 0x0008 `49298–49302`; 0x0009 `49303–49304, 49306–49308`; 0x000A `49319–49320`; 0x000B `49321–49322`. |
-| E2 | ATT traffic is reconstructable across ACL fragmentation | This parser: 42,970 length-consistent L2CAP PDUs; 42,794 ATT PDUs; 23 epochs with ATT | Observed; count delta explained | Independent analysis reports 43,019 L2CAP / 42,799 ATT. Record-level reconciliation found the exact difference: all 49 additional records use invalid/reserved HCI handle `0xFF1`; 5 have CID 0x0004 (one-based records 17,427–17,431), and the remaining 44 have non-ATT CIDs. The invalid handle is not associated with an LE connection, so those five are not accepted as ATT evidence here. The independent report's separate “one overwritten fragment buffer” was not reproduced: this parser saw no second-start collision and no incomplete assembly at EOF; the precise method behind that finding remains unresolved. |
+| E2 | ATT traffic is reconstructable across ACL fragmentation | This parser: 42,970 length-consistent L2CAP PDUs; 42,794 ATT PDUs; 23 epochs with ATT | Observed; count delta explained | Independent analysis reports 43,019 L2CAP / 42,799 ATT. Record-level reconciliation found the exact difference: all 49 additional records use invalid/reserved HCI handle `0xFF1`; 5 have CID 0x0004 (one-based records 17,427–17,431), and the remaining 44 have non-ATT CIDs. The invalid handle is not associated with an LE connection, so those five are not accepted as ATT evidence here. The independent report's separate “one overwritten fragment buffer” was not reproduced: parser error counters show no `second_start_before_completion`, and there are zero incomplete assemblies at EOF. A record-level check also found no second-start collision when keyed by handle/direction; the independent method remains unavailable for comparison. |
 | E3 | HCI direction is consistent with ATT request/response patterns | All 6,267 `0x52` Write Commands are host-to-controller; 35,465 Notifications are controller-to-host | Derived from btsnoop flag bit 0 | No controller manufacturer/device identity is inferred from HCI handle alone |
 | E4 | Connection reuse is separated | 25 successful LE connection epochs; handles are scoped to epoch | Observed | This export uses one-based btsnoop record numbers; the independent analysis appears zero-based (e.g. this parser's connection record 83,552 vs its 83,551). One active epoch remains at EOF. |
 | E5 | Garmin ML GATT namespace was discovered | 106 service-range responses and 84 characteristic declarations across connection epochs | Observed GATT UUIDs | 80 overlapping service-range associations are ambiguous; ambiguous service attribution is withheld |
@@ -27,11 +27,15 @@ The Bluetooth Core 5.4 HCI specification defines `Connection_Handle` range
 The first/last converted btsnoop timestamps are
 `2026-11-21T22:52:55.442731Z` and `2026-11-22T17:53:51.235996Z`.
 The logcat threadtime strings span `11-22 17:50:17.413`–`17:53:04.435`
-without a timezone. The raw converted HCI time appears to align with local
-threadtime, while the source README describes a 16:50–16:53 UTC sync window.
-This is an approximately one-hour offset disagreement. The synchronized
-connection near records 83,552–84,877 is therefore reported using source-clock
-conversions only; absolute UTC and exact window boundaries remain unresolved.
+without a timezone. At the connection start, btsnoop record 83,552 converts to
+`17:52:23.297305Z`; logcat lines at `17:52:23.298` contain Bluetooth-stack
+connection activity, followed by `GATTC_Discover` at `17:52:23.324` and the
+service-discovery callback at `17:52:23.381`. This is a close numeric
+cross-source correlation (about 1–84 ms at these markers), not an independent
+timezone/UTC validation. It differs from the README's 16:50–16:53 UTC window;
+the reason for that discrepancy and absolute UTC attribution remain
+unresolved. Keep source-clock values and confidence labels; do not apply an
+assumed offset.
 
 ## Independent tooling
 

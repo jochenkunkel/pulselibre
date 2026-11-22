@@ -1,15 +1,15 @@
 # OpenCode – Issue #506 L2CAP count reconciliation
 - Agent/Umgebung: OpenCode, Linux worktree
 - Beginn: 2026-11-22 22:28 UTC
-- Letzte Aktualisierung: 2026-11-22 22:35 UTC
+- Letzte Aktualisierung: 2026-11-22 22:39 UTC
 - Status: aktiv
 - Rolle/Zuständigkeit: BLE/FIT Offline-Analyse
 - Aktueller Auftrag: #506 – unabhängig die 49-L2CAP-/5-ATT-Differenz gegen den gespeicherten HCI-Capture auswerten und Parser/Evidenzbericht nur anhand der Resultate korrigieren.
-- Jetzt in Bearbeitung: #506 Record-level Reconciliation und Validierung von HCI ACL Handles.
+- Jetzt in Bearbeitung: #506 unabhängige Fragmentpuffer-Abweichung und Zeitmarker-Korrelation abschließen; PR-Head-CI lesen.
 - Zeitnah geplant: keine.
 - Betroffene Bereiche/Dateien: `tools/garmin_hci_replay.py`, `tools/test_garmin_hci_replay.py`, `docs/protocol/device-tests/garmin-hci-2026-11-22/`, diese Aktivitätssitzung.
 - Branch/Worktree: `opencode/issue506-garmin-fit-20261122`, `/tmp/opencode/pulselibre-issue506`
 - Abstimmungsbedarf: keiner; Nutzer hat ausdrücklich selbstständige Fortsetzung angestoßen.
 - Agent-sync-Nachrichten: keine neue Anfrage; START unter `docs/collaboration/agent-chat/messages/2026-11-22_2228_opencode_issue506_START_reconcile-invalid-acl-counts.md`
-- Nachweise: 49/5 Differenz exakt auf `0xFF1` (unzulässiger HCI Connection_Handle; Core 5.4 erlaubt 0x0000–0x0EFF) zurückgeführt; 5 CID-0x0004 Kandidaten Records 17,427–17,431. Parser verwirft ungültige Handles, synthetic regression vorhanden. 128 Python-Tests und lokales QUICK erfolgreich; Redaktionsscan 43.200 Events ohne Befund.
-- Nächster Schritt: noch ausstehende detaillierte Prüfung des einzelnen unabhängigen Fragmentpuffer-Overwrite-Hinweises; danach Push/PR-CI und Evidence-Übergabe. G2–G4 bleiben blockiert.
+- Nachweise: 49/5 Differenz exakt auf `0xFF1` (unzulässiger HCI Connection_Handle; Core 5.4 erlaubt 0x0000–0x0EFF) zurückgeführt; 5 CID-0x0004 Kandidaten Records 17,427–17,431. Parser verwirft ungültige Handles, synthetic regression vorhanden. 128 Python-Tests und lokales QUICK erfolgreich; Redaktionsscan 43.200 Events ohne Befund. Fragmentprüfung: 0 `second_start_before_completion`, 0 Assemblies am EOF; record 5817 plus 5818 ergibt vollständige PDU. Zeitmarker: HCI Record 83,552 17:52:23.297305Z, Logcat Bluetooth 17:52:23.298, Discovery 17:52:23.324 und Callback 17:52:23.381; Absolute UTC weiterhin nicht unabhängig validiert.
+- Nächster Schritt: Evidence-Matrix-Zeitqualifizierung mit konkreten Markern aktualisieren, Folgecommit pushen und PR-CI lesen. G2–G4 bleiben unbewiesen.
