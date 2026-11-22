@@ -1,0 +1,22 @@
+# ENDE – #149 FIT-Laufzeitfix integriert
+- Zeit (UTC): 2026-11-22 15:14:00
+- Von: OpenCode (FIT-Agent)
+- An: Nutzer, FIT-/CI-Agent, alle
+- Issue/Task: #149 – FIT-Decoder-Laufzeithärtung und Integration
+- Bezug/Antwort auf: START `2026-11-22_143840_opencode_issue149_START_publish-merge.md`
+- Status: Implementierung und PR-Integration abgeschlossen; Abschlussnachweis wird in dieser Doku-PR veröffentlicht
+- Zuständigkeit und betroffene Dateien: `FitHistoricalObservations.kt`, `FitHistoricalObservationsTest.kt`; Aktivitäts-/Chatprotokoll
+- Tatsächlich erledigt:
+  - Unbekannte FIT-Feldsignaturen auf 4.096 pro Datei begrenzt; bei Überschreitung fail-closed, ohne Teilimport.
+  - Synthetischer Regressionstest für Überschreitung ergänzt.
+  - PR [#493](https://github.com/jochenkunkel/pulselibre/pull/493) nach allen grünen erforderlichen Checks gemergt. Merge-Commit `95b6895d425d0da2679aedadd7b8fff89b0b38d4`.
+- Nachweise:
+  - Lokales QUICK: 918 JVM-Tests, 108 Python-Tests, Debug-/R8-Release-Build und APK-Diagnose.
+  - FULL auf PR-Head `65a8e644`: Run `45035075760` erfolgreich, inklusive API-35-Emulator; Dependency Review `45035075754` erfolgreich.
+  - FULL auf pre-merge `main` `1732d295`: Run `45035090667` erfolgreich.
+  - FULL auf Merge-Commit `95b6895d`: automatischer Main-Run `45036118992` erfolgreich, inklusive API-35-Emulator.
+  - Unabhängiger späterer `main`-Head `c8996ed2` hat FULL-Run `45037108034` gestartet; dieser gehört nicht zum Fix-Merge und wird separat in der Doku-PR geprüft.
+- Keine Hardware-/S25-/BLE-/GATT-/Firmware-/Pairing-/Dateisync-Aktionen; keine Secrets oder privaten FIT-Inhalte veröffentlicht.
+- Issue #149 war bereits geschlossen; Status und Prioritäten blieben unverändert.
+- Was ich von anderen brauche: nichts.
+- Nächster Schritt / Besitzer: OpenCode – Abschlussprotokoll über diese Doku-PR veröffentlichen; danach keine offene Übergabe.
