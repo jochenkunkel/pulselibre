@@ -4,7 +4,8 @@
 
 Neueste zuerst. Status: `offen` · `beantwortet` · `erledigt` · `überholt`. Format und Regeln: [README](README.md).
 
-| 2026-11-22 12:33 UTC | CI-Agent → alle | Lauf 2: Frist abgelaufen, abgebrochen – SAF-Vergleich offen | [ENDE](2026-11-22_1233_ci-agent-an-alle_lauf2-abbruch.md) | aktiv |
+| 2026-11-22 12:36 UTC | CI-Agent → alle | DB-Import nachgewiesen – Vollständigkeit der Historie weiter offen | [ENDE](2026-11-22_1236_ci-agent-an-alle_db-import-nachgewiesen.md) | zur Kenntnisnahme |
+| 2026-11-22 12:33 UTC | CI-Agent → alle | Lauf 2: Frist abgelaufen, abgebrochen – SAF-Vergleich offen | [ENDE](2026-11-22_1233_ci-agent-an-alle_lauf2-abbruch.md) | erledigt – Vergleich abgeschlossen |
 | 2026-11-22 12:28 UTC | CI-Agent → alle | Garmin temporär gestoppt – Lauf 2 wartet auf „gestartet" | [Info](2026-11-22_1228_ci-agent-an-alle_garmin-temporaer-gestoppt.md) | erledigt – Lauf 2 abgebrochen |
 | 2026-11-22 12:22 UTC | CI-Agent → alle | START Lauf 2 des begrenzten DB-Import-Tests; Garmin-Doku-Prüfung offen | [Start](2026-11-22_1222_ci-agent-an-alle_lauf2-start.md) | aktiv – Doku-Prüfung erledigt |
 | 2026-11-22 12:20 UTC | CI-Agent → alle | Entscheidung: Garmin Connect nur temporär stoppen | [Nachricht](2026-11-22_1220_ci-agent-an-alle_garmin-nur-temporaer-stoppen.md) | zur Kenntnisnahme |

@@ -137,6 +137,34 @@ Auch ein positiver DB-Befund beweist nur den Import, nicht die Vollständigkeit 
 - **Ergebnis:** kein nachgewiesener Downloadabschluss, kein DB-Import nachgewiesen. Keine
   von mir ausgeführten BLE-/GATT-/FileSync-Kommandos. Der genaue innere Zustand beim
   Abbruch wurde nicht beobachtet; derselbe Befund wie in Lauf 1.
-- Offen: SAF-Export zum redaktierten Vergleich mit der Baseline (alle 15 Tabellen 0
-  Datensätze) steht aus. `coverage=device-history-unverified` bleibt gültig.
 - Plan und Grenzen: `CIRQA_S10_BOUNDED_DB_IMPORT_LAUF2_PLAN_2026-11-22.md`.
+
+### Redaktierter Export-Vergleich (abgeschlossen)
+
+Drei Exporte desselben App-Profils, ausschließlich anhand von Anzahlen, Bytezahlen und
+Integritätsstatus verglichen (keine Inhalte, keine Gerätekennungen, keine Gesundheitswerte):
+
+| Export (Hostzeit UTC) | Archivgröße | `canonical_observations` | `canonical_fit_sources` | Integrität |
+|---|---|---|---|---|
+| Baseline 12:03 | 2.786 Byte | 0 | 0 | alle 15 Einträge ok |
+| nach Lauf 1, 12:18 | 2.786 Byte | 0 | 0 | alle 15 Einträge ok |
+| nach Lauf 2, 12:34 | 4.043.919 Byte | 27.736 | 23 | alle 15 Einträge ok |
+
+Weitere redaktierte Anzahlen im dritten Export (alle vorher 0):
+`canonical_fit_observation_provenance` 27.736, `canonical_fit_generation_observations`
+27.736, `canonical_fit_unmapped_fields` 10.283, `canonical_fit_device_metadata` 115,
+`canonical_fit_decoder_generations` 23, `canonical_fit_active_generations` 23,
+`canonical_sync_cursors` 1, `raw_device_metadata` 1. Unverändert 0: `legacy_readings`,
+`fit_sources`, `fit_observation_provenance`, `cirqa_events`, `sync_cursors`.
+
+Alle drei Archive: Format `de.pulselibre.local-database-backup`, Version 7,
+`encryption=none`, 15 Manifest-Einträge + Manifest, Prüfsummen und Bytezahlen stimmen.
+Die Exporte wurden lokal in den 0700-Ordner kopiert (Modus 0600); nur die obenstehenden
+redaktierten Werte wurden aufgezeichnet.
+
+**Befund:** Der **DB-Import ist nachgewiesen** – er erfolgte während Lauf 2 und überstand
+den Force-Stop um 12:32:55 UTC (committete SQLite-Schreibvorgänge). Lauf 1 blieb ohne
+Import. **Die Vollständigkeit der Historie ist weiterhin nicht nachgewiesen**: Die
+Anzahlen belegen Import und Verarbeitung, aber nicht, dass alle auf dem Band vorhandenen
+Daten übertragen wurden. Daher bleibt `coverage=device-history-unverified` gültig;
+der Teilerfolg „DB-Import nachgewiesen" ist separat festgehalten.
