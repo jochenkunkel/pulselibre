@@ -95,10 +95,20 @@ die Kandidaten vollständig. Unabhängige Verifikation (nur Metadaten):
 - Zeitpunkte der direkten ATT-Funde: 1554.312 s / 1561.603 s / 2875.468 s,
   alle Direction 0.
 
+**Korrektur des FIT-Agenten (07:22, `agent-sync/…_0722_fit-an-ci_s10-candidate-scope.md`):**
+Die drei direkten Funde liegen in **Direction 0 (App→Band)** und in früheren
+Verbindungsfenstern; CRC-validiertes FIT in dieser Richtung ist **allein kein
+Download-Nachweis**. Die sechs Kandidaten des FIT-Agenten stammen aus dem
+letzten Fenster, **Direction 1 (Band→App)**, mit Pull-UID→Listen-UID-Zuordnung.
+Die Zahlen „8" und „6" sind daher widerspruchsfrei und **nicht addierbar**.
+Profile 21216/21220 sind FIT-Header-Metadaten, kein Beleg vollständiger
+Feld-/Decoderunterstützung.
+
 **Damit ist die Byte-Ebene der Kette belegt:**
 `ItemReference → 5043 → 5044 → zlib → FIT-Bytes → Header-/Data-CRC → Größe`.
-Offen bleiben der **DB-Import-Nachweis** (keine App-Datenbank im Bugreport) und
-die **Vollständigkeit** über alle historischen Dateien.
+Richtungsabhängig gilt nur Direction 1 als Download-Indiz. Offen bleiben der
+**DB-Import-Nachweis** (keine App-Datenbank im Bugreport) und die
+**Vollständigkeit** über alle historischen Dateien.
 
 ## Suche nach FIT-Bytes und Dateiintegrität
 
@@ -130,6 +140,40 @@ sind aus dem Mitschnitt belegt (siehe oben). Weiterhin fehlen:
 `coverage=device-history-unverified` bleibt daher unverändert gültig (Import und
 Vollständigkeit offen). Es wurden keine neuen Geräteaktionen unternommen oder
 freigegeben; eine Produktänderung steht beim FIT-Agenten.
+
+## Codepfad-Abgleich: FIT-Bytes → Import (offline, 07:30 UTC)
+
+Ich habe den Importpfad im App-Code nachverfolgt (rein lesend, keine Änderung):
+
+**Vorhandene Kette für unkomprimierte FIT-Bytes:**
+`mlrData` (`CirqaMlHandshakeProbe`, Roh-MLR-Callbacks) →
+`FitFileHeader.inspectVerified` (Header/CRC/Größe) →
+`CirqaVerifiedFitStore.saveVerified` (`filesDir/verified_fit`, hash-benannt, atomar) →
+`FitHistoricalObservations.decode` →
+`CirqaFitBackfill.importVerifiedFile(…, CirqaDatabase)` → SQLite.
+Beim App-Start scannt `MainActivity.scheduleUnknownFitInventoryScan()` denselben
+`verified_fit`-Ordner erneut (idempotent).
+
+**Wichtiger Befund:** Der Produktpfad schreibt die MLR-Callbacks unverändert in
+`mlrData`; die Legacy-5002-Requests setzen ausdrücklich `compressed = false`.
+Die im Mitschnitt verifizierten FIT-Dateien kamen jedoch **zlib-komprimiert**
+über die MLR-Kanäle. Sie gehören damit zum Transport der Garmin-Connect-App,
+nicht zum unkomprimierten Lesepfad von PulsLibre. Der Mitschnitt beweist also
+die Geräte-/Garmin-Seite, aber **nicht**, dass PulsLibre diese Bytes übernommen
+hat. PR #416 ergänzt zwar einen begrenzten `CirqaZlibFileDecoder` (Inflater mit
+Größenlimit), dieser ist jedoch **noch nicht in den Importpfad verdrahtet**
+(Bestätigung FIT-Agent 07:22).
+
+**Zweite Lücke:** Der Legacy-Historienpfad speichert verifizierte FIT-Dateien
+unter `filesDir/cirqa_fit_history/session_*`; der Backfill scannt jedoch nur
+`filesDir/verified_fit`. Ein erfolgreicher Legacy-Download würde daher nicht
+automatisch in die Datenbank importiert.
+
+**Einordnung:** `coverage=device-history-unverified` bleibt gültig. Dies ist
+ausschließlich eine Codeanalyse – keine Produktänderung, keine Geräteaktion.
+Tests vorhanden: `CirqaVerifiedFitStoreTest`, `CirqaFitBackfillTest`,
+`CirqaZlibFileDecoderTest`, `CirqaBoundedLegacyFileTest`; ein Ende-zu-Ende-
+Nachweis „HCI-Bytes → SQLite“ existiert nicht.
 
 ## Erzeugte Analysen (nur privat)
 
