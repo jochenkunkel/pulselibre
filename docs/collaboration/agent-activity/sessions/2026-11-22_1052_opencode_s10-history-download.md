@@ -1,15 +1,15 @@
 # OpenCode – S10 begrenzter Historien-Download
 - Agent/Umgebung: OpenCode
 - Beginn: 2026-11-22 10:52 UTC
-- Letzte Aktualisierung: 2026-11-22 11:29 UTC
+- Letzte Aktualisierung: 2026-11-22 11:45 UTC
 - Status: aktiv – Gerät wartet auf manuelles Entsperren, Offline-Codepfad-Audit läuft
 - Rolle/Zuständigkeit: BLE/GFDI/FIT/Protokoll; S10 bounded live validation per explicit user authorization
 - Aktueller Auftrag: vollständigen Download aller verfügbaren CIRQA-Armbanddaten vorbereiten und höchstens einen eng begrenzten bestehenden UI-Historien-Download auswerten
-- Jetzt in Bearbeitung: Offline-Audit der Item-List → Pull → MLR → VerifiedRawFileStore → Import-Kette; Geräteteil wartet auf Nutzer, der S10 entsperrt
+- Jetzt in Bearbeitung: Offline-Audit der Item-List → Pull → MLR → VerifiedRawFileStore → Import-Kette abgeschlossen; Geräteteil wartet auf Nutzer, der S10 entsperrt
 - Zeitnah geplant: Fresh Install Build 1795, danach read-only Export-Baseline; ein vorhandener UI-Historien-Download ≤5 min/no retry/new commands, Export und Vergleich; keine Band-Schreibaktion/Reset/Entkoppeln/CLOSE_ALL/Instrumentation. Kein In-place-/Datenerhaltsvergleich möglich.
 - Betroffene Bereiche/Dateien: S10, private local export/backup, redacted test report
 - Branch/Worktree: `opencode/cirqa-history-completeness-20261122`, `/tmp/opencode/cirqa-history-completeness-20261122`
 - Abstimmungsbedarf: Nutzer entsperrt S10 selbst und meldet Bereitschaft; keine Umgehung der Sperre
 - Agent-sync-Nachrichten: `2026-11-22_105200_opencode_START_s10-history-download.md`, `2026-11-22_105300_opencode_BLOCKIERT_s10-app-missing.md`, `2026-11-22_105500_opencode_UPDATE_fresh-install-authorized.md`, `2026-11-22_105700_opencode_BLOCKIERT_s10-lockscreen.md`
-- Nachweise: post-merge FULL-CI `45009512891` erfolgreich auf `341fe20`; signiertes APK `2.0.0_build1795` installiert und signer digest mit Artefakt identisch; Gerät als `SM-G970F` erkannt; kein Export/Sync, keine Bandaktion
-- Nächster Schritt: code-only Lückenprüfung, danach beim Nutzerhinweis nur Export-Baseline und maximal einen genehmigten UI-Downloadversuch fortsetzen
+- Nachweise: Offline-Audit dokumentiert in `docs/protocol/device-tests/CIRQA_S10_DOWNLOAD_PIPELINE_AUDIT_2026-11-22.md`; post-merge FULL-CI `45009512891` auf `341fe20`; Build 1795 installiert und Signatur geprüft; kein Export/Sync, keine Bandaktion
+- Nächster Schritt: beim Nutzerhinweis nur Fresh-Install-Baseline und maximal einen genehmigten UI-Downloadversuch fortsetzen; Ergebnis getrennt von Vollständigkeit bewerten
