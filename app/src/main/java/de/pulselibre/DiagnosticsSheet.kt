@@ -70,6 +70,12 @@ internal object DiagnosticsSheet {
             minimumHeight = dp(48); gravity = Gravity.CENTER_VERTICAL
         }
         content.addView(advanced)
+        val sciencePreview = text("Dashboard-Vorschau (synthetische Testdaten)", 14f, palette.accent, true).apply {
+            setPadding(dp(12), dp(8), dp(12), dp(8)); isClickable = true; isFocusable = true; tag = "diagnostics_science_preview"
+            minimumHeight = dp(48); gravity = Gravity.CENTER_VERTICAL
+            setOnClickListener { ScienceDashboardPreview.show(activity) }
+        }
+        content.addView(sciencePreview)
 
         val maxScroll = (activity.resources.displayMetrics.heightPixels * 0.8f).toInt()
         val scroll = object : ScrollView(activity) {
