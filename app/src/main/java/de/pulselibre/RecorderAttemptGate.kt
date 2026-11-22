@@ -51,3 +51,24 @@ internal object RecorderBackoff {
     fun delayMs(attemptNumber: Int): Long =
         (BASE_MS shl (attemptNumber - 1).coerceIn(0, 5)).coerceAtMost(MAX_MS)
 }
+
+/**
+ * What the continuous recorder does when the phone's Bluetooth adapter changes state (audit #6 A6-2, issue #3).
+ * When Bluetooth is switched off the framework closes our GATT client silently: no disconnect callback arrives, so
+ * without this the attempt would hang forever and the service would never reconnect after Bluetooth comes back.
+ */
+internal object RecorderBluetoothPolicy {
+    enum class Action { NONE, ABANDON_ATTEMPT, RESTART_ATTEMPT }
+
+    // android.bluetooth.BluetoothAdapter.STATE_* (kept as literals so the policy stays a plain JVM function)
+    const val STATE_OFF = 10
+    const val STATE_TURNING_ON = 11
+    const val STATE_ON = 12
+    const val STATE_TURNING_OFF = 13
+
+    fun actionFor(state: Int): Action = when (state) {
+        STATE_OFF, STATE_TURNING_OFF -> Action.ABANDON_ATTEMPT
+        STATE_ON -> Action.RESTART_ATTEMPT
+        else -> Action.NONE
+    }
+}
