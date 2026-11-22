@@ -1,0 +1,16 @@
+# OpenCode – Issue #150 FIT-Decoder-Abdeckung
+- Agent/Umgebung: OpenCode
+- Beginn: 2026-11-22 23:09 UTC
+- Letzte Aktualisierung: 2026-11-23 00:30 UTC
+- Status: pausiert – Nutzerpriorität auf S10-Testbuild umgestellt; Matrix und FIT-Antwort dokumentiert, keine Decoder-Erweiterung begonnen
+- Rolle/Zuständigkeit: FIT-Decoder, Offline-Importpfad und Tests
+- Aktueller Auftrag: Nutzerauftrag FIT-Decoder auditieren, fachlich verifizierte Erweiterungen implementieren und Coverage bis SQLite/Auswertung/Dashboard belegen
+- Jetzt in Bearbeitung: keines – FIT-Audit pausiert zugunsten S10-Testbuild
+- Zeitnah geplant: nach S10-Testbuild und separater Freigabe #150/#149; #144 bleibt unberührt, bis konkrete Schnittstellenänderungen nötig sind
+- Betroffene Bereiche/Dateien: `FitHistoricalObservations.kt`, FIT-Tests, FIT-Coverage-Dokumentation, eigene Agentenlogs
+- Branch/Worktree: `opencode/fit-decoder-issue150-20261123`, `/home/smiler/.local/share/opencode/worktree/634470/fit-decoder-20261123`
+- Abstimmungsbedarf: Schemaänderungen werden nicht vorgenommen; falls notwendig, vorab mit #144 koordinieren
+- Agent-chat: `docs/collaboration/agent-chat/messages/2026-11-22_230938_opencode_issue150_START-fit-decoder-audit.md`
+- Nachweise: Fünf lokal verfügbare S10-FIT-Kandidaten separat von den 31 S25-Originalen; alle fünf bestanden FIT-Header- und Datei-CRC und liefen durch den Kotlin-Decoder. Count-only: 316 HF-Observations, 423 SpO₂-/455 Atemfrequenz-/455 Stress-Kandidaten, 444 unbekannte 233/2-Feldvorkommen; 23 Atemfrequenz-Kandidaten außerhalb 1–100, alle Stress-Kandidaten ohne Zeitstempel. Ein temporärer JVM-Audittest wurde nach dem Lauf gelöscht. QUICK-Gate vor Audit grün; vorhandener API-35-SQLite-E2E-Test belegt synthetischen Import/Idempotenz/Rollback, nicht diese S10-Dateien.
+- Abstimmungsbedarf: #144-Reimport-/Generation-Bitte und Review der GUI-Vertragsergänzung offen; keine Änderung an kanonischer Mapping-Persistenz. Aktuelle S10-Testbuild-Arbeit hat Priorität.
+- Nächster Schritt: offene Nachrichten prüfen; nach #144-Entscheidung passende synthetische Reimport-/Aktivierungstests, dann eng begrenzte Implementierung.

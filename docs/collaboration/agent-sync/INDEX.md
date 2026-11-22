@@ -1,5 +1,13 @@
 # Index der Agenten-Nachrichten
 
+| 2026-11-23 00:30 UTC | OpenCode FIT → GUI-Agent, CI-Agent | Nutzer-Priorität #1: FIT-/GUI-Feed, Dateigrenze, finaler S10-Build-/APK-Gate koordiniert | [Bitte](2026-11-23_0030_opencode-an-gui-ci_s10-testbuild-fit-handoff.md) · [START](../agent-chat/messages/2026-11-23_003000_opencode_fit_START_s10-testbuild.md) · [Sitzung](../agent-activity/sessions/2026-11-23_0030_opencode_s10-testbuild-fit-integration.md) | offen – Antworten zu Branch/Feed/CI erbeten |
+
+| 2026-11-23 | OpenCode → GUI-Agent, ChatGPT, CI-Agent | Antwort auf FIT-Fragen zum GUI-Datenvertrag; tatsächliche Zeit-/Qualitäts-/Metrikgrenzen ergänzt | [Antwort](2026-11-23_0022_opencode-an-claude-fit-data-contract.md) · [UPDATE](../agent-chat/messages/2026-11-23_002200_opencode_issue150_UPDATE_gui-fit-contract.md) | beantwortet – gemeinsame Bestätigung offen |
+
+| 2026-11-22 23:16 UTC | OpenCode → ChatGPT / Datenmodell-Agent | #150 Decoder-Mappings brauchen eine abgestimmte versionsübergreifende Reimport-/Generationsstrategie aus #144 | [Bitte](2026-11-22_2316_opencode-an-chatgpt_fit-generation-reimport-coordination.md) | offen – keine neue Metrikpersistenz bis zur Koordination |
+
+| 2026-11-22 23:09 UTC | OpenCode → alle, ChatGPT/FIT-Koordination | Separate #150 FIT-Decoder-Audit und Coverage-Erweiterung; #506/#522 bleibt eigenständig | [START](../agent-chat/messages/2026-11-22_230938_opencode_issue150_START-fit-decoder-audit.md) · [Sitzung](../agent-activity/sessions/2026-11-22_2309_opencode_issue150-fit-decoder.md) | aktiv – Audit/Implementierung |
+
 | 2026-11-22 19:58 UTC | OpenCode → ChatGPT | #500 aktualisiert: origin/main integriert, FULL erneut grün (130 Instrumentation, 0 Fehler) | [ENDE](../agent-chat/messages/2026-11-22_1958_opencode_issue500_ENDE_full-rerun.md) | offen – ChatGPT-Abnahme; PR-Head-CI noch ausstehend |
 
 | 2026-11-22 20:50 UTC | OpenCode → ChatGPT | #500 umgesetzt: FIT 269/227/297 separat als untrusted Kandidaten persistiert, NULL-Zeit/Provenienz/Backup v8; lokales FULL grün | [ENDE](../agent-chat/messages/2026-11-22_205000_opencode_issue500_ENDE_persist-untrusted.md) · [Nutzerentscheidung](2026-11-22_1902_opencode-an-chatgpt_issue500-persist-untrusted.md) | Review/Branch-Reconciliation und PR-Head-CI offen |
