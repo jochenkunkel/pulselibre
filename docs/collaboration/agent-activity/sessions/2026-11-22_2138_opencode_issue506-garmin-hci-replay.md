@@ -1,15 +1,16 @@
 # OpenCode – Issue #506 Garmin HCI Replay
 - Agent/Umgebung: OpenCode / isolated worktree
 - Beginn: 2026-11-22 21:38 UTC
-- Letzte Aktualisierung: 2026-11-22 22:08 UTC
+- Letzte Aktualisierung: 2026-11-22 22:17 UTC
 - Status: aktiv
 - Rolle/Zuständigkeit: FIT/BLE, Offline-Protokollparser und FIT-Integration
 - Aktueller Auftrag: #506 – G0–G5 nach `CIRQA_GARMIN_HCI_WIRE_IMPLEMENTATION_SPEC_2026-11-22.md`; Offline-Replay des gemergten PR-#505-Captures, belegte Parserkorrekturen, synthetische Regressionen und nachvollziehbarer Review-PR.
-- Jetzt in Bearbeitung: #506 G1 abgeschlossen für ATT-Reassembly; G2–G4 verbleiben mangels belegtem MLR/GFDI/FileAccess/FIT-Datenpfad als ausdrücklich dokumentierte Blocker.
+- Jetzt in Bearbeitung: keine; Umsetzung für PR #522 pausiert bis unabhängige ChatGPT-Prüfung.
 - Zeitnah geplant: #150, #148, #171 (Prioritätsfolge, keine exklusive Reservierung).
 - Betroffene Bereiche/Dateien: `tools/garmin_hci_replay.py` und Python-Tests; danach nur belegte, isolierte Korrekturen in vorhandenen Kotlin-FIT-/MLR-Komponenten. Keine DDL ohne Abstimmung mit #144.
 - Branch/Worktree: `opencode/issue506-garmin-fit-20261122`, `/tmp/opencode/pulselibre-issue506`, Basis `origin/main` `15da2cd7`.
 - Abstimmungsbedarf: ChatGPT bleibt unabhängiger Analyse-/Abnahme-Owner; konkrete Replaybefunde und Abweichungen werden adressiert über `agent-sync` übergeben. Keine aktive BLE-/GATT-/ADB-Aktion; #496 gesperrt.
 - Agent-sync-Nachrichten: `docs/collaboration/agent-sync/2026-11-22_2138_opencode-an-chatgpt_issue506-start.md`; UPDATEs in `docs/collaboration/agent-chat/messages/2026-11-22_2200_opencode_issue506_UPDATE_hci-replay-g0-g1.md`, `2026-11-22_2203_opencode_issue506_UPDATE_fragment-record-ranges.md` und `2026-11-22_2208_opencode_issue506_UPDATE_att-length-semantics.md`
-- Nachweise: 127 Python-Tests bestanden; `./tools/ci-local.sh --quick` erfolgreich. Capture replay: 85.154 records, 42.970 L2CAP, 42.794 ATT; redaktierter Wire-Export geprüft. G0 Zeitoffset und unabhängiges Zähldelta offen. ATT-Event trennt jetzt PDU-Länge von Attributwertlänge.
-- Nächster Schritt: GATT-/MLR-Replaybefunde gegen ChatGPT-Review abgleichen; CI auf aktuellem PR-Head prüfen; falls nicht auflösbar, als konkrete Abweichungen/Blocker dokumentieren. G2–G4 nicht vortäuschen.
+- Nachweise: 127 Python-Tests bestanden; PR-Head `d9a3e4f9`, Android FULL-CI inkl. Emulator `45076046394` grün; Dependency Review und Graph grün. Capture replay: 85.154 records, 42.970 L2CAP, 42.794 ATT; redaktierter Wire-Export geprüft. G0 Zeitoffset und unabhängiges Zähldelta offen. ATT-Event trennt PDU-Länge von Attributwertlänge.
+- Nächster Schritt: ChatGPT prüft PR #522 unabhängig; anschließend verbleibende Deltas dokumentieren und nur nach Review-Abnahme fortsetzen. G2–G4 nicht vortäuschen.
+- Status: pausiert – unabhängige Review/Abnahme ausstehend; PR offen und ungemergt.
