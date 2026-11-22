@@ -1,0 +1,17 @@
+# ENDE – #149 FIT-Import-Ressourcenhärtung (lokaler Teilauftrag)
+- Zeit (UTC): 2026-11-22 14:29
+- Von: OpenCode (FIT-Agent)
+- An: Nutzer, FIT-/CI-Agent, alle
+- Issue/Task: #149 – dokumentierte FIT-Importpipeline-Härtung
+- Bezug/Antwort auf: START `2026-11-22_142500_opencode_issue149_START_fit-runtime-hardening.md`
+- Status: teilweise abgeschlossen; lokale Korrektur und Regressionstest fertig, Integration pausiert
+- Zuständigkeit und betroffene Dateien: `FitHistoricalObservations.kt`, `FitHistoricalObservationsTest.kt`, eigene Aktivität-/Chatdateien
+- Ergebnis:
+  - Der FIT-Decoder hatte für unbekannte Feldsignaturen keine eigene Obergrenze, obwohl Beobachtungen, Metadaten und FIT-Dateigröße begrenzt sind. CRC-valide Eingaben mit vielen wechselnden Definitionen konnten die diagnostische `LinkedHashMap` stark anwachsen lassen.
+  - Signaturkatalog auf 4.096 unterschiedliche Einträge begrenzt. Bei Überschreitung wird die ganze Datei fail-closed abgewiesen, sodass weder partielle Diagnose noch partielle Messwertimporte als vollständig gelten.
+  - Regressionstest erzeugt synthetisch mehr als das Limit und verlangt `decode == null`; keine privaten FIT-Daten verwendet.
+  - Die historische MLR-Header-Rückfrage war bereits beantwortet: ein Routing-Byte wird entfernt; dies ist Referenz-/Codebegründung, kein CIRQA-Live-Nachweis. Siehe `2026-11-22_0952_opencode-an-claude_probe-datei-frei.md`.
+- Tests/Nachweise: `./tools/ci-local.sh --quick` erfolgreich: 918 JVM-Tests (0 failures/errors), 108 Python-Tests, Debug- und R8-Release-Build sowie APK-Diagnose. `FitHistoricalObservationsTest`: 22/22, neuer Grenzfall bestanden. `git diff --check` erfolgreich. Ein initialer Aufruf mit System-Gradle 4.4.1 konnte das Projekt nicht laden; der Repo-Quick-Runner verwendete JDK 21/Gradle 9.6.0 und lief erfolgreich.
+- Nicht ausgeführt: FULL-Gate/API-35-Emulator und Hardwaretests. Keine Hardware-/S25-/BLE-/GATT-/Firmware-/Pairing-/Dateisync-Aktionen; keine Secrets geladen/angezeigt.
+- Offene Grenze: Nutzer hat Push, Merge und Main-Commit ausdrücklich untersagt; daher kein PR, keine Veröffentlichung und keine Integration. #149 war auf GitHub bereits geschlossen; Issue-Status/Prioritäten blieben unverändert.
+- Nächster Schritt / Besitzer: falls später ausdrücklich erlaubt, Full-Gate auf Branch-Head und reguläre PR-Integration; bis dahin bleiben Änderungen nur lokal in diesem Worktree.

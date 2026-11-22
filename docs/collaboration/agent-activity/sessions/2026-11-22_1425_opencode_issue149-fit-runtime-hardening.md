@@ -1,0 +1,15 @@
+# OpenCode – #149 FIT-Import-Runtime-Härtung
+- Agent/Umgebung: OpenCode (FIT-Agent)
+- Beginn: 2026-11-22 14:25 UTC
+- Letzte Aktualisierung: 2026-11-22 14:29 UTC
+- Status: pausiert – lokale Korrektur und Quick-Gate fertig; kein Full-Gate/keine Integration wegen Nutzergrenze
+- Rolle/Zuständigkeit: FIT-Decoder, Importpipeline, Offline-/Unit-Tests
+- Aktueller Auftrag: dokumentierte Aufgabe #149 fortsetzen; Laufzeitfehler im FIT-Import mit reproduzierbaren Tests härten
+- Jetzt in Bearbeitung: keine; Decoder-Ressourcenbegrenzung und Regressionstest lokal abgeschlossen
+- Zeitnah geplant: nach neuer expliziter Arbeitsgrenze Full-Gate/PR-Integration; keine Hardwareaktionen
+- Betroffene Bereiche/Dateien: `FitHistoricalObservations.kt`, passende FIT-Decoder-Tests, eigene Aktivitäts- und Chatdateien
+- Branch/Worktree: `opencode/issue149-fit-runtime-hardening-20261122`, `/home/smiler/.local/share/opencode/worktree/634470/s10-db-source-reconciliation`
+- Abstimmungsbedarf: keiner; #149 auf GitHub geschlossen, Status wird nicht geändert
+- Agent-sync-Nachrichten: Antwort zur bereits abgeschlossenen MLR-Header-Frage steht in `2026-11-22_0952_opencode-an-claude_probe-datei-frei.md`
+- Nachweise: lokales QUICK-Gate erfolgreich: 918 JVM-Tests, 108 Python-Tests, Debug-/R8-Release-Build und APK-Diagnose; FIT-Decoder-Testklasse 22/22 einschließlich Grenzfall; `git diff --check` sauber
+- Nächster Schritt: lokale Änderungen nicht veröffentlichen; der nächste Integrationsschritt ist wegen ausdrücklichem Push-/Merge-Verbot pausiert

@@ -1,0 +1,13 @@
+# START – #149 FIT-Importpipeline gegen Laufzeitfehler härten
+- Zeit (UTC): 2026-11-22 14:25
+- Von: OpenCode (FIT-Agent)
+- An: Nutzer, FIT-/CI-Agent, alle
+- Issue/Task: #149 (fortgesetzter, ausdrücklich beauftragter Umfang; Issue auf GitHub geschlossen, Status bleibt unverändert)
+- Bezug/Antwort auf: dokumentierter #149-Arbeitsumfang und frühere Offline-Audits; keine aktive #149-Sitzung gefunden
+- Status: aktiv
+- Zuständigkeit und betroffene Dateien: FIT-Decoder/Import, Unit-Tests und eigene Aktivitäts-/Chatdateien; lokaler Branch `opencode/issue149-fit-runtime-hardening-20261122`
+- Geplanter Umfang: aktuelle FIT-Parser-/Importpfade nach reproduzierbaren Laufzeitfehlern untersuchen und einen eng begrenzten Fail-safe-Fix mit Regressionstest ergänzen
+- Was ich von anderen brauche: nichts; keine parallele Übernahme gefunden
+- Was ich anderen liefere: Antwort auf die historische MLR-Header-Frage ist bereits in `2026-11-22_0952_opencode-an-claude_probe-datei-frei.md` dokumentiert
+- Nachweise: `origin/main=438a4e1b`; noch keine Tests oder Änderungen am Produktcode
+- Nächster Schritt / Besitzer: OpenCode – Offline-Audit; keine Hardware-, S25-, BLE-/GATT-, Firmware-, Pairing- oder Dateisync-Aktionen
