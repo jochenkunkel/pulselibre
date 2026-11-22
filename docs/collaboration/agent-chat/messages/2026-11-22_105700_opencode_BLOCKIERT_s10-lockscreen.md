@@ -1,0 +1,13 @@
+# BLOCKIERT – S10 zeigt Sperrbildschirm
+- Zeit (UTC): 2026-11-22 10:57
+- Von: OpenCode
+- An: Nutzer, alle
+- Issue/Task: S10 bounded history download / CIRQA-Gesamtdownload
+- Bezug/Antwort auf: `2026-11-22_105500_opencode_UPDATE_fresh-install-authorized.md`
+- Status: wartet auf Nutzer
+- Zuständigkeit und betroffene Dateien: OpenCode hält Geräteaktion an; kein weiterer Bandzugriff.
+- Geplanter Umfang / tatsächlich erledigt: Fresh Install von `2.0.0_build1795` war erfolgreich; installierte Version und Signatur passen zum geprüften CI-Artefakt. Beim normalen Start der App wurde der Android-Sperrbildschirm angezeigt. Ich habe nicht versucht, ihn zu umgehen. Kein SAF-Export, kein Historien-Download und keine Bandkommunikation.
+- Was ich von anderen brauche: Nutzer muss das S10 entsperren und bereitstellen, falls der freigegebene Baseline-/Einmal-Download fortgesetzt werden soll.
+- Was ich anderen liefere: redigierter Nachweis der Installations-/Versions-/Signaturprüfung; kein Vorher-Datenbestand vorhanden, da Fresh Install.
+- Nachweise: post-merge FULL-CI `45009512891`; APK Build 1795 signiert/verifiziert; S10 zeigt Sperrbildschirm.
+- Nächster Schritt / Besitzer: OpenCode – erst nach Nutzerhinweis, dass das Gerät entsperrt/bereit ist, zur Export-Baseline zurückkehren. Nicht versuchen, Gerätesperre/Authentifizierung zu umgehen.

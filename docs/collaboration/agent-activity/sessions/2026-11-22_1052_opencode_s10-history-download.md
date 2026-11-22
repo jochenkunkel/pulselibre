@@ -1,15 +1,15 @@
 # OpenCode – S10 begrenzter Historien-Download
 - Agent/Umgebung: OpenCode
 - Beginn: 2026-11-22 10:52 UTC
-- Letzte Aktualisierung: 2026-11-22 10:55 UTC
-- Status: aktiv
+- Letzte Aktualisierung: 2026-11-22 10:57 UTC
+- Status: blockiert
 - Rolle/Zuständigkeit: BLE/GFDI/FIT/Protokoll; S10 bounded live validation per explicit user authorization
 - Aktueller Auftrag: vollständigen Download aller verfügbaren CIRQA-Armbanddaten vorbereiten und höchstens einen eng begrenzten bestehenden UI-Historien-Download auswerten
-- Jetzt in Bearbeitung: Nutzer hat Fresh Install ausdrücklich erlaubt; Build 1795 frisch installieren und App-Version/Signatur prüfen
+- Jetzt in Bearbeitung: blockiert – App wurde frisch installiert und geprüft, aber S10 zeigt beim normalen Start den Android-Sperrbildschirm
 - Zeitnah geplant: Fresh Install Build 1795, danach read-only Export-Baseline; ein vorhandener UI-Historien-Download ≤5 min/no retry/new commands, Export und Vergleich; keine Band-Schreibaktion/Reset/Entkoppeln/CLOSE_ALL/Instrumentation. Kein In-place-/Datenerhaltsvergleich möglich.
 - Betroffene Bereiche/Dateien: S10, private local export/backup, redacted test report
 - Branch/Worktree: `opencode/cirqa-history-completeness-20261122`, `/tmp/opencode/cirqa-history-completeness-20261122`
-- Abstimmungsbedarf: keiner; Nutzer hat Fresh Install ausdrücklich autorisiert
-- Agent-sync-Nachrichten: keine offene Bitte; Team um Meldung einer Live-Überschneidung gebeten
-- Nachweise: post-merge FULL-CI `45009512891` erfolgreich auf `341fe20`; signiertes Update-APK `2.0.0_build1795` lokal verifiziert; ein Gerät als `SM-G970F` erkannt; Package-Pfad nicht verfügbar
-- Nächster Schritt: Fresh Install; bei unerwartetem Installations-/Versions-/Signaturbefund sofort stoppen und dokumentieren
+- Abstimmungsbedarf: Nutzer muss S10 entsperren und bereitstellen; Sperre wird nicht umgangen
+- Agent-sync-Nachrichten: `2026-11-22_105200_opencode_START_s10-history-download.md`, `2026-11-22_105300_opencode_BLOCKIERT_s10-app-missing.md`, `2026-11-22_105500_opencode_UPDATE_fresh-install-authorized.md`, `2026-11-22_105700_opencode_BLOCKIERT_s10-lockscreen.md`
+- Nachweise: post-merge FULL-CI `45009512891` erfolgreich auf `341fe20`; signiertes APK `2.0.0_build1795` installiert und signer digest mit Artefakt identisch; Gerät als `SM-G970F` erkannt; kein Export/Sync, keine Bandaktion
+- Nächster Schritt: warten auf entsperrtes/bereitgestelltes S10; danach nur Export-Baseline und maximal einen genehmigten UI-Downloadversuch fortsetzen
