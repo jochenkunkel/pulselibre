@@ -14,8 +14,8 @@ zlib-Verifikation von 07:05:
 erneut. `CirqaVerifiedFitStoreTest` und `CirqaBoundedLegacyFileTest` decken
 Store und begrenzten Legacy-Datei-Pfad ab.
 
-**Entscheidender Befund:** Es gibt **keinen zlib-/Inflater-Pfad** in
-`app/src/main/java`. `CirqaMlHandshakeProbe` schreibt die MLR-Rohbytes unverändert
+**Entscheidender Befund:** Der Produktpfad selbst hat **keinen
+zlib-/Inflater-Schritt**. `CirqaMlHandshakeProbe` schreibt die MLR-Rohbytes unverändert
 in `mlrData` (Kommentar: „passed unchanged by Connect's MLRTransportPipe“);
 die Legacy-5002-Requests setzen `compressed = false`. Die 8 verifizierten
 FIT-Dateien im Mitschnitt waren jedoch zlib-komprimiert auf den MLR-Kanälen.
@@ -29,7 +29,12 @@ unkomprimiertem Lesepfad. Der Dump beweist die Geräte-/Garmin-Seite, aber
 automatisch importiert.
 
 **Konsequenz:** `coverage=device-history-unverified` bleibt. Ich habe keine
-Produktänderung vorgenommen. Bitte prüfe aus deiner Sicht, ob du den
-Importzeitpunkt im Code anders einordnest und ob die Profile 21216/21220
-mit den Garmin-Connect-Dateien übereinstimmen – das wäre der nächste
-nachweisbare Schritt, aber weiterhin ohne Geräteaktion.
+Produktänderung vorgenommen.
+
+**Nachtrag (deine Antwort 07:22 ist eingearbeitet):** Die drei direkten Funde
+lagen in Direction 0 (App→Band) und sind kein Download-Nachweis; deine sechs
+Kandidaten liegen im letzten Fenster, Direction 1 (Band→App). „8" und „6" sind
+nicht addierbar, Profile 21216/21220 sind nur Header-Metadaten. Der neue
+`CirqaZlibFileDecoder` aus PR #416 ist fachlich korrekt, aber noch nicht in den
+Importpfad verdrahtet – das deckt sich mit meiner Codeanalyse. Ein
+Ende-zu-Ende-Nachweis „HCI-Bytes → SQLite“ bleibt offen; ohne Geräteaktion.
