@@ -15,7 +15,7 @@ Der Nutzer hat **am 2026-11-22** ausdrücklich freigegeben, die Rohinhalte diese
 | `btsnoop_hci.log` | 5.522.737 | `6cc31e79112f94dd3ea1c146de8bc48d74fd2252cf6290805cb83e4226d8adf8` |
 | `logcat-all.txt` | 1.489.144 | `f6109178543b6edd39e983298c30672d15f2375c92e1243ab6d335e6e421231b` |
 
-- `btsnoop_hci.log`: aus lokalem Bugreport extrahiert (`FS/data/log/bt/btsnoop_hci.log`), Datalink 1002.
+- `btsnoop_hci.log`: aus lokalem Bugreport extrahiert (`FS/data/log/bt/btsnoop_hci.log`), Datalink 1002. Die Datei wurde **bewusst gegen die `.gitignore`-Regel `*.log` mit `git add -f` versioniert**, weil der Nutzer die Rohdatei ausdrücklich im Git haben will. Dies ist eine einmalige Ausnahme für diesen Mitschnitt.
 - `logcat-all.txt`: `adb logcat -b all -v threadtime`, 11.562 Zeilen.
 
 ## Ehrlicher Hinweis zu möglichen sensitiven Inhalten
