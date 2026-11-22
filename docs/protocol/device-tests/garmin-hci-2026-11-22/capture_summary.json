@@ -1,0 +1,158 @@
+{
+  "acl_packet_boundary_flags": {
+    "controller_to_host": {
+      "pb_1": 26450,
+      "pb_2": 36135
+    },
+    "host_to_controller": {
+      "pb_0": 6885
+    }
+  },
+  "active_connections_at_eof": 1,
+  "att_connection_epochs": 23,
+  "att_direction_opcodes": {
+    "controller_to_host": {
+      "error_response": 161,
+      "exchange_mtu_request": 23,
+      "exchange_mtu_response": 14,
+      "find_by_type_value_response": 2,
+      "find_information_response": 74,
+      "notification": 35465,
+      "read_by_group_type_request": 23,
+      "read_by_group_type_response": 36,
+      "read_by_type_request": 46,
+      "read_by_type_response": 62,
+      "read_request": 23,
+      "write_response": 67
+    },
+    "host_to_controller": {
+      "error_response": 23,
+      "exchange_mtu_request": 14,
+      "exchange_mtu_response": 23,
+      "find_by_type_value_request": 4,
+      "find_information_request": 86,
+      "read_by_group_type_request": 36,
+      "read_by_group_type_response": 23,
+      "read_by_type_request": 207,
+      "read_by_type_response": 23,
+      "read_response": 23,
+      "write_command": 6267,
+      "write_request": 69
+    }
+  },
+  "att_opcodes": {
+    "error_response": 184,
+    "exchange_mtu_request": 37,
+    "exchange_mtu_response": 37,
+    "find_by_type_value_request": 4,
+    "find_by_type_value_response": 2,
+    "find_information_request": 86,
+    "find_information_response": 74,
+    "notification": 35465,
+    "read_by_group_type_request": 59,
+    "read_by_group_type_response": 59,
+    "read_by_type_request": 253,
+    "read_by_type_response": 85,
+    "read_request": 23,
+    "read_response": 23,
+    "write_command": 6267,
+    "write_request": 69,
+    "write_response": 67
+  },
+  "att_pdus": 42794,
+  "capture_bytes": 5522737,
+  "capture_sha256": "6cc31e79112f94dd3ea1c146de8bc48d74fd2252cf6290805cb83e4226d8adf8",
+  "connection_epochs": 25,
+  "direction_definition": "btsnoop flag bit0: 0 host-sent, 1 host-received; validate via ATT opcodes",
+  "errors": {
+    "ambiguous_overlapping_service_ranges": 80,
+    "overlong_l2cap_start": 49
+  },
+  "evidence_limit": "ATT transport is reconstructed; Garmin attribution requires discovered UUID/handle mapping; MLR/GFDI/FileAccess/FIT are not inferred by this layer.",
+  "first_record_utc": "2026-11-21T22:52:55.442731Z",
+  "garmin_ml_characteristic_value_counts": [
+    {
+      "count": 561,
+      "direction": "controller_to_host",
+      "epoch": "c1",
+      "uuid": "6a4e2810-667b-11e3-949a-0800200c9a66"
+    },
+    {
+      "count": 3583,
+      "direction": "controller_to_host",
+      "epoch": "c15",
+      "uuid": "6a4e2810-667b-11e3-949a-0800200c9a66"
+    },
+    {
+      "count": 324,
+      "direction": "controller_to_host",
+      "epoch": "c16",
+      "uuid": "6a4e2810-667b-11e3-949a-0800200c9a66"
+    },
+    {
+      "count": 324,
+      "direction": "controller_to_host",
+      "epoch": "c18",
+      "uuid": "6a4e2810-667b-11e3-949a-0800200c9a66"
+    },
+    {
+      "count": 1167,
+      "direction": "controller_to_host",
+      "epoch": "c2",
+      "uuid": "6a4e2810-667b-11e3-949a-0800200c9a66"
+    },
+    {
+      "count": 324,
+      "direction": "controller_to_host",
+      "epoch": "c20",
+      "uuid": "6a4e2810-667b-11e3-949a-0800200c9a66"
+    },
+    {
+      "count": 325,
+      "direction": "controller_to_host",
+      "epoch": "c23",
+      "uuid": "6a4e2810-667b-11e3-949a-0800200c9a66"
+    },
+    {
+      "count": 876,
+      "direction": "controller_to_host",
+      "epoch": "c5",
+      "uuid": "6a4e2810-667b-11e3-949a-0800200c9a66"
+    },
+    {
+      "count": 31,
+      "direction": "controller_to_host",
+      "epoch": "c9",
+      "uuid": "6a4e2810-667b-11e3-949a-0800200c9a66"
+    }
+  ],
+  "garmin_ml_characteristics": 84,
+  "gatt_service_ranges_observed": 106,
+  "incomplete_acl_assemblies_at_eof": 0,
+  "l2cap_complete": 42970,
+  "last_record_utc": "2026-11-22T17:53:51.235996Z",
+  "logcat": {
+    "bytes": 1489144,
+    "clock_zone": "not encoded; local-vs-UTC offset unresolved",
+    "first_threadtime": "11-22 17:50:17.413",
+    "last_threadtime": "11-22 17:53:04.435",
+    "lines": 11562,
+    "sha256": "f6109178543b6edd39e983298c30672d15f2375c92e1243ab6d335e6e421231b",
+    "threadtime_lines": 11558
+  },
+  "non_att_l2cap": 176,
+  "packet_types": {
+    "acl": 69470,
+    "command": 4618,
+    "event": 11066
+  },
+  "parser_version": "1",
+  "records": 85154,
+  "redacted_events_dropped_at_limit": 0,
+  "redacted_events_written": 43200,
+  "strict_ml_control_response_counts": [],
+  "timestamp_confidence": "unvalidated_absolute_offset: converted btsnoop time and Android logcat threadtime differ from the README UTC window by approximately one hour; values are retained as source-clock conversions, not asserted capture UTC",
+  "timestamp_definition": "btsnoop microseconds since 1900-01-01 UTC; converted by subtracting 0x00dcddb30f2f8000",
+  "unanchored_att_pdus": 0,
+  "unmatched_ml_control_candidates": 68
+}
