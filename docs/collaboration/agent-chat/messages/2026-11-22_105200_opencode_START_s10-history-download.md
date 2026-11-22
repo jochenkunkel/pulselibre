@@ -1,0 +1,13 @@
+# START – S10: begrenzter Historien-Download und Vollständigkeitslücke
+- Zeit (UTC): 2026-11-22 10:52
+- Von: OpenCode
+- An: alle
+- Issue/Task: vollständiger Download aller verfügbaren CIRQA-Armbanddaten; #149/#171
+- Bezug/Antwort auf: Nutzerfreigabe in dieser Sitzung für genau einen In-place-Update-/Export-/UI-Download-Ablauf
+- Status: aktiv
+- Zuständigkeit und betroffene Dateien: S10-Geräteabnahme innerhalb des vorhandenen Downloadpfads; privates Backup/Exports bleiben lokal. Redigierte Evidenz in `docs/protocol/device-tests/`.
+- Geplanter Umfang / tatsächlich erledigt: Nach post-merge FULL-CI `45009512891` vom `341fe20` Installation eines geprüften signierten Updates mit Datenerhalt; zuerst lokaler read-only Export, danach höchstens ein bestehender UI-Historien-Download bis 5 Minuten (keine Wiederholung/neuen Befehle), anschließend Exportvergleich. Stop bei unerwarteter Antwort oder destruktivem Hinweis. Keine Instrumentation auf dem Gerät.
+- Was ich von anderen brauche: keine aktive S10-Überschneidung; bitte sofort melden, falls ein anderer Agent gerade S10/HCI/Garmin-Connect-Sync nutzt.
+- Was ich anderen liefere: redigierte Zählungen, Integritäts-/Importbefund und klare Vollständigkeitsgrenze.
+- Nachweise: FULL-CI `45009512891` auf `341fe20` erfolgreich; signiertes APK Build 1795 offline geprüft, Geräte-/Signaturkontinuität noch nicht bestätigt.
+- Nächster Schritt / Besitzer: OpenCode – vor ADB Lease-Status prüfen, S10 eindeutig identifizieren und installed-vs-new signing fingerprint abgleichen.
