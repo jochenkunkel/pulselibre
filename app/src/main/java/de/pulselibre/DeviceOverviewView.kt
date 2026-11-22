@@ -36,7 +36,23 @@ internal class DeviceOverviewView(context: Context) : LinearLayout(context) {
         if (changed) render() else heroSubtitle?.text = link.label
     }
 
-    fun showStats(stats: DeviceStats) { this.stats = stats; render() }
+    /**
+     * Rebuilds only when something visible changed. The device page refreshes every 20 s; a rebuild
+     * removes all child views, which resets TalkBack focus and the scroll anchor (audit A6-59).
+     */
+    fun showStats(stats: DeviceStats) {
+        this.stats = stats
+        if (renderKey() != renderedKey) render()
+    }
+
+    private var renderedKey: String? = null
+
+    /** Everything the stats section displays, including the relative ages, as one comparable string. */
+    private fun renderKey(): String {
+        val now = Instant.now()
+        val ages = DeviceSource.entries.joinToString("|") { DeviceFormat.age(strings, stats?.lastBySource?.get(it), now) }
+        return "$stats#$ages"
+    }
 
     private var heroSubtitle: TextView? = null
 
@@ -52,6 +68,7 @@ internal class DeviceOverviewView(context: Context) : LinearLayout(context) {
     }
 
     private fun render() {
+        renderedKey = renderKey()
         removeAllViews()
         val l = link
         // --- hero ---
