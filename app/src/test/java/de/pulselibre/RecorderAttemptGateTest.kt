@@ -92,3 +92,26 @@ class RecorderBackoffTest {
         assertEquals(60_000L, RecorderBackoff.delayMs(Int.MAX_VALUE))
     }
 }
+
+class RecorderBluetoothPolicyTest {
+    @org.junit.Test fun bluetoothTurningOffOrOffAbandonsTheDeadAttempt() {
+        assertEquals(RecorderBluetoothPolicy.Action.ABANDON_ATTEMPT, RecorderBluetoothPolicy.actionFor(android.bluetooth.BluetoothAdapter.STATE_TURNING_OFF))
+        assertEquals(RecorderBluetoothPolicy.Action.ABANDON_ATTEMPT, RecorderBluetoothPolicy.actionFor(android.bluetooth.BluetoothAdapter.STATE_OFF))
+    }
+
+    @org.junit.Test fun bluetoothOnRestartsTheAttemptImmediately() {
+        assertEquals(RecorderBluetoothPolicy.Action.RESTART_ATTEMPT, RecorderBluetoothPolicy.actionFor(android.bluetooth.BluetoothAdapter.STATE_ON))
+    }
+
+    @org.junit.Test fun transitionalAndUnknownStatesDoNothing() {
+        assertEquals(RecorderBluetoothPolicy.Action.NONE, RecorderBluetoothPolicy.actionFor(android.bluetooth.BluetoothAdapter.STATE_TURNING_ON))
+        assertEquals(RecorderBluetoothPolicy.Action.NONE, RecorderBluetoothPolicy.actionFor(android.bluetooth.BluetoothAdapter.ERROR))
+    }
+
+    @org.junit.Test fun literalsMatchTheAndroidConstants() {
+        assertEquals(android.bluetooth.BluetoothAdapter.STATE_OFF, RecorderBluetoothPolicy.STATE_OFF)
+        assertEquals(android.bluetooth.BluetoothAdapter.STATE_TURNING_ON, RecorderBluetoothPolicy.STATE_TURNING_ON)
+        assertEquals(android.bluetooth.BluetoothAdapter.STATE_ON, RecorderBluetoothPolicy.STATE_ON)
+        assertEquals(android.bluetooth.BluetoothAdapter.STATE_TURNING_OFF, RecorderBluetoothPolicy.STATE_TURNING_OFF)
+    }
+}

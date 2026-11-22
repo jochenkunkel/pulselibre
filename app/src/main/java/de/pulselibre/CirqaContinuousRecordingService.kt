@@ -8,8 +8,13 @@ import android.app.PendingIntent
 import android.app.Service
 import android.Manifest
 import android.content.pm.PackageManager
+import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothManager
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
+import androidx.core.content.ContextCompat
 import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.Handler
@@ -41,6 +46,7 @@ class CirqaContinuousRecordingService : Service() {
     private var readings = 0
     private val attemptGate = RecorderAttemptGate()
     private var lastReadingPersistedMs = 0L
+    private var bluetoothReceiver: BroadcastReceiver? = null
 
     override fun attachBaseContext(newBase: android.content.Context) = super.attachBaseContext(AppLanguageSettings.wrap(newBase))
 
@@ -82,12 +88,54 @@ class CirqaContinuousRecordingService : Service() {
         getSharedPreferences(PREFS, MODE_PRIVATE).edit().putBoolean(KEY_RUNNING, true)
             .putLong(KEY_HEARTBEAT_MS, System.currentTimeMillis()).apply()
         heartbeat()
+        registerBluetoothStateReceiver()
         if (!log.append("session_start", mapOf("mode" to "continuous_notifications"))) {
             stopCollection("storage_limit")
             return START_NOT_STICKY
         }
         sample()
         return START_NOT_STICKY
+    }
+
+    /** Main-thread receiver (system broadcast, never exported) so state stays confined like every other callback. */
+    private fun registerBluetoothStateReceiver() {
+        if (bluetoothReceiver != null) return
+        val receiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context, intent: Intent) {
+                if (intent.action != BluetoothAdapter.ACTION_STATE_CHANGED || !running) return
+                onBluetoothState(intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR))
+            }
+        }
+        bluetoothReceiver = receiver
+        ContextCompat.registerReceiver(this, receiver, IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED),
+            ContextCompat.RECEIVER_NOT_EXPORTED)
+    }
+
+    private fun unregisterBluetoothStateReceiver() {
+        val receiver = bluetoothReceiver ?: return
+        bluetoothReceiver = null
+        try { unregisterReceiver(receiver) } catch (_: IllegalArgumentException) { /* already gone */ }
+    }
+
+    private fun onBluetoothState(state: Int) {
+        when (RecorderBluetoothPolicy.actionFor(state)) {
+            RecorderBluetoothPolicy.Action.NONE -> Unit
+            RecorderBluetoothPolicy.Action.ABANDON_ATTEMPT -> {
+                // The framework closed our GATT client without a callback: drop the dead attempt and invalidate every
+                // pending callback and reconnect timer of it (new generation), then wait for Bluetooth to return.
+                probe?.close()
+                probe = null
+                attemptGate.start()
+                log.append("bluetooth_state", mapOf("state" to "off"))
+                updateNotification(getString(R.string.svc_bt_off))
+            }
+            RecorderBluetoothPolicy.Action.RESTART_ATTEMPT -> {
+                probe?.close()
+                probe = null
+                log.append("bluetooth_state", mapOf("state" to "on"))
+                sample()
+            }
+        }
     }
 
     /** Liveness marker for the UI; stops with the service (a killed process stops writing it). */
@@ -175,6 +223,7 @@ class CirqaContinuousRecordingService : Service() {
         running = false
         getSharedPreferences(PREFS, MODE_PRIVATE).edit().putBoolean(KEY_RUNNING, false).apply()
         attemptGate.stop()
+        unregisterBluetoothStateReceiver()
         handler.removeCallbacksAndMessages(null)
         probe?.close()
         probe = null
