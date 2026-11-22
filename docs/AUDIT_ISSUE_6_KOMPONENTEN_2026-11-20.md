@@ -353,3 +353,33 @@ Nach der Übergabe der Probe-Datei durch OpenCode (PR #432 gemergt, ENDE-Nachric
 - **A6-37:** eigener Zeitgeber `legacy5031Timeout` (5 s). Beim Senden der 5031-Anfrage endet das 5007-Vorbedingungsfenster; die Dauer ist unverändert, die Zeitüberschreitungsmeldung nennt nun „5031-Test".
 
 Nachweis: CI des PR (lokales Gradle ist in diesem Worktree nicht lauffähig, siehe offener Punkt „Gradle lokal").
+
+## 42. `CirqaMlHandshakeProbe`: Item-List-Seiten und FileAccess-Antwort (Z. 1097–1323, 2250–2405, 2026-11-22, offline)
+
+Gelesen: `requestNextSyncItemListPage`, `appendSyncItemListPage`, `handleFileAccessResponse`. Keine Gerätezugriffe.
+
+**Bestätigt (kein Befund):**
+- Schleifenbremsen vorhanden: Seitenlimit (`MAX_SYNC_ITEM_LIST_PAGES`), Datei-/Byte-Budget, Transaktions-Folgelimit; jeder Abbruch setzt `syncIncompleteReason` und behauptet keine Vollständigkeit.
+- Fail-closed bei 5044-Nachrichten: vor einer verifizierten `sync_response` wird nichts akzeptiert (Z. 2331–2338); doppelte Pull-Antworten allozieren keine zweite MLR-Pipe (Z. 2367).
+- UIDs werden nur als SHA-256 in `syncSeenItemUids` gehalten und nicht berichtet; Wiederholungen derselben Seite werden dedupliziert.
+- Rahmen-Slicing `copyOfRange(4, size - 2)` steht hinter `GarminFrameValidator.inspectVerified`; `body.size >= 14` wird vor dem 5044-ACK geprüft.
+
+**Befunde:**
+- **A6-46 (niedrig bis mittel, Produktentscheidung, Bereich OpenCode):** Ein einzelner Eintrag mit `dataSize` außerhalb `1..MAX_FILE_BYTES` (also auch eine Datei mit 0 Byte) führt in `appendSyncItemListPage` zu `finish(...)` für den **gesamten** Lauf (Z. 1296–1309). Alle nachfolgenden, gültigen Einträge werden dann nicht geladen. Das ist fail-closed und korrekt gemeldet (`file-size-out-of-range`), kann aber dauerhaft jede Synchronisation blockieren, sobald das Band einen solchen Eintrag liefert (z. B. leere oder sehr große Datei). Empfehlung: den Eintrag überspringen, `syncSkippedFiles` erhöhen, `syncIncompleteReason` setzen und mit den übrigen Einträgen weitermachen; nur Budgetüberschreitungen (Anzahl/Summe) beenden den Lauf. Die Änderung berührt Download-Semantik und ist deshalb nicht Teil von A6-36/37/42; Entscheidung und Test bei OpenCode (#149), die Datei ist seit ENDE #447 wieder frei.
+- **A6-47 (niedrig, Diagnose):** `syncPullDiag` wird bei jedem übersprungenen Eintrag um `|manifest-skip:verified-local-import` ergänzt und auf 1000 Zeichen gekürzt (Z. 1292). Bei vielen Überspringungen verdrängt das die späteren Pull-Diagnosen. Besser einen Zähler `manifestSkips` ausgeben.
+
+Keine Änderungen am Code in diesem Abschnitt.
+
+## 43. `receiveLegacyDirectoryOrFitData`, `ProfileMath`, `PairedCorrelation` (2026-11-22, offline)
+
+**`CirqaMlHandshakeProbe.receiveLegacyDirectoryOrFitData` (Z. 2573–2700) – kein Befund.** 5002-Größe wird gegen Obergrenze und Verzeichniseintrag geprüft (Abweichung beendet den Transfer), Chunks nur nach CRC-/Offset-Validierung bestätigt, `toInt()`-Umwandlungen stehen hinter den Größenlimits. Zur Einordnung von A6-46: Dieser ältere Pfad klassifiziert Verzeichniseinträge einzeln (`classifyEntries`, Gründe `file-count-limit`/`total-size-limit`) und überspringt unpassende, statt den Lauf zu beenden.
+
+**`ProfileMath.kt` – kein Befund.** Alter (Schaltjahr über `Period`), BMI-Plausibilitätsbereiche, WHO-Schwellen auf dem ungerundeten Wert, Gewichtsschritt mit Begrenzung; die BMI-Beschriftungen laufen über `DomainText` (übersetzt). Nur eine Kleinigkeit:
+- **A6-48 (niedrig, i18n):** `WeightStepper.format` formatiert fest mit `Locale.GERMANY`, die Eingabe akzeptiert Komma und Punkt. In der französischen/spanischen Oberfläche erscheint daher stets das deutsche Dezimalkomma (zufällig auch dort üblich). Mit `Locale.getDefault()` wäre es konsequent.
+
+**`PairedCorrelation.kt` – drei methodische Hinweise, Ergebnisse bleiben als „explorativ" gekennzeichnet:**
+- **A6-49 (niedrig):** Das 95-%-Intervall nutzt für Spearman die Standardabweichung `1/√(n_eff−3)` der Pearson-Fisher-Transformation. Für Spearman empfehlen Fieller/Hartley/Pearson (1957) einen um etwa 3 % größeren Wert (Varianz `1,06/(n−3)`); das Intervall ist damit minimal zu schmal (liberal). Auswirkung klein, aber wegen der Grenzfälle „Intervall schließt 0 knapp aus" im Verdikt relevant.
+- **A6-50 (niedrig):** Die Autokorrelation (Lag 1) wird auf der Folge der **gepaarten** Tage in Datumsreihenfolge berechnet. Bei Lücken sind aufeinanderfolgende Einträge nicht aufeinanderfolgende Kalendertage; die Schätzung des effektiven n ist dann ungenau. Außerdem wird die Autokorrelation der Rohwerte (Pearson) verwendet, die Korrelation selbst ist aber rangbasiert. Beides verändert `n_eff` nur leicht, sollte im Methodentext stehen.
+- **A6-51 (niedrig, Leistung):** `sensitivity` (Leave-one-out) ist O(n² log n). Bei einem Jahr (n≈365) unkritisch; bei mehrjährigen Reihen sollte der Aufruf (`TrendCardView` Z. 88) auf dem Hintergrund-Thread und mit Obergrenze für n erfolgen. Ob das heute so ist, habe ich nicht verfolgt (`TrendCache` und die Lade-Generation sind in Abschnitt 34/35 geprüft).
+
+Positiv: Mindestzahl 30 Paare, konstante Reihen werden abgefangen, Benjamini–Hochberg korrekt (absteigend, kumuliertes Minimum), Bretherton-Formel korrekt umgesetzt, Mehrdeutigkeiten bei Rangbindungen mit Durchschnittsrängen gelöst, Tests decken Lücken, Konstanz und Instabilität ab.
