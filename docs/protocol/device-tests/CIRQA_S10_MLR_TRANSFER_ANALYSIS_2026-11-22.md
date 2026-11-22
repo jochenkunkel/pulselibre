@@ -2,9 +2,18 @@
 
 ## Ergebnis
 
-Die neue passive HCI-Aufzeichnung belegt FileAccess-List/Pull-Protokoll, aber
-keinen bis zu FIT-Dateibytes rekonstruierbaren Transfer. Es wurde deshalb kein
-Produktcode geändert.
+**Revidierter Befund nach Prüfung der Nicht-GFDI-Kanäle:** Aus der letzten
+Verbindung lassen sich sechs zlib-komprimierte Transferkandidaten rekonstruieren:
+fünf FIT-Dateien mit gültiger Header-/Datei-CRC und interner Größe, eine
+Nicht-FIT-Datei. Vier FIT-Dateien und die Nicht-FIT-Datei stimmen außerdem mit
+der UID-zugeordneten Item-List-Größe überein. Für die fünfte FIT-Datei fehlt die
+UID-Zuordnung zur beobachteten Liste. Kein SQLite-Import oder vollständiger
+Historienbestand nachgewiesen; `coverage=device-history-unverified`.
+
+Die ursprüngliche Beschränkung der Analyse auf GFDI/COBS hatte die
+zlib-Dateibytes auf den anderen MLR-Kanälen übersehen. Die folgenden früheren
+Negativbefunde gelten daher nur für die untersuchten GFDI-/gzip-Nachrichten,
+**nicht für den vollständigen Mitschnitt**.
 
 ## Offline-Prüfung
 
@@ -22,7 +31,8 @@ Produktcode geändert.
   gzip-komprimierte JSON-Anwendungsdaten belegt; eine Zuordnung dieser Daten zu
   einzelnen Item-Pulls oder FIT-Dateien ist es nicht.
 - Weder in den GFDI-Frames noch nach gzip-Dekompression wurde eine FIT-Signatur
-  gefunden. Für eine FIT-Datei bleiben Größe, FIT-CRC und Import unbelegt.
+  gefunden. Dieser Suchraum enthält nicht die später rekonstruierten
+  zlib-MLR-Dateibytes (siehe unten).
 - Die beobachteten großen ATT-Notifications sind segmentierte MLR-Werte und
   für sich kein Beleg für FIT-Bytes. Eine frühe COBS-Routebyte-Hypothese wurde
   bei der kanal-/sequenzbewussten Reassemblierung nicht bestätigt.
@@ -33,9 +43,10 @@ Produktcode geändert.
 `result=0` bleibt nur ein erfolgreicher FileAccess-Anwendungsstatus. Die
 beobachteten gzip-JSON-Daten sind kein Nachweis für vollständige FIT-Bytes,
 FIT-Integrität oder Import.
-Keine reproduzierbare Produktabweichung gegenüber der beobachteten
-Garmin-Connect-Sequenz ist belegt. Ein aktiver Folgetest ist nicht Teil dieser
-Offline-Aufgabe und benötigt gegebenenfalls eine gesonderte Freigabe.
+Aus den Wetterantworten allein folgt keine Produktabweichung.
+Der nachfolgend rekonstruierte zlib-Transfer liefert dagegen eine eigenständige
+Decodergrundlage. Ein aktiver Folgetest ist nicht Teil dieser Offline-Aufgabe
+und benötigt gegebenenfalls eine gesonderte Freigabe.
 
 `coverage=device-history-unverified` bleibt unverändert. Die lokale
 Ergebniszusammenfassung und Rohaufzeichnung sind nicht für Git bestimmt.
@@ -87,3 +98,47 @@ interpretiert; pull-ähnliche Felder im falschen Dienst ergeben keinen Erfolg;
 ein echter Smart.43-Geschwisterdienst wird in beiden Feldreihenfolgen weiterhin
 korrekt gelesen. Die drei Tests und der bestehende S10-Transaktions-Replaytest
 bestanden lokal. Dies ist Parser-Isolation, kein FIT-Transfer-/Import-E2E-Test.
+
+## Durchbruch: zlib-Dateibytes auf separaten MLR-Kanälen
+
+Eine zusätzliche Prüfung der Nicht-GFDI-Notifications in den sechs Pull-Fenstern
+fand jeweils eine kurze Kontrollantwort und nachfolgende Datenwerte auf dem
+zugehörigen Kandidatenkanal. Nach Entfernen der beiden beobachteten
+Transportheaderbytes je ATT-Wert bilden die Daten einen **zlib-Stream**, keinen
+gzip-Stream und keine COBS-GFDI-Nachricht.
+
+- Alle sechs Kandidaten: zlib-Ende erreicht, kein nachlaufender Rest.
+- Fünf Ergebnisse: FIT-Magic an Headeroffset 8, 14-Byte-Header,
+  `Headergröße + Datenlänge + Datei-CRC == Dateigröße`, Header-CRC und
+  Datei-CRC unabhängig mit CRC-16/ARC gültig.
+- Vier dieser FIT-Dateien und die eine Nicht-FIT-Datei: UID der vorhergehenden
+  Pull-Anfrage exakt mit dem beobachteten Item-List-Eintrag verglichen; dessen
+  `data_size` entspricht der dekomprimierten Länge.
+- Die letzte FIT-Datei besteht interne Größe und beide CRCs, aber ihre Pull-UID
+  wurde in den rekonstruierten Listenseiten nicht gefunden. Für sie bleibt die
+  unabhängige erwartete Größe offen.
+- Die fünf FIT-Dateien enthalten zusammen 19.810 Bytes. Die Nicht-FIT-Datei hat
+  keine FIT-Signatur und wird nicht als FIT klassifiziert oder importiert.
+- Rekonstruierte Dateien und vollständige Analyseskripte bleiben ausschließlich
+  im privaten lokalen Verzeichnis; keine Rohbytes, UIDs oder Messwerte in Git.
+
+### Minimaler Decoderbaustein statt ungeprüfter Live-Umschaltung
+
+`CirqaZlibFileDecoder` dekodiert ausschließlich einen bereits vollständig
+reassemblierten zlib-Bytestrom mit expliziter erwarteter Größe. Er begrenzt
+Ein- und Ausgabe auf 16 MiB und verwirft beschädigte/trunkierte Streams,
+Wörterbuchanforderungen, Überschreitung/Unterschreitung der erwarteten Größe
+und nachlaufende oder verkettete Streams. gzip/Raw-Deflate werden nicht
+stillschweigend akzeptiert. Format-/FIT-CRC-Prüfung bleibt separat.
+
+Die fünf synthetischen Decodertests einschließlich eines CRC-validen leeren
+FIT-Fixtures bestanden lokal unter JDK 21. Keine realen FIT-Dateien im Test.
+Der Baustein ist **noch nicht im Live-Pfad verdrahtet**. Insbesondere sind
+zuverlässiges ML-Routing, Kontrollantwort/Header, Sequenz-/ACK-Regeln und
+Kompressionsaushandlung vor einer Live-Integration zu prüfen. Die vorhandene
+unmarkierte/raw Produktübertragung wird nicht blind umgestellt.
+
+**Nächste technische Lücke:** den beobachteten zlib-Transfer mit einem expliziten
+Transportzustandsmodell und den bestehenden FIT-/Commit-Stufen verbinden.
+Offline-FIT-Rekonstruktion ist jetzt belegt; Produktdownload, Import und
+vollständige Historie bleiben getrennte, noch offene Nachweise.
