@@ -927,6 +927,15 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     }
 
     private fun configureMlrTransfer(g: BluetoothGatt, handle: Int) {
+        if (handle !in 1..127) {
+            finish("Ungültiger MLR-Routing-Handle; Transfer gestoppt.", g)
+            return
+        }
+        val registered = mlrHandle
+        if (registered != null && registered != handle) {
+            finish("MLR-Handle-Wechsel während des Transfers; gestoppt.", g)
+            return
+        }
         if (syncTransferHandle !in 1..0xffff_ffffL) {
             finish("Ungültiger MLR-Transfer-Handle; Transfer gestoppt.", g)
             return
@@ -1402,14 +1411,16 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                 // trigger the one-shot FileAccess request here, not from earlier writes.
                 maybeSendFileAccessList(g)
             } else {
-                if (bytes.size < 2) return
-                val routedHandle = GarminMlOffline.inspectDataHandle(bytes)
-                val routedPayload = bytes.copyOfRange(1, bytes.size)
-                if (routedHandle != null && routedHandle == mlrHandle && syncRequestMode) {
+                val first = bytes.firstOrNull()?.toInt()?.and(255)
+                // MLR data callbacks can carry a flagged routing byte. Normalize it
+                // before comparing with the registered service handle; a raw byte
+                // comparison silently drops flagged MLR transfers.
+                val mlrDataHandle = GarminMlOffline.inspectDataHandle(bytes)
+                if (mlrDataHandle != null && mlrDataHandle == mlrHandle && syncRequestMode) {
                     // Connect's MLRTransportPipe consumes the first MLR callback
                     // as [response-kind, general-status, configure-status], not
                     // as file data. Never append this control response to the file.
-                    val payload = routedPayload
+                    val payload = bytes.copyOfRange(1, bytes.size)
                     if (!mlrConfigureResponseSeen) {
                         if (!CirqaMlrConfigureResponse.isSuccessful(payload)) {
                             mlrDiag += ";configureResponse=invalid"
@@ -1424,8 +1435,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     if (!mlrTransferActive || syncCurrentItem == null) return
                     // The observed file channel can carry a 2-byte per-ATT
                     // transport prefix followed by a zlib stream. The assembler
-                    // only strips that prefix after validating a zlib header;
-                    // uncompressed file payloads retain the original path.
+                    // strips it only after validating zlib; raw bytes stay intact.
                     mlrChunks++
                     mlrBytes += payload.size
                     val assembler = mlrFileAssembler
@@ -1454,7 +1464,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     }
                     return
                 }
-                if (routedHandle != null && routedHandle == historyHandle) {
+                if (first != null && first == historyHandle) {
                     historyRouted++
                     val hsv1 = historicalSyncV1
                     if (hsv1 != null && hsv1.phase in setOf(
@@ -2310,26 +2320,21 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     return
                 }
                 if (syncRequestMode) {
-                    if (!syncAccepted) {
-                        if (!CirqaSyncResponseParser.isSyncResponse(msg)) {
-                            syncProtoShapes = (syncProtoShapes +
-                                "unexpected-before-sync-response:${CirqaProtobufShapeInspector.nestedShape(msg)};")
-                                .take(400)
-                            return@let
-                        }
-                        syncAccepted = true
-                        syncProtoShapes = (syncProtoShapes +
-                            "${CirqaProtobufShapeInspector.nestedShape(msg)};").take(400)
-                        val handle = historyHandle
-                        if (handle != null && !syncItemListSent) {
-                            syncItemListSent = true
-                            queueAck(g, CirqaFileAccessListRequest.mlValue(handle, 2))
-                            serial.post { mark("Sync-Response erkannt; FileAccess-Item-List angefordert") }
-                        }
-                        return@let
+                    val syncResponse = CirqaSyncResponseParser.isSyncResponse(msg)
+                    if (!syncResponse && !syncAccepted) {
+                        // Fail closed: a 5044 protobuf message is not automatically a
+                        // sync acknowledgement. Anything before a verified
+                        // Smart.core_service.sync_response is ignored, never accepted.
+                        syncProtoShapes = (syncProtoShapes + "!${CirqaProtobufShapeInspector.nestedShape(msg)};").take(400)
+                        serial.post { mark("Protobuf-Antwort ohne sync_response ignoriert") }
+                        return
                     }
-                    // Connect keeps the connection open after sync_response: the device
-                    // begins delivering buffered files only afterwards.
+                    if (syncResponse && !syncAccepted) {
+                        // Connect keeps the connection open after sync_response: the device
+                        // begins delivering buffered files only afterwards.
+                        syncAccepted = true
+                        serial.post { mark("sync_response verifiziert; warte auf Item-Liste") }
+                    }
                     syncProtoShapes = (syncProtoShapes + "${CirqaProtobufShapeInspector.nestedShape(msg)};").take(400)
                     // An item_list_response carries real, readable items. Parse it and
                     // request the first one; UIDs stay in memory and are never reported.
@@ -2966,7 +2971,19 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         }
         val digest = java.security.MessageDigest.getInstance("SHA-256").digest(data)
         val sha = digest.copyOfRange(0, 6).joinToString("") { "%02x".format(it) }
-        if (!declaredFit && !looksFit) {
+        // A zlib-compressed FIT is not readable by FitFileHeader. Try the bounded
+        // offline decoder only when the received bytes are not already a valid FIT
+        // and carry a plausible zlib header; the inflated result must itself pass
+        // full FIT header/CRC verification. Nothing is stored or imported before
+        // that check succeeds. Size and SHA above always refer to the wire bytes.
+        val zlibDecoded = if (FitFileHeader.inspectVerified(data) == null &&
+            CirqaZlibFileDecoder.isZlibCandidate(data)
+        ) {
+            CirqaZlibFileDecoder.decode(data)?.takeIf { FitFileHeader.inspectVerified(it) != null }
+        } else null
+        val fitData = zlibDecoded ?: data
+        val zlibMark = if (zlibDecoded != null) "zlib=decoded(${zlibDecoded.size})" else "zlib=none"
+        if (!declaredFit && !looksFit && zlibDecoded == null) {
             val saved = try {
                 CirqaVerifiedRawFileStore(java.io.File(context.filesDir, "verified_raw"))
                     .saveExact(data, item.dataSize)
@@ -3014,7 +3031,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     "sha256=$sha;privateRaw=${if (saved.alreadyPresent) "ALREADY_PRESENT" else "CREATED"};$metadataIndex"
             )
         }
-        if (FitFileHeader.inspectVerified(data) == null) {
+        if (FitFileHeader.inspectVerified(fitData) == null) {
             val savedRaw = try {
                 CirqaVerifiedRawFileStore(java.io.File(context.filesDir, "verified_raw"))
                     .saveExact(data, item.dataSize)
@@ -3038,13 +3055,13 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                 decode = CirqaSyncFileCompletion.Stage.NOT_REACHED,
                 sqliteCommit = CirqaSyncFileCompletion.Stage.NOT_REACHED,
                 detail = "len=${data.size};expected=${item.dataSize};type=$label;magic=$magic;" +
-                    "exactSize=true;fitHeader=false;fitCrc=false;" +
+                    "$zlibMark;exactSize=true;fitHeader=false;fitCrc=false;" +
                     "privateRaw=${if (savedRaw.alreadyPresent) "ALREADY_PRESENT" else "CREATED"}"
             )
         }
         val saved = try {
             CirqaVerifiedFitStore(java.io.File(context.filesDir, "verified_fit"))
-                .saveVerified(data)
+                .saveVerified(fitData)
         } catch (e: Exception) {
             return CirqaSyncFileCompletion.Result(
                 format = CirqaSyncFileCompletion.Format.FIT,
@@ -3053,11 +3070,11 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                 privateStorage = CirqaSyncFileCompletion.Stage.FAILED,
                 decode = CirqaSyncFileCompletion.Stage.NOT_REACHED,
                 sqliteCommit = CirqaSyncFileCompletion.Stage.NOT_REACHED,
-                detail = "len=${data.size};expected=${item.dataSize};type=$label;fitHeader=true;" +
+                detail = "len=${data.size};expected=${item.dataSize};type=$label;$zlibMark;fitHeader=true;" +
                     "sha256=$sha;privateSaveFailed=${e.javaClass.simpleName}"
             )
         }
-        val decoded = FitHistoricalObservations.decode(data)
+        val decoded = FitHistoricalObservations.decode(fitData)
             ?: return CirqaSyncFileCompletion.Result(
                 format = CirqaSyncFileCompletion.Format.FIT,
                 transfer = CirqaSyncFileCompletion.Stage.SUCCEEDED,
@@ -3065,7 +3082,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                 privateStorage = CirqaSyncFileCompletion.Stage.SUCCEEDED,
                 decode = CirqaSyncFileCompletion.Stage.UNSUPPORTED,
                 sqliteCommit = CirqaSyncFileCompletion.Stage.NOT_REACHED,
-                detail = "len=${data.size};expected=${item.dataSize};type=$label;fitHeader=true;" +
+                detail = "len=${data.size};expected=${item.dataSize};type=$label;$zlibMark;fitHeader=true;" +
                     "sha256=$sha;privateFit=${saved.outcome};decode=unsupported"
             )
         val importable = decoded.observations.filter {
@@ -3086,7 +3103,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                 decode = CirqaSyncFileCompletion.Stage.SUCCEEDED,
                 sqliteCommit = CirqaSyncFileCompletion.Stage.FAILED,
                 importableObservations = importable.size,
-                detail = "len=${data.size};expected=${item.dataSize};type=$label;fitHeader=true;" +
+                detail = "len=${data.size};expected=${item.dataSize};type=$label;$zlibMark;fitHeader=true;" +
                     "sha256=$sha;privateFit=${saved.outcome};observations=${decoded.observations.size};" +
                     "importable=${importable.size};sqlite=failed:${e.javaClass.simpleName}"
             )
@@ -3099,7 +3116,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             decode = CirqaSyncFileCompletion.Stage.SUCCEEDED,
             sqliteCommit = CirqaSyncFileCompletion.Stage.SUCCEEDED,
             importableObservations = importable.size,
-            detail = "len=${data.size};expected=${item.dataSize};type=$label;fitHeader=true;" +
+            detail = "len=${data.size};expected=${item.dataSize};type=$label;$zlibMark;fitHeader=true;" +
                 "sha256=$sha;privateFit=${saved.outcome};observations=${decoded.observations.size};" +
                 "importable=${importable.size};sqlite=ok:$imported"
         )
