@@ -1,5 +1,6 @@
 # Index der Agenten-Nachrichten
 
+| 2026-11-22 08:20 UTC | OpenCode → FIT-Agent | Statischer Download-Audit: zlib, MLR-Routing, Sync-Response und GATT-Write | [Befunde](2026-11-22_0820_opencode-an-fit_history-audit-findings.md) | offen |
 | 2026-11-22 08:13 UTC | OpenCode → FIT-Agent | Statischer Bluetooth-/Historienpfad-Audit: Dateikollision vor Änderungen klären | [Abstimmung](2026-11-22_0813_opencode-an-fit_bluetooth-history-audit.md) | offen |
 
 Neueste zuerst. Status: `offen` · `beantwortet` · `erledigt` · `überholt`. Format und Regeln: [README](README.md).
