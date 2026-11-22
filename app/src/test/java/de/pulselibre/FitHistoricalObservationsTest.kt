@@ -339,6 +339,25 @@ class FitHistoricalObservationsTest {
         assertEquals(result, FitHistoricalObservations.decode(fit(data)))
     }
 
+    @Test fun rejectsFileWhenUnknownFieldDiagnosticMetadataExceedsBound() {
+        val data = java.io.ByteArrayOutputStream().also { output ->
+            repeat(4_097) { index ->
+                val global = 1_000 + index
+                output.write(byteArrayOf(
+                    0x40, 0, 0, // definition, local message 0, reserved, little endian
+                    global.toByte(), (global ushr 8).toByte(),
+                    1, // one standard field
+                    100, 1, 2, // unknown uint8 field
+                    0, 1 // one data message to record the field occurrence
+                ))
+            }
+        }.toByteArray()
+
+        // Refuse the whole file rather than importing partial data after
+        // dropping the bounded unknown-field diagnostic catalog.
+        assertNull(FitHistoricalObservations.decode(fit(data)))
+    }
+
     @Test fun developerFieldAndUnknownGlobalMessageAreNotGuessedAsMeasurements() {
         val data = byteArrayOf(
             0x60, 0, 0, 99, 0, 1,

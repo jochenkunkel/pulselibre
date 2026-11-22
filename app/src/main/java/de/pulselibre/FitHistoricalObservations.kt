@@ -129,9 +129,15 @@ object FitHistoricalObservations {
         val reviewCandidates = mutableListOf<ReviewCandidate>()
         val deviceMetadata = mutableListOf<DeviceMetadata>()
         val unknown = LinkedHashMap<UnknownKey, UnknownCounts>()
-        fun track(key: UnknownKey, definition: Boolean) {
-            val count = unknown.getOrPut(key) { UnknownCounts() }
+        fun track(key: UnknownKey, definition: Boolean): Boolean {
+            var count = unknown[key]
+            if (count == null) {
+                if (unknown.size >= MAX_UNKNOWN_FIELD_SIGNATURES) return false
+                count = UnknownCounts()
+                unknown[key] = count
+            }
             if (definition) count.definitions++ else count.occurrences++
+            return true
         }
         fun classify(global: Int, field: FieldDefinition): UnknownKey? {
             if (field.number == 253) return null // FIT timestamp, not a novel metric
@@ -202,10 +208,14 @@ object FitHistoricalObservations {
                     globalNumber, bigEndian = architecture == 1,
                     fields = fields, developerFields = developerFields
                 )
-                fields.forEach { classify(globalNumber, it)?.let { key -> track(key, true) } }
-                developerFields.forEach {
-                    track(UnknownKey(globalNumber, it.number, null, it.size, it.index,
-                        UnknownKind.DEVELOPER_FIELD), true)
+                for (field in fields) {
+                    val key = classify(globalNumber, field)
+                    if (key != null && !track(key, definition = true)) return null
+                }
+                for (field in developerFields) {
+                    val key = UnknownKey(globalNumber, field.number, null, field.size, field.index,
+                        UnknownKind.DEVELOPER_FIELD)
+                    if (!track(key, definition = true)) return null
                 }
                 continue
             }
@@ -223,13 +233,15 @@ object FitHistoricalObservations {
                 if (compressed && field == compressedTimestampField) continue
                 if (!requireBytes(field.size)) return null
                 fieldBytes[field] = cursor
-                classify(definition.globalNumber, field)?.let { track(it, false) }
+                val key = classify(definition.globalNumber, field)
+                if (key != null && !track(key, definition = false)) return null
                 cursor += field.size
             }
             for (field in definition.developerFields) {
                 if (!requireBytes(field.size)) return null
-                track(UnknownKey(definition.globalNumber, field.number, null, field.size,
-                    field.index, UnknownKind.DEVELOPER_FIELD), false)
+                val key = UnknownKey(definition.globalNumber, field.number, null, field.size,
+                    field.index, UnknownKind.DEVELOPER_FIELD)
+                if (!track(key, definition = false)) return null
                 cursor += field.size
             }
 
@@ -370,6 +382,12 @@ object FitHistoricalObservations {
     }
 
     private const val MAX_DEVICE_METADATA = 10_000
+    /**
+     * Bound diagnostic metadata independently of the file-size cap. A crafted,
+     * CRC-valid FIT can cycle local definitions across many global messages and
+     * otherwise grow this map far beyond the observation limits.
+     */
+    private const val MAX_UNKNOWN_FIELD_SIGNATURES = 4_096
 
     private data class Mapping(
         val metric: Metric,

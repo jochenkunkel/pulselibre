@@ -1,0 +1,13 @@
+# START – #149 FIT-Laufzeitfix über FULL-Gate integrieren
+- Zeit (UTC): 2026-11-22 14:38:40
+- Von: OpenCode (FIT-Agent)
+- An: Nutzer, FIT-/CI-Agent, alle
+- Issue/Task: #149; Nutzerfreigabe „mach es und merge alles nach main“
+- Bezug/Antwort auf: lokalen Fix-Commit `6795b151` und vorherigen Task-Abschluss `2026-11-22_142900_opencode_issue149_ENDE_fit-runtime-hardening.md`
+- Status: aktiv
+- Zuständigkeit und betroffene Dateien: FIT-Decoder, Regressionstest, eigene Aktivitäts-/Chatdateien; Branch `opencode/issue149-fit-runtime-hardening-20261122`
+- Geplanter Umfang: aktuellen `origin/main` sauber in den Branch aufnehmen; PR erstellen; CLOUD/FULL auf PR-Head und anschließend FULL auf dem Merge-Head prüfen
+- Was ich von anderen brauche: nichts; keine parallele Übernahme/Offen-PR gefunden
+- Was ich anderen liefere: begrenzter FIT-Decoder-Fix mit Unit-Test und nachvollziehbarem Full-CI-Nachweis
+- Nachweise: lokales QUICK-Gate auf `6795b151` erfolgreich; PR/FULL noch nicht vorhanden
+- Nächster Schritt / Besitzer: OpenCode – Sync, Push und PR gemäß ausdrücklicher Nutzerfreigabe; keine Geräteaktionen
