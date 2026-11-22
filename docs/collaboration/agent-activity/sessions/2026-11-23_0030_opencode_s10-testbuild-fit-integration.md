@@ -1,14 +1,14 @@
 # OpenCode – FIT-Integration für S10-Testbuild
 - Agent/Umgebung: OpenCode (FIT-Agent)
 - Beginn: 2026-11-23 00:30 UTC
-- Letzte Aktualisierung: 2026-11-23 00:32 UTC
-- Status: aktiv – FIT-Adapter gezielt getestet; GUI-/CI-Übergabeantworten offen
+- Letzte Aktualisierung: 2026-11-22 23:43 UTC
+- Status: aktiv – Dashboard #537 gemerged; provenance-sichere FIT-Integration und finaler post-merge FULL/APK gate offen
 - Rolle/Zuständigkeit: Bereits verifizierte FIT-Messwerte für das Wissenschaftsdashboard bereitstellen, FIT-/GUI-Integrationskanten und Konflikte lösen
 - Aktueller Auftrag: Nutzerpriorität 1 – installierbarer S10-Testbuild binnen 48 Stunden
 - Jetzt bearbeitet: nur S10-Testbuild, keine neue FIT-Forschung
 - Zeitnah geplant: Adapter nach GUI-Bestätigung in den Dashboard-Aufruf integrieren; gemeinsamer Branch/Head und CI-/APK-Gates mit GUI- und CI-Agent abstimmen
 - Betroffene Dateien: `ScienceFitSeriesAdapter.kt`, `ScienceFitSeriesAdapterTest.kt`, nur nach Zustimmung GUI-Integration; Koordinationsdateien
 - Branch/Worktree: `opencode/fit-decoder-issue150-20261123`, `/home/smiler/.local/share/opencode/worktree/634470/fit-decoder-20261123`
-- Abstimmungsbedarf: GUI-Agent muss call site und Dateieigentum benennen; CI-Agent muss finalen Build-/APK-Gate benennen. S10 nicht vor fertiger APK und erneuter Nutzeranforderung anfassen.
-- Fortschritt/Nachweise: `gradle :app:testDebugUnitTest --tests de.pulselibre.ScienceFitSeriesAdapterTest` erfolgreich; Adapter filtert auf FIT-Provenienz, `PROFILE_VALID`, `DIRECT`/`RECONSTRUCTED_TS16`; aktuelle DB-Metriken HF (1–240), Distanz, Geschwindigkeit. FIT-Semantikantwort zu PR #536/Abschnitt 5.4 abgelegt. Kein Dashboard-Aufruf integriert, keine Geräteaktion.
-- Nächster Schritt: GUI-/CI-Antwort prüfen, main-HEAD in den Arbeitszweig integrieren und FIT-only adapter an bestätigter Naht einbinden.
+- Abstimmungsbedarf: GUI-Agent soll explizit die FIT-Call-Site in `ScienceSeriesLoader` übergeben oder selbst integrieren; CI-Agent soll post-merge FULL-Run und signed APK Artefakt bestätigen. S10 nicht vor fertiger APK und erneuter Nutzeranforderung anfassen.
+- Fortschritt/Nachweise: targeted `ScienceFitSeriesAdapterTest` und code-only adapter FULL-CI inklusive API-35 auf `c175900c` grün; dashboard PR #537 auf main gemerged, branch FULL inkl. Emulator `45083460437` grün. Post-merge main QUICK `45084288572` erzeugte signed APK, ist aber nicht FULL. Main post-merge FULL `45084280831` läuft. Kein Dashboard-Aufruf integriert, keine Geräteaktion.
+- Nächster Schritt: GUI-/CI-Antwort prüfen; danach gegebenenfalls FIT-only Integration in einer getrennten Branch umsetzen, aktuellen dashboard main head testen.
