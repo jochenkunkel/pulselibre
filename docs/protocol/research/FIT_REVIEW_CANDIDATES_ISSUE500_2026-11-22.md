@@ -92,3 +92,28 @@ Schritts.
   ist durch den damaligen Log-Auszug nicht belegt. Der Branch ist jetzt 7
   Commits vor `origin/main`, aber weiterhin nicht gepusht und nicht als
   PR-Head-CI geprüft.
+- Nach Rebase auf `origin/main` (`5c92f687`) und den zusätzlichen Regressionen
+  für den echten Schema-v7→v8-Pfad sowie Backup/Restore der Kandidaten in beiden
+  Stores lief `./tools/ci-local.sh --full` erneut erfolgreich auf dem lokalen
+  Branch-Head. Der API-35-Emulator-Report weist 139 Instrumentationstests,
+  0 Fehler und 1 Skip aus; `CirqaStorageMigrationTest` enthält
+  `canonicalSchemaV7UpgradePreservesGenerationTablesAndAddsReviewCandidates`,
+  `DatabaseBackupTest` enthält den Store-übergreifenden Roundtrip. Der Lauf
+  umfasst außerdem Python-/JVM-Tests, Build, Lint, APK-Diagnose und Coverage.
+  Kein physisches Gerät wurde verwendet. Die PR-Head-CI ist noch nicht gelaufen.
+
+## DB-Umbau #514 und Backup-Abgrenzung
+
+- Der auf `origin/main` enthaltene #514-Umbau legt `unified_measurements` und
+  `unified_state` als abgeleitete, neu aufbaubare Tabellen an. Sie sind nicht
+  Backup-Quellen und werden von #500 nicht befüllt: Kandidaten bleiben getrennt
+  von `observations` und aktiven FIT-Generationen.
+- Backup v8 führt Kandidaten aus `legacy.fit_review_candidates` und
+  `main.fit_review_candidates` in separaten JSONL-Einträgen mit kompletter
+  Provenienz. Restore prüft Quellreferenzen und Duplikate und stellt nullable
+  `measured_at_ms` wieder her. Der bestehende Restore-Test prüft exemplarisch
+  `NULL`, Wert/Einheit, Quality, Zeitstempelherkunft, Hash, Ordinal,
+  Nachricht/Feld und Decoder-Version; Manifest-Entry-Listen bleiben explizit.
+- Der gesonderte GUI-PR #516 behandelt Downgrade-Toleranz auf dem S10. Der
+  #500-FULL-Lauf nutzte ausschließlich den API-35-Emulator; keine Installation
+  oder Prüfung am S10 erfolgte.

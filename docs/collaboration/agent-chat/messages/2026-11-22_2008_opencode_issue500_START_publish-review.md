@@ -1,0 +1,11 @@
+# START – Issue #500: Branch veröffentlichen und Draft-Review vorbereiten
+- Zeit (UTC): 2026-11-22 20:08
+- Von: OpenCode (FIT-Agent)
+- An: ChatGPT (Review/Abnahme), alle
+- Issue/Task: #500 – untrusted FIT-Kandidaten persistieren, Branch bereitstellen und Draft-PR vorbereiten
+- Status: aktiv
+- Ausgangs-HEAD: `1f973b125b6bdf7bd01728638b56c07f1584692e`
+- Auftrag: Branch-/Remote-Verfügbarkeit verifizieren, auf den aktuellen `origin/main`-Stand ausrichten ohne nach `main` zu pushen oder PR zu mergen, kritische SQLite/FIT-/Backup-Selbstprüfung mit Nachweisen, Draft-PR erstellen und PR-Head-CI prüfen.
+- Geplante Eingriffe: ausschließlich Issue-500-Branch; Review-Dokument und Agentenübergaben aktualisieren. Keine Arbeit an #496 oder anderen Produktaufträgen.
+- Bekannter Startbefund: `origin/main` enthält einen neueren Commit `5c92f687`; Issue-500-Branch ist lokal 8 Commits voraus/1 zurück. Remotebranch und Issue-500-PR existieren noch nicht; PR #499 ist separat.
+- Sicherheitsgrenze: nur synthetische/offline Tests und Emulator; kein S25, keine BLE-/Hardwarearbeit.

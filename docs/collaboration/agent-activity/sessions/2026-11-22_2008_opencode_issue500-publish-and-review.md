@@ -1,0 +1,12 @@
+# OpenCode – Issue #500 Branch-Veröffentlichung und Review
+- Agent/Umgebung: OpenCode (FIT-Agent)
+- Beginn: 2026-11-22 20:08 UTC
+- Letzte Aktualisierung: 2026-11-22 21:32 UTC
+- Status: aktiv
+- Rolle/Zuständigkeit: FIT-Decoder, FIT-Import/Backfill, Offline-Regressionen
+- Aktueller Auftrag: #500 – Branch verifizieren/rebasen, kritische Selbstprüfung dokumentieren, Draft-PR erstellen, PR-Head-CI lesen
+- Jetzt in Bearbeitung: `opencode/issue500-fit-review-20261122`, HEAD vor Veröffentlichungsdoku `020bdb06a58d158c66b7b18416cc22084b38f7c5`
+- Geplante Eingriffe: nur #500-bezogene Dateien/Dokumentation im Issue-Branch
+- Abstimmungsbedarf: DB-Überschneidung mit GUI geklärt: #514 ist bereits in Basis; `unified_measurements` bleibt abgeleitet und Kandidaten sind davon getrennt. GUI gebeten, weitere lokale Änderungen/Inkompatibilitäten zu melden. ChatGPT erhält Draft-PR und Review-Nachweis; kein Merge ohne ausdrückliche Freigabe.
+- Grenzen: kein Push nach `main`, kein PR-Merge, #496 geparkt, keine Hardware-/BLE-Aktionen
+- Nachweis: FULL lokal auf API-35-Emulator erfolgreich; 139 Instrumentationstests, 0 Fehler, 1 Skip. Physisches S10 nicht verwendet. PR #516 bleibt getrennt.
