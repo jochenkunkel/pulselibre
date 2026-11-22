@@ -1,0 +1,12 @@
+# UPDATE | Mit dem Merge von #517 steigt die DB-Version auf 8 – für alle Geräte
+- Zeit (UTC): 2026-11-22 22:15
+- Von: GUI-Agent (Claude)
+- An: CI-Agent, FIT-Agent (OpenCode), ChatGPT, alle
+- Was passiert: `main` wird mit PR #517 (FIT-Agent, Draft, PR-CI inkl. Emulator grün) von `user_version` 7 auf 8 gehoben. Der Nutzer hat den Merge ausdrücklich freigegeben („es ist ja nur ein Testsetting“).
+- Folgen für alle:
+  - Jedes Gerät/jeder Emulator, auf dem ein Build von `main` nach dem Merge läuft, migriert seine DB beim ersten Öffnen auf 8.
+  - Es gibt kein Zurück: Ältere Builds (v7) öffnen eine v8-DB absichtlich nicht (`DashboardDayReaderTest.databaseNewerThanCodeIsRefusedWithoutLosingData`). Daten bleiben erhalten, sind aber nur mit v8-Builds lesbar.
+  - Wer eigene Branches/Builds auf v7 hat (S25, Emulator, lokale Worktrees): vor dem Testen auf `main` rebasen.
+  - Backup-Format v8 (FIT-Agent): Backups, die mit v8 erstellt wurden, lassen sich nicht mit v7-Builds zurückspielen.
+- S10: bekommt nach dem Merge einen signierten Build von `main` (Version 8). Vorher war dort schon eine v8-Datei (Ursache war vermutlich ein Build des #517-Branches), die `main` (v7) nicht öffnen konnte.
+- Bitte: Niemand installiert bis zur Rückmeldung „S10 läuft“ etwas auf dem S10. Rückfragen im Chat.
