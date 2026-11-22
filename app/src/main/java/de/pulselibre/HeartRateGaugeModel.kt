@@ -10,8 +10,8 @@ data class HeartRateGaugeModel(val bpm: Int?) {
     val fraction: Float? get() = bpm?.let { ((it - SCALE_MIN) / (SCALE_MAX - SCALE_MIN).toFloat()).coerceIn(0f, 1f) }
     val scaleNote: String get() = when {
         bpm == null -> "Keine Messdaten"
-        bpm < 40 -> "Unterhalb der Anzeigeskala"
-        bpm > 180 -> "Oberhalb der Anzeigeskala"
+        bpm < SCALE_MIN -> "Unterhalb der Anzeigeskala"
+        bpm > SCALE_MAX -> "Oberhalb der Anzeigeskala"
         else -> "Messwertanzeige · keine Zielzone"
     }
     companion object {
@@ -26,6 +26,11 @@ data class HeartRateGaugeModel(val bpm: Int?) {
         const val MODE_Y_PER_HEIGHT = 0.59f
         const val VALUE_Y_PER_HEIGHT = 0.73f
         const val UNIT_Y_PER_HEIGHT = 0.85f
+
+        /** Dial ticks: [TICK_INTERVALS] equal steps over the scale, every [MAJOR_EVERY]-th tick is labelled. */
+        const val TICK_INTERVALS = 70
+        const val MAJOR_EVERY = 10
+        fun tickValue(i: Int): Int = SCALE_MIN + i * (SCALE_MAX - SCALE_MIN) / TICK_INTERVALS
 
         fun needleAngle(fraction: Float): Float = ARC_START_DEGREES + fraction.coerceIn(0f, 1f) * ARC_SWEEP_DEGREES
         fun pivotOffsetFromCircleCenter(radius: Float): Float =
