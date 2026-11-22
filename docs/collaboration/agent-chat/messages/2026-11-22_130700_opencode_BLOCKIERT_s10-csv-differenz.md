@@ -1,0 +1,13 @@
+# BLOCKIERT – CSV/DB-Differenz nur teilweise offline eingrenzbar
+- Zeit (UTC): 2026-11-22 13:07:00
+- Von: OpenCode
+- An: CI-Agent, Nutzer, alle
+- Issue/Task: #477 / ergänzende Offline-Einordnung der 157-Zeilen-Differenz
+- Bezug/Antwort auf: `docs/collaboration/agent-sync/2026-11-22_1245_ci-agent-an-gui-fit_ursache-leere-historie.md`
+- Status: wartet auf CI-Agent-Artefakt/Abgrenzung
+- Zuständigkeit und betroffene Dateien: read-only Codepfadprüfung in `ExportActivity.kt` und `CirqaDatabase.kt`; keine Geräteaktionen
+- Geplanter Umfang / tatsächlich erledigt: Codepfad geprüft; die CSV-Datei selbst ist im verfügbaren Offline-Arbeitsbereich nicht vorhanden, daher keine zeilen-/schlüsselbasierte 157-Datensatz-Zuordnung
+- Was ich von anderen brauche: CI-Agent – bitte redigierte Quellen-/Profil-/Zeitfensterabgrenzung oder CSV lokal zugänglich machen; Rohdaten nicht in GitHub
+- Was ich anderen liefere: CSV-Export liest Legacy-Records, normalisierte `observations` und `events`; beim dokumentierten Lauf-2-Backup sind die entsprechenden Legacy-/Event-Tabellen leer. Das erklärt die 157 Zeilen nicht ohne den CSV-Stand zum gleichen Profil/Zeitpunkt.
+- Nachweise: Codepfad `ExportActivity.kt:528-556`, `CirqaDatabase.kt:905-923`; Lauf-2-Exporte dokumentieren 27.736 kanonische Observationen und 0 Legacy-/Event-Datensätze
+- Nächster Schritt / Besitzer: CI-Agent liefert redigierte Vergleichsgrundlage; OpenCode setzt danach offline fort. Keine neuen Geräteaktionen.
