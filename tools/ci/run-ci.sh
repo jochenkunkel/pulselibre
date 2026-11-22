@@ -170,7 +170,12 @@ emulator() {
   # tools/test_device_safety_gate.py can exercise every branch offline.
   bash "$CI_REPO_ROOT/.github/scripts/require-emulator-serial.sh" || \
     ci_die "Instrumentationstests auf physischem Gerät verhindert."
-  ci_gradle :app:connectedDebugAndroidTest --stacktrace
+  # On failure name the failing tests in the log (the emulator's GPU "bad color buffer" lines are noise, also in green runs).
+  ci_gradle :app:connectedDebugAndroidTest --stacktrace || {
+    rc=$?
+    python3 "$CI_REPO_ROOT/tools/ci/failed_instrumentation_tests.py" "$CI_REPO_ROOT/app/build/outputs/androidTest-results" || true
+    exit "$rc"
+  }
   bash "$CI_REPO_ROOT/.github/scripts/verify-instrumentation-coverage.sh"
   ci_group_end
 
