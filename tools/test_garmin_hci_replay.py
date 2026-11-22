@@ -160,6 +160,14 @@ class ReplayTests(unittest.TestCase):
         self.assertEqual(1, summary["errors"]["overlong_l2cap_start"])
         self.assertEqual(0, summary["l2cap_complete"])
 
+    def test_reserved_hci_handle_is_not_interpreted_as_l2cap(self):
+        malformed_l2cap = struct.pack("<HH", 4, 4) + b"x" * 900
+        _parser, summary = self.parse([acl(0x0FF1, 2, malformed_l2cap, 1)])
+        self.assertEqual(1, summary["errors"]["invalid_acl_connection_handle"])
+        self.assertNotIn("overlong_l2cap_start", summary["errors"])
+        self.assertEqual(0, summary["l2cap_complete"])
+        self.assertEqual(0, summary["att_pdus"])
+
     def test_write_command_is_counted_separately_from_write_request(self):
         handle = 0x42
         records = [

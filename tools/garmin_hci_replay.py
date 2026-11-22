@@ -304,6 +304,12 @@ class Replay:
         if len(payload) != acl_len:
             self.error_counts["acl_length_mismatch"] += 1
             return
+        # HCI connection handles 0xF00..0xFFE are reserved and 0xFFF is
+        # the broadcast handle; neither identifies an LE ACL connection.
+        # Do not interpret controller traffic on these values as L2CAP.
+        if handle > 0x0EFF:
+            self.error_counts["invalid_acl_connection_handle"] += 1
+            return
         epoch = self.active_epochs.get(handle)
         if epoch is None:
             # Keep an explicit unanchored epoch; never claim device attribution.

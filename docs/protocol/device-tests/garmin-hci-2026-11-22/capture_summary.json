@@ -66,7 +66,7 @@
   "direction_definition": "btsnoop flag bit0: 0 host-sent, 1 host-received; validate via ATT opcodes",
   "errors": {
     "ambiguous_overlapping_service_ranges": 80,
-    "overlong_l2cap_start": 49
+    "invalid_acl_connection_handle": 49
   },
   "evidence_limit": "ATT transport is reconstructed; Garmin attribution requires discovered UUID/handle mapping; MLR/GFDI/FileAccess/FIT are not inferred by this layer.",
   "first_record_utc": "2026-11-21T22:52:55.442731Z",
