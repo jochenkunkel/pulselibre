@@ -796,6 +796,116 @@ class DatabaseBackupTest {
         }.toByteArray()
     }
 
+    @Test fun version7BackupRemainsRestorableAfterLiveMetadataSchemaUpgrade() {
+        val base = ApplicationProvider.getApplicationContext<Context>()
+        val root = Files.createTempDirectory(base.cacheDir.toPath(), "backup-v7-compat-").toFile()
+        val context = isolatedContext(base, root)
+        try {
+            val plan = DatabaseBackup.prepareRestore(context, ByteArrayInputStream(emptyVersionedBackup(7)))
+            plan.use {
+                assertEquals(7, it.version)
+                assertEquals(0L, it.liveDeviceMetadata)
+                DatabaseBackup.restore(context, it)
+            }
+            CirqaDatabase(context).use { db ->
+                assertEquals(8, db.readableDatabase.version)
+                assertTrue(db.latestLiveDeviceMetadata().isEmpty())
+            }
+        } finally {
+            root.deleteRecursively()
+        }
+    }
+
+    @Test fun liveDeviceMetadataSurvivesBackupRoundTrip() {
+        val base = ApplicationProvider.getApplicationContext<Context>()
+        val root = Files.createTempDirectory(base.cacheDir.toPath(), "backup-v8-live-metadata-").toFile()
+        val context = isolatedContext(base, root)
+        val observed = 1_800_000_000_000L
+        try {
+            CirqaDatabase(context).use { db ->
+                db.storeLiveDeviceMetadata(listOf(
+                    LiveDeviceMetadata(
+                        DeviceMetadataFields.BATTERY_LEVEL, "37", "%",
+                        DeviceMetadataSources.GARMIN_GDI_STATUS, observed
+                    ),
+                    LiveDeviceMetadata(
+                        DeviceMetadataFields.FIRMWARE_VERSION, "1.2.3", null,
+                        DeviceMetadataSources.GATT_DEVICE_INFO, observed
+                    )
+                ), storedAtMs = observed + 1)
+            }
+            val archive = ByteArrayOutputStream()
+            DatabaseBackup.write(context, archive)
+            val plan = DatabaseBackup.prepareRestore(context, ByteArrayInputStream(archive.toByteArray()))
+            plan.use {
+                assertEquals(8, it.version)
+                assertEquals(2L, it.liveDeviceMetadata)
+                // Restore into a fresh store to prove the entry is actually replayed.
+                val freshRoot = Files.createTempDirectory(base.cacheDir.toPath(), "backup-v8-restore-").toFile()
+                try {
+                    val freshContext = isolatedContext(base, freshRoot)
+                    DatabaseBackup.restore(freshContext, it)
+                    CirqaDatabase(freshContext).use { db ->
+                        val values = db.latestLiveDeviceMetadata()
+                        assertEquals(2, values.size)
+                        assertTrue(values.any { v ->
+                            v.fieldKey == DeviceMetadataFields.BATTERY_LEVEL && v.valueText == "37" &&
+                                v.unit == "%" && v.source == DeviceMetadataSources.GARMIN_GDI_STATUS &&
+                                v.observedAtMs == observed
+                        })
+                        assertTrue(values.any { v ->
+                            v.fieldKey == DeviceMetadataFields.FIRMWARE_VERSION && v.valueText == "1.2.3"
+                        })
+                    }
+                } finally {
+                    freshRoot.deleteRecursively()
+                }
+            }
+        } finally {
+            root.deleteRecursively()
+        }
+    }
+
+    /** Empty archive of a given legacy version; v7 deliberately has no live metadata entry. */
+    private fun emptyVersionedBackup(version: Int): ByteArray {
+        val dataEntries = mutableListOf(
+            "cirqa_events.jsonl", "legacy_readings.jsonl", "sync_cursors.jsonl",
+            "fit_sources.jsonl", "fit_observation_provenance.jsonl",
+            "canonical_observations.jsonl", "canonical_sync_cursors.jsonl",
+            "canonical_fit_sources.jsonl", "canonical_fit_observation_provenance.jsonl",
+            "canonical_fit_device_metadata.jsonl", "raw_device_metadata.jsonl",
+            "canonical_fit_unmapped_fields.jsonl", "canonical_fit_decoder_generations.jsonl",
+            "canonical_fit_generation_observations.jsonl", "canonical_fit_active_generations.jsonl"
+        )
+        if (version >= 8) dataEntries += listOf(
+            "canonical_fit_review_candidates.jsonl",
+            "legacy_fit_review_candidates.jsonl",
+            "live_device_metadata.jsonl"
+        )
+        val emptySha = MessageDigest.getInstance("SHA-256").digest(byteArrayOf())
+            .joinToString("") { "%02x".format(it.toInt() and 255) }
+        val entries = JSONObject()
+        dataEntries.forEach { name ->
+            entries.put(name, JSONObject().put("records", 0).put("bytes", 0).put("sha256", emptySha))
+        }
+        val manifest = JSONObject()
+            .put("format", "de.pulselibre.local-database-backup")
+            .put("version", version)
+            .put("app_id", "de.pulselibre")
+            .put("created_at", "2026-11-18T00:00:00Z")
+            .put("encryption", "none")
+            .put("entries", entries)
+        return ByteArrayOutputStream().also { bytes ->
+            ZipOutputStream(bytes).use { zip ->
+                (dataEntries + "manifest.json").forEach { name ->
+                    zip.putNextEntry(ZipEntry(name))
+                    if (name == "manifest.json") zip.write(manifest.toString().toByteArray(Charsets.UTF_8))
+                    zip.closeEntry()
+                }
+            }
+        }.toByteArray()
+    }
+
     @Test fun invalidArchiveIsRejectedBeforeAnyStoredDataChanges() {
         val base = ApplicationProvider.getApplicationContext<Context>()
         val root = Files.createTempDirectory(base.cacheDir.toPath(), "database-backup-invalid-test-").toFile()

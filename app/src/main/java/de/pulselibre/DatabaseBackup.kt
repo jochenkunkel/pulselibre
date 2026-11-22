@@ -47,6 +47,7 @@ private const val CANONICAL_FIT_GENERATION_OBSERVATIONS_ENTRY = "canonical_fit_g
 private const val CANONICAL_ACTIVE_FIT_GENERATIONS_ENTRY = "canonical_fit_active_generations.jsonl"
 private const val CANONICAL_FIT_REVIEW_CANDIDATES_ENTRY = "canonical_fit_review_candidates.jsonl"
 private const val LEGACY_FIT_REVIEW_CANDIDATES_ENTRY = "legacy_fit_review_candidates.jsonl"
+private const val LIVE_DEVICE_METADATA_ENTRY = "live_device_metadata.jsonl"
 private const val MANIFEST_ENTRY = "manifest.json"
 private val BACKUP_V1_ENTRIES = setOf(EVENTS_ENTRY, READINGS_ENTRY, CURSORS_ENTRY)
 private val BACKUP_V2_ENTRIES =
@@ -65,7 +66,8 @@ private val BACKUP_V7_ENTRIES = BACKUP_V6_ENTRIES + setOf(
 )
 private val BACKUP_V8_ENTRIES = BACKUP_V7_ENTRIES + setOf(
     CANONICAL_FIT_REVIEW_CANDIDATES_ENTRY,
-    LEGACY_FIT_REVIEW_CANDIDATES_ENTRY
+    LEGACY_FIT_REVIEW_CANDIDATES_ENTRY,
+    LIVE_DEVICE_METADATA_ENTRY
 )
 
 data class DatabaseBackupReport(
@@ -85,7 +87,8 @@ data class DatabaseBackupReport(
     val canonicalFitGenerationObservations: Long = 0,
     val canonicalActiveFitGenerations: Long = 0,
     val canonicalFitReviewCandidates: Long = 0,
-    val legacyFitReviewCandidates: Long = 0
+    val legacyFitReviewCandidates: Long = 0,
+    val liveDeviceMetadata: Long = 0
 )
 
 /** A validated backup staged privately before any local database can be changed. */
@@ -108,7 +111,8 @@ class PreparedDatabaseRestore internal constructor(
     val canonicalFitGenerationObservations: Long,
     val canonicalActiveFitGenerations: Long,
     val canonicalFitReviewCandidates: Long,
-    val legacyFitReviewCandidates: Long
+    val legacyFitReviewCandidates: Long,
+    val liveDeviceMetadata: Long
 ) : Closeable {
     override fun close() { directory.deleteRecursively() }
 }
@@ -228,7 +232,8 @@ object DatabaseBackup {
                     recordCounts[CANONICAL_ACTIVE_FIT_GENERATIONS_ENTRY] ?: 0,
                 canonicalFitReviewCandidates =
                     recordCounts[CANONICAL_FIT_REVIEW_CANDIDATES_ENTRY] ?: 0,
-                legacyFitReviewCandidates = recordCounts[LEGACY_FIT_REVIEW_CANDIDATES_ENTRY] ?: 0
+                legacyFitReviewCandidates = recordCounts[LEGACY_FIT_REVIEW_CANDIDATES_ENTRY] ?: 0,
+                liveDeviceMetadata = recordCounts[LIVE_DEVICE_METADATA_ENTRY] ?: 0
             )
         } catch (error: Exception) {
             directory.deleteRecursively()
@@ -283,6 +288,7 @@ object DatabaseBackup {
                                                     activeGenerations: Sequence<StoredActiveFitGeneration> = emptySequence(),
                                                     legacyReviewCandidates: Sequence<StoredFitReviewCandidate> = emptySequence(),
                                                     reviewCandidates: Sequence<StoredFitReviewCandidate> = emptySequence(),
+                                                    liveDeviceMetadata: Sequence<LiveDeviceMetadata> = emptySequence(),
                                                     generationSnapshotProvided: Boolean = false
                                                 ) {
                                                 database.replaceAllStoredRows(
@@ -300,9 +306,10 @@ object DatabaseBackup {
                                                     canonicalUnmappedFitFields = unmappedFields,
                                                     canonicalFitGenerations = generations,
                                                     canonicalFitGenerationObservations = generationObservations,
-                                                     canonicalActiveFitGenerations = activeGenerations,
-                                                      legacyFitReviewCandidates = legacyReviewCandidates,
-                                                      canonicalFitReviewCandidates = reviewCandidates,
+                                                    canonicalActiveFitGenerations = activeGenerations,
+                                                    legacyFitReviewCandidates = legacyReviewCandidates,
+                                                    canonicalFitReviewCandidates = reviewCandidates,
+                                                    liveDeviceMetadata = liveDeviceMetadata,
                                                     generationSnapshotProvided = generationSnapshotProvided,
                                                     markHistoricalCopyComplete = true
                                                 )
@@ -323,33 +330,39 @@ object DatabaseBackup {
                                                                                         .bufferedReader(Charsets.UTF_8).use { observationReader ->
                                                                                         File(plan.directory, CANONICAL_ACTIVE_FIT_GENERATIONS_ENTRY)
                                                                                             .bufferedReader(Charsets.UTF_8).use { activeReader ->
-                                                                                             if (plan.version >= 8) {
-                                                                                                  File(plan.directory, LEGACY_FIT_REVIEW_CANDIDATES_ENTRY)
-                                                                                                      .bufferedReader(Charsets.UTF_8).use { legacyReviewReader ->
-                                                                                                      File(plan.directory, CANONICAL_FIT_REVIEW_CANDIDATES_ENTRY)
-                                                                                                          .bufferedReader(Charsets.UTF_8).use { reviewReader ->
-                                                                                                          replace(
-                                                                                                              metadataReader.lineSequence().map(::parseDeviceMetadata),
-                                                                                                              rawReader.lineSequence().map(::parseRawDeviceMetadata),
-                                                                                                              unknownReader.lineSequence().map(::parseUnmappedFitField),
-                                                                                                              generationReader.lineSequence().map(::parseFitGeneration),
-                                                                                                              observationReader.lineSequence().map(::parseFitGenerationObservation),
-                                                                                                              activeReader.lineSequence().map(::parseActiveFitGeneration),
-                                                                                                              legacyReviewCandidates = legacyReviewReader.lineSequence().map(::parseFitReviewCandidate),
-                                                                                                              reviewCandidates = reviewReader.lineSequence().map(::parseFitReviewCandidate),
-                                                                                                              generationSnapshotProvided = true
-                                                                                                          )
-                                                                                                      }
-                                                                                                  }
-                                                                                              } else replace(
-                                                                                                 metadataReader.lineSequence().map(::parseDeviceMetadata),
-                                                                                                 rawReader.lineSequence().map(::parseRawDeviceMetadata),
-                                                                                                 unknownReader.lineSequence().map(::parseUnmappedFitField),
-                                                                                                 generationReader.lineSequence().map(::parseFitGeneration),
-                                                                                                 observationReader.lineSequence().map(::parseFitGenerationObservation),
-                                                                                                 activeReader.lineSequence().map(::parseActiveFitGeneration),
-                                                                                                 generationSnapshotProvided = true
-                                                                                             )
+                                                                                            if (plan.version >= 8) {
+                                                                                                File(plan.directory, LEGACY_FIT_REVIEW_CANDIDATES_ENTRY)
+                                                                                                    .bufferedReader(Charsets.UTF_8).use { legacyReviewReader ->
+                                                                                                    File(plan.directory, CANONICAL_FIT_REVIEW_CANDIDATES_ENTRY)
+                                                                                                        .bufferedReader(Charsets.UTF_8).use { reviewReader ->
+                                                                                                        File(plan.directory, LIVE_DEVICE_METADATA_ENTRY)
+                                                                                                            .bufferedReader(Charsets.UTF_8).use { liveReader ->
+                                                                                                            replace(
+                                                                                                                metadataReader.lineSequence().map(::parseDeviceMetadata),
+                                                                                                                rawReader.lineSequence().map(::parseRawDeviceMetadata),
+                                                                                                                unknownReader.lineSequence().map(::parseUnmappedFitField),
+                                                                                                                generationReader.lineSequence().map(::parseFitGeneration),
+                                                                                                                observationReader.lineSequence().map(::parseFitGenerationObservation),
+                                                                                                                activeReader.lineSequence().map(::parseActiveFitGeneration),
+                                                                                                                legacyReviewCandidates = legacyReviewReader.lineSequence().map(::parseFitReviewCandidate),
+                                                                                                                reviewCandidates = reviewReader.lineSequence().map(::parseFitReviewCandidate),
+                                                                                                                liveDeviceMetadata = liveReader.lineSequence().map(::parseLiveDeviceMetadata),
+                                                                                                                generationSnapshotProvided = true
+                                                                                                            )
+                                                                                                        }
+                                                                                                    }
+                                                                                                }
+                                                                                            } else {
+                                                                                                replace(
+                                                                                                    metadataReader.lineSequence().map(::parseDeviceMetadata),
+                                                                                                    rawReader.lineSequence().map(::parseRawDeviceMetadata),
+                                                                                                    unknownReader.lineSequence().map(::parseUnmappedFitField),
+                                                                                                    generationReader.lineSequence().map(::parseFitGeneration),
+                                                                                                    observationReader.lineSequence().map(::parseFitGenerationObservation),
+                                                                                                    activeReader.lineSequence().map(::parseActiveFitGeneration),
+                                                                                                    generationSnapshotProvided = true
+                                                                                                )
+                                                                                            }
                                                                                         }
                                                                                     }
                                                                                 }
@@ -413,6 +426,7 @@ object DatabaseBackup {
         var canonicalActiveFitGenerationCount = 0L
         var canonicalFitReviewCandidateCount = 0L
         var legacyFitReviewCandidateCount = 0L
+        var liveDeviceMetadataCount = 0L
         ZipOutputStream(BufferedOutputStream(FileOutputStream(target))).use { zip ->
             CirqaDatabase(context).use { database ->
                 database.ensureHistoricalStoreCopied()
@@ -749,13 +763,33 @@ object DatabaseBackup {
                     }
                     legacyFitReviewCandidateCount = legacyReviewCandidates.records
                     metadata.put(LEGACY_FIT_REVIEW_CANDIDATES_ENTRY, entryMetadata(legacyReviewCandidates))
+
+                    val liveMetadata = writeJsonLines(zip, LIVE_DEVICE_METADATA_ENTRY) { emit ->
+                        db.rawQuery(
+                            """SELECT field_key, value_text, unit, source, observed_at_ms
+                               FROM main.live_device_metadata ORDER BY observed_at_ms, field_key, id""", null
+                        ).use { rows ->
+                            while (rows.moveToNext()) {
+                                val item = JSONObject()
+                                    .put("field_key", rows.getString(0))
+                                    .put("value_text", rows.getString(1))
+                                    .put("source", rows.getString(3))
+                                    .put("observed_at_ms", rows.getLong(4))
+                                if (rows.isNull(2)) item.put("unit", JSONObject.NULL) else item.put("unit", rows.getString(2))
+                                emit(item.toString())
+                            }
+                        }
+                    }
+                    liveDeviceMetadataCount = liveMetadata.records
+                    metadata.put(LIVE_DEVICE_METADATA_ENTRY, entryMetadata(liveMetadata))
                     require(
                         events.bytes + readings.bytes + cursors.bytes + sources.bytes + provenance.bytes +
                             canonicalReadings.bytes + canonicalCursors.bytes + canonicalSources.bytes +
                             canonicalProvenance.bytes + canonicalDeviceMetadata.bytes +
                             rawDeviceMetadata.bytes + canonicalUnmappedFields.bytes +
                             generations.bytes + generationObservations.bytes + activeGenerations.bytes +
-                            reviewCandidates.bytes + legacyReviewCandidates.bytes <= MAX_ARCHIVE_BYTES
+                            reviewCandidates.bytes + legacyReviewCandidates.bytes +
+                            liveMetadata.bytes <= MAX_ARCHIVE_BYTES
                     ) {
                         "Lokale Datenbank ist zu groß für ein Backup"
                     }
@@ -779,7 +813,7 @@ object DatabaseBackup {
             canonicalFitProvenanceCount, canonicalDeviceMetadataCount, rawDeviceMetadataCount,
             canonicalFitGenerationCount, canonicalFitGenerationObservationCount,
             canonicalActiveFitGenerationCount, canonicalFitReviewCandidateCount,
-            legacyFitReviewCandidateCount
+            legacyFitReviewCandidateCount, liveDeviceMetadataCount
         )
     }
 
@@ -869,6 +903,7 @@ object DatabaseBackup {
                     CANONICAL_ACTIVE_FIT_GENERATIONS_ENTRY -> parseActiveFitGeneration(line)
                     CANONICAL_FIT_REVIEW_CANDIDATES_ENTRY,
                     LEGACY_FIT_REVIEW_CANDIDATES_ENTRY -> parseFitReviewCandidate(line)
+                    LIVE_DEVICE_METADATA_ENTRY -> parseLiveDeviceMetadata(line)
                 }
                 count++
                 require(count <= MAX_RECORDS) { "Zu viele Einträge in $name" }
@@ -1401,6 +1436,23 @@ object DatabaseBackup {
         )
         require(CirqaDatabase.isValidDeviceMetadata(metadata)) { "Ungültige FIT-Gerätemetadaten im Backup" }
         return metadata
+    }
+
+    private fun parseLiveDeviceMetadata(line: String): LiveDeviceMetadata {
+        val item = JSONObject(line)
+        val value = LiveDeviceMetadata(
+            fieldKey = item.getString("field_key"),
+            valueText = item.getString("value_text"),
+            unit = if (!item.has("unit") || item.isNull("unit")) null else item.getString("unit"),
+            source = item.getString("source"),
+            observedAtMs = item.getLong("observed_at_ms")
+        )
+        require(value.fieldKey.length in 1..64 && value.valueText.length in 1..256 &&
+            (value.unit == null || value.unit.length in 1..16) &&
+            value.source.length in 1..32 && value.observedAtMs >= 0) {
+            "Ungültiger Live-Gerätemetadatenwert im Backup"
+        }
+        return value
     }
 
     private fun parseRawDeviceMetadata(line: String): RawDeviceMetadataRecord {

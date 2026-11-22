@@ -913,4 +913,21 @@
     <string name="ht_note">Live: reception time on the phone · Band: measurement time of the band · Import: as stored. One row per day, source and measure; nothing is interpolated or merged.</string>
     <string name="ht_empty">No values in this period.</string>
     <string name="ht_row_cd">%1$s, %2$s, %3$s: %4$d values, range %5$s, mean %6$s</string>
+    <!-- #142/#159 live device metadata: labels and provenance -->
+    <string name="dev_meta_masked">Masked</string>
+    <string name="dev_meta_software">Software</string>
+    <string name="dev_meta_hardware">Hardware</string>
+    <string name="dev_meta_model">Model</string>
+    <string name="dev_meta_manufacturer">Manufacturer</string>
+    <string name="dev_meta_device_name">Device name</string>
+    <string name="dev_meta_protocol">Protocol</string>
+    <string name="dev_meta_product">Product</string>
+    <string name="dev_meta_packet">Max packet</string>
+    <string name="dev_meta_runtime">Runtime</string>
+    <string name="dev_meta_value_cd">%1$s: %2$s. Source: %3$s. %4$s</string>
+    <string name="bat_cd_status">Status: %1$s</string>
+    <string name="bat_cd_source">Source: %1$s</string>
+    <string name="src_gatt_battery">standard GATT battery service</string>
+    <string name="src_garmin_status">Garmin device status</string>
+    <string name="src_fit">stored FIT history</string>
 </resources>

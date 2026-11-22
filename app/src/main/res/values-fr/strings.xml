@@ -916,4 +916,21 @@
     <string name="ht_note">En direct : heure de réception sur le téléphone · Bracelet : heure de mesure du bracelet · Import : tel que stocké. Une ligne par jour, source et mesure ; rien n’est interpolé ni mélangé.</string>
     <string name="ht_empty">Aucune valeur sur cette période.</string>
     <string name="ht_row_cd">%1$s, %2$s, %3$s : %4$d valeurs, plage %5$s, moyenne %6$s</string>
+    <!-- REVIEW: neue Texte (#142/#159), fr/es Sprachprüfung durch ChatGPT -->
+    <string name="dev_meta_masked">Masqué</string>
+    <string name="dev_meta_software">Logiciel</string>
+    <string name="dev_meta_hardware">Matériel</string>
+    <string name="dev_meta_model">Modèle</string>
+    <string name="dev_meta_manufacturer">Fabricant</string>
+    <string name="dev_meta_device_name">Nom de l’appareil</string>
+    <string name="dev_meta_protocol">Protocole</string>
+    <string name="dev_meta_product">Produit</string>
+    <string name="dev_meta_packet">Paquet max.</string>
+    <string name="dev_meta_runtime">Autonomie</string>
+    <string name="dev_meta_value_cd">%1$s : %2$s. Source : %3$s. %4$s</string>
+    <string name="bat_cd_status">État : %1$s</string>
+    <string name="bat_cd_source">Source : %1$s</string>
+    <string name="src_gatt_battery">service batterie GATT standard</string>
+    <string name="src_garmin_status">état de l’appareil Garmin</string>
+    <string name="src_fit">historique FIT enregistré</string>
 </resources>

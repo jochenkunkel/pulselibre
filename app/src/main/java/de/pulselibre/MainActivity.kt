@@ -32,6 +32,9 @@ class MainActivity : AppCompatActivity() {
     /** Re-reads the profile into the overview card; also needed after saving via the header settings button. */
     private var refreshBodyCardRef: (() -> Unit)? = null
     private var deviceStatsLoadedAt = 0L
+    /** One bounded, read-only metadata query per visit to the "Geräte" tab (#142/#159). */
+    private var deviceMetadataProbe: DeviceMetadataProbe? = null
+    private var lastDeviceMetadataVisitAt = 0L
     private var dashboardVisible = true
     private var historyVisible = false
     private var devicesVisible = false
@@ -279,10 +282,14 @@ class MainActivity : AppCompatActivity() {
                     deviceStatsLoadedAt = now
                     Thread {
                         val stats = try { DeviceStatsReader(applicationContext).read(java.time.Instant.now(), java.time.ZoneId.systemDefault()) } catch (_: Exception) { null }
-                        val battery = DeviceBatteryReader.read(applicationContext)
+                        // #142/#159: newest provenance-backed values drive the battery row and every extra row.
+                        val metadata = try { pollDatabase.latestLiveDeviceMetadata() } catch (_: Exception) { emptyList() }
+                        val liveBattery = DeviceMetadataFormat.batteryReading(metadata)
+                        val battery = liveBattery ?: DeviceBatteryReader.read(applicationContext)
                         runOnUiThread {
                             if (destroyed) return@runOnUiThread
                             if (stats != null) overviewView.showStats(stats)
+                            overviewView.showMetadata(metadata)
                             overviewView.showBattery(battery)
                         }
                     }.start()
@@ -773,6 +780,7 @@ class MainActivity : AppCompatActivity() {
             }
             if (index == 2) recorderRefresh?.invoke()
             if (index == 2) refreshUnknownFields()
+            if (index == 2) maybeProbeDeviceMetadata()
             connectionIndicatorRefresh?.invoke()
             scroll.scrollTo(0, 0)
             updateTitleBar(0)
@@ -947,6 +955,41 @@ class MainActivity : AppCompatActivity() {
             }
             .show()
         return false
+    }
+
+    /**
+     * #142/#159: one bounded, read-only metadata query per visit to the device tab. GATT battery
+     * and device information are read first; the Garmin `GDIDeviceStatus` query runs only as a
+     * fallback. Every observed value is persisted with its source and timestamp. No device writes
+     * beyond the approved status query, no pairing, reset, or CLOSE_ALL.
+     */
+    private fun maybeProbeDeviceMetadata() {
+        val now = System.currentTimeMillis()
+        if (now - lastDeviceMetadataVisitAt < 10_000L) return // ignore rapid tab re-taps
+        lastDeviceMetadataVisitAt = now
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) !=
+            PackageManager.PERMISSION_GRANTED) return
+        if (!::adapter.isInitialized || !adapter.isEnabled) return
+        deviceMetadataProbe?.close()
+        val probe = DeviceMetadataProbe(applicationContext, adapter)
+        deviceMetadataProbe = probe
+        probe.start { result ->
+            runOnUiThread {
+                if (destroyed) return@runOnUiThread
+                deviceMetadataProbe = null
+                if (result.values.isNotEmpty()) {
+                    dashboardWorker.execute {
+                        try { pollDatabase.storeLiveDeviceMetadata(result.values) } catch (_: Exception) {}
+                        runOnUiThread {
+                            if (destroyed) return@runOnUiThread
+                            deviceStatsLoadedAt = 0L // force the next refresh to reload from the store
+                            connectionIndicatorRefresh?.invoke()
+                        }
+                    }
+                }
+                if (::status.isInitialized) status.text = result.summary
+            }
+        }
     }
 
     private fun ensurePermissions(): Boolean {
@@ -1184,6 +1227,8 @@ class MainActivity : AppCompatActivity() {
         stopScan()
         historicalDownloadProbe?.close()
         historicalDownloadProbe = null
+        deviceMetadataProbe?.close()
+        deviceMetadataProbe = null
         super.onDestroy()
     }
     @SuppressLint("MissingPermission")
