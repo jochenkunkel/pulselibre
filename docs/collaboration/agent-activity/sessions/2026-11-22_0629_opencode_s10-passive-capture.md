@@ -1,15 +1,15 @@
 # OpenCode – S10 passiver HCI-Mitschnitt
 - Agent/Umgebung: OpenCode CLI, eigener Worktree
 - Beginn: 2026-11-22 06:29 UTC
-- Letzte Aktualisierung: 2026-11-22 06:29 UTC
+- Letzte Aktualisierung: 2026-11-22 06:31 UTC
 - Status: aktiv
 - Rolle/Zuständigkeit: BLE/GFDI/FileAccess/Historienpipeline
 - Aktueller Auftrag: Nutzerfreigabe – einmaligen S10-HCI-Mitschnitt während eines vom Nutzer initiierten Garmin-Connect-Syncs vorbereiten und danach offline auswerten
-- Jetzt in Bearbeitung: S10 ADB-Ziel prüfen; passive HCI-Snoop-Aufzeichnung aktivieren/bestätigen; erst nach Bereitschaft Nutzer zum Sync auffordern; anschließend Capture privat sichern und validieren
+- Jetzt in Bearbeitung: S10 SM-G970F / Android 12 bestätigt; vorhandenes `bluetooth_hci_log=1` bestätigt; keine Bluetooth-/Sync-Aktion durch Agent. Nutzer zum manuell ausgelösten Garmin-Connect-Sync aufgefordert; anschließend Capture privat sichern und validieren.
 - Zeitnah geplant: GFDI/ATT/MLR/ItemList/Pull/Transfer-Ablauf redigiert mit bestehendem Produktpfad vergleichen; keine neuen BLE-Kommandos oder automatischen Sync-Aktionen
 - Betroffene Bereiche/Dateien: S10/ADB-Aufzeichnung; lokale private Capture-Dateien; Agenten-Chat/Aktivitätslog; keine Rohdaten im Git
 - Branch/Worktree: `opencode/p0-fileaccess-20261121` / `/tmp/opencode/pulselibre-p0-fileaccess-20261121`
 - Abstimmungsbedarf: Nutzer soll bis zur Bereitschaftsbestätigung keinen Sync starten; S25-Lease-Status vorab FREI, kein S25-Zugriff
 - Agent-sync-Nachrichten: keine neue agent-sync-Bitte nötig; START/ENDE im Agenten-Chat
-- Nachweise: Nutzer hat „ok los“ gegeben; S25-Sperre FREI; S10 noch nicht angefasst
-- Nächster Schritt: S10-Ziel per ADB identifizieren, dann nur passiven Mitschnitt vorbereiten
+- Nachweise: Nutzer hat „ok los“ gegeben; S25-Sperre FREI; ADB-Ziel `RF8M826126Z`, Modell SM-G970F, Android 12/API 31; `settings get secure bluetooth_hci_log` ergab `1`; privates Zielverzeichnis `/tmp/opencode/private_s10_20261122` mit Modus 0700 vorbereitet.
+- Nächster Schritt: Nutzer startet Sync selbst und meldet Ende; OpenCode erstellt danach Bugreport/HCI-Export, prüft ACL/ATT und wertet nur lokal aus.
