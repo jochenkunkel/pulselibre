@@ -143,3 +143,53 @@ class UnifiedMeasurementsTest {
         assertEquals(0, row.count); assertEquals(1, row.invalid)
     }
 }
+
+/** Real-series loading for the dashboard: bucketed valid values, invalid/status flagged, origins kept apart. */
+@RunWith(AndroidJUnit4::class)
+class ScienceSeriesLoaderTest {
+    private lateinit var db: SQLiteDatabase
+    private val t0 = 1_795_000_000_000L - 1_795_000_000_000L % 86_400_000L
+
+    @Before fun open() {
+        db = SQLiteDatabase.create(null)
+        UnifiedMeasurements(db).ensureSchema()
+    }
+
+    @After fun close() = db.close()
+
+    private fun put(origin: String, metric: String, unit: String, ms: Long, value: Double, id: String) =
+        db.execSQL("INSERT INTO unified_measurements VALUES(?, 'd', ?, ?, ?, ?, ?, NULL)", arrayOf<Any>(origin, metric, ms, value, unit, id))
+
+    @Test fun heartRateIsBucketedAndZeroIsInvalidNotAValue() {
+        put("band", "heart_rate", "bpm", t0 + 1_000, 60.0, "a"); put("band", "heart_rate", "bpm", t0 + 2_000, 80.0, "b")
+        put("band", "heart_rate", "bpm", t0 + 3_000, 0.0, "c")
+        put("live", "bpm", "bpm", t0 + 4_000, 99.0, "d") // other origin, must not leak in
+        val data = ScienceSeriesLoader.load(db, ScienceSeriesLoader.HEART_RATE_BAND, t0, t0 + 86_400_000L)
+        val a = SeriesAnalysis.assess(data)
+        assertEquals(2, a.valid); assertEquals(1, a.invalid)
+        assertEquals(60.0, a.minimum!!, 0.0); assertEquals(80.0, a.maximum!!, 0.0); assertEquals(70.0, a.mean!!, 0.0)
+        assertEquals(SeriesOrigin.BAND, data.origin); assertEquals(SeriesTimeBasis.BAND_CLOCK, data.timeBasis)
+    }
+
+    @Test fun respirationStatusCodesAreStatusAndOtherNegativesInvalid() {
+        put("live", "breaths_per_min", "breaths/min", t0 + 1_000, 14.0, "a")
+        put("live", "breaths_per_min", "breaths/min", t0 + 2_000, -100.0, "b"); put("live", "breaths_per_min", "breaths/min", t0 + 3_000, -200.0, "c")
+        put("live", "breaths_per_min", "breaths/min", t0 + 4_000, -300.0, "d"); put("live", "breaths_per_min", "breaths/min", t0 + 5_000, -7.0, "e")
+        val a = SeriesAnalysis.assess(ScienceSeriesLoader.load(db, ScienceSeriesLoader.RESPIRATION_LIVE, t0, t0 + 86_400_000L))
+        assertEquals(1, a.valid); assertEquals(3, a.status); assertEquals(1, a.invalid)
+        assertEquals(14.0, a.minimum!!, 0.0)
+    }
+
+    @Test fun spo2StaysUnverifiedAndStressNegativeIsInvalid() {
+        put("live", "spo2_percent", "%", t0 + 1_000, 97.0, "a"); put("live", "stress", "device_scale", t0 + 1_000, 30.0, "b")
+        put("live", "stress", "device_scale", t0 + 2_000, -1.0, "c")
+        val spo2 = SeriesAnalysis.assess(ScienceSeriesLoader.load(db, ScienceSeriesLoader.SPO2_LIVE, t0, t0 + 86_400_000L))
+        assertEquals(1, spo2.unverified); assertEquals(0, spo2.valid)
+        val stress = SeriesAnalysis.assess(ScienceSeriesLoader.load(db, ScienceSeriesLoader.STRESS_LIVE, t0, t0 + 86_400_000L))
+        assertEquals(1, stress.valid); assertEquals(1, stress.invalid)
+    }
+
+    @Test fun emptyTableGivesAnEmptySeriesNotZeros() {
+        assertEquals(SeriesState.EMPTY, SeriesAnalysis.assess(ScienceSeriesLoader.load(db, ScienceSeriesLoader.HEART_RATE_LIVE, t0, t0 + 86_400_000L)).state)
+    }
+}
