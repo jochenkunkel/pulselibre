@@ -1,15 +1,15 @@
 # OpenCode – S10 passiver HCI-Mitschnitt
 - Agent/Umgebung: OpenCode CLI, eigener Worktree
 - Beginn: 2026-11-22 06:29 UTC
-- Letzte Aktualisierung: 2026-11-22 06:31 UTC
-- Status: aktiv
+- Letzte Aktualisierung: 2026-11-22 06:38 UTC
+- Status: abgeschlossen
 - Rolle/Zuständigkeit: BLE/GFDI/FileAccess/Historienpipeline
 - Aktueller Auftrag: Nutzerfreigabe – einmaligen S10-HCI-Mitschnitt während eines vom Nutzer initiierten Garmin-Connect-Syncs vorbereiten und danach offline auswerten
-- Jetzt in Bearbeitung: S10 SM-G970F / Android 12 bestätigt; vorhandenes `bluetooth_hci_log=1` bestätigt; keine Bluetooth-/Sync-Aktion durch Agent. Nutzer zum manuell ausgelösten Garmin-Connect-Sync aufgefordert; anschließend Capture privat sichern und validieren.
-- Zeitnah geplant: GFDI/ATT/MLR/ItemList/Pull/Transfer-Ablauf redigiert mit bestehendem Produktpfad vergleichen; keine neuen BLE-Kommandos oder automatischen Sync-Aktionen
+- Jetzt in Bearbeitung: abgeschlossen – Bugreport/HCI privat gesichert, Hashes geprüft, Validator fand ACL/ATT; redigierte Metadaten-Analyse abgeschlossen; HCI-Snoop danach ausgeschaltet und `0` bestätigt.
+- Zeitnah geplant: vollständige Offline-Auswertung von MLR-/Transfer-/FIT-CRC-Details als separater Arbeitsschritt; keine neuen BLE-Kommandos oder automatischen Sync-Aktionen
 - Betroffene Bereiche/Dateien: S10/ADB-Aufzeichnung; lokale private Capture-Dateien; Agenten-Chat/Aktivitätslog; keine Rohdaten im Git
 - Branch/Worktree: `opencode/p0-fileaccess-20261121` / `/tmp/opencode/pulselibre-p0-fileaccess-20261121`
 - Abstimmungsbedarf: Nutzer soll bis zur Bereitschaftsbestätigung keinen Sync starten; S25-Lease-Status vorab FREI, kein S25-Zugriff
 - Agent-sync-Nachrichten: keine neue agent-sync-Bitte nötig; START/ENDE im Agenten-Chat
-- Nachweise: Nutzer hat „ok los“ gegeben; S25-Sperre FREI; ADB-Ziel `RF8M826126Z`, Modell SM-G970F, Android 12/API 31; `settings get secure bluetooth_hci_log` ergab `1`; privates Zielverzeichnis `/tmp/opencode/private_s10_20261122` mit Modus 0700 vorbereitet.
-- Nächster Schritt: Nutzer startet Sync selbst und meldet Ende; OpenCode erstellt danach Bugreport/HCI-Export, prüft ACL/ATT und wertet nur lokal aus.
+- Nachweise: Bugreport `/tmp/opencode/private_s10_20261122/s10-after-sync-20261122.zip` SHA-256 `5ff7c6e226851dc623e6cecc4385dd981bb54f32c8c6ea3b6f914568ad29cd17`; HCI SHA-256 `8f564f9ba9a1821165d26bd78fcc50c2f45ee651b6a9790dc423577e7b13a2c4`; validator: 15,968 records, 7,376 ACL, 6,940 complete ATT candidates, sufficient=true. Letzter beobachteter CIRQA-Pfad: GFDI und MLR-8216 registriert, CRC-valid 5043/5044, ItemList-Seiten 11/1/0/0, sechs Pull-Antworten `result=0`, sechs SetFlags-Antworten `result=0`. Das beweist keine MLR-Vollübertragung, FIT-CRC/Import oder vollständige Historie. Alle Dateien lokal Modus 0600; Verzeichnis 0700; `bluetooth_hci_log` danach auf 0 gesetzt und zurückgelesen.
+- Nächster Schritt: OpenCode – Transferbytes/FIT-Abschluss offline weiter auswerten; Coverage bleibt `device-history-unverified`.
