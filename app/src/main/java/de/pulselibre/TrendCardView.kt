@@ -51,8 +51,8 @@ internal class TrendCardView(context: Context) : LinearLayout(context) {
 
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
-        val cached = cachedData
-        if (cached != null && System.currentTimeMillis() - cachedAt < CACHE_MS) { data = cached; render(cached); return }
+        val cached = TrendCache.fresh()
+        if (cached != null) { data = cached; render(cached); return }
         load()
     }
 
@@ -66,7 +66,7 @@ internal class TrendCardView(context: Context) : LinearLayout(context) {
             Handler(Looper.getMainLooper()).post {
                 if (token != generation) return@post
                 if (result == null) { showMessage(context.getString(R.string.tr_failed)); return@post }
-                cachedData = result; cachedAt = System.currentTimeMillis(); data = result
+                TrendCache.store(result); data = result
                 render(result)
             }
         }
@@ -428,8 +428,23 @@ internal class TrendCardView(context: Context) : LinearLayout(context) {
 
     private companion object {
         val worker = Executors.newSingleThreadExecutor()
-        const val CACHE_MS = 10 * 60_000L
-        @Volatile var cachedData: Data? = null
-        @Volatile var cachedAt = 0L
+    }
+}
+
+/**
+ * Process-wide cache of the last trend computation (audit #6 A6-33). Valid for ten minutes, only on the calendar day it
+ * was computed for, and dropped by [invalidate] whenever stored data changes (FIT import, backup restore).
+ */
+internal object TrendCache {
+    const val MAX_AGE_MS = 10 * 60_000L
+    @Volatile private var data: TrendCardView.Data? = null
+    @Volatile private var storedAt = 0L
+
+    fun store(result: TrendCardView.Data) { data = result; storedAt = System.currentTimeMillis() }
+    fun invalidate() { data = null; storedAt = 0L }
+
+    fun fresh(now: Long = System.currentTimeMillis(), today: LocalDate = LocalDate.now()): TrendCardView.Data? {
+        val cached = data ?: return null
+        return cached.takeIf { now - storedAt < MAX_AGE_MS && it.today == today }
     }
 }

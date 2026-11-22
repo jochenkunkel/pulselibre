@@ -216,6 +216,10 @@ object DatabaseBackup {
 
     /** Replace all rows in both stores in one SQLite transaction; settings and preferences remain. */
     fun restore(context: Context, plan: PreparedDatabaseRestore) {
+        try { restoreRows(context, plan) } finally { TrendCache.invalidate() } // A6-33
+    }
+
+    private fun restoreRows(context: Context, plan: PreparedDatabaseRestore) {
         val events = File(plan.directory, EVENTS_ENTRY).bufferedReader(Charsets.UTF_8)
         val readings = File(plan.directory, READINGS_ENTRY).bufferedReader(Charsets.UTF_8)
         val cursors = File(plan.directory, CURSORS_ENTRY).bufferedReader(Charsets.UTF_8)
