@@ -2,8 +2,8 @@
 
 - Agent/Umgebung: CI-Agent (OpenCode, CI/Tests/Dokumentation)
 - Beginn: 2026-11-22 14:53 UTC
-- Letzte Aktualisierung: 2026-11-22 14:56 UTC
-- Status: aktiv – Watchdog-Meldung 14:51 wird mit eigenständiger CI-Arbeit beantwortet; JVM-Suite geprüft, `main`-Lauf läuft noch
+- Letzte Aktualisierung: 2026-11-22 14:58 UTC
+- Status: abgeschlossen – Watchdog-Meldung 14:51 mit eigenständiger CI-Arbeit beantwortet
 - Rolle/Zuständigkeit: CI-Läufe lesen, Testabdeckung nachweisen, Abstimmungswege pflegen
 - Aktueller Auftrag: CLOUD/FULL-Lauf `45035090667` auf `main`-Head `1732d295` aktiv überwachen und Ergebnis lesen; CI-P1-Zeile der Gesamtanalyse anhand tatsächlicher Nachweise bestandsaufnehmen.
 - Jetzt in Bearbeitung: Hintergrund-`gh run watch` auf `45035090667`; Sichtung der vorhandenen JVM-/Instrumentationstests und der PR-/Run-Nachweise.
@@ -11,7 +11,7 @@
 - Betroffene Dateien: `docs/collaboration/agent-sync/INDEX.md`, eigene Chat-START/ENDE-Nachrichten, eigene Sitzungsdatei. Keine Produkt-/Testquelldateien, keine FIT-/GUI-Dateien.
 - Branch/Worktree: `ci/main-ci-verifikation-20261122`, `/tmp/opencode/pulselibre-main-ci-verifikation-20261122`
 - Abstimmungsbedarf: Kein Produktcode geplant. PR #493 bleibt beim FIT-Agenten. Keine Geräteaktion ohne neue ausdrückliche Nutzerfreigabe; die GUI-Freigabe vom 20:00 betrifft ausdrücklich nur die Fortsetzung der Arbeit nach #477.
-- Nachweise: vollständige lokale JVM-Suite auf `main`-Head `1732d295` mit Gradle 9.6.0 / `ANDROID_HOME=/home/smiler/Android/Sdk`: `:app:testDebugUnitTest` → BUILD SUCCESSFUL, **917 Tests, 0 Failures, 0 Errors, 0 Skipped** (212 Suites). `main`-Lauf `45035090667` läuft noch und muss gelesen werden; die FULL-Läufe auf `main` nach #486/#489/#491 (`45031197501`, `45032146900`, `45033537151`) sind grün gelesen.
+- Nachweise: vollständige lokale JVM-Suite auf `main`-Head `1732d295` mit Gradle 9.6.0 / `ANDROID_HOME=/home/smiler/Android/Sdk`: `:app:testDebugUnitTest` → BUILD SUCCESSFUL, **917 Tests, 0 Failures, 0 Errors, 0 Skipped** (212 Suites). `main`-Lauf `45035090667` auf `1732d295` gelesen: `completed/success`, beide Jobs (Build/Unit/Lint/APK und Emulator API 35) `success`. Die FULL-Läufe auf `main` nach #486/#489/#491 (`45031197501`, `45032146900`, `45033537151`) sind ebenfalls grün gelesen. `docs/ci/HYBRID_CI.md` gegen `.github/workflows/android.yml` geprüft – konsistent, kein Änderungsbedarf.
 - P1-Bestandsaufnahme (Gesamtanalyse Abschnitt 9, Zeile „CI“):
   - Backup-v7-Manifest-/Prüfsummen-Tampering: geschlossen durch PR #491 (`8182ad85`), Runs `45032564684` (Build/Lint/Unit + Emulator API 35), `45032564712` (dependency-review), `45032595515` (CLOUD/FULL), `main` `45033537151`.
   - Provenienz-Weitergabe: geschlossen durch PR #486 (`5b10b89`), `CirqaFitBackfillTest.provenanceMetadataIsPassedUnchangedToTheStore`, Runs `45030213221`/`45030213195`, `main` `45031197501`.
