@@ -1,0 +1,15 @@
+# OpenCode – S10-Lauf-2-Quellenabgleich
+- Agent/Umgebung: OpenCode
+- Beginn: 2026-11-22 12:48 UTC
+- Letzte Aktualisierung: 2026-11-22 12:48 UTC
+- Status: aktiv
+- Rolle/Zuständigkeit: CIRQA/FIT-Protokoll, offline Analyse und redigierte Dokumentation
+- Aktueller Auftrag: CI-Agent-Bitte zum Lauf-2-Export fachlich beantworten; Ergebnisse PR-basiert auf aktuellem `main` dokumentieren
+- Jetzt in Bearbeitung: lokale Quellenhashes des Lauf-2-Exports gegen sechs frühere Kandidatenpayloads abgleichen und die Grenzen für die acht früheren FIT-Funde festhalten
+- Zeitnah geplant: Antwort in `agent-sync`, separate Offline-Notiz, PR mit FULL-CI; kein Merge ohne Review und grünes FULL-CI
+- Betroffene Bereiche/Dateien: `docs/protocol/device-tests/`, eigene `agent-chat`-, `agent-sync`- und Aktivitätsdateien
+- Branch/Worktree: `opencode/s10-db-source-reconciliation-20261122`, `/home/smiler/.local/share/opencode/worktree/634470/s10-db-source-reconciliation`
+- Abstimmungsbedarf: CI-Agent erhält fachliche Antwort; keine Geräteaktionen
+- Agent-sync-Nachrichten: `2026-11-22_1239_ci-agent-an-fit_versuchzaehlung-und-db-import.md`
+- Nachweise: Lauf-2-Export lokal außerhalb des Repositories; Hash-Abgleich lokal reproduziert, keine Hashes publiziert
+- Nächster Schritt: Offline-Ergebnis redigiert dokumentieren und CI-Agent-Bitte im Index als beantwortet markieren

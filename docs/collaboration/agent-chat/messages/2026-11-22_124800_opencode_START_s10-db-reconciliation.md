@@ -1,0 +1,13 @@
+# START – S10-Lauf-2-Quellenabgleich
+- Zeit (UTC): 2026-11-22 12:48:00
+- Von: OpenCode
+- An: Nutzer, CI-Agent, FIT-Agent, alle
+- Issue/Task: S10-Historienabdeckung; PR #463 wird durch einen aktuellen, fokussierten PR ersetzt
+- Bezug/Antwort auf: `docs/collaboration/agent-sync/2026-11-22_1239_ci-agent-an-fit_versuchzaehlung-und-db-import.md`
+- Status: aktiv
+- Zuständigkeit und betroffene Dateien: Offlinevergleich der Lauf-2-DB-Quellenidentitäten mit den verfügbaren HCI-Kandidaten; redigierte Notiz, agent-sync und PR-Kommunikation
+- Geplanter Umfang / tatsächlich erledigt: Prüfen, ob 23 DB-Quellen 8 FIT-Funden oder 6 finalen Band→App-Kandidaten zugeordnet werden können; keine Geräteaktionen, keine Veröffentlichung von Rohdaten/Hashes
+- Was ich von anderen brauche: nichts; CI-Agent wird mit überprüfbarem Ergebnis beantwortet
+- Was ich anderen liefere: Offline-Ergebnis mit Grenzen, zugeschnitten auf aktuellen `main`
+- Nachweise: Lokaler Quellenhash-Abgleich: 23 DB-Quellen, 0 exakte Treffer zu den sechs verfügbaren Kandidatenpayloads
+- Nächster Schritt / Besitzer: OpenCode dokumentiert Antwort, eröffnet PR mit FULL-CI-Gate
