@@ -9,8 +9,20 @@ import java.io.File
 import java.nio.file.Files
 
 class CirqaFitBackfillTest {
+    private data class Commit(
+        val sourceSha256: String,
+        val fileBytes: Long,
+        val relativePath: String,
+        val validatedAtEpochMillis: Long,
+        val decoderVersion: String,
+        val profileVersion: String,
+        val observationCount: Int,
+        val deviceKey: String
+    )
+
     private class RecordingStore : FitObservationStore {
         val calls = mutableListOf<List<FitHistoricalObservations.Observation>>()
+        val commits = mutableListOf<Commit>()
         override fun commitFitFile(
             sourceSha256: String,
             fileBytes: Long,
@@ -24,6 +36,16 @@ class CirqaFitBackfillTest {
             deviceKey: String
         ): Int {
             calls += observations
+            commits += Commit(
+                sourceSha256 = sourceSha256,
+                fileBytes = fileBytes,
+                relativePath = relativePath,
+                validatedAtEpochMillis = validatedAtEpochMillis,
+                decoderVersion = decoderVersion,
+                profileVersion = profileVersion,
+                observationCount = observations.size,
+                deviceKey = deviceKey
+            )
             return observations.size
         }
     }
@@ -99,6 +121,31 @@ class CirqaFitBackfillTest {
                 store.calls[0].single().timestampEpochMillis,
                 store.calls[1].single().timestampEpochMillis
             )
+        } finally {
+            root.listFiles()?.forEach { it.delete() }
+            root.delete()
+        }
+    }
+
+    @Test fun provenanceMetadataIsPassedUnchangedToTheStore() {
+        val root = Files.createTempDirectory("fit-backfill-provenance-test").toFile()
+        try {
+            val bytes = fit()
+            val file = File(root, CirqaFitBackfill.expectedFileName(bytes))
+            file.writeBytes(bytes)
+            val store = RecordingStore()
+
+            CirqaFitBackfill(root, store).run()
+
+            val commit = store.commits.single()
+            assertEquals(file.name.removeSuffix(".fit"), commit.sourceSha256)
+            assertEquals(bytes.size.toLong(), commit.fileBytes)
+            assertEquals("verified_fit/${file.name}", commit.relativePath)
+            assertEquals(FitHistoricalObservations.DECODER_VERSION, commit.decoderVersion)
+            assertEquals(FitHistoricalObservations.PROFILE_VERSION, commit.profileVersion)
+            assertEquals("cirqa-fit", commit.deviceKey)
+            assertEquals(1, commit.observationCount)
+            assertTrue(commit.validatedAtEpochMillis > 0)
         } finally {
             root.listFiles()?.forEach { it.delete() }
             root.delete()
