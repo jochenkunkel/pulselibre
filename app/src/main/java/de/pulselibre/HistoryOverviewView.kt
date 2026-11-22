@@ -193,9 +193,10 @@ class HistoryOverviewView(
      * Sources keep their own clock and are never merged; the caption says which time each source uses.
      */
     private fun allDataCard(snapshot: HistorySnapshot) {
-        val rows = HistoryTable.rows(snapshot, ZoneId.systemDefault())
+        val rows = snapshot.allData
         val locale = context.resources.configuration.locales[0]
         val dayFormat = java.time.format.DateTimeFormatter.ofLocalizedDate(java.time.format.FormatStyle.SHORT).withLocale(locale)
+        val number = java.text.NumberFormat.getInstance(locale).apply { maximumFractionDigits = 1 }
         val card = LinearLayout(context).apply {
             orientation = VERTICAL
             setPadding(dp(14), dp(14), dp(14), dp(12))
@@ -218,24 +219,34 @@ class HistoryOverviewView(
                 LayoutParams(-1, -2).apply { topMargin = dp(10); bottomMargin = dp(6) })
         } else {
             card.addView(line(listOf(
-                cell(context.getString(R.string.ht_col_date), 1.1f, true, palette.muted),
-                cell(context.getString(R.string.ht_col_source) + " · " + context.getString(R.string.ht_col_metric), 1.6f, true, palette.muted),
+                cell(context.getString(R.string.ht_col_date), 1.0f, true, palette.muted),
+                cell(context.getString(R.string.ht_col_source) + " · " + context.getString(R.string.ht_col_metric), 1.9f, true, palette.muted),
                 cell(context.getString(R.string.ht_col_count), 0.9f, true, palette.muted, Gravity.END),
                 cell(context.getString(R.string.ht_col_range), 1.3f, true, palette.muted, Gravity.END),
-                cell(context.getString(R.string.ht_col_median), 0.9f, true, palette.muted, Gravity.END))),
+                cell(context.getString(R.string.ht_col_mean), 0.9f, true, palette.muted, Gravity.END))),
                 LayoutParams(-1, -2).apply { topMargin = dp(8) })
+            val offsetMs = ZoneId.systemDefault().rules.getOffset(snapshot.end).totalSeconds * 1000L
             rows.forEach { row ->
-                val source = context.getString(if (row.source == HistorySource.BAND) R.string.ht_src_band else R.string.ht_src_phone)
-                val metric = context.getString(if (row.metric == HistoryMetric.PULSE) R.string.ht_metric_pulse else R.string.ht_metric_spo2)
-                val day = dayFormat.format(row.day)
-                val median = java.text.NumberFormat.getInstance(locale).apply { maximumFractionDigits = 1 }.format(row.median)
+                val source = context.getString(when (row.origin) {
+                    MeasurementOrigin.BAND -> R.string.ht_src_band
+                    MeasurementOrigin.LIVE -> R.string.ht_src_phone
+                    MeasurementOrigin.IMPORT -> R.string.ht_src_import
+                })
+                val metric = when (row.metric) {
+                    "heart_rate", "bpm" -> context.getString(R.string.ht_metric_pulse)
+                    "spo2_percent" -> context.getString(R.string.ht_metric_spo2)
+                    else -> "${row.metric} (${row.unit})"
+                }
+                val day = dayFormat.format(java.time.LocalDate.ofEpochDay(row.dayIndex))
+                val range = "${number.format(row.minimum)}–${number.format(row.maximum)}"
+                val mean = number.format(row.mean)
                 card.addView(line(listOf(
-                    cell(day, 1.1f),
-                    cell("$source · $metric", 1.6f),
+                    cell(day, 1.0f),
+                    cell("$source · $metric", 1.9f),
                     cell(row.count.toString(), 0.9f, align = Gravity.END),
-                    cell("${row.minimum}–${row.maximum}", 1.3f, align = Gravity.END),
-                    cell(median, 0.9f, align = Gravity.END)),
-                    context.getString(R.string.ht_row_cd, day, source, metric, row.count, row.minimum, row.maximum, median)),
+                    cell(range, 1.3f, align = Gravity.END),
+                    cell(mean, 0.9f, align = Gravity.END)),
+                    context.getString(R.string.ht_row_cd, day, source, metric, row.count, range, mean)),
                     LayoutParams(-1, -2))
             }
         }

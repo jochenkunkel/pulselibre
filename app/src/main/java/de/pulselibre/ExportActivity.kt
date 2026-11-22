@@ -557,17 +557,7 @@ class ExportActivity : AppCompatActivity() {
     }
 
     private fun readCirqaExport(window: ExportWindow): List<RawExportRecord> {
-        val fields = mapOf(
-            6 to listOf("bpm" to "bpm", "resting_bpm" to "bpm"),
-            7 to listOf("steps" to "steps", "goal" to "steps"),
-            8 to listOf("total" to "kcal", "active" to "kcal"),
-            10 to listOf("moderate" to "min", "vigorous" to "min"),
-            12 to listOf("rr_ms" to "ms"),
-            13 to listOf("stress" to "device_scale"),
-            19 to listOf("spo2_percent" to "%"),
-            20 to listOf("body_battery" to "device_scale"),
-            21 to listOf("breaths_per_min" to "breaths/min")
-        )
+        val fields = LiveReadingFields.FIELDS.mapValues { (_, list) -> list.map { it.first to it.second } }
         return CirqaDatabase(this).use { db ->
             db.readingLines().flatMapIndexed { index, line ->
                 val item = try { JSONObject(line) } catch (_: Exception) { unreadableRows.incrementAndGet(); return@flatMapIndexed emptyList() }
