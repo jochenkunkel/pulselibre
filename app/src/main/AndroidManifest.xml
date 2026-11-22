@@ -14,7 +14,8 @@
         <service android:name=".CirqaContinuousRecordingService" android:exported="false" android:foregroundServiceType="connectedDevice" android:label="@string/svc_channel"/>
         <activity android:name=".ExportActivity" android:exported="false"
             android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboardHidden"/>
-        <activity android:name=".CirqaTestLaboratoryActivity" android:exported="false"/>
+        <activity android:name=".CirqaTestLaboratoryActivity" android:exported="false"
+            android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboardHidden"/>
         <activity android:name=".MainActivity" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
