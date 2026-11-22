@@ -353,3 +353,19 @@ Nach der Übergabe der Probe-Datei durch OpenCode (PR #432 gemergt, ENDE-Nachric
 - **A6-37:** eigener Zeitgeber `legacy5031Timeout` (5 s). Beim Senden der 5031-Anfrage endet das 5007-Vorbedingungsfenster; die Dauer ist unverändert, die Zeitüberschreitungsmeldung nennt nun „5031-Test".
 
 Nachweis: CI des PR (lokales Gradle ist in diesem Worktree nicht lauffähig, siehe offener Punkt „Gradle lokal").
+
+## 42. `CirqaMlHandshakeProbe`: Item-List-Seiten und FileAccess-Antwort (Z. 1097–1323, 2250–2405, 2026-11-22, offline)
+
+Gelesen: `requestNextSyncItemListPage`, `appendSyncItemListPage`, `handleFileAccessResponse`. Keine Gerätezugriffe.
+
+**Bestätigt (kein Befund):**
+- Schleifenbremsen vorhanden: Seitenlimit (`MAX_SYNC_ITEM_LIST_PAGES`), Datei-/Byte-Budget, Transaktions-Folgelimit; jeder Abbruch setzt `syncIncompleteReason` und behauptet keine Vollständigkeit.
+- Fail-closed bei 5044-Nachrichten: vor einer verifizierten `sync_response` wird nichts akzeptiert (Z. 2331–2338); doppelte Pull-Antworten allozieren keine zweite MLR-Pipe (Z. 2367).
+- UIDs werden nur als SHA-256 in `syncSeenItemUids` gehalten und nicht berichtet; Wiederholungen derselben Seite werden dedupliziert.
+- Rahmen-Slicing `copyOfRange(4, size - 2)` steht hinter `GarminFrameValidator.inspectVerified`; `body.size >= 14` wird vor dem 5044-ACK geprüft.
+
+**Befunde:**
+- **A6-46 (niedrig bis mittel, Produktentscheidung, Bereich OpenCode):** Ein einzelner Eintrag mit `dataSize` außerhalb `1..MAX_FILE_BYTES` (also auch eine Datei mit 0 Byte) führt in `appendSyncItemListPage` zu `finish(...)` für den **gesamten** Lauf (Z. 1296–1309). Alle nachfolgenden, gültigen Einträge werden dann nicht geladen. Das ist fail-closed und korrekt gemeldet (`file-size-out-of-range`), kann aber dauerhaft jede Synchronisation blockieren, sobald das Band einen solchen Eintrag liefert (z. B. leere oder sehr große Datei). Empfehlung: den Eintrag überspringen, `syncSkippedFiles` erhöhen, `syncIncompleteReason` setzen und mit den übrigen Einträgen weitermachen; nur Budgetüberschreitungen (Anzahl/Summe) beenden den Lauf. Die Änderung berührt Download-Semantik und ist deshalb nicht Teil von A6-36/37/42; Entscheidung und Test bei OpenCode (#149), die Datei ist seit ENDE #447 wieder frei.
+- **A6-47 (niedrig, Diagnose):** `syncPullDiag` wird bei jedem übersprungenen Eintrag um `|manifest-skip:verified-local-import` ergänzt und auf 1000 Zeichen gekürzt (Z. 1292). Bei vielen Überspringungen verdrängt das die späteren Pull-Diagnosen. Besser einen Zähler `manifestSkips` ausgeben.
+
+Keine Änderungen am Code in diesem Abschnitt.
