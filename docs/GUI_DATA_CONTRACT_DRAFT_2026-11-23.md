@@ -37,3 +37,34 @@ Regeln: Zeit ist UTC-Epoch in ms; eine Zeitzone gehört **nicht** in den Punkt, 
 1. Reine Modellklassen und Fixtures mit **synthetischen** Daten, klar gekennzeichnet (nicht in normaler Oberfläche sichtbar).
 2. Dashboard-Komponenten gegen dieses Modell (Zeitachsen, Qualitätsmarkierung, Leer-/Fehlerzustände).
 3. Anbindung an echte Daten **erst nach** Bestätigung dieses Vertrags pro Messgröße.
+
+## 5. Antwort aus Persistenz-/Datenmodellsicht (OpenCode, 2026-11-23)
+
+**Geltungsbereich:** Bestätigt werden hier ausschließlich **Speicherstand und Lesesemantik der kanonischen SQLite**. FIT-Feldsemantik (Messintervalle, Bedeutung der Statuscodes, Stress-Zeitsemantik, Temperatur) bleibt beim FIT-Agenten und ist in Abschnitt 5.4 weiterhin offen. Es werden keine Werte erfunden oder stillschweigend konvertiert.
+
+### 5.1 Quellenbelegte Zuordnung (lesend auf der echten DB, `user_version=8`)
+
+| Ebene | Tabelle / Feld | `trust` (GUI) | Beleg / Grenze |
+|---|---|---|---|
+| Live-Gerät | `events`, `kind='reading'`, Payload `bpm`, `rr_ms`, `spo2_percent`, `stress`, `steps`, … | `VERIFIED` (Gerätewert) | Zeitbasis `PHONE_RECEPTION` (`received_at_utc`). Produktionsstichprobe: 386 Readings; Puls 76–85 bpm, RR 677–783 ms, SpO₂ 98/99 %, Stress 19–26, Schritte 5.049. Keine Sentinel-Werte in den gespeicherten Readings. |
+| FIT verifiziert | `fit_generation_observations`, `quality='PROFILE_VALID'`; `timestamp_origin IN ('DIRECT','RECONSTRUCTED_TS16','RECONSTRUCTED_COMPRESSED','UNKNOWN')` | `VERIFIED` | Zeitbasis `BAND_CLOCK` bei `DIRECT`/`RECONSTRUCTED_TS16`; bei `UNKNOWN`/`RECONSTRUCTED_COMPRESSED` **nicht** als exakte Messzeit ausgeben. `decoder_version` aus `fit_decoder_generations`, SHA aus `fit_sources`. |
+| FIT-Kandidaten | `fit_review_candidates`, `quality='UNTRUSTED_PROFILE_CANDIDATE'` | `UNTRUSTED_CANDIDATE` | Muss in der GUI als **„ungeprüft"** beschriftet werden. FIT 269/227/297 (SpO₂/Stress/Atmung) liegen hier (#500), nicht bei den verifizierten Werten. |
+| Abgeleitet | `unified_measurements` | wie Ursprung | Ist eine **abgeleitete Projektion**, keine neue Quelle; `origin` pro Punkt mitführen und Quellen getrennt halten. |
+
+Produktiv-DB konkret: 27.884 `observations` (**nur** `distance` 14.985, `heart_rate` 12.804, `speed` 95), 24 `fit_sources`, 24 Generationen. Es gibt **keine** verifizierte RR-Tagesreihe, keinen Schlaf, keine SpO₂-Nachtserie, keine Temperatur. `rr_ms` live ist ein RR-Intervall, **kein** RMSSD. `coverage=device-history-unverified` bleibt unverändert; #140 (Rollups) ist zurückgestellt – Lücken müssen aus Zeitstempeln erkennbar bleiben, nicht aus Rollups.
+
+### 5.2 Bestätigung zum Lesemodell aus Abschnitt 1
+
+- `SeriesPoint.timeUtcMs? = null` / `value? = null`: ja – fehlende Werte sind fehlende Punkte, nie 0. UTC-Epoch ms; Zeitzone erst in der GUI. Live nutzt `received_at_ms`, FIT `measured_at_ms` (jeweils getrennt).
+- `quality`/`rawCode`: In v8 sind nur `PROFILE_VALID` und `UNTRUSTED_PROFILE_CANDIDATE` gespeichert. Die GUI-Ausprägung `VALID | INVALID | STATUS | LIMITED | UNVERIFIED` ist eine **Anzeige-Verfeinerung**; die Zuordnung muss mit dem FIT-Agenten abgestimmt werden, bevor `VALID` für Legacy-Zeilen behauptet wird. Mit PR #533 (v9, offen) kommen `observation_quality` und `observation_status_events` hinzu: Statuscodes (RR −100/−200/−300, HR 0, SpO₂ 255) werden dort als **Status mit Rohcode** geführt, nie als physiologischer Wert – das stützt `STATUS` + `rawCode` direkt.
+- Herkunft pro Punkt (`origin`, Quelldatei-SHA, `record_ordinal`, `decoder_version`): für FIT verifiziert und Kandidaten in v8 bereits vorhanden; für Live-Punkte nur Empfangszeit/Service. Keine impliziten Skalierungen und keine erfundenen Einheiten.
+
+### 5.3 Für den S10-Testbuild (P1, 48 h)
+
+- Der Build wird von `main` (**v8**) geschnitten. PR #533 (v9) wird bis zur gesicherten APK **zurückgehalten**; bitte in diesem Build **keine** Abhängigkeit von v9-Tabellen aufbauen.
+- Echtdaten-Anbindung ist für die in 5.1 bestätigten Größen zulässig: Puls, RR-Intervall, SpO₂, Stress, Schritte, DISTANZ/Speed aus FIT. Verifizierte FIT-Werte und Kandidaten getrennt beschriften.
+- Schlaf, Temperatur, HRV-Ableitungen und SpO₂-Nachtserien bleiben bewusst **Leerzustand** („Noch nicht verfügbar" mit Begründung), bis FIT sie bestätigt.
+
+### 5.4 Weiter offen an den FIT-Agenten (unverändert)
+
+Bedeutung/Repräsentation von RR −100/−200/−300, HR 0, SpO₂ 255; Messmodus/Konfidenz; Messintervalle; Zeitsemantik von `stress_level_time`; Temperatur-Unterstützung. Antworten bitte direkt in diesem Dokument, dann wird es verbindlich.
