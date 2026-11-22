@@ -15,6 +15,46 @@ import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 class CirqaStorageMigrationTest {
+    @Test fun canonicalSchemaV7UpgradePreservesGenerationTablesAndAddsReviewCandidates() {
+        val base = ApplicationProvider.getApplicationContext<Context>()
+        val root = Files.createTempDirectory(base.cacheDir.toPath(), "cirqa-schema-v7-upgrade-").toFile()
+        val context = isolatedContext(base, root)
+        val event = """{"schema":1,"type":"reading","received_at_utc":"2026-11-22T08:00:00Z","service":6,"bpm":72}"""
+        try {
+            CirqaDatabase(context).use { database ->
+                assertTrue(database.insertLine(event))
+                val db = database.writableDatabase
+                val generationTablesBefore = db.rawQuery(
+                    """SELECT COUNT(*) FROM sqlite_master WHERE type = 'table'
+                       AND name IN ('fit_decoder_generations', 'fit_generation_observations',
+                                    'fit_active_generations')""",
+                    null
+                ).use { it.moveToFirst(); it.getInt(0) }
+                assertEquals(3, generationTablesBefore)
+                db.execSQL("DROP TABLE fit_review_candidates")
+                db.version = 7
+            }
+
+            CirqaDatabase(context).use { database ->
+                val db = database.writableDatabase
+                assertEquals(8, db.version)
+                assertEquals(listOf(event), database.allLines())
+                assertEquals(3, db.rawQuery(
+                    """SELECT COUNT(*) FROM sqlite_master WHERE type = 'table'
+                       AND name IN ('fit_decoder_generations', 'fit_generation_observations',
+                                    'fit_active_generations')""",
+                    null
+                ).use { it.moveToFirst(); it.getInt(0) })
+                assertEquals(1, db.rawQuery(
+                    "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'fit_review_candidates'",
+                    null
+                ).use { it.moveToFirst(); it.getInt(0) })
+            }
+        } finally {
+            root.deleteRecursively()
+        }
+    }
+
     @Test fun canonicalSchemaV3UpgradeAddsMetadataWithoutChangingExistingFitSources() {
         val base = ApplicationProvider.getApplicationContext<Context>()
         val root = Files.createTempDirectory(base.cacheDir.toPath(), "cirqa-metadata-upgrade-").toFile()

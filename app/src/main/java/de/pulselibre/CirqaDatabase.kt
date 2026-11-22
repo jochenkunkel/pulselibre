@@ -73,8 +73,10 @@ class CirqaDatabase(private val contextRef: Context) :
           if (oldVersion < 5) createRawDeviceMetadataSchema(db)
           createUnmappedFitFieldSchema(db)
         }
-        createFitGenerationSchema(db)
-        migrateExistingFitObservationsToGeneration(db)
+        if (oldVersion < 7) {
+            createFitGenerationSchema(db)
+            migrateExistingFitObservationsToGeneration(db)
+        }
         createFitReviewCandidateSchema(db)
     }
 
@@ -1059,6 +1061,7 @@ class CirqaDatabase(private val contextRef: Context) :
         cursors: Sequence<LocalSyncCursor>,
         fitSources: Sequence<StoredFitSource> = emptySequence(),
         fitProvenance: Sequence<StoredFitProvenance> = emptySequence(),
+        legacyFitReviewCandidates: Sequence<StoredFitReviewCandidate> = emptySequence(),
         canonicalObservations: Sequence<RawExportRecord> = emptySequence(),
         canonicalCursors: Sequence<LocalSyncCursor> = emptySequence(),
         canonicalFitSources: Sequence<StoredFitSource> = emptySequence(),
@@ -1089,6 +1092,7 @@ class CirqaDatabase(private val contextRef: Context) :
             db.execSQL("DELETE FROM main.sync_cursors")
             db.execSQL("DELETE FROM main.storage_migrations")
             db.execSQL("DELETE FROM legacy.fit_observation_provenance")
+            db.execSQL("DELETE FROM legacy.fit_review_candidates")
             db.execSQL("DELETE FROM legacy.readings")
             db.execSQL("DELETE FROM legacy.fit_sources")
             db.execSQL("DELETE FROM legacy.sync_cursors")
@@ -1151,6 +1155,7 @@ class CirqaDatabase(private val contextRef: Context) :
                 sourceInsert.bindString(6, source.profileVersion)
                 sourceInsert.executeInsert()
             }
+            insertFitReviewCandidates(db, "legacy.fit_review_candidates", legacyFitReviewCandidates)
 
             val provenanceInsert = db.compileStatement(
                 """INSERT INTO legacy.fit_observation_provenance
@@ -1461,42 +1466,7 @@ class CirqaDatabase(private val contextRef: Context) :
             } else {
                 migrateExistingFitObservationsToGeneration(db)
             }
-            val reviewInsert = db.compileStatement(
-                """INSERT INTO main.fit_review_candidates
-                   (sample_id, device_id, metric, measured_at_ms, value, unit, source_sha256,
-                    record_ordinal, global_message_number, field_number, quality, timestamp_origin,
-                    decoder_version) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"""
-            )
-            reviewCandidates.forEach { item ->
-                require(item.sampleId.isNotBlank() && item.deviceId.isNotBlank() &&
-                    item.metric in setOf("spo2", "stress", "respiration") &&
-                    (item.measuredAtEpochMillis == null || item.measuredAtEpochMillis >= 0) &&
-                    item.value.isFinite() && item.unit.isNotBlank() &&
-                    item.sourceSha256.matches(Regex("[0-9a-f]{64}")) && item.recordOrdinal > 0 &&
-                    item.globalMessageNumber >= 0 && item.fieldNumber >= 0 &&
-                    item.quality == "UNTRUSTED_PROFILE_CANDIDATE" &&
-                    item.timestampOrigin in setOf(
-                        "DIRECT", "RECONSTRUCTED_TS16", "RECONSTRUCTED_COMPRESSED", "UNKNOWN"
-                    ) && item.decoderVersion.isNotBlank()) {
-                    "Ungültiger untrusted FIT-Kandidat im Backup"
-                }
-                reviewInsert.clearBindings()
-                reviewInsert.bindString(1, item.sampleId)
-                reviewInsert.bindString(2, item.deviceId)
-                reviewInsert.bindString(3, item.metric)
-                if (item.measuredAtEpochMillis == null) reviewInsert.bindNull(4)
-                else reviewInsert.bindLong(4, item.measuredAtEpochMillis)
-                reviewInsert.bindDouble(5, item.value)
-                reviewInsert.bindString(6, item.unit)
-                reviewInsert.bindString(7, item.sourceSha256)
-                reviewInsert.bindLong(8, item.recordOrdinal.toLong())
-                reviewInsert.bindLong(9, item.globalMessageNumber.toLong())
-                reviewInsert.bindLong(10, item.fieldNumber.toLong())
-                reviewInsert.bindString(11, item.quality)
-                reviewInsert.bindString(12, item.timestampOrigin)
-                reviewInsert.bindString(13, item.decoderVersion)
-                reviewInsert.executeInsert()
-            }
+            insertFitReviewCandidates(db, "main.fit_review_candidates", reviewCandidates.asSequence())
             if (markHistoricalCopyComplete) {
                 val historicalCounts = listOf(
                     "readings", "sync_cursors", "fit_sources", "fit_observation_provenance"
@@ -1520,6 +1490,50 @@ class CirqaDatabase(private val contextRef: Context) :
             db.setTransactionSuccessful()
         } finally {
             db.endTransaction()
+        }
+    }
+
+    private fun insertFitReviewCandidates(
+        db: SQLiteDatabase,
+        table: String,
+        candidates: Sequence<StoredFitReviewCandidate>
+    ) {
+        require(table == "main.fit_review_candidates" || table == "legacy.fit_review_candidates")
+        val insert = db.compileStatement(
+            """INSERT INTO $table
+               (sample_id, device_id, metric, measured_at_ms, value, unit, source_sha256,
+                record_ordinal, global_message_number, field_number, quality, timestamp_origin,
+                decoder_version) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"""
+        )
+        candidates.forEach { item ->
+            require(item.sampleId.isNotBlank() && item.deviceId.isNotBlank() &&
+                item.metric in setOf("spo2", "stress", "respiration") &&
+                (item.measuredAtEpochMillis == null || item.measuredAtEpochMillis >= 0) &&
+                item.value.isFinite() && item.unit.isNotBlank() &&
+                item.sourceSha256.matches(Regex("[0-9a-f]{64}")) && item.recordOrdinal > 0 &&
+                item.globalMessageNumber >= 0 && item.fieldNumber >= 0 &&
+                item.quality == "UNTRUSTED_PROFILE_CANDIDATE" &&
+                item.timestampOrigin in setOf(
+                    "DIRECT", "RECONSTRUCTED_TS16", "RECONSTRUCTED_COMPRESSED", "UNKNOWN"
+                ) && item.decoderVersion.isNotBlank()) {
+                "Ungültiger untrusted FIT-Kandidat im Backup"
+            }
+            insert.clearBindings()
+            insert.bindString(1, item.sampleId)
+            insert.bindString(2, item.deviceId)
+            insert.bindString(3, item.metric)
+            if (item.measuredAtEpochMillis == null) insert.bindNull(4)
+            else insert.bindLong(4, item.measuredAtEpochMillis)
+            insert.bindDouble(5, item.value)
+            insert.bindString(6, item.unit)
+            insert.bindString(7, item.sourceSha256)
+            insert.bindLong(8, item.recordOrdinal.toLong())
+            insert.bindLong(9, item.globalMessageNumber.toLong())
+            insert.bindLong(10, item.fieldNumber.toLong())
+            insert.bindString(11, item.quality)
+            insert.bindString(12, item.timestampOrigin)
+            insert.bindString(13, item.decoderVersion)
+            insert.executeInsert()
         }
     }
 
