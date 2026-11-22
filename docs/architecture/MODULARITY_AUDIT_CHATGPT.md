@@ -1,3 +1,13 @@
+> **STATUS: ZURÜCKGESTELLT / PARKED – KEINE IMPLEMENTIERUNGSFREIGABE (2026-11-22).**
+> Ticket [#496](https://github.com/jochenkunkel/pulselibre/issues/496) hat **niedrigste operative Priorität**. Kein Agent darf aus diesem Dokument selbstständig Implementierung, Refactoring, Bluetooth-Umbau, Modulmigration oder neue Umsetzungstickets ableiten. Die bisherige Vorarbeit bleibt als Referenz erhalten. Reaktivierung nur auf ausdrückliche Freigabe des Projektverantwortlichen. Fachlicher Owner: ChatGPT. Laufende Aufgaben haben Vorrang.
+
+## Geparkte Reihenfolge – ausschließlich Planung
+
+1. **Bluetooth zuerst:** BT-01 Bestandsaufnahme; BT-02 Transport-Ports; BT-03 Android-BLE/RFCOMM-Kapselung; BT-04 Discovery/Session-Management; BT-05 CIRQA-Handshake/Protokolltrennung; BT-06 Historien-Synchronisation; BT-07 Replay-/Regressionstests; BT-08 GUI-Anbindung.
+2. **Danach:** Domain-Verträge, Datenbank/Provenienz, wissenschaftliche Analyse und GUI-Modularisierung.
+3. **Sicherheitsbedingungen:** keine Änderung des produktiven Bluetooth-Verhaltens ohne Tests und explizite Freigabe; bestehende Geräteschutzmechanismen und Datenintegrität erhalten.
+4. **Unverbindliche Vorabschätzung:** Bluetooth-Phase 138–233 Agentenstunden; Gesamtkalenderzeit für den späteren Gesamtumbau grob 6–10 Wochen bei drei koordinierten Coding-Agents. Keine Zusage und keine Terminierung.
+
 # PulsLibre – iterativer Modularitätsaudit (ChatGPT)
 
 - **Issue:** https://github.com/jochenkunkel/pulselibre/issues/496
