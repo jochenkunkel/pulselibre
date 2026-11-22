@@ -1,15 +1,15 @@
 # OpenCode – S10 begrenzter Historien-Download
 - Agent/Umgebung: OpenCode
 - Beginn: 2026-11-22 10:52 UTC
-- Letzte Aktualisierung: 2026-11-22 11:45 UTC
-- Status: aktiv – Gerät wartet auf manuelles Entsperren, Offline-Codepfad-Audit läuft
+- Letzte Aktualisierung: 2026-11-22 11:33 UTC
+- Status: blockiert – installierte App-Version weicht von freigegebenem Build ab
 - Rolle/Zuständigkeit: BLE/GFDI/FIT/Protokoll; S10 bounded live validation per explicit user authorization
 - Aktueller Auftrag: vollständigen Download aller verfügbaren CIRQA-Armbanddaten vorbereiten und höchstens einen eng begrenzten bestehenden UI-Historien-Download auswerten
-- Jetzt in Bearbeitung: Offline-Audit der Item-List → Pull → MLR → VerifiedRawFileStore → Import-Kette abgeschlossen; Geräteteil wartet auf Nutzer, der S10 entsperrt
+- Jetzt in Bearbeitung: Offline-Audit abgeschlossen; nach manueller Entsperrung zeigte die read-only Vorprüfung `versionCode=1805` statt des freigegebenen Build 1795; Live-Ablauf vor App-Start gestoppt
 - Zeitnah geplant: Fresh Install Build 1795, danach read-only Export-Baseline; ein vorhandener UI-Historien-Download ≤5 min/no retry/new commands, Export und Vergleich; keine Band-Schreibaktion/Reset/Entkoppeln/CLOSE_ALL/Instrumentation. Kein In-place-/Datenerhaltsvergleich möglich.
 - Betroffene Bereiche/Dateien: S10, private local export/backup, redacted test report
 - Branch/Worktree: `opencode/cirqa-history-completeness-20261122`, `/tmp/opencode/cirqa-history-completeness-20261122`
-- Abstimmungsbedarf: Nutzer entsperrt S10 selbst und meldet Bereitschaft; keine Umgehung der Sperre
-- Agent-sync-Nachrichten: `2026-11-22_105200_opencode_START_s10-history-download.md`, `2026-11-22_105300_opencode_BLOCKIERT_s10-app-missing.md`, `2026-11-22_105500_opencode_UPDATE_fresh-install-authorized.md`, `2026-11-22_105700_opencode_BLOCKIERT_s10-lockscreen.md`
-- Nachweise: Offline-Audit dokumentiert in `docs/protocol/device-tests/CIRQA_S10_DOWNLOAD_PIPELINE_AUDIT_2026-11-22.md`; post-merge FULL-CI `45009512891` auf `341fe20`; Build 1795 installiert und Signatur geprüft; kein Export/Sync, keine Bandaktion
-- Nächster Schritt: beim Nutzerhinweis nur Fresh-Install-Baseline und maximal einen genehmigten UI-Downloadversuch fortsetzen; Ergebnis getrennt von Vollständigkeit bewerten
+- Abstimmungsbedarf: Nutzer muss Build 1805 ausdrücklich für denselben begrenzten Ablauf freigeben oder das S10 wieder mit Build 1795 bereitstellen; keine implizite Freigabe für einen abweichenden Build
+- Agent-sync-Nachrichten: zusätzlich `2026-11-22_113300_opencode_BLOCKIERT_s10-version-mismatch.md`
+- Nachweise: Offline-Audit dokumentiert in `docs/protocol/device-tests/CIRQA_S10_DOWNLOAD_PIPELINE_AUDIT_2026-11-22.md`; post-merge FULL-CI `45009512891` auf `341fe20`; früher Build 1795 installiert und Signatur geprüft; aktuelle geschützte read-only Vorprüfung ergab entsperrtes `SM-G970F` mit App `versionCode=1805`; danach kein Export/Sync/Install
+- Nächster Schritt: auf Nutzerentscheidung zum App-Build warten; danach nur den ausdrücklich genehmigten begrenzten Export-/UI-Ablauf durchführen

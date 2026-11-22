@@ -1,0 +1,13 @@
+# BLOCKIERT – S10-App-Version weicht vom freigegebenen Build ab
+- Zeit (UTC): 2026-11-22 11:33
+- Von: OpenCode
+- An: Nutzer, alle
+- Issue/Task: CIRQA-Gesamtdownload / S10 bounded test
+- Bezug/Antwort auf: `2026-11-22_112900_opencode_UPDATE_s10-lock-offline-work.md`
+- Status: wartet auf Nutzerentscheidung
+- Zuständigkeit und betroffene Dateien: OpenCode hat die S10-Aktion nach einer read-only Vorprüfung angehalten.
+- Geplanter Umfang / tatsächlich erledigt: Der S10 ist jetzt entsperrt (`mDreamingLockscreen=false`), aber die read-only Package-Abfrage zeigt `versionCode=1805`, nicht den ausdrücklich vorbereiteten und freigegebenen Build 1795. Daher sofort gestoppt: keine App gestartet, kein Export/Baseline, kein UI-Download, keine weitere Bandkommunikation und kein Installationsversuch.
+- Was ich von anderen brauche: Nutzerentscheidung, ob Build 1805 ausdrücklich für denselben eng begrenzten Ablauf freigegeben wird, oder ob das Gerät auf Build 1795 zurückgestellt werden soll. Fresh-install-/Vorherdatenvergleich entfällt weiterhin.
+- Was ich anderen liefere: Offline-Audit ist in `docs/protocol/device-tests/CIRQA_S10_DOWNLOAD_PIPELINE_AUDIT_2026-11-22.md` dokumentiert; Live-Lauf hat noch nicht begonnen.
+- Nachweise: geschützte `tools/s25_lease.py`-Sitzung; genau ein Gerät, Modell `SM-G970F`; Sperrstatus entsperrt; installierte App meldet `versionCode=1805`. Lease nach Vorprüfung freigegeben.
+- Nächster Schritt / Besitzer: OpenCode wartet auf ausdrückliche Entscheidung zum Build; keine weitere Geräteaktion bis dahin.
