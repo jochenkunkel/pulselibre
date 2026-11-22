@@ -12,7 +12,7 @@
 #   build          unit tests + debug APK + R8 release APK + JVM coverage
 #   verify         Android lint + instrumentation test APK (FULL only)
 #   diagnostics    non-secret APK/signing/R8 checks
-#   emulator       connected instrumentation tests + coverage gate (FULL only)
+#   emulator       connected instrumentation tests + coverage gate + combined coverage (FULL only)
 set -euo pipefail
 
 source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/lib.sh"
@@ -165,8 +165,28 @@ emulator() {
   if ! { [ -r /dev/kvm ] && [ -w /dev/kvm ]; }; then
     ci_die "KVM nicht verfügbar: Emulator-Tests können nicht ehrlich ausgeführt werden. Siehe docs/ci/HYBRID_CI.md#kvm."
   fi
+  # Safety gate: instrumentation tests must never overwrite a physical test
+  # device's profile/settings. tools/ci/emulator.sh exports an emulator serial;
+  # a direct call without one must not silently pick a USB-attached phone.
+  if [ -n "${ANDROID_SERIAL:-}" ] && [[ "$ANDROID_SERIAL" != emulator-* ]]; then
+    ci_die "ANDROID_SERIAL zeigt auf ein physisches Gerät; Instrumentationstests nur auf dem Emulator."
+  fi
+  if [ -z "${ANDROID_SERIAL:-}" ]; then
+    local physical
+    physical="$(adb devices | awk 'NR > 1 && $2 == "device" && $1 !~ /^emulator-/ { print "physical"; exit }')"
+    if [ -n "$physical" ]; then
+      ci_die "Physisches Android-Gerät sichtbar: Instrumentationstests nur mit ANDROID_SERIAL=emulator-... ausführen."
+    fi
+  fi
   ci_gradle :app:connectedDebugAndroidTest --stacktrace
   bash "$CI_REPO_ROOT/.github/scripts/verify-instrumentation-coverage.sh"
+  ci_group_end
+
+  # #6: record both coverage sources with the classes compiled in this job.
+  # The build job's JVM exec file cannot be reused here (different compilation
+  # identities would silently produce a 0 % combined report).
+  ci_group "Kombinierte JVM/Emulator-Coverage (#6)"
+  ci_gradle :app:testDebugUnitTest :app:createCombinedCoverageReport --stacktrace
   ci_group_end
 }
 
