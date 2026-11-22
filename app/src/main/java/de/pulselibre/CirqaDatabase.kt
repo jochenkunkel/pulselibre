@@ -268,6 +268,11 @@ class CirqaDatabase(private val contextRef: Context) :
         if (!hasTable(db, "observation_quality") || !hasTable(db, "fit_generation_observations") ||
             !hasTable(db, "fit_decoder_generations") || !hasTable(db, "observations")
         ) return
+        // SQLite validates the composite FK target when the INSERT is prepared, even for zero
+        // source rows. Canonical v8+ stores already have the PK; older/legacy fixtures may not.
+        // Restore the key additively where possible, otherwise skip the projection rather than
+        // aborting the whole upgrade on a schema we did not create.
+        if (!ensureObservationQualityKey(db)) return
         db.execSQL(
             """INSERT OR IGNORE INTO observation_quality
                (device_id, metric, measured_at_ms, sample_id, quality_status, measurement_mode,
@@ -283,6 +288,42 @@ class CirqaDatabase(private val contextRef: Context) :
                JOIN observations o ON o.device_id = fog.device_id AND o.metric = fog.metric
                  AND o.measured_at_ms = fog.measured_at_ms AND o.sample_id = fog.sample_id"""
         )
+    }
+
+    /**
+     * The composite FK of observation_quality needs a matching PK/UNIQUE key on observations.
+     * Add it additively if a legacy schema lacks it and the data has no duplicate keys; if
+     * duplicates exist, do not touch the legacy table and skip the derived quality projection.
+     */
+    private fun ensureObservationQualityKey(db: SQLiteDatabase): Boolean {
+        if (!hasTable(db, "observations")) return false
+        val target = setOf("device_id", "metric", "measured_at_ms", "sample_id")
+        db.rawQuery("PRAGMA index_list(observations)", null).use { indexes ->
+            val uniqueColumn = indexes.getColumnIndexOrThrow("unique")
+            val originColumn = indexes.getColumnIndexOrThrow("origin")
+            val nameColumn = indexes.getColumnIndexOrThrow("name")
+            while (indexes.moveToNext()) {
+                if (indexes.getInt(uniqueColumn) != 1) continue
+                if (indexes.getString(originColumn) !in setOf("pk", "u")) continue
+                val indexName = indexes.getString(nameColumn)
+                val columns = mutableSetOf<String>()
+                db.rawQuery("PRAGMA index_info($indexName)", null).use { info ->
+                    val columnName = info.getColumnIndexOrThrow("name")
+                    while (info.moveToNext()) columns += info.getString(columnName)
+                }
+                if (columns == target) return true
+            }
+        }
+        val hasDuplicates = db.rawQuery(
+            """SELECT 1 FROM observations
+               GROUP BY device_id, metric, measured_at_ms, sample_id
+               HAVING COUNT(*) > 1 LIMIT 1""", null
+        ).use { it.moveToFirst() }
+        if (hasDuplicates) return false
+        db.execSQL(
+            "CREATE UNIQUE INDEX IF NOT EXISTS observations_by_quality_key ON observations(device_id, metric, measured_at_ms, sample_id)"
+        )
+        return true
     }
 
     private fun createFitGenerationSchema(db: SQLiteDatabase) {
