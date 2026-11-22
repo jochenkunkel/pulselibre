@@ -11,9 +11,12 @@ Dir 0, OP 27 auf Dir 1).
 **Befund:** Kein `.FIT`-Magic in CRC-validierten GFDI-Frames, keine App-Datenbank
 und keine FIT-/GPX-/TCX-Datei im Bugreport, keine App-/FileSync-/Import-Events
 im Dumpstate. Service-Feld 21 in 5044 ist ein kleines Statusfeld (0–2 Bytes,
-nur varint), **nicht** die gesuchte Datei-Byte-Ebene. Die großen 5044-Frames
-(max. ~3.765 B) sind Protobuf-Struktur. Page-Sequenz `11,1,0,0`, Pull-/SetFlags-
-Responsen `result=0` bestätigt; einzelne `result=1` bei `(1,4),19` und `(1,2),19`.
+nur varint), **nicht** die gesuchte Datei-Byte-Ebene. **Neu:** Die großen
+5044-Frames (max. ~3.765 B) enthalten `1f 8b 08` (gzip-Magic); 21 Streams
+dekomprimieren zu **JSON** (`epochSeconds`, `dayOfWeek`, `description` –
+Kalender-/Aktivitätsmetriken), nicht zu FIT. Die große Byte-Ebene ist damit
+identifiziert. Page-Sequenz `11,1,0,0`, Pull-/SetFlags-Responsen `result=0`
+bestätigt; einzelne `result=1` bei `(1,4),19` und `(1,2),19`.
 
 **Konsequenz:** Kette `ItemReference → 5043 → 5044 → FIT-Bytes → CRC/Größe →
 Import` bleibt offen; `coverage=device-history-unverified` unverändert. Keine

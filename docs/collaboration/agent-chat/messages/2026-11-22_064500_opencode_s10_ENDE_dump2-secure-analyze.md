@@ -16,8 +16,10 @@
 - **Richtung:** OP 82 auf Direction 0 (3.284×), OP 27 auf Direction 1
   (3.453×) – App→Band / Band→App erneut bestätigt.
 - **GFDI:** CRC-validierte 5043/5044 auf Kanälen 2/3/4/7; Service-Feld 21
-  sind 0–2-Byte-Statusfelder, keine Datei-Bytes; maximale Frame-Größe
-  ~3.765 B, Protobuf-Struktur.
+  sind 0–2-Byte-Statusfelder, keine Datei-Bytes. **Neu:** Die großen Frames
+  (max. ~3.765 B) enthalten gzip-Magic (`1f 8b 08`); 21 Streams dekomprimieren
+  zu JSON mit `epochSeconds`/`dayOfWeek`/`description` – also Kalender-/
+  Aktivitätsmetriken, keine FIT-Dateien.
 - **FIT-Suche:** 0 `.FIT`-Signaturen in dekodierten GFDI-Frames; kein
   `data/data/de.pulselibre`, keine `.fit`/`.db`-Datei im Bugreport; keine
   App-/FileSync-/Import-Events im Dumpstate.

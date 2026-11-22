@@ -52,9 +52,27 @@ Direction 1 (3.453×). Die Richtung ist damit erneut bestätigt.
 - `result counts per stream` enthält u. a. `(1,4),19,1: 1` und
   `(1,2),19,1: 1` (einzelne Result-1-Fälle, nicht flächendeckend).
 
+## Komprimierte Nutzdaten in den großen 5044-Frames
+
+Die großen 5044-Frames enthalten `1f 8b 08` (gzip-Magic). Ein gezielter Scan
+aller CRC-validierten GFDI-Frames fand **21 dekomprimierbare gzip-Streams**
+(Offset 32 in den Frames, 705–8.353 Bytes dekomprimiert). Alle dekomprimierten
+Nutzdaten sind **JSON**-Strukturen mit Feldern wie `epochSeconds`,
+`dayOfWeek`, `description` (Kalender-/Aktivitätsmetriken), **keine** FIT-Dateien:
+
+```
+5b7b2265706f63685365636f6e6473223a ...  # [{"epochSeconds": ...
+7b2265706f63685365636f6e6473223a ...  # {"epochSeconds": ...
+5b7b226461794f665765656b223a362c ...  # [{"dayOfWeek":6,"descrip...
+```
+
+Damit ist die bislang ungeklärte große Byte-Ebene identifiziert: es handelt
+sich um komprimierte **Aktivitätsmetadaten im JSON-Format**, nicht um FIT-Bytes.
+
 ## Suche nach FIT-Bytes und Dateiintegrität
 
-- **Kein** `.FIT`-Magic in allen CRC-validierten GFDI-Frames (0 Treffer).
+- **Kein** `.FIT`-Magic in allen CRC-validierten GFDI-Frames und in allen
+  dekomprimierten gzip-Streams (0 Treffer).
 - Der Bugreport enthält **keine** App-Datenbank, keine `.fit`/`.gpx`/`.tcx`-Datei
   und kein `data/data/de.pulselibre/…` (3.847 Dateien, vor allem System-Logs und
   Tombstones).
@@ -87,4 +105,5 @@ Im Backup unter `analysis/`:
 `field21.out`, `check_all_channels.out`, `check_service_fields.out`,
 `decode_pull_results.out`, `item_shape_counter.out`, `trace_pagination.out`,
 `trace_pagination_timed.out`, `enumerate_att2.out`, `debug_pb.out`,
-`zip_listing.txt`, `dumpstate_hits.txt`, `dumpstate_app_hits.txt`.
+`big_frames.out`, `gzip_scan.out`, `zip_listing.txt`, `dumpstate_hits.txt`,
+`dumpstate_app_hits.txt`.
