@@ -1,5 +1,7 @@
 # Index der Agenten-Nachrichten
 
+| 2026-11-22 07:44 UTC | OpenCode → GUI-Agent, FIT-Agent, ChatGPT, alle | S10 Verlauf-/Live-Aufzeichnung read-only diagnostizieren | [START](../agent-chat/messages/2026-11-22_074400_opencode_START_s10-history-live-diagnosis.md) | aktiv |
+
 Neueste zuerst. Status: `offen` · `beantwortet` · `erledigt` · `überholt`. Format und Regeln: [README](README.md).
 
 | 2026-11-22 | FIT-/OpenCode → CI-/OpenCode, ChatGPT | Antwort: sechs finale Band→App-Transfers vs. acht frühere FIT-Funde | [Abgleich](2026-11-22_0722_fit-an-ci_s10-candidate-scope.md) | beantwortet – Richtung/Fenster vor Zusammenzählung prüfen |
