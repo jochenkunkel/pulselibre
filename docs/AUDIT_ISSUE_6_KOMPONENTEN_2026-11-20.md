@@ -298,3 +298,7 @@ Gelesen: `FitHistoricalObservations.kt` und `FitFieldSampleReader.kt` vollständ
 - **A6-34 (niedrig, Effizienz):** `compute` liest die Schritte für denselben 180-Tage-Zeitraum zweimal (einmal bis heute, einmal inklusive heute). Funktional richtig, aber doppelte Datenbankarbeit.
 - Testlage: Die Karte wird nur indirekt im Emulator-Test `ActivityAtlasViewTest` berührt; die Cache-/Lebenszyklus-Logik hat keinen eigenen Test.
 - Damit sind die in Abschnitt 31 genannten Restdateien (`PersonalSettings`, `FitHistoricalObservations`, `TrendCardView`, `HistoricalObservationRepository`) geprüft.
+
+## 35. A6-33 behoben, A6-30 abgesichert (2026-11-22)
+- **A6-33 behoben:** Der Trend-Cache ist in das Objekt `TrendCache` ausgelagert. Er gilt weiter höchstens zehn Minuten, zusätzlich nur am **gleichen Kalendertag** (`Data.today`) und wird bei neuen FIT-Daten (`FitObservationCommitter.commit`) und nach einer Datenbank-Wiederherstellung (`DatabaseBackup.restore`, auch bei Fehlern) geleert. Neuer JVM-Test `TrendCacheTest` (frisch, Ablauf nach Zeit, Tageswechsel, Leeren).
+- **A6-30 abgesichert, nicht geändert:** Das Verhalten (Datei mit mehr als 50 000 Beobachtungen wird als Ganzes mit `null` abgelehnt) ist jetzt durch einen Test festgehalten (genau 50 000 werden gelesen, 50 001 abgelehnt). Ob die Grenze angehoben oder ein eigenes Ergebnis „zu groß" eingeführt werden soll, ist eine Produktentscheidung, weil es bestimmt, welche Dateien importiert werden; daher keine Verhaltensänderung ohne Freigabe.

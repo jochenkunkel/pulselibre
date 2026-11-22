@@ -274,6 +274,7 @@ internal object FitObservationCommitter {
         } finally {
             db.endTransaction()
         }
+        TrendCache.invalidate() // new FIT data: cached trends are outdated (A6-33)
         return records.size
     }
 

@@ -382,4 +382,28 @@ class FitHistoricalObservationsTest {
         assertNull(FitHistoricalObservations.decode(corrupted))
     }
 
+
+    /** Audit #6 A6-30: documents the current cap; a file above it is rejected as a whole (null), not truncated. */
+    private fun heartRateFile(records: Int): ByteArray {
+        val definition = byteArrayOf(0x40, 0, 0, 20, 0, 1, 3, 1, 2) // record, one uint8 heart_rate field
+        val data = ByteArray(definition.size + records * 2)
+        definition.copyInto(data)
+        for (i in 0 until records) { data[definition.size + i * 2] = 0; data[definition.size + i * 2 + 1] = 60 }
+        val file = ByteArray(14 + data.size + 2)
+        file[0] = 14; file[1] = 0x20; file[2] = 0x64
+        u32(data.size).copyInto(file, 4)
+        ".FIT".toByteArray().copyInto(file, 8)
+        val headerCrc = FitFileHeader.crc16(file, 0, 12)
+        file[12] = headerCrc.toByte(); file[13] = (headerCrc ushr 8).toByte()
+        data.copyInto(file, 14)
+        val crc = FitFileHeader.crc16(file, 0, file.size - 2)
+        file[file.size - 2] = crc.toByte(); file[file.size - 1] = (crc ushr 8).toByte()
+        return file
+    }
+
+    @Test fun observationCapAcceptsExactlyTheLimitAndRejectsTheWholeFileAboveIt() {
+        val atLimit = FitHistoricalObservations.decode(heartRateFile(FitHistoricalObservations.MAX_OBSERVATIONS))
+        assertEquals(FitHistoricalObservations.MAX_OBSERVATIONS, atLimit!!.observations.size)
+        assertNull(FitHistoricalObservations.decode(heartRateFile(FitHistoricalObservations.MAX_OBSERVATIONS + 1)))
+    }
 }
