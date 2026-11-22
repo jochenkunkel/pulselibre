@@ -405,14 +405,15 @@ class Replay:
             "record_offset_start": start_offset, "epoch": epoch, "hci_handle": handle,
             "direction": record.direction, "layer": "att", "opcode": f"0x{opcode:02x}",
             "name": name, "att_handle": att_handle, "characteristic_uuid": uuid,
-            "value_length": max(0, len(pdu) - (3 if opcode in (0x12, 0x52, 0x1B, 0x1D, 0x16) else 1)),
+            "att_pdu_length": len(pdu),
+            "value_length": self._att_value_length(opcode, pdu),
             "record_complete": True,
         }
         min_length = ATT_MIN_LENGTHS.get(opcode)
         if min_length is not None and len(pdu) < min_length:
             self.error_counts["truncated_att_opcode"] += 1
             event["parse_status"] = "truncated"
-            event["value_length"] = 0
+            event["value_length"] = None
             event["timestamp_utc"] = record.timestamp_utc
             self._emit(event)
             return
@@ -463,6 +464,16 @@ class Replay:
             self._read_by_type(record, epoch, direction, pdu, start_record, start_offset)
         elif opcode == 0x05:
             self._find_information(record, epoch, direction, pdu, start_record, start_offset)
+
+    @staticmethod
+    def _att_value_length(opcode: int, pdu: bytes) -> int | None:
+        if opcode in (0x0B, 0x0D):  # Read / Read Blob Response
+            return len(pdu) - 1
+        if opcode in (0x12, 0x52, 0x1B, 0x1D):  # Write / notification / indication
+            return len(pdu) - 3
+        if opcode in (0x16, 0x17):  # Prepare Write Request / Response
+            return len(pdu) - 5
+        return None
 
     def _read_by_group_type(
         self, record: Record, epoch: str, direction: str, pdu: bytes,

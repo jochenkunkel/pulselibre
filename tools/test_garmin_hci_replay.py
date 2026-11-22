@@ -167,10 +167,15 @@ class ReplayTests(unittest.TestCase):
             acl(handle, 2, l2cap(4, b"\x52\x1f\x00payload"), 0),
             acl(handle, 2, l2cap(4, b"\x12\x1f\x00payload"), 0),
         ]
-        _parser, summary = self.parse(records)
+        parser, summary = self.parse(records)
+        att_events = [event for event in parser.events if event["layer"] == "att"]
         self.assertEqual(1, summary["att_opcodes"]["write_command"])
         self.assertEqual(1, summary["att_opcodes"]["write_request"])
         self.assertEqual(2, summary["att_pdus"])
+        self.assertEqual(7, att_events[0]["value_length"])
+        self.assertEqual(10, att_events[0]["att_pdu_length"])
+        self.assertEqual(7, att_events[1]["value_length"])
+        self.assertEqual(10, att_events[1]["att_pdu_length"])
 
     def test_truncated_att_opcode_is_counted_and_not_decoded(self):
         records = [acl(0x44, 2, l2cap(4, b"\x52\x1f"), 0)]
