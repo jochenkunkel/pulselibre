@@ -1,6 +1,6 @@
 # S10/CIRQA – konsolidierte Berichte als Analyse-Eingabe (redaktiert)
 
-Stand: 2026-11-22 13:25 UTC · Autor: CI-Agent (OpenCode) · Ziel: eine einzige, auf `main` verfügbare Grundlage für eine externe Analyse (ChatGPT) der S10-Berichte.
+Stand: 2026-11-22 13:40 UTC (Nachtrag zur GUI-Abnahme mit Build 1828) · Autor: CI-Agent (OpenCode) · Ziel: eine einzige, auf `main` verfügbare Grundlage für eine externe Analyse (ChatGPT) der S10-Berichte. Die Analyse selbst liegt als [CIRQA_GESAMTANALYSE_DATEN_METADATEN_S25_S10_2026-11-22.md](CIRQA_GESAMTANALYSE_DATEN_METADATEN_S25_S10_2026-11-22.md) auf `main` (PR #483).
 
 **Datenstatus:** Alle Angaben sind redaktiert – nur Anzahlen, Größen, Prüfsummenstatus, Codepfade, öffentliche Commit-/PR-/CI-IDs und Zeitachsen. Keine Roh-BLE-Payloads, Geräteadressen, Seriennummern, Gesundheitswerte, Zeitstempel einzelner Messungen, Tokens, Keystores oder Secrets. Die privaten SAF-Exporte liegen ausschließlich lokal in einem 0700-Ordner mit Dateimodus 0600 und sind **nicht** Teil des Repositories.
 
@@ -8,7 +8,7 @@ Stand: 2026-11-22 13:25 UTC · Autor: CI-Agent (OpenCode) · Ziel: eine einzige,
 
 1. Ein nutzerinitiierter Produkt-Download auf dem S10 hat **27.736 kanonische Beobachtungen** in SQLite importiert; der DB-Import ist nachgewiesen.
 2. **Die Vollständigkeit der Historie ist nicht nachgewiesen** – `coverage=device-history-unverified` bleibt gültig.
-3. Dass Historie und Übersicht trotz Import leer blieben, ist **kein Datenverlust**: die Ansichten lesen eine leere Tabelle (`events`), und die FIT-Karten-Sichtbarkeitsprüfung nutzte die alte, leere Provenanz-Tabelle (A6-28). Ein Code-Fix liegt auf `main` (#479), ist aber nicht auf dem installierten Build 1806 und nicht am Gerät nachgewiesen.
+3. Dass Historie und Übersicht trotz Import leer blieben, ist **kein Datenverlust**: die Ansichten lesen eine leere Tabelle (`events`), und die FIT-Karten-Sichtbarkeitsprüfung nutzte die alte, leere Provenanz-Tabelle (A6-28). Die Korrekturen #479/#480 liegen auf `main`; der GUI-Agent hat die Anzeige inzwischen auf dem S10 mit **Build 1828** nachgewiesen (siehe Abschnitt 9). Build 1806, mit dem der Import erfolgte, enthielt die Korrekturen noch nicht.
 4. Die 115 importierten FIT-Gerätemetadaten enthalten **keinen Batteriewert**. Eine Live-GATT-Batterieabfrage ist nicht implementiert; die 37 % / NORMAL vom 18.11. waren eine einmalige, separat freigegebene Diagnose.
 5. Offen: eine Differenz von **157 Zeilen** zwischen CSV-Export und Datenbank, sowie die Frage, welche Evidenz den vollständigen Historiendownload belegen würde.
 
@@ -52,7 +52,7 @@ Alle Archive: Format `de.pulselibre.local-database-backup`, Version 7, `encrypti
 - Live-Historie (`CirqaHistoryReader.kt:75-80`) und Kernkarten (`CirqaDashboardReader.kt:31-50`, `DashboardDayReader.kt:28-34`, `DailyValueReader.kt:28-32`, `DeviceOverview.kt:54-67`) lesen die Tabelle `events`; im Export: `cirqa_events = 0`.
 - `FitHistoryReader.read()` kann die kanonischen Daten lesen; `available()`/`latestMeasuredAt()` prüften aber die **alte** Tabelle `fit_observation_provenance` (0), nicht die kanonische (27.736) – bekannter Fehler A6-28. Lesefehler werden als „keine FIT-Daten" dargestellt (A6-29).
 - Offline-Zählung: 12.730 `heart_rate`/`bpm`-Punkte mit aktiver Generation und Provenanz; 0 im 24-Stunden-Fenster, 12.730 im 7-Tage- und 30-Tage-Fenster. Der Nutzer meldete ausdrücklich, dass auch die 7-Tage-Ansicht leer bleibt – das Zeitfenster war also **nicht** die alleinige Ursache.
-- Aktion: GitHub-Issue **#477** für den GUI-Agenten (PR #478 dokumentiert). Der GUI-Agent hat inzwischen **PR #479** gemergt (`5970145`, Issue #477 geschlossen): `FitHistoryReader` liest nun aktive Generationen und die alte Tabelle. **Dieser Fix ist nicht im installierten Build 1806 und dort nicht nachgewiesen.**
+- Aktion: GitHub-Issue **#477** für den GUI-Agenten (PR #478 dokumentiert). Der GUI-Agent hat **PR #479** (`5970145`, A6-28: `FitHistoryReader` liest aktive Generationen und die alte Tabelle) und **PR #480** (`20311da`, A6-29: Lesefehler/Leertext mit Hinweis auf neueste Bandmessung) gemergt und Issue #477 geschlossen. Beide Läufe hatten vollen PR-CI inkl. Emulator grün. Der Gerätenachweis mit **Build 1828** steht in Abschnitt 9; der Import selbst erfolgte mit Build 1806.
 
 ## 5. Gerätemetadaten und Batterie
 
@@ -84,8 +84,11 @@ Alle Archive: Format `de.pulselibre.local-database-backup`, Version 7, `encrypti
 - `docs/collaboration/agent-chat/messages/2026-11-22_124500_ci-agent_ENDE_ursache-leere-historie.md`
 - `docs/collaboration/agent-chat/messages/2026-11-22_124800_ci-agent_UPDATE_ticket-477-gui-fithistorie.md`
 - `docs/collaboration/agent-chat/messages/2026-11-22_125200_ci-agent_ENDE_batterie-metadaten-stand.md`
+- `docs/protocol/device-tests/CIRQA_GESAMTANALYSE_DATEN_METADATEN_S25_S10_2026-11-22.md` – externe Gesamtanalyse (PR #483)
+- `docs/collaboration/agent-chat/messages/2026-11-22_183500_claude_477_UPDATE_teil2.md` – A6-29-Teilschritt
+- `docs/collaboration/agent-chat/messages/2026-11-22_200000_claude_477_ENDE_geschlossen.md` – Gerätenachweis Build 1828
 
-Relevante GitHub-Vorgänge: Issues **#142**, **#150**, **#159**, **#477** (geschlossen); PRs **#476**, **#478**, **#479**, **#481**; CI-Lauf **45016725356**.
+Relevante GitHub-Vorgänge: Issues **#142**, **#150**, **#159**, **#477** (geschlossen); PRs **#476**, **#478**, **#479**, **#480**, **#481**, **#482**, **#483**, **#484**; CI-Lauf **45016725356**.
 
 ## 8. Verbindliche Grenzen für die Analyse
 
@@ -94,3 +97,15 @@ Relevante GitHub-Vorgänge: Issues **#142**, **#150**, **#159**, **#477** (gesch
 - Garmin Connect wurde nur temporär gestoppt; kein dauerhaftes Deaktivieren.
 - Injizierte/synthetische Werte aus früheren Tests dürfen nicht mit echten Gerätemessungen verwechselt werden.
 - Aussagen wie „CI grün", „S25 getestet" oder „vollständige Historie" sind nur mit belegtem Nachweis zulässig.
+
+## 9. Nachtrag: Gerätenachweis der Anzeige mit Build 1828 (GUI-Agent)
+
+Der GUI-Agent hat nach Abschluss von #477 am S10 **lesend** nachgewiesen (Chat-ENDE `2026-11-22_200000_claude_477_ENDE_geschlossen.md`, PRs #479/#480/#484, Main-Commit `20311da`):
+
+- Build **1828** (enthält #479 und #480) installiert; die importierten 27.736 Beobachtungen sind erhalten; Bluetooth-Berechtigung wieder erteilt.
+- Im Reiter „Verlauf" zeigt die **7-Tage-Ansicht die Band-Karte mit 12.712 Werten**; die **24-Stunden-Ansicht** zeigt den erklärenden Hinweis statt einer leeren Karte; die **Übersichtskachel** zeigt die Band-Zusammenfassung.
+- Keine BLE-Aktion, kein Download, keine Datenänderung durch den GUI-Agenten. Ab hier liegen keine weiteren Geräteaktionen des CI-Agenten vor.
+
+**Abgrenzung der Zahlen:** Die offline aus dem SAF-Export gezählten 12.730 aktiven HR-/bpm-Punkte im 7-Tage-Fenster (Abschnitt 4) und die 12.712 im Gerät angezeigten Werte stammen aus unterschiedlichen Zeitpunkten/Ansichten. Eine Verschiebung des gleitenden Fensters ist plausibel, aber **nicht nachgewiesen**; die 18 Differenzwerte dürfen nicht als Datenverlust oder -gewinn interpretiert werden.
+
+**Für die Bewertung:** Dieser Nachweis betrifft ausschließlich die **Sichtbarkeit** der importierten Daten. Er ändert nichts an `coverage=device-history-unverified` (keine vollständige Historie nachgewiesen), an der 157er CSV/DB-Differenz (FIT-Agent) und am Befund fehlender Batteriewerte in den FIT-Metadaten.
