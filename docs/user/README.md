@@ -5,7 +5,9 @@ PulsLibre ist eine **lokale, offline arbeitende** App für das Garmin-CIRQA-Armb
 | Ich möchte … | Hier lesen |
 | --- | --- |
 | alle Bildschirme und Funktionen kennenlernen | [Benutzerhandbuch](BENUTZERHANDBUCH.md) |
-| das Handbuch auf Englisch lesen (Entwurf, Grundlage für fr/es) | [User Manual (English)](USER_MANUAL.en.md) |
+| das Handbuch auf Englisch lesen | [User Manual (English)](USER_MANUAL.en.md) |
+| lire le manuel en français | [Manuel d’utilisation (français)](USER_MANUAL.fr.md) |
+| leer el manual en español | [Manual de usuario (español)](USER_MANUAL.es.md) |
 | ein Problem lösen („keine Daten“, „Bluetooth-Berechtigung fehlt“ …) | [Fehlerbehebung und häufige Fragen](FEHLERBEHEBUNG.md) |
 | wissen, was die App bewusst **nicht** kann | [Benutzerhandbuch, Abschnitt Grenzen](BENUTZERHANDBUCH.md#5-grenzen) |
 
