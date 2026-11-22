@@ -68,7 +68,7 @@ class CirqaStorageMigrationTest {
             CirqaDatabase(context).use { database ->
                 assertEquals(listOf(event), database.allLines())
                 assertTrue(database.rawDeviceMetadata().isEmpty())
-                assertEquals(7, database.writableDatabase.version)
+                assertEquals(8, database.writableDatabase.version)
             }
         } finally {
             root.deleteRecursively()

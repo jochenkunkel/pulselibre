@@ -17,11 +17,13 @@ class CirqaFitBackfillTest {
         val decoderVersion: String,
         val profileVersion: String,
         val observationCount: Int,
-        val deviceKey: String
+        val deviceKey: String,
+        val candidateCount: Int
     )
 
     private class RecordingStore : FitObservationStore {
         val calls = mutableListOf<List<FitHistoricalObservations.Observation>>()
+        val candidateCalls = mutableListOf<List<FitHistoricalObservations.ReviewCandidate>>()
         val commits = mutableListOf<Commit>()
         override fun commitFitFile(
             sourceSha256: String,
@@ -33,7 +35,8 @@ class CirqaFitBackfillTest {
             observations: List<FitHistoricalObservations.Observation>,
             deviceMetadata: List<FitHistoricalObservations.DeviceMetadata>,
             unmappedFields: List<FitFieldInventoryRecord>,
-            deviceKey: String
+            deviceKey: String,
+            reviewCandidates: List<FitHistoricalObservations.ReviewCandidate>
         ): Int {
             calls += observations
             commits += Commit(
@@ -44,8 +47,10 @@ class CirqaFitBackfillTest {
                 decoderVersion = decoderVersion,
                 profileVersion = profileVersion,
                 observationCount = observations.size,
-                deviceKey = deviceKey
+                deviceKey = deviceKey,
+                candidateCount = reviewCandidates.size
             )
+            candidateCalls += reviewCandidates
             return observations.size
         }
     }
@@ -64,7 +69,8 @@ class CirqaFitBackfillTest {
             observations: List<FitHistoricalObservations.Observation>,
             deviceMetadata: List<FitHistoricalObservations.DeviceMetadata>,
             unmappedFields: List<FitFieldInventoryRecord>,
-            deviceKey: String
+            deviceKey: String,
+            reviewCandidates: List<FitHistoricalObservations.ReviewCandidate>
         ): Int {
             attempts++
             if (attempts == 1) throw SQLiteException("simulated commit failure")
@@ -73,13 +79,17 @@ class CirqaFitBackfillTest {
         }
     }
 
-    private fun fit(heartRate: Int = 72): ByteArray {
+    private fun fit(heartRate: Int = 72, withStress: Boolean = false): ByteArray {
         val data = byteArrayOf(
             0x40, 0, 0, 20, 0, 2,
             253.toByte(), 4, 0x86.toByte(),
             3, 1, 2,
             0
-        ) + byteArrayOf(0x10, 0x27, 0, 0, heartRate.toByte())
+        ) + byteArrayOf(0x10, 0x27, 0, 0, heartRate.toByte()) +
+            if (withStress) byteArrayOf(
+                0x40, 0, 0, 0xe3.toByte(), 0, 1, 0, 2, 0x83.toByte(),
+                0, 42, 0
+            ) else byteArrayOf()
         val file = ByteArray(14 + data.size + 2)
         file[0] = 14
         file[1] = 0x20
@@ -95,6 +105,32 @@ class CirqaFitBackfillTest {
         file[file.size - 2] = crc.toByte()
         file[file.size - 1] = (crc ushr 8).toByte()
         return file
+    }
+
+    @Test fun importsUntrustedCandidateWithUnknownTimeAndStableProvenance() {
+        val root = Files.createTempDirectory("fit-backfill-untrusted-test").toFile()
+        try {
+            val bytes = fit(withStress = true)
+            File(root, CirqaFitBackfill.expectedFileName(bytes)).writeBytes(bytes)
+            val store = RecordingStore()
+
+            val result = CirqaFitBackfill(root, store).run()
+            val candidate = store.candidateCalls.single().single()
+
+            assertEquals(1, result.reviewCandidates)
+            assertEquals(1, result.fileResults.single().reviewCandidates)
+            assertEquals("stress_level_value", candidate.profileFieldName)
+            assertEquals(42.0, candidate.value, 0.0)
+            assertEquals("profile_raw", candidate.unit)
+            assertEquals(null, candidate.timestampEpochMillis)
+            assertEquals(FitHistoricalObservations.TimestampOrigin.UNKNOWN, candidate.timestampOrigin)
+            assertEquals("UNTRUSTED_PROFILE_CANDIDATE", candidate.quality)
+            assertTrue(candidate.idempotencyKey.isNotBlank())
+            assertEquals(1, store.commits.single().candidateCount)
+        } finally {
+            root.listFiles()?.forEach { it.delete() }
+            root.delete()
+        }
     }
 
     @Test fun importsExistingVerifiedFilesOfflineAndReplayKeepsStableKeys() {

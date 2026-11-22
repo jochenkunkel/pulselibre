@@ -59,7 +59,7 @@ class DatabaseBackupTest {
 
             CirqaDatabase(context).use { database ->
                 val db = database.readableDatabase
-                assertEquals(7, db.version)
+                assertEquals(8, db.version)
                 db.rawQuery(
                     """SELECT g.source_sha256, g.decoder_version, g.profile_version,
                               g.output_count, a.generation_id
@@ -176,7 +176,7 @@ class DatabaseBackupTest {
             legacy.close()
 
             CirqaDatabase(context).use { database ->
-                assertEquals(7, database.readableDatabase.version)
+                assertEquals(8, database.readableDatabase.version)
                 val sourceCount = database.readableDatabase.rawQuery(
                     "SELECT COUNT(*) FROM fit_sources", null
                 ).use { it.moveToFirst(); it.getInt(0) }
@@ -306,6 +306,17 @@ class DatabaseBackupTest {
                 idempotencyKey = "canonical-only-sample",
                 duplicateFingerprint = "canonical-only-fingerprint"
             )
+            val untrustedStress = FitHistoricalObservations.ReviewCandidate(
+                profileFieldName = "stress_level_value",
+                value = 42.0,
+                unit = "profile_raw",
+                timestampEpochMillis = null,
+                sourceFileSha256 = canonicalSha,
+                recordOrdinal = 3,
+                globalMessageNumber = 227,
+                fieldNumber = 0,
+                timestampOrigin = FitHistoricalObservations.TimestampOrigin.UNKNOWN
+            )
             val canonicalMetadata = FitHistoricalObservations.DeviceMetadata(
                 sourceFileSha256 = canonicalSha,
                 recordOrdinal = 1,
@@ -337,7 +348,8 @@ class DatabaseBackupTest {
                     decoderVersion = FitHistoricalObservations.DECODER_VERSION,
                     profileVersion = FitHistoricalObservations.PROFILE_VERSION,
                     observations = listOf(canonicalObservation),
-                    deviceMetadata = listOf(canonicalMetadata)
+                    deviceMetadata = listOf(canonicalMetadata),
+                    reviewCandidates = listOf(untrustedStress)
                 )
                 database.storeRawDeviceMetadata(rawMetadata)
                 database.storeRawDeviceMetadata(rawMetadata.copy(verifiedAtEpochMillis = 9_000))
@@ -358,6 +370,7 @@ class DatabaseBackupTest {
             assertEquals(2L, report.canonicalFitGenerations)
             assertEquals(2L, report.canonicalFitGenerationObservations)
             assertEquals(2L, report.canonicalActiveFitGenerations)
+            assertEquals(1L, report.canonicalFitReviewCandidates)
 
             DatabaseBackup.reset(context)
             CirqaDatabase(context).use { assertEquals(0L, it.eventCount()) }
@@ -368,16 +381,23 @@ class DatabaseBackupTest {
 
             val plan = DatabaseBackup.prepareRestore(context, ByteArrayInputStream(bytes.toByteArray()))
             try {
-                assertEquals(7, plan.version)
+                assertEquals(8, plan.version)
                 assertEquals(3L, plan.canonicalReadings)
                 assertEquals(1L, plan.canonicalDeviceMetadata)
                 assertEquals(1L, plan.rawDeviceMetadata)
+                assertEquals(1L, plan.canonicalFitReviewCandidates)
                 DatabaseBackup.restore(context, plan)
             } finally { plan.close() }
 
             CirqaDatabase(context).use { db ->
                 assertEquals(1L, db.eventCount())
                 assertEquals(listOf(event), db.allLines())
+                val restored = db.readUntrustedFitCandidates().single()
+                assertEquals("stress", restored.metric)
+                assertEquals(42.0, restored.value, 0.0)
+                assertNull(restored.measuredAtEpochMillis)
+                assertEquals("UNTRUSTED_PROFILE_CANDIDATE", restored.quality)
+                assertEquals("UNKNOWN", restored.timestampOrigin)
             }
             LocalReadingStore(context).use {
                 val restored = it.readWindow(ExportWindow(0, Long.MAX_VALUE))

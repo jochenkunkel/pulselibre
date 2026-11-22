@@ -18,6 +18,8 @@ object FitHistoricalObservations {
     private const val GLOBAL_MONITORING = 55
     private const val GLOBAL_DEVICE_INFO = 23
     private const val GLOBAL_RESPIRATION_RATE = 297
+    private const val GLOBAL_SPO2_DATA = 269
+    private const val GLOBAL_STRESS_LEVEL = 227
 
     enum class Metric(val unit: String) {
         HEART_RATE("bpm"),
@@ -92,7 +94,11 @@ object FitHistoricalObservations {
         val recordOrdinal: Int,
         val globalMessageNumber: Int,
         val fieldNumber: Int,
-        val timestampOrigin: TimestampOrigin = TimestampOrigin.UNKNOWN
+        val timestampOrigin: TimestampOrigin = TimestampOrigin.UNKNOWN,
+        val quality: String = "UNTRUSTED_PROFILE_CANDIDATE",
+        val idempotencyKey: String = sha256(
+            "$sourceFileSha256:$recordOrdinal:$globalMessageNumber:$fieldNumber".toByteArray()
+        )
     )
 
     enum class UnknownKind { UNKNOWN_MESSAGE, UNKNOWN_STANDARD_FIELD, DEVELOPER_FIELD, INCOMPATIBLE_KNOWN_FIELD }
@@ -160,6 +166,8 @@ object FitHistoricalObservations {
         var invalidMeasurementFields = 0
         var deviceInfoOrdinal = 0
         var respirationRecordOrdinal = 0
+        var spo2RecordOrdinal = 0
+        var stressRecordOrdinal = 0
 
         fun requireBytes(count: Int): Boolean =
             count >= 0 && cursor <= dataEnd - count
@@ -303,6 +311,46 @@ object FitHistoricalObservations {
                     batteryStatusCode = fieldValue(11, baseType = 2)?.toInt(),
                     batteryLevelPercent = batteryLevel
                 )
+            }
+
+            // Review-only candidates: never enter the production observation allowlist.
+            // Field definitions from FIT Profile 21.222.0; preserve the raw profile
+            // semantics and avoid guessing missing timestamps or manufacturer fields.
+            if (definition.globalNumber == GLOBAL_SPO2_DATA ||
+                definition.globalNumber == GLOBAL_STRESS_LEVEL) {
+                if (definition.globalNumber == GLOBAL_SPO2_DATA) spo2RecordOrdinal++
+                else stressRecordOrdinal++
+                val candidateField = definition.fields.firstOrNull { it.number == 0 }
+                val candidateOffset = candidateField?.let(fieldBytes::get)
+                if (candidateField != null && candidateOffset != null) {
+                    val raw = if (definition.globalNumber == GLOBAL_SPO2_DATA)
+                        readSupportedUnsigned(file, candidateOffset, candidateField,
+                            definition.bigEndian, expectedBaseType = 2)?.toInt()
+                    else readSupportedSigned16(file, candidateOffset, candidateField,
+                        definition.bigEndian)
+                    val invalid = if (definition.globalNumber == GLOBAL_SPO2_DATA) 0xff else 0x7fff
+                    when {
+                        raw == null -> unsupportedFields++
+                        raw == invalid -> invalidMeasurementFields++
+                        else -> {
+                            if (reviewCandidates.size >= MAX_OBSERVATIONS) return null
+                            reviewCandidates += ReviewCandidate(
+                                profileFieldName = if (definition.globalNumber == GLOBAL_SPO2_DATA)
+                                    "reading_spo2" else "stress_level_value",
+                                value = raw.toDouble(),
+                                unit = if (definition.globalNumber == GLOBAL_SPO2_DATA)
+                                    "percent" else "profile_raw",
+                                timestampEpochMillis = timestampMillis,
+                                sourceFileSha256 = fileSha,
+                                recordOrdinal = if (definition.globalNumber == GLOBAL_SPO2_DATA)
+                                    spo2RecordOrdinal else stressRecordOrdinal,
+                                globalMessageNumber = definition.globalNumber,
+                                fieldNumber = 0,
+                                timestampOrigin = timestampOrigin
+                            )
+                        }
+                    }
+                }
             }
 
             if (definition.globalNumber == GLOBAL_RESPIRATION_RATE) {

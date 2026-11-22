@@ -26,6 +26,22 @@ data class StoredFitProvenance(
     val decoderVersion: String
 )
 
+data class StoredFitReviewCandidate(
+    val sampleId: String,
+    val deviceId: String,
+    val metric: String,
+    val measuredAtEpochMillis: Long?,
+    val value: Double,
+    val unit: String,
+    val sourceSha256: String,
+    val recordOrdinal: Int,
+    val globalMessageNumber: Int,
+    val fieldNumber: Int,
+    val quality: String,
+    val timestampOrigin: String,
+    val decoderVersion: String
+)
+
 enum class StoredFitFieldKind { STANDARD, DEVELOPER }
 
 data class FitFieldInventoryRecord(
@@ -61,7 +77,8 @@ interface FitObservationStore {
         observations: List<FitHistoricalObservations.Observation>,
         deviceMetadata: List<FitHistoricalObservations.DeviceMetadata> = emptyList(),
         unmappedFields: List<FitFieldInventoryRecord> = emptyList(),
-        deviceKey: String = "cirqa-fit"
+        deviceKey: String = "cirqa-fit",
+        reviewCandidates: List<FitHistoricalObservations.ReviewCandidate> = emptyList()
     ): Int
 }
 
@@ -71,7 +88,7 @@ interface FitObservationStore {
  * No Bluetooth pairing, network access or Garmin-specific decoding occurs here.
  */
 class LocalReadingStore(context: Context) : SQLiteOpenHelper(
-    context.applicationContext, "pulselibre_readings.db", null, 2
+    context.applicationContext, "pulselibre_readings.db", null, 3
 ), FitObservationStore {
     override fun onConfigure(db: SQLiteDatabase) {
         super.onConfigure(db)
@@ -81,6 +98,7 @@ class LocalReadingStore(context: Context) : SQLiteOpenHelper(
     override fun onCreate(db: SQLiteDatabase) {
         createReadingsSchema(db)
         createFitProvenanceSchema(db)
+        createFitReviewCandidateSchema(db)
     }
 
     private fun createReadingsSchema(db: SQLiteDatabase) {
@@ -106,11 +124,12 @@ class LocalReadingStore(context: Context) : SQLiteOpenHelper(
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-        require(oldVersion == 1 && newVersion == 2) {
+        require(oldVersion in 1..2 && newVersion == 3) {
             "Missing database migration from $oldVersion to $newVersion"
         }
         // Additive only: existing readings and cursors remain byte-for-byte intact.
-        createFitProvenanceSchema(db)
+        if (oldVersion == 1) createFitProvenanceSchema(db)
+        createFitReviewCandidateSchema(db)
     }
 
     private fun createFitProvenanceSchema(db: SQLiteDatabase) {
@@ -145,6 +164,27 @@ class LocalReadingStore(context: Context) : SQLiteOpenHelper(
         )
         db.execSQL("CREATE INDEX fit_provenance_by_source ON fit_observation_provenance(source_sha256, record_ordinal)")
         db.execSQL("CREATE INDEX fit_provenance_by_metric_time ON fit_observation_provenance(metric, measured_at_ms)")
+    }
+
+    private fun createFitReviewCandidateSchema(db: SQLiteDatabase) {
+        db.execSQL("""CREATE TABLE IF NOT EXISTS fit_review_candidates (
+            sample_id TEXT PRIMARY KEY NOT NULL,
+            device_id TEXT NOT NULL,
+            metric TEXT NOT NULL,
+            measured_at_ms INTEGER CHECK(measured_at_ms IS NULL OR measured_at_ms >= 0),
+            value REAL NOT NULL,
+            unit TEXT NOT NULL,
+            source_sha256 TEXT NOT NULL REFERENCES fit_sources(source_sha256) ON DELETE RESTRICT,
+            record_ordinal INTEGER NOT NULL CHECK(record_ordinal > 0),
+            global_message_number INTEGER NOT NULL CHECK(global_message_number >= 0),
+            field_number INTEGER NOT NULL CHECK(field_number >= 0),
+            quality TEXT NOT NULL CHECK(quality = 'UNTRUSTED_PROFILE_CANDIDATE'),
+            timestamp_origin TEXT NOT NULL CHECK(timestamp_origin IN
+                ('DIRECT', 'RECONSTRUCTED_TS16', 'RECONSTRUCTED_COMPRESSED', 'UNKNOWN')),
+            decoder_version TEXT NOT NULL,
+            UNIQUE(source_sha256, record_ordinal, global_message_number, field_number)
+        )""")
+        db.execSQL("CREATE INDEX IF NOT EXISTS fit_review_candidates_by_time ON fit_review_candidates(metric, measured_at_ms)")
     }
 
     /**
@@ -215,10 +255,12 @@ class LocalReadingStore(context: Context) : SQLiteOpenHelper(
         observations: List<FitHistoricalObservations.Observation>,
         deviceMetadata: List<FitHistoricalObservations.DeviceMetadata>,
         unmappedFields: List<FitFieldInventoryRecord>,
-        deviceKey: String
+        deviceKey: String,
+        reviewCandidates: List<FitHistoricalObservations.ReviewCandidate>
     ): Int = FitObservationCommitter.commit(
         writableDatabase, "readings", sourceSha256, fileBytes, relativePath, validatedAtEpochMillis,
-        decoderVersion, profileVersion, observations, deviceMetadata, unmappedFields, deviceKey
+        decoderVersion, profileVersion, observations, deviceMetadata, unmappedFields, deviceKey,
+        reviewCandidates
     )
 
     fun cursorFor(deviceId: String): SyncCursor {

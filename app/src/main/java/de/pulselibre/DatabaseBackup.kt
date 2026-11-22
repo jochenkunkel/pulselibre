@@ -24,7 +24,7 @@ import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
 
 private const val BACKUP_FORMAT = "de.pulselibre.local-database-backup"
-private const val BACKUP_VERSION = 7
+private const val BACKUP_VERSION = 8
 private const val MAX_ARCHIVE_BYTES = 128L * 1024L * 1024L
 private const val MAX_ENTRY_BYTES = 120L * 1024L * 1024L
 private const val MAX_LINE_BYTES = 2 * 1024 * 1024
@@ -45,6 +45,7 @@ private const val CANONICAL_UNMAPPED_FIT_FIELDS_ENTRY = "canonical_fit_unmapped_
 private const val CANONICAL_FIT_GENERATIONS_ENTRY = "canonical_fit_decoder_generations.jsonl"
 private const val CANONICAL_FIT_GENERATION_OBSERVATIONS_ENTRY = "canonical_fit_generation_observations.jsonl"
 private const val CANONICAL_ACTIVE_FIT_GENERATIONS_ENTRY = "canonical_fit_active_generations.jsonl"
+private const val CANONICAL_FIT_REVIEW_CANDIDATES_ENTRY = "canonical_fit_review_candidates.jsonl"
 private const val MANIFEST_ENTRY = "manifest.json"
 private val BACKUP_V1_ENTRIES = setOf(EVENTS_ENTRY, READINGS_ENTRY, CURSORS_ENTRY)
 private val BACKUP_V2_ENTRIES =
@@ -61,6 +62,7 @@ private val BACKUP_V7_ENTRIES = BACKUP_V6_ENTRIES + setOf(
     CANONICAL_FIT_GENERATION_OBSERVATIONS_ENTRY,
     CANONICAL_ACTIVE_FIT_GENERATIONS_ENTRY
 )
+private val BACKUP_V8_ENTRIES = BACKUP_V7_ENTRIES + CANONICAL_FIT_REVIEW_CANDIDATES_ENTRY
 
 data class DatabaseBackupReport(
     val createdAt: String,
@@ -77,7 +79,8 @@ data class DatabaseBackupReport(
     val rawDeviceMetadata: Long = 0,
     val canonicalFitGenerations: Long = 0,
     val canonicalFitGenerationObservations: Long = 0,
-    val canonicalActiveFitGenerations: Long = 0
+    val canonicalActiveFitGenerations: Long = 0,
+    val canonicalFitReviewCandidates: Long = 0
 )
 
 /** A validated backup staged privately before any local database can be changed. */
@@ -98,7 +101,8 @@ class PreparedDatabaseRestore internal constructor(
     val rawDeviceMetadata: Long,
     val canonicalFitGenerations: Long,
     val canonicalFitGenerationObservations: Long,
-    val canonicalActiveFitGenerations: Long
+    val canonicalActiveFitGenerations: Long,
+    val canonicalFitReviewCandidates: Long
 ) : Closeable {
     override fun close() { directory.deleteRecursively() }
 }
@@ -147,7 +151,8 @@ object DatabaseBackup {
                 4 -> BACKUP_V4_ENTRIES
                 5 -> BACKUP_V5_ENTRIES
                 6 -> BACKUP_V6_ENTRIES
-                BACKUP_VERSION -> BACKUP_V7_ENTRIES
+                7 -> BACKUP_V7_ENTRIES
+                BACKUP_VERSION -> BACKUP_V8_ENTRIES
                 else -> throw IllegalArgumentException("Backup-Version wird nicht unterstützt")
             }
             require(extracted.keys == dataEntries + MANIFEST_ENTRY) {
@@ -206,7 +211,9 @@ object DatabaseBackup {
                 canonicalFitGenerationObservations =
                     recordCounts[CANONICAL_FIT_GENERATION_OBSERVATIONS_ENTRY] ?: 0,
                 canonicalActiveFitGenerations =
-                    recordCounts[CANONICAL_ACTIVE_FIT_GENERATIONS_ENTRY] ?: 0
+                    recordCounts[CANONICAL_ACTIVE_FIT_GENERATIONS_ENTRY] ?: 0,
+                canonicalFitReviewCandidates =
+                    recordCounts[CANONICAL_FIT_REVIEW_CANDIDATES_ENTRY] ?: 0
             )
         } catch (error: Exception) {
             directory.deleteRecursively()
@@ -259,6 +266,7 @@ object DatabaseBackup {
                                                     generations: Sequence<StoredFitDecoderGeneration> = emptySequence(),
                                                     generationObservations: Sequence<StoredFitGenerationObservation> = emptySequence(),
                                                     activeGenerations: Sequence<StoredActiveFitGeneration> = emptySequence(),
+                                                    reviewCandidates: Sequence<StoredFitReviewCandidate> = emptySequence(),
                                                     generationSnapshotProvided: Boolean = false
                                                 ) {
                                                 database.replaceAllStoredRows(
@@ -276,7 +284,8 @@ object DatabaseBackup {
                                                     canonicalUnmappedFitFields = unmappedFields,
                                                     canonicalFitGenerations = generations,
                                                     canonicalFitGenerationObservations = generationObservations,
-                                                    canonicalActiveFitGenerations = activeGenerations,
+                                                     canonicalActiveFitGenerations = activeGenerations,
+                                                     canonicalFitReviewCandidates = reviewCandidates,
                                                     generationSnapshotProvided = generationSnapshotProvided,
                                                     markHistoricalCopyComplete = true
                                                 )
@@ -297,15 +306,29 @@ object DatabaseBackup {
                                                                                         .bufferedReader(Charsets.UTF_8).use { observationReader ->
                                                                                         File(plan.directory, CANONICAL_ACTIVE_FIT_GENERATIONS_ENTRY)
                                                                                             .bufferedReader(Charsets.UTF_8).use { activeReader ->
-                                                                                            replace(
-                                                                                                metadataReader.lineSequence().map(::parseDeviceMetadata),
-                                                                                                rawReader.lineSequence().map(::parseRawDeviceMetadata),
-                                                                                                unknownReader.lineSequence().map(::parseUnmappedFitField),
-                                                                                                generationReader.lineSequence().map(::parseFitGeneration),
-                                                                                                observationReader.lineSequence().map(::parseFitGenerationObservation),
-                                                                                                activeReader.lineSequence().map(::parseActiveFitGeneration),
-                                                                                                generationSnapshotProvided = true
-                                                                                            )
+                                                                                             if (plan.version >= 8) {
+                                                                                                 File(plan.directory, CANONICAL_FIT_REVIEW_CANDIDATES_ENTRY)
+                                                                                                     .bufferedReader(Charsets.UTF_8).use { reviewReader ->
+                                                                                                     replace(
+                                                                                                         metadataReader.lineSequence().map(::parseDeviceMetadata),
+                                                                                                         rawReader.lineSequence().map(::parseRawDeviceMetadata),
+                                                                                                         unknownReader.lineSequence().map(::parseUnmappedFitField),
+                                                                                                         generationReader.lineSequence().map(::parseFitGeneration),
+                                                                                                         observationReader.lineSequence().map(::parseFitGenerationObservation),
+                                                                                                         activeReader.lineSequence().map(::parseActiveFitGeneration),
+                                                                                                         reviewReader.lineSequence().map(::parseFitReviewCandidate),
+                                                                                                         generationSnapshotProvided = true
+                                                                                                     )
+                                                                                                 }
+                                                                                             } else replace(
+                                                                                                 metadataReader.lineSequence().map(::parseDeviceMetadata),
+                                                                                                 rawReader.lineSequence().map(::parseRawDeviceMetadata),
+                                                                                                 unknownReader.lineSequence().map(::parseUnmappedFitField),
+                                                                                                 generationReader.lineSequence().map(::parseFitGeneration),
+                                                                                                 observationReader.lineSequence().map(::parseFitGenerationObservation),
+                                                                                                 activeReader.lineSequence().map(::parseActiveFitGeneration),
+                                                                                                 generationSnapshotProvided = true
+                                                                                             )
                                                                                         }
                                                                                     }
                                                                                 }
@@ -367,6 +390,7 @@ object DatabaseBackup {
         var canonicalFitGenerationCount = 0L
         var canonicalFitGenerationObservationCount = 0L
         var canonicalActiveFitGenerationCount = 0L
+        var canonicalFitReviewCandidateCount = 0L
         ZipOutputStream(BufferedOutputStream(FileOutputStream(target))).use { zip ->
             CirqaDatabase(context).use { database ->
                 database.ensureHistoricalStoreCopied()
@@ -647,12 +671,41 @@ object DatabaseBackup {
                         CANONICAL_ACTIVE_FIT_GENERATIONS_ENTRY,
                         entryMetadata(activeGenerations)
                     )
+                    val reviewCandidates = writeJsonLines(zip, CANONICAL_FIT_REVIEW_CANDIDATES_ENTRY) { emit ->
+                        db.rawQuery(
+                            """SELECT sample_id, device_id, metric, measured_at_ms, value, unit,
+                                      source_sha256, record_ordinal, global_message_number, field_number,
+                                      quality, timestamp_origin, decoder_version
+                               FROM main.fit_review_candidates
+                               ORDER BY source_sha256, record_ordinal, global_message_number, field_number""",
+                            null
+                        ).use { rows ->
+                            while (rows.moveToNext()) emit(encodeFitReviewCandidate(StoredFitReviewCandidate(
+                                sampleId = rows.getString(0),
+                                deviceId = rows.getString(1),
+                                metric = rows.getString(2),
+                                measuredAtEpochMillis = if (rows.isNull(3)) null else rows.getLong(3),
+                                value = rows.getDouble(4),
+                                unit = rows.getString(5),
+                                sourceSha256 = rows.getString(6),
+                                recordOrdinal = rows.getInt(7),
+                                globalMessageNumber = rows.getInt(8),
+                                fieldNumber = rows.getInt(9),
+                                quality = rows.getString(10),
+                                timestampOrigin = rows.getString(11),
+                                decoderVersion = rows.getString(12)
+                            )))
+                        }
+                    }
+                    canonicalFitReviewCandidateCount = reviewCandidates.records
+                    metadata.put(CANONICAL_FIT_REVIEW_CANDIDATES_ENTRY, entryMetadata(reviewCandidates))
                     require(
                         events.bytes + readings.bytes + cursors.bytes + sources.bytes + provenance.bytes +
                             canonicalReadings.bytes + canonicalCursors.bytes + canonicalSources.bytes +
                             canonicalProvenance.bytes + canonicalDeviceMetadata.bytes +
                             rawDeviceMetadata.bytes + canonicalUnmappedFields.bytes +
-                            generations.bytes + generationObservations.bytes + activeGenerations.bytes <= MAX_ARCHIVE_BYTES
+                            generations.bytes + generationObservations.bytes + activeGenerations.bytes +
+                            reviewCandidates.bytes <= MAX_ARCHIVE_BYTES
                     ) {
                         "Lokale Datenbank ist zu groß für ein Backup"
                     }
@@ -675,7 +728,7 @@ object DatabaseBackup {
             canonicalReadingCount, canonicalCursorCount, canonicalFitSourceCount,
             canonicalFitProvenanceCount, canonicalDeviceMetadataCount, rawDeviceMetadataCount,
             canonicalFitGenerationCount, canonicalFitGenerationObservationCount,
-            canonicalActiveFitGenerationCount
+            canonicalActiveFitGenerationCount, canonicalFitReviewCandidateCount
         )
     }
 
@@ -708,7 +761,7 @@ object DatabaseBackup {
         .put("sha256", value.sha256)
 
     private fun extractArchive(source: InputStream, directory: File): Map<String, File> {
-        val allowed = BACKUP_V7_ENTRIES + MANIFEST_ENTRY
+        val allowed = BACKUP_V8_ENTRIES + MANIFEST_ENTRY
         val files = linkedMapOf<String, File>()
         var totalBytes = 0L
         ZipInputStream(BufferedInputStream(source)).use { zip ->
@@ -1169,6 +1222,39 @@ object DatabaseBackup {
         return row
     }
 
+    private fun parseFitReviewCandidate(line: String): StoredFitReviewCandidate {
+        val item = JSONObject(line)
+        val row = StoredFitReviewCandidate(
+            sampleId = item.getString("sample_id"),
+            deviceId = item.getString("device_id"),
+            metric = item.getString("metric"),
+            measuredAtEpochMillis = if (item.isNull("measured_at_ms")) null
+                else item.getLong("measured_at_ms"),
+            value = item.getDouble("value"),
+            unit = item.getString("unit"),
+            sourceSha256 = item.getString("source_sha256"),
+            recordOrdinal = item.getInt("record_ordinal"),
+            globalMessageNumber = item.getInt("global_message_number"),
+            fieldNumber = item.getInt("field_number"),
+            quality = item.getString("quality"),
+            timestampOrigin = item.getString("timestamp_origin"),
+            decoderVersion = item.getString("decoder_version")
+        )
+        require(row.sampleId.isNotBlank() && row.deviceId.isNotBlank() &&
+            row.metric in setOf("spo2", "stress", "respiration") &&
+            (row.measuredAtEpochMillis == null || row.measuredAtEpochMillis >= 0) &&
+            row.value.isFinite() && row.unit.isNotBlank() &&
+            row.sourceSha256.matches(Regex("[0-9a-f]{64}")) && row.recordOrdinal > 0 &&
+            row.globalMessageNumber >= 0 && row.fieldNumber >= 0 &&
+            row.quality == "UNTRUSTED_PROFILE_CANDIDATE" &&
+            row.timestampOrigin in setOf(
+                "DIRECT", "RECONSTRUCTED_TS16", "RECONSTRUCTED_COMPRESSED", "UNKNOWN"
+            ) && row.decoderVersion.isNotBlank()) {
+            "Ungültiger untrusted FIT-Kandidat im Backup"
+        }
+        return row
+    }
+
     private fun parseActiveFitGeneration(line: String): StoredActiveFitGeneration {
         val item = JSONObject(line)
         val active = StoredActiveFitGeneration(
@@ -1337,6 +1423,22 @@ object DatabaseBackup {
         .put("field_number", value.fieldNumber)
         .put("quality", value.quality)
         .put("timestamp_origin", value.timestampOrigin)
+        .toString()
+
+    private fun encodeFitReviewCandidate(value: StoredFitReviewCandidate): String = JSONObject()
+        .put("sample_id", value.sampleId)
+        .put("device_id", value.deviceId)
+        .put("metric", value.metric)
+        .put("measured_at_ms", value.measuredAtEpochMillis ?: JSONObject.NULL)
+        .put("value", value.value)
+        .put("unit", value.unit)
+        .put("source_sha256", value.sourceSha256)
+        .put("record_ordinal", value.recordOrdinal)
+        .put("global_message_number", value.globalMessageNumber)
+        .put("field_number", value.fieldNumber)
+        .put("quality", value.quality)
+        .put("timestamp_origin", value.timestampOrigin)
+        .put("decoder_version", value.decoderVersion)
         .toString()
 
     private fun encodeActiveFitGeneration(value: StoredActiveFitGeneration): String = JSONObject()

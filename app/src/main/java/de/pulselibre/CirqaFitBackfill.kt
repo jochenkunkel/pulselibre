@@ -29,7 +29,9 @@ class CirqaFitBackfill(
         val truncated: Boolean = false,
         val failedFiles: Int = 0,
         /** Candidates reconciled by successful per-file commits; not newly inserted row count. */
-        val committedObservations: Int = 0
+        val committedObservations: Int = 0,
+        /** Untrusted decoded values committed in successful per-file transactions. */
+        val reviewCandidates: Int = 0
     )
 
     enum class FileStatus { IMPORTED, NO_IMPORTABLE_OBSERVATIONS, INVALID_FILE, FAILED }
@@ -43,6 +45,7 @@ class CirqaFitBackfill(
         val unsupportedMeasurementFields: Int,
         val missingTimestampObservations: Int,
         val outOfRangeObservations: Int,
+        val reviewCandidates: Int = 0,
         /** Failure category only; exception text and private paths are never returned. */
         val failureStage: FailureStage? = null
     )
@@ -67,6 +70,7 @@ class CirqaFitBackfill(
         var failed = 0
         var importable = 0
         var committed = 0
+        var persistedReviewCandidates = 0
         val fileResults = mutableListOf<FileResult>()
         for ((index, file) in files.withIndex()) {
             if (cancelled()) {
@@ -121,16 +125,19 @@ class CirqaFitBackfill(
             } else {
                 importable += outcome.eligibleObservations
                 committed += outcome.eligibleObservations
+                persistedReviewCandidates += outcome.reviewCandidates
                 imported++
                 fileResults += FileResult(
                     alias = "file-${(index + 1).toString().padStart(4, '0')}",
-                    status = if (outcome.eligibleObservations > 0) FileStatus.IMPORTED
+                    status = if (outcome.eligibleObservations > 0 || outcome.reviewCandidates > 0)
+                        FileStatus.IMPORTED
                         else FileStatus.NO_IMPORTABLE_OBSERVATIONS,
                     decodedObservations = outcome.decodedObservations,
                     eligibleObservations = outcome.eligibleObservations,
                     unsupportedMeasurementFields = outcome.unsupportedMeasurementFields,
                     missingTimestampObservations = outcome.missingTimestampObservations,
-                    outOfRangeObservations = outcome.outOfRangeObservations
+                    outOfRangeObservations = outcome.outOfRangeObservations,
+                    reviewCandidates = outcome.reviewCandidates
                 )
             }
         }
@@ -142,7 +149,8 @@ class CirqaFitBackfill(
             fileResults = fileResults,
             truncated = truncated,
             failedFiles = failed,
-            committedObservations = committed
+            committedObservations = committed,
+            reviewCandidates = persistedReviewCandidates
         )
     }
 
@@ -158,6 +166,7 @@ class CirqaFitBackfill(
         unsupportedMeasurementFields = outcome?.unsupportedMeasurementFields ?: 0,
         missingTimestampObservations = outcome?.missingTimestampObservations ?: 0,
         outOfRangeObservations = outcome?.outOfRangeObservations ?: 0,
+        reviewCandidates = outcome?.reviewCandidates ?: 0,
         failureStage = stage
     )
 
@@ -169,6 +178,7 @@ class CirqaFitBackfill(
         private data class ImportOutcome(
             val decodedObservations: Int,
             val eligibleObservations: Int,
+            val reviewCandidates: Int,
             val unsupportedMeasurementFields: Int,
             val missingTimestampObservations: Int,
             val outOfRangeObservations: Int
@@ -205,6 +215,7 @@ class CirqaFitBackfill(
             val outcome = ImportOutcome(
                 decodedObservations = result.observations.size,
                 eligibleObservations = importable.size,
+                reviewCandidates = result.reviewCandidates.size,
                 unsupportedMeasurementFields = result.unsupportedMeasurementFieldCount,
                 missingTimestampObservations = result.observations.count {
                     it.quality == FitHistoricalObservations.Quality.MISSING_TIMESTAMP
@@ -224,7 +235,8 @@ class CirqaFitBackfill(
                 observations = importable,
                 deviceMetadata = result.deviceMetadata,
                 unmappedFields = result.unknownFields.map(CirqaUnknownFitInventory::toStoredField),
-                deviceKey = deviceKey
+                deviceKey = deviceKey,
+                reviewCandidates = result.reviewCandidates
             )
             return outcome
         }

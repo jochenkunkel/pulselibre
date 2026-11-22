@@ -13,7 +13,7 @@ import java.security.MessageDigest
  * UNIQUE SHA-256 of each full line makes repeated imports idempotent.
  */
 class CirqaDatabase(private val contextRef: Context) :
-    SQLiteOpenHelper(contextRef, "cirqa_measurements.db", null, 7), FitObservationStore {
+    SQLiteOpenHelper(contextRef, "cirqa_measurements.db", null, 8), FitObservationStore {
 
     override fun onConfigure(db: SQLiteDatabase) {
         super.onConfigure(db)
@@ -38,10 +38,11 @@ class CirqaDatabase(private val contextRef: Context) :
         createRawDeviceMetadataSchema(db)
         createUnmappedFitFieldSchema(db)
         createFitGenerationSchema(db)
+        createFitReviewCandidateSchema(db)
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-        require(oldVersion in 1..6 && newVersion == 7)
+        require(oldVersion in 1..7 && newVersion == 8)
         if (oldVersion < 6) {
           if (oldVersion <= 2) {
             if (oldVersion == 1) {
@@ -74,6 +75,7 @@ class CirqaDatabase(private val contextRef: Context) :
         }
         createFitGenerationSchema(db)
         migrateExistingFitObservationsToGeneration(db)
+        createFitReviewCandidateSchema(db)
     }
 
     private fun createFitGenerationSchema(db: SQLiteDatabase) {
@@ -112,6 +114,27 @@ class CirqaDatabase(private val contextRef: Context) :
             FOREIGN KEY(generation_id, source_sha256)
                 REFERENCES fit_decoder_generations(generation_id, source_sha256) ON DELETE RESTRICT
         )""")
+    }
+
+    private fun createFitReviewCandidateSchema(db: SQLiteDatabase) {
+        db.execSQL("""CREATE TABLE IF NOT EXISTS fit_review_candidates (
+            sample_id TEXT PRIMARY KEY NOT NULL,
+            device_id TEXT NOT NULL,
+            metric TEXT NOT NULL,
+            measured_at_ms INTEGER CHECK(measured_at_ms IS NULL OR measured_at_ms >= 0),
+            value REAL NOT NULL,
+            unit TEXT NOT NULL,
+            source_sha256 TEXT NOT NULL REFERENCES fit_sources(source_sha256) ON DELETE RESTRICT,
+            record_ordinal INTEGER NOT NULL CHECK(record_ordinal > 0),
+            global_message_number INTEGER NOT NULL CHECK(global_message_number >= 0),
+            field_number INTEGER NOT NULL CHECK(field_number >= 0),
+            quality TEXT NOT NULL CHECK(quality = 'UNTRUSTED_PROFILE_CANDIDATE'),
+            timestamp_origin TEXT NOT NULL CHECK(timestamp_origin IN
+                ('DIRECT', 'RECONSTRUCTED_TS16', 'RECONSTRUCTED_COMPRESSED', 'UNKNOWN')),
+            decoder_version TEXT NOT NULL,
+            UNIQUE(source_sha256, record_ordinal, global_message_number, field_number)
+        )""")
+        db.execSQL("CREATE INDEX IF NOT EXISTS fit_review_candidates_by_time ON fit_review_candidates(metric, measured_at_ms)")
     }
 
     /**
@@ -572,14 +595,45 @@ class CirqaDatabase(private val contextRef: Context) :
         observations: List<FitHistoricalObservations.Observation>,
         deviceMetadata: List<FitHistoricalObservations.DeviceMetadata>,
         unmappedFields: List<FitFieldInventoryRecord>,
-        deviceKey: String
+        deviceKey: String,
+        reviewCandidates: List<FitHistoricalObservations.ReviewCandidate>
     ): Int {
         ensureHistoricalStoreCopied()
         return FitObservationCommitter.commit(
             writableDatabase, "observations", sourceSha256, fileBytes, relativePath,
             validatedAtEpochMillis, decoderVersion, profileVersion, observations, deviceMetadata,
-            unmappedFields, deviceKey
+            unmappedFields, deviceKey, reviewCandidates
         )
+    }
+
+    /** Returns raw FIT-derived values separately from trusted historical observations. */
+    fun readUntrustedFitCandidates(metric: String? = null): List<StoredFitReviewCandidate> {
+        require(metric == null || metric in setOf("spo2", "stress", "respiration"))
+        val result = mutableListOf<StoredFitReviewCandidate>()
+        val sql = """SELECT sample_id, device_id, metric, measured_at_ms, value, unit, source_sha256,
+                            record_ordinal, global_message_number, field_number, quality,
+                            timestamp_origin, decoder_version
+                     FROM fit_review_candidates""" +
+            if (metric == null) " ORDER BY measured_at_ms IS NULL, measured_at_ms, sample_id"
+            else " WHERE metric = ? ORDER BY measured_at_ms IS NULL, measured_at_ms, sample_id"
+        readableDatabase.rawQuery(sql, if (metric == null) null else arrayOf(metric)).use { rows ->
+            while (rows.moveToNext()) result += StoredFitReviewCandidate(
+                sampleId = rows.getString(0),
+                deviceId = rows.getString(1),
+                metric = rows.getString(2),
+                measuredAtEpochMillis = if (rows.isNull(3)) null else rows.getLong(3),
+                value = rows.getDouble(4),
+                unit = rows.getString(5),
+                sourceSha256 = rows.getString(6),
+                recordOrdinal = rows.getInt(7),
+                globalMessageNumber = rows.getInt(8),
+                fieldNumber = rows.getInt(9),
+                quality = rows.getString(10),
+                timestampOrigin = rows.getString(11),
+                decoderVersion = rows.getString(12)
+            )
+        }
+        return result
     }
 
     /**
@@ -1015,6 +1069,7 @@ class CirqaDatabase(private val contextRef: Context) :
         canonicalFitGenerations: Sequence<StoredFitDecoderGeneration> = emptySequence(),
         canonicalFitGenerationObservations: Sequence<StoredFitGenerationObservation> = emptySequence(),
         canonicalActiveFitGenerations: Sequence<StoredActiveFitGeneration> = emptySequence(),
+        canonicalFitReviewCandidates: Sequence<StoredFitReviewCandidate> = emptySequence(),
         generationSnapshotProvided: Boolean = false,
         markHistoricalCopyComplete: Boolean = false
     ) = withLegacyDatabase { db ->
@@ -1022,6 +1077,7 @@ class CirqaDatabase(private val contextRef: Context) :
         try {
             db.execSQL("DELETE FROM main.events")
             db.execSQL("DELETE FROM main.fit_active_generations")
+            db.execSQL("DELETE FROM main.fit_review_candidates")
             db.execSQL("DELETE FROM main.fit_generation_observations")
             db.execSQL("DELETE FROM main.fit_decoder_generations")
             db.execSQL("DELETE FROM main.fit_observation_provenance")
@@ -1306,6 +1362,7 @@ class CirqaDatabase(private val contextRef: Context) :
             val generations = canonicalFitGenerations.toList()
             val generationObservations = canonicalFitGenerationObservations.toList()
             val activeGenerations = canonicalActiveFitGenerations.toList()
+            val reviewCandidates = canonicalFitReviewCandidates.toList()
             if (generationSnapshotProvided) {
                 require(generations.map { it.generationId }.distinct().size == generations.size)
                 val observationsByGeneration = generationObservations.groupBy { it.generationId }
@@ -1403,6 +1460,42 @@ class CirqaDatabase(private val contextRef: Context) :
                 }
             } else {
                 migrateExistingFitObservationsToGeneration(db)
+            }
+            val reviewInsert = db.compileStatement(
+                """INSERT INTO main.fit_review_candidates
+                   (sample_id, device_id, metric, measured_at_ms, value, unit, source_sha256,
+                    record_ordinal, global_message_number, field_number, quality, timestamp_origin,
+                    decoder_version) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"""
+            )
+            reviewCandidates.forEach { item ->
+                require(item.sampleId.isNotBlank() && item.deviceId.isNotBlank() &&
+                    item.metric in setOf("spo2", "stress", "respiration") &&
+                    (item.measuredAtEpochMillis == null || item.measuredAtEpochMillis >= 0) &&
+                    item.value.isFinite() && item.unit.isNotBlank() &&
+                    item.sourceSha256.matches(Regex("[0-9a-f]{64}")) && item.recordOrdinal > 0 &&
+                    item.globalMessageNumber >= 0 && item.fieldNumber >= 0 &&
+                    item.quality == "UNTRUSTED_PROFILE_CANDIDATE" &&
+                    item.timestampOrigin in setOf(
+                        "DIRECT", "RECONSTRUCTED_TS16", "RECONSTRUCTED_COMPRESSED", "UNKNOWN"
+                    ) && item.decoderVersion.isNotBlank()) {
+                    "Ungültiger untrusted FIT-Kandidat im Backup"
+                }
+                reviewInsert.clearBindings()
+                reviewInsert.bindString(1, item.sampleId)
+                reviewInsert.bindString(2, item.deviceId)
+                reviewInsert.bindString(3, item.metric)
+                if (item.measuredAtEpochMillis == null) reviewInsert.bindNull(4)
+                else reviewInsert.bindLong(4, item.measuredAtEpochMillis)
+                reviewInsert.bindDouble(5, item.value)
+                reviewInsert.bindString(6, item.unit)
+                reviewInsert.bindString(7, item.sourceSha256)
+                reviewInsert.bindLong(8, item.recordOrdinal.toLong())
+                reviewInsert.bindLong(9, item.globalMessageNumber.toLong())
+                reviewInsert.bindLong(10, item.fieldNumber.toLong())
+                reviewInsert.bindString(11, item.quality)
+                reviewInsert.bindString(12, item.timestampOrigin)
+                reviewInsert.bindString(13, item.decoderVersion)
+                reviewInsert.executeInsert()
             }
             if (markHistoricalCopyComplete) {
                 val historicalCounts = listOf(

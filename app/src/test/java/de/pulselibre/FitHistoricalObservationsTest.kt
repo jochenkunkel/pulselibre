@@ -116,6 +116,60 @@ class FitHistoricalObservationsTest {
         assertTrue(result.observations.isEmpty())
     }
 
+    @Test fun spo2AndStressRemainReviewOnlyAndRespectInvalidSentinels() {
+        val spo2Definition = byteArrayOf(
+            0x40, 0, 0, 0x0d, 0x01, 2, // global message 269
+            253.toByte(), 4, 0x86.toByte(), 0, 1, 2
+        )
+        val spo2 = FitHistoricalObservations.decode(fit(
+            spo2Definition +
+                byteArrayOf(0) + u32(200_000) + byteArrayOf(97) +
+                byteArrayOf(0) + u32(200_060) + byteArrayOf(0xff.toByte())
+        ))!!
+        assertTrue(spo2.observations.isEmpty())
+        assertEquals(1, spo2.reviewCandidates.size)
+        assertEquals("reading_spo2", spo2.reviewCandidates.single().profileFieldName)
+        assertEquals(97.0, spo2.reviewCandidates.single().value, 0.0)
+        assertEquals("percent", spo2.reviewCandidates.single().unit)
+        assertEquals(1, spo2.invalidMeasurementFieldCount)
+
+        val stressDefinition = byteArrayOf(
+            0x40, 0, 0, 0xe3.toByte(), 0, 1, // global message 227
+            0, 2, 0x83.toByte()
+        )
+        val stress = FitHistoricalObservations.decode(fit(
+            stressDefinition +
+                byteArrayOf(0) + s16(42) +
+                byteArrayOf(0) + s16(0x7fff)
+        ))!!
+        assertTrue(stress.observations.isEmpty())
+        assertEquals(1, stress.reviewCandidates.size)
+        assertEquals("stress_level_value", stress.reviewCandidates.single().profileFieldName)
+        assertEquals(42.0, stress.reviewCandidates.single().value, 0.0)
+        assertEquals("profile_raw", stress.reviewCandidates.single().unit)
+        assertNull(stress.reviewCandidates.single().timestampEpochMillis)
+        assertEquals(1, stress.invalidMeasurementFieldCount)
+    }
+
+    @Test fun stressLevelTimeIsNotInterpretedAsFitEpochTimestamp() {
+        val definition = byteArrayOf(
+            0x40, 0, 0, 0xe3.toByte(), 0, 2, // global message 227
+            0, 2, 0x83.toByte(), // stress_level_value: sint16
+            1, 4, 0x86.toByte()  // stress_level_time: uint32 seconds, origin unverified
+        )
+        val result = FitHistoricalObservations.decode(fit(
+            definition + byteArrayOf(0) + s16(42) + u32(200_000)
+        ))!!
+
+        assertTrue("Stress must remain outside the persistent observation allowlist",
+            result.observations.isEmpty())
+        val candidate = result.reviewCandidates.single()
+        assertEquals("stress_level_value", candidate.profileFieldName)
+        assertEquals(42.0, candidate.value, 0.0)
+        assertNull("stress_level_time is not FIT timestamp 253", candidate.timestampEpochMillis)
+        assertEquals(FitHistoricalObservations.TimestampOrigin.UNKNOWN, candidate.timestampOrigin)
+    }
+
     @Test fun respirationRateIsDecodedAsAnUnpersistedSignedProfileCandidate() {
         val definition = byteArrayOf(
             0x40, 0, 0, 0x29, 0x01, 2, // global message 297
