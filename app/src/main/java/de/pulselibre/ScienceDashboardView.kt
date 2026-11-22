@@ -82,7 +82,18 @@ internal class ScienceDashboardView(context: Context) : LinearLayout(context) {
                     db.ensureHistoricalStoreCopied()
                     val unified = UnifiedMeasurements(db.writableDatabase)
                     unified.refresh()
-                    specs.map { (title, spec) -> Triple(title, spec, ScienceSeriesLoader.load(db.readableDatabase, spec, start, end)) }
+                    val observations = HistoricalObservationRepository(context.applicationContext)
+                    specs.map { (title, spec) ->
+                        val data = if (spec.key == ScienceSeriesLoader.HEART_RATE_BAND.key) {
+                            // unified_measurements is a display projection without FIT quality or timestamp-origin fields.
+                            ScienceFitSeriesAdapter.readVerifiedSeries(
+                                observations, ScienceFitSeriesAdapter.Metric.HEART_RATE, start, end + 1
+                            )
+                        } else {
+                            ScienceSeriesLoader.load(db.readableDatabase, spec, start, end)
+                        }
+                        Triple(title, spec, data)
+                    }
                 }
             } catch (_: Exception) { null }
             main.post { if (ticket == generation) render(results) }

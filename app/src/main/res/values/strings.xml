@@ -963,8 +963,8 @@
     <string name="sd_error">The data could not be read. Nothing is shown in its place.</string>
     <string name="sd_empty">No measurements in the selected period.</string>
     <string name="sd_only_invalid">The period only contains invalid values or device status; nothing is drawn.</string>
-    <string name="sd_summary">%1$d valid values · mean %2$s · min %3$s · max %4$s · coverage %5$d %%</string>
-    <string name="sd_summary_no_valid">%1$d values, none drawn as valid · coverage %2$d %%</string>
+    <string name="sd_summary">%1$d valid values · mean %2$s · min %3$s · max %4$s · time buckets with data %5$d %%</string>
+    <string name="sd_summary_no_valid">%1$d values, none drawn as valid · time buckets with data %2$d %%</string>
     <string name="sd_flags">%1$d invalid, %2$d device status (not drawn)</string>
     <string name="sd_unverified">Values with unverified quality (hollow circles)</string>
     <string name="sd_gaps">%1$d gaps (hatched, not filled in)</string>
