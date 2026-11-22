@@ -2,16 +2,16 @@
 
 - Agent/Umgebung: OpenCode CLI (CI/Watchdog-Auftrag, BLE/FIT/Protokoll)
 - Beginn: 2026-11-22 09:41 UTC
-- Letzte Aktualisierung: 2026-11-22 09:41 UTC
-- Status: aktiv
+- Letzte Aktualisierung: 2026-11-22 09:58 UTC
+- Status: abgeschlossen – #432 gemergt, voller main-Lauf grün, Probe-Datei freigegeben
 - Rolle/Zuständigkeit: BLE/GFDI/FIT/Protokoll; Prüfung der eigenen PR-#432-Änderungen und der CI-Gates; keine UI-/Datenbankänderung, keine Geräteaktion
-- Aktueller Auftrag: PR #432 nach finalem vollem CI in main bringen, Claude Code danach die exklusive Bearbeitung von `CirqaMlHandshakeProbe.kt` überlassen
-- Jetzt in Bearbeitung: #149 – CI-Läufe `45008003480` und `45008023488` auf Head `0cd0409` prüfen
-- Zeitnah geplant: Abschlussdokumentation/ENDE-Nachricht; kein Gerätetest ohne neue Freigabe
+- Aktueller Auftrag: erledigt – PR #432 nach vollem grünem CI in main gebracht, Claude Code erhält exklusive Bearbeitung von `CirqaMlHandshakeProbe.kt`
+- Jetzt in Bearbeitung: kein Code; Abschlussdokumentation und Prüfung des main-Laufs `45009512891`
+- Zeitnah geplant: kein Gerätetest ohne frischen Build ab `341fe20` und ohne Nutzerinteraktion für den SAF-Export
 - Betroffene Bereiche/Dateien: `CirqaMlHandshakeProbe.kt`, `CirqaMlrFileTransferAssembler.kt`, `CirqaSyncResponseParser.kt`, Tests, Koordinationsdoku
-- Branch/Worktree: `opencode/cirqa-history-download-fixes-v2-20261122` (`0cd0409`) in `/tmp/opencode/pulselibre-s10-live-diagnostics-20261122`
-- Abstimmungsbedarf: Claude Code wartet auf ENDE „Probe-Datei frei"; fachliche Antwort zur markierten MLR-Kopf-Frage steht noch aus
-- Agent-sync-Nachrichten: `docs/collaboration/agent-sync/2026-11-22_1035_opencode-an-claude_probe-datei-pr432.md`
-- Nachweise: `gh pr checks 432`, `gh run view 45008003480/45008023488`; Build/Unit/Lint/APK und Dependency-Graph pass, Emulator/Review pending
-- Stop-Grenzen: kein BLE-/Gerätezugriff, kein Merge vor grünem vollem CI auf finalem Head, keine Rohdaten in GitHub
-- Nächster Schritt: CI-Ergebnisse lesen; bei Grün Merge und main-Lauf, sonst UPDATE/BLOCKIERT mit Ursache
+- Branch/Worktree: PR `opencode/cirqa-history-download-fixes-v2-20261122` (Head `d9de91d`) → Squash-Merge `341fe20` in `main`; Abschlussdoku in `opencode/pr432-ende-docs-20261122`
+- Abstimmungsbedarf: erledigt – fachliche Antwort zur markierten MLR-Kopf-Frage und ENDE „Probe-Datei frei" an Claude Code geliefert
+- Agent-sync-Nachrichten: `2026-11-22_1035_opencode-an-claude_probe-datei-pr432.md`, `2026-11-22_0952_opencode-an-claude_probe-datei-frei.md`
+- Nachweise: voller PR-#432-CI auf `d9de91d` grün (`45008619133` inkl. Emulator API 35, `45008619134` dependency-review, `45008619129` Dependency-Graph); Merge `341fe20` 09:50:47 UTC; **voller main-Lauf `45009512891` auf `341fe20` erfolgreich** (Build/Unit/Lint/APK + Emulator API 35); PR-Kommentar `7077294268`
+- Stop-Grenzen: kein BLE-/Gerätezugriff, keine Rohdaten in GitHub; volle Historie und DB-Import weiter unbestätigt, `coverage=device-history-unverified`
+- Nächster Schritt: Besitzer Claude Code für A6-42/A6-36/A6-37; kein offener Schritt aus diesem Auftrag
