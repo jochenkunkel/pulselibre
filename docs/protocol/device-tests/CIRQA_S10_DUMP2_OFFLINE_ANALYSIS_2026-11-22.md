@@ -50,7 +50,10 @@ Direction 1 (3.453×). Die Richtung ist damit erneut bestätigt.
 - Pull-Responses: 18/16/20/6 pro Kanal, alle `resultCode=0`, `transport=0`,
   `compressionWindow=11`. Set-Flags-Responsen likewise `result=0`.
 - `result counts per stream` enthält u. a. `(1,4),19,1: 1` und
-  `(1,2),19,1: 1` (einzelne Result-1-Fälle, nicht flächendeckend).
+  `(1,2),19,1: 1`. Beide Service-19-Nachrichten enthalten **nur ein einziges
+  varint-Feld `1 = 1`**; die Deutung als „Fehler result=1" ist eine
+  Analysten-Annahme des Zählskripts, keine belegte Semantik. Service 2/4/16
+  antworten dagegen flächendeckend `result=0`.
 
 ## Komprimierte Nutzdaten in den großen 5044-Frames
 
