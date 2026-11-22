@@ -953,4 +953,32 @@
     <string name="main_hist_status_toggle">Afficher ou masquer les détails techniques</string>
     <!-- REVIEW: neuer Text (ungültige Werte), fr/es Sprachprüfung durch ChatGPT -->
     <string name="ht_invalid">%1$d invalide(s) (non comptées)</string>
+    <!-- REVIEW: neue Texte (Dashboard), fr/es Sprachprüfung durch ChatGPT -->
+    <string name="sd_title">Tableau de bord</string>
+    <string name="sd_intro">Valeurs mesurées du bracelet et du téléphone. Les valeurs invalides, les états de l’appareil et les lacunes restent visibles et ne sont pas comblés.</string>
+    <string name="sd_r24">24 heures</string>
+    <string name="sd_r7">7 jours</string>
+    <string name="sd_r30">30 jours</string>
+    <string name="sd_hr_band">Fréquence cardiaque · bracelet (FIT)</string>
+    <string name="sd_hr_live">Fréquence cardiaque · téléphone (direct)</string>
+    <string name="sd_spo2">SpO₂ · qualité non vérifiée</string>
+    <string name="sd_resp">Fréquence respiratoire</string>
+    <string name="sd_stress">Stress (échelle de l’appareil)</string>
+    <string name="sd_src_band">Source : bracelet · Base de temps : heure de mesure du bracelet</string>
+    <string name="sd_src_live">Source : téléphone (direct) · Base de temps : heure de réception</string>
+    <string name="sd_loading">Lecture des données …</string>
+    <string name="sd_error">Les données n’ont pas pu être lues. Rien n’est affiché à la place.</string>
+    <string name="sd_empty">Aucune mesure sur la période choisie.</string>
+    <string name="sd_only_invalid">Sur la période, il n’y a que des valeurs invalides ou des états de l’appareil ; rien n’est tracé.</string>
+    <string name="sd_summary">%1$d valeurs valides · moyenne %2$s · min %3$s · max %4$s · couverture %5$d %%</string>
+    <string name="sd_summary_no_valid">%1$d valeurs, aucune tracée comme valide · couverture %2$d %%</string>
+    <string name="sd_flags">%1$d invalides, %2$d états de l’appareil (non tracés)</string>
+    <string name="sd_unverified">Valeurs de qualité non vérifiée (cercles creux)</string>
+    <string name="sd_gaps">%1$d lacunes (hachurées, non comblées)</string>
+    <string name="sd_na_title">Pas encore disponible</string>
+    <string name="sd_na_sleep">Sommeil : aucun intervalle de sommeil vérifié.</string>
+    <string name="sd_na_activity">Courbe d’activité : la base de temps de l’activité du bracelet n’est pas établie.</string>
+    <string name="sd_na_hrv">VFC : il n’y a que des intervalles RR, pas d’analyse de VFC vérifiée.</string>
+    <string name="sd_na_temp">Température : la prise en charge par le bracelet n’est pas établie.</string>
+    <string name="sd_cd">%1$s. %2$s</string>
 </resources>
