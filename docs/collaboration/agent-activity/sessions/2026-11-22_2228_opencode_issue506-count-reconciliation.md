@@ -1,0 +1,15 @@
+# OpenCode – Issue #506 L2CAP count reconciliation
+- Agent/Umgebung: OpenCode, Linux worktree
+- Beginn: 2026-11-22 22:28 UTC
+- Letzte Aktualisierung: 2026-11-22 22:28 UTC
+- Status: aktiv
+- Rolle/Zuständigkeit: BLE/FIT Offline-Analyse
+- Aktueller Auftrag: #506 – unabhängig die 49-L2CAP-/5-ATT-Differenz gegen den gespeicherten HCI-Capture auswerten und Parser/Evidenzbericht nur anhand der Resultate korrigieren.
+- Jetzt in Bearbeitung: #506 Record-level Reconciliation und Validierung von HCI ACL Handles.
+- Zeitnah geplant: keine.
+- Betroffene Bereiche/Dateien: `tools/garmin_hci_replay.py`, `tools/test_garmin_hci_replay.py`, `docs/protocol/device-tests/garmin-hci-2026-11-22/`, diese Aktivitätssitzung.
+- Branch/Worktree: `opencode/issue506-garmin-fit-20261122`, `/tmp/opencode/pulselibre-issue506`
+- Abstimmungsbedarf: keiner; Nutzer hat ausdrücklich selbstständige Fortsetzung angestoßen.
+- Agent-sync-Nachrichten: keine neue Anfrage; START unter `docs/collaboration/agent-chat/messages/2026-11-22_2228_opencode_issue506_START_reconcile-invalid-acl-counts.md`
+- Nachweise: unabhängiger Bericht nennt 49 Überlängen; erste record-level Zählung findet alle auf Handle `0xFF1`, der außerhalb der gültigen LE ACL Connection-Handle-Range liegt, davon 5 mit CID 0x0004.
+- Nächster Schritt: reproduzierbare Record-Ranges/Fragmentpufferursache ermitteln, reservierte Handles explizit ablehnen, Regressionen und Full-CI.
