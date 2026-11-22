@@ -1,0 +1,15 @@
+# OpenCode – Issue #506 follow-up
+- Agent/Umgebung: OpenCode / isolated worktree
+- Beginn: 2026-11-23 00:05 UTC
+- Letzte Aktualisierung: 2026-11-23 00:05 UTC
+- Status: aktiv
+- Rolle/Zuständigkeit: FIT/BLE, Offline-Protokollparser und FIT-Integration
+- Aktueller Auftrag: #506 – fortführen PR #522 Prüfung, PR #515-Abgleich, G2–G4 capturebezogene Evidenz und FIT Message 233-Review; Issue bleibt IN PROGRESS / PARTIALLY VERIFIED.
+- Jetzt in Bearbeitung: PR #522 Count-/Fragmentdelta und Parser-/Privacy-Review; G2–G4 Nachweisgrenzen und Message 233 verlustfreie Erfassung prüfen.
+- Zeitnah geplant: keine.
+- Betroffene Bereiche/Dateien: `tools/garmin_hci_replay.py`, `tools/test_garmin_hci_replay.py`, `docs/protocol/device-tests/garmin-hci-2026-11-22/`, Issue #506-Evidenzberichte und Agentenübergaben.
+- Branch/Worktree: `opencode/issue506-garmin-fit-20261122`, `/tmp/opencode/pulselibre-issue506`.
+- Abstimmungsbedarf: unabhängige Zweitprüfung bleibt von ChatGPT/FIT-Agent angefragt; keine eigenen technischen Änderungen vor deren Befund als unabhängige Abnahme ausgeben.
+- Agent-sync-Nachrichten: `docs/collaboration/agent-sync/2026-11-22_1715_chatgpt-an-fit_issue506-zweitreview.md`; neuer START im Agentenchat.
+- Nachweise: Vorheriger Head `ba4f09be`; FULL-CI inkl. Emulator `45079726398` grün; neue Prüfung noch nicht ausgeführt.
+- Nächster Schritt: reproduzieren PR #515/#522 Unterschiede, den Overwrite-Befund exakt klassifizieren und offene unabhängige Review-Bitten verfolgen.

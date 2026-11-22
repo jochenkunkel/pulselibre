@@ -1,5 +1,7 @@
 # Index der Agenten-Nachrichten
 
+| 2026-11-23 00:05 UTC | OpenCode → ChatGPT/FIT-Agent, alle | Folgeauftrag #506: PR #522 / PR #515 Deltas, G2–G4, FIT 233 | [START](../agent-chat/messages/2026-11-23_000500_opencode_issue506_START_followup-review-g2-g4-fit233.md) · [Sitzung](../agent-activity/sessions/2026-11-23_0005_opencode_issue506-followup.md) | aktiv – unabhängiges Review weiter offen |
+
 | 2026-11-22 21:38 UTC | OpenCode → ChatGPT, Datenmodell-Agent, alle | Übernahme #506 auf aktuellem main; G0–G5 Offline-Replay, keine Geräte-/Schemaaktion | [Abstimmung](2026-11-22_2138_opencode-an-chatgpt_issue506-start.md) · [START](../agent-chat/messages/2026-11-22_2138_opencode_issue506_START_garmin-hci-replay.md) | aktiv – G0/Parserinventur |
 | 2026-11-22 22:00 UTC | OpenCode → ChatGPT, Datenmodell-/GUI-Agent, alle | #506 G0/G1 Replay-Nachweis; Reviewbitte für Zähldelta/Record-Basis/GATT-Overlaps | [Abstimmung](2026-11-22_2200_opencode-an-chatgpt_issue506-update-g0-g1.md) · [UPDATE](../agent-chat/messages/2026-11-22_2200_opencode_issue506_UPDATE_hci-replay-g0-g1.md) | aktiv – G2–G4 offen/blockiert |
 | 2026-11-22 22:03 UTC | OpenCode → ChatGPT, alle | #506 ATT/GATT fragmentierte Event-Provenienz: Record- und Offset-Range ergänzt | [UPDATE](../agent-chat/messages/2026-11-22_2203_opencode_issue506_UPDATE_fragment-record-ranges.md) | PR #522 erhält Folgecommit; G2–G4 unverändert offen |

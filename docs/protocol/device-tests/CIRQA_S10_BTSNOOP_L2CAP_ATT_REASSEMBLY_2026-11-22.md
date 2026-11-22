@@ -10,7 +10,17 @@ Btsnoop-H4-Records sequenziell eingelesen. ACL nach HCI-Handle und Richtung mitt
 - 43.019 rekonstruierte L2CAP-PDUs; davon 42.799 ATT-PDUs (CID 0x0004), RX 36.001 und TX 6.798.
 - ATT Notifications (0x1b) 35.465; ATT Write Commands (0x52) 6.267.
 - 56 Connection-/Disconnect-Events (keine Anzahl eindeutiger Geräte).
-- Auffälligkeiten: 49 L2CAP-PDUs mit Überlänge, 1 überschriebener unvollständiger Fragmentpuffer, 0 offene Puffer am EOF. Ursachen ungeklärt; **keine** Behauptung fehlerfreier Reassembly.
+- Auffälligkeiten dieser Zählmethode: 49 L2CAP-Kandidaten mit Überlänge und ein überschriebener unvollständiger Fragmentpuffer (unabhängiger Parserbericht); 0 offene Puffer am EOF. Der unabhängige Parser und sein ausführbares Verfahren liegen nicht vor, daher ist der Fragmentbefund hier nicht direkt reproduzierbar.
+
+## Abgleich mit PR #522
+
+Die Abweichung der Summen ist reproduzierbar und stammt aus dem Zählumfang:
+
+- PR #515 zählt 43.019 L2CAP-PDUs und 42.799 ATT-PDUs; PR #522 zählt 42.970 vollständige, längenkonsistente L2CAP-PDUs und 42.794 ATT-PDUs.
+- Die 49 Differenzdatensätze sind sämtlich Controller→Host ACL-Starts mit `PB=2` und reserviertem HCI-Handle `0xFF1`. In allen 49 ist die angegebene L2CAP-Länge kleiner als die im ACL-Body enthaltene Restlänge. Fünf haben CID `0x0004` (Records 17.427–17.431); weitere 44 tragen Nicht-ATT-CIDs.
+- Diese fünf sind daher ATT-CID-Kandidaten, aber keinem gültigen LE-Connection-Handle bzw. keiner Verbindungsepoche zugeordnet. Sie werden von PR #522 vor L2CAP/ATT verworfen; das ist kein Verlust von 49 rekonstruierbaren Anwendungs-PDUs. Die Differenz von fünf ATT-Zählungen folgt daraus.
+- Der in PR #515 berichtete einzelne „überschriebene Fragmentpuffer“ bleibt unabhängig nicht verifiziert: dessen Parserregeln und maschinenlesbares Ereignisprotokoll sind nicht verfügbar. PR #522 findet keine zweite Startfragment-Kollision auf einem gültigen Handle/Richtungsschlüssel und keine unvollständige Reassembly am EOF. Die 49 ungültigen `PB=2`-Starts könnten einen nicht filternden Parser beeinflussen; ein kausaler Zusammenhang ist nicht belegt.
+- Regressionen in `tools/test_garmin_hci_replay.py` sichern sowohl das Ignorieren wiederholter, überlanger Starts auf dem reservierten Handle als auch das Verwerfen eines unvollständigen gültigen L2CAP-Assemblies bei einem neuen Start, ohne Payloads zu vermischen.
 
 ## Zeitfenster und Trace
 

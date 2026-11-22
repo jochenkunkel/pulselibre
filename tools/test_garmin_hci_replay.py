@@ -162,11 +162,32 @@ class ReplayTests(unittest.TestCase):
 
     def test_reserved_hci_handle_is_not_interpreted_as_l2cap(self):
         malformed_l2cap = struct.pack("<HH", 4, 4) + b"x" * 900
-        _parser, summary = self.parse([acl(0x0FF1, 2, malformed_l2cap, 1)])
-        self.assertEqual(1, summary["errors"]["invalid_acl_connection_handle"])
+        records = [
+            acl(0x0FF1, 2, malformed_l2cap, 1),
+            acl(0x0FF1, 2, malformed_l2cap, 1),
+        ]
+        parser, summary = self.parse(records)
+        self.assertEqual(2, summary["errors"]["invalid_acl_connection_handle"])
         self.assertNotIn("overlong_l2cap_start", summary["errors"])
+        self.assertNotIn("second_start_before_completion", summary["errors"])
         self.assertEqual(0, summary["l2cap_complete"])
         self.assertEqual(0, summary["att_pdus"])
+        self.assertEqual(0, len(parser.pending))
+
+    def test_second_start_discards_incomplete_l2cap_without_mixing_payloads(self):
+        handle = 0x4C
+        first_start = struct.pack("<HH", 8, 4) + b"\x1b"
+        complete_notification = l2cap(4, b"\x1b\x01\x00x")
+        parser, summary = self.parse([
+            acl(handle, 2, first_start, 1),
+            acl(handle, 2, complete_notification, 1),
+        ])
+
+        self.assertEqual(1, summary["errors"]["second_start_before_completion"])
+        self.assertEqual(1, summary["att_pdus"])
+        self.assertEqual(0, summary["incomplete_acl_assemblies_at_eof"])
+        self.assertEqual(0, len(parser.pending))
+        self.assertEqual([2, 2], parser.events[-1]["record_range"])
 
     def test_write_command_is_counted_separately_from_write_request(self):
         handle = 0x42
