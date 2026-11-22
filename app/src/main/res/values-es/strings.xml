@@ -900,4 +900,19 @@
     <!-- REVIEW: neue Texte (#477), fr/es Sprachprüfung durch ChatGPT -->
     <string name="hv_fit_read_failed">No se pudo leer el historial de la pulsera.</string>
     <string name="hv_fit_newest">Última medición de la pulsera: %1$s (fuera del período elegido).</string>
+    <!-- REVIEW: neue Texte (Verlauf-Tabelle), fr/es Sprachprüfung durch ChatGPT -->
+    <string name="ht_title">Todos los datos</string>
+    <string name="ht_col_date">Fecha</string>
+    <string name="ht_col_source">Fuente</string>
+    <string name="ht_col_metric">Medida</string>
+    <string name="ht_col_count">Cantidad</string>
+    <string name="ht_col_range">Mín–Máx</string>
+    <string name="ht_col_median">Mediana</string>
+    <string name="ht_src_band">Pulsera</string>
+    <string name="ht_src_phone">Teléfono</string>
+    <string name="ht_metric_pulse">Pulso</string>
+    <string name="ht_metric_spo2">SpO₂</string>
+    <string name="ht_note">Pulsera: hora de medición de la pulsera · Teléfono: hora de recepción en el teléfono. Una fila por día y fuente; no se interpola ni se mezcla nada.</string>
+    <string name="ht_empty">No hay valores en este período.</string>
+    <string name="ht_row_cd">%1$s, %2$s, %3$s: %4$d valores, mínimo %5$d, máximo %6$d, mediana %7$s</string>
 </resources>

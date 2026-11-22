@@ -176,6 +176,7 @@ class HistoryOverviewView(
         addView(rangeRow, LayoutParams(-1, -2).apply { bottomMargin = dp(10) })
         addWindowNavigation(snapshot)
         val resolution = HistoryResolution.forRange(snapshot.range)
+        allDataCard(snapshot)
         // #334: FIT-Historie des Bands in eigener Karte mit eigener Zeitbasis (Messzeit), nie mit Empfangszeit vermischt.
         // Zuerst, weil sie die meisten Werte enthaelt; feinere Aufloesung, weil die Banddaten dicht sind.
         if (snapshot.fitAvailable || snapshot.fitHeartRate.isNotEmpty() || snapshot.fitReadFailed) {
@@ -185,6 +186,62 @@ class HistoryOverviewView(
         metricCard("Herzfrequenz", "bpm", snapshot.heartRate, snapshot, 240, palette.pulse, resolution)
         metricCard("Sauerstoffsättigung · SpO₂", "%", snapshot.oxygen, snapshot, 100, palette.oxygen, resolution)
         // The scientific trend block now lives in the main tab "Analysen" (#227).
+    }
+
+    /**
+     * One table for live (phone) and imported (band) data: a row per day, source and measure, newest day first.
+     * Sources keep their own clock and are never merged; the caption says which time each source uses.
+     */
+    private fun allDataCard(snapshot: HistorySnapshot) {
+        val rows = HistoryTable.rows(snapshot, ZoneId.systemDefault())
+        val locale = context.resources.configuration.locales[0]
+        val dayFormat = java.time.format.DateTimeFormatter.ofLocalizedDate(java.time.format.FormatStyle.SHORT).withLocale(locale)
+        val card = LinearLayout(context).apply {
+            orientation = VERTICAL
+            setPadding(dp(14), dp(14), dp(14), dp(12))
+            background = GradientDrawable().apply { setColor(palette.card); cornerRadius = dp(18).toFloat() }
+            tag = "history_all_data"
+        }
+        card.addView(label(context.getString(R.string.ht_title), 15f, palette.ink, true))
+        fun cell(text: String, weight: Float, bold: Boolean = false, color: Int = palette.ink, align: Int = Gravity.START) =
+            label(text, 11f, color, bold).apply { gravity = align }.also { it.layoutParams = LinearLayout.LayoutParams(0, -2, weight) }
+        fun line(cells: List<TextView>, description: String? = null) = LinearLayout(context).apply {
+            orientation = HORIZONTAL
+            setPadding(0, dp(5), 0, dp(5))
+            minimumHeight = dp(28)
+            cells.forEach { addView(it) }
+            if (description != null) { contentDescription = description; importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_YES
+                cells.forEach { it.importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO } }
+        }
+        if (rows.isEmpty()) {
+            card.addView(label(context.getString(R.string.ht_empty), 14f, palette.muted),
+                LayoutParams(-1, -2).apply { topMargin = dp(10); bottomMargin = dp(6) })
+        } else {
+            card.addView(line(listOf(
+                cell(context.getString(R.string.ht_col_date), 1.1f, true, palette.muted),
+                cell(context.getString(R.string.ht_col_source) + " · " + context.getString(R.string.ht_col_metric), 1.6f, true, palette.muted),
+                cell(context.getString(R.string.ht_col_count), 0.9f, true, palette.muted, Gravity.END),
+                cell(context.getString(R.string.ht_col_range), 1.3f, true, palette.muted, Gravity.END),
+                cell(context.getString(R.string.ht_col_median), 0.9f, true, palette.muted, Gravity.END))),
+                LayoutParams(-1, -2).apply { topMargin = dp(8) })
+            rows.forEach { row ->
+                val source = context.getString(if (row.source == HistorySource.BAND) R.string.ht_src_band else R.string.ht_src_phone)
+                val metric = context.getString(if (row.metric == HistoryMetric.PULSE) R.string.ht_metric_pulse else R.string.ht_metric_spo2)
+                val day = dayFormat.format(row.day)
+                val median = java.text.NumberFormat.getInstance(locale).apply { maximumFractionDigits = 1 }.format(row.median)
+                card.addView(line(listOf(
+                    cell(day, 1.1f),
+                    cell("$source · $metric", 1.6f),
+                    cell(row.count.toString(), 0.9f, align = Gravity.END),
+                    cell("${row.minimum}–${row.maximum}", 1.3f, align = Gravity.END),
+                    cell(median, 0.9f, align = Gravity.END)),
+                    context.getString(R.string.ht_row_cd, day, source, metric, row.count, row.minimum, row.maximum, median)),
+                    LayoutParams(-1, -2))
+            }
+        }
+        card.addView(label(context.getString(R.string.ht_note), 11f, palette.muted).apply { tag = "history_all_data_note" },
+            LayoutParams(-1, -2).apply { topMargin = dp(8) })
+        addView(card, LayoutParams(-1, -2).apply { bottomMargin = dp(12) })
     }
 
     /** Why the band card is empty: read error (A6-29) or the date of the newest band measurement outside the window (#477). */
