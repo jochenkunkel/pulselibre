@@ -120,6 +120,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private var syncTransferHandle = 0L
     private var syncExpectedSize = 0L
     private val mlrData = java.io.ByteArrayOutputStream()
+    private var mlrFileAssembler: CirqaMlrFileTransferAssembler? = null
     private var syncFinalReport = ""
     private var fileAccessRequestClaimed = false
     private var itemListRepeatabilityMode = false
@@ -441,6 +442,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             syncTransferHandle = 0L
             syncExpectedSize = 0L
             mlrData.reset()
+            mlrFileAssembler?.close()
+            mlrFileAssembler = null
             fileAccessRequestClaimed = false
             bootstrapAckMode = false
             configurationTestMode = false
@@ -491,6 +494,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             syncTransferHandle = 0L
             syncExpectedSize = 0L
             mlrData.reset()
+            mlrFileAssembler?.close()
+            mlrFileAssembler = null
             fileAccessRequestClaimed = false
             bootstrapAckMode = false
             configurationTestMode = false
@@ -969,6 +974,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         syncCurrentItem = item
         syncExpectedSize = item.dataSize
         mlrData.reset()
+        mlrFileAssembler?.close()
+        mlrFileAssembler = CirqaMlrFileTransferAssembler(item.dataSize.toInt())
         mlrConfigureResponseSeen = false
         mlrTransferActive = false
         val requestId = syncNextRequestId
@@ -1008,6 +1015,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         syncCurrentItem = null
         syncExpectedSize = 0L
         mlrData.reset()
+        mlrFileAssembler?.close()
+        mlrFileAssembler = null
         mlrTransferActive = false
         mlrConfigureResponseSeen = false
         mlrHandle = null
@@ -1424,19 +1433,33 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                         return
                     }
                     if (!mlrTransferActive || syncCurrentItem == null) return
-                    // Subsequent callbacks are raw transfer bytes, passed
-                    // unchanged by Connect's MLRTransportPipe to its data sink.
+                    // The observed file channel can carry a 2-byte per-ATT
+                    // transport prefix followed by a zlib stream. The assembler
+                    // strips it only after validating zlib; raw bytes stay intact.
                     mlrChunks++
                     mlrBytes += payload.size
-                    if (syncExpectedSize <= 0 ||
-                        mlrData.size().toLong() + payload.size > syncExpectedSize
+                    val assembler = mlrFileAssembler
+                    if (syncExpectedSize !in 1..CirqaZlibFileDecoder.MAX_BYTES.toLong() ||
+                        assembler == null
                     ) {
                         mlrDiag += ";dataOverflow=true"
                         finish("MLR-Daten überschreiten die erwartete Dateigröße; Transfer gestoppt.", g)
                         return
                     }
-                    mlrData.write(payload)
-                    if (mlrData.size().toLong() == syncExpectedSize) {
+                    val chunk = assembler.accept(payload)
+                    if (chunk.rejected) {
+                        mlrDiag += ";fileAssembly=rejected;mode=${chunk.mode}"
+                        finish("MLR-Dateiübertragung ungültig oder überschreitet Größenlimit; Transfer gestoppt.", g)
+                        return
+                    }
+                    if (chunk.complete) {
+                        val completeBytes = assembler.assembledBytes() ?: run {
+                            finish("MLR-Dateiübertragung ohne vollständige Dateibytes; Transfer gestoppt.", g)
+                            return
+                        }
+                        mlrData.reset()
+                        mlrData.write(completeBytes)
+                        mlrDiag += ";fileAssembly=complete;mode=${chunk.mode}"
                         completeSyncFile(g)
                     }
                     return
@@ -2952,14 +2975,20 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         // offline decoder only when the received bytes are not already a valid FIT
         // and carry a plausible zlib header; the inflated result must itself pass
         // full FIT header/CRC verification. Nothing is stored or imported before
-        // that check succeeds. Size and SHA above always refer to the wire bytes.
+        // that check succeeds. For incremental assembly, data already contains
+        // the complete raw or inflated file; size and SHA describe that file.
         val zlibDecoded = if (FitFileHeader.inspectVerified(data) == null &&
             CirqaZlibFileDecoder.isZlibCandidate(data)
         ) {
             CirqaZlibFileDecoder.decode(data)?.takeIf { FitFileHeader.inspectVerified(it) != null }
         } else null
         val fitData = zlibDecoded ?: data
-        val zlibMark = if (zlibDecoded != null) "zlib=decoded(${zlibDecoded.size})" else "zlib=none"
+        val zlibMark = when {
+            mlrFileAssembler?.mode == CirqaMlrFileTransferAssembler.Mode.ZLIB ->
+                "zlib=assembled(${data.size})"
+            zlibDecoded != null -> "zlib=decoded(${zlibDecoded.size})"
+            else -> "zlib=none"
+        }
         if (!declaredFit && !looksFit && zlibDecoded == null) {
             val saved = try {
                 CirqaVerifiedRawFileStore(java.io.File(context.filesDir, "verified_raw"))
@@ -3253,6 +3282,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             syncTransferHandle = 0L
             syncExpectedSize = 0L
             mlrData.reset()
+            mlrFileAssembler?.close()
+            mlrFileAssembler = null
             fileAccessRequestClaimed = false
             bootstrapAckMode = false
             configurationTestMode = false

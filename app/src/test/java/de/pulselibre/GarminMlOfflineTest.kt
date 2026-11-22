@@ -69,5 +69,7 @@ class GarminMlOfflineTest {
     @Test fun parsesFlaggedAndBareHandles() {
         assertEquals(3, GarminMlOffline.inspectDataHandle(byteArrayOf(0xb0.toByte(), 42)))
         assertEquals(9, GarminMlOffline.inspectDataHandle(byteArrayOf(9, 42)))
+        assertEquals(3, GarminMlOffline.inspectDataHandle(byteArrayOf(0xb0.toByte(), 42, 43)))
+        assertNull(GarminMlOffline.inspectDataHandle(byteArrayOf(0)))
     }
 }
