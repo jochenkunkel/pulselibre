@@ -35,7 +35,7 @@ class CirqaFitBackfill(
     )
 
     enum class FileStatus { IMPORTED, NO_IMPORTABLE_OBSERVATIONS, INVALID_FILE, FAILED }
-    enum class FailureStage { READ, DATABASE }
+    enum class FailureStage { READ, DATABASE, SOURCE_CONFLICT }
 
     data class FileResult(
         val alias: String,
@@ -109,6 +109,23 @@ class CirqaFitBackfill(
                 failed++
                 importable += decodedBeforeFailure?.eligibleObservations ?: 0
                 fileResults += failedResult(index, FailureStage.DATABASE, decodedBeforeFailure)
+                continue
+            } catch (_: IllegalArgumentException) {
+                // require(...) detects a decoder/source contract violation before the
+                // atomic commit. Treat it like any other per-file failure so that later
+                // files and the unknown-field inventory scan are still processed.
+                failed++
+                importable += decodedBeforeFailure?.eligibleObservations ?: 0
+                fileResults += failedResult(index, FailureStage.SOURCE_CONFLICT, decodedBeforeFailure)
+                continue
+            } catch (_: IllegalStateException) {
+                // check(...)/error(...) in FitObservationCommitter deliberately detect a
+                // conflict with already committed data. The transaction is rolled back;
+                // the integrity check stays active, but the failure is isolated to this
+                // input file instead of aborting the whole import run.
+                failed++
+                importable += decodedBeforeFailure?.eligibleObservations ?: 0
+                fileResults += failedResult(index, FailureStage.SOURCE_CONFLICT, decodedBeforeFailure)
                 continue
             }
             if (outcome == null) {

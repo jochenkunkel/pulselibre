@@ -79,6 +79,30 @@ class CirqaFitBackfillTest {
         }
     }
 
+    private class ConflictOnceStore(private val exceptionFactory: () -> RuntimeException) : FitObservationStore {
+        var attempts = 0
+        val committedKeys = mutableSetOf<String>()
+
+        override fun commitFitFile(
+            sourceSha256: String,
+            fileBytes: Long,
+            relativePath: String,
+            validatedAtEpochMillis: Long,
+            decoderVersion: String,
+            profileVersion: String,
+            observations: List<FitHistoricalObservations.Observation>,
+            deviceMetadata: List<FitHistoricalObservations.DeviceMetadata>,
+            unmappedFields: List<FitFieldInventoryRecord>,
+            deviceKey: String,
+            reviewCandidates: List<FitHistoricalObservations.ReviewCandidate>
+        ): Int {
+            attempts++
+            if (attempts == 1) throw exceptionFactory()
+            observations.forEach { committedKeys += it.idempotencyKey }
+            return observations.size
+        }
+    }
+
     private fun fit(heartRate: Int = 72, withStress: Boolean = false): ByteArray {
         val data = byteArrayOf(
             0x40, 0, 0, 20, 0, 2,
@@ -238,6 +262,41 @@ class CirqaFitBackfillTest {
             assertEquals(2, retry.importableObservations)
             assertEquals(2, retry.committedObservations)
             assertEquals(2, store.committedKeys.size)
+        } finally {
+            root.listFiles()?.forEach { it.delete() }
+            root.delete()
+        }
+    }
+
+    @Test fun metadataConflictIsReportedPerFileAndLaterFilesContinue() =
+        assertConflictIsolated { IllegalStateException("Stored FIT source metadata conflicts with content hash") }
+
+    @Test fun decoderContractViolationIsReportedPerFileAndLaterFilesContinue() =
+        assertConflictIsolated { IllegalArgumentException("FIT provenance does not match validated source") }
+
+    private fun assertConflictIsolated(exceptionFactory: () -> RuntimeException) {
+        val root = Files.createTempDirectory("fit-backfill-conflict-test").toFile()
+        try {
+            val firstBytes = fit(heartRate = 72)
+            val secondBytes = fit(heartRate = 73)
+            File(root, CirqaFitBackfill.expectedFileName(firstBytes)).writeBytes(firstBytes)
+            File(root, CirqaFitBackfill.expectedFileName(secondBytes)).writeBytes(secondBytes)
+            val store = ConflictOnceStore(exceptionFactory)
+            val backfill = CirqaFitBackfill(root, store)
+
+            val result = backfill.run()
+
+            assertEquals(2, result.filesSeen)
+            assertEquals(1, result.failedFiles)
+            assertEquals(1, result.filesImported)
+            assertEquals(2, result.importableObservations)
+            assertEquals(1, result.committedObservations)
+            assertFalse(result.truncated)
+            val failed = result.fileResults.single { it.status == CirqaFitBackfill.FileStatus.FAILED }
+            assertEquals(CirqaFitBackfill.FailureStage.SOURCE_CONFLICT, failed.failureStage)
+            assertEquals(1, failed.decodedObservations)
+            assertEquals(1, failed.eligibleObservations)
+            assertEquals(2, root.listFiles()?.count { it.name.endsWith(".fit") })
         } finally {
             root.listFiles()?.forEach { it.delete() }
             root.delete()

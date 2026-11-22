@@ -16,7 +16,7 @@ Stand: 2026-11-22 · Owner: Datenmodell-/Persistenz-Agent (OpenCode) · Status: 
 
 Digestmethode nur für diesen Nachweis: deterministisch sortierte Zeilen, Python-`repr`-Serialisierung, SHA-256. Kein Produktionscode, keine Veröffentlichung von Individualwerten.
 
-**Wichtiger IST-Befund:** alle vier lokalen v8-Kopien enthalten **keine** Review-Kandidatentabelle, obwohl PR #517 eine solche Tabelle für Schema v8 beschreibt. `user_version` allein ist daher **kein** hinreichender Schema-Zustandsbeweis. Die Migration muss strukturell prüfen (`sqlite_master` / `PRAGMA table_info`) und mit `IF NOT EXISTS` arbeiten. Dieser Widerspruch wird im Code-IST-Teil der #144-Dokumentation festgehalten und nicht stillschweigend aufgelöst.
+**Wichtiger IST-Befund:** alle vier lokalen v8-Kopien enthalten **keine** Review-Kandidatentabelle, obwohl PR #517 eine solche Tabelle für Schema v8 beschreibt. `user_version` allein ist daher **kein** hinreichender Schema-Zustandsbeweis. Die Migration muss strukturell prüfen (`sqlite_master` / `PRAGMA table_info`) und mit `IF NOT EXISTS` arbeiten. Der Code-IST erklärt den Unterschied: `CirqaDatabase.kt:448-501` ergänzt `fit_review_candidates` und `live_device_metadata` erst beim Öffnen bedingt; der Widerspruch ist damit geklärt, nicht stillschweigend übergangen.
 
 ## 1. Grundsätze
 
@@ -62,7 +62,7 @@ Alle Tabellen/Indizes mit `IF NOT EXISTS`; die exakten DDL-Entwürfe stehen im I
 - Ungültiger Wert einer Messgröße setzt keine andere Messgröße auf ungültig; Qualität ist immer an `sample_id` + Metrik gebunden.
 - Timestamp-Origin aus Decoder übernehmen; bei `UNKNOWN` bleibt `measured_at_ms = NULL`. Unbekannte FIT-Nachrichten bekommen keinen erfundenen Zeitstempel.
 - Idempotenz: `sample_id`-PK und `idempotency_key` UNIQUE; Re-Import erzeugt keine Duplikate und keine Überschreibung. Es gibt keinen Wechsel aktiver Generationen ohne vollständig committete Generation.
-- Fehler: fachliche Konflikte (z. B. Metadatenkonflikt) werden als dateiweise, typisierte Ausnahme behandelt, im `import_runs`/`import_errors` pro Datei protokolliert und der Lauf wird als `PARTIAL` abgeschlossen. **Integritätsprüfungen und CHECK-Constraints bleiben aktiv**; ein Fehler führt nicht zum Unterdrücken, sondern zum expliziten `FILE_SKIPPED`. Ein echter Datenbank-/I/O-Fehler darf den Lauf abbrechen (`RUN_ABORTED`). Die genaue Exception-Kette wird im laufenden Code-IST geprüft; dieser Plan greift nicht vor.
+- Fehler: **Code-IST bestätigt** `require(...)` → `IllegalArgumentException` und `check(...)`/`error(...)` → `IllegalStateException` in `FitObservationCommitter.kt:22-71`, `:99-102`, `:140-151`, `:217-227`, `:272-288`, `:390-394`, `:427-438`, `:450`. Diese umgingen bisher den dateiweisen Handler in `CirqaFitBackfill.kt:100-113` und brachen die gesamte `run()`-Schleife ab. Im Branch werden beide Typen nun als `FailureStage.SOURCE_CONFLICT` pro Datei erfasst; die `check(...)`-Prüfungen und der Transaktions-Rollback (`endTransaction()` im `finally`) bleiben aktiv. Später werden diese Fälle zusätzlich in `import_runs`/`import_errors` pro Datei protokolliert und der Lauf als `PARTIAL` abgeschlossen. **Integritätsprüfungen und CHECK-Constraints bleiben aktiv**; ein Fehler führt nicht zum Unterdrücken, sondern zum expliziten `FILE_SKIPPED`. Ein echter Datenbank-/I/O-Fehler darf den Lauf abbrechen (`RUN_ABORTED`).
 
 ### Schritt 5 – Nachweise nach der Migration (auf Testkopie)
 1. `integrity_check = ok`, `foreign_key_check = []`, `user_version = 9`.
@@ -91,5 +91,5 @@ Der abschließende SQLite-Importtest verwendet lokal vorhandene FIT-Originale un
 
 - [OFFEN] FIT-Agent: Feldsemantik/Statuscodes, Messmodus/Konfidenz, Timestamp-Ursprung, Decoder-/Profilversionen. Ohne Antwort bleiben die Kataloge bei `UNKNOWN`; es werden keine Statuswerte erfunden.
 - [OFFEN] GUI-Agent: Kenntnisnahme der additiven Lese-Schnittstelle; keine UI-Änderung ohne dokumentierte Felder.
-- [OFFEN] Code-IST: Bestätigung der `IllegalStateException`/Fehlerhandler-Kette und der Legacy-Store-Version durch die laufende Quellcodeanalyse.
+- [ERLEDIGT] Code-IST: `IllegalStateException`/`IllegalArgumentException`-Kette bestätigt und dateiweise abgefangen; Legacy-Store ist Version 3. Regressionstests vorhanden (JVM-Zieltest `CirqaFitBackfillTest` grün, 22.11.2026). Voller CI-Lauf weiterhin offen.
 - Vor Merge: volle Android-CI inkl. Emulator auf Branch-Head und anschließend auf `main`; Ergebnisse lesen, bevor gemergt wird.

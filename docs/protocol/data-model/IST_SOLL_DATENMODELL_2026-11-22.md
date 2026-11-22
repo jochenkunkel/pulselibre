@@ -84,9 +84,11 @@ erDiagram
     }
 ```
 
-### 2.2 Zweite Datenbank `pulselibre_readings.db` [CODE/DB, Details offen]
+### 2.2 Zweite Datenbank `pulselibre_readings.db` [CODE]
 
-Legacy-Store `LocalReadingStore.kt` mit `readings` (Triple PK inkl. `sample_id`) und `sync_cursors`. Der Store wird von #517/PR #517 zusätzlich um Review-Kandidaten erweitert; die **kanonische** Ablage liegt in `cirqa_measurements.db`. [CODE – Details werden nach Quellcodeprüfung ergänzt.]
+Legacy-Store `LocalReadingStore.kt:90-96` mit `readings`, `sync_cursors`, Legacy-FIT-Provenienz und Review-Kandidaten (`LocalReadingStore.kt:104-187`), Schema-Version **3** und aktivierten Foreign Keys (`:93-96`). Upgrade nur `1..2 → 3`, additiv (`:126-133`). Die **kanonische** Ablage liegt in `cirqa_measurements.db`. Der Legacy-Store wird über `ATTACH ... AS legacy` (`CirqaDatabase.kt:1749-1755`) für Kopie/Restore eingebunden.
+
+**Schema-Alter bei v8 [CODE]:** `CirqaDatabase.kt:448-501` legt `fit_review_candidates` und `live_device_metadata` beim Öffnen bedingt nach (`sqlite_master`/`PRAGMA table_info`, vgl. `:309-320`). Das erklärt, warum lokal v8-Dateien mit und ohne Kandidatentabelle coexistieren können: nicht jede v8-Datei hat denselben physischen Tabellensatz. `user_version` ist kein hinreichender Zustandsbeweis.
 
 ### 2.3 Dateistores und abgeleitete Daten [DB/CODE]
 
@@ -100,6 +102,15 @@ Legacy-Store `LocalReadingStore.kt` mit `readings` (Triple PK inkl. `sample_id`)
 `BLE-/FileSync-Transfer → HCI-/Protokollereignis (events.payload_json) → integritätsgeprüfte Originaldatei (verified_fit/<sha>.fit / <sha>.bin) → FIT-Decoder-Generation (fit_decoder_generations, fit_sources) → PROFILE_VALID-Beobachtung (fit_generation_observations + observations + fit_observation_provenance) → Backfill/Import (sync_cursors, storage_migrations) → Dashboard/Export/Backup`.
 
 Zeitbegriffe sind IST-mäßig nicht überall getrennt: `events.received_at_utc` (Empfang), `observations.measured_at_ms` (Messung laut FIT), `observations.received_at_ms` (Import), `live_device_metadata.observed_at_ms` (Beobachtung), `fit_sources.validated_at_ms` (Validierung). `timestamp_origin` existiert nur in `fit_generation_observations`, nicht in `observations`. [DB]
+
+### 2.5 Code-IST: Import, Idempotenz, Transaktionen, Fehlerbehandlung [CODE, verifiziert 22.11.2026]
+
+- **Decoder:** `FitHistoricalObservations.kt:13-16` (`DECODER_VERSION="1"`, `PROFILE_VERSION="21.222.0"`, FIT-Epoche, Maximalgrenzen). Timestamp-253, komprimierte Zeit und `timestamp_16` werden getrennt erkannt (`:256-285`); ohne früheren vollständigen Timestamp bleibt die Zeit `null` (`:466-483`), `0xffffffff` wird verworfen (`:273-285`). Unbekannte Felder werden nur inventarisiert, nie als Werte importiert (`:104-110`, `:425-429`).
+- **Gültigkeit:** HR nur `1.0..240.0` ist `PROFILE_VALID` (`:396-420`); FIT-Sentinels `0xff`/`0xffff`/`0xffffffff` (`:530-535`); SpO₂ `0xff`, Stress/Respiration `0x7fff` werden als Review-Kandidaten-Invalid markiert (`:319-381`). Review-Kandidaten bleiben `UNTRUSTED_PROFILE_CANDIDATE` mit nullable Zeit (`:84-102`).
+- **Idempotenz:** `sample_id = sha256(fileSha:recordOrdinal:global:field)` (`FitHistoricalObservations.kt:405-419`), Generierungs-ID analog (`FitDecoderGeneration.kt:40-49`), Output-Digest über sortierte `sample_id` inkl. Wertbits/Einheit/Feldkoordinaten/Qualität/Zeitursprung (`:44-68`). DB-Inserts mit `INSERT OR IGNORE` und PK/UNIQUE (`FitObservationCommitter.kt:86-103`, `:239-311`), Feldinventar per `ON CONFLICT ... DO UPDATE` (`:155-189`). Originaldateiname ist der Inhalts-Hash; gespeicherte Bytes werden vor Übernahme verifiziert (`CirqaVerifiedFitStore.kt:36-61`).
+- **Transaktion:** eine Transaktion für Source, Review-Kandidaten, Inventar, Gerätemetadaten, Observations, Provenienz, Generation und Cursor (`FitObservationCommitter.kt:84-337`, `setTransactionSuccessful()` `:334`, `endTransaction()` im `finally` `:335-337`). Generationen sind unveränderlich; eine zweite Generation wird nicht automatisch aktiv (`:342-346`, `:451-452`).
+- **Bestätigter Fehlerpfad (Prüfpunkt aus #144):** `CirqaFitBackfill.kt:100-113` fing pro Datei ursprünglich nur `IOException` und `SQLiteException`. Die Integritätsprüfungen im Committer nutzen `require(...)` → `IllegalArgumentException` (`:22-71`, `:231-236`) und `check(...)`/`error(...)` → `IllegalStateException` (`:99-102`, `:140-151`, `:217-227`, `:272-288`, `:390-394`, `:427-438`, `:450`). Beide Typen umgingen den dateiweisen Handler und beendeten die gesamte `run()`-Schleife; spätere Dateien und `CirqaUnknownFitInventory.scanAndPersist(...)` in `MainActivity.kt:128-136` wurden übersprungen. Der äußere Worker fing nur pauschal `Exception` (`MainActivity.kt:125-140`), ohne strukturiertes `FAILED`-Ergebnis. **Status der Behebung:** in diesem Branch werden beide Typen als `FailureStage.SOURCE_CONFLICT` pro Datei erfasst; die `check(...)`-Prüfungen und der Transaktions-Rollback bleiben aktiv. Regressionstest: `CirqaFitBackfillTest.kt` (`metadataConflictIsReportedPerFileAndLaterFilesContinue`, `decoderContractViolationIsReportedPerFileAndLaterFilesContinue`).
+- **Backup:** `DatabaseBackup.kt` Format `de.pulselibre.local-database-backup`, Version **8** (`:26-27`, `:120-121`), Entry-Sets v1–v8 (`:33-71`), Manifest mit SHA/Record-Counts (`:798-846`), `prepareRestore()` validiert vor jeder Datenänderung (`:94-118`, `:145-242`), inklusive neu berechnetem Output-Digest und `PRAGMA foreign_key_check` (`:1186-1233`). Restore ersetzt beide Stores in einer Transaktion (`CirqaDatabase.kt:1248-1269`). Original-FIT-Bytes sind nicht im Backup.
 
 ## 3. SOLL-Modell (additiv, keine neue Datenbank)
 
@@ -119,7 +130,7 @@ Entscheidung: **eine kanonische SQLite-Datenbank** `cirqa_measurements.db` bleib
 | Herkunft | `fit_observation_provenance`, `fit_sources` | identisch, zusätzlich für Statuszeilen und Importfehler |
 | Decoder-/Profilversion | `fit_decoder_generations`, `fit_observation_provenance` | in jeder Qualitäts-/Statuszeile wiederholt (immutable, nicht „latest“) |
 | Idempotenz | `sample_id` + generation key + `INSERT OR IGNORE` | `idempotency_key` UNIQUE auch für Statuszeilen; Re-Import erzeugt keine Duplikate |
-| Fehlerbehandlung | dateiweiser Handler mit eingeschränkten Exception-Typen [OFFEN – Codeprüfung] | Typisierte, fachliche `SourceConflictException` pro Datei; Integritätsprüfungen bleiben erhalten; whole-run abort nur bei echter Systemschädigung |
+| Fehlerbehandlung | `IOException`/`SQLiteException` pro Datei; `IllegalStateException`/`IllegalArgumentException` brachen den Lauf ab [CODE, jetzt dateiweise abgefangen] | `SOURCE_CONFLICT` als dritter dateiweiser Fehlerstage; strukturierte `import_errors` später; Integritätsprüfungen bleiben aktiv; whole-run abort nur bei echter Systemschädigung |
 
 ### 3.2 Vorgeschlagene Tabellen (Entwurf, noch nicht implementiert)
 
