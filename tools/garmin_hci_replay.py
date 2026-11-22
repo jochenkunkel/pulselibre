@@ -334,7 +334,8 @@ class Replay:
                 return
             self.pending[key] = {
                 "expected": expected, "cid": cid, "data": bytearray(body),
-                "start_record": record.index, "start_timestamp": record.timestamp_micros, "pb": pb,
+                "start_record": record.index, "start_offset": record.offset,
+                "start_timestamp": record.timestamp_micros, "pb": pb,
             }
         elif pb == 3 and record.direction == "controller_to_host":
             # HCI permits a controller-to-host ACL packet to carry one complete
@@ -364,12 +365,13 @@ class Replay:
             if len(data) == expected:
                 del self.pending[key]
                 self._l2cap(record, epoch, handle, record.direction, int(state["cid"]),
-                            bytes(data))
+                            bytes(data), int(state["start_record"]), int(state["start_offset"]))
         else:  # Host-to-controller PB=3 is reserved.
             self.error_counts["reserved_pb_flag"] += 1
 
     def _l2cap(self, record: Record, epoch: str, handle: int,
-               direction: str, cid: int, body: bytes) -> None:
+               direction: str, cid: int, body: bytes,
+               start_record: int | None = None, start_offset: int | None = None) -> None:
         self.counts["l2cap_complete"] += 1
         if cid != 0x0004:
             self.counts["non_att_l2cap"] += 1
@@ -377,10 +379,15 @@ class Replay:
         if not body:
             self.error_counts["empty_att_pdu"] += 1
             return
-        self._att(record, epoch, handle, direction, body)
+        self._att(
+            record, epoch, handle, direction, body,
+            start_record or record.index,
+            start_offset if start_offset is not None else record.offset,
+        )
 
     def _att(self, record: Record, epoch: str, handle: int,
-             direction: str, pdu: bytes) -> None:
+             direction: str, pdu: bytes, start_record: int,
+             start_offset: int) -> None:
         opcode = pdu[0]
         name = ATT_NAMES.get(opcode, f"unknown_0x{opcode:02x}")
         self.att_counts[name] += 1
@@ -394,7 +401,8 @@ class Replay:
             att_handle = _u16(pdu, 1)
             uuid = self.characteristics.get((epoch, att_handle))
         event: dict[str, object] = {
-            "record": record.index, "epoch": epoch, "hci_handle": handle,
+            "record": record.index, "record_start": start_record,
+            "record_offset_start": start_offset, "epoch": epoch, "hci_handle": handle,
             "direction": record.direction, "layer": "att", "opcode": f"0x{opcode:02x}",
             "name": name, "att_handle": att_handle, "characteristic_uuid": uuid,
             "value_length": max(0, len(pdu) - (3 if opcode in (0x12, 0x52, 0x1B, 0x1D, 0x16) else 1)),
@@ -450,13 +458,16 @@ class Replay:
         elif opcode == 0x08 and len(pdu) >= 7:
             self.read_by_type_requests[(epoch, direction)].append(uuid_from_att(pdu[5:]))
         if opcode == 0x11:
-            self._read_by_group_type(record, epoch, direction, pdu)
+            self._read_by_group_type(record, epoch, direction, pdu, start_record, start_offset)
         elif opcode == 0x09:
-            self._read_by_type(record, epoch, direction, pdu)
+            self._read_by_type(record, epoch, direction, pdu, start_record, start_offset)
         elif opcode == 0x05:
-            self._find_information(record, epoch, direction, pdu)
+            self._find_information(record, epoch, direction, pdu, start_record, start_offset)
 
-    def _read_by_group_type(self, record: Record, epoch: str, direction: str, pdu: bytes) -> None:
+    def _read_by_group_type(
+        self, record: Record, epoch: str, direction: str, pdu: bytes,
+        start_record: int | None = None, start_offset: int | None = None,
+    ) -> None:
         if len(pdu) < 2:
             self.error_counts["short_read_by_group_type_response"] += 1
             return
@@ -476,14 +487,19 @@ class Replay:
             service_uuid = uuid_from_att(pdu[off + 4:off + width])
             self.services[epoch].append((start, end, service_uuid))
             self._emit({
-                "record": record.index, "timestamp_utc": record.timestamp_utc,
+                "record": record.index, "record_start": start_record or record.index,
+                "record_offset_start": start_offset if start_offset is not None else record.offset,
+                "timestamp_utc": record.timestamp_utc,
                 "epoch": epoch, "direction": direction,
                 "layer": "gatt_discovery", "kind": "service",
                 "start_handle": start, "end_handle": end, "uuid": service_uuid,
                 "evidence": "att_read_by_group_type_response",
             })
 
-    def _read_by_type(self, record: Record, epoch: str, direction: str, pdu: bytes) -> None:
+    def _read_by_type(
+        self, record: Record, epoch: str, direction: str, pdu: bytes,
+        start_record: int | None = None, start_offset: int | None = None,
+    ) -> None:
         if len(pdu) < 2:
             self.error_counts["short_read_by_type_response"] += 1
             return
@@ -515,7 +531,9 @@ class Replay:
                 self.error_counts["ambiguous_overlapping_service_ranges"] += 1
             self.characteristic_services[(epoch, char_handle)] = service_uuid
             self._emit({
-                "record": record.index, "timestamp_utc": record.timestamp_utc,
+                "record": record.index, "record_start": start_record or record.index,
+                "record_offset_start": start_offset if start_offset is not None else record.offset,
+                "timestamp_utc": record.timestamp_utc,
                 "epoch": epoch, "direction": direction,
                 "layer": "gatt_discovery", "kind": "characteristic",
                 "declaration_handle": value_handle, "value_handle": char_handle,
@@ -524,7 +542,10 @@ class Replay:
                 "evidence": "att_read_by_type_response",
             })
 
-    def _find_information(self, record: Record, epoch: str, direction: str, pdu: bytes) -> None:
+    def _find_information(
+        self, record: Record, epoch: str, direction: str, pdu: bytes,
+        start_record: int | None = None, start_offset: int | None = None,
+    ) -> None:
         if len(pdu) < 2:
             self.error_counts["short_find_information_response"] += 1
             return
@@ -536,7 +557,9 @@ class Replay:
             attr_handle = _u16(pdu, off)
             uuid = uuid_from_att(pdu[off + 2:off + width])
             self._emit({
-                "record": record.index, "timestamp_utc": record.timestamp_utc,
+                "record": record.index, "record_start": start_record or record.index,
+                "record_offset_start": start_offset if start_offset is not None else record.offset,
+                "timestamp_utc": record.timestamp_utc,
                 "epoch": epoch, "direction": direction,
                 "layer": "gatt_discovery", "kind": "descriptor",
                 "handle": attr_handle, "uuid": uuid,
@@ -549,16 +572,25 @@ class Replay:
             return
         event["connection_epoch"] = event.pop("epoch", None)
         record = event.get("record")
-        event.setdefault("record_range", [record, record] if record is not None else None)
+        record_start = event.get("record_start", record)
+        event.setdefault("record_range", [record_start, record] if record is not None else None)
+        offset_end = (
+            self.last_record.offset
+            if self.last_record and record == self.last_record.index
+            else None
+        )
+        offset_start = event.get("record_offset_start", offset_end)
         event.setdefault(
-            "record_offset",
-            self.last_record.offset if self.last_record and record == self.last_record.index else None,
+            "record_offset_range",
+            [offset_start, offset_end],
         )
         event.setdefault("evidence_level", "derived" if event.get("layer") == "gatt_discovery" else "observed")
         if event.get("timestamp_utc") is not None:
             event.setdefault("time_confidence", "hci_btsnoop_epoch_unvalidated")
         event.setdefault("errors", [])
         event.setdefault("parser_version", PARSER_VERSION)
+        for transient_key in ("record", "record_start", "record_offset_start"):
+            event.pop(transient_key, None)
         self.events.append(event)
 
     def _expire_fragments(self, timestamp_micros: int) -> None:

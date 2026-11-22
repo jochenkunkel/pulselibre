@@ -73,6 +73,7 @@ class ReplayTests(unittest.TestCase):
         serialized = repr(parser.events)
         self.assertNotIn("private-value", serialized)
         self.assertEqual(len(b"private-value"), parser.events[-1]["value_length"])
+        self.assertEqual([2, 3], parser.events[-1]["record_range"])
 
     def test_acl_split_into_three_fragments_is_reassembled(self):
         att = b"\x1b\x01\x00" + b"abcdefgh"
