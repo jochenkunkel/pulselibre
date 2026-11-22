@@ -49,11 +49,17 @@ offline/code-only: kein S10-Zugriff, kein Export, keine BLE-Kommunikation.
      FIT-Imports gezählt.
 
 3. **SAF-Export und Nachweisgrenze**
-   - `DatabaseBackup.write` exportiert Datenbanktabellen einschließlich
-     abgeleiteter Geräte-Metadaten, Quellen und Provenienz. Es schreibt keine
-     Dateien aus `files/verified_fit/` oder `files/verified_raw/` in das ZIP.
-   - Der Export kann daher einen DB-Importzuwachs belegen, aber nicht die
-     erhaltenen Rohdatei-Bytes, Nicht-FIT-Dateien oder deren Vollständigkeit.
+- `DatabaseBackup.write` exportiert Datenbanktabellen einschließlich
+  abgeleiteter Geräte-Metadaten, Quellen und Provenienz. Es schreibt keine
+  Dateien aus `files/verified_fit/` oder `files/verified_raw/` in das ZIP.
+  `ExportActivity` stellt daneben getrennte, nutzerbestätigte ZIP-Exporte für
+  FIT-Originale und verifizierte Rohdateien bereit (`FitOriginalsArchive` und
+  `CirqaVerifiedRawArchive`).
+- Der **Datenbankexport allein** kann daher einen DB-Importzuwachs belegen, aber
+  nicht die erhaltenen Rohdatei-Bytes, Nicht-FIT-Dateien oder deren
+  Vollständigkeit. Separate Originaldatei-Archive sind verfügbar; sie müssten
+  ausdrücklich und zusätzlich zum DB-Export erstellt und dateibezogen geprüft
+  werden, um Originalbytes nachzuweisen.
      Ein leerer Datenbankexport nach Fresh Install ist außerdem keine
      historische Band-Baseline.
    - Der Laufbericht enthält redigierte Zähler/Typen und begrenzte

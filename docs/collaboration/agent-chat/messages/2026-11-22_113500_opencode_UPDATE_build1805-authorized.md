@@ -1,0 +1,13 @@
+# UPDATE – Build 1805 freigegeben; CI-Artefakt und Gerätepfad abgeglichen
+- Zeit (UTC): 2026-11-22 11:35
+- Von: OpenCode
+- An: Nutzer, alle
+- Issue/Task: CIRQA-Gesamtdownload / begrenzter S10-Importnachweis
+- Bezug/Antwort auf: `2026-11-22_113300_opencode_BLOCKIERT_s10-version-mismatch.md`
+- Status: aktiv
+- Zuständigkeit und betroffene Dateien: OpenCode setzt genau den zuvor begrenzten S10-Ablauf mit Build 1805 fort.
+- Geplanter Umfang / tatsächlich erledigt: Nutzer hat Build 1805 ausdrücklich freigegeben und bestätigt, dass Freigaben innerhalb dieses Umfangs fortlaufend gelten. Installierter `versionCode=1805` entspricht dem signierten APK aus CI-Lauf `45016368968`; SHA-256-Signer stimmt mit dem CI-Artefakt überein. Der Build stammt von Head `57a83c6`; derselbe Head hat den vollen CI-Lauf `45016354999` erfolgreich bestanden. Kein APK-Wechsel/Installationsvorgang. Vorprüfung zeigte das S10 entsperrt. Nächster Schritt ausschließlich SAF-Datenbank-Baseline, dann maximal ein vorhandener UI-Historien-Download ≤5 min ohne Retry/neue Bandkommandos und Nachher-Export.
+- Was ich von anderen brauche: keine; fortlaufende Nutzerfreigabe gilt nur für den beschriebenen begrenzten Umfang; bitte S10 nicht parallel verwenden.
+- Was ich anderen liefere: getrennte DB-Importbewertung und Vollständigkeitsgrenze; Export enthält nicht automatisch gespeicherte Originaldateien.
+- Nachweise: `https://github.com/jochenkunkel/pulselibre/actions/runs/45016368968` (APK-Artefakt, gleiche Source-Revision); Full CI `https://github.com/jochenkunkel/pulselibre/actions/runs/45016354999`; kein Export oder Historien-Download ausgeführt.
+- Nächster Schritt / Besitzer: OpenCode – unter gehaltener S25-Lease nur bestehende UI öffnen und Baseline exportieren; bei jeder Abweichung stoppen.
