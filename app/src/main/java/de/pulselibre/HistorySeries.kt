@@ -64,7 +64,9 @@ enum class HistoryResolution(
     TWO_HOURS("2 Std.", Duration.ofHours(2), 2),
     ONE_HOUR("1 Std.", Duration.ofHours(1), 4),
     SIX_HOURS("6 Std.", Duration.ofHours(6), 4),
-    ONE_DAY("1 Tag", Duration.ofDays(1), 5);
+    ONE_DAY("1 Tag", Duration.ofDays(1), 5),
+    /** 1 h buckets over seven days: 168 ticks, one label per day. */
+    ONE_HOUR_WEEK("1 Std.", Duration.ofHours(1), 24);
 
     companion object {
         /** Keep the rendered series near 24–30 summaries for legibility on phone screens. */
@@ -72,6 +74,16 @@ enum class HistoryResolution(
             HistoryRange.DAY -> ONE_HOUR
             HistoryRange.WEEK -> SIX_HOURS
             HistoryRange.MONTH -> ONE_DAY
+        }
+
+        /**
+         * Band (FIT) history is dense (up to 1 Hz), so it gets a finer grid than the sparse phone readings:
+         * a single 6 h or 24 h bucket would hide most days with data behind one point.
+         */
+        fun forFitRange(range: HistoryRange): HistoryResolution = when (range) {
+            HistoryRange.DAY -> FIFTEEN_MINUTES
+            HistoryRange.WEEK -> ONE_HOUR_WEEK
+            HistoryRange.MONTH -> SIX_HOURS
         }
     }
 }

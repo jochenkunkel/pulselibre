@@ -898,4 +898,18 @@
     <string name="main_row_service">Service-Daten: %1$s</string>
     <string name="hv_fit_read_failed">Der Band-Verlauf konnte nicht gelesen werden.</string>
     <string name="hv_fit_newest">Neueste Bandmessung: %1$s (außerhalb des gewählten Zeitfensters).</string>
+    <string name="ht_title">Alle Daten</string>
+    <string name="ht_col_date">Datum</string>
+    <string name="ht_col_source">Quelle</string>
+    <string name="ht_col_metric">Messgröße</string>
+    <string name="ht_col_count">Anzahl</string>
+    <string name="ht_col_range">Min–Max</string>
+    <string name="ht_col_median">Median</string>
+    <string name="ht_src_band">Band</string>
+    <string name="ht_src_phone">Telefon</string>
+    <string name="ht_metric_pulse">Puls</string>
+    <string name="ht_metric_spo2">SpO₂</string>
+    <string name="ht_note">Band: Messzeit des Bandes · Telefon: Empfangszeit am Telefon. Eine Zeile je Tag und Quelle; nichts wird interpoliert oder vermischt.</string>
+    <string name="ht_empty">Keine Werte in diesem Zeitraum.</string>
+    <string name="ht_row_cd">%1$s, %2$s, %3$s: %4$d Werte, Minimum %5$d, Maximum %6$d, Median %7$s</string>
 </resources>
