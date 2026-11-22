@@ -76,10 +76,35 @@ Wetter CONDITIONS-ID). Damit ist die bislang ungeklärte große Byte-Ebene
 identifiziert: es handelt sich um komprimierte **Wettervorhersage-Daten im
 JSON-Format**, nicht um FIT-Bytes.
 
+## FIT-Byte-Ebene auf den MLR-Kanälen (verifiziert)
+
+Nach Hinweis des FIT-Agenten wurden die bislang als „keine GFDI-Frames"
+eingeordneten MLR-Kanäle separat geprüft: die ATT-Werte tragen **zlib-komprimierte
+Transferbytes**. Nach Entfernen von zwei Headerbytes pro ATT-Wert dekomprimieren
+die Kandidaten vollständig. Unabhängige Verifikation (nur Metadaten):
+
+- Direkter Scan (`data[2:]`, zlib pro ATT-Wert): 3 FIT-Dateien.
+- Erweiterter Scan (Offsets 1–6 und reassemblierte MLR-Streams):
+  **8 dekomprimierte FIT-Dateien, 8/8 mit `.FIT` bei Offset 8**,
+  Header-Size 14, Proto 16, Profile 21216/21220.
+- **Alle 8** mit gültigem Header-CRC, gültiger Gesamtgröße
+  (Header + deklarierte Data-Size + 2 CRC-Bytes) und gültigem Data-CRC.
+- Dekomprimierte Größen 72–568 Bytes (deklarierte Data-Sizes 56–552 Bytes).
+- **8 verschiedene SHA-256-Hashes** – keine Duplikate, sondern unterscheidbare
+  FIT-Dateien (5× Profile 21216, 3× Profile 21220).
+- Zeitpunkte der direkten ATT-Funde: 1554.312 s / 1561.603 s / 2875.468 s,
+  alle Direction 0.
+
+**Damit ist die Byte-Ebene der Kette belegt:**
+`ItemReference → 5043 → 5044 → zlib → FIT-Bytes → Header-/Data-CRC → Größe`.
+Offen bleiben der **DB-Import-Nachweis** (keine App-Datenbank im Bugreport) und
+die **Vollständigkeit** über alle historischen Dateien.
+
 ## Suche nach FIT-Bytes und Dateiintegrität
 
-- **Kein** `.FIT`-Magic in allen CRC-validierten GFDI-Frames und in allen
-  dekomprimierten gzip-Streams (0 Treffer).
+- **Kein** `.FIT`-Magic in den CRC-validierten GFDI-Frames und in den
+  dekomprimierten gzip-JSON-Streams (0 Treffer) – die FIT-Dateien liegen
+  ausschließlich in den zlib-Streams der MLR-Kanäle (siehe oben).
 - Der Bugreport enthält **keine** App-Datenbank, keine `.fit`/`.gpx`/`.tcx`-Datei
   und kein `data/data/de.pulselibre/…` (3.847 Dateien, vor allem System-Logs und
   Tombstones).
@@ -93,17 +118,18 @@ JSON-Format**, nicht um FIT-Bytes.
 
 ## Konsequenz für P0
 
-Die Kette `ItemReference → 5043 → 5044 → FIT-Bytes → CRC/Größe → Import` ist
-weiterhin **nicht** geschlossen. Insbesondere fehlen:
+Die Kette `ItemReference → 5043 → 5044 → zlib → FIT-Bytes → CRC/Größe → Import` ist
+**teilweise** geschlossen: FIT-Bytes, Header-/Data-CRC und per-Datei-Größen
+sind aus dem Mitschnitt belegt (siehe oben). Weiterhin fehlen:
 
-1. FIT-Bytes als eigene, dekodierbare Byte-Ebene (kein Magic, keine
-   Header-Struktur, keine Dateigrößen/CRC).
-2. Per-Datei-Größen und CRC aus dem Mitschnitt.
+1. ~~FIT-Bytes als eigene, dekodierbare Byte-Ebene~~ – nachgewiesen via zlib.
+2. ~~Per-Datei-Größen und CRC aus dem Mitschnitt~~ – nachgewiesen (8/8 valid).
 3. DB-Import-Nachweis (keine App-Datenbank im Bugreport).
 4. Vollständigkeitsnachweis über alle historischen Dateien.
 
-`coverage=device-history-unverified` bleibt daher unverändert gültig. Es wurden
-keine neuen Geräteaktionen unternommen oder freigegeben.
+`coverage=device-history-unverified` bleibt daher unverändert gültig (Import und
+Vollständigkeit offen). Es wurden keine neuen Geräteaktionen unternommen oder
+freigegeben; eine Produktänderung steht beim FIT-Agenten.
 
 ## Erzeugte Analysen (nur privat)
 
@@ -112,5 +138,6 @@ Im Backup unter `analysis/`:
 `field21.out`, `check_all_channels.out`, `check_service_fields.out`,
 `decode_pull_results.out`, `item_shape_counter.out`, `trace_pagination.out`,
 `trace_pagination_timed.out`, `enumerate_att2.out`, `debug_pb.out`,
+`verify_zlib_fit.out`, `verify_zlib_extended.out`,
 `big_frames.out`, `gzip_scan.out`, `json_keys.out`, `zip_listing.txt`, `dumpstate_hits.txt`,
 `dumpstate_app_hits.txt`.
