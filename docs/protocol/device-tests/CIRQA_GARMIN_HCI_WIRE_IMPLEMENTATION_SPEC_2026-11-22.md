@@ -112,3 +112,68 @@ Werte sind **Schema-Beispiel**, keine aus PR #505 extrahierte Beobachtung. Für 
 7. Architektur-Refactoring #496 bleibt geparkt. FIT-Kandidaten/Persistenz #500 bleibt ein eigenes Ticket.
 
 **Agenten-Abgabe:** Commit/PR, maschinenlesbarer redaktierter Replay-Report, Evidenzmatrix, synthetische Tests, Liste unbekannter Transportabschnitte, CI-/Build-Nachweis, explizite Aussage `FIT_BYTES_VERIFIED=true|false`.
+
+---
+
+## 7. Zweitreview / Präzisierung v2 (ChatGPT, 2026-11-22)
+
+**Aktualisierung des Quellstatus:** [PR #505](https://github.com/jochenkunkel/pulselibre/pull/505) ist inzwischen **gemergt**. Für die Offline-Auswertung `main` nach dem Merge auschecken, nicht mehr den PR-Branch als Voraussetzung behandeln. Die alte Aussage „noch nicht in main“ in Abschnitt 0 beschreibt den Stand bei Erstveröffentlichung.
+
+### 7.1 Konkrete Code-Befunde und Entscheidung
+
+| Komponente | Im Repository beobachtet | Arbeitsentscheidung |
+|---|---|---|
+| `tools/btsnoop_summary.py` | Prüft H4/Datalink 1002 und einzelne komplette ATT-Kandidaten, **keine** fragmentierte L2CAP-PDU | **Nicht** als vollständigen Decoder ausgeben; eigenständiges `tools/garmin_hci_replay.py` mit Streaming, Grenzen, Tests |
+| `GarminProtobufReassembler.kt` | Ein globaler laufender `requestId/messageType/total/data`-Zustand; `offset=0` eines anderen Transfers verwirft den alten Zustand | Offline **pro** `connectionEpoch + direction + mlChannel + messageType + requestId` instanziieren bzw. begrenzt multiplexen; nicht ohne Test in Live-BLE integrieren |
+| `GarminProtobufReassembler.kt` | Duplikate innerhalb eines unvollständigen Transfers werden ignoriert; nach vollständigem Abschluss ist keine Session-übergreifende Idempotenz nachgewiesen | Replay auf duplicate-first/middle/final, konkurrierende IDs, Out-of-order, identische und widersprüchliche Chunks prüfen |
+| `GarminPostBootstrapObserver.kt` | Nur Typen 5050/5011/5024/5000 nach ACK; keine 5043/5044-Semantik | Nicht als FileAccess-Beweis verwenden |
+| `CIRQA_S10_GARMIN_GFDI_SEQUENCE_2026-11-22.md` | Ältere Referenz mit bestätigten FileAccess-Nachrichten, jedoch keine bestätigte vollständige FIT-Datei | **Cross-capture-Matrix** erstellen, neue Frames nicht aus alter Sequenz interpolieren |
+
+### 7.2 Genau definierte Implementierungsschnitte
+
+**Schnitt A – `tools/garmin_hci_replay.py` (nur offline):**
+- Input: unveränderte H4-btsnoop-Datei und optional Logcat; standardmäßig keine Payload-Ausgabe.
+- Parserzustand nach `(connection_epoch, hci_handle, direction, l2cap_cid)` trennen; Handle-Reuse nach Disconnection/Connection-Complete erkennen; L2CAP-Start-/Continuation-PB-Bits korrekt auswerten. `PB=0/2` nicht blind als gültigen Start behandeln: Semantik des Controllers/Transports anhand HCI-Spezifikation prüfen.
+- Btsnoop Record-Timestamps als **signed/unsigned und Epoch** gegen bekannten Record/Logcat-Zeitpunkt validieren; Fehler-/Unschärfefeld im Report. Bei `included_len < original_len` oder `drops>0` unvollständige Evidenz markieren.
+- L2CAP/ATT: Start, Continuation, Truncation, overlong, orphan, retransmission, connection-reset, MTU-Fehler; Event- und Fehlerzähler je Connection; begrenzte Speicher- und Laufzeit.
+- GATT-Discovery: ATT-Handles/UUIDs **zeit- und verbindungsspezifisch** ableiten. ATT-Opcode 0x52 **Write Command** ohne ATT-Response, 0x12 Write Request mit 0x13 Write Response; 0x1b Notification; 0x1d Indication mit 0x1e Confirmation gesondert erfassen. Eventuelle HCI-BTSnoop-Direction-Flags nicht allein aus Opcode raten.
+- Export `capture_summary.json` + `wire_events.jsonl` deterministisch sortiert. Für jedes Event: `capture_sha256, record_range, connection_epoch, direction, layer, parser_version, evidence_level, errors[]`. Für sensible Byteinhalte **keine persistenten SHA-256-Fingerprints** ohne Prüfung auf Wiedererkennbarkeit; bevorzugt nur Länge, lokaler Variantenindex und volatile Equality-ID. Falls Hash für Dateiverifikation zwingend: nur auf ausdrücklich freigegebenes Rohartefakt und nicht auf einzelne Token/UID-Payloads.
+
+**Schnitt B – MLR/GFDI-Adapter (nur offline):**
+- Bereits existierende Kotlin-Reassembler/Validatoren als **Referenz** heranziehen; keine doppelte, inkompatible CRC-Definition einführen.
+- Verbindungs- und Kanalgrenzen bis zum GFDI-Frame erhalten. GFDI-CRC nur nach vollständigem MLR-Reassembly; keine zufälligen Bytefolgen als Frames akzeptieren.
+- Je rekonstruierter Nachricht `CRC_valid/invalid/unknown`, `record_range`, `ml_channel`, `direction`, `gfdi_type`, `body_length`, `provenance` protokollieren.
+- Prüfen, ob der bestehende Kotlin-Reassembler für 5043/5044 die parallelen Transfers der neuen Aufnahme abdeckt; **erst nach Offline-Nachweis** einen isolierten Kotlin-Patch mit Tests erwägen.
+
+**Schnitt C – Protobuf FileAccess und Transferbeweis:**
+- 5043/5044 Service 1/2/9/10/15/16 in der **neuen** Aufnahme zählen und paaren; fehlende Nachrichten als `not_observed`, unvollständige als `partial`.
+- Session-IDs, Request-IDs, Transaction-Token und Item-UIDs dürfen **nicht** miteinander verwechselt werden. Originalwerte nur im flüchtigen Parserzustand, im Report lokale IDs.
+- Für Pagination: Liste der Page-Größen, wiederholte/wechselnde Tokens, Status, Stop-Grund und Sicherheitslimit ausgeben. Den bestehenden Bound 3 **nicht** automatisch auf neuen Capture hochsetzen.
+- Für Pulls: Request/Response-Paarung, Ergebnisstatus, Datenkanal, Kompressionsparameter, Payload-Beleg und Dateirekonstruktion separat ausweisen. Keine Aussage „Datei vollständig“ nur aus Result-Code.
+- Für tatsächliche FIT-Dateien: unabhängige Prüfung durch Garmin FIT SDK, Dateilänge und CRC; fehlende Daten ausdrücklich als `transport_unobserved` oder `not_reconstructed` deklarieren.
+
+### 7.3 Verbindliche Tests (klein, deterministisch, ohne Hardware)
+
+1. Btsnoop: bad magic, unsupported datalink, truncated header, included>original, truncated record, non-monotonic time, dropped packets, 100k+ records streaming.
+2. ACL/L2CAP: single-fragment, split in 2/3 packets, orphan continuation, oversized declared length, second start before completion, same handle reused after reconnect, two connections interleaved, CID != ATT.
+3. ATT: 0x52/0x12/0x13, 0x1b/0x1d/0x1e, MTU negotiation, invalid/truncated opcode, unknown UUID/handle.
+4. MLR/GFDI: split/reordered/duplicated chunks, CRC-corrupt frame, length overflow, interleaved channels, incomplete final chunk.
+5. Protobuf: duplicate initial/middle/final chunk, parallel request IDs, conflicting duplicate, offset gap/overlap, invalid wire type, unknown field, oversized varint, repeated transaction token.
+6. FileAccess: empty-page continuation, token loop bound, pull success without FIT bytes, invalid FIT CRC, valid **synthetic** FIT, replay twice without duplicate output.
+7. Cross-tool: identische Connection- und Zeitfilter für eigenen Parser und Wireshark/tshark; Counts und konkrete Unterschiede dokumentieren. Garmin Java FIT SDK nur auf FIT-Dateiebene, **nicht** als BLE-Referenz.
+8. Privacy: Ausgabe auf MACs, UIDs, Tokens, Health-Values und unzulässige Payload-Hexstrings prüfen; stdout/stderr und Test-Failure-Ausgaben einschließen.
+
+### 7.4 Abnahmetore und Abgabeform
+
+| Gate | Lieferung | Pass-Kriterium |
+|---|---|---|
+| **G0 Capture** | `capture_summary.json` | SHA-256/Größen passen; **gesamtes** HCI-Log geparst; zeitliches Sync-Fenster mit Unsicherheit dokumentiert |
+| **G1 ATT** | `wire_events.jsonl` + Reassembly-Tests | Connection/Direction/Fragment-Handling reproduzierbar, Parserfehler und unbekannte Zuordnung explizit |
+| **G2 Garmin ML** | GFDI-Report | Nur CRC-geprüfte vollständige Frames als `verified`; Kanal/Record-Range rückverfolgbar |
+| **G3 FileAccess** | `transactions.jsonl` + Matrix | 5043/5044-Services und Item/Pull/Set-Flags getrennt, Pagination/Stoppgründe nachvollziehbar |
+| **G4 FIT** | `fit_transfer_evidence.md` | `FIT_BYTES_VERIFIED=true` **nur** bei vollständig rekonstruierter, CRC-validierter Datei; sonst `false` + konkret fehlender Transport |
+| **G5 Integration** | Code-PR + Tests + CI-URLs | Offline-Replay reproduzierbar; Live-BLE-Verhalten unverändert, bis gesondert freigegeben; `coverage=device-history-unverified` bleibt |
+
+**Abgabepfade:** `docs/protocol/device-tests/garmin-hci-2026-11-22/{capture_summary.json,wire_events.jsonl,transactions.jsonl,evidence_matrix.md,fit_transfer_evidence.md}` und `tools/garmin_hci_replay.py` + Tests. Event-Dateien nur in redaktierter, datensparsamer Form; falls Privacy-Scan fehlschlägt, **nicht** committen, sondern nur summarische Statistiken abgeben.
+
+**Meldeschema:** START (übernommen/Branch/Plan), UPDATE (G0–G4 Status mit Zählern), ENDE (PR/SHA/CI/Teststatus/`FIT_BYTES_VERIFIED`/offene Risiken). **ChatGPT** nimmt nur anhand dieser Nachweise ab; kein automatisches Schließen von #506 nach bloßem Dokumentationsmerge.
