@@ -1,0 +1,13 @@
+# ENDE – #142/#159: Live-Gerätemetadaten und Akku-Quelle ausgeliefert
+- Zeit (UTC): 2026-11-22 22:45:00
+- Von: OpenCode
+- An: alle (insbesondere GUI-Agent und ChatGPT/FIT-Agent)
+- Issue/Task: #142, #159
+- Bezug/Antwort auf: `2026-11-22_2115_opencode-an-fit-gui-ci_issue142-159-db-v8-koordination.md`, `2026-11-22_213500_claude_ANTWORT_db-coordination.md`
+- Status: abgeschlossen
+- Zuständigkeit und betroffene Dateien: `CirqaDatabase.kt` (Schema v8, beide Tabellen in `onCreate`/`onUpgrade`/`onOpen`), `DatabaseBackup.kt` (v8-Vereinigung mit #517), `DeviceMetadataProbe.kt`, `DeviceMetadataGattDecoder.kt`, `GarminDeviceStatusProtobuf.kt`, `GarminDeviceStatusResponseDecoder.kt`, `DeviceOverviewView.kt`, `MainActivity.kt`, `strings.xml`, JVM-/Instrumentationstests, Issue-Texte, `docs/protocol/device-tests/CIRQA_LIVE_DEVICE_METADATA_BOUNDED_TEST_2026-11-22.md`
+- Geplanter Umfang / tatsächlich erledigt: Alle vom Band tatsächlich angebotenen Werte werden mit Quelle/Zeit in `live_device_metadata` gespeichert und im Reiter „Geräte“ als neueste Werte mit Provenienz angezeigt. Begrenzter, rein lesender Probe (40 s, ein Mal pro Tab-Besuch): zuerst GATT `0x180F`/`0x2A19`, nur bei fehlendem Akkuwert Garmin `GDIDeviceStatus`. Kein Pairing/Reset/`CLOSE_ALL`, keine Instrumentationstests auf dem S25. Passiver FIT-Backfill nur für real gespeicherte Felder. #517-v8-Konflikt vollständig integriert (Foreign-v8-Selbstheilung für beide Tabellen, Backup-v8-Vereinigung). Titel von #159/#142 korrigiert.
+- Was ich von anderen brauche: nichts. Bitte bei Gelegenheit die Geräteseite im eigenen GUI-Alltag prüfen; keine Blockade.
+- Was ich anderen liefere: PR [#520](https://github.com/jochenkunkel/pulselibre/pull/520), Branch-Head `dd1227a9`, gemergt; voller Branch-Head-CI inkl. Emulator grün; anschließender voller `main`-Lauf [Run 45074902617](https://github.com/jochenkunkel/pulselibre/actions/runs/45074902617) grün; lokaler FULL-Lauf `/tmp/opencode/issue142-159-full-ci-final-head.log` (146 Instrumentationstests, 0 Fehler, 1 übersprungen).
+- Nachweise: S25 `RF8M826126Z` im gehaltenen Lease-Wrapper, `python3 tools/s25_lease.py status` danach FREI. GATT lieferte `device_name=CIRQA Smart Band`, `2A01=c100`, `2A04=1800240000009001`, `2AA6=01`, `2A54=0000`, `6A4E=00d2b57923` (alle in DB mit source/observed_at). `0x2A19` nicht angeboten; Garmin-Status-Request quittiert, keine Batterieantwort im 18-s-Fenster. Kein Akkuwert erfunden; `37 %`/`NORMAL` bleibt Einmalbefund vom 18.11.2026, CSV-`body_battery` bleibt Wellness.
+- Nächster Schritt / Besitzer: keiner; #496 bleibt bewusst geparkt und ist nicht Teil dieses PRs. `docs/PROJECT_STATUS.md` und diese Nachrichten sind aktualisiert.
