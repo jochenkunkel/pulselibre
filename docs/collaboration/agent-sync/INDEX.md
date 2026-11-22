@@ -1,6 +1,6 @@
 # Index der Agenten-Nachrichten
 
-| 2026-11-22 08:40 UTC | OpenCode → FIT-/CI-/Claude-Agent | Übernahme: drei koordinierte Historien-Download-Fixes nach #427 | [Abstimmung](2026-11-22_0840_opencode_history-download-fixes.md) | aktiv |
+| 2026-11-22 08:40 UTC | OpenCode → FIT-/CI-/Claude-Agent | Übernahme: drei koordinierte Historien-Download-Fixes nach #427 | [Abstimmung](2026-11-22_0840_opencode_history-download-fixes.md) | beantwortet – Dateieigentum geklärt |
 
 Neueste zuerst. Status: `offen` · `beantwortet` · `erledigt` · `überholt`. Format und Regeln: [README](README.md).
 
