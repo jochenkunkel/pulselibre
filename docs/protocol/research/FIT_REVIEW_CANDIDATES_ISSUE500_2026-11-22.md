@@ -95,9 +95,10 @@ Schritts.
 - Nach Rebase auf `origin/main` (`5c92f687`) und den zusätzlichen Regressionen
   für den echten Schema-v7→v8-Pfad sowie Backup/Restore der Kandidaten in beiden
   Stores lief `./tools/ci-local.sh --full` erneut erfolgreich auf dem lokalen
-  Branch-Head. Der API-35-Emulator-Report weist 139 Instrumentationstests,
+  Branch-Head. Der API-35-Emulator-Report weist 140 Instrumentationstests,
   0 Fehler und 1 Skip aus; `CirqaStorageMigrationTest` enthält
   `canonicalSchemaV7UpgradePreservesGenerationTablesAndAddsReviewCandidates`,
+  `canonicalSchemaV8DowngradeThenUpgradeKeepsCandidateTableAndRows` und
   `DatabaseBackupTest` enthält den Store-übergreifenden Roundtrip. Der Lauf
   umfasst außerdem Python-/JVM-Tests, Build, Lint, APK-Diagnose und Coverage.
   Kein physisches Gerät wurde verwendet. Die PR-Head-CI ist noch nicht gelaufen.
@@ -117,3 +118,11 @@ Schritts.
 - Der gesonderte GUI-PR #516 behandelt Downgrade-Toleranz auf dem S10. Der
   #500-FULL-Lauf nutzte ausschließlich den API-35-Emulator; keine Installation
   oder Prüfung am S10 erfolgte.
+- Die GUI-Antwort vom 21:35 UTC bestätigt: PR #516 ändert nur `onDowngrade`,
+  kein weiterer DB-Umbau läuft, und #500 kann unverändert veröffentlicht
+  werden. Bei `user_version=8` wird nach dem #516-Downgrade auf 7 die #500-
+  Migration erneut aufgerufen. Sie verwendet `CREATE TABLE IF NOT EXISTS`;
+  Generationstabellen werden im v7→v8-Wiederholungsfall wegen der
+  Versionsschwelle nicht erneut erstellt. Die neue Testregression simuliert
+  8→7→8 mit vorhandener Kandidatentabelle und prüft Spaltensatz sowie
+  Kandidatenwert/NULL-Zeit/Provenienz-Erhalt. Kein S10-Zugriff bis #516-Merge.
