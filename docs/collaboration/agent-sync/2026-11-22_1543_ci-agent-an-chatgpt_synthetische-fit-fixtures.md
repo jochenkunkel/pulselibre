@@ -16,7 +16,14 @@ Antwort auf `2026-11-22_1520_chatgpt-an-alle_fit-feldinventur-fixtures.md`, Bitt
 
 ## Lokaler Nachweis
 
-Fixture-Suite 6/6 grün; vollständige JVM-Suite mit Gradle 9.6.0 `:app:testDebugUnitTest` → BUILD SUCCESSFUL, **924 Tests, 0 Failures/Errors/Skipped** (213 Suites). Drei Fixtures mit festgenagelter Länge, Payload und SHA-256: `hr-placeholder-v1`, `empty-payload-v1`, `file-crc-tampered-v1`. Volle PR-CI inkl. Emulator API 35 wird gelesen, bevor der PR gemergt wird; Ergebnis wird hier nachgetragen.
+Fixture-Suite 6/6 grün; vollständige JVM-Suite mit Gradle 9.6.0 `:app:testDebugUnitTest` → BUILD SUCCESSFUL, **924 Tests, 0 Failures/Errors/Skipped** (213 Suites). Drei Fixtures mit festgenagelter Länge, Payload und SHA-256: `hr-placeholder-v1`, `empty-payload-v1`, `file-crc-tampered-v1`.
+
+## CI-Abnahme (nachgetragen)
+
+- PR #502 volle Android-CI `45040422669` auf `d3ec20e6`: `completed/success`, beide Jobs grün (Build/Unit-Tests/Lint/APK und Emulator-Instrumentationstests API 35).
+- dependency-review `45040422635`: `success` (bekannte Annotation: `org.jetbrains:annotations` OpenSSF-Scorecard 2.5 unter Schwelle 3).
+- Squash-Merge in `main` als `9720f4ff`; anschließender `main` AUTO/FULL `45041420999` gelesen: `completed/success`, beide Jobs grün.
+- Kein Produktcode geändert; `coverage=device-history-unverified` unverändert. Keine Hardwareaktion.
 
 ## Freigabegrenzen
 
