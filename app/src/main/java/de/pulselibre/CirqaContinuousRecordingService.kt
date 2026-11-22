@@ -46,6 +46,9 @@ class CirqaContinuousRecordingService : Service() {
     private var readings = 0
     private val attemptGate = RecorderAttemptGate()
     private var lastReadingPersistedMs = 0L
+    private var attemptStartedMs = 0L
+    private var lastReadingMs = 0L
+    private var currentToken = 0
     private var bluetoothReceiver: BroadcastReceiver? = null
 
     override fun attachBaseContext(newBase: android.content.Context) = super.attachBaseContext(AppLanguageSettings.wrap(newBase))
@@ -142,7 +145,20 @@ class CirqaContinuousRecordingService : Service() {
     private fun heartbeat() {
         if (!running) return
         getSharedPreferences(PREFS, MODE_PRIVATE).edit().putLong(KEY_HEARTBEAT_MS, System.currentTimeMillis()).apply()
+        recycleIfStalled()
         handler.postDelayed({ heartbeat() }, RecorderStatus.HEARTBEAT_INTERVAL_MS)
+    }
+
+    /** #25: connection open but no reading for [RecorderStall.STALL_AFTER_MS]: recycle our own connection via the bounded reconnect. */
+    private fun recycleIfStalled() {
+        val current = probe ?: return
+        val now = System.currentTimeMillis()
+        if (!RecorderStall.isStalled(attemptStartedMs, lastReadingMs, now)) return
+        val reconnectToken = attemptGate.finish(currentToken, current) ?: return
+        probe = null
+        log.append("stall_detected", mapOf("attempt" to attempts, "silent_ms" to now - maxOf(attemptStartedMs, lastReadingMs)))
+        current.close()
+        scheduleReconnect(reconnectToken, "stall")
     }
 
     @SuppressLint("MissingPermission")
@@ -150,6 +166,8 @@ class CirqaContinuousRecordingService : Service() {
         if (!running) return
         attempts++
         val token = attemptGate.start()
+        currentToken = token
+        attemptStartedMs = System.currentTimeMillis()
         val attemptNumber = attempts
         if (!log.append("attempt_start", mapOf("number" to attemptNumber))) {
             stopCollection("storage_limit")
@@ -171,6 +189,7 @@ class CirqaContinuousRecordingService : Service() {
                 if (attemptGate.accepts(token, current)) {
                     readings++
                     val nowMs = System.currentTimeMillis()
+                    lastReadingMs = nowMs
                     if (nowMs - lastReadingPersistedMs >= 5_000L) {
                         lastReadingPersistedMs = nowMs
                         getSharedPreferences(PREFS, MODE_PRIVATE).edit()
