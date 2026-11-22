@@ -83,6 +83,9 @@ configurations.configureEach {
 tasks.register<JacocoReport>("createCombinedCoverageReport") {
     group = "verification"
     description = "Combines JVM unit-test and emulator instrumentation coverage from this checkout."
+    // Gradle must know that the class directory is produced in this build.
+    dependsOn("compileDebugKotlin")
+    mustRunAfter("connectedDebugAndroidTest", "testDebugUnitTest")
     val unitExec = layout.buildDirectory.file(
         "outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec"
     )

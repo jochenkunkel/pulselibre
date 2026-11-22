@@ -40,6 +40,12 @@ jeweiligen FULL-Laufs.
 Weitere Prüfungen: `bash -n tools/ci/run-ci.sh` ok; 99 Python-Tests `OK`;
 Gradle-Konfiguration und Tasklauf `BUILD SUCCESSFUL`.
 
+Der erste CI-Lauf (`45012429849`) scheiterte in der neuen Phase, weil Gradle
+die Abhängigkeit des Report-Tasks von `compileDebugKotlin` vermisste. Der Task
+deklariert jetzt `dependsOn("compileDebugKotlin")` und
+`mustRunAfter("connectedDebugAndroidTest", "testDebugUnitTest")`; ein erneuter
+lokaler Tasklauf ist grün. Der erste Lauf ist damit kein Erfolgsnachweis.
+
 ## Sicherheitsvorfall / Offenlegung
 
 Beim ersten lokalen Aufruf von `bash tools/ci/run-ci.sh emulator --scope FULL`
