@@ -26,7 +26,7 @@ class CirqaDatabase(private val contextRef: Context) :
      * would make history, export and live recording fail completely. Nothing is converted or deleted.
      */
     override fun onDowngrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-        android.util.Log.w("CirqaDatabase", "Datenbank-Version $oldVersion neuer als erwartet ($newVersion); Daten bleiben unveraendert")
+        // Intentionally empty: keep every row; no logging (see NoPlatformLoggingTest).
     }
 
     override fun onCreate(db: SQLiteDatabase) {
