@@ -970,8 +970,8 @@
     <string name="sd_error">No se pudieron leer los datos. No se muestra nada en su lugar.</string>
     <string name="sd_empty">No hay mediciones en el período elegido.</string>
     <string name="sd_only_invalid">En el período solo hay valores no válidos o estados del dispositivo; no se dibuja nada.</string>
-    <string name="sd_summary">%1$d valores válidos · media %2$s · mín %3$s · máx %4$s · cobertura %5$d %%</string>
-    <string name="sd_summary_no_valid">%1$d valores, ninguno dibujado como válido · cobertura %2$d %%</string>
+    <string name="sd_summary">%1$d valores válidos · media %2$s · mín %3$s · máx %4$s · franjas horarias con datos %5$d %%</string>
+    <string name="sd_summary_no_valid">%1$d valores, ninguno dibujado como válido · franjas horarias con datos %2$d %%</string>
     <string name="sd_flags">%1$d no válidos, %2$d estados del dispositivo (no dibujados)</string>
     <string name="sd_unverified">Valores de calidad sin verificar (círculos huecos)</string>
     <string name="sd_gaps">%1$d huecos (rayados, no rellenados)</string>

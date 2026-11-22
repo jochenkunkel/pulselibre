@@ -92,4 +92,20 @@ class ScienceFitSeriesAdapterTest {
         assertEquals("m/s", speed.unit)
         assertEquals(listOf(1.25), speed.points.map { it.value })
     }
+
+    @Test fun readsEveryRepositoryPageAndPassesTheCursorForward() {
+        val first = observation(timeMs = 1_100L)
+        val second = observation(timeMs = 1_200L)
+        val cursor = HistoricalObservationQuery.Cursor(1_100L, "band", "heart_rate", first.sampleId)
+        val seen = mutableListOf<HistoricalObservationQuery.Cursor?>()
+
+        val result = ScienceFitSeriesAdapter.readAllPages { after ->
+            seen += after
+            if (after == null) HistoricalObservationPage(listOf(first), cursor)
+            else HistoricalObservationPage(listOf(second), null)
+        }
+
+        assertEquals(listOf(null, cursor), seen)
+        assertEquals(listOf(first, second), result)
+    }
 }

@@ -963,8 +963,8 @@
     <string name="sd_error">Die Daten konnten nicht gelesen werden. Es wird nichts ersatzweise angezeigt.</string>
     <string name="sd_empty">Keine Messwerte im gewählten Zeitraum.</string>
     <string name="sd_only_invalid">Im Zeitraum gibt es nur ungültige Werte oder Gerätestatus; es wird nichts gezeichnet.</string>
-    <string name="sd_summary">%1$d gültige Werte · Mittel %2$s · Min %3$s · Max %4$s · Abdeckung %5$d %%</string>
-    <string name="sd_summary_no_valid">%1$d Werte, keine davon als gültig gezeichnet · Abdeckung %2$d %%</string>
+    <string name="sd_summary">%1$d gültige Werte · Mittel %2$s · Min %3$s · Max %4$s · Zeitfenster mit Daten %5$d %%</string>
+    <string name="sd_summary_no_valid">%1$d Werte, keine davon als gültig gezeichnet · Zeitfenster mit Daten %2$d %%</string>
     <string name="sd_flags">%1$d ungültig, %2$d Gerätestatus (nicht gezeichnet)</string>
     <string name="sd_unverified">Werte mit ungeprüfter Qualität (hohle Kreise)</string>
     <string name="sd_gaps">%1$d Lücken (hell schraffiert, nicht aufgefüllt)</string>

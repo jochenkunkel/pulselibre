@@ -1,5 +1,7 @@
 package de.pulselibre
 
+import java.time.Instant
+
 /**
  * FIT-only projection for the science dashboard.
  *
@@ -66,4 +68,48 @@ internal object ScienceFitSeriesAdapter {
         rangeStartMs: Long,
         rangeEndExclusiveMs: Long
     ): SeriesData = verifiedSeries(Metric.HEART_RATE, observations, rangeStartMs, rangeEndExclusiveMs)
+
+    /**
+     * Reads all pages from the provenance-bearing repository before projecting.
+     * A single repository page is capped at 5000 rows and must never be mistaken
+     * for the complete selected time range.
+     */
+    fun readVerifiedSeries(
+        repository: HistoricalObservationRepository,
+        metric: Metric,
+        rangeStartMs: Long,
+        rangeEndExclusiveMs: Long,
+        pageSize: Int = 5_000
+    ): SeriesData {
+        require(rangeStartMs >= 0 && rangeEndExclusiveMs > rangeStartMs)
+        require(pageSize in 1..5_000)
+        val observations = readAllPages { cursor ->
+            repository.read(
+                HistoricalObservationQuery(
+                    startInclusive = Instant.ofEpochMilli(rangeStartMs),
+                    endExclusive = Instant.ofEpochMilli(rangeEndExclusiveMs),
+                    metric = metric.key,
+                    limit = pageSize,
+                    after = cursor
+                )
+            )
+        }
+        return verifiedSeries(metric, observations, rangeStartMs, rangeEndExclusiveMs)
+    }
+
+    internal fun readAllPages(
+        readPage: (HistoricalObservationQuery.Cursor?) -> HistoricalObservationPage
+    ): List<HistoricalObservation> {
+        val all = ArrayList<HistoricalObservation>()
+        var cursor: HistoricalObservationQuery.Cursor? = null
+        var pages = 0
+        while (true) {
+            check(pages++ < 10_000) { "Historical observation pagination exceeded safety limit" }
+            val page = readPage(cursor)
+            all.addAll(page.observations)
+            val next = page.next ?: return all
+            check(next != cursor) { "Historical observation pagination cursor did not advance" }
+            cursor = next
+        }
+    }
 }
