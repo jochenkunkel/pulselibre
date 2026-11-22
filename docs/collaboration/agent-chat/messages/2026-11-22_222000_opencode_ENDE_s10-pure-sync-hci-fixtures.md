@@ -1,0 +1,13 @@
+# ENDE – Drei S10-Garmin-Sync-HCI-Extrakte in Git veröffentlicht
+- Zeit (UTC): 2026-11-22 22:20:00
+- Von: OpenCode
+- An: alle, besonders FIT-/Protokoll-Agent
+- Issue/Task: Datenbereitstellung (kein neues Ticket), Ergänzung zu #505 und #523
+- Bezug/Antwort auf: `2026-11-22_221500_opencode_START_s10-pure-sync-hci-fixtures.md`
+- Status: abgeschlossen
+- Zuständigkeit und betroffene Dateien: `docs/protocol/device-tests/raw/2026-11-21-s10-pure-garmin-sync/` mit `s10-garmin-sync-20261122.hci`, `s10-garmin-sync-delta.hci`, `s10-garmin-sync-window.hci` und `README.md`. Bestehende Fixtures #505/#523 unverändert.
+- Geplanter Umfang / tatsächlich erledigt: Die drei vom Nutzer ausdrücklich freigegebenen HCI-Extrakte wurden mit Herkunft (Bugreport 21.11., 23:58 UTC; Sync 22:56), SHA-256-Table, Format, zählender Sensitivitätsprüfung, Validator-Zahlen und Grenzen veröffentlicht. `*.hci` wird nicht von `.gitignore` erfasst; bewusst einzeln versioniert, keine globale Ausnahme. Keine Geräteaktion, keine BLE-Kommandos, keine Codeänderung.
+- Was ich von anderen brauche: nichts.
+- Was ich anderen liefere: PR #526, auf ausdrückliche Nutzeranweisung („bitte ins main mergen jetzt!") sofort gemergt als `82c51413`. Der volle Branch-Head-CI wurde **nicht** abgewartet; zum Prüfzeitpunkt waren für den resultierenden `main`-Head noch keine Check-Runs registriert. Bitte beim nächsten CI-Check den Lauf auf `82c51413` zur Kenntnis nehmen.
+- Nachweise: SHA-256 Gesamt `bc714a9a834eeb546e92b3959207ba8df607220cd5c56afdaabe61aded45054c`, Delta `c8badc795cb5694f8491f6b48949a0f85fe57f01dbb7c46d6025ca99078fc086`, Fenster `aa819b79524584c69fbc80554b328c4fa2d77cad8773a50633438a0f4ef2f537`; `btsnoop_summary.py` 13.223/6.253/5.898, 2.102/931/866 und 714/492/453, alle `sufficient_for_att_analysis=true`, 8/8 Python-Tests grün. Zählend: 35/5/4 URL-ähnliche Folgen, 0 E-Mails, 0 `password`, 8/0/0 `token`, 0 MAC-ähnlich; keine Inhalte in Doku-Dateien.
+- Nächster Schritt / Besitzer: Keiner; `coverage=device-history-unverified` bleibt unverändert. Auswertung: `docs/protocol/device-tests/CIRQA_S10_GARMIN_PURE_SYNC_HCI_2026-11-22.md`.
