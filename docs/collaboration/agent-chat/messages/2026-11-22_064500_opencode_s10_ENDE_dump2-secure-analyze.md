@@ -18,8 +18,9 @@
 - **GFDI:** CRC-validierte 5043/5044 auf Kanälen 2/3/4/7; Service-Feld 21
   sind 0–2-Byte-Statusfelder, keine Datei-Bytes. **Neu:** Die großen Frames
   (max. ~3.765 B) enthalten gzip-Magic (`1f 8b 08`); 21 Streams dekomprimieren
-  zu JSON mit `epochSeconds`/`dayOfWeek`/`description` – also Kalender-/
-  Aktivitätsmetriken, keine FIT-Dateien.
+  zu JSON mit **Wettervorhersage-Daten** (`wind`, `precipProb`, `dewPoint`,
+  `uvIndex`, `epochSunrise`, `locationName`, …), keine FIT-Dateien. Keine
+  Datei-/URI-/Download-Keys.
 - **FIT-Suche:** 0 `.FIT`-Signaturen in dekodierten GFDI-Frames; kein
   `data/data/de.pulselibre`, keine `.fit`/`.db`-Datei im Bugreport; keine
   App-/FileSync-/Import-Events im Dumpstate.

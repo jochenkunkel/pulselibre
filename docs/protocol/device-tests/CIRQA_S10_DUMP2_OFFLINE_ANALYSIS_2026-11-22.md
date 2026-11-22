@@ -57,17 +57,21 @@ Direction 1 (3.453×). Die Richtung ist damit erneut bestätigt.
 Die großen 5044-Frames enthalten `1f 8b 08` (gzip-Magic). Ein gezielter Scan
 aller CRC-validierten GFDI-Frames fand **21 dekomprimierbare gzip-Streams**
 (Offset 32 in den Frames, 705–8.353 Bytes dekomprimiert). Alle dekomprimierten
-Nutzdaten sind **JSON**-Strukturen mit Feldern wie `epochSeconds`,
-`dayOfWeek`, `description` (Kalender-/Aktivitätsmetriken), **keine** FIT-Dateien:
+Nutzdaten sind **JSON-Strukturen mit Wettervorhersage-Daten**, **keine**
+FIT-Dateien. Die gezählten Keys (Metadata-only-Auswertung):
 
 ```
-5b7b2265706f63685365636f6e6473223a ...  # [{"epochSeconds": ...
-7b2265706f63685365636f6e6473223a ...  # {"epochSeconds": ...
-5b7b226461794f665765656b223a362c ...  # [{"dayOfWeek":6,"descrip...
+value, units, description, wind, speed, directionString, direction,
+precipProb, epochSeconds, gustSpeed, dewPoint, relativeHumidity,
+feelsLikeTemperature, visibility, pressure, ceilingHeight, temp, uvIndex,
+airQuality, cloudCover, dayOfWeek, summary, high, low, epochSunrise,
+epochSunset, humidity, locationName, windChill, pressureChange, ...
 ```
 
-Damit ist die bislang ungeklärte große Byte-Ebene identifiziert: es handelt
-sich um komprimierte **Aktivitätsmetadaten im JSON-Format**, nicht um FIT-Bytes.
+Es gibt **keine** Datei-/URI-/Download-/FIT-bezogenen Keys (nur `id` als
+Wetter CONDITIONS-ID). Damit ist die bislang ungeklärte große Byte-Ebene
+identifiziert: es handelt sich um komprimierte **Wettervorhersage-Daten im
+JSON-Format**, nicht um FIT-Bytes.
 
 ## Suche nach FIT-Bytes und Dateiintegrität
 
@@ -105,5 +109,5 @@ Im Backup unter `analysis/`:
 `field21.out`, `check_all_channels.out`, `check_service_fields.out`,
 `decode_pull_results.out`, `item_shape_counter.out`, `trace_pagination.out`,
 `trace_pagination_timed.out`, `enumerate_att2.out`, `debug_pb.out`,
-`big_frames.out`, `gzip_scan.out`, `zip_listing.txt`, `dumpstate_hits.txt`,
+`big_frames.out`, `gzip_scan.out`, `json_keys.out`, `zip_listing.txt`, `dumpstate_hits.txt`,
 `dumpstate_app_hits.txt`.

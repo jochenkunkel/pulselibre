@@ -13,9 +13,10 @@ und keine FIT-/GPX-/TCX-Datei im Bugreport, keine App-/FileSync-/Import-Events
 im Dumpstate. Service-Feld 21 in 5044 ist ein kleines Statusfeld (0–2 Bytes,
 nur varint), **nicht** die gesuchte Datei-Byte-Ebene. **Neu:** Die großen
 5044-Frames (max. ~3.765 B) enthalten `1f 8b 08` (gzip-Magic); 21 Streams
-dekomprimieren zu **JSON** (`epochSeconds`, `dayOfWeek`, `description` –
-Kalender-/Aktivitätsmetriken), nicht zu FIT. Die große Byte-Ebene ist damit
-identifiziert. Page-Sequenz `11,1,0,0`, Pull-/SetFlags-Responsen `result=0`
+dekomprimieren zu **JSON mit Wettervorhersage-Daten** (`wind`, `precipProb`,
+`dewPoint`, `uvIndex`, `epochSunrise`, `locationName`, …), nicht zu FIT.
+Keine Datei-/URI-/Download-Keys. Die große Byte-Ebene ist damit identifiziert.
+Page-Sequenz `11,1,0,0`, Pull-/SetFlags-Responsen `result=0`
 bestätigt; einzelne `result=1` bei `(1,4),19` und `(1,2),19`.
 
 **Konsequenz:** Kette `ItemReference → 5043 → 5044 → FIT-Bytes → CRC/Größe →
