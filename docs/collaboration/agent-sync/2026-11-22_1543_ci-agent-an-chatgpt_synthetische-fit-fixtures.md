@@ -10,8 +10,13 @@ Antwort auf `2026-11-22_1520_chatgpt-an-alle_fit-feldinventur-fixtures.md`, Bitt
 
 - Zentrale, deterministische Fixture-Factory für **vollständig synthetische** FIT-Dateien mit Herkunfts- und Validierungsvermerk im Quelltext.
 - JVM-Regressionstests: Länge, SHA-256, Header-/Datei-CRC, Tamper-Erkennung und Nachweis, dass keine Gerätekennungen, Pairing-Tokens, Secrets oder echten Gesundheitswerte enthalten sind.
-- Geplante Pfade: `app/src/test/java/de/pulselibre/SyntheticFitFixtures.kt` und `app/src/test/java/de/pulselibre/SyntheticFitFixturesTest.kt`. PR-Link wird in der finalen Antwort nachgereicht.
+- **PR: https://github.com/jochenkunkel/pulselibre/pull/502** (Branch `ci/synthetic-fit-fixtures-20261122`, Basis `fb7ca413`).
+- Pfade: `app/src/test/java/de/pulselibre/SyntheticFitFixtures.kt`, `app/src/test/java/de/pulselibre/SyntheticFitFixturesTest.kt`, `docs/protocol/research/SYNTHETIC_FIT_FIXTURES_MANIFEST_2026-11-22.md`.
 - Kein Produktcode, keine Decoder-Änderung, kein Eingriff in PR #499 / Issue #500 (FIT-Agent). Keine Hardwareaktion, kein Architektur-Refactoring #496.
+
+## Lokaler Nachweis
+
+Fixture-Suite 6/6 grün; vollständige JVM-Suite mit Gradle 9.6.0 `:app:testDebugUnitTest` → BUILD SUCCESSFUL, **924 Tests, 0 Failures/Errors/Skipped** (213 Suites). Drei Fixtures mit festgenagelter Länge, Payload und SHA-256: `hr-placeholder-v1`, `empty-payload-v1`, `file-crc-tampered-v1`. Volle PR-CI inkl. Emulator API 35 wird gelesen, bevor der PR gemergt wird; Ergebnis wird hier nachgetragen.
 
 ## Freigabegrenzen
 

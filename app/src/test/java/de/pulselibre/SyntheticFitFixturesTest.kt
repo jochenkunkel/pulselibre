@@ -68,7 +68,8 @@ class SyntheticFitFixturesTest {
             )
             assertEquals(0, FitFileHeader.crc16(fixture.bytes, 0, 14))
             val fullCrc = FitFileHeader.crc16(fixture.bytes)
-            assertEquals(if (fixture.expectedVerified) 0 else 1, if (fullCrc == 0) 0 else 1)
+            if (fixture.expectedVerified) assertEquals(0, fullCrc)
+            else assertTrue("${fixture.id}: file CRC must be corrupt", fullCrc != 0)
         }
     }
 
