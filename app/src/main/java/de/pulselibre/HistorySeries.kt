@@ -51,7 +51,9 @@ data class HistorySnapshot(
     /** True when reading the FIT series failed; the card then says so instead of "no data" (A6-29). */
     val fitReadFailed: Boolean = false,
     /** Newest band heart-rate measurement of any time, to explain an empty window. */
-    val fitNewest: Instant? = null
+    val fitNewest: Instant? = null,
+    /** Per day, origin and metric summary of everything in the window: live, imported and band data in one list. */
+    val allData: List<UnifiedDaySummary> = emptyList()
 )
 
 /** Fixed display resolutions sized to keep selected ranges readable on a phone chart. */

@@ -904,12 +904,13 @@
     <string name="ht_col_metric">Measure</string>
     <string name="ht_col_count">Count</string>
     <string name="ht_col_range">Min–Max</string>
-    <string name="ht_col_median">Median</string>
+    <string name="ht_col_mean">Mean</string>
     <string name="ht_src_band">Band</string>
-    <string name="ht_src_phone">Phone</string>
+    <string name="ht_src_import">Import</string>
+    <string name="ht_src_phone">Live</string>
     <string name="ht_metric_pulse">Pulse</string>
     <string name="ht_metric_spo2">SpO₂</string>
-    <string name="ht_note">Band: measurement time of the band · Phone: reception time on the phone. One row per day and source; nothing is interpolated or merged.</string>
+    <string name="ht_note">Live: reception time on the phone · Band: measurement time of the band · Import: as stored. One row per day, source and measure; nothing is interpolated or merged.</string>
     <string name="ht_empty">No values in this period.</string>
-    <string name="ht_row_cd">%1$s, %2$s, %3$s: %4$d values, minimum %5$d, maximum %6$d, median %7$s</string>
+    <string name="ht_row_cd">%1$s, %2$s, %3$s: %4$d values, range %5$s, mean %6$s</string>
 </resources>
