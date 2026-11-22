@@ -258,3 +258,11 @@ jobs:
             app/build/outputs/androidTest-results/
           if-no-files-found: warn
           retention-days: 7
+      - name: Upload combined JVM/emulator coverage (#6)
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: pulselibre-combined-jacoco
+          path: app/build/reports/jacoco/createCombinedCoverageReport/
+          if-no-files-found: warn
+          retention-days: 7

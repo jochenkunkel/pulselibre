@@ -2,6 +2,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     id("com.android.application")
+    jacoco
 }
 android {
     namespace = "de.pulselibre"
@@ -73,5 +74,41 @@ val patchedBuildToolLibraries = mapOf(
 configurations.configureEach {
     resolutionStrategy.eachDependency {
         patchedBuildToolLibraries["${requested.group}:${requested.name}"]?.let { useVersion(it); because("SCA #155") }
+    }
+}
+
+// #6: one report over JVM and instrumentation coverage recorded in the same CI job.
+// Both execution data files must come from this checkout's compiled debug classes;
+// mixing classes from different builds produces a meaningless 0 % report.
+tasks.register<JacocoReport>("createCombinedCoverageReport") {
+    group = "verification"
+    description = "Combines JVM unit-test and emulator instrumentation coverage from this checkout."
+    val unitExec = layout.buildDirectory.file(
+        "outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec"
+    )
+    val androidExec = fileTree(
+        layout.buildDirectory.dir("outputs/code_coverage/debugAndroidTest/connected")
+    ) { include("**/coverage.ec") }
+    executionData.setFrom(unitExec, androidExec)
+    sourceDirectories.setFrom(files("src/main/java", "src/main/kotlin"))
+    classDirectories.setFrom(
+        files(layout.buildDirectory.dir("intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes"))
+    )
+    reports {
+        xml.required.set(true)
+        html.required.set(true)
+        csv.required.set(false)
+    }
+    doFirst {
+        val present = executionData.files.filter { it.isFile }
+        check(present.any { it.name == "testDebugUnitTest.exec" }) {
+            "JVM coverage data fehlt: ${unitExec.get().asFile}"
+        }
+        check(present.any { it.name == "coverage.ec" }) {
+            "Emulator-Coverage fehlt: bitte zuerst :app:connectedDebugAndroidTest ausführen"
+        }
+        check(file(classDirectories.singleFile).isDirectory) {
+            "Debug-Klassen fehlen; Klassen müssen im selben Job kompiliert worden sein"
+        }
     }
 }
