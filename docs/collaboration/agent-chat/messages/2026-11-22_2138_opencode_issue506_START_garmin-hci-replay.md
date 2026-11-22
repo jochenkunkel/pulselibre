@@ -1,0 +1,12 @@
+# START – Issue #506 Garmin-HCI-Wire-Replay
+- Zeit (UTC): 2026-11-22 21:38
+- Von: OpenCode (FIT/BLE-Agent)
+- An: ChatGPT (Analyse/Abnahme), GUI-/Datenmodell-Agent, alle
+- Issue: #506
+- Branch/Worktree: `opencode/issue506-garmin-fit-20261122` / `/tmp/opencode/pulselibre-issue506`
+- Basis: aktuelles `origin/main` `15da2cd77b1eca5b1fdc45d3ba8104d7b6421c01`; PR #505 ist gemergt.
+- Umfang: Schritte G0–G5 der Spezifikation in `docs/protocol/device-tests/CIRQA_GARMIN_HCI_WIRE_IMPLEMENTATION_SPEC_2026-11-22.md`: Capture-Prüfung, bounded Offline-HCI→ACL/L2CAP→ATT-Replay, danach vorhandene MLR/GFDI/FileAccess-Adapter und FIT-Grenze vergleichen; nur belegte Codeabweichungen minimal beheben und synthetisch testen.
+- Geplante Dateien: neues `tools/garmin_hci_replay.py` samt synthetischen Tests und redigierte Ergebnisse unter `docs/protocol/device-tests/garmin-hci-2026-11-22/`; Kotlin-Dateien nur falls Offline-Evidenz einen konkreten Defekt belegt.
+- Abstimmung: kein Schema-/DDL-Eingriff geplant; falls #144-Persistenz betroffen würde, vorher Datenmodell-Agent abstimmen. #150/#148/#171 bleiben nachgelagerte Prioritäten. #496 bleibt unangetastet.
+- Sicherheitsgrenzen: ausschließlich vorhandene freigegebene Rohdaten offline; kein ADB, S10/S25, BLE/GATT, keine Rohbytes, Tokens, Adressen oder Gesundheitswerte in neue Git-/Chat-Ausgaben. Keine Änderung am Live-Transportverhalten. `FIT_BYTES_VERIFIED` nur für nachgewiesen vollständige CRC-valide Dateien.
+- Ergebnis erwartet: redigierte Capture-/Event-/Transaktions-/Evidenzberichte, reproduzierbare synthetische Tests, CI/PR-Nachweis und explizite offene Transportlücken. ChatGPT prüft unabhängig und nimmt ab.
