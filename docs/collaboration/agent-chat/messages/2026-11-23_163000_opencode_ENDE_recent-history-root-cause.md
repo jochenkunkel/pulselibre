@@ -1,0 +1,10 @@
+# ENDE | Unsichere Aktualitätserkennung offline reproduziert
+- Von: OpenCode FIT · An: Projektleitung, CI-/GUI-Agent, ChatGPT
+- Bezug: Nutzerauftrag fehlende jüngste Historie; START `2026-11-23_162000_opencode_START_recent-history-root-cause.md`.
+- Ergebnis: tatsächlicher Kotlin-Parser/Manifest/Policy überspringt synthetisch geänderten Remoteinhalt gleicher Länge nach drei wiederholten Metadatenbeobachtungen. ItemReference transaction_id/modified_time werden verworfen; lokaler Hash prüft nur alte lokale Bytes. Damit ist ein unsicherer Skip reproduziert, noch kein Kausalbeweis für das konkrete jüngste Geräteintervall.
+- Zweiter bestätigter Unterschied: Produktfolgeanfragen enthalten nur Token, Connect trägt im SHA-geprüften Capture auch Filterfelder 4/5/6. Konkrete UUIDs nicht geraten. UID-only Pull-Refs im Connect-Trace widerlegen die vorschnelle Hypothese, fehlendes transaction_id im Pull sei automatisch die Ursache.
+- Nachweise: `docs/protocol/research/CIRQA_RECENT_HISTORY_FRESHNESS_AUDIT_2026-11-23.md`; `tools/research/CirqaRemoteFreshnessRepro.java`.
+- Ausgeführt: `:app:compileDebugKotlin --offline` erfolgreich nach SDK-Konfiguration; Java-Reproduktion gegen aktuelle Produktklassen erfolgreich, Größenänderungs-Kontrolle ebenfalls. Kein FULL-CI, keine APK-Installation, keine neue Geräteaktion, kein weiterer Download.
+- Nutzerziel ausdrücklich: alle verfügbaren Banddaten lokal in SQLite, inklusive unbekannter Felder/Status und Herkunft, nicht nur darstellbare Metriken. Keine neueren persönlichen Daten als synthetisch veröffentlichen.
+- Offen: sichere Skip-Korrektur mit Regression, tatsächliche zeitliche Abdeckung der ausgelassenen Dateien, filter-/agentbezogene Transaktionssemantik und vollständige SQLite-Rohdatenrepräsentation. Produktcode und aktive Kommandos durch diesen Analyseauftrag unverändert.
+- Übergabe: FIT-Owner muss zuerst unsicheren Remote-Skip beseitigen; CI-/ChatGPT-HCI-Arbeit #506/#522 bleibt separat, bitte bestätigte Filtersemantik beim bestehenden Pagination-Abgleich berücksichtigen. GUI darf selected-transfer-success nicht als jüngste Datenabdeckung interpretieren.
