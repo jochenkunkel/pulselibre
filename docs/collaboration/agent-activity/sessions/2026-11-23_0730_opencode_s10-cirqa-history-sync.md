@@ -1,17 +1,18 @@
 # OpenCode FIT – S10e/CIRQA historical sync hardware validation
 - Agent/Umgebung: OpenCode FIT; S10e physical test environment, CIRQA synthetic test band
 - Beginn: 2026-11-23 07:30 UTC
-- Letzte Aktualisierung: 2026-11-23 08:08 UTC
-- Status: blockiert – kanonischer S10-Lease bei CI-Agent; kein FIT-Sync ausgelöst
+- Letzte Aktualisierung: 2026-11-23 08:13 UTC
+- Status: blockiert – kanonischer S10-Lease erneut bei CI-Agent; kein FIT-Sync ausgelöst
 - Rolle/Zuständigkeit: FIT/Protokoll, Geräteintegration
 - Aktueller Auftrag: einen ausdrücklich bestätigten, begrenzten Produkt-Historien-Sync auf S10e/CIRQA validieren
-- Jetzt in Bearbeitung: offline; CI-Agent auf Überschneidung alter S25-Lock-Vorprüfungen hingewiesen; Antwort/Lease-Ende abwarten
+- Jetzt in Bearbeitung: offline; auf CI-ENDE und frischen Status `FREI` warten; Buildversion und Testvorbedingung vor weiterem Lauf verifizieren
 - Zeitnah geplant: redigierte ENDE-Evidenz mit Sync-/FIT-/SQLite-Zählwerten, ohne Rohpayloads/UIDs/Gesundheitswerte
 - Betroffene Dateien: keine Produktdatei; Agenten-Chat/Sync/Activity-Dokumentation
 - Branch/Worktree: `opencode/s10-integration-20261123`, `/tmp/opencode/pulselibre-s10-integration`
 - Abstimmungsbedarf: GUI hat #529 Lauf 2 mit ENDE beendet; CI-Agent ist über Teststart informiert; keine anderen Geräteaktionen bis ENDE
-- Testfreigabe: Nutzerentscheidung `2026-11-23_0800_chatgpt-an-alle_s10-cirqa-testfreigabe.md`; Handover #529 abgeschlossen. Nach Merge #549 gilt nur `tools/s25_lease.py ... --device s10`; kanonischer Status zuletzt `BELEGT` bei CI (Task `main-build1939-update-smoke`, ETA 08:29 UTC).
+- Testfreigabe: Nutzerentscheidung `2026-11-23_0800_chatgpt-an-alle_s10-cirqa-testfreigabe.md`; Handover #529 abgeschlossen. Nach Merge #549 gilt nur `tools/s25_lease.py ... --device s10`; kanonischer Status zuletzt `BELEGT` bei CI (Task `targeted-recorder-status-after-update`, ETA 08:15:39 UTC).
 - Start: `2026-11-23_073000_opencode_START_s10-cirqa-history-sync.md`; side-effect correction `2026-11-23_073100_opencode_KORREKTUR_sync-side-effect.md`
 - Grenzen: 40-min Lease-ETA inkl. Vor-/Nachlauf; eingebauter Sync-Cap 120s, max 256 files / 8 MiB each / 64 MiB total; no repeated sync, no instrumentation, no reset/unpair/delete/archive/CLOSE_ALL. Product confirmation warns CIRQA may mark files transferred.
 - Keine Rohdateien, Seriennummer, UIDs, Namen oder Messwerte in Git.
 - Koordinationskorrektur 08:08 UTC: Vorprüfungen fälschlich mit altem gemeinsamem S25-Lock gelaufen; ADB/UI-Aufruf um 08:04:44 und Package-Check um 08:05:16 überschnitten CI-S10-Lease. Kein Download-Sync/kein GATT-Befehl; sofort gestoppt und CI-Agent offen informiert. Kein weiterer Gerätezugriff bis `status --device s10` FREI.
+- Wiederaufnahmeprüfung 08:13 UTC: Status zunächst FREI, bei finaler Vor-Geräteprüfung erneut BELEGT durch CI. Kein Gerätezugriff. Temporäres Testskript setzt weiterhin versionCode 1934 voraus; Build-/Installationsversion nicht bestätigt, nichts geändert oder installiert.
