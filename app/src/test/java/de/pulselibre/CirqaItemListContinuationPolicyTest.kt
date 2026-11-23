@@ -16,6 +16,26 @@ class CirqaItemListContinuationPolicyTest {
         assertEquals(0, policy.transactionFollowups)
     }
 
+    @Test fun sessionPageAndTransactionFollowupAreSequentialDifferentRequests() {
+        val policy = CirqaItemListContinuationPolicy()
+
+        // Even when both fields occur together, session_id continues this list first.
+        assertEquals(
+            CirqaItemListContinuationPolicy.Decision.SessionPage(9),
+            policy.next(sessionId = 9, nextTransactionId = 42)
+        )
+        assertEquals(0, policy.transactionFollowups)
+
+        // Once the session cursor disappears, next_transaction_id is a separate
+        // transaction context; an empty response does not make it a session page.
+        assertEquals(
+            CirqaItemListContinuationPolicy.Decision.TransactionFollowup(42),
+            policy.next(sessionId = null, nextTransactionId = 42)
+        )
+        assertTrue(policy.recordTransactionFollowupSent())
+        assertEquals(1, policy.transactionFollowups)
+    }
+
     @Test fun allowsBoundedSeparateTransactionFollowups() {
         val policy = CirqaItemListContinuationPolicy()
         val limit = CirqaItemListContinuationPolicy.CONNECT_OBSERVED_TRANSACTION_FOLLOWUPS
@@ -92,7 +112,7 @@ class CirqaItemListContinuationPolicyTest {
      * synthetic placeholders — the public fixture reproduces only the wire
      * shape, never real tokens, UIDs, sizes, device IDs or health values.
      */
-    @Test fun replayObservedConnectPagePatternDrainsAllBoundedFollowups() {
+    @Test fun replayObservedConnectPatternStopsIncompleteAtBoundedFollowupLimit() {
         val token = 4242L
         val pages = listOf(1, 0, 0, 0).map { itemCount -> syntheticPage(itemCount, token) }
         val policy = CirqaItemListContinuationPolicy()
@@ -121,10 +141,38 @@ class CirqaItemListContinuationPolicyTest {
         )
         assertEquals(1, pages[0].items.size)
         assertEquals(0, pages[1].items.size)
+        assertEquals(null, pages[1].sessionId)
+        assertEquals(0L, pages[1].status)
     }
 
-    /** Smart{43 = Service{10 = ItemListResponse{3 = token, 4 = ItemReference...}}} */
-    private fun syntheticPage(itemCount: Int, token: Long): CirqaFileAccessItemListParser.ItemListPage {
+    @Test fun emptySessionPageAndEmptyTransactionFollowupRemainDifferent() {
+        val policy = CirqaItemListContinuationPolicy()
+        val emptySessionPage = syntheticPage(itemCount = 0, token = 42, sessionId = 9)
+        assertEquals(CirqaItemListProgress.Next.SESSION_PAGE, CirqaItemListProgress.next(emptySessionPage))
+        assertEquals(
+            CirqaItemListContinuationPolicy.Decision.SessionPage(9),
+            policy.next(emptySessionPage.sessionId, emptySessionPage.nextTransactionId)
+        )
+        assertEquals(0, policy.transactionFollowups)
+
+        val emptyTransactionPage = syntheticPage(itemCount = 0, token = 42, sessionId = null)
+        assertEquals(
+            CirqaItemListProgress.Next.TRANSACTION_PENDING,
+            CirqaItemListProgress.next(emptyTransactionPage)
+        )
+        assertEquals(
+            CirqaItemListContinuationPolicy.Decision.TransactionFollowup(42),
+            policy.next(emptyTransactionPage.sessionId, emptyTransactionPage.nextTransactionId)
+        )
+        assertEquals(0, policy.transactionFollowups)
+    }
+
+    /** Smart{43 = Service{10 = ItemListResponse{2 = session, 3 = token, 4 = refs}}} */
+    private fun syntheticPage(
+        itemCount: Int,
+        token: Long,
+        sessionId: Long? = null
+    ): CirqaFileAccessItemListParser.ItemListPage {
         var items = byteArrayOf()
         repeat(itemCount) {
             val ref = bytesField(1, ByteArray(18) { (it + 1).toByte() }) +
@@ -134,7 +182,9 @@ class CirqaItemListContinuationPolicyTest {
         }
         // Garmin Connect sends status=0 explicitly on the wire (verified in HCI);
         // proto3 would otherwise omit the default and the parser fails closed.
-        val response = varintField(1, 0) + varintField(3, token) + items
+        val response = varintField(1, 0) +
+            (sessionId?.let { varintField(2, it) } ?: byteArrayOf()) +
+            varintField(3, token) + items
         val smart = bytesField(43, bytesField(10, response))
         val page = CirqaFileAccessItemListParser.parsePage(smart)
         assertNotNull(page)

@@ -92,15 +92,17 @@ class CirqaDatabase(private val contextRef: Context) :
     }
 
     /** Preserve every received file before any semantic filtering. */
-    fun archiveDownloadedFile(bytes: ByteArray, reference: ByteArray, label: String, at: Long) {
+    fun archiveDownloadedFile(bytes: ByteArray, reference: ByteArray, label: String, at: Long): Boolean {
         val db = writableDatabase
+        var contentAlreadyPresent = false
         db.beginTransaction()
         try {
-            DownloadedFileArchive.store(db, bytes, reference, label, at)
+            contentAlreadyPresent = DownloadedFileArchive.store(db, bytes, reference, label, at)
             db.setTransactionSuccessful()
         } finally {
             db.endTransaction()
         }
+        return contentAlreadyPresent
     }
 
     /** Offline migration of existing content-addressed originals; never touches the band. */

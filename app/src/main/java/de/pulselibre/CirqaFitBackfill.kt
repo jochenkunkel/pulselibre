@@ -208,13 +208,42 @@ class CirqaFitBackfill(
         fun importVerifiedFile(
             file: File,
             readings: FitObservationStore,
-            deviceKey: String = "cirqa-fit"
-        ): Int? = importVerifiedFileDetailed(file, readings, deviceKey)?.eligibleObservations
+            deviceKey: String = "cirqa-fit",
+            onBeforeSqliteCommit: () -> Unit = {},
+            onAfterSqliteCommit: () -> Unit = {}
+        ): Int? = importVerifiedFileDetailed(
+            file, readings, deviceKey, onBeforeSqliteCommit, onAfterSqliteCommit
+        )?.eligibleObservations
+
+        /**
+         * Commits a FIT decode already produced by the caller for these exact bytes.
+         * The persisted content-addressed file is re-read and compared before the
+         * supplied decode is trusted, but the expensive FIT parser is not run twice.
+         */
+        fun importDecodedVerifiedFile(
+            file: File,
+            verifiedBytes: ByteArray,
+            decoded: FitHistoricalObservations.Result,
+            readings: FitObservationStore,
+            deviceKey: String = "cirqa-fit",
+            onBeforeSqliteCommit: () -> Unit = {},
+            onAfterSqliteCommit: () -> Unit = {}
+        ): Int? = importDecodedVerifiedFileDetailed(
+            file,
+            verifiedBytes,
+            decoded,
+            readings,
+            deviceKey,
+            onBeforeSqliteCommit,
+            onAfterSqliteCommit
+        )?.eligibleObservations
 
         private fun importVerifiedFileDetailed(
             file: File,
             readings: FitObservationStore,
             deviceKey: String,
+            onBeforeSqliteCommit: () -> Unit = {},
+            onAfterSqliteCommit: () -> Unit = {},
             onDecoded: (ImportOutcome) -> Unit = {}
         ): ImportOutcome? {
             require(deviceKey.isNotBlank())
@@ -223,6 +252,63 @@ class CirqaFitBackfill(
             val bytes = file.readBytes()
             if (file.name != expectedFileName(bytes)) return null
             val result = FitHistoricalObservations.decode(bytes) ?: return null
+            return commitDecodedFile(
+                file,
+                bytes,
+                result,
+                readings,
+                deviceKey,
+                onBeforeSqliteCommit,
+                onAfterSqliteCommit,
+                onDecoded
+            )
+        }
+
+        private fun importDecodedVerifiedFileDetailed(
+            file: File,
+            verifiedBytes: ByteArray,
+            decoded: FitHistoricalObservations.Result,
+            readings: FitObservationStore,
+            deviceKey: String,
+            onBeforeSqliteCommit: () -> Unit,
+            onAfterSqliteCommit: () -> Unit
+        ): ImportOutcome? {
+            require(deviceKey.isNotBlank())
+            if (!file.isFile || java.nio.file.Files.isSymbolicLink(file.toPath()) ||
+                verifiedBytes.size !in 1..MAX_FIT_FILE_BYTES ||
+                file.length() != verifiedBytes.size.toLong()
+            ) return null
+            if (file.name != expectedFileName(verifiedBytes) ||
+                !file.readBytes().contentEquals(verifiedBytes) ||
+                FitFileHeader.inspectVerified(verifiedBytes) == null
+            ) return null
+            val sourceSha256 = file.name.removeSuffix(".fit")
+            if (decoded.observations.any { it.sourceFileSha256 != sourceSha256 } ||
+                decoded.deviceMetadata.any { it.sourceFileSha256 != sourceSha256 } ||
+                decoded.unknownFields.any { it.sourceSha256 != sourceSha256 } ||
+                decoded.reviewCandidates.any { it.sourceFileSha256 != sourceSha256 }
+            ) return null
+            return commitDecodedFile(
+                file,
+                verifiedBytes,
+                decoded,
+                readings,
+                deviceKey,
+                onBeforeSqliteCommit,
+                onAfterSqliteCommit
+            )
+        }
+
+        private fun commitDecodedFile(
+            file: File,
+            bytes: ByteArray,
+            result: FitHistoricalObservations.Result,
+            readings: FitObservationStore,
+            deviceKey: String,
+            onBeforeSqliteCommit: () -> Unit,
+            onAfterSqliteCommit: () -> Unit,
+            onDecoded: (ImportOutcome) -> Unit = {}
+        ): ImportOutcome {
             // Only timestamped, profile-valid values are importable. Invalid
             // quality values remain in the immutable original, not SQLite.
             val importable = result.observations.filter {
@@ -242,19 +328,24 @@ class CirqaFitBackfill(
                 }
             )
             onDecoded(outcome)
-            readings.commitFitFile(
-                sourceSha256 = file.name.removeSuffix(".fit"),
-                fileBytes = bytes.size.toLong(),
-                relativePath = "verified_fit/${file.name}",
-                validatedAtEpochMillis = System.currentTimeMillis(),
-                decoderVersion = FitHistoricalObservations.DECODER_VERSION,
-                profileVersion = FitHistoricalObservations.PROFILE_VERSION,
-                observations = importable,
-                deviceMetadata = result.deviceMetadata,
-                unmappedFields = result.unknownFields.map(CirqaUnknownFitInventory::toStoredField),
-                deviceKey = deviceKey,
-                reviewCandidates = result.reviewCandidates
-            )
+            onBeforeSqliteCommit()
+            try {
+                readings.commitFitFile(
+                    sourceSha256 = file.name.removeSuffix(".fit"),
+                    fileBytes = bytes.size.toLong(),
+                    relativePath = "verified_fit/${file.name}",
+                    validatedAtEpochMillis = System.currentTimeMillis(),
+                    decoderVersion = FitHistoricalObservations.DECODER_VERSION,
+                    profileVersion = FitHistoricalObservations.PROFILE_VERSION,
+                    observations = importable,
+                    deviceMetadata = result.deviceMetadata,
+                    unmappedFields = result.unknownFields.map(CirqaUnknownFitInventory::toStoredField),
+                    deviceKey = deviceKey,
+                    reviewCandidates = result.reviewCandidates
+                )
+            } finally {
+                onAfterSqliteCommit()
+            }
             return outcome
         }
 

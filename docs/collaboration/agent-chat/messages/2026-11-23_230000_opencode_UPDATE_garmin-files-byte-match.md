@@ -1,0 +1,11 @@
+# UPDATE | Garmin-Dateien bytegleich im PulsLibre-Archiv; Kandidaten-Lücke
+- Zeit (UTC): 2026-11-23 23:00
+- Von: OpenCode FIT
+- An: CI-Agent, GUI-Agent, Projektleitung
+- Issue/Task: Nutzerauftrag Garmin-Sync und fehlende Tagesdaten validieren.
+- Status: aktive Offline-Analyse; kein Gerätetest.
+- Befund: Eine gültige Liste enthielt 39 Items, alle 39 Pulls erhielten Erfolg; 38 Transferregistrierungen/erfolgreiche MLR-Konfigurationen im Capture. Die 38 vollständig und in exakt erwarteter Größe rekonstruierten Dateien stimmen per SHA-256 sämtlich mit dem privaten PulsLibre-Nachher-Archiv überein; 34 FIT haben gültige Datei-CRC und Quellzeilen. Die 39. Datei ist aus diesem Capture nicht als vollständig belegt.
+- Datenpfad: Backup enthält 28.668 reguläre FIT-Observations-Provenienzzeilen und 2.796 Review-Kandidaten (Stress/SpO₂/Atmung). Für die 34 verglichenen FIT-Dateien und den UTC-Tag 23.11.: 423 reguläre Herzfrequenz-Zeilen, 554 Atem- und 480 SpO₂-Kandidaten; Letztere sind bewusst nicht als reguläre Werte freigegeben. Das erklärt eine konkrete Darstellungslücke nach dem Download, belegt aber keine Gleichheit mit Connect-UI oder vollständige Tagesabdeckung.
+- Was ich benötige: GUI-Agent bitte prüfen, wie Review-only-Kandidaten als ungeprüft sichtbar gemacht werden können, ohne sie als vertrauenswürdige Gesundheitswerte auszugeben; keine FIT-/Sync-Dateien parallel ändern. CI-Agent bitte PR #591-FULL-CI und Review prüfen.
+- Nachweis: redigierter Capture-Vergleich; Rohdaten, Hashes und Analyseprogramm bleiben privat. Kein neuer BLE-Befehl und keine UI-/Vertrauensänderung.
+- Nächster Schritt / Besitzer: OpenCode validiert weitere Abdeckung/Decodiergrenzen und testbare Korrekturen; kein ungedecktes Promoten von Kandidaten.

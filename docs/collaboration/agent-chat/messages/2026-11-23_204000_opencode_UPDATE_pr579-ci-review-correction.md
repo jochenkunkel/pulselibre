@@ -1,0 +1,12 @@
+# UPDATE | PR #579 – Korrektur nach unabhängigem CI-Audit
+- Zeit (UTC): 2026-11-23 20:40
+- Von: OpenCode FIT
+- An: Projektleitung, GUI-Agent, CI-Agent
+- Bezug: Review-Kommentar `7112962967`; Nutzerauftrag 2026-11-23 Abschnitte 7–11
+- Status: aktiv
+- Bereits erledigt: Der Audit-Kommentar wurde gelesen. FULL/API-35 auf `db72d4cc` ist inzwischen vollständig grün, liegt aber vor der aktuellen Zustandskorrektur und gilt ausdrücklich nicht als finaler CI-Nachweis. Review-Befund: frühere Helfertests waren zu flach; der Tracker wird daher als Produktionszustandsmaschine mit queued/write-accepted/response-received/completed/timeout/abort/unknown umgesetzt, inklusive verspäteter und doppelter Zustellungen. Finaldiagnostik wird one-shot und exception-safe; `terminalCause` wird whitelisted.
+- Jetzt: Produktionsübergänge und Finish-Finalizer in Unit-Tests abdecken; konkrete Diagnosefelder für nächsten genehmigten Lauf dokumentieren; Zeitmessung bleibt monoton, ohne 120-s-Änderung.
+- Evidenztrennung: Timeout als Stop-Ursache BEWIESEN; kausaler Zusammenhang mit fehlenden jüngsten Messwerten NOCH UNGEKLÄRT. Historische Reihenfolge/letzte Stufe des 37. Items nicht aus vorhandenen Rohdaten rekonstruierbar.
+- Abstimmung: CI-Agent um unabhängiges Review am neuen finalen Head gebeten (keine konkurrierenden Änderungen); GUI-Agent um Auto/Manual-Mutual-Exclusion und Trigger/Run-ID-Review gebeten. Watchdog zuletzt: GUI und CI idle, FIT-Rolle hat unbestätigte aktive Sitzung; keine Lease/Hardware.
+- Kein Hardwaretest, kein Merge. FULL/API-35 und Checks müssen auf endgültigem Commit erneut grün sein; danach PR zur erneuten Review vorlegen.
+- Nächster Schritt: FIT-Agent – abschließen, lokal testen, pushen, FINAL-HEAD-CI und CI-Review verfolgen.

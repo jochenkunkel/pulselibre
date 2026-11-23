@@ -1,0 +1,13 @@
+# UPDATE | PR #579 erstellt, FULL-CI läuft
+- Zeit (UTC): 2026-11-23 19:06:00
+- Von: OpenCode FIT
+- An: Projektleitung, GUI-Agent, CI-Agent, alle
+- Issue/Task: P0 CIRQA terminal evidence / Ursache 36/37
+- Bezug/Antwort auf: `2026-11-23_185500_opencode_UPDATE_timeout-and-autosync-evidence.md`
+- Status: teilweise – PR offen als Draft, FULL-CI-Nachweise ausstehend
+- Zuständigkeit und betroffene Dateien: Terminaldiagnostik, Pagination-Regressionen, S10-Ursachenbericht; PR #579
+- Geplanter Umfang / tatsächlich erledigt: Changes auf `origin/main` `da64239a` rebased; Draft PR https://github.com/jochenkunkel/pulselibre/pull/579, aktueller Head `b7c1b766`. 994 JVM-Tests bestanden. `./tools/ci-local.sh --full` läuft lokal; PR-CI inklusive API-35-Emulator läuft für den aktualisierten Branch-Head. Keine Transport-/Limitänderung, kein Gerätezugriff.
+- Was ich von anderen brauche: GUI-Agent — fachliche Antwort zu Auto-/Manual-Guard und terminalem UI-Zähler; CI-Agent — bestätigen, ob die benannte Patchdatei vorhanden ist und ggf. deren Pfad liefern. Bis 19:06 UTC keine Antwort sichtbar; Agentenstatus GUI/CI idle.
+- Was ich anderen liefere: redigierter Ursachenbericht und Terminalzustandsfelder; nach CI-Abschluss konkrete Test- und Run-Nachweise.
+- Nachweise: PR #579; lokaler JVM-Testlauf 994/994; FULL-CI noch aktiv
+- Nächster Schritt / Besitzer: OpenCode FIT — FULL-CI-Ergebnis aufnehmen, nötigenfalls auf dem finalen PR-Head erneut prüfen, PR-Beschreibung/Agenten-ENDE aktualisieren.

@@ -25,6 +25,21 @@ private object CirqaProbeThread {
 private const val MLR_SERVICE_ID = 8216 // 0x2018, Connect MLRTransportPipe.ML_SERVICE_IDS
 
 class CirqaMlHandshakeProbe(private val context: Context, private val adapter: BluetoothAdapter) : RecorderLink {
+    private data class SyncQueueItem(
+        val item: CirqaFileAccessItemListParser.Item,
+        val localId: Long
+    )
+
+    private sealed interface SyncWriteTag {
+        data class Pull(val requestId: Int, val localId: Long) : SyncWriteTag
+        data class ItemList(
+            val requestId: Int,
+            val continuation: CirqaSyncContinuationRequest.Kind? = null
+        ) : SyncWriteTag
+        data class Bootstrap(val requestId: Int) : SyncWriteTag
+    }
+
+    private data class DeferredAckWrite(val bytes: ByteArray, val syncTag: SyncWriteTag?)
     /**
      * All GATT callbacks, timeouts and the termination in [finish] run on this ONE background thread (audit #6 A6-35).
      * Before, callbacks came from Binder threads while timeouts and [finish] ran on the main thread, so the ~150 mutable
@@ -88,9 +103,21 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private var syncPullSent = false
     private var syncItemSummary = ""
     private var syncPullDiag = ""
-    private val syncPendingItems = java.util.ArrayDeque<CirqaFileAccessItemListParser.Item>()
+    private val syncPendingItems = java.util.ArrayDeque<SyncQueueItem>()
     private var syncCurrentItem: CirqaFileAccessItemListParser.Item? = null
+    private var syncCurrentLocalItemId: Long? = null
     private var syncNextRequestId = 3
+    private var syncCurrentPullRequestId: Int? = null
+    private val syncPullRequestItems = HashMap<Int, Long>()
+    private val syncArchivedLocalIds = HashSet<Long>()
+    private val syncListRequestKinds = HashMap<Int, CirqaSyncContinuationRequest.Kind?>()
+    private val syncHandledResponseIds = HashSet<Pair<Int, Int>>()
+    private val syncPipelineLedger = CirqaSyncPipelineLedger()
+    private val syncContinuationRequest = CirqaSyncContinuationRequest()
+    private val syncTerminalFinalizer = CirqaSyncTerminalFinalizer()
+    private val syncTiming = CirqaSyncTiming()
+    private var syncSelectedFiles = 0
+    private var pendingSyncWriteTag: SyncWriteTag? = null
     private var syncCompletedFiles = 0
     private var syncFailedFiles = 0
     private val syncFileStageCounts = CirqaSyncFileCompletion.StageCounts()
@@ -102,6 +129,9 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private val syncListContinuation = CirqaItemListContinuationPolicy()
     private var syncTransactionFollowupResponseItems: Int? = null
     private var syncListPageCount = 0
+    private var syncListedItemCount = 0
+    private var syncSessionPageRequestCount = 0
+    private var syncPullRequestsQueued = 0
     private var syncQueuedFiles = 0
     private var syncQueuedBytes = 0L
     private var syncProgressCallback: ((HistorySyncProgress) -> Unit)? = null
@@ -811,6 +841,11 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                 override fun onCharacteristicWrite(g: BluetoothGatt, characteristic: BluetoothGattCharacteristic, status: Int) {
                     if (callbackGeneration !== generation) return
                     if (!active || terminationRequested) return
+                    val completedSyncWrite = pendingSyncWriteTag
+                    pendingSyncWriteTag = null
+                    if (status != BluetoothGatt.GATT_SUCCESS) {
+                        onSyncWriteCallbackFailed(completedSyncWrite)
+                    }
                     txTrace.completePendingCallback(status)
                     val hsv1 = historicalSyncV1
                     if (hsv1 != null && hsv1WriteOutstanding) {
@@ -919,13 +954,13 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     }
 
     /** Serializes transport ACKs (5004 chunks and 5043 protobuf chunks). */
-    private val deferredAckWrites = java.util.ArrayDeque<ByteArray>()
+    private val deferredAckWrites = java.util.ArrayDeque<DeferredAckWrite>()
     private var acks5004Queued = 0
     private var acks5043Queued = 0
     private var ack5004Hex = ""
 
-    private fun queueAck(g: BluetoothGatt, bytes: ByteArray) {
-        deferredAckWrites.addLast(bytes)
+    private fun queueAck(g: BluetoothGatt, bytes: ByteArray, syncTag: SyncWriteTag? = null) {
+        deferredAckWrites.addLast(DeferredAckWrite(bytes, syncTag))
         drainDeferredAcks(g)
         serial.postDelayed({ if (active) drainDeferredAcks(g) }, 80L)
     }
@@ -964,19 +999,23 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             finish("GFDI-Handle fehlt vor dem nächsten Pull.", g)
             return
         }
-        val item = syncPendingItems.pollFirst()
-        if (item == null) {
+        val queued = syncPendingItems.pollFirst()
+        if (queued == null) {
             requestNextSyncItemListPage(g)
             return
         }
+        val item = queued.item
         emitSyncProgress(HistorySyncStage.TRANSFERRING)
         if (item.dataSize !in 1..CirqaVerifiedRawFileStore.MAX_FILE_BYTES) {
-            syncFailedFiles++
+            if (syncPipelineLedger.record(queued.localId, CirqaSyncPipelineLedger.Stage.FAILED)) {
+                syncFailedFiles++
+            }
             syncFileResults = (syncFileResults + "size-limit,").take(1200)
             sendNextSyncFile(g)
             return
         }
         syncCurrentItem = item
+        syncCurrentLocalItemId = queued.localId
         syncExpectedSize = item.dataSize
         mlrData.reset()
         mlrFileAssembler?.close()
@@ -985,10 +1024,16 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         mlrTransferActive = false
         val requestId = syncNextRequestId
         syncNextRequestId = if (syncNextRequestId >= 0xffff) 1 else syncNextRequestId + 1
-        syncPullSent = true
+        syncCurrentPullRequestId = requestId
+        syncPullRequestItems[requestId] = queued.localId
+        syncPullRequestsQueued++
         syncPullDiag = (syncPullDiag + "|pull#$requestId:size=${item.dataSize}")
             .take(1000)
-        queueAck(g, CirqaFileAccessPullRequest.mlValue(handle, requestId, item))
+        queueAck(
+            g,
+            CirqaFileAccessPullRequest.mlValue(handle, requestId, item),
+            SyncWriteTag.Pull(requestId, queued.localId)
+        )
         serial.post {
             mark("FileAccess-Pull $requestId gesendet; Größe=${item.dataSize}, Typ=" +
                 CirqaFileAccessItemListParser.safeTypeLabel(item, syncGdxmlStrings))
@@ -997,10 +1042,48 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
 
     private fun completeSyncFile(g: BluetoothGatt) {
         val item = syncCurrentItem ?: return
-        val result = mlrValidation()
+        val localId = syncCurrentLocalItemId ?: return
+        syncPipelineLedger.record(localId, CirqaSyncPipelineLedger.Stage.TRANSFER_COMPLETED)
+        syncTiming.stop("item:$localId:transfer", CirqaSyncTiming.Stage.FILE_TRANSFER)
+        val validationKey = "validation:$localId"
+        val fitIntegrityKey = "fit-integrity:$localId"
+        val result = try {
+            mlrValidation()
+        } catch (_: Exception) {
+            syncTiming.stop(validationKey, CirqaSyncTiming.Stage.VALIDATION)
+            syncTiming.stop(fitIntegrityKey, CirqaSyncTiming.Stage.VALIDATION)
+            CirqaSyncFileCompletion.Result(
+                format = CirqaSyncFileCompletion.Format.UNKNOWN,
+                transfer = CirqaSyncFileCompletion.Stage.SUCCEEDED,
+                integrity = CirqaSyncFileCompletion.Stage.FAILED,
+                privateStorage = CirqaSyncFileCompletion.Stage.NOT_REACHED,
+                decode = CirqaSyncFileCompletion.Stage.NOT_REACHED,
+                sqliteCommit = CirqaSyncFileCompletion.Stage.NOT_REACHED,
+                detail = "file-validation=failed"
+            )
+        }
         syncFileStageCounts.record(result)
         val successful = result.successfulForSync
-        if (successful) syncCompletedFiles++ else syncFailedFiles++
+        if (result.integrity == CirqaSyncFileCompletion.Stage.SUCCEEDED) {
+            syncPipelineLedger.record(localId, CirqaSyncPipelineLedger.Stage.INTEGRITY_VERIFIED)
+        }
+        // The private store and original archive are separate stages.
+        if (localId in syncArchivedLocalIds) {
+            syncPipelineLedger.record(localId, CirqaSyncPipelineLedger.Stage.ARCHIVED)
+        }
+        if (result.decode == CirqaSyncFileCompletion.Stage.SUCCEEDED) {
+            syncPipelineLedger.record(localId, CirqaSyncPipelineLedger.Stage.FIT_DECODED)
+        }
+        if (result.sqliteCommit == CirqaSyncFileCompletion.Stage.SUCCEEDED) {
+            syncPipelineLedger.record(localId, CirqaSyncPipelineLedger.Stage.SQLITE_COMMITTED)
+        }
+        if (successful) {
+            if (syncPipelineLedger.record(localId, CirqaSyncPipelineLedger.Stage.SUCCESSFUL)) {
+                syncCompletedFiles++
+            }
+        } else if (syncPipelineLedger.record(localId, CirqaSyncPipelineLedger.Stage.FAILED)) {
+            syncFailedFiles++
+        }
         val manifestRecorded = if (
             result.format == CirqaSyncFileCompletion.Format.FIT &&
             result.status == CirqaSyncFileCompletion.Status.IMPORTED &&
@@ -1018,6 +1101,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             "];")
             .take(1800)
         syncCurrentItem = null
+        syncCurrentLocalItemId = null
+        syncCurrentPullRequestId = null
         syncExpectedSize = 0L
         mlrData.reset()
         mlrFileAssembler?.close()
@@ -1090,14 +1175,22 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                 syncPageSessionId = null
                 syncPageNextTransactionId = null
                 syncIncompleteReason = "item-list-session-followup-pending"
+                if (!beginSyncContinuation(
+                        CirqaSyncContinuationRequest.Kind.SESSION_PAGE, requestId, g
+                    )) return
+                syncListRequestKinds[requestId] = CirqaSyncContinuationRequest.Kind.SESSION_PAGE
                 syncPullDiag = (syncPullDiag + "|list#$requestId:continuation=session")
                     .take(1000)
                 queueAck(g, CirqaFileAccessListRequest.mlValue(
                     handle, requestId, sessionId = continuation.sessionId
-                ))
+                ), SyncWriteTag.ItemList(requestId, CirqaSyncContinuationRequest.Kind.SESSION_PAGE))
+                syncSessionPageRequestCount++
                 serial.post { mark("FileAccess-Item-List-Session-Fortsetzung angefordert (read-only)") }
             }
             is CirqaItemListContinuationPolicy.Decision.TransactionFollowup -> {
+                if (!beginSyncContinuation(
+                        CirqaSyncContinuationRequest.Kind.TRANSACTION_FOLLOWUP, requestId, g
+                    )) return
                 if (!syncListContinuation.recordTransactionFollowupSent()) {
                     syncIncompleteReason = "next-transaction-followup-limit"
                     finish("nextTransaction-Folgeabruf bereits ausgeschöpft; Stopp.", g)
@@ -1105,10 +1198,15 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                 }
                 syncPageNextTransactionId = null
                 syncIncompleteReason = "next-transaction-followup-pending"
+                syncListRequestKinds[requestId] =
+                    CirqaSyncContinuationRequest.Kind.TRANSACTION_FOLLOWUP
                 syncPullDiag = (syncPullDiag + "|list#$requestId:continuation=transaction")
                     .take(1000)
                 queueAck(g, CirqaFileAccessListRequest.mlValue(
                     handle, requestId, transactionId = continuation.transactionId
+                ), SyncWriteTag.ItemList(
+                    requestId,
+                    CirqaSyncContinuationRequest.Kind.TRANSACTION_FOLLOWUP
                 ))
                 serial.post {
                     mark("Separater nextTransaction-Folgeabruf angefordert; keine automatische Kette")
@@ -1117,6 +1215,21 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             CirqaItemListContinuationPolicy.Decision.Complete,
             CirqaItemListContinuationPolicy.Decision.TransactionLimitReached -> Unit
         }
+    }
+
+    private fun beginSyncContinuation(
+        kind: CirqaSyncContinuationRequest.Kind,
+        requestId: Int,
+        g: BluetoothGatt
+    ): Boolean {
+        val state = syncContinuationRequest.enqueue(kind, requestId)
+        val tracked = state as? CirqaSyncContinuationRequest.State.Tracked
+        if (tracked?.kind == kind && tracked.requestId == requestId &&
+            tracked.phase == CirqaSyncContinuationRequest.Phase.QUEUED
+        ) return true
+        syncIncompleteReason = "continuation-state-unknown"
+        finish("Continuation-Zustand nicht eindeutig; keine weitere Liste angefordert.", g)
+        return false
     }
 
     private fun appendSyncItemListPage(g: BluetoothGatt, page: CirqaFileAccessItemListParser.ItemListPage) {
@@ -1139,6 +1252,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             page.items.forEach { targetedPullManifest.observe(it, sessionId) }
         }
         syncListPageCount++
+        syncListedItemCount += page.items.size
         syncPageSessionId = CirqaFileAccessListRequest.nextPageSessionId(page)
         syncPageNextTransactionId = page.nextTransactionId
         syncHasPaginationSession = progress == CirqaItemListProgress.Next.SESSION_PAGE
@@ -1247,15 +1361,20 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     "keine Vollständigkeit behauptet.", g)
                 return
             }
-            syncPendingItems.addLast(item)
+            val localId = syncPipelineLedger.select()
+            syncSelectedFiles++
+            syncPendingItems.addLast(SyncQueueItem(item, localId))
+            syncPipelineLedger.record(localId, CirqaSyncPipelineLedger.Stage.QUEUED)
             syncQueuedFiles++
             syncQueuedBytes += item.dataSize
             queuedNow++
             bytesNow += item.dataSize
         }
-        val pageSummary = CirqaFileAccessItemListParser.redactedSummary(page.items, syncGdxmlStrings) +
-            "; queued=$queuedNow; bytes=$bytesNow; session=${page.sessionId != null};" +
-            "nextTransaction=${page.nextTransactionId != null}"
+        val pageSummary =
+            "page=$syncListPageCount,status=${page.status ?: "unknown"},items=${page.items.size};" +
+                CirqaFileAccessItemListParser.redactedSummary(page.items, syncGdxmlStrings) +
+                "; queued=$queuedNow; bytes=$bytesNow; session=${page.sessionId != null};" +
+                "nextTransaction=${page.nextTransactionId != null}"
         syncItemSummary = (if (syncItemSummary.isEmpty()) "" else "$syncItemSummary|") +
             pageSummary
         syncItemSummary = syncItemSummary.take(1800)
@@ -1264,11 +1383,12 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
 
     private fun drainDeferredAcks(g: BluetoothGatt) {
         if (mlWritePending || deferredAckWrites.isEmpty()) return
-        send(g, deferredAckWrites.removeFirst())
+        val queued = deferredAckWrites.removeFirst()
+        send(g, queued.bytes, queued.syncTag)
     }
 
     @SuppressLint("MissingPermission")
-    private fun send(g: BluetoothGatt, bytes: ByteArray) {
+    private fun send(g: BluetoothGatt, bytes: ByteArray, syncTag: SyncWriteTag? = null) {
         if (!active || terminationRequested) return
         val char = tx ?: run { finish("ML-TX fehlt.", g); return }
         val mode = if (char.properties and BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE != 0)
@@ -1289,6 +1409,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             }
         )
         mlWritePending = true
+        pendingSyncWriteTag = if (mode == BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT) syncTag else null
         try {
             val ok = if (Build.VERSION.SDK_INT >= 33)
                 g.writeCharacteristic(char, bytes, mode) == BluetoothStatusCodes.SUCCESS
@@ -1301,8 +1422,11 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             }
             if (!ok) {
                 mlWritePending = false
+                pendingSyncWriteTag = null
+                onSyncWriteRejected(syncTag)
                 finish("ML-Schreibauftrag abgelehnt.", g)
             } else {
+                onSyncWriteAccepted(syncTag)
                 txTrace.record(
                     bytes,
                     if (mode == BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE)
@@ -1328,7 +1452,67 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     legacyCurrentFileIndex?.let(legacyRequestedIndices::add)
                 }
             }
-        } catch (_: SecurityException) { finish("Bluetooth-Berechtigung beim Schreiben fehlt.", g) }
+        } catch (_: SecurityException) {
+            mlWritePending = false
+            pendingSyncWriteTag = null
+            onSyncWriteRejected(syncTag)
+            finish("Bluetooth-Berechtigung beim Schreiben fehlt.", g)
+        }
+    }
+
+    private fun onSyncWriteAccepted(tag: SyncWriteTag?) {
+        when (tag) {
+            is SyncWriteTag.Pull -> {
+                syncPipelineLedger.record(tag.localId, CirqaSyncPipelineLedger.Stage.BLE_WRITE_ACCEPTED)
+                syncPullSent = true
+                syncTiming.start("item:${tag.localId}:transfer", CirqaSyncTiming.Stage.FILE_TRANSFER)
+            }
+            is SyncWriteTag.ItemList -> {
+                tag.continuation?.let { syncContinuationRequest.writeAccepted(tag.requestId) }
+                syncTiming.start(
+                    "list:${tag.requestId}",
+                    when (tag.continuation) {
+                        CirqaSyncContinuationRequest.Kind.SESSION_PAGE -> CirqaSyncTiming.Stage.SESSION_PAGE
+                        CirqaSyncContinuationRequest.Kind.TRANSACTION_FOLLOWUP ->
+                            CirqaSyncTiming.Stage.TRANSACTION_FOLLOWUP
+                        null -> CirqaSyncTiming.Stage.ITEM_LIST_RESPONSE
+                    }
+                )
+            }
+            is SyncWriteTag.Bootstrap -> syncTiming.start(
+                "bootstrap", CirqaSyncTiming.Stage.BOOTSTRAP
+            )
+            null -> Unit
+        }
+    }
+
+    private fun onSyncWriteRejected(tag: SyncWriteTag?) {
+        when (tag) {
+            is SyncWriteTag.Pull -> {
+                if (syncPipelineLedger.failWriteIfNoResponse(tag.localId)) {
+                    syncFailedFiles++
+                }
+                syncTiming.stop("item:${tag.localId}:transfer", CirqaSyncTiming.Stage.FILE_TRANSFER)
+            }
+            is SyncWriteTag.ItemList -> if (tag.continuation != null) {
+                syncContinuationRequest.writeRejected(tag.requestId)
+                syncTiming.stop("list:${tag.requestId}")
+            }
+            is SyncWriteTag.Bootstrap -> syncTiming.stop("bootstrap", CirqaSyncTiming.Stage.BOOTSTRAP)
+            null -> Unit
+        }
+    }
+
+    private fun onSyncWriteCallbackFailed(tag: SyncWriteTag?) {
+        when (tag) {
+            is SyncWriteTag.Pull -> if (
+                syncPipelineLedger.failWriteIfNoResponse(tag.localId)
+            ) syncFailedFiles++
+            is SyncWriteTag.ItemList -> if (tag.continuation != null) {
+                syncContinuationRequest.writeFailed(tag.requestId)
+            }
+            is SyncWriteTag.Bootstrap, null -> Unit
+        }
     }
 
     private fun receive(g: BluetoothGatt, bytes: ByteArray) {
@@ -2017,6 +2201,17 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         syncPullDiag = ""
         syncPendingItems.clear()
         syncCurrentItem = null
+        syncCurrentLocalItemId = null
+        syncCurrentPullRequestId = null
+        syncContinuationRequest.reset()
+        syncTerminalFinalizer.reset()
+        syncPipelineLedger.reset()
+        syncTiming.reset()
+        syncPullRequestItems.clear()
+        syncArchivedLocalIds.clear()
+        syncListRequestKinds.clear()
+        syncHandledResponseIds.clear()
+        syncSelectedFiles = 0
         syncNextRequestId = 3
         syncCompletedFiles = 0
         syncFailedFiles = 0
@@ -2029,6 +2224,9 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         syncListContinuation.reset()
         syncTransactionFollowupResponseItems = null
         syncListPageCount = 0
+        syncListedItemCount = 0
+        syncSessionPageRequestCount = 0
+        syncPullRequestsQueued = 0
         syncQueuedFiles = 0
         syncQueuedBytes = 0L
         syncSkippedFiles = 0
@@ -2045,6 +2243,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         bootstrapAckMode = true
         configurationTestMode = true
         historyDiagnosticMode = true
+        syncTiming.start("run", CirqaSyncTiming.Stage.RUN_TOTAL)
+        syncTiming.start("bootstrap", CirqaSyncTiming.Stage.BOOTSTRAP)
         start(false, result)
         if (!active) {
             emitSyncProgress(HistorySyncStage.FAILED)
@@ -2065,6 +2265,11 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             serial.postDelayed({
                 if (active && fileAccessListMode) {
                     // finish() builds the single canonical report (including validation).
+                    syncIncompleteReason = syncIncompleteReason ?: if (stopBeforePull) {
+                        "diagnostic-time-limit"
+                    } else {
+                        "session-time-limit"
+                    }
                     finish("${if (stopBeforePull) "40-s" else "120-s"}-Zeitlimit; $fileAccessDiag", gatt)
                 }
             }, if (stopBeforePull) 40_000L else CirqaSyntheticDownloadLimits.MAX_SESSION_MILLIS)
@@ -2187,7 +2392,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         serial.removeCallbacks(configurationTimeout)
         if (syncRequestMode) {
             mark("Sync-Request: sende genau einen Connect-kompatiblen 5043-sync_request")
-            send(g, CirqaSyncRequestCandidate.mlValue(handle, 1))
+            send(g, CirqaSyncRequestCandidate.mlValue(handle, 1), SyncWriteTag.Bootstrap(1))
         } else {
             mark("FileAccess-Liste: sende genau eine 5043-Item-List-Anfrage (read-only)")
             send(g, CirqaFileAccessListRequest.mlValue(handle, 1))
@@ -2238,7 +2443,11 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     queueAck(g, CirqaLegacy5043AckCandidate.mlGattValueCandidate(handle, id, offset, 5044))
                 }
             }
-            fileAccessReassembler.accept(frame)?.let { msg ->
+            fileAccessReassembler.acceptMessage(frame)?.let { completedMessage ->
+                val msg = completedMessage.payload
+                if (!syncHandledResponseIds.add(completedMessage.messageType to completedMessage.requestId)) {
+                    return@let
+                }
                 val report = "5044 vollständig, len=${msg.size}, " +
                     "shape=${CirqaProtobufShapeInspector.nestedShape(msg)}"
                 if (itemListRepeatabilityMode) {
@@ -2284,6 +2493,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                         return
                     }
                     if (syncResponse && !syncAccepted) {
+                        syncTiming.stop("bootstrap", CirqaSyncTiming.Stage.BOOTSTRAP)
                         // Connect keeps the connection open after sync_response: the device
                         // begins delivering buffered files only afterwards.
                         syncAccepted = true
@@ -2293,6 +2503,12 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     // An item_list_response carries real, readable items. Parse it and
                     // request the first one; UIDs stay in memory and are never reported.
                     CirqaFileAccessItemListParser.parsePullResult(msg)?.let { pull ->
+                        syncPullRequestItems[completedMessage.requestId]?.let { localId ->
+                            syncPipelineLedger.record(
+                                localId,
+                                CirqaSyncPipelineLedger.Stage.RESPONSE_RECEIVED
+                            )
+                        }
                         if (syncStopBeforePullMode) {
                             syncPullDiag = "unexpectedPullResponse=true; no MLR registration or file pull"
                             finish("Unerwartete Pull-Antwort; vor MLR und Datei-Pull gestoppt.", g)
@@ -2308,7 +2524,13 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                         if (pull.resultCode != 0L || pull.transport != 0L ||
                             pull.transferHandle !in 1..0xffff_ffffL
                         ) {
-                            syncFailedFiles++
+                            val failedLocalId = syncPullRequestItems[completedMessage.requestId]
+                            if (failedLocalId == null ||
+                                syncPipelineLedger.record(
+                                    failedLocalId,
+                                    CirqaSyncPipelineLedger.Stage.FAILED
+                                )
+                            ) syncFailedFiles++
                             syncFileResults = (syncFileResults + "pull-rejected;").take(1800)
                             finish("Pull-Antwort nicht erfolgreich; weitere Abrufe gestoppt.", g)
                         } else if (syncMlrRegistrationPending || mlrConfigureResponseSeen) {
@@ -2331,14 +2553,45 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                         }
                     }
                     CirqaFileAccessItemListParser.parsePage(msg)?.let { page ->
-                        appendSyncItemListPage(g, page)
+                        val hadOutstandingContinuation = syncContinuationRequest.isOutstanding()
+                        val knownListRequest = syncListRequestKinds.containsKey(completedMessage.requestId)
+                        val continuationKind = syncListRequestKinds.remove(completedMessage.requestId)
+                        if (knownListRequest) {
+                            syncTiming.stop("list:${completedMessage.requestId}")
+                        }
+                        if (hadOutstandingContinuation && continuationKind == null) {
+                            syncContinuationRequest.observeResponse(null, accepted = false)
+                            syncIncompleteReason = "continuation-response-correlation-unknown"
+                            finish("Item-List-Antwort nicht eindeutig zugeordnet; Stopp.", g)
+                            return
+                        }
+                        val pageAccepted = page.status == ITEM_LIST_SUCCESS_STATUS && page.complete
+                        if (continuationKind != null) {
+                            syncContinuationRequest.observeResponse(
+                                completedMessage.requestId,
+                                pageAccepted
+                            )
+                        }
+                        if (continuationKind != null && pageAccepted) {
+                            syncContinuationRequest.complete(completedMessage.requestId)
+                        }
+                        try {
+                            appendSyncItemListPage(g, page)
+                        } catch (_: Exception) {
+                            finish("Item-List-Verarbeitung fehlgeschlagen.", g)
+                        }
                         if (syncStopBeforePullMode) return
                     }
                     // Connect requests the pending file list only AFTER sync_response.
                     val handle = historyHandle
                     if (handle != null && !syncItemListSent) {
                         syncItemListSent = true
-                        queueAck(g, CirqaFileAccessListRequest.mlValue(handle, 2))
+                        syncListRequestKinds[2] = null
+                        queueAck(
+                            g,
+                            CirqaFileAccessListRequest.mlValue(handle, 2),
+                            SyncWriteTag.ItemList(2)
+                        )
                         serial.post { mark("Sync akzeptiert; FileAccess-Item-List nachgesendet") }
                     } else {
                         serial.post { mark("Sync akzeptiert ($report); beobachte weitere Frames") }
@@ -2890,6 +3143,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     /** Redacted integrity summary of the received MLR transfer. */
     private fun mlrValidation(): CirqaSyncFileCompletion.Result {
         emitSyncProgress(HistorySyncStage.VALIDATING)
+        val validationTimingKey = "item:${syncCurrentLocalItemId ?: 0}:validation"
+        syncTiming.start(validationTimingKey, CirqaSyncTiming.Stage.VALIDATION)
         fun notTransferred(detail: String, format: CirqaSyncFileCompletion.Format) =
             CirqaSyncFileCompletion.Result(
                 format = format,
@@ -2899,7 +3154,9 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                 decode = CirqaSyncFileCompletion.Stage.NOT_REACHED,
                 sqliteCommit = CirqaSyncFileCompletion.Stage.NOT_REACHED,
                 detail = detail
-            )
+            ).also {
+                syncTiming.stop(validationTimingKey, CirqaSyncTiming.Stage.VALIDATION)
+            }
 
         val data = mlrData.toByteArray()
         if (data.isEmpty()) return notTransferred(
@@ -2927,11 +3184,25 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         }
         val digest = java.security.MessageDigest.getInstance("SHA-256").digest(data)
         val sha = digest.copyOfRange(0, 6).joinToString("") { "%02x".format(it) }
+        syncTiming.stop(validationTimingKey, CirqaSyncTiming.Stage.VALIDATION)
         // Lossless original storage precedes FIT/quality filtering. Unknown formats,
         // unsupported fields and status-only records must remain available in SQLite.
+        val archiveTimingKey = "item:${syncCurrentLocalItemId ?: 0}:archive"
+        syncTiming.start(archiveTimingKey, CirqaSyncTiming.Stage.ARCHIVE)
         try {
-            CirqaDatabase(context).use {
+            val contentAlreadyPresent = CirqaDatabase(context).use {
                 it.archiveDownloadedFile(data, item.referenceBytes, label, System.currentTimeMillis())
+            }
+            syncCurrentLocalItemId?.let { localId ->
+                syncArchivedLocalIds.add(localId)
+                syncPipelineLedger.record(
+                    localId,
+                    if (contentAlreadyPresent) {
+                        CirqaSyncPipelineLedger.Stage.ARCHIVE_CONTENT_PREEXISTED
+                    } else {
+                        CirqaSyncPipelineLedger.Stage.ARCHIVE_CONTENT_NEW
+                    }
+                )
             }
         } catch (e: Exception) {
             return CirqaSyncFileCompletion.Result(
@@ -2943,6 +3214,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                 sqliteCommit = CirqaSyncFileCompletion.Stage.FAILED,
                 detail = "exactSize=true;originalSqliteArchive=failed:${e.javaClass.simpleName}"
             )
+        } finally {
+            syncTiming.stop(archiveTimingKey, CirqaSyncTiming.Stage.ARCHIVE)
         }
         // A zlib-compressed FIT is not readable by FitFileHeader. Try the bounded
         // offline decoder only when the received bytes are not already a valid FIT
@@ -2950,12 +3223,17 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         // full FIT header/CRC verification. Nothing is stored or imported before
         // that check succeeds. For incremental assembly, data already contains
         // the complete raw or inflated file; size and SHA describe that file.
-        val zlibDecoded = if (FitFileHeader.inspectVerified(data) == null &&
+        val fitIntegrityTimingKey = "item:${syncCurrentLocalItemId ?: 0}:validation-integrity"
+        syncTiming.start(fitIntegrityTimingKey, CirqaSyncTiming.Stage.VALIDATION)
+        val rawFitVerified = FitFileHeader.inspectVerified(data) != null
+        val zlibDecoded = if (!rawFitVerified &&
             CirqaZlibFileDecoder.isZlibCandidate(data)
         ) {
             CirqaZlibFileDecoder.decode(data)?.takeIf { FitFileHeader.inspectVerified(it) != null }
         } else null
         val fitData = zlibDecoded ?: data
+        val fitVerified = rawFitVerified || zlibDecoded != null
+        syncTiming.stop(fitIntegrityTimingKey, CirqaSyncTiming.Stage.VALIDATION)
         val zlibMark = when {
             mlrFileAssembler?.mode == CirqaMlrFileTransferAssembler.Mode.ZLIB ->
                 "zlib=assembled(${data.size})"
@@ -2964,8 +3242,13 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         }
         if (!declaredFit && !looksFit && zlibDecoded == null) {
             val saved = try {
-                CirqaVerifiedRawFileStore(java.io.File(context.filesDir, "verified_raw"))
-                    .saveExact(data, item.dataSize)
+                measureSyncStage(
+                    "item:${syncCurrentLocalItemId ?: 0}:storage",
+                    CirqaSyncTiming.Stage.STORAGE
+                ) {
+                    CirqaVerifiedRawFileStore(java.io.File(context.filesDir, "verified_raw"))
+                        .saveExact(data, item.dataSize)
+                }
             } catch (e: Exception) {
                 return CirqaSyncFileCompletion.Result(
                     format = CirqaSyncFileCompletion.Format.NON_FIT,
@@ -3010,10 +3293,15 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     "sha256=$sha;privateRaw=${if (saved.alreadyPresent) "ALREADY_PRESENT" else "CREATED"};$metadataIndex"
             )
         }
-        if (FitFileHeader.inspectVerified(fitData) == null) {
+        if (!fitVerified) {
             val savedRaw = try {
-                CirqaVerifiedRawFileStore(java.io.File(context.filesDir, "verified_raw"))
-                    .saveExact(data, item.dataSize)
+                measureSyncStage(
+                    "item:${syncCurrentLocalItemId ?: 0}:storage",
+                    CirqaSyncTiming.Stage.STORAGE
+                ) {
+                    CirqaVerifiedRawFileStore(java.io.File(context.filesDir, "verified_raw"))
+                        .saveExact(data, item.dataSize)
+                }
             } catch (e: Exception) {
                 return CirqaSyncFileCompletion.Result(
                     format = CirqaSyncFileCompletion.Format.FIT,
@@ -3039,8 +3327,13 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             )
         }
         val saved = try {
-            CirqaVerifiedFitStore(java.io.File(context.filesDir, "verified_fit"))
-                .saveVerified(fitData)
+            measureSyncStage(
+                "item:${syncCurrentLocalItemId ?: 0}:storage",
+                CirqaSyncTiming.Stage.STORAGE
+            ) {
+                CirqaVerifiedFitStore(java.io.File(context.filesDir, "verified_fit"))
+                    .saveVerified(fitData)
+            }
         } catch (e: Exception) {
             return CirqaSyncFileCompletion.Result(
                 format = CirqaSyncFileCompletion.Format.FIT,
@@ -3053,7 +3346,13 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     "sha256=$sha;privateSaveFailed=${e.javaClass.simpleName}"
             )
         }
-        val decoded = FitHistoricalObservations.decode(fitData)
+        val fitDecodeTimingKey = "item:${syncCurrentLocalItemId ?: 0}:fit-decode"
+        syncTiming.start(fitDecodeTimingKey, CirqaSyncTiming.Stage.FIT_IMPORT)
+        val decoded = try {
+            FitHistoricalObservations.decode(fitData)
+        } finally {
+            syncTiming.stop(fitDecodeTimingKey, CirqaSyncTiming.Stage.FIT_IMPORT)
+        }
             ?: return CirqaSyncFileCompletion.Result(
                 format = CirqaSyncFileCompletion.Format.FIT,
                 transfer = CirqaSyncFileCompletion.Stage.SUCCEEDED,
@@ -3069,9 +3368,24 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                 it.timestampEpochMillis != null
         }
         emitSyncProgress(HistorySyncStage.IMPORTING)
+        val fitImportTimingKey = "item:${syncCurrentLocalItemId ?: 0}:fit-import"
+        val sqliteTimingKey = "item:${syncCurrentLocalItemId ?: 0}:sqlite-commit"
+        syncTiming.start(fitImportTimingKey, CirqaSyncTiming.Stage.FIT_IMPORT)
         val imported = try {
             CirqaDatabase(context).use { store ->
-                CirqaFitBackfill.importVerifiedFile(saved.file, store)
+                CirqaFitBackfill.importDecodedVerifiedFile(
+                    saved.file,
+                    fitData,
+                    decoded,
+                    store,
+                    onBeforeSqliteCommit = {
+                        syncTiming.stop(fitImportTimingKey, CirqaSyncTiming.Stage.FIT_IMPORT)
+                        syncTiming.start(sqliteTimingKey, CirqaSyncTiming.Stage.SQLITE_COMMIT)
+                    },
+                    onAfterSqliteCommit = {
+                        syncTiming.stop(sqliteTimingKey, CirqaSyncTiming.Stage.SQLITE_COMMIT)
+                    }
+                )
                     ?: error("verified FIT became invalid before SQLite import")
             }
         } catch (e: Exception) {
@@ -3087,6 +3401,9 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     "sha256=$sha;privateFit=${saved.outcome};observations=${decoded.observations.size};" +
                     "importable=${importable.size};sqlite=failed:${e.javaClass.simpleName}"
             )
+        } finally {
+            syncTiming.stop(fitImportTimingKey, CirqaSyncTiming.Stage.FIT_IMPORT)
+            syncTiming.stop(sqliteTimingKey, CirqaSyncTiming.Stage.SQLITE_COMMIT)
         }
         return CirqaSyncFileCompletion.Result(
             format = CirqaSyncFileCompletion.Format.FIT,
@@ -3108,6 +3425,19 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         Handler(Looper.getMainLooper()).post { callback(progress) }
     }
 
+    private inline fun <T> measureSyncStage(
+        key: String,
+        stage: CirqaSyncTiming.Stage,
+        block: () -> T
+    ): T {
+        syncTiming.start(key, stage)
+        return try {
+            block()
+        } finally {
+            syncTiming.stop(key, stage)
+        }
+    }
+
     @SuppressLint("MissingPermission")
     private fun safeClose(g: BluetoothGatt?) {
         if (g == null) return
@@ -3116,16 +3446,32 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     }
     private fun finish(message: String, g: BluetoothGatt?) {
         if (!active || terminationRequested) return
+        // Fence asynchronous GATT callbacks before snapshotting any state.
+        terminationRequested = true
+        if (syncRequestMode) {
+            if (message.startsWith("120-s-Zeitlimit") || message.startsWith("40-s-Zeitlimit")) {
+                syncContinuationRequest.timeout()
+            } else {
+                syncContinuationRequest.abort()
+            }
+            syncTiming.stopAll()
+        }
         if (syncRequestMode && syncFinalReport.isEmpty()) {
+            syncFinalReport = syncTerminalFinalizer.finish(
+                build = {
             val counts = syncFrameCounts.entries.sortedBy { it.key }
                 .joinToString(",") { "${it.key}x${it.value}" }
+            val continuationState = syncContinuationRequest.terminalLabel()
+            val continuationNormallyResolved = syncContinuationRequest.isNormallyResolved()
             val runDrained = syncAccepted && syncIncompleteReason == null &&
                 syncFailedFiles == 0 && syncPendingItems.isEmpty() && syncCurrentItem == null &&
-                syncPageSessionId == null && syncPageNextTransactionId == null
+                syncPageSessionId == null && syncPageNextTransactionId == null &&
+                continuationNormallyResolved
             val incompleteReason = syncIncompleteReason ?: when {
                     !syncAccepted -> "sync-not-accepted"
                     syncFailedFiles > 0 -> "file-processing-failed"
                     syncStopBeforePullMode -> "diagnostic-stop-before-pull"
+                    !continuationNormallyResolved -> "continuation-request-$continuationState"
                     !runDrained -> "transfer-not-drained"
                     else -> "none"
                 }
@@ -3134,13 +3480,40 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     "stages=[${syncFileStageCounts.redactedSummary()}],queued=${syncPendingItems.size}," +
                     "transactionFollowups=${syncListContinuation.transactionFollowups}," +
                     "transactionFollowupResponseItems=${syncTransactionFollowupResponseItems ?: "none"}," +
-                    "selected=$syncQueuedFiles,selectedBytes=$syncQueuedBytes,skipped=$syncSkippedFiles," +
-                    "pages=$syncListPageCount,currentBytes=${mlrData.size()},details=$syncFileResults"
+                    "selected=$syncSelectedFiles,queuedTotal=$syncQueuedFiles,selectedBytes=$syncQueuedBytes,skipped=$syncSkippedFiles," +
+                    "pages=$syncListPageCount,currentBytes=${mlrData.size()},details=$syncFileResults," +
+                    "pipeline=[${syncPipelineLedger.summary()}],pipelineItems=[${syncPipelineLedger.orderedSummary()}]," +
+                    "pipelineStageOrder=selected,queued,ble-write-accepted,response-received,transfer-completed," +
+                    "integrity-verified,archived,archive-content-preexisted,archive-content-new," +
+                    "fit-decoded,sqlite-committed,successful,failed;" +
+                    "pipelineEncoding=hex-bitset-lsb-first," +
+                    "timing=[measured:${syncTiming.redactedSummary()}]," +
+                    "itemTiming=[${syncTiming.perItemSummary()}]"
+            val terminalEvidence = CirqaSyncTerminalEvidence.Snapshot(
+                terminalCause = CirqaSyncTerminalEvidence.cause(message, incompleteReason, runDrained),
+                listResponses = syncListPageCount,
+                listedItems = syncListedItemCount,
+                sessionPageRequestsQueued = syncSessionPageRequestCount,
+                transactionFollowupsQueued = syncListContinuation.transactionFollowups,
+                lastTransactionResponseItems = syncTransactionFollowupResponseItems,
+                selectedItems = syncSelectedFiles,
+                pullRequestsQueued = syncPullRequestsQueued,
+                completedItems = syncCompletedFiles,
+                failedItems = syncFailedFiles,
+                pendingQueueItems = syncPendingItems.size,
+                currentItemPresent = syncCurrentItem != null,
+                currentExpectedBytes = syncExpectedSize,
+                currentReceivedBytes = mlrData.size(),
+                sessionCursorPresent = syncPageSessionId != null,
+                transactionTokenPresent = syncPageNextTransactionId != null,
+                continuationRequestState = continuationState,
+                currentItemOrdinal = syncCurrentLocalItemId
+            ).format()
             val diagnostics =
-                "$syncPullDiag; $mlrDiag; mlr=[chunks=$mlrChunks,bytes=$mlrBytes]; " +
-                    "validate=[${if (syncCurrentItem != null) mlrValidation().redactedSummary() else "complete"}]; " +
+                    "$syncPullDiag; $mlrDiag; mlr=[chunks=$mlrChunks,bytes=$mlrBytes]; " +
+                    "validate=[${if (syncCurrentItem != null) "in-flight-not-yet-validated" else "complete"}]; " +
                     "frames=$counts; proto=[$syncProtoShapes]"
-            syncFinalReport = CirqaSyncRunReport.format(
+            CirqaSyncRunReport.format(
                 CirqaSyncRunReport.Overview(
                     runIdentity = CirqaSyncRunIdentity.reportField(syncSessionId),
                     message = message,
@@ -3151,15 +3524,27 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     itemListSent = syncItemListSent,
                     pullSent = syncPullSent,
                     fileSummary = fileSummary,
+                    terminalEvidence = terminalEvidence,
                     itemSummary = syncItemSummary,
                     diagnostics = diagnostics
                 )
             )
+                },
+                fallback = {
+                    "Sync-Beobachtung: ${CirqaSyncRunIdentity.reportField(syncSessionId)}; " +
+                        "terminalCause=diagnostic-failed; runDrained=false; " +
+                        "incompleteReason=diagnostic-failed; accepted=$syncAccepted; " +
+                        "files=[successful=$syncCompletedFiles,selected=$syncSelectedFiles," +
+                        "notSuccessful=$syncFailedFiles]"
+                }
+            )
         }
         if (syncRequestMode) {
-            emitSyncProgress(HistorySyncProgress.fromReport(syncFinalReport).stage)
+            val terminalProgress = runCatching {
+                HistorySyncProgress.fromReport(syncFinalReport).stage
+            }.getOrDefault(HistorySyncStage.FINISHED_INCOMPLETE)
+            emitSyncProgress(terminalProgress)
         }
-        terminationRequested = true
         legacy5030Only?.let { it.abort(it.token) }
         passive5050Session.stop()
         serial.post {

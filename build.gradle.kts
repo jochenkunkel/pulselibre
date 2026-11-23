@@ -10,15 +10,15 @@ buildscript {
         constraints {
             classpath("com.google.guava:guava:33.7.2-jre") { because("Dependabot #8") }
             classpath("org.bouncycastle:bcprov-jdk18on:1.85") { because("Dependabot #6, #7") }
-            classpath("org.bouncycastle:bcpkix-jdk18on:1.85") { because("Dependabot #5") }
+            classpath("org.bouncycastle:bcpkix-jdk18on:1.87") { because("Dependabot #5") }
             classpath("org.bouncycastle:bcutil-jdk18on:1.85") { because("keep all Bouncy Castle modules on one version") }
             classpath("org.bitbucket.b_c:jose4j:0.9.6") { because("Dependabot #4") }
             classpath("org.jdom:jdom2:2.0.6.1") { because("Dependabot #3") }
-            classpath("org.apache.commons:commons-lang3:3.18.0") { because("Dependabot #2") }
+            classpath("org.apache.commons:commons-lang3:3.22.0") { because("Dependabot #2") }
             classpath("org.apache.httpcomponents:httpclient:4.5.14") { because("Dependabot #1") }
         }
     }
 }
 plugins {
-    id("com.android.application") version "9.5.1" apply false
+    id("com.android.application") version "9.5.2" apply false
 }
