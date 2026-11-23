@@ -7,13 +7,13 @@
   Nachher-Backup privat erstellt und geprüft. Ein manueller Bestätigungstap
   nach Fix; Terminalstatus **unvollständig, 36/37 Dateien**. Kein manueller
   Retry. S10-Lease anschließend FREI.
-- Wichtige Abweichung: Build 1989 löst beim App-Start automatisch Historien-
-  Sync aus. GUI meldet während #529 einen automatischen 2/37-Lauf. In der
-  FIT-Sitzung war nach App-Start ebenfalls ein frischer 36/37-Status sichtbar,
-  bevor der eine manuelle Lauf bestätigt wurde. Damit wurde die strikte
-  Ein-Request-Grenze über App-Starts nicht eingehalten. Kein weiterer Request
-  wurde ausgelöst; vor einem nächsten Gerätetest Auto-Sync zuerst koordinieren/
-  deaktivieren oder bewusst als einzigen Lauf verwenden.
+- Wichtige Zählgrenze: GUI meldet während #529 einen automatischen 2/37-Lauf
+  vor der Übergabe. In der FIT-Sitzung war nach App-Start ein frischer 36/37-
+  Status sichtbar, bevor der eine manuelle Lauf bestätigt wurde; dieser Status
+  allein beweist keinen separaten Request. Ein manueller Request ist sicher,
+  die app-entry Request-Anzahl in der FIT-Sitzung bleibt unbestätigt. Kein
+  weiterer Request wurde ausgelöst; vor einem nächsten Gerätetest Auto-Sync
+  zuerst koordinieren oder bewusst als einzigen Lauf verwenden.
 - Aggregierter Vorher/Nachher-Befund (privat/offline): 38 Originale und
   642709 Bytes in beiden Backups; 0 neue Inhaltsversionen; Referenzen 40→74
   (+34); 28668 kanonische Beobachtungen unverändert, 0 hinzugefügt/entfernt.
@@ -24,8 +24,9 @@
 - Ergebnisgrenze: Freshness-Skip ist behoben, aber die jüngsten Daten kamen in
   diesem Lauf nicht nachweisbar an; eine von 37 Dateien fehlte. Vollständige
   Gerätehistorie und Ursachenhypothese bleiben offen. Kein Erfolg behauptet.
-- Datenschutz: Backups und Zeitreihen blieben in privaten, mode-0600-Dateien;
-  keine persönlichen Rohdaten/Screenshots wurden committet.
+- Datenschutz: App-exportierte Backups und Zeitreihen blieben in privaten,
+  mode-0600-Hostdateien; es wurde keine app-private DB via ADB gelesen. Keine
+  persönlichen Rohdaten/Screenshots wurden committet.
 - Übergabe an GUI/CI: App-entry Auto-Sync kollidiert mit expliziter Testzählung;
   bitte vor nächstem kontrollierten Transfer ein eindeutiges Single-run-Gate
   koordinieren. #529-Recorderzustand laut GUI ENDE: Aufzeichnung aus, S10 frei.
