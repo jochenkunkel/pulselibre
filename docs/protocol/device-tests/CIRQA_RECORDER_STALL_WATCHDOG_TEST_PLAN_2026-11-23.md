@@ -1,6 +1,6 @@
 # Testplan: Stillstands-Wächter der Daueraufzeichnung (#529, #25)
 
-Status: **Plan, nicht freigegeben, nicht gestartet.** Der Test startet erst nach ausdrücklicher Freigabe des Nutzers.
+Status: **Freigabe durch den Nutzer am 23.11.2026 (gilt für den Tag); erster Lauf 06:54–07:04 UTC abgebrochen (Fremdinstallation ohne Lease, danach Freigabe des Geräts auf Nutzerwunsch), nach ca. 5 min, ohne Ergebnis. #529 bleibt offen; Wiederholung unter Lease (ETA 40 min) steht aus.** Gerät aktuell FREI.
 Gerät: S10 (`RF8M826126Z`) mit dem Band; Build: signierter Build von `main` mit PR #525.
 
 ## 1. Was getestet wird
