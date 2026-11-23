@@ -49,6 +49,7 @@ public final class CirqaRemoteFreshnessRepro {
         if (!condition) throw new AssertionError(message);
     }
     public static void main(String[] args) throws Exception {
+        boolean expectFixed = java.util.Arrays.asList(args).contains("--expect-fixed");
         Map<String, String> storage = new HashMap<>();
         var manifest = new CirqaTargetedPullManifest(new CirqaTargetedPullManifest.Storage() {
             public String get(String key) { return storage.get(key); }
@@ -83,11 +84,14 @@ public final class CirqaRemoteFreshnessRepro {
         require(changedSize != null, "control identity missing");
         boolean pullChangedSize = CirqaTargetedPullPolicy.INSTANCE.shouldPull(
             changedSize.getPolicyIdentity(), Collections.singletonList(completed));
-        require(!pullChanged && pullChangedSize, "characterization changed; review policy");
+        require(pullChanged == expectFixed && pullChangedSize,
+            "Unexpected selection result for requested baseline/fixed mode");
         System.out.println("remote_content_changed=true; remote_size_changed=false");
         System.out.println("remote_transaction_and_modified_time_changed=true");
-        System.out.println("manifest_identity_changed=false; shouldPullChangedContent=false");
+        System.out.println("manifest_identity_changed=false; shouldPullChangedContent=" + pullChanged);
         System.out.println("control_changed_size_shouldPull=true");
-        System.out.println("REPRODUCED: local integrity + repeated metadata do not prove remote freshness");
+        System.out.println(expectFixed
+            ? "FIX_VERIFIED: changed same-size remote contents are pulled"
+            : "REPRODUCED: local integrity + repeated metadata do not prove remote freshness");
     }
 }

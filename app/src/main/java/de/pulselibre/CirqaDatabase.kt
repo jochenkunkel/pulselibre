@@ -13,7 +13,7 @@ import java.security.MessageDigest
  * UNIQUE SHA-256 of each full line makes repeated imports idempotent.
  */
 class CirqaDatabase(private val contextRef: Context) :
-    SQLiteOpenHelper(contextRef, "cirqa_measurements.db", null, 9), FitObservationStore {
+    SQLiteOpenHelper(contextRef, "cirqa_measurements.db", null, 10), FitObservationStore {
 
     override fun onConfigure(db: SQLiteDatabase) {
         super.onConfigure(db)
@@ -41,11 +41,12 @@ class CirqaDatabase(private val contextRef: Context) :
         createFitReviewCandidateSchema(db)
         createLiveDeviceMetadataSchema(db)
         createObservationQualitySchema(db)
+        DownloadedFileArchive.create(db)
         backfillLiveFromFit(db)
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-        require(oldVersion in 1..8 && newVersion == 9)
+        require(oldVersion in 1..9 && newVersion == 10)
         if (oldVersion < 6) {
           if (oldVersion <= 2) {
             if (oldVersion == 1) {
@@ -87,6 +88,43 @@ class CirqaDatabase(private val contextRef: Context) :
             createObservationQualitySchema(db)
             rebuildObservationQuality(db)
         }
+        DownloadedFileArchive.create(db)
+    }
+
+    /** Preserve every received file before any semantic filtering. */
+    fun archiveDownloadedFile(bytes: ByteArray, reference: ByteArray, label: String, at: Long) {
+        val db = writableDatabase
+        db.beginTransaction()
+        try {
+            DownloadedFileArchive.store(db, bytes, reference, label, at)
+            db.setTransactionSuccessful()
+        } finally {
+            db.endTransaction()
+        }
+    }
+
+    /** Offline migration of existing content-addressed originals; never touches the band. */
+    fun archiveExistingDownloads(): Int {
+        var count = 0
+        for ((name, suffix) in listOf("verified_fit" to ".fit", "verified_raw" to ".bin")) {
+            val directory = java.io.File(contextRef.filesDir, name)
+            if (!directory.isDirectory || java.nio.file.Files.isSymbolicLink(directory.toPath())) continue
+            for (file in directory.listFiles().orEmpty()) {
+                if (!file.isFile || java.nio.file.Files.isSymbolicLink(file.toPath()) ||
+                    !file.name.matches(Regex("[0-9a-f]{64}" + Regex.escape(suffix))) ||
+                    file.length() !in 1..DownloadedFileArchive.MAX_BYTES.toLong()) continue
+                val sha = file.name.removeSuffix(suffix)
+                val archived = readableDatabase.rawQuery(
+                    "SELECT 1 FROM downloaded_files WHERE content_sha256=? AND file_bytes=?",
+                    arrayOf(sha, file.length().toString())).use { it.moveToFirst() }
+                if (archived) continue
+                val bytes = file.readBytes()
+                check(DownloadedFileArchive.sha256(bytes) == sha) { "Local original hash mismatch" }
+                archiveDownloadedFile(bytes, byteArrayOf(), name, file.lastModified().coerceAtLeast(0))
+                count++
+            }
+        }
+        return count
     }
 
     /**
@@ -1450,10 +1488,13 @@ class CirqaDatabase(private val contextRef: Context) :
         canonicalFitReviewCandidates: Sequence<StoredFitReviewCandidate> = emptySequence(),
         liveDeviceMetadata: Sequence<LiveDeviceMetadata> = emptySequence(),
         generationSnapshotProvided: Boolean = false,
-        markHistoricalCopyComplete: Boolean = false
+        markHistoricalCopyComplete: Boolean = false,
+        downloadedFiles: Sequence<DownloadedFileArchive.Row> = emptySequence()
     ) = withLegacyDatabase { db ->
         db.beginTransaction()
         try {
+            db.execSQL("DELETE FROM main.downloaded_file_references")
+            db.execSQL("DELETE FROM main.downloaded_files")
             db.execSQL("DELETE FROM main.events")
             db.execSQL("DELETE FROM main.fit_active_generations")
             db.execSQL("DELETE FROM main.fit_review_candidates")
@@ -1890,6 +1931,7 @@ class CirqaDatabase(private val contextRef: Context) :
             // #144: quality is a deterministic projection of the restored generations.
             // Rebuilding inside the same transaction keeps the v8 backup format lossless.
             rebuildObservationQuality(db)
+            DownloadedFileArchive.consume(downloadedFiles, db)
             db.setTransactionSuccessful()
         } finally {
             db.endTransaction()

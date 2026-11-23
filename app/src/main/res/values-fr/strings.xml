@@ -555,7 +555,7 @@
     <string name="ex_backup_cancelled">Sauvegarde annulée.</string>
     <string name="ex_backup_running">Création de la sauvegarde …</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
-    <string name="ex_backup_done">Sauvegarde enregistrée : %1$d événements, %2$d mesures historiques, %3$d sources FIT historiques/%4$d lignes de provenance ; %5$d mesures canoniques, %6$d sources FIT canoniques/%7$d lignes de provenance et %8$d lignes de métadonnées FIT, %9$d lignes de métadonnées XML brutes dérivées. Les fichiers originaux ne sont pas inclus ; aucun chemin ni identifiant XML n’est enregistré.</string>
+    <string name="ex_backup_done">Sauvegarde enregistrée : %1$d événements, %2$d mesures historiques, %3$d sources FIT historiques/%4$d lignes de provenance ; %5$d mesures canoniques, %6$d sources FIT canoniques/%7$d lignes de provenance et %8$d lignes de métadonnées FIT, %9$d lignes de métadonnées XML brutes dérivées. Les contenus originaux archivés disponibles sont inclus et peuvent contenir des identifiants sensibles.</string>
     <string name="ex_backup_failed">Échec de la sauvegarde. Vérifiez l’emplacement ; un fichier cible créé peut être incomplet et devrait être supprimé.</string>
     <string name="ex_backup_checking">Vérification de la sauvegarde …</string>
     <string name="ex_backup_invalid">Sauvegarde non valide ou illisible. Base de données inchangée.</string>
@@ -589,7 +589,7 @@
     <string name="ex_local_only">Uniquement sur votre appareil · Pas de cloud · Pas de connexion</string>
     <string name="ex_db_title">Base de données locale</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
-    <string name="ex_db_note">La sauvegarde contient des événements CIRQA, des mesures historiques et des états de synchronisation. Le fichier ZIP n’est pas chiffré et contient des données de santé sensibles.</string>
+    <string name="ex_db_note">La sauvegarde contient des événements CIRQA, des mesures historiques, des états de synchronisation et les contenus originaux archivés disponibles, y compris des champs inconnus et des identifiants. Le ZIP n’est pas chiffré et contient des données de santé et d’appareil sensibles.</string>
     <string name="ex_btn_backup">Créer une sauvegarde</string>
     <string name="ex_btn_backup_cd">Créer une sauvegarde locale de la base de données</string>
     <string name="ex_btn_fit">Exporter les originaux FIT</string>

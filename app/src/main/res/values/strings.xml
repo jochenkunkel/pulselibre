@@ -555,7 +555,7 @@
     <string name="ex_backup_cancelled">Backup cancelled.</string>
     <string name="ex_backup_running">Creating backup …</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
-    <string name="ex_backup_done">Backup saved: %1$d events, %2$d historical readings, %3$d historical FIT sources/%4$d provenance rows; %5$d canonical readings, %6$d canonical FIT sources/%7$d provenance rows and %8$d FIT metadata rows, %9$d derived raw XML metadata rows. Original files are not included; no paths or XML IDs are stored.</string>
+    <string name="ex_backup_done">Backup saved: %1$d events, %2$d historical readings, %3$d historical FIT sources/%4$d provenance rows; %5$d canonical readings, %6$d canonical FIT sources/%7$d provenance rows and %8$d FIT metadata rows, %9$d derived raw XML metadata rows. Available archived original contents are included and may contain sensitive identifiers.</string>
     <string name="ex_backup_failed">Backup failed. Please check the storage location; a created target file may be incomplete and should be deleted.</string>
     <string name="ex_backup_checking">Checking backup …</string>
     <string name="ex_backup_invalid">Backup invalid or not readable. Database unchanged.</string>
@@ -589,7 +589,7 @@
     <string name="ex_local_only">Only on your device · No cloud · No sign-in</string>
     <string name="ex_db_title">Local database</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
-    <string name="ex_db_note">A backup contains CIRQA events, historical readings and synchronization states. The ZIP file is not encrypted and contains sensitive health data.</string>
+    <string name="ex_db_note">A backup contains CIRQA events, historical readings, synchronization states and available archived original contents, including unknown fields and identifiers. The ZIP file is not encrypted and contains sensitive health and device data.</string>
     <string name="ex_btn_backup">Create backup</string>
     <string name="ex_btn_backup_cd">Create a local database backup</string>
     <string name="ex_btn_fit">Export FIT originals</string>
@@ -612,7 +612,7 @@
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="ex_restore_title">Replace database?</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
-    <string name="ex_restore_msg">The backup from %1$s contains %2$d events, %3$d historical readings, %4$d synchronization states, %5$d FIT sources and %6$d FIT provenance rows. %7$d canonical readings and %8$d canonical FIT sources/%9$d provenance rows as well as %10$d FIT metadata rows and %11$d derived raw XML metadata rows. Original files are not included; paths and XML IDs are not backed up.\n\nAll currently stored database entries will be replaced. App settings are kept. Only continue with a backup from a trusted source.</string>
+    <string name="ex_restore_msg">The backup from %1$s contains %2$d events, %3$d historical readings, %4$d synchronization states, %5$d FIT sources and %6$d FIT provenance rows. %7$d canonical readings and %8$d canonical FIT sources/%9$d provenance rows as well as %10$d FIT metadata rows and %11$d derived raw XML metadata rows. New backups may also include archived original contents and sensitive identifiers.\n\nAll currently stored database entries will be replaced. App settings are kept. Only continue with a backup from a trusted source.</string>
     <string name="ex_replace">Replace</string>
     <string name="ex_restore_cancelled">Restore cancelled.</string>
     <string name="ex_restore_running">Restoring database …</string>

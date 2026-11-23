@@ -555,7 +555,7 @@
     <string name="ex_backup_cancelled">Copia de seguridad cancelada.</string>
     <string name="ex_backup_running">Creando la copia de seguridad …</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
-    <string name="ex_backup_done">Copia de seguridad guardada: %1$d eventos, %2$d mediciones históricas, %3$d fuentes FIT históricas/%4$d filas de procedencia; %5$d mediciones canónicas, %6$d fuentes FIT canónicas/%7$d filas de procedencia y %8$d filas de metadatos FIT, %9$d filas de metadatos XML sin procesar derivadas. Los archivos originales no están incluidos; no se guardan rutas ni identificadores XML.</string>
+    <string name="ex_backup_done">Copia de seguridad guardada: %1$d eventos, %2$d mediciones históricas, %3$d fuentes FIT históricas/%4$d filas de procedencia; %5$d mediciones canónicas, %6$d fuentes FIT canónicas/%7$d filas de procedencia y %8$d filas de metadatos FIT, %9$d filas de metadatos XML sin procesar derivadas. Se incluyen los contenidos originales archivados disponibles, que pueden contener identificadores sensibles.</string>
     <string name="ex_backup_failed">Error en la copia de seguridad. Comprueba la ubicación; un archivo de destino creado puede estar incompleto y debería borrarse.</string>
     <string name="ex_backup_checking">Comprobando la copia de seguridad …</string>
     <string name="ex_backup_invalid">Copia de seguridad no válida o ilegible. Base de datos sin cambios.</string>
@@ -589,7 +589,7 @@
     <string name="ex_local_only">Solo en tu dispositivo · Sin nube · Sin inicio de sesión</string>
     <string name="ex_db_title">Base de datos local</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
-    <string name="ex_db_note">La copia de seguridad contiene eventos CIRQA, mediciones históricas y estados de sincronización. El archivo ZIP no está cifrado y contiene datos de salud sensibles.</string>
+    <string name="ex_db_note">La copia contiene eventos CIRQA, mediciones históricas, estados de sincronización y contenidos originales archivados disponibles, incluidos campos desconocidos e identificadores. El ZIP no está cifrado y contiene datos sensibles de salud y del dispositivo.</string>
     <string name="ex_btn_backup">Crear copia de seguridad</string>
     <string name="ex_btn_backup_cd">Crear una copia de seguridad local de la base de datos</string>
     <string name="ex_btn_fit">Exportar los originales FIT</string>

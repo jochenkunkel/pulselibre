@@ -1,6 +1,5 @@
 package de.pulselibre
 
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -18,11 +17,11 @@ class CirqaTargetedPullPolicyTest {
         assertTrue(CirqaTargetedPullPolicy.shouldPull(identity, emptyList()))
     }
 
-    @Test fun successfulImportIsSkippedOnlyForVerifiedStableIdentity() {
+    @Test fun successfulLocalImportAndRepeatedMetadataDoNotProveRemoteFreshness() {
         val entry = CirqaTargetedPullPolicy.CompletedImport(
             identity, "a".repeat(64), importSucceeded = true, uidStabilityEvidence = stableEvidence
         )
-        assertFalse(CirqaTargetedPullPolicy.shouldPull(identity, listOf(entry)))
+        assertTrue(CirqaTargetedPullPolicy.shouldPull(identity, listOf(entry)))
     }
 
     @Test fun insufficientStabilityEvidenceStillPullsAfterSuccessfulImport() {

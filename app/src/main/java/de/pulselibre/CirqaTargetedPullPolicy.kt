@@ -3,11 +3,9 @@ package de.pulselibre
 import java.security.MessageDigest
 
 /**
- * Fail-safe selection for a future persisted remote-item manifest.
- *
- * A matching UID is not sufficient by itself: callers may skip only when the
- * UID is known to be stable across sync sessions and the corresponding import
- * completed successfully. Otherwise the item must be pulled.
+ * Remote metadata is not a content revision. Even repeated UID/type/size/flags
+ * plus a verified LOCAL import cannot prove that the BAND contents are unchanged.
+ * Pull first; content-addressed storage/import deduplicates the received bytes.
  */
 object CirqaTargetedPullPolicy {
     data class ItemIdentity(
@@ -24,22 +22,12 @@ object CirqaTargetedPullPolicy {
         val uidStabilityEvidence: CirqaUidStabilityEvidence?
     )
 
+    @Suppress("UNUSED_PARAMETER")
     fun shouldPull(
         identity: ItemIdentity,
         completedImports: Collection<CompletedImport>
     ): Boolean {
-        if (identity.uidKey.isBlank() || identity.dataTypeKey.isBlank() || identity.dataSize <= 0L) {
-            return true
-        }
-        return completedImports.none { completed ->
-            completed.identity == identity &&
-                completed.contentSha256.matches(Regex("[0-9a-f]{64}")) &&
-                completed.importSucceeded &&
-                completed.uidStabilityEvidence?.let { evidence ->
-                    evidence.matchingSuccessfulSessions >= CirqaUidStabilityEvidence.MIN_MATCHING_SESSIONS &&
-                        evidence.identityFingerprint == stabilityKey(identity)
-                } == true
-        }
+        return true
     }
 
     fun stabilityKey(identity: ItemIdentity): String =

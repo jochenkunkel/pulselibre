@@ -1,0 +1,11 @@
+# OpenCode FIT – freigegebene Punkte 1–5
+- Status: aktiv
+- Agent/Umgebung: OpenCode FIT, eigener Worktree `/tmp/opencode/cirqa-all-data-freshness-20261123`
+- Auftrag: fünf Schritte bis kontrolliertem S10-Abnahmelauf autonom ausführen.
+- Jetzt: Punkte 1–3 implementiert; 1. JVM-/Test-APK-Kompilierung erfolgreich, FULL-CI/Review beginnt.
+- Danach: (3) vollständiges lokales SQLite-Originalarchiv; (4) Regression/FULL-CI; (5) S10-Update, ein Download, zeitliche Abdeckung.
+- Branch: `opencode/cirqa-all-data-freshness-20261123`, Basis `37b68fda`.
+- Dateien: Policy/Parser/Manifest, additive SQLite-/Backup-Archivierung und Tests, eigene Nachweise. Gemeinsame Schemaarbeit angekündigt.
+- Abstimmung: GUI/CI/Datenmodell über START und agent-sync benachrichtigt; #506/#522 getrennt.
+- Freigabe: Nutzer genehmigt gesamten Plan; keine destruktiven Befehle/geratenen Kommandos.
+- Nachweise: `CIRQA_ALL_DATA_FRESHNESS_IMPLEMENTATION_2026-11-23.md`; erste JVM-/Instrumentation-APK-Kompilierung grün. SQLite schema10/Backup9; kein neuer Gerätetest.

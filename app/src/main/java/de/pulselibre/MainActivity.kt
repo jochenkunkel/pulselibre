@@ -126,6 +126,7 @@ class MainActivity : AppCompatActivity() {
             try {
                 val fitRoot = java.io.File(applicationContext.filesDir, "verified_fit")
                 CirqaDatabase(applicationContext).use { database ->
+                    database.archiveExistingDownloads()
                     CirqaFitBackfill(fitRoot, database).run {
                         Thread.currentThread().isInterrupted
                     }
