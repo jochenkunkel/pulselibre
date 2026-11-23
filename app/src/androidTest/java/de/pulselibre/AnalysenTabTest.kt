@@ -24,6 +24,15 @@ class AnalysenTabTest {
     private fun openTab(scenario: ActivityScenario<MainActivity>) {
         scenario.onActivity { it.findViewById<View>(android.R.id.content).findViewWithTag<View>("navigation_item_Analysen").performClick() }
         InstrumentationRegistry.getInstrumentation().waitForIdleSync()
+        // The tab hosts the science dashboard, which loads asynchronously; wait until the tab is really on screen
+        // instead of asserting right after the click (avoids a timing flake on slow emulators).
+        val end = System.currentTimeMillis() + 10_000
+        var shown = false
+        while (!shown && System.currentTimeMillis() < end) {
+            scenario.onActivity { shown = it.findViewById<View>(android.R.id.content).findViewWithTag<View>("analysen_view")?.isShown == true }
+            if (!shown) Thread.sleep(100)
+        }
+        InstrumentationRegistry.getInstrumentation().waitForIdleSync()
     }
 
     @Test fun tabShowsFiveGroupsAndHonestModuleStates() {
