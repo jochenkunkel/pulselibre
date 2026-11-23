@@ -108,3 +108,68 @@ without independent profile, timestamp, range and semantic validation.
 The private analysis script and source data remain outside Git. The local
 analysis did not change BLE requests, persistence, UI, candidate trust, or the
 pending #591 fix. Independent parser/fixture verification remains useful.
+
+## Independent FIT SDK cross-check and missing data paths
+
+For this offline investigation, the published Garmin FIT Python SDK 21.222.0
+wheel was downloaded separately, its package-server SHA-256 checked, and the
+SDK used locally on the reconstructed files; no private file was uploaded.
+All 34 FIT files pass the SDK's independent integrity check and decode without
+reported errors. SDK and backup comparison is by source hash, UTC timestamp
+and value with occurrence counts (multisets), not just by field counts.
+
+| Field/path | Result in the 34 files | PulsLibre consequence |
+| --- | --- | --- |
+| FIT record heart rate | 12,804 SDK values exactly match 12,804 canonical provenance/observation rows | This record-message path agrees on source, timestamp and value. |
+| FIT record distance | 14,985 exactly match 14,985 canonical rows | Same three-way match; this does not validate daily presentation. |
+| FIT enhanced speed | 95 exactly match 95 canonical rows | Same three-way match. |
+| Respiration | All 979 review candidates match SDK source, timestamp and scaled value; 554 fall in the UTC day | Stored as explicitly untrusted candidates, excluded from normal observations and unified history. |
+| SpO₂ | All 838 candidates match SDK source, timestamp and value; 480 fall in the UTC day | Also review-only. The original SDK messages additionally carry mode and confidence fields, which are not included in the candidate row. |
+| Stress | All 979 candidate values match the SDK per source, but **all 979 stored timestamps are null** | SDK profile declares field 1 `stress_level_time` as `date_time`; SDK yields 979 times, 554 in the UTC day. An independent raw uint32 + FIT epoch check matches all 979 SDK times. A null timestamp match is not evidence that PulsLibre imported the time. |
+| Sleep | SDK finds 25 sleep-level messages, 20 timestamped in the UTC day | Current historical observation mapping has no sleep-level mapping. A message count is not a sleep-duration or stage-quality validation. |
+| Monitoring steps | SDK finds six messages exposing a `steps` field, four timestamped in the UTC day | Current monitoring mapping handles heart rate only, not steps; this does not establish a daily step total or summation semantics. |
+
+The normal `UnifiedMeasurements.refreshHistorical()` copies active generation
+observations and legacy imported observations, **not** review-candidate rows.
+The candidate reader exists in `CirqaDatabase.readUntrustedFitCandidates()`;
+read-only access must not be mistaken for production validation or UI display.
+Stress requires particular migration care: existing candidate sample IDs are
+stable, and `FitObservationCommitter` checks existing timestamp and decoder
+version for exact agreement after `INSERT OR IGNORE`. Simply changing the
+decoder timestamp and rerunning the existing import would conflict with old
+rows, rather than safely repairing them. A versioned, transactional,
+reproducible rebuild/migration with rollback and backup tests is required;
+do not silently overwrite prior candidates.
+
+### The 39th item and capture boundary
+
+The unmatched item is the 39th pull and advertises 1,094 bytes. Its 5044 pull
+response was received successfully about 0.291 seconds after the request; the
+captured connection disconnected about 1.279 seconds after that request, without
+an observed associated transfer-service registration or file bytes. The private
+post-run archive has no reference with the same item UID. It does contain one
+different archived reference to a file of the same length, but equality of
+length is not equality of content or identity. The item is not established as
+identical to the earlier PulsLibre timeout item merely because that item also
+expected 1,094 bytes. The recording interruption may be relevant, but these
+observations do not establish its cause or exclude another Garmin session.
+
+### Priority and unresolved questions
+
+1. Review PR #591 and complete its FULL/API-35 gate; the duplicate-decode fix
+   addresses our measured serialized processing bottleneck, not the downstream
+   missing field mappings.
+2. Validate and implement independently tested, provenance-preserving paths for
+   respiration, SpO₂ (including confidence/mode), stress timestamps, monitoring
+   steps, and sleep-level records. Define quality/status and aggregation
+   semantics before showing them as trusted health metrics. Coordinate UI work
+   with its owner.
+3. Design safe generation/backfill migration rather than editing immutable
+   candidates in place; keep original files and test interruption/rollback.
+4. Resolve the last item and list pagination with a separately planned test only
+   after CI, respecting the established lease and device-safety rules. No
+   complete-history or full-day claim follows from this bounded capture.
+5. A direct independent comparison against the user's Garmin Connect UI/export,
+   including timezone, any preexisting/cloud data and semantic presentation,
+   remains outstanding. SDK agreement proves decoding agreement, not that
+   Garmin's UI derived all displayed values from the 34 captured FIT files.

@@ -1,0 +1,11 @@
+# UPDATE | Offizieller FIT-SDK-Abgleich und Importlücken
+- Zeit (UTC): 2026-11-23 23:10
+- Von: OpenCode FIT
+- An: GUI-Agent, CI-Agent, Projektleitung
+- Auftrag: gründliche Offline-Analyse Garmin versus PulsLibre.
+- Ergebnisse: Garmin FIT SDK 21.222.0 validiert/decodiert alle 34 rekonstruierten FIT-Dateien fehlerfrei. Je 12.804 Herzfrequenz-, 14.985 Distanz- und 95 Geschwindigkeits-Recordwerte stimmen pro Quelle/Zeit/Wert mit SQLite überein; ebenso alle 979 Atem- und 838 SpO₂-Review-Kandidaten.
+- Konkrete Lücken: alle 979 Stress-Kandidaten haben bei uns Nullzeit; SDK-Profil field 1 `stress_level_time` ist date_time; alle 979 SDK-Zeiten durch unabhängige FIT-Epoch-Rohbyteprüfung bestätigt, 554 im UTC-Tag. SDK findet zusätzlich 20 Schlafphasen- und 4 Schritt-Datensätze im UTC-Tag, die der historische Decoder nicht als solche übernimmt. Counts sind keine validierten Tagessummen. SpO₂-Modus/-Konfidenz stehen nicht in Kandidatenzeilen.
+- 39. Pull: erwartete 1.094 Bytes, Erfolg, aber Verbindungsende rund 1,279 s nach Request ohne beobachteten Transfer. Keine Archiv-Referenz mit gleicher UID; eine andere Datei gleicher Größe beweist keine Identität.
+- Bitte an GUI-Agent: Review-only-Darstellung und Status klar kennzeichnen; keine unvalidierte Freigabe als medizinische Werte. Bitte CI-Agent: PR #591 und FULL/API-35 auf dessen Head prüfen.
+- Migration: Bestehende Kandidaten-ID und strikte Konfliktprüfung machen bloßes Reimportieren mit neuen Stresszeiten fehlerhaft; keine direkte Überschreibung, sichere versionierte Reanalyse nötig.
+- Nachweis: redigierter Bericht `docs/protocol/research/CIRQA_CONNECT_S10_CAPTURE_COMPARISON_2026-11-23.md`; keine privaten Inhalte/Hashes publiziert, keine Hardware.
