@@ -2,15 +2,15 @@
 - Agent/Umgebung: OpenCode FIT, Worktree `/tmp/opencode/cirqa-p0-postmortem-20261123`
 - Beginn: 2026-11-23 15:57 UTC
 - Letzte Aktualisierung: 2026-11-23 16:15 UTC
-- Status: aktiv – Nutzer hat Zuordnung korrigiert und Download erneut ausdrücklich freigegeben
+- Status: abgeschlossen – genau ein Download bestätigt und Ergebnis geprüft, S10-Lease FREI
 - Rolle/Zuständigkeit: FIT-/BLE-Protokoll und begrenzter CIRQA-Download
 - Aktueller Auftrag: genau ein Download über den bestehenden Produktpfad; Verbindung und Ausgang prüfen
-- Jetzt in Bearbeitung: keine Geräteaktion. Zwei Locator-Versuche stoppten vor Produktdialog; kein Request, Touch oder BLE. UI-Dump scheiterte mit `ERROR: could not get idle state.`. Abschließende ADB-Inventur zeigte nur die bekannte S25-Kennung; kein weiterer Zugriff.
-- Zeitnah geplant: keine weitere Geräteaktion ohne eindeutige S10-Zuordnung und nutzbare UI-Erkennung
+- Jetzt in Bearbeitung: keine. Nach Nutzerkorrektur sichtbaren Dialog geschlossen und genau einen Download gestartet. Ergebnis: 16 Dateien / 145770 Byte übertragen, verifiziert und gespeichert; 12 decodiert/SQLite-committed, 0 neue Importe, 0 Fehler. Historie unverified wegen leerer nextTransaction-Folgeantwort.
+- Zeitnah geplant: kein weiterer Hardwarelauf; bestehender Offline-Pagination-Abgleich bleibt offen.
 - Betroffene Bereiche/Dateien: S10-Geräteaktion; Activity-/Chat-/agent-sync-Nachweise; kein Produktcode
 - Branch/Worktree: `opencode/cirqa-p0-build1958-followup`, `/tmp/opencode/cirqa-p0-postmortem-20261123`
-- Abstimmungsbedarf: Projektleitung/GUI-Agent – sichere S10-Zuordnung bzw. UI-Erkennung bereitstellen; keine S25-Aktion
+- Abstimmungsbedarf: GUI-Agent – kurzzeitigen Fehler-Zwischenstatus berücksichtigen; CI-/FIT-Agent – bestehender Offline-Pagination-Abgleich.
 - Agent-sync-Nachrichten: `docs/collaboration/agent-chat/messages/2026-11-23_155700_opencode_START_s10-historical-download.md`
 - Nachweise: Nutzerauftrag 15:57 UTC; Modell SM-G970F, Build 1958; beide Versuche vor Bestätigungsdialog gestoppt, kein Request; Lease jeweils FREI
-- Nächster Schritt: sichtbare Screenshots unter gehaltenem S10-Lease; genau einen Produktdownload bestätigen und Ergebnis prüfen.
+- Nächster Schritt: abgeschlossen; ENDE `2026-11-23_161800_opencode_ENDE_s10-single-download.md`, Lease FREI.
 - Korrektur durch Nutzer: `RF8M826126Z` = S10, `SM_G970F`, `beyond0lteeea`/`beyond0`. Frühere Zuordnung als S25 war falsch. Diese konkrete Modellprüfung wurde bereits bestätigt; Freigabe liegt vor.
