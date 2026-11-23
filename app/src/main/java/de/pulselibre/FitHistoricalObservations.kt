@@ -74,7 +74,9 @@ object FitHistoricalObservations {
         val unknownFields: List<UnknownField> = emptyList(),
         val invalidMeasurementFieldCount: Int = 0,
         /** Offline review only; never committed by FitObservationCommitter. */
-        val reviewCandidates: List<ReviewCandidate> = emptyList()
+        val reviewCandidates: List<ReviewCandidate> = emptyList(),
+        /** Counts only; invalid values, timestamps, and source identifiers are never included. */
+        val excludedFields: List<ExcludedField> = emptyList()
     ) {
         fun potentialDuplicates(): List<List<Observation>> =
             observations.groupBy { it.duplicateFingerprint }
@@ -108,6 +110,24 @@ object FitHistoricalObservations {
         val baseType: Int?, val size: Int, val developerDataIndex: Int?,
         val kind: UnknownKind, val definitionCount: Int, val occurrenceCount: Int
     )
+    enum class ExclusionReason { UNSUPPORTED_ENCODING, INVALID_SENTINEL }
+    /** Profile structure and count only; intentionally omits the rejected value and source identity. */
+    data class ExcludedField(
+        val globalMessageNumber: Int,
+        val fieldNumber: Int,
+        val metric: Metric?,
+        /** Fixed decoder allowlist label for review-only fields; null for persisted metrics. */
+        val reviewFieldName: String?,
+        val reason: ExclusionReason,
+        val occurrenceCount: Int
+    )
+    private data class ExcludedFieldKey(
+        val global: Int,
+        val field: Int,
+        val metric: Metric?,
+        val reviewFieldName: String?,
+        val reason: ExclusionReason
+    )
     private data class UnknownKey(
         val global: Int, val field: Int, val baseType: Int?, val size: Int,
         val developerIndex: Int?, val kind: UnknownKind
@@ -135,6 +155,17 @@ object FitHistoricalObservations {
         val reviewCandidates = mutableListOf<ReviewCandidate>()
         val deviceMetadata = mutableListOf<DeviceMetadata>()
         val unknown = LinkedHashMap<UnknownKey, UnknownCounts>()
+        val excluded = linkedMapOf<ExcludedFieldKey, Int>()
+        fun trackExcluded(
+            global: Int,
+            field: Int,
+            metric: Metric?,
+            reviewFieldName: String?,
+            reason: ExclusionReason
+        ) {
+            val key = ExcludedFieldKey(global, field, metric, reviewFieldName, reason)
+            excluded[key] = (excluded[key] ?: 0) + 1
+        }
         fun track(key: UnknownKey, definition: Boolean): Boolean {
             var count = unknown[key]
             if (count == null) {
@@ -146,7 +177,16 @@ object FitHistoricalObservations {
             return true
         }
         fun classify(global: Int, field: FieldDefinition): UnknownKey? {
-            if (field.number == 253) return null // FIT timestamp, not a novel metric
+            if (field.number == 253) {
+                // A valid FIT timestamp is a uint32. In particular, compressed
+                // timestamp headers may only reconstruct this field when its
+                // definition has the expected encoding.
+                return if (field.baseType and 0x1f == 6 && field.size == 4) null
+                else UnknownKey(
+                    global, field.number, field.baseType, field.size, null,
+                    UnknownKind.INCOMPATIBLE_KNOWN_FIELD
+                )
+            }
             val mapped = mapping(global, field.number)
             if (mapped != null) {
                 val size = when (mapped.baseType) { 2 -> 1; 4 -> 2; 6 -> 4; else -> -1 }
@@ -233,7 +273,9 @@ object FitHistoricalObservations {
                 else headerByte and 0x0f
             val definition = definitions[localType] ?: return null
             val compressedTimestampField = if (compressed) {
-                definition.fields.firstOrNull { it.number == 253 } ?: return null
+                definition.fields.firstOrNull {
+                    it.number == 253 && it.baseType and 0x1f == 6 && it.size == 4
+                } ?: return null
             } else null
 
             val fieldBytes = LinkedHashMap<FieldDefinition, Int>()
@@ -330,8 +372,24 @@ object FitHistoricalObservations {
                         definition.bigEndian)
                     val invalid = if (definition.globalNumber == GLOBAL_SPO2_DATA) 0xff else 0x7fff
                     when {
-                        raw == null -> unsupportedFields++
-                        raw == invalid -> invalidMeasurementFields++
+                        raw == null -> {
+                            unsupportedFields++
+                            trackExcluded(
+                                definition.globalNumber, 0, null,
+                                if (definition.globalNumber == GLOBAL_SPO2_DATA)
+                                    "reading_spo2" else "stress_level_value",
+                                ExclusionReason.UNSUPPORTED_ENCODING
+                            )
+                        }
+                        raw == invalid -> {
+                            invalidMeasurementFields++
+                            trackExcluded(
+                                definition.globalNumber, 0, null,
+                                if (definition.globalNumber == GLOBAL_SPO2_DATA)
+                                    "reading_spo2" else "stress_level_value",
+                                ExclusionReason.INVALID_SENTINEL
+                            )
+                        }
                         else -> {
                             if (reviewCandidates.size >= MAX_OBSERVATIONS) return null
                             reviewCandidates += ReviewCandidate(
@@ -360,8 +418,20 @@ object FitHistoricalObservations {
                 if (field != null && offset != null) {
                     val raw = readSupportedSigned16(file, offset, field, definition.bigEndian)
                     when {
-                        raw == null -> unsupportedFields++
-                        raw == 0x7fff -> invalidMeasurementFields++
+                        raw == null -> {
+                            unsupportedFields++
+                            trackExcluded(
+                                GLOBAL_RESPIRATION_RATE, 0, null, "respiration_rate",
+                                ExclusionReason.UNSUPPORTED_ENCODING
+                            )
+                        }
+                        raw == 0x7fff -> {
+                            invalidMeasurementFields++
+                            trackExcluded(
+                                GLOBAL_RESPIRATION_RATE, 0, null, "respiration_rate",
+                                ExclusionReason.INVALID_SENTINEL
+                            )
+                        }
                         else -> {
                             if (reviewCandidates.size >= MAX_OBSERVATIONS) return null
                             reviewCandidates += ReviewCandidate(
@@ -387,10 +457,18 @@ object FitHistoricalObservations {
                     val raw = readSupportedUnsigned(file, offset, field, definition.bigEndian, mapped.baseType)
                     if (raw == null) {
                         unsupportedFields++
+                        trackExcluded(
+                            definition.globalNumber, field.number, mapped.metric, null,
+                            ExclusionReason.UNSUPPORTED_ENCODING
+                        )
                         continue
                     }
                     if (raw == invalidSentinel(field)) {
                         invalidMeasurementFields++
+                        trackExcluded(
+                            definition.globalNumber, field.number, mapped.metric, null,
+                            ExclusionReason.INVALID_SENTINEL
+                        )
                         continue
                     }
                     // A data field without a valid timestamp is retained as an
@@ -426,7 +504,17 @@ object FitHistoricalObservations {
             unknown.map { (key, count) ->
                 UnknownField(fileSha, key.global, key.field, key.baseType, key.size,
                     key.developerIndex, key.kind, count.definitions, count.occurrences)
-            }, invalidMeasurementFields, reviewCandidates)
+            }, invalidMeasurementFields, reviewCandidates,
+            excluded.map { (key, count) ->
+                ExcludedField(
+                    globalMessageNumber = key.global,
+                    fieldNumber = key.field,
+                    metric = key.metric,
+                    reviewFieldName = key.reviewFieldName,
+                    reason = key.reason,
+                    occurrenceCount = count
+                )
+            })
     }
 
     private const val MAX_DEVICE_METADATA = 10_000
