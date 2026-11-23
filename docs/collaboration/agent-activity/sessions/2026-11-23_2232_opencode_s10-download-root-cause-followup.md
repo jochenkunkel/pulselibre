@@ -2,7 +2,7 @@
 - Agent/Umgebung: OpenCode FIT, eigener Worktree
 - Beginn: 2026-11-23 22:32 UTC
 - Letzte Aktualisierung: 2026-11-23 22:48 UTC
-- Status: pausiert – erste Capture-Auswertung beendet; vertiefte Korrelation und PR-CI/Review offen
+- Status: aktiv – vertiefte Capture-Korrelation und Ursachenanalyse auf ausdrücklichen Nutzerauftrag; PR-CI/Review offen
 - Rolle/Zuständigkeit: FIT/BLE/Sync-Diagnostik
 - Aktueller Auftrag: #2 P0 – nach dem unvollständigen Build-2021-S10-Lauf den nächsten aussagekräftigen Schritt zum Historien-Download offline bestimmen
 - Jetzt in Bearbeitung: Nutzerauftrag Garmin-Connect-Aufnahme offline mit unserem Historien-Sync vergleichen und belegte Verbesserungen ableiten; PR #591 FULL-CI und Review laufen parallel.
