@@ -62,3 +62,49 @@ Compare request/response ordering, ACK timing, transfer pacing and context
 against the existing implementation using synthetic test fixtures only. Treat
 capture completeness and timestamp alignment as explicit limits. Do not add
 new transport commands or claim full coverage on the basis of frame counts.
+
+## Deeper local reconstruction and backup comparison
+
+An independent local analysis reassembled CRC-valid GFDI messages by direction,
+request ID, length and offset, and correlated FileAccess requests and responses.
+The one successful item-list response contained 39 entries, no session cursor,
+and a next-transaction token. All 39 pull requests referenced an item from that
+list and received success responses for transport 0. The capture contains 38
+associated transfer-service registrations and 38 successful configure
+responses; the remaining pull did not have an associated captured transfer.
+These are capture-bound results, not a claim about what happened outside it.
+
+For each of the 38 observed transfers, the first service callback was validated
+as the successful MLR configuration response. Concatenating subsequent payloads
+without stripping additional bytes produced exactly the corresponding listed
+size. All 38 reconstructed byte sequences have distinct SHA-256 hashes and
+match originals already in the private PulsLibre post-run archive. The earlier
+pre-run backup contains 36 of those 38. Of the 38, 34 are FIT files whose
+full-file CRC verifies; all 34 also have a source record in the post-run backup.
+This is a byte-for-byte match, not merely a matching file size. Neither hashes
+nor file content are published.
+
+The private post-run backup stores 28,668 canonical FIT observation-provenance
+rows (heart rate, distance, speed), and 2,796 review-only candidate rows
+(979 stress, 838 SpO₂, 979 respiration). These candidate rows explicitly carry
+`UNTRUSTED_PROFILE_CANDIDATE`; they are not ordinary canonical observations.
+For the 34 reconstructed Garmin FIT sources, restricting timestamps to
+2026-11-23 **UTC** yields 423 canonical heart-rate provenance rows and 554
+respiration plus 480 SpO₂ review-only candidates. UTC is used solely as a
+clearly defined comparison window, not an assertion about the phone's local
+calendar day. Record counts do not establish whether values are valid, match
+Garmin Connect's UI, or represent complete daily coverage.
+
+**Interpretation:** For these 38 captured transfers, the main observed
+discrepancy is not missing downloads: the exact files are already archived.
+At least respiration and SpO₂ are instead withheld from production observations
+by the intentional review-only decoder policy in `FitHistoricalObservations`.
+The corresponding raw FIT originals and candidate rows are retained. The 39th
+captured pull's file is not proven complete, and other files, fields, UI
+derivations and Garmin's possible cloud-side data are not covered by this
+comparison. No candidate should be promoted to a trusted health measurement
+without independent profile, timestamp, range and semantic validation.
+
+The private analysis script and source data remain outside Git. The local
+analysis did not change BLE requests, persistence, UI, candidate trust, or the
+pending #591 fix. Independent parser/fixture verification remains useful.
