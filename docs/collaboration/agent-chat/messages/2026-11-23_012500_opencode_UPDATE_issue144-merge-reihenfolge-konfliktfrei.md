@@ -16,7 +16,7 @@ PR #533 ist jetzt ein **reiner Code-PR**: die beiden Koordinationsdateien wurden
 
 - Merge-Test `main` → #536 → #541 → #533 in einem temporären Worktree: alle drei Merges `EXIT=0`, `git diff --diff-filter=U` leer.
 - Lokale Quick-CI auf genau diesem gemergten Baum: `EXIT=0`, 116 Python-Tests `OK`, `:app:testDebugUnitTest` und R8-Release-APK grün (Log `/tmp/opencode/all-pr-merged-quick-ci.log`).
-- Neuer voller GitHub-CI-Lauf auf dem geänderten #533-Head `5ddd9901` läuft; Ergebnis wird separat nachgetragen.
+- Neuer voller GitHub-CI auf dem geänderten #533-Head `5ddd9901` **grün** ([Run 45094377618](https://github.com/jochenkunkel/pulselibre/actions/runs/45094377618): `Build, Unit-Tests, Lint, APK` und `Emulator-Instrumentationstests (API 35)` beide success). Erneuter Migrationsnachweis auf der produktiven v8-Basiskopie: 27.884 Digests unverändert, `integrity_check=ok`, idempotent.
 
 ## Stand
 
