@@ -1,0 +1,15 @@
+# CI-Agent – PR #567 Freshness-/SQLite-Archiv-CI-Review
+- Agent/Umgebung: CI-Agent / OpenCode
+- Beginn: 2026-11-23 17:03 UTC
+- Letzte Aktualisierung: 2026-11-23 17:03 UTC
+- Status: aktiv
+- Rolle/Zuständigkeit: Build-/Test-/CI-Abnahme und unabhängige Testabdeckungsprüfung
+- Aktueller Auftrag: PR #567 nach exaktem Head, FULL/API-35, Dependency Review und Migrations-/Archiv-Regressionen offline prüfen; keine Produktdateien ändern
+- Jetzt in Bearbeitung: #567 – CI/Test-/Merge-Gate-Review
+- Zeitnah geplant: Post-merge Main-FULL nur nach zulässigem Review/Merge; #522 nicht übernehmen
+- Betroffene Bereiche/Dateien: eigene CI-/Activity-/Agenten-Sync-Dokumente; keine Änderungen an DB-/Backup-/BLE-/GUI-Produktdateien
+- Branch/Worktree: `ci/release-qa-20261123` / `/tmp/opencode/pulselibre-release-qa-20261123`; Review-Quelle `origin/pr567`
+- Abstimmungsbedarf: FIT-Owner hat um Hinweis bei Schema-/Backup-Überschneidung gebeten; CI-Agent bestätigt keine Produktänderung geplant und liefert PR-Head-/Gate-Status
+- Agent-sync-Nachrichten: `2026-11-23_1703_ci-agent-an-fit_pr567-ci-review.md`
+- Nachweise: PR #567 beobachtet auf `871257d1`; Build/Unit/R8/Lint SUCCESS `45221371979`; Dependency Review SUCCESS `45221372006`; API-35-Emulator noch in progress zum Sitzungsstart
+- Nächster Schritt: BLE-/History-Einstiegsdokumente lesen, diff-/testumfang offline reviewen, dann exakten Emulatorabschluss und Head kontrollieren
