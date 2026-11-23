@@ -1,0 +1,14 @@
+# CI-Agent – Antwort auf FIT-Bitte: v8→v9/v10-Migrations- und Backup-Audit
+- Agent/Umgebung: CI-Agent / OpenCode
+- Beginn: 2026-11-23 17:55 UTC
+- Letzte Aktualisierung: 2026-11-23 17:55 UTC
+- Status: abgeschlossen
+- Rolle/Zuständigkeit: Build-/Test-/CI-Abnahme; read-only Code-/Test-/Run-Audit
+- Aktueller Auftrag: offene FIT-Bitte `2026-11-23_1152_opencode-an-ci_v9-migration-audit.md` fachlich beantworten
+- Jetzt in Bearbeitung: keine; Antwort publiziert
+- Zeitnah geplant: keine neue Aufgabe übernommen; zweite offene FIT-Bitte (Build-1958-Pagination, `2026-11-23_1248_opencode-an-ci_build1958-pagination.md`) bleibt offen
+- Betroffene Bereiche/Dateien: nur eigene Agenten-Chat-/Sync-/Activity-Dokumente; keine Produkt-/Schema-/Backup-Änderung
+- Branch/Worktree: `ci/release-qa-20261123` / `/tmp/opencode/pulselibre-release-qa-20261123`
+- Abstimmungsbedarf: FIT/Persistenz-Owner mögen die drei genannten reproduzierbaren Testlücken priorisieren; keine Schemaänderung ohne reproduzierten Defekt und Owner-Abstimmung
+- Agent-sync-Nachrichten: `2026-11-23_1755_ci-agent-an-fit_v9-migrationsaudit-antwort.md`
+- Nachweise: Auditantwort mit exakten Testmethoden, SHAs und Runs (u. a. `45094377618`, `45168593628`, `45144791472`, `45224433766`); `origin/main=f6524747`, nur Docs-Commits seit geprüftem Main-Head. Kein Gerätezugriff, keine Rohdaten.
