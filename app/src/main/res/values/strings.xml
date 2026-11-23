@@ -986,4 +986,19 @@
     <string name="dev_val_appearance_sports_watch">Sports watch</string>
     <string name="dev_val_appearance_other">Other (%1$s)</string>
     <string name="dev_val_conn_params">%1$s–%2$s ms, latency %3$d, timeout %4$d ms</string>
+    <!-- REVIEW: neue Texte (Downloadfortschritt) -->
+    <string name="hsp_idle">No historical download running</string>
+    <string name="hsp_connecting">Connecting to the CIRQA …</string>
+    <string name="hsp_started">Synchronization started</string>
+    <string name="hsp_listing">Determining file list …</string>
+    <string name="hsp_transferring">Transferring files …</string>
+    <string name="hsp_validating">Validating FIT files …</string>
+    <string name="hsp_importing">Importing data …</string>
+    <string name="hsp_finished_proven">Synchronization complete</string>
+    <string name="hsp_finished_unproven">Synchronization finished – coverage not proven</string>
+    <string name="hsp_incomplete">Synchronization incomplete</string>
+    <string name="hsp_interrupted">Synchronization interrupted</string>
+    <string name="hsp_failed">Synchronization failed</string>
+    <string name="hsp_files">%1$d of %2$d files</string>
+    <string name="hsp_coverage_note">The band history is not proven complete: a finished run does not mean that every stored measurement was transferred.</string>
 </resources>

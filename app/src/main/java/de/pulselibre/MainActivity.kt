@@ -46,6 +46,7 @@ class MainActivity : AppCompatActivity() {
     private val dashboardWorker = java.util.concurrent.Executors.newSingleThreadExecutor()
     private var historicalDownloadProbe: CirqaMlHandshakeProbe? = null
     private var historicalSyncStatusView: TextView? = null
+    private var syncProgressView: HistorySyncProgressView? = null
     private var automaticHistoricalSyncActive = false
 
     private var pollInFlight = false
@@ -622,6 +623,8 @@ class MainActivity : AppCompatActivity() {
             contentDescription = text.toString()
         }
         historicalSyncStatusView = historicalSyncStatus
+        val syncProgress = HistorySyncProgressView(this)
+        syncProgressView = syncProgress
         // The report is a technical diagnostic string: show a short preview, expand on tap (#172: no reverse-engineering wall for normal users).
         historicalSyncStatus.maxLines = 4
         historicalSyncStatus.ellipsize = android.text.TextUtils.TruncateAt.END
@@ -675,6 +678,7 @@ class MainActivity : AppCompatActivity() {
                 .setNegativeButton(R.string.action_cancel, null)
                 .setPositiveButton(R.string.main_hist_confirm_ok) { _, _ ->
                     historicalSyncStatus.text = getString(R.string.main_hist_running)
+                    syncProgress.show(HistorySyncProgress(HistorySyncStage.CONNECTING))
                     val prefs = getSharedPreferences("historical_sync_energy_policy", MODE_PRIVATE)
                     prefs.edit().putLong("last_attempt", System.currentTimeMillis()).commit()
                     val probe = CirqaMlHandshakeProbe(this@MainActivity, adapter)
@@ -684,6 +688,7 @@ class MainActivity : AppCompatActivity() {
                         runOnUiThread {
                             if (!destroyed) {
                                 historicalSyncStatus.text = message
+                                syncProgress.show(HistorySyncProgress.fromReport(message))
                                 recordHistoricalSyncResult(prefs, message)
                                 historyRefresh?.invoke()
                             }
@@ -692,6 +697,7 @@ class MainActivity : AppCompatActivity() {
                 }
                 .show()
         }, 4)
+        deviceView(syncProgress, 4)
         deviceView(historicalSyncStatus, 4)
         cirqaCard = text("CIRQA Smart Band", 15f, ink, true).apply {
             setPadding(dp(16), dp(16), dp(16), dp(16))
@@ -916,6 +922,7 @@ class MainActivity : AppCompatActivity() {
         if (!prefs.edit().putLong("last_attempt", now).commit()) return
         automaticHistoricalSyncActive = true
         statusView.text = getString(R.string.main_auto_sync_running)
+        syncProgressView?.show(HistorySyncProgress(HistorySyncStage.CONNECTING))
         val probe = CirqaMlHandshakeProbe(this, adapter)
         historicalDownloadProbe?.close()
         historicalDownloadProbe = probe
@@ -924,6 +931,7 @@ class MainActivity : AppCompatActivity() {
                 automaticHistoricalSyncActive = false
                 if (destroyed) return@runOnUiThread
                 statusView.text = message
+                syncProgressView?.show(HistorySyncProgress.fromReport(message))
                 // Persist success only for a completely drained run; partial/error runs remain retryable
                 // after the five-minute attempt cooldown.
                 recordHistoricalSyncResult(prefs, message)
