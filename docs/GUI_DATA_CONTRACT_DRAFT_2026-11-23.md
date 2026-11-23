@@ -65,6 +65,20 @@ Produktiv-DB konkret: 27.884 `observations` (**nur** `distance` 14.985, `heart_r
 - Echtdaten-Anbindung ist für die in 5.1 bestätigten Größen zulässig: Puls, RR-Intervall, SpO₂, Stress, Schritte, DISTANZ/Speed aus FIT. Verifizierte FIT-Werte und Kandidaten getrennt beschriften.
 - Schlaf, Temperatur, HRV-Ableitungen und SpO₂-Nachtserien bleiben bewusst **Leerzustand** („Noch nicht verfügbar" mit Begründung), bis FIT sie bestätigt.
 
-### 5.4 Weiter offen an den FIT-Agenten (unverändert)
+### 5.4 FIT-Fachantwort (2026-11-23, von FIT-Agent übernommen)
 
-Bedeutung/Repräsentation von RR −100/−200/−300, HR 0, SpO₂ 255; Messmodus/Konfidenz; Messintervalle; Zeitsemantik von `stress_level_time`; Temperatur-Unterstützung. Antworten bitte direkt in diesem Dokument, dann wird es verbindlich.
+Der FIT-Agent hat die offenen Punkte beantwortet (Sync-Nachricht `2026-11-23_0035_opencode-an-gui-ci_fit-semantik-und-adapter.md` und `FIT_DECODER_COVERAGE_MATRIX_2026-11-23.md`, beide zunächst auf seinem Branch `opencode/fit-decoder-issue150-20261123`). Für den S10-Build gilt:
+
+| Punkt | Belegte Antwort | Konsequenz für GUI/Persistenz |
+|---|---|---|
+| HR 0 | Der FIT-Invalid-Sentinel ist `0xff`; ein Rohwert `0` ist **nicht** dieser Sentinel, fällt aber außerhalb der 1–240-bpm-Anzeigegrenze. Live-`bpm=0` ist davon getrennt als ungültig/kein Messwert zu behandeln. | Nie als Puls 0 zeichnen; in v9 als Status mit Rohcode, nicht als `observations.value`. |
+| SpO₂ 255 | Global 269/0: `0xff` (255) ist der Profil-Sentinel und wird vom Decoder verworfen; kein gespeicherter Statuspunkt. | Nicht als 255 % anzeigen; Leerzustand/Status, kein Messwert. |
+| RR −100/−200/−300 | In den **synthetischen GUI-Fixtures** bzw. im Dashboard-Entwurf als Statuscodes klassifiziert (−100 „off wrist", −200 „excessive motion", −300 „invalid"). Der v8-FIT-Persistenzpfad verknüpft sie **nicht** mit einem STATUS-Datensatz; eine versionsspezifische Profil-/Statusvereinbarung steht aus. | Nie als Atemfrequenz zeichnen. v9 speichert den Rohcode als Statusereignis; ein Katalogeintrag erst mit gesicherter Semantikquelle. |
+| Messmodus/Konfidenz | Der aktuelle Decoder liefert keine bestätigte Qualitätssemantik. | Nicht anzeigen oder ableiten; `measurement_modes` bleibt `UNKNOWN`. |
+| Stress-Zeit | 227/1 `stress_level_time` wird nicht in FIT-Epoch übersetzt; im lokalen Audit hatten alle 455 Stress-Kandidaten keine Zeit. | Keine verifizierte Stress-Zeitreihe aus FIT; Leerzustand. |
+| Temperatur | Kein Decoder-/DB-Pfad für FIT-Temperatur; insbesondere keine absolute Hauttemperatur ableiten. | Leerzustand. |
+| Messintervall/Coverage | Kein universelles FIT-Nominalintervall und kein verlässlicher täglicher Vollständigkeitsbeleg. | Nur tatsächliche Punkte plotten; `coverage=device-history-unverified` bleibt. |
+| Rekonstruierte Zeit | Für den Adapter konservativ nur `DIRECT` und `RECONSTRUCTED_TS16` als Band-Messzeit; `UNKNOWN` und `RECONSTRUCTED_COMPRESSED` bis gemeinsamer Entscheidung ausgeschlossen. | Empfangszeit und Bandzeit nicht mischen – der gemergte PR-#539-Adapter verhält sich bereits so. |
+| Decoder-/Profilversion | In der App ist FIT-Profil 21.222.0 konfiguriert. Legacy-Quellen/Provenienz erfordern exakte Versionsgleichheit; neue kanonische Generationen werden nicht implizit aktiviert. | `decoder_version` aus der Provenienz übernehmen, keine neue Generation annehmen; Reimport-/Aktivierungsvertrag bleibt offen. |
+
+**Weiterhin offen (kein S10-Blocker):** versionsspezifische Profil-/Statusvereinbarung für Global 297/0, Reimport-/Aktivierungsvertrag bei Decoder-Versionwechsel, Klärung ob 227/1 ein Standard-FIT-Datetime-Feld der verwendeten Profilversion ist, sowie die nicht in diesem Checkout vorhandenen S25-Originale. Bis dahin bleiben die v9-Kataloge bei `UNKNOWN` / `LEGACY_PROFILE_VALID`; es werden keine Statuswerte erfunden.
