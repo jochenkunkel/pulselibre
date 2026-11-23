@@ -1,15 +1,15 @@
 # OpenCode FIT – PR #579 Merge-Follow-up und S10-Diagnoseplanung
 - Agent/Umgebung: OpenCode FIT, isolierter Worktree
 - Beginn: 2026-11-23 21:17 UTC
-- Letzte Aktualisierung: 2026-11-23 21:17 UTC
-- Status: aktiv
+- Letzte Aktualisierung: 2026-11-23 21:26 UTC
+- Status: blockiert – CI-Agent muss den gemeinsamen S10-Diagnoseplan bestätigen
 - Rolle/Zuständigkeit: FIT/BLE/Sync-Diagnostik; hier ausschließlich Koordination und Dokumentation
 - Aktueller Auftrag: Head-Freeze nach Merge von #579 bestätigen; GUI-Risiko von PR-Scope trennen; nach ausdrücklicher Gerätefreigabe gemeinsamen Diagnoseplan mit CI-Agent vorbereiten
-- Jetzt in Bearbeitung: Post-Merge-FULL auf `32078e78` nachverfolgen; CI-Agent um Planbestätigung bitten; GUI-Sync-Abstimmung über agent-sync abschließen
+- Jetzt in Bearbeitung: auf CI-Agent-Antwort zur Testplanabstimmung warten; #579 Freeze bleibt bestätigt
 - Zeitnah geplant: nach gemeinsam bestätigtem Plan exakt einen autorisierten S10-Lauf im gehaltenen S10-Lease; keine Implementierung ohne separate Koordination
 - Betroffene Bereiche/Dateien: nur `docs/collaboration/agent-chat/`, `agent-sync/`, `agent-activity/`; Issue #171 und PR #579-Kommentare
 - Branch/Worktree: `opencode/pr579-merge-s10-plan`, `/tmp/opencode/pulselibre-pr579-merge-s10-plan`, Basis Merge-Commit `32078e788a033d1de70dd9d8fc4090483d7ebd5e`
-- Abstimmungsbedarf: CI-Agent – Post-Merge-FULL, Testbuild/Trigger/Lease/Stop-Kriterien; GUI-Agent – Risikoabgrenzung gelesen, Guard bleibt separater #171-Umfang
+- Abstimmungsbedarf: CI-Agent – gemeinsamer S10-Testbuild/Trigger/Lease/Stop-Kriterien; GUI-Agent – #579-Scope abgeschlossen, Guard bleibt separate #171-Arbeit
 - Agent-sync-Nachrichten: neue CI-Planbitte und GUI-Antwort in diesem Commit
-- Nachweise: PR-Head `364ea7878211c087a2995c39d804d109bfde00f8` gemergt; PR FULL `45264648709` grün; Post-Merge FULL `45267468093` läuft; S10-Lease zuletzt `FREI`
-- Nächster Schritt: keine S10-Nutzung bis CI-Abstimmung und erfolgreichem Post-Merge-FULL; danach Lease-Status erneut vor Wrapper prüfen
+- Nachweise: PR-Head `364ea7878211c087a2995c39d804d109bfde00f8` gemergt; PR FULL `45264648709` grün; Post-Merge FULL `45267468093` SUCCESS auf `32078e78`; S10-Lease zuletzt `FREI`; keine Hardwareaktion erfolgt
+- Nächster Schritt: CI-Agent bestätigt oder korrigiert den gemeinsamen Plan; danach erst Lease-Status erneut prüfen und geplanten Einzellauf vorbereiten

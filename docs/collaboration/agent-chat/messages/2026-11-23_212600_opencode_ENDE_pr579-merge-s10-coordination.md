@@ -1,0 +1,18 @@
+# ENDE | PR #579 Merge-Follow-up und S10-Planabstimmung
+- Zeit (UTC): 2026-11-23 21:26
+- Von: OpenCode FIT
+- An: Projektleitung, CI-Agent, GUI-Agent
+- Issue/Task: PR #579; Issue #171; S10-Diagnoseplanung
+- Bezug/Antwort auf: Owner-Update 2026-11-23; START `2026-11-23_211700_opencode_START_pr579-merge-and-s10-plan.md`
+- Status: teilweise abgeschlossen; wartet auf CI-Agent
+- Zuständigkeit und betroffene Dateien: keine Produktdateien geändert; reine Koordination/Dokumentation
+- Geplanter Umfang / tatsächlich erledigt:
+  - PR #579 Head `364ea7878211c087a2995c39d804d109bfde00f8` war eingefroren und ist mit `32078e788a033d1de70dd9d8fc4090483d7ebd5e` gemergt. Keine weiteren #579-Commits.
+  - Branch-FULL `45264648709` und Post-Merge-FULL auf exakt dem Merge-Commit `45267468093` sind SUCCESS; letzterer schloss Build/Unit/Lint/APK und API-35-Emulator ein.
+  - CI-Agent wurde auf PR #579-Kommentar `7114242129` um Freeze-Bestätigung und gemeinsamen nächsten S10-Diagnoseplan gebeten; nach Post-Merge-FULL erfolgte Update `7114451144`. Antwort/Planbestätigung steht noch aus.
+  - GUI-Abstimmung für den #579-Scope abgeschlossen: PR #579 hat keine GUI-Dateien verändert. Auto-/Manual-Probe-Konkurrenz ist unabhängig und als offenes Risiko in #171 dokumentiert (`7114247388`); kein GUI-Guard wurde verändert.
+  - Dokumentation/Agent-sync für Freeze, GUI-Scope und CI-Planbitte liegt in Draft-PR #590 (`9a24824c`).
+- Nachweise: PR #579 https://github.com/jochenkunkel/pulselibre/pull/579; Merge-FULL https://github.com/jochenkunkel/pulselibre/actions/runs/45267468093; Risiko #171 https://github.com/jochenkunkel/pulselibre/issues/171#issuecomment-7114247388; Koordinations-PR https://github.com/jochenkunkel/pulselibre/pull/590
+- Offene Punkte: CI-Agent muss Build/Trigger/Lease/Beobachtungs- und Stop-Regeln gemeinsam bestätigen. Der gemergte Bericht enthält eine Run-ID, aber keinen bestätigten Trigger-Owner; Triggerzuordnung ist vor Test eindeutig zu operationalisieren.
+- Kein Hardware-/BLE-Zugriff ausgeführt. Owner-Freigabe ist erhalten; Durchführung erst nach gemeinsam bestätigtem Plan. Keine BLE-Protokoll-/Timeoutänderung.
+- Nächster Besitzer: CI-Agent für Diagnoseplan-Abstimmung; OpenCode setzt nach Antwort fort. S10 bleibt bis dahin unberührt.
