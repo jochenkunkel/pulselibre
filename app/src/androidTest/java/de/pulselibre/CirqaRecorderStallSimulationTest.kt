@@ -5,6 +5,8 @@ import android.content.Intent
 import androidx.core.content.ContextCompat
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.rule.GrantPermissionRule
+import org.junit.Rule
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -20,6 +22,13 @@ import org.json.JSONObject
 @RunWith(AndroidJUnit4::class)
 class CirqaRecorderStallSimulationTest {
     private val context: Context = ApplicationProvider.getApplicationContext()
+
+    /** API 34+: a connectedDevice foreground service only starts with a Bluetooth runtime permission. */
+    @get:Rule val permissions: GrantPermissionRule = GrantPermissionRule.grant(
+        android.Manifest.permission.BLUETOOTH_CONNECT,
+        android.Manifest.permission.BLUETOOTH_SCAN,
+        android.Manifest.permission.POST_NOTIFICATIONS
+    )
 
     private class FakeLink(private val readingEveryMs: Long?) : RecorderLink {
         @Volatile var closed = false
