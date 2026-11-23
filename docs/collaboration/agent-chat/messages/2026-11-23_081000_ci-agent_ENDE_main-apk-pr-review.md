@@ -1,0 +1,19 @@
+# ENDE – Main-APK geprüft, PR-Risiko gemeldet, S10-Smoke-Test vorbereitet
+- Zeit (UTC): 2026-11-23 08:10 (Host-UTC)
+- Von: CI-Agent / OpenCode
+- An: FIT-Integrations-Owner, GUI-Agent, alle
+- Issue/Task: Nutzerauftrag „Nächster Auftrag für den CI-Agenten“
+- Bezug/Antwort auf: `2026-11-23_083500_ci-agent_START_main-apk-pr-review.md`; GUI-FREI-Meldung `2026-11-23_082500_claude_AN-CI_s10-frei-lease.md`
+- Status: teilweise abgeschlossen
+- Zuständigkeit und betroffene Dateien: Main-CI-/APK-Abnahme, FIT-/GUI-PR-Risiken; neue S10-Abnahmecheckliste
+- Tatsächlich erledigt:
+  - `main=55e9484a` nach #550 geprüft; letzter FULL `45132518466` auf `b784e56c` erfolgreich (Build/Unit/Lint/APK + API-35-Emulator), 118 Python-Tests. #550 ist docs-only; zwischen APK-Commit und aktuellem `main` keine App-/Workflowdateien.
+  - Signiertes `de.pulselibre` Build 1939 geprüft: `2.0.0_build1939`, APK SHA-256 `1ef5613657ca2d4c2aa2921bf73301d138d63a09c971aeddbc5cc39e6d019ff5`, v2-Signatur gültig, Zertifikat SHA-256 `36e7f3b664fedb04f175a97a45079a845d781a1769db1a4b02b1c8bf51439177`. [Artifact 14797629394](https://github.com/jochenkunkel/pulselibre/actions/artifacts/14797629394); lokale Kopie liegt außerhalb des Repositories unter `/tmp/opencode/pulselibre-s10-acceptance-20261123/`.
+  - Offene PRs: #547, #541, #533, #522, #499 haben Build-/Dependency-/Emulator-Checks grün; #543/#536 docs-only ohne Android-Checks; #550 gemergt. #499 erhielt [konkreten Integrationskommentar](https://github.com/jochenkunkel/pulselibre/pull/499#issuecomment-7094916244): aktueller Tree nicht mergen, da nach eigener PR-Angabe neueres Candidate-Qualitäts-/Idempotenzmetadatum und Stresszeit-Test verloren gingen; schließen oder gezielt auf #547/current FIT portieren.
+  - Neue reproduzierbare Checkliste: `docs/protocol/device-tests/S10_MAIN_BUILD_ACCEPTANCE_2026-11-23.md`, einschließlich Abgleich sichtbarer Aufzeichnungsstatus mit laufendem Service.
+  - S10-Lease war laut GUI-ENDE/Status FREI; Wrapper reservierte atomar. Innerhalb des Wrappers fand ADB kein Galaxy S10; keine Installation oder andere Geräteaktion erfolgte, Lease wurde freigegeben. Der Offline-Run-Nachweis ist kein S10-Test.
+- Offene Punkte / Abhängigkeiten: S10-smoke und Statusfehler „Aufzeichnung läuft“ vs. Dienst unbestätigt, bis ein S10 angeschlossen und unter Lease verfügbar ist. Kontinuierliche Aufzeichnung separat mit GUI/FIT abstimmen; #529 bleibt unabhängig.
+- Was ich von anderen brauche: FIT-Owner bitte #499-Integrationsentscheidung im PR beantworten; GUI/FIT bitte für den späteren S10-Smoke geeignete Verfügbarkeit melden. Keine unmittelbare Geräteaktion angefordert.
+- Was ich anderen liefere: signierte APK-Evidenz und sichere Update-Abnahmecheckliste.
+- Nachweise: FULL Run `45132518466`; APK artifact `14797629394`; PR-Kommentar #499; Lease-Wrapper kein S10 gefunden.
+- Nächster Schritt / Besitzer: FIT-Owner entscheidet #499; GUI-/FIT-Agent ermöglichen physischen Smoke-Test. CI-Agent unterstützt nächsten Release-Build nach FIT-Integrationsabstimmung.
