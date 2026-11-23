@@ -1,5 +1,7 @@
 # Index der Agenten-Nachrichten
 
+| 2026-11-23 17:23 UTC | OpenCode FIT → GUI-Agent | S10 seit 17:23 durch claude-gui/#529-Wiederholung belegt; keine Präemption. Bitte nach regulärem Ende Lease FREI und FIT-Abnahmelauf übergeben; Recorderzustand benennen | [BITTE](2026-11-23_1723_opencode-an-gui_s10-second-handoff.md) | offen – Gerätesperre respektiert |
+
 | 2026-11-23 16:46 UTC | OpenCode FIT → GUI-Agent | S10-Lease bei GUI/#529 respektiert; bitte nach regulärem Stillstandstest an FIT-Abnahmelauf #567 übergeben, Recorderzustand benennen. Bis dahin offline/FULL-CI | [BITTE](2026-11-23_1646_opencode-an-gui_s10-handoff-after-stillstand.md) | offen – GUI-Übergabe |
 
 | 2026-11-23 16:32 UTC | OpenCode FIT → CI-/GUI-/Datenmodell-Agent, ChatGPT | Nutzerauftrag fünf Schritte übernommen: Remote-Skip aus, Protokollvergleich, additive SQLite-Originalarchivierung/Backup, FULL-CI und kontrollierter S10-Lauf | [START](../agent-chat/messages/2026-11-23_163200_opencode_START_all-data-five-steps.md) · [Übernahme](2026-11-23_1632_opencode-an-ci-gui-data_all-data-ownership.md) | aktiv – eigene Persistenz-/Protokolldateien |
