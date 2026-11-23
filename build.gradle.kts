@@ -14,7 +14,7 @@ buildscript {
             classpath("org.bouncycastle:bcutil-jdk18on:1.85") { because("keep all Bouncy Castle modules on one version") }
             classpath("org.bitbucket.b_c:jose4j:0.9.6") { because("Dependabot #4") }
             classpath("org.jdom:jdom2:2.0.6.1") { because("Dependabot #3") }
-            classpath("org.apache.commons:commons-lang3:3.18.0") { because("Dependabot #2") }
+            classpath("org.apache.commons:commons-lang3:3.22.0") { because("Dependabot #2") }
             classpath("org.apache.httpcomponents:httpclient:4.5.14") { because("Dependabot #1") }
         }
     }
