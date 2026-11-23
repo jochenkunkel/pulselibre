@@ -6,7 +6,9 @@
   `90d1b28b` and `28b49fb1`.
 - Full CI on exact main head `28b49fb1`: [Android CI run 1989 / 45224433766](https://github.com/jochenkunkel/pulselibre/actions/runs/45224433766)
   completed `success` (Build/Unit/Lint/APK and API-35 emulator). Local FULL on the
-  same head with `PULSELIBRE_VERSION_CODE=1989` also passed.
+  same head with `PULSELIBRE_VERSION_CODE=1989` also passed in 507 s: 990 JVM
+  tests, 165 API-35 emulator tests, both new original-archive tests green,
+  0 failures/errors.
 - Release APK: versionCode 1989, signing certificate SHA-256
   `36e7f3b664fedb04f175a97a45079a845d781a1769db1a4b02b1c8bf51439177`, matching
   the certificate reported for the build the GUI agent installed on S10.
