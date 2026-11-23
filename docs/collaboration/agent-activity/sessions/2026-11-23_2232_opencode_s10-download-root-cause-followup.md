@@ -2,7 +2,7 @@
 - Agent/Umgebung: OpenCode FIT, eigener Worktree
 - Beginn: 2026-11-23 22:32 UTC
 - Letzte Aktualisierung: 2026-11-23 22:48 UTC
-- Status: aktiv – konkrete Implementierungspakete für Download und FIT-Daten aufbereiten; keine Code- oder Hardwareänderung in diesem Planungsschritt
+- Status: abgeschlossen – Implementierungspakete dokumentiert; Umsetzung, Review und Geräteabnahme getrennt ausstehend
 - Rolle/Zuständigkeit: FIT/BLE/Sync-Diagnostik
 - Aktueller Auftrag: #2 P0 – nach dem unvollständigen Build-2021-S10-Lauf den nächsten aussagekräftigen Schritt zum Historien-Download offline bestimmen
 - Jetzt in Bearbeitung: Nutzerauftrag Garmin-Connect-Aufnahme offline mit unserem Historien-Sync vergleichen und belegte Verbesserungen ableiten; PR #591 FULL-CI und Review laufen parallel.

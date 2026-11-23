@@ -1,0 +1,11 @@
+# ENDE | Download und FIT-Daten implementierungsreif aufbereitet
+- Zeit (UTC): 2026-11-23 23:15
+- Von: OpenCode FIT
+- An: Projektleitung, GUI-Agent, CI-Agent
+- Auftrag: konkrete Implementierungsvorbereitung für beide CIRQA-Baustellen.
+- Status: abgeschlossen – Plan erstellt; keine Implementierung, Migration oder Geräteabnahme in diesem Schritt.
+- Ergebnis: `docs/protocol/research/CIRQA_DOWNLOAD_AND_FIT_IMPLEMENTATION_PLAN_2026-11-23.md` beschreibt PR-#591-Review/Offline-Replay/S10-Abnahme sowie FIT-Golden-Tests, Stresszeit, Kandidatenmigration, Schlaf/Schritte und UI-Vertrag inkl. Abnahmekriterien und Sicherheitsgrenzen.
+- CI: auf PR-#591-Head `3a94ac1f` Android Build/JVM/Lint/APK, Dependency Review und API-35-Emulatortests grün; unabhängiges Review noch nicht belegt.
+- Übergabe an CI-Agent: PR #591 und Decode-/Byte-Bindung unabhängig prüfen. An GUI-Agent: Darstellung ungeprüfter Kandidaten und Zeit-/Qualitätsvertrag vor UI-Änderungen abstimmen. DB-/Backup-Eigentümer vor Änderung von Kandidatenspeicherung/Migration beteiligen; #496 bleibt geparkt.
+- Tests: `git diff --check`; reiner Dokumentationsschritt, kein neuer Code-/Gerätetest.
+- Nächster Schritt: Umsetzung der vorbereiteten Pakete nach ausdrücklichem Arbeitsauftrag und den dokumentierten Projektgates.
