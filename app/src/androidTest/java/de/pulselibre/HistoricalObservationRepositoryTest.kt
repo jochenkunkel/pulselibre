@@ -100,7 +100,7 @@ class HistoricalObservationRepositoryTest {
         }
     }
 
-    @Test fun replayStaysInactiveUntilExplicitDigestValidatedActivation() {
+    @Test fun replayStaysInactiveUntilExplicitDigestValidatedActivationAndCanRollBack() {
         val base = ApplicationProvider.getApplicationContext<Context>()
         val root = Files.createTempDirectory(base.cacheDir.toPath(), "fit-generation-replay-").toFile()
         val context = isolatedContext(base, root)
@@ -164,6 +164,15 @@ class HistoricalObservationRepositoryTest {
             }
 
             assertEquals(75.0, activeValue(), 0.0)
+
+            // Explicit activation is symmetric: the immutable original generation stays a rollback target.
+            val originalGenerationId = FitDecoderGeneration.id(
+                sha, "decoder-v1", FitHistoricalObservations.PROFILE_VERSION
+            )
+            CirqaDatabase(context).use { database ->
+                database.activateFitDecoderGeneration(sha, originalGenerationId)
+            }
+            assertEquals(70.0, activeValue(), 0.0)
         } finally {
             root.deleteRecursively()
         }

@@ -974,4 +974,16 @@
     <string name="sd_na_hrv">HRV: Es gibt nur RR-Intervalle, keine verifizierte HRV-Auswertung.</string>
     <string name="sd_na_temp">Temperatur: Die Unterstützung durch das Band ist nicht belegt.</string>
     <string name="sd_cd">%1$s. %2$s</string>
+    <string name="dev_meta_gatt_appearance">Erscheinungsbild</string>
+    <string name="dev_meta_gatt_conn_pref">Bevorzugtes Verbindungsintervall</string>
+    <string name="dev_meta_gatt_addr_res">Adressauflösung (Privatsphäre)</string>
+    <string name="dev_meta_gatt_rsc">Lauf-Sensor-Funktionen</string>
+    <string name="dev_meta_gatt_garmin">Garmin-spezifischer Wert</string>
+    <string name="dev_val_supported">Unterstützt</string>
+    <string name="dev_val_not_supported">Nicht unterstützt</string>
+    <string name="dev_val_rsc_none">Keine optionalen Funktionen</string>
+    <string name="dev_val_appearance_watch">Uhr</string>
+    <string name="dev_val_appearance_sports_watch">Sportuhr</string>
+    <string name="dev_val_appearance_other">Andere (%1$s)</string>
+    <string name="dev_val_conn_params">%1$s–%2$s ms, Latenz %3$d, Timeout %4$d ms</string>
 </resources>

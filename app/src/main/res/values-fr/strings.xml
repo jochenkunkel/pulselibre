@@ -981,4 +981,17 @@
     <string name="sd_na_hrv">VFC : il n’y a que des intervalles RR, pas d’analyse de VFC vérifiée.</string>
     <string name="sd_na_temp">Température : la prise en charge par le bracelet n’est pas établie.</string>
     <string name="sd_cd">%1$s. %2$s</string>
+    <!-- REVIEW: Übersetzung (ChatGPT/Projektinhaber prüfen) -->
+    <string name="dev_meta_gatt_appearance">Apparence</string>
+    <string name="dev_meta_gatt_conn_pref">Intervalle de connexion préféré</string>
+    <string name="dev_meta_gatt_addr_res">Résolution d’adresse (confidentialité)</string>
+    <string name="dev_meta_gatt_rsc">Fonctions du capteur de course</string>
+    <string name="dev_meta_gatt_garmin">Valeur propre à Garmin</string>
+    <string name="dev_val_supported">Pris en charge</string>
+    <string name="dev_val_not_supported">Non pris en charge</string>
+    <string name="dev_val_rsc_none">Aucune fonction optionnelle</string>
+    <string name="dev_val_appearance_watch">Montre</string>
+    <string name="dev_val_appearance_sports_watch">Montre de sport</string>
+    <string name="dev_val_appearance_other">Autre (%1$s)</string>
+    <string name="dev_val_conn_params">%1$s–%2$s ms, latence %3$d, délai %4$d ms</string>
 </resources>
