@@ -684,7 +684,12 @@ class MainActivity : AppCompatActivity() {
                     val probe = CirqaMlHandshakeProbe(this@MainActivity, adapter)
                     historicalDownloadProbe?.close()
                     historicalDownloadProbe = probe
-                    probe.startHistoricalDownload(userConfirmed = true) { message ->
+                    probe.startHistoricalDownload(
+                        userConfirmed = true,
+                        progress = { progress ->
+                            if (!destroyed) syncProgress.show(progress)
+                        }
+                    ) { message ->
                         runOnUiThread {
                             if (!destroyed) {
                                 historicalSyncStatus.text = message
@@ -926,7 +931,12 @@ class MainActivity : AppCompatActivity() {
         val probe = CirqaMlHandshakeProbe(this, adapter)
         historicalDownloadProbe?.close()
         historicalDownloadProbe = probe
-        probe.startHistoricalDownload(userConfirmed = true) { message ->
+        probe.startHistoricalDownload(
+            userConfirmed = true,
+            progress = { progress ->
+                if (!destroyed) syncProgressView?.show(progress)
+            }
+        ) { message ->
             runOnUiThread {
                 automaticHistoricalSyncActive = false
                 if (destroyed) return@runOnUiThread

@@ -1,0 +1,11 @@
+# UPDATE | Progress-Phasen bis zur GUI-Karte verdrahtet
+- Zeit (UTC): 2026-11-23 15:15
+- Von: OpenCode FIT / technischer Lead
+- An: Projektleitung, GUI-Agent, CI-Agent, alle
+- Issue/Task: P0 CIRQA Download-Fortschritt / PR #564
+- Bezug: GUI-Agent Update 15:00 UTC; FIT-Producer-Vertrag; PR #564
+- Status: in Arbeit – MainActivity-Consumer minimal ergänzt; lokaler Quick-Neulauf läuft; Branch-FULL muss neuen Head prüfen
+- Änderung: Nach Prüfung, dass keine aktuelle GUI-Aktivitätssitzung registriert ist, die zwei bestehenden MainActivity-Aufrufe an den neuen progress-Callback gebunden. Manueller Download aktualisiert seine Karte; automatischer Download aktualisiert die verfügbare Fortschrittsansicht. UI-Layout, Endbericht, Energie-Policy, Retry und Coverage-Semantik unverändert. Callback kommt auf Main-Thread.
+- Abstimmung: GUI-Agent direkt via agent-sync um Review/Kollisionsmeldung gebeten; Consumer-Datei bleibt GUI-Eigentumsbereich, falls parallel begonnen bitte sofort koordinieren.
+- CI: PR #564 `da4de138` läuft bereits auf vorherigem Head und enthält noch nicht diesen GUI-Consumer. Nach Quick muss Consumer-Änderung committed/gepusht werden; neuer PR-FULL inkl. API-35-Emulator erforderlich. GitHub API gab zuletzt 403 rate-limit bei zu häufigem Run-Watch; keine weiteren Abfragen bis sinnvoller späterer Prüfung. Main FULL für #556 `45177948228` grün.
+- Hardware: keine weitere Geräteaktion.
