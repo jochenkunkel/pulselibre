@@ -6,6 +6,11 @@
   `120-s-Zeitlimit`. The production path arms a hard 120,000 ms timer and calls
   `finish(...)` when it expires. This, not `session_id` or transaction
   pagination exhaustion, is the visible terminal cause for the last 36/37 run.
+- **NOCH UNGEKLÄRT — causal link to the measurement gap:** The timeout proves why
+  that sync run stopped; it does not prove that the timeout caused the absence
+  of the recent measurements. The examined originals contain none in the
+  checked recent window, but the retained evidence cannot show whether the
+  device offered an additional/current file that the run failed to reach.
 - **BEWIESEN — meaning of 36/37:** `HistorySyncProgress.fromReport()` parses
   `successful=N` as the numerator and `selected=N` as the denominator. Thus
   36/37 means **36 selected file pipelines reported successful out of 37
@@ -20,6 +25,11 @@
   or counted failed, nor its format/size/stage. The visible `5043` transport ACK
   for request 38 confirms transport acknowledgement only; it is not an
   application-level ItemList or successful file response.
+- **NOCH UNGEKLÄRT — ordering and last processing stage:** Existing reports and
+  archives do not preserve a per-selected-item ordered event ledger for that
+  run. They are insufficient to reconstruct which file was the 37th selected
+  item or its last completed stage; no later archival state can retroactively
+  prove the in-flight state at timeout.
 - **NOCH UNGEKLÄRT — continuation state at timeout:** The available terminal
   excerpt does not preserve list-page count or whether a `session_id` cursor or
   `next_transaction_id` token was present/pending. The code normally requests
