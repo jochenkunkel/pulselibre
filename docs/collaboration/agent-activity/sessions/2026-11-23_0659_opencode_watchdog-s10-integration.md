@@ -1,0 +1,21 @@
+# OpenCode FIT – Watchdog-Recovery und S10-Integration
+- Agent/Umgebung: OpenCode FIT / Integrations-Owner, Worktree `/tmp/opencode/pulselibre-s10-integration`
+- Beginn: 2026-11-23 06:59 UTC
+- Letzte Aktualisierung: 2026-11-23 07:11 UTC
+- Status: aktiv – saubere Integrationsbasis erstellt; PR- und Watchdog-Prüfung läuft
+- Rolle/Zuständigkeit: FIT-Decoder/SQLite-Integration, Koordination der GUI-/CI-Arbeiten
+- Aktueller Auftrag: #149-Watchdog-Blockade auflösen; offene PRs klassifizieren; sicheren gemeinsamen S10-Kandidaten vorbereiten
+- Jetzt in Bearbeitung: PR-Matrix/Recovery veröffentlicht; #499-Reconciliation abgeschlossen; gesicherten Coverage-/Timestamp-Diff auf aktuellem main isoliert portieren
+- Zeitnah geplant: bei ausreichendem Review nur geprüfte, rückwärtskompatible PRs integrieren; anschließend CI um vollen Build für exakten Commit bitten
+- Betroffene Bereiche/Dateien: sauberer Branch zunächst docs-only; lokaler Decoder-Patch liegt im gesicherten alten Worktree/Backup
+- Branch/Worktree: `opencode/s10-integration-20261123`, `/tmp/opencode/pulselibre-s10-integration`; HEAD `9b008d0a`, `origin/main=9b008d0a`
+- Abstimmungsbedarf: CI-Agent prüft Watchdog-False-Positive/Run-Zuordnung und exakten Releasebuild; GUI-Agent bestätigt Datenvertrag, #477-Regressionspfad und PR #542
+- Agent-chat: `2026-11-23_065900_opencode_JOBFIX_START_watchdog-s10-integration.md`
+- Nachweise: alter Worktree Status/HEAD/patch/untracked Snapshot liegt unter `/tmp/opencode/issue149-recovery-20261123-8pym_o1p`; PR #493 gemergt; lokale vier FIT-Dateien werden nicht verworfen
+- Main-Gate: `45126611870` vollständig erfolgreich auf `f5784e0a` (Build/Unit/Lint/APK + API-35 Emulator); aktueller `main=9b008d0a` ist danach docs-only fortgeschritten. Signiertes Artifact aus Run 1934 vorhanden (ID `14796062528`, expires 2026-11-30); APK-Datei/Signatur/Package-Hash-Verifikation und Build auf exaktem `9b008d0a` sind CI-seitig noch offen.
+- Lokaler Quick-Gate: `./tools/ci-local.sh --bootstrap --quick` PASS (112 Python tests OK, Gradle 9.6/JDK 21, JVM task `FROM-CACHE`, Debug+R8 Release build, APK diagnostics); kein Emulator-/Hardwarezugriff. Lokales APK `versionCode=1`, kein Releasekandidat.
+- Gesicherter alter FIT-Diff: second Quick PASS (129 Python tests; Gradle tasks up-to-date); explicit `:app:testDebugUnitTest --rerun-tasks` PASS: 213 suites / 932 tests, 0 failures/errors/skips. Existing pre-task full-gate note reports PASS; emulator HTML confirms 140 tests, 0 failures, 1 skip. No physical device.
+- Transparenz: `ci-local.sh --quick` hat konfigurierte lokale Signiermaterialien automatisch für Diagnose/Build restauriert; Credential-Werte weder direkt gelesen noch veröffentlicht. PR #543 Body korrigiert; lokale APK VersionCode 1 ist kein Kandidat.
+- Koordinations-PR #543: https://github.com/jochenkunkel/pulselibre/pull/543 (docs-only, offen, keine Android-Checks).
+- #499 code review: candidate implementation already on main via #517 (`15da2cd7`, all checks green); stale PR head would remove `quality`/`idempotencyKey` and delete stress-time semantic test. Mark `SUPERSEDED / DO NOT MERGE`; owner asked to close/update, no foreign PR mutation.
+- Nächster Schritt: konkrete PRs und aktueller Main-FULL-Run auswerten; keine Hardware-/BLE-/S25-Aktion

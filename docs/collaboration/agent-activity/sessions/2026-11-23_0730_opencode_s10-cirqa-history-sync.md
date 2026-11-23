@@ -1,0 +1,22 @@
+# OpenCode FIT – S10e/CIRQA historical sync hardware validation
+- Agent/Umgebung: OpenCode FIT; S10e physical test environment, CIRQA synthetic test band
+- Beginn: 2026-11-23 07:30 UTC
+- Letzte Aktualisierung: 2026-11-23 08:34 UTC
+- Status: abgeschlossen – ein bestätigter Sync; leerer Follow-up, Historienabdeckung unvollständig, S10 FREI
+- Rolle/Zuständigkeit: FIT/Protokoll, Geräteintegration
+- Aktueller Auftrag: einen ausdrücklich bestätigten, begrenzten Produkt-Historien-Sync auf S10e/CIRQA validieren
+- Jetzt in Bearbeitung: abgeschlossen; keine weiteren Geräteaktionen geplant; Unknown-Field-Befund offline bewertet
+- Zeitnah geplant: redigierte ENDE-Evidenz mit Sync-/FIT-/SQLite-Zählwerten, ohne Rohpayloads/UIDs/Gesundheitswerte
+- Betroffene Dateien: keine Produktdatei; Agenten-Chat/Sync/Activity-Dokumentation
+- Branch/Worktree: `opencode/s10-integration-20261123`, `/tmp/opencode/pulselibre-s10-integration`
+- Abstimmungsbedarf: GUI hat #529 Lauf 2 mit ENDE beendet; CI-Agent ist über Teststart informiert; keine anderen Geräteaktionen bis ENDE
+- Testfreigabe: Nutzerentscheidung `2026-11-23_0800_chatgpt-an-alle_s10-cirqa-testfreigabe.md` plus aktuelle Bestätigung „alle Freigaben inklusive BLE“; nach Merge #549 gilt nur `tools/s25_lease.py ... --device s10`. Status direkt vor Lease: FREI; während gesamter Geräteaktion atomaren Lock halten.
+- Start: `2026-11-23_073000_opencode_START_s10-cirqa-history-sync.md`; side-effect correction `2026-11-23_073100_opencode_KORREKTUR_sync-side-effect.md`
+- Grenzen: 40-min Lease-ETA inkl. Vor-/Nachlauf; eingebauter Sync-Cap 120s, max 256 files / 8 MiB each / 64 MiB total; no repeated sync, no instrumentation, no reset/unpair/delete/archive/CLOSE_ALL. Product confirmation warns CIRQA may mark files transferred.
+- Keine Rohdateien, Seriennummer, UIDs, Namen oder Messwerte in Git.
+- Koordinationskorrektur 08:08 UTC: Vorprüfungen fälschlich mit altem gemeinsamem S25-Lock gelaufen; ADB/UI-Aufruf um 08:04:44 und Package-Check um 08:05:16 überschnitten CI-S10-Lease. Kein Download-Sync/kein GATT-Befehl; sofort gestoppt und CI-Agent offen informiert. Kein weiterer Gerätezugriff bis `status --device s10` FREI.
+- Wiederaufnahmeprüfung 08:13 UTC: Status zunächst FREI, bei finaler Vor-Geräteprüfung erneut BELEGT durch CI. Kein Gerätezugriff. Temporäres Testskript setzt weiterhin versionCode 1934 voraus; Build-/Installationsversion nicht bestätigt, nichts geändert oder installiert.
+- Wiederaufnahme 08:15 UTC: neuester Main-Run 1939 FULL grün auf `b784e56c`; Android-Produktdateien seitdem unverändert bis `bf19a887`. Artifact v2-signiert, `de.pulselibre`/1939, APK SHA `1ef5613657ca2d4c2aa2921bf73301d138d63a09c971aeddbc5cc39e6d019ff5`, Zertifikat-SHA identisch zu 1934 (`36e7f3b664fedb04f175a97a45079a845d781a1769db1a4b02b1c8bf51439177`). FIT-Coverage-PR #547 ist noch nicht in main. Geplanter Umfang: `install -r` im S10-Lease, danach höchstens ein bestätigter Sync.
+- ENDE 08:23 UTC: `adb install -r` meldete Erfolg; installierte Version 1939 bestätigt. Drei Vorprüfungen scheiterten vor Bestätigung (zuerst Aktion nicht erkannt; anschließend UI-Dump nicht lesbar, auch Fallbacks). Kein Sync-Button bestätigt, kein BLE/GATT/FileSync-Request, kein Importnachweis. Kein weiterer Versuch. S10-Status nach Lease FREI.
+- Fortsetzung 08:25 UTC nach erneuter Nutzeranweisung, alle Freigaben inkl. BLE bestehen fort. Nächster Schritt nur kontrollierte Screenshot-/UI-Diagnose im Lease, danach ggf. ein bestätigter Sync; keine generischen Hierarchie-Retries.
+- ENDE 08:34 UTC: UI wurde per lokalem Screenshot navigiert; Dialog mit möglichem Transfermarker geprüft; genau ein Sync bestätigt und 130 s beobachtet. 34 Items, 14 ausgewählt (53.425 B), 20 übersprungen, `pullSent=true`; drei nextTransaction-Follow-ups leer → `next-transaction-followup-empty`, `runDrained=false`, Abdeckung unbestätigt. Vollständige Datei-/CRC-/SQLite-Stufenzähler waren in der sichtbaren Statusansicht nicht lesbar; keine Importerfolge behauptet. Unknown-Field-Anzeige 952 Gruppen vor/nach, kein Zuwachs nachgewiesen. Kein zusätzlicher Sync/Pull sinnvoll; Gerät danach FREI.
