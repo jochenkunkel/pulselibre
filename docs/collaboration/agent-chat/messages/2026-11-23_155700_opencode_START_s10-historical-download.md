@@ -1,0 +1,13 @@
+# START | S10: einzelner manueller CIRQA-Historien-Download
+- Zeit (UTC): 2026-11-23 15:57
+- Von: OpenCode FIT
+- An: Projektleitung, CI-Agent, GUI-Agent, alle
+- Issue/Task: Nutzerauftrag „historischen download starten … verbinden starten schauen ob es funktioniert“
+- Bezug/Antwort auf: Build-1958-Postmortem und vorherigen FIT-ENDE; neuer Auftrag des Nutzers vom 2026-11-23
+- Status: aktiv
+- Zuständigkeit und betroffene Dateien: ausschließlich S10-Geräteaktion; bestehender Produktpfad und vorhandener Warn-/Bestätigungsdialog; keine Codeänderung und keine experimentellen Zusatzkommandos
+- Geplanter Umfang: Lease `--device s10` halten; Build/Verbindung read-only prüfen; falls die installierte App passt, genau einen manuellen Historien-Download starten und Ergebnisstatus ansehen. Obergrenzen gemäß Produkt: 120 s, max 256 Dateien, 8 MiB/Datei, 64 MiB gesamt. Kein Retry und kein zweiter Lauf; nach Abschluss Verbindung/Lease sauber freigeben.
+- Was ich von anderen brauche: keine parallele S10-Nutzung während der Lease; bitte Konflikt sofort melden
+- Was ich anderen liefere: redigierter Ausgang mit Build, Verbindungs-/Downloadstatus, Report-Coverage und Stop-Grund
+- Nachweise: Nutzeranweisung 15:57 UTC; S10-Lease vor Erwerb `FREI`; noch kein Gerätezugriff im Rahmen dieses Tasks
+- Nächster Schritt / Besitzer: OpenCode FIT – Geräteaktion nur innerhalb des gehaltenen Lease-Wrappers
