@@ -1,11 +1,11 @@
 # OpenCode FIT – S10e/CIRQA historical sync hardware validation
 - Agent/Umgebung: OpenCode FIT; S10e physical test environment, CIRQA synthetic test band
 - Beginn: 2026-11-23 07:30 UTC
-- Letzte Aktualisierung: 2026-11-23 08:23 UTC
-- Status: abgeschlossen / blockiert – Build 1939 installiert; UI-Vorbedingung verhinderte Sync, Gerät FREI
+- Letzte Aktualisierung: 2026-11-23 08:25 UTC
+- Status: aktiv – gezielte UI-Diagnose und möglicher einmaliger Sync nach Nutzeranweisung
 - Rolle/Zuständigkeit: FIT/Protokoll, Geräteintegration
 - Aktueller Auftrag: einen ausdrücklich bestätigten, begrenzten Produkt-Historien-Sync auf S10e/CIRQA validieren
-- Jetzt in Bearbeitung: beendet; Build 1939 installiert/verifiziert, aber keine Historien-Sync-Bestätigung und kein BLE-Request, da Android-UI-Hierarchie wiederholt nicht lesbar war
+- Jetzt in Bearbeitung: UI-Diagnose im S10-Lease mit lokalem, nicht eingechecktem Screenshot; bei eindeutig sichtbarem bestätigtem Dialog genau ein Sync
 - Zeitnah geplant: redigierte ENDE-Evidenz mit Sync-/FIT-/SQLite-Zählwerten, ohne Rohpayloads/UIDs/Gesundheitswerte
 - Betroffene Dateien: keine Produktdatei; Agenten-Chat/Sync/Activity-Dokumentation
 - Branch/Worktree: `opencode/s10-integration-20261123`, `/tmp/opencode/pulselibre-s10-integration`
@@ -18,3 +18,4 @@
 - Wiederaufnahmeprüfung 08:13 UTC: Status zunächst FREI, bei finaler Vor-Geräteprüfung erneut BELEGT durch CI. Kein Gerätezugriff. Temporäres Testskript setzt weiterhin versionCode 1934 voraus; Build-/Installationsversion nicht bestätigt, nichts geändert oder installiert.
 - Wiederaufnahme 08:15 UTC: neuester Main-Run 1939 FULL grün auf `b784e56c`; Android-Produktdateien seitdem unverändert bis `bf19a887`. Artifact v2-signiert, `de.pulselibre`/1939, APK SHA `1ef5613657ca2d4c2aa2921bf73301d138d63a09c971aeddbc5cc39e6d019ff5`, Zertifikat-SHA identisch zu 1934 (`36e7f3b664fedb04f175a97a45079a845d781a1769db1a4b02b1c8bf51439177`). FIT-Coverage-PR #547 ist noch nicht in main. Geplanter Umfang: `install -r` im S10-Lease, danach höchstens ein bestätigter Sync.
 - ENDE 08:23 UTC: `adb install -r` meldete Erfolg; installierte Version 1939 bestätigt. Drei Vorprüfungen scheiterten vor Bestätigung (zuerst Aktion nicht erkannt; anschließend UI-Dump nicht lesbar, auch Fallbacks). Kein Sync-Button bestätigt, kein BLE/GATT/FileSync-Request, kein Importnachweis. Kein weiterer Versuch. S10-Status nach Lease FREI.
+- Fortsetzung 08:25 UTC nach erneuter Nutzeranweisung, alle Freigaben inkl. BLE bestehen fort. Nächster Schritt nur kontrollierte Screenshot-/UI-Diagnose im Lease, danach ggf. ein bestätigter Sync; keine generischen Hierarchie-Retries.
