@@ -1,0 +1,15 @@
+# OpenCode FIT – P0 CIRQA-Sync-Postmortem und Integration
+- Agent/Umgebung: OpenCode FIT / technische Leitung, Worktree `/tmp/opencode/cirqa-p0-postmortem-20261123`
+- Beginn: 2026-11-23 08:44 UTC
+- Letzte Aktualisierung: 2026-11-23 12:09 UTC
+- Status: aktiv – Main-FULL/#556-CI und bounded CIRQA-Probe-Vorbereitung
+- Rolle/Zuständigkeit: FIT-/BLE-Protokoll, Downloadpipeline, SQLite-Integration und Koordination GUI/CI
+- Aktueller Auftrag: P0-End-to-End-Historien-Download; CIRQA durch Nutzer als verfügbar gemeldet und neue Protokollsequenzen ausdrücklich freigegeben. Vor Gerätezugriff passende Lease und exakten Build/Scope festlegen.
+- Jetzt in Bearbeitung: #547 `efaa0865` FULL `45168593628` komplett grün (erforderliche Checks); PR gemergt als `8201c926`. Post-merge Main FULL `45171100041` läuft. #556 Head `48fe0702`; FULL `45169856415` ist auf exaktem Head komplett grün, API-35-Emulator eingeschlossen; Merge blockiert aktuell durch Git-Konflikt. Connect-S10-HCI-Berichte liefern nur redigierte Filterfeld-Präsenz/-Zählung, nicht UUID-/DataType-Werte. v9-Code-/Test-Audit teilweise verifiziert.
+- Zeitnah geplant: #556-Konflikt auf aktuellem Main lösen und Branch-CI auf neuem Head abwarten; Post-merge Main-FULL lesen. Probeplan ohne geratene Connect-Filterwerte fertigstellen; APK-Evidenz prüfen.
+- Betroffene Bereiche/Dateien: zunächst Analyse; möglicher Eingriff `CirqaMlHandshakeProbe.kt`, Sync-Policies/Completion-Tests; Koordinationsdateien
+- Branch/Worktree: `opencode/cirqa-p0-postmortem-20261123`, `/tmp/opencode/cirqa-p0-postmortem-20261123`; #547 Merge SHA `8201c926`, Post-merge CI noch laufend.
+- Abstimmungsbedarf: CI-Agent soll #533 Migration-/Backup-Testmethoden und APK-Signing-Evidenz zurückmelden; #556 FULL `45169856415` abwarten; GUI-Agent FIT-Anzeige-/synthetischen GUI-Vertrag dokumentieren. #522 Fragment-Overwrite-Kausalität bleibt unbestätigt.
+- Agent-chat: `2026-11-23_084400_opencode_START_p0-sync-postmortem.md`
+- Hardware: Nutzer bestätigte am 23.11. CIRQA-Verfügbarkeit und neue getrennte Sequenzen; S10 war zuletzt FREI. Vor Zugriff erneute Prüfung und gehaltener Lease-Wrapper.
+- Nachweise: #547 Head `efaa0865`, FULL `45168593628` grün; Merge `8201c926`; post-merge run `45171100041` läuft. #556 `48fe0702`, `45169856415` vollständig grün, aber Mergeability `CONFLICTING` nach #547-Integration. v9 Migration-Test `v8UpgradeBackfillsQualityWithoutTouchingStoredValuesAndIsIdempotent` erhält 2/2 synthetische Beobachtungen, erstellt 2 Quality-Zeilen, lässt Werte unverändert, meldet `integrity_check=ok`/FK=0 und keine Duplikate nach Reopen. Weitere Tests: `statusCodesAreEventsAndNeverBecomePhysiologicalValues`, `integrityConstraintsStayActiveAfterUpgrade`. Backup ist Format v8 und enthält keine v9 status/import tables; aktuell wurde kein Produktionsschreibpfad dorthin gefunden: zukünftige Tabellenpersistenz-/Backup-Lücke, nicht nachgewiesener aktueller Datenverlust. Nutzer hat CIRQA-Verfügbarkeit/neue getrennte Sequenzen bestätigt; nur read-only Gerätestatus über Lease, noch kein BLE.

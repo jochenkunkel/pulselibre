@@ -3150,27 +3150,39 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             val runDrained = syncAccepted && syncIncompleteReason == null &&
                 syncFailedFiles == 0 && syncPendingItems.isEmpty() && syncCurrentItem == null &&
                 syncPageSessionId == null && syncPageNextTransactionId == null
-            syncFinalReport = "Sync-Beobachtung: ${CirqaSyncRunIdentity.reportField(syncSessionId)}; " +
-                "$message; runDrained=$runDrained; " +
-                "${CirqaSyncCoverage.marker(runDrained, syncIncompleteReason)} " +
-                "incompleteReason=${syncIncompleteReason ?: when {
+            val incompleteReason = syncIncompleteReason ?: when {
                     !syncAccepted -> "sync-not-accepted"
                     syncFailedFiles > 0 -> "file-processing-failed"
                     syncStopBeforePullMode -> "diagnostic-stop-before-pull"
                     !runDrained -> "transfer-not-drained"
                     else -> "none"
-                }}; " +
-                "accepted=$syncAccepted; " +
-                "itemListSent=$syncItemListSent; pullSent=$syncPullSent; items=[$syncItemSummary]; " +
+                }
+            val fileSummary =
+                "successful=$syncCompletedFiles,notSuccessful=$syncFailedFiles," +
+                    "stages=[${syncFileStageCounts.redactedSummary()}],queued=${syncPendingItems.size}," +
+                    "transactionFollowups=${syncListContinuation.transactionFollowups}," +
+                    "transactionFollowupResponseItems=${syncTransactionFollowupResponseItems ?: "none"}," +
+                    "selected=$syncQueuedFiles,selectedBytes=$syncQueuedBytes,skipped=$syncSkippedFiles," +
+                    "pages=$syncListPageCount,currentBytes=${mlrData.size()},details=$syncFileResults"
+            val diagnostics =
                 "$syncPullDiag; $mlrDiag; mlr=[chunks=$mlrChunks,bytes=$mlrBytes]; " +
-                 "files=[successful=$syncCompletedFiles,notSuccessful=$syncFailedFiles," +
-                 "stages=[${syncFileStageCounts.redactedSummary()}],queued=${syncPendingItems.size}," +
-                 "transactionFollowups=${syncListContinuation.transactionFollowups}," +
-                 "transactionFollowupResponseItems=${syncTransactionFollowupResponseItems ?: "none"}," +
-                 "selected=$syncQueuedFiles,selectedBytes=$syncQueuedBytes,skipped=$syncSkippedFiles," +
-                "pages=$syncListPageCount,currentBytes=${mlrData.size()},details=$syncFileResults]; " +
-                "validate=[${if (syncCurrentItem != null) mlrValidation().redactedSummary() else "complete"}]; " +
-                "frames=$counts; proto=[$syncProtoShapes]"
+                    "validate=[${if (syncCurrentItem != null) mlrValidation().redactedSummary() else "complete"}]; " +
+                    "frames=$counts; proto=[$syncProtoShapes]"
+            syncFinalReport = CirqaSyncRunReport.format(
+                CirqaSyncRunReport.Overview(
+                    runIdentity = CirqaSyncRunIdentity.reportField(syncSessionId),
+                    message = message,
+                    runDrained = runDrained,
+                    coverage = CirqaSyncCoverage.marker(runDrained, syncIncompleteReason),
+                    incompleteReason = incompleteReason,
+                    accepted = syncAccepted,
+                    itemListSent = syncItemListSent,
+                    pullSent = syncPullSent,
+                    fileSummary = fileSummary,
+                    itemSummary = syncItemSummary,
+                    diagnostics = diagnostics
+                )
+            )
         }
         terminationRequested = true
         legacy5030Only?.let { it.abort(it.token) }
