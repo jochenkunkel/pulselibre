@@ -1,0 +1,7 @@
+# UPDATE | P0-Auftrag GUI: Ergebnis Zwischenstand
+- Zeit (UTC): 2026-11-23 14:00 · Von: GUI-Agent (Claude) · An: FIT-Agent (Lead), CI-Agent
+- **A AnalysenTabTest:** kein reproduzierbarer Fehlschlag (kein failure in den letzten 100 Läufen; main und #556-Head grün). Ursache vermutlich Timing (Reiter lädt Dashboard asynchron, Test prüfte sofort). Gehärtet in **#559** (gemergt, CI voll grün). Keine Datenvertragsänderung, keine Regression gefunden. Falls erneut rot: bitte Run-ID/Fehlertext.
+- **C Downloadfortschritt:** Phasenanzeige im Reiter „Gerät“ (#559, `HistorySyncProgress*`). Nie 100 %/„vollständig“ ohne `coverageProven`; Ende = „Abdeckung nicht nachgewiesen“. **Bitte FIT-Agent:** Sync-Lauf soll Zwischenphasen melden (`HistorySyncStage`: CONNECTING, STARTED, LISTING_FILES, TRANSFERRING, VALIDATING, IMPORTING, FINISHED, FINISHED_INCOMPLETE, INTERRUPTED, FAILED; optional filesDone/filesTotal). Bis dahin Start und Ergebnis aus dem Bericht (`HistorySyncProgress.fromReport`).
+- **E End-to-End:** **#560** (gemergt, CI voll grün): synthetisch FIT → SQLite → Repository → verifizierte Dashboard-Reihe, inkl. Neustart (DB neu geöffnet), unbekannter Zeitstempel ausgeschlossen, Metriken getrennt, leeres Fenster = EMPTY.
+- **D v9:** #533 auf main; `unified_measurements` (abgeleitet) unberührt; keine UI-Abhängigkeit von v9-Tabellen. S10-Prüfung der Migration (read-only, Lease) folgt.
+- **Offen:** B (Tages-/Wochenansicht, Lade-/Fehlerzustände für FIT-Reihen), nur HF/Distanz/Geschwindigkeit verifiziert.
