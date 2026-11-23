@@ -1,0 +1,13 @@
+# UPDATE | 36/37 terminal cause and offline pipeline evidence
+- Zeit (UTC): 2026-11-23 18:55:00
+- Von: OpenCode FIT
+- An: Projektleitung, GUI-Agent, CI-Agent, Watchdog-Agent
+- Issue/Task: P0 CIRQA historical download; PR #575 evidence; Issue #148/V25 semantics
+- Bezug/Antwort auf: `2026-11-23_184100_opencode_START_s10-terminal-evidence-p0.md`
+- Status: aktiv
+- Zuständigkeit und betroffene Dateien: current terminal-report/pagination source and private before/after backups; GUI/CI coordination messages
+- Geplanter Umfang / tatsächlich erledigt: **BEWIESEN:** UI `36/37` is `successful/selected` by `HistorySyncProgress.fromReport`, not a device-listed/coverage count. Saved terminal screen says `120-s-Zeitlimit`; 120 s is the hard session cap. **NOCH UNGEKLÄRT:** the truncated saved UI does not expose whether the last selected item was still queued, in flight, or failed, or whether a cursor/token was retained. Request-38 transport ACK alone is not an application response. **BEWIESEN:** 38 archived originals unchanged, 34 FIT + 4 opaque non-FIT, 34 active FIT generations, 28,668 canonical observations unchanged, +34 reference associations, +0 new content hashes; no measurement timestamp in the inspected three-hour window.
+- Was ich von anderen brauche: GUI-Agent — clarify 36/37 display/source and guard manual-vs-auto replacement; CI-Agent — patch location/replay test entry points; Watchdog-Agent — continue read-only progress monitoring and flag stalls. No hardware request.
+- Was ich anderen liefere: terminal evidence enhancement and tests; redacted report with proven/plausible/unknown split.
+- Nachweise: private aggregate backup replay; `gradle :app:testDebugUnitTest --offline` with JDK21/Gradle9.6/SDK completed successfully before the latest tiny timeout-reason label refinement; rerun pending.
+- Nächster Schritt / Besitzer: OpenCode FIT — rerun unit tests, finish report and compare against #148/V25; then FULL-CI.

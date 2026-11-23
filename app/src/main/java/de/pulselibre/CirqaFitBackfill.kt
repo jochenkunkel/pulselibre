@@ -208,13 +208,19 @@ class CirqaFitBackfill(
         fun importVerifiedFile(
             file: File,
             readings: FitObservationStore,
-            deviceKey: String = "cirqa-fit"
-        ): Int? = importVerifiedFileDetailed(file, readings, deviceKey)?.eligibleObservations
+            deviceKey: String = "cirqa-fit",
+            onBeforeSqliteCommit: () -> Unit = {},
+            onAfterSqliteCommit: () -> Unit = {}
+        ): Int? = importVerifiedFileDetailed(
+            file, readings, deviceKey, onBeforeSqliteCommit, onAfterSqliteCommit
+        )?.eligibleObservations
 
         private fun importVerifiedFileDetailed(
             file: File,
             readings: FitObservationStore,
             deviceKey: String,
+            onBeforeSqliteCommit: () -> Unit = {},
+            onAfterSqliteCommit: () -> Unit = {},
             onDecoded: (ImportOutcome) -> Unit = {}
         ): ImportOutcome? {
             require(deviceKey.isNotBlank())
@@ -242,19 +248,24 @@ class CirqaFitBackfill(
                 }
             )
             onDecoded(outcome)
-            readings.commitFitFile(
-                sourceSha256 = file.name.removeSuffix(".fit"),
-                fileBytes = bytes.size.toLong(),
-                relativePath = "verified_fit/${file.name}",
-                validatedAtEpochMillis = System.currentTimeMillis(),
-                decoderVersion = FitHistoricalObservations.DECODER_VERSION,
-                profileVersion = FitHistoricalObservations.PROFILE_VERSION,
-                observations = importable,
-                deviceMetadata = result.deviceMetadata,
-                unmappedFields = result.unknownFields.map(CirqaUnknownFitInventory::toStoredField),
-                deviceKey = deviceKey,
-                reviewCandidates = result.reviewCandidates
-            )
+            onBeforeSqliteCommit()
+            try {
+                readings.commitFitFile(
+                    sourceSha256 = file.name.removeSuffix(".fit"),
+                    fileBytes = bytes.size.toLong(),
+                    relativePath = "verified_fit/${file.name}",
+                    validatedAtEpochMillis = System.currentTimeMillis(),
+                    decoderVersion = FitHistoricalObservations.DECODER_VERSION,
+                    profileVersion = FitHistoricalObservations.PROFILE_VERSION,
+                    observations = importable,
+                    deviceMetadata = result.deviceMetadata,
+                    unmappedFields = result.unknownFields.map(CirqaUnknownFitInventory::toStoredField),
+                    deviceKey = deviceKey,
+                    reviewCandidates = result.reviewCandidates
+                )
+            } finally {
+                onAfterSqliteCommit()
+            }
             return outcome
         }
 

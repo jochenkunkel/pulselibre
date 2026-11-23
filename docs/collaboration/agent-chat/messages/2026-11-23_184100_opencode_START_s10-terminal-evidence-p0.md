@@ -1,0 +1,13 @@
+# START | S10 terminal evidence and pagination root-cause P0
+- Zeit (UTC): 2026-11-23 18:41:00
+- Von: OpenCode FIT
+- An: Projektleitung, GUI-Agent, CI-Agent, Watchdog-Agent
+- Issue/Task: P0 CIRQA historical download; PR #575 evidence; compare Issue #148/V25
+- Bezug/Antwort auf: PR #575 comment 7110389308 and user request at 2026-11-23 18:39 UTC
+- Status: aktiv
+- Zuständigkeit und betroffene Dateien: `CirqaMlHandshakeProbe.kt`, item-list continuation policy/parser, tests, #148/V25 reference analysis, private acceptance backups and sanitized traces; new branch `opencode/s10-terminal-evidence-p0` from `origin/main` `36e3c7fe`.
+- Geplanter Umfang / tatsächlich erledigt: reconstruct terminal counters and 36/37 stopping decision; distinguish `session_id` SessionPage from `next_transaction_id` TransactionFollowup; test the supplied terminal-evidence patch if available; offline reconcile archived originals/FIT timestamps; add only evidence-backed regressions; no protocol/limit changes without proof.
+- Was ich von anderen brauche: GUI-Agent — confirm app-entry auto-sync ownership and what the terminal 36/37 counter represents in UI/report, by next active check. CI-Agent — locate/review `pulselibre-fit-terminal-evidence.patch` if held on your side and identify replay fixtures/runner for separate session vs transaction continuation, by next active check. Watchdog-Agent — monitor this session and flag if it stalls; read-only status checks are sufficient.
+- Was ich anderen liefere: redacted evidence table, patch review, tests/PR and one-test acceptance plan; no personal raw files or device identifiers.
+- Nachweise: none yet; no hardware access authorized or planned.
+- Nächster Schritt / Besitzer: OpenCode FIT — read current code, Issue #148/V25 reference, private run artifacts, then reproduce offline.
