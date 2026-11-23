@@ -2,7 +2,7 @@
 
 ## Soll-Zustand und derzeitige CI-Abdeckung
 
-**GitHub Actions:** Android CI startet ausschließlich per `workflow_dispatch`. Der Schnelllauf führt JVM-Tests und `assembleDebug` aus. Aktiviere `full_tests=true` für `lintDebug`, `assembleDebugAndroidTest` und API-35-Emulatortests. Der Build-Job lädt eine signierte Update-Debug-APK bei konfigurierten Signing-Secrets hoch. Für eine Freigabe müssen alle folgenden Gates erfolgreich abgeschlossen sein.
+**GitHub Actions (Stand 23.11.2026):** `.github/workflows/android.yml` startet automatisch bei Pull Requests gegen `main` und Pushes auf `main`, soweit `paths-ignore` die Änderung nicht ausschließt (insbesondere reine Dokumentationsänderungen unter `docs/**` bzw. mit `.md`/`.mdx`/`.rst`/`.txt` lösen keinen Lauf aus). Zusätzlich ist `workflow_dispatch` möglich: `test_scope=QUICK` führt den begrenzten Schnelllauf aus; `test_scope=FULL` fordert auch Lint, Android-Test-APK und Emulator-Instrumentierung an. Der Ausführungsort wird über `run_environment=LOCAL|CLOUD` und die Runner-Konfiguration gesteuert. Eine signierte Update-Debug-APK wird nur bei entsprechend konfigurierten Signing-Secrets bereitgestellt. **Diese Beschreibung belegt keinen konkreten erfolgreichen CI-Lauf**; vor einer Freigabe müssen die tatsächlichen Ergebnisse aller erforderlichen Gates geprüft werden. Siehe auch [Docs-only-CI-Regel](ci/DOCS_ONLY_CI_POLICY.md) und [Hybrid-CI](ci/HYBRID_CI.md).
 
 ## Mandatory CI
 - Compile debug app and androidTest APK
