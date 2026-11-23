@@ -48,6 +48,7 @@ class MainActivity : AppCompatActivity() {
     private var historicalSyncStatusView: TextView? = null
     private var syncProgressView: HistorySyncProgressView? = null
     private var automaticHistoricalSyncActive = false
+    private var manualHistoricalSyncActive = false
 
     private var pollInFlight = false
     private var readingDashboard = false
@@ -669,6 +670,10 @@ class MainActivity : AppCompatActivity() {
             13f, muted
         ), 4)
         deviceView(actionButton(getString(R.string.main_hist_button), true, PlIcon.HISTORY) {
+            if (!HistorySyncExclusion.canStartManual(automaticHistoricalSyncActive)) {
+                historicalSyncStatus.text = getString(R.string.main_auto_sync_running)
+                return@actionButton
+            }
             if (!ensureSyncPermissions()) return@actionButton
             if (scanning) stopScan()
             androidx.appcompat.app.AlertDialog.Builder(this@MainActivity)
@@ -678,6 +683,12 @@ class MainActivity : AppCompatActivity() {
                 )
                 .setNegativeButton(R.string.action_cancel, null)
                 .setPositiveButton(R.string.main_hist_confirm_ok) { _, _ ->
+                    // The dialog may have been open while an automatic run started: never close/replace it.
+                    if (!HistorySyncExclusion.canStartManual(automaticHistoricalSyncActive)) {
+                        historicalSyncStatus.text = getString(R.string.main_auto_sync_running)
+                        return@setPositiveButton
+                    }
+                    manualHistoricalSyncActive = true
                     historicalSyncStatus.text = getString(R.string.main_hist_running)
                     syncProgress.show(HistorySyncProgress(HistorySyncStage.CONNECTING))
                     val prefs = getSharedPreferences("historical_sync_energy_policy", MODE_PRIVATE)
@@ -692,6 +703,7 @@ class MainActivity : AppCompatActivity() {
                         }
                     ) { message ->
                         runOnUiThread {
+                            manualHistoricalSyncActive = false
                             if (!destroyed) {
                                 historicalSyncStatus.text = message
                                 syncProgress.show(HistorySyncProgress.fromReport(message))
@@ -907,7 +919,7 @@ class MainActivity : AppCompatActivity() {
     /** Only called by Activity resume/start. Never prompts for permissions or schedules background work. */
     private fun maybeStartAutomaticHistoricalSync() {
         val statusView = historicalSyncStatusView ?: return
-        if (automaticHistoricalSyncActive || destroyed ||
+        if (!HistorySyncExclusion.canStartAutomatic(manualHistoricalSyncActive) || automaticHistoricalSyncActive || destroyed ||
             ActivityCompat.checkSelfPermission(
                 this,
                 if (Build.VERSION.SDK_INT >= 31) Manifest.permission.BLUETOOTH_CONNECT
