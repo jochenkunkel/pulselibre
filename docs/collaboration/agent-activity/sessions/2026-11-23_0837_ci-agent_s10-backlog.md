@@ -1,7 +1,7 @@
 # CI-Agent – S10-Statusprüfung und PR-Backlog-Koordination
 - Agent/Umgebung: CI-Agent / OpenCode
 - Beginn: 2026-11-23 08:37 UTC
-- Letzte Aktualisierung: 2026-11-23 08:50 UTC
+- Letzte Aktualisierung: 2026-11-23 08:55 UTC
 - Status: aktiv
 - Rolle/Zuständigkeit: Android Build-/CI-Abnahme, APK-Bereitstellung, PR-Abschlusskoordination
 - Aktueller Auftrag: S10-Status/Dienst nach Build 1939 prüfen; offene PRs aktiv mit Ownern auf Abschluss bringen
@@ -11,5 +11,5 @@
 - Branch/Worktree: `ci/backlog-s10-20261123` / `/home/smiler/.local/share/opencode/worktree/634470/ci-backlog-s10-20261123`
 - Abstimmungsbedarf: FIT-Owner (#547/#541/#499/#533/#522, Datenvertrag-Messgrößen); GUI-Agent (#554/#536/#543, #529); ChatGPT (#499 superseded)
 - Agent-sync-Nachrichten: werden in diesem Task angelegt
-- Nachweise: main `c94ea932` (PR #552 gemergt); S10 Lease nach Test FREI; S10e SM-G970F Build 1939 installiert als Update von 1934, firstInstallTime blieb erhalten. Geräteseite und Dashboard: „Keine Verbindung · Aufzeichnung aus“; `CirqaContinuousRecordingService` nicht gelistet. Keine Aufnahme/BLE-Aktion. PR #541: FULL head run `45091606947` grün; unabhängige Review-/Owner-Freigabe angefragt. #499 als superseded geschlossen. #554 gemergt als `dc4ff00a`; post-merge FULL `45140683774` läuft. Read-only `git merge-tree` pinpointed sole conflict path for #547/#536/#522: `docs/collaboration/agent-sync/INDEX.md`; #522 additionally has unresolved parser replay deltas. #533 FULL grün but Semantik-/Backup-/GUI-Entscheidung open; #543 clean but stale/historical doc branch.
-- Nächster Schritt: Owner-Antworten aus agent-sync/PRs verfolgen; #541 nur nach Freigabe/Review mergen, geeignete Docs-/FIT-PRs gezielt rebasing/closing koordinieren, nach jeder Integration `main` FULL prüfen.
+- Nachweise: main `852f4989`; S10 Lease nach Test FREI; S10e SM-G970F Build 1939 installiert als Update von 1934, firstInstallTime blieb erhalten. Geräteseite und Dashboard: „Keine Verbindung · Aufzeichnung aus“; `CirqaContinuousRecordingService` nicht gelistet. Keine Aufnahme/BLE-Aktion. #499 geschlossen, #554 gemergt (`dc4ff00a`, post-merge FULL `45140683774` erfolgreich), #541 gemergt (`852f4989`) nach Nutzerfreigabe, branch-head FULL `45091606947` grün; post-merge FULL `45142364968` läuft. Read-only `git merge-tree` pinpointed sole conflict path for #547/#536/#522: `docs/collaboration/agent-sync/INDEX.md`; #522 additionally has unresolved parser replay deltas. #533 FULL grün but Semantik-/Backup-/GUI-Entscheidung open; #543 clean but stale/historical doc branch.
+- Nächster Schritt: post-merge FULL #541 lesen. Weitere FIT-/GUI-PRs nach Owner-Antworten rebase/close/hold.
