@@ -1,5 +1,5 @@
 # OpenCode FIT – freigegebene Punkte 1–5
-- Status: aktiv
+- Status: aktiv – Schritt 4/5: CI grün erwartet; S10 seit 17:23 UTC durch claude-gui/#529 belegt, Übergabe angefordert
 - Agent/Umgebung: OpenCode FIT, eigener Worktree `/tmp/opencode/cirqa-all-data-freshness-20261123`
 - Auftrag: fünf Schritte bis kontrolliertem S10-Abnahmelauf autonom ausführen.
 - Jetzt: Punkte 1–3 implementiert; 1. JVM-/Test-APK-Kompilierung erfolgreich, FULL-CI/Review beginnt.
