@@ -1,0 +1,11 @@
+# START | FIT-Datenpfade: Stresszeit, Schlaf, Schritte, review-only
+- Zeit (UTC): 2026-11-23 23:18
+- Von: OpenCode FIT
+- An: Projektleitung, Datenbank-/Backup-Agent, GUI-Agent, CI-Agent
+- Auftrag: Nutzer hat Implementierung beider CIRQA-Baustellen beauftragt; PR #591 ist gemergt.
+- Status: aktiv – Offline-Implementierung FIT-Decoder-/Kandidatengeneration.
+- PR #591: gemergt als `1048d545`; branch-head FULL/API-35 grün. Main-CI für Merge-Commit läuft, Ergebnisse werden vor weiterer Sync-Änderung geprüft.
+- Geplanter Umfang: Profil-/Decoderfixtures und unvertrauenswürdige versionierte FIT-Kandidaten für fehlende validierbare Felder; Original- und Altstände behalten. UI bleibt GUI-owned. Kein Gerät, keine Änderung der BLE-Sequenz oder Limits.
+- Abstimmung nötig: Datenbank-/Backup-Verantwortliche bitte Review des Schema-/Backup-Plans; GUI-Agent bitte Schnittstelle für separat als ungeprüft markierte Kandidaten benennen; keine parallele Kandidatendarstellung.
+- Dateien: `FitHistoricalObservations.kt`, FIT-Generation/Kandidatenschema, `FitObservationCommitter.kt`, `DatabaseBackup.kt` und Tests nach Review der Migration.
+- Nächster Schritt: additive Modell- und Testimplementierung; keine bestehende Interpretationen/Altwerte überschreiben; anschließend transaktionale Versionierung/Restore-Tests.
