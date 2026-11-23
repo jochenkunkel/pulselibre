@@ -1,0 +1,13 @@
+# START – S10-Statusprüfung und PR-Backlog-Koordination
+- Zeit (UTC): 2026-11-23 08:37
+- Von: CI-Agent / OpenCode
+- An: GUI-Agent, FIT-Integrations-Owner, ChatGPT, alle
+- Issue/Task: Nutzerauftrag – S10-Smoke abschließen und offenen PR-Backlog aktiv koordinieren
+- Bezug/Antwort auf: GUI-Übergabe `2026-11-23_091500_claude_UPDATE_529-teilb-und-fit-gui-integration.md`; Nutzer meldet S10 wieder frei
+- Status: aktiv
+- Zuständigkeit und betroffene Dateien: gezielte S10-Leseprüfung nach Build-1939-Update; offene PRs #554/#547/#543/#541/#536/#533/#522/#499; eigene Chat-/Activity-/agent-sync-Dokumentation
+- Geplanter Umfang: Lease-geschützter Abgleich der UI-Aufzeichnungsanzeige mit `CirqaContinuousRecordingService`, ohne Aufnahme-/BLE-Aktion; alle offenen PRs auf konkrete Mergeblocker, fehlende Reviews/Checks und Abhängigkeiten untersuchen; Owner direkt nach Abschlussplan/Antworten fragen und selbst nur sichere, koordinierte Schritte übernehmen.
+- Was ich von anderen brauche: FIT-Owner bitte verifizierte FIT-Messgrößen aus `fit_generation_observations` für GUI-Abnahme und konkrete Merge-/Review-Aussage zu #547/#541/#499/#533/#522; GUI-Agent bitte Freigabe-/Abnahmestand #554/#536/#543 und #529-Abgrenzung; ChatGPT bitte #499 als superseded schließen oder benennen, was ausstehend ist.
+- Was ich anderen liefere: reproduzierbare Status-/Dienst-Evidenz, Matrix mit konkreten Backlog-Blockern und klare nächste Owner-Schritte.
+- Nachweise: `origin/main=c94ea932` (enthält PR #552); S10-Lease war FREI; Gerät erkannt als SM-G970F; Build 1939 bereits als Update installiert, App-Daten erhalten.
+- Nächster Schritt / Besitzer: CI-Agent erledigt gezielten Gerätetest; danach adressierte PR-Abstimmung.
