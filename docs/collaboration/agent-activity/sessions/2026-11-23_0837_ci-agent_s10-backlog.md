@@ -1,0 +1,15 @@
+# CI-Agent – S10-Statusprüfung und PR-Backlog-Koordination
+- Agent/Umgebung: CI-Agent / OpenCode
+- Beginn: 2026-11-23 08:37 UTC
+- Letzte Aktualisierung: 2026-11-23 08:56 UTC
+- Status: aktiv
+- Rolle/Zuständigkeit: Android Build-/CI-Abnahme, APK-Bereitstellung, PR-Abschlusskoordination
+- Aktueller Auftrag: S10-Status/Dienst nach Build 1939 prüfen; offene PRs aktiv mit Ownern auf Abschluss bringen
+- Jetzt in Bearbeitung: PR-Backlog-Matrix, Owner-Abstimmung; gezielte S10-Prüfung abgeschlossen
+- Zeitnah geplant: #554/#547/#543/#541/#536/#533/#522/#499 nach Freigaben/Reviews abschließen
+- Betroffene Bereiche/Dateien: `docs/collaboration/agent-chat/`, `agent-activity/`, `agent-sync/`; Android-Code nur bei konkretem übernommenem CI-Fix und vorheriger Abstimmung
+- Branch/Worktree: `ci/backlog-s10-20261123` / `/home/smiler/.local/share/opencode/worktree/634470/ci-backlog-s10-20261123`
+- Abstimmungsbedarf: FIT-Owner (#547/#541/#499/#533/#522, Datenvertrag-Messgrößen); GUI-Agent (#554/#536/#543, #529); ChatGPT (#499 superseded)
+- Agent-sync-Nachrichten: werden in diesem Task angelegt
+- Nachweise: main `852f4989`; S10 Lease nach Test FREI; S10e SM-G970F Build 1939 installiert als Update von 1934, firstInstallTime blieb erhalten. Geräteseite und Dashboard: „Keine Verbindung · Aufzeichnung aus“; `CirqaContinuousRecordingService` nicht gelistet. Keine Aufnahme/BLE-Aktion. #499 geschlossen, #554 gemergt (`dc4ff00a`, post-merge FULL `45140683774` erfolgreich), #536 docs-only gemergt (`92321e3e`), #541 gemergt (`852f4989`) nach Nutzerfreigabe, branch-head FULL `45091606947` grün; post-merge FULL `45142364968` läuft. Read-only `git merge-tree` pinpointed sole conflict path for #547/#536/#522: `docs/collaboration/agent-sync/INDEX.md`; #522 additionally has unresolved parser replay deltas. #533 FULL grün/mergeable but FIT status/import writes and backup-v9 decision open; #543 clean but stale/historical doc branch.
+- Nächster Schritt: post-merge FULL #541 lesen. Weitere FIT-/GUI-PRs nach Owner-Antworten rebase/close/hold.

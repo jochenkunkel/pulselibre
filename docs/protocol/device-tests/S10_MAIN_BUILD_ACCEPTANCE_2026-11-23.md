@@ -23,7 +23,7 @@ aktuellen `main`.
 1. GUI-Agent veröffentlicht ENDE/Übergabe; `python3 tools/s25_lease.py status --device s10` muss FREI melden.
 2. Gesamte Sitzung in einem Lease-Wrapper halten:
    `python3 tools/s25_lease.py run --device s10 --agent CI-Agent --minutes 25 --task main-build1939-smoke --test-class s10-acceptance -- <Befehle>`.
-3. Im Wrapper Geräteinventar lesen und exakt ein Galaxy S10 (`SM-G973*`) auswählen. Vorherige Version und Paketdaten **nicht löschen**.
+3. Im Wrapper Geräteinventar lesen und exakt ein S10-Familiengerät auswählen (`SM-G970*` S10e oder `SM-G973*` S10). Das bestätigte Testgerät hier ist ein S10e (`SM-G970F`, Produkt `beyond0lte`). Vorherige Version und Paketdaten **nicht löschen**.
 4. Das signierte Artefakt mit `adb install -r <APK>` als Update installieren; Package-Dumpsys auf Version 1939, Startzeit und erhaltene App-Daten prüfen. Danach PulsLibre starten.
 5. Vor der UI-Abnahme `dumpsys activity services de.pulselibre` erfassen und sichtbaren Status auf der Geräteseite notieren. UI „Aufzeichnung läuft“ gilt nur dann als korrekt, wenn der Aufzeichnungsdienst aktiv ist; andernfalls reproduzierbarer Fehler, nicht manuell kaschieren.
 6. Ohne Start-/Stop-, Sync-, Download- oder Testlabor-Aktionen nur die Bereiche ansehen: Start/Dashboard mit vorhandenen Messwerten oder plausiblen Leerzuständen; Verlauf/FIT-Historie; Gerätereiter und passiver bestehender BLE-Verbindungsstatus. Keine FIT-Vollständigkeit aus einer UI-Sicht ableiten.
@@ -35,5 +35,13 @@ aktuellen `main`.
 
 - `main`-FULL 45132518466: Build/Unit/Lint/APK und API-35-Emulator erfolgreich; 118 Python-Regressionstests bestanden.
 - Artefakt lokal heruntergeladen; Zertifikat und Paketmetadaten geprüft.
-- S10-Lease meldete vor dem Versuch FREI und wurde atomar reserviert. Innerhalb des Wrappers war kein Galaxy S10 per ADB angeschlossen; der Wrapper gab die Sperre wieder frei. **Keine Installation, App-Start- oder Geräteaussage** aus diesem Versuch.
-- Der offene Statusfehler „Aufzeichnung läuft“ ohne Dienst bleibt am S10 unbestätigt und muss im nächsten echten Lauf explizit gegen `dumpsys activity services` geprüft werden.
+- Der erste Erkennungsversuch filterte irrtümlich nur `SM-G973*` und übersah dadurch das angeschlossene S10e `SM-G970F`; anschließend wurde die Erkennung korrigiert.
+- Update und App-Start auf dem S10e wurden unter Lease ausgeführt. Die UI-/Dienstabfrage ist im Nachtrag unten festgehalten.
+- Die frühere Beobachtung „Aufzeichnung läuft“ ohne Dienst wurde im geprüften Nach-Update-Zustand nicht reproduziert.
+
+## Nachtrag nach gezieltem Read-only-Check
+
+- S10e `SM-G970F`, Build 1939: Startseite **„Keine Verbindung · Aufzeichnung aus“**; Geräteseite zeigt denselben Zustand; `CirqaContinuousRecordingService` in `dumpsys activity services de.pulselibre` nicht gelistet.
+- Der frühere „läuft“-Status wurde in diesem Nach-Update-Check nicht reproduziert. Keine Aussage zu einem Zustand mit aktiver Verbindung/aufzeichnendem Dienst.
+- Der vollständige Sammelskript-Lauf war teilweise erfolgreich (Navigation/Dashboard/Zeitraumwahl); zwei Fehler: fehlende Achsen-Zugänglichkeitsbeschreibung und UI-Dump-Fallback in der Geräteseite. Der gezielte, separat lease-geschützte Dump mit korrekter Bounds-Auswertung lieferte danach den Geräte-/Recorder-Status. Der Skriptfehler bleibt Harness-/Abnahme-Follow-up, nicht als Produktfehler klassifiziert.
+- Gerät blieb nach allen Wrapper-Läufen ungesperrt. Kein Start der Aufnahme, keine BLE-Aktion.
