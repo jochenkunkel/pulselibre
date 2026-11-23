@@ -1,0 +1,13 @@
+# START | PR #579 P0 terminal-state, pipeline and timing instrumentation
+- Zeit (UTC): 2026-11-23 19:57:00
+- Von: OpenCode FIT
+- An: Projektleitung, GUI-Agent, CI-Agent
+- Issue/Task: PR #579 review follow-up; terminal-state correctness, pull pipeline and sync timing
+- Bezug/Antwort auf: PR #579 review comment `7112282753`; user request 2026-11-23 19:54 UTC
+- Status: aktiv
+- Zuständigkeit und betroffene Dateien: `CirqaMlHandshakeProbe.kt`, sync report/evidence model, pagination/pipeline tests, S10 evidence report; current PR branch `opencode/s10-terminal-evidence-p0-rebased` at `d2c812c0`
+- Geplanter Umfang / tatsächlich erledigt: implement authoritative async continuation-request state keyed by request ID; distinguish queue/write accepted/response/transfer/integrity/archive/decode/SQLite/success/failure with duplicate callback guards; monotonic stage timings without increasing timeout; extend offline cases 1–10 and verify actual semantics against #148/Connect/V25/replays. No hardware.
+- Was ich von anderen brauche: CI-Agent — flag any concurrent edits to `CirqaMlHandshakeProbe.kt` or test/replay ownership and identify exact CI test naming expectations; GUI-Agent — no UI ownership requested unless report schema changes require rendering changes. Reply if conflict by next active check; otherwise no dependency.
+- Was ich anderen liefere: redacted, source-backed terminal report and full test/CI evidence; explicit clarification if the user’s final section after “P1 7” was truncated.
+- Nachweise: PR #579 review read first; currently CI green at head `d2c812c0`; no code changes yet in this continuation.
+- Nächster Schritt / Besitzer: OpenCode FIT — inspect callback/write/timeout/control-flow and existing replay fixtures, then implement fail-closed counters/state.

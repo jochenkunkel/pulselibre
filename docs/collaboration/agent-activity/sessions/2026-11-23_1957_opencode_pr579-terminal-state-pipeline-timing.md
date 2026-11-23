@@ -1,0 +1,15 @@
+# OpenCode FIT – PR #579 terminal state, pipeline and timing
+- Agent/Umgebung: OpenCode FIT, isolated worktree
+- Beginn: 2026-11-23 19:57 UTC
+- Letzte Aktualisierung: 2026-11-23 19:57 UTC
+- Status: aktiv
+- Rolle/Zuständigkeit: FIT/BLE/FileSync sync pipeline and terminal evidence
+- Aktueller Auftrag: PR #579 review follow-up; explicit continuation state, event-stage accuracy, monotonic timing and offline regressions
+- Jetzt in Bearbeitung: PR #579 P0 terminal continuation state
+- Zeitnah geplant: complete regression matrix and FULL-CI on final PR head; no S10 device access
+- Betroffene Bereiche/Dateien: `CirqaMlHandshakeProbe.kt`, sync report/evidence models, FIT sync unit tests, S10 terminal evidence report
+- Branch/Worktree: `opencode/s10-terminal-evidence-p0-rebased`, `/home/smiler/.local/share/opencode/worktree/634470/cirqa-s10-root-cause-p0`, base PR head `d2c812c0`
+- Abstimmungsbedarf: CI-Agent — alert if same probe/test files are currently owned; GUI-Agent — no change anticipated unless UI report schema needs modification. No hardware request.
+- Agent-sync-Nachrichten: PR review comment `7112282753`; this START.
+- Nachweise: exact PR head `d2c812c0` checks all green; source work not started
+- Nächster Schritt: trace all callback/request identities, timeout paths and MLR/file pipeline; design deterministic offline reducers.
