@@ -43,6 +43,18 @@ internal class CirqaSyncPipelineLedger {
     @Synchronized
     fun summary(): String = Stage.entries.joinToString(",") { "${it.name.lowercase()}=${count(it)}" }
 
+    /**
+     * Ordered, privacy-safe per-selected-item progression. The ordinal is local
+     * to this run; each hex digit is only the bitset of reached pipeline stages.
+     */
+    @Synchronized
+    fun orderedSummary(): String = events.entries.joinToString(";") { (ordinal, reached) ->
+        val mask = Stage.entries.foldIndexed(0) { bit, value, stage ->
+            if (stage in reached) value or (1 shl bit) else value
+        }
+        "$ordinal:${mask.toString(16)}"
+    }
+
     @Synchronized
     fun reset() {
         events.clear()

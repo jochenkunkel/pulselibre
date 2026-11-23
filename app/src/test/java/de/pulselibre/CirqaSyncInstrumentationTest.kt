@@ -130,4 +130,23 @@ class CirqaSyncInstrumentationTest {
             timing.snapshot().getValue(CirqaSyncTiming.Stage.ITEM_LIST_RESPONSE)
         )
     }
+
+    @Test fun orderedPipelineAndPerItemTimingExposeOnlyLocalOrdinals() {
+        val pipeline = CirqaSyncPipelineLedger()
+        val ordinal = pipeline.select()
+        pipeline.record(ordinal, CirqaSyncPipelineLedger.Stage.QUEUED)
+        assertEquals("1:3", pipeline.orderedSummary())
+
+        var now = 0L
+        val timing = CirqaSyncTiming { now }
+        timing.start("item:$ordinal:transfer", CirqaSyncTiming.Stage.FILE_TRANSFER)
+        now = 2_500_000
+        timing.stop("item:$ordinal:transfer")
+        timing.start("list:4242", CirqaSyncTiming.Stage.SESSION_PAGE)
+        now = 7_500_000
+        timing.stopAll()
+
+        assertEquals("item1[transfer:2ms]", timing.perItemSummary())
+        assertFalse(timing.perItemSummary().contains("4242"))
+    }
 }

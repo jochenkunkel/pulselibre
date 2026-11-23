@@ -222,9 +222,11 @@ Only after a new explicit user authorization and valid S10 lease:
   BLE writes, correlated application responses, completed transfers, verified
   integrity, original archive, FIT decode/import, SQLite commit, pipeline
   success, and explicit failures. Per-item event counts are idempotent under
-  repeated callbacks. A timed-out in-flight file remains visibly in-flight and
-  is not guessed to be successful or failed.
-- Monotonic elapsed time is emitted for bootstrap, each ItemList response,
+  repeated callbacks. An ordered per-run local ordinal and an LSB-first
+  stage-bitset preserve file order/progress without emitting UIDs. A timed-out
+  in-flight file remains visibly in-flight, with its ordinal and byte progress,
+  and is not guessed to be successful or failed.
+- Monotonic elapsed time is emitted for the total run, bootstrap, each ItemList response,
   session-page/transaction-follow-up waits, transfer, validation, private
   storage, original archive, FIT decode/import, and SQLite commit. These are
   measured intervals; no estimates are substituted. Active intervals are
@@ -245,12 +247,15 @@ Only after a new explicit user authorization and valid S10 lease:
   the 37th selected item's last completed processing stage. In particular, the
   transport ACK is not an application response, and no durable per-item event
   ledger exists for that historical run.
-- For the next explicitly authorized run, retain a random run UUID and trigger
-  owner (automatic/manual); monotonic start/end and terminal cause; listing
+- For the next explicitly authorized run, retain the random run UUID (already
+  emitted) and trigger owner (automatic/manual; pending GUI ownership review);
+  monotonic total-run duration and terminal cause; listing
   page ordinal and response status/count/cursor-presence flags; a local
-  per-run file ordinal (not UID), expected/received byte totals, and timestamps
-  for selected, queued, BLE API accepted/status, correlated response, transfer
-  complete, integrity, archive, FIT decode, SQLite commit, success/failure;
+  per-run file ordinal (not UID), reached-stage markers for selected, queued,
+  BLE API accepted/status, correlated response, transfer complete, integrity,
+  archive, FIT decode, SQLite commit, success/failure, and expected/received
+  byte totals. Retain monotonic durations for bootstrap, list/page waits,
+  per-item transfer, validation, storage/archive and FIT/SQLite import;
   and continuation request kind/phase transitions with only request-match
   outcome (never the token). Snapshot queued and current ordinals/byte counts
   at timeout. Keep payloads, file IDs, hashes, session IDs, tokens, and health
