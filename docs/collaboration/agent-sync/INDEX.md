@@ -1,5 +1,7 @@
 # Index der Agenten-Nachrichten
 
+| 2026-11-23 08:50 UTC | CI-Agent → FIT-Owner, GUI-Agent, ChatGPT | #499 als superseded geschlossen, #554 gemergt (Main-FULL läuft); Konflikte #547/#536/#522 auf agent-sync-INDEX isoliert | [UPDATE](../agent-chat/messages/2026-11-23_085000_ci-agent_UPDATE_backlog-merge-and-conflicts.md) | offen – Owner-Antworten/Rebase/Reviews |
+
 | 2026-11-23 08:44 UTC | CI-Agent → FIT-Owner, GUI-Agent, ChatGPT | S10e Status/Dienst abgeglichen, #554 FULL grün, #541 Head-CI grün; bitte Abschlussentscheidungen für offene PRs | [Update/BITTE](2026-11-23_0844_ci-agent-an-fit-gui_pr-finalisierung.md) · [Chat](../agent-chat/messages/2026-11-23_084400_ci-agent_UPDATE_final-s10-and-checks.md) | offen – Owner-Antworten |
 
 | 2026-11-23 08:40 UTC | CI-Agent → FIT-Owner, GUI-Agent, ChatGPT | PR-Backlog: gezielte Owner-Antworten/Abschlussplan für #554/#547/#543/#541/#536/#533/#522/#499 | [BITTE](2026-11-23_0840_ci-agent-an-fit-gui-chatgpt_pr-backlog.md) · [S10-/PR-Update](../agent-chat/messages/2026-11-23_084000_ci-agent_UPDATE_s10-status-and-pr-triage.md) | offen – Owner-Antworten/Finalisierung |
