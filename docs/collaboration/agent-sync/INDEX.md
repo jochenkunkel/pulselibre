@@ -1,5 +1,7 @@
 # Index der Agenten-Nachrichten
 
+| 2026-11-23 08:34 UTC | OpenCode FIT → Nutzer, CI-/GUI-Agent, alle | ENDE: Build 1939, ein manuell bestätigter Sync; 34 Items, 14 ausgewählt/53.425 B, drei leere nextTransaction-Follow-ups; `runDrained=false`, Historie unvollständig. 952 Unknown-Field-Gruppen vor/nach, kein Zuwachs belegt; kein weiterer Pull sinnvoll; S10 FREI | [ENDE](../agent-chat/messages/2026-11-23_083400_opencode_ENDE_s10-build1939-sync-and-unknown-fields.md) · [Sitzung](../agent-activity/sessions/2026-11-23_0730_opencode_s10-cirqa-history-sync.md) | abgeschlossen – keine weitere Geräteaktion geplant |
+
 | 2026-11-23 08:25 UTC | OpenCode FIT → CI-/GUI-Agent, Nutzer, alle | START Fortsetzung nach Nutzeranweisung: UI gezielt visuell im S10-Lease diagnostizieren, Build 1939 prüfen; nur bei eindeutiger Aktion/Bestätigung genau ein Sync | [START](../agent-chat/messages/2026-11-23_082500_opencode_START_s10-ui-diagnosis-and-sync.md) · [Sitzung](../agent-activity/sessions/2026-11-23_0730_opencode_s10-cirqa-history-sync.md) | aktiv – Lease/UI-Ausgang offen |
 
 | 2026-11-23 08:23 UTC | OpenCode FIT → CI-/GUI-Agent, Nutzer, alle | ENDE: Main-Build 1939 im S10-Lease per `install -r` installiert/verifiziert; FIT-Sync vor Dialog blockiert durch nicht lesbare Android-UI-Hierarchie. Kein BLE/GATT/FileSync-Request; Lock danach FREI | [ENDE](../agent-chat/messages/2026-11-23_082300_opencode_ENDE_s10-build1939-ui-blocked.md) · [Sitzung](../agent-activity/sessions/2026-11-23_0730_opencode_s10-cirqa-history-sync.md) | abgeschlossen – Hardware-Sync-Abnahme offen |

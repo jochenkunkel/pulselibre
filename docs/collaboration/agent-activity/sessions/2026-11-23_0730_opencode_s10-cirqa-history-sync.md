@@ -1,11 +1,11 @@
 # OpenCode FIT – S10e/CIRQA historical sync hardware validation
 - Agent/Umgebung: OpenCode FIT; S10e physical test environment, CIRQA synthetic test band
 - Beginn: 2026-11-23 07:30 UTC
-- Letzte Aktualisierung: 2026-11-23 08:25 UTC
-- Status: aktiv – gezielte UI-Diagnose und möglicher einmaliger Sync nach Nutzeranweisung
+- Letzte Aktualisierung: 2026-11-23 08:34 UTC
+- Status: abgeschlossen – ein bestätigter Sync; leerer Follow-up, Historienabdeckung unvollständig, S10 FREI
 - Rolle/Zuständigkeit: FIT/Protokoll, Geräteintegration
 - Aktueller Auftrag: einen ausdrücklich bestätigten, begrenzten Produkt-Historien-Sync auf S10e/CIRQA validieren
-- Jetzt in Bearbeitung: UI-Diagnose im S10-Lease mit lokalem, nicht eingechecktem Screenshot; bei eindeutig sichtbarem bestätigtem Dialog genau ein Sync
+- Jetzt in Bearbeitung: abgeschlossen; keine weiteren Geräteaktionen geplant; Unknown-Field-Befund offline bewertet
 - Zeitnah geplant: redigierte ENDE-Evidenz mit Sync-/FIT-/SQLite-Zählwerten, ohne Rohpayloads/UIDs/Gesundheitswerte
 - Betroffene Dateien: keine Produktdatei; Agenten-Chat/Sync/Activity-Dokumentation
 - Branch/Worktree: `opencode/s10-integration-20261123`, `/tmp/opencode/pulselibre-s10-integration`
@@ -19,3 +19,4 @@
 - Wiederaufnahme 08:15 UTC: neuester Main-Run 1939 FULL grün auf `b784e56c`; Android-Produktdateien seitdem unverändert bis `bf19a887`. Artifact v2-signiert, `de.pulselibre`/1939, APK SHA `1ef5613657ca2d4c2aa2921bf73301d138d63a09c971aeddbc5cc39e6d019ff5`, Zertifikat-SHA identisch zu 1934 (`36e7f3b664fedb04f175a97a45079a845d781a1769db1a4b02b1c8bf51439177`). FIT-Coverage-PR #547 ist noch nicht in main. Geplanter Umfang: `install -r` im S10-Lease, danach höchstens ein bestätigter Sync.
 - ENDE 08:23 UTC: `adb install -r` meldete Erfolg; installierte Version 1939 bestätigt. Drei Vorprüfungen scheiterten vor Bestätigung (zuerst Aktion nicht erkannt; anschließend UI-Dump nicht lesbar, auch Fallbacks). Kein Sync-Button bestätigt, kein BLE/GATT/FileSync-Request, kein Importnachweis. Kein weiterer Versuch. S10-Status nach Lease FREI.
 - Fortsetzung 08:25 UTC nach erneuter Nutzeranweisung, alle Freigaben inkl. BLE bestehen fort. Nächster Schritt nur kontrollierte Screenshot-/UI-Diagnose im Lease, danach ggf. ein bestätigter Sync; keine generischen Hierarchie-Retries.
+- ENDE 08:34 UTC: UI wurde per lokalem Screenshot navigiert; Dialog mit möglichem Transfermarker geprüft; genau ein Sync bestätigt und 130 s beobachtet. 34 Items, 14 ausgewählt (53.425 B), 20 übersprungen, `pullSent=true`; drei nextTransaction-Follow-ups leer → `next-transaction-followup-empty`, `runDrained=false`, Abdeckung unbestätigt. Vollständige Datei-/CRC-/SQLite-Stufenzähler waren in der sichtbaren Statusansicht nicht lesbar; keine Importerfolge behauptet. Unknown-Field-Anzeige 952 Gruppen vor/nach, kein Zuwachs nachgewiesen. Kein zusätzlicher Sync/Pull sinnvoll; Gerät danach FREI.
