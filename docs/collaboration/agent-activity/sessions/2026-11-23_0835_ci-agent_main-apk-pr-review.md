@@ -1,0 +1,16 @@
+# CI-Agent – Main-APK-Sicherung und FIT-/GUI-PR-Risiken
+- Agent/Umgebung: CI-Agent / OpenCode
+- Beginn: 2026-11-23 08:35 UTC
+- Letzte Aktualisierung: 2026-11-23 08:10 UTC (Host-UTC)
+- Status: abgeschlossen
+- Rolle/Zuständigkeit: Buildqualität, CI-/APK-Bereitstellung, Abnahmevorbereitung
+- Aktueller Auftrag: Nutzerauftrag vom 2026-11-23; `main`-FULL, signierte APK, offene FIT-/GUI-PRs, S10-Abnahmetest und Aufzeichnungsstatus
+- Jetzt in Bearbeitung: abgeschlossen; S10-Smoke-Test mangels Gerät nicht ausgeführt
+- Zeitnah geplant: S10-Test bei bestätigter Freigabe (nicht exklusiv reserviert)
+- Betroffene Bereiche/Dateien: eigene Chat-/Activity-Dokumentation; geprüfte Berichte unter `/tmp/opencode` lokal
+- Branch/Worktree: `ci/main-apk-pr-review-20261123` / `/home/smiler/.local/share/opencode/worktree/634470/ci-main-apk-review-20261123`
+- Abstimmungsbedarf: GUI-Agent meldete S10 FREI um 08:25 UTC; vor Zugriff erneute Statusprüfung und Lease. FIT-Owner um konkrete PR-Risikohilfe, falls befundbasiert nötig.
+- Agent-sync-Nachrichten: keine neue adressierte BITTE bislang
+- Nachweise: FULL `45132518466` auf `b784e56c` erfolgreich, beide Jobs inkl. API-35-Emulator; 118 Python-Tests. APK 1939, APK-SHA-256 `1ef5613657ca2d4c2aa2921bf73301d138d63a09c971aeddbc5cc39e6d019ff5`, v2-Signatur gültig, Zertifikatfingerprint geprüft; PR #499 wegen konkreter Regressionsgefahr kommentiert. PR #547/#533/#522/#541 Checks alle grün.
+- Dokumentation/Abnahmecheckliste und Chat-/Aktivitätseintrag in [PR #552](https://github.com/jochenkunkel/pulselibre/pull/552); derzeit docs-only, Android-CI wird durch Pfadfilter nicht gestartet.
+- Nächster Schritt: GUI/FIT-Agent nach S10-Freigabe und Gerätverfügbarkeit lässt Update-Smoke-Test mit Build 1939 laufen; CI-Agent koordiniert künftigen Release-Build anhand FIT-Integrationspunkt. Keine Geräteabnahme behauptet.

@@ -20,7 +20,7 @@ Hier finden Entwickler, die Haupt-IDE VSCodium/Codium (mit alternativem Claude-C
 
 ## Exklusiver Zugriff auf das Samsung Galaxy S25
 
-Alle Agenten müssen vor S25-Zugriff die **hostweit gemeinsame Gerätesperre** gemäß [AGENTS.md](../../AGENTS.md) verwenden. Mit `python3 tools/s25_lease.py status` den Status prüfen; sämtliche Gerätebefehle in einer reservierten Sitzung über `python3 tools/s25_lease.py run --agent NAME --minutes 30 -- <Befehl>` ausführen. Die Sperrdatei unter `~/.cache/pulselibre/s25-lease/status.json` zeigt Agent und geplante Freigabe; sie wird nach Sitzungsende automatisch entfernt. Keine parallelen S25-Tests; auf verschiedenen Hosts ist zusätzliche Abstimmung erforderlich.
+Alle Agenten müssen vor S10-/S25-Zugriff die **hostweit gemeinsame Gerätesperre** gemäß [AGENTS.md](../../AGENTS.md) verwenden. Mit `python3 tools/s25_lease.py status --device s10` bzw. `--device s25` den jeweiligen Lock prüfen; sämtliche Gerätebefehle einer Sitzung müssen in einem gehaltenen Wrapper `python3 tools/s25_lease.py run --device s10 --agent NAME --minutes 40 -- <Befehl>` (S25 entsprechend `--device s25`) laufen. Für S25 bleibt die alte CLI-Form ohne `--device` kompatibel. Details zu Serial-Alias, Statusfeldern und Prozess-Cleanup: [DEVICE_LEASE.md](DEVICE_LEASE.md). Keine parallelen Tests auf demselben Gerät; auf verschiedenen Hosts ist zusätzliche Abstimmung erforderlich.
 
 ## Aktuelle Forschungsdaten-Freigabe
 

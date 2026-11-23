@@ -963,8 +963,8 @@
     <string name="sd_error">The data could not be read. Nothing is shown in its place.</string>
     <string name="sd_empty">No measurements in the selected period.</string>
     <string name="sd_only_invalid">The period only contains invalid values or device status; nothing is drawn.</string>
-    <string name="sd_summary">%1$d valid values · mean %2$s · min %3$s · max %4$s · coverage %5$d %%</string>
-    <string name="sd_summary_no_valid">%1$d values, none drawn as valid · coverage %2$d %%</string>
+    <string name="sd_summary">%1$d valid values · mean %2$s · min %3$s · max %4$s · time buckets with data %5$d %%</string>
+    <string name="sd_summary_no_valid">%1$d values, none drawn as valid · time buckets with data %2$d %%</string>
     <string name="sd_flags">%1$d invalid, %2$d device status (not drawn)</string>
     <string name="sd_unverified">Values with unverified quality (hollow circles)</string>
     <string name="sd_gaps">%1$d gaps (hatched, not filled in)</string>
@@ -974,4 +974,16 @@
     <string name="sd_na_hrv">HRV: only RR intervals exist, no verified HRV analysis.</string>
     <string name="sd_na_temp">Temperature: band support is not established.</string>
     <string name="sd_cd">%1$s. %2$s</string>
+    <string name="dev_meta_gatt_appearance">Appearance</string>
+    <string name="dev_meta_gatt_conn_pref">Preferred connection interval</string>
+    <string name="dev_meta_gatt_addr_res">Address resolution (privacy)</string>
+    <string name="dev_meta_gatt_rsc">Running sensor features</string>
+    <string name="dev_meta_gatt_garmin">Garmin-specific value</string>
+    <string name="dev_val_supported">Supported</string>
+    <string name="dev_val_not_supported">Not supported</string>
+    <string name="dev_val_rsc_none">No optional features</string>
+    <string name="dev_val_appearance_watch">Watch</string>
+    <string name="dev_val_appearance_sports_watch">Sports watch</string>
+    <string name="dev_val_appearance_other">Other (%1$s)</string>
+    <string name="dev_val_conn_params">%1$s–%2$s ms, latency %3$d, timeout %4$d ms</string>
 </resources>

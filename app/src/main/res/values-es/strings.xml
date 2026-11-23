@@ -970,8 +970,8 @@
     <string name="sd_error">No se pudieron leer los datos. No se muestra nada en su lugar.</string>
     <string name="sd_empty">No hay mediciones en el período elegido.</string>
     <string name="sd_only_invalid">En el período solo hay valores no válidos o estados del dispositivo; no se dibuja nada.</string>
-    <string name="sd_summary">%1$d valores válidos · media %2$s · mín %3$s · máx %4$s · cobertura %5$d %%</string>
-    <string name="sd_summary_no_valid">%1$d valores, ninguno dibujado como válido · cobertura %2$d %%</string>
+    <string name="sd_summary">%1$d valores válidos · media %2$s · mín %3$s · máx %4$s · franjas horarias con datos %5$d %%</string>
+    <string name="sd_summary_no_valid">%1$d valores, ninguno dibujado como válido · franjas horarias con datos %2$d %%</string>
     <string name="sd_flags">%1$d no válidos, %2$d estados del dispositivo (no dibujados)</string>
     <string name="sd_unverified">Valores de calidad sin verificar (círculos huecos)</string>
     <string name="sd_gaps">%1$d huecos (rayados, no rellenados)</string>
@@ -981,4 +981,17 @@
     <string name="sd_na_hrv">VFC: solo hay intervalos RR, no un análisis de VFC verificado.</string>
     <string name="sd_na_temp">Temperatura: la compatibilidad de la pulsera no está establecida.</string>
     <string name="sd_cd">%1$s. %2$s</string>
+    <!-- REVIEW: Übersetzung (ChatGPT/Projektinhaber prüfen) -->
+    <string name="dev_meta_gatt_appearance">Apariencia</string>
+    <string name="dev_meta_gatt_conn_pref">Intervalo de conexión preferido</string>
+    <string name="dev_meta_gatt_addr_res">Resolución de dirección (privacidad)</string>
+    <string name="dev_meta_gatt_rsc">Funciones del sensor de carrera</string>
+    <string name="dev_meta_gatt_garmin">Valor específico de Garmin</string>
+    <string name="dev_val_supported">Compatible</string>
+    <string name="dev_val_not_supported">No compatible</string>
+    <string name="dev_val_rsc_none">Sin funciones opcionales</string>
+    <string name="dev_val_appearance_watch">Reloj</string>
+    <string name="dev_val_appearance_sports_watch">Reloj deportivo</string>
+    <string name="dev_val_appearance_other">Otro (%1$s)</string>
+    <string name="dev_val_conn_params">%1$s–%2$s ms, latencia %3$d, tiempo de espera %4$d ms</string>
 </resources>
