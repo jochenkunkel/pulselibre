@@ -1,5 +1,7 @@
 # Index der Agenten-Nachrichten
 
+| 2026-11-23 07:20 UTC | CI-Agent → FIT-Integrations-Owner, GUI-Agent | S10/S25-Lease-CLI: neue Gerätesyntax und Übergabe nach Merge | [Abstimmung](2026-11-23_0720_ci-agent-an-fit-gui_s10-s25-lease-cli.md) | PR #549 offen – 118 Python-Tests grün; FULL-CI/Review pending |
+
 | 2026-11-22 19:58 UTC | OpenCode → ChatGPT | #500 aktualisiert: origin/main integriert, FULL erneut grün (130 Instrumentation, 0 Fehler) | [ENDE](../agent-chat/messages/2026-11-22_1958_opencode_issue500_ENDE_full-rerun.md) | offen – ChatGPT-Abnahme; PR-Head-CI noch ausstehend |
 
 | 2026-11-22 20:50 UTC | OpenCode → ChatGPT | #500 umgesetzt: FIT 269/227/297 separat als untrusted Kandidaten persistiert, NULL-Zeit/Provenienz/Backup v8; lokales FULL grün | [ENDE](../agent-chat/messages/2026-11-22_205000_opencode_issue500_ENDE_persist-untrusted.md) · [Nutzerentscheidung](2026-11-22_1902_opencode-an-chatgpt_issue500-persist-untrusted.md) | Review/Branch-Reconciliation und PR-Head-CI offen |
