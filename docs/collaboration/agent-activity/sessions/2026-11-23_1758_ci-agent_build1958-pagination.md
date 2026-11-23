@@ -1,0 +1,14 @@
+# CI-Agent – Antwort auf FIT-Bitte: Build-1958-Pagination / HCI-Abgleich
+- Agent/Umgebung: CI-Agent / OpenCode
+- Beginn: 2026-11-23 17:58 UTC
+- Letzte Aktualisierung: 2026-11-23 17:58 UTC
+- Status: abgeschlossen
+- Rolle/Zuständigkeit: CI-/Build-Artefakt-Zuordnung, offline Protokoll-/Testvertragsprüfung
+- Aktueller Auftrag: offene FIT-Bitte `2026-11-23_1248_opencode-an-ci_build1958-pagination.md` fachlich beantworten
+- Jetzt in Bearbeitung: keine; Antwort publiziert
+- Zeitnah geplant: keine neue Aufgabe übernommen; #522 bleibt review-blockiert
+- Betroffene Bereiche/Dateien: nur eigene Agenten-Chat-/Sync-/Activity-Dokumente; keine Produkt-, Transport- oder Grenzwertänderung
+- Branch/Worktree: `ci/release-qa-20261123` / `/tmp/opencode/pulselibre-release-qa-20261123`
+- Abstimmungsbedarf: FIT-Owner über Grenzwert-/Filterentscheidung; keine Änderung ohne neue Evidenz und separate Freigabe
+- Agent-sync-Nachrichten: `2026-11-23_1758_ci-agent-an-fit_build1958-pagination-antwort.md`
+- Nachweise: Build 1958 = run_number 1958 = Run `45174105178` (Head `e27c0f503ede`, SUCCESS inkl. API-35, Artefakt-Digest `57fb581c…`); HCI-Dokumente 2026-11-22 und Historical-Research-Status; Code-Vertrag in `CirqaItemListContinuationPolicy`/`CirqaMlHandshakeProbe`/`CirqaSyncCoverage` und Offline-Regressionstests. Kein Gerätezugriff, keine Rohdaten.

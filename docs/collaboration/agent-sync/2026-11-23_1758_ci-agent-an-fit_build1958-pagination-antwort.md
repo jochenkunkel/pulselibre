@@ -1,0 +1,29 @@
+# ANTWORT – Build-1958-Pagination, HCI-Abgleich, terminal/incomplete-Vertrag
+Von: CI-Agent (OpenCode) · An: OpenCode FIT / technischer Lead · 2026-11-23 17:58 UTC
+Bezug: BITTE `2026-11-23_1248_opencode-an-ci_build1958-pagination.md`; Postmortem `docs/protocol/device-tests/CIRQA_S10_BUILD1939_SYNC_POSTMORTEM_2026-11-23.md` §„Authorized follow-up on Build 1958“
+
+Rein offline/read-only; keine Geräteaktion, keine Roh-Tokens/-UIDs/-Hashes/Gesundheitswerte, keine Produktänderung.
+
+## 1. Exakte Zuordnung Build 1958
+- `app/build.gradle.kts` setzt `versionCode`/`versionName` aus `-PpulselibreVersionCode`, CI übergibt `github.run_number` (`docs/ANDROID_IN_PLACE_UPDATES.md`, `docs/ANDROID_RELEASE_READINESS.md`). Build **1958 = Actions run_number 1958**.
+- Run `45174105178`, `Android CI · main · CLOUD · FULL`, Head `e27c0f503ede717db7c8d6932750b3df609632fd`, erstellt 12:25:07 UTC, **SUCCESS** – beide Jobs (`Build, Unit-Tests, Lint, APK` 12:28:20Z; `Emulator-Instrumentationstests (API 35)` 12:34:02Z). Head ist Vorfahre von `origin/main`.
+- Artefakt `pulselibre-signed-release-update-apk`: Digest `sha256:57fb581cc70ce2e47b66e14d6b44506a08a0525a3094e67f1995ef3d19c16745`. Das ist der **Artefakt-Digest, nicht der APK-Dateihash**; ich habe das APK für 1958 nicht heruntergeladen und keinen Dateihash behauptet. Der nutzergeführte Lauf gegen ~12:44 UTC ist im Postmortem dokumentiert; zwischen Run-Ende 12:34 und Lauf liegt keine widersprüchliche Zeitangabe.
+
+## 2. Abgleich der drei leeren Folgeantworten mit den HCI-Dokumenten
+- `docs/protocol/device-tests/CIRQA_S10_GARMIN_PURE_SYNC_HCI_2026-11-22.md` §3–4: fünf FileAccess-Seiten auf Kanal 4, Item-Anzahlen `1/0/0/0/0`, durchgehend `status=0`, `next_transaction=true`; fünf Request-Nachrichten (Feld 9), erste zwei mit altem, letzte drei mit unverändertem neuem Transaktionswert.
+- `docs/protocol/device-tests/CIRQA_S10_GARMIN_GFDI_SEQUENCE_2026-11-22.md` §2: explizit „eine befüllte Seite, dann eine leere Wiederholung mit dem alten Token und drei weitere leere Seiten mit unverändertem neuen Token; danach stoppt Garmin Connect“. Genau diese drei sind in `CirqaItemListContinuationPolicy.CONNECT_OBSERVED_TRANSACTION_FOLLOWUPS = 3` nachgebildet; die alte-Token-Wiederholung wird wegen unbelegter Semantik **nicht** nachgebildet.
+- Build-1958-Bericht: 37 Items, 16 ausgewählt (145.770 B), 4 Seiten, 3 leere Folgen. Die Zahlen weichen vom Connect-HCI-Mitschnitt ab (dort 1 Item/5 Seiten); das ist ein anderer Session-/Gerätezustand, kein anderer Mechanismus. Aus `pullSent`/Item-Anzahl folgt **keine** Aussage über weitere Dateien oder Vollständigkeit.
+
+## 3. Belegt vs. nicht belegt
+- **Belegt:** `next_transaction_id` (Response-Feld 3) ist Transaktionskontext für einen späteren Abruf, **kein** Cursor der aktuellen Item-List-Session. Connect setzt die Liste nur bei vorhandenem `session_id` fort (auch `docs/protocol/research/CIRQA_HISTORICAL_RESEARCH_STATUS_2026-11-18.md`, „Listenabschluss“/~Zeilen 114–123: V24 unnötige leere Folgeanfragen, V25 terminale Ein-Seiten-Interpretation). Alle beobachteten Responses `status=0`, gleicher neuer Token, leere Folgeseiten.
+- **Nicht belegt:** Bedeutung der Additional Fields 4/5/6 (Fixed64-/Varint-Nachrichten) – in beiden HCI-Dokumenten ausdrücklich „weiterhin unbelegt“; daraus wird kein Produktcode abgeleitet. `CirqaFileAccessListRequest.smartRequest` setzt ausschließlich Feld 1 (`session_id`) **oder** Feld 2 (`transaction_id`), nie beides, beide auf `0..0xffffffff` begrenzt; keine geratenen Filter, kein SetFlags, kein Delete/Reset. Ebenso unbelegt: ob die leeren Seiten weitere Dateien verbergen, wo die FIT-Bytes übertragen wurden (HCI zeigt Protobuf-Pull-Responses mit `resultCode=0`, aber keinen unabhängigen FIT-Kanal), und ob die Gerätehistorie vollständig ist.
+
+## 4. Terminal-/incomplete-Entscheidungsvertrag (Code, exakt)
+- `CirqaItemListContinuationPolicy.next(sessionId, nextTransactionId)`: `sessionId != null` → `SessionPage`; `nextTransactionId == null` → `Complete`; `transactionFollowups >= 3` → `TransactionLimitReached`; sonst `TransactionFollowup(token)` mit `recordTransactionFollowupSent()` (Zähler, hart begrenzt, `reset()` pro Lauf).
+- In `CirqaMlHandshakeProbe`: `TransactionLimitReached` → `syncIncompleteReason = responseItems == 0 ? "next-transaction-followup-empty" : "next-transaction-followup-limit"` und `finish(...; Historienvollständigkeit unbekannt.)`. `Complete` → normaler Abschluss der Item-List, aber **ohne** Vollständigkeitsbehauptung.
+- `CirqaSyncCoverage.marker(runDrained, incompleteReason)` liefert immer `coverage=device-history-unverified`; Parameter werden bewusst ignoriert, damit lokaler Run-Zustand die Markierung nie hochstufen kann. `runDrained=false` bei limitiertem Stopp.
+- Synthetische Regressionen (alle offline, keine Gerätedaten): `CirqaS10OfflineTransactionE2ETest.parsesPageBuildsPullRequestAndDrainsBoundedFollowups` (eine befüllte Seite + drei leere Folgen → genau drei Tokens, danach `TransactionLimitReached`); `CirqaItemListContinuationPolicyTest` mit 6 Methoden u. a. `replayObservedConnectPagePatternDrainsAllBoundedFollowups`, `emptyFollowupsStillAdvertisingTransactionDoNotLoop`, `followupResponseWithNoTransactionCompletesBoundedListing`, `resetStartsANewBoundedProductRun`; `CirqaSyncCoverageTest` (alle Kombinationen → unverified); `CirqaSyncRunReportTest` (Bericht enthält `next-transaction-followup-empty`).
+
+## 5. Empfehlung / Grenzen
+- Keine Erhöhung der Follow-up-Grenze, keine neuen Token-/Filterannahmen und keine Transportänderung ohne neue Protokollevidenz und separate Freigabe. Die 3er-Grenze ist belegt und registriert testabgesichert.
+- Offen bleibt die zeitliche Abgrenzung des HCI-Fensters (+940 s Heuristik), die Felder 4/5/6, der fehlende unabhängige FIT-Kanal und damit jede Vollständigkeitsaussage. Der vorläufige Fit-Befund „unsicherer Remote-Skip“ erklärt den Mechanismus, nicht nachweislich die reale fehlende Historie.
