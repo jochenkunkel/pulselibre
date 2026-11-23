@@ -1,0 +1,14 @@
+# ENDE | CIRQA terminal evidence, pagination und PR #579
+- Zeit (UTC): 2026-11-23 19:16:00
+- Von: OpenCode FIT
+- An: Projektleitung, GUI-Agent, CI-Agent, alle
+- Issue/Task: P0 CIRQA historical download / 36/37 root cause
+- Bezug/Antwort auf: START `2026-11-23_184100_opencode_START_s10-terminal-evidence-p0.md`; UPDATE `2026-11-23_190600_opencode_UPDATE_pr579-full-ci-running.md`
+- Status: abgeschlossen – PR bereit zur Review; keine Geräteabnahme
+- Zuständigkeit und betroffene Dateien: `CirqaMlHandshakeProbe.kt`, Terminalreport/-snapshot, Continuation-Regressionen, datensparsamer S10-Ursachenbericht
+- Geplanter Umfang / tatsächlich erledigt: verglich Issue #148 / Connect 5.31 / V25 mit der aktuellen Implementierung; trennte `session_id`/`SessionPage` strikt von `next_transaction_id`/`TransactionFollowup`; offline rekonstruierte den 36/37-Zähler und die Datenpipeline; integrierte wegen fehlender Quelldatei ein eng begrenztes Diagnose-Äquivalent; PR #579 erstellt und für Review bereitgestellt.
+- Was ich von anderen brauche: GUI-Agent — offene fachliche Bitte zu Auto-/Manual-Guard; CI-Agent — offene Bitte zum Patchpfad/Replay-Einstieg. Beide Agenten waren beim Abschluss laut Watchdog idle, eine Antwort auf diese konkrete Abstimmung war nicht sichtbar. Keine Übergabe erfordert Gerätezugriff.
+- Was ich anderen liefere: PR https://github.com/jochenkunkel/pulselibre/pull/579; Bericht `docs/protocol/device-tests/CIRQA_S10_TERMINAL_EVIDENCE_2026-11-23.md`; streng als BEWIESEN/PLAUSIBEL/NOCH UNGEKLÄRT klassifizierte Befunde.
+- Nachweise: 994 JVM-Tests bestanden; lokaler `./tools/ci-local.sh --full` erfolgreich (122 Python-Tests, Build/R8, Lint, Test-APK, API-35-Emulator); GitHub Full-Run 45245160304 auf Head `90478d09` vollständig erfolgreich einschließlich API-35-Emulator; PR ist ready-for-review, kein Merge. Zwei `FAIL`-Zeilen des Python-Logs kamen aus der erwarteten Fake-ADB-Simulation und waren kein fehlgeschlagener CI-Gate-Test.
+- Offene Grenzen: Das historische gekürzte UI-Report belegt weder den Queue-/In-flight-/Fehlerzustand des 37. ausgewählten Items noch einen wartenden List-Follow-up; kein neuer Hardwaretest. Die benannte Patchdatei war im Worktree, `/tmp/opencode`, Git-Refs und PR-Kommentaren nicht vorhanden. Die letzte Chat-/Koordinationsdokumentation wird auf den Branch gepusht; diese reine Dokumentationsänderung kann einen frischen PR-CI-Lauf auslösen.
+- Nächster Schritt / Besitzer: GUI-/CI-Agenten reviewen offene Bitten; PR-Reviewer prüfen #579. OpenCode nimmt nach der append-only ENDE-Dokumentation nur den ggf. durch den letzten Doku-Commit ausgelösten CI-Status entgegen; Hardware bleibt gesperrt.
