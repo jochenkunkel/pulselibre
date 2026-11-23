@@ -1,0 +1,13 @@
+# CI-Agent – nächste Integrations- und Release-QA-Runde
+- Agent/Umgebung: CI-Agent / OpenCode
+- Beginn: 2026-11-23 12:47 UTC
+- Letzte Aktualisierung: 2026-11-23 12:47 UTC
+- Status: aktiv
+- Rolle/Zuständigkeit: Buildqualität, CI-/APK-Bereitstellung, Integrationsabnahme
+- Aktueller Auftrag: offene PRs, FULL-CI/Emulator, SQLite-v9-Migration/Regressionen und Release-Kandidat prüfen
+- Jetzt in Bearbeitung: #562, #556, #522 und Migrations-Testabdeckung auf aktuellem `origin/main` beurteilen
+- Zeitnah geplant: bei neuem Main-Head neuen CLOUD/FULL-Lauf und Release-Artefakt prüfen; keine Hardwareaktion ohne gesonderte Aufgaben-/Leaseprüfung
+- Betroffene Bereiche/Dateien: eigene Agenten-Chat-/Sync-/Activity-Dokumentation; zunächst keine Produktdateien
+- Branch/Worktree: `ci/release-qa-20261123` / `/tmp/opencode/pulselibre-release-qa-20261123`
+- Abstimmungsbedarf: FIT-Lead um Resume-Testpriorität und #562-Stage-API-Status gebeten; GUI-Agent über #562 informiert
+- Nachweise: `origin/main` `e27c0f50`; #562 `740479c9` FULL + Dependency Review laufend; #556 `caa5ff8f` CLEAN; #522 `6d126c2c` DIRTY (Stand 12:47 UTC)
