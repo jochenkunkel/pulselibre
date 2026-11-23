@@ -114,9 +114,9 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private val syncHandledResponseIds = HashSet<Pair<Int, Int>>()
     private val syncPipelineLedger = CirqaSyncPipelineLedger()
     private val syncContinuationRequest = CirqaSyncContinuationRequest()
+    private val syncTerminalFinalizer = CirqaSyncTerminalFinalizer()
     private val syncTiming = CirqaSyncTiming()
     private var syncSelectedFiles = 0
-    private var syncArchiveCount = 0
     private var pendingSyncWriteTag: SyncWriteTag? = null
     private var syncCompletedFiles = 0
     private var syncFailedFiles = 0
@@ -1047,13 +1047,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         syncCurrentPullRequestId?.let {
             syncTiming.stop("pull:$it", CirqaSyncTiming.Stage.FILE_TRANSFER)
         }
-        val validationStartKey = "validation:$localId"
-        syncTiming.start(validationStartKey, CirqaSyncTiming.Stage.VALIDATION)
-        val result = try {
-            mlrValidation()
-        } finally {
-            syncTiming.stop(validationStartKey)
-        }
+        val result = mlrValidation()
         syncFileStageCounts.record(result)
         val successful = result.successfulForSync
         if (result.integrity == CirqaSyncFileCompletion.Stage.SUCCEEDED) {
@@ -1167,10 +1161,9 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                 syncPageSessionId = null
                 syncPageNextTransactionId = null
                 syncIncompleteReason = "item-list-session-followup-pending"
-                syncContinuationRequest.enqueue(
-                    CirqaSyncContinuationRequest.Kind.SESSION_PAGE,
-                    requestId
-                )
+                if (!beginSyncContinuation(
+                        CirqaSyncContinuationRequest.Kind.SESSION_PAGE, requestId, g
+                    )) return
                 syncListRequestKinds[requestId] = CirqaSyncContinuationRequest.Kind.SESSION_PAGE
                 syncPullDiag = (syncPullDiag + "|list#$requestId:continuation=session")
                     .take(1000)
@@ -1181,6 +1174,9 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                 serial.post { mark("FileAccess-Item-List-Session-Fortsetzung angefordert (read-only)") }
             }
             is CirqaItemListContinuationPolicy.Decision.TransactionFollowup -> {
+                if (!beginSyncContinuation(
+                        CirqaSyncContinuationRequest.Kind.TRANSACTION_FOLLOWUP, requestId, g
+                    )) return
                 if (!syncListContinuation.recordTransactionFollowupSent()) {
                     syncIncompleteReason = "next-transaction-followup-limit"
                     finish("nextTransaction-Folgeabruf bereits ausgeschöpft; Stopp.", g)
@@ -1188,10 +1184,6 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                 }
                 syncPageNextTransactionId = null
                 syncIncompleteReason = "next-transaction-followup-pending"
-                syncContinuationRequest.enqueue(
-                    CirqaSyncContinuationRequest.Kind.TRANSACTION_FOLLOWUP,
-                    requestId
-                )
                 syncListRequestKinds[requestId] =
                     CirqaSyncContinuationRequest.Kind.TRANSACTION_FOLLOWUP
                 syncPullDiag = (syncPullDiag + "|list#$requestId:continuation=transaction")
@@ -1209,6 +1201,21 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             CirqaItemListContinuationPolicy.Decision.Complete,
             CirqaItemListContinuationPolicy.Decision.TransactionLimitReached -> Unit
         }
+    }
+
+    private fun beginSyncContinuation(
+        kind: CirqaSyncContinuationRequest.Kind,
+        requestId: Int,
+        g: BluetoothGatt
+    ): Boolean {
+        val state = syncContinuationRequest.enqueue(kind, requestId)
+        val tracked = state as? CirqaSyncContinuationRequest.State.Tracked
+        if (tracked?.kind == kind && tracked.requestId == requestId &&
+            tracked.phase == CirqaSyncContinuationRequest.Phase.QUEUED
+        ) return true
+        syncIncompleteReason = "continuation-state-unknown"
+        finish("Continuation-Zustand nicht eindeutig; keine weitere Liste angefordert.", g)
+        return false
     }
 
     private fun appendSyncItemListPage(g: BluetoothGatt, page: CirqaFileAccessItemListParser.ItemListPage) {
@@ -1444,15 +1451,18 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                 syncPullSent = true
                 syncTiming.start("pull:${tag.requestId}", CirqaSyncTiming.Stage.FILE_TRANSFER)
             }
-            is SyncWriteTag.ItemList -> syncTiming.start(
-                "list:${tag.requestId}",
-                when (tag.continuation) {
-                    CirqaSyncContinuationRequest.Kind.SESSION_PAGE -> CirqaSyncTiming.Stage.SESSION_PAGE
-                    CirqaSyncContinuationRequest.Kind.TRANSACTION_FOLLOWUP ->
-                        CirqaSyncTiming.Stage.TRANSACTION_FOLLOWUP
-                    null -> CirqaSyncTiming.Stage.ITEM_LIST_RESPONSE
-                }
-            )
+            is SyncWriteTag.ItemList -> {
+                tag.continuation?.let { syncContinuationRequest.writeAccepted(tag.requestId) }
+                syncTiming.start(
+                    "list:${tag.requestId}",
+                    when (tag.continuation) {
+                        CirqaSyncContinuationRequest.Kind.SESSION_PAGE -> CirqaSyncTiming.Stage.SESSION_PAGE
+                        CirqaSyncContinuationRequest.Kind.TRANSACTION_FOLLOWUP ->
+                            CirqaSyncTiming.Stage.TRANSACTION_FOLLOWUP
+                        null -> CirqaSyncTiming.Stage.ITEM_LIST_RESPONSE
+                    }
+                )
+            }
             is SyncWriteTag.Bootstrap -> syncTiming.start(
                 "bootstrap", CirqaSyncTiming.Stage.BOOTSTRAP
             )
@@ -1469,7 +1479,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                 syncTiming.stop("pull:${tag.requestId}", CirqaSyncTiming.Stage.FILE_TRANSFER)
             }
             is SyncWriteTag.ItemList -> if (tag.continuation != null) {
-                syncContinuationRequest.observeWriteRejected(tag.requestId)
+                syncContinuationRequest.writeRejected(tag.requestId)
                 syncTiming.stop("list:${tag.requestId}")
             }
             is SyncWriteTag.Bootstrap -> syncTiming.stop("bootstrap", CirqaSyncTiming.Stage.BOOTSTRAP)
@@ -1483,7 +1493,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                 syncPipelineLedger.record(tag.localId, CirqaSyncPipelineLedger.Stage.FAILED)
             ) syncFailedFiles++
             is SyncWriteTag.ItemList -> if (tag.continuation != null) {
-                syncContinuationRequest.observeWriteFailed(tag.requestId)
+                syncContinuationRequest.writeFailed(tag.requestId)
             }
             is SyncWriteTag.Bootstrap, null -> Unit
         }
@@ -2178,6 +2188,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         syncCurrentLocalItemId = null
         syncCurrentPullRequestId = null
         syncContinuationRequest.reset()
+        syncTerminalFinalizer.reset()
         syncPipelineLedger.reset()
         syncTiming.reset()
         syncPullRequestItems.clear()
@@ -2185,7 +2196,6 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         syncListRequestKinds.clear()
         syncHandledResponseIds.clear()
         syncSelectedFiles = 0
-        syncArchiveCount = 0
         syncNextRequestId = 3
         syncCompletedFiles = 0
         syncFailedFiles = 0
@@ -2217,6 +2227,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         bootstrapAckMode = true
         configurationTestMode = true
         historyDiagnosticMode = true
+        syncTiming.start("bootstrap", CirqaSyncTiming.Stage.BOOTSTRAP)
         start(false, result)
         if (!active) {
             emitSyncProgress(HistorySyncStage.FAILED)
@@ -2525,20 +2536,33 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                         }
                     }
                     CirqaFileAccessItemListParser.parsePage(msg)?.let { page ->
+                        val hadOutstandingContinuation = syncContinuationRequest.isOutstanding()
                         val knownListRequest = syncListRequestKinds.containsKey(completedMessage.requestId)
                         val continuationKind = syncListRequestKinds.remove(completedMessage.requestId)
                         if (knownListRequest) {
                             syncTiming.stop("list:${completedMessage.requestId}")
                         }
+                        if (hadOutstandingContinuation && continuationKind == null) {
+                            syncContinuationRequest.observeResponse(null, accepted = false)
+                            syncIncompleteReason = "continuation-response-correlation-unknown"
+                            finish("Item-List-Antwort nicht eindeutig zugeordnet; Stopp.", g)
+                            return
+                        }
+                        val pageAccepted = page.status == ITEM_LIST_SUCCESS_STATUS && page.complete
                         if (continuationKind != null) {
                             syncContinuationRequest.observeResponse(
                                 completedMessage.requestId,
-                                page.status == ITEM_LIST_SUCCESS_STATUS && page.complete
+                                pageAccepted
                             )
-                        } else if (syncContinuationRequest.terminalLabel() != "none") {
-                            syncContinuationRequest.observeResponse(null, accepted = false)
                         }
-                        appendSyncItemListPage(g, page)
+                        if (continuationKind != null && pageAccepted) {
+                            syncContinuationRequest.complete(completedMessage.requestId)
+                        }
+                        try {
+                            appendSyncItemListPage(g, page)
+                        } catch (_: Exception) {
+                            finish("Item-List-Verarbeitung fehlgeschlagen.", g)
+                        }
                         if (syncStopBeforePullMode) return
                     }
                     // Connect requests the pending file list only AFTER sync_response.
@@ -3102,6 +3126,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     /** Redacted integrity summary of the received MLR transfer. */
     private fun mlrValidation(): CirqaSyncFileCompletion.Result {
         emitSyncProgress(HistorySyncStage.VALIDATING)
+        val validationTimingKey = "validation:${syncCurrentLocalItemId ?: "unknown"}"
+        syncTiming.start(validationTimingKey, CirqaSyncTiming.Stage.VALIDATION)
         fun notTransferred(detail: String, format: CirqaSyncFileCompletion.Format) =
             CirqaSyncFileCompletion.Result(
                 format = format,
@@ -3111,7 +3137,9 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                 decode = CirqaSyncFileCompletion.Stage.NOT_REACHED,
                 sqliteCommit = CirqaSyncFileCompletion.Stage.NOT_REACHED,
                 detail = detail
-            )
+            ).also {
+                syncTiming.stop(validationTimingKey, CirqaSyncTiming.Stage.VALIDATION)
+            }
 
         val data = mlrData.toByteArray()
         if (data.isEmpty()) return notTransferred(
@@ -3139,6 +3167,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         }
         val digest = java.security.MessageDigest.getInstance("SHA-256").digest(data)
         val sha = digest.copyOfRange(0, 6).joinToString("") { "%02x".format(it) }
+        syncTiming.stop(validationTimingKey, CirqaSyncTiming.Stage.VALIDATION)
         // Lossless original storage precedes FIT/quality filtering. Unknown formats,
         // unsupported fields and status-only records must remain available in SQLite.
         val archiveTimingKey = "archive:${syncCurrentLocalItemId ?: "unknown"}"
@@ -3147,7 +3176,6 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             CirqaDatabase(context).use {
                 it.archiveDownloadedFile(data, item.referenceBytes, label, System.currentTimeMillis())
             }
-            syncArchiveCount++
             syncCurrentLocalItemId?.let(syncArchivedLocalIds::add)
         } catch (e: Exception) {
             return CirqaSyncFileCompletion.Result(
@@ -3384,20 +3412,30 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     }
     private fun finish(message: String, g: BluetoothGatt?) {
         if (!active || terminationRequested) return
-        if (syncRequestMode) syncTiming.stopAll()
+        if (syncRequestMode) {
+            if (message.startsWith("120-s-Zeitlimit") || message.startsWith("40-s-Zeitlimit")) {
+                syncContinuationRequest.timeout()
+            } else {
+                syncContinuationRequest.abort()
+            }
+            syncTiming.stopAll()
+        }
         if (syncRequestMode && syncFinalReport.isEmpty()) {
+            syncFinalReport = syncTerminalFinalizer.finish(
+                build = {
             val counts = syncFrameCounts.entries.sortedBy { it.key }
                 .joinToString(",") { "${it.key}x${it.value}" }
             val continuationState = syncContinuationRequest.terminalLabel()
+            val continuationNormallyResolved = syncContinuationRequest.isNormallyResolved()
             val runDrained = syncAccepted && syncIncompleteReason == null &&
                 syncFailedFiles == 0 && syncPendingItems.isEmpty() && syncCurrentItem == null &&
                 syncPageSessionId == null && syncPageNextTransactionId == null &&
-                continuationState == "none"
+                continuationNormallyResolved
             val incompleteReason = syncIncompleteReason ?: when {
                     !syncAccepted -> "sync-not-accepted"
                     syncFailedFiles > 0 -> "file-processing-failed"
                     syncStopBeforePullMode -> "diagnostic-stop-before-pull"
-                    continuationState != "none" -> "continuation-request-$continuationState"
+                    !continuationNormallyResolved -> "continuation-request-$continuationState"
                     !runDrained -> "transfer-not-drained"
                     else -> "none"
                 }
@@ -3409,7 +3447,6 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     "selected=$syncSelectedFiles,queuedTotal=$syncQueuedFiles,selectedBytes=$syncQueuedBytes,skipped=$syncSkippedFiles," +
                     "pages=$syncListPageCount,currentBytes=${mlrData.size()},details=$syncFileResults," +
                     "pipeline=[${syncPipelineLedger.summary()}],timing=[measured:${syncTiming.redactedSummary()}]"
-            val continuationRequestPending = continuationState
             val terminalEvidence = CirqaSyncTerminalEvidence.Snapshot(
                 terminalCause = CirqaSyncTerminalEvidence.cause(message, incompleteReason, runDrained),
                 listResponses = syncListPageCount,
@@ -3427,13 +3464,13 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                 currentReceivedBytes = mlrData.size(),
                 sessionCursorPresent = syncPageSessionId != null,
                 transactionTokenPresent = syncPageNextTransactionId != null,
-                continuationRequestPending = continuationRequestPending
+                continuationRequestState = continuationState
             ).format()
             val diagnostics =
                     "$syncPullDiag; $mlrDiag; mlr=[chunks=$mlrChunks,bytes=$mlrBytes]; " +
                     "validate=[${if (syncCurrentItem != null) "in-flight-not-yet-validated" else "complete"}]; " +
                     "frames=$counts; proto=[$syncProtoShapes]"
-            syncFinalReport = CirqaSyncRunReport.format(
+            CirqaSyncRunReport.format(
                 CirqaSyncRunReport.Overview(
                     runIdentity = CirqaSyncRunIdentity.reportField(syncSessionId),
                     message = message,
@@ -3449,9 +3486,21 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     diagnostics = diagnostics
                 )
             )
+                },
+                fallback = {
+                    "Sync-Beobachtung: ${CirqaSyncRunIdentity.reportField(syncSessionId)}; " +
+                        "terminalCause=diagnostic-failed; runDrained=false; " +
+                        "incompleteReason=diagnostic-failed; accepted=$syncAccepted; " +
+                        "files=[successful=$syncCompletedFiles,selected=$syncSelectedFiles," +
+                        "notSuccessful=$syncFailedFiles]"
+                }
+            )
         }
         if (syncRequestMode) {
-            emitSyncProgress(HistorySyncProgress.fromReport(syncFinalReport).stage)
+            val terminalProgress = runCatching {
+                HistorySyncProgress.fromReport(syncFinalReport).stage
+            }.getOrDefault(HistorySyncStage.FINISHED_INCOMPLETE)
+            emitSyncProgress(terminalProgress)
         }
         terminationRequested = true
         legacy5030Only?.let { it.abort(it.token) }

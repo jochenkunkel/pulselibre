@@ -211,13 +211,13 @@ Only after a new explicit user authorization and valid S10 lease:
 
 ## PR #579 review follow-up: terminal correlation and measured timing
 
-- The runtime no longer derives the outstanding continuation from the diagnostic
-  `syncIncompleteReason`. A private tracker records `none`, `session`,
-  `transaction`, or `unknown`, keyed by the concrete 5043 request ID. Only a
-  complete, successful matching 5044 ItemList response clears a pending state;
-  a failed/rejected write or missing correlation is reported as `unknown`.
-  Time-limit termination closes timing intervals but does not mutate that
-  request state. Request IDs and continuation tokens remain redacted.
+- The runtime no longer derives continuation state from the diagnostic
+  `syncIncompleteReason` or last-response cursor/token. A production state
+  machine records queued, API-write-accepted, matching response received,
+  completed, timed out, aborted, or unknown, keyed by the internal 5043 request
+  ID and matching fully reassembled 5044 response ID. A late response cannot
+  rewrite a timeout; duplicate transitions are idempotent. Request IDs and
+  continuation tokens remain redacted.
 - Pull accounting now distinguishes selected and queued files from API-accepted
   BLE writes, correlated application responses, completed transfers, verified
   integrity, original archive, FIT decode/import, SQLite commit, pipeline
@@ -237,6 +237,24 @@ Only after a new explicit user authorization and valid S10 lease:
   duplicate content can therefore consume transfer time. The archive evidence
   establishes no new unique content, but cannot establish how many repeated
   payloads crossed BLE in that run.
+- **Causation is not established:** the 120-second timeout proves why that
+  synchronization run stopped. It does not prove why newer measurements are
+  absent. No inspected stored original has a measurement in the checked recent
+  interval, but that cannot establish whether the device offered a newer file.
+- The preserved S10 evidence is insufficient to recover exact file ordering or
+  the 37th selected item's last completed processing stage. In particular, the
+  transport ACK is not an application response, and no durable per-item event
+  ledger exists for that historical run.
+- For the next explicitly authorized run, retain a random run UUID and trigger
+  owner (automatic/manual); monotonic start/end and terminal cause; listing
+  page ordinal and response status/count/cursor-presence flags; a local
+  per-run file ordinal (not UID), expected/received byte totals, and timestamps
+  for selected, queued, BLE API accepted/status, correlated response, transfer
+  complete, integrity, archive, FIT decode, SQLite commit, success/failure;
+  and continuation request kind/phase transitions with only request-match
+  outcome (never the token). Snapshot queued and current ordinals/byte counts
+  at timeout. Keep payloads, file IDs, hashes, session IDs, tokens, and health
+  values out of diagnostic output.
 - Offline coverage: continuation tracker and callback idempotence unit tests;
   existing empty-session/empty-transaction policy replays; archive tests for
   changed bytes under the same reference and known bytes under a new reference.

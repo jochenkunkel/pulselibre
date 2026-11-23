@@ -23,14 +23,20 @@ internal object CirqaSyncTerminalEvidence {
         val currentReceivedBytes: Int,
         val sessionCursorPresent: Boolean,
         val transactionTokenPresent: Boolean,
-        val continuationRequestPending: String
+        val continuationRequestState: String
     ) {
         init {
             require(listResponses >= 0 && listedItems >= 0 && sessionPageRequestsQueued >= 0)
             require(transactionFollowupsQueued >= 0 && (lastTransactionResponseItems == null || lastTransactionResponseItems >= 0))
             require(selectedItems >= 0 && pullRequestsQueued >= 0 && completedItems >= 0 && failedItems >= 0)
             require(pendingQueueItems >= 0 && currentExpectedBytes >= 0 && currentReceivedBytes >= 0)
-            require(continuationRequestPending in setOf("none", "session", "transaction", "unknown"))
+            require(continuationRequestState in setOf(
+                "none", "unknown",
+                "session-queued", "session-write-accepted", "session-response-received",
+                "session-completed", "session-timeout", "session-aborted",
+                "transaction-queued", "transaction-write-accepted", "transaction-response-received",
+                "transaction-completed", "transaction-timeout", "transaction-aborted"
+            ))
             require(terminalCause.matches(Regex("[a-z0-9-]{1,48}")))
         }
 
@@ -43,14 +49,17 @@ internal object CirqaSyncTerminalEvidence {
                 "failed=$failedItems,pendingQueue=$pendingQueueItems,currentItem=$currentItemPresent," +
                 "currentExpectedBytes=$currentExpectedBytes,currentReceivedBytes=$currentReceivedBytes," +
                 "sessionCursorPresent=$sessionCursorPresent,transactionTokenPresent=$transactionTokenPresent," +
-                "continuationRequestPending=$continuationRequestPending"
+                "continuationRequestState=$continuationRequestState"
     }
 
-    fun cause(message: String, incompleteReason: String, runDrained: Boolean): String = when {
+    fun cause(message: String, incompleteReason: String, runDrained: Boolean): String {
+        val proposed = when {
         message.startsWith("120-s-Zeitlimit") -> "session-time-limit"
         message.startsWith("40-s-Zeitlimit") -> "diagnostic-time-limit"
         incompleteReason != "none" -> incompleteReason
         runDrained -> "drained"
         else -> "not-drained"
+        }
+        return proposed.takeIf { it.matches(Regex("[a-z0-9-]{1,48}")) } ?: "unknown"
     }
 }

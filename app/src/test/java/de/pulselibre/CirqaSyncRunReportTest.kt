@@ -36,7 +36,7 @@ class CirqaSyncRunReportTest {
                     currentReceivedBytes = 0,
                     sessionCursorPresent = false,
                     transactionTokenPresent = true,
-                    continuationRequestPending = "none"
+                    continuationRequestState = "none"
                 ).format(),
                 itemSummary = "x".repeat(2400),
                 diagnostics = "frames=synthetic; proto=synthetic"
@@ -75,7 +75,7 @@ class CirqaSyncRunReportTest {
             currentReceivedBytes = 0,
             sessionCursorPresent = false,
             transactionTokenPresent = true,
-            continuationRequestPending = "none"
+            continuationRequestState = "none"
         ).format()
 
         assertTrue(queued.contains("cause=session-time-limit"))
@@ -103,10 +103,10 @@ class CirqaSyncRunReportTest {
             currentReceivedBytes = 0,
             sessionCursorPresent = false,
             transactionTokenPresent = false,
-            continuationRequestPending = "session"
+            continuationRequestState = "session-timeout"
         ).format()
 
-        assertTrue(evidence.contains("continuationRequestPending=session"))
+        assertTrue(evidence.contains("continuationRequestState=session-timeout"))
         assertTrue(evidence.contains("sessionPageRequestsQueued=1,transactionFollowupsQueued=0"))
         assertTrue(evidence.contains("transactionTokenPresent=false"))
     }

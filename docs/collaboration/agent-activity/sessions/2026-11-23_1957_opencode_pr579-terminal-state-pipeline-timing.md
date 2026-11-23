@@ -1,15 +1,15 @@
 # OpenCode FIT – PR #579 terminal state, pipeline and timing
 - Agent/Umgebung: OpenCode FIT, isolated worktree
 - Beginn: 2026-11-23 19:57 UTC
-- Letzte Aktualisierung: 2026-11-23 19:57 UTC
+- Letzte Aktualisierung: 2026-11-23 20:40 UTC
 - Status: aktiv
 - Rolle/Zuständigkeit: FIT/BLE/FileSync sync pipeline and terminal evidence
-- Aktueller Auftrag: PR #579 review follow-up; explicit continuation state, event-stage accuracy, monotonic timing and offline regressions
-- Jetzt in Bearbeitung: PR #579 P0 terminal continuation state
-- Zeitnah geplant: complete regression matrix and FULL-CI on final PR head; no S10 device access
+- Aktueller Auftrag: PR #579 P0 correction after independent CI audit, comment `7112962967`; explicit continuation lifecycle, safe terminal report, monotonic timing and production transition regressions
+- Jetzt in Bearbeitung: replace simplified pending-state tracker with queued/write-accepted/response-received/completed/timeout/abort/unknown production state machine; one-shot safe terminal finalizer
+- Zeitnah geplant: local JVM/Android-test compilation; push final correction; full final-head GitHub CI/API-35 and independent CI-agent review; no S10 device access
 - Betroffene Bereiche/Dateien: `CirqaMlHandshakeProbe.kt`, sync report/evidence models, FIT sync unit tests, S10 terminal evidence report
 - Branch/Worktree: `opencode/s10-terminal-evidence-p0-rebased`, `/home/smiler/.local/share/opencode/worktree/634470/cirqa-s10-root-cause-p0`, base PR head `d2c812c0`
-- Abstimmungsbedarf: CI-Agent — alert if same probe/test files are currently owned; GUI-Agent — no change anticipated unless UI report schema needs modification. No hardware request.
-- Agent-sync-Nachrichten: PR review comment `7112282753`; this START.
-- Nachweise: exact PR head `d2c812c0` checks all green; source work not started
-- Nächster Schritt: trace all callback/request identities, timeout paths and MLR/file pipeline; design deterministic offline reducers.
+- Abstimmungsbedarf: CI-Agent asked for non-overlapping independent final-head review; GUI-Agent asked to own reciprocal auto/manual exclusion and trigger-to-run-ID review. No hardware request.
+- Agent-sync-Nachrichten: PR review comments `7112282753`, `7112962967`; START; CI re-review request; GUI sync-exclusion request.
+- Nachweise: FULL/API-35 on prior head `db72d4cc` green, but not final; intermediate Kotlin/JVM and Android-test compile green before lifecycle rewrite; current local edits need re-test.
+- Nächster Schritt: finish production state transitions and exception-safe terminal boundary, then rerun tests and final-head CI.

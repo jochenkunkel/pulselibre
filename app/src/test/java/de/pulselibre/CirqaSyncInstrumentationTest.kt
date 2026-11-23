@@ -6,86 +6,128 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-/** Synthetic, offline tests for sync terminal/callback accounting. */
+/** Synthetic, offline tests against the same transition helpers used in production. */
 class CirqaSyncInstrumentationTest {
-    @Test fun timeoutWithQueuedFileDoesNotChangeContinuationState() {
-        val ledger = CirqaSyncPipelineLedger()
-        val id = ledger.select()
-        ledger.record(id, CirqaSyncPipelineLedger.Stage.QUEUED)
-        val continuation = CirqaSyncContinuationRequest()
+    @Test fun sessionPageTimeoutAndLateResponseKeepTimeoutTerminal() {
+        val state = CirqaSyncContinuationRequest()
+        state.enqueue(CirqaSyncContinuationRequest.Kind.SESSION_PAGE, 7)
+        assertEquals("session-queued", state.terminalLabel())
+        state.writeAccepted(7)
+        assertEquals("session-write-accepted", state.terminalLabel())
+        state.timeout()
 
-        // A timeout is a terminal observation, not a protocol response.
-        assertEquals("none", continuation.terminalLabel())
-        assertEquals(1, ledger.count(CirqaSyncPipelineLedger.Stage.QUEUED))
-        assertEquals(0, ledger.count(CirqaSyncPipelineLedger.Stage.SUCCESSFUL))
+        // A response racing with terminal finish must not rewrite the snapshot.
+        state.observeResponse(7, accepted = true)
+        state.complete(7)
+        assertEquals("session-timeout", state.terminalLabel())
+        assertFalse(state.isNormallyResolved())
     }
 
-    @Test fun timeoutDuringTransferLeavesSelectedItemIncomplete() {
-        val ledger = CirqaSyncPipelineLedger()
-        val id = ledger.select()
-        ledger.record(id, CirqaSyncPipelineLedger.Stage.QUEUED)
-        ledger.record(id, CirqaSyncPipelineLedger.Stage.BLE_WRITE_ACCEPTED)
-        ledger.record(id, CirqaSyncPipelineLedger.Stage.RESPONSE_RECEIVED)
+    @Test fun transactionFollowupTimeoutRetainsKindAndPhase() {
+        val state = CirqaSyncContinuationRequest()
+        state.enqueue(CirqaSyncContinuationRequest.Kind.TRANSACTION_FOLLOWUP, 8)
+        state.writeAccepted(8)
+        state.timeout()
 
-        assertEquals(0, ledger.count(CirqaSyncPipelineLedger.Stage.TRANSFER_COMPLETED))
-        assertEquals(0, ledger.count(CirqaSyncPipelineLedger.Stage.SUCCESSFUL))
+        assertEquals("transaction-timeout", state.terminalLabel())
+        assertFalse(state.isOutstanding())
+        assertFalse(state.isNormallyResolved())
     }
 
-    @Test fun timeoutDuringSessionPagePreservesPendingState() {
-        val continuation = CirqaSyncContinuationRequest()
-        continuation.enqueue(CirqaSyncContinuationRequest.Kind.SESSION_PAGE, 7)
-
-        assertEquals("session", continuation.terminalLabel())
-        assertEquals("session", continuation.terminalLabel())
-    }
-
-    @Test fun timeoutDuringTransactionFollowupPreservesDifferentPendingState() {
-        val continuation = CirqaSyncContinuationRequest()
-        continuation.enqueue(CirqaSyncContinuationRequest.Kind.TRANSACTION_FOLLOWUP, 8)
-
-        assertEquals("transaction", continuation.terminalLabel())
-    }
-
-    @Test fun rejectedBleWriteIsNotCountedAcceptedAndCorrelationBecomesUnknown() {
-        val continuation = CirqaSyncContinuationRequest()
-        continuation.enqueue(CirqaSyncContinuationRequest.Kind.SESSION_PAGE, 9)
-        continuation.observeWriteRejected(9)
-
-        assertEquals("unknown", continuation.terminalLabel())
-    }
-
-    @Test fun duplicateCallbacksAreIdempotentAndTimingUsesMonotonicElapsedTime() {
-        val ledger = CirqaSyncPipelineLedger()
-        val id = ledger.select()
-        assertTrue(ledger.record(id, CirqaSyncPipelineLedger.Stage.BLE_WRITE_ACCEPTED))
-        assertFalse(ledger.record(id, CirqaSyncPipelineLedger.Stage.BLE_WRITE_ACCEPTED))
-        assertEquals(1, ledger.count(CirqaSyncPipelineLedger.Stage.BLE_WRITE_ACCEPTED))
-
-        var now = 100L
+    @Test fun timeoutDuringFileTransferClosesMeasuredIntervalWithoutCallingItSuccessful() {
+        var now = 1_000L
         val timing = CirqaSyncTiming { now }
-        assertTrue(timing.start("transfer", CirqaSyncTiming.Stage.FILE_TRANSFER))
-        now = 250L
-        assertEquals(150L, timing.stop("transfer"))
-        assertNull(timing.stop("transfer"))
+        val pipeline = CirqaSyncPipelineLedger()
+        val id = pipeline.select()
+        pipeline.record(id, CirqaSyncPipelineLedger.Stage.QUEUED)
+        pipeline.record(id, CirqaSyncPipelineLedger.Stage.BLE_WRITE_ACCEPTED)
+        timing.start("file-transfer", CirqaSyncTiming.Stage.FILE_TRANSFER)
+
+        now += 120_000_000_000L
+        timing.stopAll()
+        assertEquals(0, pipeline.count(CirqaSyncPipelineLedger.Stage.SUCCESSFUL))
         assertEquals(
-            CirqaSyncTiming.Measurement(count = 1, totalNanos = 150L),
+            CirqaSyncTiming.Measurement(count = 1, totalNanos = 120_000_000_000L),
             timing.snapshot().getValue(CirqaSyncTiming.Stage.FILE_TRANSFER)
         )
     }
 
-    @Test fun matchingAcceptedResponseClearsContinuationButUnmatchedDoesNot() {
-        val continuation = CirqaSyncContinuationRequest()
-        continuation.enqueue(CirqaSyncContinuationRequest.Kind.SESSION_PAGE, 11)
-        continuation.observeResponse(12, accepted = true)
-        assertEquals("session", continuation.terminalLabel())
-        continuation.observeResponse(11, accepted = true)
-        assertEquals("none", continuation.terminalLabel())
+    @Test fun matchingResponseHasDistinctReceivedAndCompletedTransitions() {
+        val state = CirqaSyncContinuationRequest()
+        state.enqueue(CirqaSyncContinuationRequest.Kind.SESSION_PAGE, 9)
+        state.writeAccepted(9)
+        state.observeResponse(9, accepted = true)
+        assertEquals("session-response-received", state.terminalLabel())
+        assertTrue(state.isOutstanding())
+        state.complete(9)
+        assertEquals("session-completed", state.terminalLabel())
+        assertFalse(state.isOutstanding())
     }
 
-    @Test fun missingResponseCorrelationIsUnknown() {
-        val continuation = CirqaSyncContinuationRequest()
-        continuation.enqueue(CirqaSyncContinuationRequest.Kind.TRANSACTION_FOLLOWUP, 13)
-        continuation.observeResponse(null, accepted = true)
-        assertEquals("unknown", continuation.terminalLabel())
+    @Test fun unmatchedAndDuplicateResponsesCannotCompleteAnotherRequest() {
+        val state = CirqaSyncContinuationRequest()
+        state.enqueue(CirqaSyncContinuationRequest.Kind.TRANSACTION_FOLLOWUP, 10)
+        state.writeAccepted(10)
+        state.observeResponse(11, accepted = true)
+        assertEquals("transaction-write-accepted", state.terminalLabel())
+        state.observeResponse(10, accepted = true)
+        state.complete(10)
+        // A duplicate accepted response after completion is idempotent.
+        state.observeResponse(10, accepted = true)
+        state.complete(10)
+        assertEquals("transaction-completed", state.terminalLabel())
+    }
+
+    @Test fun failedBleWriteIsUnknownNotAccepted() {
+        val state = CirqaSyncContinuationRequest()
+        state.enqueue(CirqaSyncContinuationRequest.Kind.SESSION_PAGE, 12)
+        state.writeRejected(12)
+
+        assertEquals("unknown", state.terminalLabel())
+        assertTrue(state.isOutstanding())
+    }
+
+    @Test fun asynchronousWriteFailureBecomesUnknownAndDuplicateFinishPreservesFirstReport() {
+        val state = CirqaSyncContinuationRequest()
+        state.enqueue(CirqaSyncContinuationRequest.Kind.TRANSACTION_FOLLOWUP, 13)
+        state.writeAccepted(13)
+        state.writeFailed(13)
+        assertEquals("unknown", state.terminalLabel())
+
+        val finalizer = CirqaSyncTerminalFinalizer()
+        val first = finalizer.finish({ "first-terminal-snapshot" }, { "fallback" })
+        val repeated = finalizer.finish({ error("must not rebuild") }, { "must not fallback" })
+        assertEquals("first-terminal-snapshot", first)
+        assertEquals(first, repeated)
+    }
+
+    @Test fun diagnosticFailureFallsBackAndUnknownCauseIsSanitized() {
+        val finalizer = CirqaSyncTerminalFinalizer()
+        val report = finalizer.finish(
+            { error("diagnostic failure") },
+            { "terminalCause=${CirqaSyncTerminalEvidence.cause("unknown", "unsafe reason !", false)}" }
+        )
+        assertEquals("terminalCause=unknown", report)
+        assertEquals("unknown", CirqaSyncTerminalEvidence.cause("x", "unsafe reason !", false))
+        assertEquals("session-time-limit", CirqaSyncTerminalEvidence.cause(
+            "120-s-Zeitlimit", "unsafe reason !", false
+        ))
+    }
+
+    @Test fun monotonicTimingIsIdempotentAndClosesOpenPhasesAtFinish() {
+        var now = 100L
+        val timing = CirqaSyncTiming { now }
+        assertTrue(timing.start("bootstrap", CirqaSyncTiming.Stage.BOOTSTRAP))
+        now = 150
+        assertEquals(50L, timing.stop("bootstrap"))
+        assertNull(timing.stop("bootstrap"))
+
+        timing.start("item-list", CirqaSyncTiming.Stage.ITEM_LIST_RESPONSE)
+        now = 225
+        timing.stopAll()
+        assertEquals(
+            CirqaSyncTiming.Measurement(count = 1, totalNanos = 75L),
+            timing.snapshot().getValue(CirqaSyncTiming.Stage.ITEM_LIST_RESPONSE)
+        )
     }
 }

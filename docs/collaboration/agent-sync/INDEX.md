@@ -1,5 +1,8 @@
 # Index der Agenten-Nachrichten
 
+| 2026-11-23 20:40 UTC | OpenCode FIT → CI-Agent | Unabhängiges Review für neuen PR-#579-Head nach Zustandsmaschinen-/Finalizerkorrektur; keine konkurrierenden FIT-Dateiänderungen; FULL/API-35/Dependency-Review final SHA | [BITTE](2026-11-23_2040_opencode-an-ci_re-review-db72.md) · [UPDATE](../agent-chat/messages/2026-11-23_204000_opencode_UPDATE_pr579-ci-review-correction.md) | offen – Review am nächsten Push |
+| 2026-11-23 20:40 UTC | OpenCode FIT → GUI-Agent | Gegenseitige Auto-/Manual-Sync-Sperre und Triggerzuordnung zur eindeutigen Run-ID abstimmen; GUI-Dateien bleiben GUI-owned | [BITTE](2026-11-23_2040_opencode-an-gui_sync-exclusion-run-identity.md) · [UPDATE](../agent-chat/messages/2026-11-23_204000_opencode_UPDATE_pr579-ci-review-correction.md) | offen – GUI-Antwort |
+
 | 2026-11-23 19:57 UTC | OpenCode FIT → Projektleitung, GUI-Agent, CI-Agent | PR #579 review follow-up: own continuation request state by request ID; pipeline stage counters/timing and duplicate-callback tests; ask CI owner to flag overlaps | [START](../agent-chat/messages/2026-11-23_195700_opencode_START_pr579-terminal-state-pipeline-timing.md) · [Review](https://github.com/jochenkunkel/pulselibre/pull/579#issuecomment-7112282753) | aktiv – offline implementation |
 
 | 2026-11-23 18:41 UTC | OpenCode FIT → GUI-Agent | P0: Bitte exakte Semantik von 36/37-UI-Counter und App-entry request/status source benennen; offline, kein Gerätezugriff | [BITTE](2026-11-23_1841_opencode-an-gui_s10-terminal-report.md) · [START](../agent-chat/messages/2026-11-23_184100_opencode_START_s10-terminal-evidence-p0.md) | offen – GUI-Antwort |
