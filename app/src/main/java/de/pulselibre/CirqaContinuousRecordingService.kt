@@ -36,10 +36,17 @@ class CirqaContinuousRecordingService : Service() {
         const val KEY_HEARTBEAT_MS = "heartbeat_ms"
         private const val CHANNEL = "cirqa_collection"
         private const val ID = 1401
+
+        /** Test seam (instrumentation only; null in production): replaces the real band connection. */
+        @Volatile internal var linkFactory: ((Context) -> RecorderLink)? = null
+        /** Test seam: shortened stall window; production uses [RecorderStall.STALL_AFTER_MS]. */
+        @Volatile internal var stallAfterMs: Long = RecorderStall.STALL_AFTER_MS
+        /** Test seam: heartbeat period; production uses [RecorderStatus.HEARTBEAT_INTERVAL_MS]. */
+        @Volatile internal var heartbeatIntervalMs: Long = RecorderStatus.HEARTBEAT_INTERVAL_MS
     }
 
     private val handler = Handler(Looper.getMainLooper())
-    private var probe: CirqaMlHandshakeProbe? = null
+    private var probe: RecorderLink? = null
     private var running = false
     private lateinit var log: CirqaLocalLog
     private var attempts = 0
@@ -80,7 +87,7 @@ class CirqaContinuousRecordingService : Service() {
             return START_NOT_STICKY
         }
         val bluetooth = (getSystemService(BLUETOOTH_SERVICE) as BluetoothManager).adapter
-        if (bluetooth == null || !bluetooth.isEnabled) {
+        if (linkFactory == null && (bluetooth == null || !bluetooth.isEnabled)) {
             updateNotification(getString(R.string.svc_bt_off))
             getSharedPreferences(PREFS, MODE_PRIVATE).edit().putBoolean(KEY_RUNNING, false).apply()
             stopForeground(STOP_FOREGROUND_REMOVE)
@@ -146,14 +153,14 @@ class CirqaContinuousRecordingService : Service() {
         if (!running) return
         getSharedPreferences(PREFS, MODE_PRIVATE).edit().putLong(KEY_HEARTBEAT_MS, System.currentTimeMillis()).apply()
         recycleIfStalled()
-        handler.postDelayed({ heartbeat() }, RecorderStatus.HEARTBEAT_INTERVAL_MS)
+        handler.postDelayed({ heartbeat() }, heartbeatIntervalMs)
     }
 
     /** #25: connection open but no reading for [RecorderStall.STALL_AFTER_MS]: recycle our own connection via the bounded reconnect. */
     private fun recycleIfStalled() {
         val current = probe ?: return
         val now = System.currentTimeMillis()
-        if (!RecorderStall.isStalled(attemptStartedMs, lastReadingMs, now)) return
+        if (!RecorderStall.isStalled(attemptStartedMs, lastReadingMs, now, stallAfterMs)) return
         val reconnectToken = attemptGate.finish(currentToken, current) ?: return
         probe = null
         log.append("stall_detected", mapOf("attempt" to attempts, "silent_ms" to now - maxOf(attemptStartedMs, lastReadingMs)))
@@ -173,12 +180,15 @@ class CirqaContinuousRecordingService : Service() {
             stopCollection("storage_limit")
             return
         }
-        val adapter = (getSystemService(BLUETOOTH_SERVICE) as BluetoothManager).adapter
-        if (adapter == null || !adapter.isEnabled) {
-            scheduleReconnect(token, "bluetooth_off")
-            return
+        val factory = linkFactory
+        val current: RecorderLink = if (factory != null) factory(this) else {
+            val adapter = (getSystemService(BLUETOOTH_SERVICE) as BluetoothManager).adapter
+            if (adapter == null || !adapter.isEnabled) {
+                scheduleReconnect(token, "bluetooth_off")
+                return
+            }
+            CirqaMlHandshakeProbe(this, adapter)
         }
-        val current = CirqaMlHandshakeProbe(this, adapter)
         probe = current
         check(attemptGate.attach(token, current))
         // GATT callbacks can arrive on binder threads. Serialize all service state
