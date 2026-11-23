@@ -1,11 +1,11 @@
 # OpenCode FIT – S10-Download-Root-Cause-Follow-up
 - Agent/Umgebung: OpenCode FIT, eigener Worktree
 - Beginn: 2026-11-23 22:32 UTC
-- Letzte Aktualisierung: 2026-11-23 22:41 UTC
+- Letzte Aktualisierung: 2026-11-23 22:48 UTC
 - Status: aktiv
 - Rolle/Zuständigkeit: FIT/BLE/Sync-Diagnostik
 - Aktueller Auftrag: #2 P0 – nach dem unvollständigen Build-2021-S10-Lauf den nächsten aussagekräftigen Schritt zum Historien-Download offline bestimmen
-- Jetzt in Bearbeitung: Build-2021-Laufzeitspitze korreliert mit doppeltem FIT-Decode; Codepfad auf Wiederverwendung des bereits geprüften Decode-Ergebnisses umgestellt
+- Jetzt in Bearbeitung: Nutzerauftrag Garmin-Connect-Aufnahme offline mit unserem Historien-Sync vergleichen und belegte Verbesserungen ableiten; PR #591 FULL-CI und Review laufen parallel.
 - Zeitnah geplant: regressionssicherer Test/Diagnoseplan; ggf. danach konkret abgegrenzter, autorisierter Gerätetest unter S10-Lease
 - Betroffene Bereiche/Dateien: `CirqaFitBackfill.kt`, `CirqaMlHandshakeProbe.kt`, `CirqaFitBackfillTest.kt`; `docs/protocol/device-tests/CIRQA_S10_TERMINAL_EVIDENCE_2026-11-23.md`; eigene Agent-Chat-/Sync-/Aktivitätsmeldungen
 - Branch/Worktree: `opencode/s10-download-root-cause-followup-20261123`, `/home/smiler/.local/share/opencode/worktree/634470/cirqa-s10-root-cause-p0`, Basis `origin/main`
