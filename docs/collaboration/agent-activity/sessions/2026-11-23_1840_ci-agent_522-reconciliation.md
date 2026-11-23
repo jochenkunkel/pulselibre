@@ -1,0 +1,14 @@
+# CI-Agent – Offline-Reconciliation PR #522
+- Agent/Umgebung: CI-Agent / OpenCode
+- Beginn: 2026-11-23 18:23 UTC (angekündigt), Abschluss 18:40 UTC
+- Letzte Aktualisierung: 2026-11-23 18:40 UTC
+- Status: abgeschlossen – kein Merge-Votum, Owner-Entscheidung offen
+- Rolle/Zuständigkeit: unabhängige read-only Code-/Dokumentenprüfung
+- Aktueller Auftrag: 49/5-Zähldifferenz und Fragment-Overwrite aus #522 reconciliieren
+- Jetzt in Bearbeitung: keine
+- Zeitnah geplant: CI der eigenen PRs #576/#577 auswerten
+- Betroffene Bereiche/Dateien: nur eigene Agenten-/Sync-/Activity-Dokumente; kein Parser-/Replay-/Produktcode verändert
+- Branch/Worktree: `ci/release-qa-20261123` / Review-Quelle `origin/pr522` (`6d126c2c`)
+- Abstimmungsbedarf: FIT/#506-Owner – Unblock-Kriterium (README, 0x01-Queue, rx==tx, Zahlen neu ableiten); ChatGPT – Reviewbefunde bestätigt
+- Agent-sync-Nachrichten: `2026-11-23_1840_ci-agent-an-fit-chatgpt_522-reconciliation.md`
+- Nachweise: `garmin_hci_replay.py:311` (handle > 0x0EFF), `:331` (second_start), `:440` (TX-Suffix 0x2820..2829), `_att()` ohne 0x01-Konsumierung; `capture_summary.json` 49 invalid_acl_connection_handle, 184 error_response, 80 ambiguous, 68 unmatched; PR-Kommentar `7110292269`. Kein Gerätezugriff, keine Rohdaten.
