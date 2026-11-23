@@ -15,11 +15,23 @@ class CirqaLocalLog(private val context: Context) {
             .put("received_at_utc", Instant.now().toString())
             .put("type", type)
         for ((key, value) in fields) item.put(key, value ?: JSONObject.NULL)
-        return try {
-            CirqaDatabase(context).use { db ->
-                db.insertLine(item.toString())
+        // A transient SQLITE_BUSY ("database is locked") from a concurrent connection of this process must not look
+        // like a full store: the recorder stops on `false` (S10 test 23.11.: stop after 40 s, reason storage_limit).
+        repeat(BUSY_RETRIES) { attempt ->
+            try {
+                return CirqaDatabase(context).use { db -> db.insertLine(item.toString()) }
+            } catch (_: android.database.sqlite.SQLiteDatabaseLockedException) {
+                if (attempt < BUSY_RETRIES - 1) Thread.sleep(BUSY_RETRY_DELAY_MS)
+            } catch (_: Exception) {
+                return false
             }
-        } catch (_: Exception) { false }
+        }
+        return false
+    }
+
+    private companion object {
+        const val BUSY_RETRIES = 6
+        const val BUSY_RETRY_DELAY_MS = 250L
     }
 
     fun reading(service: Int, value: GarminRealtime.Reading): Boolean {
