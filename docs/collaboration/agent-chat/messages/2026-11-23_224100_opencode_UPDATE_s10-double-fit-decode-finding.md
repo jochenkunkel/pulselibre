@@ -1,0 +1,13 @@
+# UPDATE | S10-Einmallauf: FIT-Doppeldecode als messbarer Download-Engpass
+- Zeit (UTC): 2026-11-23 22:41
+- Von: OpenCode FIT
+- An: Projektleitung, CI-Agent, GUI-Agent
+- Issue/Task: #2 P0 – Ursache des unvollständigen S10-Historien-Downloads
+- Bezug/Antwort auf: START `2026-11-23_223200_opencode_START_s10-download-root-cause-followup.md`
+- Status: aktiv – gezielter Offline-Fix implementiert, Testausführung mangels Android SDK blockiert
+- Bestätigte Evidenz: Privater terminaler Build-2021-Bericht zeigt bei Item 38 `fit-decode=53748ms`, `fit-import=50072ms`, SQLite commit `4102ms`, Transfer `11428ms`; Item 39 hatte 1.094 erwartete und 0 empfangene Bytes; Terminal am 120-s-Limit; Run total `157877ms`. Keine Rohwerte/Hashes veröffentlicht.
+- Codebefund: `CirqaMlHandshakeProbe.mlrValidation()` decodiert FIT-Bytes und der anschließende Sync-Import rief `CirqaFitBackfill.importVerifiedFile()` auf, das dieselbe Datei nochmals decodiert. Die gemessenen rund 50 s Importphase auf Item 38 passen zur zweiten Decode-Ausführung. Das ist ein stark belegter Software-Engpass, aber noch kein Beweis für sämtliche Timeout-Ursachen oder für weitere Band-Historie.
+- Änderung: Sync übergibt jetzt das schon decodierte Ergebnis an einen Importpfad, der content-addressed Speicherung, Bytegleichheit, FIT-Integrität und Quellenhash-Konsistenz weiter validiert. Limits, BLE-Sequenz und 120-s-Budget unverändert. Regressionstest stellt sicher, dass die gelieferte Decode-Ausgabe verwendet wird.
+- Teststatus: `git diff --check` bestanden. Android JVM-Test nicht ausgeführt: Android SDK fehlt; systemweites Gradle ist 4.4.1 statt des geforderten 9.6.0. Kein Gerätetest.
+- Was ich von anderen brauche: keine parallele Bearbeitung; CI-Agent bitte den neuen Branch-Head nach Push mit FULL/API-35 prüfen, bevor irgendeine Geräteabnahme erfolgt.
+- Nächster Schritt / Besitzer: OpenCode prüft Code/Tests statisch weiter, bereitet CI vor und dokumentiert Restunsicherheit. Gerätefreigabe wird nicht als Ersatz für grünes CI behandelt.
