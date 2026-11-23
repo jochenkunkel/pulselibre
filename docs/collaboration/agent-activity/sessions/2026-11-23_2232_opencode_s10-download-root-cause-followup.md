@@ -1,15 +1,15 @@
 # OpenCode FIT – S10-Download-Root-Cause-Follow-up
 - Agent/Umgebung: OpenCode FIT, eigener Worktree
 - Beginn: 2026-11-23 22:32 UTC
-- Letzte Aktualisierung: 2026-11-23 23:18 UTC
-- Status: aktiv – Implementation der zwei Baustellen nach Nutzerauftrag; #591 gemergt, main-CI läuft
+- Letzte Aktualisierung: 2026-11-24 00:10 UTC
+- Status: teilweise abgeschlossen / blockiert – main-CI grün; FIT-Decoder-Prototyp synthetisch getestet; Kandidaten-Generation/Backup wartet auf DB-Review
 - Rolle/Zuständigkeit: FIT/BLE/Sync-Diagnostik
 - Aktueller Auftrag: #2 P0 – nach dem unvollständigen Build-2021-S10-Lauf den nächsten aussagekräftigen Schritt zum Historien-Download offline bestimmen
-- Jetzt in Bearbeitung: Paket B offline implementieren (FIT-Felder/Versionierung/Regressionen), nach Agentenabstimmung.
-- Zeitnah geplant: Paket A offline Replayfälle; danach gegebenenfalls begrenzte Hardwareabnahme nur nach Gates.
+- Jetzt in Bearbeitung: keiner bis zur Antwort auf Schema-/Backup-Abstimmung; Decoderprototyp bleibt uncommitted.
+- Zeitnah geplant: Kandidaten-Generation nach Review integrieren; Paket A Offline-Replayfälle; danach gegebenenfalls begrenzte Hardwareabnahme nur nach Gates.
 - Betroffene Bereiche/Dateien: `FitHistoricalObservations.kt`, Kandidatenschema/Backup/Tests; PR #591 ist bereits gemergt. Keine UI-Dateien.
 - Branch/Worktree: `opencode/cirqa-fit-data-v2-20261124`, `/home/smiler/.local/share/opencode/worktree/634470/cirqa-s10-root-cause-p0`, Basis `origin/main`
 - Abstimmungsbedarf: DB-/Backup-Eigentümer für Kandidatenversionierung; GUI-Agent für getrennte, untrusted review candidates. Keine Änderung an #496.
 - Agent-chat: `docs/collaboration/agent-chat/messages/2026-11-23_231800_opencode_START_fit-decoder-data-paths.md`
 - Nachweise: #591 gemergt, FULL CI auf PR-Head grün; main-CI für `1048d545` läuft. Garmin-Datei-/SDK-Vergleich im Bericht.
-- Nächster Schritt: Kandidaten-/Generation-Versionierung so entwerfen, dass Decoder-Updates vorhandene untrusted Ergebnisse erhalten und alte Backups roundtripfähig bleiben; kein Gerätetest.
+- Nächster Schritt: DB-/Backup-Antwort zu Generation, Aktivierung/Rollback und Backup/Restore abwarten; dann die uncommitted Decoderänderung integrieren und persistente Tests ergänzen. Kein Gerätetest.
