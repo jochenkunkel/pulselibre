@@ -204,10 +204,15 @@ class DeviceLeaseTests(unittest.TestCase):
     def test_worktrees_share_home_lock_and_eta_is_metadata_only(self):
         # Separate script invocations/worktree paths still resolve the same
         # default lock because it is rooted in the shared host user's HOME.
+        checkout_a = self.root / "checkout-a"
+        checkout_b = self.root / "checkout-b"
+        checkout_a.mkdir()
+        checkout_b.mkdir()
         first = subprocess.Popen(
             self.run_lease("--device", "s10", "--agent", "worktree-a", "--minutes", "2",
                            command="import time; time.sleep(60)"),
             env=self.env,
+            cwd=checkout_a,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         )
@@ -225,6 +230,7 @@ class DeviceLeaseTests(unittest.TestCase):
             blocked = self.cli(
                 "run", "--device", "s10", "--agent", "worktree-b", "--minutes", "1",
                 "--", sys.executable, "-c", "pass",
+                cwd=checkout_b,
             )
             self.assertEqual(blocked.returncode, 2)
         finally:
