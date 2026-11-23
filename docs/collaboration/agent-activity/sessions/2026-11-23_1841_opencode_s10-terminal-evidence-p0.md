@@ -1,0 +1,15 @@
+# OpenCode FIT – S10 terminal evidence and pagination root-cause P0
+- Agent/Umgebung: OpenCode FIT, isolated worktree
+- Beginn: 2026-11-23 18:41 UTC
+- Letzte Aktualisierung: 2026-11-23 18:41 UTC
+- Status: aktiv
+- Rolle/Zuständigkeit: FIT/BLE/FileSync, terminal report evidence, offline pagination and FIT/SQLite pipeline
+- Aktueller Auftrag: P0 — explain 36/37; compare Issue #148/V25 Garmin Connect semantics; review terminal-evidence patch; offline test and report
+- Jetzt in Bearbeitung: P0 historical download diagnosis, PR #575 evidence
+- Zeitnah geplant: regression tests, FULL-CI, PR; no S10 acceptance absent renewed explicit authorization and lease
+- Betroffene Bereiche/Dateien: `CirqaMlHandshakeProbe.kt`, continuation/parser policy, related tests, `docs/protocol/**`, private `/tmp/opencode/all-data-s10-acceptance-20261123/`
+- Branch/Worktree: `opencode/s10-terminal-evidence-p0`, `/home/smiler/.local/share/opencode/worktree/634470/cirqa-s10-root-cause-p0`, based on `origin/main` `36e3c7fe`
+- Abstimmungsbedarf: GUI-Agent — terminal counter semantics and app-entry sync status source; CI-Agent — supplied patch location and replay test entry points; Watchdog-Agent — watch progress/blockage only. No device requests.
+- Agent-sync-Nachrichten: `2026-11-23_1841_opencode-an-gui_s10-terminal-report.md`; `2026-11-23_1841_opencode-an-ci_terminal-patch-and-replay.md`
+- Nachweise: no analysis/test evidence yet; hardware access explicitly excluded
+- Nächster Schritt: compare current implementation against #148/V25 reference and reproduce with private aggregate data/synthetic fixtures
