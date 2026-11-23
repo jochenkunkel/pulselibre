@@ -1,0 +1,28 @@
+# Verbindlicher Entwurf: S10/S25 Geräte-Lease und 30-Minuten-Langzeittest (23.11.2026)
+
+**Anlass:** CI-Agent hat dem GUI-Agenten während der Gerätenutzung die Kontrolle über das Telefon entzogen. Dies darf sich nicht wiederholen. **Status:** Anforderungs-/Implementierungsübergabe; bestehender Code ist dadurch noch nicht geändert.
+
+## IST aus main
+- `tools/s25_lease.py` nutzt atomaren POSIX-`flock` über `~/.cache/pulselibre/s25-lease/lock`; `status.json` zeigt Agent, PID, Host, Start und **geschätzte** Freigabezeit. `run --agent X --minutes N -- <command>` hält den Lock für die gesamte Laufzeit des Kindprozesses, auch über die geschätzte Dauer hinaus. `status` ermittelt echte Sperre durch `flock`, nicht allein durch JSON.
+- `AGENTS.md` fordert vor jedem ADB-/UI-/Installations-/Logcat-/BLE-Zugriff eine Lease. Bestehende S25-Regel darf nicht als Freigabe für aktive BLE-Experimente oder Hardware-Instrumentation interpretiert werden.
+- Der Schutz ist **kooperativ**: direkter ADB-Aufruf ohne Wrapper wird nicht technisch abgefangen; getrennte Hosts/Benutzer können unterschiedliche Sperrpfade nutzen. Die bestehende CLI kennt keine Queue, Test-ID, explizite Übergabe oder pro Gerät getrennte Sperre.
+
+## Ab sofort verbindliche Verhaltensregel für alle drei Agenten
+1. **Wer das physische Telefon zuerst korrekt reserviert hat, behält es bis zur expliziten Freigabe.** Keine Präemption durch CI, FIT oder GUI; kein fremdes ADB, UI-Automation, Screenshot, Logcat, App-Start, Installation, Geräteeinstellungen oder BLE-Diagnose währenddessen. Auch rein lesende ADB-Befehle können einen laufenden Test stören.
+2. Vor jeder Gerätearbeit Status prüfen, anschließend **gesamte Sitzung** unter einem einzigen gehaltenen Lease-Wrapper ausführen. Kein Aufsplitten in einzelne ungeschützte ADB-Aufrufe. Bei `BELEGT`: sofort ohne Gerätezugriff abbrechen, Besitzer kontaktieren, auf Emulator/Offline-Arbeit ausweichen.
+3. **30-Minuten-Langzeittest:** exklusive Reservierung für mindestens 30 Minuten Testzeit **plus Vor- und Nachlauf** (Empfehlung: 35–40 Minuten geplante Dauer); Lock bleibt bis zur tatsächlichen Beendigung von Test, Logs und Cleanup gehalten. Die `--minutes`-Angabe ist ETA, **kein TTL/Auto-Unlock**. Kein Kill nach 30 Minuten.
+4. **Handover:** Besitzer meldet START (Agent, Gerät/ADB-Serial intern, Task, Testtyp, geplante Dauer, Freigabe-ETA) und ENDE (Teststatus, tatsächliche Freigabe, etwaige Restprozesse). Der wartende Agent prüft danach erneut atomar den Lock und erwirbt ihn selbst. Eine ENDE-Chatnachricht allein ersetzt keine echte Freigabe.
+5. **Abbruch:** Unterbrechung/Testfehler → eigene ADB-/UI-Unterprozesse sauber stoppen, Logs sichern, erst dann Lock freigeben. Nie fremden Prozess/Lock löschen, keine manuellen Statuskorrekturen bei aktiver Sperre. Verwaiste Prozesse/unklarer Owner: BLOCKIERT und mit FIT-Integrations-Owner klären.
+6. **Geräte-ID:** S10 und S25 ausdrücklich unterscheiden. Für dasselbe physische Gerät muss jeder Agent denselben lokalen Lock-Pfad benutzen; pro Gerät separater Lock. Keine zwei unabhängig konfigurierten Lock-Verzeichnisse für dasselbe Telefon. Bei unterschiedlichen Hosts: zusätzlicher koordinierter Geräte-Owner erforderlich; Git-Datei allein ist keine atomare Sperre.
+7. **Sicherheit:** Kein physischer Instrumentationstest auf S25; keine aktiven proprietären BLE-Experimente, Reset, Entkoppeln, Datenlöschung oder riskante Dauerlast ohne eigene Freigabe. 30 Minuten exklusives Beobachten ist keine Freigabe für solche Aktionen.
+
+## Implementierungsauftrag (CI-Agent als Lock-Code-Owner, FIT-Agent koordiniert, GUI-Agent nimmt ab)
+- Bestehende `tools/s25_lease.py` kompatibel weiterentwickeln oder über Alias `tools/device_lease.py` verallgemeinern: `--device s10|s25` bzw. ADB-Serial, eindeutiger kanonischer Lock-Pfad pro Gerät, Agent/Task/Session-ID, Testklasse, Start/ETA und Phase im Status. Keine sensiblen Seriennummern in Git.
+- **Atomare Exklusivität** unverändert über flock; kein stiller Lock-Diebstahl, kein Lock-Timeout nach ETA, kein automatisches Killen des Eigentümers. Die Prozessgruppe des gestarteten Tests sauber verwalten; keine freilaufenden ADB-Unterprozesse nach Lease-Ende.
+- **Optional wartende Anfragen** nur als sichtbare Queue mit Besitzer-Entscheidung, nie Präemption. Implementierung darf keine blockierende Warte-Schleife auf dem Telefon erzeugen.
+- **Tests:** zwei konkurrierende Agenten (nur einer gewinnt), 30-Minuten-Lauf mit ununterbrochenem Lock, ETA überschritten bleibt gesperrt, SIGTERM/Kindprozess-Cleanup, stale JSON ohne flock, unterschiedliche Worktrees gleicher Host, Gerätetrennung S10/S25, alte CLI weiter funktionsfähig, Statusausgabe ohne sensible Daten. Zeit im Test mocken statt reale 30 Minuten CI-Zeit zu verbrauchen.
+- Alle realen Gerätezugriffs-Skripte/CI-Jobs auf Nutzung des Wrappers prüfen; nichtkooperierende direkte ADB-Aufrufe als verbleibendes Risiko dokumentieren. Vor Codeänderung GUI-Testbesitzer informieren; Lock-Tool offline testen.
+- Review und grünen Testlauf vor Merge; kein aktiver Hardwaretest für Lock-Unit-Tests nötig.
+
+## Praktischer 30-Minuten-Ablauf
+START/Lease → Vorprüfung → 30 Minuten durchgehender Test → Ergebnis/Log-Erfassung → Cleanup → Lease-Ende → atomare Freigabe → ENDE im Agenten-Chat. Für einen Langzeittest `--minutes 40` als ETA verwenden, solange der gesamte Prozess inklusive Cleanup unter dem Wrapper bleibt. Beispiel für die **heutige S25-CLI** (nur für das tatsächlich gemeinsam gesperrte S25): `python3 tools/s25_lease.py run --agent GUI --minutes 40 -- bash -lc './mein_testskript.sh'`. Für S10 erst gemeinsame kanonische Gerätesperre sicherstellen; S25-Pfad nicht ungeprüft als S10-Mechanismus übernehmen.
