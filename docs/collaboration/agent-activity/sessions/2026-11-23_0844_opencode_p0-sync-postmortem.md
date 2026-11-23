@@ -1,0 +1,14 @@
+# OpenCode FIT – P0 CIRQA-Sync-Postmortem und Integration
+- Agent/Umgebung: OpenCode FIT / technische Leitung, Worktree `/tmp/opencode/cirqa-p0-postmortem-20261123`
+- Beginn: 2026-11-23 08:44 UTC
+- Letzte Aktualisierung: 2026-11-23 08:44 UTC
+- Status: aktiv – Offline-Rekonstruktion und PR-Triage
+- Rolle/Zuständigkeit: FIT-/BLE-Protokoll, Downloadpipeline, SQLite-Integration und Koordination GUI/CI
+- Aktueller Auftrag: P0-End-to-End-Historien-Download; Postmortem des begrenzten S10-Laufs vom 23.11.
+- Jetzt in Bearbeitung: `CirqaMlHandshakeProbe` Zustands-/Reportpfad, Belege pro Stufe, deterministische Regression; Triage #547/#541/#536/#522/#533/#499/#543
+- Zeitnah geplant: kleinster belegbarer Produktcode-/Testfix; dann gezielte CI-Anforderung und Datenvertrag-/GUI-Abgleich
+- Betroffene Bereiche/Dateien: zunächst Analyse; möglicher Eingriff `CirqaMlHandshakeProbe.kt`, Sync-Policies/Completion-Tests; Koordinationsdateien
+- Branch/Worktree: `opencode/cirqa-p0-postmortem-20261123`, `/tmp/opencode/cirqa-p0-postmortem-20261123`, Basis `origin/main` `dc4ff00a`
+- Abstimmungsbedarf: CI-Agent zu #547 und exact-SHA FULL-CI; GUI-Agent zu #477 Datenvertrag/Fortschrittsfeldern; #547-Owner zu Konfliktarbeit
+- Agent-chat: `2026-11-23_084400_opencode_START_p0-sync-postmortem.md`
+- Hardware: kein Zugriff geplant; vor jeder möglichen späteren S10-Aktion erneute Lease-/Freigabeprüfung erforderlich
