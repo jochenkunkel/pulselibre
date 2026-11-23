@@ -8,8 +8,8 @@ buildscript {
         // SCA (#155): Dependabot alerts #1-#8 concern libraries pulled in by the Android Gradle Plugin's *build* classpath
         // (signing/lint/aapt tooling), not by the APK. Raise them to the first patched versions until AGP ships them.
         constraints {
-            classpath("com.google.guava:guava:33.7.2-jre") { because("Dependabot #8") }
-            classpath("org.bouncycastle:bcprov-jdk18on:1.85") { because("Dependabot #6, #7") }
+            classpath("com.google.guava:guava:33.8.0-jre") { because("Dependabot #8") }
+            classpath("org.bouncycastle:bcprov-jdk18on:1.87") { because("Dependabot #6, #7") }
             classpath("org.bouncycastle:bcpkix-jdk18on:1.87") { because("Dependabot #5") }
             classpath("org.bouncycastle:bcutil-jdk18on:1.85") { because("keep all Bouncy Castle modules on one version") }
             classpath("org.bitbucket.b_c:jose4j:0.9.6") { because("Dependabot #4") }
