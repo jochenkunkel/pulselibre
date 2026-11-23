@@ -394,7 +394,7 @@ class DatabaseBackupTest {
 
             val plan = DatabaseBackup.prepareRestore(context, ByteArrayInputStream(bytes.toByteArray()))
             try {
-                assertEquals(8, plan.version)
+                assertEquals(9, plan.version)
                 assertEquals(3L, plan.canonicalReadings)
                 assertEquals(1L, plan.canonicalDeviceMetadata)
                 assertEquals(1L, plan.rawDeviceMetadata)
@@ -838,7 +838,7 @@ class DatabaseBackupTest {
             DatabaseBackup.write(context, archive)
             val plan = DatabaseBackup.prepareRestore(context, ByteArrayInputStream(archive.toByteArray()))
             plan.use {
-                assertEquals(8, it.version)
+                assertEquals(9, it.version)
                 assertEquals(2L, it.liveDeviceMetadata)
                 // Restore into a fresh store to prove the entry is actually replayed.
                 val freshRoot = Files.createTempDirectory(base.cacheDir.toPath(), "backup-v8-restore-").toFile()
