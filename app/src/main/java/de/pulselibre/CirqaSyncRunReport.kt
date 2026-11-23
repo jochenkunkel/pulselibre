@@ -12,6 +12,7 @@ internal object CirqaSyncRunReport {
         val itemListSent: Boolean,
         val pullSent: Boolean,
         val fileSummary: String,
+        val terminalEvidence: String,
         val itemSummary: String,
         val diagnostics: String
     )
@@ -27,5 +28,6 @@ internal object CirqaSyncRunReport {
             "incompleteReason=${overview.incompleteReason}; " +
             "accepted=${overview.accepted}; itemListSent=${overview.itemListSent}; " +
             "pullSent=${overview.pullSent}; files=[${overview.fileSummary}]; " +
+            "terminal=[${overview.terminalEvidence}]; " +
             "items=[${overview.itemSummary}]; ${overview.diagnostics}"
 }
