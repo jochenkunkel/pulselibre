@@ -953,6 +953,8 @@
     <string name="sd_r7">7 days</string>
     <string name="sd_r30">30 days</string>
     <string name="sd_hr_band">Heart rate · band (FIT)</string>
+    <string name="sd_distance_band">Distance · band (FIT)</string>
+    <string name="sd_speed_band">Speed · band (FIT)</string>
     <string name="sd_hr_live">Heart rate · phone (live)</string>
     <string name="sd_spo2">SpO₂ · quality unverified</string>
     <string name="sd_resp">Respiration rate</string>
