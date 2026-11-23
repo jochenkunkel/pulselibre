@@ -1,14 +1,14 @@
 # CI-Agent – PR #573 Dashboard-Hinweis, CI-/Testabdeckungsreview
 - Agent/Umgebung: CI-Agent / OpenCode
 - Beginn: 2026-11-23 18:05 UTC
-- Letzte Aktualisierung: 2026-11-23 18:12 UTC
-- Status: aktiv – Branch-Gates grün, Post-Merge-Main-FULL läuft
+- Letzte Aktualisierung: 2026-11-23 18:21 UTC
+- Status: abgeschlossen – #573 integriert, Main-FULL und APK 1992 geprüft
 - Rolle/Zuständigkeit: CI-/Testabdeckungsabnahme, keine GUI-Produktänderung
 - Aktueller Auftrag: PR #573 auf exaktem Head, Ressourcen/Formatstrings, Testabdeckung und Merge-Gates prüfen
-- Jetzt in Bearbeitung: Auswertung des Post-Merge-Main-FULL `45235525169` auf `e07eb24c`
-- Zeitnah geplant: nach Abschluss APK-Provenienz prüfen; #522 bleibt review-blockiert
+- Jetzt in Bearbeitung: keine; #573-Review und Post-Merge-QA abgeschlossen
+- Zeitnah geplant: keine neue Aufgabe übernommen; #522 bleibt review-blockiert
 - Betroffene Bereiche/Dateien: nur eigene Agenten-/Sync-/Activity-Dokumente; keine Produkt- oder GUI-Datei
 - Branch/Worktree: `ci/release-qa-20261123` / `/tmp/opencode/pulselibre-release-qa-20261123`; Review-Quelle `origin/pr573`
 - Abstimmungsbedarf: GUI-Owner – Test für `science_days_hint` und fr/es-Formulierung (PR-Kommentar `7109549637`)
 - Agent-sync-Nachrichten: keine (reiner PR-Kommentar, kein Produktkonflikt)
-- Nachweise: Head `b41e4295f9`; vier Locale-Dateien mit korrekten `%1$d`/`%2$d`; `ranges`=24/168/720 h, Guard `rangeDays < 7`, Schwelle `days * 2 < rangeDays`. PR-Kommentare `7109549637` (Ressourcen/Mathematik/Testlücke/fr-Formulierung) und `7109802268` (Gates). FULL `45233216822` SUCCESS inkl. API-35, Dependency Review `45233216757` SUCCESS. Ein früherer Head `2c53c49301ff` scheiterte beim Kompilieren (`Long?`/`Long`, ScienceDashboardView.kt:142, Run `45232836717` failure) und ist nicht im gemergten Head. #573 gemergt `e07eb24c`; Post-Merge-Main-FULL `45235525169` läuft. Kein Gerätezugriff, keine Rohdaten.
+- Nachweise: Head `b41e4295f9`; vier Locale-Dateien mit korrekten `%1$d`/`%2$d`; `ranges`=24/168/720 h, Guard `rangeDays < 7`, Schwelle `days * 2 < rangeDays`. PR-Kommentare `7109549637` (Ressourcen/Mathematik/Testlücke/fr-Formulierung) und `7109802268` (Gates). FULL `45233216822` SUCCESS inkl. API-35, Dependency Review `45233216757` SUCCESS. Ein früherer Head `2c53c49301ff` scheiterte beim Kompilieren (`Long?`/`Long`, ScienceDashboardView.kt:142, Run `45232836717` failure) und ist nicht im gemergten Head. #573 gemergt `e07eb24c`; Post-Merge-Main-FULL `45235525169` SUCCESS inkl. API-35. APK aus Build-Job `137906087373` offline geprüft: versionCode 1992, Datei-SHA `ee9a1db118ebcc9c2d05477af0eba7b372b6e31e2c3cbefc0155539410a2ed96`, v2 gültig, Zertifikat `36e7f3b664fedb04f175a97a45079a845d781a1769db1a4b02b1c8bf51439177`, keine INTERNET-Berechtigung, Artefakt-Digest `6c1a1264…358d`. Issue #144 Kommentar `7110041047`. `origin/main=e07eb24c` unverändert. Kein Gerätezugriff, keine Rohdaten, keine Produktdateien verändert.
