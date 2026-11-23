@@ -555,7 +555,7 @@
     <string name="ex_backup_cancelled">Backup abgebrochen.</string>
     <string name="ex_backup_running">Backup wird erstellt …</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
-    <string name="ex_backup_done">Backup gespeichert: %1$d Ereignisse, %2$d historische Messwerte, %3$d historische FIT-Quellen/%4$d Herkunftszeilen; %5$d kanonische Messwerte, %6$d kanonische FIT-Quellen/%7$d Herkunftszeilen und %8$d FIT-Metadatenzeilen, %9$d abgeleitete Raw-XML-Metadatenzeilen. Originaldateien sind nicht enthalten; keine Pfade oder XML-IDs werden gespeichert.</string>
+    <string name="ex_backup_done">Backup gespeichert: %1$d Ereignisse, %2$d historische Messwerte, %3$d historische FIT-Quellen/%4$d Herkunftszeilen; %5$d kanonische Messwerte, %6$d kanonische FIT-Quellen/%7$d Herkunftszeilen und %8$d FIT-Metadatenzeilen, %9$d abgeleitete Raw-XML-Metadatenzeilen. Vorhandene archivierte Originalinhalte sind enthalten und können sensible Kennungen enthalten.</string>
     <string name="ex_backup_failed">Backup fehlgeschlagen. Bitte Speicherort prüfen; eine angelegte Zieldatei kann unvollständig sein und sollte gelöscht werden.</string>
     <string name="ex_backup_checking">Backup wird geprüft …</string>
     <string name="ex_backup_invalid">Backup ungültig oder nicht lesbar. Datenbank unverändert.</string>
@@ -589,7 +589,7 @@
     <string name="ex_local_only">Nur auf deinem Gerät · Keine Cloud · Keine Anmeldung</string>
     <string name="ex_db_title">Lokale Datenbank</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
-    <string name="ex_db_note">Backup enthält CIRQA-Ereignisse, historische Messwerte und Synchronisationsstände. Die ZIP-Datei ist unverschlüsselt und enthält sensible Gesundheitsdaten.</string>
+    <string name="ex_db_note">Backup enthält CIRQA-Ereignisse, historische Messwerte, Synchronisationsstände und vorhandene archivierte Originalinhalte einschließlich unbekannter Felder und Kennungen. Die ZIP-Datei ist unverschlüsselt und enthält sensible Gesundheits- und Gerätedaten.</string>
     <string name="ex_btn_backup">Backup erstellen</string>
     <string name="ex_btn_backup_cd">Lokales Datenbankbackup erstellen</string>
     <string name="ex_btn_fit">FIT-Originale exportieren</string>
@@ -612,7 +612,7 @@
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="ex_restore_title">Datenbank ersetzen?</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
-    <string name="ex_restore_msg">Das Backup vom %1$s enthält %2$d Ereignisse, %3$d historische Messwerte, %4$d Synchronisationsstände, %5$d FIT-Quellen und %6$d FIT-Herkunftszeilen. %7$d kanonische Messwerte und %8$d kanonische FIT-Quellen/%9$d Herkunftszeilen sowie %10$d FIT-Metadatenzeilen und %11$d abgeleitete Raw-XML-Metadatenzeilen. Originaldateien sind nicht enthalten; Pfade und XML-IDs werden nicht gesichert.\n\nAlle aktuell gespeicherten Datenbankeinträge werden ersetzt. App-Einstellungen bleiben erhalten. Nur mit einem Backup aus vertrauenswürdiger Quelle fortfahren.</string>
+    <string name="ex_restore_msg">Das Backup vom %1$s enthält %2$d Ereignisse, %3$d historische Messwerte, %4$d Synchronisationsstände, %5$d FIT-Quellen und %6$d FIT-Herkunftszeilen. %7$d kanonische Messwerte und %8$d kanonische FIT-Quellen/%9$d Herkunftszeilen sowie %10$d FIT-Metadatenzeilen und %11$d abgeleitete Raw-XML-Metadatenzeilen. Neue Backups können auch archivierte Originalinhalte und sensible Kennungen enthalten.\n\nAlle aktuell gespeicherten Datenbankeinträge werden ersetzt. App-Einstellungen bleiben erhalten. Nur mit einem Backup aus vertrauenswürdiger Quelle fortfahren.</string>
     <string name="ex_replace">Ersetzen</string>
     <string name="ex_restore_cancelled">Wiederherstellung abgebrochen.</string>
     <string name="ex_restore_running">Datenbank wird wiederhergestellt …</string>

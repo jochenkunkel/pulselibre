@@ -4,6 +4,31 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class CirqaFileAccessItemListParserTest {
+    @Test fun preservesRemoteRevisionAndUnknownReferenceFieldsWithoutGrantingASkip() {
+        val uid = byteArrayOf(1, 2, 3, 4)
+        val type = byteArrayOf(0x08, 0x01)
+        fun reference(transaction: Long, modified: Long) = field(1, uid) + field(2, type) +
+            scalarField(3, 128) + scalarField(5, transaction) + scalarField(7, modified) +
+            field(12, byteArrayOf(8, 7, 6))
+        fun parse(ref: ByteArray) =
+            CirqaFileAccessItemListParser.parse(field(43, field(10, scalarField(1, 0) + field(4, ref)))).single()
+        val before = parse(reference(10, 1000))
+        val afterBytes = reference(11, 2000)
+        val after = parse(afterBytes)
+        assertEquals(before.dataSize, after.dataSize)
+        assertArrayEquals(before.uid, after.uid)
+        assertEquals(11L, after.transactionId)
+        assertEquals(2000L, after.modifiedTime)
+        assertArrayEquals(afterBytes, after.referenceBytes)
+        val identity = CirqaTargetedPullPolicy.ItemIdentity("synthetic-uid", "fit", 128, 0)
+        val evidence = CirqaUidStabilityEvidence.from(listOf("s1", "s2", "s3").map {
+            CirqaUidStabilityEvidence.SessionObservation(
+                it, true, true, CirqaTargetedPullPolicy.stabilityKey(identity))
+        })
+        assertTrue(CirqaTargetedPullPolicy.shouldPull(identity, listOf(
+            CirqaTargetedPullPolicy.CompletedImport(identity, "a".repeat(64), true, evidence))))
+    }
+
     private fun field(number: Int, bytes: ByteArray): ByteArray {
         val out = java.io.ByteArrayOutputStream()
         out.write(varint((number.toLong() shl 3) or 2))

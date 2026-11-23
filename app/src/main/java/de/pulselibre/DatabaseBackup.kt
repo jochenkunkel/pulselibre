@@ -24,7 +24,7 @@ import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
 
 private const val BACKUP_FORMAT = "de.pulselibre.local-database-backup"
-private const val BACKUP_VERSION = 8
+private const val BACKUP_VERSION = 9
 private const val MAX_ARCHIVE_BYTES = 128L * 1024L * 1024L
 private const val MAX_ENTRY_BYTES = 120L * 1024L * 1024L
 private const val MAX_LINE_BYTES = 2 * 1024 * 1024
@@ -69,6 +69,7 @@ private val BACKUP_V8_ENTRIES = BACKUP_V7_ENTRIES + setOf(
     LEGACY_FIT_REVIEW_CANDIDATES_ENTRY,
     LIVE_DEVICE_METADATA_ENTRY
 )
+private val BACKUP_V9_ENTRIES = BACKUP_V8_ENTRIES + DownloadedFileArchive.BACKUP_ENTRY
 
 data class DatabaseBackupReport(
     val createdAt: String,
@@ -162,7 +163,8 @@ object DatabaseBackup {
                 5 -> BACKUP_V5_ENTRIES
                 6 -> BACKUP_V6_ENTRIES
                 7 -> BACKUP_V7_ENTRIES
-                BACKUP_VERSION -> BACKUP_V8_ENTRIES
+                8 -> BACKUP_V8_ENTRIES
+                BACKUP_VERSION -> BACKUP_V9_ENTRIES
                 else -> throw IllegalArgumentException("Backup-Version wird nicht unterstützt")
             }
             require(extracted.keys == dataEntries + MANIFEST_ENTRY) {
@@ -184,6 +186,11 @@ object DatabaseBackup {
                 val count = validateJsonLines(name, file)
                 require(count == metadata.getLong("records")) { "Backup-Datensatzanzahl stimmt nicht: $name" }
                 recordCounts[name] = count
+            }
+            if (version >= 9) {
+                File(directory, DownloadedFileArchive.BACKUP_ENTRY).useLines { lines ->
+                    DownloadedFileArchive.consume(lines.map(DownloadedFileArchive::parse))
+                }
             }
             if (version >= 2) {
                 validateFitReferences(directory, READINGS_ENTRY, FIT_SOURCES_ENTRY, FIT_PROVENANCE_ENTRY)
@@ -311,7 +318,18 @@ object DatabaseBackup {
                                                     canonicalFitReviewCandidates = reviewCandidates,
                                                     liveDeviceMetadata = liveDeviceMetadata,
                                                     generationSnapshotProvided = generationSnapshotProvided,
-                                                    markHistoricalCopyComplete = true
+                                                    markHistoricalCopyComplete = true,
+                                                    downloadedFiles = sequence {
+                                                        if (plan.version >= 9) {
+                                                            File(plan.directory, DownloadedFileArchive.BACKUP_ENTRY)
+                                                                .bufferedReader().use { reader ->
+                                                                    while (true) {
+                                                                        val line = reader.readLine() ?: break
+                                                                        yield(DownloadedFileArchive.parse(line))
+                                                                    }
+                                                                }
+                                                        }
+                                                    }
                                                 )
                                             }
                                             if (plan.version >= 4) {
@@ -782,6 +800,10 @@ object DatabaseBackup {
                     }
                     liveDeviceMetadataCount = liveMetadata.records
                     metadata.put(LIVE_DEVICE_METADATA_ENTRY, entryMetadata(liveMetadata))
+                    val originalFiles = writeJsonLines(zip, DownloadedFileArchive.BACKUP_ENTRY) { emit ->
+                        DownloadedFileArchive.export(db, emit)
+                    }
+                    metadata.put(DownloadedFileArchive.BACKUP_ENTRY, entryMetadata(originalFiles))
                     require(
                         events.bytes + readings.bytes + cursors.bytes + sources.bytes + provenance.bytes +
                             canonicalReadings.bytes + canonicalCursors.bytes + canonicalSources.bytes +
@@ -789,7 +811,7 @@ object DatabaseBackup {
                             rawDeviceMetadata.bytes + canonicalUnmappedFields.bytes +
                             generations.bytes + generationObservations.bytes + activeGenerations.bytes +
                             reviewCandidates.bytes + legacyReviewCandidates.bytes +
-                            liveMetadata.bytes <= MAX_ARCHIVE_BYTES
+                            liveMetadata.bytes + originalFiles.bytes <= MAX_ARCHIVE_BYTES
                     ) {
                         "Lokale Datenbank ist zu groß für ein Backup"
                     }
@@ -846,7 +868,7 @@ object DatabaseBackup {
         .put("sha256", value.sha256)
 
     private fun extractArchive(source: InputStream, directory: File): Map<String, File> {
-        val allowed = BACKUP_V8_ENTRIES + MANIFEST_ENTRY
+        val allowed = BACKUP_V9_ENTRIES + MANIFEST_ENTRY
         val files = linkedMapOf<String, File>()
         var totalBytes = 0L
         ZipInputStream(BufferedInputStream(source)).use { zip ->
@@ -904,6 +926,7 @@ object DatabaseBackup {
                     CANONICAL_FIT_REVIEW_CANDIDATES_ENTRY,
                     LEGACY_FIT_REVIEW_CANDIDATES_ENTRY -> parseFitReviewCandidate(line)
                     LIVE_DEVICE_METADATA_ENTRY -> parseLiveDeviceMetadata(line)
+                    DownloadedFileArchive.BACKUP_ENTRY -> DownloadedFileArchive.parse(line)
                 }
                 count++
                 require(count <= MAX_RECORDS) { "Zu viele Einträge in $name" }

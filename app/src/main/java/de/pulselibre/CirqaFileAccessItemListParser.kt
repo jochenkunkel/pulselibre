@@ -20,7 +20,11 @@ object CirqaFileAccessItemListParser {
         val uid: ByteArray,
         val dataType: ByteArray,
         val dataSize: Long,
-        val flags: Long
+        val flags: Long,
+        val transactionId: Long? = null,
+        val modifiedTime: Long? = null,
+        /** Exact bounded ItemReference, retained locally including unknown metadata. */
+        val referenceBytes: ByteArray = byteArrayOf()
     )
     data class ItemListPage(
         val items: List<Item>,
@@ -116,7 +120,11 @@ object CirqaFileAccessItemListParser {
             if (typeLabel != null && stringKey != null) gdxmlStrings[stringKey] = typeLabel
             val size = f.firstOrNull { it.number == 3 && it.wire == 0 }?.varint ?: 0L
             val flags = f.firstOrNull { it.number == 4 && it.wire == 0 }?.varint ?: 0L
-            items.add(Item(uid, dataType, size, flags))
+            val transaction = f.firstOrNull { it.number == 5 && it.wire == 0 }?.varint
+            val modified = f.firstOrNull { it.number == 7 && it.wire == 0 }?.varint
+            if (transaction != null && transaction !in 0..0xffff_ffffL) return null
+            if (modified != null && modified !in 0..0xffff_ffffL) return null
+            items.add(Item(uid, dataType, size, flags, transaction, modified, entry.bytes.copyOf()))
         }
         val sessionId = responseFields.firstOrNull { it.number == 2 && it.wire == 0 }?.varint
         val nextTransactionId = responseFields.firstOrNull { it.number == 3 && it.wire == 0 }?.varint

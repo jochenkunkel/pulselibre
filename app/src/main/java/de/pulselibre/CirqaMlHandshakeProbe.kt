@@ -3,7 +3,6 @@ package de.pulselibre
 import android.annotation.SuppressLint
 import android.bluetooth.*
 import android.content.Context
-import android.database.sqlite.SQLiteDatabase
 import android.os.Build
 import android.os.Handler
 import android.os.HandlerThread
@@ -108,7 +107,6 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private var syncSkippedFiles = 0
     private var syncIncompleteReason: String? = null
     private val syncGdxmlStrings = linkedMapOf<Long, String>()
-    private val syncSeenItemUids = hashSetOf<String>()
     private var mlrHandle: Int? = null
     private var mlrRegisterSent = false
     private var mlrDiag = ""
@@ -1030,68 +1028,10 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         if (syncPendingItems.isEmpty()) requestNextSyncItemListPage(g) else sendNextSyncFile(g)
     }
 
-    /**
-     * Skip only an exact remote identity with three distinct successful
-     * observations and a still-present, content-verified FIT source committed
-     * to the canonical SQLite store. Every uncertainty means pull.
-     */
+    /** A local hash never proves remote freshness; always pull within the budget. */
     private fun shouldPullTargetedItem(item: CirqaFileAccessItemListParser.Item): Boolean {
         val identity = targetedPullManifest.identity(item) ?: return true
-        val evidence = targetedPullManifest.stabilityEvidence(item) ?: return true
-        val contentSha256 = targetedPullManifest.completedImportSha256(item) ?: return true
-        if (!isCommittedLocalFit(contentSha256, item.dataSize)) {
-            targetedPullManifest.forgetCompletedImport(item)
-            return true
-        }
-        return CirqaTargetedPullPolicy.shouldPull(
-            identity.policyIdentity,
-            listOf(
-                CirqaTargetedPullPolicy.CompletedImport(
-                    identity = identity.policyIdentity,
-                    contentSha256 = contentSha256,
-                    importSucceeded = true,
-                    uidStabilityEvidence = evidence
-                )
-            )
-        )
-    }
-
-    private fun isCommittedLocalFit(contentSha256: String, expectedBytes: Long): Boolean {
-        if (!contentSha256.matches(Regex("[0-9a-f]{64}")) ||
-            expectedBytes !in 1..CirqaVerifiedRawFileStore.MAX_FILE_BYTES
-        ) return false
-        val fitDirectory = File(context.filesDir, "verified_fit")
-        val file = File(fitDirectory, "$contentSha256.fit")
-        if (!fitDirectory.isDirectory || java.nio.file.Files.isSymbolicLink(fitDirectory.toPath())) {
-            return false
-        }
-        if (!file.isFile || java.nio.file.Files.isSymbolicLink(file.toPath()) ||
-            file.length() != expectedBytes
-        ) return false
-        val bytes = runCatching { file.readBytes() }.getOrNull() ?: return false
-        val actualSha = java.security.MessageDigest.getInstance("SHA-256").digest(bytes)
-            .joinToString("") { "%02x".format(it.toInt() and 255) }
-        if (actualSha != contentSha256 || FitFileHeader.inspectVerified(bytes) == null) return false
-
-        val databaseFile = context.getDatabasePath("cirqa_measurements.db")
-        if (!databaseFile.isFile) return false
-        return runCatching {
-            SQLiteDatabase.openDatabase(
-                databaseFile.path, null, SQLiteDatabase.OPEN_READONLY
-            ).use { db ->
-                db.rawQuery(
-                    """SELECT 1 FROM fit_sources s
-                       WHERE s.source_sha256 = ? AND s.file_bytes = ?
-                         AND s.relative_path = ?
-                         AND EXISTS (
-                           SELECT 1 FROM fit_observation_provenance p
-                           WHERE p.source_sha256 = s.source_sha256
-                         )
-                       LIMIT 1""",
-                    arrayOf(contentSha256, expectedBytes.toString(), "verified_fit/$contentSha256.fit")
-                ).use { it.moveToFirst() }
-            }
-        }.getOrDefault(false)
+        return CirqaTargetedPullPolicy.shouldPull(identity.policyIdentity, emptyList())
     }
 
     private fun requestNextSyncItemListPage(g: BluetoothGatt) {
@@ -1281,12 +1221,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         var queuedNow = 0
         var bytesNow = 0L
         for (item in page.items) {
-            val uidKey = java.security.MessageDigest.getInstance("SHA-256")
-                .digest(item.uid).joinToString("") { "%02x".format(it.toInt() and 255) }
-            if (!syncSeenItemUids.add(uidKey)) {
-                syncSkippedFiles++
-                continue
-            }
+            // Repeated UIDs are not immutable content revisions, even within a run.
+            // Transfer/page/session budgets bound repetition; dedupe received bytes only.
             if (!shouldPullTargetedItem(item)) {
                 syncSkippedFiles++
                 syncPullDiag = (syncPullDiag + "|manifest-skip:verified-local-import")
@@ -2089,7 +2025,6 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         syncSkippedFiles = 0
         syncIncompleteReason = null
         syncGdxmlStrings.clear()
-        syncSeenItemUids.clear()
         mlrHandle = null
         mlrRegisterSent = false
         syncMlrRegistrationPending = false
@@ -2979,6 +2914,23 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         }
         val digest = java.security.MessageDigest.getInstance("SHA-256").digest(data)
         val sha = digest.copyOfRange(0, 6).joinToString("") { "%02x".format(it) }
+        // Lossless original storage precedes FIT/quality filtering. Unknown formats,
+        // unsupported fields and status-only records must remain available in SQLite.
+        try {
+            CirqaDatabase(context).use {
+                it.archiveDownloadedFile(data, item.referenceBytes, label, System.currentTimeMillis())
+            }
+        } catch (e: Exception) {
+            return CirqaSyncFileCompletion.Result(
+                format = format,
+                transfer = CirqaSyncFileCompletion.Stage.SUCCEEDED,
+                integrity = CirqaSyncFileCompletion.Stage.NOT_REACHED,
+                privateStorage = CirqaSyncFileCompletion.Stage.FAILED,
+                decode = CirqaSyncFileCompletion.Stage.NOT_REACHED,
+                sqliteCommit = CirqaSyncFileCompletion.Stage.FAILED,
+                detail = "exactSize=true;originalSqliteArchive=failed:${e.javaClass.simpleName}"
+            )
+        }
         // A zlib-compressed FIT is not readable by FitFileHeader. Try the bounded
         // offline decoder only when the received bytes are not already a valid FIT
         // and carry a plausible zlib header; the inflated result must itself pass
@@ -3290,7 +3242,6 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             syncSkippedFiles = 0
             syncIncompleteReason = null
             syncGdxmlStrings.clear()
-            syncSeenItemUids.clear()
             syncMlrRegistrationPending = false
             mlrHandle = null
             mlrRegisterSent = false
