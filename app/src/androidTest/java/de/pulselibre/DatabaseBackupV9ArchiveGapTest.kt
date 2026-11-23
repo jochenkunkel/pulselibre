@@ -55,7 +55,7 @@ class DatabaseBackupV9ArchiveGapTest {
                 assertEquals(listOf(event), database.allLines())
                 val restored = mutableListOf<String>()
                 DownloadedFileArchive.export(database.readableDatabase, restored::add)
-                assertEquals(2, restored.size) // one chunk + one reference
+                assertEquals(3, restored.size) // two chunks (CHUNK_BYTES + 7) + one reference
                 assertEquals(DownloadedFileArchive.sha256(original), JSONObject(restored.first()).getString("sha256"))
             }
         } finally {
