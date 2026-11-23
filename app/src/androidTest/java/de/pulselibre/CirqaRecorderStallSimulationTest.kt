@@ -5,8 +5,7 @@ import android.content.Intent
 import androidx.core.content.ContextCompat
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import androidx.test.rule.GrantPermissionRule
-import org.junit.Rule
+import androidx.test.platform.app.InstrumentationRegistry
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -24,11 +23,13 @@ class CirqaRecorderStallSimulationTest {
     private val context: Context = ApplicationProvider.getApplicationContext()
 
     /** API 34+: a connectedDevice foreground service only starts with a Bluetooth runtime permission. */
-    @get:Rule val permissions: GrantPermissionRule = GrantPermissionRule.grant(
-        android.Manifest.permission.BLUETOOTH_CONNECT,
-        android.Manifest.permission.BLUETOOTH_SCAN,
-        android.Manifest.permission.POST_NOTIFICATIONS
-    )
+    private fun grantPermissions() {
+        val automation = InstrumentationRegistry.getInstrumentation().uiAutomation
+        listOf(android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_SCAN,
+            android.Manifest.permission.POST_NOTIFICATIONS).forEach {
+            try { automation.grantRuntimePermission(context.packageName, it) } catch (_: Exception) { }
+        }
+    }
 
     private class FakeLink(private val readingEveryMs: Long?) : RecorderLink {
         @Volatile var closed = false
@@ -60,6 +61,7 @@ class CirqaRecorderStallSimulationTest {
     }
 
     @Before fun setUp() {
+        grantPermissions()
         context.getSharedPreferences(CirqaContinuousRecordingService.PREFS, Context.MODE_PRIVATE).edit().clear().commit()
         CirqaDatabase(context).use { it.writableDatabase.execSQL("DELETE FROM events") }
         CirqaContinuousRecordingService.stallAfterMs = 3_000
