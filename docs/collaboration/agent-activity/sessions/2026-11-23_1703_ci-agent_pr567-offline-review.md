@@ -1,15 +1,15 @@
 # CI-Agent – PR #567 Freshness-/SQLite-Archiv-CI-Review
 - Agent/Umgebung: CI-Agent / OpenCode
 - Beginn: 2026-11-23 17:03 UTC
-- Letzte Aktualisierung: 2026-11-23 17:13 UTC
-- Status: aktiv – Review abgeschlossen, Post-Merge-Main-FULL ausstehend
+- Letzte Aktualisierung: 2026-11-23 17:26 UTC
+- Status: abgeschlossen – #567/#566 integriert, Main-FULL und APK 1989 geprüft
 - Rolle/Zuständigkeit: Build-/Test-/CI-Abnahme und unabhängige Testabdeckungsprüfung
 - Aktueller Auftrag: PR #567 nach exaktem Head, FULL/API-35, Dependency Review und Migrations-/Archiv-Regressionen offline prüfen; keine Produktdateien ändern
-- Jetzt in Bearbeitung: Auswertung des aktuellen Main-FULL `45224433766` auf `28b49fb1` (integrierte Produktcodes aus #567 + #566)
-- Zeitnah geplant: nach grünem Main-FULL inkl. API-35 Integrationsabnahme dokumentieren; #522 bleibt review-blockiert und wird nicht übernommen
+- Jetzt in Bearbeitung: keine; #567-Review, Integration und Post-Merge-QA abgeschlossen
+- Zeitnah geplant: keine neue Aufgabe übernommen; S10-Abnahme bleibt beim FIT-Owner, #522 review-blockiert
 - Betroffene Bereiche/Dateien: eigene CI-/Activity-/Agenten-Sync-Dokumente; keine Änderungen an DB-/Backup-/BLE-/GUI-Produktdateien
 - Branch/Worktree: `ci/release-qa-20261123` / `/tmp/opencode/pulselibre-release-qa-20261123`; Review-Quelle `origin/pr567`
 - Abstimmungsbedarf: FIT-Owner hat um Hinweis bei Schema-/Backup-Überschneidung gebeten; CI-Agent bestätigt keine Produktänderung geplant und liefert PR-Head-/Gate-Status
 - Agent-sync-Nachrichten: `2026-11-23_1703_ci-agent-an-fit_pr567-ci-review.md`
 - Nachweise: PR #567 auf `871257d1`: FULL `45221371979` inkl. API-35 SUCCESS, Dependency Review `45221372006` SUCCESS; kein GitHub-Review. Offline-Review von `DownloadedFileArchive`/Backup 9/Schema 10 und Migrationstests ohne CI-Befund; `git diff --check` sauber. Vorläufige eigene Fehlmeldung zur Exception-Erwartung auf #567 öffentlich korrigiert (Kommentar `7108285811`): `consume` nutzt `require`, Test erwartet korrekt `IllegalArgumentException`. #567 gemergt `891bdcef`, #566 gemergt `28b49fb1`; gemeinsame Datei `CirqaMlHandshakeProbe.kt` enthält beide Änderungen. Post-Merge-Main-FULL `45224006257` auf `891bdcef` cancelled durch #566-Push; deshalb zählt nur der neue Main-FULL `45224433766` auf `28b49fb1` (bei letzter Prüfung pending). Kein Gerätezugriff, keine Produktdateien verändert.
-- Nächster Schritt: Abschluss von `45224433766` inkl. API-35 auswerten, Integrationsabnahme und ggf. APK-Provenienz dokumentieren; S10-Abnahme bleibt beim FIT-Owner.
+- Abschluss: Main-FULL `45224433766` auf `28b49fb1` SUCCESS inkl. API-35 (Build-Job `137870234406` 6m30s, Emulator-Job `137874535830` 5m54s). `origin/main=43e239f2`, nur Docs-Commit seit geprüftem Head, keine `app/`-Änderung. Signiertes APK Build 1989 offline geprüft: SHA `d39df3230f08832b6452fadddf2d72a6329f7a1cc7b939d30c9a3e9451279a86`, v2 gültig, Zertifikat `36e7f3b664fedb04f175a97a45079a845d781a1769db1a4b02b1c8bf51439177`, keine INTERNET-Berechtigung; Artefakt-Digest separat. Issue #144 Kommentar `7108677477`. Kein Gerätezugriff, keine Produktdateien verändert. S10-Abnahme/GUI-#529-#571 bei FIT/GUI; #522 bleibt review-blockiert.
