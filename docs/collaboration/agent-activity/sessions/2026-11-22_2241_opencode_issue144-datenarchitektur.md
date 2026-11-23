@@ -2,12 +2,12 @@
 
 - Agent/Umgebung: OpenCode (vom Nutzer ausdrücklich als Datenmodell-/Persistenz-Agent beauftragt)
 - Beginn: 2026-11-22 22:41 UTC
-- Letzte Aktualisierung: 2026-11-23 00:30 UTC
-- Status: aktiv (P1 S10-Testbuild: finale APK 1931 auf `42b1f242` geprüft und dem Nutzer zum Test übergeben; #144 voller CI auf `ebdd9c85` grün inkl. Emulator, Merge bis S10-Abnahme zurückgehalten)
+- Letzte Aktualisierung: 2026-11-23 00:38 UTC
+- Status: aktiv (P1 S10-Testbuild: finale APK 1931 auf `42b1f242` geprüft und dem Nutzer zum Test übergeben; #144 voller CI auf `ebdd9c85` grün inkl. Emulator, Vorab-Merge gegen `main` sauber, Merge bis S10-Abnahme zurückgehalten; FIT-Semantik eingegangen und dokumentiert)
 - Rolle/Zuständigkeit: alleiniger koordinierender Owner für SQLite-Schema, Migration, Datenintegrität, Backup/Restore und Persistenz-API. #506 und #150 nur fachliche Referenz; keine Übernahme der FIT-/BLE-Implementierung oder GUI-Arbeit.
 - Aktueller Auftrag: Nutzerdirektive P1 – installierbarer S10-Testbuild in 48 h; datenseitiger Beitrag + Koordination GUI/FIT/CI. #144 bleibt implementiert, aber hinter P1 eingeordnet.
 - Jetzt in Bearbeitung: Vorab-Merge-Prüfung von PR #533 gegen aktuelles `main` (`42b1f242`) **abgeschlossen** – Merge konfliktfrei, keine überlappenden Dateien; lokale Quick-CI auf gemergtem Stand grün (`EXIT=0`, 116 Python-Tests, Debug+R8-Release-APK, 172 s; Log `/tmp/opencode/issue144-premerge-ci.log`); temporärer Worktree entfernt, PR-Kommentar `7088340154`. Gezielte FIT-Semantik-Bitte für die v9-Kataloge steht im Sync-Kanal (`2026-11-23_0022_datenmodell-an-fit_issue144-statuscodes-semantik.md`), da der FIT-Agent gerade an #149 Decoderprüfung arbeitet.
-- Zeitnah geplant: #144 Merge erst nach S10-Abnahme der APK 1931 durch den Nutzer, danach voller Lauf auf `main`; FIT-Semantik (Statuscodes/Modus/Konfidenz/Zeit) nachliefern; Antworten zu PR #536/#540 verfolgen.
+- Zeitnah geplant: #144 Merge erst nach S10-Abnahme der APK 1931 durch den Nutzer, danach voller Lauf auf `main`; FIT-Semantik ist eingegangen und in PR #536 Abschnitt 5.4 dokumentiert (v9-Kataloge bleiben bewusst `UNKNOWN`, quellenbelegte Entscheidung für Folge-PR vorbereitet); Antworten zu PR #536/#540 verfolgen.
 - Betroffene Bereiche/Dateien: `CirqaDatabase.kt`, Import-/Backfill-Klassen, JVM-/Instrumentationstests, `docs/protocol/data-model/**`, `docs/GUI_DATA_CONTRACT_DRAFT_2026-11-23.md`, `docs/PROJECT_STATUS.md`, Koordinationsdateien unter `docs/collaboration/**`. Kein Gerätezugriff, keine BLE-Aktion.
 - Branch/Worktree: `data/issue144-schema-und-migration` (PR #533, Head `ebdd9c85`, mergebar/clean gegen `main`); `docs/gui-datenvertrag-persistenz-antwort` (PR #536); `docs/issue144-ci-nachweise-20261123` (PR #540); temporär `tmp/issue144-premerge-verify-20261123` (nur Vorabprüfung, wird entfernt).
 - Abstimmungsbedarf: FIT-Agent – Statuscodes/Messmodus/Konfidenz/Intervalle; GUI-Agent – Abschnitt 5 des Datenvertrags übernehmen; CI-Agent – Build von `main` v8, APK-Artefakt, Bestätigung dass v9 nicht im Build. Nachrichten: `../agent-sync/2026-11-23_0026_datenmodell-an-gui-fit-ci_datenvertrag-antwort.md`, `../agent-sync/2026-11-22_232500...` (lokal).
