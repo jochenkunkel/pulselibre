@@ -120,12 +120,27 @@ internal class ScienceDashboardView(context: Context) : LinearLayout(context) {
                 SeriesState.NO_VALID_VALUES -> label(context.getString(R.string.sd_only_invalid) + "\n" + caption, 13f, palette.muted)
                 else -> ScienceSeriesView(context, palette).apply { show(data, context.getString(R.string.sd_cd, title, caption)) }
             }
-            val views = ArrayList<View>().apply { add(basis); add(body); if (a.state != SeriesState.EMPTY && body is ScienceSeriesView) add(label(caption, 12f, palette.muted)) }
+            val views = ArrayList<View>().apply {
+                add(basis); add(body)
+                if (a.state != SeriesState.EMPTY && body is ScienceSeriesView) {
+                    add(label(caption, 12f, palette.muted))
+                    sparseDaysHint(data)?.let { add(label(it, 12f, palette.muted).apply { tag = "science_days_hint" }) }
+                }
+            }
             cards.addView(card(title, *views.toTypedArray()).apply { tag = "science_card_${spec.key}" }, spacing())
         }
         val na = listOf(R.string.sd_na_sleep, R.string.sd_na_activity, R.string.sd_na_hrv, R.string.sd_na_temp)
         cards.addView(card(context.getString(R.string.sd_na_title), *na.map { label(context.getString(it), 13f, palette.muted) as View }.toTypedArray())
             .apply { tag = "science_not_available" }, spacing())
+    }
+
+    /** Over 7/30 days a mostly empty chart is hard to read: say honestly on how many days values exist at all. */
+    private fun sparseDaysHint(data: SeriesData): String? {
+        val rangeDays = (ranges[selected].second / 24).toInt()
+        if (rangeDays < 7 || data.points.isEmpty()) return null
+        val zone = java.time.ZoneId.systemDefault()
+        val days = data.points.map { java.time.Instant.ofEpochMilli(it.timeMs).atZone(zone).toLocalDate() }.toSet().size
+        return if (days * 2 < rangeDays) context.getString(R.string.sd_days_hint, days, rangeDays) else null
     }
 
     private fun spacing() = LayoutParams(-1, -2).apply { bottomMargin = dp(10) }

@@ -971,6 +971,7 @@
     <string name="sd_loading">Leyendo los datos …</string>
     <string name="sd_error">No se pudieron leer los datos. No se muestra nada en su lugar.</string>
     <string name="sd_empty">No hay mediciones en el período elegido.</string>
+    <string name="sd_days_hint">Solo hay valores en %1$d de %2$d días de este período.</string>
     <string name="sd_only_invalid">En el período solo hay valores no válidos o estados del dispositivo; no se dibuja nada.</string>
     <string name="sd_summary">%1$d valores válidos · media %2$s · mín %3$s · máx %4$s · franjas horarias con datos %5$d %%</string>
     <string name="sd_summary_no_valid">%1$d valores, ninguno dibujado como válido · franjas horarias con datos %2$d %%</string>
