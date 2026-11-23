@@ -25,7 +25,7 @@ private object CirqaProbeThread {
 
 private const val MLR_SERVICE_ID = 8216 // 0x2018, Connect MLRTransportPipe.ML_SERVICE_IDS
 
-class CirqaMlHandshakeProbe(private val context: Context, private val adapter: BluetoothAdapter) {
+class CirqaMlHandshakeProbe(private val context: Context, private val adapter: BluetoothAdapter) : RecorderLink {
     /**
      * All GATT callbacks, timeouts and the termination in [finish] run on this ONE background thread (audit #6 A6-35).
      * Before, callbacks came from Binder threads while timeouts and [finish] ran on the main thread, so the ~150 mutable
@@ -39,7 +39,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     @Volatile private var terminationRequested = false
     private var gatt: BluetoothGatt? = null
     private var callback: ((String) -> Unit)? = null
-    var onReading: ((Int, GarminRealtime.Reading) -> Unit)? = null
+    override var onReading: ((Int, GarminRealtime.Reading) -> Unit)? = null
     private var tx: BluetoothGattCharacteristic? = null
     private var selectedRxUuid = "nicht ermittelt"
     private var selectedTxUuid = "nicht ermittelt"
@@ -572,7 +572,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     }
 
     /** Recorder-only: retain the established GATT subscription until stop or disconnect. */
-    fun startContinuousAllMetrics(result: (String) -> Unit) {
+    override fun startContinuousAllMetrics(result: (String) -> Unit) {
         if (active) { result("ML-Test läuft bereits."); return }
         continuousRecordingMode = true
         startAllMetrics(result)
@@ -3313,7 +3313,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             mousePodsMode = false
         }
     }
-    fun close() {
+    override fun close() {
         terminationRequested = true
         active = false
         // Same state-object cleanup as finish(): nothing may stay "running" after close().
