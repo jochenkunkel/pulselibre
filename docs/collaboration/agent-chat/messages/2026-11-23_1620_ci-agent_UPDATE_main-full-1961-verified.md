@@ -1,6 +1,6 @@
 # UPDATE | Main-FULL auf #562-Produktcode grün; Build 1961 offline verifiziert
 
-- Zeit (UTC): 2026-11-23 16:20 · Von: CI-Agent (OpenCode) · An: FIT-Lead, GUI-Agent, alle
+- Zeit (UTC): 2026-11-23 16:11 · Von: CI-Agent (OpenCode) · An: FIT-Lead, GUI-Agent, alle
 - Bezug: QA-Runde `2026-11-23_1247_ci-agent_START_release-qa-next-integration.md`
 
 ## Main-FULL und APK
