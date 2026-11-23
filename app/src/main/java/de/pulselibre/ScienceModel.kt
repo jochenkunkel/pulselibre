@@ -23,7 +23,11 @@ enum class SeriesOrigin { LIVE, IMPORT, BAND, CANDIDATE, SYNTHETIC }
 enum class SeriesTimeBasis { BAND_CLOCK, PHONE_RECEPTION, UNKNOWN, SYNTHETIC }
 
 /** [timeMs] null = time unknown (counted, not drawn); [value] null = no measurement; [rawCode] keeps the stored status/sentinel code. */
-data class SeriesPoint(val timeMs: Long?, val value: Double?, val quality: SeriesQuality = SeriesQuality.VALID, val rawCode: Long? = null)
+data class SeriesPoint(
+    val timeMs: Long?, val value: Double?, val quality: SeriesQuality = SeriesQuality.VALID, val rawCode: Long? = null,
+    /** >1 when this point summarises [count] stored values of one time bucket ([value] = their mean, [low]/[high] = their extremes). */
+    val count: Int = 1, val low: Double? = null, val high: Double? = null
+)
 
 data class SeriesData(
     val metricKey: String,
@@ -59,7 +63,7 @@ object SeriesAnalysis {
 
     fun assess(series: SeriesData, bucketMs: Long? = null): SeriesAssessment {
         val points = series.points
-        fun count(q: SeriesQuality) = points.count { it.quality == q && (q in NON_VALUE || it.value != null) }
+        fun count(q: SeriesQuality) = points.filter { it.quality == q && (q in NON_VALUE || it.value != null) }.sumOf { it.count }
         val unknownTime = points.count { it.timeMs == null }
         // Drawn = has a time, a finite value and a quality that represents a value.
         val drawn = points.filter { it.timeMs != null && it.value != null && it.value.isFinite() && it.quality !in NON_VALUE }
@@ -72,18 +76,23 @@ object SeriesAnalysis {
             val buckets = ((series.rangeEndMs - series.rangeStartMs + bucket - 1) / bucket).coerceAtLeast(1)
             drawn.map { (it.timeMs!! - series.rangeStartMs) / bucket }.toSet().size.toDouble() / buckets
         }.coerceIn(0.0, 1.0)
-        val values = drawn.filter { it.quality == SeriesQuality.VALID }.map { it.value!! }
-        val mean = values.takeIf { it.isNotEmpty() }?.average()
-        val sd = if (values.size >= 2 && mean != null) sqrt(values.sumOf { (it - mean) * (it - mean) } / (values.size - 1)) else null
+        val validPoints = drawn.filter { it.quality == SeriesQuality.VALID }
+        val weight = validPoints.sumOf { it.count }
+        val mean = if (weight > 0) validPoints.sumOf { it.value!! * it.count } / weight else null
+        val aggregated = validPoints.any { it.count > 1 }
+        // Standard deviation only from single stored values; a bucketed series would understate it, so it is not reported.
+        val sd = if (!aggregated && validPoints.size >= 2 && mean != null) sqrt(validPoints.sumOf { (it.value!! - mean) * (it.value!! - mean) } / (validPoints.size - 1)) else null
+        val minimum = validPoints.minOfOrNull { it.low ?: it.value!! }
+        val maximum = validPoints.maxOfOrNull { it.high ?: it.value!! }
         val state = when {
             points.isEmpty() -> SeriesState.EMPTY
             drawn.isEmpty() -> SeriesState.NO_VALID_VALUES
             gaps.isNotEmpty() || coverage < 1.0 -> SeriesState.INCOMPLETE
             else -> SeriesState.COMPLETE
         }
-        return SeriesAssessment(state, points.size, count(SeriesQuality.VALID), count(SeriesQuality.INVALID), count(SeriesQuality.STATUS),
+        return SeriesAssessment(state, points.sumOf { it.count }, count(SeriesQuality.VALID), count(SeriesQuality.INVALID), count(SeriesQuality.STATUS),
             count(SeriesQuality.LIMITED), count(SeriesQuality.UNVERIFIED), unknownTime, coverage, gaps,
-            values.minOrNull(), values.maxOrNull(), mean, sd, interval)
+            minimum, maximum, mean, sd, interval)
     }
 
     private val NON_VALUE = setOf(SeriesQuality.INVALID, SeriesQuality.STATUS)

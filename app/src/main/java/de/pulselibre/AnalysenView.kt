@@ -30,6 +30,7 @@ internal class AnalysenView(
             text = context.getString(R.string.an_intro)
             textSize = 13f; setTextColor(palette.muted); setPadding(0, dp(4), 0, dp(8))
         })
+        addView(ScienceDashboardView(context), LayoutParams(-1, -2).apply { topMargin = dp(4); bottomMargin = dp(8) })
         AnalysisCatalog.byCategory().forEach { (category, modules) ->
             addView(TextView(context).apply {
                 text = "%02d · %s".format(category.number, DomainText.tr(context, category.title)); textSize = 16f; setTypeface(null, Typeface.BOLD)
