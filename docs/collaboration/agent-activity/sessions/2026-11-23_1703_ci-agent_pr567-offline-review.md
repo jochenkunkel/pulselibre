@@ -1,15 +1,15 @@
 # CI-Agent – PR #567 Freshness-/SQLite-Archiv-CI-Review
 - Agent/Umgebung: CI-Agent / OpenCode
 - Beginn: 2026-11-23 17:03 UTC
-- Letzte Aktualisierung: 2026-11-23 17:03 UTC
-- Status: aktiv
+- Letzte Aktualisierung: 2026-11-23 17:13 UTC
+- Status: aktiv – Review abgeschlossen, Post-Merge-Main-FULL ausstehend
 - Rolle/Zuständigkeit: Build-/Test-/CI-Abnahme und unabhängige Testabdeckungsprüfung
 - Aktueller Auftrag: PR #567 nach exaktem Head, FULL/API-35, Dependency Review und Migrations-/Archiv-Regressionen offline prüfen; keine Produktdateien ändern
-- Jetzt in Bearbeitung: #567 – CI/Test-/Merge-Gate-Review
-- Zeitnah geplant: Post-merge Main-FULL nur nach zulässigem Review/Merge; #522 nicht übernehmen
+- Jetzt in Bearbeitung: Auswertung des aktuellen Main-FULL `45224433766` auf `28b49fb1` (integrierte Produktcodes aus #567 + #566)
+- Zeitnah geplant: nach grünem Main-FULL inkl. API-35 Integrationsabnahme dokumentieren; #522 bleibt review-blockiert und wird nicht übernommen
 - Betroffene Bereiche/Dateien: eigene CI-/Activity-/Agenten-Sync-Dokumente; keine Änderungen an DB-/Backup-/BLE-/GUI-Produktdateien
 - Branch/Worktree: `ci/release-qa-20261123` / `/tmp/opencode/pulselibre-release-qa-20261123`; Review-Quelle `origin/pr567`
 - Abstimmungsbedarf: FIT-Owner hat um Hinweis bei Schema-/Backup-Überschneidung gebeten; CI-Agent bestätigt keine Produktänderung geplant und liefert PR-Head-/Gate-Status
 - Agent-sync-Nachrichten: `2026-11-23_1703_ci-agent-an-fit_pr567-ci-review.md`
-- Nachweise: PR #567 beobachtet auf `871257d1`; Build/Unit/R8/Lint SUCCESS `45221371979`; Dependency Review SUCCESS `45221372006`; API-35-Emulator noch in progress zum Sitzungsstart
-- Nächster Schritt: BLE-/History-Einstiegsdokumente lesen, diff-/testumfang offline reviewen, dann exakten Emulatorabschluss und Head kontrollieren
+- Nachweise: PR #567 auf `871257d1`: FULL `45221371979` inkl. API-35 SUCCESS, Dependency Review `45221372006` SUCCESS; kein GitHub-Review. Offline-Review von `DownloadedFileArchive`/Backup 9/Schema 10 und Migrationstests ohne CI-Befund; `git diff --check` sauber. Vorläufige eigene Fehlmeldung zur Exception-Erwartung auf #567 öffentlich korrigiert (Kommentar `7108285811`): `consume` nutzt `require`, Test erwartet korrekt `IllegalArgumentException`. #567 gemergt `891bdcef`, #566 gemergt `28b49fb1`; gemeinsame Datei `CirqaMlHandshakeProbe.kt` enthält beide Änderungen. Post-Merge-Main-FULL `45224006257` auf `891bdcef` cancelled durch #566-Push; deshalb zählt nur der neue Main-FULL `45224433766` auf `28b49fb1` (bei letzter Prüfung pending). Kein Gerätezugriff, keine Produktdateien verändert.
+- Nächster Schritt: Abschluss von `45224433766` inkl. API-35 auswerten, Integrationsabnahme und ggf. APK-Provenienz dokumentieren; S10-Abnahme bleibt beim FIT-Owner.
