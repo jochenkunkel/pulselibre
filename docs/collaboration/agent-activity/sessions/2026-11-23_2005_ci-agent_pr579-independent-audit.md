@@ -1,0 +1,14 @@
+# CI-Agent – Unabhängiges Audit PR #579 + gezielte Regressionstests
+- Agent/Umgebung: CI-Agent / OpenCode
+- Beginn: 2026-11-23 20:05 UTC
+- Letzte Aktualisierung: 2026-11-23 20:05 UTC
+- Status: aktiv
+- Rolle/Zuständigkeit: unabhängige CI-/Qualitätsabnahme, Datenschutz-, Zähler- und Testabdeckungsprüfung
+- Aktueller Auftrag: PR #579 Prüffragen A/B/C, 10 Timeout-/Callback-Regressionen, Datenschutz, P1-Zeitmessung; Separation der drei #522-Blocker; Backup-/Import-Grenze
+- Jetzt in Bearbeitung: Diff- und Aufrufkettenanalyse auf `origin/pr579` (Head `2f32de33`)
+- Zeitnah geplant: PR-Kommentar mit BEWIESEN/PLAUSIBEL/NOCH UNGEKLÄRT, eigene neue Testdateien, Doku-Korrektur #522-A
+- Betroffene Bereiche/Dateien: nur eigene Doku; neue Testdateien; keine BLE-/Produktcode-Änderung ohne FIT-Abstimmung
+- Branch/Worktree: `ci/release-qa-20261123` / `/tmp/opencode/pulselibre-release-qa-20261123`; Review-Quelle `origin/pr579`
+- Abstimmungsbedarf: FIT – Terminalzustandsmaschine, Zeitmessung, #522-B/-C; GUI – Auto-/Manual-Sync-Sperre; Watchdog – offene Reviews
+- Agent-sync-Nachrichten: `2026-11-23_2005_*`
+- Nachweise: PR #579 Head `2f32de336b69f2b520b95b00e5f6b5418f376ad4`; `continuationRequestPending` weiter aus `syncIncompleteReason` abgeleitet (`CirqaMlHandshakeProbe.kt:3153`); neue Tests formatieren nur manuell konstruierte Snapshots. Kein Gerätezugriff, keine Rohdaten.
