@@ -1,15 +1,15 @@
 # OpenCode FIT – einzelner S10-Historien-Download
 - Agent/Umgebung: OpenCode FIT, Worktree `/tmp/opencode/cirqa-p0-postmortem-20261123`
 - Beginn: 2026-11-23 15:57 UTC
-- Letzte Aktualisierung: 2026-11-23 16:13 UTC
-- Status: aktiv – Nutzer hat einen einzelnen manuellen Historien-Download angefordert
+- Letzte Aktualisierung: 2026-11-23 16:15 UTC
+- Status: blockiert/beendet – kein Download gestartet; sichere S10-Zuordnung und UI-Erkennung fehlen
 - Rolle/Zuständigkeit: FIT-/BLE-Protokoll und begrenzter CIRQA-Download
 - Aktueller Auftrag: genau ein Download über den bestehenden Produktpfad; Verbindung und Ausgang prüfen
-- Jetzt in Bearbeitung: S10 Build 1958 bestätigt. Zwei Locator-Versuche und eine read-only Bounds-Diagnose stoppten vor Produktdialog; kein Request, Touch oder BLE. UI-XML-Dump kam leer zurück; einmaliger korrigierter read-only Dump, danach bei Unklarheit abbrechen.
-- Zeitnah geplant: Abschlussbericht und Lease-FREI-Prüfung; keine Wiederholung
+- Jetzt in Bearbeitung: keine Geräteaktion. Zwei Locator-Versuche stoppten vor Produktdialog; kein Request, Touch oder BLE. UI-Dump scheiterte mit `ERROR: could not get idle state.`. Abschließende ADB-Inventur zeigte nur die bekannte S25-Kennung; kein weiterer Zugriff.
+- Zeitnah geplant: keine weitere Geräteaktion ohne eindeutige S10-Zuordnung und nutzbare UI-Erkennung
 - Betroffene Bereiche/Dateien: S10-Geräteaktion; Activity-/Chat-/agent-sync-Nachweise; kein Produktcode
 - Branch/Worktree: `opencode/cirqa-p0-build1958-followup`, `/tmp/opencode/cirqa-p0-postmortem-20261123`
-- Abstimmungsbedarf: keine parallele S10-Nutzung; kanonischer Lease ist vor Zugriff FREI
+- Abstimmungsbedarf: Projektleitung/GUI-Agent – sichere S10-Zuordnung bzw. UI-Erkennung bereitstellen; keine S25-Aktion
 - Agent-sync-Nachrichten: `docs/collaboration/agent-chat/messages/2026-11-23_155700_opencode_START_s10-historical-download.md`
 - Nachweise: Nutzerauftrag 15:57 UTC; Modell SM-G970F, Build 1958; beide Versuche vor Bestätigungsdialog gestoppt, kein Request; Lease jeweils FREI
-- Nächster Schritt: gesamtes ADB/UI/Download/Cleanup im einen `tools/s25_lease.py run --device s10`-Wrapper
+- Nächster Schritt: pausiert; nur nach geklärter S10-Zuordnung und sofern Auftrag noch gilt
