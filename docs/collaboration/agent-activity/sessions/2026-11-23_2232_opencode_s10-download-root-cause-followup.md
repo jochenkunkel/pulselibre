@@ -11,5 +11,5 @@
 - Branch/Worktree: `opencode/s10-download-root-cause-followup-20261123`, `/home/smiler/.local/share/opencode/worktree/634470/cirqa-s10-root-cause-p0`, Basis `origin/main`
 - Abstimmungsbedarf: keiner für die aktuelle Offline-Analyse; keine zweite Übernahme von #579 oder UI-/Schemaarbeit
 - Agent-sync-Nachrichten: `docs/collaboration/agent-chat/messages/2026-11-23_223200_opencode_START_s10-download-root-cause-followup.md`
-- Nachweise: letzter S10-Lauf terminal bei 38/39; Item 38: 53,748 ms `fit-decode`, 50,072 ms `fit-import`, 4,102 ms SQLite, 11,428 ms transfer; Code bestätigt zweiten Decode im Import; Regression ergänzt. `git diff --check` bestanden; Android JVM-Test blockiert, SDK fehlt.
-- Nächster Schritt: Android SDK/Gradle 9.6 CI-Prüfung auf finalem Branch-Head organisieren; bei grüner FULL-CI erst danach konkreten Hardware-Abnahmelauf mit den unveränderten Grenzen beurteilen.
+- Nachweise: letzter S10-Lauf terminal bei 38/39; Doppeldecode-Fix PR #591, FULL-CI ausstehend. Garmin-Aufnahme offline: eine FileAccess-Liste und 39 Pulls; 38 zugeordnete Transferregistrierungen; Details im redigierten Capture-Vergleich.
+- Nächster Schritt: Listen- und Pullantworten sowie Transferintegrität offline korrelieren; FULL-CI auf tatsächlichem PR-Head und Review prüfen. Kein weiterer Gerätetest vor grüner FULL-CI.
