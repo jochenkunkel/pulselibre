@@ -994,4 +994,19 @@
     <string name="dev_val_appearance_sports_watch">Montre de sport</string>
     <string name="dev_val_appearance_other">Autre (%1$s)</string>
     <string name="dev_val_conn_params">%1$s–%2$s ms, latence %3$d, délai %4$d ms</string>
+    <!-- REVIEW: neue Texte (Downloadfortschritt), fr/es Sprachprüfung -->
+    <string name="hsp_idle">Aucun téléchargement d’historique en cours</string>
+    <string name="hsp_connecting">Connexion au CIRQA …</string>
+    <string name="hsp_started">Synchronisation démarrée</string>
+    <string name="hsp_listing">Détermination de la liste de fichiers …</string>
+    <string name="hsp_transferring">Transfert des fichiers …</string>
+    <string name="hsp_validating">Validation des fichiers FIT …</string>
+    <string name="hsp_importing">Importation des données …</string>
+    <string name="hsp_finished_proven">Synchronisation terminée</string>
+    <string name="hsp_finished_unproven">Synchronisation terminée – couverture non prouvée</string>
+    <string name="hsp_incomplete">Synchronisation incomplète</string>
+    <string name="hsp_interrupted">Synchronisation interrompue</string>
+    <string name="hsp_failed">Échec de la synchronisation</string>
+    <string name="hsp_files">%1$d fichiers sur %2$d</string>
+    <string name="hsp_coverage_note">L’historique du bracelet n’est pas prouvé complet : une exécution terminée ne signifie pas que chaque mesure enregistrée a été transférée.</string>
 </resources>

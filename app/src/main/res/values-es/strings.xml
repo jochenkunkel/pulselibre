@@ -994,4 +994,19 @@
     <string name="dev_val_appearance_sports_watch">Reloj deportivo</string>
     <string name="dev_val_appearance_other">Otro (%1$s)</string>
     <string name="dev_val_conn_params">%1$s–%2$s ms, latencia %3$d, tiempo de espera %4$d ms</string>
+    <!-- REVIEW: neue Texte (Downloadfortschritt), fr/es Sprachprüfung -->
+    <string name="hsp_idle">Ninguna descarga de historial en curso</string>
+    <string name="hsp_connecting">Conectando con el CIRQA …</string>
+    <string name="hsp_started">Sincronización iniciada</string>
+    <string name="hsp_listing">Determinando la lista de archivos …</string>
+    <string name="hsp_transferring">Transfiriendo archivos …</string>
+    <string name="hsp_validating">Validando archivos FIT …</string>
+    <string name="hsp_importing">Importando datos …</string>
+    <string name="hsp_finished_proven">Sincronización completada</string>
+    <string name="hsp_finished_unproven">Sincronización finalizada – cobertura no demostrada</string>
+    <string name="hsp_incomplete">Sincronización incompleta</string>
+    <string name="hsp_interrupted">Sincronización interrumpida</string>
+    <string name="hsp_failed">Sincronización fallida</string>
+    <string name="hsp_files">%1$d de %2$d archivos</string>
+    <string name="hsp_coverage_note">No está demostrado que el historial de la pulsera esté completo: una ejecución terminada no significa que se haya transferido cada medición guardada.</string>
 </resources>
