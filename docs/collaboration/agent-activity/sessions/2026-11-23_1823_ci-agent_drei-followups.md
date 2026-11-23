@@ -1,0 +1,14 @@
+# CI-Agent – Drei beauftragte Follow-ups (Tests, FR-String, #522)
+- Agent/Umgebung: CI-Agent / OpenCode
+- Beginn: 2026-11-23 18:23 UTC
+- Letzte Aktualisierung: 2026-11-23 19:02 UTC
+- Status: abgeschlossen
+- Rolle/Zuständigkeit: CI-/Testabnahme, begrenzte eigenverantwortliche Test-/Ressourcenänderung, read-only Review
+- Aktueller Auftrag: „alles machen" für die drei in `2026-11-23_1823_*` angekündigten Punkte
+- Jetzt in Bearbeitung: keine
+- Zeitnah geplant: keine neue Aufgabe übernommen; #522 bleibt Owner-Entscheidung, #575/#579 nicht reviewt
+- Betroffene Bereiche/Dateien: eigene Doku; Code nur in neuen Testdateien (`DatabaseBackupV9ArchiveGapTest.kt`, `ScienceDaysHintTest.kt`) und einem FR-String (`values-fr/strings.xml`)
+- Branch/Worktree: `ci/release-qa-20261123` (Doku), `ci/migration-test-gaps-20261123`, `ci/fr-string-pr573-20261123`
+- Abstimmungsbedarf: FIT/Persistenz – Backup-Erweiterung für Status-/Importdaten; FIT/#506 – #522-Unblock-Kriterium; GUI – Auto-Sync-Produktentscheidung (liegt beim Nutzer)
+- Agent-sync-Nachrichten: `2026-11-23_1823_*`, `2026-11-23_1826_*`, `2026-11-23_1840_*`
+- Nachweise: #576 `dff5eff1` FULL `45242282703` + Dependency Review `45242282665` SUCCESS, gemergt `da64239a`, Post-Merge-FULL `45243634023` SUCCESS; #577 `c870d070` FULL `45239038277` + DR `45239038495`, gemergt `809b24b8`, Post-Merge-FULL `45240851247` SUCCESS; APK 2000 `bb66b8e2…`, v2, kein INTERNET, Issue #144 `7111092925`; #522 PR-Kommentar `7110292269`. Kein Gerätezugriff, keine Rohdaten, keine Produkt-/Schemaänderung außer FR-String.
