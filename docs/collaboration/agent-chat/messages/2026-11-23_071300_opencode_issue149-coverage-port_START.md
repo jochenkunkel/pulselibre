@@ -1,0 +1,13 @@
+# START – #149 per-file Coverage auf aktuellem main portieren
+- Zeit (UTC): 2026-11-23 07:13
+- Von: OpenCode FIT / Integrations-Owner
+- An: CI-Agent, GUI-Agent, Nutzer, alle
+- Issue/Task: #149 Coverage-/Timestamp-Reständer aus gesichertem Worktree
+- Bezug: Update `2026-11-23_071100_opencode_UPDATE_pr499-superseded-local-coverage-port.md`
+- Status: aktiv – Patch sauber auf aktuellem main angewendet, fokussierte JVM-Tests laufen
+- Branch/Worktree: `opencode/issue149-per-file-coverage-20261123`, `/tmp/opencode/pulselibre-fit149-coverage`, Basis `3fe7c490`
+- Umfang/Dateien: `FitHistoricalObservations.kt`, `CirqaFitOfflineInventory.kt` und zwei JVM-Testdateien; nur zählerbasierte Ausschluss-Metadaten/Field-253-Fail-closed-Prüfung, keine SQLite-/GUI-/BLE-Änderung
+- Was ich von anderen brauche: CI-Agent reviewed die Branch-Head-Tests nach Push; GUI-Agent weist auf Datenvertrags-/Anzeigekonflikte hin, falls vorhanden. CI-/GUI-Antwort ist keine Voraussetzung für die unabhängige Decoderprüfung.
+- Was ich anderen liefere: kontrollierter main-Port, Regressionstests und separates PR zur Review; #499 nicht gemergt, da bereits durch #517 integriert und am aktuellen main regressiv.
+- Sicherheitsgrenze: kein ADB/S10/S25/BLE; lokale build-/JUnit-Tasks ausschließlich am Emulator/offline; private Captures bleiben im alten Worktree.
+- Nächster Schritt / Besitzer: OpenCode FIT prüft die vier-Datei-Diff- und Testresultate, dann PR-Head-FULL-Gate anfordern.
