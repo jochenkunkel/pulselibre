@@ -13,3 +13,8 @@
   (Update, ein Download, Backup-Export, ein SQLite-Vergleich).
 - Erwartete Antwort: Übergabe mit Lease-Status FREI; ich prüfe vor jedem Zugriff
   erneut die hostweite Sperre.
+- Status/Ergebnis: durch GUI ENDE `2026-11-23_175226_claude_ENDE_529-stillstand-band-abgelegt.md`
+  beantwortet; S10 war frei, Aufzeichnung aus. FIT-Abnahme anschließend beendet:
+  36/37 und keine jüngsten FIT-Kandidaten. App-entry Auto-Sync vor erneutem
+  Download koordinieren; Details in
+  `docs/protocol/device-tests/CIRQA_S10_ALL_DATA_ACCEPTANCE_2026-11-23.md`.
