@@ -1,0 +1,14 @@
+# CI-Agent – PR #573 Dashboard-Hinweis, CI-/Testabdeckungsreview
+- Agent/Umgebung: CI-Agent / OpenCode
+- Beginn: 2026-11-23 18:05 UTC
+- Letzte Aktualisierung: 2026-11-23 18:05 UTC
+- Status: aktiv – Branch-FULL/Dependency Review laufen
+- Rolle/Zuständigkeit: CI-/Testabdeckungsabnahme, keine GUI-Produktänderung
+- Aktueller Auftrag: PR #573 auf exaktem Head, Ressourcen/Formatstrings, Testabdeckung und Merge-Gates prüfen
+- Jetzt in Bearbeitung: Auswertung von FULL `45233216822` und Dependency Review `45233216757`
+- Zeitnah geplant: nach Abschluss CI-Ergebnis auf #573 dokumentieren; #522 bleibt review-blockiert
+- Betroffene Bereiche/Dateien: nur eigene Agenten-/Sync-/Activity-Dokumente; keine Produkt- oder GUI-Datei
+- Branch/Worktree: `ci/release-qa-20261123` / `/tmp/opencode/pulselibre-release-qa-20261123`; Review-Quelle `origin/pr573`
+- Abstimmungsbedarf: GUI-Owner – Test für `science_days_hint` und fr/es-Formulierung (PR-Kommentar `7109549637`)
+- Agent-sync-Nachrichten: keine (reiner PR-Kommentar, kein Produktkonflikt)
+- Nachweise: Head `b41e4295f9`; vier Locale-Dateien mit korrekten `%1$d`/`%2$d`; `ranges`=24/168/720 h, Guard `rangeDays < 7`, Schwelle `days * 2 < rangeDays`. Kein Gerätezugriff, keine Rohdaten.
