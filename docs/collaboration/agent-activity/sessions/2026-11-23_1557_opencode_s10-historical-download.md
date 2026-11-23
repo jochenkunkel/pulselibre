@@ -1,15 +1,15 @@
 # OpenCode FIT – einzelner S10-Historien-Download
 - Agent/Umgebung: OpenCode FIT, Worktree `/tmp/opencode/cirqa-p0-postmortem-20261123`
 - Beginn: 2026-11-23 15:57 UTC
-- Letzte Aktualisierung: 2026-11-23 16:05 UTC
+- Letzte Aktualisierung: 2026-11-23 16:10 UTC
 - Status: aktiv – Nutzer hat einen einzelnen manuellen Historien-Download angefordert
 - Rolle/Zuständigkeit: FIT-/BLE-Protokoll und begrenzter CIRQA-Download
 - Aktueller Auftrag: genau ein Download über den bestehenden Produktpfad; Verbindung und Ausgang prüfen
-- Jetzt in Bearbeitung: S10 Build 1958 bestätigt. Erster Lease-geschützter UI-Versuch stoppte vor Bestätigungsdialog, kein Request/BLE. Locator wurde offline um Accessibility-Label ergänzt; als nächstes Lease neu prüfen und denselben einen Auftrag ausführen.
+- Jetzt in Bearbeitung: S10 Build 1958 bestätigt. Zwei Lease-geschützte Locator-Versuche stoppten vor Bestätigungsdialog, kein Request/BLE. UI zeigt Accessibility-Labels „Verlauf/Gerät“; als nächstes nur eine read-only Bounds-Diagnose, danach bei eindeutiger Taste maximal ein Nutzerauftrag.
 - Zeitnah geplant: Abschlussbericht und Lease-FREI-Prüfung; keine Wiederholung
 - Betroffene Bereiche/Dateien: S10-Geräteaktion; Activity-/Chat-/agent-sync-Nachweise; kein Produktcode
 - Branch/Worktree: `opencode/cirqa-p0-build1958-followup`, `/tmp/opencode/cirqa-p0-postmortem-20261123`
 - Abstimmungsbedarf: keine parallele S10-Nutzung; kanonischer Lease ist vor Zugriff FREI
 - Agent-sync-Nachrichten: `docs/collaboration/agent-chat/messages/2026-11-23_155700_opencode_START_s10-historical-download.md`
-- Nachweise: Nutzerauftrag 15:57 UTC; Modell SM-G970F, Build 1958, MainActivity foreground; erster Versuch stoppte vor Dialog; Lease danach FREI
+- Nachweise: Nutzerauftrag 15:57 UTC; Modell SM-G970F, Build 1958; beide Versuche vor Bestätigungsdialog gestoppt, kein Request; Lease jeweils FREI
 - Nächster Schritt: gesamtes ADB/UI/Download/Cleanup im einen `tools/s25_lease.py run --device s10`-Wrapper
