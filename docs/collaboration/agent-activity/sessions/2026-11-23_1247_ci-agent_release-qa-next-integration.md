@@ -1,13 +1,13 @@
 # CI-Agent – nächste Integrations- und Release-QA-Runde
 - Agent/Umgebung: CI-Agent / OpenCode
 - Beginn: 2026-11-23 12:47 UTC
-- Letzte Aktualisierung: 2026-11-23 13:10 UTC
+- Letzte Aktualisierung: 2026-11-23 16:20 UTC
 - Status: aktiv
 - Rolle/Zuständigkeit: Buildqualität, CI-/APK-Bereitstellung, Integrationsabnahme
 - Aktueller Auftrag: offene PRs, FULL-CI/Emulator, SQLite-v9-Migration/Regressionen und Release-Kandidat prüfen
-- Jetzt in Bearbeitung: Main-FULL nach #562 (`c26ffcc0`, Run `45179071387`) abschließen und Artefakt prüfen; #522 mit FIT-Lead koordinieren
+- Jetzt in Bearbeitung: #564 aktuellen Head/FULL- und Dependency-Checks prüfen; #522 mit FIT-Lead koordinieren
 - Zeitnah geplant: bei neuem Main-Head neuen CLOUD/FULL-Lauf und Release-Artefakt prüfen; keine Hardwareaktion ohne gesonderte Aufgaben-/Leaseprüfung
 - Betroffene Bereiche/Dateien: eigene Agenten-Chat-/Sync-/Activity-Dokumentation; zunächst keine Produktdateien
 - Branch/Worktree: `ci/release-qa-20261123` / `/tmp/opencode/pulselibre-release-qa-20261123`
 - Abstimmungsbedarf: FIT-Lead um Resume-Testpriorität/#562-Stage-API-Status sowie #522 unabhängigen Reviewer und Konfliktauflöser gebeten; GUI-Agent über #562 informiert
-- Nachweise: #556 `caa5ff8f` FULL/API-35 + Dependency Review grün, gemergt `020513ca`; Post-merge Main-FULL `45177948228` SUCCESS. #562 `740479c9` FULL/API-35 `45177345465` + Dependency Review `45177345314` grün und gemergt `c26ffcc0`; #563 docs-only `0d99317a` gemergt, App-Quellbaum identisch zu c26. Main-FULL `45179071387` auf c26 weiterhin In progress (GitHub-Webansicht 13:10); zwei Artefakte sichtbar, u. a. signed-release APK Digest `sha256:77ac46d6…`, aber nur Artifact-Digest. APK-Datei, Version und Zertifikat ungeprüft; CLI weiterhin HTTP 403 API rate limit. #522 `6d126c2c` DIRTY mit einzigem INDEX-Konflikt und erforderlichem unabhängigem Review ohne Reviewer. v9/backup audit an FIT gemeldet; #556 ohne DB-/Backup-Dateien.
+- Nachweise: #556 `caa5ff8f` FULL/API-35 + Dependency Review grün, gemergt `020513ca`; Post-merge Main-FULL `45177948228` SUCCESS. #562 `740479c9` FULL/API-35 `45177345465` + Dependency Review `45177345314` grün und gemergt `c26ffcc0`; #563 docs-only `0d99317a` gemergt. Main-FULL `45179071387` auf exaktem Produkt-SHA `c26ffcc0` nun SUCCESS inkl. API-35-Emulator. APK 1961 geprüft: SHA `a5a7687124122b3e81f75c876118a47da02d1ca26801bc97b248c9548c2019b6`, v2 gültig, Zertifikat SHA `36e7f3b664fedb04f175a97a45079a845d781a1769db1a4b02b1c8bf51439177`, kein INTERNET; Artifact-Digest separat. `origin/main=64254ae4` hat gegenüber c26ffcc0 nur Koordinationsdocs geändert; Produktcode gleich. Ergebnis auf #144 kommentiert. #564 aktueller Head `dff9c03c`; Branch-FULL `45213129572`/Dependency Review `45213129609` laufen. Früherer Run `45212897919` auf `58145f89` cancelled, nicht abnahmefähig. #522 `6d126c2c` bleibt DIRTY mit einzigem INDEX-Konflikt und ohne gefordertes unabhängiges Review.
