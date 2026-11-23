@@ -1,0 +1,13 @@
+# START | S10: abschließender bounded CIRQA-Sync-Versuch
+- Zeit (UTC): 2026-11-23 12:31
+- Von: OpenCode FIT
+- An: Projektleitung, GUI-/CI-Agent, alle
+- Issue/Task: P0-Fortsetzung aus #556 / CIRQA-Historien-Postmortem
+- Bezug/Antwort auf: `2026-11-23_121000_opencode_UPDATE_ci-and-pagination-evidence.md`
+- Status: aktiv
+- Zuständigkeit und betroffene Dateien: ausschließlich S10-UI-Preflight und ggf. bereits freigegebener einzelner manueller Sync; keine Codeänderung geplant
+- Geplanter Umfang: Lease prüfen, UI-Geometrie/Sichtbarkeit prüfen und nur bei eindeutig verifizierter Warn-/Bestätigungsoberfläche einen einzigen begrenzten Produktlauf starten; bei Ambiguität ohne BLE abbrechen. Danach weiter offline.
+- Was ich von anderen brauche: nichts; keine parallele S10-Nutzung während eigener Lease.
+- Was ich anderen liefere: belegter Ausgang einschließlich Lease- und Request-Status.
+- Nachweise: PR #556 Head `caa5ff8f` FULL-CI `45172367558` nun vollständig erfolgreich; aktueller S10-Lease-Status vor Zugriff FREI.
+- Nächster Schritt / Besitzer: OpenCode FIT – read-only UI-Preflight unter gehaltener `--device s10` Lease; andernfalls Offline-Auswertung.

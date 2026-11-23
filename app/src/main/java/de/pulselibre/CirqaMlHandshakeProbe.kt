@@ -105,6 +105,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private var syncListPageCount = 0
     private var syncQueuedFiles = 0
     private var syncQueuedBytes = 0L
+    private var syncProgressCallback: ((HistorySyncProgress) -> Unit)? = null
     private var syncSkippedFiles = 0
     private var syncIncompleteReason: String? = null
     private val syncGdxmlStrings = linkedMapOf<Long, String>()
@@ -970,6 +971,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             requestNextSyncItemListPage(g)
             return
         }
+        emitSyncProgress(HistorySyncStage.TRANSFERRING)
         if (item.dataSize !in 1..CirqaVerifiedRawFileStore.MAX_FILE_BYTES) {
             syncFailedFiles++
             syncFileResults = (syncFileResults + "size-limit,").take(1200)
@@ -1096,6 +1098,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
 
     private fun requestNextSyncItemListPage(g: BluetoothGatt) {
         if (!active || terminationRequested) return
+        emitSyncProgress(HistorySyncStage.LISTING_FILES)
         if (syncQueuedFiles >= CirqaSyntheticDownloadLimits.MAX_FILES ||
             syncQueuedBytes >= CirqaSyntheticDownloadLimits.MAX_TOTAL_BYTES
         ) {
@@ -1177,6 +1180,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     }
 
     private fun appendSyncItemListPage(g: BluetoothGatt, page: CirqaFileAccessItemListParser.ItemListPage) {
+        emitSyncProgress(HistorySyncStage.LISTING_FILES)
         val progress = CirqaItemListProgress.next(page)
         if (progress == CirqaItemListProgress.Next.FAILED) {
             syncIncompleteReason = "item-list-status"
@@ -1984,14 +1988,16 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
 
     /** User-initiated read-only historical file download for the product UI. */
     @SuppressLint("MissingPermission")
-    fun startHistoricalDownload(
+    internal fun startHistoricalDownload(
         userConfirmed: Boolean,
+        progress: ((HistorySyncProgress) -> Unit)? = null,
         result: (String) -> Unit
     ) = startSyncRequest(
         userConfirmed = userConfirmed,
         stopBeforePull = false,
         repeatItemLists = false,
         requireDeviceTestGate = false,
+        progress = progress,
         result = result
     )
 
@@ -2002,6 +2008,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         repeatItemLists: Boolean,
         requireDeviceTestGate: Boolean,
         nextTransactionProbe: Boolean = false,
+        progress: ((HistorySyncProgress) -> Unit)? = null,
         result: (String) -> Unit
     ) {
         if ((requireDeviceTestGate &&
@@ -2055,6 +2062,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             }
         }
         syncRequestMode = true
+        syncProgressCallback = progress
+        emitSyncProgress(HistorySyncStage.STARTED)
         syncStopBeforePullMode = stopBeforePull
         syncSessionId = UUID.randomUUID().toString()
         syncRepeatItemListsMode = stopBeforePull && repeatItemLists
@@ -2103,6 +2112,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         historyDiagnosticMode = true
         start(false, result)
         if (!active) {
+            emitSyncProgress(HistorySyncStage.FAILED)
             syncRequestMode = false
             syncStopBeforePullMode = false
             syncRepeatItemListsMode = false
@@ -2114,7 +2124,9 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             bootstrapAckMode = false
             configurationTestMode = false
             historyDiagnosticMode = false
+            syncProgressCallback = null
         } else {
+            emitSyncProgress(HistorySyncStage.CONNECTING)
             serial.postDelayed({
                 if (active && fileAccessListMode) {
                     // finish() builds the single canonical report (including validation).
@@ -2942,6 +2954,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
 
     /** Redacted integrity summary of the received MLR transfer. */
     private fun mlrValidation(): CirqaSyncFileCompletion.Result {
+        emitSyncProgress(HistorySyncStage.VALIDATING)
         fun notTransferred(detail: String, format: CirqaSyncFileCompletion.Format) =
             CirqaSyncFileCompletion.Result(
                 format = format,
@@ -3103,6 +3116,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             it.quality == FitHistoricalObservations.Quality.PROFILE_VALID &&
                 it.timestampEpochMillis != null
         }
+        emitSyncProgress(HistorySyncStage.IMPORTING)
         val imported = try {
             CirqaDatabase(context).use { store ->
                 CirqaFitBackfill.importVerifiedFile(saved.file, store)
@@ -3134,6 +3148,12 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                 "sha256=$sha;privateFit=${saved.outcome};observations=${decoded.observations.size};" +
                 "importable=${importable.size};sqlite=ok:$imported"
         )
+    }
+
+    private fun emitSyncProgress(stage: HistorySyncStage) {
+        val callback = syncProgressCallback ?: return
+        val progress = HistorySyncProgress(stage = stage)
+        Handler(Looper.getMainLooper()).post { callback(progress) }
     }
 
     @SuppressLint("MissingPermission")
@@ -3183,6 +3203,9 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     diagnostics = diagnostics
                 )
             )
+        }
+        if (syncRequestMode) {
+            emitSyncProgress(HistorySyncProgress.fromReport(syncFinalReport).stage)
         }
         terminationRequested = true
         legacy5030Only?.let { it.abort(it.token) }
@@ -3289,6 +3312,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             syncQueuedBytes = 0L
             syncSkippedFiles = 0
             syncIncompleteReason = null
+            syncProgressCallback = null
             syncGdxmlStrings.clear()
             syncSeenItemUids.clear()
             syncMlrRegistrationPending = false
