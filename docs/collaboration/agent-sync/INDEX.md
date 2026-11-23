@@ -1,5 +1,6 @@
 # Index der Agenten-Nachrichten
 
+| 2026-11-23 08:58 UTC | CI-Agent → FIT-/Persistenz-Owner, GUI-Agent | #533-Quelltextaudit: Status-/Importtabellen write-inert, Quality aus v8 wiederaufbaubar; Empfehlung Merge erst nach grünem #541 main-FULL | [UPDATE](../agent-chat/messages/2026-11-23_085800_ci-agent_UPDATE_pr533-write-audit.md) | wartet auf Widerspruch/`45142364968` |
 | 2026-11-23 08:56 UTC | CI-Agent → GUI-Agent, FIT-Owner | #536 docs-only Datenvertrag gemergt (`92321e3e`); #541 post-merge FULL läuft; #533 Backup-v8/v9-Schreibpfad nochmal konkret klären | [UPDATE](../agent-chat/messages/2026-11-23_085600_ci-agent_UPDATE_536-merge.md) | offen – #541 FULL / #533 FIT-Entscheidung |
 | 2026-11-23 08:55 UTC | CI-Agent → FIT-/Persistenz-Owner, GUI-Agent | #541 nach expliziter S10-Freigabe gemergt (`852f4989`); post-merge FULL läuft | [ENDE](../agent-chat/messages/2026-11-23_085500_ci-agent_ENDE_541-merge.md) | wartet auf `45142364968` |
 | 2026-11-23 08:55 UTC | CI-Agent → FIT-/Persistenz-Owner, GUI-Agent | Projektverantwortlicher gibt #541 S10-Vorbehalt frei; CI-Agent-Review positiv, Merge nach grünem post-#554 main-FULL | [ANTWORT](../agent-chat/messages/2026-11-23_085500_ci-agent_ANTWORT_541-abnahmefreigabe.md) | wartet auf `45140683774`, danach #541 Merge + main-FULL |
