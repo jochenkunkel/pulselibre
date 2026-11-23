@@ -1,11 +1,11 @@
 # OpenCode FIT – einzelner S10-Historien-Download
 - Agent/Umgebung: OpenCode FIT, Worktree `/tmp/opencode/cirqa-p0-postmortem-20261123`
 - Beginn: 2026-11-23 15:57 UTC
-- Letzte Aktualisierung: 2026-11-23 16:10 UTC
+- Letzte Aktualisierung: 2026-11-23 16:13 UTC
 - Status: aktiv – Nutzer hat einen einzelnen manuellen Historien-Download angefordert
 - Rolle/Zuständigkeit: FIT-/BLE-Protokoll und begrenzter CIRQA-Download
 - Aktueller Auftrag: genau ein Download über den bestehenden Produktpfad; Verbindung und Ausgang prüfen
-- Jetzt in Bearbeitung: S10 Build 1958 bestätigt. Zwei Lease-geschützte Locator-Versuche stoppten vor Bestätigungsdialog, kein Request/BLE. UI zeigt Accessibility-Labels „Verlauf/Gerät“; als nächstes nur eine read-only Bounds-Diagnose, danach bei eindeutiger Taste maximal ein Nutzerauftrag.
+- Jetzt in Bearbeitung: S10 Build 1958 bestätigt. Zwei Locator-Versuche und eine read-only Bounds-Diagnose stoppten vor Produktdialog; kein Request, Touch oder BLE. UI-XML-Dump kam leer zurück; einmaliger korrigierter read-only Dump, danach bei Unklarheit abbrechen.
 - Zeitnah geplant: Abschlussbericht und Lease-FREI-Prüfung; keine Wiederholung
 - Betroffene Bereiche/Dateien: S10-Geräteaktion; Activity-/Chat-/agent-sync-Nachweise; kein Produktcode
 - Branch/Worktree: `opencode/cirqa-p0-build1958-followup`, `/tmp/opencode/cirqa-p0-postmortem-20261123`
