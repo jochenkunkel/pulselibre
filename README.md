@@ -22,6 +22,12 @@
 
 **Technische Abläufe als Bilder:** [Vier illustrierte Diagramme zu BLE, Transportforschung, FIT und Architektur](docs/diagrams/README.md).
 
+## PulsLibre auf einen Blick
+
+![PulsLibre – Deine Daten. Deine Kontrolle. Bluetooth, FIT-Prüfung, lokale SQLite-Daten und transparente Analysen](design/pulselibre-workflow-poster-2026.svg)
+
+*Der dargestellte Ablauf ist eine schematische Projektillustration, kein Screenshot und kein Nachweis einer vollständig funktionierenden Gerätehistorie. Der begrenzte CIRQA-Dateiabruf und die lokale FIT-Verarbeitung sind dokumentiert; vollständige historische Abdeckung und sämtliche Messgrößen bleiben in Prüfung. [Poster als SVG öffnen](design/pulselibre-workflow-poster-2026.svg) · [Evidenz und Projektstatus](docs/PROJECT_STATUS.md).*
+
 ## Dokumentation nach Fachbereichen
 
 **[Dokumentationswegweiser](docs/README.md)** · [UI-Konzept](docs/ui/README.md) · [CIRQA-Protokollentwicklung](docs/protocol/README.md) · [Wissenschaftliche Messwerte und Berechnungen](docs/science/README.md). Die früheren Markdown-Weiterleitungen wurden nach der Linkmigration entfernt; maßgeblich sind die kanonischen Pfade im Dokumentationswegweiser.

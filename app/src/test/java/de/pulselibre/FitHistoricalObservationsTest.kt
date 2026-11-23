@@ -132,6 +132,17 @@ class FitHistoricalObservationsTest {
         assertEquals(97.0, spo2.reviewCandidates.single().value, 0.0)
         assertEquals("percent", spo2.reviewCandidates.single().unit)
         assertEquals(1, spo2.invalidMeasurementFieldCount)
+        assertEquals(
+            FitHistoricalObservations.ExcludedField(
+                globalMessageNumber = 269,
+                fieldNumber = 0,
+                metric = null,
+                reviewFieldName = "reading_spo2",
+                reason = FitHistoricalObservations.ExclusionReason.INVALID_SENTINEL,
+                occurrenceCount = 1
+            ),
+            spo2.excludedFields.single()
+        )
 
         val stressDefinition = byteArrayOf(
             0x40, 0, 0, 0xe3.toByte(), 0, 1, // global message 227
@@ -207,6 +218,11 @@ class FitHistoricalObservationsTest {
         val unsupported = FitHistoricalObservations.decode(fit(wrongType))!!
         assertTrue(unsupported.reviewCandidates.isEmpty())
         assertEquals(1, unsupported.unsupportedMeasurementFieldCount)
+        assertEquals(
+            FitHistoricalObservations.ExclusionReason.UNSUPPORTED_ENCODING,
+            unsupported.excludedFields.single().reason
+        )
+        assertEquals("respiration_rate", unsupported.excludedFields.single().reviewFieldName)
 
         val noTimestamp = byteArrayOf(
             0x40, 0, 0, 0x29, 0x01, 1,
@@ -261,6 +277,33 @@ class FitHistoricalObservationsTest {
             byteArrayOf(1) + u16(300_050) + byteArrayOf(80)
         val result = FitHistoricalObservations.decode(fit(data))!!.observations
         assertEquals(FitHistoricalObservations.Quality.MISSING_TIMESTAMP, result[1].quality)
+    }
+
+    @Test fun incompatibleTimestampDefinitionIsInventoriedAndCannotBackCompressedTimestamp() {
+        val incompatibleTimestampDefinition = byteArrayOf(
+            0x41, 0, 0, 20, 0, 2,
+            253.toByte(), 1, 2, // timestamp incorrectly defined as uint8
+            3, 1, 2
+        )
+        val direct = FitHistoricalObservations.decode(fit(
+            incompatibleTimestampDefinition + byteArrayOf(1, 10, 72)
+        ))!!
+        assertEquals(FitHistoricalObservations.Quality.MISSING_TIMESTAMP,
+            direct.observations.single().quality)
+        assertTrue(direct.unknownFields.any {
+            it.fieldNumber == 253 &&
+                it.kind == FitHistoricalObservations.UnknownKind.INCOMPATIBLE_KNOWN_FIELD
+        })
+
+        val validDefinition = byteArrayOf(
+            0x40, 0, 0, 20, 0, 2,
+            253.toByte(), 4, 0x86.toByte(),
+            3, 1, 2
+        )
+        val data = validDefinition + byteArrayOf(0) + u32(200_000) + byteArrayOf(60) +
+            incompatibleTimestampDefinition + byteArrayOf(1, 10, 72) +
+            byteArrayOf(0xA1.toByte(), 73) // compressed local type 1; must not trust bad timestamp definition
+        assertNull(FitHistoricalObservations.decode(fit(data)))
     }
 
     @Test fun scalesDistanceAndSpeedAndRetainsPowerInProfileUnits() {
@@ -346,6 +389,17 @@ class FitHistoricalObservationsTest {
         val again = FitHistoricalObservations.decode(file)!!
         assertTrue(first.observations.isEmpty())
         assertEquals(1, first.invalidMeasurementFieldCount)
+        assertEquals(
+            listOf(FitHistoricalObservations.ExcludedField(
+                globalMessageNumber = 20,
+                fieldNumber = 3,
+                metric = FitHistoricalObservations.Metric.HEART_RATE,
+                reviewFieldName = null,
+                reason = FitHistoricalObservations.ExclusionReason.INVALID_SENTINEL,
+                occurrenceCount = 1
+            )),
+            first.excludedFields
+        )
         assertEquals(first, again)
     }
 
@@ -444,6 +498,11 @@ class FitHistoricalObservationsTest {
         assertEquals(1, result.unsupportedMeasurementFieldCount)
         assertEquals(FitHistoricalObservations.UnknownKind.INCOMPATIBLE_KNOWN_FIELD,
             result.unknownFields.single().kind)
+        assertEquals(
+            FitHistoricalObservations.ExclusionReason.UNSUPPORTED_ENCODING,
+            result.excludedFields.single().reason
+        )
+        assertEquals(FitHistoricalObservations.Metric.HEART_RATE, result.excludedFields.single().metric)
     }
 
     @Test fun crcAndTruncationDoNotYieldAnInventory() {

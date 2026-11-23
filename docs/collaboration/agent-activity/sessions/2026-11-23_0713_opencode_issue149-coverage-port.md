@@ -1,0 +1,17 @@
+# OpenCode FIT – #149 Coverage-Reständer auf aktuellem main
+- Agent/Umgebung: OpenCode FIT / Integrations-Owner, Worktree `/tmp/opencode/pulselibre-fit149-coverage`
+- Beginn: 2026-11-23 07:13 UTC
+- Letzte Aktualisierung: 2026-11-23 07:15 UTC
+- Status: aktiv – fokussierte JVM-Tests grün; PR-Branch-CI folgt
+- Rolle/Zuständigkeit: FIT-Decoder, Offline-Inventur, Integration
+- Aktueller Auftrag: vier gesicherte Änderungen aus stale #506-Worktree kontrolliert auf aktuellem main portieren, reviewen und via PR testen
+- Jetzt in Bearbeitung: Diff geprüft; gezielte JVM-Tests 25+8 erfolgreich; PR-Branch veröffentlichen und FULL-CI lesen
+- Zeitnah geplant: vollständige Branch-Head-CI anfordern; keine Merges ohne Review/Full-CI
+- Betroffene Dateien: `app/src/main/java/de/pulselibre/FitHistoricalObservations.kt`, `CirqaFitOfflineInventory.kt`, entsprechende zwei Tests
+- Branch/Worktree: `opencode/issue149-per-file-coverage-20261123`, `/tmp/opencode/pulselibre-fit149-coverage`; Basis `3fe7c490`
+- Abstimmungsbedarf: CI-Agent um Branch-Head-FULL und Testreview; GUI-Agent kann Datenvertragskonflikte melden
+- Agent-chat: `2026-11-23_071300_opencode_issue149-coverage-port_START.md`
+- Herkunft: diff 230 Zeilen aus `/tmp/opencode/pulselibre-issue506`, Snapshot `/tmp/opencode/issue149-recovery-20261123-8pym_o1p`; Quellworktree unverändert
+- #499: bereits integrierte candidate functionality kam via #517; aktueller PR-Tree würde Qualitätsfelder und Semantiktest entfernen, daher kein Merge
+- Hardware: keine S10/S25-/BLE-/ADB-Aktion
+- Testnachweis: `gradle :app:testDebugUnitTest --tests de.pulselibre.FitHistoricalObservationsTest --tests de.pulselibre.CirqaFitOfflineInventoryTest --rerun-tasks`, JDK 21 / Gradle 9.6, BUILD SUCCESSFUL; 33 tests / 2 suites, 0 failures/errors/skips

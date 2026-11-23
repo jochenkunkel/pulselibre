@@ -134,7 +134,33 @@ class CirqaFitOfflineInventoryTest {
             assertEquals(1, summary.perFile.single().invalidMeasurementValues)
             assertEquals("teilweise", summary.perFile.single().status)
             assertTrue(summary.redactedText().contains("ungültigeWerte=1"))
+            assertTrue(summary.perFile.single().fieldCoverage.contains(
+                "g20.f3:HEART_RATE:INVALID_SENTINEL:occ1"
+            ))
+            assertTrue(summary.redactedText().contains(
+                "g20.f3:HEART_RATE:INVALID_SENTINEL:occ1"
+            ))
             assertFalse(summary.redactedText().contains("255"))
+        } finally {
+            root.deleteRecursively()
+        }
+    }
+
+    @Test
+    fun capsCombinedMappedUnknownAndExcludedFieldDetailsWithAnOmittedCount() {
+        val root = Files.createTempDirectory("fit-offline-inventory-field-cap-").toFile()
+        try {
+            val bytes = fitWithUnknownFieldsAndSentinel(unknownFieldCount = 25)
+            File(root, CirqaFitBackfill.expectedFileName(bytes)).writeBytes(bytes)
+
+            val summary = CirqaFitOfflineInventory.inspect(root)
+            val file = summary.perFile.single()
+
+            assertEquals(24, file.fieldCoverage.size)
+            assertEquals(2, file.fieldCoverageOmitted)
+            val report = summary.redactedText()
+            assertTrue(report.contains(",weitere=2"))
+            assertFalse(report.contains("255"))
         } finally {
             root.deleteRecursively()
         }
@@ -251,6 +277,43 @@ class CirqaFitOfflineInventoryTest {
             3, 1, 2,
             0
         ) + u32(timestamp) + byteArrayOf(heartRate.toByte())
+        val file = ByteArray(14 + data.size + 2)
+        file[0] = 14
+        file[1] = 0x20
+        file[2] = 0x64
+        file[4] = data.size.toByte()
+        file[5] = (data.size ushr 8).toByte()
+        ".FIT".toByteArray().copyInto(file, 8)
+        val headerCrc = FitFileHeader.crc16(file, 0, 12)
+        file[12] = headerCrc.toByte()
+        file[13] = (headerCrc ushr 8).toByte()
+        data.copyInto(file, 14)
+        val crc = FitFileHeader.crc16(file, 0, file.size - 2)
+        file[file.size - 2] = crc.toByte()
+        file[file.lastIndex] = (crc ushr 8).toByte()
+        return file
+    }
+
+    private fun fitWithUnknownFieldsAndSentinel(unknownFieldCount: Int): ByteArray {
+        fun u32(value: Int) = byteArrayOf(
+            value.toByte(), (value ushr 8).toByte(),
+            (value ushr 16).toByte(), (value ushr 24).toByte()
+        )
+        val data = java.io.ByteArrayOutputStream().also { output ->
+            output.write(byteArrayOf(
+                0x40, 0, 0, 20, 0, (unknownFieldCount + 2).toByte(),
+                253.toByte(), 4, 0x86.toByte(),
+                3, 1, 2
+            ))
+            repeat(unknownFieldCount) { index ->
+                output.write(byteArrayOf((100 + index).toByte(), 1, 2))
+            }
+            output.write(0)
+            output.write(u32(100_000))
+            output.write(255)
+            repeat(unknownFieldCount) { index -> output.write(index) }
+        }.toByteArray()
+
         val file = ByteArray(14 + data.size + 2)
         file[0] = 14
         file[1] = 0x20

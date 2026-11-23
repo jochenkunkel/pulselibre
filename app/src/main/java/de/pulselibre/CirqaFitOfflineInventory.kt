@@ -85,7 +85,11 @@ internal object CirqaFitOfflineInventory {
                 }
                 appendLine()
             }
-            appendLine("Hinweis: Lokaler Abgleich; beweist keine vollständige Gerätehistorie.")
+            appendLine(
+                "Hinweis: Felddeckung beschreibt nur dekodierte Allowlist-Felder, bekannte Ausschlüsse " +
+                    "und begrenzte Unknown-Signaturen; sie ist keine vollständige FIT-Profilabdeckung. " +
+                    "Der lokale Abgleich beweist keine vollständige Gerätehistorie."
+            )
         }
     }
 
@@ -229,7 +233,13 @@ internal object CirqaFitOfflineInventory {
                     "b${field.baseType ?: "-"}s${field.size}di${field.developerDataIndex ?: "-"}:" +
                     "occ${field.occurrenceCount}defs${field.definitionCount}"
             }
-            val allFieldCoverage = (mappedFieldCoverage + unknownFieldCoverage).sorted()
+            val excludedFieldCoverage = decoded.excludedFields.map { field ->
+                val label = field.metric?.name ?: field.reviewFieldName ?: "UNKNOWN"
+                "g${field.globalMessageNumber}.f${field.fieldNumber}:$label:" +
+                    "${field.reason.name}:occ${field.occurrenceCount}"
+            }
+            val allFieldCoverage =
+                (mappedFieldCoverage + unknownFieldCoverage + excludedFieldCoverage).sorted()
             val metadataFieldCoverage = linkedMapOf<MetadataField, Int>()
             for (item in decoded.deviceMetadata) {
                 fun count(field: MetadataField, present: Boolean) {
