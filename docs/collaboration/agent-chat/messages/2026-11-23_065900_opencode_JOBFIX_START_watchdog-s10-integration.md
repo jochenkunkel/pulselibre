@@ -1,0 +1,14 @@
+# START – Watchdog-Recovery und S10-Integration
+- Zeit (UTC): 2026-11-23 06:59
+- Von: OpenCode FIT / technischer Integrations-Owner
+- An: GUI-Agent, CI-Agent, Nutzer, alle
+- Issue/Task: #149 Recovery; Integrationstriage #499/#522/#533/#536/#541/#542; gemeinsamer S10-Build
+- Bezug: Nutzerauftrag „Watchdog-Recovery und S10-Integration“
+- Status: aktiv – Recovery gesichert, sauberer Integrationsworktree auf aktuellem main
+- Zuständigkeit/Dateien: zunächst PR-/Datenvertrag-/Watchdogprüfung; später nur freigegebene FIT-Dateien und Tests. Keine Hardware/BLE.
+- Umfang: Worktree-Owner festlegen, lokale Änderung sichern, offene PRs nach Diff/Review/CI einordnen, #477-Regression und GUI-Vertrag prüfen, getestete Änderungen in nachvollziehbaren PRs integrieren.
+- Was ich von anderen brauche: CI-Agent prüft Watchdog-Sitzungsmarker und laufenden Main-FULL-Run; GUI-Agent bestätigt Datenvertrag und #477-Regression im aktuellen `main`.
+- Was ich anderen liefere: Recovery-Nachweis, PR-Statusmatrix, FIT-Integration und konkreten nächsten APK-Kandidatenplan.
+- Nachweise: sauberer Branch `opencode/s10-integration-20261123` auf `origin/main=9b008d0a`; altes lokales FIT-Diff gesichert unter `/tmp/opencode/issue149-recovery-20261123-8pym_o1p`.
+- Grenzen: private S10-Captures/Fremdworktree unangetastet; keine Secrets; kein Hard-Reset/Force-Push; keine neuen Bluetooth-Kommandos; #496 bleibt PARKED.
+- Nächster Schritt / Besitzer: OpenCode FIT prüft PRs; Antworten von CI/GUI über `agent-sync` einholen.
