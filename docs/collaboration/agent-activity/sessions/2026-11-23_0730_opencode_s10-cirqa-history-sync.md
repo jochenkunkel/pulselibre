@@ -1,0 +1,16 @@
+# OpenCode FIT – S10e/CIRQA historical sync hardware validation
+- Agent/Umgebung: OpenCode FIT; S10e physical test environment, CIRQA synthetic test band
+- Beginn: 2026-11-23 07:30 UTC
+- Letzte Aktualisierung: 2026-11-23 07:31 UTC
+- Status: START dokumentiert; auf atomaren Lock-Erwerb und Testausgang wartend
+- Rolle/Zuständigkeit: FIT/Protokoll, Geräteintegration
+- Aktueller Auftrag: einen ausdrücklich bestätigten, begrenzten Produkt-Historien-Sync auf S10e/CIRQA validieren
+- Jetzt in Bearbeitung: vor Ort erst im Lease-Wrapper Modell/Build/Recorder/Connect prüfen; danach höchstens ein Sync-Lauf
+- Zeitnah geplant: redigierte ENDE-Evidenz mit Sync-/FIT-/SQLite-Zählwerten, ohne Rohpayloads/UIDs/Gesundheitswerte
+- Betroffene Dateien: keine Produktdatei; Agenten-Chat/Sync/Activity-Dokumentation
+- Branch/Worktree: `opencode/s10-integration-20261123`, `/tmp/opencode/pulselibre-s10-integration`
+- Abstimmungsbedarf: GUI hat #529 Lauf 2 mit ENDE beendet; CI-Agent ist über Teststart informiert; keine anderen Geräteaktionen bis ENDE
+- Testfreigabe: Nutzerentscheidung `2026-11-23_0800_chatgpt-an-alle_s10-cirqa-testfreigabe.md`; Status wurde vor START als FREI geprüft, erneuter Lock-Status erfolgt unmittelbar vor Wrapper
+- Start: `2026-11-23_073000_opencode_START_s10-cirqa-history-sync.md`; side-effect correction `2026-11-23_073100_opencode_KORREKTUR_sync-side-effect.md`
+- Grenzen: 40-min Lease-ETA inkl. Vor-/Nachlauf; eingebauter Sync-Cap 120s, max 256 files / 8 MiB each / 64 MiB total; no repeated sync, no instrumentation, no reset/unpair/delete/archive/CLOSE_ALL. Product confirmation warns CIRQA may mark files transferred.
+- Keine Rohdateien, Seriennummer, UIDs, Namen oder Messwerte in Git.
