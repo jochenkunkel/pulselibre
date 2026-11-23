@@ -194,14 +194,15 @@ internal class DeviceOverviewView(context: Context) : LinearLayout(context) {
                 row.addView(PlIcon.view(context, PlIcon.INFO, 22), LayoutParams(dp(28), dp(22)))
                 row.addView(label(DeviceMetadataFormat.label(entry, strings), 13f, palette.ink), LayoutParams(0, -2, 1f))
                 val column = LinearLayout(context).apply { orientation = VERTICAL; gravity = Gravity.END }
-                column.addView(label(DeviceMetadataFormat.displayValue(entry, strings), 13f, palette.ink, true))
+                column.addView(label(DeviceMetadataFormat.displayValue(entry, strings), 13f, palette.ink, true).apply { gravity = Gravity.END })
                 val age = System.currentTimeMillis() - entry.observedAtMs
                 val freshness = if (age in 0..DeviceBatteryFormat.STALE_AFTER_MS)
                     DeviceBatteryFormat.ageText(strings, age)
                 else strings.get(R.string.bat_time_unknown)
-                column.addView(label(freshness, 11f, if (age in 0..DeviceBatteryFormat.STALE_AFTER_MS) palette.muted else palette.ink),
+                column.addView(label(freshness, 11f, if (age in 0..DeviceBatteryFormat.STALE_AFTER_MS) palette.muted else palette.ink).apply { gravity = Gravity.END },
                     LayoutParams(-2, -2).apply { topMargin = dp(3) })
-                row.addView(column)
+                // Label and value share the row (value may wrap) so a long note never squeezes the name to one letter per line.
+                row.addView(column, LayoutParams(0, -2, 1f))
                 val sourceLabel = DeviceBatteryFormat.sourceLabel(strings, entry.source)
                 row.contentDescription = strings.get(R.string.dev_meta_value_cd,
                     DeviceMetadataFormat.label(entry, strings), DeviceMetadataFormat.displayValue(entry, strings), sourceLabel, freshness)

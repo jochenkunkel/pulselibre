@@ -86,6 +86,7 @@ internal object DeviceMetadataFormat {
     /** Identifiers stay in the local database but are masked wherever a value is displayed. */
     fun displayValue(entry: LiveDeviceMetadata, strings: Strings): String = when (entry.fieldKey) {
         DeviceMetadataFields.SERIAL_NUMBER -> strings.get(R.string.dev_meta_masked)
+        in GattStandardFields.KEYS -> GattStandardFields.describe(entry.fieldKey, entry.valueText, strings)
         else -> buildString {
             append(entry.valueText)
             if (!entry.unit.isNullOrBlank()) append(' ').append(entry.unit)
@@ -105,6 +106,67 @@ internal object DeviceMetadataFormat {
         DeviceMetadataFields.PRODUCT_NUMBER -> strings.get(R.string.dev_meta_product)
         DeviceMetadataFields.MAX_PACKET_SIZE -> strings.get(R.string.dev_meta_packet)
         DeviceMetadataFields.BATTERY_HOURS -> strings.get(R.string.dev_meta_runtime)
+        in GattStandardFields.KEYS -> GattStandardFields.label(entry.fieldKey, strings)
         else -> entry.fieldKey.replace('_', ' ')
+    }
+}
+
+/**
+ * Readable names and values for the standard Bluetooth SIG characteristics the band offers (Bluetooth Assigned Numbers /
+ * GATT Specification Supplement). The stored value stays the raw hex; this only translates it for display, and falls back
+ * to the hex text whenever the length or content does not match the specification. Nothing is guessed.
+ */
+internal object GattStandardFields {
+    const val APPEARANCE = "gatt_2a01"
+    const val PREFERRED_CONNECTION = "gatt_2a04"
+    const val ADDRESS_RESOLUTION = "gatt_2aa6"
+    const val RSC_FEATURE = "gatt_2a54"
+    /** Only the first 16 bits of a Garmin 128-bit UUID are kept by the decoder (service 6A4E2800-667B-11E3-949A-0800200C9A66). */
+    const val GARMIN_VENDOR = "gatt_6a4e"
+
+    val KEYS = setOf(APPEARANCE, PREFERRED_CONNECTION, ADDRESS_RESOLUTION, RSC_FEATURE, GARMIN_VENDOR)
+
+    fun label(key: String, strings: Strings): String = strings.get(when (key) {
+        APPEARANCE -> R.string.dev_meta_gatt_appearance
+        PREFERRED_CONNECTION -> R.string.dev_meta_gatt_conn_pref
+        ADDRESS_RESOLUTION -> R.string.dev_meta_gatt_addr_res
+        RSC_FEATURE -> R.string.dev_meta_gatt_rsc
+        else -> R.string.dev_meta_gatt_garmin
+    })
+
+    fun describe(key: String, hex: String, strings: Strings): String {
+        val bytes = parseHex(hex) ?: return hex
+        return when (key) {
+            APPEARANCE -> appearance(bytes, hex, strings)
+            PREFERRED_CONNECTION -> connection(bytes, hex, strings)
+            ADDRESS_RESOLUTION -> if (bytes.size == 1 && bytes[0] == 1) strings.get(R.string.dev_val_supported)
+                else if (bytes.size == 1 && bytes[0] == 0) strings.get(R.string.dev_val_not_supported) else hex
+            RSC_FEATURE -> if (bytes.size == 2 && bytes[0] == 0 && bytes[1] == 0) strings.get(R.string.dev_val_rsc_none) else hex
+            else -> hex
+        }
+    }
+
+    private fun parseHex(hex: String): IntArray? {
+        if (hex.isEmpty() || hex.length % 2 != 0) return null
+        return IntArray(hex.length / 2) { hex.substring(it * 2, it * 2 + 2).toIntOrNull(16) ?: return null }
+    }
+
+    /** GAP Appearance (0x2A01, uint16 little endian): category 3 = watch, sub-category 1 = sports watch. */
+    private fun appearance(b: IntArray, hex: String, strings: Strings): String {
+        if (b.size != 2) return hex
+        return when (val v = b[0] or (b[1] shl 8)) {
+            0x00C0 -> strings.get(R.string.dev_val_appearance_watch)
+            0x00C1 -> strings.get(R.string.dev_val_appearance_sports_watch)
+            else -> strings.get(R.string.dev_val_appearance_other, "0x%04X".format(v))
+        }
+    }
+
+    /** Peripheral Preferred Connection Parameters (0x2A04): 4 x uint16 LE; intervals in 1.25 ms, timeout in 10 ms. */
+    private fun connection(b: IntArray, hex: String, strings: Strings): String {
+        if (b.size != 8) return hex
+        fun u16(i: Int) = b[i] or (b[i + 1] shl 8)
+        val min = u16(0) * 1.25; val max = u16(2) * 1.25; val latency = u16(4); val timeoutMs = u16(6) * 10
+        fun ms(v: Double) = if (v % 1.0 == 0.0) v.toInt().toString() else "%.2f".format(v).trimEnd('0').trimEnd('.')
+        return strings.get(R.string.dev_val_conn_params, ms(min), ms(max), latency, timeoutMs)
     }
 }
