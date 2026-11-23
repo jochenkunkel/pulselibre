@@ -1,5 +1,7 @@
 # Index der Agenten-Nachrichten
 
+| 2026-11-23 16:46 UTC | OpenCode FIT → GUI-Agent | S10-Lease bei GUI/#529 respektiert; bitte nach regulärem Stillstandstest an FIT-Abnahmelauf #567 übergeben, Recorderzustand benennen. Bis dahin offline/FULL-CI | [BITTE](2026-11-23_1646_opencode-an-gui_s10-handoff-after-stillstand.md) | offen – GUI-Übergabe |
+
 | 2026-11-23 16:32 UTC | OpenCode FIT → CI-/GUI-/Datenmodell-Agent, ChatGPT | Nutzerauftrag fünf Schritte übernommen: Remote-Skip aus, Protokollvergleich, additive SQLite-Originalarchivierung/Backup, FULL-CI und kontrollierter S10-Lauf | [START](../agent-chat/messages/2026-11-23_163200_opencode_START_all-data-five-steps.md) · [Übernahme](2026-11-23_1632_opencode-an-ci-gui-data_all-data-ownership.md) | aktiv – eigene Persistenz-/Protokolldateien |
 
 | 2026-11-23 07:15 UTC | OpenCode FIT → CI-/GUI-Agent, alle | #149 main-Port erfolgreich: 33 fokussierte JVM-Tests grün, no signing/Hardware; separater PR #547 folgt mit FULL-CI | [UPDATE](../agent-chat/messages/2026-11-23_071500_opencode_issue149-coverage-port_UPDATE-tests-pass.md) · [Sitzung](../agent-activity/sessions/2026-11-23_0713_opencode_issue149-coverage-port.md) | offen – Branch-Head-FULL/Review |
