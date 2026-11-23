@@ -33,11 +33,12 @@ Digestmethode nur für diesen Nachweis: deterministisch sortierte Zeilen, Python
 - Datei-SHA-256 vor und nach der Migration vergleichen (für die Testkopie); in Produktion stattdessen Backup-Manifest prüfen.
 - Kein Zugriff auf S25, keine BLE-/FileSync-Kommandos.
 
-### Schritt 1 – Backup vor DDL (implementierte Entscheidung: Backup-Format bleibt v8)
-- **Entscheidung:** `DatabaseBackup.BACKUP_VERSION` bleibt **8**. Es werden **keine** v9-JSONL-Einträge eingeführt, solange `observation_status_events` und `import_runs`/`import_errors` noch nicht aus dem Importpfad befüllt werden (FIT-Freigabe offen). Ein v9-Backup würde derzeit keine neuen, noch nicht semantisch gesicherten Daten transportieren.
+### Schritt 1 – Backup vor DDL (historische Entscheidung v8; aktuell Backup-Format v9)
+- **Historische Entscheidung (Stand dieses Plans):** `DatabaseBackup.BACKUP_VERSION` blieb zunächst **8**, solange `observation_status_events` und `import_runs`/`import_errors` nicht aus dem Importpfad befüllt wurden.
+- **Aktueller Stand 23.11.2026:** `BACKUP_VERSION = 9` (#567). v9 ergänzt **ausschließlich** `downloaded_file_archive.jsonl` (chunkweise Originalbytes, Ganzstrom-Hashprüfung vor Restore). Restore v1–v8 bleibt unverändert unterstützt. Die drei Status-/Import-Tabellen sind weiterhin **nicht** Teil eines Backup-Eintrags und werden produktiv nie beschrieben; daraus entsteht aktuell kein Datenverlust, aber vor dem ersten Produktions-INSERT ist eine Formaterweiterung nötig.
 - `quality_status_catalog`, `measurement_modes` und `observation_quality` sind **deterministisch rebuildbar**: `CirqaDatabase.replaceAllStoredRows(...)` ruft nach dem Replay der unveränderten v1–v8-Einträge `rebuildObservationQuality(db)` **innerhalb derselben Transaktion** auf. Kataloge werden beim Schema-Arbeiten aus dokumentierten Konstanten geseedet. Damit bleibt ein v8-Backup auf v9 verlustfrei, ohne das Backup-Format zu ändern.
-- **Voraussetzung für Backup v9:** sobald Statusereignisse oder Importprotokolle tatsächlich geschrieben werden, müssen sie als eigene JSONL-Einträge mit Manifest-SHA/Record-Counts ergänzt und in `prepareRestore()` validiert werden. Bis dahin werden diese Tabellen nicht als Datenquelle des Backups behandelt.
-- Original-FIT-Dateien bleiben außerhalb des SQLite-Backups; ihre Referenzintegrität wird separat über `fit_sources.source_sha256` geprüft.
+- **Voraussetzung für eine künftige Backup-Erweiterung:** sobald Statusereignisse oder Importprotokolle tatsächlich geschrieben werden, müssen sie als eigene JSONL-Einträge mit Manifest-SHA/Record-Counts ergänzt und in `prepareRestore()` validiert werden. Bis dahin werden diese Tabellen nicht als Datenquelle des Backups behandelt. Nach aktuellem Stand wäre das Backup v10; v9 bleibt dann restorbar.
+- **Korrektur zur ursprünglichen Aussage:** Original-FIT-Dateien sind seit #567 nicht mehr vollständig außerhalb des SQLite-Backups: ihre unveränderten Bytes liegen im v9-Archiv-Eintrag; die Referenzintegrität wird zusätzlich über `fit_sources.source_sha256` geprüft. Details: CI-Audit-Nachricht `docs/collaboration/agent-chat/messages/2026-11-23_121000_opencode_UPDATE_ci-and-pagination-evidence.md`.
 
 ### Schritt 2 – Additive DDL (eine Transaktion)
 Reihenfolge:
