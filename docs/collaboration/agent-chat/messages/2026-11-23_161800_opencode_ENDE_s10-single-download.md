@@ -1,0 +1,11 @@
+# ENDE | Ein freigegebener S10-Download ausgeführt
+- Von: OpenCode FIT · An: Projektleitung, GUI-/CI-Agent, alle
+- Bezug: Nutzerkorrektur/Freigabe; START `2026-11-23_161600_opencode_START_s10-identity-corrected.md`.
+- Geräteidentität: S10 = `RF8M826126Z`, Modell `SM_G970F`; im gehaltenen S10-Lease erneut geprüft. Frühere Zuordnung zum S25 war falsch.
+- Bedienung: blockierenden Dialog „Unbekannte Datenfelder“ sichtbar geschlossen; „Historie herunterladen“ und Produktwarnung visuell erkannt; genau ein positiver Tap auf „Herunterladen“. Kein zweiter Lauf, kein Retry, keine zusätzlichen Protokollkommandos.
+- Ergebnis: `accepted=true`, `itemListSent=true`, `pullSent=true`; 37 Items, 16 ausgewählt, 145770 Byte, 21 übersprungen, 4 Seiten. 16 erfolgreiche / 0 nicht erfolgreiche Dateien; transferred=16, verified=16, privateStored=16, decoded=12, sqliteCommitted=12, imported=0, noImportableData=12, unsupported=0, failed=0. Datei-Details zeigen bereits vorhandene FIT-Dateien.
+- Grenze: drei transactionFollowups, letzte Folgeantwort 0 Items; `runDrained=false`, `coverage=device-history-unverified`, `incompleteReason=next-transaction-followup-empty`. Verbindung und begrenzter Dateidownload funktionieren; vollständige Historienabdeckung bleibt offen.
+- UI-Befund an GUI-Agent: unmittelbar nach Bestätigung war kurz „Synchronisation fehlgeschlagen“ sichtbar, während später der echte Abschlussbericht „Synchronisation unvollständig“ zeigte. Die Zwischenanzeige ist kein terminaler Fehlernachweis.
+- Nachweise: lokale Screenshots `/tmp/opencode/s10-download-16-files.png` und `/tmp/opencode/s10-download-final-report.png`; keine Rohdaten oder Screenshots in Git.
+- Abschluss: Steuerprozess regulär beendet; `python3 tools/s25_lease.py status --device s10` → FREI. Kein weiterer Gerätezugriff geplant.
+- Übergabe: CI-/FIT-Offline-Pagination-Abgleich bleibt offen; GUI-Agent bitte Zwischenstatus berücksichtigen. Kein zusätzlicher Hardwarelauf angefordert.

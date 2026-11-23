@@ -78,6 +78,43 @@ committed; the missing `files=[...]` tail contains those outcomes.
    reordered report is sufficient for user-visible progress/failure reporting.
 4. CI-Agent: run full branch-head CI, including API-35 emulator, after the
    report change. No hardware access is part of this work item.
-5. A further S10 run is not authorized by this postmortem; obtain/check a
-   specific test scope and the canonical device lease before any new device
-   access.
+5. Any further S10 run requires a distinct user authorization, a checked
+   canonical device lease, and an exact bounded scope.
+
+## Authorized follow-up on Build 1958 — 2026-11-23
+
+The user explicitly requested an immediate repeat after CI updated the installed
+app to Build 1958. Under the exclusive S10 lease, the product warning was
+verified and exactly one positive confirmation was tapped. The warning stated
+that Sync may mark band data transferred; no delete/archive/SetFlags/reset
+commands are sent. Product limits were 120 seconds, 64 list pages, 256 files,
+8 MiB per file, and 64 MiB total. No retry was issued; the lease was released
+after the run and subsequent read-only report inspection.
+
+Redacted final report evidence:
+
+- `accepted=true`, `itemListSent=true`, `pullSent=true`
+- 37 list items; 16 selected (145,770 bytes); 21 skipped; 4 pages
+- 3 transaction follow-ups, all returning zero items; no further transaction
+  was automatically requested
+- `runDrained=false`, `incompleteReason=next-transaction-followup-empty`,
+  `coverage=device-history-unverified`
+- 16/16 selected files transferred, integrity-verified, and privately stored;
+  12 decoded and SQLite-committed; 0 new imports, 12 `noImportableData`;
+  unsupported=0, failed=0
+- 1006 MLR chunks assembled to 145,770 bytes; `configureResponse=success`,
+  `fileAssembly=complete`, MLR mode `RAW`
+
+The report tail included `manifest-skip:verified-local-import` markers. Thus
+the 12 non-importable results must not be described as failed imports or as
+newly imported observations; this run recorded no new FIT imports. This bounded
+run downloaded and verified its selected files but did **not** establish full
+device-history coverage. The three empty transaction responses still carried a
+pending transaction indicator in the report. Do not increase the continuation
+limit or guess a new filter/token without protocol evidence and a separately
+authorized test.
+
+The UI initially shows only a four-line report preview. Tapping the report
+expands it; scrolling the expanded text exposed the stage totals. Screenshots
+were inspected locally only and are not committed. No report hashes, raw
+identifiers, or health values are included here.

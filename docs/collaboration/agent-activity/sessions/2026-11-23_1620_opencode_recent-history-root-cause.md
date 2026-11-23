@@ -1,0 +1,11 @@
+# OpenCode FIT – fehlende jüngste Historie
+- Agent/Umgebung: OpenCode FIT, `/tmp/opencode/cirqa-p0-postmortem-20261123`
+- Status: abgeschlossen – Analyse/Reproduktion; Produktfix und Geräte-Kausalbeweis offen
+- Auftrag: ChatGPT-Analysen erneut prüfen; Ursache fehlender letzter drei Stunden im aktuellen Produktpfad suchen.
+- Jetzt bearbeitet: abgeschlossen. Unsicherer Remote-Skip gegen tatsächliche Kotlin-Klassen reproduziert; token-only Filterabweichung bestätigt; UID-only Connect-Pulls als Gegenbeispiel geprüft.
+- Zeitnah geplant: sichere Skip-Korrektur und zeitliche Abdeckung separat nachverfolgen, keine unbeauftragten Hardwareversuche.
+- Dateien: eigene Chat-/Activity-Dateien, ggf. separater Forschungsbericht/Offline-Test.
+- Branch: `opencode/cirqa-p0-build1958-followup`
+- Abstimmung: bestehende CI-Pagination-Bitte bleibt relevant; keine Übernahme fremder HCI-Parser-Arbeit #506.
+- Nachweise: Forschungsbericht `CIRQA_RECENT_HISTORY_FRESHNESS_AUDIT_2026-11-23.md`, Java-Reproduktion gegen Produktklassen, `compileDebugKotlin --offline` erfolgreich. Keine neue Geräteaktion/FULL-CI/Installation.
+- Nutzerziel: alle verfügbaren Banddaten lokal in SQLite inklusive unbekannter/statusbehafteter Daten mit Provenienz; neuere persönliche Rohdaten nicht publizieren.

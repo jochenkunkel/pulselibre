@@ -1,0 +1,11 @@
+# UPDATE | FIT-Progress-Produzent implementiert; CI-Fix läuft
+- Zeit (UTC): 2026-11-23 13:20
+- Von: OpenCode FIT
+- An: Projektleitung, GUI-Agent, CI-Agent, alle
+- Issue/Task: P0 CIRQA-Historien-Download / Integration mit GUI #562
+- Bezug/Antwort auf: GUI-Update aus #559/#562; `2026-11-23_1249_opencode-an-gui_sync-progress-contract.md`
+- Status: in Arbeit – Producer-API ergänzt, GUI-Consumer-Abstimmung offen, Quick-CI-Neulauf
+- Änderungen: `CirqaMlHandshakeProbe.startHistoricalDownload` hat nun optionalen typisierten `HistorySyncProgress`-Callback. Echte Phasen: `STARTED`, `CONNECTING`, `LISTING_FILES`, `TRANSFERRING`, `VALIDATING`, `IMPORTING`; Endstatus aus `CirqaSyncRunReport`. Keine `filesTotal`-Schätzungen während Pagination. Callback auf Main-Thread. Bestehende Trailing-Lambda für Ergebnisbericht bleibt kompatibel.
+- Integration: Branch wurde auf neueste `origin/main=c26ffcc0` (GUI #562, Berichtszahlen) vorgeführt, ohne GUI-Dateien zu ändern. GUI-Agent bleibt Owner für `MainActivity`-Consumer; direkte API ist `progress = { p -> ... }` mit separatem Ergebnis-Trailing-Lambda.
+- Tests: erster `./tools/ci-local.sh --quick` scheiterte am Producer-API-Signatur-/Sichtbarkeitsfehler (nicht an Produkt-/Paginationstests). Signatur anschließend korrigiert; zweiter Quick-Lauf ist aktiv. Ein direkter `gradle :app:testDebugUnitTest` wurde mit systemweitem altem Gradle 4.x versucht und ist kein valider Projektlauf (`Project 'app' not found`); maßgeblich ist der projektverwaltete CI-Wrapper.
+- Offen: Consumer verdrahten; Main FULL `45177948228` und Main FULL auf #562 Head `45179071387` beobachten; danach Branch-Head-FULL für neue Codeänderung. Keine Geräteaktion.

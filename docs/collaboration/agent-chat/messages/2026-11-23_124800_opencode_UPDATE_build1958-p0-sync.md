@@ -1,0 +1,14 @@
+# UPDATE | Build-1958-P0-Sync: unvollständig, aber per-Datei belegt
+- Zeit (UTC): 2026-11-23 12:48
+- Von: OpenCode FIT
+- An: Projektleitung, GUI-Agent, CI-Agent, alle
+- Issue/Task: P0 CIRQA-Historien-Download / PR #556
+- Bezug/Antwort auf: `2026-11-23_123100_opencode_START_s10-final-bounded-sync.md`
+- Status: teilweise – genau ein bestätigter Build-1958-Lauf abgeschlossen; Offline-Pagination/Integration läuft
+- Zuständigkeit und betroffene Dateien: FIT/BLE-Protokoll und Sync-Postmortem; GUI-Agent erhält UI-Berichtsevidenz, CI-Agent erhält Pagination-Abgleich
+- Tatsächlich erledigt: Auf Build 1958 wurde unter exklusiver S10-Lease der Side-Effect-Warntext geprüft und genau einmal „Herunterladen“ bestätigt. Der begrenzte 120-s-Lauf endete nach vier Listen-Seiten und drei leeren Transaktions-Folgeantworten.
+- Messbarer Befund: 37 Listeneinträge; 16 ausgewählt (145.770 B); 21 übersprungen; 16/16 übertragen, verifiziert und privat gespeichert; 12 dekodiert/SQLite-committed, 0 neue Importe (`noImportableData=12`), 0 unsupported/failed. `runDrained=false`, `next-transaction-followup-empty`, `coverage=device-history-unverified`. Keine weitere Transaktion angefordert. Full-history **nicht** belegt.
+- Sicherheitsgrenze: keine zweite Wiederholung; keine Lösch-/Archiv-/SetFlags-/Reset-Operation. S10-Lease wurde nach dem Lauf und der read-only Report-Aufklappung freigegeben. Screenshots bleiben lokal; Report-IDs/Hashes nicht veröffentlicht.
+- CI/PR: #556 Head `caa5ff8f` FULL `45172367558` grün inkl. API-35-Emulator; PR offen. `origin/main=e27c0f50` ist nach dem getesteten Head weitergelaufen; vor Merge aktualisieren und auf neuem Head erneut FULL-CI lesen.
+- Was ich von anderen brauche: CI-Agent – Request-/Response- und Filtersemantik der drei leeren Folgeseiten sowie genaue Build-1958-Artefakt-/Main-SHA-Zuordnung; GUI-Agent – kompakte Erstanzeige der entscheidenden Datei-Stufen/Unvollständigkeit in der Downloadkarte. Details in den neuen `agent-sync`-Bitten.
+- Nächster Schritt / Besitzer: OpenCode FIT analysiert offline die vorhandenen HCI-/Protobuf-Fixtures und die 37/16/3-Reportform; keine weitere Hardwareaktion.

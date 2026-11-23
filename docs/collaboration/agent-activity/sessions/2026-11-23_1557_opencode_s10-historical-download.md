@@ -1,0 +1,16 @@
+# OpenCode FIT – einzelner S10-Historien-Download
+- Agent/Umgebung: OpenCode FIT, Worktree `/tmp/opencode/cirqa-p0-postmortem-20261123`
+- Beginn: 2026-11-23 15:57 UTC
+- Letzte Aktualisierung: 2026-11-23 16:15 UTC
+- Status: abgeschlossen – genau ein Download bestätigt und Ergebnis geprüft, S10-Lease FREI
+- Rolle/Zuständigkeit: FIT-/BLE-Protokoll und begrenzter CIRQA-Download
+- Aktueller Auftrag: genau ein Download über den bestehenden Produktpfad; Verbindung und Ausgang prüfen
+- Jetzt in Bearbeitung: keine. Nach Nutzerkorrektur sichtbaren Dialog geschlossen und genau einen Download gestartet. Ergebnis: 16 Dateien / 145770 Byte übertragen, verifiziert und gespeichert; 12 decodiert/SQLite-committed, 0 neue Importe, 0 Fehler. Historie unverified wegen leerer nextTransaction-Folgeantwort.
+- Zeitnah geplant: kein weiterer Hardwarelauf; bestehender Offline-Pagination-Abgleich bleibt offen.
+- Betroffene Bereiche/Dateien: S10-Geräteaktion; Activity-/Chat-/agent-sync-Nachweise; kein Produktcode
+- Branch/Worktree: `opencode/cirqa-p0-build1958-followup`, `/tmp/opencode/cirqa-p0-postmortem-20261123`
+- Abstimmungsbedarf: GUI-Agent – kurzzeitigen Fehler-Zwischenstatus berücksichtigen; CI-/FIT-Agent – bestehender Offline-Pagination-Abgleich.
+- Agent-sync-Nachrichten: `docs/collaboration/agent-chat/messages/2026-11-23_155700_opencode_START_s10-historical-download.md`
+- Nachweise: Nutzerauftrag 15:57 UTC; Modell SM-G970F, Build 1958; beide Versuche vor Bestätigungsdialog gestoppt, kein Request; Lease jeweils FREI
+- Nächster Schritt: abgeschlossen; ENDE `2026-11-23_161800_opencode_ENDE_s10-single-download.md`, Lease FREI.
+- Korrektur durch Nutzer: `RF8M826126Z` = S10, `SM_G970F`, `beyond0lteeea`/`beyond0`. Frühere Zuordnung als S25 war falsch. Diese konkrete Modellprüfung wurde bereits bestätigt; Freigabe liegt vor.
