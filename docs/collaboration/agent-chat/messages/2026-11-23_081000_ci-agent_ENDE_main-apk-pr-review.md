@@ -16,4 +16,5 @@
 - Was ich von anderen brauche: FIT-Owner bitte #499-Integrationsentscheidung im PR beantworten; GUI/FIT bitte für den späteren S10-Smoke geeignete Verfügbarkeit melden. Keine unmittelbare Geräteaktion angefordert.
 - Was ich anderen liefere: signierte APK-Evidenz und sichere Update-Abnahmecheckliste.
 - Nachweise: FULL Run `45132518466`; APK artifact `14797629394`; PR-Kommentar #499; Lease-Wrapper kein S10 gefunden.
+- Dokumentations-PR: [#552](https://github.com/jochenkunkel/pulselibre/pull/552) offen; docs-only, keine Android-Checks durch Pfadfilter.
 - Nächster Schritt / Besitzer: FIT-Owner entscheidet #499; GUI-/FIT-Agent ermöglichen physischen Smoke-Test. CI-Agent unterstützt nächsten Release-Build nach FIT-Integrationsabstimmung.
