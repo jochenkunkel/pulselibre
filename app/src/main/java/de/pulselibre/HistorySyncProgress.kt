@@ -40,10 +40,18 @@ internal data class HistorySyncProgress(
          * `runDrained=true` + `incompleteReason=none` = finished (coverage still NOT proven); any other report that
          * carries a run marker = incomplete; a report without a run marker (error text, timeout) = failed.
          */
-        fun fromReport(report: String): HistorySyncProgress = when {
-            report.contains("runDrained=true") && report.contains("incompleteReason=none") -> HistorySyncProgress(HistorySyncStage.FINISHED)
-            report.contains("runDrained=") || report.contains("incompleteReason=") -> HistorySyncProgress(HistorySyncStage.FINISHED_INCOMPLETE)
-            else -> HistorySyncProgress(HistorySyncStage.FAILED)
+        fun fromReport(report: String): HistorySyncProgress {
+            val done = Regex("""successful=(\d+)""").find(report)?.groupValues?.get(1)?.toIntOrNull()
+            val total = Regex("""selected=(\d+)""").find(report)?.groupValues?.get(1)?.toIntOrNull()
+            val notSuccessful = Regex("""notSuccessful=(\d+)""").find(report)?.groupValues?.get(1)?.toIntOrNull() ?: 0
+            // counts only when both are real; a zero selection is "no files", never a percentage
+            val counts = if (done != null && total != null && total > 0) done to total else null
+            fun p(stage: HistorySyncStage) = HistorySyncProgress(stage, counts?.first, counts?.second)
+            return when {
+                report.contains("runDrained=true") && report.contains("incompleteReason=none") && notSuccessful == 0 -> p(HistorySyncStage.FINISHED)
+                report.contains("runDrained=") || report.contains("incompleteReason=") -> p(HistorySyncStage.FINISHED_INCOMPLETE)
+                else -> HistorySyncProgress(HistorySyncStage.FAILED)
+            }
         }
     }
 }

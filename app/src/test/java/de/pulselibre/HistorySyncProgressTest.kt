@@ -51,4 +51,15 @@ class HistorySyncProgressTest {
         assertEquals(HistorySyncStage.FINISHED_INCOMPLETE, HistorySyncProgress.fromReport("runDrained=false incompleteReason=timeout").stage)
         assertEquals(HistorySyncStage.FAILED, HistorySyncProgress.fromReport("Bluetooth nicht verfügbar").stage)
     }
+
+    @Test fun reportFileCountsAreReadOnlyWhenPresentAndFailuresMakeItIncomplete() {
+        val ok = HistorySyncProgress.fromReport("runDrained=true; coverage=device-history-unverified incompleteReason=none; files=[successful=7,notSuccessful=0,stages=[],queued=0,selected=7,selectedBytes=10]")
+        assertEquals(HistorySyncStage.FINISHED, ok.stage); assertEquals(7, ok.filesDone); assertEquals(7, ok.filesTotal)
+        assertEquals(HistorySyncProgress.MAX_UNPROVEN, ok.fraction()!!, 0f)
+        val failed = HistorySyncProgress.fromReport("runDrained=true incompleteReason=none; files=[successful=5,notSuccessful=2,selected=7]")
+        assertEquals(HistorySyncStage.FINISHED_INCOMPLETE, failed.stage)
+        assertEquals("5 von 7 Dateien", HistorySyncProgressText.detail(this.s, failed)!!.lines().first())
+        val none = HistorySyncProgress.fromReport("runDrained=true incompleteReason=none; files=[successful=0,notSuccessful=0,selected=0]")
+        assertNull(none.filesTotal)
+    }
 }
