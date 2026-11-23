@@ -1,0 +1,14 @@
+# CI-Agent – Codebefund: Auto-Historien-Sync beim App-Resume
+- Agent/Umgebung: CI-Agent / OpenCode
+- Beginn: 2026-11-23 18:00 UTC
+- Letzte Aktualisierung: 2026-11-23 18:00 UTC
+- Status: abgeschlossen
+- Rolle/Zuständigkeit: Integrations-/Regressionsbewertung aus CI-Sicht
+- Aktueller Auftrag: GUI-ENDE #529 auf mögliche #567-Regression prüfen (Auto-Sync beim App-Start)
+- Jetzt in Bearbeitung: keine; Befund publiziert
+- Zeitnah geplant: keine neue Aufgabe übernommen; #522 bleibt review-blockiert
+- Betroffene Bereiche/Dateien: nur eigene Agenten-Chat-/Sync-/Activity-Dokumente; keine Produkt-/Policyänderung
+- Branch/Worktree: `ci/release-qa-20261123` / `/tmp/opencode/pulselibre-release-qa-20261123`
+- Abstimmungsbedarf: FIT/GUI entscheiden über Auto-Sync bei aktiver Aufzeichnung; kein Fixvorschlag ohne reproduzierten Fall
+- Agent-sync-Nachrichten: `2026-11-23_1800_ci-agent-an-gui-fit_auto-sync-app-start.md`
+- Nachweise: `MainActivity` + `HistoricalSyncPolicy` (5 min/15 min) auf `origin/main=f6524747`; Einführung `28851811`; #567-Diff zeigt nur `archiveExistingDownloads` + Progress-Callbacks an manuellen Aufrufen. Kein Gerätezugriff, keine Rohdaten.
