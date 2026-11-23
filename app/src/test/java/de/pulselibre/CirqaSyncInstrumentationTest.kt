@@ -149,4 +149,18 @@ class CirqaSyncInstrumentationTest {
         assertEquals("item1[transfer:2ms]", timing.perItemSummary())
         assertFalse(timing.perItemSummary().contains("4242"))
     }
+
+    @Test fun lateBleFailureCannotOverwriteCorrelatedApplicationResponse() {
+        val pipeline = CirqaSyncPipelineLedger()
+        val responded = pipeline.select()
+        pipeline.record(responded, CirqaSyncPipelineLedger.Stage.BLE_WRITE_ACCEPTED)
+        pipeline.record(responded, CirqaSyncPipelineLedger.Stage.RESPONSE_RECEIVED)
+        assertFalse(pipeline.failWriteIfNoResponse(responded))
+        assertEquals(0, pipeline.count(CirqaSyncPipelineLedger.Stage.FAILED))
+
+        val unanswered = pipeline.select()
+        assertTrue(pipeline.failWriteIfNoResponse(unanswered))
+        assertFalse(pipeline.failWriteIfNoResponse(unanswered))
+        assertEquals(1, pipeline.count(CirqaSyncPipelineLedger.Stage.FAILED))
+    }
 }

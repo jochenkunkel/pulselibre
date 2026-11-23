@@ -40,6 +40,14 @@ internal class CirqaSyncPipelineLedger {
     @Synchronized
     fun count(stage: Stage): Int = events.values.count { stage in it }
 
+    /** Late GATT failure callback cannot overturn an already received app response. */
+    @Synchronized
+    fun failWriteIfNoResponse(itemId: Long): Boolean {
+        val itemEvents = events[itemId] ?: return false
+        if (Stage.RESPONSE_RECEIVED in itemEvents) return false
+        return itemEvents.add(Stage.FAILED)
+    }
+
     @Synchronized
     fun summary(): String = Stage.entries.joinToString(",") { "${it.name.lowercase()}=${count(it)}" }
 

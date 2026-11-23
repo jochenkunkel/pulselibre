@@ -1489,7 +1489,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private fun onSyncWriteRejected(tag: SyncWriteTag?) {
         when (tag) {
             is SyncWriteTag.Pull -> {
-                if (syncPipelineLedger.record(tag.localId, CirqaSyncPipelineLedger.Stage.FAILED)) {
+                if (syncPipelineLedger.failWriteIfNoResponse(tag.localId)) {
                     syncFailedFiles++
                 }
                 syncTiming.stop("item:${tag.localId}:transfer", CirqaSyncTiming.Stage.FILE_TRANSFER)
@@ -1506,7 +1506,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private fun onSyncWriteCallbackFailed(tag: SyncWriteTag?) {
         when (tag) {
             is SyncWriteTag.Pull -> if (
-                syncPipelineLedger.record(tag.localId, CirqaSyncPipelineLedger.Stage.FAILED)
+                syncPipelineLedger.failWriteIfNoResponse(tag.localId)
             ) syncFailedFiles++
             is SyncWriteTag.ItemList -> if (tag.continuation != null) {
                 syncContinuationRequest.writeFailed(tag.requestId)
