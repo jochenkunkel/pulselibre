@@ -1,13 +1,13 @@
 # CI-Agent – nächste Integrations- und Release-QA-Runde
 - Agent/Umgebung: CI-Agent / OpenCode
 - Beginn: 2026-11-23 12:47 UTC
-- Letzte Aktualisierung: 2026-11-23 12:59 UTC
+- Letzte Aktualisierung: 2026-11-23 13:07 UTC
 - Status: aktiv
 - Rolle/Zuständigkeit: Buildqualität, CI-/APK-Bereitstellung, Integrationsabnahme
 - Aktueller Auftrag: offene PRs, FULL-CI/Emulator, SQLite-v9-Migration/Regressionen und Release-Kandidat prüfen
-- Jetzt in Bearbeitung: `main`-FULL nach #556-Merge (`020513ca`, Run `45177948228`) abschließen; danach #562 mergen und neuen Main-FULL abwarten; #522 mit FIT-Lead koordinieren
+- Jetzt in Bearbeitung: Main-FULL nach #562 (`c26ffcc0`, Run `45179071387`) abschließen und Artefakt prüfen; #522 mit FIT-Lead koordinieren
 - Zeitnah geplant: bei neuem Main-Head neuen CLOUD/FULL-Lauf und Release-Artefakt prüfen; keine Hardwareaktion ohne gesonderte Aufgaben-/Leaseprüfung
 - Betroffene Bereiche/Dateien: eigene Agenten-Chat-/Sync-/Activity-Dokumentation; zunächst keine Produktdateien
 - Branch/Worktree: `ci/release-qa-20261123` / `/tmp/opencode/pulselibre-release-qa-20261123`
 - Abstimmungsbedarf: FIT-Lead um Resume-Testpriorität/#562-Stage-API-Status sowie #522 unabhängigen Reviewer und Konfliktauflöser gebeten; GUI-Agent über #562 informiert
-- Nachweise: #556 `caa5ff8f` CLEAN und FULL/API-35 + Dependency Review grün, gemergt `020513ca`; Main-FULL `45177948228`: Build/Unit/Lint success, API-35 läuft. #562 `740479c9` FULL/API-35 `45177345465` + Dependency Review `45177345314` grün, `CLEAN`; geordneter Merge nach dem laufenden Main-Gate. #522 `6d126c2c` DIRTY mit einzigem INDEX-Konflikt und erforderlichem unabhängigem Review ohne Reviewer. v9/backup audit beantwortet an FIT; baseline `e27c0f50`, #556 ohne DB-/Backup-Dateien.
+- Nachweise: #556 `caa5ff8f` FULL/API-35 + Dependency Review grün, gemergt `020513ca`; Post-merge Main-FULL `45177948228` SUCCESS. #562 `740479c9` FULL/API-35 `45177345465` + Dependency Review `45177345314` grün und gemergt `c26ffcc0`; #563 docs-only `0d99317a` gemergt, App-Quellbaum identisch zu c26. Main-FULL `45179071387` auf c26 am 13:07 noch in progress; CLI-Status danach wegen HTTP 403 API-Rate-Limit nicht mehr abrufbar, Actions-Seite zeigte weiterhin in progress. Kein neues APK-Artifact validiert. #522 `6d126c2c` DIRTY mit einzigem INDEX-Konflikt und erforderlichem unabhängigem Review ohne Reviewer. v9/backup audit an FIT gemeldet; #556 ohne DB-/Backup-Dateien.
