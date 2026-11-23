@@ -1,0 +1,11 @@
+# START | Nutzerauftrag Punkte 1–5: Aktualität, Vollspeicherung, CI, S10
+- Von: OpenCode FIT · An: Projektleitung, GUI-/CI-/Datenmodell-Agent, ChatGPT
+- Auftrag: Nutzer hat automatische Umsetzung des Fünf-Punkte-Plans und abschließenden S10-Test ausdrücklich freigegeben; Rückmeldung nach Punkt 5.
+- Branch/Worktree: `opencode/cirqa-all-data-freshness-20261123`, frisches origin/main `37b68fda`.
+- Schritte: (1) unsicheren Remote-Metadaten-Skip ausschalten, nach Empfang content-dedupe; (2) Connect-Filter/Transaktionen offline vergleichen, nur belegte Änderungen; (3) alle empfangenen Originalinhalte samt unbekannten/statusbehafteten Daten in kanonischer SQLite erhalten; (4) Regressionen/FULL-CI/Review; (5) geprüften signaturkompatiblen Build auf S10 und genau einen kontrollierten Download, jüngstes Zeitfenster lokal abgleichen.
+- Dateien: TargetedPullPolicy/Manifest/ItemListParser und Tests; ggf. neue SQLite-Archivkomponente, additive Schema-/Backup-Integration und Tests; eigene Koordinations-/Testnachweise. Kein GUI-Redesign, kein #496-Refactor, keine Änderungen an #506/#522-Parser-Dateien.
+- Schema-/Backup-Koordination: übernehme aufgabenbezogen additive Archivierung empfangener Originaldateien; bitte Datenmodell-/CI-Agent Überschneidungen melden. Bestehende Tabellen/Generationen bleiben unverändert.
+- S10-Zuordnung: Nutzer bestätigt Modell SM_G970F; alte S25-Zuordnung war falsch. Zugriff ausschließlich im kanonischen S10-Lease. Keine Instrumentation auf physischer Hardware.
+- Stop-Gates: keine Löschung/Reset/Entkopplung/SetFlags; keine geratenen Filter-UUIDs, kein unkontrollierter Retry. Sicherheitsbudgets und nachvollziehbare Unvollständigkeit bleiben.
+- Datenschutz: neuere persönliche Rohdaten bleiben lokal; nur synthetische Tests/aggregierte Evidenz in Git.
+- Was ich benötige: keine parallelen Änderungen derselben Persistenz-/Protokolldateien; kein paralleler S10-Zugriff im späteren Lease.

@@ -1,0 +1,11 @@
+# OpenCode FIT – freigegebene Punkte 1–5
+- Status: aktiv
+- Agent/Umgebung: OpenCode FIT, eigener Worktree `/tmp/opencode/cirqa-all-data-freshness-20261123`
+- Auftrag: fünf Schritte bis kontrolliertem S10-Abnahmelauf autonom ausführen.
+- Jetzt: (1) Remote-Freshness-Skip korrigieren; (2) belegten Filterkontext prüfen.
+- Danach: (3) vollständiges lokales SQLite-Originalarchiv; (4) Regression/FULL-CI; (5) S10-Update, ein Download, zeitliche Abdeckung.
+- Branch: `opencode/cirqa-all-data-freshness-20261123`, Basis `37b68fda`.
+- Dateien: Policy/Parser/Manifest, additive SQLite-/Backup-Archivierung und Tests, eigene Nachweise. Gemeinsame Schemaarbeit angekündigt.
+- Abstimmung: GUI/CI/Datenmodell über START und agent-sync benachrichtigt; #506/#522 getrennt.
+- Freigabe: Nutzer genehmigt gesamten Plan; keine destruktiven Befehle/geratenen Kommandos.
+- Nachweise: Offline-Reproduktion des unsicheren Skip im vorherigen Audit; noch kein neuer Gerätetest.
