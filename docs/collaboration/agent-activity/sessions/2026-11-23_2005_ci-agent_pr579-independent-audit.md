@@ -1,14 +1,14 @@
 # CI-Agent – Unabhängiges Audit PR #579 + gezielte Regressionstests
 - Agent/Umgebung: CI-Agent / OpenCode
 - Beginn: 2026-11-23 20:05 UTC
-- Letzte Aktualisierung: 2026-11-23 20:15 UTC
-- Status: abgeschlossen – #579 NO MERGE empfohlen, #522-Blocker bewertet, Backup-Grenze dokumentiert
+- Letzte Aktualisierung: 2026-11-23 21:35 UTC
+- Status: aktiv – Re-Review abgeschlossen, NO MERGE trotz grünem FULL; #587 gemergt; Docs-PR #588 offen
 - Rolle/Zuständigkeit: unabhängige CI-/Qualitätsabnahme, Datenschutz-, Zähler- und Testabdeckungsprüfung
 - Aktueller Auftrag: PR #579 Prüffragen A/B/C, 10 Timeout-/Callback-Regressionen, Datenschutz, P1-Zeitmessung; Separation der drei #522-Blocker; Backup-/Import-Grenze
-- Jetzt in Bearbeitung: keine; Audit abgeschlossen
-- Zeitnah geplant: erneuter Review nach FIT-Follow-up (State-Machine, Produktionsübergangs-Tests, Phasenzeitmessung); #522/#587 Owner-Entscheidungen abwarten
+- Jetzt in Bearbeitung: keine; Re-Review auf `db72d4cc` abgeschlossen
+- Zeitnah geplant: erneutes Review nach FIT-Fix (Diagnose ohne werfendes `require`, echte `finish()`-Timeout-/Callback-Tests); #522 und #588 bleiben Owner-Entscheidungen
 - Betroffene Bereiche/Dateien: nur eigene Doku; neue Testdateien; keine BLE-/Produktcode-Änderung ohne FIT-Abstimmung
 - Branch/Worktree: `ci/release-qa-20261123` / `/tmp/opencode/pulselibre-release-qa-20261123`; Review-Quelle `origin/pr579`
 - Abstimmungsbedarf: FIT – Terminalzustandsmaschine, Zeitmessung, #522-B/-C; GUI – Auto-/Manual-Sync-Sperre; Watchdog – offene Reviews
-- Agent-sync-Nachrichten: `2026-11-23_2005_*`
-- Nachweise: PR #579 Head `2f32de336b69f2b520b95b00e5f6b5418f376ad4`, Kommentar `7112441505`; FULL `45254257343` Build/Unit/Lint SUCCESS, API-35 bei Abfassung in progress; Dependency Review SUCCESS. PR #522 Kommentar `7112525651` (README-Korrektur, 0x01-Queue, rx==tx); PR #587 Head `4475d906` (2 synthetische Python-Tests, lokal 131 OK). Backup-Grenze: `docs/protocol/data-model/BACKUP_IMPORT_BOUNDARY_AUDIT_2026-11-23.md`. Kein Gerätezugriff, keine Rohdaten, keine Produkt-/BLE-/Schema-/Backup-Änderung.
+- Agent-sync-Nachrichten: `2026-11-23_2005_*`, `2026-11-23_2030_ci-agent-an-fit-chatgpt_pr579-re-review.md`
+- Nachweise: PR #579 finaler Head `db72d4cc04ea5c61759e9a1dbf5279b6f004c65b`; FULL `45258409426` SUCCESS inkl. API-35, Dependency Review `45258409127` SUCCESS, Gradle Dependency Submission SUCCESS; Reviews `7112441505`, `7113047096`, `7113206273` → NO MERGE wegen werfendem `require` im Diagnosepfad und fehlender Produktionsübergangs-Tests. PR #587 `4475d906` lokal `ci-local.sh --quick` SUCCESS (131 Python-Tests, JVM, R8, Signatur, kein INTERNET), gemergt `10a91cc4`. PR #522 Kommentar `7112525651` (A/B/C). Docs-PR #588 `d138beca` (Versionsangaben/Grenze), nicht gemergt. Backup-Grenze: `docs/protocol/data-model/BACKUP_IMPORT_BOUNDARY_AUDIT_2026-11-23.md`. Kein Gerätezugriff, keine Rohdaten, keine Produkt-/BLE-/Schema-/Backup-Änderung.
