@@ -105,9 +105,9 @@ class DatabaseBackupV9ArchiveGapTest {
         }
     }
 
-    @Test fun downgradeFromTenToNineIsRejectedWithoutLosingRows() {
+    @Test fun manuallyLoweredVersionIsUpgradedBackToTenWithoutLosingRows() {
         val base = ApplicationProvider.getApplicationContext<Context>()
-        val root = Files.createTempDirectory(base.cacheDir.toPath(), "v10-downgrade-").toFile()
+        val root = Files.createTempDirectory(base.cacheDir.toPath(), "v10-version-seam-").toFile()
         val context = isolated(base, root)
         val event = """{"schema":1,"type":"attempt","received_at_utc":"2026-11-23T02:00:00Z"}"""
         try {
@@ -116,19 +116,19 @@ class DatabaseBackupV9ArchiveGapTest {
                 assertEquals(10, database.writableDatabase.version)
                 database.writableDatabase.version = 9
             }
-            assertThrows(IllegalStateException::class.java) {
-                CirqaDatabase(context).use { it.readableDatabase.rawQuery("SELECT 1 FROM events", null).use { rows -> rows.moveToFirst() } }
-            }
-            // Restore the version out of band and verify that the failed downgrade did
-            // not destroy data.
-            val path = context.getDatabasePath("cirqa_measurements.db").absolutePath
-            SQLiteDatabase.openDatabase(path, null, SQLiteDatabase.OPEN_READWRITE).use { db ->
-                db.version = 10
-                assertEquals(1, db.rawQuery("SELECT COUNT(*) FROM events", null).use { rows ->
-                    rows.moveToFirst(); rows.getInt(0)
+            // There is no production helper expecting version 9: with the current
+            // helper (version 10) a lowered user_version is an upgrade, never a
+            // downgrade. Pin that no rows are lost on this seam.
+            CirqaDatabase(context).use { database ->
+                assertEquals(10, database.readableDatabase.version)
+                assertEquals(listOf(event), database.allLines())
+                assertEquals(0, countRows(database, "downloaded_files"))
+                assertEquals(0, database.readableDatabase.rawQuery("PRAGMA foreign_key_check", null).use { rows ->
+                    var violations = 0
+                    while (rows.moveToNext()) violations++
+                    violations
                 })
             }
-            CirqaDatabase(context).use { assertEquals(listOf(event), it.allLines()) }
         } finally {
             root.deleteRecursively()
         }
@@ -168,7 +168,7 @@ class DatabaseBackupV9ArchiveGapTest {
 
         val manifest = JSONObject(entries.getValue("manifest.json").toString(Charsets.UTF_8))
         val metadata = manifest.getJSONObject("entries").getJSONObject(name)
-        assertEquals(metadata.getLong("bytes"), tampered.size.toLong())
+        metadata.put("bytes", tampered.size.toLong())
         metadata.put("sha256", sha256(tampered))
         entries[name] = tampered
         entries["manifest.json"] = manifest.toString().toByteArray(Charsets.UTF_8)

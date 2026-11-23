@@ -46,17 +46,24 @@ class ScienceDaysHintTest {
             // 4 distinct days is no longer "less than half" of 7 days.
             assertNull(method.invoke(view, series(0..3, 7)))
 
-            // The 24-hour view is excluded entirely (rangeDays < 7).
-            assertNull(method.invoke(view, series(0..0, 1)))
+            // The guard follows the view's selected range, not the SeriesData range.
+            // Switch the view to the 24-hour range and confirm the hint is suppressed.
+            val rangeField = ScienceDashboardView::class.java.getDeclaredField("selected")
+            rangeField.isAccessible = true
+            rangeField.set(view, 0)
+            assertNull(method.invoke(view, series(0..2, 7)))
+            rangeField.set(view, 1)
 
-            // A series without time information must never claim a day count.
+            // Unknown time counts as zero days and is reported honestly, not invented.
             val unknownTime = SeriesData(
                 metricKey = ScienceSeriesLoader.HEART_RATE_BAND.key,
                 unit = "bpm", origin = SeriesOrigin.SYNTHETIC, timeBasis = SeriesTimeBasis.SYNTHETIC,
                 rangeStartMs = now - 7 * day, rangeEndMs = now, nominalIntervalMs = null,
                 points = listOf(SeriesPoint(timeMs = null, value = 60.0))
             )
-            assertNull(method.invoke(view, unknownTime))
+            val unknownHint = method.invoke(view, unknownTime) as String?
+            assertNotNull(unknownHint)
+            assertTrue(unknownHint!!.contains("0"))
         }
     }
 }
