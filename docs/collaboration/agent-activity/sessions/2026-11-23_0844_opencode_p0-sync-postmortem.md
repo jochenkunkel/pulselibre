@@ -1,15 +1,15 @@
 # OpenCode FIT – P0 CIRQA-Sync-Postmortem und Integration
 - Agent/Umgebung: OpenCode FIT / technische Leitung, Worktree `/tmp/opencode/cirqa-p0-postmortem-20261123`
 - Beginn: 2026-11-23 08:44 UTC
-- Letzte Aktualisierung: 2026-11-23 08:51 UTC
+- Letzte Aktualisierung: 2026-11-23 09:10 UTC
 - Status: aktiv – Offline-Rekonstruktion und PR-Triage
 - Rolle/Zuständigkeit: FIT-/BLE-Protokoll, Downloadpipeline, SQLite-Integration und Koordination GUI/CI
 - Aktueller Auftrag: P0-End-to-End-Historien-Download; Postmortem des begrenzten S10-Laufs vom 23.11.
-- Jetzt in Bearbeitung: Postmortem `CIRQA_S10_BUILD1939_SYNC_POSTMORTEM_2026-11-23.md`; Report-Reihenfolge für Stufenzähler, Fokus-JVM-Test; Triage #547/#541/#536/#522/#533/#499/#543
-- Zeitnah geplant: kleinster belegbarer Produktcode-/Testfix; dann gezielte CI-Anforderung und Datenvertrag-/GUI-Abgleich
+- Jetzt in Bearbeitung: PR #547 auf `main=7d14f25c` rebaset; stale #547-Indexkonflikt konfliktfrei zusammengeführt; Fokus-FIT-Tests erfolgreich; Branch-Head FULL in Run `45144418644` läuft. PR #556 Branch-Head FULL für `b5fd2036` läuft (`45144328973`); lokaler FULL-Emulatorfehler `AnalysenTabTest` an CI zur Abgrenzung übergeben.
+- Zeitnah geplant: Ergebnisse der beiden exakt zugeordneten FULL-Runs prüfen; danach GUI-/CI-Antworten und APK-Evidenz verifizieren; #522 bleibt ohne Merge bis Count-/Fragment-Deltas aufgelöst
 - Betroffene Bereiche/Dateien: zunächst Analyse; möglicher Eingriff `CirqaMlHandshakeProbe.kt`, Sync-Policies/Completion-Tests; Koordinationsdateien
-- Branch/Worktree: `opencode/cirqa-p0-postmortem-20261123`, `/tmp/opencode/cirqa-p0-postmortem-20261123`, Basis `origin/main` `dc4ff00a`
-- Abstimmungsbedarf: CI-Agent zu #547 und exact-SHA FULL-CI; GUI-Agent zu #477 Datenvertrag/Fortschrittsfeldern; #547-Owner zu Konfliktarbeit
+- Branch/Worktree: `opencode/cirqa-p0-postmortem-20261123`, `/tmp/opencode/cirqa-p0-postmortem-20261123`, neuester `origin/main=7d14f25c`; separate #547-Integration in `/tmp/opencode/issue547-reconcile-20261123`
+- Abstimmungsbedarf: CI-Agent soll #547 Run `45144418644` und #556 Run `45144328973` exakt lesen und melden; GUI-Agent soll P0-Historien-UI / #529-Fortschritt samt konkreten Artefakten zurückmelden; #522 Daten-/Parser-Owner für 49 L2CAP-, 5 ATT- und Fragment-Overwrite-Differenz benennen
 - Agent-chat: `2026-11-23_084400_opencode_START_p0-sync-postmortem.md`
 - Hardware: kein Zugriff geplant; vor jeder möglichen späteren S10-Aktion erneute Lease-/Freigabeprüfung erforderlich
-- Nachweise: `origin/main` `dc4ff00a`; START veröffentlicht (`7566c9d9`); PR #547 weiterhin DIRTY (`254ad4f0`) mit grünen, aber stale Checks; #541 CLEAN + FULL-Checks grün; #536 DIRTY ohne Checks; #522 DIRTY + Checks grün; #533 CLEAN + Checks grün; #499 DIRTY/stale und funktional durch #517 abgelöst; #543 CLEAN/docs-only ohne Checks. Fokus-Gradle-Tests `CirqaSyncRunReportTest`, `CirqaSyncFileCompletionTest`, `CirqaItemListContinuationPolicyTest`: bestanden. `ci-local.sh --bootstrap --quick` wurde vom Tool nach 120 s beendet; deshalb kein Quick-PASS behauptet.
+- Nachweise: eigener PR #556 `b5fd2036`; #541 post-merge FULL `45142364968` grün auf `852f4989`; #547 rebased auf `main=7d14f25c`, Head `c8a17303`, CLEAN base diff; Fokus-Tests `CirqaFitOfflineInventoryTest` (8/8), `FitHistoricalObservationsTest` (25/25), `git diff --check` erfolgreich; #547 FULL run `45144418644` in progress. #556 FULL run `45144328973` in progress. #522 bleibt DIRTY/stale, offene HCI replay differences; #533 gemergt, separate migration acceptance remains; #499 geschlossen/superseded. `ci-local.sh --full`: Python 118/118, Build/JVM/Lint/Test-APK erfolgreich, Emulatorinstrumentation fehlgeschlagen bei `AnalysenTabTest#tabShowsFiveGroupsAndHonestModuleStates` Zeile 44; kein FULL-PASS behauptet.
