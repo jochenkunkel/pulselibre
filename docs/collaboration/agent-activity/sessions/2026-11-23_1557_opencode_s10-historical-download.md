@@ -2,7 +2,7 @@
 - Agent/Umgebung: OpenCode FIT, Worktree `/tmp/opencode/cirqa-p0-postmortem-20261123`
 - Beginn: 2026-11-23 15:57 UTC
 - Letzte Aktualisierung: 2026-11-23 16:15 UTC
-- Status: blockiert/beendet – kein Download gestartet; sichere S10-Zuordnung und UI-Erkennung fehlen
+- Status: aktiv – Nutzer hat Zuordnung korrigiert und Download erneut ausdrücklich freigegeben
 - Rolle/Zuständigkeit: FIT-/BLE-Protokoll und begrenzter CIRQA-Download
 - Aktueller Auftrag: genau ein Download über den bestehenden Produktpfad; Verbindung und Ausgang prüfen
 - Jetzt in Bearbeitung: keine Geräteaktion. Zwei Locator-Versuche stoppten vor Produktdialog; kein Request, Touch oder BLE. UI-Dump scheiterte mit `ERROR: could not get idle state.`. Abschließende ADB-Inventur zeigte nur die bekannte S25-Kennung; kein weiterer Zugriff.
@@ -12,4 +12,5 @@
 - Abstimmungsbedarf: Projektleitung/GUI-Agent – sichere S10-Zuordnung bzw. UI-Erkennung bereitstellen; keine S25-Aktion
 - Agent-sync-Nachrichten: `docs/collaboration/agent-chat/messages/2026-11-23_155700_opencode_START_s10-historical-download.md`
 - Nachweise: Nutzerauftrag 15:57 UTC; Modell SM-G970F, Build 1958; beide Versuche vor Bestätigungsdialog gestoppt, kein Request; Lease jeweils FREI
-- Nächster Schritt: pausiert; nur nach geklärter S10-Zuordnung und sofern Auftrag noch gilt
+- Nächster Schritt: sichtbare Screenshots unter gehaltenem S10-Lease; genau einen Produktdownload bestätigen und Ergebnis prüfen.
+- Korrektur durch Nutzer: `RF8M826126Z` = S10, `SM_G970F`, `beyond0lteeea`/`beyond0`. Frühere Zuordnung als S25 war falsch. Diese konkrete Modellprüfung wurde bereits bestätigt; Freigabe liegt vor.
