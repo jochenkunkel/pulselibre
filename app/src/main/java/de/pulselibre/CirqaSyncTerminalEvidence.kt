@@ -30,7 +30,7 @@ internal object CirqaSyncTerminalEvidence {
             require(transactionFollowupsQueued >= 0 && (lastTransactionResponseItems == null || lastTransactionResponseItems >= 0))
             require(selectedItems >= 0 && pullRequestsQueued >= 0 && completedItems >= 0 && failedItems >= 0)
             require(pendingQueueItems >= 0 && currentExpectedBytes >= 0 && currentReceivedBytes >= 0)
-            require(continuationRequestPending in setOf("none", "session", "transaction"))
+            require(continuationRequestPending in setOf("none", "session", "transaction", "unknown"))
             require(terminalCause.matches(Regex("[a-z0-9-]{1,48}")))
         }
 

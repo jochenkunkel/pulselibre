@@ -128,6 +128,7 @@ health values, file identifiers, or screenshots are published here.
 | Canonical observations | 28,668 / 28,668; 0 added, 0 removed |
 | Profile candidates | 28,668 timestamped `PROFILE_VALID` observations; 3 outside display range; 2,183 invalid-sentinel field occurrences excluded |
 | Review-only candidates | 2,796; 979 lack a measurement timestamp; not in the canonical dashboard observation set |
+
 | Unknown fields | 109,960 field occurrences retained in/recoverable from originals; they are not guessed into measurements |
 | Measurement-time range | 2026-11-15 12:56:41 UTC through 2026-11-23 09:15:00 UTC |
 | Receive/validation time | Observation `received_at_ms` extends to 2026-11-23 12:26 UTC; archive reception extends to 18:08 UTC. This is later than measurement time and is not evidence of fresh measurements. |
@@ -204,6 +205,39 @@ Only after a new explicit user authorization and valid S10 lease:
    canonical observations; keep raw traces, screenshots, hashes and values
    outside Git.
 5. Release and verify the S10 lease. A timeout or outstanding state remains
-   incomplete; only the measured evidence can determine whether the next work
-   belongs in transfer throughput, queue recovery, transaction continuation,
-   decoder, or SQLite.
+    incomplete; only the measured evidence can determine whether the next work
+    belongs in transfer throughput, queue recovery, transaction continuation,
+    decoder, or SQLite.
+
+## PR #579 review follow-up: terminal correlation and measured timing
+
+- The runtime no longer derives the outstanding continuation from the diagnostic
+  `syncIncompleteReason`. A private tracker records `none`, `session`,
+  `transaction`, or `unknown`, keyed by the concrete 5043 request ID. Only a
+  complete, successful matching 5044 ItemList response clears a pending state;
+  a failed/rejected write or missing correlation is reported as `unknown`.
+  Time-limit termination closes timing intervals but does not mutate that
+  request state. Request IDs and continuation tokens remain redacted.
+- Pull accounting now distinguishes selected and queued files from API-accepted
+  BLE writes, correlated application responses, completed transfers, verified
+  integrity, original archive, FIT decode/import, SQLite commit, pipeline
+  success, and explicit failures. Per-item event counts are idempotent under
+  repeated callbacks. A timed-out in-flight file remains visibly in-flight and
+  is not guessed to be successful or failed.
+- Monotonic elapsed time is emitted for bootstrap, each ItemList response,
+  session-page/transaction-follow-up waits, transfer, validation, private
+  storage, original archive, FIT decode/import, and SQLite commit. These are
+  measured intervals; no estimates are substituted. Active intervals are
+  closed at terminal time so timeouts are represented. The 120-second limit is
+  unchanged.
+- **Historical budget attribution remains unknown:** the retained S10 report
+  has no per-stage timing values, so it cannot show which operation consumed
+  most of the 120 seconds. Source analysis shows the current freshness policy
+  intentionally re-pulls listed content rather than trusting a local hash;
+  duplicate content can therefore consume transfer time. The archive evidence
+  establishes no new unique content, but cannot establish how many repeated
+  payloads crossed BLE in that run.
+- Offline coverage: continuation tracker and callback idempotence unit tests;
+  existing empty-session/empty-transaction policy replays; archive tests for
+  changed bytes under the same reference and known bytes under a new reference.
+  No S10/device access was performed for this follow-up.
