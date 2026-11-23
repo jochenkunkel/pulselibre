@@ -25,6 +25,11 @@ object ScienceSeriesLoader {
 
     val HEART_RATE_BAND = ScienceSeriesSpec("hr_band", MeasurementOrigin.BAND, "heart_rate", "bpm", SeriesOrigin.BAND,
         SeriesTimeBasis.BAND_CLOCK, "value >= 1 AND value <= 240", SeriesQuality.VALID)
+    /** FIT-only (verified via [ScienceFitSeriesAdapter]); never read from unified_measurements. */
+    val DISTANCE_BAND = ScienceSeriesSpec("distance_band", MeasurementOrigin.BAND, "distance", "m", SeriesOrigin.BAND,
+        SeriesTimeBasis.BAND_CLOCK, "value >= 0", SeriesQuality.VALID)
+    val SPEED_BAND = ScienceSeriesSpec("speed_band", MeasurementOrigin.BAND, "speed", "m/s", SeriesOrigin.BAND,
+        SeriesTimeBasis.BAND_CLOCK, "value >= 0", SeriesQuality.VALID)
     val HEART_RATE_LIVE = ScienceSeriesSpec("hr_live", MeasurementOrigin.LIVE, "bpm", "bpm", SeriesOrigin.LIVE,
         SeriesTimeBasis.PHONE_RECEPTION, "value >= 1 AND value <= 240", SeriesQuality.VALID)
     val SPO2_LIVE = ScienceSeriesSpec("spo2_live", MeasurementOrigin.LIVE, "spo2_percent", "%", SeriesOrigin.LIVE,

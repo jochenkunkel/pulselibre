@@ -29,9 +29,16 @@ internal class ScienceDashboardView(context: Context) : LinearLayout(context) {
     private var generation = 0
     private val ranges = listOf(R.string.sd_r24 to 24L, R.string.sd_r7 to 168L, R.string.sd_r30 to 720L)
     private val specs = listOf(
-        R.string.sd_hr_band to ScienceSeriesLoader.HEART_RATE_BAND, R.string.sd_hr_live to ScienceSeriesLoader.HEART_RATE_LIVE,
+        R.string.sd_hr_band to ScienceSeriesLoader.HEART_RATE_BAND,
+        R.string.sd_distance_band to ScienceSeriesLoader.DISTANCE_BAND, R.string.sd_speed_band to ScienceSeriesLoader.SPEED_BAND,
+        R.string.sd_hr_live to ScienceSeriesLoader.HEART_RATE_LIVE,
         R.string.sd_spo2 to ScienceSeriesLoader.SPO2_LIVE, R.string.sd_resp to ScienceSeriesLoader.RESPIRATION_LIVE,
         R.string.sd_stress to ScienceSeriesLoader.STRESS_LIVE)
+
+    private val fitMetrics = mapOf(
+        ScienceSeriesLoader.HEART_RATE_BAND.key to ScienceFitSeriesAdapter.Metric.HEART_RATE,
+        ScienceSeriesLoader.DISTANCE_BAND.key to ScienceFitSeriesAdapter.Metric.DISTANCE,
+        ScienceSeriesLoader.SPEED_BAND.key to ScienceFitSeriesAdapter.Metric.SPEED)
 
     init {
         orientation = VERTICAL; tag = "science_dashboard"
@@ -84,11 +91,10 @@ internal class ScienceDashboardView(context: Context) : LinearLayout(context) {
                     unified.refresh()
                     val observations = HistoricalObservationRepository(context.applicationContext)
                     specs.map { (title, spec) ->
-                        val data = if (spec.key == ScienceSeriesLoader.HEART_RATE_BAND.key) {
+                        val fitMetric = fitMetrics[spec.key]
+                        val data = if (fitMetric != null) {
                             // unified_measurements is a display projection without FIT quality or timestamp-origin fields.
-                            ScienceFitSeriesAdapter.readVerifiedSeries(
-                                observations, ScienceFitSeriesAdapter.Metric.HEART_RATE, start, end + 1
-                            )
+                            ScienceFitSeriesAdapter.readVerifiedSeries(observations, fitMetric, start, end + 1)
                         } else {
                             ScienceSeriesLoader.load(db.readableDatabase, spec, start, end)
                         }
