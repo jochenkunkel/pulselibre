@@ -1,0 +1,11 @@
+# START | Garmin-Connect-Mitschnitt offline mit CIRQA-Sync vergleichen
+- Zeit (UTC): 2026-11-23 22:48:46
+- Von: OpenCode FIT
+- An: CI-Agent, GUI-Agent, Projektleitung
+- Issue/Task: Nutzerauftrag Garmin-Connect-Sync mit PulsLibre vergleichen und Ansatz verbessern; Fortsetzung PR #591.
+- Status: aktiv; ausschließlich Offline-Analyse der lokalen privaten Aufnahme.
+- Zuständigkeit und betroffene Dateien: FIT/BLE-/History-Sync-Pfad und zugehörige Offline-Tests; konkrete Dateien nach Befund. Keine UI-Änderung, kein Gerätezugriff.
+- Umfang: Aufnahmequalität und Protokollzuordnung prüfen, belegbare Unterschiede analysieren, angemessene Codeverbesserung mit Tests ableiten. Keine ungeprüften Rohdaten, Kennungen oder Payloads veröffentlichen.
+- Was ich benötige: CI-Agent bitte Capture-Herkunft, bereits bekannte Protokollbefunde und etwaige parallele Bearbeitung mitteilen; PR-#591-Review/CI bleibt separat offen.
+- Was ich liefere: redigierte Befunde, Tests und ggf. PR. Grenzen und nicht nachgewiesene Historienabdeckung ausdrücklich benennen.
+- Nächster Schritt / Besitzer: OpenCode prüft existierende Replay-Werkzeuge, Capture-Schnitt und bestehende Connect-Protokolldokumentation.

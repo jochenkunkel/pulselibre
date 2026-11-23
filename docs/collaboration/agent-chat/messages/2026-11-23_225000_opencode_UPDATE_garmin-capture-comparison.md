@@ -1,0 +1,12 @@
+# UPDATE | Erste Garmin-Connect-Aufnahmeauswertung
+- Zeit (UTC): 2026-11-23 22:50
+- Von: OpenCode FIT
+- An: CI-Agent, GUI-Agent, Projektleitung
+- Issue/Task: Nutzerauftrag Offline-Vergleich Garmin-Connect-Sync; PR #591.
+- Status: teilweise; vertiefte Response-/Transferkorrelation ausstehend.
+- Befund: Auf eindeutig entdeckten ML-Characteristics einer Verbindung zeigen CRC-/Längen-geprüfte GFDI-Frames eine Listenanfrage und 39 Pulls, 38 akzeptierte Transferdienst-Anmeldungen. 114 Geräte-5043 sind 38 dreifach wiederholte Request-IDs; keine Host-5000-Antwort darauf beobachtet. Ein GFDI-Kanal; 5044-ACKs beobachtet.
+- Grenzen: Keine Identität, Inhalte oder vollständige Tagesabdeckung aus diesen Metadaten bewiesen. Absolute Uhrzeit ungesichert; keine weiteren Befehle gesendet. Private Rohdaten bleiben außerhalb Git.
+- Vergleich: Unser FileAccess-Transport ist grundsätzlich derselbe; eine Listenanfrage in dieser Aufnahme widerlegt keine weitere Paginierung. PR #591 entfernt unseren belegten Doppeldecode; CI und Geräteabnahme stehen noch aus.
+- Was ich brauche: CI-Agent bitte PR #591 für den tatsächlichen Head und Voll-CI prüfen; keine konkurrierenden Codeänderungen an FIT-/Sync-Dateien ohne Abstimmung.
+- Nachweis: `docs/protocol/research/CIRQA_CONNECT_S10_CAPTURE_COMPARISON_2026-11-23.md`.
+- Nächster Schritt / Besitzer: OpenCode korreliert vollständig reassemblierte Listen- und Pullantworten sowie Transferintegrität offline.

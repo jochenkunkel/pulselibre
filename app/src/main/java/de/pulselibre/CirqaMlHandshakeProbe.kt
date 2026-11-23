@@ -3373,8 +3373,10 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         syncTiming.start(fitImportTimingKey, CirqaSyncTiming.Stage.FIT_IMPORT)
         val imported = try {
             CirqaDatabase(context).use { store ->
-                CirqaFitBackfill.importVerifiedFile(
+                CirqaFitBackfill.importDecodedVerifiedFile(
                     saved.file,
+                    fitData,
+                    decoded,
                     store,
                     onBeforeSqliteCommit = {
                         syncTiming.stop(fitImportTimingKey, CirqaSyncTiming.Stage.FIT_IMPORT)

@@ -278,3 +278,31 @@ Only after a new explicit user authorization and valid S10 lease:
   existing empty-session/empty-transaction policy replays; archive tests for
   changed bytes under the same reference and known bytes under a new reference.
   No S10/device access was performed for this follow-up.
+
+## Build 2021 terminal timing and decode-path finding
+
+The later owner-authorized Build 2021 run has per-item timing that was not
+available in the older 36/37 report above. The private terminal screen records
+for item ordinal 38: 53,748 ms in `fit-decode`, 50,072 ms in `fit-import`,
+4,102 ms in SQLite commit, and 11,428 ms in transfer. Ordinal 39 was selected,
+queued, and write-accepted but received zero of its expected 1,094 bytes before
+the 120-second terminal limit. Total reported run time was 157,877 ms.
+
+Code inspection found the matching duplicate work: `mlrValidation()` decodes
+the verified FIT bytes with `FitHistoricalObservations.decode()`, then the sync
+path called `CirqaFitBackfill.importVerifiedFile()`, whose implementation reads
+and decodes the same content-addressed FIT again before committing it. The
+roughly 50-second `fit-import` interval on item 38 is consistent with that
+second decode. This is the strongest identified software bottleneck for this
+run; timing evidence does not prove that it is the only factor in the terminal
+timeout or that more device history exists.
+
+The follow-up change reuses the already-decoded result for the SQLite import,
+while checking that the persisted content-addressed file still matches the
+verified bytes and that all decoded source references match its content hash.
+The BLE request sequence, 120-second session budget, and file/byte/page limits
+remain unchanged. A focused regression test verifies that the supplied decoded
+result is committed rather than silently decoded again. Local Android JVM test
+execution is currently unavailable because this environment has no Android SDK;
+the installed system Gradle 4.4.1 is also below the project toolchain. CI must
+verify the change before any device acceptance.

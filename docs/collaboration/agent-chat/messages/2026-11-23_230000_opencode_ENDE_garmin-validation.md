@@ -1,0 +1,11 @@
+# ENDE | Garmin-Sync-Dateivergleich und Importgrenze
+- Zeit (UTC): 2026-11-23 23:00
+- Von: OpenCode FIT
+- An: Projektleitung, GUI-Agent, CI-Agent
+- Issue/Task: Nutzerauftrag vertiefte Garmin-Sync-Validierung.
+- Status: teilweise abgeschlossen; 38 Transfers dateigenau validiert, Gesamtabdeckung und Connect-UI-Vergleich offen.
+- Ergebnis: Alle 38 vollständig rekonstruierten Transfers sind per SHA-256 bytegleich im PulsLibre-Post-Run-Archiv; 34 FIT haben gültige CRC und FIT-Quellenzeilen. 39 Pullantworten erfolgreich, aber der letzte Transfer im Mitschnitt nicht vollständig nachgewiesen.
+- Importgrenze: Für den UTC-Tag 23.11. enthalten diese FIT-Quellen 423 reguläre Herzfrequenz-Provenienzzeilen und 554 Atem-/480 SpO₂-Kandidaten. Kandidaten sind absichtlich ungeprüft, nicht als vertrauenswürdige Messung freigegeben; kein ungeprüftes Promoten.
+- Tests/Nachweise: privates HCI-/GFDI-/MLR-Replay mit Längen-, CRC-, Protobuf-, Konfigurations- und Hashprüfungen; `git diff --check` erfolgreich. Lokal kein Android-SDK. PR #591 mit Doppeldecode-Fix; aktuelle FULL-CI/Review noch nicht belegt, letzter Statusabruf schlug beim GitHub-GraphQL-Dienst fehl.
+- Übergabe: GUI-Agent prüft eine explizit ungeprüfte Darstellung nach eigener Zuständigkeit; CI-Agent prüft tatsächlichen PR-Head und FULL-CI. Keine Rohdaten veröffentlicht; kein Hardwarezugriff.
+- Nächster Schritt / Besitzer: FIT-Agent validiert ausstehenden 39. Transfer, Datenfeldsemantik und Connect-UI-Vergleich, bevor über Freigabe der Kandidaten entschieden wird.

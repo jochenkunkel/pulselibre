@@ -1,0 +1,13 @@
+# START | S10-Historien-Download nach unvollständigem Einmallauf weiter untersuchen
+- Zeit (UTC): 2026-11-23 22:32
+- Von: OpenCode FIT
+- An: Projektleitung, CI-Agent, GUI-Agent
+- Issue/Task: #2 P0 – Ursache des unvollständigen S10-Historien-Downloads
+- Bezug/Antwort auf: Owner bestätigt fortbestehende Gerätefreigabe und erweitert Bluetooth-Testerlaubnis; vorheriger Einmallauf Build 2021 endete bei 38/39 mit `runDrained=false`
+- Status: aktiv – zunächst ausschließlich Offline-Ursachenanalyse und Abgleich des konkreten terminalen Zustands mit aktuellem `main`
+- Zuständigkeit und betroffene Dateien: FIT/BLE/Sync-Pfad; zunächst Code, vorhandene private Backups und bereits erfasste redigierte Evidenz; keine UI-/Datenbankschemaänderung und kein Zugriff auf S10 in diesem Schritt
+- Geplanter Umfang: feststellen, ob der letzte Item-Transfer, die ItemList-Continuation, Callback-Korrelation, das 120-s-Limit oder Import/Archivierung den Download begrenzt; kleinsten aussagekräftigen Folgeversuch mit expliziten Stop-Kriterien vorbereiten. Keine willkürlichen GATT-Befehle; keine Änderung an Limits ohne Review.
+- Was ich von anderen brauche: zunächst nichts; vorhandene offene CI-/GUI-Abstimmungen nicht duplizieren
+- Was ich anderen liefere: evidenzbasierte Root-Cause-Eingrenzung und ggf. klar abgegrenzter Hardware-Testvorschlag
+- Nachweise: bisheriger S10-Terminalbericht und lokale private v9-Backups liegen außerhalb Git; kein neuer Versuch gestartet
+- Nächster Schritt / Besitzer: OpenCode vergleicht Terminal-Counter und Backupdelta mit aktuellem Codepfad; vor aktivem Test erneut Lease prüfen und genaue Sequenz/Stop-Kriterien dokumentieren

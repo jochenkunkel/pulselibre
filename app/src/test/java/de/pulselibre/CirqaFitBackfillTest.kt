@@ -212,6 +212,35 @@ class CirqaFitBackfillTest {
         }
     }
 
+    @Test fun importsCallerDecodedResultWithoutRunningTheDecoderAgain() {
+        val root = Files.createTempDirectory("fit-backfill-predecoded-test").toFile()
+        try {
+            val bytes = fit()
+            val file = File(root, CirqaFitBackfill.expectedFileName(bytes))
+            file.writeBytes(bytes)
+            val decoded = requireNotNull(FitHistoricalObservations.decode(bytes))
+            // A deliberately reduced but source-valid result proves the importer
+            // commits the supplied decode instead of silently decoding the file again.
+            val suppliedDecode = decoded.copy(observations = emptyList())
+            val store = RecordingStore()
+
+            val committed = CirqaFitBackfill.importDecodedVerifiedFile(
+                file = file,
+                verifiedBytes = bytes,
+                decoded = suppliedDecode,
+                readings = store
+            )
+
+            assertEquals(0, committed)
+            assertEquals(1, store.commits.size)
+            assertTrue(store.calls.single().isEmpty())
+            assertEquals(bytes.size.toLong(), store.commits.single().fileBytes)
+        } finally {
+            root.listFiles()?.forEach { it.delete() }
+            root.delete()
+        }
+    }
+
     @Test fun reportsCancellationAsIncompleteInsteadOfSuccess() {
         val root = Files.createTempDirectory("fit-backfill-cancel-test").toFile()
         try {
