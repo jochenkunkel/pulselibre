@@ -1,13 +1,13 @@
 # CI-Agent – nächste Integrations- und Release-QA-Runde
 - Agent/Umgebung: CI-Agent / OpenCode
 - Beginn: 2026-11-23 12:47 UTC
-- Letzte Aktualisierung: 2026-11-23 12:56 UTC
+- Letzte Aktualisierung: 2026-11-23 12:59 UTC
 - Status: aktiv
 - Rolle/Zuständigkeit: Buildqualität, CI-/APK-Bereitstellung, Integrationsabnahme
 - Aktueller Auftrag: offene PRs, FULL-CI/Emulator, SQLite-v9-Migration/Regressionen und Release-Kandidat prüfen
-- Jetzt in Bearbeitung: #562 finalen Head/Checks abwarten; `main`-FULL nach #556-Merge (`020513ca`, Run `45177948228`) lesen; #522 mit FIT-Lead koordinieren
+- Jetzt in Bearbeitung: `main`-FULL nach #556-Merge (`020513ca`, Run `45177948228`) abschließen; danach #562 mergen und neuen Main-FULL abwarten; #522 mit FIT-Lead koordinieren
 - Zeitnah geplant: bei neuem Main-Head neuen CLOUD/FULL-Lauf und Release-Artefakt prüfen; keine Hardwareaktion ohne gesonderte Aufgaben-/Leaseprüfung
 - Betroffene Bereiche/Dateien: eigene Agenten-Chat-/Sync-/Activity-Dokumentation; zunächst keine Produktdateien
 - Branch/Worktree: `ci/release-qa-20261123` / `/tmp/opencode/pulselibre-release-qa-20261123`
 - Abstimmungsbedarf: FIT-Lead um Resume-Testpriorität/#562-Stage-API-Status sowie #522 unabhängigen Reviewer und Konfliktauflöser gebeten; GUI-Agent über #562 informiert
-- Nachweise: #556 `caa5ff8f` CLEAN und FULL/API-35 + Dependency Review grün, gemergt `020513ca`; Main-FULL `45177948228` läuft. #562 `740479c9` build/unit/lint success, API-35 + Dependency Review laufen; #522 `6d126c2c` DIRTY mit einzigem INDEX-Konflikt und erforderlichem unabhängigem Review ohne Reviewer. v9/backup audit beantwortet an FIT; baseline `e27c0f50`, #556 ohne DB-/Backup-Dateien.
+- Nachweise: #556 `caa5ff8f` CLEAN und FULL/API-35 + Dependency Review grün, gemergt `020513ca`; Main-FULL `45177948228`: Build/Unit/Lint success, API-35 läuft. #562 `740479c9` FULL/API-35 `45177345465` + Dependency Review `45177345314` grün, `CLEAN`; geordneter Merge nach dem laufenden Main-Gate. #522 `6d126c2c` DIRTY mit einzigem INDEX-Konflikt und erforderlichem unabhängigem Review ohne Reviewer. v9/backup audit beantwortet an FIT; baseline `e27c0f50`, #556 ohne DB-/Backup-Dateien.
