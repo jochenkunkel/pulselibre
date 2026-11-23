@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+<title id="title">PulsLibre – Deine Daten. Deine Kontrolle.</title>
+<desc id="desc">Werbeposter für das quelloffene Offline-first Android-Projekt PulsLibre: CIRQA, Bluetooth, validierte FIT-Dateien, lokale SQLite-Speicherung und transparente Analysen. Historische Abdeckung bleibt in Entwicklung.</desc>
+<defs>
+<linearGradient id="bg" x2="1" y2="1"><stop stop-color="#07162c"/><stop offset=".55" stop-color="#0d2942"/><stop offset="1" stop-color="#092c32"/></linearGradient>
+<linearGradient id="accent"><stop stop-color="#35ddf2"/><stop offset="1" stop-color="#8af4a7"/></linearGradient>
+<filter id="glow"><feGaussianBlur stdDeviation="22"/></filter>
+</defs>
+<rect width="1200" height="630" fill="url(#bg)"/>
+<circle cx="1000" cy="165" r="180" fill="#24e8c0" opacity=".12" filter="url(#glow)"/>
+<circle cx="1050" cy="520" r="210" fill="#1e9aff" opacity=".12" filter="url(#glow)"/>
+<g stroke="#3ed9e3" opacity=".22" fill="none"><path d="M0 480 Q200 370 380 480 T780 470 T1200 430"/><path d="M0 505 Q220 395 420 505 T850 480 T1200 460"/><path d="M0 530 Q230 420 450 530 T900 505 T1200 490"/></g>
+<g transform="translate(68 57)" fill="none" stroke="url(#accent)" stroke-width="9" stroke-linejoin="round" stroke-linecap="round"><path d="M48 18 C20 -11 -24 15 4 57 L48 104 L94 57 C122 15 76 -11 48 18Z"/><path d="M11 54 H31 L42 34 L53 76 L66 49 L76 54 H89"/></g>
+<text x="195" y="124" font-family="DejaVu Sans,Arial,sans-serif" font-weight="800" font-size="69" fill="#f8fdff">Puls<tspan fill="#80f3bd">Libre</tspan></text>
+<text x="72" y="206" font-family="DejaVu Sans,Arial,sans-serif" font-weight="700" font-size="39" fill="#f4fbff">Deine Daten. Deine Kontrolle.</text>
+<text x="74" y="256" font-family="DejaVu Sans,Arial,sans-serif" font-size="23" fill="#c9e2ee">Offenes Android-Projekt für das CIRQA-Armband</text>
+<g font-family="DejaVu Sans,Arial,sans-serif">
+<g transform="translate(72 312)"><rect width="635" height="61" rx="15" fill="#133a51" stroke="#2d8191"/><text x="24" y="39" font-size="22" fill="#e7fcff">01  Bluetooth &amp; kontrollierter CIRQA-Sync</text></g>
+<g transform="translate(72 386)"><rect width="635" height="61" rx="15" fill="#133a51" stroke="#2d8191"/><text x="24" y="39" font-size="22" fill="#e7fcff">02  FIT-Prüfung &amp; lokale SQLite-Daten</text></g>
+<g transform="translate(72 460)"><rect width="635" height="61" rx="15" fill="#133a51" stroke="#2d8191"/><text x="24" y="39" font-size="22" fill="#e7fcff">03  Transparente, nachvollziehbare Analysen</text></g>
+</g>
+<g transform="translate(824 180)">
+<rect x="0" y="0" width="292" height="344" rx="38" fill="#020c18" stroke="#66e7db" stroke-width="5"/>
+<rect x="16" y="20" width="260" height="303" rx="25" fill="#10283d"/>
+<text x="37" y="60" font-family="DejaVu Sans,Arial,sans-serif" font-size="21" font-weight="700" fill="#e9ffff">PulsLibre</text>
+<text x="37" y="102" font-family="DejaVu Sans,Arial,sans-serif" font-size="15" fill="#b2d5e6">Historische Daten</text>
+<path d="M38 176 H60 L75 156 L91 197 L111 166 L132 178 L155 132 L174 185 L197 156 L223 169 L252 151" fill="none" stroke="#79f4b3" stroke-width="4" stroke-linejoin="round"/>
+<path d="M38 210 H252 M38 249 H252" stroke="#356078" stroke-width="1"/>
+<rect x="38" y="268" width="172" height="18" rx="9" fill="#256879"/><rect x="38" y="268" width="105" height="18" rx="9" fill="#66e5c4"/>
+<text x="38" y="238" font-family="DejaVu Sans,Arial,sans-serif" font-size="13" fill="#d5f4ff">Illustrative Ansicht</text>
+</g>
+<text x="72" y="577" font-family="DejaVu Sans,Arial,sans-serif" font-size="21" font-weight="700" fill="#86edc3">OFFLINE-FIRST   ·   OPEN SOURCE   ·   DATENSCHUTZBEWUSST</text>
+<text x="72" y="610" font-family="DejaVu Sans,Arial,sans-serif" font-size="15" fill="#bfd4df">Historienimport in Entwicklung · vollständige Gerätehistorie nicht nachgewiesen · keine medizinische App</text>
+</svg>
