@@ -163,4 +163,19 @@ class CirqaSyncInstrumentationTest {
         assertFalse(pipeline.failWriteIfNoResponse(unanswered))
         assertEquals(1, pipeline.count(CirqaSyncPipelineLedger.Stage.FAILED))
     }
+
+    @Test fun archiveOutcomeDistinguishesPreExistingContentWithoutExposingIdentity() {
+        val pipeline = CirqaSyncPipelineLedger()
+        val old = pipeline.select()
+        val fresh = pipeline.select()
+        pipeline.record(old, CirqaSyncPipelineLedger.Stage.ARCHIVED)
+        pipeline.record(old, CirqaSyncPipelineLedger.Stage.ARCHIVE_CONTENT_PREEXISTED)
+        pipeline.record(fresh, CirqaSyncPipelineLedger.Stage.ARCHIVED)
+        pipeline.record(fresh, CirqaSyncPipelineLedger.Stage.ARCHIVE_CONTENT_NEW)
+
+        assertEquals(1, pipeline.count(CirqaSyncPipelineLedger.Stage.ARCHIVE_CONTENT_PREEXISTED))
+        assertEquals(1, pipeline.count(CirqaSyncPipelineLedger.Stage.ARCHIVE_CONTENT_NEW))
+        assertTrue(pipeline.orderedSummary().contains("1:"))
+        assertFalse(pipeline.orderedSummary().contains("sha"))
+    }
 }

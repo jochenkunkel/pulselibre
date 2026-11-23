@@ -3190,10 +3190,20 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         val archiveTimingKey = "item:${syncCurrentLocalItemId ?: 0}:archive"
         syncTiming.start(archiveTimingKey, CirqaSyncTiming.Stage.ARCHIVE)
         try {
-            CirqaDatabase(context).use {
+            val contentAlreadyPresent = CirqaDatabase(context).use {
                 it.archiveDownloadedFile(data, item.referenceBytes, label, System.currentTimeMillis())
             }
-            syncCurrentLocalItemId?.let(syncArchivedLocalIds::add)
+            syncCurrentLocalItemId?.let { localId ->
+                syncArchivedLocalIds.add(localId)
+                syncPipelineLedger.record(
+                    localId,
+                    if (contentAlreadyPresent) {
+                        CirqaSyncPipelineLedger.Stage.ARCHIVE_CONTENT_PREEXISTED
+                    } else {
+                        CirqaSyncPipelineLedger.Stage.ARCHIVE_CONTENT_NEW
+                    }
+                )
+            }
         } catch (e: Exception) {
             return CirqaSyncFileCompletion.Result(
                 format = format,
@@ -3472,7 +3482,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     "pages=$syncListPageCount,currentBytes=${mlrData.size()},details=$syncFileResults," +
                     "pipeline=[${syncPipelineLedger.summary()}],pipelineItems=[${syncPipelineLedger.orderedSummary()}]," +
                     "pipelineStageOrder=selected,queued,ble-write-accepted,response-received,transfer-completed," +
-                    "integrity-verified,archived,fit-decoded,sqlite-committed,successful,failed;" +
+                    "integrity-verified,archived,archive-content-preexisted,archive-content-new," +
+                    "fit-decoded,sqlite-committed,successful,failed;" +
                     "pipelineEncoding=hex-bitset-lsb-first," +
                     "timing=[measured:${syncTiming.redactedSummary()}]," +
                     "itemTiming=[${syncTiming.perItemSummary()}]"

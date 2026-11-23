@@ -14,6 +14,8 @@ internal class CirqaSyncPipelineLedger {
         TRANSFER_COMPLETED,
         INTEGRITY_VERIFIED,
         ARCHIVED,
+        ARCHIVE_CONTENT_PREEXISTED,
+        ARCHIVE_CONTENT_NEW,
         FIT_DECODED,
         SQLITE_COMMITTED,
         SUCCESSFUL,

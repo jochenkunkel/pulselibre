@@ -40,10 +40,10 @@ class DownloadedFileArchiveTest {
         try {
             CirqaDatabase(context).use { database ->
                 // Same reference/UID, different bytes: both immutable contents survive.
-                database.archiveDownloadedFile(original, reference, "fit", 1000)
-                database.archiveDownloadedFile(changed, reference, "fit", 1001)
+                assertFalse(database.archiveDownloadedFile(original, reference, "fit", 1000))
+                assertFalse(database.archiveDownloadedFile(changed, reference, "fit", 1001))
                 // Already-known content, new reference: associate the new reference too.
-                database.archiveDownloadedFile(original, newReference, "fit", 1002)
+                assertTrue(database.archiveDownloadedFile(original, newReference, "fit", 1002))
                 val db = database.readableDatabase
                 db.rawQuery("SELECT COUNT(*) FROM downloaded_files", null).use {
                     assertTrue(it.moveToFirst())
@@ -69,9 +69,9 @@ class DownloadedFileArchiveTest {
         val lines = mutableListOf<String>()
         try {
             CirqaDatabase(context).use { database ->
-                database.archiveDownloadedFile(first, byteArrayOf(1, 2), "unknown", 1000)
-                database.archiveDownloadedFile(first, byteArrayOf(1, 2), "unknown", 1001)
-                database.archiveDownloadedFile(second, byteArrayOf(1, 3), "unknown", 2000)
+                assertFalse(database.archiveDownloadedFile(first, byteArrayOf(1, 2), "unknown", 1000))
+                assertTrue(database.archiveDownloadedFile(first, byteArrayOf(1, 2), "unknown", 1001))
+                assertFalse(database.archiveDownloadedFile(second, byteArrayOf(1, 3), "unknown", 2000))
                 DownloadedFileArchive.export(database.readableDatabase, lines::add)
                 database.readableDatabase.rawQuery("SELECT COUNT(*) FROM downloaded_files", null).use {
                     assertTrue(it.moveToFirst()); assertEquals(2, it.getInt(0))

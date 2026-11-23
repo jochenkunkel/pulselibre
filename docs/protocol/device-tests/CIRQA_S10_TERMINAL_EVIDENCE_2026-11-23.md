@@ -235,7 +235,10 @@ Only after a new explicit user authorization and valid S10 lease:
   repeated callbacks. An ordered per-run local ordinal and an LSB-first
   stage-bitset preserve file order/progress without emitting UIDs. A timed-out
   in-flight file remains visibly in-flight, with its ordinal and byte progress,
-  and is not guessed to be successful or failed.
+  and is not guessed to be successful or failed. The archive stage distinguishes
+  newly archived content from content already present before this transfer, so
+  per-item transfer time can be attributed to repeated payloads without
+  exposing content hashes.
 - Monotonic elapsed time is emitted for the total run, bootstrap, each ItemList response,
   session-page/transaction-follow-up waits, transfer, validation, private
   storage, original archive, FIT decode/import, and SQLite commit. These are
@@ -263,9 +266,10 @@ Only after a new explicit user authorization and valid S10 lease:
   page ordinal and response status/count/cursor-presence flags; a local
   per-run file ordinal (not UID), reached-stage markers for selected, queued,
   BLE API accepted/status, correlated response, transfer complete, integrity,
-  archive, FIT decode, SQLite commit, success/failure, and expected/received
-  byte totals. Retain monotonic durations for bootstrap, list/page waits,
-  per-item transfer, validation, storage/archive and FIT/SQLite import;
+  archive plus content-new/content-preexisting outcome, FIT decode, SQLite
+  commit, success/failure, and expected/received byte totals. Retain monotonic
+  durations for bootstrap, list/page waits, per-item transfer, validation,
+  storage/archive and FIT/SQLite import;
   and continuation request kind/phase transitions with only request-match
   outcome (never the token). Snapshot queued and current ordinals/byte counts
   at timeout. Keep payloads, file IDs, hashes, session IDs, tokens, and health

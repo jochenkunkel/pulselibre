@@ -36,10 +36,14 @@ object DownloadedFileArchive {
         .joinToString("") { "%02x".format(it.toInt() and 255) }
 
     /** Caller owns the transaction. Never replaces a previous content version. */
-    fun store(db: SQLiteDatabase, bytes: ByteArray, reference: ByteArray, label: String, at: Long) {
+    fun store(db: SQLiteDatabase, bytes: ByteArray, reference: ByteArray, label: String, at: Long): Boolean {
         require(bytes.size in 1..MAX_BYTES && reference.size <= 64 * 1024 && at >= 0)
         require(label.matches(Regex("[A-Za-z0-9_]{1,48}")))
         val sha = sha256(bytes)
+        val contentAlreadyPresent = db.rawQuery(
+            "SELECT 1 FROM downloaded_files WHERE content_sha256=?",
+            arrayOf(sha)
+        ).use { it.moveToFirst() }
         db.execSQL("""INSERT OR IGNORE INTO downloaded_files
             (content_sha256,file_bytes,received_at_ms,payload) VALUES (?,?,?,?)""",
             arrayOf(sha, bytes.size, at, bytes))
@@ -56,6 +60,7 @@ object DownloadedFileArchive {
         db.execSQL("""INSERT OR IGNORE INTO downloaded_file_references
             (content_sha256,reference_sha256,reference_bytes,type_label,received_at_ms)
             VALUES (?,?,?,?,?)""", arrayOf(sha, sha256(reference), reference, label, at))
+        return contentAlreadyPresent
     }
 
     fun export(db: SQLiteDatabase, emit: (String) -> Unit) {
