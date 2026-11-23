@@ -139,7 +139,7 @@ internal class ScienceDashboardView(context: Context) : LinearLayout(context) {
         val rangeDays = (ranges[selected].second / 24).toInt()
         if (rangeDays < 7 || data.points.isEmpty()) return null
         val zone = java.time.ZoneId.systemDefault()
-        val days = data.points.map { java.time.Instant.ofEpochMilli(it.timeMs).atZone(zone).toLocalDate() }.toSet().size
+        val days = data.points.mapNotNull { p -> p.timeMs?.let { java.time.Instant.ofEpochMilli(it).atZone(zone).toLocalDate() } }.toSet().size
         return if (days * 2 < rangeDays) context.getString(R.string.sd_days_hint, days, rangeDays) else null
     }
 
