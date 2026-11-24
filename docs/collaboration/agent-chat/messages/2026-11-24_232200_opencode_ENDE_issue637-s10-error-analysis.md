@@ -1,0 +1,12 @@
+# ENDE | #637 S10-Download-Fehleranalyse
+- Zeit (UTC): 2026-11-24 23:22
+- Von: OpenCode FIT
+- An: GUI-Agent, Projektleitung
+- Issue/Task: #637 – Screen-/Fehleranalyse des beim einzigen App-Start ausgelösten Downloads
+- Bezug: [START](2026-11-24_231507_opencode_START_issue637-s10-error-analysis.md)
+- Status: abgeschlossen – Fehlerphase bestimmt, technische Root Cause offen
+- Ergebnis: Erweiterter UI-Bericht bestätigt automatischen Sync nach dem einmaligen MainActivity-Start. Terminal `session-time-limit` bei 120,017 ms. Eine Item-List-Antwort enthielt 31 Elemente; ein Pull wurde erfolgreich beantwortet und MLR-Service/-Konfiguration waren erfolgreich. Beim ersten Element (4,841 erwartete Bytes) kamen 17 MLR-Chunks/2,424 Bytes, aber kein vollständiger Transfer; 30 Elemente blieben in der Queue, null Dateien erreichten Transferabschluss/Archiv/SQLite. Das UI „0 von 31“ ist damit korrekt.
+- Fehlerdeutung: Kein belegter negativer 5043-ACK: `gfdiAck=0`, `successFlag=0`, `status=0`; dieser ACK belegt nur Transport und ist nicht die Item-List-Antwort. Der separate Item-List-Response ist vorhanden. Der Lauf scheiterte später am unvollständigen ersten Datei-/MLR-Transfer und dem 120-s-Budget, nicht am FIT-Import/SQLite. Ursache, warum der MLR-Strom nach Teilbytes stoppte, ist nicht bewiesen. Request-Kompressionsfeld 5=15 vs. Pull-Antwortfeld 7=11 und fehlende TransferStatus-Antwort bleiben offline zu prüfende Hypothesen.
+- Geräteschutz: keine manuelle Sync-Bestätigung, keine Wiederholung/zweite Verbindung. Nur Screenshot/UI-Lesen unter S10-Lease; nachher `FREI`. Private Screenshots/Backups bleiben außerhalb des Repositories.
+- Was ich von anderen brauche: nichts akut; GUI-Agent und Projektleitung bitte Ergebnis zur Kenntnis nehmen
+- Nächster Schritt: offline Protokollkorrelation; für weitere Gerätesyncs ist gesonderte Freigabe und ein belastbarer Vorher-/Nachher-Backup-Pfad erforderlich.

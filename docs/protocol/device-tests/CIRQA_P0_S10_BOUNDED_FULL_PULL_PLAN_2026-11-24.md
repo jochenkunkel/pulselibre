@@ -145,19 +145,43 @@ Gradle-Aufruf scheiterte zuvor nur, weil der Emulator bereits beendet war;
 der CI-Wrapper startete ihn kontrolliert neu. Das grüne lokale FULL ersetzt
 weder den unabhängigen Review noch den erforderlichen Main-FULL-Gate.
 
-**2026-11-24 23:08 UTC – Folgetest #637 nach Merge, Ergebnis nicht feststellbar.**
+**2026-11-24 23:08 UTC – Folgetest #637 nach Merge, zunächst unklar.**
 Unter S10-Lease wurde das Modell geprüft, die Signatur des installierten
 Pakets mit dem signierten `main`-Build verglichen und Version 2132 ohne
 Datenlöschung installiert. `MainActivity` wurde genau einmal geöffnet.
 Danach fand die automatisierte UI-Prüfung weder einen eindeutig laufenden
 Sync noch den normalen manuellen Download-Button und stoppte, ohne einen
-Sync-Dialog zu bestätigen. Ein einzelner lesender UI-Dump scheiterte mit
-„could not get idle state“. Daher ist **nicht feststellbar**, ob der
-App-Start einen automatischen Lauf ausgelöst hat oder ob ein Laufterminal
-vorliegt. Kein manueller Sync wurde ausgelöst; kein Retry, keine zweite
-App-Öffnung und keine weitere Protokollverbindung. Ein Post-Run-Backup und
-Nachher-Inventar liegen nicht vor. Der Test ist unvollständig; keine Aussage
-zu PullItem-Kompatibilität oder Datenpersistenz. S10-Lease danach `FREI`.
-Lokales Vorher-Backup und private Installations-/UI-Evidenz bleiben außerhalb
-des Repositories. Nicht erneut ausführen, bis Status und ein sicherer
-Backup-/Inventarpfad unabhängig geklärt sind.
+Sync-Dialog zu bestätigen. Der UI-Dump scheiterte zunächst mit „could not get
+idle state“; deshalb wurde erst kein Laufstatus behauptet. Bei der späteren
+rein lesenden Screenprüfung wurde der von genau diesem App-Start ausgelöste
+automatische Lauf samt Terminalbericht sichtbar. Es gab keinen manuellen Lauf,
+Retry, zweite App-Öffnung oder weitere Protokollverbindung.
+
+**Fehleranalyse 2026-11-24 23:18–23:21 UTC:** Terminalgrund
+`session-time-limit`, `runDrained=false`, Laufzeit 120,017 ms. Der Sync wurde
+angenommen; eine Item-List-Antwort kam nach 2,150 ms und enthielt 31 Elemente
+auf einer Seite (5,208,827 gelistete Bytes). `nextTransaction=true`, aber
+kein Follow-up war vor dem Abbruch eingereiht. Ein Pull-Request wurde gesendet
+und seine FileAccess-Antwort war erfolgreich (`result=0`, `transport=0`,
+keine Error-Codes, kein Dateipfad); die Antwort meldete Feld 7
+`compressionWindow=11`. MLR-Service-Registrierung und -Konfiguration waren
+erfolgreich. Beim ersten Element (erwartet 4,841 Bytes) kamen 17 MLR-Chunks
+mit insgesamt 2,424 Bytes an, danach wurde der Datei-Transfer nicht
+vervollständigt. Für diesen Transfer wurden 115,923 ms gemessen; am
+120-s-Laufbudget wurde abgebrochen. 30 ausgewählte Elemente blieben in der
+Queue. Keine Datei erreichte Transferabschluss, Integritätsprüfung, Archiv
+oder SQLite; daher zeigt die UI korrekt **0 von 31**.
+
+Der sichtbare `5043-Transport-ACK` hatte `gfdiAck=0`, `successFlag=0`,
+`status=0`. Das ist laut aktuellem Code-Kandidaten ein Transport-ACK ohne
+Fehlerstatus, aber kein Anwendungsnachweis für eine Item-List-Antwort. Die
+separate Item-List-Antwort ist im selben Terminalbericht dennoch belegt. Der
+Fehler ist somit **kein belegter negativer 5043-ACK und kein FIT-/SQLite-
+Importfehler**: der erste MLR-Datei-Transfer blieb nach Teilbytes stehen und
+verbraucht fast das gesamte Laufbudget. Ursache des Stillstands ist aus diesem
+einen Lauf nicht bewiesen. Die angeforderte Kompressionsfenster-Angabe 15 und
+der von der Pull-Antwort gemeldete Wert 11 sollten offline korreliert werden;
+ein kausaler Zusammenhang ist nicht belegt. Auch eine fehlende
+TransferStatus-Anwendungsantwort bleibt eine Forschungshypothese, keine
+festgestellte Ursache. Keine Wiederholung. Post-Run-Backup und
+Nachher-Inventar fehlen; Vorher-Backup und Screenshots bleiben privat.
