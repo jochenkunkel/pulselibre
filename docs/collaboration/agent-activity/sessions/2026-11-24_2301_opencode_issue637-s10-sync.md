@@ -1,0 +1,15 @@
+# OpenCode – #637 CIRQA-S10-Sync nach Merge
+- Agent/Umgebung: OpenCode FIT, Linux-Worktree
+- Beginn: 2026-11-24 23:01 UTC
+- Letzte Aktualisierung: 2026-11-24 23:01 UTC
+- Status: aktiv
+- Rolle/Zuständigkeit: FIT-/GFDI-Protokoll, CIRQA-Sync und kontrollierte Geräteevidenz
+- Aktueller Auftrag: genau ein autorisierter CIRQA-Sync-Test mit PullItem field 5=15 nach Merge
+- Jetzt in Bearbeitung: #637 – S10-Installation, ein Sync-Lauf, Nachprüfung und Cleanup
+- Zeitnah geplant: nur Bericht/Übergabe; kein zweiter Versuch
+- Betroffene Bereiche/Dateien: Gerätetestplan und Agentenlogs; keine Produktcodeänderung geplant
+- Branch/Worktree: `issue637-s10-test-20261125`, `/home/smiler/.local/share/opencode/worktree/634470/issue637-protocol-research`
+- Abstimmungsbedarf: keiner akut; tatsächlicher S10-Lease und Modellprüfung bleiben zwingend
+- Agent-sync-Nachrichten: `docs/collaboration/agent-chat/messages/2026-11-24_230126_opencode_START_issue637-s10-sync.md`
+- Nachweise: PR #641 gemergt als `727a20d3`; PR-FULL/API-35 `45501433916` und Main-FULL/API-35 `45503591484` erfolgreich. Nutzerbackup v11 lokal privat kopiert; ZIP-/Manifestintegrität bestanden. Kein ADB-/BLE-Zugriff in dieser Sitzung bisher.
+- Nächster Schritt: kompletten Geräteablauf in einem S10-Lease-Wrapper halten; Testplan-Stop-Gates beachten

@@ -1,0 +1,13 @@
+# START | #637 CIRQA-S10-Sync nach Merge
+- Zeit (UTC): 2026-11-24 23:01:26
+- Von: OpenCode FIT
+- An: Projektleitung, GUI-Agent, CI-Agent
+- Issue/Task: #637 – einmaliger Post-Merge-Kompatibilitätstest PullItem field 5=15
+- Bezug/Antwort auf: Nutzerfreigaben im aktuellen Gespräch; PR #641
+- Status: aktiv – sichere Vorbereitung, noch kein Gerätezugriff
+- Zuständigkeit und betroffene Dateien: ausschließlich kontrollierter S10-Update-/Sync-Test; lokaler Bericht in `docs/protocol/device-tests/` nach Abschluss
+- Geplanter Umfang / tatsächlich erledigt: Nutzer autorisierte genau einen CIRQA-Sync-Lauf ohne zusätzliche Dateianzahlgrenze; unveränderte technische Budgets gelten. Mögliche Sync-Request-Markierung als übertragen ist akzeptiert. Löschen, Reset und Entkoppeln ausgeschlossen. PR #641 ist gemergt; PR-FULL/API-35 und Main-FULL/API-35 sind erfolgreich. Das bereitgestellte Datenbankbackup v11 wurde lokal in einem privaten 0700/0600-Verzeichnis gesichert; ZIP-CRC und Manifest-Prüfsummen wurden verifiziert.
+- Was ich von anderen brauche: keine neue Freigabe; eine unabhängige PR-Merge-/CI-Bestätigung liegt vor
+- Was ich anderen liefere: ein einzelner Testlaufbericht mit redigierten Summen; keine IDs, Rohbytes, Hashes oder Gesundheitswerte in Git
+- Nachweise: Merge `727a20d3`; PR-CI `45501433916` grün einschließlich API 35; Post-Merge-CI `45503591484` grün einschließlich API 35. Noch keine Geräteaktion.
+- Nächster Schritt / Besitzer: S10-Lease erwerben; S10-Modell und installierte App/Signatur prüfen; nur bei validiertem Backup und sicherem Update einmal installieren und einen Sync-Lauf ausführen
