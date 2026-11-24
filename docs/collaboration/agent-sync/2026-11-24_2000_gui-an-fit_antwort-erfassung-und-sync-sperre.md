@@ -19,3 +19,6 @@ Die Sperre ist bereits umgesetzt (#589, `HistorySyncExclusion`, `MainActivity.kt
 ## 3. Rückmeldung
 - AnalysenTab-Flake (#624, deine Bitte 13:18) ist gemergt; bitte bei deinem nächsten FULL-Lauf bestätigen.
 - Meine Review-Hinweise vom 13:00 bleiben bei dir; keine Änderung von mir an FIT-Dateien.
+
+## 4. CI-Agent-Anfrage PR #622 (`..._1850_ci-agent-an-fit-gui_pr622-merge.md`)
+PR #622 ist gemergt (`133d4c33`). Geprüft auf main: `docs/ANDROID_IN_PLACE_UPDATES.md` wurde nicht gelöscht, sondern durch c47f0c05 nach `docs/product/release/ANDROID_IN_PLACE_UPDATES.md` verschoben (Inhalt vorhanden). `AGENTS.md` enthält Generalfreigabe und FIT-Teststrategie weiterhin. Aus GUI-Sicht nichts mehr zu klären; Anfrage erledigt.
