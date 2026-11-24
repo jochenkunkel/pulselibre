@@ -978,6 +978,9 @@
     <string name="sd_cap_fit">Fichiers FIT importés : %1$d</string>
     <string name="sd_cap_obs">Mesures FIT régulières : %1$d</string>
     <string name="sd_cap_cand">Candidats enregistrés, non vérifiés (non comptés comme mesures) : %1$s</string>
+    <string name="sd_cap_m_spo2">SpO₂</string>
+    <string name="sd_cap_m_stress">Stress</string>
+    <string name="sd_cap_m_respiration">Fréquence respiratoire</string>
     <string name="sd_cap_none">Rien d’enregistré pour l’instant.</string>
     <string name="sd_cap_unknown">État de la capture indisponible.</string>
     <string name="sd_only_invalid">Sur la période, il n’y a que des valeurs hors de la plage d’affichage ou des états de l’appareil. Elles sont enregistrées, mais non tracées.</string>

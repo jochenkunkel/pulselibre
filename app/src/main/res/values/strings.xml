@@ -971,6 +971,9 @@
     <string name="sd_cap_fit">FIT files imported: %1$d</string>
     <string name="sd_cap_obs">Regular FIT measurements: %1$d</string>
     <string name="sd_cap_cand">Stored, unverified candidates (not counted as measurements): %1$s</string>
+    <string name="sd_cap_m_spo2">SpO₂</string>
+    <string name="sd_cap_m_stress">Stress</string>
+    <string name="sd_cap_m_respiration">Respiration rate</string>
     <string name="sd_cap_none">Nothing stored yet.</string>
     <string name="sd_cap_unknown">Capture status unavailable.</string>
     <string name="sd_only_invalid">The period only contains values outside the display range or device status. They are stored, but not drawn.</string>

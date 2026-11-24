@@ -971,6 +971,9 @@
     <string name="sd_cap_fit">FIT-Dateien importiert: %1$d</string>
     <string name="sd_cap_obs">Reguläre FIT-Messwerte: %1$d</string>
     <string name="sd_cap_cand">Gespeicherte, ungeprüfte Kandidaten (nicht als Messwerte gezählt): %1$s</string>
+    <string name="sd_cap_m_spo2">SpO₂</string>
+    <string name="sd_cap_m_stress">Stress</string>
+    <string name="sd_cap_m_respiration">Atemfrequenz</string>
     <string name="sd_cap_none">Noch nichts gespeichert.</string>
     <string name="sd_cap_unknown">Erfassungsstatus nicht verfügbar.</string>
     <string name="sd_only_invalid">Im Zeitraum gibt es nur Werte außerhalb des Darstellungsbereichs oder Gerätestatus. Sie sind gespeichert, werden aber nicht gezeichnet.</string>
