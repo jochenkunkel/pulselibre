@@ -974,6 +974,10 @@
     <string name="sd_cap_m_spo2">SpO₂</string>
     <string name="sd_cap_m_stress">Stress</string>
     <string name="sd_cap_m_respiration">Atemfrequenz</string>
+    <string name="sd_cap_raw">Rohe BLE-Notifications archiviert: %1$d</string>
+    <string name="sd_cap_fields">FIT-Rohfelder gespeichert: %1$d</string>
+    <string name="sd_cap_undecoded">Feldtypen, die die App nicht auswertet: %1$d (als Rohbytes gespeichert)</string>
+    <string name="sd_cap_imports">Dateiimporte: %1$d abgeschlossen, %2$d teilweise, %3$d fehlgeschlagen</string>
     <string name="sd_cap_none">Noch nichts gespeichert.</string>
     <string name="sd_cap_unknown">Erfassungsstatus nicht verfügbar.</string>
     <string name="sd_only_invalid">Im Zeitraum gibt es nur Werte außerhalb des Darstellungsbereichs oder Gerätestatus. Sie sind gespeichert, werden aber nicht gezeichnet.</string>
