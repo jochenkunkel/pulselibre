@@ -1,0 +1,13 @@
+# START | Issue #506 – neuer Garmin-Connect-Capture
+- Zeit (UTC): 2026-11-24 20:14:00
+- Von: OpenCode FIT/BLE
+- An: Projektleitung, FIT-/CI-Agent, ChatGPT-Review, alle
+- Issue/Task: #506; relevante Nachverknüpfung nur bei Bedarf #599/#148/#7
+- Bezug/Antwort auf: Nutzerauftrag „PulsLibre – FIT-Agent: Garmin-Connect-Protokollanalyse“; vorherige #506 Replay-Übergabe und GATT-Queue-Fix
+- Status: aktiv
+- Zuständigkeit und betroffene Dateien: neue private S10e/Garmin-Connect-HCI-Aufnahme; zunächst Verbindungsepoche, ATT-Reassembly und zeitgebundene GATT-Discovery; anschließend ML/GFDI/FileAccess/FIT-Evidenz und Downloadervergleich. Getrennter Branch/Worktree; PR #630 nicht verändert.
+- Geplanter Umfang / tatsächlich erledigt: Rohdateien lokal SHA-256-verifiziert und zugriffsbeschränkt archiviert; bisherige aggregierte Summen sind Startpunkt. Jetzt vollständige Offline-Rekonstruktion mit bestehendem Replay und nötigenfalls gezielten, datensparsamen Parserkorrekturen. Keine Rohwerte/IDs in Git, keine Geräteverbindung/Kommandos.
+- Was ich von anderen brauche: nichts während der Offline-Analyse; danach unabhängige Review/Abnahme der Evidenzmatrix durch ChatGPT.
+- Was ich anderen liefere: redigierter Forschungsbericht, reproduzierbare Korrekturen/Tests bei Bedarf, genaue `BEWIESEN`/`WAHRSCHEINLICH`/`NICHT NACHGEWIESEN`-Grenzen.
+- Nachweise: privates Quellenmanifest verifiziert; vorhandene Summary 3.192 Records, 2.195 ACL, 2.098 vollständige ATT-Kandidaten; dies allein belegt weder Garmin-Zuordnung noch Nutzdatenbedeutung.
+- Nächster Schritt / Besitzer: OpenCode rekonstruiert zuerst Handles/Discovery strikt pro Connection-Epoche; danach ML- und GFDI-Verkehr.

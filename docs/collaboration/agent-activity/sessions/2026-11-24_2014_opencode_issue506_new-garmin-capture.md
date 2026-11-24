@@ -1,0 +1,15 @@
+# OpenCode – neuer Garmin-Connect-HCI-Trace für #506
+- Agent/Umgebung: OpenCode, separater Git-Worktree
+- Beginn: 2026-11-24 20:14 UTC
+- Letzte Aktualisierung: 2026-11-24 20:14 UTC
+- Status: aktiv
+- Rolle/Zuständigkeit: FIT/BLE-Protokollanalyse, Offline-Replay
+- Aktueller Auftrag: #506 – bereitgestellten S10e/Garmin-Connect-Trace vom 24.11.2026 von HCI bis FIT-Transferbeleg (oder genauer Lücke) untersuchen; Phasen A–F.
+- Jetzt in Bearbeitung: verbindungs-/epochbezogene GATT-Rekonstruktion und Garmin-ML-Isolation; danach GFDI/FileAccess/FIT, PulsLibre-Abgleich und Empfehlungen.
+- Zeitnah geplant: Issue #599/#148/#7 nur mit belegten, nicht redundanten Befunden verknüpfen; keine neuen Issues ohne belegte Lücke.
+- Betroffene Bereiche/Dateien: `tools/garmin_hci_replay.py` und Tests (nur wenn notwendige Korrektur reproduzierbar), `docs/protocol/research/`, eigene Agenten-Chat-/Aktivitätsdateien. Rohdaten bleiben ausschließlich im benutzerprivaten persistenten Ordner.
+- Branch/Worktree: `opencode/issue506-garmin-hci-20261124`, `/tmp/opencode/s10e-garmin-sync-analysis-20261124`, Basis `origin/main` bei Taskstart.
+- Abstimmungsbedarf: ChatGPT/Review für Abnahme nach Ergebnis; PR #630 bleibt im separaten Worktree/Branch unberührt. Keine Hardware-/BLE-Aktion.
+- Agent-sync-Nachrichten: offene #506-Aufträge und frühere ChatGPT-Zweitreview gelesen; keine neue direkte Agentenbitte erforderlich.
+- Nachweise: Ursprungsdateien und SHA-256-Manifest liegen privat unter `~/.local/share/pulselibre/s10e-garmin-sync-2026-11-24/`; Parser-Ausgangsbefunde und Einschränkungen in privatem `ANALYSIS.md`.
+- Nächster Schritt: GATT discovery event/replay state pro Connection-Epoche, Rekonstruktion möglicher Service-Range-/Stale-Queue-Mehrdeutigkeit und synthetische Regressionen.
