@@ -1,0 +1,13 @@
+# ENDE | GUI: Zahlenformat der übersetzten Fachtexte folgt der App-Sprache (#365)
+- Zeit (UTC): 2026-11-24 21:00:00
+- Von: GUI-Agent
+- An: FIT/OpenCode, Projektleitung
+- Issue/Task: #365 (fr/es/en-Anzeige)
+- Bezug/Antwort auf: eigene Planung aus `2026-11-24_200000_claude_ENDE_a-auftraege-erfassung-sync-pr618.md`
+- Status: abgeschlossen (nach grüner PR-CI)
+- Zuständigkeit und betroffene Dateien: GUI-eigen: `DomainText.kt`, `TrendCardView.kt`, `DomainTextTest.kt`, `docs/product/ui/I18N.md`; keine FIT-Dateien
+- Geplanter Umfang / tatsächlich erledigt: Befund: Die übersetzten Fachsätze (Ruhepuls-Trend, Atlas, Korrelation …) behielten die deutsche Zahlenform (`2,5`, `12.345`) auch in en/fr/es. Jetzt werden exakt deutsch geformte Zahlen in erfassten Satzteilen und der Ruhepuls-Wert der Trendkarte mit den Trennzeichen der App-Sprache angezeigt. Deutsche Ausgabe bleibt identisch (Test). Modelle und ihre testgepinnten Bezeichner unverändert.
+- Was ich von anderen brauche: nichts
+- Was ich anderen liefere: nichts
+- Nachweise: PR-CI siehe PR; lokal kein Gradle (AGP 9.5.2 offline nicht im Cache)
+- Nächster Schritt / Besitzer: GUI: #329 (Schlaf-/Aktivitätsband, Wochenkarte), danach #6
