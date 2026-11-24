@@ -1,15 +1,15 @@
 # OpenCode – Issue #637 Garmin Connect vs PulsLibre
 - Agent/Umgebung: OpenCode, separater Git-Worktree
 - Beginn: 2026-11-24 20:14 UTC
-- Letzte Aktualisierung: 2026-11-24 21:06 UTC
-- Status: pausiert
+- Letzte Aktualisierung: 2026-11-24 21:31 UTC
+- Status: abgeschlossen
 - Rolle/Zuständigkeit: FIT/BLE-Protokollanalyse, Offline-Replay
 - Aktueller Auftrag: #637 – offline compare Garmin Connect request/ACK sequence and Daily-vs-Activity data with productive PulsLibre path and private originals/archive/SQLite/CSV; keep #506/#599/#148/#7 updated only with relevant evidence.
-- Jetzt in Bearbeitung: GATT attribution/replay correction complete; reconstruct FileAccess operations and route-5 transfer; inspect private FIT/archive correlation and PulsLibre's production selector/reconnect/request/ACK logic.
-- Zeitnah geplant: Finish confidence-labelled comparison table, update #637 and research report; no speculative transport changes.
+- Jetzt in Bearbeitung: abgeschlossen – PullItem response handle ↔ configure write ↔ bounded MLR transfer window correlated; exact FIT match checked privately against archived originals and SQLite comparison exports.
+- Zeitnah geplant: nichts; offene Beweislücken unten ausdrücklich erhalten, kein Produkt-/Transportfix abgeleitet.
 - Betroffene Bereiche/Dateien: `tools/garmin_hci_replay.py`, `tools/test_garmin_hci_replay.py`, `docs/protocol/research/CIRQA_GARMIN_CONNECT_CAPTURE_2026-11-24.md`, production ML/GFDI source for read-only comparison, own agent-chat/session files. Raw traces and identifiers remain private.
 - Branch/Worktree: `opencode/issue506-garmin-hci-20261124`, `/tmp/opencode/s10e-garmin-sync-analysis-20261124`, Basis `origin/main` bei Taskstart.
 - Abstimmungsbedarf: none currently; PR #630 remains in a separate branch/worktree and will not be touched. No hardware/BLE action.
 - Agent-sync-Nachrichten: offene #506-Aufträge und frühere ChatGPT-Zweitreview gelesen; keine neue direkte Agentenbitte erforderlich.
-- Nachweise: Ursprungsdateien und SHA-256-Manifest liegen privat unter `~/.local/share/pulselibre/s10e-garmin-sync-2026-11-24/`; exact FIT original match and CRC validated privately; `python3 -m unittest tools.test_garmin_hci_replay -v` – 22 bestanden; commit `702a8978` pushed. Issue comments: #637 `7144446825`, #506 `7144439900`, #599 `7144439939`, #148 `7144439902`, #7 `7144440019`.
-- Nächster Schritt: remaining MLR/pull correlation, epoch-B payload identity, and comparable PulsLibre trace; no speculative transport change.
+- Nachweise: Transfer handle ordinal 7 matches the epoch-A configure write; stripping route byte plus two bytes per notification yields complete zlib output matching exactly one private CRC-valid FIT original. Its digest is absent from inspected PR-side observation/provenance/unknown-field exports. Ordinal-14 output is 19,975-byte non-FIT and byte-identical to epoch B's sole transfer. Redacted report updated; #637 comment `7145020810`; `git diff --check` clean; `python3 -m unittest tools.test_garmin_hci_replay -v` – 22 bestanden. No hardware.
+- Nächster Schritt: Owner/next investigator – resolve FIT's originating list-item/expected-size metadata and independent MLR completion semantics; obtain common-run CSV or comparable PulsLibre wire trace before attributing the 680-row delta. No transport change justified.

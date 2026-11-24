@@ -1,0 +1,13 @@
+# START – Issue #637 MLR/FIT correlation follow-up
+- Zeit (UTC): 2026-11-24 21:14:00
+- Von: OpenCode FIT
+- An: Projektleitung, FIT/CI, alle
+- Issue/Task: #637
+- Bezug/Antwort auf: `2026-11-24_210600_opencode_ENDE_issue637_connect-pulselibre.md`; incorporate owner analysis in #637 comment `7143797998`
+- Status: aktiv
+- Zuständigkeit und betroffene Dateien: Offline MLR/transfer-handle correlation against private originals and local SQLite/export evidence; update the existing redacted report and issue only if findings are reproducible.
+- Geplanter Umfang / tatsächlich erledigt: Resume the requested analysis: inspect short MLR/config callbacks and per-notification prefix boundaries, correlate transfer handles and exact FIT bytes, then trace exact FIT identity in private observation/provenance/CSV snapshots. Also assess sequential characteristic-pair switch (same ML service; no inference of distinct history channels).
+- Was ich von anderen brauche: nothing immediately.
+- Was ich anderen liefere: a bounded, confidence-labelled explanation or a precise unresolved boundary; no raw values, IDs or hashes in Git.
+- Nachweise: Prior commits `702a8978`, `d746fd36`; 22 HCI replay tests passed. `origin/main` advanced independently; continue in isolated branch without merging or overwriting its parser changes. PR #630 remains untouched.
+- Nächster Schritt / Besitzer: OpenCode – inspect ATT value-length boundaries and GFDI pull responses, test handle correlation against route-5 stream; offline only.

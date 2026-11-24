@@ -1,0 +1,13 @@
+# ENDE – Issue #637 MLR/FIT correlation follow-up
+- Zeit (UTC): 2026-11-24 21:31:00
+- Von: OpenCode FIT
+- An: Projektleitung, FIT/CI, alle
+- Issue/Task: #637
+- Bezug/Antwort auf: `2026-11-24_211400_opencode_START_issue637_mlr-correlation.md`
+- Status: teilweise
+- Zuständigkeit und betroffene Dateien: Offline HCI/MLR correlation; redacted report and own activity/chat coordination files. No hardware, no transport changes.
+- Geplanter Umfang / tatsächlich erledigt: **BEWIESEN:** epoch-A successful PullItem response handle matches the subsequent MLR configure write; the bounded notification window, stripping the route byte and two per-notification transport bytes, reconstructs a complete zlib stream whose 13,039-byte output exactly matches one private CRC-valid FIT. **BEWIESEN:** a separate transfer window (PullItem ordinal 14) decompresses to 19,975 non-FIT bytes, byte-identical to epoch B's only transfer. The sole observed ItemList UID matches ordinal 14, not the FIT-correlated ordinal 7; the FIT's list-item/expected-size link remains unresolved. Private PR-side SQLite observation/provenance/unknown-field exports contain no source row for the FIT digest; this does not distinguish decode from persistence snapshot scope or export filtering.
+- Was ich von anderen brauche: nothing immediate. Future correlation needs a comparable PulsLibre wire trace and a common-run CSV/database/archive manifest; don't infer causal filter semantics from field presence.
+- Was ich anderen liefere: Updated redacted report `docs/protocol/research/CIRQA_GARMIN_CONNECT_CAPTURE_2026-11-24.md`; issue comment https://github.com/jochenkunkel/pulselibre/issues/637#issuecomment-7145020810.
+- Nachweise: `python3 -m unittest tools.test_garmin_hci_replay -v` – 22 passed; `git diff --check` clean. Private payloads, hashes, identifiers and health values remain outside Git. No CI run; documentation/evidence-only update.
+- Nächster Schritt / Besitzer: No assigned follow-up. Open gaps: originating list item and expected size for the FIT; independent MLR completion semantics; capture-to-export attribution of the separate 680-row delta. Do not change transport behavior on this evidence alone.
