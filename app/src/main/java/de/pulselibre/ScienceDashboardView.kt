@@ -108,6 +108,8 @@ internal class ScienceDashboardView(context: Context) : LinearLayout(context) {
                     }
                 }
             } catch (_: Exception) { null }
+            // A6-66: a very large range must end in the error card, not in an unhandled error on the worker thread.
+            catch (_: OutOfMemoryError) { null }
             main.post { if (ticket == generation) { inventory = loadedInventory; render(results) } }
         }
     }
