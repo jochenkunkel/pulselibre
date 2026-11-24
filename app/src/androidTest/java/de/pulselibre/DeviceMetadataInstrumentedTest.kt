@@ -75,7 +75,7 @@ class DeviceMetadataInstrumentedTest {
                 legacy.version = 8
             }
             CirqaDatabase(ctx).use { db ->
-                assertEquals(10, db.readableDatabase.version)
+                assertEquals(11, db.readableDatabase.version)
                 assertTrue(db.latestLiveDeviceMetadata().isEmpty())
                 val columns = db.readableDatabase.rawQuery("PRAGMA table_info(live_device_metadata)", null).use { rows ->
                     val names = mutableListOf<String>()

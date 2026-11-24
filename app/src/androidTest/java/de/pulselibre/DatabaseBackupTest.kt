@@ -59,7 +59,7 @@ class DatabaseBackupTest {
 
             CirqaDatabase(context).use { database ->
                 val db = database.readableDatabase
-                assertEquals(10, db.version)
+                assertEquals(11, db.version)
                 db.rawQuery(
                     """SELECT g.source_sha256, g.decoder_version, g.profile_version,
                               g.output_count, a.generation_id
@@ -176,7 +176,7 @@ class DatabaseBackupTest {
             legacy.close()
 
             CirqaDatabase(context).use { database ->
-                assertEquals(10, database.readableDatabase.version)
+                assertEquals(11, database.readableDatabase.version)
                 val sourceCount = database.readableDatabase.rawQuery(
                     "SELECT COUNT(*) FROM fit_sources", null
                 ).use { it.moveToFirst(); it.getInt(0) }
@@ -361,7 +361,15 @@ class DatabaseBackupTest {
                     profileVersion = FitHistoricalObservations.PROFILE_VERSION,
                     observations = listOf(canonicalObservation),
                     deviceMetadata = listOf(canonicalMetadata),
-                    reviewCandidates = listOf(untrustedStress)
+                    reviewCandidates = listOf(untrustedStress),
+                    decodedFields = listOf(FitHistoricalObservations.DecodedField(
+                        sourceFileSha256 = canonicalSha, recordOrdinal = 1,
+                        globalMessageNumber = 20, fieldNumber = 99, fieldKind = "STANDARD",
+                        baseTypeCode = 2, fieldSize = 1, developerDataIndex = null,
+                        bigEndian = false, rawBytes = byteArrayOf(0xa5.toByte()),
+                        timestampEpochMillis = 6_000,
+                        timestampOrigin = FitHistoricalObservations.TimestampOrigin.DIRECT
+                    ))
                 )
                 database.storeRawDeviceMetadata(rawMetadata)
                 database.storeRawDeviceMetadata(rawMetadata.copy(verifiedAtEpochMillis = 9_000))
@@ -381,6 +389,7 @@ class DatabaseBackupTest {
             assertEquals(1L, report.rawDeviceMetadata)
             assertEquals(2L, report.canonicalFitGenerations)
             assertEquals(2L, report.canonicalFitGenerationObservations)
+            assertEquals(1L, report.canonicalFitGenerationFields)
             assertEquals(2L, report.canonicalActiveFitGenerations)
             assertEquals(1L, report.canonicalFitReviewCandidates)
             assertEquals(1L, report.legacyFitReviewCandidates)
@@ -394,16 +403,20 @@ class DatabaseBackupTest {
 
             val plan = DatabaseBackup.prepareRestore(context, ByteArrayInputStream(bytes.toByteArray()))
             try {
-                assertEquals(9, plan.version)
+                assertEquals(10, plan.version)
                 assertEquals(3L, plan.canonicalReadings)
                 assertEquals(1L, plan.canonicalDeviceMetadata)
                 assertEquals(1L, plan.rawDeviceMetadata)
                 assertEquals(1L, plan.canonicalFitReviewCandidates)
+                assertEquals(1L, plan.canonicalFitGenerationFields)
                 assertEquals(1L, plan.legacyFitReviewCandidates)
                 DatabaseBackup.restore(context, plan)
             } finally { plan.close() }
 
             CirqaDatabase(context).use { db ->
+                assertArrayEquals(byteArrayOf(0xa5.toByte()), db.readableDatabase.rawQuery(
+                    "SELECT raw_bytes FROM fit_generation_fields WHERE field_number = 99", null
+                ).use { assertTrue(it.moveToFirst()); it.getBlob(0) })
                 assertEquals(1L, db.eventCount())
                 assertEquals(listOf(event), db.allLines())
                 val restored = db.readUntrustedFitCandidates().single()
@@ -808,7 +821,7 @@ class DatabaseBackupTest {
                 DatabaseBackup.restore(context, it)
             }
             CirqaDatabase(context).use { db ->
-                assertEquals(10, db.readableDatabase.version)
+                assertEquals(11, db.readableDatabase.version)
                 assertTrue(db.latestLiveDeviceMetadata().isEmpty())
             }
         } finally {
@@ -838,7 +851,7 @@ class DatabaseBackupTest {
             DatabaseBackup.write(context, archive)
             val plan = DatabaseBackup.prepareRestore(context, ByteArrayInputStream(archive.toByteArray()))
             plan.use {
-                assertEquals(9, it.version)
+                assertEquals(10, it.version)
                 assertEquals(2L, it.liveDeviceMetadata)
                 // Restore into a fresh store to prove the entry is actually replayed.
                 val freshRoot = Files.createTempDirectory(base.cacheDir.toPath(), "backup-v8-restore-").toFile()
@@ -882,6 +895,8 @@ class DatabaseBackupTest {
             "legacy_fit_review_candidates.jsonl",
             "live_device_metadata.jsonl"
         )
+        if (version >= 9) dataEntries += "downloaded_file_archive.jsonl"
+        if (version >= 10) dataEntries += "canonical_fit_generation_fields.jsonl"
         val emptySha = MessageDigest.getInstance("SHA-256").digest(byteArrayOf())
             .joinToString("") { "%02x".format(it.toInt() and 255) }
         val entries = JSONObject()

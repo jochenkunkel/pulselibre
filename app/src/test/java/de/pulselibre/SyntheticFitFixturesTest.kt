@@ -31,7 +31,8 @@ class SyntheticFitFixturesTest {
             deviceMetadata: List<FitHistoricalObservations.DeviceMetadata>,
             unmappedFields: List<FitFieldInventoryRecord>,
             deviceKey: String,
-            reviewCandidates: List<FitHistoricalObservations.ReviewCandidate>
+            reviewCandidates: List<FitHistoricalObservations.ReviewCandidate>,
+            decodedFields: List<FitHistoricalObservations.DecodedField>
         ): Int {
             commits++
             this.sourceSha256 = sourceSha256

@@ -110,6 +110,13 @@ class HistoricalObservationRepositoryTest {
         try {
             val original = observation(sha, "stable-sample", 2_000, 70.0, ordinal = 1)
             val replayed = original.copy(value = 75.0)
+            val originalField = FitHistoricalObservations.DecodedField(
+                sourceFileSha256 = sha, recordOrdinal = 1, globalMessageNumber = 20,
+                fieldNumber = 3, fieldKind = "STANDARD", baseTypeCode = 2, fieldSize = 1,
+                developerDataIndex = null, bigEndian = false, rawBytes = byteArrayOf(70),
+                timestampEpochMillis = 2_000, timestampOrigin = FitHistoricalObservations.TimestampOrigin.DIRECT
+            )
+            val replayedField = originalField.copy(rawBytes = byteArrayOf(75))
             val replayGenerationId = CirqaDatabase(context).use { database ->
                 database.commitFitFile(
                     sourceSha256 = sha,
@@ -121,7 +128,8 @@ class HistoricalObservationRepositoryTest {
                     observations = listOf(original),
                     deviceMetadata = emptyList(),
                     unmappedFields = emptyList(),
-                    deviceKey = "replay-test-device"
+                    deviceKey = "replay-test-device",
+                    decodedFields = listOf(originalField)
                 )
                 database.storeFitDecoderReplay(
                     sourceSha256 = sha,
@@ -129,7 +137,8 @@ class HistoricalObservationRepositoryTest {
                     profileVersion = FitHistoricalObservations.PROFILE_VERSION,
                     replayedAtEpochMillis = 20_000,
                     observations = listOf(replayed),
-                    deviceKey = "replay-test-device"
+                    deviceKey = "replay-test-device",
+                    decodedFields = listOf(replayedField)
                 )
             }
 
@@ -147,8 +156,13 @@ class HistoricalObservationRepositoryTest {
                     profileVersion = FitHistoricalObservations.PROFILE_VERSION,
                     replayedAtEpochMillis = 30_000,
                     observations = listOf(replayed),
-                    deviceKey = "replay-test-device"
+                    deviceKey = "replay-test-device",
+                    decodedFields = listOf(replayedField)
                 ))
+                assertEquals(1L, database.readableDatabase.rawQuery(
+                    "SELECT decoded_field_count FROM fit_decoder_generations WHERE generation_id = ?",
+                    arrayOf(replayGenerationId)
+                ).use { assertTrue(it.moveToFirst()); it.getLong(0) })
             }
             assertEquals(70.0, activeValue(), 0.0)
 

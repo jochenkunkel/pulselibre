@@ -15,6 +15,36 @@ import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 class CirqaStorageMigrationTest {
+    @Test fun version10SchemaUpgradesTo11WithImmutableRawFieldTable() {
+        val base = ApplicationProvider.getApplicationContext<Context>()
+        val root = Files.createTempDirectory(base.cacheDir.toPath(), "cirqa-schema-v10-v11-").toFile()
+        val context = isolatedContext(base, root)
+        try {
+            CirqaDatabase(context).use { it.writableDatabase }
+            SQLiteDatabase.openDatabase(
+                context.getDatabasePath("cirqa_measurements.db").path, null, SQLiteDatabase.OPEN_READWRITE
+            ).use { db ->
+                db.execSQL("DROP TABLE fit_generation_fields")
+                db.execSQL("ALTER TABLE fit_decoder_generations DROP COLUMN decoded_field_count")
+                db.version = 10
+            }
+            CirqaDatabase(context).use { database ->
+                val db = database.writableDatabase
+                assertEquals(11, db.version)
+                assertTrue(db.rawQuery(
+                    "SELECT 1 FROM pragma_table_info('fit_decoder_generations') WHERE name='decoded_field_count'",
+                    null
+                ).use { it.moveToFirst() })
+                assertTrue(db.rawQuery(
+                    "SELECT 1 FROM sqlite_master WHERE type='table' AND name='fit_generation_fields'",
+                    null
+                ).use { it.moveToFirst() })
+            }
+        } finally {
+            root.deleteRecursively()
+        }
+    }
+
     @Test fun canonicalSchemaV8DowngradeThenUpgradeKeepsCandidateTableAndRows() {
         val base = ApplicationProvider.getApplicationContext<Context>()
         val root = Files.createTempDirectory(base.cacheDir.toPath(), "cirqa-schema-v8-reupgrade-").toFile()
@@ -44,7 +74,7 @@ class CirqaStorageMigrationTest {
 
             CirqaDatabase(context).use { database ->
                 val db = database.writableDatabase
-                assertEquals(10, db.version)
+                assertEquals(11, db.version)
                 assertEquals(13, db.rawQuery("PRAGMA table_info(fit_review_candidates)", null).use { rows ->
                     var count = 0
                     while (rows.moveToNext()) count++
@@ -90,7 +120,7 @@ class CirqaStorageMigrationTest {
 
             CirqaDatabase(context).use { database ->
                 val db = database.writableDatabase
-                assertEquals(10, db.version)
+                assertEquals(11, db.version)
                 assertEquals(listOf(event), database.allLines())
                 assertEquals(3, db.rawQuery(
                     """SELECT COUNT(*) FROM sqlite_master WHERE type = 'table'
@@ -161,7 +191,7 @@ class CirqaStorageMigrationTest {
             CirqaDatabase(context).use { database ->
                 assertEquals(listOf(event), database.allLines())
                 assertTrue(database.rawDeviceMetadata().isEmpty())
-                assertEquals(10, database.writableDatabase.version)
+                assertEquals(11, database.writableDatabase.version)
             }
         } finally {
             root.deleteRecursively()

@@ -3,23 +3,29 @@ package de.pulselibre
 import java.security.MessageDigest
 
 /**
- * Small, offline FIT profile reader for explicitly supported measurement fields.
+ * Offline FIT reader. Profile mappings add semantic observations, while every
+ * data-message field is also retained byte-for-byte in [Result.decodedFields].
  *
  * It is not a complete FIT SDK implementation. It requires a valid FIT envelope
  * and parses standard definitions, developer-field lengths, and normal/compressed
- * timestamps. Unknown fields are skipped, never guessed or imported.
+ * timestamps. Unknown values are not interpreted, but their original bytes are
+ * retained without guessing a meaning.
  */
 object FitHistoricalObservations {
     private const val FIT_EPOCH_UNIX_SECONDS = 631_065_600L
     const val MAX_OBSERVATIONS = 50_000
-    const val DECODER_VERSION = "1"
+    const val DECODER_VERSION = "2"
+    /** Review candidates evolve independently from the trusted observation decoder. */
+    const val REVIEW_CANDIDATE_DECODER_VERSION = "2"
     const val PROFILE_VERSION = "21.222.0"
+    const val MAX_DECODED_FIELDS = 1_000_000
     private const val GLOBAL_RECORD = 20
     private const val GLOBAL_MONITORING = 55
     private const val GLOBAL_DEVICE_INFO = 23
     private const val GLOBAL_RESPIRATION_RATE = 297
     private const val GLOBAL_SPO2_DATA = 269
     private const val GLOBAL_STRESS_LEVEL = 227
+    private const val GLOBAL_SLEEP_LEVEL = 275
 
     enum class Metric(val unit: String) {
         HEART_RATE("bpm"),
@@ -76,11 +82,42 @@ object FitHistoricalObservations {
         /** Offline review only; never committed by FitObservationCommitter. */
         val reviewCandidates: List<ReviewCandidate> = emptyList(),
         /** Counts only; invalid values, timestamps, and source identifiers are never included. */
-        val excludedFields: List<ExcludedField> = emptyList()
+        val excludedFields: List<ExcludedField> = emptyList(),
+        val decodedFields: List<DecodedField> = emptyList()
     ) {
         fun potentialDuplicates(): List<List<Observation>> =
             observations.groupBy { it.duplicateFingerprint }
                 .values.filter { it.size > 1 }
+    }
+
+    /** Exact encoded value bytes for one field occurrence in one FIT data message. */
+    data class DecodedField(
+        val sourceFileSha256: String,
+        val recordOrdinal: Int,
+        val globalMessageNumber: Int,
+        val fieldNumber: Int,
+        val fieldKind: String,
+        val baseTypeCode: Int?,
+        val fieldSize: Int,
+        val developerDataIndex: Int?,
+        val bigEndian: Boolean,
+        val rawBytes: ByteArray,
+        val timestampEpochMillis: Long?,
+        val timestampOrigin: TimestampOrigin
+    ) {
+        override fun equals(other: Any?): Boolean =
+            other is DecodedField && sourceFileSha256 == other.sourceFileSha256 &&
+                recordOrdinal == other.recordOrdinal && globalMessageNumber == other.globalMessageNumber &&
+                fieldNumber == other.fieldNumber && fieldKind == other.fieldKind &&
+                baseTypeCode == other.baseTypeCode && fieldSize == other.fieldSize &&
+                developerDataIndex == other.developerDataIndex && bigEndian == other.bigEndian &&
+                rawBytes.contentEquals(other.rawBytes) && timestampEpochMillis == other.timestampEpochMillis &&
+                timestampOrigin == other.timestampOrigin
+
+        override fun hashCode(): Int = 31 * listOf(
+            sourceFileSha256, recordOrdinal, globalMessageNumber, fieldNumber, fieldKind,
+            baseTypeCode, fieldSize, developerDataIndex, bigEndian, timestampEpochMillis, timestampOrigin
+        ).hashCode() + rawBytes.contentHashCode()
     }
 
     /**
@@ -98,8 +135,10 @@ object FitHistoricalObservations {
         val fieldNumber: Int,
         val timestampOrigin: TimestampOrigin = TimestampOrigin.UNKNOWN,
         val quality: String = "UNTRUSTED_PROFILE_CANDIDATE",
+        val decoderVersion: String = REVIEW_CANDIDATE_DECODER_VERSION,
         val idempotencyKey: String = sha256(
-            "$sourceFileSha256:$recordOrdinal:$globalMessageNumber:$fieldNumber".toByteArray()
+            "$sourceFileSha256:$recordOrdinal:$globalMessageNumber:$fieldNumber:$decoderVersion"
+                .toByteArray()
         )
     )
 
@@ -135,6 +174,13 @@ object FitHistoricalObservations {
     private data class UnknownCounts(var definitions: Int = 0, var occurrences: Int = 0)
     private data class DeveloperFieldDefinition(val number: Int, val size: Int, val index: Int)
     private data class FieldDefinition(val number: Int, val size: Int, val baseType: Int)
+    private data class CandidateField(
+        val number: Int,
+        val name: String,
+        val baseType: Int,
+        val invalid: Long,
+        val unit: String
+    )
     private data class Definition(
         val globalNumber: Int,
         val bigEndian: Boolean,
@@ -152,6 +198,7 @@ object FitHistoricalObservations {
         val fileSha = sha256(file)
         val definitions = arrayOfNulls<Definition>(16)
         val observations = mutableListOf<Observation>()
+        val decodedFields = mutableListOf<DecodedField>()
         val reviewCandidates = mutableListOf<ReviewCandidate>()
         val deviceMetadata = mutableListOf<DeviceMetadata>()
         val unknown = LinkedHashMap<UnknownKey, UnknownCounts>()
@@ -202,12 +249,15 @@ object FitHistoricalObservations {
         var cursor = header.headerSize
         var previousFitTimestamp: Long? = null
         var recordOrdinal = 0
+        var decodedRecordOrdinal = 0
         var unsupportedFields = 0
         var invalidMeasurementFields = 0
         var deviceInfoOrdinal = 0
         var respirationRecordOrdinal = 0
         var spo2RecordOrdinal = 0
         var stressRecordOrdinal = 0
+        var sleepRecordOrdinal = 0
+        var monitoringRecordOrdinal = 0
 
         fun requireBytes(count: Int): Boolean =
             count >= 0 && cursor <= dataEnd - count
@@ -216,6 +266,7 @@ object FitHistoricalObservations {
 
         while (cursor < dataEnd) {
             if (!requireBytes(1)) return null
+            val recordHeaderOffset = cursor
             val headerByte = u8(cursor++)
             val compressed = headerByte and 0x80 != 0
 
@@ -287,8 +338,10 @@ object FitHistoricalObservations {
                 if (key != null && !track(key, definition = false)) return null
                 cursor += field.size
             }
+            val developerFieldBytes = LinkedHashMap<DeveloperFieldDefinition, Int>()
             for (field in definition.developerFields) {
                 if (!requireBytes(field.size)) return null
+                developerFieldBytes[field] = cursor
                 val key = UnknownKey(definition.globalNumber, field.number, null, field.size,
                     field.index, UnknownKind.DEVELOPER_FIELD)
                 if (!track(key, definition = false)) return null
@@ -326,6 +379,61 @@ object FitHistoricalObservations {
                 ?.takeIf { it != 0xffff_ffffL }
                 ?.let { (it + FIT_EPOCH_UNIX_SECONDS) * 1_000L }
 
+            decodedRecordOrdinal++
+            if (decodedRecordOrdinal > MAX_OBSERVATIONS) return null
+            for ((field, offset) in fieldBytes) {
+                if (decodedFields.size >= MAX_DECODED_FIELDS) return null
+                decodedFields += DecodedField(
+                    sourceFileSha256 = fileSha,
+                    recordOrdinal = decodedRecordOrdinal,
+                    globalMessageNumber = definition.globalNumber,
+                    fieldNumber = field.number,
+                    fieldKind = "STANDARD",
+                    baseTypeCode = field.baseType,
+                    fieldSize = field.size,
+                    developerDataIndex = null,
+                    bigEndian = definition.bigEndian,
+                    rawBytes = file.copyOfRange(offset, offset + field.size),
+                    timestampEpochMillis = timestampMillis,
+                    timestampOrigin = timestampOrigin
+                )
+            }
+            if (compressed && compressedTimestampField != null) {
+                if (decodedFields.size >= MAX_DECODED_FIELDS) return null
+                decodedFields += DecodedField(
+                    sourceFileSha256 = fileSha,
+                    recordOrdinal = decodedRecordOrdinal,
+                    globalMessageNumber = definition.globalNumber,
+                    fieldNumber = 253,
+                    fieldKind = "COMPRESSED_TIMESTAMP_HEADER",
+                    baseTypeCode = null,
+                    fieldSize = 1,
+                    developerDataIndex = null,
+                    bigEndian = definition.bigEndian,
+                    rawBytes = file.copyOfRange(recordHeaderOffset, recordHeaderOffset + 1),
+                    timestampEpochMillis = timestampMillis,
+                    timestampOrigin = TimestampOrigin.RECONSTRUCTED_COMPRESSED
+                )
+            }
+            for (field in definition.developerFields) {
+                val offset = developerFieldBytes.getValue(field)
+                if (decodedFields.size >= MAX_DECODED_FIELDS) return null
+                decodedFields += DecodedField(
+                    sourceFileSha256 = fileSha,
+                    recordOrdinal = decodedRecordOrdinal,
+                    globalMessageNumber = definition.globalNumber,
+                    fieldNumber = field.number,
+                    fieldKind = "DEVELOPER",
+                    baseTypeCode = null,
+                    fieldSize = field.size,
+                    developerDataIndex = field.index,
+                    bigEndian = definition.bigEndian,
+                    rawBytes = file.copyOfRange(offset, offset + field.size),
+                    timestampEpochMillis = timestampMillis,
+                    timestampOrigin = timestampOrigin
+                )
+            }
+
             if (definition.globalNumber == GLOBAL_DEVICE_INFO) {
                 deviceInfoOrdinal++
                 if (deviceMetadata.size >= MAX_DEVICE_METADATA) return null
@@ -362,49 +470,54 @@ object FitHistoricalObservations {
                 definition.globalNumber == GLOBAL_STRESS_LEVEL) {
                 if (definition.globalNumber == GLOBAL_SPO2_DATA) spo2RecordOrdinal++
                 else stressRecordOrdinal++
-                val candidateField = definition.fields.firstOrNull { it.number == 0 }
-                val candidateOffset = candidateField?.let(fieldBytes::get)
-                if (candidateField != null && candidateOffset != null) {
-                    val raw = if (definition.globalNumber == GLOBAL_SPO2_DATA)
-                        readSupportedUnsigned(file, candidateOffset, candidateField,
-                            definition.bigEndian, expectedBaseType = 2)?.toInt()
-                    else readSupportedSigned16(file, candidateOffset, candidateField,
-                        definition.bigEndian)
-                    val invalid = if (definition.globalNumber == GLOBAL_SPO2_DATA) 0xff else 0x7fff
+                val ordinal = if (definition.globalNumber == GLOBAL_SPO2_DATA)
+                    spo2RecordOrdinal else stressRecordOrdinal
+                val candidateFields = if (definition.globalNumber == GLOBAL_SPO2_DATA)
+                    listOf(
+                        CandidateField(0, "reading_spo2", 2, 0xff, "percent"),
+                        CandidateField(1, "reading_confidence", 2, 0xff, "profile_code"),
+                        CandidateField(2, "spo2_measurement_mode", 0, 0xff, "profile_code")
+                    )
+                else listOf(CandidateField(0, "stress_level_value", 0x83, 0x7fff, "profile_raw"))
+                val stressTime = if (definition.globalNumber == GLOBAL_STRESS_LEVEL)
+                    fitDateTimeMillis(definition, fieldBytes, file) else null
+                val candidateTime = stressTime?.first ?: timestampMillis
+                val candidateTimeOrigin = if (stressTime != null)
+                    TimestampOrigin.DIRECT else timestampOrigin
+                for (candidateField in candidateFields) {
+                    val field = definition.fields.firstOrNull { it.number == candidateField.number }
+                        ?: continue
+                    val offset = fieldBytes[field] ?: continue
+                    val raw = readCandidateValue(file, offset, field, definition.bigEndian, candidateField.baseType)
                     when {
                         raw == null -> {
                             unsupportedFields++
                             trackExcluded(
-                                definition.globalNumber, 0, null,
-                                if (definition.globalNumber == GLOBAL_SPO2_DATA)
-                                    "reading_spo2" else "stress_level_value",
-                                ExclusionReason.UNSUPPORTED_ENCODING
+                                definition.globalNumber, candidateField.number, null,
+                                candidateField.name, ExclusionReason.UNSUPPORTED_ENCODING
                             )
                         }
-                        raw == invalid -> {
+                        raw == candidateField.invalid -> {
                             invalidMeasurementFields++
                             trackExcluded(
-                                definition.globalNumber, 0, null,
-                                if (definition.globalNumber == GLOBAL_SPO2_DATA)
-                                    "reading_spo2" else "stress_level_value",
-                                ExclusionReason.INVALID_SENTINEL
+                                definition.globalNumber, candidateField.number, null,
+                                candidateField.name, ExclusionReason.INVALID_SENTINEL
                             )
                         }
                         else -> {
                             if (reviewCandidates.size >= MAX_OBSERVATIONS) return null
+                            val scaled = if (candidateField.name == "respiration_rate")
+                                raw.toDouble() / 100.0 else raw.toDouble()
                             reviewCandidates += ReviewCandidate(
-                                profileFieldName = if (definition.globalNumber == GLOBAL_SPO2_DATA)
-                                    "reading_spo2" else "stress_level_value",
-                                value = raw.toDouble(),
-                                unit = if (definition.globalNumber == GLOBAL_SPO2_DATA)
-                                    "percent" else "profile_raw",
-                                timestampEpochMillis = timestampMillis,
+                                profileFieldName = candidateField.name,
+                                value = scaled,
+                                unit = candidateField.unit,
+                                timestampEpochMillis = candidateTime,
                                 sourceFileSha256 = fileSha,
-                                recordOrdinal = if (definition.globalNumber == GLOBAL_SPO2_DATA)
-                                    spo2RecordOrdinal else stressRecordOrdinal,
+                                recordOrdinal = ordinal,
                                 globalMessageNumber = definition.globalNumber,
-                                fieldNumber = 0,
-                                timestampOrigin = timestampOrigin
+                                fieldNumber = candidateField.number,
+                                timestampOrigin = candidateTimeOrigin
                             )
                         }
                     }
@@ -447,6 +560,97 @@ object FitHistoricalObservations {
                             )
                         }
                     }
+                }
+            }
+
+            // Keep sleep-level codes as review-only profile candidates. A
+            // timestamped level transition is not by itself a validated sleep
+            // interval or a derived sleep duration.
+            if (definition.globalNumber == GLOBAL_SLEEP_LEVEL) {
+                sleepRecordOrdinal++
+                val field = definition.fields.firstOrNull { it.number == 0 }
+                val offset = field?.let(fieldBytes::get)
+                if (field != null && offset != null) {
+                    val raw = readCandidateValue(file, offset, field, definition.bigEndian, expectedBaseType = 0)
+                    when {
+                        raw == null -> {
+                            unsupportedFields++
+                            trackExcluded(GLOBAL_SLEEP_LEVEL, 0, null, "sleep_level", ExclusionReason.UNSUPPORTED_ENCODING)
+                        }
+                        raw == invalidSentinel(field) -> {
+                            invalidMeasurementFields++
+                            trackExcluded(GLOBAL_SLEEP_LEVEL, 0, null, "sleep_level", ExclusionReason.INVALID_SENTINEL)
+                        }
+                        else -> {
+                            if (reviewCandidates.size >= MAX_OBSERVATIONS) return null
+                            reviewCandidates += ReviewCandidate(
+                                profileFieldName = "sleep_level",
+                                value = raw.toDouble(),
+                                unit = "profile_code",
+                                timestampEpochMillis = timestampMillis,
+                                sourceFileSha256 = fileSha,
+                                recordOrdinal = sleepRecordOrdinal,
+                                globalMessageNumber = GLOBAL_SLEEP_LEVEL,
+                                fieldNumber = 0,
+                                timestampOrigin = timestampOrigin
+                            )
+                        }
+                    }
+                }
+            }
+
+            // Monitoring field 3 is profile "cycles", with steps only as an
+            // activity-dependent subfield (walking/running). Preserve raw
+            // cycles and activity code separately; do not guess a step count.
+            if (definition.globalNumber == GLOBAL_MONITORING) {
+                monitoringRecordOrdinal++
+                val activity = definition.fields.firstOrNull { it.number == 5 }
+                    ?.let(fieldBytes::get)?.let { offset ->
+                        definition.fields.first { it.number == 5 }.let { field ->
+                            readCandidateValue(file, offset, field, definition.bigEndian, expectedBaseType = 0)
+                        }
+                    }
+                val cyclesField = definition.fields.firstOrNull { it.number == 3 }
+                val cyclesOffset = cyclesField?.let(fieldBytes::get)
+                if (cyclesField != null && cyclesOffset != null) {
+                    val cycles = readCandidateValue(file, cyclesOffset, cyclesField,
+                        definition.bigEndian, expectedBaseType = 6)
+                    if (cycles != null && cycles != invalidSentinel(cyclesField)) {
+                        if (reviewCandidates.size >= MAX_OBSERVATIONS) return null
+                        reviewCandidates += ReviewCandidate(
+                            profileFieldName = "monitoring_cycles",
+                            value = cycles.toDouble(),
+                            unit = "cycles",
+                            timestampEpochMillis = timestampMillis,
+                            sourceFileSha256 = fileSha,
+                            recordOrdinal = monitoringRecordOrdinal,
+                            globalMessageNumber = GLOBAL_MONITORING,
+                            fieldNumber = 3,
+                            timestampOrigin = timestampOrigin
+                        )
+                    } else if (cycles == null) {
+                        unsupportedFields++
+                        trackExcluded(GLOBAL_MONITORING, 3, null, "monitoring_cycles",
+                            ExclusionReason.UNSUPPORTED_ENCODING)
+                    } else {
+                        invalidMeasurementFields++
+                        trackExcluded(GLOBAL_MONITORING, 3, null, "monitoring_cycles",
+                            ExclusionReason.INVALID_SENTINEL)
+                    }
+                }
+                if (activity != null) {
+                    if (reviewCandidates.size >= MAX_OBSERVATIONS) return null
+                    reviewCandidates += ReviewCandidate(
+                        profileFieldName = "monitoring_activity_type",
+                        value = activity.toDouble(),
+                        unit = "profile_code",
+                        timestampEpochMillis = timestampMillis,
+                        sourceFileSha256 = fileSha,
+                        recordOrdinal = monitoringRecordOrdinal,
+                        globalMessageNumber = GLOBAL_MONITORING,
+                        fieldNumber = 5,
+                        timestampOrigin = timestampOrigin
+                    )
                 }
             }
 
@@ -514,7 +718,7 @@ object FitHistoricalObservations {
                     reason = key.reason,
                     occurrenceCount = count
                 )
-            })
+            }, decodedFields)
     }
 
     private const val MAX_DEVICE_METADATA = 10_000
@@ -602,6 +806,41 @@ object FitHistoricalObservations {
         if (field.baseType and 0x1f != 3 || field.size != 2) return null
         val raw = readU16(file, offset, bigEndian)
         return if (raw and 0x8000 != 0) raw - 0x1_0000 else raw
+    }
+
+    private fun readCandidateValue(
+        file: ByteArray,
+        offset: Int,
+        field: FieldDefinition,
+        bigEndian: Boolean,
+        expectedBaseType: Int
+    ): Long? {
+        val base = field.baseType and 0x1f
+        if (base != (expectedBaseType and 0x1f)) return null
+        return when (base) {
+            0, 2 -> if (field.size == 1) (file[offset].toInt() and 0xff).toLong() else null
+            3 -> if (field.size == 2) {
+                val raw = readU16(file, offset, bigEndian)
+                (if (raw and 0x8000 != 0) raw - 0x1_0000 else raw).toLong()
+            } else null
+            4 -> if (field.size == 2) readU16(file, offset, bigEndian).toLong() else null
+            6 -> if (field.size == 4) readU32(file, offset, bigEndian) else null
+            else -> null
+        }
+    }
+
+    /** Stress level field 1 is the record's own FIT timestamp, not message field 253. */
+    private fun fitDateTimeMillis(
+        definition: Definition,
+        fieldBytes: Map<FieldDefinition, Int>,
+        file: ByteArray
+    ): Pair<Long, TimestampOrigin>? {
+        val field = definition.fields.firstOrNull { it.number == 1 && it.size == 4 } ?: return null
+        if (field.baseType and 0x1f != 6) return null
+        val offset = fieldBytes[field] ?: return null
+        val seconds = readU32(file, offset, definition.bigEndian)
+        if (seconds == 0xffff_ffffL) return null
+        return (seconds + FIT_EPOCH_UNIX_SECONDS) * 1_000L to TimestampOrigin.DIRECT
     }
 
     private fun readUnsigned32(
