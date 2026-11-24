@@ -1,15 +1,15 @@
-# OpenCode – neuer Garmin-Connect-HCI-Trace für #506
+# OpenCode – Issue #637 Garmin Connect vs PulsLibre
 - Agent/Umgebung: OpenCode, separater Git-Worktree
 - Beginn: 2026-11-24 20:14 UTC
-- Letzte Aktualisierung: 2026-11-24 20:29 UTC
+- Letzte Aktualisierung: 2026-11-24 20:52 UTC
 - Status: aktiv
 - Rolle/Zuständigkeit: FIT/BLE-Protokollanalyse, Offline-Replay
-- Aktueller Auftrag: #506 – bereitgestellten S10e/Garmin-Connect-Trace vom 24.11.2026 von HCI bis FIT-Transferbeleg (oder genauer Lücke) untersuchen; Phasen A–F.
-- Jetzt in Bearbeitung: GATT-Attribution korrigiert und Phase A abgeschlossen; FileAccess-Anfragen/Antworten korrelieren, Route-5-Datenstream rekonstruieren und FIT-Integrität prüfen.
-- Zeitnah geplant: Issue #599/#148/#7 nur mit belegten, nicht redundanten Befunden verknüpfen; keine neuen Issues ohne belegte Lücke.
-- Betroffene Bereiche/Dateien: `tools/garmin_hci_replay.py`, `tools/test_garmin_hci_replay.py`, `docs/protocol/research/CIRQA_GARMIN_CONNECT_CAPTURE_2026-11-24.md`, eigene Agenten-Chat-/Aktivitätsdateien. Rohdaten bleiben ausschließlich im benutzerprivaten persistenten Ordner.
+- Aktueller Auftrag: #637 – offline compare Garmin Connect request/ACK sequence and Daily-vs-Activity data with productive PulsLibre path and private originals/archive/SQLite/CSV; keep #506/#599/#148/#7 updated only with relevant evidence.
+- Jetzt in Bearbeitung: GATT attribution/replay correction complete; reconstruct FileAccess operations and route-5 transfer; inspect private FIT/archive correlation and PulsLibre's production selector/reconnect/request/ACK logic.
+- Zeitnah geplant: Finish confidence-labelled comparison table, update #637 and research report; no speculative transport changes.
+- Betroffene Bereiche/Dateien: `tools/garmin_hci_replay.py`, `tools/test_garmin_hci_replay.py`, `docs/protocol/research/CIRQA_GARMIN_CONNECT_CAPTURE_2026-11-24.md`, production ML/GFDI source for read-only comparison, own agent-chat/session files. Raw traces and identifiers remain private.
 - Branch/Worktree: `opencode/issue506-garmin-hci-20261124`, `/tmp/opencode/s10e-garmin-sync-analysis-20261124`, Basis `origin/main` bei Taskstart.
-- Abstimmungsbedarf: ChatGPT/Review für Abnahme nach Ergebnis; PR #630 bleibt im separaten Worktree/Branch unberührt. Keine Hardware-/BLE-Aktion.
+- Abstimmungsbedarf: none currently; PR #630 remains in a separate branch/worktree and will not be touched. No hardware/BLE action.
 - Agent-sync-Nachrichten: offene #506-Aufträge und frühere ChatGPT-Zweitreview gelesen; keine neue direkte Agentenbitte erforderlich.
 - Nachweise: Ursprungsdateien und SHA-256-Manifest liegen privat unter `~/.local/share/pulselibre/s10e-garmin-sync-2026-11-24/`; `python3 -m unittest tools.test_garmin_hci_replay -v` – 22 bestanden. Bericht trennt bestätigte GATT-/GFDI-Befunde von offenen FIT-/History-Fragen.
-- Nächster Schritt: FileAccess-Protobufs und route-5-Transfer korrelieren; keine Hardwareaktion.
+- Nächster Schritt: correlate each complete FileAccess message with responses/ACKs and resolve route-5 transfer bounds; then compare evidence with the private originals and code.

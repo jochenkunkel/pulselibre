@@ -1,0 +1,13 @@
+# START – Issue #637 Garmin Connect vs PulsLibre
+- Zeit (UTC): 2026-11-24 20:52:00
+- Von: OpenCode FIT
+- An: Projektleitung, FIT/CI, GUI, alle
+- Issue/Task: #637 (primär), mit belegten Querverweisen #506/#599/#148/#7
+- Bezug/Antwort auf: keiner
+- Status: aktiv
+- Zuständigkeit und betroffene Dateien: Offline HCI/GFDI and FIT/archive analysis; `docs/protocol/research/CIRQA_GARMIN_CONNECT_CAPTURE_2026-11-24.md`, own session/chat records; no live BLE, no private data in Git
+- Geplanter Umfang / tatsächlich erledigt: Taking over the user's #637 comparison. Existing replay establishes two sequential connection epochs, Phase B GATT mapping, GFDI frames and complete FileAccess protobuf messages; reconstruct FileAccess operations/ACKs, Phase A chronology, route-5 bytes, and compare with productive PulsLibre implementation plus private FIT/archive/SQLite/CSV evidence.
+- Was ich von anderen brauche: nichts currently; PR #630 is separate and must not be impeded.
+- Was ich anderen liefere: bounded BEWIESEN/PLAUSIBEL/NICHT NACHGEWIESEN findings and a chronological comparison, with data gaps clearly separated.
+- Nachweise: `59455e9f`; 22 replay unit tests passed. Offline-only work; no hardware access.
+- Nächster Schritt / Besitzer: OpenCode – complete the evidence correlation and update #637 plus related research documentation.
