@@ -41,5 +41,7 @@ Gilt für jeden eintreffenden PR: Head festfrieren → Diff/Provenienz prüfen �
 - [x] #600: PR #609 gemergt (`77adc359`), FULL `45352137966` inkl. API-35; Issue geschlossen.
 - [x] #604: PR #605 gemergt (`cd8c374f`); Issue geschlossen.
 - [x] Post-Merge-Main-FULL `45354853683` auf `267c3558` SUCCESS inkl. API-35.
-- [ ] #601 Rest: Anbindung `ImportAuditRecorder` an `CirqaFitBackfill`, `observation_status_events` INSERT-Pfade, Backup-Erweiterung.
-- [ ] #599: sicherer inkrementeller Resume – weiterhin offen; jede Änderung an `CirqaMlHandshakeProbe` muss gegen den realen Offset-/Identitätsnachweis geprüft werden, sonst droht erneut unsicherer Skip.
+- [x] PR #612 (`527f9988`): Full-Pull-Regel in AGENTS/DATA_ACQUISITION_PRIORITY/HISTORICAL_DATA_SCOPE verankert; reine Docs, CLEAN.
+- [x] PR #613 (`0f7259b5`): `ImportAuditRecorder.recordStatusEvent`, Backfill-Anbindung, MainActivity-DB; FULL `45362351707` inkl. API-35, DR/Gradle grün; Post-Merge-FULL `45364470226` grün.
+- [ ] #601 Rest: Backup-/Restore-Einträge für `import_runs`/`import_errors`/`observation_status_events` (Backup v10 → v11) samt Roundtrip-Tests. Offen, nicht als erledigt gemeldet.
+- [ ] #599: Resume nur als Optimierung; Full-Pull bleibt nach #612 verbindlicher Fallback, keine Skip-Logik ohne Nachweis.
