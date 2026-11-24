@@ -74,7 +74,12 @@ internal object NocturnalOxygen {
         var dipCounted = false
         for (i in s.indices) {
             val from = s[i].time - BASELINE_LOOKBACK
-            val baseline = s.subList(0, i).filter { it.time >= from }.maxOfOrNull { it.percent } ?: s[i].percent
+            // Maximum of the readings inside the lookback, scanning back only until the window is left (s is sorted by time).
+            var baseline = s[i].percent
+            var peak: Int? = null
+            var j = i - 1
+            while (j >= 0 && s[j].time >= from) { peak = maxOf(peak ?: s[j].percent, s[j].percent); j-- }
+            if (peak != null) baseline = peak
             val below = baseline - s[i].percent >= drop
             if (below) {
                 if (dipStart == null) { dipStart = s[i].time; dipCounted = false }
