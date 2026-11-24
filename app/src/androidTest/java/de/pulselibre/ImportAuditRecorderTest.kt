@@ -29,9 +29,39 @@ class ImportAuditRecorderTest {
             source_sha256 TEXT, error_class TEXT NOT NULL, redacted_message TEXT NOT NULL,
             occurred_at_ms INTEGER NOT NULL,
             decision TEXT NOT NULL CHECK(decision IN ('FILE_SKIPPED','RUN_ABORTED')))""")
+        db.execSQL("CREATE TABLE quality_status_catalog (status_code TEXT PRIMARY KEY NOT NULL)")
+        db.execSQL("INSERT INTO quality_status_catalog(status_code) VALUES ('UNKNOWN')")
+        db.execSQL("CREATE TABLE measurement_modes (mode_code TEXT PRIMARY KEY NOT NULL)")
+        db.execSQL("INSERT INTO measurement_modes(mode_code) VALUES ('UNKNOWN')")
+        db.execSQL("""CREATE TABLE observation_status_events (
+            id INTEGER PRIMARY KEY AUTOINCREMENT, idempotency_key TEXT NOT NULL UNIQUE,
+            device_id TEXT NOT NULL, metric TEXT NOT NULL, measured_at_ms INTEGER,
+            timestamp_origin TEXT NOT NULL, raw_code INTEGER, raw_value_text TEXT,
+            status_code TEXT NOT NULL, measurement_mode TEXT NOT NULL,
+            sensor_context TEXT NOT NULL, source_kind TEXT NOT NULL, source_sha256 TEXT,
+            record_ordinal INTEGER, global_message_number INTEGER, field_number INTEGER,
+            decoder_version TEXT NOT NULL, profile_version TEXT NOT NULL,
+            observed_at_ms INTEGER, stored_at_ms INTEGER NOT NULL)""")
     }
 
     @After fun tearDown() { db.close() }
+
+    @Test fun storesRedactedStatusEventWithoutMeasuredValue() {
+        assertTrue(ImportAuditRecorder.recordStatusEvent(
+            db, "run-2:file-1:READ", "cirqa-fit", "unknown", "READ", 2_000L, "decoder-v2", "21.222.0"
+        ))
+        assertFalse(ImportAuditRecorder.recordStatusEvent(
+            db, "run-2:file-1:READ", "cirqa-fit", "unknown", "READ", 2_000L, "decoder-v2", "21.222.0"
+        ))
+        db.rawQuery("SELECT measured_at_ms, raw_code, raw_value_text, status_code FROM observation_status_events", null).use {
+            assertTrue(it.moveToFirst())
+            assertTrue(it.isNull(0))
+            assertTrue(it.isNull(1))
+            assertEquals("READ", it.getString(2))
+            assertEquals("UNKNOWN", it.getString(3))
+            assertFalse(it.moveToNext())
+        }
+    }
 
     @Test fun storesAggregateRunAndRedactedErrorIdempotently() {
         val sha = "a".repeat(64)
