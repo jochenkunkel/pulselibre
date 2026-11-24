@@ -994,6 +994,7 @@
     <string name="sd_cap_undecoded">Tipos de campo que la app no decodifica: %1$d (guardados como bytes en bruto, sin evaluar)</string>
     <string name="sd_cap_none">Todavía no hay nada guardado.</string>
     <string name="sd_cap_unknown">Estado de captura no disponible.</string>
+    <string name="sd_cap_partial">Algunos contadores no se pudieron leer y faltan en esta lista. Una línea ausente no significa 0.</string>
     <string name="sd_only_invalid">En el período solo hay valores fuera del rango de visualización o estados del dispositivo. Están guardados, pero no se dibujan.</string>
     <string name="sd_summary">%1$d valores válidos · media %2$s · mín %3$s · máx %4$s · franjas horarias con datos %5$d %%</string>
     <string name="sd_summary_no_valid">%1$d valores, ninguno dibujado como válido · franjas horarias con datos %2$d %%</string>

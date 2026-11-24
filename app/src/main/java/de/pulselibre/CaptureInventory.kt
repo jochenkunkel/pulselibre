@@ -28,6 +28,11 @@ internal data class CaptureInventory(
         regularObservations == null && candidatesByMetric == null &&
         rawNotifications == null && rawFitFields == null && undecodedFieldKinds == null
 
+    /** True when some counters are readable but at least one is not: the list is then incomplete, and the UI must say so (never imply 0). */
+    val hasUnreadable: Boolean get() = !isUnknown && (archivedFiles == null || importedFitFiles == null ||
+        regularObservations == null || candidatesByMetric == null || rawNotifications == null ||
+        rawFitFields == null || undecodedFieldKinds == null)
+
     val isEmpty: Boolean get() = !isUnknown && (archivedFiles ?: 0L) == 0L && (importedFitFiles ?: 0L) == 0L &&
         (regularObservations ?: 0L) == 0L && candidatesByMetric.isNullOrEmpty() &&
         (rawNotifications ?: 0L) == 0L && (rawFitFields ?: 0L) == 0L && (undecodedFieldKinds ?: 0L) == 0L
