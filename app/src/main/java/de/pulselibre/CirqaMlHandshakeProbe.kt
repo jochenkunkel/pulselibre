@@ -129,6 +129,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private val syncListContinuation = CirqaItemListContinuationPolicy()
     private var syncTransactionFollowupResponseItems: Int? = null
     private var syncListPageCount = 0
+    private var archivedRawNotifications = 0
+    private var archivedRawNotificationBytes = 0L
     private var syncListedItemCount = 0
     private var syncSessionPageRequestCount = 0
     private var syncPullRequestsQueued = 0
@@ -1515,9 +1517,26 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         }
     }
 
+    /** Best-effort lossless raw capture; must never change BLE behaviour or break the sync. */
+    private fun archiveRawNotification(bytes: ByteArray) {
+        if (!syncRequestMode || !syncAccepted) return
+        if (archivedRawNotifications >= CirqaRawNotificationArchive.MAX_NOTIFICATIONS_PER_RUN) return
+        if (archivedRawNotificationBytes + bytes.size > CirqaRawNotificationArchive.MAX_TOTAL_BYTES_PER_RUN) return
+        try {
+            CirqaDatabase(context).use { db ->
+                CirqaRawNotificationArchive.archive(db.writableDatabase, bytes, System.currentTimeMillis())
+            }
+            archivedRawNotifications++
+            archivedRawNotificationBytes += bytes.size
+        } catch (_: Exception) {
+            // Diagnostics must never prevent protocol processing.
+        }
+    }
+
     private fun receive(g: BluetoothGatt, bytes: ByteArray) {
         if (!active || terminationRequested) return
         notificationsReceived++
+        archiveRawNotification(bytes)
         if (configurationTestMode && configurationResponseQueued &&
             Cirqa5050NotificationFloodGuard.shouldAbort(
                 configurationNotificationBaseline, notificationsReceived
@@ -2224,6 +2243,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         syncListContinuation.reset()
         syncTransactionFollowupResponseItems = null
         syncListPageCount = 0
+        archivedRawNotifications = 0
+        archivedRawNotificationBytes = 0L
         syncListedItemCount = 0
         syncSessionPageRequestCount = 0
         syncPullRequestsQueued = 0
