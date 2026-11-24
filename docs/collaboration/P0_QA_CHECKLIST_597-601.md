@@ -27,7 +27,8 @@ Gilt für jeden eintreffenden PR: Head festfrieren → Diff/Provenienz prüfen �
 - [ ] Offline-Fixture → Archiv + Inventar + Restore.
 
 ## #601 – Status-/Importtabellen
-- [ ] INSERT-Pfade aus FIT-Import für `observation_status_events`, `import_runs`, `import_errors`.
+- [x] Baustein `ImportAuditRecorder` gemergt (`a0d15e33`, PR #607): `import_runs`/`import_errors`, idempotent + redigiert, FULL/API-35 grün.
+- [ ] INSERT-Pfade aus FIT-Import für `observation_status_events`; Anbindung des Recorders an `CirqaFitBackfill`.
 - [ ] FK-konsistent, datensparsam (keine Rohwerte/Adressen in Freitext), keine Promotion von Kandidaten.
 - [ ] Backup/Restore-Erweiterung mit v1–v9-Kompatibilität; integrity_check/FK.
 
