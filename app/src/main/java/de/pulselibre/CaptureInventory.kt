@@ -1,0 +1,44 @@
+package de.pulselibre
+
+import android.database.sqlite.SQLiteDatabase
+
+/**
+ * What is stored locally, counted from the database only (P0 data acquisition, docs/DATA_ACQUISITION_PRIORITY.md).
+ * Strictly separate from any medical statement: these are capture counters, never health values and never a claim that
+ * the band history is complete. A counter is null when its table cannot be read; it is never guessed.
+ */
+internal data class CaptureInventory(
+    /** Original downloaded files (any type, unknown ones included) and their total size in bytes. */
+    val archivedFiles: Long?, val archivedBytes: Long?,
+    /** FIT files that passed validation and were imported. */
+    val importedFitFiles: Long?,
+    /** Regular FIT measurements of the active decoder generations. */
+    val regularObservations: Long?,
+    /** Stored but unverified candidates per metric (spo2, stress, respiration); not counted as measurements. */
+    val candidatesByMetric: Map<String, Long>?
+) {
+    val isEmpty: Boolean get() = (archivedFiles ?: 0L) == 0L && (importedFitFiles ?: 0L) == 0L &&
+        (regularObservations ?: 0L) == 0L && candidatesByMetric.isNullOrEmpty()
+
+    companion object {
+        val EMPTY = CaptureInventory(null, null, null, null, null)
+
+        fun load(db: SQLiteDatabase): CaptureInventory {
+            fun one(sql: String): Long? = try { db.rawQuery(sql, null).use { if (it.moveToFirst()) it.getLong(0) else null } } catch (_: Exception) { null }
+            val candidates = try {
+                val m = LinkedHashMap<String, Long>()
+                db.rawQuery("SELECT metric, COUNT(*) FROM fit_review_candidates GROUP BY metric ORDER BY metric", null).use {
+                    while (it.moveToNext()) m[it.getString(0)] = it.getLong(1)
+                }
+                m
+            } catch (_: Exception) { null }
+            return CaptureInventory(
+                archivedFiles = one("SELECT COUNT(*) FROM downloaded_files"),
+                archivedBytes = one("SELECT COALESCE(SUM(file_bytes),0) FROM downloaded_files"),
+                importedFitFiles = one("SELECT COUNT(*) FROM fit_sources"),
+                regularObservations = one(
+                    "SELECT COUNT(*) FROM fit_generation_observations g JOIN fit_active_generations a ON a.generation_id = g.generation_id"),
+                candidatesByMetric = candidates)
+        }
+    }
+}

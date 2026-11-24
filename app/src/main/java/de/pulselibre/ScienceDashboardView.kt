@@ -27,6 +27,7 @@ internal class ScienceDashboardView(context: Context) : LinearLayout(context) {
     private val rangeRow = LinearLayout(context).apply { orientation = HORIZONTAL }
     private var selected = 1 // 7 days: the band history usually lies days back
     private var generation = 0
+    private var inventory: CaptureInventory = CaptureInventory.EMPTY
     private val ranges = listOf(R.string.sd_r24 to 24L, R.string.sd_r7 to 168L, R.string.sd_r30 to 720L)
     private val specs = listOf(
         R.string.sd_hr_band to ScienceSeriesLoader.HEART_RATE_BAND,
@@ -84,9 +85,11 @@ internal class ScienceDashboardView(context: Context) : LinearLayout(context) {
         EXECUTOR.execute {
             val end = System.currentTimeMillis()
             val start = end - hours * 3_600_000L
+            var loadedInventory = CaptureInventory.EMPTY
             val results = try {
                 CirqaDatabase(context.applicationContext).use { db ->
                     db.ensureHistoricalStoreCopied()
+                    loadedInventory = CaptureInventory.load(db.readableDatabase)
                     val unified = UnifiedMeasurements(db.writableDatabase)
                     unified.refresh()
                     val observations = HistoricalObservationRepository(context.applicationContext)
@@ -102,7 +105,7 @@ internal class ScienceDashboardView(context: Context) : LinearLayout(context) {
                     }
                 }
             } catch (_: Exception) { null }
-            main.post { if (ticket == generation) render(results) }
+            main.post { if (ticket == generation) { inventory = loadedInventory; render(results) } }
         }
     }
 
@@ -129,9 +132,27 @@ internal class ScienceDashboardView(context: Context) : LinearLayout(context) {
             }
             cards.addView(card(title, *views.toTypedArray()).apply { tag = "science_card_${spec.key}" }, spacing())
         }
+        cards.addView(captureCard(inventory), spacing())
         val na = listOf(R.string.sd_na_sleep, R.string.sd_na_activity, R.string.sd_na_hrv, R.string.sd_na_temp)
         cards.addView(card(context.getString(R.string.sd_na_title), *na.map { label(context.getString(it), 13f, palette.muted) as View }.toTypedArray())
             .apply { tag = "science_not_available" }, spacing())
+    }
+
+    /** Capture counters only (P0): what is stored, never a health value and never a completeness claim. */
+    private fun captureCard(inv: CaptureInventory): View {
+        val lines = ArrayList<View>()
+        lines += label(context.getString(R.string.sd_cap_intro), 12f, palette.muted)
+        if (inv.isEmpty) lines += label(context.getString(R.string.sd_cap_none), 13f, palette.muted)
+        else {
+            inv.archivedFiles?.let { lines += label(context.getString(R.string.sd_cap_files, it, android.text.format.Formatter.formatShortFileSize(context, inv.archivedBytes ?: 0L)), 13f, palette.ink) }
+            inv.importedFitFiles?.let { lines += label(context.getString(R.string.sd_cap_fit, it), 13f, palette.ink) }
+            inv.regularObservations?.let { lines += label(context.getString(R.string.sd_cap_obs, it), 13f, palette.ink) }
+            inv.candidatesByMetric?.takeIf { it.isNotEmpty() }?.let { m ->
+                lines += label(context.getString(R.string.sd_cap_cand, m.entries.joinToString(", ") { "${it.key} ${it.value}" }), 13f, palette.ink)
+            }
+            lines += label(context.getString(R.string.hsp_coverage_note), 12f, palette.muted)
+        }
+        return card(context.getString(R.string.sd_cap_title), *lines.toTypedArray()).apply { tag = "science_capture" }
     }
 
     /** Over 7/30 days a mostly empty chart is hard to read: say honestly on how many days values exist at all. */
