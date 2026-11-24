@@ -716,7 +716,7 @@
     <string name="dev_meta_battery">Battery</string>
     <string name="dev_meta_firmware">Firmware</string>
     <string name="dev_meta_clock">Band clock</string>
-    <string name="dev_meta_identity">Model / serial number</string>
+    <string name="dev_meta_identity">Device name / serial number (presumed)</string>
     <string name="dev_unavailable">Not available</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="dev_unavailable_cd">%1$s: not available; no confirmed device value yet</string>
@@ -914,6 +914,14 @@
     <string name="ht_empty">No values in this period.</string>
     <string name="ht_row_cd">%1$s, %2$s, %3$s: %4$d values, range %5$s, mean %6$s</string>
     <!-- #142/#159 live device metadata: labels and provenance -->
+    <string name="dev_meta_gdi_text">Extra text %1$d from the band</string>
+    <string name="dev_meta_gdi_note">Texts the band sends additionally in the Garmin protocol. Their meaning is not confirmed; they are shown unchanged, exactly as received.</string>
+    <string name="src_garmin_other">Garmin protocol (extra texts)</string>
+    <string name="src_gatt_info">Standard GATT device information</string>
+    <string name="src_gatt_name">Standard GATT device name</string>
+    <string name="src_gatt_time">Standard GATT clock</string>
+    <string name="src_gatt_other">Other standard GATT value</string>
+    <string name="src_garmin_5024">Garmin device information (5024)</string>
     <string name="dev_meta_masked">Masked</string>
     <string name="dev_meta_software">Software</string>
     <string name="dev_meta_hardware">Hardware</string>
