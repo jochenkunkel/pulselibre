@@ -297,3 +297,41 @@ Das bestätigt die **Garmin Connect 5.31 Legacy-GFDI-Implementierung**, einschli
 
 
 **Umsetzung in PulsLibre:** Reine Offline-Primitive `CirqaLegacyCrc16` und `CirqaLegacy5002Codec`, mit JVM-Vektoren. Keine BLE-Sendefunktion; CIRQA-Kompatibilität bleibt unbelegt.
+
+
+## 2026-11-24: Externes Protokollreview – GarminHRM600, Gadgetbridge und garmin-proto-lab
+
+**Zweck:** Öffentliche Vergleichsimplementierungen auf prüfbare Hinweise zu #637 (Daily-History-FIT), #506 (MLR/GFDI), #599 (History Download) und #148 (Fortsetzung) auswerten. Dieses Review ist **kein** Nachweis der CIRQA-Wire-Semantik und autorisiert keine neuen aktiven BLE-Kommandos.
+
+### Direkt geprüfte Quellen und Evidenzgrenzen
+
+1. [mskerwiderski/GarminHRM600 – README](https://github.com/mskerwiderski/GarminHRM600/blob/main/README.md) und [docs/gfdi-filetransfer.md](https://github.com/mskerwiderski/GarminHRM600/blob/main/docs/gfdi-filetransfer.md), per GitHub-Dateiinhalt geprüft am 24.11.2026. Das Projekt berichtet hardwarevalidierte HRM-600-Transfers, nicht CIRQA-Transfers.
+2. [seofernando25/garmin-proto-lab – README](https://github.com/seofernando25/garmin-proto-lab/blob/main/README.md) und [spec/PROTOCOL.md](https://github.com/seofernando25/garmin-proto-lab/blob/main/spec/PROTOCOL.md), per GitHub-Dateiinhalt geprüft am 24.11.2026. Dort wird die Hardwareverifikation ausdrücklich als ausstehend bezeichnet.
+3. [Gadgetbridge](https://codeberg.org/Freeyourgadget/Gadgetbridge) ist als ursprüngliche Protokollreferenz in GarminHRM600 dokumentiert; **Gadgetbridge-Quellcode wurde für dieses Review nicht eigenständig dateiweise geprüft**. Der GitHub-Mirror verweist auf Codeberg. Aussagen über Gadgetbridge sind daher Sekundärangaben aus GarminHRM600, keine direkte Codeverifikation.
+
+### Konkrete externe Befunde
+
+| Thema | Externe Aussage | Übertragbarkeit auf CIRQA |
+|---|---|---|
+| GFDI/ML | GarminHRM600 nutzt Garmin Multi-Link, GFDI und Protobuf FileSyncService; GFDI service 1. | Architekturvergleich sinnvoll; CIRQA-Wire-Bestätigung erforderlich. |
+| Dateiinhalt | Beim HRM 600 folgt auf FileRequest/FileResponse mit Transfer-Handle eine Registrierung des ML-Dienstes `0x2018` und ein separater Rohdatenstrom; das Gerät sendet die Bytes dort unkomprimiert. | **Hypothese** für die noch ungeklärte CIRQA-PullItem→FIT-Korrelation. Nicht als bereits bewiesener CIRQA-Transport implementieren. |
+| Zuordnung | GarminHRM600 beschreibt eine File-Grant-Nachricht (FileSyncService Feld 5) mit Zuordnung `handle → FileId`; Zuordnung nach bloßer Reihenfolge ist fehleranfällig. | Im privaten HCI-Trace nach korrespondierenden Feldern und eindeutigen File-IDs suchen. |
+| ACKs | GarminHRM600 beschreibt ACKs für fragmentierte und vollständige `5044`-Antworten, um Retransmits/Fehlzuordnungen zu vermeiden. | Mit CIRQA-Trace und PulsLibre-ACK-State-Machine **offline** vergleichen. |
+| Listen | GarminHRM600 dokumentiert `FileListRequest` (Servicefeld 9), `FileListResponse` (10), Cursor/Pagination sowie Flags, die bereits synchronisierte Dateien ausschließen können. | `included_data_types` und übrige Garmin-Connect-Felder aus #637 **nicht** ohne Evidenz mit diesen Flags gleichsetzen. |
+| Re-List | HRM 600 kann während Sync neue Dateien finalisieren; Referenz beschreibt erneute Listenabfrage nach leerer Download-Queue. | Mögliche Lückenursache, aber nur als Testhypothese für CIRQA. |
+| MLR | garmin-proto-lab dokumentiert Sequenzraum, kumulative ACKs, Sendefenster und Retransmissionsmechanik. | Hilfreiche Offline-Referenz, Hardwarevalidierung im Referenzprojekt noch offen. |
+| FIT | GarminHRM600 nutzt FIT-CRC und Dateivalidierung; andere Geräte verwenden andere FIT-Message-Typen. | Keine automatische Semantik für CIRQA Global Messages 397/398 daraus ableiten. |
+
+### Abgleich mit unserem neuen Beleg (#637)
+
+FIT hat im Garmin-Connect-HCI-Mitschnitt vom 24.11.2026 eine bytegenaue, CRC-valide FIT-Datei mit `skin_temp_overnight` (Global Message 398) und 1.405 nicht zugeordneten Global-397-Records nachgewiesen; keine üblichen Aktivitäts-Record-/Session-/Activity-Nachrichten. Das beweist **Daily-History-bezogenen Inhalt im Capture**, nicht vollständige Tageshistorie. Ein entsprechender Quelldatensatz fehlt in den **untersuchten PR-seitigen SQLite-Vergleichsexporten**, was allein noch keinen Importfehler in jeder Datenbankinstanz beweist. Der separate 680-Zeilen-Aktivitätstest ist nicht diesem Capture zuzuordnen.
+
+**P0-Folgeuntersuchungen für FIT (offline, nach Belegstärke priorisiert):**
+
+1. Die **konkrete** CRC-gültige FIT-Datei per privaten SHA-256-/Byte-Offset-Metadaten von HCI→MLR→FileAccess/Transfer-Handle→Archiv nachverfolgen. Bei fehlender MLR-Rekonstruktion den Beweisstatus ausdrücklich offen lassen.
+2. Auf FileAccess-Grant-/Handle→FileId-Äquivalente, fragmentierte `5044`-Antworten und korrespondierende ACKs prüfen. Nur auf Capture belegte Semantik übernehmen.
+3. Garmin-Connect-`ItemListRequest` einschließlich `included_data_types` und weiterer Felder gegen PulsLibres leeren Initialrequest **byte- und feldgenau** vergleichen; Pagination, Wiederholungen und Antwort-Item-IDs erfassen. Kein unbelegter Request in Produktivcode.
+4. Für die konkrete Datei getrennte Zählung **archiviert → vom Decoder gelesen → strukturierte Records → interpretierbare Beobachtungen → SQLite-Quellzeile → CSV**. Insbesondere PR-Export-Scope und bereits bekannte SQLite-Commit-Probleme berücksichtigen. Unbekannte 397-Felder nicht als erfundene Gesundheitsmetriken importieren.
+5. Vor jedem Fix eine kleine synthetische Offline-Regression anlegen (ACK/Chunk/Handle-Bindung bzw. Importstatus). Action-History-Verhalten erhalten. GitHub-CI bei Codeänderungen verbindlich; keine lokale Voll-CI-Emulation erforderlich.
+
+**Entscheidung:** Dieses Review ist dokumentarisch. **Keine** neue CIRQA-Transportfunktion, kein aktiver BLE-Test und keine automatische Umdeutung von `included_data_types` sind dadurch gerechtfertigt. Alle Aussagen sind zu unterscheiden in *extern dokumentiert*, *im CIRQA-Capture bewiesen* und *Hypothese*.
