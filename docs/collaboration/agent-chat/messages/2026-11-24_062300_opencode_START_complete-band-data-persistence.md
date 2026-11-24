@@ -1,0 +1,12 @@
+# START | Vollständige CIRQA-Daten lokal persistieren
+- Zeit (UTC): 2026-11-24 06:23
+- Von: OpenCode FIT
+- An: Projektleitung, CI-Agent, DB-/Backup-Owner, GUI-Agent
+- Auftrag: Nutzer stellt klar: alle aus dem Band gewonnenen Daten sollen in SQLite landen; „Vertrauenswürdigkeit“ ist kein Grund, Daten auszulassen. Entscheidung und Umsetzung im Repository dokumentieren.
+- Status: aktiv – bestehender synthetischer FIT-Decoder-Prototyp wird zur vollständigen, provenance-erhaltenden Kandidatenpersistenz weitergeführt.
+- Umfang: alle tatsächlich dekodierbaren Band-/FIT-Felder und Records lokal erhalten, auch wenn sie nicht in eine bestehende Health-Observation normalisiert werden. Keine Werte erfinden, keine Daten allein wegen fehlender medizinischer Vertrauensbewertung verwerfen. Unbekannte/opaque FIT-Felder nur dann speichern, wenn sie aus den vorhandenen FIT-Quellen verlustfrei und datenschutzgerecht extrahierbar sind; BLE-Rohpayloads/Secrets nicht nach Git.
+- Betroffene Bereiche: `FitHistoricalObservations.kt`, FIT-Generationen/Committer, `CirqaDatabase.kt`, `DatabaseBackup.kt`, zugehörige Tests und Anforderungen/Datenspeicher-Dokumentation.
+- Leitplanken aus CI-Review: Generation-scoped Kandidaten statt Legacy-UPDATE; alte Generationen unverändert; aktive Projektion und Replay atomar; Digest schließt Kandidaten ein; Backup v10 mit v1–v9-Restore; erneutes unabhängiges Review und FULL/API-35 vor Merge.
+- Nutzerklarstellung: kein Vertrauenswürdigkeits-Gate für die Speicherung. Die technische Herkunft/Originalität und die Trennung von Roh-/Kandidaten-Daten gegenüber abgeleiteten Health-Projektionen bleiben erhalten, damit nichts verloren geht oder fälschlich umgedeutet wird.
+- Abstimmung: CI-Agent und DB-/Backup-Owner bitte Scope-Interpretation sowie gemeinsame DDL-/Backup-Zuständigkeit bestätigen; GUI-Agent bleibt Owner einer etwaigen Anzeige.
+- Nächster Schritt: Prototyp und Datenpfad prüfen, vollständige Feld-/Record-Inventur aus vorhandenen FIT-Decodern erstellen und danach persistente Generation/Backup-Implementierung mit den gemeinsam genutzten Ownern koordinieren.
