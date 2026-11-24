@@ -22,7 +22,7 @@ erhalten bleibt:
 Dashboard/Statistik lesen weiterhin den Ereignisspeicher. CSV bezieht alte
 `legacy_record`-Ereignisse, den normalisierten kanonischen Store und rohe CIRQA-
 Ereignisse dedupliziert ein. FIT-Importzeit und Gerätemesszeit bleiben getrennt.
-Es werden nur beobachtete, validierte Werte gespeichert.
+Alle beobachteten Werte werden lokal gespeichert: validierte Werte als kanonische Messwerte, unkalibrierte/unvalidierte Werte ausdrücklich als `UNTRUSTED_CANDIDATE` mit Rohwert, Quelle, Zeitbasis und Unsicherheit. Medizinische Validierung ist ein Metadatum für Interpretation und Anzeige, kein Speicherverbot (P0-Entscheidung 24.11.2026, `docs/DATA_ACQUISITION_PRIORITY.md`).
 
 ## Migration und Rückwärtskompatibilität
 **Nutzerentscheidung vom 2026-11-17 (im Bereinigungs-PR):** Die frühere
