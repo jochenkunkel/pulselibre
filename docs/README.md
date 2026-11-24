@@ -17,6 +17,7 @@
 | **Wissenschaft und Messwerte** | Metriken, Formeln, Normkontext, Evidenz, Validierung | [docs/science/README.md](science/README.md) |
 | **Testnachweise und Verifikation** | Testpläne, Geräteversuche, CI-Ergebnisse und nachvollziehbare Prüfberichte | [docs/test-evidence/README.md](test-evidence/README.md) |
 | **Zusammenarbeit und Projektregeln** | Agenten, Zuständigkeiten, Qualitätsvorgaben und Übergaben | [docs/collaboration/README.md](collaboration/README.md) |
+| **Kurierte Wissensbasis (24.11.)** | BLE-Protokoll, Feldkatalog, Rohdaten→Datenbank, Geräte-Evidenz, offene Fragen – verdichtet mit Quellverweisen | [docs/knowledge/00_INDEX.md](knowledge/00_INDEX.md) |
 
 ## Bereichsübergreifend (vorerst bewusst im Stammverzeichnis)
 
