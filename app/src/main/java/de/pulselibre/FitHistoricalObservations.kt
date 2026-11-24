@@ -348,6 +348,7 @@ object FitHistoricalObservations {
                 val delta = headerByte and 0x1f
                 var reconstructed = (old and -32L) + delta
                 if (reconstructed < old) reconstructed += 32
+                if (reconstructed >= INVALID_FIT_TIME) return null
                 reconstructed
             } else null
             val directTimestamp = if (!compressed) {
@@ -776,7 +777,8 @@ object FitHistoricalObservations {
         val offset = fieldBytes[field] ?: return null
         val raw = readSupportedUnsigned(file, offset, field, definition.bigEndian, 4) ?: return null
         if (raw == invalidSentinel(field)) return null
-        return previous + ((raw - (previous and 0xffffL)) and 0xffffL)
+        return (previous + ((raw - (previous and 0xffffL)) and 0xffffL))
+            .takeIf { it < INVALID_FIT_TIME }
     }
 
     private fun readSupportedUnsigned(

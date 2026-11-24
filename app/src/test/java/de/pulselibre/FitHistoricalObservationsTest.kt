@@ -186,6 +186,29 @@ class FitHistoricalObservationsTest {
         assertEquals(FitHistoricalObservations.TimestampOrigin.UNKNOWN, candidate.timestampOrigin)
     }
 
+    @Test fun truncatedCompressedRecordAndChainedFitAreRejectedWithoutPartialImport() {
+        val anchor = byteArrayOf(0x40, 0, 0, 20, 0, 1, 253.toByte(), 4, 0x86.toByte(),
+            0, 0x1e, 0, 0, 0x40)
+        val definition = byteArrayOf(0x41, 0, 0, 20, 0, 1, 3, 1, 2)
+        // Valid CRC but missing the defined heart-rate byte.
+        assertNull(FitHistoricalObservations.decode(fit(anchor + definition + byteArrayOf(0xa1.toByte()))))
+        val first = fit(anchor)
+        val second = fit(anchor)
+        // Current single-envelope API does not accept FIT chaining; reject, do
+        // not silently claim the first member is the complete source.
+        assertNull(FitHistoricalObservations.decode(first + second))
+    }
+
+    @Test fun compressedTimestampCannotRollIntoInvalidSentinel() {
+        val data = byteArrayOf(
+            0x40, 0, 0, 20, 0, 1, 253.toByte(), 4, 0x86.toByte(),
+            0, 0xfe.toByte(), 0xff.toByte(), 0xff.toByte(), 0xff.toByte(),
+            0x41, 0, 0, 20, 0, 1, 3, 1, 2,
+            0xbf.toByte(), 70
+        )
+        assertNull(FitHistoricalObservations.decode(fit(data)))
+    }
+
     @Test fun monitoringCyclesAreNotGuessedAsStepCounts() {
         val data = byteArrayOf(
             0x40, 0, 0, 55, 0, 2,

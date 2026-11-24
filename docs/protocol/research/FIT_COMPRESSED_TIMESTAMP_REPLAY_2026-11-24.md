@@ -31,6 +31,9 @@ The FIT epoch offset remains 631065600 seconds; Garmin identifies the epoch as
 1989-12-31 UTC and `date_time` below `0x10000000` as relative
 ([cookbook](https://developer.garmin.com/fit/articles/cookbook/datetime.html)).
 Local time and a device receive time must not be substituted for UTC FIT time.
+The current decoder accepts one FIT envelope and deliberately rejects chained
+FIT files rather than partially importing the first member; chain support is
+not implemented by this fix and is covered by a fail-closed regression.
 
 ## Existing originals: preliminary, not a rescue count
 
