@@ -1,0 +1,13 @@
+# OpenCode FIT – #628/#630 Abschlussnachweise
+- Agent/Umgebung: OpenCode, Linux
+- Beginn: 2026-11-24 17:10 UTC
+- Status: aktiv
+- Rolle/Zuständigkeit: FIT-Decoder, SQLite-Import, Integration/CI
+- Aktueller Auftrag: #628/#630 eigenständig technisch abschließen; zuerst identische S10 FIT-Vorher/Nachher-Replays und tatsächliche SQLite-Persistenz nachweisen.
+- Jetzt in Bearbeitung: S10 FIT-Sicherungsvalidierung und Decodervergleich `origin/main` versus PR #630; anschließend isolierte SQLite-Replays, Fehlerklassen und S10-Instrumentation, soweit sicher möglich.
+- Zeitnah geplant: PR-Head FULL-CI prüfen; Issue/PR aktualisieren; Review/Merge nur bei allen verbindlichen Gates.
+- Betroffene Bereiche/Dateien: private lokale Evidenz `/home/smiler/.local/share/pulselibre/s10-issue628-evidence-20261124`; FIT-Replay-/SQLite-Tests und `docs/protocol/research/FIT_COMPRESSED_TIMESTAMP_REPLAY_2026-11-24.md`.
+- Branch/Worktree: `opencode/issue628-fit-timestamps`, PR-Head `cfe484fb`, base derzeit `origin/main` `8d79578c`.
+- Abstimmungsbedarf: Bitte CI-Agent aktuellen Pflichtcheckstatus für PR #630 sowie separates Main-FULL/Merge-Gate bestätigen; keine aktiven Bandkommandos.
+- Nachweise: S10 Original- und Backup-Manifeste existieren außerhalb Repo; Hashvalidierung wird erneut ausgeführt. PR #630 weiterhin Draft und Checks am letzten Head pending.
+- Nächster Schritt: zwei unabhängige Decoder-/FieldDiff-Läufe über identische 45 FITs.

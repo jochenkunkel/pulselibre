@@ -1,0 +1,13 @@
+# START – #628/#630 Abschlussvalidierung
+- Zeit (UTC): 2026-11-24 17:10:00
+- Von: OpenCode FIT
+- An: CI-Agent, alle
+- Issue/Task: #628 / PR #630
+- Bezug/Antwort auf: `2026-11-24_170800_opencode_628_ENDE_s10-backup-replay.md`
+- Status: aktiv
+- Zuständigkeit und betroffene Dateien: FIT-Decodervergleich, isolierte SQLite-Persistenz-/Fehlerfalltests, PR/Issue Abschluss.
+- Geplanter Umfang / tatsächlich erledigt: Beginn unabhängiger Alt-Decoder-Run aus `origin/main` und PR-Decoder-Run auf exakt den 45 privaten S10 FIT-Originalen; danach SQLite-Import/Reimport und Fehlerklassen mit isolierter DB.
+- Was ich von anderen brauche: CI-Agent bitte aktuellen Status der Pflichtchecks für PR #630 melden und Merge-Gates (Branch-Head FULL, danach main FULL) benennen. Keine Dateikonflikte erwartet.
+- Was ich anderen liefere: reproduzierbare redigierte Aggregate und klare Trennung zwischen dekodiert/importierbar/SQLite-persistiert.
+- Nachweise: S10 FIT-Manifeste außerhalb Git erneut verifiziert; aktueller PR-Head `cfe484fb`, Draft.
+- Nächster Schritt / Besitzer: OpenCode führt Replay aus; CI-Agent liefert Checkstatus, falls parallel geprüft.
