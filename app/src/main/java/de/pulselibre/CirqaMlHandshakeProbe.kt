@@ -1051,7 +1051,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         val fitIntegrityKey = "fit-integrity:$localId"
         val result = try {
             mlrValidation()
-        } catch (_: Exception) {
+        } catch (e: Exception) {
             syncTiming.stop(validationKey, CirqaSyncTiming.Stage.VALIDATION)
             syncTiming.stop(fitIntegrityKey, CirqaSyncTiming.Stage.VALIDATION)
             CirqaSyncFileCompletion.Result(
@@ -1061,7 +1061,11 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                 privateStorage = CirqaSyncFileCompletion.Stage.NOT_REACHED,
                 decode = CirqaSyncFileCompletion.Stage.NOT_REACHED,
                 sqliteCommit = CirqaSyncFileCompletion.Stage.NOT_REACHED,
-                detail = "file-validation=failed"
+                detail = "file-validation=failed",
+                failure = CirqaSyncFileCompletion.FailureDiagnostic(
+                    CirqaSyncFileCompletion.FailurePhase.VALIDATION,
+                    e.javaClass.simpleName
+                )
             )
         }
         syncFileStageCounts.record(result)
@@ -3233,7 +3237,11 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                 privateStorage = CirqaSyncFileCompletion.Stage.FAILED,
                 decode = CirqaSyncFileCompletion.Stage.NOT_REACHED,
                 sqliteCommit = CirqaSyncFileCompletion.Stage.FAILED,
-                detail = "exactSize=true;originalSqliteArchive=failed:${e.javaClass.simpleName}"
+                detail = "exactSize=true;originalSqliteArchive=failed:${e.javaClass.simpleName}",
+                failure = CirqaSyncFileCompletion.FailureDiagnostic(
+                    CirqaSyncFileCompletion.FailurePhase.ORIGINAL_ARCHIVE,
+                    e.javaClass.simpleName
+                )
             )
         } finally {
             syncTiming.stop(archiveTimingKey, CirqaSyncTiming.Stage.ARCHIVE)
@@ -3279,7 +3287,11 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     decode = CirqaSyncFileCompletion.Stage.NOT_APPLICABLE,
                     sqliteCommit = CirqaSyncFileCompletion.Stage.NOT_APPLICABLE,
                     detail = "len=${data.size};expected=${item.dataSize};type=$label;sha256=$sha;" +
-                        "privateRawSaveFailed=${e.javaClass.simpleName}"
+                        "privateRawSaveFailed=${e.javaClass.simpleName}",
+                    failure = CirqaSyncFileCompletion.FailureDiagnostic(
+                        CirqaSyncFileCompletion.FailurePhase.NON_FIT_RAW_STORE,
+                        e.javaClass.simpleName
+                    )
                 )
             }
             val metadata = CirqaRawDeviceMetadataParser.inspect(data)
@@ -3332,7 +3344,11 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     decode = CirqaSyncFileCompletion.Stage.NOT_REACHED,
                     sqliteCommit = CirqaSyncFileCompletion.Stage.NOT_REACHED,
                     detail = "len=${data.size};expected=${item.dataSize};type=$label;magic=$magic;" +
-                        "fitHeader=false;fitCrc=false;privateRawSaveFailed=${e.javaClass.simpleName}"
+                        "fitHeader=false;fitCrc=false;privateRawSaveFailed=${e.javaClass.simpleName}",
+                    failure = CirqaSyncFileCompletion.FailureDiagnostic(
+                        CirqaSyncFileCompletion.FailurePhase.FIT_RAW_STORE,
+                        e.javaClass.simpleName
+                    )
                 )
             }
             return CirqaSyncFileCompletion.Result(
@@ -3364,7 +3380,11 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                 decode = CirqaSyncFileCompletion.Stage.NOT_REACHED,
                 sqliteCommit = CirqaSyncFileCompletion.Stage.NOT_REACHED,
                 detail = "len=${data.size};expected=${item.dataSize};type=$label;$zlibMark;fitHeader=true;" +
-                    "sha256=$sha;privateSaveFailed=${e.javaClass.simpleName}"
+                    "sha256=$sha;privateSaveFailed=${e.javaClass.simpleName}",
+                failure = CirqaSyncFileCompletion.FailureDiagnostic(
+                    CirqaSyncFileCompletion.FailurePhase.VERIFIED_FIT_STORE,
+                    e.javaClass.simpleName
+                )
             )
         }
         val fitDecodeTimingKey = "item:${syncCurrentLocalItemId ?: 0}:fit-decode"
@@ -3420,7 +3440,11 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                 importableObservations = importable.size,
                 detail = "len=${data.size};expected=${item.dataSize};type=$label;$zlibMark;fitHeader=true;" +
                     "sha256=$sha;privateFit=${saved.outcome};observations=${decoded.observations.size};" +
-                    "importable=${importable.size};sqlite=failed:${e.javaClass.simpleName}"
+                    "importable=${importable.size};sqlite=failed:${e.javaClass.simpleName}",
+                failure = CirqaSyncFileCompletion.FailureDiagnostic(
+                    CirqaSyncFileCompletion.FailurePhase.FIT_IMPORT_COMMIT,
+                    e.javaClass.simpleName
+                )
             )
         } finally {
             syncTiming.stop(fitImportTimingKey, CirqaSyncTiming.Stage.FIT_IMPORT)

@@ -1,0 +1,13 @@
+# UPDATE | S10-Status erneut geprüft: automatischer Lauf terminal unvollständig
+- Zeit (UTC): 2026-11-24 10:39:00
+- Von: OpenCode FIT
+- An: Projektleitung, CI-Agent, GUI-Agent
+- Issue/Task: P0 CIRQA S10 Full-Pull-Einmallauf
+- Bezug/Antwort auf: `2026-11-24_103000_opencode_ENDE_s10-test-incomplete.md`
+- Status: abgeschlossen (Nachprüfung)
+- Zuständigkeit und betroffene Dateien: S10-Testplan und Agentenprotokoll; keine App-Codeänderung
+- Geplanter Umfang / tatsächlich erledigt: Zweimalige, eng begrenzte read-only UI-Prüfung unter frischer S10-Lease, ohne App-Neustart, Sync-Button oder BLE-Aktion. Die Historienstatuskarte wurde gefunden und lokal aufgeklappt. Korrektur zum vorherigen ENDE: der einmalige MainActivity-Start hatte tatsächlich einen automatischen Lauf ausgelöst; kein manueller Lauf.
+- Was ich von anderen brauche: nichts für diesen Nachblick; separate CI-/GUI-Triage des Main-FULL bleibt offen.
+- Was ich anderen liefere: aktualisierte Statuszusammenfassung im Testplan. Der Report meldet `runDrained=false`, `coverage=device-history-unverified`, `incompleteReason=next-transaction-followup-empty`; 34 Dateien übertragen/verifiziert/privat gespeichert, 32 dekodiert, 12 SQLite-committed, 0 importiert, 12 ohne importierbare Daten, 20 nicht erfolgreich/fehlgeschlagen. Keine Vollständigkeitsbehauptung; kein Post-Run-Backup; keine Wiederholung.
+- Nachweise: private UI-Screenshots lokal unter `/tmp/opencode/p0-s10-status-recheck-20261124/`; S10-Lease danach FREI. Lauf-ID und Rohdiagnose nicht veröffentlicht.
+- Nächster Schritt / Besitzer: Projektleitung/CI-/GUI-Agent – Main-FULL-Triage; kein weiterer S10-Zugriff ohne neue Entscheidung.

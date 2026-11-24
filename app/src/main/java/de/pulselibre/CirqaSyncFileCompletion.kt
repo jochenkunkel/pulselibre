@@ -2,6 +2,24 @@ package de.pulselibre
 
 /** Typed, per-file outcomes for the existing MLR → verified file → FIT → SQLite path. */
 internal object CirqaSyncFileCompletion {
+    enum class FailurePhase {
+        VALIDATION,
+        ORIGINAL_ARCHIVE,
+        NON_FIT_RAW_STORE,
+        FIT_RAW_STORE,
+        VERIFIED_FIT_STORE,
+        FIT_IMPORT_COMMIT
+    }
+
+    data class FailureDiagnostic(
+        val phase: FailurePhase,
+        val exceptionType: String
+    ) {
+        init {
+            require(exceptionType.matches(Regex("[A-Za-z][A-Za-z0-9_]{0,63}")))
+        }
+    }
+
     enum class Stage {
         NOT_REACHED,
         SUCCEEDED,
@@ -31,7 +49,9 @@ internal object CirqaSyncFileCompletion {
         val sqliteCommit: Stage,
         /** Null means decode did not produce a count, not that the count was zero. */
         val importableObservations: Int? = null,
-        val detail: String
+        val detail: String,
+        /** Exception class and named pipeline boundary only; never exception text or paths. */
+        val failure: FailureDiagnostic? = null
     ) {
         init {
             require(importableObservations == null || importableObservations >= 0)
@@ -75,7 +95,8 @@ internal object CirqaSyncFileCompletion {
         var imported: Int = 0,
         var noImportableData: Int = 0,
         var unsupported: Int = 0,
-        var failed: Int = 0
+        var failed: Int = 0,
+        val failureCauses: MutableMap<FailureDiagnostic, Int> = linkedMapOf()
     ) {
         fun record(result: Result) {
             if (result.transfer == Stage.SUCCEEDED) transferred++
@@ -90,6 +111,9 @@ internal object CirqaSyncFileCompletion {
                 Status.FAILED -> failed++
                 else -> Unit
             }
+            result.failure?.let { cause ->
+                failureCauses[cause] = (failureCauses[cause] ?: 0) + 1
+            }
         }
 
         fun reset() {
@@ -102,11 +126,16 @@ internal object CirqaSyncFileCompletion {
             noImportableData = 0
             unsupported = 0
             failed = 0
+            failureCauses.clear()
         }
 
         fun redactedSummary(): String =
             "transferred=$transferred,verified=$verified,privateStored=$privatelyStored," +
                 "decoded=$decoded,sqliteCommitted=$sqliteCommitted,imported=$imported," +
-                "noImportableData=$noImportableData,unsupported=$unsupported,failed=$failed"
+                "noImportableData=$noImportableData,unsupported=$unsupported,failed=$failed," +
+                "failureCauses=${failureCauses.entries.sortedWith(
+                    compareBy({ it.key.phase.name }, { it.key.exceptionType })
+                ).joinToString("|") { "${it.key.phase.name}/${it.key.exceptionType}:${it.value}" }
+                    .ifEmpty { "none" }}"
     }
 }

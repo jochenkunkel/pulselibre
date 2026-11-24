@@ -1,0 +1,15 @@
+# OpenCode – lokalen CIRQA-Arbeitsstand mit main abgleichen
+- Agent/Umgebung: OpenCode FIT, Linux-Worktree
+- Beginn: 2026-11-24 11:58 UTC
+- Letzte Aktualisierung: 2026-11-24 11:58 UTC
+- Status: aktiv
+- Rolle/Zuständigkeit: FIT/BLE/Protokoll und lokaler Branch-Abgleich
+- Aktueller Auftrag: auf ausdrücklichen Nutzerwunsch den vollständigen lokalen Arbeitsstand sichern, mit aktuellem `origin/main` integrieren und einen sauberen lokalen Git-Status herstellen; nicht nach `main` pushen oder mergen
+- Jetzt in Bearbeitung: Branch `opencode/p0-cirqa-full-history-20261124`, aktuell 4 Commits voraus/9 hinter `origin/main`, zusätzlich 86 geänderte/untracked Pfade
+- Zeitnah geplant: vollständige lokale Änderung als geprüften Commit erhalten; `origin/main` integrieren; Konflikte bewusst lösen; geeignete Tests und abschließenden Status prüfen
+- Betroffene Bereiche/Dateien: aktueller kompletter Git-Arbeitsstand; insbesondere CIRQA-Diagnostik, S10-Testplan, Collaboration-Protokolle sowie die vom Nutzer zur Übernahme freigegebenen `docs/archive/2026-11-24/` und `docs/knowledge/`
+- Branch/Worktree: `/home/smiler/04_src/BLE-FIT-CIRQA-p0-cirqa-full-history-20261124`
+- Abstimmungsbedarf: keiner für lokalen, nicht gepushten Snapshot/Reconcile; PR-/Main-Merge bleibt explizit außerhalb des Auftrags
+- Agent-sync-Nachrichten: `docs/collaboration/agent-chat/messages/2026-11-24_115800_opencode_START_main-reconcile.md`
+- Nachweise: `git fetch origin` erfolgreich; Branch `a7e4b745`, `origin/main` `b588ba98`; keine Datei geändert oder committet, bevor der Auftrag registriert wurde
+- Nächster Schritt: alle 86 Pfade als lokalen Snapshot sichern und danach `origin/main` integrieren, ohne private Captures außerhalb des Repos anzufassen.
