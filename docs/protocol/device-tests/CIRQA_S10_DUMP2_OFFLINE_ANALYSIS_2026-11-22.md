@@ -1,5 +1,7 @@
 # S10 – zweiter Dump (2026-11-22): offline gesicherte Analyse
 
+> Der zugrunde liegende HCI-Rohmitschnitt wurde auf Nutzeranweisung vom 24.11.2026 aus dem aktuellen `docs/`-Baum entfernt. Die redigierten Analysebefunde bleiben als historische Zusammenfassung erhalten.
+
 ## Scope und Datenschutz
 
 Dieses Dokument enthält ausschließlich **redaktierte Metadaten und abgeleitete

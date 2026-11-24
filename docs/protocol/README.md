@@ -25,7 +25,7 @@
 
 ## Migration und Verlinkung
 
-Am 24.11.2026 wurde die Dokumentation thematisch gruppiert: Protokollmaterial liegt hier; CI-/Testnachweise unter `quality/`, Projektführung unter `project/`, UI und Handbücher unter `product/`. Inhalte wurden nicht gelöscht. Interne Markdown-Verweise wurden soweit geprüft auf die neue Struktur umgestellt; alte direkte Dateipfade können sich ändern.
+Am 24.11.2026 wurde die Dokumentation thematisch gruppiert: Protokollmaterial liegt hier; CI-/Testnachweise unter `quality/`, Projektführung unter `project/`, UI und Handbücher unter `product/`. Zusätzlich wurden auf Nutzeranweisung BLE-Rohmitschnitte aus dem aktuellen `docs/`-Baum entfernt; redigierte Analyseberichte bleiben. Interne Markdown-Verweise wurden soweit geprüft auf die neue Struktur umgestellt; alte direkte Dateipfade können sich ändern.
 
 ## Ergänzung: CIRQA-Restmigration vom 2026-11-17
 

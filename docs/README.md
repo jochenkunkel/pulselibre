@@ -22,12 +22,12 @@ Dieser Ordner ist nach Arbeitsbereichen gegliedert. Die oberste Ebene enthält n
 | [`collaboration/`](collaboration/README.md) | Agentenabstimmung, Sitzungsnachweise und verbindliche Kollaborationsregeln |
 | [`knowledge/`](knowledge/00_INDEX.md) | Kompakte thematische Wissensbasis mit Quellenverweisen |
 | [`architecture/`](architecture/README.md) | Architekturübersicht, technische Diagramme und geparkte Architekturprüfung |
-| [`archive/`](archive/2026-11-24/README.md) | Vollständige historische Dokumente; nicht gelöscht, aber nicht mehr aktuelle Arbeitsanweisung |
+| [`archive/`](archive/2026-11-24/README.md) | Historische Dokumente; nicht mehr aktuelle Arbeitsanweisung |
 
 ## Pflegeprinzipien
 
 - Pro Thema gibt es einen kanonischen Einstieg; Fachseiten verlinken untereinander und auf Primärbelege.
 - Aktuelle Vorgaben und historische Evidenz klar trennen. Bei Konflikten gelten Code/CI, aktuelle Projektregeln und belegte Testergebnisse vor alten Notizen.
 - Keine privaten Gerätekennungen, Tokens, Rohdaten oder personenbezogenen Gesundheitsdaten in die Dokumentation aufnehmen.
-- Historische Dokumente werden nur mit überprüftem Inhalt und Zweck archiviert. Das datierte Archiv enthält Originale; archivierte Dateien wurden nicht gelöscht.
+- Historische Dokumente werden nur mit überprüftem Inhalt und Zweck archiviert. Erforderliche Rohmitschnitte sind davon ausgenommen und werden nicht in `docs/` abgelegt.
 - Ordner dürfen Unterordner für große Themenbereiche enthalten. Der `docs/`-Stamm bleibt frei von Fachdateien.

@@ -2,7 +2,7 @@
 
 **Owner:** ChatGPT (unabhängige Binäranalyse). **Implementierungsauftrag:** FIT/BLE-Agent, Issue #506.
 
-**Quelle:** Nutzerupload `btsnoop_hci.log` aus PR #505, SHA256 `6cc31e79112f94dd3ea1c146de8bc48d74fd2252cf6290805cb83e4226d8adf8`. Keine Live-Geräteaktion.
+**Quelle:** Nutzerupload `btsnoop_hci.log` aus PR #505. Der Rohmitschnitt wurde auf Nutzeranweisung vom 24.11.2026 aus dem aktuellen Dokumentationsbaum entfernt. Keine Live-Geräteaktion; die folgenden Resultate sind historische Offline-Auswertung.
 
 ## Reproduzierbarer Dekodierweg
 

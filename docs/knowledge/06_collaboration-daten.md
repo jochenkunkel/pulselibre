@@ -6,11 +6,11 @@
 
 | Bereich | Dateien | Größe | Inhalt |
 |---|---:|---:|---|
-| `docs/collaboration/agent-chat/` | 376 | – | Chat-Nachrichten und Chat-Einstieg |
-| `docs/collaboration/agent-sync/` | 200 | – | Adressierte Abstimmungen, Index und Formatregeln |
-| `docs/collaboration/agent-activity/` | 83 | – | Sitzungsprotokolle |
+| `docs/collaboration/agent-chat/` | 378 | – | Chat-Nachrichten und Chat-Einstieg |
+| `docs/collaboration/agent-sync/` | 201 | – | Adressierte Abstimmungen, Index und Formatregeln |
+| `docs/collaboration/agent-activity/` | 84 | – | Sitzungsprotokolle |
 | `docs/collaboration/` Root | 5 | – | Richtlinien, Rollen-/Datenregeln und Einstieg |
-| **Gesamt** | **664** | **2,8 MB** | Bestand einschließlich Task-Kommunikation |
+| **Gesamt** | **668** | **2,8 MB** | Bestand einschließlich Capture-Bereinigungsaufgabe |
 
 ## 2. Wo man mit wenigen Klicks einsteigt
 

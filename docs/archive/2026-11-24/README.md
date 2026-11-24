@@ -1,6 +1,6 @@
 # Dokumentenarchiv – 24.11.2026
 
-> Diese Dateien wurden zur Navigation und thematischen Konsolidierung aus den aktiven Dokumentationsbereichen verschoben, **nicht gelöscht**. Vollständiger Inhalt und Git-Historie bleiben erhalten. Interne Verweise auf umsortierte Dokumente wurden angepasst; alte direkte Dateipfade können sich ändern.
+> Diese Dateien wurden zur Navigation und thematischen Konsolidierung in das datierte Archiv verschoben. Die Dokumente bleiben erhalten; ein vollständiger BLE-Rohframe wurde auf spätere Nutzeranweisung aus dem aktuellen Dokumentationsbaum entfernt. Frühere Versionen bleiben in der Git-Historie. Interne Verweise auf umsortierte Dokumente wurden angepasst; alte direkte Dateipfade können sich ändern.
 
 ## Aktuelle Einstiege
 
@@ -62,5 +62,5 @@
 ## Grenzen
 
 - `docs/collaboration/**` vollständig behalten und nicht verschoben; interne Verweise auf umsortierte Dokumente wurden aktualisiert.
-- Primäre Geräteberichte, versionierte Rohdaten-Manifeste, FIT-Feldmatrix, zentrale aktuelle Status-/Quality-Dokumente und Lizenz-/Datenschutzbelege bleiben an ihrem bisherigen Ort.
+- Primäre, redigierte Geräteberichte, geprüfte synthetische Fixture-Manifeste, FIT-Feldmatrix, zentrale aktuelle Status-/Quality-Dokumente und Lizenz-/Datenschutzbelege bleiben an ihrem bisherigen Ort. BLE-Rohmitschnitte wurden auf Nutzeranweisung aus dem aktuellen `docs/`-Baum entfernt.
 - Die Archivdateien sind Originalfassungen, keine neuen fachlichen Quellen.

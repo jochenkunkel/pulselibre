@@ -30,13 +30,13 @@ Das vollständige, dateiweise Manifest mit Original- und Archivpfad steht im [Ar
 
 **Umfang:** 47 Originaldokumente. Die vollständige Dateiliste steht im Archivmanifest.
 
-Die Kategorien beschreiben historische Dokumente; das Archiv bewahrt ihre ursprünglichen Inhalte und Git-Historie. Interne Verweise wurden angepasst; alte direkte Dateipfade können sich ändern.
+Die Kategorien beschreiben historische Dokumente; das Archiv bewahrt die Dokumente und ihre Git-Historie. Ein vollständiger BLE-Rohframe wurde auf spätere Nutzeranweisung aus der aktuellen Archivfassung entfernt; frühere Versionen bleiben historisch in Git. Interne Verweise wurden angepasst; alte direkte Dateipfade können sich ändern.
 
 ## Ausdrücklich nicht verschoben
 
 - `docs/collaboration/**` vollständig; aktueller Bestand und Einstieg in [`06_collaboration-daten.md`](06_collaboration-daten.md).
 - Aktuelle Projekt-/Qualitätsregeln, zentrale Protokollspezifikation und aktuelle Statusdokumente.
-- Primäre Geräteberichte, Rohdaten-Manifeste und FIT-Feldmatrizen.
+- Primäre, redigierte Geräteberichte, geprüfte synthetische Fixture-Manifeste und FIT-Feldmatrizen; keine BLE-Rohmitschnitte.
 - Datenschutz-, Sicherheits-, Lizenz- und Provenienznachweise.
 - Geparkte Architekturarbeit #496.
 

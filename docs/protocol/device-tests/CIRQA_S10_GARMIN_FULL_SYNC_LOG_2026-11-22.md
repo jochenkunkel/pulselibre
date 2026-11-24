@@ -27,14 +27,14 @@
 
 ## 3. HCI-Snoop-Auswertung (metadatenbasiert)
 
-- Quelle: Bugreport-Extrakt `FS/data/log/bt/btsnoop_hci.log`, 5.522.737 Bytes, Datalink 1002.
+- Quelle: Bugreport-Extrakt `FS/data/log/bt/btsnoop_hci.log`, damals 5.522.737 Bytes, Datalink 1002. Die Rohdatei wurde auf Nutzeranweisung vom 24.11.2026 aus dem aktuellen Dokumentationsbaum entfernt.
 - Validator `tools/btsnoop_summary.py` (8/8 Python-Tests grün): **85.154 Records** (69.470 ACL, 11.066 Events, 4.618 Commands), **36.714 vollständige ATT-Kandidaten**.
 - Das Log ist – wie im Präzedenzfall – eine fortlaufende Aufzeichnung; der Nutzer-Sync liegt am Ende. Die zeitliche Eingrenzung des exakten Sync-Fensters aus dem HCI-Log allein ist eine Heuristik, kein Beleg.
 - Der Validator weist ausdrücklich darauf hin, dass Gerätezuordnung und Protokollsemantik aus den Metadaten **nicht** belegt sind.
 
 ## 3a. Rohdatenbereitstellung (ausdrückliche Nutzerfreigabe)
 
-Der Nutzer hat die Rohinhalte dieses Tests **ausdrücklich** zur Veröffentlichung im Git freigegeben („es sind dummydate!!!!! ich gebe es frei"). Die beiden Rohartefakte liegen daher unter `raw/2026-11-22-s10-garmin-full-sync/` mit SHA-256-Manifest und ehrlichem Hinweis auf zählend geprüfte, potentielle Token-/Passwort-Treffer. Keine Rohinhalte wurden in diese Analyse-Dokumentation übernommen; die Freigabe gilt nur für diesen Test, nicht als generelle Regeländerung.
+Der Nutzer hatte die Rohinhalte dieses Tests **ausdrücklich** zur Veröffentlichung im Git freigegeben („es sind dummydate!!!!! ich gebe es frei"). Die damaligen Capture-Artefakte wurden auf spätere Nutzeranweisung vom 24.11.2026 aus dem aktuellen docs-Baum entfernt; die hier dokumentierten aggregierten Befunde bleiben erhalten. Die historische Freigabe ändert diese Entfernung nicht und gilt nicht als generelle Regeländerung.
 
 ## 4. Einordnung und Grenzen
 
