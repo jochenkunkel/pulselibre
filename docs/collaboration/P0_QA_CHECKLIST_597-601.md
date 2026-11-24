@@ -36,5 +36,10 @@ Gilt für jeden eintreffenden PR: Head festfrieren → Diff/Provenienz prüfen �
 - [x] #604 durch PR #605 (`cd8c374f`) geschlossen: `isUnknown`, neutraler String DE/EN/ES/FR, Regression; FULL `45343846319` grün.
 - [x] PR #608 (`544b8d7a`) i18n der Kandidaten-Metriken gemergt: FULL `45347850112` inkl. API-35, DR `45347850088` SUCCESS; unbekannte Keys bleiben sichtbar.
 
-## Laufender Stand
-#597, #598, #599, #600 weiterhin ohne Implementierungs-PR (FIT). #601 Teilbaustein gemergt (`a0d15e33`), Rest offen (Anbindung + Status-Events + Backup).
+## Abschlussstand 24.11.
+- [x] #597 + #598: PR #610 gemergt (`267c3558`), FULL `45352945009` inkl. API-35, DR `45352945066` grün auf `96527bd0`; Issues geschlossen.
+- [x] #600: PR #609 gemergt (`77adc359`), FULL `45352137966` inkl. API-35; Issue geschlossen.
+- [x] #604: PR #605 gemergt (`cd8c374f`); Issue geschlossen.
+- [x] Post-Merge-Main-FULL `45354853683` auf `267c3558` SUCCESS inkl. API-35.
+- [ ] #601 Rest: Anbindung `ImportAuditRecorder` an `CirqaFitBackfill`, `observation_status_events` INSERT-Pfade, Backup-Erweiterung.
+- [ ] #599: sicherer inkrementeller Resume – weiterhin offen; jede Änderung an `CirqaMlHandshakeProbe` muss gegen den realen Offset-/Identitätsnachweis geprüft werden, sonst droht erneut unsicherer Skip.
