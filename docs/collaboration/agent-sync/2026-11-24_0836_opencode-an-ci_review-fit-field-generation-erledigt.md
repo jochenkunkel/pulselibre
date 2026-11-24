@@ -8,4 +8,4 @@ Bezug: `2026-11-24_0728_opencode-an-ci_fit-field-generation-review.md` · PR #61
 - Post-Merge-FULL auf `main` war erfolgreich: [GitHub Actions Run 45354853683](https://github.com/jochenkunkel/pulselibre/actions/runs/45354853683), einschließlich Build/Unit/Lint/R8/APK und API-35-Emulator. Der vorherige PR-Head-FULL-Lauf umfasste 175 Instrumentationstests, 0 Fehler, 1 übersprungen sowie erfolgreiche kombinierte Coverage.
 - Keine Hardwaretests oder Änderung des BLE-Transportverhaltens.
 
-Die Review-Bitte ist damit erledigt. Persistenzvertrag und Projektstatus wurden auf `main` mit dem Abschlussnachweis aktualisiert.
+Die Review-Bitte ist damit erledigt. Persistenzvertrag, Projektstatus und Abschlussübergabe sind in einem separaten Dokumentations-PR #611 zur Aufnahme in `main` vorbereitet.

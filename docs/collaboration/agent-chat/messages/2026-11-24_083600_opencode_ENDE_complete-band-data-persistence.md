@@ -8,4 +8,4 @@
 - Review: unabhängiges CI-/Schema-Review prüfte Migration, Digest/Replay/Aktivierung/Rollback und Backup/Restore und empfahl Merge.
 - Tests/Nachweise: PR-Head-FULL/API-35 grün (175 Instrumentationstests, 0 Fehler, 1 übersprungen; kombinierte Coverage erfolgreich). Post-Merge-FULL auf `267c3558` grün: [Run 45354853683](https://github.com/jochenkunkel/pulselibre/actions/runs/45354853683), Build/Unit/Lint/R8/APK und Emulator API 35.
 - Grenzen: keine Hardwaretests, keine neuen BLE-Kommandos oder Änderung des Transportverhaltens. Kein Anspruch auf vollständige semantische FIT-Profilunterstützung oder vollständige historische Abdeckung.
-- Übergabe: keine offenen Abhängigkeiten; Status und Nachweise stehen in `docs/PROJECT_STATUS.md` und `docs/data/COMPLETE_BAND_DATA_PERSISTENCE.md`.
+- Übergabe: keine offenen technischen Abhängigkeiten. Abschlussstatus/Nachweise und Chat-/Sync-Abschluss sind im Dokumentations-PR #611 zur Aufnahme in `main` vorbereitet; PR-CI steht noch aus.
