@@ -72,11 +72,12 @@ class MetricReferenceScaleView(
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val bar = RectF()
     private val density = resources.displayMetrics.density
+    /** Unit as shown (the profile keeps the German identifier, e.g. "Schritte"). */
+    private val unitText = DomainText.tr(context, profile.unit)
 
     init {
         contentDescription = buildString {
-            val unit = DomainText.tr(context, profile.unit)
-            append(context.getString(R.string.dom_scale_cd, profile.minimum.toString(), profile.maximum.toString(), unit, value.toString()))
+            append(context.getString(R.string.dom_scale_cd, profile.minimum.toString(), profile.maximum.toString(), unitText, value.toString()))
             profile.referenceLabel?.let { append(context.getString(R.string.dom_scale_ref_cd, profile.referenceMinimum.toString(), profile.referenceMaximum.toString(), DomainText.tr(context, it))) }
             append(DomainText.tr(context, profile.caveat))
         }
@@ -123,6 +124,6 @@ class MetricReferenceScaleView(
         paint.textAlign = Paint.Align.LEFT
         canvas.drawText("${profile.minimum}", left, height - 1f * density, paint)
         paint.textAlign = Paint.Align.RIGHT
-        canvas.drawText("${profile.maximum} ${profile.unit}", right, height - 1f * density, paint)
+        canvas.drawText("${profile.maximum} $unitText", right, height - 1f * density, paint)
     }
 }
