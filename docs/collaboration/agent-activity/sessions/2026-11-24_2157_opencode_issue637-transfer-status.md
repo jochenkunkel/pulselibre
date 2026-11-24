@@ -1,0 +1,16 @@
+# OpenCode – #637 TransferStatus-Korrelation
+- Agent/Umgebung: OpenCode FIT, Linux-Worktree
+- Beginn: 2026-11-24 21:57 UTC
+- Letzte Aktualisierung: 2026-11-24 22:12 UTC
+- Status: abgeschlossen – frühere Schlussfolgerung durch korrigierte Dekodierung aktualisiert
+- Rolle/Zuständigkeit: FIT-/BLE-/GFDI-Protokoll und Historien-Synchronisation
+- Aktueller Auftrag: offline im lokalen Garmin-Connect-Capture nach TransferStatus-Anfragen/-Antworten suchen und korrelieren
+- Jetzt in Bearbeitung: #637 – Transferabschluss-Semantik
+- Zeitnah geplant: Capture-Feld-/Richtungsinventur und fachlicher Befund
+- Betroffene Bereiche/Dateien: private Capture-Ablage (read-only), `tools/garmin_hci_replay.py`, FileAccess-Parser/Tests, Agentenkoordination
+- Branch/Worktree: `issue637-pull-compression`, `/home/smiler/.local/share/opencode/worktree/634470/issue637-protocol-research`
+- Abstimmungsbedarf: keiner
+- Agent-sync-Nachrichten: `docs/collaboration/agent-chat/messages/2026-11-24_215731_opencode_START_issue637-transfer-status.md`
+- Nachweise: redigierter #637 Capture-Bericht: PullItem-Response-Handle ist mit einer MLR-Configure-Sequenz korreliert, Transferabschluss-Semantik ausdrücklich offen; dieser Checkout-Replay liefert keine validierten GFDI/FileAccess-Service-Operationen aus den Rohwerten. Vorhandene aggregierte Replay-Summaries liefern keine TransferStatus-Operationszählung. Keine Payloads ausgegeben, kein Gerätezugriff.
+- Ergebnis: Die erste Extraktion war unvollständig. Die Folgeanalyse in Sitzung `2026-11-24_2209_opencode_issue637-transfer-status-decode.md` hat 17 TransferStatus request/response-Paare und Handle-Überschneidung mit PullItem bestätigt. Die Antwortregel bleibt offen; keine Produktcodeänderung.
+- Nächster Schritt: siehe Folgesitzung; Beleg und Grenzen in `docs/protocol/research/CIRQA_CONNECT_TRANSFER_STATUS_CORRELATION_2026-11-24.md`.

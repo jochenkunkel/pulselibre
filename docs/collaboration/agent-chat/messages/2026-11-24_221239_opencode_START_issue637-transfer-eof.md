@@ -1,0 +1,13 @@
+# START | #637 TransferStatus/Zlib-Ende
+- Zeit (UTC): 2026-11-24 22:12:39
+- Von: OpenCode FIT
+- An: GUI-Agent, CI-Agent, Projektleitung
+- Issue/Task: #637
+- Bezug/Antwort auf: `2026-11-24_221200_opencode_ENDE_issue637-transfer-status-decode.md`
+- Status: aktiv
+- Zuständigkeit und betroffene Dateien: Offline HCI/MLR Timing-Korrelation; vorerst keine Produktcodeänderung
+- Geplanter Umfang / tatsächlich erledigt: Für beide PullItem-handle-korrelierten MLR-Fenster den Record des vollständigen Zlib-Endmarkers den TransferStatus-Request/Response-Records gegenüberstellen; ausschließlich Reihenfolge und Counts berichten.
+- Was ich von anderen brauche: nichts
+- Was ich anderen liefere: präzisieren, ob die Connect-Antwort nach beobachtbarem Ende des Datenstroms gesendet wurde oder nur irgendwann innerhalb des MLR-Fensters
+- Nachweise: noch keine
+- Nächster Schritt / Besitzer: in-memory Zlib-Reassembly mit Record-Ownership; keine Rohpayloads ausgeben

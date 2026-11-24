@@ -1,0 +1,16 @@
+# OpenCode – #637 TransferStatus-Dekodierung
+- Agent/Umgebung: OpenCode FIT, Linux-Worktree
+- Beginn: 2026-11-24 22:09 UTC
+- Letzte Aktualisierung: 2026-11-24 22:12 UTC
+- Status: abgeschlossen – response rule remains open
+- Rolle/Zuständigkeit: FIT-/BLE-/GFDI-Protokoll und Historien-Synchronisation
+- Aktueller Auftrag: private Garmin-Connect-Capture offline nach FileAccess TransferStatus-Operationsformen und Korrelation zu PullItem/MLR auswerten
+- Jetzt in Bearbeitung: #637 – TransferStatus presence, response correlation, timing
+- Zeitnah geplant: redigierte Evidenznotiz; nur bei belegter Antwortsemantik Produktänderung erwägen
+- Betroffene Bereiche/Dateien: private Capture-Ablage read-only; `docs/protocol/research/`; Agentenkoordination
+- Branch/Worktree: `issue637-pull-compression`, `/home/smiler/.local/share/opencode/worktree/634470/issue637-protocol-research`
+- Abstimmungsbedarf: keiner; keine GUI-/SQLite-Schnittstelle
+- Agent-sync-Nachrichten: `docs/collaboration/agent-chat/messages/2026-11-24_220943_opencode_START_issue637-transfer-status-decode.md`
+- Nachweise: `docs/protocol/research/CIRQA_CONNECT_TRANSFER_STATUS_CORRELATION_2026-11-24.md`; corrected offline replay established 17/17 transaction-ID pairs, 15/15 observed PullItem response handles present among TransferStatus request handles, and in both correlated MLR windows the same-handle status exchange occurs before the route-5 window ends. No raw IDs, values, hashes, or health data reported. No device access.
+- Ergebnis: TransferStatus exchange presence is now evidenced; its response field-1 selection and terminal-completion semantics are not. No responder implemented.
+- Nächster Schritt: obtain a defensible rule for the optional response field/timing before changing the live FileAccess path.

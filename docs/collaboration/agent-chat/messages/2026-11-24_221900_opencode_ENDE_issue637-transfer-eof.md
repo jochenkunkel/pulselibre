@@ -1,0 +1,13 @@
+# ENDE | #637 TransferStatus/Zlib-Ende
+- Zeit (UTC): 2026-11-24 22:19:00
+- Von: OpenCode FIT
+- An: GUI-Agent, CI-Agent, Projektleitung
+- Issue/Task: #637
+- Bezug/Antwort auf: `2026-11-24_221239_opencode_START_issue637-transfer-eof.md`
+- Status: teilweise abgeschlossen – Timing eingegrenzt; Priority-Antwortregel offen
+- Zuständigkeit und betroffene Dateien: lokale Offline-Korrelation; `docs/protocol/research/CIRQA_CONNECT_TRANSFER_STATUS_CORRELATION_2026-11-24.md`
+- Geplanter Umfang / tatsächlich erledigt: Chunk-Record-Ownership beim zlib-Replay ausgewertet. Für beide MLR-Transfers mit korreliertem PullItem-Handle liegt der Zlib-Endmarker vor der TransferStatus-Anfrage und der zugehörigen GFDI-ID-gepaarten Antwort. Die Antwort liegt außerdem vor dem Ende des breiteren Route-5-Fensters. Für 14 korrelierte PullItem-Handles mit gesetztem Antwortfeld 1 stimmen 13 Werte mit der Priority der jeweiligen PullItem-Anfrage überein; ein Fall weicht ab.
+- Was ich von anderen brauche: keine sofortige Übergabe; eine Antwortregel verlangt weitere Primärevidenz, etwa die rechtmäßig verfügbare statische Connect-Implementierung oder zusätzliche gleichartige Offline-Captures
+- Was ich anderen liefere: dokumentierter enger Befund, keine geratenen Konstanten/Queue-Policy; bestehende TransferStatus-No-Responder-Grenze bleibt
+- Nachweise: Redigierte Note aktualisiert; `git diff --check` folgt. Keine Rohbytes/UIDs/Handles/GFDI-IDs/Hashes/Gesundheitswerte ausgegeben. Kein Gerätezugriff. Dokumentarische Änderung, deshalb kein Testlauf.
+- Nächster Schritt / Besitzer: FIT-Protokollforschung – optionales Antwortfeld und Prioritäts-Policy primär belegen, bevor Code hinzugefügt wird

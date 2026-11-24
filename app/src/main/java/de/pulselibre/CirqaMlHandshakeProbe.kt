@@ -1031,9 +1031,16 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         syncPullRequestsQueued++
         syncPullDiag = (syncPullDiag + "|pull#$requestId:size=${item.dataSize}")
             .take(1000)
+        // Connect capture #637 includes PullItem field 5=15. The assembler
+        // accepts both raw and zlib data; this only requests the observed window.
         queueAck(
             g,
-            CirqaFileAccessPullRequest.mlValue(handle, requestId, item),
+            CirqaFileAccessPullRequest.mlValue(
+                handle,
+                requestId,
+                item,
+                requestedCompressionWindow = CirqaFileAccessPullRequest.OBSERVED_COMPRESSION_WINDOW
+            ),
             SyncWriteTag.Pull(requestId, queued.localId)
         )
         serial.post {

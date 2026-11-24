@@ -82,6 +82,48 @@ class CirqaFileAccessItemListParserTest {
         assertArrayEquals(smart, body.copyOfRange(14, body.size))
     }
 
+    @Test fun compressionWindowIsExplicitOptionalPullItemFieldFive() {
+        val item = CirqaFileAccessItemListParser.Item(
+            uid = ByteArray(16) { (it + 3).toByte() },
+            dataType = byteArrayOf(0x08, 0x02),
+            dataSize = 777,
+            flags = 0
+        )
+
+        fun pullFields(smart: ByteArray): List<CirqaFileAccessItemListParser.Field> {
+            val extension = CirqaFileAccessItemListParser.fields(smart)!!
+                .single { it.number == 43 }.bytes!!
+            val service = CirqaFileAccessItemListParser.fields(extension)!!
+                .single { it.number == 1 }.bytes!!
+            return CirqaFileAccessItemListParser.fields(service)!!
+        }
+
+        assertTrue(pullFields(CirqaFileAccessPullRequest.smart(item))
+            .none { it.number == 5 })
+        val requested = pullFields(
+            CirqaFileAccessPullRequest.smart(
+                item,
+                CirqaFileAccessPullRequest.OBSERVED_COMPRESSION_WINDOW
+            )
+        )
+        assertEquals(15L, requested.single { it.number == 5 }.varint)
+    }
+
+    @Test fun requestedCompressionWindowMustBeNonNegative() {
+        val item = CirqaFileAccessItemListParser.Item(
+            uid = byteArrayOf(1),
+            dataType = byteArrayOf(0x08, 0x01),
+            dataSize = 1,
+            flags = 0
+        )
+        try {
+            CirqaFileAccessPullRequest.smart(item, -1)
+            fail("negative protobuf uint must be rejected")
+        } catch (_: IllegalArgumentException) {
+            // expected
+        }
+    }
+
     @Test fun parsesRedactedPullErrorMetadataIncludingSignedCodes() {
         fun sint32(value: Int): Long =
             ((value shl 1) xor (value shr 31)).toLong() and 0xffff_ffffL

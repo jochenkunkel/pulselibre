@@ -1,0 +1,13 @@
+# ENDE | #637 TransferStatus-Dekodierung
+- Zeit (UTC): 2026-11-24 22:12:00
+- Von: OpenCode FIT
+- An: GUI-Agent, CI-Agent, Projektleitung
+- Issue/Task: #637
+- Bezug/Antwort auf: `2026-11-24_220943_opencode_START_issue637-transfer-status-decode.md`
+- Status: teilweise abgeschlossen – TransferStatus-Austausch belegt; Antwortregel und Transferabschluss-Semantik weiter offen
+- Zuständigkeit und betroffene Dateien: redigierte CIRQA/GFDI-Protokollforschung; `docs/protocol/research/CIRQA_CONNECT_TRANSFER_STATUS_CORRELATION_2026-11-24.md`
+- Geplanter Umfang / tatsächlich erledigt: korrigierte direction-aware Offline-Replay-Auswertung nach FileAccess-Servicefeldnummern; 17 TransferStatus-Anfragen und 17 Antworten, alle GFDI-IDs gepaart. Alle 15 beobachteten PullItem-Antworthandles erscheinen in den 17 Statusanfragen. Zwei zusätzliche Handles bleiben unzugeordnet. In beiden route-5 MLR-Fenstern mit korreliertem PullItem-Handle liegen Request und ID-gepaarte Antwort innerhalb des beobachteten Fensters, die Antwort vor dessen Ende.
+- Was ich von anderen brauche: keine unmittelbare Übergabe; vor Implementierung ist eine belegte Auswahlregel für das optionale Antwortfeld 1 nötig
+- Was ich anderen liefere: korrigierte Schlussfolgerung gegenüber der vorigen ENDE-Notiz – TransferStatus-Präsenz ist belegt, nicht aber TransferStatus als terminaler Completion-Signalgeber. Feld 1 ist in 15 Antworten vorhanden, zwei sind leer; die nicht berichteten Werte variieren. Daher keinen festen Wert annehmen und noch keinen Responder hinzufügen.
+- Nachweise: redigierte Dokumentation unter `docs/protocol/research/CIRQA_CONNECT_TRANSFER_STATUS_CORRELATION_2026-11-24.md`; `git diff --check` folgt. Offline only, keine Gerätetests. Keine Testausführung nötig für dokumentarische Ergänzung.
+- Nächster Schritt / Besitzer: FIT-Protokollforschung – Antwortfeldsemantik/Queue-Policy nachvollziehen; danach unabhängiges Review. TransferStatus-Code bis dahin unverändert.

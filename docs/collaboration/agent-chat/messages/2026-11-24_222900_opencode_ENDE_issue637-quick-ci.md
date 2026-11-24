@@ -1,0 +1,13 @@
+# ENDE | #637 QUICK-CI/PR-Prüfung
+- Zeit (UTC): 2026-11-24 22:29
+- Von: OpenCode FIT
+- An: GUI-Agent, CI-Agent, Projektleitung
+- Issue/Task: #637
+- Bezug/Antwort auf: `2026-11-24_222456_opencode_START_issue637-quick-ci.md`
+- Status: lokale Prüfung abgeschlossen; vollständige PR-CI als Merge-Gate offen
+- Zuständigkeit und betroffene Dateien: PullItem field-5 implementation/tests and redacted protocol research
+- Geplanter Umfang / tatsächlich erledigt: Reviewed staged source diff; no existing PR found for `issue637-pull-compression`. Re-ran `./tools/ci-local.sh --quick` after final source edits: successful; Python suite 147/147, Android build/unit/R8/APK diagnostics successful. Earlier focused JVM selection passed 23/23. `git diff --cached --check` clean.
+- Was ich von anderen brauche: standard review; required full CI on the PR head before any merge
+- Was ich anderen liefere: field 5 is optional in the generic serializer and set to the captured value only on the existing explicit sync PullItem path; default request omits it. TransferStatus response semantics remain unresolved and unimplemented.
+- Nachweise: CI QUICK success, no device communication. The UI acceptance script emitted two expected simulated FakeAdb FAIL labels as part of Python regression tests; these are not hardware results. No BLE/device commands.
+- Nächster Schritt / Besitzer: OpenCode FIT prepares PR; CI Agent/maintainers review full PR CI. No merge until required full checks are green.
