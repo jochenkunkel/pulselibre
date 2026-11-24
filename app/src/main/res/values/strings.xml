@@ -982,10 +982,9 @@
     <string name="sd_cap_m_spo2">SpO₂</string>
     <string name="sd_cap_m_stress">Stress</string>
     <string name="sd_cap_m_respiration">Respiration rate</string>
-    <string name="sd_cap_raw">Raw BLE notifications archived: %1$d</string>
+    <string name="sd_cap_raw">Distinct raw BLE notification payloads archived (identical ones count once, limited per run): %1$d</string>
     <string name="sd_cap_fields">Raw FIT fields stored: %1$d</string>
     <string name="sd_cap_undecoded">Field types the app does not decode: %1$d (stored as raw bytes, not evaluated)</string>
-    <string name="sd_cap_imports">File imports: %1$d completed, %2$d partial, %3$d failed</string>
     <string name="sd_cap_none">Nothing stored yet.</string>
     <string name="sd_cap_unknown">Capture status unavailable.</string>
     <string name="sd_only_invalid">The period only contains values outside the display range or device status. They are stored, but not drawn.</string>

@@ -989,10 +989,9 @@
     <string name="sd_cap_m_spo2">SpO₂</string>
     <string name="sd_cap_m_stress">Stress</string>
     <string name="sd_cap_m_respiration">Fréquence respiratoire</string>
-    <string name="sd_cap_raw">Notifications BLE brutes archivées : %1$d</string>
+    <string name="sd_cap_raw">Contenus de notifications BLE bruts distincts archivés (les identiques comptent une fois, limités par exécution) : %1$d</string>
     <string name="sd_cap_fields">Champs FIT bruts enregistrés : %1$d</string>
     <string name="sd_cap_undecoded">Types de champs non décodés par l’app : %1$d (enregistrés en octets bruts, non évalués)</string>
-    <string name="sd_cap_imports">Imports de fichiers : %1$d terminés, %2$d partiels, %3$d échoués</string>
     <string name="sd_cap_none">Rien d’enregistré pour l’instant.</string>
     <string name="sd_cap_unknown">État de la capture indisponible.</string>
     <string name="sd_only_invalid">Sur la période, il n’y a que des valeurs hors de la plage d’affichage ou des états de l’appareil. Elles sont enregistrées, mais non tracées.</string>
