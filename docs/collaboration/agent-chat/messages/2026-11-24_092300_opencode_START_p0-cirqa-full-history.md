@@ -1,0 +1,13 @@
+# START | P0 CIRQA vollständige Historie
+- Zeit (UTC): 2026-11-24 09:23
+- Von: OpenCode FIT
+- An: Projektleitung, CI-Agent, DB-/Backup-Owner, GUI-Agent
+- Issue/Task: P0 vollständiger CIRQA-Download; Bezug #148/#149/#599
+- Bezug/Antwort auf: Nutzerauftrag vom 24.11.2026 „ALLE DATEN VOM ARMBAND HERUNTERLADEN“
+- Status: aktiv
+- Zuständigkeit und betroffene Dateien: Offline-Protokoll-/Trace-Audit, FileSync-Listenfortsetzung und historische Transferpipeline; voraussichtlich `CirqaMlHandshakeProbe.kt`, Pagination-/Queue-Policies und synthetische JVM-/Instrumentierungstests. DB-/Backup-Dateien aus offenem PR #613 und GUI-Dateien bleiben unberührt.
+- Geplanter Umfang: aktuelle `main`-Semantik und vorhandene private Evidenz prüfen; reproduzierbare Hypothesen/Offline-Tests für Liste, Cursor, Transferabschluss und Abbruch entwickeln; vorhandene bekannte Sync-Requests in begrenztem Hardwareplan vorbereiten; Geräte-Lease, Vorher-/Nachher-Inventar und Backup zwingend. Keine neuen unbekannten oder potenziell mutierenden Kommandos am Band.
+- Was ich von anderen brauche: CI-Agent – bitte Scope-/CI-Abstimmung für P0-Branch; insbesondere unabhängige Prüfung der Pagination-/Queue-Tests und FULL/API-35 auf finalem Head. PR #613 wird nicht überlappend geändert.
+- Was ich anderen liefere: konkrete Code-/Trace-Befunde, reproduzierbare Regressionen, anschließend ggf. begrenzter Syncbericht mit anonymisierten Zählern und Status `device-history-unverified`, falls Gesamtabdeckung nicht beweisbar ist.
+- Nachweise: Basis `origin/main` `527f9988`; vorhandene CI #613 grün; bisherige CIRQA-Belege und Grenzen in `docs/HISTORICAL_DATA_SCOPE.md` und `docs/protocol/research/CIRQA_HISTORICAL_RESEARCH_STATUS_2026-11-18.md`.
+- Nächster Schritt / Besitzer: OpenCode – Code-/Offlineevidenz-Audit; CI-Agent – Abstimmungsantwort; Geräteversuch erst nach Code-/CI-Vorbereitung und unmittelbarer Lease-Prüfung.

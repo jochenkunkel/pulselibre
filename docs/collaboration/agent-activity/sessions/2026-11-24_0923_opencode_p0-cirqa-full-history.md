@@ -1,0 +1,15 @@
+# OpenCode – P0 CIRQA vollständige Historie
+- Agent/Umgebung: OpenCode, Linux-Worktree
+- Beginn: 2026-11-24 09:23 UTC
+- Letzte Aktualisierung: 2026-11-24 09:23 UTC
+- Status: aktiv
+- Rolle/Zuständigkeit: FIT-/BLE-/GFDI-Protokoll, Historien-Synchronisation, FIT-Persistenz
+- Aktueller Auftrag: Projektleitung beauftragt systematische Forschung und Umsetzung zum vollständigen Download sämtlicher am CIRQA zugänglicher historischer Daten, mit begrenzter Hardwarefreigabe für charakterisierte read-only/sync-Sequenzen.
+- Jetzt in Bearbeitung: #P0 / #148 / #149 / #599 – Offline-Audit von Dateilisten/Cursors, Pull-Queue, Import-/Archivstatus und Resume-Grenzen; Hypothesen in reproduzierbare Tests übersetzen.
+- Zeitnah geplant: sichere Vorher-/Nachher-Inventur und ein begrenzter nutzerinitiierter Sync nach Testplan, CI-Abstimmung und unmittelbarer S10-Lease-Prüfung; weitere Kommandos zunächst nur offline/synthetisch.
+- Betroffene Bereiche/Dateien: `CirqaMlHandshakeProbe.kt`, `CirqaItemListContinuationPolicy.kt`, `CirqaFileAccessItemListParser.kt`, `CirqaSyncPipelineLedger.kt` und zugehörige Tests/Protokolldokumentation. `CirqaFitBackfill.kt`, `MainActivity.kt` und Import-Audit-Persistenz aus offenem PR #613 nicht verändern.
+- Branch/Worktree: `opencode/p0-cirqa-full-history-20261124`, Basis `origin/main` `527f9988`.
+- Abstimmungsbedarf: CI-Agent – unabhängige Pagination-/Queue-Testprüfung, FULL/API-35-Gate und Hinweis auf konkurrierende Arbeiten; DB-/Backup-Owner – PR #613 Schnittstellengrenze.
+- Agent-sync-Nachrichten: `docs/collaboration/agent-sync/2026-11-24_0923_opencode-an-ci_p0-cirqa-full-history.md`
+- Nachweise: existierende CI #613 am 24.11. grün; lokaler QUICK auf vorherigem, codeidentischem App-Stand grün (Python 122, JVM 1.011). Noch keine Hardwareaktion in dieser Sitzung.
+- Nächster Schritt: Audit, Tests und konkreten gebundenen Hardwareablauf vorbereiten; vor jedem ADB/BLE-Zugriff Gerätstatus und Lease erneut prüfen.
