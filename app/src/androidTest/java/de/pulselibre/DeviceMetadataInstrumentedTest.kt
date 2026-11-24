@@ -119,7 +119,7 @@ class DeviceMetadataInstrumentedTest {
             assertNotNull(view.findViewWithTag<View>("device_battery_row"))
             listOf(
                 DeviceMetadataFields.BATTERY_STATUS, DeviceMetadataFields.BATTERY_HOURS,
-                DeviceMetadataFields.FIRMWARE_VERSION, DeviceMetadataFields.SERIAL_NUMBER,
+                DeviceMetadataFields.SERIAL_NUMBER,
                 "gatt_2b00"
             ).forEach { key ->
                 val row = view.findViewWithTag<View>("device_metadata_$key")
@@ -129,6 +129,12 @@ class DeviceMetadataInstrumentedTest {
                 assertTrue("no provenance in content description for $key",
                     row.contentDescription.toString().contains("Quelle"))
             }
+            // Firmware now lives in the fixed firmware row (with provenance), not in a duplicate list row.
+            val firmwareRow = view.findViewWithTag<View>("device_fixed_firmware")
+            assertNotNull("missing fixed firmware row", firmwareRow)
+            assertTrue(all(firmwareRow!!).filterIsInstance<TextView>().any { it.text.toString() == "1.2.3" })
+            assertTrue(firmwareRow.contentDescription.toString().contains("Quelle"))
+            assertTrue(view.findViewWithTag<View>("device_metadata_${DeviceMetadataFields.FIRMWARE_VERSION}") == null)
             val serialRow = view.findViewWithTag<View>("device_metadata_${DeviceMetadataFields.SERIAL_NUMBER}")!!
             assertTrue(all(serialRow).filterIsInstance<TextView>().none { it.text.toString() == "ABC123" })
         }
