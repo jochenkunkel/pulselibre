@@ -181,8 +181,22 @@ class MainActivity : AppCompatActivity() {
     private var cirqaGattState = ""
     private val cirqaConnectionHistory = CirqaConnectionHistory()
 
+    /** The layout decides "narrow" once while it is built; see [onConfigurationChanged]. */
+    private var builtNarrow = false
+
+    /**
+     * A rotation is handled here instead of recreating the activity (manifest `configChanges`, A6-11): a running history download
+     * and its status survive. Only when the width crosses the "narrow phone" threshold the compact layout decision is stale; then
+     * the activity is rebuilt as before.
+     */
+    override fun onConfigurationChanged(newConfig: android.content.res.Configuration) {
+        super.onConfigurationChanged(newConfig)
+        if ((newConfig.screenWidthDp < 340) != builtNarrow) recreate()
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        builtNarrow = resources.configuration.screenWidthDp < 340
         val manager = getSystemService(BLUETOOTH_SERVICE) as BluetoothManager
         adapter = manager.adapter
         val palette = AppPalette.of(this)
