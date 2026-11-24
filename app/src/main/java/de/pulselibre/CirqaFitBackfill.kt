@@ -3,7 +3,9 @@ package de.pulselibre
 import java.io.File
 import java.io.IOException
 import java.security.MessageDigest
+import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteException
+import java.util.UUID
 
 /**
  * Offline, repeatable import of already-verified FIT originals.
@@ -15,7 +17,9 @@ import android.database.sqlite.SQLiteException
 class CirqaFitBackfill(
     private val fitDirectory: File,
     private val readings: FitObservationStore,
-    private val deviceKey: String = "cirqa-fit"
+    private val deviceKey: String = "cirqa-fit",
+    /** Optional private audit DB (#601). Never changes import semantics; failures in audit are ignored. */
+    private val auditDb: SQLiteDatabase? = null
 ) {
     data class Result(
         val filesSeen: Int,
@@ -57,6 +61,21 @@ class CirqaFitBackfill(
     fun run(cancelled: () -> Boolean = { false }): Result {
         require(fitDirectory.isDirectory && !java.nio.file.Files.isSymbolicLink(fitDirectory.toPath())) {
             "FIT source directory must be a private, non-symlink directory"
+        }
+        val auditRunId = UUID.randomUUID().toString()
+        val auditStartedAt = System.currentTimeMillis()
+        fun auditFailure(alias: String, errorClass: String) {
+            val db = auditDb ?: return
+            val at = System.currentTimeMillis()
+            try {
+                ImportAuditRecorder.recordFileError(db, auditRunId, null, errorClass, at)
+                ImportAuditRecorder.recordStatusEvent(
+                    db, "$auditRunId:$alias:$errorClass", deviceKey, "unknown", errorClass, at,
+                    FitHistoricalObservations.DECODER_VERSION, FitHistoricalObservations.PROFILE_VERSION
+                )
+            } catch (_: Exception) {
+                // Audit must never change import behaviour or discard input.
+            }
         }
         val candidates = fitDirectory.listFiles()
             ?.filter { it.name.matches(CONTENT_ADDRESSED_FIT_NAME) }
@@ -103,10 +122,12 @@ class CirqaFitBackfill(
                 }
             } catch (_: IOException) {
                 failed++
+                auditFailure("file-${index + 1}", "READ")
                 fileResults += failedResult(index, FailureStage.READ)
                 continue
             } catch (_: SQLiteException) {
                 failed++
+                auditFailure("file-${index + 1}", "DATABASE")
                 importable += decodedBeforeFailure?.eligibleObservations ?: 0
                 fileResults += failedResult(index, FailureStage.DATABASE, decodedBeforeFailure)
                 continue
@@ -115,6 +136,7 @@ class CirqaFitBackfill(
                 // atomic commit. Treat it like any other per-file failure so that later
                 // files and the unknown-field inventory scan are still processed.
                 failed++
+                auditFailure("file-${index + 1}", "SOURCE_CONFLICT")
                 importable += decodedBeforeFailure?.eligibleObservations ?: 0
                 fileResults += failedResult(index, FailureStage.SOURCE_CONFLICT, decodedBeforeFailure)
                 continue
@@ -124,6 +146,7 @@ class CirqaFitBackfill(
                 // the integrity check stays active, but the failure is isolated to this
                 // input file instead of aborting the whole import run.
                 failed++
+                auditFailure("file-${index + 1}", "SOURCE_CONFLICT")
                 importable += decodedBeforeFailure?.eligibleObservations ?: 0
                 fileResults += failedResult(index, FailureStage.SOURCE_CONFLICT, decodedBeforeFailure)
                 continue
@@ -156,6 +179,18 @@ class CirqaFitBackfill(
                     outOfRangeObservations = outcome.outOfRangeObservations,
                     reviewCandidates = outcome.reviewCandidates
                 )
+            }
+        }
+        auditDb?.let { db ->
+            try {
+                ImportAuditRecorder.recordRun(
+                    db, auditRunId, auditStartedAt, System.currentTimeMillis(), null,
+                    FitHistoricalObservations.DECODER_VERSION, FitHistoricalObservations.PROFILE_VERSION,
+                    if (failed == 0 && invalid == 0 && !truncated) "COMPLETED" else "PARTIAL",
+                    importable, persistedReviewCandidates, failed + invalid
+                )
+            } catch (_: Exception) {
+                // Audit is best-effort and never changes the import result.
             }
         }
         return Result(

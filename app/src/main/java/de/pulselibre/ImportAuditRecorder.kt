@@ -75,4 +75,46 @@ internal object ImportAuditRecorder {
         }
         return db.insert("import_errors", null, values) >= 0
     }
+
+    /**
+     * One durable status event for a processing outcome. Only fixed error classes and
+     * aggregate metadata are stored; no measured value, file name or device identifier.
+     */
+    @Synchronized
+    fun recordStatusEvent(
+        db: SQLiteDatabase,
+        idempotencyKey: String,
+        deviceId: String,
+        metric: String,
+        errorClass: String,
+        occurredAtMs: Long,
+        decoderVersion: String,
+        profileVersion: String
+    ): Boolean {
+        require(idempotencyKey.isNotBlank() && deviceId.isNotBlank() && metric.isNotBlank())
+        require(errorClass.matches(Regex("[A-Z_]{1,32}")) && occurredAtMs >= 0)
+        require(decoderVersion.isNotBlank() && profileVersion.isNotBlank())
+        val values = ContentValues().apply {
+            put("idempotency_key", idempotencyKey)
+            put("device_id", deviceId)
+            put("metric", metric)
+            putNull("measured_at_ms")
+            put("timestamp_origin", "NOT_APPLICABLE")
+            putNull("raw_code")
+            put("raw_value_text", errorClass)
+            put("status_code", "UNKNOWN")
+            put("measurement_mode", "UNKNOWN")
+            put("sensor_context", "UNKNOWN")
+            put("source_kind", "FIT")
+            putNull("source_sha256")
+            putNull("record_ordinal")
+            putNull("global_message_number")
+            putNull("field_number")
+            put("decoder_version", decoderVersion)
+            put("profile_version", profileVersion)
+            put("observed_at_ms", occurredAtMs)
+            put("stored_at_ms", System.currentTimeMillis())
+        }
+        return db.insertWithOnConflict("observation_status_events", null, values, SQLiteDatabase.CONFLICT_IGNORE) >= 0
+    }
 }
