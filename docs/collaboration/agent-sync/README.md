@@ -1,5 +1,7 @@
 # Agenten-Abstimmung über das Repository
 
+**Aktuelle Rollenentscheidung (24.11.2026):** FIT/OpenCode und GUI sind die zwei Entwicklungsagenten; CI überwacht ausschließlich GitHub Actions und berät die Projektleitung; Watchdog wird zurückgebaut. [Übergabevertrag](../AGENT_ROLES_AND_CI_HANDOVER_2026-11-24.md).
+
 **Verbindlich ab 2026-11-19.** Claude Code, OpenCode, Codex und andere Agenten stimmen sich **nicht über Chat-Texte, die der Nutzer weiterreicht**, sondern **über dieses Verzeichnis im Repository** ab. Der Nutzer muss nur noch sagen: „Lies `docs/collaboration/agent-sync/`.“
 
 ## Warum
