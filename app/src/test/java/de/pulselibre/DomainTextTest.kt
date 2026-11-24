@@ -35,4 +35,20 @@ class DomainTextTest {
         "Abdeckung 12,5 % unter 50 %.",
         "Abtastabstand zu groß für ODI (Median 120 s, nötig ≤ 60 s).",
     )
+
+    @Test fun germanNumbersAreShownWithTheSeparatorsOfTheLanguage() {
+        val en = java.util.Locale.ENGLISH
+        val fr = java.util.Locale.FRENCH
+        assertEquals("1.5", DomainText.localizeNumber("1,5", en))
+        assertEquals("+2.5 bpm", DomainText.localizeNumber("+2,5 bpm", en))
+        assertEquals("12,345", DomainText.localizeNumber("12.345", en))
+        assertEquals("1,234,567.8", DomainText.localizeNumber("1.234.567,8", en))
+        assertEquals("1,5", DomainText.localizeNumber("1,5", fr))
+        assertEquals("70.3 bpm", DomainText.localizeNumber("70,3 bpm", en))
+        // not a German number: dates, ranges, times and words stay untouched
+        listOf("19.11.", "19.11. 00:00", "60–<70", "28", "heute", "1.5", "12.34").forEach { assertEquals(it, DomainText.localizeNumber(it, en)) }
+    }
+
+    @Test fun germanOutputIsUnchangedByNumberLocalization() = same(
+        "+1,2 bpm gegenüber vorherigen 28 Tagen", "Ziel (8.000) erreicht an 3 von 5 Tagen mit Daten.")
 }

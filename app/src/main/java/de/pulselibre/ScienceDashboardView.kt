@@ -26,7 +26,7 @@ internal class ScienceDashboardView(context: Context) : LinearLayout(context) {
     private val cards = LinearLayout(context).apply { orientation = VERTICAL }
     private val rangeRow = LinearLayout(context).apply { orientation = HORIZONTAL }
     private var selected = 1 // 7 days: the band history usually lies days back
-    private var generation = 0
+    @Volatile private var generation = 0
     private var inventory: CaptureInventory = CaptureInventory.EMPTY
     private val ranges = listOf(R.string.sd_r24 to 24L, R.string.sd_r7 to 168L, R.string.sd_r30 to 720L)
     private val specs = listOf(
@@ -83,6 +83,8 @@ internal class ScienceDashboardView(context: Context) : LinearLayout(context) {
         cards.removeAllViews()
         cards.addView(card(context.getString(R.string.sd_title), label(context.getString(R.string.sd_loading), 13f, palette.muted)).apply { tag = "science_loading" })
         EXECUTOR.execute {
+            // A6-63: taps on the range buttons queue one heavy load each; a load whose result would be dropped is not started.
+            if (ticket != generation) return@execute
             val end = System.currentTimeMillis()
             val start = end - hours * 3_600_000L
             var loadedInventory = CaptureInventory.EMPTY
@@ -94,6 +96,7 @@ internal class ScienceDashboardView(context: Context) : LinearLayout(context) {
                     unified.refresh()
                     val observations = HistoricalObservationRepository(context.applicationContext)
                     specs.map { (title, spec) ->
+                        if (ticket != generation) throw java.util.concurrent.CancellationException("superseded")
                         val fitMetric = fitMetrics[spec.key]
                         val data = if (fitMetric != null) {
                             // unified_measurements is a display projection without FIT quality or timestamp-origin fields.
@@ -105,6 +108,8 @@ internal class ScienceDashboardView(context: Context) : LinearLayout(context) {
                     }
                 }
             } catch (_: Exception) { null }
+            // A6-66: a very large range must end in the error card, not in an unhandled error on the worker thread.
+            catch (_: OutOfMemoryError) { null }
             main.post { if (ticket == generation) { inventory = loadedInventory; render(results) } }
         }
     }
@@ -163,6 +168,7 @@ internal class ScienceDashboardView(context: Context) : LinearLayout(context) {
             inv.rawNotifications?.let { lines += label(context.getString(R.string.sd_cap_raw, it), 13f, palette.ink) }
             inv.rawFitFields?.let { lines += label(context.getString(R.string.sd_cap_fields, it), 13f, palette.ink) }
             inv.undecodedFieldKinds?.takeIf { it > 0 }?.let { lines += label(context.getString(R.string.sd_cap_undecoded, it), 13f, palette.ink) }
+            if (inv.hasUnreadable) lines += label(context.getString(R.string.sd_cap_partial), 12f, palette.muted)
             lines += label(context.getString(R.string.hsp_coverage_note), 12f, palette.muted)
         }
         return card(context.getString(R.string.sd_cap_title), *lines.toTypedArray()).apply { tag = "science_capture" }

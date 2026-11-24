@@ -55,4 +55,15 @@ class HistoryDensityDetailTest {
         assertTrue(HistoryDensityDetail.legend(GermanStrings, false).contains("nicht die Anzahl"))
         assertTrue(HistoryDensityDetail.legend(GermanStrings, false).contains("Leer = keine Messwerte"))
     }
+
+    @Test fun numberAndDateFormatFollowTheAppLanguage() {
+        val points = pts(5 to 60, 10 to 70, 15 to 81)
+        val col = density(points).columns[0]
+        val de = HistoryDensityDetail.describe(GermanStrings, col, points, "bpm", zone, isLast = false, locale = java.util.Locale.GERMANY)
+        val en = HistoryDensityDetail.describe(GermanStrings, col, points, "bpm", zone, isLast = false, locale = java.util.Locale.ENGLISH)
+        val fr = HistoryDensityDetail.describe(GermanStrings, col, points, "bpm", zone, isLast = false, locale = java.util.Locale.FRENCH)
+        assertTrue(de, de.contains("Mittelwert 70,3 bpm") && de.contains("19.11. 00:00"))
+        assertTrue(en, en.contains("70.3") && en.contains("11/19 00:00"))
+        assertTrue(fr, fr.contains("70,3") && fr.contains("19/11 00:00"))
+    }
 }

@@ -1,6 +1,8 @@
 package de.pulselibre
 
 import android.content.Context
+import java.text.DecimalFormatSymbols
+import java.util.Locale
 
 /**
  * Display text for fixed phrases produced by the domain layer. The model classes keep their German phrases as stable,
@@ -76,15 +78,33 @@ internal object DomainText {
 
     private val sourceRx = Regex("^Quelle: CIRQA-Service (\\S+)$")
 
-    fun tr(context: Context, german: String): String = translate(Strings.of(context), german)
+    fun tr(context: Context, german: String): String = translate(Strings.of(context), german, context.resources.configuration.locales[0])
+
+    private val germanNumber = Regex("^([+\\u2212\\u00b1-]?)(\\d{1,3}(?:\\.\\d{3})+|\\d+)(?:,(\\d+))?( [^\\d].*)?$")
+
+    /**
+     * The domain models write numbers in German form ("1,5", "12.345"). Whole-number tokens of that exact shape are shown with
+     * the separators of [locale]; anything else (dates, ranges, words) is returned unchanged, so no text is ever altered by guessing.
+     */
+    internal fun localizeNumber(text: String, locale: Locale): String {
+        val m = germanNumber.matchEntire(text) ?: return text
+        val symbols = DecimalFormatSymbols.getInstance(locale)
+        val integer = m.groupValues[2].replace(".", "").let { digits ->
+            if (m.groupValues[2].contains('.')) digits.reversed().chunked(3).joinToString(symbols.groupingSeparator.toString()).reversed() else digits
+        }
+        return m.groupValues[1] + integer + (m.groups[3]?.let { symbols.decimalSeparator.toString() + it.value } ?: "") + (m.groups[4]?.value ?: "")
+    }
+
+    /** "70,3 bpm" -> number part localized, unit kept. */
+    fun localizeLeadingNumber(context: Context, text: String): String = localizeNumber(text, context.resources.configuration.locales[0])
 
     /** Context free core of [tr]; with the German resources it returns every known phrase unchanged (unit-tested). */
-    fun translate(t: Strings, german: String): String =
+    fun translate(t: Strings, german: String, locale: Locale = Locale.GERMANY): String =
         exact[german]?.let { t.get(it) }
             ?: DomainTextAnalysis.exact[german]?.let { t.get(it) }
             ?: sourceRx.matchEntire(german)?.let { t.get(R.string.dom_note_source, it.groupValues[1]) }
             ?: DomainTextAnalysis.patterns.firstNotNullOfOrNull { (rx, id) ->
-                rx.matchEntire(german)?.let { m -> t.get(id, *m.groupValues.drop(1).map { translate(t, it) }.toTypedArray()) }
+                rx.matchEntire(german)?.let { m -> t.get(id, *m.groupValues.drop(1).map { localizeNumber(translate(t, it, locale), locale) }.toTypedArray()) }
             }
             ?: german
 

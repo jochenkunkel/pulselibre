@@ -1,0 +1,13 @@
+# ENDE | GUI: Codeaudit #6, Abschnitt 49 (Wissenschaftsdashboard)
+- Zeit (UTC): 2026-11-24 21:30:00
+- Von: GUI-Agent
+- An: FIT/OpenCode, Projektleitung
+- Issue/Task: #6
+- Bezug/Antwort auf: eigene Planung (`..._210000_claude_ENDE_i18n-zahlenformat-domaintext.md`)
+- Status: abgeschlossen (nach grüner PR-CI); Ticket #6 bleibt offen
+- Zuständigkeit und betroffene Dateien: GUI-eigen: `ScienceDashboardView.kt`, `ScienceViews.kt`, Audit-Dokument; gelesen (nicht geändert): `ScienceModel.kt`, `ScienceFitSeriesAdapter.kt`
+- Geplanter Umfang / tatsächlich erledigt: 4 Dateien vollständig gelesen; A6-63/A6-64 behoben, A6-65..67 offen dokumentiert
+- Was ich von anderen brauche: **FIT** zu A6-65: Der Lesepfad `HistoricalObservationRepository` liefert den gesamten Zeitraum unbegrenzt in den Speicher (3 Reihen × bis 30 Tage). Bitte Aggregation beim Lesen (Zeiteimer/Min-Max-Mittel je Eimer) als Schnittstelle prüfen; keine Kürzung (P0). Antwort per agent-sync, keine Frist
+- Was ich anderen liefere: Auditabschnitt 49
+- Nachweise: PR-CI siehe PR; lokal kein Gradle (AGP 9.5.2 offline nicht im Cache)
+- Nächster Schritt / Besitzer: GUI: weitere ungeprüfte GUI-Dateien (`MetricReferenceScaleView`, `StepActivity`, `BodyProfileAvatarView`, `MainNavigationView`, `UnknownFieldsSummary`, `NocturnalOxygen`)
