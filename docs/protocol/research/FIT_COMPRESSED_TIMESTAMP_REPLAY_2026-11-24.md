@@ -216,7 +216,13 @@ all 29,028 existing observation/provenance rows, added 40 decoder generations,
 and hit five repeatable review-candidate conflicts; it did not create new
 measurements. The historical 20 exception causes remain unclassified.
 
-At this documentation update, PR #630 was still Draft and required current-head
-FULL/API-35 CI and integration gates had not yet been rechecked after the new
-instrumentation test. Issue #628 remains open until those gates are met and
-the documented broader-history acquisition gaps are addressed.
+On PR head `3ce07bd0`, GitHub Actions FULL CI run
+[`45459269479`](https://github.com/jochenkunkel/pulselibre/actions/runs/45459269479)
+passed: build/unit tests/lint/APK, API-35 emulator instrumentation,
+dependency-review and PR dependency-graph generation. The optional private S10
+restore test is not run by CI because private fixture arguments are absent; its
+authorized S10/API-31 run is documented above. The PR remains Draft pending
+the final report update's branch-head CI, review, and integration gates. Issue
+#628 remains open: the 45-file archive showed zero decoder gain, historical
+failure rows are not classified, and broader history coverage remains
+unverified.
