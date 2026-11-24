@@ -341,7 +341,8 @@ class CirqaFitBackfill(
                     deviceMetadata = result.deviceMetadata,
                     unmappedFields = result.unknownFields.map(CirqaUnknownFitInventory::toStoredField),
                     deviceKey = deviceKey,
-                    reviewCandidates = result.reviewCandidates
+                    reviewCandidates = result.reviewCandidates,
+                    decodedFields = result.decodedFields
                 )
             } finally {
                 onAfterSqliteCommit()

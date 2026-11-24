@@ -19,12 +19,13 @@ import java.security.DigestOutputStream
 import java.security.MessageDigest
 import java.time.Instant
 import java.util.UUID
+import java.util.Base64
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
 
 private const val BACKUP_FORMAT = "de.pulselibre.local-database-backup"
-private const val BACKUP_VERSION = 9
+private const val BACKUP_VERSION = 10
 private const val MAX_ARCHIVE_BYTES = 128L * 1024L * 1024L
 private const val MAX_ENTRY_BYTES = 120L * 1024L * 1024L
 private const val MAX_LINE_BYTES = 2 * 1024 * 1024
@@ -44,6 +45,7 @@ private const val RAW_DEVICE_METADATA_ENTRY = "raw_device_metadata.jsonl"
 private const val CANONICAL_UNMAPPED_FIT_FIELDS_ENTRY = "canonical_fit_unmapped_fields.jsonl"
 private const val CANONICAL_FIT_GENERATIONS_ENTRY = "canonical_fit_decoder_generations.jsonl"
 private const val CANONICAL_FIT_GENERATION_OBSERVATIONS_ENTRY = "canonical_fit_generation_observations.jsonl"
+private const val CANONICAL_FIT_GENERATION_FIELDS_ENTRY = "canonical_fit_generation_fields.jsonl"
 private const val CANONICAL_ACTIVE_FIT_GENERATIONS_ENTRY = "canonical_fit_active_generations.jsonl"
 private const val CANONICAL_FIT_REVIEW_CANDIDATES_ENTRY = "canonical_fit_review_candidates.jsonl"
 private const val LEGACY_FIT_REVIEW_CANDIDATES_ENTRY = "legacy_fit_review_candidates.jsonl"
@@ -70,6 +72,7 @@ private val BACKUP_V8_ENTRIES = BACKUP_V7_ENTRIES + setOf(
     LIVE_DEVICE_METADATA_ENTRY
 )
 private val BACKUP_V9_ENTRIES = BACKUP_V8_ENTRIES + DownloadedFileArchive.BACKUP_ENTRY
+private val BACKUP_V10_ENTRIES = BACKUP_V9_ENTRIES + CANONICAL_FIT_GENERATION_FIELDS_ENTRY
 
 data class DatabaseBackupReport(
     val createdAt: String,
@@ -86,6 +89,7 @@ data class DatabaseBackupReport(
     val rawDeviceMetadata: Long = 0,
     val canonicalFitGenerations: Long = 0,
     val canonicalFitGenerationObservations: Long = 0,
+    val canonicalFitGenerationFields: Long = 0,
     val canonicalActiveFitGenerations: Long = 0,
     val canonicalFitReviewCandidates: Long = 0,
     val legacyFitReviewCandidates: Long = 0,
@@ -110,6 +114,7 @@ class PreparedDatabaseRestore internal constructor(
     val rawDeviceMetadata: Long,
     val canonicalFitGenerations: Long,
     val canonicalFitGenerationObservations: Long,
+    val canonicalFitGenerationFields: Long,
     val canonicalActiveFitGenerations: Long,
     val canonicalFitReviewCandidates: Long,
     val legacyFitReviewCandidates: Long,
@@ -164,7 +169,8 @@ object DatabaseBackup {
                 6 -> BACKUP_V6_ENTRIES
                 7 -> BACKUP_V7_ENTRIES
                 8 -> BACKUP_V8_ENTRIES
-                BACKUP_VERSION -> BACKUP_V9_ENTRIES
+                9 -> BACKUP_V9_ENTRIES
+                BACKUP_VERSION -> BACKUP_V10_ENTRIES
                 else -> throw IllegalArgumentException("Backup-Version wird nicht unterstützt")
             }
             require(extracted.keys == dataEntries + MANIFEST_ENTRY) {
@@ -235,6 +241,7 @@ object DatabaseBackup {
                 canonicalFitGenerations = recordCounts[CANONICAL_FIT_GENERATIONS_ENTRY] ?: 0,
                 canonicalFitGenerationObservations =
                     recordCounts[CANONICAL_FIT_GENERATION_OBSERVATIONS_ENTRY] ?: 0,
+                canonicalFitGenerationFields = recordCounts[CANONICAL_FIT_GENERATION_FIELDS_ENTRY] ?: 0,
                 canonicalActiveFitGenerations =
                     recordCounts[CANONICAL_ACTIVE_FIT_GENERATIONS_ENTRY] ?: 0,
                 canonicalFitReviewCandidates =
@@ -292,6 +299,7 @@ object DatabaseBackup {
                                                     unmappedFields: Sequence<StoredFitUnmappedField>,
                                                     generations: Sequence<StoredFitDecoderGeneration> = emptySequence(),
                                                     generationObservations: Sequence<StoredFitGenerationObservation> = emptySequence(),
+                                                    generationFields: Sequence<StoredFitGenerationField> = emptySequence(),
                                                     activeGenerations: Sequence<StoredActiveFitGeneration> = emptySequence(),
                                                     legacyReviewCandidates: Sequence<StoredFitReviewCandidate> = emptySequence(),
                                                     reviewCandidates: Sequence<StoredFitReviewCandidate> = emptySequence(),
@@ -312,7 +320,8 @@ object DatabaseBackup {
                                                     canonicalRawDeviceMetadata = rawMetadata,
                                                     canonicalUnmappedFitFields = unmappedFields,
                                                     canonicalFitGenerations = generations,
-                                                    canonicalFitGenerationObservations = generationObservations,
+                                                     canonicalFitGenerationObservations = generationObservations,
+                                                     canonicalFitGenerationFields = generationFields,
                                                     canonicalActiveFitGenerations = activeGenerations,
                                                     legacyFitReviewCandidates = legacyReviewCandidates,
                                                     canonicalFitReviewCandidates = reviewCandidates,
@@ -359,12 +368,16 @@ object DatabaseBackup {
                                                                                                                 metadataReader.lineSequence().map(::parseDeviceMetadata),
                                                                                                                 rawReader.lineSequence().map(::parseRawDeviceMetadata),
                                                                                                                 unknownReader.lineSequence().map(::parseUnmappedFitField),
-                                                                                                                generationReader.lineSequence().map(::parseFitGeneration),
-                                                                                                                observationReader.lineSequence().map(::parseFitGenerationObservation),
-                                                                                                                activeReader.lineSequence().map(::parseActiveFitGeneration),
+                                                                                                                 generations = generationReader.lineSequence().map(::parseFitGeneration),
+                                                                                                                 generationObservations = observationReader.lineSequence().map(::parseFitGenerationObservation),
+                                                                                                                 activeGenerations = activeReader.lineSequence().map(::parseActiveFitGeneration),
                                                                                                                 legacyReviewCandidates = legacyReviewReader.lineSequence().map(::parseFitReviewCandidate),
                                                                                                                 reviewCandidates = reviewReader.lineSequence().map(::parseFitReviewCandidate),
                                                                                                                 liveDeviceMetadata = liveReader.lineSequence().map(::parseLiveDeviceMetadata),
+                                                                                                                generationFields = if (plan.version >= 10)
+                                                                                                                    File(plan.directory, CANONICAL_FIT_GENERATION_FIELDS_ENTRY)
+                                                                                                                        .useLines { it.map(::parseFitGenerationField).toList().asSequence() }
+                                                                                                                else emptySequence(),
                                                                                                                 generationSnapshotProvided = true
                                                                                                             )
                                                                                                         }
@@ -375,9 +388,9 @@ object DatabaseBackup {
                                                                                                     metadataReader.lineSequence().map(::parseDeviceMetadata),
                                                                                                     rawReader.lineSequence().map(::parseRawDeviceMetadata),
                                                                                                     unknownReader.lineSequence().map(::parseUnmappedFitField),
-                                                                                                    generationReader.lineSequence().map(::parseFitGeneration),
-                                                                                                    observationReader.lineSequence().map(::parseFitGenerationObservation),
-                                                                                                    activeReader.lineSequence().map(::parseActiveFitGeneration),
+                                                                                                     generations = generationReader.lineSequence().map(::parseFitGeneration),
+                                                                                                     generationObservations = observationReader.lineSequence().map(::parseFitGenerationObservation),
+                                                                                                     activeGenerations = activeReader.lineSequence().map(::parseActiveFitGeneration),
                                                                                                     generationSnapshotProvided = true
                                                                                                 )
                                                                                             }
@@ -441,6 +454,7 @@ object DatabaseBackup {
         var rawDeviceMetadataCount = 0L
         var canonicalFitGenerationCount = 0L
         var canonicalFitGenerationObservationCount = 0L
+        var canonicalFitGenerationFieldCount = 0L
         var canonicalActiveFitGenerationCount = 0L
         var canonicalFitReviewCandidateCount = 0L
         var legacyFitReviewCandidateCount = 0L
@@ -660,7 +674,7 @@ object DatabaseBackup {
                     val generations = writeJsonLines(zip, CANONICAL_FIT_GENERATIONS_ENTRY) { emit ->
                         db.rawQuery(
                             """SELECT generation_id, source_sha256, decoder_version, profile_version,
-                                      output_digest, output_count, completed_at_ms
+                                      output_digest, output_count, completed_at_ms, decoded_field_count
                                FROM main.fit_decoder_generations ORDER BY generation_id""", null
                         ).use { rows ->
                             while (rows.moveToNext()) emit(encodeFitGeneration(StoredFitDecoderGeneration(
@@ -670,7 +684,8 @@ object DatabaseBackup {
                                 profileVersion = rows.getString(3),
                                 outputDigest = rows.getString(4),
                                 outputCount = rows.getLong(5),
-                                completedAtEpochMillis = rows.getLong(6)
+                                completedAtEpochMillis = rows.getLong(6),
+                                decodedFieldCount = rows.getLong(7)
                             )))
                         }
                     }
@@ -710,6 +725,28 @@ object DatabaseBackup {
                         CANONICAL_FIT_GENERATION_OBSERVATIONS_ENTRY,
                         entryMetadata(generationObservations)
                     )
+                    val generationFields = writeJsonLines(zip, CANONICAL_FIT_GENERATION_FIELDS_ENTRY) { emit ->
+                        db.rawQuery(
+                            """SELECT generation_id, record_ordinal, global_message_number, field_kind,
+                                      field_number, base_type_code, field_size, developer_data_index,
+                                      big_endian, raw_bytes, measured_at_ms, timestamp_origin
+                               FROM main.fit_generation_fields
+                               ORDER BY generation_id, record_ordinal, field_kind, field_number,
+                                        developer_data_index""", null
+                        ).use { rows ->
+                            while (rows.moveToNext()) emit(encodeFitGenerationField(
+                                StoredFitGenerationField(
+                                    rows.getString(0), rows.getInt(1), rows.getInt(2), rows.getString(3),
+                                    rows.getInt(4), if (rows.isNull(5)) null else rows.getInt(5),
+                                    rows.getInt(6), rows.getInt(7).takeIf { it >= 0 },
+                                    rows.getInt(8) != 0, rows.getBlob(9),
+                                    if (rows.isNull(10)) null else rows.getLong(10), rows.getString(11)
+                                )
+                            ))
+                        }
+                    }
+                    canonicalFitGenerationFieldCount = generationFields.records
+                    metadata.put(CANONICAL_FIT_GENERATION_FIELDS_ENTRY, entryMetadata(generationFields))
                     val activeGenerations = writeJsonLines(zip, CANONICAL_ACTIVE_FIT_GENERATIONS_ENTRY) { emit ->
                         db.rawQuery(
                             """SELECT source_sha256, generation_id FROM main.fit_active_generations
@@ -810,7 +847,7 @@ object DatabaseBackup {
                             canonicalProvenance.bytes + canonicalDeviceMetadata.bytes +
                             rawDeviceMetadata.bytes + canonicalUnmappedFields.bytes +
                             generations.bytes + generationObservations.bytes + activeGenerations.bytes +
-                            reviewCandidates.bytes + legacyReviewCandidates.bytes +
+                            generationFields.bytes + reviewCandidates.bytes + legacyReviewCandidates.bytes +
                             liveMetadata.bytes + originalFiles.bytes <= MAX_ARCHIVE_BYTES
                     ) {
                         "Lokale Datenbank ist zu groß für ein Backup"
@@ -834,6 +871,7 @@ object DatabaseBackup {
             canonicalReadingCount, canonicalCursorCount, canonicalFitSourceCount,
             canonicalFitProvenanceCount, canonicalDeviceMetadataCount, rawDeviceMetadataCount,
             canonicalFitGenerationCount, canonicalFitGenerationObservationCount,
+            canonicalFitGenerationFieldCount,
             canonicalActiveFitGenerationCount, canonicalFitReviewCandidateCount,
             legacyFitReviewCandidateCount, liveDeviceMetadataCount
         )
@@ -868,7 +906,7 @@ object DatabaseBackup {
         .put("sha256", value.sha256)
 
     private fun extractArchive(source: InputStream, directory: File): Map<String, File> {
-        val allowed = BACKUP_V9_ENTRIES + MANIFEST_ENTRY
+        val allowed = BACKUP_V10_ENTRIES + MANIFEST_ENTRY
         val files = linkedMapOf<String, File>()
         var totalBytes = 0L
         ZipInputStream(BufferedInputStream(source)).use { zip ->
@@ -922,6 +960,7 @@ object DatabaseBackup {
                     CANONICAL_UNMAPPED_FIT_FIELDS_ENTRY -> parseUnmappedFitField(line)
                     CANONICAL_FIT_GENERATIONS_ENTRY -> parseFitGeneration(line)
                     CANONICAL_FIT_GENERATION_OBSERVATIONS_ENTRY -> parseFitGenerationObservation(line)
+                    CANONICAL_FIT_GENERATION_FIELDS_ENTRY -> parseFitGenerationField(line)
                     CANONICAL_ACTIVE_FIT_GENERATIONS_ENTRY -> parseActiveFitGeneration(line)
                     CANONICAL_FIT_REVIEW_CANDIDATES_ENTRY,
                     LEGACY_FIT_REVIEW_CANDIDATES_ENTRY -> parseFitReviewCandidate(line)
@@ -1130,12 +1169,20 @@ object DatabaseBackup {
                 """CREATE TABLE generations(
                    generation_id TEXT PRIMARY KEY NOT NULL,
                    source_sha256 TEXT NOT NULL REFERENCES sources(source_sha256),
-                   decoder_version TEXT NOT NULL, profile_version TEXT NOT NULL,
-                   output_digest TEXT NOT NULL, output_count INTEGER NOT NULL,
+                    decoder_version TEXT NOT NULL, profile_version TEXT NOT NULL,
+                    output_digest TEXT NOT NULL, output_count INTEGER NOT NULL, decoded_field_count INTEGER NOT NULL,
                    UNIQUE(generation_id, source_sha256),
                    UNIQUE(source_sha256, decoder_version, profile_version)
                 )"""
             )
+            db.execSQL("""CREATE TABLE generation_fields(
+                generation_id TEXT NOT NULL REFERENCES generations(generation_id),
+                record_ordinal INTEGER NOT NULL, global_message_number INTEGER NOT NULL,
+                field_kind TEXT NOT NULL, field_number INTEGER NOT NULL, base_type_code INTEGER,
+                field_size INTEGER NOT NULL, developer_data_index INTEGER, big_endian INTEGER NOT NULL,
+                raw_bytes BLOB NOT NULL, measured_at_ms INTEGER, timestamp_origin TEXT NOT NULL,
+                PRIMARY KEY(generation_id, record_ordinal, field_kind, field_number, developer_data_index)
+            )""")
             db.execSQL(
                 """CREATE TABLE generation_observations(
                    generation_id TEXT NOT NULL REFERENCES generations(generation_id),
@@ -1168,10 +1215,12 @@ object DatabaseBackup {
                         val generation = parseFitGeneration(line)
                         db.execSQL(
                             """INSERT INTO generations(generation_id, source_sha256, decoder_version,
-                               profile_version, output_digest, output_count) VALUES(?, ?, ?, ?, ?, ?)""",
+                               profile_version, output_digest, output_count, decoded_field_count)
+                               VALUES(?, ?, ?, ?, ?, ?, ?)""",
                             arrayOf<Any?>(
                                 generation.generationId, generation.sourceSha256, generation.decoderVersion,
-                                generation.profileVersion, generation.outputDigest, generation.outputCount
+                                generation.profileVersion, generation.outputDigest, generation.outputCount,
+                                generation.decodedFieldCount
                             )
                         )
                     }
@@ -1195,6 +1244,23 @@ object DatabaseBackup {
                             )
                         }
                     }
+                if (File(directory, CANONICAL_FIT_GENERATION_FIELDS_ENTRY).exists()) {
+                    File(directory, CANONICAL_FIT_GENERATION_FIELDS_ENTRY)
+                        .bufferedReader(Charsets.UTF_8).useLines { lines ->
+                            lines.forEach { line ->
+                                val f = parseFitGenerationField(line)
+                                db.execSQL(
+                                    """INSERT INTO generation_fields VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                                    arrayOf<Any?>(
+                                        f.generationId, f.recordOrdinal, f.globalMessageNumber,
+                                        f.fieldKind, f.fieldNumber, f.baseTypeCode, f.fieldSize,
+                                        f.developerDataIndex ?: -1, if (f.bigEndian) 1 else 0,
+                                        f.rawBytes, f.measuredAtEpochMillis, f.timestampOrigin
+                                    )
+                                )
+                            }
+                        }
+                }
                 File(directory, CANONICAL_ACTIVE_FIT_GENERATIONS_ENTRY)
                     .bufferedReader(Charsets.UTF_8).useLines { lines ->
                         lines.forEach { line ->
@@ -1207,13 +1273,14 @@ object DatabaseBackup {
                     }
 
                 db.rawQuery(
-                    "SELECT generation_id, output_digest, output_count FROM generations ORDER BY generation_id",
+                    "SELECT generation_id, output_digest, output_count, decoded_field_count FROM generations ORDER BY generation_id",
                     null
                 ).use { generations ->
                     while (generations.moveToNext()) {
                         val generationId = generations.getString(0)
                         val expectedDigest = generations.getString(1)
                         val expectedCount = generations.getLong(2)
+                        val expectedFieldCount = generations.getLong(3)
                         val accumulator = FitDecoderGeneration.OutputDigest()
                         var actualCount = 0L
                         db.rawQuery(
@@ -1237,7 +1304,26 @@ object DatabaseBackup {
                                 actualCount++
                             }
                         }
-                        require(actualCount == expectedCount && accumulator.finish() == expectedDigest) {
+                        val fields = mutableListOf<StoredFitGenerationField>()
+                        db.rawQuery(
+                            """SELECT generation_id, record_ordinal, global_message_number, field_kind,
+                                      field_number, base_type_code, field_size, developer_data_index,
+                                      big_endian, raw_bytes, measured_at_ms, timestamp_origin
+                               FROM generation_fields WHERE generation_id = ?
+                               ORDER BY record_ordinal, field_kind, field_number, developer_data_index""",
+                            arrayOf(generationId)
+                        ).use { rows ->
+                            while (rows.moveToNext()) fields += StoredFitGenerationField(
+                                rows.getString(0), rows.getInt(1), rows.getInt(2), rows.getString(3),
+                                rows.getInt(4), if (rows.isNull(5)) null else rows.getInt(5),
+                                rows.getInt(6), rows.getInt(7).takeIf { it >= 0 }, rows.getInt(8) != 0,
+                                rows.getBlob(9), if (rows.isNull(10)) null else rows.getLong(10),
+                                rows.getString(11)
+                            )
+                        }
+                        fields.forEach(accumulator::add)
+                        require(actualCount == expectedCount && fields.size.toLong() == expectedFieldCount &&
+                            accumulator.finish() == expectedDigest) {
                             "FIT-Decodergeneration ist unvollständig oder der Output-Digest stimmt nicht"
                         }
                     }
@@ -1315,7 +1401,8 @@ object DatabaseBackup {
             profileVersion = item.getString("profile_version"),
             outputDigest = item.getString("output_digest"),
             outputCount = item.getLong("output_count"),
-            completedAtEpochMillis = item.getLong("completed_at_ms")
+            completedAtEpochMillis = item.getLong("completed_at_ms"),
+            decodedFieldCount = item.optLong("decoded_field_count", 0L)
         )
         require(
             generation.generationId.matches(Regex("[0-9a-f]{64}")) &&
@@ -1327,6 +1414,7 @@ object DatabaseBackup {
                 generation.profileVersion.matches(Regex("[A-Za-z0-9._+-]{1,32}")) &&
                 generation.outputDigest.matches(Regex("[0-9a-f]{64}")) &&
                 generation.outputCount in 0..MAX_RECORDS &&
+                generation.decodedFieldCount in 0..MAX_RECORDS &&
                 generation.completedAtEpochMillis >= 0
         ) { "Ungültige FIT-Decodergeneration im Backup" }
         return generation
@@ -1362,6 +1450,35 @@ object DatabaseBackup {
                 )
         ) { "Ungültige FIT-Beobachtung in einer Decodergeneration" }
         return row
+    }
+
+    private fun parseFitGenerationField(line: String): StoredFitGenerationField {
+        val item = JSONObject(line)
+        val raw = Base64.getDecoder().decode(item.getString("raw_bytes"))
+        val field = StoredFitGenerationField(
+            generationId = item.getString("generation_id"),
+            recordOrdinal = item.getInt("record_ordinal"),
+            globalMessageNumber = item.getInt("global_message_number"),
+            fieldKind = item.getString("field_kind"),
+            fieldNumber = item.getInt("field_number"),
+            baseTypeCode = if (item.isNull("base_type_code")) null else item.getInt("base_type_code"),
+            fieldSize = item.getInt("field_size"),
+            developerDataIndex = if (item.isNull("developer_data_index")) null else item.getInt("developer_data_index"),
+            bigEndian = item.getBoolean("big_endian"),
+            rawBytes = raw,
+            measuredAtEpochMillis = if (item.isNull("measured_at_ms")) null else item.getLong("measured_at_ms"),
+            timestampOrigin = item.getString("timestamp_origin")
+        )
+        require(field.generationId.matches(Regex("[0-9a-f]{64}")) &&
+            field.recordOrdinal > 0 && field.globalMessageNumber in 0..65535 &&
+            field.fieldKind in setOf("STANDARD", "DEVELOPER", "COMPRESSED_TIMESTAMP_HEADER") &&
+            field.fieldNumber in 0..255 &&
+            field.fieldSize in 1..255 && raw.size == field.fieldSize &&
+            (field.baseTypeCode == null || field.baseTypeCode in 0..255) &&
+            (field.developerDataIndex == null || field.developerDataIndex in 0..255) &&
+            (field.measuredAtEpochMillis == null || field.measuredAtEpochMillis >= 0) &&
+            field.timestampOrigin in setOf("DIRECT", "RECONSTRUCTED_TS16", "RECONSTRUCTED_COMPRESSED", "UNKNOWN"))
+        return field
     }
 
     private fun parseFitReviewCandidate(line: String): StoredFitReviewCandidate {
@@ -1565,6 +1682,7 @@ object DatabaseBackup {
         .put("profile_version", value.profileVersion)
         .put("output_digest", value.outputDigest)
         .put("output_count", value.outputCount)
+        .put("decoded_field_count", value.decodedFieldCount)
         .put("completed_at_ms", value.completedAtEpochMillis)
         .toString()
 
@@ -1581,6 +1699,21 @@ object DatabaseBackup {
         .put("global_message_number", value.globalMessageNumber)
         .put("field_number", value.fieldNumber)
         .put("quality", value.quality)
+        .put("timestamp_origin", value.timestampOrigin)
+        .toString()
+
+    private fun encodeFitGenerationField(value: StoredFitGenerationField): String = JSONObject()
+        .put("generation_id", value.generationId)
+        .put("record_ordinal", value.recordOrdinal)
+        .put("global_message_number", value.globalMessageNumber)
+        .put("field_kind", value.fieldKind)
+        .put("field_number", value.fieldNumber)
+        .put("base_type_code", value.baseTypeCode)
+        .put("field_size", value.fieldSize)
+        .put("developer_data_index", value.developerDataIndex)
+        .put("big_endian", value.bigEndian)
+        .put("raw_bytes", Base64.getEncoder().encodeToString(value.rawBytes))
+        .put("measured_at_ms", value.measuredAtEpochMillis)
         .put("timestamp_origin", value.timestampOrigin)
         .toString()
 

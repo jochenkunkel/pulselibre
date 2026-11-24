@@ -78,7 +78,8 @@ interface FitObservationStore {
         deviceMetadata: List<FitHistoricalObservations.DeviceMetadata> = emptyList(),
         unmappedFields: List<FitFieldInventoryRecord> = emptyList(),
         deviceKey: String = "cirqa-fit",
-        reviewCandidates: List<FitHistoricalObservations.ReviewCandidate> = emptyList()
+        reviewCandidates: List<FitHistoricalObservations.ReviewCandidate> = emptyList(),
+        decodedFields: List<FitHistoricalObservations.DecodedField> = emptyList()
     ): Int
 }
 
@@ -256,11 +257,12 @@ class LocalReadingStore(context: Context) : SQLiteOpenHelper(
         deviceMetadata: List<FitHistoricalObservations.DeviceMetadata>,
         unmappedFields: List<FitFieldInventoryRecord>,
         deviceKey: String,
-        reviewCandidates: List<FitHistoricalObservations.ReviewCandidate>
+        reviewCandidates: List<FitHistoricalObservations.ReviewCandidate>,
+        decodedFields: List<FitHistoricalObservations.DecodedField>
     ): Int = FitObservationCommitter.commit(
         writableDatabase, "readings", sourceSha256, fileBytes, relativePath, validatedAtEpochMillis,
         decoderVersion, profileVersion, observations, deviceMetadata, unmappedFields, deviceKey,
-        reviewCandidates
+        reviewCandidates, decodedFields
     )
 
     fun cursorFor(deviceId: String): SyncCursor {

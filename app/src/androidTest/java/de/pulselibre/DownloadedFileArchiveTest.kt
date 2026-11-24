@@ -83,7 +83,7 @@ class DownloadedFileArchiveTest {
             val zip = ByteArrayOutputStream()
             DatabaseBackup.write(context, zip)
             DatabaseBackup.prepareRestore(context, ByteArrayInputStream(zip.toByteArray())).use {
-                assertEquals(9, it.version)
+                assertEquals(10, it.version)
                 DatabaseBackup.restore(context, it)
             }
             CirqaDatabase(context).use { database ->
@@ -119,7 +119,7 @@ class DownloadedFileArchiveTest {
                 it.writableDatabase.version = 9
             }
             CirqaDatabase(context).use {
-                assertEquals(10, it.readableDatabase.version)
+                assertEquals(11, it.readableDatabase.version)
                 assertEquals(1, it.allLines().size)
                 assertEquals(1, it.archiveExistingDownloads())
                 assertEquals(0, it.archiveExistingDownloads())

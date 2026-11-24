@@ -100,6 +100,11 @@ class FitHistoricalObservationsTest {
             (timestamp + 631_065_600L) * 1_000L,
             result.observations.first().timestampEpochMillis
         )
+        assertEquals(listOf(253, 3, 4, 3, 4, 253), result.decodedFields.map { it.fieldNumber })
+        assertArrayEquals(u32(timestamp), result.decodedFields.first().rawBytes)
+        assertArrayEquals(byteArrayOf(73), result.decodedFields[3].rawBytes)
+        assertEquals("COMPRESSED_TIMESTAMP_HEADER", result.decodedFields.last().fieldKind)
+        assertArrayEquals(byteArrayOf(0x80.toByte()), result.decodedFields.last().rawBytes)
         assertTrue(result.observations.all {
             it.quality == FitHistoricalObservations.Quality.PROFILE_VALID
         })
@@ -162,7 +167,54 @@ class FitHistoricalObservationsTest {
         assertEquals(1, stress.invalidMeasurementFieldCount)
     }
 
-    @Test fun stressLevelTimeIsNotInterpretedAsFitEpochTimestamp() {
+    @Test fun spo2ConfidenceAndModeAreRetainedAsSeparateReviewCandidates() {
+        val definition = byteArrayOf(
+            0x40, 0, 0, 0x0d, 0x01, 4,
+            253.toByte(), 4, 0x86.toByte(),
+            0, 1, 2, // reading_spo2
+            1, 1, 2, // reading_confidence
+            2, 1, 0 // spo2_measurement_mode enum
+        )
+        val result = FitHistoricalObservations.decode(fit(
+            definition + byteArrayOf(0) + u32(200_000) + byteArrayOf(96, 3, 1)
+        ))!!
+
+        assertTrue(result.observations.isEmpty())
+        assertEquals(
+            listOf("reading_spo2", "reading_confidence", "spo2_measurement_mode"),
+            result.reviewCandidates.map { it.profileFieldName }
+        )
+        assertEquals(listOf(96.0, 3.0, 1.0), result.reviewCandidates.map { it.value })
+        assertEquals(listOf(0, 1, 2), result.reviewCandidates.map { it.fieldNumber })
+    }
+
+    @Test fun sleepLevelAndMonitoringCyclesRemainRawReviewCandidates() {
+        val sleepDefinition = byteArrayOf(
+            0x40, 0, 0, 0x13, 0x01, 2, // global 275
+            253.toByte(), 4, 0x86.toByte(),
+            0, 1, 0 // enum sleep level
+        )
+        val monitoringDefinition = byteArrayOf(
+            0x40, 0, 0, 55, 0, 3,
+            253.toByte(), 4, 0x86.toByte(),
+            3, 4, 0x86.toByte(), // cycles
+            5, 1, 0 // activity_type enum
+        )
+        val result = FitHistoricalObservations.decode(fit(
+            sleepDefinition + byteArrayOf(0) + u32(200_000) + byteArrayOf(2) +
+                monitoringDefinition + byteArrayOf(0) + u32(200_060) + u32(120) + byteArrayOf(6)
+        ))!!
+
+        assertTrue(result.observations.isEmpty())
+        assertEquals(
+            listOf("sleep_level", "monitoring_cycles", "monitoring_activity_type"),
+            result.reviewCandidates.map { it.profileFieldName }
+        )
+        assertEquals(listOf(2.0, 120.0, 6.0), result.reviewCandidates.map { it.value })
+        assertEquals(listOf(275, 55, 55), result.reviewCandidates.map { it.globalMessageNumber })
+    }
+
+    @Test fun stressLevelTimeBecomesReviewCandidateTimestampUsingFitEpoch() {
         val definition = byteArrayOf(
             0x40, 0, 0, 0xe3.toByte(), 0, 2, // global message 227
             0, 2, 0x83.toByte(), // stress_level_value: sint16
@@ -177,8 +229,8 @@ class FitHistoricalObservationsTest {
         val candidate = result.reviewCandidates.single()
         assertEquals("stress_level_value", candidate.profileFieldName)
         assertEquals(42.0, candidate.value, 0.0)
-        assertNull("stress_level_time is not FIT timestamp 253", candidate.timestampEpochMillis)
-        assertEquals(FitHistoricalObservations.TimestampOrigin.UNKNOWN, candidate.timestampOrigin)
+        assertEquals(fitTime(200_000), candidate.timestampEpochMillis)
+        assertEquals(FitHistoricalObservations.TimestampOrigin.DIRECT, candidate.timestampOrigin)
     }
 
     @Test fun respirationRateIsDecodedAsAnUnpersistedSignedProfileCandidate() {

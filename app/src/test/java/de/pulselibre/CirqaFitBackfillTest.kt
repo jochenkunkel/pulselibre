@@ -36,7 +36,8 @@ class CirqaFitBackfillTest {
             deviceMetadata: List<FitHistoricalObservations.DeviceMetadata>,
             unmappedFields: List<FitFieldInventoryRecord>,
             deviceKey: String,
-            reviewCandidates: List<FitHistoricalObservations.ReviewCandidate>
+            reviewCandidates: List<FitHistoricalObservations.ReviewCandidate>,
+            decodedFields: List<FitHistoricalObservations.DecodedField>
         ): Int {
             calls += observations
             commits += Commit(
@@ -70,7 +71,8 @@ class CirqaFitBackfillTest {
             deviceMetadata: List<FitHistoricalObservations.DeviceMetadata>,
             unmappedFields: List<FitFieldInventoryRecord>,
             deviceKey: String,
-            reviewCandidates: List<FitHistoricalObservations.ReviewCandidate>
+            reviewCandidates: List<FitHistoricalObservations.ReviewCandidate>,
+            decodedFields: List<FitHistoricalObservations.DecodedField>
         ): Int {
             attempts++
             if (attempts == 1) throw SQLiteException("simulated commit failure")
@@ -94,7 +96,8 @@ class CirqaFitBackfillTest {
             deviceMetadata: List<FitHistoricalObservations.DeviceMetadata>,
             unmappedFields: List<FitFieldInventoryRecord>,
             deviceKey: String,
-            reviewCandidates: List<FitHistoricalObservations.ReviewCandidate>
+            reviewCandidates: List<FitHistoricalObservations.ReviewCandidate>,
+            decodedFields: List<FitHistoricalObservations.DecodedField>
         ): Int {
             attempts++
             if (attempts == 1) throw exceptionFactory()

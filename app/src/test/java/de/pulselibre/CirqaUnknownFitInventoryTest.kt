@@ -99,7 +99,8 @@ class CirqaUnknownFitInventoryTest {
             deviceMetadata: List<FitHistoricalObservations.DeviceMetadata>,
             unmappedFields: List<FitFieldInventoryRecord>,
             deviceKey: String,
-            reviewCandidates: List<FitHistoricalObservations.ReviewCandidate>
+            reviewCandidates: List<FitHistoricalObservations.ReviewCandidate>,
+            decodedFields: List<FitHistoricalObservations.DecodedField>
         ): Int {
             sources += Commit(
                 sourceSha256, fileBytes, relativePath, validatedAtEpochMillis,

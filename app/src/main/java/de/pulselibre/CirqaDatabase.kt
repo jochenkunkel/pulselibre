@@ -13,7 +13,7 @@ import java.security.MessageDigest
  * UNIQUE SHA-256 of each full line makes repeated imports idempotent.
  */
 class CirqaDatabase(private val contextRef: Context) :
-    SQLiteOpenHelper(contextRef, "cirqa_measurements.db", null, 10), FitObservationStore {
+    SQLiteOpenHelper(contextRef, "cirqa_measurements.db", null, 11), FitObservationStore {
 
     override fun onConfigure(db: SQLiteDatabase) {
         super.onConfigure(db)
@@ -38,6 +38,7 @@ class CirqaDatabase(private val contextRef: Context) :
         createRawDeviceMetadataSchema(db)
         createUnmappedFitFieldSchema(db)
         createFitGenerationSchema(db)
+        createFitGenerationFieldSchema(db)
         createFitReviewCandidateSchema(db)
         createLiveDeviceMetadataSchema(db)
         createObservationQualitySchema(db)
@@ -46,7 +47,7 @@ class CirqaDatabase(private val contextRef: Context) :
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-        require(oldVersion in 1..9 && newVersion == 10)
+        require(oldVersion in 1..10 && newVersion == 11)
         if (oldVersion < 6) {
           if (oldVersion <= 2) {
             if (oldVersion == 1) {
@@ -89,6 +90,11 @@ class CirqaDatabase(private val contextRef: Context) :
             rebuildObservationQuality(db)
         }
         DownloadedFileArchive.create(db)
+        if (hasTable(db, "fit_decoder_generations") &&
+            !hasColumn(db, "fit_decoder_generations", "decoded_field_count")) {
+            db.execSQL("ALTER TABLE fit_decoder_generations ADD COLUMN decoded_field_count INTEGER NOT NULL DEFAULT 0 CHECK(decoded_field_count >= 0)")
+        }
+        if (hasTable(db, "fit_decoder_generations")) createFitGenerationFieldSchema(db)
     }
 
     /** Preserve every received file before any semantic filtering. */
@@ -374,6 +380,7 @@ class CirqaDatabase(private val contextRef: Context) :
             profile_version TEXT NOT NULL,
             output_digest TEXT NOT NULL CHECK(length(output_digest) = 64),
             output_count INTEGER NOT NULL CHECK(output_count >= 0),
+            decoded_field_count INTEGER NOT NULL DEFAULT 0 CHECK(decoded_field_count >= 0),
             completed_at_ms INTEGER NOT NULL CHECK(completed_at_ms >= 0),
             UNIQUE(source_sha256, decoder_version, profile_version),
             UNIQUE(generation_id, source_sha256)
@@ -402,6 +409,26 @@ class CirqaDatabase(private val contextRef: Context) :
             FOREIGN KEY(generation_id, source_sha256)
                 REFERENCES fit_decoder_generations(generation_id, source_sha256) ON DELETE RESTRICT
         )""")
+    }
+
+    private fun createFitGenerationFieldSchema(db: SQLiteDatabase) {
+        db.execSQL("""CREATE TABLE IF NOT EXISTS fit_generation_fields (
+            generation_id TEXT NOT NULL REFERENCES fit_decoder_generations(generation_id) ON DELETE RESTRICT,
+            record_ordinal INTEGER NOT NULL CHECK(record_ordinal > 0),
+            global_message_number INTEGER NOT NULL CHECK(global_message_number >= 0),
+            field_kind TEXT NOT NULL CHECK(field_kind IN ('STANDARD', 'DEVELOPER', 'COMPRESSED_TIMESTAMP_HEADER')),
+            field_number INTEGER NOT NULL CHECK(field_number >= 0),
+            base_type_code INTEGER,
+            field_size INTEGER NOT NULL CHECK(field_size > 0),
+            developer_data_index INTEGER NOT NULL DEFAULT -1 CHECK(developer_data_index >= -1),
+            big_endian INTEGER NOT NULL CHECK(big_endian IN (0, 1)),
+            raw_bytes BLOB NOT NULL CHECK(length(raw_bytes) = field_size),
+            measured_at_ms INTEGER CHECK(measured_at_ms IS NULL OR measured_at_ms >= 0),
+            timestamp_origin TEXT NOT NULL CHECK(timestamp_origin IN
+                ('DIRECT', 'RECONSTRUCTED_TS16', 'RECONSTRUCTED_COMPRESSED', 'UNKNOWN')),
+            PRIMARY KEY(generation_id, record_ordinal, field_kind, field_number, developer_data_index)
+        )""")
+        db.execSQL("CREATE INDEX IF NOT EXISTS fit_generation_fields_by_message ON fit_generation_fields(generation_id, record_ordinal)")
     }
 
     private fun createFitReviewCandidateSchema(db: SQLiteDatabase) {
@@ -956,19 +983,23 @@ class CirqaDatabase(private val contextRef: Context) :
         deviceMetadata: List<FitHistoricalObservations.DeviceMetadata>,
         unmappedFields: List<FitFieldInventoryRecord>,
         deviceKey: String,
-        reviewCandidates: List<FitHistoricalObservations.ReviewCandidate>
+        reviewCandidates: List<FitHistoricalObservations.ReviewCandidate>,
+        decodedFields: List<FitHistoricalObservations.DecodedField>
     ): Int {
         ensureHistoricalStoreCopied()
         return FitObservationCommitter.commit(
             writableDatabase, "observations", sourceSha256, fileBytes, relativePath,
             validatedAtEpochMillis, decoderVersion, profileVersion, observations, deviceMetadata,
-            unmappedFields, deviceKey, reviewCandidates
+            unmappedFields, deviceKey, reviewCandidates, decodedFields
         )
     }
 
     /** Returns raw FIT-derived values separately from trusted historical observations. */
     fun readUntrustedFitCandidates(metric: String? = null): List<StoredFitReviewCandidate> {
-        require(metric == null || metric in setOf("spo2", "stress", "respiration"))
+        require(metric == null || metric in setOf(
+            "spo2", "spo2_confidence", "spo2_measurement_mode", "stress", "respiration",
+            "sleep_level", "monitoring_cycles", "monitoring_activity_type"
+        ))
         val result = mutableListOf<StoredFitReviewCandidate>()
         val sql = """SELECT sample_id, device_id, metric, measured_at_ms, value, unit, source_sha256,
                             record_ordinal, global_message_number, field_number, quality,
@@ -1019,7 +1050,8 @@ class CirqaDatabase(private val contextRef: Context) :
             profileVersion = FitHistoricalObservations.PROFILE_VERSION,
             replayedAtEpochMillis = replayedAtEpochMillis,
             observations = decoded.observations,
-            deviceKey = deviceKey
+            deviceKey = deviceKey,
+            decodedFields = decoded.decodedFields
         )
     }
 
@@ -1034,7 +1066,8 @@ class CirqaDatabase(private val contextRef: Context) :
         profileVersion: String,
         replayedAtEpochMillis: Long,
         observations: List<FitHistoricalObservations.Observation>,
-        deviceKey: String
+        deviceKey: String,
+        decodedFields: List<FitHistoricalObservations.DecodedField> = emptyList()
     ): String {
         require(sourceSha256.matches(Regex("[0-9a-f]{64}")))
         require(decoderVersion.isNotBlank() && profileVersion.isNotBlank())
@@ -1093,7 +1126,8 @@ class CirqaDatabase(private val contextRef: Context) :
                 profileVersion = profileVersion,
                 completedAtEpochMillis = replayedAtEpochMillis,
                 observations = observations,
-                records = records
+                records = records,
+                decodedFields = decodedFields
             )
             check(db.rawQuery(
                 "SELECT 1 FROM fit_decoder_generations WHERE generation_id = ?",
@@ -1115,7 +1149,8 @@ class CirqaDatabase(private val contextRef: Context) :
         db.beginTransaction()
         try {
             val header = db.rawQuery(
-                """SELECT source_sha256, decoder_version, profile_version, output_digest, output_count
+                """SELECT source_sha256, decoder_version, profile_version, output_digest, output_count,
+                          decoded_field_count
                    FROM fit_decoder_generations WHERE generation_id = ?""",
                 arrayOf(generationId)
             ).use { row ->
@@ -1125,7 +1160,7 @@ class CirqaDatabase(private val contextRef: Context) :
                 check(generationId == FitDecoderGeneration.id(sourceSha256, row.getString(1), row.getString(2))) {
                     "FIT generation identity does not match its source and decoder"
                 }
-                listOf(row.getString(3), row.getLong(4).toString())
+                listOf(row.getString(3), row.getLong(4).toString(), row.getLong(5).toString())
             }
             val generationRows = mutableListOf<StoredFitGenerationObservation>()
             db.rawQuery(
@@ -1151,8 +1186,33 @@ class CirqaDatabase(private val contextRef: Context) :
                     timestampOrigin = rows.getString(12)
                 )
             }
+            val fieldRows = mutableListOf<StoredFitGenerationField>()
+            db.rawQuery(
+                """SELECT generation_id, record_ordinal, global_message_number, field_kind,
+                          field_number, base_type_code, field_size, developer_data_index,
+                          big_endian, raw_bytes, measured_at_ms, timestamp_origin
+                   FROM fit_generation_fields WHERE generation_id = ?
+                   ORDER BY record_ordinal, field_kind, field_number, developer_data_index""",
+                arrayOf(generationId)
+            ).use { rows ->
+                while (rows.moveToNext()) fieldRows += StoredFitGenerationField(
+                    generationId = rows.getString(0),
+                    recordOrdinal = rows.getInt(1),
+                    globalMessageNumber = rows.getInt(2),
+                    fieldKind = rows.getString(3),
+                    fieldNumber = rows.getInt(4),
+                    baseTypeCode = if (rows.isNull(5)) null else rows.getInt(5),
+                    fieldSize = rows.getInt(6),
+                    developerDataIndex = rows.getInt(7).takeIf { it >= 0 },
+                    bigEndian = rows.getInt(8) != 0,
+                    rawBytes = rows.getBlob(9),
+                    measuredAtEpochMillis = if (rows.isNull(10)) null else rows.getLong(10),
+                    timestampOrigin = rows.getString(11)
+                )
+            }
             check(generationRows.size.toLong() == header[1].toLong() &&
-                FitDecoderGeneration.outputDigest(generationRows) == header[0]) {
+                fieldRows.size.toLong() == header[2].toLong() &&
+                FitDecoderGeneration.outputDigest(generationRows, fieldRows) == header[0]) {
                 "FIT generation is incomplete or its immutable output digest is invalid"
             }
             db.execSQL(
@@ -1486,6 +1546,7 @@ class CirqaDatabase(private val contextRef: Context) :
         canonicalUnmappedFitFields: Sequence<StoredFitUnmappedField> = emptySequence(),
         canonicalFitGenerations: Sequence<StoredFitDecoderGeneration> = emptySequence(),
         canonicalFitGenerationObservations: Sequence<StoredFitGenerationObservation> = emptySequence(),
+        canonicalFitGenerationFields: Sequence<StoredFitGenerationField> = emptySequence(),
         canonicalActiveFitGenerations: Sequence<StoredActiveFitGeneration> = emptySequence(),
         canonicalFitReviewCandidates: Sequence<StoredFitReviewCandidate> = emptySequence(),
         liveDeviceMetadata: Sequence<LiveDeviceMetadata> = emptySequence(),
@@ -1501,6 +1562,7 @@ class CirqaDatabase(private val contextRef: Context) :
             db.execSQL("DELETE FROM main.fit_active_generations")
             db.execSQL("DELETE FROM main.fit_review_candidates")
             db.execSQL("DELETE FROM main.fit_generation_observations")
+            db.execSQL("DELETE FROM main.fit_generation_fields")
             db.execSQL("DELETE FROM main.fit_decoder_generations")
             db.execSQL("DELETE FROM main.fit_observation_provenance")
             db.execSQL("DELETE FROM main.fit_unmapped_fields")
@@ -1786,17 +1848,22 @@ class CirqaDatabase(private val contextRef: Context) :
             }
             val generations = canonicalFitGenerations.toList()
             val generationObservations = canonicalFitGenerationObservations.toList()
+            val generationFields = canonicalFitGenerationFields.toList()
             val activeGenerations = canonicalActiveFitGenerations.toList()
             val reviewCandidates = canonicalFitReviewCandidates.toList()
             if (generationSnapshotProvided) {
                 require(generations.map { it.generationId }.distinct().size == generations.size)
                 val observationsByGeneration = generationObservations.groupBy { it.generationId }
+                val fieldsByGeneration = generationFields.groupBy { it.generationId }
                 require(
                     observationsByGeneration.keys.all { id -> generations.any { it.generationId == id } } &&
+                        fieldsByGeneration.keys.all { id -> generations.any { it.generationId == id } } &&
                         generations.all { generation ->
                             val rows = observationsByGeneration[generation.generationId].orEmpty()
+                            val fields = fieldsByGeneration[generation.generationId].orEmpty()
                             rows.size.toLong() == generation.outputCount &&
-                                FitDecoderGeneration.outputDigest(rows) == generation.outputDigest
+                                fields.size.toLong() == generation.decodedFieldCount &&
+                                FitDecoderGeneration.outputDigest(rows, fields) == generation.outputDigest
                         }
                 ) { "FIT-Decodergenerationen im Backup sind unvollständig oder inkonsistent" }
                 require(generations.all { generation ->
@@ -1804,7 +1871,8 @@ class CirqaDatabase(private val contextRef: Context) :
                         generation.generationId == FitDecoderGeneration.id(
                             generation.sourceSha256, generation.decoderVersion, generation.profileVersion
                         ) && generation.outputDigest.matches(Regex("[0-9a-f]{64}")) &&
-                        generation.outputCount >= 0 && generation.completedAtEpochMillis >= 0
+                        generation.outputCount >= 0 && generation.decodedFieldCount >= 0 &&
+                        generation.completedAtEpochMillis >= 0
                 }) { "Ungültige FIT-Decodergeneration im Backup" }
                 require(activeGenerations.map { it.sourceSha256 }.distinct().size == activeGenerations.size &&
                     activeGenerations.all { active ->
@@ -1817,7 +1885,8 @@ class CirqaDatabase(private val contextRef: Context) :
                 val generationInsert = db.compileStatement(
                     """INSERT INTO main.fit_decoder_generations
                        (generation_id, source_sha256, decoder_version, profile_version,
-                        output_digest, output_count, completed_at_ms) VALUES(?, ?, ?, ?, ?, ?, ?)"""
+                         output_digest, output_count, decoded_field_count, completed_at_ms)
+                       VALUES(?, ?, ?, ?, ?, ?, ?, ?)"""
                 )
                 generations.forEach { item ->
                     generationInsert.clearBindings()
@@ -1827,7 +1896,8 @@ class CirqaDatabase(private val contextRef: Context) :
                     generationInsert.bindString(4, item.profileVersion)
                     generationInsert.bindString(5, item.outputDigest)
                     generationInsert.bindLong(6, item.outputCount)
-                    generationInsert.bindLong(7, item.completedAtEpochMillis)
+                    generationInsert.bindLong(7, item.decodedFieldCount)
+                    generationInsert.bindLong(8, item.completedAtEpochMillis)
                     generationInsert.executeInsert()
                 }
                 val generationObservationInsert = db.compileStatement(
@@ -1864,6 +1934,39 @@ class CirqaDatabase(private val contextRef: Context) :
                     generationObservationInsert.bindString(12, item.quality)
                     generationObservationInsert.bindString(13, item.timestampOrigin)
                     generationObservationInsert.executeInsert()
+                }
+                val generationFieldInsert = db.compileStatement(
+                    """INSERT INTO main.fit_generation_fields
+                       (generation_id, record_ordinal, global_message_number, field_kind, field_number,
+                        base_type_code, field_size, developer_data_index, big_endian, raw_bytes,
+                        measured_at_ms, timestamp_origin) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"""
+                )
+                generationFields.forEach { item ->
+                    require(item.generationId.isNotBlank() && item.recordOrdinal > 0 &&
+                        item.globalMessageNumber in 0..65535 &&
+                        item.fieldKind in setOf("STANDARD", "DEVELOPER", "COMPRESSED_TIMESTAMP_HEADER") &&
+                        item.fieldNumber in 0..255 && item.fieldSize in 1..255 &&
+                        item.rawBytes.size == item.fieldSize &&
+                        (item.baseTypeCode == null || item.baseTypeCode in 0..255) &&
+                        (item.developerDataIndex == null || item.developerDataIndex in 0..255) &&
+                        (item.measuredAtEpochMillis == null || item.measuredAtEpochMillis >= 0) &&
+                        item.timestampOrigin in setOf("DIRECT", "RECONSTRUCTED_TS16", "RECONSTRUCTED_COMPRESSED", "UNKNOWN")) {
+                        "Ungültiges FIT-Rohfeld in einer Decodergeneration"
+                    }
+                    generationFieldInsert.clearBindings()
+                    generationFieldInsert.bindString(1, item.generationId)
+                    generationFieldInsert.bindLong(2, item.recordOrdinal.toLong())
+                    generationFieldInsert.bindLong(3, item.globalMessageNumber.toLong())
+                    generationFieldInsert.bindString(4, item.fieldKind)
+                    generationFieldInsert.bindLong(5, item.fieldNumber.toLong())
+                    if (item.baseTypeCode == null) generationFieldInsert.bindNull(6) else generationFieldInsert.bindLong(6, item.baseTypeCode.toLong())
+                    generationFieldInsert.bindLong(7, item.fieldSize.toLong())
+                    generationFieldInsert.bindLong(8, (item.developerDataIndex ?: -1).toLong())
+                    generationFieldInsert.bindLong(9, if (item.bigEndian) 1 else 0)
+                    generationFieldInsert.bindBlob(10, item.rawBytes)
+                    if (item.measuredAtEpochMillis == null) generationFieldInsert.bindNull(11) else generationFieldInsert.bindLong(11, item.measuredAtEpochMillis)
+                    generationFieldInsert.bindString(12, item.timestampOrigin)
+                    generationFieldInsert.executeInsert()
                 }
                 val activeGenerationInsert = db.compileStatement(
                     "INSERT INTO main.fit_active_generations(source_sha256, generation_id) VALUES(?, ?)"
