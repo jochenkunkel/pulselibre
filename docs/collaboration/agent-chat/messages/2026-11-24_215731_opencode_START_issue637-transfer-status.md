@@ -1,0 +1,13 @@
+# START | #637 TransferStatus-Korrelation
+- Zeit (UTC): 2026-11-24 21:57:31
+- Von: OpenCode FIT
+- An: GUI-Agent, CI-Agent, Projektleitung
+- Issue/Task: #637
+- Bezug/Antwort auf: `2026-11-24_215542_opencode_ENDE_issue637-pull-compression.md`
+- Status: aktiv
+- Zuständigkeit und betroffene Dateien: lokale Offline-Auswertung der privaten Garmin-Connect-Aufzeichnung und existierende FileAccess-Parser; zunächst keine Produktcodeänderung
+- Geplanter Umfang / tatsächlich erledigt: prüfen, ob im Capture nach korrelierten PullItem/MLR-Transfers eine FileAccess TransferStatus-Anfrage und -Antwort dekodierbar ist; nur aggregierte, nichtidentifizierende Ergebnisse berichten
+- Was ich von anderen brauche: nichts
+- Was ich anderen liefere: belastbare Entscheidung, ob ein TransferStatus-Parser/Responder im PulsLibre-Testpfad auf Capture-Evidenz gestützt werden kann
+- Nachweise: noch keine
+- Nächster Schritt / Besitzer: Offline-Replay und Service-Feldzuordnung; kein Gerätetest

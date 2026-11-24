@@ -1,0 +1,15 @@
+# OpenCode – #637 PullItem-Kompressionsfenster
+- Agent/Umgebung: OpenCode FIT, Linux-Worktree
+- Beginn: 2026-11-24 21:49 UTC
+- Letzte Aktualisierung: 2026-11-24 21:55 UTC
+- Status: abgeschlossen
+- Rolle/Zuständigkeit: FIT-/BLE-/GFDI-Protokoll und Historien-Synchronisation
+- Aktueller Auftrag: Implementierung des beobachteten FileAccess-PullItem-Kompressionsfensters in einem opt-in Sync-Pfad, ohne Hardwaretest
+- Jetzt in Bearbeitung: #637 – optionales Feld 5, Wert 15; serializer-/bounds-Regressionstests
+- Zeitnah geplant: fokussierte Tests und Abschlussnachricht
+- Betroffene Bereiche/Dateien: `CirqaFileAccessPullRequest.kt`, `CirqaMlHandshakeProbe.kt`, `CirqaFileAccessItemListParserTest.kt`
+- Branch/Worktree: `issue637-pull-compression`, `/home/smiler/.local/share/opencode/worktree/634470/issue637-protocol-research`
+- Abstimmungsbedarf: keiner; keine GUI-, SQLite- oder Backup-Schnittstelle
+- Agent-sync-Nachrichten: `docs/collaboration/agent-chat/messages/2026-11-24_214914_opencode_START_issue637-pull-compression.md`
+- Nachweise: `:app:testDebugUnitTest --tests de.pulselibre.CirqaFileAccessItemListParserTest --tests de.pulselibre.CirqaS10OfflineTransactionE2ETest` erfolgreich; 23 Tests, 0 Fehler. `git diff --check` erfolgreich. Kein Gerätezugriff.
+- Nächster Schritt: unabhängiges Review und Branch-CI vor PR/Merge; TransferStatus-Semantik separat offline belegen.
