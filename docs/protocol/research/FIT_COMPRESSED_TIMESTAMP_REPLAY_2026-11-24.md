@@ -1,8 +1,8 @@
 # FIT compressed timestamps: interim offline audit (#628)
 
-Status: **work in progress; no recovered SQLite values claimed.** No device
-access, BLE commands, private FIT bytes, identifiers or source fingerprints
-are published here. `coverage=device-history-unverified`.
+Status: **S10 replay and isolated SQLite import/reimport verified; historical
+device acquisition remains incomplete.** No private FIT bytes, identifiers or
+source fingerprints are published here. `coverage=45-file-archive-only`.
 
 ## Reference and synthetic reproduction
 
@@ -87,46 +87,136 @@ compile/run once against each decoder, then compare the identity, raw,
 timestamp and origin columns. Derived hashes must remain private too.
 
 The documented 23 November S10 before/after exports and extracted FIT copies
-under `/tmp/opencode/all-data-s10-acceptance-20261123/`, and the 24 November
-pre-run backup under `/tmp/opencode/p0-s10-run-20261124/`, did not survive the
-host restart. A bounded search of project workspaces, Downloads, Documents and
-Desktop found no replacement S10 backup; the two located S25 backups are not
-S10 evidence. A separate read-only S10 inventory on 24 November found 11
-project backup ZIPs in shared storage. They were copied byte-for-byte under the
-S10 device lease to a permission-restricted local evidence directory outside
-the repository; source and copy SHA-256 values matched, and all 11 ZIP CRC
-checks passed. The archives contained 45 unique FIT originals (24 directly in
-ZIP entries and 45 total after lossless reconstruction from the v9 canonical
-download archive). No SQLite database entry was present in those backup ZIPs.
+under `/tmp/opencode/all-data-s10-acceptance-20261123/` did not survive the host
+restart. A subsequent read-only S10 inventory found 11 project backup ZIPs in
+shared storage. They were copied byte-for-byte under the S10 device lease to a
+permission-restricted local evidence directory outside the repository; source
+and copy SHA-256 values matched, all ZIP CRC checks passed, and a complete
+per-file manifest was retained. The 45 FIT originals are content-addressed,
+read-only, and verified again before/after device instrumentation. No private
+FIT bytes, paths, names, hashes or sample identities are published here.
 
-The production decoder replayed those 45 originals offline: 45 seen, unique
-and decoded; 29,032 observations, all timestamped; 29,028 distinct importable
-observations. The replay's importable count applies its timestamp, quality and
-duplicate-fingerprint filters; it is not an SQLite import result. No FIT bytes,
-paths, names, hashes, sample identities or per-file details are published. This
-is a current backup-only replay, not the missing before/after comparison; it
-cannot establish additional recovery attributable to the 24 November run or
-recovered time ranges. No post-run backup was made for that run.
+The same 45 originals were independently replayed using decoder v2 from the
+then-current `main` and decoder v3 from PR #630:
 
-The 24 November terminal ledger documented 32 FIT decodes, 12 successful
-commits with no importable data, and 20 failures in the subsequent
-import/commit path. The recorded aggregate does not separate SQLite execution,
-source conflicts, or other import failures, and no per-error exception details
-or post-run audit snapshot have been found. Thus decoder failures attributable
-to those 20, timestamp failures, quality-filter failures, individual SQLite
-failures and other causes are all **unknown**, not zero. The recovered
-backup-only replay does not classify or reproduce those later import/commit
-failures. No one of those 20 has yet been demonstrated fixed by this PR.
+| S10 replay result | main v2 | PR v3 | Change |
+| --- | ---: | ---: | ---: |
+| Unique source files | 45 | 45 | 0 |
+| Successfully decoded files | 45 | 45 | 0 |
+| Decoded observations | 29,032 | 29,032 | 0 |
+| Timestamped observations | 29,032 | 29,032 | 0 |
+| Missing timestamps | 0 | 0 | 0 |
+| Quality-eligible distinct observations | 29,028 | 29,028 | 0 |
+| Field comparison rows (decoder-emitted) | 200,772 | 200,772 | 0 |
+| Additional SQLite-eligible observations from v3 | — | — | **0** |
+
+Both runs had identical eligible sample/fingerprint sets and identical
+per-field/per-observation comparisons (encoded field bytes, metric/value/unit,
+quality, timestamp and timestamp origin): no added, missing or changed rows.
+There were 14,985 distance, 13,948 heart-rate and 95 speed candidates. The
+29,028 importable observations span 2026-11-15 12:56:41 UTC through
+2026-11-24 06:40:00 UTC. Among importable observations, timestamp provenance
+was 27,884 `DIRECT` and 1,144 `RECONSTRUCTED_TS16`. Four further timestamped
+observations were outside the profile display range. These 45 files do not
+establish complete device history or any data beyond that date range.
+
+### SQLite evidence
+
+The recovered version-9 S10 backup created at 2026-11-24 10:16:38 UTC (before
+the later 24 November app run) contains all 45 exact FIT source hashes, 45 FIT
+source rows, 29,028 canonical observations and 29,028 provenance rows. A private
+row-by-row comparison against the v2 replay matched every observation's source,
+sample identity, metric, timestamp, value, unit and quality (29,028 matches;
+zero missing, extra or mismatched). Every source/provenance row in that backup
+was tagged decoder version 1. Thus **29,028 of the 29,028 v3-importable
+observations were already present in that pre-run S10 SQLite backup**; the
+24 November run and v3 fix added no demonstrated new measurement.
+
+The optional `Issue628S10RecoveryTest` has two isolated-database paths, both run
+on the authorized S10 with private fixture arguments. A clean empty-database
+import verifies:
+
+| Import check | Result |
+| --- | ---: |
+| First pass: files seen / imported / invalid / failed | 45 / 45 / 0 / 0 |
+| Candidate observations / committed observations | 29,028 / 29,028 |
+| SQLite `observations` / provenance rows | 29,028 / 29,028 |
+| Sources / decoder generations / generation observations | 45 / 45 / 29,028 |
+| Persisted decoded-field occurrences | 171,740 |
+| Second pass result | exactly equal to first pass |
+| Source row hashes after second pass | unchanged |
+| Generation output digest/count snapshot | unchanged |
+| SQLite `quick_check` / foreign-key check | `ok` / 0 violations |
+
+That clean-database test verifies source hashes before/after and uses a
+temporary database, not the app's live data store. The second path restores the
+actual pre-run v9 S10 backup into another temporary database, then reimports
+the same 45 files:
+
+| Restored-v9 reimport result | Count |
+| --- | ---: |
+| Files seen / invalid | 45 / 0 |
+| Files imported (20 with observations, 20 without) / failed | 40 / 5 |
+| Failure stage | 5 `SOURCE_CONFLICT` |
+| Eligible / committed observations | 29,028 / 27,884 |
+| Final observations / provenance rows | 29,028 / 29,028 |
+| Sources / decoder generations | 45 / 85 |
+| Generation observation rows | 56,912 |
+| Old active decoder-v1 generations retained | 45 |
+| Second restored-v9 reimport result | exactly equal to first pass |
+| SQLite `quick_check` | `ok` |
+
+The five repeatable source conflicts were narrowed by retrying each failed file
+inside the isolated test transaction: all five reach the committer's
+`FIT review candidate conflicts within one decoder version` guard. The
+corresponding source metadata rows matched the current replay; the available
+comparison does not establish which candidate field(s) differ. The other 40
+files complete without error, including 20 with no importable observations.
+The five conflicts are from this controlled current reimport and are **not
+identified as any particular subset of the historical 20 failures**.
+
+Private fixtures remain outside Git and in read-only storage. CI skips the
+device-evidence tests unless fixture arguments are explicitly supplied.
+
+The 24 November terminal ledger documented 32 FIT decodes, 12 commits without
+importable data and 20 import/commit failures. The recovered version-9 backups
+pre-date the versioned import audit tables and contain no per-file exception
+classification. The available exported event rows likewise contain no
+per-file error details. Therefore the causes of those historical 20 remain
+**unknown**, not zero. The five review-candidate conflicts on the separate
+restored-v9 replay are confirmed only for those five controlled files; they do
+not explain the historical failures. No historical failure is attributed to
+decoder, timestamp, quality, source/version conflict or SQLite without
+per-file evidence.
+
+Relevant failure classes were independently exercised and passed:
+
+- FIT unit tests reject invalid CRC, truncated/chained files, missing compressed
+  time anchors, relative values reused as absolute timestamps and invalid
+  timestamp sentinels.
+- S10 `HistoricalObservationRepositoryTest`: 6/6 passed, including invalid
+  verified bytes, unchanged-sample decoder-version reimport, conflict rejection
+  and immutable provenance/generation checks.
+- S10 `CirqaFitBackfillInstrumentedTest`: 2/2 passed. An injected SQLite
+  trigger failure was classified `DATABASE`; the transaction left zero source,
+  observation or provenance rows, and retry imported atomically.
+- These synthetic/recovered-file tests do **not** identify which particular
+  historical 20 failed or prove their individual causes.
 
 ## Integration gate
 
-Generation identities include the decoder version and are immutable. The normal
-commit path also checks existing observation provenance, including decoder
-version. The candidate uses version 3 and preserves existing provenance when
-an unchanged sample is reimported; changed sample identities still fail
-closed. Replay filters non-importable observations and remains inactive until
-explicit activation. The new SQLite instrumentation test and backup/restore
-effects require GitHub CI before integration. JVM/build/lint checks passed on
-PR head `14e130a6`; the API-35 emulator instrumentation job was still running
-at the time of this update. SQLite commit evidence for the recovered S10 files
-and S10 error classification remain **unverified**.
+Generation identities include the decoder version and are immutable. The
+pre-run S10 backup's decoder-v1 observations match the v2/v3 replay values
+exactly, but no v3 reimport into a restored copy of that full backup has yet
+been run. On these recovered originals, v2 and v3 are
+field/observation-identical; v3 therefore yields zero additional measurements.
+The clean isolated v3 SQLite test establishes 29,028 stored observations and
+repeatable reimport. Restoring the pre-run v9 backup and reimporting v3 retained
+all 29,028 existing observation/provenance rows, added 40 decoder generations,
+and hit five repeatable review-candidate conflicts; it did not create new
+measurements. The historical 20 exception causes remain unclassified.
+
+At this documentation update, PR #630 was still Draft and required current-head
+FULL/API-35 CI and integration gates had not yet been rechecked after the new
+instrumentation test. Issue #628 remains open until those gates are met and
+the documented broader-history acquisition gaps are addressed.
