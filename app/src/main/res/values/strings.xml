@@ -398,7 +398,7 @@
     <string name="an_m_atlas">Activity atlas (steps)</string>
     <string name="an_m_atlas_n">Calendar grid of daily step totals; gray cell = no verified data.</string>
     <string name="an_m_corr">Steps ↔ resting pulse the next day</string>
-    <string name="an_m_corr_n">Exploratory (Spearman, 95 % interval, robustness); from 30 paired days, never to be read as a cause.</string>
+    <string name="an_m_corr_n">Exploratory (Spearman, 95 %% interval, robustness); from 30 paired days, never to be read as a cause.</string>
     <string name="an_m_circ">Circadian daily patterns</string>
     <string name="an_m_circ_n">Research backlog: no approved method yet.</string>
     <string name="an_m_cp">Change-point analysis</string>

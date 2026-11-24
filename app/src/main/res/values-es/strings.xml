@@ -398,7 +398,7 @@
     <string name="an_m_atlas">Atlas de actividad (pasos)</string>
     <string name="an_m_atlas_n">Cuadrícula de calendario con los totales diarios de pasos; celda gris = sin datos verificados.</string>
     <string name="an_m_corr">Pasos ↔ pulso en reposo al día siguiente</string>
-    <string name="an_m_corr_n">Exploratorio (Spearman, intervalo del 95 %, robustez); a partir de 30 días emparejados, nunca debe leerse como causa.</string>
+    <string name="an_m_corr_n">Exploratorio (Spearman, intervalo del 95 %%, robustez); a partir de 30 días emparejados, nunca debe leerse como causa.</string>
     <string name="an_m_circ">Patrones circadianos diarios</string>
     <string name="an_m_circ_n">Pendiente de investigación: aún no hay un método aprobado.</string>
     <string name="an_m_cp">Análisis de puntos de cambio</string>
