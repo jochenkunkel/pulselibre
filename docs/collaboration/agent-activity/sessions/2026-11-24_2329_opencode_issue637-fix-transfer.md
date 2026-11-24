@@ -1,0 +1,15 @@
+# OpenCode – #637 CIRQA-Transferfehler
+- Agent/Umgebung: OpenCode FIT, Linux-Worktree
+- Beginn: 2026-11-24 23:29 UTC
+- Letzte Aktualisierung: 2026-11-24 23:29 UTC
+- Status: aktiv
+- Rolle/Zuständigkeit: FIT-/GFDI-Protokoll, CIRQA-Sync und kontrollierte Geräteevidenz
+- Aktueller Auftrag: Ursache des unvollständigen ersten MLR-Transfers diagnostizieren und evidenzgestützt beheben
+- Jetzt in Bearbeitung: Offlineanalyse der S10-Terminaldiagnose, MLR-Dateiassemblierung, TransferStatus-Implementierung und Regressionstests
+- Zeitnah geplant: gezielte Unit-/Replaytests; keine neue Geräteaktion ohne gesonderte, klar begrenzte Freigabe
+- Betroffene Bereiche/Dateien: `CirqaMlHandshakeProbe`, `CirqaMlrFileTransferAssembler`, TransferStatus-Analyse und bestehende Protokolltests
+- Branch/Worktree: `issue637-s10-test-20261125`, aktueller Worktree
+- Abstimmungsbedarf: GUI-Agent soll keine parallele Änderung an FIT-/BLE-Transportdateien vornehmen
+- Agent-sync-Nachrichten: `docs/collaboration/agent-chat/messages/2026-11-24_232933_opencode_START_issue637-fix-transfer.md`
+- Nachweise: S10-Laufbericht mit 17 MLR-Chunks/2.424 Bytes, 4.841 erwarteten Bytes, erfolgreich konfiguriertem MLR und Timeout nach 120,017 ms; Details in Gerätetestplan
+- Nächster Schritt: Quellpfad und private lokale Replay-Evidenz vergleichen; keine spekulativen proprietären Schreibantworten
