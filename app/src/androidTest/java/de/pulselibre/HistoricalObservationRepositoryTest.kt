@@ -230,6 +230,41 @@ class HistoricalObservationRepositoryTest {
         }
     }
 
+    @Test fun compressedOnlyDefinitionImportsAndReimportsIntoSqliteIdempotently() {
+        val base = ApplicationProvider.getApplicationContext<Context>()
+        val root = Files.createTempDirectory(base.cacheDir.toPath(), "fit-compressed-import-").toFile()
+        val context = isolatedContext(base, root)
+        val bytes = compressedFitFile()
+        val sha = sha256(bytes)
+        try {
+            val decoded = requireNotNull(FitHistoricalObservations.decode(bytes))
+            assertEquals(2, decoded.observations.size)
+            CirqaDatabase(context).use { database ->
+                repeat(2) {
+                    database.commitFitFile(
+                        sourceSha256 = sha, fileBytes = bytes.size.toLong(),
+                        relativePath = "verified_fit/$sha.fit", validatedAtEpochMillis = 10_000,
+                        decoderVersion = FitHistoricalObservations.DECODER_VERSION,
+                        profileVersion = FitHistoricalObservations.PROFILE_VERSION,
+                        observations = decoded.observations, deviceMetadata = decoded.deviceMetadata,
+                        unmappedFields = emptyList(), deviceKey = "compressed-import-test",
+                        decodedFields = decoded.decodedFields
+                    )
+                }
+                assertEquals(2L, database.readableDatabase.rawQuery(
+                    "SELECT COUNT(*) FROM observations WHERE device_id = ?",
+                    arrayOf("compressed-import-test")
+                ).use { row -> assertTrue(row.moveToFirst()); row.getLong(0) })
+                assertEquals(2L, database.readableDatabase.rawQuery(
+                    "SELECT COUNT(*) FROM fit_observation_provenance WHERE source_sha256 = ?",
+                    arrayOf(sha)
+                ).use { row -> assertTrue(row.moveToFirst()); row.getLong(0) })
+            }
+        } finally {
+            root.deleteRecursively()
+        }
+    }
+
     @Test fun verifiedByteReplayMustMatchARegisteredSourceAndDoesNotAutoActivate() {
         val base = ApplicationProvider.getApplicationContext<Context>()
         val root = Files.createTempDirectory(base.cacheDir.toPath(), "fit-verified-replay-").toFile()
@@ -322,6 +357,29 @@ class HistoricalObservationRepositoryTest {
             factory: SQLiteDatabase.CursorFactory?,
             errorHandler: DatabaseErrorHandler?
         ): SQLiteDatabase = SQLiteDatabase.openOrCreateDatabase(getDatabasePath(name).absolutePath, factory, errorHandler)
+    }
+
+    private fun compressedFitFile(): ByteArray {
+        val data = byteArrayOf(
+            0x40, 0, 0, 20, 0, 2, 253.toByte(), 4, 0x86.toByte(), 3, 1, 2,
+            0, 0x1e, 0, 0, 0x40, 70,
+            0x41, 0, 0, 20, 0, 1, 3, 1, 2,
+            0xa1.toByte(), 71
+        )
+        val file = ByteArray(14 + data.size + 2)
+        file[0] = 14
+        file[1] = 0x20
+        file[2] = 0x64
+        file[4] = data.size.toByte()
+        ".FIT".toByteArray().copyInto(file, 8)
+        val headerCrc = FitFileHeader.crc16(file, 0, 12)
+        file[12] = headerCrc.toByte()
+        file[13] = (headerCrc ushr 8).toByte()
+        data.copyInto(file, 14)
+        val crc = FitFileHeader.crc16(file, 0, file.size - 2)
+        file[file.size - 2] = crc.toByte()
+        file[file.lastIndex] = (crc ushr 8).toByte()
+        return file
     }
 
     private fun emptyFitFile(): ByteArray {
