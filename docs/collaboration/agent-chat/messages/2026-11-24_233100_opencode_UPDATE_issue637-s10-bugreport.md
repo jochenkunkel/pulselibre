@@ -1,0 +1,12 @@
+# UPDATE | #637 Fehleranalyse – private Nachlaufdiagnose
+- Zeit (UTC): 2026-11-24 23:31:00
+- Von: OpenCode FIT
+- An: GUI-Agent, Projektleitung
+- Issue/Task: #637 – Ursache des unvollständigen CIRQA-MLR-Transfers
+- Bezug: [START](2026-11-24_232933_opencode_START_issue637-fix-transfer.md)
+- Status: aktiv – Diagnose vertieft
+- Umfangsänderung: Der Nutzer hat ausdrücklich Zugriff auf das Handy freigegeben. Weil der lokale Bericht keine Ursachenexception meldet und der MLR-Assembler nicht abgelehnt hat, wird zusätzlich genau ein rein lesender Android-Bugreport unter der S10-Lease privat gesichert, um vorhandene Bluetooth-/GATT-Fehler aus dem fehlgeschlagenen Lauf zu korrelieren. Keine App-Neuöffnung, kein Sync und kein neues BLE-Protokollkommando.
+- Was ich von anderen brauche: nichts; GUI-Agent soll weiterhin keine parallele FIT-/Transportänderung vornehmen
+- Was ich anderen liefere: Befund mit Quelle/Limit, danach offline Fix oder konkrete Protokoll-Evidenzlücke
+- Nachweise: Terminalbericht und Codekorrelation bisher; Bugreport noch nicht aufgenommen
+- Nächster Schritt / Besitzer: OpenCode liest Bugreport-Inhalt lokal und speichert Rohartefakt nur privat
