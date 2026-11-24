@@ -1,15 +1,15 @@
 # OpenCode – P0 CIRQA vollständige Historie
 - Agent/Umgebung: OpenCode, Linux-Worktree
 - Beginn: 2026-11-24 09:23 UTC
-- Letzte Aktualisierung: 2026-11-24 10:35 UTC
+- Letzte Aktualisierung: 2026-11-24 10:39 UTC
 - Status: aktiv
 - Rolle/Zuständigkeit: FIT-/BLE-/GFDI-Protokoll, Historien-Synchronisation, FIT-Persistenz
 - Aktueller Auftrag: Projektleitung beauftragt systematische Forschung und Umsetzung zum vollständigen Download sämtlicher am CIRQA zugänglicher historischer Daten, mit begrenzter Hardwarefreigabe für charakterisierte read-only/sync-Sequenzen.
 - Jetzt in Bearbeitung: #P0 / #148 / #149 / #599 – Offline-Audit von Dateilisten/Cursors, Pull-Queue, Import-/Archivstatus und Resume-Grenzen; Hypothesen in reproduzierbare Tests übersetzen.
-- Zeitnah geplant: sichere Vorher-/Nachher-Inventur und ein begrenzter nutzerinitiierter Sync nach Testplan, CI-Abstimmung und unmittelbarer S10-Lease-Prüfung; weitere Kommandos zunächst nur offline/synthetisch.
+- Zeitnah geplant: sichere Vorher-/Nachher-Inventur und ein begrenzter nutzerinitiierter Sync gemäß `docs/protocol/device-tests/CIRQA_P0_S10_BOUNDED_FULL_PULL_PLAN_2026-11-24.md` nach unabhängigem Review, PR-CI und unmittelbarer S10-Lease-Prüfung; weitere Kommandos zunächst nur offline/synthetisch.
 - Betroffene Bereiche/Dateien: bisher Request-Serializer-Tests und Protokollforschungsdokumentation; geplanter Offline-Audit `CirqaMlHandshakeProbe.kt`, Continuation-/Queue-Policies und Tests. DB-/Backup-/GUI-Dateien aus PR #613 bleiben unberührt.
 - Branch/Worktree: `opencode/p0-cirqa-full-history-20261124`, Basis aktualisiert auf `origin/main` `0f7259b5`.
 - Abstimmungsbedarf: CI-Agent – unabhängiges Review von PR #614, FULL/API-35-Nachweis und Hinweis auf konkurrierende Arbeiten; Hardwareplanung nach Review.
 - Agent-sync-Nachrichten: `docs/collaboration/agent-sync/2026-11-24_0923_opencode-an-ci_p0-cirqa-full-history.md`
-- Nachweise: Offline-Abgleich der vollständigen Single-ATT-Frames im bestätigten S10-Capture gegen statische Connect-5.31-Callsite; Details anonymisiert in `docs/protocol/research/CIRQA_CONNECT_TRANSACTION_FILTER_AUDIT_2026-11-24.md`. Token-only-Produkt-Follow-up vs. Connect-Filterfelder bleibt eine Hypothese, keine nachgewiesene Ursache; keine UUIDs/Werte geraten. QUICK erfolgreich (122 Python/1.011 JVM); gezielter Serializer-Test erfolgreich. FULL erfolgreich auf `afadc5e127776982b93dd84d79fd374537f3349a` (122 Python/1.013 JVM, Lint, APK/R8, API-35-Emulator-Instrumentierung/Coverage). PR #614 eröffnet; automatische PR-CI läuft, unabhängiges Review und Rückmeldung zur Hardwareplanung angefragt. Keine Hardwareaktion in dieser Sitzung.
+- Nachweise: Offline-Abgleich der vollständigen Single-ATT-Frames im bestätigten S10-Capture gegen statische Connect-5.31-Callsite; Details anonymisiert in `docs/protocol/research/CIRQA_CONNECT_TRANSACTION_FILTER_AUDIT_2026-11-24.md`. Token-only-Produkt-Follow-up vs. Connect-Filterfelder bleibt eine Hypothese, keine nachgewiesene Ursache; keine UUIDs/Werte geraten. QUICK erfolgreich (122 Python/1.011 JVM); gezielter Serializer-Test erfolgreich. FULL erfolgreich auf `afadc5e127776982b93dd84d79fd374537f3349a` (122 Python/1.013 JVM, Lint, APK/R8, API-35-Emulator-Instrumentierung/Coverage). PR #614 eröffnet; automatische PR-CI zuletzt queued, unabhängiges Review offen. Begrenzter S10-Testplan liegt bereit. Keine Hardwareaktion in dieser Sitzung.
 - Nächster Schritt: PR-Checks/Review auswerten; danach mit CI-Abstimmung begrenzten bekannten Sync-Test und Backup-/Inventarplan finalisieren. Vor jedem ADB/BLE-Zugriff Lease erneut prüfen.
