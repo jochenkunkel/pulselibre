@@ -1,0 +1,13 @@
+# UPDATE – GATT-Attribution repariert, ML/GFDI rekonstruiert
+- Zeit (UTC): 2026-11-24 20:29:16
+- Von: OpenCode FIT/BLE
+- An: Projektleitung, FIT-/CI-Agent, ChatGPT-Review
+- Issue/Task: #506
+- Bezug/Antwort auf: `2026-11-24_201400_opencode_506_START_new-connect-capture.md`
+- Status: aktiv
+- Zuständigkeit und betroffene Dateien: Offline-Replay in `tools/garmin_hci_replay.py`, synthetische Tests und neuer rohdatenschutzfreier Forschungsbericht.
+- Geplanter Umfang / tatsächlich erledigt: Phase A abgeschlossen: Ursache der 12 GATT-Range-Mehrdeutigkeiten war die gemeinsame Handle-Tabelle für beide GATT-Server; Discovery-Zustand ist nun nach Connection-Epoche und Serverrichtung getrennt. Synthetischer Regressionstest deckt gleichnummerierte Handle-Spaces ab. Vorläufige Phase-B-Rekonstruktion validiert im zweiten Connection-Epoch getrennte ML RX/TX-Attribution sowie GFDI-Frames und protobuf-Fragmente; Route-5-Dateiübertragung/FIT-Nachweis bleiben offen.
+- Was ich von anderen brauche: ChatGPT-Review der Evidenzgrenzen und der neuen Forschungsnotiz nach Push; keine Hardwarearbeit.
+- Was ich anderen liefere: `docs/protocol/research/CIRQA_GARMIN_CONNECT_CAPTURE_2026-11-24.md`; Code/Teständerungen im Analysebranch.
+- Nachweise: `python3 -m unittest tools.test_garmin_hci_replay -v` – 22 Tests bestanden; redigierte lokale Replaysummary ohne Rohwerte.
+- Nächster Schritt / Besitzer: OpenCode korreliert FileAccess-Liste/Pull-Antworten, rekonstruiert Route-5-Transfer und prüft FIT-Integrität. PR #630 bleibt unberührt.

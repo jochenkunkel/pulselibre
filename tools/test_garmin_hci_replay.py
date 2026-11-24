@@ -137,7 +137,7 @@ class ReplayTests(unittest.TestCase):
     def test_overlapping_service_ranges_withhold_characteristic_attribution(self):
         parser = replay_module.Replay()
         epoch = "c-test"
-        parser.services[epoch] = [
+        parser.services[(epoch, "controller_to_host")] = [
             (1, 10, "00001800-0000-1000-8000-00805f9b34fb"),
             (5, 20, "6a4e2800-667b-11e3-949a-0800200c9a66"),
         ]
@@ -151,8 +151,60 @@ class ReplayTests(unittest.TestCase):
             b"\x09\x15\x05\x00\x0c\x06\x00"
             + bytes.fromhex("6a4e2810667b11e3949a0800200c9a66")[::-1],
         )
-        self.assertIsNone(parser.characteristic_services[(epoch, 6)])
+        self.assertIsNone(
+            parser.characteristic_services[(epoch, "controller_to_host", 6)]
+        )
         self.assertEqual(1, parser.error_counts["ambiguous_overlapping_service_ranges"])
+
+    def test_simultaneous_gatt_discovery_keeps_peer_databases_separate(self):
+        handle = 0x4D
+        band_service = bytes.fromhex("6a4e2800667b11e3949a0800200c9a66")[::-1]
+        band_char = bytes.fromhex("6a4e2810667b11e3949a0800200c9a66")[::-1]
+        phone_char = bytes.fromhex("00002a0000001000800000805f9b34fb")[::-1]
+        group_req = b"\x10\x01\x00\xff\xff\x00\x28"
+        group_resp_band = b"\x11\x14\x01\x00\x20\x00" + band_service
+        group_resp_phone = (
+            b"\x11\x06\x01\x00\x20\x00\x00\x18"
+        )
+        char_req = b"\x08\x01\x00\x20\x00\x03\x28"
+        char_resp_band = (
+            b"\x09\x15\x14\x00\x0c\x15\x00" + band_char
+        )
+        char_resp_phone = (
+            b"\x09\x07\x14\x00\x15\x02\x15\x00" + phone_char
+        )
+        records = [
+            (hci_connection(handle), 1, 0, 22),
+            # Band's database, discovered by the host.
+            acl(handle, 2, l2cap(4, group_req), 0),
+            acl(handle, 2, l2cap(4, group_resp_band), 1),
+            # Phone's database, discovered by the band, using the same handles.
+            acl(handle, 2, l2cap(4, group_req), 1),
+            acl(handle, 2, l2cap(4, group_resp_phone), 0),
+            acl(handle, 2, l2cap(4, char_req), 0),
+            acl(handle, 2, l2cap(4, char_resp_band), 1),
+            acl(handle, 2, l2cap(4, char_req), 1),
+            acl(handle, 2, l2cap(4, char_resp_phone), 0),
+            # Host writes to and receives a notification from the band's
+            # characteristic; the phone's same-numbered handle must not win.
+            acl(handle, 2, l2cap(4, b"\x52\x15\x00payload"), 0),
+            acl(handle, 2, l2cap(4, b"\x1b\x15\x00payload"), 1),
+        ]
+        parser, summary = self.parse(records)
+        value_events = [
+            event for event in parser.events
+            if event.get("layer") == "att"
+            and event.get("name") in {"write_command", "notification"}
+        ]
+        self.assertEqual(2, len(value_events))
+        self.assertEqual(
+            [replay_module.uuid_from_att(band_char)] * 2,
+            [event["characteristic_uuid"] for event in value_events],
+        )
+        self.assertEqual(0, summary["errors"].get(
+            "ambiguous_overlapping_service_ranges", 0
+        ))
+        self.assertEqual(1, summary["garmin_ml_characteristics"])
 
     def test_overlong_l2cap_start_is_rejected_and_counted(self):
         malformed_l2cap = struct.pack("<HH", 2, 4) + b"abc"

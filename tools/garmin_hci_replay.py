@@ -152,9 +152,12 @@ class Replay:
         self.unanchored_att_pdus = 0
         self.dropped_events = 0
         self.pending: dict[tuple[str, int, str], dict[str, object]] = {}
-        self.characteristics: dict[tuple[str, int], str] = {}
-        self.characteristic_services: dict[tuple[str, int], str | None] = {}
-        self.services: dict[str, list[tuple[int, int, str]]] = defaultdict(list)
+        # Handles are local to a GATT server database. Both peers may perform
+        # discovery on one HCI connection, so scope the map by the direction
+        # of server -> client discovery responses as well as link epoch.
+        self.characteristics: dict[tuple[str, str, int], str] = {}
+        self.characteristic_services: dict[tuple[str, str, int], str | None] = {}
+        self.services: dict[tuple[str, str], list[tuple[int, int, str]]] = defaultdict(list)
         self.read_by_group_requests: dict[tuple[str, str], deque[str]] = defaultdict(deque)
         self.read_by_type_requests: dict[tuple[str, str], deque[str]] = defaultdict(deque)
         self.att_error_response_request_opcodes: Counter[int] = Counter()
@@ -418,7 +421,14 @@ class Replay:
         uuid = None
         if opcode in (0x0A, 0x0C, 0x12, 0x52, 0x1B, 0x1D, 0x16) and len(pdu) >= 3:
             att_handle = _u16(pdu, 1)
-            uuid = self.characteristics.get((epoch, att_handle))
+            # ATT values belong to the server's database: notifications and
+            # indications are sent by the server; writes are sent by its peer.
+            server_direction = (
+                direction if opcode in (0x1B, 0x1D)
+                else "controller_to_host" if direction == "host_to_controller"
+                else "host_to_controller"
+            )
+            uuid = self.characteristics.get((epoch, server_direction, att_handle))
         event: dict[str, object] = {
             "record": record.index, "record_start": start_record,
             "record_offset_start": start_offset, "epoch": epoch, "hci_handle": handle,
@@ -446,7 +456,9 @@ class Replay:
         if opcode == 0x01:
             self._consume_error_response_discovery_request(epoch, direction, pdu)
         if opcode in (0x12, 0x52, 0x1B, 0x1D) and att_handle is not None and uuid is not None:
-            service_uuid = self.characteristic_services.get((epoch, att_handle))
+            service_uuid = self.characteristic_services.get(
+                (epoch, server_direction, att_handle)
+            )
             if (
                 service_uuid == "6a4e2800-667b-11e3-949a-0800200c9a66"
                 and uuid.startswith("6a4e")
@@ -553,7 +565,7 @@ class Replay:
         for off in range(2, len(pdu), width):
             start, end = _u16(pdu, off), _u16(pdu, off + 2)
             service_uuid = uuid_from_att(pdu[off + 4:off + width])
-            self.services[epoch].append((start, end, service_uuid))
+            self.services[(epoch, direction)].append((start, end, service_uuid))
             self._emit({
                 "record": record.index, "record_start": start_record or record.index,
                 "record_offset_start": start_offset if start_offset is not None else record.offset,
@@ -590,14 +602,14 @@ class Replay:
                 continue
             properties, char_handle = value[0], _u16(value, 1)
             char_uuid = uuid_from_att(value[3:])
-            self.characteristics[(epoch, char_handle)] = char_uuid
-            services = [s for s in self.services.get(epoch, [])
+            self.characteristics[(epoch, direction, char_handle)] = char_uuid
+            services = [s for s in self.services.get((epoch, direction), [])
                         if s[0] <= value_handle <= s[1]]
             service_uuids = {s[2] for s in services}
             service_uuid = next(iter(service_uuids)) if len(service_uuids) == 1 else None
             if len(service_uuids) > 1:
                 self.error_counts["ambiguous_overlapping_service_ranges"] += 1
-            self.characteristic_services[(epoch, char_handle)] = service_uuid
+            self.characteristic_services[(epoch, direction, char_handle)] = service_uuid
             self._emit({
                 "record": record.index, "record_start": start_record or record.index,
                 "record_offset_start": start_offset if start_offset is not None else record.offset,
