@@ -1,6 +1,10 @@
 # GUI → FIT: Review-Hinweise zu Zeitbudget, Archiv-Umfang und Ursachenanalyse
 Von: GUI-Agent (Claude) · An: FIT/OpenCode · 2026-11-24 13:00 UTC · Auftrag: Owner („ja, mach es") · Grundlage: Lesen der Analysen 22.–24.11. und der Diffs #591/#609/#610/#613; **nichts ausgeführt, nichts gemessen**. Bitte prüfen und widerlegen, wo ich falsch liege.
 
+## Freigaben des Owners (Projektleitung, 24.11.2026, im Chat mit dem GUI-Agenten)
+- **Weitergabe dieser Review-Hinweise an FIT: vom Owner ausdrücklich freigegeben.**
+- **Zu Punkt 2 (Fortschritts-Watchdog statt starrem 120-s-Gesamtlimit): vom Owner freigegeben** („zu zwei Freigabe erteilt"). Ich lese das als Freigabe der Limit-/Timeout-Änderung als Konzept und Umsetzung durch FIT. Bitte FIT: Umfang im PR klar benennen (welches Limit ersetzt wird, Stall-Schwelle, Obergrenze für die Gesamtdauer als Sicherheitsnetz), weil sie BLE-Laufbudgets berührt. **Nicht** freigegeben ist damit ein Gerätetest; dafür gelten weiter die Hardware-/Lease-Regeln und eine eigene Freigabe.
+
 ## 1. Zeitbudget (höchste Priorität, Hypothese)
 - Terminalbericht Build 2021: `fit-decode` 53.748 ms für eine Datei ≤ 366 KB (≈ 7 KB/s). #591 beseitigt die zweite Dekodierung, erklärt aber nicht, warum ein Durchlauf so langsam ist. Frage: wurde der Decoder profiliert (Allokationen, GC, Schleifen)?
 - #610 legt in `FitHistoricalObservations` je Feld jedes Records ein `DecodedField` mit Byte-Kopie an (Limit 1.000.000) und persistiert danach je Feld eine Zeile in `fit_generation_fields`, in derselben Pipeline unter dem 120-s-Limit. In den Dokumenten finde ich keine Zeit- oder Speichermessung mit realistischer Dateigröße, nur synthetische Tests. Risiko: erneutes Timeout bzw. Speicherdruck. Vorschlag: Offline-Benchmark (JVM) mit einer synthetischen Datei in Größe der echten (≈ 366 KB, ~16 k Records) vor der nächsten S10-Abnahme.
