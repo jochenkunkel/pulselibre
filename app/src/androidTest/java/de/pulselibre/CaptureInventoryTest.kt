@@ -53,18 +53,13 @@ class CaptureInventoryTest {
         assertFalse(inv.isEmpty)
     }
 
-    @Test fun rawNotificationsAreNotCountedAsFilesAndImportsAreCounted() {
+    @Test fun rawNotificationsAreNotCountedAsFiles() {
         DownloadedFileArchive.create(db)
         DownloadedFileArchive.store(db, byteArrayOf(1, 2, 3), byteArrayOf(9), "unknown_type", 1000L)
         CirqaRawNotificationArchive.archive(db, byteArrayOf(7, 7), 1001L)
-        db.execSQL("CREATE TABLE import_runs (status TEXT NOT NULL)")
-        db.execSQL("INSERT INTO import_runs(status) VALUES ('COMPLETED'),('COMPLETED'),('PARTIAL'),('FAILED')")
         val inv = CaptureInventory.load(db)
         assertEquals(1L, inv.archivedFiles)
         assertEquals(3L, inv.archivedBytes)
         assertEquals(1L, inv.rawNotifications)
-        assertEquals(2L, inv.importsCompleted)
-        assertEquals(1L, inv.importsPartial)
-        assertEquals(1L, inv.importsFailed)
     }
 }

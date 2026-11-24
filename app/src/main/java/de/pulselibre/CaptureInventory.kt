@@ -16,24 +16,21 @@ internal data class CaptureInventory(
     val regularObservations: Long?,
     /** Stored but unverified candidates per metric (spo2, stress, respiration); not counted as measurements. */
     val candidatesByMetric: Map<String, Long>?,
-    /** Raw BLE notifications kept as original bytes (#600). */
+    /** Distinct raw BLE notification payloads kept as original bytes (#600): identical payloads count once, the archive stops after a per-run limit; not the number of notifications received. */
     val rawNotifications: Long? = null,
     /** Every stored raw FIT field of the active generations, known or unknown (#610). */
     val rawFitFields: Long? = null,
     /** Field kinds the app does not decode (kept as raw bytes, not evaluated). */
-    val undecodedFieldKinds: Long? = null,
-    /** File imports by outcome (#601); null when the audit table cannot be read. */
-    val importsCompleted: Long? = null, val importsPartial: Long? = null, val importsFailed: Long? = null
+    val undecodedFieldKinds: Long? = null
 ) {
     /** True only when no counter could be read at all — never report "nothing stored" for unreadable tables. */
     val isUnknown: Boolean get() = archivedFiles == null && importedFitFiles == null &&
         regularObservations == null && candidatesByMetric == null &&
-        rawNotifications == null && rawFitFields == null && undecodedFieldKinds == null && importsCompleted == null
+        rawNotifications == null && rawFitFields == null && undecodedFieldKinds == null
 
     val isEmpty: Boolean get() = !isUnknown && (archivedFiles ?: 0L) == 0L && (importedFitFiles ?: 0L) == 0L &&
         (regularObservations ?: 0L) == 0L && candidatesByMetric.isNullOrEmpty() &&
-        (rawNotifications ?: 0L) == 0L && (rawFitFields ?: 0L) == 0L && (undecodedFieldKinds ?: 0L) == 0L &&
-        (importsCompleted ?: 0L) + (importsPartial ?: 0L) + (importsFailed ?: 0L) == 0L
+        (rawNotifications ?: 0L) == 0L && (rawFitFields ?: 0L) == 0L && (undecodedFieldKinds ?: 0L) == 0L
 
     companion object {
         private const val NOTIFICATION_SHAS = "SELECT content_sha256 FROM downloaded_file_references WHERE type_label='notification'"
@@ -59,10 +56,7 @@ internal data class CaptureInventory(
                 rawNotifications = one("SELECT COUNT(DISTINCT content_sha256) FROM downloaded_file_references WHERE type_label='notification'"),
                 rawFitFields = one(
                     "SELECT COUNT(*) FROM fit_generation_fields f JOIN fit_active_generations a ON a.generation_id = f.generation_id"),
-                undecodedFieldKinds = one("SELECT COUNT(*) FROM fit_unmapped_fields"),
-                importsCompleted = one("SELECT COUNT(*) FROM import_runs WHERE status='COMPLETED'"),
-                importsPartial = one("SELECT COUNT(*) FROM import_runs WHERE status='PARTIAL'"),
-                importsFailed = one("SELECT COUNT(*) FROM import_runs WHERE status='FAILED'"))
+                undecodedFieldKinds = one("SELECT COUNT(*) FROM fit_unmapped_fields"))
         }
     }
 }

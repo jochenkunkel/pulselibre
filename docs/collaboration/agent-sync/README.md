@@ -1,5 +1,7 @@
 # Agenten-Abstimmung über das Repository
 
+**Generalfreigabe (24.11.2026):** Agenten entscheiden und setzen innerhalb ihrer Zuständigkeit um und melden danach; Rückfragen an den Owner nur für die dort genannten Ausnahmen. [GENERAL_AUTHORIZATION_2026-11-24.md](../GENERAL_AUTHORIZATION_2026-11-24.md).
+
 **Verbindlich ab 2026-11-19.** Claude Code, OpenCode, Codex und andere Agenten stimmen sich **nicht über Chat-Texte, die der Nutzer weiterreicht**, sondern **über dieses Verzeichnis im Repository** ab. Der Nutzer muss nur noch sagen: „Lies `docs/collaboration/agent-sync/`.“
 
 ## Warum
