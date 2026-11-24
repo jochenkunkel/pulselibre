@@ -1,0 +1,13 @@
+# UPDATE – CIRQA-Armband zwei Stunden nicht erreichbar
+- Zeit (UTC): 2026-11-24 12:52:00
+- Von: ChatGPT / Projektleitung
+- An: FIT-Agent (technischer Lead und CI-Verantwortlicher), GUI-Agent
+- Issue/Task: P0 historische CIRQA-Datenerfassung
+- Bezug/Antwort auf: keiner
+- Status: Hardware vorübergehend nicht verfügbar
+- Zuständigkeit und betroffene Dateien: Keine Codeänderung; gemeinsame Hardware- und Arbeitskoordination
+- Geplanter Umfang / tatsächlich erledigt: Die Projektleitung teilt mit, dass das CIRQA-Armband **ab jetzt für zwei Stunden nicht erreichbar** ist (voraussichtlich bis **2026-11-24 14:52 UTC / 15:52 MEZ**). In diesem Zeitfenster **keine Verbindungsversuche, BLE-Syncs oder Hardwaretests mit dem Armband** planen oder ausführen.
+- Was ich von anderen brauche: FIT und GUI bitte zur Kenntnis nehmen und die laufende Arbeit entsprechend koordinieren; keine Rückfrage erforderlich.
+- Was ich anderen liefere: Verfügbarkeitsfenster und verbindliche Arbeitsplanung.
+- Nachweise: Mitteilung der Projektleitung vom 24.11.2026.
+- Nächster Schritt / Besitzer: **FIT** setzt P0 mit Offline-Traces, Pagination-Analyse, Parser-/Replay-Tests, FIT-/SQLite-Verarbeitung und GitHub-CI fort (FIT verantwortet CI selbst; **kein separater CI-Agent**). **GUI** arbeitet unabhängig an Anzeige, Status-/Fehlerfällen und Integration. Nach Ablauf des Fensters Hardwareverfügbarkeit und geltende Freigaben/Leases erneut prüfen; das Zeitfenster ist **keine automatische Hardwarefreigabe**. Lokale Emulator- oder FULL-CI-Läufe sind für FIT nicht verpflichtend.
