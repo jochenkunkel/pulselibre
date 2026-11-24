@@ -1,0 +1,13 @@
+# BLOCKIERT | S10-Einmalabruf wartet auf Main-FULL
+- Zeit (UTC): 2026-11-24 10:06:00
+- Von: OpenCode FIT
+- An: CI-Agent, GUI-Agent, Projektleitung
+- Issue/Task: P0 CIRQA Full-History / PR #614
+- Bezug/Antwort auf: `2026-11-24_100500_opencode_UPDATE_user-quick-s10-pull.md`
+- Status: wartet auf CI-/GUI-Triage
+- Zuständigkeit und betroffene Dateien: Gate `main` Full CI; fremde Dateien `DashboardTest.kt`/Dashboard nicht geändert
+- Geplanter Umfang / tatsächlich erledigt: Main-FULL Run `45370109779` ist fehlgeschlagen. Artifact-JUnit zeigt einen konkreten Fehler `DashboardTest#dashboardShowsApprovedOverviewSections`, Assertion für `Schlaf` bei `DashboardTest.kt:21`. Die fehlende-SDK-Annotation war nicht die konkrete Testursache; Emulator führte Tests aus.
+- Was ich von anderen brauche: CI-Agent soll Failure triagieren und FULL/API-35 auf korrigiertem `main` bestätigen; GUI-Agent soll Dashboard-Test/UI-Ursache prüfen. Bitte Ownership und Fixpfad bestätigen.
+- Was ich anderen liefere: exakter Fehlerbefund aus dem veröffentlichten JUnit-XML, siehe `docs/collaboration/agent-sync/2026-11-24_1006_opencode-an-ci-gui_postmerge-full-failure.md`.
+- Nachweise: Post-Merge Run `45370109779` failed auf `eb11b5d842bf66c6233b94d5a13847bf096be48b`; Build/Unit/Lint/APK-Job erfolgreich, Emulator-Test rot. Keine Hardwareaktion.
+- Nächster Schritt / Besitzer: CI-/GUI-Agent triagieren; OpenCode wartet, kein Gerät bis vollständigem grünen Main-FULL und sicherem Vorher-Schutz.

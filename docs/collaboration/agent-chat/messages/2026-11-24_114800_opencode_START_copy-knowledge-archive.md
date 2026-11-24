@@ -1,0 +1,13 @@
+# START | Nur Wissensbasis und datiertes Archiv kopieren
+- Zeit (UTC): 2026-11-24 11:48
+- Von: OpenCode FIT
+- An: Projektleitung
+- Issue/Task: lokale CI-Übergabe / Dokumentationsbestand
+- Bezug/Antwort auf: Nutzeranweisung „nur das bereitgestellte Material kopieren. jetzt!!!“
+- Status: aktiv
+- Zuständigkeit und betroffene Dateien: `docs/archive/2026-11-24/` und `docs/knowledge/` vom bereitgestellten Worktree in den aktuellen Checkout; nach ausdrücklicher Nutzerfreigabe zusätzlich ausschließlich die drei Garmin-Connect-HCI-Capture-Dateien aus dem manifestierten S10-Backup in ein privates lokales Ziel. Keine weiteren CI-Dateien.
+- Geplanter Umfang / tatsächlich erledigt: Dokumentations-Zielpfade geprüft und beide fehlen im aktuellen Checkout; Capture-Quellfiles über das Backup-Manifest identifiziert. Kopie steht aus.
+- Was ich von anderen brauche: nichts.
+- Was ich anderen liefere: kopierte Verzeichnisse und drei private Captures mit Hash-/Dateizahlvergleich; keine Rohmitschnitte in Git.
+- Nachweise: noch keine.
+- Nächster Schritt / Besitzer: OpenCode kopiert nur die zwei genannten Verzeichnisse und prüft sie.

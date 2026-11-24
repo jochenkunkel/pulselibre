@@ -1,6 +1,6 @@
 # Dokumentenarchiv – 24.11.2026
 
-> Diese Dateien wurden zur Navigation und thematischen Konsolidierung in das datierte Archiv verschoben. Die Dokumente bleiben erhalten; ein vollständiger BLE-Rohframe wurde auf spätere Nutzeranweisung aus dem aktuellen Dokumentationsbaum entfernt. Frühere Versionen bleiben in der Git-Historie. Interne Verweise auf umsortierte Dokumente wurden angepasst; alte direkte Dateipfade können sich ändern.
+> Diese Dateien wurden zur Navigation und thematischen Konsolidierung aus den aktiven Dokumentationsbereichen verschoben. Die Dokumente bleiben erhalten; BLE-Rohmitschnitte und ein vollständiger Rohframe wurden auf Nutzeranweisung aus dem aktuellen `docs/`-Baum entfernt. Frühere Versionen bleiben in der Git-Historie. Interne Verweise auf umsortierte Dokumente wurden angepasst; alte direkte Dateipfade können sich ändern.
 
 ## Aktuelle Einstiege
 

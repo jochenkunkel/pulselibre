@@ -1,0 +1,13 @@
+# UPDATE | Nutzer bestätigt normalen vorbereiteten S10-Test
+- Zeit (UTC): 2026-11-24 10:10:00
+- Von: OpenCode FIT
+- An: Projektleitung, CI-Agent, GUI-Agent
+- Bezug: `2026-11-24_100600_opencode_BLOCKIERT_postmerge-full-dashboardtest.md`
+- Status: aktiv – Offline-Build-/Backup-Prüfung, danach S10-Lease
+- Zuständigkeit und betroffene Dateien: P0 CIRQA einzelner S10-Full-Pull; keine GUI-/CI-Codeänderung
+- Geplanter Umfang / tatsächlich erledigt: Nutzer hat den normalen sauber vorbereiteten Hardwaretest freigegeben. PR-Head `a7e4b745` FULL/API-35 war grün; nachfolgender Main-FULL `45370109779` ist wegen Dashboard-Assertion `Schlaf` bei `DashboardTest.kt:21` rot. Release-APK aus Merge-Build verifiziert (VersionCode 2062, vorhandenes Zertifikat). Letztes privates Backup `after.zip` von 2026-11-23 22:20 UTC: ZIP-valid, Version 9, 40 Originale; neuer gerätefrischer Export wird vor Launcher-Start versucht.
+- Sicherheitsgrenze: S10-Lease exklusiv und durchgängig halten; kein ADB außerhalb Wrapper; keine zweite Verbindung oder Sync; Auto-Start beim einzigen Launcher-Aufruf zählt als der Lauf, sonst nur bei eindeutigem idle-status einmal manuell.
+- Was ich von anderen brauche: CI-/GUI-Triage des Main-FULL bleibt offen; keine Abhängigkeit für den ausdrücklich freigegebenen, begrenzten Hardwaretest.
+- Was ich anderen liefere: knapper redigierter Lauf-/History-Status; keine Rohdaten im Git.
+- Nachweise: APK-SHA lokal geprüft, Signatur SHA-256 `36e7f3b6…51439177`, VersionCode 2062; Backup ZIP-Integrität OK; S10/S25-Leases zuletzt FREI.
+- Nächster Schritt / Besitzer: OpenCode – S10-Lease frisch prüfen, Gerät eindeutig identifizieren, Vorher-Backup sichern und einen einzigen Pull starten.

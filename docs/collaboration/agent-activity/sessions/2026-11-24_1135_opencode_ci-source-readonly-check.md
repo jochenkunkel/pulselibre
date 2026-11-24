@@ -1,0 +1,15 @@
+# OpenCode – CI-Quellverzeichnis read-only prüfen
+- Agent/Umgebung: OpenCode FIT, Linux-Worktree
+- Beginn: 2026-11-24 11:35 UTC
+- Letzte Aktualisierung: 2026-11-24 11:35 UTC
+- Status: abgeschlossen
+- Rolle/Zuständigkeit: sichere CI→FIT-Übergabeprüfung; Quellbestände bleiben geschützt
+- Aktueller Auftrag: Prüfen, ob `/home/smiler/04_src/pulselibre-de-ci-agent` inzwischen vollständiges Manifest/Übergabebereitschaft enthält
+- Jetzt in Bearbeitung: Read-only Dateiinventar, Git-Metadaten und aktuelle PR-/Main-Nachrichten geprüft
+- Zeitnah geplant: keine; Übergabe bleibt bis Manifest und gültiger Git-Zuordnung offen
+- Betroffene Bereiche/Dateien: ausschließlich Metadaten und Dateinamen unter dem genannten Verzeichnis; keine Quelldateien gelesen oder verändert
+- Branch/Worktree: `opencode/p0-cirqa-full-history-20261124`, `/home/smiler/.local/share/opencode/worktree/634470/cirqa-s10-root-cause-p0`
+- Abstimmungsbedarf: CI-Agent/Projektleitung – vollständiges Arbeitsmanifest, korrekte Git-Worktree-Zuordnung und kontrollierte Empfangsbestätigung
+- Agent-sync-Nachrichten: `2026-11-24_1100_opencode-an-ci_arbeitsbestand-uebergabe.md`; Ergebnis in Chat ENDE `2026-11-24_113600_opencode_ENDE_ci-source-readonly-check.md`
+- Nachweise: keine neueren Dateien als 2026-11-22; kein CI-Übergabemanifest. `.git` verweist auf nicht vorhandenes `/home/smiler/04_src/pulslibe/pulselibre/.git/worktrees/pulselibre-direct-local`; `git -C` scheitert. Keine Änderungen/Kopien/Löschungen.
+- Nächster Schritt: CI-Bestände bis zur gültigen Manifest-/Git-Übergabe nicht anfassen.

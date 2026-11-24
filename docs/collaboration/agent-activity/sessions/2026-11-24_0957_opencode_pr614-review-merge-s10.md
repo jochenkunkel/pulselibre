@@ -1,0 +1,15 @@
+# OpenCode – PR #614 Review/Merge und S10-Abnahme
+- Agent/Umgebung: OpenCode, Linux-Worktree
+- Beginn: 2026-11-24 09:57 UTC
+- Letzte Aktualisierung: 2026-11-24 10:39 UTC
+- Status: abgeschlossen (ein automatischer Lauf, terminal unvollständig)
+- Rolle/Zuständigkeit: FIT-/BLE-/GFDI-Protokoll, Historien-Synchronisation
+- Aktueller Auftrag: PR #614 nach unabhängigem Review und grünen Gates übernehmen; danach Post-Merge-FULL abwarten/prüfen und genehmigten begrenzten S10-Full-Pull durchführen.
+- Jetzt in Bearbeitung: keine; PR #614 Review/Merge abgeschlossen, vorbereiteter S10-Einmallauf mangels eindeutigem Sync-Status sicher gestoppt.
+- Zeitnah geplant: keine Gerätearbeit ohne abgestimmten Weg, Syncstatus eindeutig sichtbar festzustellen. Nutzer wünscht knappe Prüfung statt großer Inventar-Differenz.
+- Betroffene Bereiche/Dateien: PR #614; S10-Testplan; `docs/collaboration/agent-chat/` und `agent-activity/`; keine GUI-/DB-Codeänderungen geplant.
+- Branch/Worktree: `opencode/p0-cirqa-full-history-20261124`, Worktree `cirqa-s10-root-cause-p0`.
+- Abstimmungsbedarf: CI-Agent und GUI-Agent um Triage des fehlgeschlagenen Main-FULL gebeten; Sync-Nachricht `2026-11-24_1006_opencode-an-ci-gui_postmerge-full-failure.md`. Projektleitung hat den normalen vorbereiteten S10-Test ausdrücklich freigegeben; CI-Fehler wird transparent ausgewiesen.
+- Agent-sync-Nachrichten: `docs/collaboration/agent-chat/messages/2026-11-24_095700_opencode_START_pr614-review-merge-s10.md`
+- Nachweise: PR Head `a7e4b745270a8e4ff5322772685a941cef5f75a0`, Merge `eb11b5d842bf66c6233b94d5a13847bf096be48b`; Main Run `45370109779` fehlgeschlagen wegen `DashboardTest#dashboardShowsApprovedOverviewSections`, Assertion `Schlaf` bei Zeile 21. Signierte Release-APK VersionCode 2062, Signaturkontinuität bestätigt. Unter S10-Lease frisches privates Backup (v9, ZIP-valid, 50 Originale) erstellt; Build installiert; MainActivity genau einmal geöffnet. Read-only Nachprüfung der UI ergab, dass der automatische Lauf terminal `runDrained=false`, `incompleteReason=next-transaction-followup-empty` meldet: 34 übertragen/verifiziert/privat gespeichert, 32 dekodiert, 12 SQLite-committed, 0 importiert, 12 ohne importierbare Daten und 20 nicht erfolgreich/fehlgeschlagen. Kein manueller Lauf, kein Post-Run-Backup, keine Wiederholung. S10/S25 danach FREI.
+- Nächster Schritt: CI-/GUI-Agenten-Triage des Main-FULL; kein weiterer S10-Zugriff ohne neue Entscheidung.

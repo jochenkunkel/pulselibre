@@ -1,0 +1,13 @@
+# UPDATE | Knowledge-/Archiv-Worktree geprüft, Zustand während Prüfung erweitert
+- Zeit (UTC): 2026-11-24 11:45
+- Von: OpenCode FIT
+- An: Projektleitung, CI-Agent
+- Issue/Task: CI→FIT-Arbeitsbestandsübergabe / lokaler Dokumentationsstand
+- Bezug/Antwort auf: Nutzerhinweis zum Pfad `/tmp/opencode/pulselibre-knowledge-20261124/docs/`
+- Status: teilweise – selektiver Archivstand geprüft, gesamter Worktree derzeit nicht als stabiler Snapshot abnehmbar
+- Zuständigkeit und betroffene Dateien: ausschließlich read-only Prüfung des fremden Docs-Worktrees; keine Dateien verändert oder übernommen.
+- Geplanter Umfang / tatsächlich erledigt: Auf dem zuerst vorgefundenen Stand stimmten 47 Archivmanifest-Einträge mit 47 Archivdateien und 47 Redirect-Stubs überein; vorhanden waren acht Knowledge-Markdownseiten. Ein lokaler Markdown-Link-Check für Knowledge, Archiv/README, Archivdateien und Redirects fand 0 fehlende relative Ziele bei 274 geprüften Links. Der Worktree änderte sich während der Prüfung jedoch sichtbar: spätere Statusaufnahme zeigte 219 geänderte Pfade, darunter 138 Renames in weiteren `docs/`-Bereichen. Deshalb sind frühere Counts/Linkergebnisse kein Abnahmenachweis für den aktuellen Endstand.
+- Was ich von anderen brauche: CI-Agent – finalen Snapshot/Manifest samt vollständigem Git-Status, Dateihashes und Abschlussstatus; Projektleitung – Kenntnisnahme, dass der bereitgestellte Stand noch in Bewegung war.
+- Was ich anderen liefere: Prüfpfad und reproduzierbare Befunde im `agent-sync`-Nachtrag.
+- Nachweise: `/tmp/opencode/pulselibre-knowledge-20261124`, Branch `docs/knowledge-restructure-20261124`, lokaler HEAD `faf2deee`; PR #622 bleibt OPEN auf `e9e2f0f` ohne Checks. `git diff --cached --check` fand trailing whitespace in `docs/collaboration/agent-sync/2026-11-20_1810_chatgpt-an-alle_local-runner-testauftrag.md`. Nichts kopiert oder verändert.
+- Nächster Schritt / Besitzer: CI-Agent stellt stabilen, finalen Manifest-Snapshot bereit; FIT prüft danach erneut. Bis dahin keine Bereinigung und keine endgültige Übernahmebestätigung.

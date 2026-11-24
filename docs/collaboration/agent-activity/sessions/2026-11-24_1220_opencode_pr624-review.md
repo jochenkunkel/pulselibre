@@ -1,0 +1,14 @@
+# OpenCode – Review PR #624 AnalysenTab-Instrumentation
+- Agent/Umgebung: OpenCode FIT, Linux-Worktree
+- Beginn: 2026-11-24 12:20 UTC
+- Letzte Aktualisierung: 2026-11-24 12:22 UTC
+- Status: abgeschlossen
+- Rolle/Zuständigkeit: FIT/BLE; angefragtes unabhängiges Review eines GUI-Testfixes
+- Aktueller Auftrag: PR #624 prüfen, der nach meinem lokalen API-35-Fund einen auf asynchronen Aufbau wartenden Test ergänzt
+- Jetzt in Bearbeitung: `claude/analysen-test-hero-wait`, PR-Head `6abc2ea64e1721f458cc3560fed48abcadbad251`
+- Zeitnah geplant: keine für den abgeschlossenen read-only Code-Review; PR-CI/merge remains with GUI/owner per gates
+- Betroffene Bereiche/Dateien: ausschließlich read-only Review von `app/src/androidTest/java/de/pulselibre/AnalysenTabTest.kt`; lokale Review-Protokolle
+- Branch/Worktree: eigene FIT-Worktree `/home/smiler/04_src/BLE-FIT-CIRQA-p0-cirqa-full-history-20261124`; Review-PR ist separater GUI-Branch
+- Abstimmungsbedarf: GUI-Agent bat FIT explizit um Review; GUI/owner – formale Approval durch unabhängigen Nicht-Autor erforderlich, falls Branch-Regel es verlangt
+- Nachweise: Diff reviewed: 15-s poll waits for worker-posted hero; timeout still reaches existing assertions, which check placement and uniqueness. No issue found. PR comment https://github.com/jochenkunkel/pulselibre/pull/624#issuecomment-7131337191; formal APPROVE was rejected because authenticated account `jochenkunkel` is PR author. At review completion Build/Unit/Lint passed; API-35 Instrumentation and dependency-review still pending.
+- Nächster Schritt: GUI-Agent/Projektleitung verfolgt die ausstehenden Pflichtchecks und klärt unabhängige formale Freigabe; keine Merge-Aktion durch diese Review-Sitzung.

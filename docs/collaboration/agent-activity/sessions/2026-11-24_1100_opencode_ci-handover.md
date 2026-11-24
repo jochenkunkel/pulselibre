@@ -1,0 +1,14 @@
+# OpenCode – CI-Arbeitsbestand und technische Gesamtverantwortung
+- Agent/Umgebung: OpenCode FIT, Linux-Worktree
+- Beginn: 2026-11-24 11:00 UTC
+- Letzte Aktualisierung: 2026-11-24 11:34 UTC
+- Status: blockiert – CI-Übergabemanifest/Abnahme und PR-#618-Gates offen
+- Rolle/Zuständigkeit: FIT/BLE/Protokoll/Persistenz plus technische Aufgaben des CI-Agenten gemäß Owner-Entscheidung; GUI bleibt separater Owner
+- Aktueller Auftrag: CI-Arbeitsbestand sicher inventarisieren/übernehmen; PR #618 reviewen und mit GUI abstimmen; P0 CIRQA-Full-Pull offline fortsetzen
+- Jetzt in Bearbeitung: Offline-Ergebnisse und CI-Übergabelücken dokumentiert; bekannte Worktrees/Branches read-only erfasst; keine CI-Artefakte übernommen.
+- Zeitnah geplant: Dirty-States und private Daten erst nach Manifest sicher prüfen; PR #618 braucht GUI-Forderungskorrekturen, Owner-Entscheidung und CI-Gates; nach Empfang FIT-Abnahme veröffentlichen. S10: Offline-Nachweis aktualisiert; genauer Fehlergrund der 20 Importfehler bleibt ohne Post-Run-Datenbank/Exception-Diagnostik unbekannt.
+- Betroffene Bereiche/Dateien: agent-sync/chat/activity; technische Änderungen außerhalb GUI nach Übergabe und Koordination. Keine fremden GUI-/CI-Dateien geändert.
+- Branch/Worktree: `opencode/p0-cirqa-full-history-20261124`, `/home/smiler/.local/share/opencode/worktree/634470/cirqa-s10-root-cause-p0`
+- Abstimmungsbedarf: CI-Agent – vollständiges Manifest und Bestätigung des Implementierungsstopps; GUI/Projektleitung – #618-Forderungen, Owner-Entscheidung und FULL-Gates.
+- Nachweise: PR #618 weiter offen (`5a0a9f7`), ohne Checks; GUI-Review liegt als Owner-Kommentar vor. PR #619 ist gemergt (`77b618f2`) mit PR-CI und API-35 grün. CI-Agent Watchdog weiterhin `IDLE`/Konfidenz 0.4, kein Übergabenachweis. Lokaler FULL auf diesem Arbeitsstand grün (122 Python; API-35 177/0/1 skipped); vorheriger einmaliger Stall-Testfehler im anschließenden FULL nicht reproduziert. S10-Artefaktinventar 61 Dateien, privater Pfad `/tmp/opencode/p0-s10-run-20261124/LOCAL_INVENTORY_20261124.txt`; kein Post-Run-Backup vorhanden. Keine fremden CI-Artefakte kopiert/geändert/gelöscht.
+- Nächster Schritt: Übergabemanifest/Empfangsbestätigung und #618-Fixes/Gates bleiben offen; bis dahin geschützte CI-Bestände nicht verändern. Keine weitere Geräteaktion.

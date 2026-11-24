@@ -1,0 +1,14 @@
+# OpenCode – bereitgestelltes Wissensarchiv kopieren
+- Agent/Umgebung: OpenCode FIT, Linux-Worktree
+- Beginn: 2026-11-24 11:48 UTC
+- Letzte Aktualisierung: 2026-11-24 11:52 UTC
+- Status: abgeschlossen
+- Rolle/Zuständigkeit: FIT; eng begrenzte Übernahme der vom Nutzer benannten Dokumentationsverzeichnisse
+- Aktueller Auftrag: ausschließlich `docs/archive/2026-11-24/` und `docs/knowledge/` aus `/tmp/opencode/pulselibre-knowledge-20261124/` in den aktuellen Checkout kopieren; nach ausdrücklicher Freigabe zusätzlich die drei manifestierten Garmin-Connect-HCI-Capture-Dateien privat lokal kopieren
+- Jetzt in Bearbeitung: ausschließlich die beiden benannten Doku-Verzeichnisse und drei explizit freigegebene, manifestierte Garmin-Connect-HCI-Dateien kopiert und gegen Quelle geprüft.
+- Zeitnah geplant: keine
+- Betroffene Bereiche/Dateien: nur `docs/archive/2026-11-24/**`, `docs/knowledge/**`, die drei `s10-garmin-sync*.hci`-Dateien nach `/tmp/opencode/pulselibre-handover-20261124/private-s10-garmin-connect-sync/`, dazu eigener Chat-/Aktivitätsnachweis
+- Branch/Worktree: `opencode/p0-cirqa-full-history-20261124`, `/home/smiler/.local/share/opencode/worktree/634470/cirqa-s10-root-cause-p0`
+- Abstimmungsbedarf: keiner für den explizit autorisierten Kopiervorgang
+- Nachweise: 48 Archivdateien und 8 Knowledge-Dateien mit identischem Pfad/Bytes/SHA-256 kopiert. Drei HCI-Captures gegen Quellmanifest und Ziel per SHA-256 bestätigt. Privater Zielordner 0700, HCI-Dateien 0600. Inventar `/tmp/opencode/pulselibre-handover-20261124/TRANSFER_INVENTORY.sha256` (0600). Quelle blieb unverändert; andere Dateien nicht kopiert.
+- Nächster Schritt: Übergabe der lokalen Kopie an Projektleitung; keine weiteren Bestände ohne separaten Auftrag übernehmen.

@@ -1,0 +1,13 @@
+# BLOCKIERT | Main-Push-Gate: API-35-AnalysenTab-Test fehlgeschlagen
+- Zeit (UTC): 2026-11-24 13:18
+- Von: OpenCode FIT
+- An: Projektleitung, GUI-Agent, CI-Agent
+- Issue/Task: lokaler Workdir-/main-Abgleich; Nutzerfreigabe Push nach main
+- Bezug/Antwort auf: UPDATE `2026-11-24_130400_opencode_UPDATE_main-reconcile-and-push-authorization.md`
+- Status: blockiert – Push/Merge nach main wird bis zur Klärung nicht ausgeführt
+- Zuständigkeit und betroffene Dateien: lokaler FULL-Gate auf `opencode/p0-cirqa-full-history-20261124`; Fehlerfall in GUI-eigenem `AnalysenTabTest`
+- Geplanter Umfang / tatsächlich erledigt: `origin/main` ist in `4b84e723` integriert; alle lokalen Änderungen sind in `28a706c5` und Merge-/Status-Commits gesichert. Lokaler FULL: 122 Python bestanden, JVM/Build/R8/Lint/APK-Diagnose/Instrumentation-APK erfolgreich. API-35-Emulator bootete nach einem ersten Prozessabbruch im kontrollierten Folgeaufruf; Instrumentation meldet 1 Fehler: `AnalysenTabTest#tabShowsFiveGroupsAndHonestModuleStates`, Assertion `resting_hero` in `AnalysenTabTest.kt:53`.
+- Was ich von anderen brauche: GUI-Agent – konkrete Einordnung/Korrektur oder Bestätigung einer überholten Assertion sowie erneuter API-35-FULL-Nachweis; CI-Agent – unabhängiges Review des abschließenden Heads.
+- Was ich anderen liefere: exakter Testfehler/XML-Pfad in adressierter Abstimmung; keine GUI-Datei verändert, kein Push/Merge nach main.
+- Nachweise: HEAD `92154ed70e35f8a42dbeb899353b6fa1da063124`; XML `app/build/outputs/androidTest-results/connected/debug/TEST-pulselibre-ci-api35(AVD) - 15.xml`; `git ls-files -u` leer.
+- Nächster Schritt / Besitzer: GUI-Agent triagiert Test; FIT wartet auf Antwort und arbeitet danach an unabhängigem P0-FIT-Punkt, falls vorhanden.

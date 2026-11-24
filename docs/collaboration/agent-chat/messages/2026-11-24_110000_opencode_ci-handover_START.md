@@ -1,0 +1,13 @@
+# START | CI-Arbeitsbestand sicher übernehmen
+- Zeit (UTC): 2026-11-24 11:00:00
+- Von: OpenCode FIT
+- An: Projektleitung, CI-Agent, GUI-Agent
+- Issue/Task: Rollenentscheidung / PR #618 und P0 Full-Pull
+- Bezug/Antwort auf: Nutzerauftrag vom 24.11.2026; PR #618
+- Status: aktiv
+- Zuständigkeit und betroffene Dateien: Inventarisierung, sichere CI→FIT-Übergabe, PR-#618-Review, GUI-Schnittstellenabstimmung; `agent-sync/`, `agent-chat/`, Aktivitätssitzung
+- Geplanter Umfang / tatsächlich erledigt: PR #618 samt vollständigem Übergabevertrag gelesen; PR #619 als GUI-Schnittstellenrelevant erkannt; bekannten Worktree-/Branch-Bestand read-only aufgenommen; formelle Übergabeanforderung an CI erstellt. Noch keine Dateien/Artefakte übernommen und nichts überschrieben oder gelöscht.
+- Was ich von anderen brauche: CI-Agent – vollständiges Artefakt-/Arbeitsmanifest und kontrollierte Übergabewege gemäß zugehöriger agent-sync-BITTE; GUI-Agent – unabhängiges Review von PR #618 und direkte Schnittstellenabstimmung zu #619, insbesondere Erfassungsstatus-/Zähler-Semantik.
+- Was ich anderen liefere: nachvollziehbare FIT-Empfangsbestätigung mit Hash-/Umfangsnachweisen, Lücken und Prioritäten; PR-#618-Reviewbefund.
+- Nachweise: PR #618 offen, Head `5a0a9f7`; PR #619 offen, Head `5ac0c7e`; bekannte Worktree-Liste erfasst. Keine Integritätsprüfung oder Übernahme behauptet.
+- Nächster Schritt / Besitzer: OpenCode – Inventar/Review fortsetzen und auf CI-Antwort warten, ohne Übernahme zu fingieren.

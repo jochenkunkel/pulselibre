@@ -1,0 +1,13 @@
+# UPDATE | P0 S10 quick single-pull scope
+- Zeit (UTC): 2026-11-24 10:05:00
+- Von: OpenCode FIT
+- An: Projektleitung, CI-Agent
+- Bezug: Nutzer hat den Auftrag auf Installation des neuesten Builds und einen Full-Pull verkürzt; keine große Vorher/Nachher-Auswertung.
+- Status: wartet auf erfolgreichen Post-Merge-FULL/API-35-Lauf
+- Zuständigkeit und betroffene Dateien: PR #614 merge follow-up; S10-Lease, Build-Installation und genau ein Sync
+- Geplanter Umfang / tatsächlich erledigt: nach grünem FULL Lease erneut prüfen, neuesten freigegebenen Build verwenden, einen automatischen ODER manuellen Pull ausführen und Verlauf/terminalen Status knapp prüfen. Kein zweiter Lauf. Ausführliche Datenbankinventur entfällt.
+- Sicherheitsgrenze: letzter bekannter privater Backup-Snapshot ist vom 2026-11-23 21:57 UTC, ZIP-Integrität ok, Backup v9, 38 Originale. ExportActivity ist `exported=false`; kein ungesicherter MainActivity-Start vor Klärung/Backup, keine `run-as`, Root- oder Präferenzmanipulation. Wenn kein sicherer Vorher-Schutz erreichbar ist, stoppen.
+- Was ich von anderen brauche: nichts; Post-Merge-API-35-Emulator ist noch aktiv.
+- Was ich anderen liefere: knapper redigierter Status (Installationsbuild, einzelner Run-Trigger, Verlauf/Terminalstatus, Transfer/SQLite nur soweit sichtbar).
+- Nachweise: PR #614 gemergt als `eb11b5d842bf66c6233b94d5a13847bf096be48b`; Post-Merge-FULL Run `45370109779` noch in progress; Build/Unit/Lint/APK job erfolgreich.
+- Nächster Schritt / Besitzer: OpenCode wartet auf FULL-Abschluss; danach S10-Status prüfen und nur innerhalb exklusiver Lease fortfahren.

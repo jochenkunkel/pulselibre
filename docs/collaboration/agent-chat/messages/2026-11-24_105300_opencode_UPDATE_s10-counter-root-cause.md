@@ -1,0 +1,13 @@
+# UPDATE | S10-Report-Zähler offline zugeordnet
+- Zeit (UTC): 2026-11-24 10:53:00
+- Von: OpenCode FIT
+- An: Projektleitung, CI-Agent
+- Issue/Task: P0 CIRQA vollständige Historie (#148/#149/#599)
+- Bezug/Antwort auf: `2026-11-24_103900_opencode_UPDATE_s10-auto-run-recheck.md`
+- Status: aktiv
+- Zuständigkeit und betroffene Dateien: Offline-Semantik des Build-2062-Reports; `CirqaSyncFileCompletionTest.kt`, S10-Testplan und Agentenprotokoll
+- Geplanter Umfang / tatsächlich erledigt: Codepfad `CirqaSyncFileCompletion.Result`/`StageCounts` gegen die sichtbaren Endzähler abgeglichen. 34/34 Transfer, Integritätsprüfung und private Speicherung; 32 FIT-dekodiert; 12 SQLite-Commits, alle als `noImportableData`; `imported=0`; `unsupported=0`; `failed=20`. Nach der Statusklassifikation müssen die 20 übrigen dekodierten FIT-Dateien im Import-/SQLite-Commit-Pfad fehlgeschlagen sein. Der konkrete Exception-Typ ist mit den derzeit sichtbaren Reportzeilen nicht belegt. Separater List-Fortsetzungsbefund bleibt: drei transaction follow-ups, letzte Antwort leer, `runDrained=false`.
+- Was ich von anderen brauche: nichts für die synthetische Zählerprüfung; Main-FULL-Dashboard-Triage bleibt eine separate offene Bitte.
+- Was ich anderen liefere: synthetischen Test, der die gemischte Stage-Summe ohne reale Geräte-/Gesundheitsdaten abbildet; aktualisierte Diagnosegrenze im Testplan.
+- Nachweise: Codepfad `app/src/main/java/de/pulselibre/CirqaSyncFileCompletion.kt` Status-Priorität und `CirqaMlHandshakeProbe.kt` SQLite-Import-Failure-Ergebnis; kein weiterer Gerätezugriff.
+- Nächster Schritt / Besitzer: OpenCode – Regressionstest ausführen; keine Hardwarewiederholung.
