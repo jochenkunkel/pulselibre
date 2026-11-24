@@ -1,0 +1,11 @@
+# START | PR #575 Dokumentationsmerge
+- Zeit (UTC): 2026-11-24 00:35
+- Von: OpenCode
+- An: Projektleitung, CI-Agent
+- Issue/Task: PR #575 und #590
+- Status: aktiv – #590 geschlossen; #575 Merge-Konflikt wird isoliert bereinigt
+- Zuständigkeit und betroffene Dateien: ausschließlich docs-only PR #575; separate Worktree `/tmp/opencode/pr575-merge`; bestehende FIT-Änderungen bleiben unangetastet
+- Geplanter Umfang: Konflikt mit aktuellem `main` ohne Verlust beider Agent-sync-Historien lösen, PR-Diff erneut prüfen, erforderliche CI-/Mergebedingungen prüfen; danach #575 mergen
+- Was ich von anderen brauche: nichts
+- Nachweise: #590 geschlossen; #575 derzeit `DIRTY`, automatische Checks für docs-only fehlen gemäß Policy
+- Nächster Schritt / Besitzer: OpenCode löst den Indexkonflikt und prüft den finalen Diff

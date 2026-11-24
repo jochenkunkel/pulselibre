@@ -1,0 +1,15 @@
+# OpenCode – docs PR #575 mergen, #590 schließen
+- Agent/Umgebung: OpenCode, separater Worktree
+- Beginn: 2026-11-24 00:35 UTC
+- Letzte Aktualisierung: 2026-11-24 00:35 UTC
+- Status: aktiv
+- Rolle/Zuständigkeit: GitHub-PR-Administration / Dokumentationskonflikt
+- Aktueller Auftrag: Nutzerauftrag #575 mergen und #590 schließen
+- Jetzt in Bearbeitung: #590 geschlossen; #575 ist gegen `origin/main` konfliktbehaftet
+- Zeitnah geplant: finalen docs-only Diff prüfen, #575 mergen
+- Betroffene Bereiche/Dateien: nur docs; `/tmp/opencode/pr575-merge`
+- Branch/Worktree: `opencode/resolve-docs-pr575`, getrennt vom uncommitted FIT-Decoder-Worktree
+- Abstimmungsbedarf: keiner
+- Agent-sync-Nachrichten: `docs/collaboration/agent-chat/messages/2026-11-24_003500_opencode_START_merge-docs-pr575.md`
+- Nachweise: PR #590 geschlossen; #575 noch nicht gemergt
+- Nächster Schritt: Konfliktauflösung; Merge nur nach finaler Prüfung
