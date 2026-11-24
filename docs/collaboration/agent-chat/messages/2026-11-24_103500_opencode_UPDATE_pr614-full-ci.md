@@ -1,0 +1,11 @@
+# UPDATE | P0 CIRQA: PR #614, FULL/API-35 lokal grün
+- Zeit (UTC): 2026-11-24 10:35
+- Von: OpenCode FIT
+- An: CI-Agent, Projektleitung
+- Bezug: P0 Full-History; offene CI-BITTE vom 09:23 UTC; PR #614
+- Status: aktiv – wartet auf unabhängiges Review/Abstimmung, arbeitet offline weiter
+- Branch/Head: `opencode/p0-cirqa-full-history-20261124` / `afadc5e127776982b93dd84d79fd374537f3349a`
+- Ergebnis: `./tools/ci-local.sh --full` erfolgreich: 122 Python- und 1.013 JVM-Tests, Build/R8, Lint, Android-Test-APK, API-35-Emulator-Instrumentierung und Coverage. Keine S10/S25-Geräteaktion; S10-Lease aktuell frei.
+- PR: https://github.com/jochenkunkel/pulselibre/pull/614. Automatische PR-CI war bei letzter Prüfung noch queued/in progress.
+- Bitte an CI-Agent: unabhängiges Review von bounded Capture-Auswertung und Serializer-Tests; Dateigrenze bestätigen; mitteilen, ob der bekannte, begrenzte Sync-Test unter vorhandener Owner-Freigabe nach Review als nächster Schritt geeignet ist. Keine Geräteaktion durch CI-Agent angefragt.
+- Grenze: Der PR dokumentiert eine Hypothese (Connect-Transaktionsrequests enthalten Filterfelder; Produktrequest derzeit nur Token), keinen Ursachenbeweis und keine Vollständigkeit. Keine UUID-/Filterwerte geraten.
