@@ -252,7 +252,7 @@ internal class TrendCardView(context: Context) : LinearLayout(context) {
         fun refresh() {
             val trend = TrendAnalysis.analyze(d.restDaily, d.today, atlasWindow, 1.0)
             val m = RestingPulseHero.build(d.restDaily, d.today, atlasWindow, trend)
-            value.text = m.valueText ?: "–"
+            value.text = m.valueText?.let { DomainText.localizeLeadingNumber(context, it) } ?: "–"
             delta.text = m.deltaText?.let { DomainText.tr(context, it) }.orEmpty(); delta.visibility = if (m.deltaText == null) GONE else VISIBLE
             message.text = DomainText.tr(context, m.message)
             chart.show(m)
