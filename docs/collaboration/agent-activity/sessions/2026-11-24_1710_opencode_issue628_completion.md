@@ -1,8 +1,8 @@
 # OpenCode FIT – #628/#630 Abschlussnachweise
 - Agent/Umgebung: OpenCode, Linux
 - Beginn: 2026-11-24 17:10 UTC
-- Letzte Aktualisierung: 2026-11-24 19:09 UTC
-- Status: aktiv
+- Letzte Aktualisierung: 2026-11-24 19:24 UTC
+- Status: pausiert
 - Rolle/Zuständigkeit: FIT-Decoder, SQLite-Import, Integration/CI
 - Aktueller Auftrag: #628/#630 eigenständig technisch abschließen; zuerst identische S10 FIT-Vorher/Nachher-Replays und tatsächliche SQLite-Persistenz nachweisen.
 - Jetzt in Bearbeitung: S10 FIT-Sicherungsvalidierung und Decodervergleich `origin/main` versus PR #630; anschließend isolierte SQLite-Replays, Fehlerklassen und S10-Instrumentation, soweit sicher möglich.
@@ -10,5 +10,5 @@
 - Betroffene Bereiche/Dateien: private lokale Evidenz `/home/smiler/.local/share/pulselibre/s10-issue628-evidence-20261124`; FIT-Replay-/SQLite-Tests und `docs/protocol/research/FIT_COMPRESSED_TIMESTAMP_REPLAY_2026-11-24.md`.
 - Branch/Worktree: `opencode/issue628-fit-timestamps`, PR-Head `cfe484fb`, base derzeit `origin/main` `8d79578c`.
 - Abstimmungsbedarf: Bitte CI-Agent aktuellen Pflichtcheckstatus für PR #630 sowie separates Main-FULL/Merge-Gate bestätigen; keine aktiven Bandkommandos.
-- Nachweise: Decoder-v2/v3 replay identisch auf 45 S10 FITs (29,028 importable; null decoder gain); pre-run v9 DB row match 29,028/29,028. Clean isolated SQLite import/reimport passed. Restore/reimport against actual v9 backup passed with 40 imported, 20 no-importable, 5 review-candidate same-version conflicts; original historical 20 failures remain unclassified. Final S10 run 2026-11-24 18:18 UTC passed on API 31. FULL/API-35 CI passed on head `5f775464` (run `45464307881`); PR #630 marked ready for review. Latest `origin/main` (`015c5ec6`) was then merged cleanly as `4ed0332c`; full branch-head CI must rerun on the sync commit.
-- Nächster Schritt: push base-sync and final activity evidence, run/verify FULL CI for resulting head, update PR/Issue with current checks. No merge/issue closure until review and required project gates; historical failure classification and broader-history coverage remain open.
+- Nachweise: Decoder-v2/v3 replay identisch auf 45 S10 FITs (29,028 importable; null decoder gain); pre-run v9 DB row match 29,028/29,028. Clean isolated SQLite import/reimport passed. Restore/reimport against actual v9 backup passed with 40 imported, 20 no-importable, 5 review-candidate same-version conflicts; original historical 20 failures remain unclassified. S10/API-31 restore/reimport passed. After latest `origin/main` (`015c5ec6`) was merged as `4ed0332c`, FULL/API-35 CI passed on head `9c5bece2` (run `45467276535`); all PR checks green. PR #630 is ready for review.
+- Nächster Schritt: owner review of PR #630; then follow repository merge and post-merge `main` FULL gates. Do not merge/close before review/gates. Historical failure classification and broader-history coverage remain open.
