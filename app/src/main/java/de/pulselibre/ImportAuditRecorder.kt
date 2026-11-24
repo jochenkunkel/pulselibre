@@ -35,8 +35,8 @@ internal object ImportAuditRecorder {
         val values = ContentValues().apply {
             put("import_run_id", runId)
             put("started_at_ms", startedAtMs)
-            put("finished_at_ms", finishedAtMs)
-            put("source_sha256", sourceSha256)
+            if (finishedAtMs == null) putNull("finished_at_ms") else put("finished_at_ms", finishedAtMs)
+            if (sourceSha256 == null) putNull("source_sha256") else put("source_sha256", sourceSha256)
             put("decoder_version", decoderVersion)
             put("profile_version", profileVersion)
             put("status", status)
@@ -59,15 +59,26 @@ internal object ImportAuditRecorder {
         require(runId.isNotBlank() && errorClass.matches(Regex("[A-Z_]{1,32}")) && occurredAtMs >= 0)
         require(decision in setOf("FILE_SKIPPED", "RUN_ABORTED"))
         require(sourceSha256 == null || sourceSha256.matches(Regex("[0-9a-f]{64}")))
-        val alreadyPresent = db.rawQuery(
-            """SELECT 1 FROM import_errors WHERE import_run_id=? AND error_class=?
-               AND occurred_at_ms=? AND (source_sha256=? OR (source_sha256 IS NULL AND ? IS NULL)) LIMIT 1""",
-            arrayOf(runId, errorClass, occurredAtMs.toString(), sourceSha256, sourceSha256)
-        ).use { it.moveToFirst() }
+        // rawQuery binds every String argument via bindString; a null String throws
+        // "bind value at index N is null". Split the lookup so null hashes are matched
+        // with SQL IS NULL and never bound as parameters.
+        val alreadyPresent = if (sourceSha256 == null) {
+            db.rawQuery(
+                """SELECT 1 FROM import_errors WHERE import_run_id=? AND error_class=?
+                   AND occurred_at_ms=? AND source_sha256 IS NULL LIMIT 1""",
+                arrayOf(runId, errorClass, occurredAtMs.toString())
+            ).use { it.moveToFirst() }
+        } else {
+            db.rawQuery(
+                """SELECT 1 FROM import_errors WHERE import_run_id=? AND error_class=?
+                   AND occurred_at_ms=? AND source_sha256=? LIMIT 1""",
+                arrayOf(runId, errorClass, occurredAtMs.toString(), sourceSha256)
+            ).use { it.moveToFirst() }
+        }
         if (alreadyPresent) return false
         val values = ContentValues().apply {
             put("import_run_id", runId)
-            put("source_sha256", sourceSha256)
+            if (sourceSha256 == null) putNull("source_sha256") else put("source_sha256", sourceSha256)
             put("error_class", errorClass)
             put("redacted_message", REDACTED_MESSAGE)
             put("occurred_at_ms", occurredAtMs)

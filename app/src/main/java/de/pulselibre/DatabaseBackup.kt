@@ -1,6 +1,8 @@
 package de.pulselibre
 
+import android.content.ContentValues
 import android.content.Context
+import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import org.json.JSONObject
 import java.io.BufferedInputStream
@@ -25,7 +27,7 @@ import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
 
 private const val BACKUP_FORMAT = "de.pulselibre.local-database-backup"
-private const val BACKUP_VERSION = 10
+private const val BACKUP_VERSION = 11
 private const val MAX_ARCHIVE_BYTES = 128L * 1024L * 1024L
 private const val MAX_ENTRY_BYTES = 120L * 1024L * 1024L
 private const val MAX_LINE_BYTES = 2 * 1024 * 1024
@@ -50,6 +52,9 @@ private const val CANONICAL_ACTIVE_FIT_GENERATIONS_ENTRY = "canonical_fit_active
 private const val CANONICAL_FIT_REVIEW_CANDIDATES_ENTRY = "canonical_fit_review_candidates.jsonl"
 private const val LEGACY_FIT_REVIEW_CANDIDATES_ENTRY = "legacy_fit_review_candidates.jsonl"
 private const val LIVE_DEVICE_METADATA_ENTRY = "live_device_metadata.jsonl"
+private const val IMPORT_RUNS_ENTRY = "import_runs.jsonl"
+private const val IMPORT_ERRORS_ENTRY = "import_errors.jsonl"
+private const val OBSERVATION_STATUS_EVENTS_ENTRY = "observation_status_events.jsonl"
 private const val MANIFEST_ENTRY = "manifest.json"
 private val BACKUP_V1_ENTRIES = setOf(EVENTS_ENTRY, READINGS_ENTRY, CURSORS_ENTRY)
 private val BACKUP_V2_ENTRIES =
@@ -73,6 +78,9 @@ private val BACKUP_V8_ENTRIES = BACKUP_V7_ENTRIES + setOf(
 )
 private val BACKUP_V9_ENTRIES = BACKUP_V8_ENTRIES + DownloadedFileArchive.BACKUP_ENTRY
 private val BACKUP_V10_ENTRIES = BACKUP_V9_ENTRIES + CANONICAL_FIT_GENERATION_FIELDS_ENTRY
+private val BACKUP_V11_ENTRIES = BACKUP_V10_ENTRIES + setOf(
+    IMPORT_RUNS_ENTRY, IMPORT_ERRORS_ENTRY, OBSERVATION_STATUS_EVENTS_ENTRY
+)
 
 data class DatabaseBackupReport(
     val createdAt: String,
@@ -170,7 +178,8 @@ object DatabaseBackup {
                 7 -> BACKUP_V7_ENTRIES
                 8 -> BACKUP_V8_ENTRIES
                 9 -> BACKUP_V9_ENTRIES
-                BACKUP_VERSION -> BACKUP_V10_ENTRIES
+                10 -> BACKUP_V10_ENTRIES
+                BACKUP_VERSION -> BACKUP_V11_ENTRIES
                 else -> throw IllegalArgumentException("Backup-Version wird nicht unterstützt")
             }
             require(extracted.keys == dataEntries + MANIFEST_ENTRY) {
@@ -257,7 +266,32 @@ object DatabaseBackup {
 
     /** Replace all rows in both stores in one SQLite transaction; settings and preferences remain. */
     fun restore(context: Context, plan: PreparedDatabaseRestore) {
-        try { restoreRows(context, plan) } finally { TrendCache.invalidate() } // A6-33
+        try {
+            restoreRows(context, plan)
+            if (plan.version >= 11) {
+                val db = CirqaDatabase(context)
+                val sql = db.writableDatabase
+                try {
+                    sql.beginTransaction()
+                    try {
+                        File(plan.directory, IMPORT_RUNS_ENTRY).bufferedReader(Charsets.UTF_8).use {
+                            restoreAuditRows(sql, it.lineSequence(), "import_runs")
+                        }
+                        File(plan.directory, IMPORT_ERRORS_ENTRY).bufferedReader(Charsets.UTF_8).use {
+                            restoreAuditRows(sql, it.lineSequence(), "import_errors")
+                        }
+                        File(plan.directory, OBSERVATION_STATUS_EVENTS_ENTRY).bufferedReader(Charsets.UTF_8).use {
+                            restoreAuditRows(sql, it.lineSequence(), "observation_status_events")
+                        }
+                        sql.setTransactionSuccessful()
+                    } finally {
+                        sql.endTransaction()
+                    }
+                } finally {
+                    db.close()
+                }
+            }
+        } finally { TrendCache.invalidate() } // A6-33
     }
 
     private fun restoreRows(context: Context, plan: PreparedDatabaseRestore) {
@@ -841,6 +875,24 @@ object DatabaseBackup {
                         DownloadedFileArchive.export(db, emit)
                     }
                     metadata.put(DownloadedFileArchive.BACKUP_ENTRY, entryMetadata(originalFiles))
+                    val importRuns = writeJsonLines(zip, IMPORT_RUNS_ENTRY) { emit ->
+                        db.rawQuery("SELECT * FROM main.import_runs ORDER BY import_run_id", null).use { rows ->
+                            while (rows.moveToNext()) emit(encodeAuditRow(rows))
+                        }
+                    }
+                    metadata.put(IMPORT_RUNS_ENTRY, entryMetadata(importRuns))
+                    val importErrors = writeJsonLines(zip, IMPORT_ERRORS_ENTRY) { emit ->
+                        db.rawQuery("SELECT * FROM main.import_errors ORDER BY import_run_id, id", null).use { rows ->
+                            while (rows.moveToNext()) emit(encodeAuditRow(rows))
+                        }
+                    }
+                    metadata.put(IMPORT_ERRORS_ENTRY, entryMetadata(importErrors))
+                    val statusEvents = writeJsonLines(zip, OBSERVATION_STATUS_EVENTS_ENTRY) { emit ->
+                        db.rawQuery("SELECT * FROM main.observation_status_events ORDER BY id", null).use { rows ->
+                            while (rows.moveToNext()) emit(encodeAuditRow(rows))
+                        }
+                    }
+                    metadata.put(OBSERVATION_STATUS_EVENTS_ENTRY, entryMetadata(statusEvents))
                     require(
                         events.bytes + readings.bytes + cursors.bytes + sources.bytes + provenance.bytes +
                             canonicalReadings.bytes + canonicalCursors.bytes + canonicalSources.bytes +
@@ -848,7 +900,8 @@ object DatabaseBackup {
                             rawDeviceMetadata.bytes + canonicalUnmappedFields.bytes +
                             generations.bytes + generationObservations.bytes + activeGenerations.bytes +
                             generationFields.bytes + reviewCandidates.bytes + legacyReviewCandidates.bytes +
-                            liveMetadata.bytes + originalFiles.bytes <= MAX_ARCHIVE_BYTES
+                            liveMetadata.bytes + originalFiles.bytes + importRuns.bytes +
+                            importErrors.bytes + statusEvents.bytes <= MAX_ARCHIVE_BYTES
                     ) {
                         "Lokale Datenbank ist zu groß für ein Backup"
                     }
@@ -906,7 +959,7 @@ object DatabaseBackup {
         .put("sha256", value.sha256)
 
     private fun extractArchive(source: InputStream, directory: File): Map<String, File> {
-        val allowed = BACKUP_V10_ENTRIES + MANIFEST_ENTRY
+        val allowed = BACKUP_V11_ENTRIES + MANIFEST_ENTRY
         val files = linkedMapOf<String, File>()
         var totalBytes = 0L
         ZipInputStream(BufferedInputStream(source)).use { zip ->
@@ -938,6 +991,44 @@ object DatabaseBackup {
         return files
     }
 
+    /** Generic row encoding for additive audit tables (no blobs, no guessed semantics). */
+    private fun encodeAuditRow(rows: Cursor): String {
+        val json = JSONObject()
+        for (index in 0 until rows.columnCount) {
+            val key = rows.getColumnName(index)
+            if (rows.isNull(index)) {
+                json.put(key, JSONObject.NULL)
+            } else {
+                when (rows.getType(index)) {
+                    Cursor.FIELD_TYPE_INTEGER -> json.put(key, rows.getLong(index))
+                    Cursor.FIELD_TYPE_FLOAT -> json.put(key, rows.getDouble(index))
+                    Cursor.FIELD_TYPE_STRING -> json.put(key, rows.getString(index))
+                    else -> json.put(key, JSONObject.NULL)
+                }
+            }
+        }
+        return json.toString()
+    }
+
+    private fun restoreAuditRows(db: SQLiteDatabase, lines: Sequence<String>, table: String) {
+        lines.forEach { line ->
+            val json = JSONObject(line)
+            val values = ContentValues()
+            json.keys().forEach { key ->
+                val value = json.get(key)
+                if (value == JSONObject.NULL) values.putNull(key)
+                else when (value) {
+                    is Number -> if (value is Double || value is Float)
+                        values.put(key, value.toDouble()) else values.put(key, value.toLong())
+                    is Boolean -> values.put(key, if (value) 1 else 0)
+                    is String -> values.put(key, value)
+                    else -> error("Unsupported audit value in $table")
+                }
+            }
+            db.insertWithOnConflict(table, null, values, SQLiteDatabase.CONFLICT_IGNORE)
+        }
+    }
+
     private fun validateJsonLines(name: String, file: File): Long {
         var count = 0L
         file.bufferedReader(Charsets.UTF_8).useLines { lines ->
@@ -965,6 +1056,7 @@ object DatabaseBackup {
                     CANONICAL_FIT_REVIEW_CANDIDATES_ENTRY,
                     LEGACY_FIT_REVIEW_CANDIDATES_ENTRY -> parseFitReviewCandidate(line)
                     LIVE_DEVICE_METADATA_ENTRY -> parseLiveDeviceMetadata(line)
+                    IMPORT_RUNS_ENTRY, IMPORT_ERRORS_ENTRY, OBSERVATION_STATUS_EVENTS_ENTRY -> JSONObject(line)
                     DownloadedFileArchive.BACKUP_ENTRY -> DownloadedFileArchive.parse(line)
                 }
                 count++

@@ -403,7 +403,7 @@ class DatabaseBackupTest {
 
             val plan = DatabaseBackup.prepareRestore(context, ByteArrayInputStream(bytes.toByteArray()))
             try {
-                assertEquals(10, plan.version)
+                assertEquals(11, plan.version)
                 assertEquals(3L, plan.canonicalReadings)
                 assertEquals(1L, plan.canonicalDeviceMetadata)
                 assertEquals(1L, plan.rawDeviceMetadata)
@@ -851,7 +851,7 @@ class DatabaseBackupTest {
             DatabaseBackup.write(context, archive)
             val plan = DatabaseBackup.prepareRestore(context, ByteArrayInputStream(archive.toByteArray()))
             plan.use {
-                assertEquals(10, it.version)
+                assertEquals(11, it.version)
                 assertEquals(2L, it.liveDeviceMetadata)
                 // Restore into a fresh store to prove the entry is actually replayed.
                 val freshRoot = Files.createTempDirectory(base.cacheDir.toPath(), "backup-v8-restore-").toFile()
@@ -935,6 +935,35 @@ class DatabaseBackupTest {
         } finally {
             root.deleteRecursively()
         }
+    }
+
+    @Test fun auditTablesSurviveBackupRoundTrip() {
+        val base = ApplicationProvider.getApplicationContext<Context>()
+        val root = Files.createTempDirectory(base.cacheDir.toPath(), "audit-backup-").toFile()
+        val context = isolatedContext(base, root)
+        try {
+            CirqaDatabase(context).use { store ->
+                val db = store.writableDatabase
+                assertTrue(ImportAuditRecorder.recordRun(
+                    db, "run-audit", 1_000L, 2_000L, null, "decoder-v2", "21.222.0", "PARTIAL", 3, 1, 1
+                ))
+                assertTrue(ImportAuditRecorder.recordFileError(db, "run-audit", null, "READ", 1_500L))
+                assertTrue(ImportAuditRecorder.recordStatusEvent(
+                    db, "run-audit:file-1:READ", "cirqa-fit", "unknown", "READ", 1_500L, "decoder-v2", "21.222.0"
+                ))
+            }
+            val backup = ByteArrayOutputStream().also { DatabaseBackup.write(context, it) }.toByteArray()
+            val plan = DatabaseBackup.prepareRestore(context, ByteArrayInputStream(backup))
+            assertEquals(11, plan.version)
+            DatabaseBackup.reset(context)
+            plan.use { DatabaseBackup.restore(context, it) }
+            CirqaDatabase(context).use { store ->
+                val db = store.readableDatabase
+                assertEquals(1, db.rawQuery("SELECT COUNT(*) FROM import_runs", null).use { it.moveToFirst(); it.getInt(0) })
+                assertEquals(1, db.rawQuery("SELECT COUNT(*) FROM import_errors", null).use { it.moveToFirst(); it.getInt(0) })
+                assertEquals(1, db.rawQuery("SELECT COUNT(*) FROM observation_status_events", null).use { it.moveToFirst(); it.getInt(0) })
+            }
+        } finally { root.deleteRecursively() }
     }
 
     private fun isolatedContext(base: Context, root: File): Context = object : ContextWrapper(base) {

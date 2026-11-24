@@ -41,7 +41,7 @@ class DatabaseBackupV9ArchiveGapTest {
                 database.archiveDownloadedFile(original, byteArrayOf(1, 2), "unknown", 1_000)
             }
             val backup = ByteArrayOutputStream().also { DatabaseBackup.write(context, it) }.toByteArray()
-            assertEquals(10, DatabaseBackup.prepareRestore(context, ByteArrayInputStream(backup)).use { it.version })
+            assertEquals(11, DatabaseBackup.prepareRestore(context, ByteArrayInputStream(backup)).use { it.version })
 
             // The ZIP checksum is updated to match the tampered entry, so the rejection
             // must come from the whole-archive content validation in consume(), not from
@@ -63,9 +63,9 @@ class DatabaseBackupV9ArchiveGapTest {
         }
     }
 
-    @Test fun statusAndImportTablesStayOutsideBackupUntilOwnerDecision() {
+    @Test fun statusAndImportTablesAreInsideBackupFromV11() {
         val base = ApplicationProvider.getApplicationContext<Context>()
-        val root = Files.createTempDirectory(base.cacheDir.toPath(), "v9-status-boundary-").toFile()
+        val root = Files.createTempDirectory(base.cacheDir.toPath(), "v11-status-boundary-").toFile()
         val context = isolated(base, root)
         val event = """{"schema":1,"type":"attempt","received_at_utc":"2026-11-23T01:00:00Z"}"""
         try {
@@ -78,19 +78,19 @@ class DatabaseBackupV9ArchiveGapTest {
 
             val backup = ByteArrayOutputStream().also { DatabaseBackup.write(context, it) }.toByteArray()
             val names = zipEntryNames(backup)
-            assertFalse(names.any { it.startsWith("observation_status_events") })
-            assertFalse(names.any { it.startsWith("import_runs") })
-            assertFalse(names.any { it.startsWith("import_errors") })
+            // Since backup v11 the audit tables are part of every backup; empty tables
+            // are written as empty JSONL entries, not omitted.
+            assertTrue(names.any { it.startsWith("observation_status_events") })
+            assertTrue(names.any { it.startsWith("import_runs") })
+            assertTrue(names.any { it.startsWith("import_errors") })
 
             DatabaseBackup.reset(context)
             val plan = DatabaseBackup.prepareRestore(context, ByteArrayInputStream(backup))
+            assertEquals(11, plan.version)
             plan.use { DatabaseBackup.restore(context, it) }
 
             CirqaDatabase(context).use { database ->
                 assertEquals(listOf(event), database.allLines())
-                // Current contract: these tables are created but write-inert and are not
-                // part of any backup version. If FIT starts writing them, extend the
-                // backup format before removing this guard.
                 assertEquals(0, countRows(database, "observation_status_events"))
                 assertEquals(0, countRows(database, "import_runs"))
                 assertEquals(0, countRows(database, "import_errors"))
@@ -117,7 +117,7 @@ class DatabaseBackupV9ArchiveGapTest {
                 database.writableDatabase.version = 9
             }
             // There is no production helper expecting version 9: with the current
-            // helper (version 10) a lowered user_version is an upgrade, never a
+            // helper (version 11) a lowered user_version is an upgrade, never a
             // downgrade. Pin that no rows are lost on this seam.
             CirqaDatabase(context).use { database ->
                 assertEquals(11, database.readableDatabase.version)
