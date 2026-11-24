@@ -138,6 +138,14 @@ internal class ScienceDashboardView(context: Context) : LinearLayout(context) {
             .apply { tag = "science_not_available" }, spacing())
     }
 
+    /** Known candidate metrics get a localized name; an unknown key stays visible as stored, never dropped. */
+    private fun candidateName(key: String): String = when (key) {
+        "spo2" -> context.getString(R.string.sd_cap_m_spo2)
+        "stress" -> context.getString(R.string.sd_cap_m_stress)
+        "respiration" -> context.getString(R.string.sd_cap_m_respiration)
+        else -> key
+    }
+
     /** Capture counters only (P0): what is stored, never a health value and never a completeness claim. */
     private fun captureCard(inv: CaptureInventory): View {
         val lines = ArrayList<View>()
@@ -149,7 +157,7 @@ internal class ScienceDashboardView(context: Context) : LinearLayout(context) {
             inv.importedFitFiles?.let { lines += label(context.getString(R.string.sd_cap_fit, it), 13f, palette.ink) }
             inv.regularObservations?.let { lines += label(context.getString(R.string.sd_cap_obs, it), 13f, palette.ink) }
             inv.candidatesByMetric?.takeIf { it.isNotEmpty() }?.let { m ->
-                lines += label(context.getString(R.string.sd_cap_cand, m.entries.joinToString(", ") { "${it.key} ${it.value}" }), 13f, palette.ink)
+                lines += label(context.getString(R.string.sd_cap_cand, m.entries.joinToString(", ") { "${candidateName(it.key)} ${it.value}" }), 13f, palette.ink)
             }
             lines += label(context.getString(R.string.hsp_coverage_note), 12f, palette.muted)
         }
