@@ -1,7 +1,7 @@
 # OpenCode FIT – #628/#630 Abschlussnachweise
 - Agent/Umgebung: OpenCode, Linux
 - Beginn: 2026-11-24 17:10 UTC
-- Letzte Aktualisierung: 2026-11-24 18:24 UTC
+- Letzte Aktualisierung: 2026-11-24 19:09 UTC
 - Status: aktiv
 - Rolle/Zuständigkeit: FIT-Decoder, SQLite-Import, Integration/CI
 - Aktueller Auftrag: #628/#630 eigenständig technisch abschließen; zuerst identische S10 FIT-Vorher/Nachher-Replays und tatsächliche SQLite-Persistenz nachweisen.
@@ -10,5 +10,5 @@
 - Betroffene Bereiche/Dateien: private lokale Evidenz `/home/smiler/.local/share/pulselibre/s10-issue628-evidence-20261124`; FIT-Replay-/SQLite-Tests und `docs/protocol/research/FIT_COMPRESSED_TIMESTAMP_REPLAY_2026-11-24.md`.
 - Branch/Worktree: `opencode/issue628-fit-timestamps`, PR-Head `cfe484fb`, base derzeit `origin/main` `8d79578c`.
 - Abstimmungsbedarf: Bitte CI-Agent aktuellen Pflichtcheckstatus für PR #630 sowie separates Main-FULL/Merge-Gate bestätigen; keine aktiven Bandkommandos.
-- Nachweise: Decoder-v2/v3 replay identisch auf 45 S10 FITs (29,028 importable; null decoder gain); pre-run v9 DB row match 29,028/29,028. Clean isolated SQLite import/reimport passed. Restore/reimport against actual v9 backup passed with 40 imported, 20 no-importable, 5 review-candidate same-version conflicts; original historical 20 failures remain unclassified. Final S10 run 2026-11-24 18:18 UTC passed on API 31. PR #630 remains Draft; no current-head required checks shown beyond dependency-review.
-- Nächster Schritt: commit/push report and optional private-fixture test; check current-head GitHub CI and update #628/#630; do not merge or close because no recovered decoder gain and broader-history coverage remains open.
+- Nachweise: Decoder-v2/v3 replay identisch auf 45 S10 FITs (29,028 importable; null decoder gain); pre-run v9 DB row match 29,028/29,028. Clean isolated SQLite import/reimport passed. Restore/reimport against actual v9 backup passed with 40 imported, 20 no-importable, 5 review-candidate same-version conflicts; original historical 20 failures remain unclassified. Final S10 run 2026-11-24 18:18 UTC passed on API 31. FULL/API-35 CI passed on head `5f775464` (run `45464307881`); PR #630 marked ready for review. Latest `origin/main` (`015c5ec6`) was then merged cleanly as `4ed0332c`; full branch-head CI must rerun on the sync commit.
+- Nächster Schritt: push base-sync and final activity evidence, run/verify FULL CI for resulting head, update PR/Issue with current checks. No merge/issue closure until review and required project gates; historical failure classification and broader-history coverage remain open.
