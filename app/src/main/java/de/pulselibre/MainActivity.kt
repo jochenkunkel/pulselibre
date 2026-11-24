@@ -448,7 +448,7 @@ class MainActivity : AppCompatActivity() {
             // Age is derived from the birth date for today; a legacy stored age is only a fallback (#117).
             val age = AgeCalculator.currentAge(p.getString("birth_date", ""), p.getString("age_years", ""), java.time.LocalDate.now())
             val bmi = Bmi.assess(weightText.replace(',', '.').toDoubleOrNull(), heightText.replace(',', '.').toDoubleOrNull(), age)
-            val germanOne = java.text.NumberFormat.getNumberInstance(java.util.Locale.GERMANY).apply { maximumFractionDigits = 1; minimumFractionDigits = 1 }
+            val bmiFormat = java.text.NumberFormat.getNumberInstance(resources.configuration.locales[0]).apply { maximumFractionDigits = 1; minimumFractionDigits = 1 }
             val bmiTone = when (bmi.category?.tone) {
                 Bmi.Tone.GREEN -> DesignTokens.MINT
                 Bmi.Tone.YELLOW -> android.graphics.Color.rgb(240, 196, 40)
@@ -495,7 +495,7 @@ class MainActivity : AppCompatActivity() {
                 description = getString(R.string.main_body_weight_cd, if (weightText.isBlank()) getString(R.string.main_body_weight_unset) else getString(R.string.main_body_weight_kg_words, weightText))) { showQuickWeight { refreshBodyCard() } }
             add(PlIcon.AGE, getString(R.string.main_body_age), age?.let { getString(R.string.main_body_age_years, it) } ?: "–")
             // BMI: value + written category (colour is never the only signal); tap explains reference and limits.
-            add(PlIcon.BMI, getString(R.string.main_body_bmi), bmi.value?.let { germanOne.format(it) + " kg/m²" } ?: "–", heroText,
+            add(PlIcon.BMI, getString(R.string.main_body_bmi), bmi.value?.let { bmiFormat.format(it) + " kg/m²" } ?: "–", heroText,
                 extra = bmi.category?.let { "● " + DomainText.tr(this, it.label) } ?: bmi.note?.let { DomainText.tr(this, it) }) { showBmiInfo(bmi) }
             bodyCard.contentDescription = getString(R.string.main_body_card_cd) +
                 (0 until bodyValues.childCount).joinToString(", ") { i ->

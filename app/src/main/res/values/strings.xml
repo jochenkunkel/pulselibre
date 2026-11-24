@@ -987,6 +987,7 @@
     <string name="sd_cap_undecoded">Field types the app does not decode: %1$d (stored as raw bytes, not evaluated)</string>
     <string name="sd_cap_none">Nothing stored yet.</string>
     <string name="sd_cap_unknown">Capture status unavailable.</string>
+    <string name="sd_cap_partial">Some counters could not be read and are missing from this list. A missing line does not mean 0.</string>
     <string name="sd_only_invalid">The period only contains values outside the display range or device status. They are stored, but not drawn.</string>
     <string name="sd_summary">%1$d valid values · mean %2$s · min %3$s · max %4$s · time buckets with data %5$d %%</string>
     <string name="sd_summary_no_valid">%1$d values, none drawn as valid · time buckets with data %2$d %%</string>

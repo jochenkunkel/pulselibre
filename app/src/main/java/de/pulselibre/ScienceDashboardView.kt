@@ -163,6 +163,7 @@ internal class ScienceDashboardView(context: Context) : LinearLayout(context) {
             inv.rawNotifications?.let { lines += label(context.getString(R.string.sd_cap_raw, it), 13f, palette.ink) }
             inv.rawFitFields?.let { lines += label(context.getString(R.string.sd_cap_fields, it), 13f, palette.ink) }
             inv.undecodedFieldKinds?.takeIf { it > 0 }?.let { lines += label(context.getString(R.string.sd_cap_undecoded, it), 13f, palette.ink) }
+            if (inv.hasUnreadable) lines += label(context.getString(R.string.sd_cap_partial), 12f, palette.muted)
             lines += label(context.getString(R.string.hsp_coverage_note), 12f, palette.muted)
         }
         return card(context.getString(R.string.sd_cap_title), *lines.toTypedArray()).apply { tag = "science_capture" }

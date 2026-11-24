@@ -9,10 +9,15 @@ import java.util.Locale
  * (same population as the colours): sample size, median, mean, min/max, the most frequent value bin, and what was excluded.
  */
 internal object HistoryDensityDetail {
-    private val format = DateTimeFormatter.ofPattern("d.M. HH:mm", Locale.GERMANY)
-    private val one = java.text.NumberFormat.getNumberInstance(Locale.GERMANY).apply { maximumFractionDigits = 1 }
-
-    fun describe(t: Strings, column: HistoryDensityColumn, points: List<HistoryPoint>, unit: String, zone: ZoneId, isLast: Boolean): String {
+    /** [locale] is the app language (decimal separator, day-month order); the default keeps the German form used by the unit tests. */
+    fun describe(
+        t: Strings, column: HistoryDensityColumn, points: List<HistoryPoint>, unit: String, zone: ZoneId, isLast: Boolean,
+        locale: Locale = Locale.GERMANY
+    ): String {
+        // 24-h time in every language; only the order of day and month follows the language.
+        val format = DateTimeFormatter.ofPattern(
+            when (locale.language) { "de" -> "d.M. HH:mm"; "en" -> "M/d HH:mm"; else -> "d/M HH:mm" }, locale)
+        val one = java.text.NumberFormat.getNumberInstance(locale).apply { maximumFractionDigits = 1 }
         val inWindow = points.filter { it.receivedAt >= column.start && (it.receivedAt < column.end || (isLast && it.receivedAt == column.end)) }
         val window = "${column.start.atZone(zone).format(format)} – ${column.end.atZone(zone).format(format)}"
         if (inWindow.isEmpty()) return t.get(R.string.hd_window_empty, window)

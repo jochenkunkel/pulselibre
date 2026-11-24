@@ -390,7 +390,7 @@ class HistoryOverviewView(
                     densityView = HistoryDensityChartView(context, density, scale, zone) { index ->
                         val column = density.columns[index]
                         androidx.appcompat.app.AlertDialog.Builder(context).setTitle(context.getString(R.string.hv_density_title, DomainText.tr(context, title)))
-                            .setMessage(HistoryDensityDetail.describe(Strings.of(context), column, points, unit, zone, index == density.columns.lastIndex))
+                            .setMessage(HistoryDensityDetail.describe(Strings.of(context), column, points, unit, zone, index == density.columns.lastIndex, context.resources.configuration.locales[0]))
                             .setPositiveButton(context.getString(R.string.action_close), null).show()
                     }
                     chartHost.addView(densityView, android.widget.FrameLayout.LayoutParams(-1, dp(210)))

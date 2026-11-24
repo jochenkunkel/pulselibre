@@ -994,6 +994,7 @@
     <string name="sd_cap_undecoded">Types de champs non décodés par l’app : %1$d (enregistrés en octets bruts, non évalués)</string>
     <string name="sd_cap_none">Rien d’enregistré pour l’instant.</string>
     <string name="sd_cap_unknown">État de la capture indisponible.</string>
+    <string name="sd_cap_partial">Certains compteurs n’ont pas pu être lus et manquent dans cette liste. Une ligne absente ne signifie pas 0.</string>
     <string name="sd_only_invalid">Sur la période, il n’y a que des valeurs hors de la plage d’affichage ou des états de l’appareil. Elles sont enregistrées, mais non tracées.</string>
     <string name="sd_summary">%1$d valeurs valides · moyenne %2$s · min %3$s · max %4$s · plages horaires avec données %5$d %%</string>
     <string name="sd_summary_no_valid">%1$d valeurs, aucune tracée comme valide · plages horaires avec données %2$d %%</string>
