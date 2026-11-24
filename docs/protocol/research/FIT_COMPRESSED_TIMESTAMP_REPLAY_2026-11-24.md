@@ -91,9 +91,22 @@ under `/tmp/opencode/all-data-s10-acceptance-20261123/`, and the 24 November
 pre-run backup under `/tmp/opencode/p0-s10-run-20261124/`, did not survive the
 host restart. A bounded search of project workspaces, Downloads, Documents and
 Desktop found no replacement S10 backup; the two located S25 backups are not
-S10 evidence. No post-run backup was made for the 24 November run. Consequently
-the requested S10 before/after FIT replay and the additional recovered values
-and time ranges are **not verified**.
+S10 evidence. A separate read-only S10 inventory on 24 November found 11
+project backup ZIPs in shared storage. They were copied byte-for-byte under the
+S10 device lease to a permission-restricted local evidence directory outside
+the repository; source and copy SHA-256 values matched, and all 11 ZIP CRC
+checks passed. The archives contained 45 unique FIT originals (24 directly in
+ZIP entries and 45 total after lossless reconstruction from the v9 canonical
+download archive). No SQLite database entry was present in those backup ZIPs.
+
+The production decoder replayed those 45 originals offline: 45 seen, unique
+and decoded; 29,032 observations, all timestamped; 29,028 distinct importable
+observations. The replay's importable count applies its timestamp, quality and
+duplicate-fingerprint filters; it is not an SQLite import result. No FIT bytes,
+paths, names, hashes, sample identities or per-file details are published. This
+is a current backup-only replay, not the missing before/after comparison; it
+cannot establish additional recovery attributable to the 24 November run or
+recovered time ranges. No post-run backup was made for that run.
 
 The 24 November terminal ledger documented 32 FIT decodes, 12 successful
 commits with no importable data, and 20 failures in the subsequent
@@ -101,8 +114,9 @@ import/commit path. The recorded aggregate does not separate SQLite execution,
 source conflicts, or other import failures, and no per-error exception details
 or post-run audit snapshot have been found. Thus decoder failures attributable
 to those 20, timestamp failures, quality-filter failures, individual SQLite
-failures and other causes are all **unknown**, not zero. No one of those 20
-has yet been demonstrated fixed by this PR.
+failures and other causes are all **unknown**, not zero. The recovered
+backup-only replay does not classify or reproduce those later import/commit
+failures. No one of those 20 has yet been demonstrated fixed by this PR.
 
 ## Integration gate
 
@@ -112,5 +126,7 @@ version. The candidate uses version 3 and preserves existing provenance when
 an unchanged sample is reimported; changed sample identities still fail
 closed. Replay filters non-importable observations and remains inactive until
 explicit activation. The new SQLite instrumentation test and backup/restore
-effects require GitHub CI before integration. SQLite commit evidence for
-private data, S10 error classification and GitHub CI remain **unverified**.
+effects require GitHub CI before integration. JVM/build/lint checks passed on
+PR head `14e130a6`; the API-35 emulator instrumentation job was still running
+at the time of this update. SQLite commit evidence for the recovered S10 files
+and S10 error classification remain **unverified**.
