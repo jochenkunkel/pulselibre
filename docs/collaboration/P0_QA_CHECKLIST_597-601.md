@@ -32,6 +32,9 @@ Gilt für jeden eintreffenden PR: Head festfrieren → Diff/Provenienz prüfen �
 - [ ] FK-konsistent, datensparsam (keine Rohwerte/Adressen in Freitext), keine Promotion von Kandidaten.
 - [ ] Backup/Restore-Erweiterung mit v1–v9-Kompatibilität; integrity_check/FK.
 
-## PR #602 (GUI) – gemergt, Folge #604 offen
-- [x] FULL/API-35 war grün, Review-Kommentar `7124223016` erging vor eigenmächtigem Merge `fe30bc65`.
-- [ ] **#604 (P0, GUI):** `isUnknown`-Fall statt „Nothing stored yet" / „Noch nichts gespeichert."; Regression in `CaptureInventoryTest`; FULL/API-35 auf neuem Head; Review/Merge durch CI-Agent.
+## PR #602 (GUI) – abgeschlossen
+- [x] #604 durch PR #605 (`cd8c374f`) geschlossen: `isUnknown`, neutraler String DE/EN/ES/FR, Regression; FULL `45343846319` grün.
+- [x] PR #608 (`544b8d7a`) i18n der Kandidaten-Metriken gemergt: FULL `45347850112` inkl. API-35, DR `45347850088` SUCCESS; unbekannte Keys bleiben sichtbar.
+
+## Laufender Stand
+#597, #598, #599, #600 weiterhin ohne Implementierungs-PR (FIT). #601 Teilbaustein gemergt (`a0d15e33`), Rest offen (Anbindung + Status-Events + Backup).
