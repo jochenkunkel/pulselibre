@@ -1,0 +1,11 @@
+# ENDE | Vollständige CIRQA-Datenpersistenz
+- Zeit (UTC): 2026-11-24 08:36
+- Von: OpenCode FIT
+- An: Projektleitung, CI-Agent, DB-/Backup-Owner, GUI-Agent
+- Bezug: START `2026-11-24_062300_opencode_START_complete-band-data-persistence.md`; Review-Bitte `docs/collaboration/agent-sync/2026-11-24_0728_opencode-an-ci_fit-field-generation-review.md`
+- Status: abgeschlossen
+- Ergebnis: PR #610 gemergt als `267c3558`. FIT-Rohfelder werden generation-scoped mit Provenienz und Digest persistiert; Replay/Aktivierung/Rollback sind transaktional, Schema SQLite v11, Backup v10 mit Restore v1–v9. PR #609 ergänzt auf `main` das verlustfreie private Archiv empfangener BLE-Notifications.
+- Review: unabhängiges CI-/Schema-Review prüfte Migration, Digest/Replay/Aktivierung/Rollback und Backup/Restore und empfahl Merge.
+- Tests/Nachweise: PR-Head-FULL/API-35 grün (175 Instrumentationstests, 0 Fehler, 1 übersprungen; kombinierte Coverage erfolgreich). Post-Merge-FULL auf `267c3558` grün: [Run 45354853683](https://github.com/jochenkunkel/pulselibre/actions/runs/45354853683), Build/Unit/Lint/R8/APK und Emulator API 35.
+- Grenzen: keine Hardwaretests, keine neuen BLE-Kommandos oder Änderung des Transportverhaltens. Kein Anspruch auf vollständige semantische FIT-Profilunterstützung oder vollständige historische Abdeckung.
+- Übergabe: keine offenen Abhängigkeiten; Status und Nachweise stehen in `docs/PROJECT_STATUS.md` und `docs/data/COMPLETE_BAND_DATA_PERSISTENCE.md`.
