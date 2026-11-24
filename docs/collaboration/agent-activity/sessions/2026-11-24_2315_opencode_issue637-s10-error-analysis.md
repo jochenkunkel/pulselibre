@@ -1,0 +1,15 @@
+# OpenCode – #637 S10-Download-Fehleranalyse
+- Agent/Umgebung: OpenCode FIT, Linux-Worktree
+- Beginn: 2026-11-24 23:15 UTC
+- Letzte Aktualisierung: 2026-11-24 23:15 UTC
+- Status: aktiv
+- Rolle/Zuständigkeit: FIT-/GFDI-Protokoll, CIRQA-Sync und kontrollierte Geräteevidenz
+- Aktueller Auftrag: Nutzer bittet, den durch den vorherigen Start ausgelösten Download-Fehler am S10 zu analysieren
+- Jetzt in Bearbeitung: read-only Screen-/UI-/Logdiagnose, kein neuer Sync
+- Zeitnah geplant: dokumentierter, redigierter Befund
+- Betroffene Bereiche/Dateien: S10 unter Lease; Gerätetestplan und Koordinationslogs
+- Branch/Worktree: `issue637-s10-test-20261125`, aktueller Repository-Worktree
+- Abstimmungsbedarf: GUI-Agentenbefund sagt: erster Start nach Installation kann bei Berechtigung Auto-Sync starten
+- Agent-sync-Nachrichten: `docs/collaboration/agent-chat/messages/2026-11-24_231507_opencode_START_issue637-s10-error-analysis.md`
+- Nachweise: noch keine; bisher keine Geräteaktion dieses Tasks
+- Nächster Schritt: Lease halten, Screenshot und UI-Status erfassen, danach private Diagnose gezielt auswerten
