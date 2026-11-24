@@ -41,7 +41,7 @@ class DatabaseBackupV9ArchiveGapTest {
                 database.archiveDownloadedFile(original, byteArrayOf(1, 2), "unknown", 1_000)
             }
             val backup = ByteArrayOutputStream().also { DatabaseBackup.write(context, it) }.toByteArray()
-            assertEquals(10, DatabaseBackup.prepareRestore(context, ByteArrayInputStream(backup)).use { it.version })
+            assertEquals(11, DatabaseBackup.prepareRestore(context, ByteArrayInputStream(backup)).use { it.version })
 
             // The ZIP checksum is updated to match the tampered entry, so the rejection
             // must come from the whole-archive content validation in consume(), not from
@@ -117,7 +117,7 @@ class DatabaseBackupV9ArchiveGapTest {
                 database.writableDatabase.version = 9
             }
             // There is no production helper expecting version 9: with the current
-            // helper (version 10) a lowered user_version is an upgrade, never a
+            // helper (version 11) a lowered user_version is an upgrade, never a
             // downgrade. Pin that no rows are lost on this seam.
             CirqaDatabase(context).use { database ->
                 assertEquals(11, database.readableDatabase.version)
