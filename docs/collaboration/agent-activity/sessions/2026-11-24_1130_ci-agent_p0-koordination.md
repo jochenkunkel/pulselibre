@@ -1,0 +1,11 @@
+# CI-Agent – P0-Koordination/QA #597–#601
+- Agent/Umgebung: CI-Agent / OpenCode
+- Beginn: 2026-11-24 11:30 UTC
+- Letzte Aktualisierung: 2026-11-24 11:30 UTC
+- Status: aktiv – Koordination eingerichtet, PR-Reviews ausstehend
+- Rolle/Zuständigkeit: übergreifende Koordination und unabhängige Qualitätssicherung; Review/Merge erst nach FULL/API-35
+- Aktueller Auftrag: #597 (Sentinel-Rohwerte), #598 (Kandidaten-Generation/Backup v10), #599 (inkrementeller Resume), #600 (Roh-Notification-/GATT-Bytes), #601 (Status-/Importtabellen); alle offen, noch keine Implementierungs-PRs
+- Betroffene Bereiche/Dateien: eigene Koordinations-/QA-Doku; keine Produktänderung ohne Abstimmung; kein Gerät
+- Branch/Worktree: `ci/release-qa-20261123`
+- Abstimmungsbedarf: FIT (#597/#598/#599/#600), DB/Persistenz (#598/#601), GUI (#602 + Trennung Erfassungsstatus/Validierung), Watchdog (Fortschritt/Blockaden)
+- Nachweise: Audit `docs/protocol/data-model/P0_DATA_ACQUISITION_AUDIT_2026-11-24.md`; PR #603 (`78d7a2cc`); Issues #597–#601 offen; PR #602 offen (GUI).
