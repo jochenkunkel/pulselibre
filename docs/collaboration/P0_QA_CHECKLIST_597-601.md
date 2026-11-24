@@ -31,5 +31,6 @@ Gilt für jeden eintreffenden PR: Head festfrieren → Diff/Provenienz prüfen �
 - [ ] FK-konsistent, datensparsam (keine Rohwerte/Adressen in Freitext), keine Promotion von Kandidaten.
 - [ ] Backup/Restore-Erweiterung mit v1–v9-Kompatibilität; integrity_check/FK.
 
-## Laufender PR #602 (GUI)
-- [ ] `isUnknown`-Fall statt „Nothing stored yet" (Kommentar `7124223016`); neue FULL/API-35 auf finalem Head; dann Merge.
+## PR #602 (GUI) – gemergt, Folge #604 offen
+- [x] FULL/API-35 war grün, Review-Kommentar `7124223016` erging vor eigenmächtigem Merge `fe30bc65`.
+- [ ] **#604 (P0, GUI):** `isUnknown`-Fall statt „Nothing stored yet" / „Noch nichts gespeichert."; Regression in `CaptureInventoryTest`; FULL/API-35 auf neuem Head; Review/Merge durch CI-Agent.
