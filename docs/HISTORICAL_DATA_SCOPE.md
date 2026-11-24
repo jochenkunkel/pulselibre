@@ -1,5 +1,8 @@
 # PulsLibre: Vollständiger historischer Datenabruf (Projektziel)
 
+> **Aktuelle P0-Owner-Entscheidung (24.11.2026):** [Vollständige lokale Armband-Datenerfassung](DATA_ACQUISITION_PRIORITY.md). Auch unkalibrierte, unvalidierte und unbekannte Werte erfassen und im privaten Archiv plus SQLite-Inventar nachhalten. Die untenstehenden älteren Geräte-/Teststände sind historische Evidenz, keine Erfassungsverbote aufgrund medizinischer Unsicherheit.
+
+
 ## Verbindliches Ziel
 
 PulsLibre soll **alle vom Garmin CIRQA über die verfügbare Geräteschnittstelle zugänglichen historischen Daten** herunterladen, nicht nur historische Herzfrequenzdaten.

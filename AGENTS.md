@@ -1,5 +1,8 @@
 # PulsLibre – Arbeitsanweisungen für die Haupt-IDE und weitere Entwickler
 
+> **P0-Owner-Entscheidung (24.11.2026):** [Vollständige lokale Armband-Datenerfassung](docs/DATA_ACQUISITION_PRIORITY.md) ist verbindlich. Alle technisch zugänglichen, zulässigen Daten einschließlich unvalidierter/unbekannter Werte verlustfrei archivieren und in SQLite inventarisieren; medizinische Validierung darf Erfassung/Persistenz nicht blockieren. Datenschutz, Gerätesicherheit und explizite Hardwarefreigaben bleiben unverändert.
+
+
 ## Forschungsdaten und Git-Fixtures (Projektentscheidung 22.11.2026)
 
 Der Projektverantwortliche erklärt die Daten des aktuellen, nicht am Menschen getragenen CIRQA-Testarmbands als synthetisch und wünscht deren aktive Analyse sowie die Bereitstellung reproduzierbarer Testdaten in Git. **Verbindliche Details:** [Forschungsdatenregel](docs/collaboration/CURRENT_BAND_RAW_DATA_POLICY.md). Agenten dürfen und sollen **nachweislich synthetische, geprüfte** FIT-/SQLite-/Feldmatrix-Fixtures samt Tests im Repository ablegen. Eine pauschale Freigabe aller ungeprüften Roh-Traces, Seriennummern, Kopplungsdaten, Tokens oder fremden Daten ist damit nicht verbunden. Keine neuen aktiven Hardwarekommandos ohne gesonderte Freigabe. Die geparkte Architekturarbeit #496 bleibt unberührt.
