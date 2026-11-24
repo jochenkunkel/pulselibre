@@ -207,22 +207,21 @@ Relevant failure classes were independently exercised and passed:
 
 Generation identities include the decoder version and are immutable. The
 pre-run S10 backup's decoder-v1 observations match the v2/v3 replay values
-exactly, but no v3 reimport into a restored copy of that full backup has yet
-been run. On these recovered originals, v2 and v3 are
-field/observation-identical; v3 therefore yields zero additional measurements.
+exactly. On these recovered originals, v2 and v3 are field/observation-identical;
+v3 therefore yields zero additional measurements.
 The clean isolated v3 SQLite test establishes 29,028 stored observations and
 repeatable reimport. Restoring the pre-run v9 backup and reimporting v3 retained
 all 29,028 existing observation/provenance rows, added 40 decoder generations,
 and hit five repeatable review-candidate conflicts; it did not create new
 measurements. The historical 20 exception causes remain unclassified.
 
-On PR head `3ce07bd0`, GitHub Actions FULL CI run
-[`45459269479`](https://github.com/jochenkunkel/pulselibre/actions/runs/45459269479)
-passed: build/unit tests/lint/APK, API-35 emulator instrumentation,
-dependency-review and PR dependency-graph generation. The optional private S10
-restore test is not run by CI because private fixture arguments are absent; its
-authorized S10/API-31 run is documented above. The PR remains Draft pending
-the final report update's branch-head CI, review, and integration gates. Issue
-#628 remains open: the 45-file archive showed zero decoder gain, historical
-failure rows are not classified, and broader history coverage remains
-unverified.
+FULL/API-35 CI run
+[`45461496334`](https://github.com/jochenkunkel/pulselibre/actions/runs/45461496334)
+passed on PR head `b9fc153e`: build/unit tests/lint/APK, API-35 emulator
+instrumentation, dependency-review and PR dependency-graph generation. The
+optional private S10 restore test is not run by CI because private fixture
+arguments are absent; its authorized S10/API-31 run is documented above. PR
+#630 was marked ready for review after checks passed; review and post-merge
+`main` FULL gate remain pending. Issue #628 remains open: the 45-file archive
+showed zero decoder gain, historical failure rows are not classified, and
+broader history coverage remains unverified.
