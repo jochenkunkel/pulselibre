@@ -84,5 +84,5 @@ outside this report; none was performed.
 - [V24/V25 and V26 private-copy rerun](CIRQA_LOCAL_OFFLINE_RECONCILIATION_2026-11-20.md)
 - [In-app FIT inventory](CIRQA_IN_APP_FIT_INVENTORY_2026-11-20.md)
 - [Active-GATT path audit](CIRQA_ACTIVE_GATT_PATH_AUDIT_2026-11-20.md)
-- [CIRQA 5024 reference boundary](CIRQA_5024_REFERENCE_FIELD_LAYOUT_2026-11-17.md)
-- [5024/5050 raw-frame analysis](CIRQA_5050_RAW_FRAME_ANALYSIS_2026-11-17.md)
+- [CIRQA 5024 reference boundary](../../archive/2026-11-24/protocol/research/CIRQA_5024_REFERENCE_FIELD_LAYOUT_2026-11-17.md)
+- [5024/5050 raw-frame analysis](../../archive/2026-11-24/protocol/research/CIRQA_5050_RAW_FRAME_ANALYSIS_2026-11-17.md)

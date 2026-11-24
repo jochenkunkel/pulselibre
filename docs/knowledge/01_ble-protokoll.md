@@ -9,7 +9,7 @@
 | Hauptspezifikation (v0.1, 15.11.; `[C]` CIRQA-bestätigt / `[O]` aus Connect abgeleitet / `[U]` unbestätigt) | [`../protocol/CIRQA_PROTOCOL_SPEC.md`](../protocol/CIRQA_PROTOCOL_SPEC.md) |
 | Forschungsstand Historie (18.11., laufend aktualisiert) | [`../protocol/research/CIRQA_HISTORICAL_RESEARCH_STATUS_2026-11-18.md`](../protocol/research/CIRQA_HISTORICAL_RESEARCH_STATUS_2026-11-18.md) |
 | Design Historien-Sync (V24/V25/V26 verifiziert) | [`../protocol/sync/HISTORICAL_SYNC.md`](../protocol/sync/HISTORICAL_SYNC.md) |
-| Produktentscheidung P0 (24.11.) | [`../DATA_ACQUISITION_PRIORITY.md`](../DATA_ACQUISITION_PRIORITY.md) |
+| Produktentscheidung P0 (24.11.) | [`../DATA_ACQUISITION_PRIORITY.md`](../protocol/DATA_ACQUISITION_PRIORITY.md) |
 | Jüngster Audit (Transaktionsfilter, 24.11., offline) | [`../protocol/research/CIRQA_CONNECT_TRANSACTION_FILTER_AUDIT_2026-11-24.md`](../protocol/research/CIRQA_CONNECT_TRANSACTION_FILTER_AUDIT_2026-11-24.md) |
 | Terminal-/Pipeline-Review (23.11.) | [`../protocol/device-tests/CIRQA_S10_TERMINAL_EVIDENCE_2026-11-23.md`](../protocol/device-tests/CIRQA_S10_TERMINAL_EVIDENCE_2026-11-23.md) |
 

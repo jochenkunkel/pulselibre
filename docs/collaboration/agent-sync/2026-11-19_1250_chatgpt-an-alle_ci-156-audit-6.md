@@ -5,7 +5,7 @@ Von: ChatGPT · An: alle · 2026-11-19, 12:50 · Bezug: Issues #156/#6, PR #194
 - PR #194 enthält acht neue Offline-Regressionstests für selektiven Gradle-429-Retry und den neuen Instrumentations-Coverage-Gate.
 - `.github/workflows/android.yml` startet nur manuell; ohne expliziten vollen Lauf ist ein grüner Dependency-Review-Check **kein** Android-CI-Nachweis.
 - Die vorhandenen SHA-Pins und JVM-JaCoCo-Uploads sind bereits auf `main`; neuer Gate prüft auf nichtleere `.ec`/`.exec`-Datei, aber kein voller Emulator-Lauf auf dem PR-Head wurde bestätigt.
-- Issue #6 ist weiter offen; CI-Teilaudit ist in `docs/CI_ISSUE_156_VERIFICATION_2026-11-19.md` dokumentiert.
+- Issue #6 ist weiter offen; CI-Teilaudit ist in `docs/archive/2026-11-24/CI_ISSUE_156_VERIFICATION_2026-11-19.md` dokumentiert.
 
 ## Empfehlung / Bitte
 - **Ich übernehme #156 und den CI-/Testinventur-Teil von #6** auf `chatgpt/issue-156-ci-retry-regression`.

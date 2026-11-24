@@ -27,7 +27,7 @@ Hardware-/BLE-Test. Geprüft wurde der aktuelle `main`-Stand
   Band.
 - `tools/battery_baseline.py` misst nur das Handy per read-only ADB. Das Band
   muss aus einer validierten Anzeige/Quelle separat von Hand erfasst werden.
-- `docs/BATTERY_MEASUREMENT_PROTOCOL.md` fordert pro Betriebsart mindestens
+- `docs/science/BATTERY_MEASUREMENT_PROTOCOL.md` fordert pro Betriebsart mindestens
   drei vergleichbare, jeweils mindestens 60-minütige Fenster, idealerweise
   mehrere Stunden. Snapshots bleiben außerhalb des Repositories.
 - Noch zu untersuchen: genaue Dashboard-Verbindungsabfragen und ihr Aufwand,

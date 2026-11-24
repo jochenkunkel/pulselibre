@@ -2,9 +2,9 @@
 
 **Geplante Wissenschaftsnavigation:** eigener Hauptreiter [„Analysen“ (#227)](https://github.com/jochenkunkel/pulselibre/issues/227), [Sitemap und Modulgruppen](docs/science/ANALYSEN_NAVIGATION_CONCEPT.md); **noch nicht als App-Reiter implementiert**.
 
-**Anwenderinnen und Anwender:** [Hilfe, Benutzerhandbuch und Fehlerbehebung](docs/user/README.md).
+**Anwenderinnen und Anwender:** [Hilfe, Benutzerhandbuch und Fehlerbehebung](docs/product/user/README.md).
 
-**Neuer Chat oder Entwicklungsagent?** Zuerst [CHAT_START_HERE.md](docs/CHAT_START_HERE.md) lesen, danach den [zentralen Projektstatus](docs/PROJECT_STATUS.md) und die offenen GitHub-Issues prüfen.
+**Neuer Chat oder Entwicklungsagent?** Zuerst [CHAT_START_HERE.md](docs/project/CHAT_START_HERE.md) lesen, danach den [zentralen Projektstatus](docs/project/PROJECT_STATUS.md) und die offenen GitHub-Issues prüfen.
 
 **Offline-first Android-Projekt für Garmin CIRQA auf Samsung Galaxy S25.**
 
@@ -16,35 +16,35 @@
 
 **Projektstatus (18.11.2026):** Die CIRQA-Synchronisation und der begrenzte Mehrdateiabruf sind am Gerät nachgewiesen: V24/V25 übertrugen jeweils 33 gelistete Dateien (31 FIT, 2 Nicht-FIT). Die 31 FIT-Dateien wurden auf Länge, Header, CRC und SHA-256 geprüft; der SQLite-Import enthält 294 Metrikzeilen und wurde bei V25 ohne Duplikate wiederholt. **Nicht nachgewiesen** sind die vollständige historische Abdeckung, eine vollständige Feldinventur und die Validierung weiterer Gesundheitsmetriken. Frühere Legacy-Directory- und RFCOMM-Fehlversuche sind historische Zwischenstände. Die App ist **keine produktionsreife Garmin-Connect-Alternative**. Details und Grenzen: [aktueller Forschungsstand](docs/protocol/research/CIRQA_HISTORICAL_RESEARCH_STATUS_2026-11-18.md).
 
-**Für die Haupt-IDE VSCodium/Codium (Claude Code oder Codex als alternativ genutzter API-Zugang) und weitere Mitwirkende:** [AGENTS.md](AGENTS.md) beschreibt die gemeinsamen Arbeitsregeln, Branch-/Review-Absprachen und Sicherheitsgrenzen. Für die aktuelle CIRQA-Evidenz gilt [PROJECT_STATUS.md](docs/PROJECT_STATUS.md); ältere Protokollnotizen sind historische Beobachtungen.
+**Für die Haupt-IDE VSCodium/Codium (Claude Code oder Codex als alternativ genutzter API-Zugang) und weitere Mitwirkende:** [AGENTS.md](AGENTS.md) beschreibt die gemeinsamen Arbeitsregeln, Branch-/Review-Absprachen und Sicherheitsgrenzen. Für die aktuelle CIRQA-Evidenz gilt [PROJECT_STATUS.md](docs/project/PROJECT_STATUS.md); ältere Protokollnotizen sind historische Beobachtungen.
 
-**Für neue Mitwirkende:** [Leitfaden zur Mitarbeit](docs/CONTRIBUTING_GUIDE.md) – Einstieg, Arbeitsbereiche, Qualitätsanforderungen und Sicherheitsregeln.
+**Für neue Mitwirkende:** [Leitfaden zur Mitarbeit](docs/project/CONTRIBUTING_GUIDE.md) – Einstieg, Arbeitsbereiche, Qualitätsanforderungen und Sicherheitsregeln.
 
-**Technische Abläufe als Bilder:** [Vier illustrierte Diagramme zu BLE, Transportforschung, FIT und Architektur](docs/diagrams/README.md).
+**Technische Abläufe als Bilder:** [Vier illustrierte Diagramme zu BLE, Transportforschung, FIT und Architektur](docs/architecture/diagrams/README.md).
 
 ## PulsLibre auf einen Blick
 
 ![PulsLibre – Deine Daten. Deine Kontrolle. Bluetooth, FIT-Prüfung, lokale SQLite-Daten und transparente Analysen](design/pulselibre-workflow-poster-2026.svg)
 
-*Der dargestellte Ablauf ist eine schematische Projektillustration, kein Screenshot und kein Nachweis einer vollständig funktionierenden Gerätehistorie. Der begrenzte CIRQA-Dateiabruf und die lokale FIT-Verarbeitung sind dokumentiert; vollständige historische Abdeckung und sämtliche Messgrößen bleiben in Prüfung. [Poster als SVG öffnen](design/pulselibre-workflow-poster-2026.svg) · [Evidenz und Projektstatus](docs/PROJECT_STATUS.md).*
+*Der dargestellte Ablauf ist eine schematische Projektillustration, kein Screenshot und kein Nachweis einer vollständig funktionierenden Gerätehistorie. Der begrenzte CIRQA-Dateiabruf und die lokale FIT-Verarbeitung sind dokumentiert; vollständige historische Abdeckung und sämtliche Messgrößen bleiben in Prüfung. [Poster als SVG öffnen](design/pulselibre-workflow-poster-2026.svg) · [Evidenz und Projektstatus](docs/project/PROJECT_STATUS.md).*
 
 ## Dokumentation nach Fachbereichen
 
-**[Dokumentationswegweiser](docs/README.md)** · [UI-Konzept](docs/ui/README.md) · [CIRQA-Protokollentwicklung](docs/protocol/README.md) · [Wissenschaftliche Messwerte und Berechnungen](docs/science/README.md). Die früheren Markdown-Weiterleitungen wurden nach der Linkmigration entfernt; maßgeblich sind die kanonischen Pfade im Dokumentationswegweiser.
+**[Dokumentationswegweiser](docs/README.md)** · [UI-Konzept](docs/product/ui/README.md) · [CIRQA-Protokollentwicklung](docs/protocol/README.md) · [Wissenschaftliche Messwerte und Berechnungen](docs/science/README.md). Die früheren Markdown-Weiterleitungen wurden nach der Linkmigration entfernt; maßgeblich sind die kanonischen Pfade im Dokumentationswegweiser.
 
 ## Einstieg und Dokumentation
 
-**Für alle Chats und Entwicklungsagenten verbindlicher Einstieg:** [Zentraler Projektstatus und Übergabeprotokoll](docs/PROJECT_STATUS.md). Änderungen und neue Erkenntnisse aus anderen Chats müssen dort explizit dokumentiert werden; Chatverläufe synchronisieren sich nicht automatisch.
+**Für alle Chats und Entwicklungsagenten verbindlicher Einstieg:** [Zentraler Projektstatus und Übergabeprotokoll](docs/project/PROJECT_STATUS.md). Änderungen und neue Erkenntnisse aus anderen Chats müssen dort explizit dokumentiert werden; Chatverläufe synchronisieren sich nicht automatisch.
 
-- [Architektur, Code-Review und Ablaufdiagramme](docs/ARCHITECTURE_AND_CODE_REVIEW.md)
-- [Priorisierte Roadmap bis zu echten CIRQA-Messwerten](docs/ROADMAP_TO_CIRQA_DATA.md)
-- [Android-Gerätekompatibilität, Updates und Play-Store-Vorbereitung](docs/ANDROID_RELEASE_READINESS.md)
-- [Geräte, Einschränkungen und Sicherheitsregeln](docs/TARGET_DEVICES.md)
-- [Garmin-Protokollrecherche](docs/protocol/research/GARMIN_PROTOCOL_RESEARCH.md)
-- [S25-Testplan](docs/S25_BLE_TEST_PLAN.md)
-- [Projektziele und Anforderungen](docs/REQUIREMENTS_AND_PRINCIPLES.md)
-- [Qualitätsanforderungen](docs/QUALITY_GATE.md)
-- [Design und Branding](docs/BRANDING.md)
+- [Architektur, Code-Review und Ablaufdiagramme](docs/archive/2026-11-24/ARCHITECTURE_AND_CODE_REVIEW.md)
+- [Priorisierte Roadmap bis zu echten CIRQA-Messwerten](docs/archive/2026-11-24/ROADMAP_TO_CIRQA_DATA.md)
+- [Android-Gerätekompatibilität, Updates und Play-Store-Vorbereitung](docs/product/release/ANDROID_RELEASE_READINESS.md)
+- [Geräte, Einschränkungen und Sicherheitsregeln](docs/project/TARGET_DEVICES.md)
+- [Garmin-Protokollrecherche](docs/archive/2026-11-24/protocol/research/GARMIN_PROTOCOL_RESEARCH.md)
+- [S25-Testplan](docs/protocol/device-tests/S25_BLE_TEST_PLAN.md)
+- [Projektziele und Anforderungen](docs/project/REQUIREMENTS_AND_PRINCIPLES.md)
+- [Qualitätsanforderungen](docs/quality/QUALITY_GATE.md)
+- [Design und Branding](docs/product/BRANDING.md)
 
 ## Was derzeit tatsächlich funktioniert
 
@@ -84,7 +84,7 @@ Dieselben Prüfungen laufen auch ohne GitHub direkt auf dem Entwicklungsrechner:
 ./tools/ci-local.sh --full    # zusätzlich Lint, Test-APK und API-35-Emulator
 ```
 
-Voraussetzungen, Runner-Installation, Sicherheitsregeln, Umschalten zwischen LOCAL und CLOUD sowie Troubleshooting stehen in [docs/ci/HYBRID_CI.md](docs/ci/HYBRID_CI.md).
+Voraussetzungen, Runner-Installation, Sicherheitsregeln, Umschalten zwischen LOCAL und CLOUD sowie Troubleshooting stehen in [docs/quality/ci/HYBRID_CI.md](docs/quality/ci/HYBRID_CI.md).
 
 ## Ausblick
 
@@ -96,4 +96,4 @@ Nächster Forschungsschwerpunkt ist die abgesicherte Klärung des Bluetooth-Clas
 
 ## Lizenz und Drittanbieter-Provenienz
 
-Eigenständige PulsLibre-Beiträge stehen unter der [Apache License 2.0](LICENSE). Diese Lizenz ändert keine Rechte an Fremdcode. Die vorläufige Prüfung der AGPLv3-Protokollreferenzen und die noch offenen Herkunftsfragen stehen in [LICENSE_AGPL_AUDIT_2026-11-16.md](docs/LICENSE_AGPL_AUDIT_2026-11-16.md). **Die Prüfung ist noch keine vollständige rechtliche Freigabe.**
+Eigenständige PulsLibre-Beiträge stehen unter der [Apache License 2.0](LICENSE). Diese Lizenz ändert keine Rechte an Fremdcode. Die vorläufige Prüfung der AGPLv3-Protokollreferenzen und die noch offenen Herkunftsfragen stehen in [LICENSE_AGPL_AUDIT_2026-11-16.md](docs/project/compliance/LICENSE_AGPL_AUDIT_2026-11-16.md). **Die Prüfung ist noch keine vollständige rechtliche Freigabe.**

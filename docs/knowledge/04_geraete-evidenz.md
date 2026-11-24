@@ -4,7 +4,7 @@
 
 ## 1. Rahmenbedingungen (unverändert gültig)
 
-- **Ziel:** alle technisch zugänglichen Banddaten verlustfrei lokal/archive/SQLite sichern; unbekannte Dateiidentität verhindert nur das *Überspringen*, nie den Full-Pull. → [`../DATA_ACQUISITION_PRIORITY.md`](../DATA_ACQUISITION_PRIORITY.md), [`../protocol/data-model/P0_DATA_ACQUISITION_AUDIT_2026-11-24.md`](../protocol/data-model/P0_DATA_ACQUISITION_AUDIT_2026-11-24.md)
+- **Ziel:** alle technisch zugänglichen Banddaten verlustfrei lokal/archive/SQLite sichern; unbekannte Dateiidentität verhindert nur das *Überspringen*, nie den Full-Pull. → [`../DATA_ACQUISITION_PRIORITY.md`](../protocol/DATA_ACQUISITION_PRIORITY.md), [`../protocol/data-model/P0_DATA_ACQUISITION_AUDIT_2026-11-24.md`](../protocol/data-model/P0_DATA_ACQUISITION_AUDIT_2026-11-24.md)
 - **Testplan:** genau **ein** Trigger (automatisch ODER manuell). `MainActivity.onResume()` kann Auto-Sync starten – dieser zählt als der eine Lauf; kein zusätzlicher Button-Klick. Keine neuen BLE-Kommandos, kein SetFlags/Archive/Delete/Reset/CLOSE_ALL. Budget **120 s / 64 Seiten / 256 Dateien / 8 MiB pro Datei / 64 MiB pro Lauf**; Grenze → unvollständig, nicht erweitern. → [`../protocol/device-tests/CIRQA_P0_S10_BOUNDED_FULL_PULL_PLAN_2026-11-24.md`](../protocol/device-tests/CIRQA_P0_S10_BOUNDED_FULL_PULL_PLAN_2026-11-24.md)
 - **Lease:** vor jedem Zugriff `tools/s25_lease.py status --device s10`, gesamte Sitzung in einem gehaltenen Wrapper, danach wieder `FREI`. Kein `run-as`/Root, keine SharedPreferences-Manipulation; ohne sicheren Vorher-Export → stoppen.
 - **Abbruch:** negative Protokollantwort, ungültige Frames, unerwarteter Gerätezustand, Grenzerreichung oder unklarer Sync-Status → kontrollierter Stopp, kein Retry, kein vierter Follow-up.

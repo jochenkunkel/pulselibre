@@ -72,4 +72,4 @@ Bestehende PulsLibre-Dark-/Light-Tokens, Navy-Flächen, violette Gruppenkarten, 
 5. Tests: 320 dp, 200 % Schrift, Dark/Light, leere Datenbank, Rücknavigation, Offlinezustand, Deep Links, kein erfundener Messwert.
 
 ## Dokumentationsabgleich
-Planungsentscheidung in `docs/DASHBOARD_IMPLEMENTATION.md`, `docs/science/SCIENTIFIC_DASHBOARD_TILE_BLUEPRINT.md` und `docs/protocol/data-model/CIRQA_DASHBOARD_GROUND_RULES.md` nachgetragen; verlinkte Issues #41 #43 #44 #45 #46 #47 #219 #144 #148 erhalten Hinweise auf #227. **Dieser Commit ändert nur Dokumentation.**
+Planungsentscheidung in `docs/product/ui/DASHBOARD_IMPLEMENTATION.md`, `docs/science/SCIENTIFIC_DASHBOARD_TILE_BLUEPRINT.md` und `docs/protocol/data-model/CIRQA_DASHBOARD_GROUND_RULES.md` nachgetragen; verlinkte Issues #41 #43 #44 #45 #46 #47 #219 #144 #148 erhalten Hinweise auf #227. **Dieser Commit ändert nur Dokumentation.**

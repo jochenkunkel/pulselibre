@@ -5,7 +5,7 @@
 ## Erledigt (alles auf `main`, CI grün)
 - S10-Testbuild 2.0.0_build1929 (`main` faab231) gebaut, Signatur geprüft, auf S10 installiert (über Bestand, kein Datenverlust), startet ohne Absturz.
 - Geräteansicht (Verbunden, Empfang, Speicher, letzter Empfang je Messgröße) und Dashboard im Reiter „Analysen“ mit echten Daten (Band-HF, Telefon-HF, SpO₂ „Qualität ungeprüft“, Atmung, Stress) plus erklärte Leerzustände (Schlaf, Aktivität, HRV, Temperatur).
-- Gemeinsame Tabelle `unified_measurements`, Verlauf/Export darauf; Stillstands-Wächter (#525, CI-geprüft, nicht am Gerät); Datenvertrag-Entwurf (docs/GUI_DATA_CONTRACT_DRAFT_2026-11-23.md).
+- Gemeinsame Tabelle `unified_measurements`, Verlauf/Export darauf; Stillstands-Wächter (#525, CI-geprüft, nicht am Gerät); Datenvertrag-Entwurf (docs/protocol/data-model/GUI_DATA_CONTRACT_DRAFT_2026-11-23.md).
 
 ## Offen
 - Nutzertest des Builds auf dem S10 (Rückmeldung ausstehend).

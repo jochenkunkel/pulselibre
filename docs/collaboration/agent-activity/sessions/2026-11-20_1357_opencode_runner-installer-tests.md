@@ -8,7 +8,7 @@
 - Aktueller Auftrag: #281 – Runner-Installer-Regressionen und lokale Signing-Diagnose absichern
 - Jetzt in Bearbeitung: Sitzungsabschluss nach Merge von PR #316 und erfolgreicher Prüfung des aktuellen Main-FULL-Laufs
 - Zeitnah geplant: Die verbleibenden freigegebenen #281-Punkte in einer separaten Arbeitseinheit umsetzen; echter Self-hosted-Betrieb bleibt bis zur erforderlichen Repository-/Runner-Konfiguration aus
-- Betroffene Bereiche/Dateien: `tools/test_runner_installer.py`, `tools/runner/install-runner.sh`, `.github/workflows/android.yml`, `tools/ci/run-ci.sh`, `tools/test_signing_diagnostics.py`, `docs/ci/HYBRID_CI.md`, `docs/CI_TEST_STRATEGY.md`, diese Sitzung
+- Betroffene Bereiche/Dateien: `tools/test_runner_installer.py`, `tools/runner/install-runner.sh`, `.github/workflows/android.yml`, `tools/ci/run-ci.sh`, `tools/test_signing_diagnostics.py`, `docs/quality/ci/HYBRID_CI.md`, `docs/quality/CI_TEST_STRATEGY.md`, diese Sitzung
 - Branch/Worktree: `fix/local-signing-diagnostics` (gemergt in `main`) / `/home/smiler/04_src/pulslibe/hybrid-ci`
 - Abstimmungsbedarf: keine bekannte Überschneidung: aktive Sitzungen prüfen, keine offene PR bearbeitet Runner-Tests; Agent-Sync für #281 geprüft. Keine Änderung an Runner-Registrierung oder Repository-Einstellungen.
 - Agent-sync-Nachrichten: keine neue Nachricht erforderlich, da keine Überschneidung vorliegt.

@@ -36,7 +36,7 @@ migrated:
 
 The stores, observed source-file relationship, proposed normalized schema, and
 additive no-delete migration stages are described in the
-[storage architecture ADR](CIRQA_STORAGE_ARCHITECTURE_ADR_2026-11-18.md).
+[storage architecture ADR](../../archive/2026-11-24/protocol/data-model/CIRQA_STORAGE_ARCHITECTURE_ADR_2026-11-18.md).
 
 ## Writers, readers and retained legacy data
 

@@ -4,13 +4,13 @@ Hier finden Entwickler, die Haupt-IDE VSCodium/Codium (mit alternativem Claude-C
 
 ## Verbindliche Einstiege
 - [AGENTS.md](../../AGENTS.md): zentrale Repository-Regeln für Coding-Agenten.
-- [Autonomer Entwicklungsagent](../AUTONOMOUS_DEVELOPMENT_AGENT.md): historischer Grundauftrag; keine wiederkehrende Ausführung ohne tatsächlich eingerichtete Automation oder ausdrücklich gestarteten Agentenlauf.
-- [Chat-/Agentenübergabe](../CHAT_START_HERE.md): Einstieg ohne lange Chat-Historie.
-- [Entwicklungsplan](../DEVELOPMENT_PLAN.md): Aufgaben, Prioritäten, Risiken.
-- [Projektstatus](../PROJECT_STATUS.md): datierter aktueller Stand.
-- [Qualitätsfreigaben](../QUALITY_GATE.md): Anforderungen vor Installation/Release.
-- [Wissenschaftliche Engineering-Standards](../ENGINEERING_SCIENTIFIC_STANDARDS.md): Regeln für wissenschaftliche Funktionen.
-- [Codex-Dokumentationsprüfung](../CODEX_DOCUMENTATION_REVIEW_2026-11-17.md): historischer Prüfbericht, keine automatisch aktuelle Freigabe.
+- [Autonomer Entwicklungsagent](../project/AUTONOMOUS_DEVELOPMENT_AGENT.md): historischer Grundauftrag; keine wiederkehrende Ausführung ohne tatsächlich eingerichtete Automation oder ausdrücklich gestarteten Agentenlauf.
+- [Chat-/Agentenübergabe](../project/CHAT_START_HERE.md): Einstieg ohne lange Chat-Historie.
+- [Entwicklungsplan](../archive/2026-11-24/DEVELOPMENT_PLAN.md): Aufgaben, Prioritäten, Risiken.
+- [Projektstatus](../project/PROJECT_STATUS.md): datierter aktueller Stand.
+- [Qualitätsfreigaben](../quality/QUALITY_GATE.md): Anforderungen vor Installation/Release.
+- [Wissenschaftliche Engineering-Standards](../science/ENGINEERING_SCIENTIFIC_STANDARDS.md): Regeln für wissenschaftliche Funktionen.
+- [Codex-Dokumentationsprüfung](../archive/2026-11-24/CODEX_DOCUMENTATION_REVIEW_2026-11-17.md): historischer Prüfbericht, keine automatisch aktuelle Freigabe.
 
 - [Agenten-Abstimmung über das Repository](agent-sync/README.md): Nachrichten zwischen Agenten, Index und Regeln (verbindlich ab 2026-11-19).
 

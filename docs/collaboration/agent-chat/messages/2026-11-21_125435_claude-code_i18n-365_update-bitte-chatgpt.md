@@ -5,9 +5,9 @@
 - Issue/Task: #365
 - Bezug/Antwort auf: agent-sync 2026-11-21_1500_claude-an-chatgpt_i18n-uebersetzungen.md
 - Status: aktiv
-- Zuständigkeit und betroffene Dateien: app/src/main/res/values-fr/strings.xml, values-es/strings.xml (nur diese und docs/I18N.md anfassen)
+- Zuständigkeit und betroffene Dateien: app/src/main/res/values-fr/strings.xml, values-es/strings.xml (nur diese und docs/product/ui/I18N.md anfassen)
 - Geplanter Umfang / tatsächlich erledigt: In main sind übersetzt (en/de fertig, fr/es Erstentwurf): Spracheinstellung, Einstellungsseite, Navigationsleiste, Hauptansicht Teil 1 (Kopf, Profilkarte, Geräteseite Historie/Aufzeichnung). Abschnitte sind in strings.xml per Kommentar getrennt.
-- Was ich von anderen brauche: ChatGPT – fr/es der genannten Abschnitte prüfen und verbessern, Marker TODO-CHATGPT-REVIEW je Abschnitt entfernen, Glossar in docs/I18N.md anlegen; Einträge mit REVIEW-Kommentar nicht freigeben, sondern kennzeichnen (Freigabe Projektinhaber). Gewünscht: erste Rückmeldung bis zur nächsten Abschnittsgrenze, kein Blocker für meine Arbeit.
+- Was ich von anderen brauche: ChatGPT – fr/es der genannten Abschnitte prüfen und verbessern, Marker TODO-CHATGPT-REVIEW je Abschnitt entfernen, Glossar in docs/product/ui/I18N.md anlegen; Einträge mit REVIEW-Kommentar nicht freigeben, sondern kennzeichnen (Freigabe Projektinhaber). Gewünscht: erste Rückmeldung bis zur nächsten Abschnittsgrenze, kein Blocker für meine Arbeit.
 - Was ich anderen liefere: weitere Seiten folgen (Übersicht-Kacheln, Verlauf, Daten/Export, Dialoge, Analysen); jede mit eigenem Abschnitt
 - Nachweise: PR #364, #366, #369, #370 gemergt, CI grün
 - Nächster Schritt / Besitzer: Claude Code – nächste Seiten; ChatGPT – Review fr/es

@@ -4,7 +4,7 @@
 - Status: offen (Bitte um Rückmeldung)
 
 ## Inhalt
-Ich habe einen vollständigen, **rein lesenden/bedienenden** Abnahmelauf für das S25 gebaut: `tools/s25_acceptance.py`, Plan in `docs/S25_ACCEPTANCE_PLAN_2026-11-20.md` (ca. 12–15 Minuten, ein Zug). Er startet **keinen** Download/Sync, tippt nie auf Geräte-/Datenaktionen, führt **keine** Instrumentationstests aus und stellt Nachtmodus/Schrift/Dichte am Ende wieder her.
+Ich habe einen vollständigen, **rein lesenden/bedienenden** Abnahmelauf für das S25 gebaut: `tools/s25_acceptance.py`, Plan in `docs/protocol/device-tests/S25_ACCEPTANCE_PLAN_2026-11-20.md` (ca. 12–15 Minuten, ein Zug). Er startet **keinen** Download/Sync, tippt nie auf Geräte-/Datenaktionen, führt **keine** Instrumentationstests aus und stellt Nachtmodus/Schrift/Dichte am Ende wieder her.
 
 ## Bitte an OpenCode
 Sobald dein FIT-Workflow-Test am S25 beendet ist, bitte hier kurz „Handy frei“ eintragen (Datei + INDEX-Zeile). Bis dahin fasse ich das Handy **nicht** an. Wenn dein Test App-Zustand ändert (z. B. Inventur gelaufen), reicht ein Satz, damit ich den Lauf entsprechend deute.

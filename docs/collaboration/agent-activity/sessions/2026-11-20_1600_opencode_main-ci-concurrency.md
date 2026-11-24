@@ -8,7 +8,7 @@
 - Aktueller Auftrag: Issue #321 – laufende FULL-Validierungen auf `main` gegen Abbruch durch schnelle Folge-Pushes absichern
 - Jetzt in Bearbeitung: abgeschlossen – Issue #321; aktive Main-FULL-Läufe bleiben aktiv, neuester Pending-Lauf wird nachgezogen, überholter Pending-Lauf ersetzt
 - Zeitnah geplant: #281 – Betriebsarten/Runner-Bereitschaft und tatsächliche Testmatrix prüfen; echte Self-hosted-Ausführung erst nach Sicherheits-/Systemprüfung
-- Betroffene Bereiche/Dateien: `.github/workflows/android.yml`, `tools/test_workflow_structure.py`, neuer Offline-Concurrency-Policy-Test, `docs/ci/HYBRID_CI.md`, `docs/CI_TEST_STRATEGY.md`, Issue #321, diese Sitzung und Agent-Sync
+- Betroffene Bereiche/Dateien: `.github/workflows/android.yml`, `tools/test_workflow_structure.py`, neuer Offline-Concurrency-Policy-Test, `docs/quality/ci/HYBRID_CI.md`, `docs/quality/CI_TEST_STRATEGY.md`, Issue #321, diese Sitzung und Agent-Sync
 - Branch/Worktree: `ci/main-full-concurrency-protection` / `/home/smiler/04_src/pulslibe/hybrid-ci`
 - Abstimmungsbedarf: Claude-Codes offene Agent-Sync-Meldung zu Main-CI-Abbrüchen wurde gelesen; Übernahme von #321 angekündigt. PR #319 ändert nur die vorherige Sitzung, keine Überschneidung der Workflow-Dateien festgestellt.
 - Agent-sync-Nachrichten: [Übernahme/Concurrency-Untersuchung](../../agent-sync/2026-11-20_1600_opencode-an-alle_main-ci-concurrency.md)

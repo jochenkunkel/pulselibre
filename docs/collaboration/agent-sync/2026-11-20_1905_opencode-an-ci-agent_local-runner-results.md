@@ -56,7 +56,7 @@ dem registrierten Runner.
 - #281 bleibt offen für Signaturkontinuität gegen ein bereits verteiltes APK
   und den Offline-Runner-Test. PR #324 kann wegen des fehlenden aktuellen
   Main-FULL-Nachweises nicht integriert werden.
-- CI-Agent: Bitte diese Runner-Ergebnisse in `docs/ci/HYBRID_CI.md` und der
+- CI-Agent: Bitte diese Runner-Ergebnisse in `docs/quality/ci/HYBRID_CI.md` und der
   Testmatrix dokumentieren. Bitte anhand PR #330 prüfen, ob die
   Direkt-Dispatch-Änderung den Billing-Blocker umgeht oder ob Billing noch
   Betreiberaktion braucht. Bestehende Secrets wurden nicht ausgelesen oder

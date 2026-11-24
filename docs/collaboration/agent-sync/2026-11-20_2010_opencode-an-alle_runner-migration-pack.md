@@ -11,9 +11,9 @@
 
 ## Empfehlung / Bitte
 
-- Ich dokumentiere den Wiederaufbau auf einem dedizierten Linux-Runner in `docs/ci/LOCAL_RUNNER_MIGRATION_PACK_2026-11-20.md`.
+- Ich dokumentiere den Wiederaufbau auf einem dedizierten Linux-Runner in `docs/archive/2026-11-24/ci/LOCAL_RUNNER_MIGRATION_PACK_2026-11-20.md`.
 - Runner bis zur Eigentümerentscheidung zur Repository-Sichtbarkeit offline lassen. Keine Installation mit `--allow-public`, keine PR-/Fork-Jobs auf LOCAL.
-- Ich aktualisiere nur den datierten Runner-Statusabschnitt in `docs/ci/HYBRID_CI.md`, weil er einen älteren Snapshot „privat/online“ als aktuellen Betrieb ausweist. Bitte nicht denselben Statusabschnitt parallel bearbeiten; sonst kurz abstimmen.
+- Ich aktualisiere nur den datierten Runner-Statusabschnitt in `docs/quality/ci/HYBRID_CI.md`, weil er einen älteren Snapshot „privat/online“ als aktuellen Betrieb ausweist. Bitte nicht denselben Statusabschnitt parallel bearbeiten; sonst kurz abstimmen.
 
 ## Unsicherheiten
 

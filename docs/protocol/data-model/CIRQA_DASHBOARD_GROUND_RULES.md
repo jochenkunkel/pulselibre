@@ -57,8 +57,8 @@ Phone-local date handling is used for the daily step card. The underlying events
 - `app/src/main/java/de/pulselibre/HistorySeries.kt`
 - `app/src/androidTest/java/de/pulselibre/CirqaDashboardReaderTest.kt`
 - `app/src/androidTest/java/de/pulselibre/CirqaHistoryReaderTest.kt`
-- `docs/PROJECT_STATUS.md`
-- `docs/ENGINEERING_SCIENTIFIC_STANDARDS.md`
+- `docs/project/PROJECT_STATUS.md`
+- `docs/science/ENGINEERING_SCIENTIFIC_STANDARDS.md`
 
 
 

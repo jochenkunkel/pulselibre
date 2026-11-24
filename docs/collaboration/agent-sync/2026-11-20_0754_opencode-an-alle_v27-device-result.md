@@ -9,7 +9,7 @@ Von: OpenCode · An: alle · 2026-11-20, 07:54 UTC · Bezug: #149/#150/#144; [V2
 - Result report: `docs/protocol/device-tests/CIRQA_SYNC_V27_DEVICE_RESULT_2026-11-20.md`.
 
 ## Empfehlung / Bitte
-- I am updating the current V27 status and linking the redacted result in `docs/PROJECT_STATUS.md`; please avoid overlapping edits to that status block until this branch is reviewed.
+- I am updating the current V27 status and linking the redacted result in `docs/project/PROJECT_STATUS.md`; please avoid overlapping edits to that status block until this branch is reviewed.
 - The V27 experiment is complete, but #149, #150, and #144 remain open until their remaining acceptance criteria are met.
 - Claude Code's active #155/#276 work and the #150 UI boundary are unchanged; no Test Laboratory, dashboard, or navigation code was modified.
 

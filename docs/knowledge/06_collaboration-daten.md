@@ -1,4 +1,4 @@
-# Collaboration-Daten: Leseführer und separater Freigabevorschlag
+# Collaboration-Daten: Leseführer und Bestand
 
 > **Entscheidung der Projektleitung (24.11.2026):** Der vollständige Chat- und Abstimmungsbestand unter `docs/collaboration/` **bleibt erhalten**. Diese Datei ist rein beschreibend und schlägt **keine Löschung** vor. Etwaige Verdichtung oder Archivierung erfolgt ausschließlich nach einer gesonderten Freigabe.
 
@@ -6,13 +6,11 @@
 
 | Bereich | Dateien | Größe | Inhalt |
 |---|---:|---:|---|
-| `docs/collaboration/agent-chat/messages/` | 373 | 1,5 MB | Zeitliche START/UPDATE/ENDE/BITTE/ANTWORT/BLOCKIERT-Nachrichten, 21.–24.11.2026 |
-| `docs/collaboration/agent-sync/` | 197 | 892 KB | Gezielte, adressierte Abstimmungen inkl. `INDEX.md` (Zentralregister, 97 Einträge mit Status `offen`) |
-| `docs/collaboration/agent-activity/sessions/` | 82 | 356 KB | Sitzungsprotokolle mit Zuständigkeiten, Tickets, Dateien, Fortschritt |
-| `docs/collaboration/*.md` (Root) | 4 | – | `README.md`, `DEVICE_LEASE.md`, `CURRENT_BAND_RAW_DATA_POLICY.md`, `AGENT_HISTORY_REVIEW_2026-11-20.md` |
-| **Gesamt** | **656** | **2,8 MB** | unverändert, nichts entfernt |
-
-Verteilung der Chat-Nachrichten nach Absender: `opencode` 179, `ci-agent` 61, `claude` 50, `watchdog` 63, `chatgpt` 12, `claude-code` 7.
+| `docs/collaboration/agent-chat/` | 376 | – | Chat-Nachrichten und Chat-Einstieg |
+| `docs/collaboration/agent-sync/` | 200 | – | Adressierte Abstimmungen, Index und Formatregeln |
+| `docs/collaboration/agent-activity/` | 83 | – | Sitzungsprotokolle |
+| `docs/collaboration/` Root | 5 | – | Richtlinien, Rollen-/Datenregeln und Einstieg |
+| **Gesamt** | **664** | **2,8 MB** | Bestand einschließlich Task-Kommunikation |
 
 ## 2. Wo man mit wenigen Klicks einsteigt
 
@@ -28,7 +26,7 @@ Verteilung der Chat-Nachrichten nach Absender: `opencode` 179, `ci-agent` 61, `c
 
 ## 3. Automatisierte Nachrichten (nur Lesbarkeit, keine Löschung)
 
-63 der 373 Chat-Dateien sind `watchdog_an-gui_erinnerung_*.md` (automatische Erinnerungen, 21.–23.11.). Sie sind **inkhaltlich repetitiv** und für die fachliche Suche meist nicht relevant. Sie bleiben physisch unangetastet; für den Lesefluss einfach überspringen. Eine spätere Verdichtung (z. B. ein monatliches Sammelarchiv) wäre ein eigener Auftrag mit eigener Freigabe.
+Automatische `watchdog_an-gui_erinnerung_*.md`-Nachrichten können für die fachliche Suche übersprungen werden. Der Bestand bleibt erhalten; eine spätere Verdichtung oder Archivierung wäre ein eigener Auftrag mit eigener Freigabe.
 
 ## 4. Warum wir nichts anfassen
 
@@ -36,10 +34,6 @@ Verteilung der Chat-Nachrichten nach Absender: `opencode` 179, `ci-agent` 61, `c
 - `INDEX.md` verweist auf Dateien; eine Löschung würde Verweise zerstören.
 - Die Rollenübergabe an FIT (PR #618) setzt ausdrücklich voraus, dass Übergaben und Abstimmungen nachvollziehbar bleiben.
 
-## 5. Freigabevorlage (bitte von der Projektleitung entscheiden)
+## 5. Abgrenzung
 
-- [ ] **A – Empfohlen:** Alle 656 Dateien unverändert behalten; dieser Leseführer ist der einzige neue Eintrag.
-- [ ] **B:** Zusätzlich einen kuratierten "wichtige Stränge"-Index pflegen (neue Datei, keine Löschung).
-- [ ] **C:** Die 63 Watchdog-Erinnerungen in einem späteren, separat freigegebenen Schritt verdichten/archivieren.
-
-**Aktueller Status:** A ist umgesetzt. B und C sind **nicht** ausgeführt. Es wurden keine Collaboration-Dateien gelöscht, verschoben oder überschrieben.
+Die Entscheidung für Richtung B bezog sich auf ausgewählte Nicht-Collaboration-Dokumente. Der Collaboration-Bestand wurde **nicht** gelöscht, verschoben oder archiviert; er bleibt im aktiven Pfad. Interne Verweise auf neu geordnete Dokumente wurden angepasst.

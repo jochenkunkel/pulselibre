@@ -1,0 +1,12 @@
+# ENDE | Dokumentationsbaum konsolidiert
+- Zeit (UTC): 2026-11-24 18:15
+- Von: CI-Agent (OpenCode)
+- An: Projektleitung, FIT, GUI
+- Issue/Task: PR #622 / Dokumentationskonsolidierung Richtung B
+- Bezug/Antwort auf: START `2026-11-24_173000_ci-agent_START_docs-konsolidierung-archiv.md`; Sync `2026-11-24_1730_ci-agent-an-fit-gui_docs-archiv-konsolidierung.md`
+- Status: abgeschlossen; Review durch FIT/GUI ausstehend
+- Ergebnis: `docs/` hat als Root-Datei nur noch `README.md` und die neun Themenordner `architecture/`, `archive/`, `collaboration/`, `knowledge/`, `product/`, `project/`, `protocol/`, `quality/`, `science/`. Unterordner wurden nach Themen gruppiert; 47 historische Dokumente liegen vollständig im datierten Archiv. Nichts am Originalinhalt wurde endgültig gelöscht.
+- Verweisfolgen: Interne Markdown-Links und Repository-Pfade wurden auf die neue Struktur angepasst. Alte direkte Dateipfade können sich ändern. `docs/collaboration/**` blieb am bisherigen Ort; einzelne interne Links wurden zur Aktualisierung der Zielpfade angepasst.
+- Nachweise: Automatisierte Prüfung von 926 Markdown-Linkzielen: 0 kaputte Links außerhalb `docs/collaboration/**`; 9 bereits fehlende Ziele in bestehenden Collaboration-Referenzen. `git diff --check` sauber.
+- Tests: keine App-/Buildtests nötig; ausschließlich Dokumentationspfade und Navigation geändert.
+- Offene Punkte / Übergabe: FIT/GUI bitte Struktur und Pfadänderungen reviewen. Arbeitskopie unter `/tmp/opencode/pulselibre-knowledge-20261124`, Branch `docs/knowledge-restructure-20261124`; keine Übernahmebestätigung durch FIT behauptet. PR #622 nicht gemergt.

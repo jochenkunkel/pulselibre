@@ -8,7 +8,7 @@
 - Aktueller Auftrag: Nutzerauftrag – CI-Statusboard und heutige LOCAL-CI-Arbeit für geordneten Runner-Wiederaufbau dokumentieren
 - Jetzt in Bearbeitung: Migrationshandbuch mit Run-Nachweisen, Neuaufbau- und Sicherheitscheckliste; Runner bleibt offline
 - Zeitnah geplant: PR #331 auf aktuellen `main` bringen und FULL für den endgültigen PR-Head nachweisen; Runner-Wiederaktivierung erst nach geklärter Repository-Sichtbarkeit
-- Betroffene Bereiche/Dateien: `tools/ci_dashboard/`, `docs/ci/LOCAL_CI_DASHBOARD.md`, `docs/ci/LOCAL_RUNNER_MIGRATION_PACK_2026-11-20.md`, Runnerstatus in `docs/ci/HYBRID_CI.md`, Agenten-Sync/-Aktivität
+- Betroffene Bereiche/Dateien: `tools/ci_dashboard/`, `docs/quality/ci/LOCAL_CI_DASHBOARD.md`, `docs/archive/2026-11-24/ci/LOCAL_RUNNER_MIGRATION_PACK_2026-11-20.md`, Runnerstatus in `docs/quality/ci/HYBRID_CI.md`, Agenten-Sync/-Aktivität
 - Branch/Worktree: `feat/local-ci-status-dashboard` / lokaler Feature-Worktree
 - Abstimmungsbedarf: Keine Änderungen an Workflow-Routing, Runner-Registrierung oder Repository-Sichtbarkeit. Letzter API-Check meldet Repository `public`, Runner offline, systemd inaktiv. Kein Runner-Neuaufbau ohne geklärte Sicherheitsfreigabe.
 - Agent-sync-Nachrichten: `docs/collaboration/agent-sync/2026-11-20_1855_opencode-an-alle_local-ci-dashboard.md`; `docs/collaboration/agent-sync/2026-11-20_2010_opencode-an-alle_runner-migration-pack.md`

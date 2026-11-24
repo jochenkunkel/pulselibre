@@ -2,7 +2,7 @@
 
 **Version:** 1.0 · **Fachlicher Ausgangsstand:** 2026-11-17 · **Navigationsergänzung:** 2026-11-19, [Analysen-Konzept](ANALYSEN_NAVIGATION_CONCEPT.md) · **Status:** Forschungs- und Implementierungsplan, **keine** Freigabe medizinischer Algorithmen oder Garmin-CIRQA-Historienfunktionen.
 
-**Hinweis zum Fortschritt:** Spätere begrenzte CIRQA-Dateiabrufe (V24/V25) belegen Dateitransport, **nicht** automatisch validierte fachliche FIT-/Schlaf-/HRV-Importsemantik. Siehe `docs/PROJECT_STATUS.md` und die CIRQA-Forschungsberichte.\n\n**Zweck:** Verbindliche fachliche Spezifikation für einzelne Dashboard-Kacheln: Herkunft, Formel, Kontext, Bereich, Farbsemantik, Fehlwerte, Drilldown, Tests und Quellen. Die Umsetzung erfolgt durch den Dashboard-/Wissenschaftsagenten in Abstimmung mit `AGENTS.md`; der BLE-/GFDI-/Historientransport bleibt unberührt.
+**Hinweis zum Fortschritt:** Spätere begrenzte CIRQA-Dateiabrufe (V24/V25) belegen Dateitransport, **nicht** automatisch validierte fachliche FIT-/Schlaf-/HRV-Importsemantik. Siehe `docs/project/PROJECT_STATUS.md` und die CIRQA-Forschungsberichte.\n\n**Zweck:** Verbindliche fachliche Spezifikation für einzelne Dashboard-Kacheln: Herkunft, Formel, Kontext, Bereich, Farbsemantik, Fehlwerte, Drilldown, Tests und Quellen. Die Umsetzung erfolgt durch den Dashboard-/Wissenschaftsagenten in Abstimmung mit `AGENTS.md`; der BLE-/GFDI-/Historientransport bleibt unberührt.
 
 ## 0. Grundprinzip: wissenschaftlich statt dekorativ
 
@@ -17,7 +17,7 @@ Alle Kacheln zeigen auf Abruf: **Wert + Einheit + Zeitbezug + Quelle/Service + M
 
 ## 1. Messwertinventar des aktuellen Repositories
 
-**Technischer Ausgangspunkt:** `app/src/main/java/de/pulselibre/GarminRealtime.kt`, `docs/protocol/CIRQA_PROTOCOL_SPEC.md`, `docs/protocol/data-model/CIRQA_DASHBOARD_GROUND_RULES.md`, `docs/DASHBOARD_IMPLEMENTATION.md`.
+**Technischer Ausgangspunkt:** `app/src/main/java/de/pulselibre/GarminRealtime.kt`, `docs/protocol/CIRQA_PROTOCOL_SPEC.md`, `docs/protocol/data-model/CIRQA_DASHBOARD_GROUND_RULES.md`, `docs/product/ui/DASHBOARD_IMPLEMENTATION.md`.
 
 | Rohsignal | Garmin-ML-Service | Decoder-Feld/Einheit | CIRQA-Evidenz | Wichtige Einschränkung |
 | --- | --- | --- | --- | --- |
@@ -258,7 +258,7 @@ Die folgenden Referenzen sind **Belege für die jeweils genannte Aussage**, kein
 - **[R12]** Oxford University Hospitals NHS Foundation Trust, *How to use your pulse oximeter*, https://www.ouh.nhs.uk/redirecthandler/?id=82415Poximeter&type=patientleaflet . **O01:** Finger-Pulsoximeter-Kontext, nicht CIRQA-Validierung.
 - **[R13]** CDC, *About Sleep*, https://www.cdc.gov/sleep/about/index.html . **S01:** Schlafdauerempfehlungen nach Altersgruppe; vor Implementierung Seitenfassung und Altersgrenzen prüfen.
 
-**Wissenschaftliche Umsetzungspflicht:** Jede tatsächliche Berechnung/Schwelle erhält KDoc mit Autor/Jahr/DOI, exakter Definition, Einheiten, Kontext, Artefaktregeln, Fehlwerten, Einschränkungen und Tests; passende Ergänzung in `docs/SCIENTIFIC_REFERENCES.md`. PulseLibre-eigene Grenzwerte ausdrücklich als `PULSELIBRE EXPERIMENTAL HEURISTIC — NOT CLINICALLY VALIDATED` markieren. Siehe `docs/ENGINEERING_SCIENTIFIC_STANDARDS.md`.
+**Wissenschaftliche Umsetzungspflicht:** Jede tatsächliche Berechnung/Schwelle erhält KDoc mit Autor/Jahr/DOI, exakter Definition, Einheiten, Kontext, Artefaktregeln, Fehlwerten, Einschränkungen und Tests; passende Ergänzung in `docs/science/SCIENTIFIC_REFERENCES.md`. PulseLibre-eigene Grenzwerte ausdrücklich als `PULSELIBRE EXPERIMENTAL HEURISTIC — NOT CLINICALLY VALIDATED` markieren. Siehe `docs/science/ENGINEERING_SCIENTIFIC_STANDARDS.md`.
 
 ## 7. Implementierungs-Roadmap als Kachel-Abnahmeplan
 

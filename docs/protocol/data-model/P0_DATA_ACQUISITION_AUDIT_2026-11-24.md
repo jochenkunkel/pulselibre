@@ -1,21 +1,21 @@
 # P0-Audit: vollständige lokale Erfassung aller zugänglichen CIRQA-Daten (24.11.2026)
 
-Autor: CI-Agent (OpenCode). Grundlage: Owner-Entscheidung [`DATA_ACQUISITION_PRIORITY.md`](../../DATA_ACQUISITION_PRIORITY.md), PR #595 (`38d22ce9`). Reine Offline-Prüfung; kein Gerät, keine Rohdatenveröffentlichung.
+Autor: CI-Agent (OpenCode). Grundlage: Owner-Entscheidung [`DATA_ACQUISITION_PRIORITY.md`](../DATA_ACQUISITION_PRIORITY.md), PR #595 (`38d22ce9`). Reine Offline-Prüfung; kein Gerät, keine Rohdatenveröffentlichung.
 
 ## 1. Regelwerks-Inventur
 
 | Dokument/Stelle | Aussage | Bewertung | Korrektur |
 |---|---|---|---|
 | `AGENTS.md:103` | „keine erfundenen Gesundheitswerte", kein Commit von Roh-BLE-Payloads/Adressen/privaten Gesundheitsdaten | **Zulässig** – Integrität und Datenschutz, kein Erfassungsverbot | keine |
-| `docs/DATA_ACQUISITION_PRIORITY.md` (neu) | Erfassung vor Interpretation; Qualität als Metadatum | **Verbindlich** | keine |
-| `docs/UNIFIED_LOCAL_STORAGE_2026-11-16.md:25` | „Es werden nur beobachtete, validierte Werte gespeichert." | **Widersprüchlich** – liest sich als Persistenzverbot für unvalidierte Werte | Ergänzen: alle beobachteten Werte werden gespeichert; unvalidierte als `UNTRUSTED_CANDIDATE` mit Rohwert/Provenienz; nur validierte Werte fließen in Kennzahlen |
+| `docs/protocol/DATA_ACQUISITION_PRIORITY.md` (neu) | Erfassung vor Interpretation; Qualität als Metadatum | **Verbindlich** | keine |
+| `docs/archive/2026-11-24/UNIFIED_LOCAL_STORAGE_2026-11-16.md:25` | „Es werden nur beobachtete, validierte Werte gespeichert." | **Widersprüchlich** – liest sich als Persistenzverbot für unvalidierte Werte | Ergänzen: alle beobachteten Werte werden gespeichert; unvalidierte als `UNTRUSTED_CANDIDATE` mit Rohwert/Provenienz; nur validierte Werte fließen in Kennzahlen |
 | `FitHistoricalObservations.kt:10` (KDoc) | „Unknown fields are skipped, never guessed or imported." | **Missverständlich** – Code inventarisiert unbekannte Felder und archiviert Rohbytes; KDoc klingt nach Verwerfung | FIT: KDoc präzisieren (Inventar + Roharchiv statt „skipped"); keine Produktlogikänderung ohne Review |
 | `docs/protocol/data-model/IST_SOLL_DATENMODELL_2026-11-22.md:108` | „Unbekannte Felder werden nur inventarisiert, nie als Werte importiert" | **Teilweise zulässig** – „nicht als vertrauenswürdige Werte" ist Interpretation; Rohwert darf nicht verloren gehen | Präzisieren: Rohwert im content-addressed Originalarchiv, SQLite-Inventar mit Referenz; Promotion bleibt gesperrt |
-| `docs/SCIENCE_DASHBOARD_DESIGN_2026-11-22.md:20` | FIT-Kandidaten fließen nicht in Kennzahlen ein | **Zulässig** – Interpretationsregel | Ergänzen: Persistenz ist gerade Pflicht, nicht untersagt |
-| `docs/GROUND_RULES.md:20` / `NUTRITION_RULES.md:18` / `REQUIREMENTS_AND_PRINCIPLES.md:38` | Keine farbigen Alarme, keine Kalorien aus HR ohne validierte Quelle | **Zulässig** – UI/Aussage, nicht Erfassung | Ergänzender Hinweis: erfassungsseitig Rohwerte trotzdem speichern |
-| `docs/ARCHITECTURE_AND_CODE_REVIEW.md:86` | „Nur validierte Frames an künftige Parser geben" | **Zulässig** – meint CRC-/Längenvalidierung, keine medizinische Validierung | Klarstellen: Integritätsvalidierung ≠ medizinische Validierung |
-| `docs/HISTORICAL_SYNC.md:22`, `docs/TESTPLAN.md:37` | Historischer Download „nicht automatisch/nicht implementiert/freigegeben" | **Veraltet** – Produktpfad `startSyncRequest` existiert und ist gemergt | Historische Aussage datiert lassen, aber aktuellen Stand nachtragen; Sicherheits-Gates bleiben |
-| `docs/protocol/sync/CIRQA_HISTORICAL_DOWNLOAD_RELEASE_GATE_2026-11-17.md` | Freigabe erst nach Geräte-CRC-Evidenz | **Zulässig** – Gerätesicherheit/Testfreigabe, nicht medizinische Validierung | keine |
+| `docs/science/SCIENCE_DASHBOARD_DESIGN_2026-11-22.md:20` | FIT-Kandidaten fließen nicht in Kennzahlen ein | **Zulässig** – Interpretationsregel | Ergänzen: Persistenz ist gerade Pflicht, nicht untersagt |
+| `docs/project/GROUND_RULES.md:20` / `docs/science/NUTRITION_RULES.md:18` / `docs/project/REQUIREMENTS_AND_PRINCIPLES.md:38` | Keine farbigen Alarme, keine Kalorien aus HR ohne validierte Quelle | **Zulässig** – UI/Aussage, nicht Erfassung | Ergänzender Hinweis: erfassungsseitig Rohwerte trotzdem speichern |
+| `docs/archive/2026-11-24/ARCHITECTURE_AND_CODE_REVIEW.md:86` | „Nur validierte Frames an künftige Parser geben" | **Zulässig** – meint CRC-/Längenvalidierung, keine medizinische Validierung | Klarstellen: Integritätsvalidierung ≠ medizinische Validierung |
+| `docs/protocol/sync/HISTORICAL_SYNC.md:22`, `docs/quality/TESTPLAN.md:37` | Historischer Download „nicht automatisch/nicht implementiert/freigegeben" | **Veraltet** – Produktpfad `startSyncRequest` existiert und ist gemergt | Historische Aussage datiert lassen, aber aktuellen Stand nachtragen; Sicherheits-Gates bleiben |
+| `docs/archive/2026-11-24/protocol/sync/CIRQA_HISTORICAL_DOWNLOAD_RELEASE_GATE_2026-11-17.md` | Freigabe erst nach Geräte-CRC-Evidenz | **Zulässig** – Gerätesicherheit/Testfreigabe, nicht medizinische Validierung | keine |
 
 **Ergebnis Regelwerk:** nur `UNIFIED_LOCAL_STORAGE_2026-11-16.md:25` ist ein echter inhaltlicher Widerspruch; fünf weitere Stellen brauchen Klarstellung, damit sie nicht als Erfassungsverbot gelesen werden. Keine Regel darf Datenschutz-, Geräte- oder Hardwarefreigaben abschwächen.
 

@@ -11,6 +11,6 @@ Dein Vorschlag ist umgesetzt und mit PR #446 (`7b56ce9`) gemergt. Der FULL-CI-La
 
 Du kannst diese Zahlen für #6 verwenden; bitte als Messung ohne Schwelle/Gate bezeichnen. Nachtrag 10:52: voller main-Lauf `45014032400` auf `7b56ce9` erfolgreich, kombiniertes Artefakt vorhanden.
 
-Zusätzlich hat die Emulator-Phase jetzt eine Schutzschranke gegen versehentliche Instrumentationstests auf physischen Geräten (Offenlegungsee unten in `docs/ci/COMBINED_COVERAGE_2026-11-22.md` und Chat 10:20).
+Zusätzlich hat die Emulator-Phase jetzt eine Schutzschranke gegen versehentliche Instrumentationstests auf physischen Geräten (Offenlegungsee unten in `docs/archive/2026-11-24/ci/COMBINED_COVERAGE_2026-11-22.md` und Chat 10:20).
 
 Status: erledigt.

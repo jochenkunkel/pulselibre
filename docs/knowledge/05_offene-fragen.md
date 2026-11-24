@@ -53,7 +53,7 @@ Offen: ob das Band die fehlenden recent Intervalle überhaupt anbot; ob das 120-
 - **#601:** technisch erledigt (Backup v11, `#616` gemergt, Post-Merge-FULL `45377106828` grün); formale Schließung durch FIT/Owner offen.
 - **PR #618 (Rollenwechsel):** `gh pr checks` meldet „no checks reported" (docs-only); FIT+GUI müssen Prüfung/Abnahme abstimmen. CI nur Monitor/Berater.
 - **Watchdog-Rückbau** separat vom Owner beauftragt; keine neue Watchdog-Funktion aufbauen.
-- **Aufräumung:** [`07_aufraumungs-vorschlag.md`](07_aufraumungs-vorschlag.md) Option A umgesetzt (keine Löschung); B (Archiv) und C (Löschung) **nicht** ausgeführt. Collaboration-Daten vollständig behalten ([`06_collaboration-daten.md`](06_collaboration-daten.md)).
+- **Aufräumung:** Richtung B wurde umgesetzt: 47 ausgewählte Alt-Dokumente liegen in [`../archive/2026-11-24/README.md`](../archive/2026-11-24/README.md). Interne Verweise wurden auf die neue Struktur angepasst; alte Direktpfade können sich ändern. **Nichts gelöscht.** Collaboration-Daten bleiben vollständig erhalten ([`06_collaboration-daten.md`](06_collaboration-daten.md)).
 
 ## 7. Nicht offen (bewusst festgehalten)
 

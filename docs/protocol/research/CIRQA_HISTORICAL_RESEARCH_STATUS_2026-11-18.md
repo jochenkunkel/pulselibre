@@ -2,7 +2,7 @@
 
 **Zweck:** Aktueller, nach Quellenstatus getrennter Einstieg für alle Agenten. GitHub-`main` und die jeweils datierten Geräteberichte bleiben maßgeblich. Dies ist keine Freigabe für neue Hardwareaktionen.
 
-**Visueller Überblick:** [Bestätigte BLE-Sequenz und offene Transportpfade](../../diagrams/README.md).
+**Visueller Überblick:** [Bestätigte BLE-Sequenz und offene Transportpfade](../../architecture/diagrams/README.md).
 
 ## Aktueller Referenzstand und Feldinventur (V25)
 
@@ -31,12 +31,12 @@
 | Begrenzter Protobuf-Mehrdateiabruf | V24 / Build 1090: 33 Transfers vollständig; 31 FIT-Dateien und 2 Rohdateien privat gespeichert | 64 Item-List-Antworten; nach der ersten 33er-Liste waren `items` leer, aber `next_transaction_id` blieb gesetzt; Seitenlimit erreicht, Vollständigkeit nicht belegt |
 | Item-List-Abschluss und idempotente Wiederholung | V25 / Build 1091: Liste nach 1 Seite mit 33 Einträgen terminal; alle 33 Dateien erneut vollständig übertragen, alle bereits vorhanden | Kein neuer Datenbestand; 33 Einträge sind keine Garantie historischer Vollständigkeit |
 
-Primärnachweise: [Historical Sync V1](../experiments/CIRQA_HISTORICAL_SYNC_V1_2026-11-18.md), [bounded Directory/FIT](../experiments/CIRQA_BOUNDED_DIRECTORY_FIT_TRANSFER_2026-11-18.md), [RFCOMM-Vorbereitung](../experiments/CIRQA_RFCOMM_PREPARATION_2026-11-18.md). Frühe Berichte sind historische Snapshots, keine aktuellen Testanweisungen.
+Primärnachweise: [Historical Sync V1](../../archive/2026-11-24/protocol/experiments/CIRQA_HISTORICAL_SYNC_V1_2026-11-18.md), [bounded Directory/FIT](../experiments/CIRQA_BOUNDED_DIRECTORY_FIT_TRANSFER_2026-11-18.md), [RFCOMM-Vorbereitung](../../archive/2026-11-24/protocol/experiments/CIRQA_RFCOMM_PREPARATION_2026-11-18.md). Frühe Berichte sind historische Snapshots, keine aktuellen Testanweisungen.
 
 ## Wichtige Korrektur (2026-11-18)
 
 Die negativen Ergebnisse dürfen **nicht** als „CIRQA hat keine FIT-Daten" gelesen
-werden. [Eigene Connect-Geräteevidenz](../../device-tests/CIRQA_GARMIN_CONNECT_SYNC_EVIDENCE_2026-11-16.md)
+werden. [Eigene Connect-Geräteevidenz](../device-tests/CIRQA_GARMIN_CONNECT_SYNC_EVIDENCE_2026-11-16.md)
 belegt echte Syncs dieses CIRQA (UPLOAD `MONITORING_B`, `SLEEP_DATA`,
 `BIOMETRIC`; DOWNLOAD `TRUE_UP`, `BIOMETRIC`, teils ACKED). Das Gerät besitzt
 also abrufbare Daten; unsere drei getesteten Wege waren unvollständig.
@@ -129,8 +129,8 @@ erneut `integrity_check`. Das bestätigt Idempotenz und die terminale
 Ein-Seiten-Interpretation am Gerät. Ob diese 33 Einträge alle historischen
 Einträge darstellen, bleibt unbewiesen. Es wurden keine Archiv-, Flag-, Lösch-,
 Reset- oder `CLOSE_ALL`-Befehle gesendet. Vollständiger Bericht:
-[V24-Geräteergebnis](../../device-tests/CIRQA_SYNC_V24_DEVICE_RESULT_2026-11-18.md).
-[V25-Geräteergebnis](../../device-tests/CIRQA_SYNC_V25_DEVICE_RESULT_2026-11-18.md).
+[V24-Geräteergebnis](../device-tests/CIRQA_SYNC_V24_DEVICE_RESULT_2026-11-18.md).
+[V25-Geräteergebnis](../device-tests/CIRQA_SYNC_V25_DEVICE_RESULT_2026-11-18.md).
 
 Die UID muss nicht interpretiert werden; ihre rohen Bytes werden unverändert
 in den Pull-Request übernommen. Parser und Pull-Builder sind offline getestet.
@@ -240,7 +240,7 @@ Vorhandener Code: `CirqaRfcommTransport`, `CirqaRfcommRunner`, `CirqaRfcommDirec
 - [Protokollspezifikation](../CIRQA_PROTOCOL_SPEC.md): Formatverträge, jeweils mit Nachweisstatus.
 - [Experimente](../experiments/): datierte Versuchsberichte, einschließlich Hardwareevidenz.
 - [Gerätetests](../device-tests/): datierte Feldtests, ältere Dateien als Archiv betrachten.
-- [Sync-Plan](../sync/CIRQA_HISTORY_SYNC_PLAN.md): Zielarchitektur, nicht als bereits realisierte Funktion lesen.
-- [Projektstatus](../../PROJECT_STATUS.md) und [Chat-Einstieg](../../CHAT_START_HERE.md): teamweite Übergabe.
+- [Sync-Plan](../../archive/2026-11-24/protocol/sync/CIRQA_HISTORY_SYNC_PLAN.md): Zielarchitektur, nicht als bereits realisierte Funktion lesen.
+- [Projektstatus](../../project/PROJECT_STATUS.md) und [Chat-Einstieg](../../project/CHAT_START_HERE.md): teamweite Übergabe.
 
 **Keine Dateien allein zur kosmetischen Umordnung verschieben:** Bestehende kanonische Pfade und Links erhalten; veraltete Aussagen mit datiertem Hinweis kennzeichnen statt historische Evidenz zu überschreiben.

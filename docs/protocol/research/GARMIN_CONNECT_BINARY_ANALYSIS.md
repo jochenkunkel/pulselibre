@@ -16,7 +16,7 @@ Die vorhandenen PulsLibre-Berichte beschreiben die Analyse von Garmin Connect **
 | RFCOMM-Datenstrom | `GfdiDeviceCompat.open(inputStream, outputStream, …)`; GFDI/COBS über Stream | BLE- und RFCOMM-Verhalten können abweichen |
 | Protobuf 5043 | `connection_ready_notification`; laut dokumentierter Connect-Analyse Transport-ACK, kein zwingendes 5044 | Nachrichtensemantik nur für beobachtete Form |
 
-**Primärdokumente:** [RFCOMM-Vorbereitung](../experiments/CIRQA_RFCOMM_PREPARATION_2026-11-18.md), [Projektstatus](../../PROJECT_STATUS.md), [aktueller Forschungsstand](CIRQA_HISTORICAL_RESEARCH_STATUS_2026-11-18.md). Gerätebeobachtungen stets getrennt von Binary-Inferenz ausweisen. Der aktuelle Forschungsstand dokumentiert inzwischen auch einen ersten RFCOMM-V1-Lauf ohne Gegenverbindung; ältere RFCOMM-Vorbereitungsberichte sind daher datierte Snapshots.
+**Primärdokumente:** [RFCOMM-Vorbereitung](../../archive/2026-11-24/protocol/experiments/CIRQA_RFCOMM_PREPARATION_2026-11-18.md), [Projektstatus](../../project/PROJECT_STATUS.md), [aktueller Forschungsstand](CIRQA_HISTORICAL_RESEARCH_STATUS_2026-11-18.md). Gerätebeobachtungen stets getrennt von Binary-Inferenz ausweisen. Der aktuelle Forschungsstand dokumentiert inzwischen auch einen ersten RFCOMM-V1-Lauf ohne Gegenverbindung; ältere RFCOMM-Vorbereitungsberichte sind daher datierte Snapshots.
 
 ## Rechtlicher Rahmen (Deutschland/EU) – keine individuelle Rechtsberatung
 

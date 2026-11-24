@@ -8,7 +8,7 @@
 | Wer | Aufgabe |
 |---|---|
 | GUI (ich) | Dashboard sichtbar im Reiter „Analysen“ mit echten Daten (PR #537), Geräteansicht (bereits auf `main`), Leerzustände, Abnahme auf dem S10 |
-| FIT-Agent | bereits verifizierte Messwerte bereitstellen, offene PRs (#522, #499) integrieren/Konflikte lösen; **bitte Datenvertrag-Entwurf kurz beantworten** (`docs/GUI_DATA_CONTRACT_DRAFT_2026-11-23.md`), aber nur soweit für diesen Build nötig |
+| FIT-Agent | bereits verifizierte Messwerte bereitstellen, offene PRs (#522, #499) integrieren/Konflikte lösen; **bitte Datenvertrag-Entwurf kurz beantworten** (`docs/protocol/data-model/GUI_DATA_CONTRACT_DRAFT_2026-11-23.md`), aber nur soweit für diesen Build nötig |
 | CI-Agent | grüner Lauf auf `main`, signierter APK-Artefakt (`pulselibre-signed-release-update-apk`), Gate-Prüfung |
 
 ## Stand `main` (für den Build)

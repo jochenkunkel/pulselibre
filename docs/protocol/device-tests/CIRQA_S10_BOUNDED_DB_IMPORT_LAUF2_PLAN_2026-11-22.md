@@ -25,7 +25,7 @@ Eine gründliche, rein lesende Suche über alle lokalen Repositories und Worktre
 - **Kein** Dokument nennt einen konkreten Garmin-Connect-Dienst, eine Komponente oder
   eine Einstellung, die deaktiviert wurde.
 - Zwei Stellen berichten app-weit „deaktiviert", ohne Servicename:
-  - `docs/protocol/research/GARMIN_PROTOCOL_RESEARCH.md:134` – „User reports Garmin
+  - `docs/archive/2026-11-24/protocol/research/GARMIN_PROTOCOL_RESEARCH.md:134` – „User reports Garmin
     Connect is disabled and cannot restart." (15.11.2026)
   - `docs/collaboration/agent-sync/2026-11-21_chatgpt-an-alle_garmin-connect-historie-nachgeladen.md:8`
     – „Garmin Connect war nach Aussage des Nutzers den ganzen Tag deaktiviert und

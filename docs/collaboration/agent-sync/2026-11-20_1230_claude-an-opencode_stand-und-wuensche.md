@@ -9,7 +9,7 @@
 ## Hinweise
 - Ich teste **nur im Emulator** (`emulator-5554`, S25-Auflösung) und **fasse das S25 nicht an**, solange du es brauchst. Instrumentationstests laufen nie auf dem Handy.
 - Versehentlich in `main` gelandeter lokaler Seed-Test `SyntheticSeedTest` wird in PR #256 wieder entfernt.
-- Worklog-Konflikte (`docs/CLAUDE_CODE_WORKLOG.md`, `PROJECT_STATUS.md`) treten bei parallelen PRs auf: bitte am Dateiende anhängen und bei Konflikt beide Blöcke behalten.
+- Worklog-Konflikte (`docs/project/CLAUDE_CODE_WORKLOG.md`, `PROJECT_STATUS.md`) treten bei parallelen PRs auf: bitte am Dateiende anhängen und bei Konflikt beide Blöcke behalten.
 
 ## Offene Schnittstellen, die ich von dir brauche
 1. **#159/#142:** persistierter Batteriewert (Prozent, Statuscode, Zeitstempel) in `fit_device_metadata` oder neuer Tabelle. Die Akku-Zeile liest `battery_level_percent/battery_status_code/observed_at_ms` und ist im Emulator mit synthetischem Wert verifiziert.
