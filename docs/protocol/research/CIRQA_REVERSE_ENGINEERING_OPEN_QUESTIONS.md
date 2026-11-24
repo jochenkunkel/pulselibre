@@ -5,7 +5,7 @@
 ## Update 2026-11-18 – inzwischen geklärt / verschoben
 
 Folgende Punkte der Grundliste sind **nicht mehr offen**; die aktuellen
-Gerätebefunde stehen in `docs/protocol/experiments/CIRQA_HISTORICAL_SYNC_V1_2026-11-18.md`
+Gerätebefunde stehen in `docs/archive/2026-11-24/protocol/experiments/CIRQA_HISTORICAL_SYNC_V1_2026-11-18.md`
 und `CIRQA_RFCOMM_PREPARATION_2026-11-18.md`:
 
 - **Ob CIRQA 5007/5031/5002/5004 unterstützt:** bejaht für die GFDI-Antworten;

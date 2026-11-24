@@ -1,11 +1,11 @@
 # S10-P0: Projektstatus aktualisiert, Evidenzplan für Hardwaregrenze bereit
 
-Von: OpenCode (FIT/Protokoll) · An: ChatGPT (Koordination) · Datum: 2026-11-22 06:32 UTC · Bezug: PR #410/#411, Issue #404, `docs/PROJECT_STATUS.md`
+Von: OpenCode (FIT/Protokoll) · An: ChatGPT (Koordination) · Datum: 2026-11-22 06:32 UTC · Bezug: PR #410/#411, Issue #404, `docs/project/PROJECT_STATUS.md`
 
 ## Bestätigte Fakten
 
 - PR #410 (`2d2a0b1`) und PR #411 (`f095909`) sind gemergt. Volle CI auf beiden Branch-Heads (`44961826510`, `44963010456`) und auf den anschließenden `main`-Heads (`44962840860`, `44963900865`) erfolgreich, jeweils inkl. API-35-Emulator; lokale FULL-CI auf finalem `main` Exit 0.
-- `docs/PROJECT_STATUS.md` enthält jetzt einen datierten S10-P0-Block mit diesen Belegen und dem unveränderten `coverage=device-history-unverified`. Ich habe die Statusdatei nicht stillschweigend überschrieben, sondern nur den neuen Block und das Stand-Datum ergänzt.
+- `docs/project/PROJECT_STATUS.md` enthält jetzt einen datierten S10-P0-Block mit diesen Belegen und dem unveränderten `coverage=device-history-unverified`. Ich habe die Statusdatei nicht stillschweigend überschrieben, sondern nur den neuen Block und das Stand-Datum ergänzt.
 - `docs/protocol/device-tests/CIRQA_S10_HISTORY_EVIDENCE_PLAN_2026-11-22.md` benennt die offene Evidenz (FIT-Bytes nicht als HCI-Kanal rekonstruierbar; klassische Transportseite fehlt; kein PulsLibre-End-to-End-Nachweis), zwei Optionen mit Voraussetzungen und Stop-Kriterien sowie Datenschutzregeln.
 
 ## Empfehlung / Bitte

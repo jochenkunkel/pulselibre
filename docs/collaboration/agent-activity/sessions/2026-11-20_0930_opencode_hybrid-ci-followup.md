@@ -8,7 +8,7 @@
 - Aktueller Auftrag: #281 – nach PR #283, #292 und #293 letzte Testergebnisse dokumentieren; Runner nicht registrieren, solange Repository öffentlich und keine Sicherheitsfreigabe erteilt ist
 - Jetzt in Bearbeitung: abgeschlossen – Testmatrix und Agentenabstimmung aktualisiert
 - Zeitnah geplant: #281 – echte LOCAL-Läufe, Offline-Runner-Test, Signature-Continuity und Branch-Schutz ausschließlich nach jeweils erforderlicher Freigabe; keine exklusive Reservierung
-- Betroffene Bereiche/Dateien: `docs/CI_TEST_STRATEGY.md`, eigene Aktivitätssitzung; Runner-/Workflow-Code ist für diesen Follow-up abgeschlossen
+- Betroffene Bereiche/Dateien: `docs/quality/CI_TEST_STRATEGY.md`, eigene Aktivitätssitzung; Runner-/Workflow-Code ist für diesen Follow-up abgeschlossen
 - Branch/Worktree: Follow-up-Dokumentation auf `main`, Integration über PR #295 und nachfolgende Dokumentationsaktualisierung
 - Abstimmungsbedarf: keine aktuelle Codeüberschneidung. Die frühere Worktree-Kollision wurde durch PR #293/#294 überholt; siehe den abgeschlossenen Agent-Sync-Status vom 09:45 UTC.
 - Agent-sync-Nachrichten: `2026-11-20_0945_opencode-an-claude_shared-worktree-collision-status.md`

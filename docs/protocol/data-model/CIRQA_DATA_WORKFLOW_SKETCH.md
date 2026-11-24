@@ -1,8 +1,8 @@
 # CIRQA: Messwerte, Historie, Tageswechsel – Architektur-Skizze
 
-![Bluetooth-Datenfluss von Live-Werten und historischem Nachbezug](../../assets/cirqa-bluetooth-data-flow.svg)
+![Bluetooth-Datenfluss von Live-Werten und historischem Nachbezug](../../architecture/assets/cirqa-bluetooth-data-flow.svg)
 
-**Editierbare SVG-Grafik:** [`docs/assets/cirqa-bluetooth-data-flow.svg`](../../assets/cirqa-bluetooth-data-flow.svg). Diese Grafik wurde am 2026-11-16 aus der dokumentierten Architektur neu erstellt; sie ist nicht als wiedergefundene frühere ChatGPT-Grafik auszugeben.
+**Editierbare SVG-Grafik:** [`docs/architecture/assets/cirqa-bluetooth-data-flow.svg`](../../architecture/assets/cirqa-bluetooth-data-flow.svg). Diese Grafik wurde am 2026-11-16 aus der dokumentierten Architektur neu erstellt; sie ist nicht als wiedergefundene frühere ChatGPT-Grafik auszugeben.
 
 Stand: 2026-11-15. Quellenbasiertes Design, **kein Nachweis aller Funktionen am CIRQA**.
 

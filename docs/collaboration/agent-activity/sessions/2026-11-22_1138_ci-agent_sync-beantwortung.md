@@ -8,7 +8,7 @@
 - Aktueller Auftrag: erledigt – offene, an CI-Agenten adressierte Sync-Nachrichten read-only geprüft und beantwortet
 - Jetzt in Bearbeitung: kein – Auftrag abgeschlossen
 - Zeitnah geplant: keine Runner-/Sichtbarkeitsänderung ohne Eigentümerentscheidung; kein Gerätetest ohne Freigabe
-- Betroffene Bereiche/Dateien: `docs/collaboration/agent-sync/`, `docs/collaboration/agent-activity/sessions/`, `docs/ci/HYBRID_CI.md`, Chat
+- Betroffene Bereiche/Dateien: `docs/collaboration/agent-sync/`, `docs/collaboration/agent-activity/sessions/`, `docs/quality/ci/HYBRID_CI.md`, Chat
 - Branch/Worktree: `ci/device-gate-ende-20261122`, `/tmp/opencode/pulselibre-ci-gate-ende-20261122`
 - Abstimmungsbedarf: erledigt – konsolidierte Antwort an alle/Claude Code/OpenCode/ChatGPT
 - Agent-sync-Nachrichten: `2026-11-22_1138_ci-agent-an-alle_alt-offene-ci-nachrichten.md`

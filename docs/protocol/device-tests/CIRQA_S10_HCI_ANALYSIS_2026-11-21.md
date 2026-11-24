@@ -64,7 +64,7 @@ Für eine belastbare Peering-Aussage müsste die Spur mindestens Verbindungs- od
 
 ## Befund: Sync und Bluetooth-Download
 
-Der bekannte CIRQA-Pfad benötigt eine ACL/GATT-Verbindung, CCCD-Aktivierung, MLR-Registrierung und COBS-gerahmte GFDI-Nachrichten (`5000`, `5043`, `5044`) mit anschließender Smart-Protobuf-Auswertung (`item_list_response`, ggf. `pull_item_request`). Siehe `docs/protocol/CIRQA_PROTOCOL_SPEC.md`, `docs/protocol/sync/CIRQA_HISTORY_SYNC_PLAN.md` und `docs/protocol/device-tests/CIRQA_PRODUCT_DOWNLOAD_RESULT_2026-11-21_BUILD1701.md`.
+Der bekannte CIRQA-Pfad benötigt eine ACL/GATT-Verbindung, CCCD-Aktivierung, MLR-Registrierung und COBS-gerahmte GFDI-Nachrichten (`5000`, `5043`, `5044`) mit anschließender Smart-Protobuf-Auswertung (`item_list_response`, ggf. `pull_item_request`). Siehe `docs/protocol/CIRQA_PROTOCOL_SPEC.md`, `docs/archive/2026-11-24/protocol/sync/CIRQA_HISTORY_SYNC_PLAN.md` und `docs/protocol/device-tests/CIRQA_PRODUCT_DOWNLOAD_RESULT_2026-11-21_BUILD1701.md`.
 
 In der Spur fehlen:
 

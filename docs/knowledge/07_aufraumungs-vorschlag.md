@@ -1,6 +1,6 @@
 # Dokumentationskonsolidierung – Status und Grenzen
 
-> **Stand 24.11.2026:** Die Projektleitung wählte Richtung B. 47 ausgewählte, historische Planungs-, Review- und Zwischenstands-Dokumente wurden vollständig nach [`../archive/2026-11-24/README.md`](../archive/2026-11-24/README.md) verschoben. **Nichts wurde gelöscht.**
+> **Stand 24.11.2026:** Die Projektleitung wählte Richtung B. 47 ausgewählte, historische Planungs-, Review- und Zwischenstands-Dokumente wurden nach [`../archive/2026-11-24/README.md`](../archive/2026-11-24/README.md) verschoben. Auf spätere Nutzeranweisung wurden BLE-Rohmitschnitte und ein vollständiger Rohframe aus dem aktuellen `docs/`-Baum entfernt; frühere Git-Versionen bleiben erhalten.
 
 ## Was zusammengeführt wurde
 
@@ -30,18 +30,18 @@ Das vollständige, dateiweise Manifest mit Original- und Archivpfad steht im [Ar
 
 **Umfang:** 47 Originaldokumente. Die vollständige Dateiliste steht im Archivmanifest.
 
-Die Kategorien beschreiben historische Dokumente; das Archiv bewahrt ihre ursprünglichen Inhalte und Git-Historie. Interne Verweise wurden angepasst; alte direkte Dateipfade können sich ändern.
+Die Kategorien beschreiben historische Dokumente; das Archiv bewahrt die Dokumente und ihre Git-Historie, ausgenommen die später entfernten BLE-Rohmitschnitte und den redaktierten Rohframe. Frühere Versionen dieser Inhalte bleiben historisch in Git. Interne Verweise wurden angepasst; alte direkte Dateipfade können sich ändern.
 
 ## Ausdrücklich nicht verschoben
 
 - `docs/collaboration/**` vollständig; aktueller Bestand und Einstieg in [`06_collaboration-daten.md`](06_collaboration-daten.md).
 - Aktuelle Projekt-/Qualitätsregeln, zentrale Protokollspezifikation und aktuelle Statusdokumente.
-- Primäre Geräteberichte, Rohdaten-Manifeste und FIT-Feldmatrizen.
+- Primäre, redigierte Geräteberichte, geprüfte synthetische Fixture-Manifeste und FIT-Feldmatrizen; keine BLE-Rohmitschnitte.
 - Datenschutz-, Sicherheits-, Lizenz- und Provenienznachweise.
 - Geparkte Architekturarbeit #496.
 
 ## Grenzen und Pflege
 
-- Es wurde **nichts gelöscht**. Eine spätere Löschung erfordert eine neue, konkrete Freigabe und einen Verweischeck.
+- Die 47 archivierten historischen Planungsdokumente wurden nicht pauschal gelöscht. BLE-Rohmitschnitte und der genannte Rohframe sind auf konkrete Nutzeranweisung aus dem aktuellen Dokumentationsbaum entfernt; ein Verweischeck erfolgte.
 - Bei historischen Befunden sind Datum, Geltungsbereich und spätere Korrekturen mitzulesen; das Archiv ist kein aktueller Handlungsplan.
 - Neue Erkenntnisse zuerst in die jeweilige kanonische Quelle einarbeiten, danach den Index bzw. die passende Wissensseite aktualisieren.

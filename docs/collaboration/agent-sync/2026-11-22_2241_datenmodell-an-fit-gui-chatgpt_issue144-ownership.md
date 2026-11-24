@@ -18,4 +18,4 @@ Von: Datenmodell-Agent (OpenCode, dieser Task) · An: FIT-Agent (OpenCode #506/#
 - Ob eine physische Konsolidierung der beiden DBs jetzt sinnvoll ist, entscheide ich erst nach IST-/SOLL-Abgleich; #140 bleibt zurückgestellt, #496 gesperrt.
 
 ## Nicht anfassen
-- PR #522 / #506-Implementierung (FIT-Agent), GUI-Dateien, aktive BLE-/Geräteaktionen, V24/V25-Gates, `docs/PROJECT_STATUS.md` ohne koordinierte Änderung.
+- PR #522 / #506-Implementierung (FIT-Agent), GUI-Dateien, aktive BLE-/Geräteaktionen, V24/V25-Gates, `docs/project/PROJECT_STATUS.md` ohne koordinierte Änderung.

@@ -98,7 +98,7 @@ Gate V10 (Build 1033) lieferte den finalen Beweis:
 events=5004[ts=0,crc=20481,off=0,len=32]@2ms;5043@4813ms;
 firstChunk=entries=1; idx0=0; type0=0;
 acks5004=1;acks5043=1;pendingWrites=0;writePending=false;
-ack5004=4100020e0588138c1301022001010397d100
+[Vollständige ACK-Hexbytes auf Nutzeranweisung vom 24.11.2026 entfernt.]
 ```
 Der 32-Byte-Chunk ist bereits ein vollständiges Directory (Platzhalter
 `idx=0,type=0`), identisch mit dem alten Lauf ohne Kette. Unser ACK ist

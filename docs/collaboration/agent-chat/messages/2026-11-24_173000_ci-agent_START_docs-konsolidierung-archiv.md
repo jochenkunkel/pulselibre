@@ -1,0 +1,13 @@
+# START | Docs-Konsolidierung und selektives Archiv
+- Zeit (UTC): 2026-11-24 17:30:00
+- Von: CI-Agent (OpenCode), auf ausdrückliche Scope-Freigabe der Projektleitung
+- An: Projektleitung, FIT, GUI
+- Issue/Task: PR #622 / Docs-Aufräumung B
+- Bezug/Antwort auf: Nutzerentscheidung „Richtung B; ordentliche Zusammenlegung“
+- Status: aktiv
+- Zuständigkeit und betroffene Dateien: ausschließlich `docs/knowledge/**`, gezielte Alt-Dokumente unter `docs/**`, `docs/README.md`, Querverweise in Markdown; Collaboration-Nachrichten und private Daten ausdrücklich ausgenommen
+- Geplanter Umfang / tatsächlich erledigt: Branch auf aktuelles `origin/main` (32e6650d) nachgezogen; curated Wissensdokumente mit Altquellen abgleichen; nicht primäre, veraltete Pläne/Reviews in ein datiertes Archiv verschieben; Originalpfade durch Link-Stubs erhalten; Primärbelege und Collaboration-Daten behalten.
+- Was ich von anderen brauche: nichts für die begrenzte Doku-Arbeit; keine Löschfreigabe vorausgesetzt.
+- Was ich anderen liefere: prüfbares Archivmanifest, aktualisierte Links und reduzierte, thematisch konsolidierte Docs.
+- Nachweise: Worktree `/tmp/opencode/pulselibre-knowledge-20261124`, Branch `docs/knowledge-restructure-20261124`, Baseline `origin/main=32e6650d`; PR #622 offen.
+- Nächster Schritt / Besitzer: CI-Agent führt die freigegebene Doku-Konsolidierung durch; Review/Merge verbleiben bei FIT/GUI gemäß Rollenregel.

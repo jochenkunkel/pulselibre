@@ -10,7 +10,7 @@
 2. **S10 früher Produktlauf:** [CIRQA_S10_PRODUCT_DOWNLOAD_BUILD1757_2026-11-22.md](CIRQA_S10_PRODUCT_DOWNLOAD_BUILD1757_2026-11-22.md); Status aus UI, **kein** unabhängiger DB-Zeilennachweis für diesen Build.
 3. **S10 Protokolllücken:** [CIRQA_S10_P0_GAP_MATRIX_2026-11-22.md](CIRQA_S10_P0_GAP_MATRIX_2026-11-22.md).
 4. **S25 Primärbeleg:** [CIRQA_SYNC_V26_DEVICE_RESULT_2026-11-19.md](CIRQA_SYNC_V26_DEVICE_RESULT_2026-11-19.md), mit V25 als historischem Vorlauf.
-5. **Datenmodell/Abdeckung:** [CIRQA_SQLITE_STORAGE.md](../data-model/CIRQA_SQLITE_STORAGE.md), [HISTORICAL_DATA_SCOPE.md](../../HISTORICAL_DATA_SCOPE.md).
+5. **Datenmodell/Abdeckung:** [CIRQA_SQLITE_STORAGE.md](../data-model/CIRQA_SQLITE_STORAGE.md), [HISTORICAL_DATA_SCOPE.md](../HISTORICAL_DATA_SCOPE.md).
 6. Für den S10-Export gilt die spätere, durch SAF-Archivvergleich belegte Aussage **„Import erfolgt“**, nicht die frühere Zwischenmeldung „kein DB-Import“ aus dem Laufbericht.
 
 **Evidenzstufen:** (A) tatsächliche Geräteübertragung → (B) lokal integritätsgeprüfte Originaldatei → (C) dekodiertes Feld → (D) in SQLite persistierte Beobachtung → (E) in der UI nachgewiesen sichtbar. Eine Stufe darf nicht stillschweigend als nächste ausgegeben werden.

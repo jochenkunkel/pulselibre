@@ -8,7 +8,7 @@
 - Aktueller Auftrag: PulsLibre-CI umschaltbar machen zwischen Self-hosted Runner (LOCAL) und GitHub-hosted Runner (CLOUD), gemeinsame Pipeline, lokale CI ohne GitHub, Runner-Installation vorbereiten, dokumentieren
 - Jetzt in Bearbeitung: abgeschlossen – Runner-Trockenlauf für `--system` ohne root integriert (PR #293)
 - Zeitnah geplant: keine exklusive Reservierung; offene Freigaben siehe #281
-- Betroffene Bereiche/Dateien: `.github/workflows/android.yml`, `.github/scripts/gradle-retry.sh`, `tools/ci/*`, `tools/ci-local.sh`, `tools/runner/*`, `docs/ci/HYBRID_CI.md`, `docs/CI_TEST_STRATEGY.md`, `README.md`, `AGENTS.md` (Testabschnitt), `docs/README.md`, `docs/PROJECT_STATUS.md`, `gradle.properties`, `.gitignore`
+- Betroffene Bereiche/Dateien: `.github/workflows/android.yml`, `.github/scripts/gradle-retry.sh`, `tools/ci/*`, `tools/ci-local.sh`, `tools/runner/*`, `docs/quality/ci/HYBRID_CI.md`, `docs/quality/CI_TEST_STRATEGY.md`, `README.md`, `AGENTS.md` (Testabschnitt), `docs/README.md`, `docs/project/PROJECT_STATUS.md`, `gradle.properties`, `.gitignore`
 - Branch/Worktree: Integration über PR #283, #292 und #293; separate Follow-up-Sitzung in `2026-11-20_0930_opencode_hybrid-ci-followup.md`
 - Abstimmungsbedarf: keiner. `gradle-retry.sh` wurde nur additiv um `GRADLE_CMD` erweitert; der bestehende #156-Regressionstest bleibt unverändert grün. Keine Überschneidung mit ChatGPT (#156) oder Claude Code (#154).
 - Agent-sync-Nachrichten: Worktree-Kollision wurde durch PR #293/#294 überholt; siehe [Status](../../agent-sync/2026-11-20_0945_opencode-an-claude_shared-worktree-collision-status.md). Fortschritt und offene Punkte stehen in Issue #281.

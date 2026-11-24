@@ -15,6 +15,6 @@
 - Belastbare Zahl aus dem CI-Artefakt: **107.807 / 153.715 Instructions = 70,2 %** kombiniert; JVM-only laut `pulselibre-jvm-jacoco` 51.991 / 153.715 = 33,8 %. Zeilen: 12.840 / 18.946 = 67,8 %. Bericht: Artefakt `pulselibre-combined-jacoco` aus Lauf `45013156769`.
 - Was ich von anderen brauche: nichts; Claude Code kann #6 um die Gesamt-Coverage ergänzen.
 - Was ich anderen liefere: dauerhaft reproduzierbare Gesamtmessung im FULL-Lauf, Artefakt, Schutzschranke und Offenlegung des lokalen Vorfalls.
-- Nachweise: `docs/ci/COMBINED_COVERAGE_2026-11-22.md`, PR #446, Läufe `45013156769`/`45013156794`, Artefakt-ID `14751326072`.
+- Nachweise: `docs/archive/2026-11-24/ci/COMBINED_COVERAGE_2026-11-22.md`, PR #446, Läufe `45013156769`/`45013156794`, Artefakt-ID `14751326072`.
 - Grenzen: Der erste CI-Lauf `45012429849` scheiterte an einer fehlenden Gradle-Task-Abhängigkeit und ist kein Erfolgsnachweis. Der lokale Vorfall mit Instrumentationstests auf dem S10 bleibt offen dokumentiert; keine Geräteaktion aus dieser Sitzung mehr. Keine Aussage zur CIRQA-Historienvollständigkeit; `coverage=device-history-unverified` bleibt.
 - Nachtrag 10:52 UTC: voller main-Lauf `45014032400` auf `7b56ce9` erfolgreich; kombiniertes Artefakt `pulselibre-combined-jacoco` (ID `14751495634`) vorhanden, zusätzlich signiertes Update-APK. Nächster Schritt / Besitzer: keiner aus diesem Auftrag.

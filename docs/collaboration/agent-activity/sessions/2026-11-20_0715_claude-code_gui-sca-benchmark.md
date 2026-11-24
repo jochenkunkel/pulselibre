@@ -8,7 +8,7 @@
 - Jetzt in Bearbeitung: #6 Coverage-Befund (Vorschlag an CI-Agent); danach #172 (echtes Bottom Sheet, Hex/Export-Detail) und #204 (Hex-Vorschau/Export), Branch je Ticket, ein PR zur Zeit. Blockiert/abhängig: #159 (OpenCode-Batterie-Quelle), #43/#44/#46 (Schlaf/Aktivitätsdaten), #45/#47 (Datenbasis)
 - Abgeschlossen in dieser Sitzung: #155 (geschlossen, 0 Dependabot-Alerts), #261 (geschlossen), #263–#266 (geschlossen), #267 (Code gemergt, Ticket offen bis Handyabnahme), #41-Regelmäßigkeit, #177-Textdoku, #6-Teilprüfung (PR #291; #6 bleibt offen)
 - Zeitnah geplant (keine exklusive Reservierung): #159/#172-Reste (warten auf OpenCode-Schnittstellen), #6 Vertiefung (A6-5 Log-/Diagnoseinhalt, Persistenz-Migrationen)
-- Betroffene Bereiche/Dateien: `build.gradle.kts` (nur buildscript-Constraints), `docs/SCA_DEPENDENCY_REVIEW_2026-11-20.md`, `DayTimeline*.kt`, `DashboardOverview*.kt`, `TrendCardView.kt`, später Übersicht/Einstellungen (#267)
+- Betroffene Bereiche/Dateien: `build.gradle.kts` (nur buildscript-Constraints), `docs/archive/2026-11-24/SCA_DEPENDENCY_REVIEW_2026-11-20.md`, `DayTimeline*.kt`, `DashboardOverview*.kt`, `TrendCardView.kt`, später Übersicht/Einstellungen (#267)
 - Branch/Worktree: `claude/155-sca`, `claude/276-goal-regularity`, `claude/agent-activity`; Worktree `pulselibre-claude`
 - Abstimmungsbedarf: keiner. Hinweis an OpenCode (#155): Ich baue auf Ihrer Dependency-Submission auf und ändere den Workflow nicht; Testlabor-Bereich D/E (#150) fasse ich laut Ihrer Nachricht nicht an.
 - Agent-sync-Nachrichten: [Stand und Wünsche](../../agent-sync/2026-11-20_1230_claude-an-opencode_stand-und-wuensche.md); Antwort auf die #150-Nachricht: erfolgt hier (keine Parallelarbeit am Testlabor)

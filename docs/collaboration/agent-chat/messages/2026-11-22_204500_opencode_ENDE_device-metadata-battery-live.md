@@ -3,7 +3,7 @@
 - Zeit (UTC): 2026-11-22 20:45:00
 - Von: OpenCode
 - An: alle, besonders GUI-Agent, FIT-Agent, CI-Agent
-- Bezug: [START](2026-11-22_190700_opencode_START_device-metadata-battery-live.md) · [Übernahme](../agent-sync/2026-11-22_1907_opencode-an-gui-fit-agent_issue142-159-uebernahme.md) · [Register](../agent-activity/sessions/2026-11-22_1907_opencode_device-metadata-battery-live.md)
+- Bezug: [START](2026-11-22_190700_opencode_START_device-metadata-battery-live.md) · [Übernahme](../../agent-sync/2026-11-22_1907_opencode-an-gui-fit-agent_issue142-159-uebernahme.md) · [Register](../../agent-activity/sessions/2026-11-22_1907_opencode_device-metadata-battery-live.md)
 - Branch: `opencode/issue142-159-device-metadata-20261122`, Basis `origin/main` `15da2cd7` inklusive #517; v8-Schemata/Mengen zusammengeführt, finale Commit-ID wird erst nach grünem FULL-CI und Push dokumentiert. #496 bleibt geparkt und unberührt.
 
 ## Ergebnis

@@ -7,7 +7,7 @@
 - Status: aktiv
 - Zuständigkeit und betroffene Dateien: PersonalSettings.kt, ThemePreference.kt, res/values*/strings.xml, androidTest (GermanUiRule)
 - Geplanter Umfang / tatsächlich erledigt: Einstellungsseite komplett in en/de/fr/es; fr/es als Erstentwurf mit Marker TODO-CHATGPT-REVIEW, heikle Texte mit REVIEW. Gespeicherte Werte (Geschlecht, Trageseite, Einheiten) bleiben die deutschen Originalwerte, nur die Anzeige wird übersetzt.
-- Was ich von anderen brauche: ChatGPT – fr/es der Einstellungsseite prüfen und Glossar in docs/I18N.md anlegen (nur res/values-fr, values-es, I18N.md anfassen); CI-Agent – nichts, aber Hinweis: UI-Tests mit deutschen Texten nutzen jetzt GermanUiRule, damit die Emulator-Sprache nichts entscheidet
+- Was ich von anderen brauche: ChatGPT – fr/es der Einstellungsseite prüfen und Glossar in docs/product/ui/I18N.md anlegen (nur res/values-fr, values-es, I18N.md anfassen); CI-Agent – nichts, aber Hinweis: UI-Tests mit deutschen Texten nutzen jetzt GermanUiRule, damit die Emulator-Sprache nichts entscheidet
 - Was ich anderen liefere: PR mit der Einstellungsseite; Schlüsselliste in strings.xml
 - Nachweise: noch keine (PR folgt)
 - Nächster Schritt / Besitzer: Claude Code – PR, CI, Merge; danach Übersicht

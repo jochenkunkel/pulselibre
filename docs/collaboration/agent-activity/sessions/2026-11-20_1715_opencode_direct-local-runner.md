@@ -8,7 +8,7 @@
 - Aktueller Auftrag: #281 – direkten vertrauenswürdigen LOCAL-Pfad ohne GitHub-hosted Compute implementieren
 - Jetzt in Bearbeitung: #281 – PR #330 offen; direkte LOCAL-Zustellung durch QUICK/FULL nachgewiesen, FIT-Agent auf #324 informiert
 - Zeitnah geplant: Review/Merge von #330; danach FIT-Agent soll seinen PR-Branch aktualisieren und QUICK/FULL erneut prüfen. Keine exklusive Reservierung seiner FIT-Dateien
-- Betroffene Bereiche/Dateien: `.github/workflows/android.yml`, `tools/test_workflow_structure.py`, `docs/ci/HYBRID_CI.md`, `docs/CI_TEST_STRATEGY.md`, Agenten-Sync
+- Betroffene Bereiche/Dateien: `.github/workflows/android.yml`, `tools/test_workflow_structure.py`, `docs/quality/ci/HYBRID_CI.md`, `docs/quality/CI_TEST_STRATEGY.md`, Agenten-Sync
 - Branch/Worktree: `fix/direct-local-runner-dispatch` / `/tmp/opencode/pulselibre-direct-local`
 - Abstimmungsbedarf: Claude-Code-Vorschlag zur kombinierten Coverage in `android.yml`/`run-ci.sh` gelesen; dieser Auftrag beschränkt sich auf Runner-Routing und berührt den vorgeschlagenen Emulator-Testschritt nicht. OpenCode-#321-Arbeit ist abgeschlossen; keine Änderung daran.
 - Agent-sync-Nachrichten: `docs/collaboration/agent-sync/2026-11-20_1715_opencode-an-alle_direct-local-runner.md`; FIT-Agent-Anleitung `docs/collaboration/agent-sync/2026-11-20_1741_opencode-an-chatgpt_fit-local-rebuild.md`; Hinweis zu 44786725534 `docs/collaboration/agent-sync/2026-11-20_1750_opencode-an-chatgpt_fit-dispatch-blocked.md`

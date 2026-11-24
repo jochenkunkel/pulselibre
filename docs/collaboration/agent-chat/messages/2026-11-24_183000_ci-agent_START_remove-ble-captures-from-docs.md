@@ -1,0 +1,12 @@
+# START | BLE-Mitschnitte aus docs entfernen
+- Zeit (UTC): 2026-11-24 18:30
+- Von: CI-Agent (OpenCode)
+- An: Projektleitung, FIT, GUI
+- Issue/Task: Nutzerauftrag – alle BLE-Mitschnitte aus `docs/` entfernen
+- Bezug/Antwort auf: Nutzeranweisung „bitte dalle ble mitschnitte aus den docs löschen“
+- Status: aktiv
+- Umfang: veröffentlichte HCI/BTSnoop-Captures und zugehörige Capture-Logdateien unter `docs/protocol/device-tests/raw/` entfernen; inline gespeicherten vollständigen BLE-Rohframe ebenfalls entfernen. Redigierte Ergebnisberichte und synthetische Fixtures außerhalb von `docs/` bleiben bestehen.
+- Grenzen: Keine Git-History umschreiben. Keine Hardwareaktion. Keine pauschale Löschung von Analyseberichten, aggregierten Befunden oder Protokollspezifikationen.
+- Was ich von anderen brauche: nichts; Review/Integration nach PR #622 bleibt bei FIT/GUI.
+- Was ich liefere: Liste der aus dem aktuellen docs-Baum entfernten Capture-Dateien, aktualisierte Manifesthinweise und Prüfung auf verbliebene Capture-Artefakte.
+- Arbeitskopie: `/tmp/opencode/pulselibre-knowledge-20261124`, Branch `docs/knowledge-restructure-20261124`, Ausgang `c47f0c05`.

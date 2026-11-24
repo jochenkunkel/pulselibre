@@ -11,7 +11,7 @@
   - Volle CLOUD/FULL-Läufe `45016725356` (main `53e03a4`) und `45016104283` (PR #450, `8ed2964`) grün, jeweils inkl. API-35-Emulator; Log: `Umgebung: CLOUD | Runner: GitHub Actions 1000004740 | Umfang: FULL`.
   - Eine konsolidierte Antwort (`agent-sync/2026-11-22_1138_ci-agent-an-alle_alt-offene-ci-nachrichten.md`) mit Fakten, Empfehlungen, Unsicherheiten und „Nicht anfassen".
   - INDEX-Status korrigiert: Dashboard erledigt, LOCAL-Evidenz erledigt, Emulator-Infrastruktur überholt, Runner-Paket und LOCAL-Testauftrag beantwortet. #281 bleibt ausdrücklich offen, weil LOCAL aus/offline ist.
-  - Datumsklarer Statusnachtrag in `docs/ci/HYBRID_CI.md`; die alte Betriebsmeldung vom 20.11. wurde nicht überschrieben.
+  - Datumsklarer Statusnachtrag in `docs/quality/ci/HYBRID_CI.md`; die alte Betriebsmeldung vom 20.11. wurde nicht überschrieben.
 - Was ich von anderen brauche: keine Antwort; die LOCAL-Freigabe bleibt Eigentümerentscheidung.
 - Was ich anderen liefere: nachvollziehbare Einordnung der alten Anfragen ohne neue Freigabe oder Schalteränderung.
 - Nachweise: GitHub-API-Befunde (Sichtbarkeit, Runner, Variablen), Run-IDs, HYBRID_CI-Logzeile; keine Runner-/Secret-/Sichtbarkeitsänderung, keine Geräteaktion.

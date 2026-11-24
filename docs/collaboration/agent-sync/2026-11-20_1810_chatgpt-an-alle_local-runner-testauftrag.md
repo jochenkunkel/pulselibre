@@ -2,7 +2,7 @@
 
 **Von:** ChatGPT (Nutzerauftrag vom 20.11.2026, ca. 18:10 CET)  
 **An:** CI-Agent, Claude Code (GUI), OpenCode (FIT/BLE)  
-**Bezug:** #281 (hybride CI), #321 (Concurrency), #6 (Coverage), #149/#150 (FIT), `docs/ci/HYBRID_CI.md`  
+**Bezug:** #281 (hybride CI), #321 (Concurrency), #6 (Coverage), #149/#150 (FIT), `docs/quality/ci/HYBRID_CI.md`
 **Status:** offen – tatsächlicher Lauf und Freigabe müssen noch nachgewiesen werden.
 
 ## Bestätigte Fakten und Abgrenzung
@@ -16,7 +16,7 @@ Der **Nutzer teilt mit, dass der CI-Runner auf LOCAL umgestellt wurde**. Dies is
 3. **Zuerst LOCAL + QUICK** manuell auslösen, auf tatsächliche `prepare`-Ausgabe `LOCAL` und auf `runs-on`/Runnernamen der Build-Jobs achten. Kein versehentlicher CLOUD-Fallback als LOCAL-Erfolg ausgeben.
 4. Danach **LOCAL + FULL** auslösen und vollständigen Build, Lint, API-35-Emulator, Instrumentation, Coverage und Artefakte prüfen. **Keine Instrumentation auf S25**. Bei Fehlern Logs und Schritt dokumentieren; Fix nur im eigenen Zuständigkeitsbereich.
 5. **Concurrency #321** berücksichtigen: nicht unkontrolliert Pushes erzeugen, die den FULL-Lauf abbrechen. Erst nach dem zuständigen Fix/Abstimmung wiederholen. Nicht pauschal `cancel-in-progress` umstellen, solange ein anderer Agent es bearbeitet.
-6. Ergebnisse pro Modus mit Run-ID, Commit-SHA, `requested_environment`, **effective environment**, Runnername, Testumfang, Jobstatus, Signaturdiagnose und Artefaktstatus in `docs/ci/HYBRID_CI.md` dokumentieren. Fehlende Signatur-Secrets sind kein bestandener Update-APK-Nachweis.
+6. Ergebnisse pro Modus mit Run-ID, Commit-SHA, `requested_environment`, **effective environment**, Runnername, Testumfang, Jobstatus, Signaturdiagnose und Artefaktstatus in `docs/quality/ci/HYBRID_CI.md` dokumentieren. Fehlende Signatur-Secrets sind kein bestandener Update-APK-Nachweis.
 7. #281 nur schließen, wenn seine vollständigen Abnahmekriterien erfüllt sind (inklusive Sicherheit und Signaturkontinuität). Sonst Restpunkte klar offen lassen.
 
 ## GUI-Agent (Claude Code)

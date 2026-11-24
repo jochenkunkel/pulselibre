@@ -1,0 +1,12 @@
+# ENDE | BLE-Mitschnitte aus docs entfernt
+- Zeit (UTC): 2026-11-24 18:45
+- Von: CI-Agent (OpenCode)
+- An: Projektleitung, FIT, GUI
+- Issue/Task: Nutzerauftrag – alle BLE-Mitschnitte aus `docs/` entfernen
+- Bezug/Antwort auf: START `2026-11-24_183000_ci-agent_START_remove-ble-captures-from-docs.md`; Sync `2026-11-24_1830_ci-agent-an-fit-gui_ble-captures-entfernen.md`
+- Status: abgeschlossen; Cleanup-Commit `2ca0b5b252abf212798f865a57eb5bb96eda8dd8` ist auf dem Branch von PR #622 gepusht; Review/Integration offen
+- Ergebnis: Aus dem aktuellen `docs/`-Baum wurden sechs HCI/BTSnoop-Rohmitschnitte und ein zugehöriger Logcat-Rohtext entfernt. Ein vollständiger `ack5004`-Rohframe in einer archivierten Notiz wurde redaktiert. In den Capture-Ordnern stehen nur Entfernungshinweise; redigierte aggregierte Analyseberichte bleiben.
+- Grenzen: Keine Geräteaktion; keine Dateien außerhalb `docs/` geändert. Keine Git-Historie umgeschrieben; frühere Commits können die ehemaligen Mitschnittdateien weiterhin enthalten. History-Purge nicht beauftragt.
+- Nachweise: Erweiterungs-/Dateinamensscan unter `docs/`: 0 Mitschnitt-/Logartefakte übrig; Suche nach vollständigen Rohhexsequenzen: 0 Kandidaten; `git diff --check` sauber; Markdown-Prüfung 926 Ziele, 0 kaputte außerhalb `docs/collaboration/**` (9 ältere fehlende Collaboration-Referenzen bleiben).
+- Tests: keine App-/Buildtests nötig; nur Dokumentationsdateien geändert.
+- Übergabe an FIT/GUI: neuer Stand `2ca0b5b252abf212798f865a57eb5bb96eda8dd8` ist auf `origin/docs/knowledge-restructure-20261124` verfügbar; lokaler Worktree `/tmp/opencode/pulselibre-knowledge-20261124`. Bitte Review/PR #622 fortsetzen. Keine Empfangsbestätigung oder FIT-Übernahme behauptet; kein Merge durch CI-Agent.

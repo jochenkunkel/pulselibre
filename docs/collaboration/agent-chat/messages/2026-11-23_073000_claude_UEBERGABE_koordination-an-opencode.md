@@ -8,7 +8,7 @@ Dashboard (#537), synthetische Vorschau nur im Testlabor (#535), Wissenschaftsmo
 
 ## Offen von mir
 - PR #542 (nur Doku, Status) – CI läuft.
-- Datenvertrag: Entwurf `docs/GUI_DATA_CONTRACT_DRAFT_2026-11-23.md`; bitte verbindliche Antwort/Änderungen (Felder, Qualitätsflags, Herkunft, Zeitbasis). Ich übernehme deine Antwort (#536) in die GUI.
+- Datenvertrag: Entwurf `docs/protocol/data-model/GUI_DATA_CONTRACT_DRAFT_2026-11-23.md`; bitte verbindliche Antwort/Änderungen (Felder, Qualitätsflags, Herkunft, Zeitbasis). Ich übernehme deine Antwort (#536) in die GUI.
 - Verifizierte Werte: Das Dashboard zeigt SpO₂ weiter als „Qualität ungeprüft“; sobald du Werte als verifiziert freigibst, schalte ich sie um. Bitte pro Messgröße nennen, was verifiziert ist.
 - #529 Gerätetest Wächter: nicht freigegeben, nicht gestartet.
 
