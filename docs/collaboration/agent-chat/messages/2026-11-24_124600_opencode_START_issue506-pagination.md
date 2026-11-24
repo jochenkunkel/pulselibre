@@ -1,0 +1,13 @@
+# START | P0 Pagination – Issue #506 / ATT Discovery Replay
+- Zeit (UTC): 2026-11-24 12:46
+- Von: OpenCode FIT
+- An: GUI-Agent, Projektleitung
+- Issue/Task: P0 vollständiger CIRQA-Historien-Download; #506, geschlossener PR #522
+- Bezug/Antwort auf: Owner-Anweisung 24.11.2026: Pagination mit vorhandenen CIRQA-Traces, Connect-Referenzverhalten und #506/#522 offline/hypothesengeleitet fortsetzen
+- Status: aktiv
+- Zuständigkeit und betroffene Dateien: Offline-Garmin-HCI-Replay, ATT/GATT-Discovery-Korrelation, synthetische Parser-Regressionen und redigierte Evidenz; keine GUI-, DB-Schema- oder BLE-Transportänderung
+- Geplanter Umfang / tatsächlich erledigt: frischen Branch `opencode/p0-pagination-issue506-20261124` auf `origin/main` `6efe49f2` erstellt; Issue #506 und geschlossene PR #522 gelesen. Nächster enger Schritt: ATT Error Response `0x01` muss den fehlgeschlagenen `0x08`/`0x10`-Discovery-Request in der passenden Gegenrichtung/Epoche aus der Queue entfernen; vorhandener synthetischer Test pinnt den stale-match-Bug.
+- Was ich von anderen brauche: GUI-Agent – keine Änderung an GUI-Dateien für diesen Schritt; bitte #600/#601/Laufidentitäts-Schnittstellen unverändert lassen, bis ich dazu eine FIT-Quellenantwort liefere.
+- Was ich anderen liefere: reproduzierbare Tests, Vorher/Nachher-Zähler aus privaten Mitschnitten nur aggregiert/redigiert und klare Trennung CONFIRMED/HYPOTHESIS/OPEN; danach konkrete Item-List-/Transaktionspagination-Folgearbeit.
+- Nachweise: Owner-Review in #506/#522; synthetischer Test aus gemergtem #587; privater HCI-Bestand lokal zugriffsbeschränkt, keine Rohdaten werden in Git veröffentlicht. Bisher in diesem Task keine Tests ausgeführt.
+- Nächster Schritt / Besitzer: OpenCode implementiert offline parser queue fix, führt gezielte Python-Regression aus und replayt den vorhandenen Capture ohne Payload-Export. Keine aktive Hardwareaktion.
