@@ -50,6 +50,12 @@ internal object DeviceBatteryFormat {
         DeviceMetadataSources.GATT_BATTERY -> strings.get(R.string.src_gatt_battery)
         DeviceMetadataSources.GARMIN_GDI_STATUS -> strings.get(R.string.src_garmin_status)
         DeviceMetadataSources.FIT_DEVICE_INFO -> strings.get(R.string.src_fit)
+        DeviceMetadataSources.GARMIN_GDI_OTHER -> strings.get(R.string.src_garmin_other)
+        DeviceMetadataSources.GATT_DEVICE_INFO -> strings.get(R.string.src_gatt_info)
+        DeviceMetadataSources.GATT_DEVICE_NAME -> strings.get(R.string.src_gatt_name)
+        DeviceMetadataSources.GATT_CURRENT_TIME -> strings.get(R.string.src_gatt_time)
+        DeviceMetadataSources.GATT_OTHER -> strings.get(R.string.src_gatt_other)
+        DeviceMetadataSources.GARMIN_5024 -> strings.get(R.string.src_garmin_5024)
         else -> source.replace('_', ' ').lowercase(java.util.Locale.ROOT)
     }
 
