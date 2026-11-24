@@ -1,7 +1,7 @@
 # OpenCode – P0 CIRQA vollständige Historie
 - Agent/Umgebung: OpenCode, Linux-Worktree
 - Beginn: 2026-11-24 09:23 UTC
-- Letzte Aktualisierung: 2026-11-24 09:23 UTC
+- Letzte Aktualisierung: 2026-11-24 09:38 UTC
 - Status: aktiv
 - Rolle/Zuständigkeit: FIT-/BLE-/GFDI-Protokoll, Historien-Synchronisation, FIT-Persistenz
 - Aktueller Auftrag: Projektleitung beauftragt systematische Forschung und Umsetzung zum vollständigen Download sämtlicher am CIRQA zugänglicher historischer Daten, mit begrenzter Hardwarefreigabe für charakterisierte read-only/sync-Sequenzen.
@@ -11,5 +11,5 @@
 - Branch/Worktree: `opencode/p0-cirqa-full-history-20261124`, Basis `origin/main` `527f9988`.
 - Abstimmungsbedarf: CI-Agent – unabhängige Pagination-/Queue-Testprüfung, FULL/API-35-Gate und Hinweis auf konkurrierende Arbeiten; DB-/Backup-Owner – PR #613 Schnittstellengrenze.
 - Agent-sync-Nachrichten: `docs/collaboration/agent-sync/2026-11-24_0923_opencode-an-ci_p0-cirqa-full-history.md`
-- Nachweise: existierende CI #613 am 24.11. grün; lokaler QUICK auf vorherigem, codeidentischem App-Stand grün (Python 122, JVM 1.011). Noch keine Hardwareaktion in dieser Sitzung.
+- Nachweise: Offline-Abgleich der vollständigen Single-ATT-Frames im bestätigten S10-Capture gegen statische Connect-5.31-Callsite; Details anonymisiert in `docs/protocol/research/CIRQA_CONNECT_TRANSACTION_FILTER_AUDIT_2026-11-24.md`. Der aktuelle Produktrequest sendet beim Transaktions-Follow-up nur Feld 2; die geprüften Connect-Requests trugen weitere Filterfelder. Dies ist eine Hypothese, keine nachgewiesene Ursache. Keine UUIDs/Werte geraten. `./tools/ci-local.sh --quick` erfolgreich: 122 Python- und 1.011 JVM-Tests, Debug/Release-Build, R8 und APK-Diagnose. Danach separater JDK 21/Gradle 9.6-Lauf `:app:testDebugUnitTest --tests de.pulselibre.CirqaFileAccessListRequestTest` erfolgreich (inkl. beider neuer Serializer-Tests). Noch keine Hardwareaktion in dieser Sitzung. CI-Abstimmung offen; Watchdog zeigte keine aktive CI-Session.
 - Nächster Schritt: Audit, Tests und konkreten gebundenen Hardwareablauf vorbereiten; vor jedem ADB/BLE-Zugriff Gerätstatus und Lease erneut prüfen.

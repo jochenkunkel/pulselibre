@@ -24,6 +24,21 @@ class CirqaFileAccessListRequestTest {
             GarminFileListPagination.smartRequest())
     }
 
+    @Test fun transactionFollowupSerializesOnlyObservedTokenUntilFilterContextIsProven() {
+        // Synthetic token only. Do not infer Connect's agent-specific filter UUIDs.
+        assertArrayEquals(
+            byteArrayOf(0xda.toByte(), 0x02, 0x04, 0x4a, 0x02, 0x10, 0x2a),
+            CirqaFileAccessListRequest.smartRequest(transactionId = 42)
+        )
+    }
+
+    @Test fun sessionContinuationSerializesSessionWithoutTransactionOrFilters() {
+        assertArrayEquals(
+            byteArrayOf(0xda.toByte(), 0x02, 0x04, 0x4a, 0x02, 0x08, 0x09),
+            CirqaFileAccessListRequest.smartRequest(sessionId = 9)
+        )
+    }
+
     private fun u32(bytes: ByteArray, i: Int): Long =
         (0..3).fold(0L) { n, k -> n or ((bytes[i + k].toLong() and 255L) shl (8 * k)) }
 }
