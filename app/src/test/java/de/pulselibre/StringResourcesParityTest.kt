@@ -58,7 +58,7 @@ class StringResourcesParityTest {
     @Test fun everyTextFormatsWithoutException() {
         languages.forEach { (lang, dir) ->
             load(dir).forEach { (key, text) ->
-                val args = placeholder.findAll(text).map { if (it.value.endsWith("d")) 1 else if (it.value.endsWith("f")) 1.5 else "x" }.toList().toTypedArray()
+                val args = placeholder.findAll(text).map<MatchResult, Any> { if (it.value.endsWith("d")) 1 else if (it.value.endsWith("f")) 1.5 else "x" }.toList().toTypedArray()
                 val clean = text.replace("\\n", "\n").replace("\\'", "'").replace("\\\"", "\"")
                 try { String.format(java.util.Locale.ROOT, clean, *args) } catch (e: java.util.IllegalFormatException) {
                     // Strings read with plain getString(id) (no arguments) keep a single "%"; those are the same in German.
