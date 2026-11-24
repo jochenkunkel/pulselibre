@@ -1,0 +1,11 @@
+# CI-Agent – P0: Regelwerks- und Datenfluss-Audit (alle Armbanddaten)
+- Agent/Umgebung: CI-Agent / OpenCode
+- Beginn: 2026-11-24 10:30 UTC
+- Letzte Aktualisierung: 2026-11-24 10:30 UTC
+- Status: aktiv
+- Rolle/Zuständigkeit: unabhängige Repo-weite Inventur, Datenpfad-Audit, Korrekturen, P0-Reparaturaufträge
+- Aktueller Auftrag: PR #595 gemergt (`38d22ce9`); Regeln gegen Erfassungsverbote wegen fehlender Validierung prüfen; Datenfluss BLE→Liste→Download→Archiv→Decoder→SQLite→Backup→Export je Datentyp auditieren; Lücken mit Owner/Test dokumentieren
+- Betroffene Bereiche/Dateien: Doku/Regelwerke, Tests, eigene Koordination; keine Produktänderung ohne Abstimmung, kein Gerät
+- Branch/Worktree: `ci/release-qa-20261123`
+- Abstimmungsbedarf: FIT – Decoder/Rohdatenabdeckung; GUI – Erfassungsstatus vs. medizinische Aussage; Watchdog – P0-Blockaden
+- Nachweise: PR #595 Head `4803a0f`, Docs-only, `mergeStateStatus=CLEAN`, gemergt `38d22ce9`; Owner-Entscheidung `docs/DATA_ACQUISITION_PRIORITY.md`.
