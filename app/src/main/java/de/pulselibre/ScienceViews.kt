@@ -22,7 +22,8 @@ class ScienceSeriesView(context: Context, private val palette: AppPalette) : Vie
     private var assessment: SeriesAssessment? = null
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val density = resources.displayMetrics.density
-    private val timeFormat = DateTimeFormatter.ofPattern("d.M. HH:mm").withZone(ZoneId.systemDefault())
+    // A6-64: day/month order and 24-h time of the shown language instead of the fixed German "d.M.".
+    private val timeFormat = DateTimeFormatter.ofPattern(context.shortDatePattern(true)).withZone(ZoneId.systemDefault())
 
     fun show(data: SeriesData, description: String? = null) {
         series = data
