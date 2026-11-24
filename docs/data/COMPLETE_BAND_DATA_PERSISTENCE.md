@@ -1,6 +1,6 @@
 # Projektentscheidung: CIRQA-Banddaten vollständig lokal erhalten
 
-**Entscheidung vom 24.11.2026:** Vollständigkeit der lokalen Speicherung hat Vorrang. Fehlende medizinische Vertrauensbewertung ist **kein** Grund, empfangene Banddaten oder tatsächlich dekodierte FIT-Felder auszulassen. Diese Regel ist keine Freigabe zur Anzeige, medizinischen Interpretation, Weitergabe oder zu zusätzlichen Hardware-/BLE-Aktionen.
+**Verbindliche Produktentscheidung:** [P0-Datenerfassungspriorität vom 24.11.2026](../DATA_ACQUISITION_PRIORITY.md). Vollständigkeit der lokalen Speicherung hat Vorrang. Fehlende medizinische Vertrauensbewertung ist **kein** Grund, empfangene Banddaten oder tatsächlich dekodierte FIT-Felder auszulassen. Diese Regel ist keine Freigabe zur Anzeige, medizinischen Interpretation, Weitergabe oder zu zusätzlichen Hardware-/BLE-Aktionen.
 
 ## Persistenzvertrag
 
@@ -21,8 +21,10 @@ Die Speicherung erfolgt lokal. Originalbytes können private Inhalte enthalten u
 ## Implementierungsstatus
 
 - [x] Rohdateiarchiv und versioniertes Backup (v9; bestehender Pfad)
-- [ ] FIT-Rohfeldgeneration, Digest, Replay/Aktivierung/Rollback und SQLite-v11
-- [ ] Backup-v10 samt Restore v1–v9 und Roundtrip-Regression
-- [ ] Vollständige synthetische Feldmatrix, Migration und FULL/API-35-Abnahme
+- [x] FIT-Rohfeldgeneration, Digest, Replay/Aktivierung/Rollback und SQLite-v11 implementiert
+- [x] Backup-v10 samt Restore v1–v9 und synthetischem Roundtrip implementiert
+- [x] Synthetische Rohfeld-/Migrations-/Rollback-Regressionen; 171 Instrumentationstests inkl. API-35 liefen grün am Head `ff68c86d`
+- [ ] Abschließender FULL/API-35-Lauf nach komprimiertem Timestamp-Header-Feld und Rebase auf aktuellem `main`
+- [ ] Unabhängiges CI-Agent-Review des finalen PR-Heads
 
 Status ist absichtlich getrennt von der Produktentscheidung: die Entscheidung gilt, auch solange einzelne Implementierungs- und CI-Gates noch offen sind.
