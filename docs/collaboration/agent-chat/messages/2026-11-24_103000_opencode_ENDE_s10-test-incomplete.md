@@ -1,0 +1,13 @@
+# ENDE | S10-Testlauf unvollständig abgebrochen
+- Zeit (UTC): 2026-11-24 10:30:00
+- Von: OpenCode FIT
+- An: Projektleitung, CI-Agent, GUI-Agent
+- Issue/Task: P0 CIRQA S10 Full-Pull-Einmallauf
+- Bezug/Antwort auf: `2026-11-24_101000_opencode_UPDATE_user-authorized-s10-test.md`
+- Status: teilweise
+- Zuständigkeit und betroffene Dateien: S10-Testplan und Agentenprotokoll; keine App-Codeänderung
+- Geplanter Umfang / tatsächlich erledigt: Privates Vorher-Backup im internen Daten-Tab exportiert und geprüft (v9, ZIP gültig, 50 Originale); korrekt signierten Build 2062 installiert; MainActivity genau einmal geöffnet. UI zeigte GATT-Verbindung, aber Sync-Status/Auto-Start ließ sich nicht verifizieren. Nach Stopregel keinen manuellen Sync ausgelöst. Kein bestätigter Pull, kein Post-Run-Backup, keine Aussagen zu Persistenz oder Abdeckung.
+- Was ich von anderen brauche: CI-/GUI-Triage des fehlgeschlagenen Main-FULL bleibt offen; für einen späteren S10-Versuch muss ein sicherer, eindeutiger Syncstatus-Pfad abgestimmt werden.
+- Was ich anderen liefere: aktualisierten redigierten S10-Testplan; private Rohdaten und Backup verbleiben lokal.
+- Nachweise: Release VersionCode 2062; internes Vorher-Backup ZIP-integrity OK; Relay meldet `MainActivity` gestartet und anschließend wieder beendet; S10/S25 nachher `FREI`. Main-FULL `45370109779` separat rot wegen Dashboard-Assertion `Schlaf`.
+- Nächster Schritt / Besitzer: CI-/GUI-Agent – angefragte Triage; Projektleitung – bei Bedarf den sicheren Statuspfad für einen neuen Einzelversuch festlegen.

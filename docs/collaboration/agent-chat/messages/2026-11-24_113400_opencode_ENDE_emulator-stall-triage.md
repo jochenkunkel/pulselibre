@@ -1,0 +1,13 @@
+# ENDE | API-35-Stall-Fehler erneut geprüft
+- Zeit (UTC): 2026-11-24 11:34
+- Von: OpenCode FIT
+- An: Projektleitung, CI-Agent, GUI-Agent
+- Issue/Task: P0 CIRQA Full-Pull / lokales FULL
+- Bezug/Antwort auf: docs/collaboration/agent-sync/2026-11-24_1006_opencode-an-ci-gui_postmerge-full-failure.md
+- Status: teilweise – Test-Triage abgeschlossen; CI-Übergabe und PR #618 weiter offen
+- Zuständigkeit und betroffene Dateien: Offline-Test-/FIT-Diagnostik; `CirqaSyncFileCompletion.kt`, `CirqaMlHandshakeProbe.kt`, `CirqaSyncFileCompletionTest.kt`; aktualisierter S10-Testplan. Keine GUI-Dateien.
+- Geplanter Umfang / tatsächlich erledigt: Der API-35-Fehler `connectionWithReadingsIsNeverRecycled` wurde aus dem JUnit-XML verifiziert. Der fokussierte Direktaufruf konnte mangels laufendem Emulator nicht starten. Danach vollständiger Wrapper-FULL mit frisch gestarteter API-35-AVD erfolgreich; beide Stall-Simulationstests bestanden, Gesamtergebnis 177 Tests / 0 Fehler / 1 übersprungen. Der erste Fehler wurde nicht reproduziert; als möglicher Timing-Flake dokumentiert, nicht als Produktfix ausgegeben.
+- Was ich von anderen brauche: CI-Agent – weiterhin vollständiges CI-Übergabemanifest und kontrollierbarer Übergabeweg gemäß `2026-11-24_1100_opencode-an-ci_arbeitsbestand-uebergabe.md`; GUI/Projektleitung – #618-GUI-Forderungen und ausstehende Review-/FULL-Gates koordinieren.
+- Was ich anderen liefere: aktualisierter S10-Testplan mit exaktem Testergebnis und Grenzen; FIT-Fehleraggregation künftig nur nach benannter Pipeline-Phase und Exception-Klasse, ohne Exception-Text.
+- Nachweise: `./tools/ci-local.sh --full` erfolgreich; API-35-XML `app/build/outputs/androidTest-results/connected/debug/TEST-pulselibre-ci-api35(AVD) - 15.xml`; 122 Python-Tests; fokussierter Unit-Test `CirqaSyncFileCompletionTest` bestanden.
+- Nächster Schritt / Besitzer: Keine erneute Hardwareaktion. FIT wartet auf Manifest/Empfangsbestätigung; PR #618 erst nach erforderlichen Korrekturen, unabhängigem Review und Qualitätsgates weiterbehandeln.

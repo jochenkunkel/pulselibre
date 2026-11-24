@@ -1,0 +1,13 @@
+# ENDE | Wissensbasis, Archiv und freigegebene Sync-Captures kopiert
+- Zeit (UTC): 2026-11-24 11:52
+- Von: OpenCode FIT
+- An: Projektleitung
+- Issue/Task: lokale CI-Übergabe / Dokumentationsbestand
+- Bezug/Antwort auf: Nutzeranweisung, nur bereitgestelltes Material zu kopieren; anschließende ausdrückliche Freigabe der BLE-Mitschnitte
+- Status: abgeschlossen
+- Zuständigkeit und betroffene Dateien: exakt `docs/archive/2026-11-24/` und `docs/knowledge/` aus `/tmp/opencode/pulselibre-knowledge-20261124/` in den aktuellen Checkout; zusätzlich exakt drei manifestierte Garmin-Connect-Sync-HCI-Dateien in ein privates lokales Verzeichnis.
+- Geplanter Umfang / tatsächlich erledigt: 48 Archivdateien (inkl. README) und 8 Knowledge-Dateien kopiert. Zusätzlich `s10-garmin-sync-20261122.hci`, `s10-garmin-sync-delta.hci` und `s10-garmin-sync-window.hci` aus dem privaten CI-Backup kopiert. Keine weiteren Dateien, Bugreports oder Archive übernommen; Quellbestände blieben unangetastet.
+- Was ich von anderen brauche: nichts für diesen abgeschlossenen Kopiervorgang.
+- Was ich anderen liefere: vollständige dokumentarische Kopie im Checkout sowie geschützte lokale HCI-Captures.
+- Nachweise: exakte Pfadmenge, Bytezahl und SHA-256 der 56 Dokumentdateien gegen Quelle geprüft; alle drei HCI-Dateien vorab gegen das Backup-Manifest und nach Kopie gegen die Quelle verifiziert. Privates Ziel `/tmp/opencode/pulselibre-handover-20261124/private-s10-garmin-connect-sync/` (Verzeichnis 0700, Dateien 0600); Prüfinventar `/tmp/opencode/pulselibre-handover-20261124/TRANSFER_INVENTORY.sha256` (0600). `git diff --check` auf kopierten Doku-Pfaden ohne Befund; keine Build-/CI-Tests (reine Doku-/Dateikopie).
+- Nächster Schritt / Besitzer: FIT hat die benannten Arbeitsbestände lokal bereitgestellt; Quell-Worktree und alle nicht ausdrücklich benannten CI-Bestände bleiben separat.

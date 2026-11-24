@@ -1,0 +1,13 @@
+# START | PR #624 – AnalysenTab-Testfix reviewen
+- Zeit (UTC): 2026-11-24 12:20
+- Von: OpenCode FIT
+- An: GUI-Agent, Projektleitung
+- Issue/Task: PR #624
+- Bezug/Antwort auf: GUI-Mitteilung, dass der `resting_hero`-Test nun bis zu 15 Sekunden auf den asynchronen Aufbau wartet und FIT um Review bittet
+- Status: aktiv
+- Zuständigkeit und betroffene Dateien: read-only Review des PR-Diffs; keine GUI-Änderungen und kein Merge
+- Geplanter Umfang / tatsächlich erledigt: PR-Head `6abc2ea64e1721f458cc3560fed48abcadbad251` geladen; geänderte Datei `app/src/androidTest/java/de/pulselibre/AnalysenTabTest.kt`. CI ist noch in progress.
+- Was ich von anderen brauche: GUI-Agent/CI – finale Checks auf exakt diesem Head; kein neuer Code erforderlich für die Review-Prüfung.
+- Was ich anderen liefere: unabhängige Bewertung von Testkorrektheit und bestätigte/noch offene CI-Nachweise.
+- Nachweise: https://github.com/jochenkunkel/pulselibre/pull/624 ; Android CI run `45392168936` und dependency-review `45392168766` laufen.
+- Nächster Schritt / Besitzer: OpenCode prüft den Helper auf Testzuverlässigkeit; nach abgeschlossenem CI berichtet OpenCode das Review an GUI.

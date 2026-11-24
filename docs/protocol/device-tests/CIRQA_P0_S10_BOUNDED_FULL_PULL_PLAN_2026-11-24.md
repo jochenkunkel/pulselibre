@@ -29,6 +29,17 @@ auszuführen. Diese Voraussetzungen sind vor Ausführung erneut zu bestätigen.
    - Vor Sync das vorhandene lokale App-Backup privat exportieren und ZIP-
      Integrität prüfen. Keine Rohdatei, Hash, Seriennummer, UID, Token,
      Geräteadresse oder private Messreihe ins Git/PR schreiben.
+   - `MainActivity.onResume()` kann einen automatischen Sync starten, wenn die
+     lokale Frische-/Cooldown-Policy ihn als fällig bewertet. `ExportActivity`
+     ist im Manifest `exported=false`; ein expliziter Component-Start durch
+     `adb shell` ist daher kein verfügbarer, unterstützter Weg zum Vorab-Backup.
+     Die Launcher-`MainActivity` nicht öffnen, bevor ein sicherer Exportpfad
+     feststeht.
+   - Falls kein bereits verfügbarer, unterstützter Weg zum Export ohne
+     `MainActivity` existiert, vor jeglichem Start stoppen. Keine
+     `run-as`-, Root- oder SharedPreferences-Manipulation und `ExportActivity`
+     nicht für externe Starts freigeben. Der Ablauf benötigt dann eine
+     abgestimmte technische Lösung, die Backup vor Sync gewährleistet.
 3. **Vorher-Inventar**
    - Aus der privaten lokalen Datenbank read-only `integrity_check`,
      Schema-/Backup-Version, archivierte Originale (Anzahl/Bytes),
@@ -37,9 +48,16 @@ auszuführen. Diese Voraussetzungen sind vor Ausführung erneut zu bestätigen.
    - Export-/Inventarbericht lokal speichern; Rohoriginale und SQLite-Backup
      nicht überschreiben.
 4. **Ein Sync**
-   - Nutzer startet genau einen normalen historischen Full-Pull im bestehenden
-     Produktpfad. Keine Testlabor-Wiederholung, kein zweiter Sync und keine
-     neue BLE-Probe im selben Lease.
+   - Nach geprüftem Backup die Launcher-`MainActivity` genau einmal öffnen.
+     Wenn deren bekannte automatische Historien-Sync-Policy den Lauf startet,
+     zählt das als den einen freigegebenen Lauf; den manuellen Button nicht
+     zusätzlich betätigen. Nur wenn kein automatischer Lauf startet und der
+     Status einen eindeutigen, nicht laufenden Zustand zeigt, darf der Nutzer
+     genau einmal den normalen manuellen Full-Pull bestätigen.
+   - Ein vorhandener alter Terminaltext oder ein unklarer Status genügt nicht
+     als Nachweis eines neuen Laufs: dann stoppen, nicht zusätzlich manuell
+     starten. Kein Testlabor-Retry, keine zweite Verbindung und keine neue
+     BLE-Probe im selben Lease.
    - Bestehende Grenzen unverändert: 120 s, 64 Item-List-Seiten, 256 Dateien,
      8 MiB je Datei, 64 MiB je Lauf. Eine erreichte Grenze wird als
      unvollständig beendet und nicht erweitert.
@@ -79,6 +97,50 @@ auszuführen. Diese Voraussetzungen sind vor Ausführung erneut zu bestätigen.
 
 ## Status
 
-Nur Vorbereitung. Für diese Sitzung ist kein Hardwarezugriff erfolgt. Offen
-vor Ausführung: unabhängige CI-Prüfung/Abstimmung und PR-CI auf dem aktuellen
-Head.
+**2026-11-24 – genau ein automatischer Lauf, terminal unvollständig.**
+Unter exklusiver S10-Lease (danach Status `FREI`) wurde das S10-Modell
+`SM-G970F` geprüft, das vorhandene Datenbankbackup intern exportiert und dessen
+ZIP-Integrität sowie Inventar lokal geprüft (Backup v9, 50 Originale,
+682,604 Originalbytes; keine Rohdaten im Git). Signierter Build 2062 mit
+bestätigter Zertifikatskontinuität wurde installiert und `MainActivity` genau
+einmal geöffnet. Ein erneuter read-only UI-Nachblick zeigte den durch diesen
+Start ausgelösten automatischen Lauf; es wurde kein manueller Lauf gestartet.
+Der terminale Report ist **unvollständig**: `runDrained=false`,
+`coverage=device-history-unverified`,
+`incompleteReason=next-transaction-followup-empty`, letzte
+`nextTransaction`-Folgeantwort leer, keine weitere Transaktion angefordert.
+Berichtete Zähler: 34 Dateien übertragen, verifiziert und privat gespeichert;
+32 dekodiert, 12 SQLite-committed, 0 importiert, 12 ohne importierbare Daten,
+20 als nicht erfolgreich/fehlgeschlagen ausgewiesen. Gemäß Codeklassifikation
+der Stage-Zähler bedeutet das: Die übrigen 20 dekodierten Dateien scheiterten
+im FIT→SQLite-Import/Commit-Pfad; die konkrete Exception-Ursache ist im
+sichtbaren Reportausschnitt nicht enthalten. Der leere Transaction-Follow-up ist
+ein separater Listen-Fortsetzungsfehler, nicht Erklärung für diese 20
+Importfehler. Kein Nachweis vollständiger Gerätehistorie. Post-Run-Backup wurde
+nicht erstellt; deshalb keine unabhängige Nachprüfung der Persistenz durch
+Backup-Diff. Lauf-ID und Rohdiagnose bleiben lokal. Keine Wiederholung.
+
+Separater Gate-Hinweis: PR-Head-FULL/API-35 war grün; Post-Merge-Main-FULL
+`45370109779` war rot (`DashboardTest#dashboardShowsApprovedOverviewSections`,
+Assertion `Schlaf`). Dieser Fehler wurde vor dem Test offengelegt.
+
+**Offline-Fortsetzung 2026-11-24:** Fehlerdiagnostik wurde so erweitert, dass
+künftige Sync-Berichte nur die redigierte Pipeline-Phase und Exception-Klasse
+pro aggregiertem Fehler ausweisen; Exception-Texte und Pfade werden nicht
+ausgegeben. Der konkrete Typ bzw. die genaue Unterphase der 20 Fehler dieses
+Laufs bleibt rückwirkend **unbekannt**: Die damaligen Daten trennen Import
+und tatsächliche SQLite-Commit-Ausführung nicht ausreichend.
+
+Der erste lokale FULL-Lauf auf dem aktuellen Arbeitsstand hatte einen einzelnen
+API-35-Fehler in
+`CirqaRecorderStallSimulationTest#connectionWithReadingsIsNeverRecycled`
+(`stall_detected=1`, obwohl Test-Readings flossen). Der unveränderte Test
+bestand anschließend im vollständigen lokalen FULL: **122 Python-Tests**,
+JVM/Build/R8, Lint,
+Instrumentation-APK und API-35-Emulator; letzter Emulatorbericht **177 Tests,
+0 Fehler, 1 übersprungen**, beide Stall-Simulationstests bestanden. Damit ist
+der frühere Fehler derzeit nicht reproduziert und als möglicher Timing-Flake
+abzugrenzen, nicht als behobener Produktfehler. Ein direkter isolierter
+Gradle-Aufruf scheiterte zuvor nur, weil der Emulator bereits beendet war;
+der CI-Wrapper startete ihn kontrolliert neu. Das grüne lokale FULL ersetzt
+weder den unabhängigen Review noch den erforderlichen Main-FULL-Gate.

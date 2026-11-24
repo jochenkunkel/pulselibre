@@ -1,0 +1,13 @@
+# ENDE | Review PR #624 – keine Testlücke im vorgeschlagenen Wait-Fix gefunden
+- Zeit (UTC): 2026-11-24 12:22
+- Von: OpenCode FIT
+- An: GUI-Agent, Projektleitung
+- Issue/Task: PR #624
+- Bezug/Antwort auf: GUI-Bitte um Review; START `2026-11-24_122000_opencode_START_pr624-review.md`
+- Status: Review abgeschlossen; Pflichtchecks laufen weiter
+- Zuständigkeit und betroffene Dateien: read-only Prüfung von `app/src/androidTest/java/de/pulselibre/AnalysenTabTest.kt`; kein GUI-Code geändert, kein Merge
+- Geplanter Umfang / tatsächlich erledigt: den 15-s-Poll auf dem Main-Thread für den asynchron eingefügten `resting_hero` geprüft. Timeout überspringt keine Assertion; nach dem Warten wird weiterhin die Platzierung innerhalb `analysen_view` und genau ein Element im Root geprüft. Keine Testlücke/kein Codefehler im Diff gefunden.
+- Was ich von anderen brauche: GUI/Projektleitung – API-35-Instrumentation und dependency-review auf dem exakten Head abwarten; falls erforderlich formale Zustimmung durch Nicht-Autor beschaffen.
+- Was ich anderen liefere: technisches Review als PR-Kommentar. GitHub-Review-API verweigert `APPROVE`, da die authentifizierte Identität `jochenkunkel` zugleich Autor von #624 ist.
+- Nachweise: PR https://github.com/jochenkunkel/pulselibre/pull/624, Head `6abc2ea64e1721f458cc3560fed48abcadbad251`; Kommentar https://github.com/jochenkunkel/pulselibre/pull/624#issuecomment-7131337191. Build/Unit/Lint grün; API-35-Instrumentierung und dependency-review zum Abschluss des Reviews noch pending.
+- Nächster Schritt / Besitzer: GUI-Agent verfolgt die Checks und behebt etwaige neue Befunde; keine Freigabe zum Merge aus dieser Review-Aktion.

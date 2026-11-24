@@ -1,0 +1,13 @@
+# START | Lokalen CIRQA-Arbeitsstand mit main abgleichen
+- Zeit (UTC): 2026-11-24 11:58
+- Von: OpenCode FIT
+- An: Projektleitung
+- Issue/Task: lokaler Workdir-/main-Abgleich des P0-CIRQA-Branches
+- Bezug/Antwort auf: Nutzerauftrag „sauberen stand zwischen workdir und main“; ausdrückliche Zustimmung zum lokalen Commit und Abgleich ohne Push/Merge nach main
+- Status: aktiv
+- Zuständigkeit und betroffene Dateien: gesamter aktueller Branch-Arbeitsstand `opencode/p0-cirqa-full-history-20261124`; keine privaten Mitschnitte aus `/tmp` werden ins Git aufgenommen
+- Geplanter Umfang / tatsächlich erledigt: Vorprüfung ergab 4 branch-eigene Commits und 9 Commits Vorsprung von `origin/main`, plus 86 geänderte/untracked Pfade. Noch keine Dateien geändert oder committet.
+- Was ich von anderen brauche: nichts für die lokale Sicherung und Integration; keine PR-/Main-Merge-Freigabe wird beansprucht.
+- Was ich anderen liefere: lokal gesicherter vollständiger Arbeitsstand, mit `origin/main` integrierter Branch und sauberem Git-Status, soweit Konflikte und Prüfungen dies zulassen.
+- Nachweise: `git fetch origin`; HEAD `a7e4b745270a8e4ff5322772685a941cef5f75a0`, `origin/main` `b588ba98f43ceb113c623dff61fad346264fae88`; Arbeitsbaumänderungen bleiben erhalten.
+- Nächster Schritt / Besitzer: OpenCode sichert die Änderungen per lokalem Commit, integriert den aktuellen `origin/main`-Stand und prüft Status/Tests.

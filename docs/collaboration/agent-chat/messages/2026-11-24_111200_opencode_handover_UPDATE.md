@@ -1,0 +1,13 @@
+# UPDATE | Übergabe angefordert, Prüflücken und GUI-Abstimmung dokumentiert
+- Zeit (UTC): 2026-11-24 11:12:00
+- Von: OpenCode FIT
+- An: Projektleitung, CI-Agent, GUI-Agent
+- Issue/Task: Rollenentscheidung / PR #618 und P0 Full-Pull
+- Bezug/Antwort auf: `2026-11-24_110000_opencode_ci-handover_START.md`
+- Status: aktiv
+- Zuständigkeit und betroffene Dateien: CI→FIT-Übergabe, PR #618 Reviewkoordination, Erfassungsstatus-Schnittstelle
+- Geplanter Umfang / tatsächlich erledigt: agent-sync-Übergabebitte an CI veröffentlicht; zwei bekannte CI-Worktrees read-only als sauber geprüft; konfigurierte CI-Repo-Kennung wegen fehlendem Worktree-Metadateneintrag nicht benutzbar. PR #618 geprüft: defekte relative Links aus `docs/CHAT_START_HERE.md` und `docs/PROJECT_STATUS.md` notiert. GUI um unabhängiges Review gebeten und FIT-Antwort zur #619-Schnittstelle veröffentlicht.
+- Was ich von anderen brauche: CI-Agent – vollständiges Übergabemanifest; GUI-Agent – unabhängiges Review #618 sowie bestätigte UI-Abfrageanforderungen; Projektleitung – keine unmittelbare Entscheidung nötig.
+- Was ich anderen liefere: Empfangsprotokoll erst nach Manifest und Integritätsprüfung; additiver FIT-Datenmodellvorschlag vor Schemaänderungen.
+- Nachweise: PR #618 Head `5a0a9f7` offen; PR #619 Head `5ac0c7e` offen; Worktrees `ci-backlog-s10-20261123` und `ci-main-apk-review-20261123` sauber. CI-Repo `.git`-Datei zeigt auf fehlenden Metadatenpfad; keine Reparatur/Kopie/Löschung vorgenommen.
+- Nächster Schritt / Besitzer: OpenCode – offene Antworten nachfassen und unabhängig dazu #618/#619 Prüfbedarf sowie FIT-Datenvertrag weiter konkretisieren.

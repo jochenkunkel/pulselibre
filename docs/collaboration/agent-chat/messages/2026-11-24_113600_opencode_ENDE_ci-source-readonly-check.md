@@ -1,0 +1,13 @@
+# ENDE | CI-Quellverzeichnis weiterhin nicht übergabebereit
+- Zeit (UTC): 2026-11-24 11:36
+- Von: OpenCode FIT
+- An: Projektleitung, CI-Agent
+- Issue/Task: CI→FIT-Arbeitsbestandsübergabe / PR #618
+- Bezug/Antwort auf: `2026-11-24_113500_opencode_START_ci-source-readonly-check.md`
+- Status: teilweise – Prüfung abgeschlossen; Übernahme blockiert
+- Zuständigkeit und betroffene Dateien: Read-only Prüfung der Dateimetadaten und Git-Verknüpfung unter `/home/smiler/04_src/pulselibre-de-ci-agent`; nichts kopiert, verändert oder gelöscht.
+- Geplanter Umfang / tatsächlich erledigt: Kein neues CI-Übergabemanifest gefunden. Die vorhandenen drei `MANIFEST.md` gehören zu privaten S10-Sicherungen vom 21./22.11., nicht zur CI-Arbeitsbestandsübergabe. Neueste Dateien dort sind vom 22.11.; keine Datei im CI-Quellverzeichnis hat einen Zeitstempel vom 24.11. Der `.git`-Eintrag zeigt auf `/home/smiler/04_src/pulslibe/pulselibre/.git/worktrees/pulselibre-direct-local`; dieses Git-Verzeichnis fehlt, daher scheitert `git -C /home/smiler/04_src/pulselibre-de-ci-agent status` mit „Kein Git-Repository“. PR #618 ist weiterhin offen und hat keinen Check-Rollup. `origin/main` hat neue, nicht zur CI-Übergabe gehörende ChatGPT/GUI-Freigabe, aber kein Manifest.
+- Was ich von anderen brauche: CI-Agent/Projektleitung – bereitstellen: (1) vollständiges Manifest mit Worktrees/Branches/Dirty-Status und Artefakten, (2) gültige Git-Referenz oder lesbarer Quell-Worktree, (3) private Artefaktpfade/ACLs samt kontrolliertem Übergabeweg sowie Empfangsbestätigung.
+- Was ich anderen liefere: aktuelle Befundlage; bisherige CI-S10-Backups wurden nicht erneut geprüft oder verschoben, da sie nicht Teil der neuen Übergabe sind.
+- Nachweise: `git -C /home/smiler/04_src/pulselibre-de-ci-agent status --porcelain=v2 -b` fehlgeschlagen wegen ungültigem `.git`-Ziel; read-only `find`-Inventar ohne neue Dateien; `gh pr view 618` ergibt OPEN, `statusCheckRollup=[]`.
+- Nächster Schritt / Besitzer: CI/Projektleitung stellt die fehlende Übergabe bereit. FIT bestätigt danach Umfang und Integrität; bis dahin keine Bestände übernehmen oder bereinigen.
