@@ -23,8 +23,10 @@ Die Speicherung erfolgt lokal. Originalbytes können private Inhalte enthalten u
 - [x] Rohdateiarchiv und versioniertes Backup (v9; bestehender Pfad)
 - [x] FIT-Rohfeldgeneration, Digest, Replay/Aktivierung/Rollback und SQLite-v11 implementiert
 - [x] Backup-v10 samt Restore v1–v9 und synthetischem Roundtrip implementiert
-- [x] Synthetische Rohfeld-/Migrations-/Rollback-Regressionen; 171 Instrumentationstests inkl. API-35 liefen grün am Head `ff68c86d`
-- [ ] Abschließender FULL/API-35-Lauf nach komprimiertem Timestamp-Header-Feld und Rebase auf aktuellem `main`
-- [ ] Unabhängiges CI-Agent-Review des finalen PR-Heads
+- [x] Verlustfreie Archivierung empfangener BLE-Notifications in den bestehenden privaten `downloaded_files`-Pfad (PR #609)
+- [x] Synthetische Rohfeld-/Migrations-/Rollback-Regressionen; PR-Head `96527bd0`: API-35 mit 175 Tests, 0 Fehlern, 1 übersprungen; kombinierte Coverage erfolgreich
+- [x] Unabhängiges CI-/Schema-Review auf PR-Head `96527bd0`; Befund: Generationen/Digest, Migration v10→v11, Backup-v10 und Restore v1–v9 geprüft, Merge empfohlen
+- [x] PR #610 gemergt als `267c3558`; voller Post-Merge-CI-Lauf [45354853683](https://github.com/jochenkunkel/pulselibre/actions/runs/45354853683) erfolgreich, einschließlich Build/Unit/Lint/R8/APK und API-35-Emulator
+- [x] Keine Hardwaretests; keine BLE-/Transportverhaltensänderung
 
-Status ist absichtlich getrennt von der Produktentscheidung: die Entscheidung gilt, auch solange einzelne Implementierungs- und CI-Gates noch offen sind.
+Status ist absichtlich getrennt von der Produktentscheidung. Die lokale Persistenzimplementierung und ihre erforderlichen Review-/CI-Gates sind für den beschriebenen Umfang abgeschlossen. Das behauptet weder vollständige semantische FIT-Profilunterstützung noch vollständige historische Abdeckung oder medizinische Validierung.
