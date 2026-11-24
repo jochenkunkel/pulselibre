@@ -2,6 +2,7 @@
 
 > **P0-Owner-Entscheidung (24.11.2026):** [Vollständige lokale Armband-Datenerfassung](docs/DATA_ACQUISITION_PRIORITY.md) ist verbindlich. Alle technisch zugänglichen, zulässigen Daten einschließlich unvalidierter/unbekannter Werte verlustfrei archivieren und in SQLite inventarisieren; medizinische Validierung darf Erfassung/Persistenz nicht blockieren. Datenschutz, Gerätesicherheit und explizite Hardwarefreigaben bleiben unverändert.
 
+> **P0-Präzisierung (24.11.2026):** Unsichere Dateiidentität verhindert ausschließlich das *Überspringen* von Downloads, niemals den vollständigen erneuten Abruf. Im Zweifel alle gelisteten Dateien erneut read-only übertragen, empfangene Bytes dauerhaft sichern und lokale Duplikate erst nach Byte-/Hashprüfung behandeln. Fehlender Resume-/Skip-Nachweis darf nicht als Blockade für Full-Pull, Persistenz oder Offline-Tests gemeldet werden. Bestehende Laufbudgets, Geräte-Leases und Hardwarefreigaben bleiben bestehen; Stopps werden als unvollständig ausgewiesen. Siehe [Datenpriorität](docs/DATA_ACQUISITION_PRIORITY.md).
 
 ## Forschungsdaten und Git-Fixtures (Projektentscheidung 22.11.2026)
 
