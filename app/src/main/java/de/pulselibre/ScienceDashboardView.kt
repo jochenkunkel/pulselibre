@@ -159,6 +159,11 @@ internal class ScienceDashboardView(context: Context) : LinearLayout(context) {
             inv.candidatesByMetric?.takeIf { it.isNotEmpty() }?.let { m ->
                 lines += label(context.getString(R.string.sd_cap_cand, m.entries.joinToString(", ") { "${candidateName(it.key)} ${it.value}" }), 13f, palette.ink)
             }
+            inv.rawNotifications?.let { lines += label(context.getString(R.string.sd_cap_raw, it), 13f, palette.ink) }
+            inv.rawFitFields?.let { lines += label(context.getString(R.string.sd_cap_fields, it), 13f, palette.ink) }
+            inv.undecodedFieldKinds?.takeIf { it > 0 }?.let { lines += label(context.getString(R.string.sd_cap_undecoded, it), 13f, palette.ink) }
+            if (inv.importsCompleted != null)
+                lines += label(context.getString(R.string.sd_cap_imports, inv.importsCompleted, inv.importsPartial ?: 0L, inv.importsFailed ?: 0L), 13f, palette.ink)
             lines += label(context.getString(R.string.hsp_coverage_note), 12f, palette.muted)
         }
         return card(context.getString(R.string.sd_cap_title), *lines.toTypedArray()).apply { tag = "science_capture" }
