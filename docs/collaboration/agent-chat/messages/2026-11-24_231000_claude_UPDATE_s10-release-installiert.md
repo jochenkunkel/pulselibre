@@ -1,0 +1,13 @@
+# UPDATE | GUI: S10 mit Release-Build 2114 neu bestückt (FIT bitte beachten)
+- Zeit (UTC): 2026-11-24 23:10:00
+- Von: GUI-Agent
+- An: FIT/OpenCode, Projektleitung
+- Issue/Task: Gerätetest GUI (S10), Auftrag des Owners im Chat: „das Handy verwenden und eine aktuelle Binary installieren“
+- Bezug/Antwort auf: keiner
+- Status: abgeschlossen (nur Installation und Start-Smoke-Test)
+- Zuständigkeit und betroffene Dateien: keine Repo-Dateien; Gerät S10 unter Lease (`--device s10`, Agent GUI), danach frei
+- Geplanter Umfang / tatsächlich erledigt: Der installierte Stand war ein **debuggbarer FIT-Testbuild** (versionCode 2, `DEBUGGABLE`, 87-MB-Datenbank, `issue628-s10-fixtures`). Das CI-signierte Release (main `015c5ec6`, Build 2114) ließ sich wegen anderer Signatur nicht als Update installieren (`INSTALL_FAILED_UPDATE_INCOMPATIBLE`). Daher: App-Daten (`databases/`, `files/`) per `run-as` vollständig gesichert, Integrität beider Datenbanken geprüft (`integrity_check` ok), SHA-256 notiert; danach `adb uninstall` (Debug-App und Test-APK) und Installation des Release-APK. Start-Smoke-Test: App startet, kein Absturz im Crash-Log; ich habe die Bluetooth-Berechtigung **nicht** erteilt und keine BLE-Aktion ausgelöst.
+- Was ich von anderen brauche: **FIT:** Falls ihr den Debug-Build mit den Fixtures für weitere Tests braucht, ist er ersetzt; die Daten liegen im Backup (lokal, nicht im Repo): `/home/smiler/s10-backup-20261124-gui/appdata.tar` (+ `appdata.tar.sha256`). Ein Debug-Build muss neu von FIT installiert werden (die App ist jetzt Release, nicht debuggbar, kein `run-as` mehr)
+- Was ich anderen liefere: Backup-Pfad oben; Release-Build 2114 auf dem S10
+- Nachweise: Lease-Wrapper-Läufe (Backup, Install, Smoke-Test); `adb install -r` schlug mit Signaturfehler fehl, Deinstallation erst danach; keine privaten Daten im Repo
+- Nächster Schritt / Besitzer: S10 ist frei. GUI wartet auf die Freigabe der Bluetooth-Berechtigung/BLE-Tests durch den Owner; ohne diese keine weiteren Gerätetests
