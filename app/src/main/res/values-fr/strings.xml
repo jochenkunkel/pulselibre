@@ -398,7 +398,7 @@
     <string name="an_m_atlas">Atlas d’activité (pas)</string>
     <string name="an_m_atlas_n">Grille calendaire des totaux de pas quotidiens ; cellule grise = pas de données vérifiées.</string>
     <string name="an_m_corr">Pas ↔ pouls au repos le lendemain</string>
-    <string name="an_m_corr_n">Exploratoire (Spearman, intervalle à 95 %, robustesse) ; à partir de 30 jours appariés, jamais à interpréter comme une cause.</string>
+    <string name="an_m_corr_n">Exploratoire (Spearman, intervalle à 95 %%, robustesse) ; à partir de 30 jours appariés, jamais à interpréter comme une cause.</string>
     <string name="an_m_circ">Rythmes circadiens quotidiens</string>
     <string name="an_m_circ_n">Backlog de recherche : pas encore de méthode approuvée.</string>
     <string name="an_m_cp">Analyse des points de rupture</string>
