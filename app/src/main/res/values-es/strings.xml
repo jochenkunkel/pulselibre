@@ -889,7 +889,7 @@
     <string name="main_weight_plus_cd">Aumentar el peso en 0,1 kilogramo</string>
     <string name="main_weight_step">Paso: 0,1 kg · mantén pulsado para cambiar más rápido</string>
     <string name="main_weight_invalid">Introduce un peso entre 15 y 400 kg.</string>
-    <!-- REVIEW: neue Texte (A6-43), fr/es Sprachprüfung durch ChatGPT -->
+    <!-- KI-sprachlich geprüft (ChatGPT, 24.11.2026; sieben A6-43-Texte). Menschliche Muttersprachler-Prüfung weiterhin offen, nicht als erfolgt behaupten. -->
     <string name="main_scan_running">Buscando (60 segundos) · detección pasiva …</string>
     <string name="main_scan_finished">Búsqueda finalizada · %1$d dispositivos</string>
     <string name="main_scan_failed">Error de búsqueda: %1$d</string>
