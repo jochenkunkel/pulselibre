@@ -111,6 +111,8 @@ internal class ScienceDashboardView(context: Context) : LinearLayout(context) {
 
     private fun render(results: List<Triple<Int, ScienceSeriesSpec, SeriesData>>?) {
         cards.removeAllViews()
+        // Capture status first (P0: data completeness before charts); it is independent of the selected range and of any series.
+        cards.addView(captureCard(inventory), spacing())
         if (results == null) {
             cards.addView(card(context.getString(R.string.sd_title), label(context.getString(R.string.sd_error), 13f, palette.muted)).apply { tag = "science_error" }, spacing())
         } else results.forEach { (titleRes, spec, data) ->
@@ -132,7 +134,6 @@ internal class ScienceDashboardView(context: Context) : LinearLayout(context) {
             }
             cards.addView(card(title, *views.toTypedArray()).apply { tag = "science_card_${spec.key}" }, spacing())
         }
-        cards.addView(captureCard(inventory), spacing())
         val na = listOf(R.string.sd_na_sleep, R.string.sd_na_activity, R.string.sd_na_hrv, R.string.sd_na_temp)
         cards.addView(card(context.getString(R.string.sd_na_title), *na.map { label(context.getString(it), 13f, palette.muted) as View }.toTypedArray())
             .apply { tag = "science_not_available" }, spacing())
