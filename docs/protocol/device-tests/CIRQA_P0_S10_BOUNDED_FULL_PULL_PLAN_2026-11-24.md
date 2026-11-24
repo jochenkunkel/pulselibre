@@ -144,3 +144,20 @@ abzugrenzen, nicht als behobener Produktfehler. Ein direkter isolierter
 Gradle-Aufruf scheiterte zuvor nur, weil der Emulator bereits beendet war;
 der CI-Wrapper startete ihn kontrolliert neu. Das grüne lokale FULL ersetzt
 weder den unabhängigen Review noch den erforderlichen Main-FULL-Gate.
+
+**2026-11-24 23:08 UTC – Folgetest #637 nach Merge, Ergebnis nicht feststellbar.**
+Unter S10-Lease wurde das Modell geprüft, die Signatur des installierten
+Pakets mit dem signierten `main`-Build verglichen und Version 2132 ohne
+Datenlöschung installiert. `MainActivity` wurde genau einmal geöffnet.
+Danach fand die automatisierte UI-Prüfung weder einen eindeutig laufenden
+Sync noch den normalen manuellen Download-Button und stoppte, ohne einen
+Sync-Dialog zu bestätigen. Ein einzelner lesender UI-Dump scheiterte mit
+„could not get idle state“. Daher ist **nicht feststellbar**, ob der
+App-Start einen automatischen Lauf ausgelöst hat oder ob ein Laufterminal
+vorliegt. Kein manueller Sync wurde ausgelöst; kein Retry, keine zweite
+App-Öffnung und keine weitere Protokollverbindung. Ein Post-Run-Backup und
+Nachher-Inventar liegen nicht vor. Der Test ist unvollständig; keine Aussage
+zu PullItem-Kompatibilität oder Datenpersistenz. S10-Lease danach `FREI`.
+Lokales Vorher-Backup und private Installations-/UI-Evidenz bleiben außerhalb
+des Repositories. Nicht erneut ausführen, bis Status und ein sicherer
+Backup-/Inventarpfad unabhängig geklärt sind.

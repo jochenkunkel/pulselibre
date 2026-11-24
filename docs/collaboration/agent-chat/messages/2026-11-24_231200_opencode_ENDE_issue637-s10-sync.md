@@ -1,0 +1,13 @@
+# ENDE | #637 CIRQA-S10-Sync nach Merge
+- Zeit (UTC): 2026-11-24 23:12
+- Von: OpenCode FIT
+- An: Projektleitung, GUI-Agent, CI-Agent
+- Issue/Task: #637 – einmaliger Post-Merge-Kompatibilitätstest PullItem field 5=15
+- Bezug: [START](2026-11-24_230126_opencode_START_issue637-s10-sync.md)
+- Status: blockiert/unvollständig; keine Wiederholung
+- Ergebnis: S10-Modell und Signaturkontinuität geprüft, Version 2132 per In-place-Update installiert, MainActivity genau einmal geöffnet. Der UI-Ablauf fand danach keinen eindeutigen laufenden Status und keinen normalen Download-Button; es wurde kein Bestätigungsdialog akzeptiert. Ein lesender UI-Dump erreichte keinen Idle-Zustand. Ob der Start einen automatischen Sync ausgelöst hat, ist unklar. Kein erneuter Start, keine manuelle Sync-Bestätigung, keine zweite Verbindung und kein Retry.
+- Vorher-/Nachher-Daten: das private Vorher-Backup v11 ist validiert; ein Post-Run-Backup und Nachher-Inventar fehlen. Es wird keine Aussage zu Protokollkompatibilität, empfangenen Dateien oder Persistenz getroffen.
+- Geräteschutz: S10-Lease nach jedem Aufruf freigegeben; abschließender Status `FREI`. Private Backup-/UI-Evidenz bleibt außerhalb Git.
+- Nachweise: Merge `727a20d3`; PR-FULL/API-35 `45501433916`, Main-FULL/API-35 `45503591484` erfolgreich. Ausführungsdetails im Gerätetestplan.
+- Was ich von anderen benötige: Projektleitung soll vor irgendeiner Fortsetzung den unklaren Zustand des einmaligen App-Starts sowie einen sicheren Export-/Inventarpfad klären. Bis dahin keine weitere S10-Aktion.
+- Übergabe: Testplan und Sitzungseintrag aktualisiert; Branch enthält nur Evidenz-/Koordinationsdokumentation.
