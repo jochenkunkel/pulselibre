@@ -716,7 +716,7 @@
     <string name="dev_meta_battery">Batterie</string>
     <string name="dev_meta_firmware">Firmware</string>
     <string name="dev_meta_clock">Heure du bracelet</string>
-    <string name="dev_meta_identity">Modèle / numéro de série</string>
+    <string name="dev_meta_identity">Nom de l’appareil / numéro de série (présumé)</string>
     <string name="dev_unavailable">Non disponible</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="dev_unavailable_cd">%1$s : non disponible ; aucune valeur d’appareil confirmée pour l’instant</string>
@@ -889,7 +889,7 @@
     <string name="main_weight_plus_cd">Augmenter le poids de 0,1 kilogramme</string>
     <string name="main_weight_step">Pas : 0,1 kg · maintenez appuyé pour changer plus vite</string>
     <string name="main_weight_invalid">Veuillez saisir un poids compris entre 15 et 400 kg.</string>
-    <!-- REVIEW: neue Texte (A6-43), fr/es Sprachprüfung durch ChatGPT -->
+    <!-- KI-sprachlich geprüft (ChatGPT, 24.11.2026; sieben A6-43-Texte). Menschliche Muttersprachler-Prüfung weiterhin offen, nicht als erfolgt behaupten. -->
     <string name="main_scan_running">Recherche en cours (60 secondes) · détection passive …</string>
     <string name="main_scan_finished">Recherche terminée · %1$d appareils</string>
     <string name="main_scan_failed">Erreur de recherche : %1$d</string>
@@ -917,6 +917,14 @@
     <string name="ht_empty">Aucune valeur sur cette période.</string>
     <string name="ht_row_cd">%1$s, %2$s, %3$s : %4$d valeurs, plage %5$s, moyenne %6$s</string>
     <!-- REVIEW: neue Texte (#142/#159), fr/es Sprachprüfung durch ChatGPT -->
+    <string name="dev_meta_gdi_text">Texte supplémentaire %1$d du bracelet</string>
+    <string name="dev_meta_gdi_note">Textes que le bracelet envoie en plus dans le protocole Garmin. Leur signification n’est pas confirmée ; ils sont affichés tels quels, comme reçus.</string>
+    <string name="src_garmin_other">Protocole Garmin (textes supplémentaires)</string>
+    <string name="src_gatt_info">Informations d’appareil GATT standard</string>
+    <string name="src_gatt_name">Nom d’appareil GATT standard</string>
+    <string name="src_gatt_time">Heure GATT standard</string>
+    <string name="src_gatt_other">Autre valeur GATT standard</string>
+    <string name="src_garmin_5024">Informations d’appareil Garmin (5024)</string>
     <string name="dev_meta_masked">Masqué</string>
     <string name="dev_meta_software">Logiciel</string>
     <string name="dev_meta_hardware">Matériel</string>
@@ -981,6 +989,9 @@
     <string name="sd_cap_m_spo2">SpO₂</string>
     <string name="sd_cap_m_stress">Stress</string>
     <string name="sd_cap_m_respiration">Fréquence respiratoire</string>
+    <string name="sd_cap_raw">Contenus de notifications BLE bruts distincts archivés (les identiques comptent une fois, limités par exécution) : %1$d</string>
+    <string name="sd_cap_fields">Champs FIT bruts enregistrés : %1$d</string>
+    <string name="sd_cap_undecoded">Types de champs non décodés par l’app : %1$d (enregistrés en octets bruts, non évalués)</string>
     <string name="sd_cap_none">Rien d’enregistré pour l’instant.</string>
     <string name="sd_cap_unknown">État de la capture indisponible.</string>
     <string name="sd_only_invalid">Sur la période, il n’y a que des valeurs hors de la plage d’affichage ou des états de l’appareil. Elles sont enregistrées, mais non tracées.</string>

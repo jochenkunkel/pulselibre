@@ -164,11 +164,15 @@ internal class DeviceOverviewView(context: Context) : LinearLayout(context) {
         meta.addView(label(context.getString(R.string.dev_meta_title), 14f, palette.ink, true))
         meta.addView(label(context.getString(R.string.dev_meta_note), 11f, palette.muted),
             LayoutParams(-1, -2).apply { topMargin = dp(2) })
+        val firmware = DeviceInfoRows.firmware(metadata, strings)
+        val clock = DeviceInfoRows.bandClock(metadata, strings)
+        val identity = DeviceInfoRows.identity(metadata, strings)
         listOf(PlIcon.BATTERY to context.getString(R.string.dev_meta_battery), PlIcon.FIRMWARE to context.getString(R.string.dev_meta_firmware),
             PlIcon.BAND_TIME to context.getString(R.string.dev_meta_clock), PlIcon.IDENTITY to context.getString(R.string.dev_meta_identity)).forEach { (icon, name) ->
             val row = LinearLayout(context).apply { orientation = HORIZONTAL; gravity = Gravity.CENTER_VERTICAL; minimumHeight = dp(34) }
             val reading = if (icon == PlIcon.BATTERY) battery else null
-            row.addView(PlIcon.view(context, icon, 22).apply { alpha = if (reading != null) 1f else 0.55f }, LayoutParams(dp(28), dp(22)))
+            val fixed = when (icon) { PlIcon.FIRMWARE -> firmware; PlIcon.BAND_TIME -> clock; PlIcon.IDENTITY -> identity; else -> null }
+            row.addView(PlIcon.view(context, icon, 22).apply { alpha = if (reading != null || fixed != null) 1f else 0.55f }, LayoutParams(dp(28), dp(22)))
             row.addView(label(name, 13f, palette.ink), LayoutParams(0, -2, 1f))
             if (reading != null) {
                 val view = DeviceBatteryFormat.describe(strings, reading, System.currentTimeMillis())
@@ -180,6 +184,18 @@ internal class DeviceOverviewView(context: Context) : LinearLayout(context) {
                 row.addView(column)
                 row.contentDescription = view.description
                 row.tag = "device_battery_row"
+            } else if (fixed != null) {
+                val age = System.currentTimeMillis() - fixed.observedAtMs
+                val fresh = age in 0..DeviceBatteryFormat.STALE_AFTER_MS
+                val freshness = if (fresh) DeviceBatteryFormat.ageText(strings, age) else strings.get(R.string.bat_time_unknown)
+                val column = LinearLayout(context).apply { orientation = VERTICAL; gravity = Gravity.END }
+                column.addView(label(fixed.text, 13f, palette.ink, true).apply { gravity = Gravity.END })
+                column.addView(label(freshness, 11f, if (fresh) palette.muted else palette.ink).apply { gravity = Gravity.END },
+                    LayoutParams(-2, -2).apply { topMargin = dp(3) })
+                row.addView(column, LayoutParams(0, -2, 1f))
+                row.contentDescription = strings.get(R.string.dev_meta_value_cd, name, fixed.text,
+                    DeviceBatteryFormat.sourceLabel(strings, fixed.source), freshness)
+                row.tag = "device_fixed_${icon.name.lowercase()}"
             } else {
                 row.addView(label(context.getString(R.string.dev_unavailable), 12f, palette.muted))
                 row.contentDescription = context.getString(R.string.dev_unavailable_cd, name)
@@ -188,7 +204,12 @@ internal class DeviceOverviewView(context: Context) : LinearLayout(context) {
         }
         // Additional values actually offered by the band. Nothing is invented here: a row exists
         // only for a stored observation, and identifiers are masked by DeviceMetadataFormat.
-        metadata.filterNot { it.fieldKey in DeviceMetadataFields.PROMINENT || it.fieldKey == DeviceMetadataFields.BATTERY_LEVEL }
+        val covered = DeviceInfoRows.coveredByFixedRows(metadata, strings)
+        if (metadata.any { DeviceInfoRows.gdiTextNumber(it.fieldKey) != null })
+            meta.addView(label(context.getString(R.string.dev_meta_gdi_note), 11f, palette.muted).apply { tag = "device_gdi_note" },
+                LayoutParams(-1, -2).apply { topMargin = dp(10) })
+        metadata.filterNot { it.fieldKey in DeviceMetadataFields.PROMINENT || it.fieldKey == DeviceMetadataFields.BATTERY_LEVEL || covered(it) }
+            .sortedBy { DeviceInfoRows.gdiTextNumber(it.fieldKey) ?: 0 }
             .forEach { entry ->
                 val row = LinearLayout(context).apply { orientation = HORIZONTAL; gravity = Gravity.CENTER_VERTICAL; minimumHeight = dp(34) }
                 row.addView(PlIcon.view(context, PlIcon.INFO, 22), LayoutParams(dp(28), dp(22)))

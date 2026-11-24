@@ -107,7 +107,8 @@ internal object DeviceMetadataFormat {
         DeviceMetadataFields.MAX_PACKET_SIZE -> strings.get(R.string.dev_meta_packet)
         DeviceMetadataFields.BATTERY_HOURS -> strings.get(R.string.dev_meta_runtime)
         in GattStandardFields.KEYS -> GattStandardFields.label(entry.fieldKey, strings)
-        else -> entry.fieldKey.replace('_', ' ')
+        else -> DeviceInfoRows.gdiTextNumber(entry.fieldKey)?.let { strings.get(R.string.dev_meta_gdi_text, it) }
+            ?: entry.fieldKey.replace('_', ' ')
     }
 }
 

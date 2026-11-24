@@ -716,7 +716,7 @@
     <string name="dev_meta_battery">Akku</string>
     <string name="dev_meta_firmware">Firmware</string>
     <string name="dev_meta_clock">Uhrzeit des Bands</string>
-    <string name="dev_meta_identity">Modell / Seriennummer</string>
+    <string name="dev_meta_identity">Gerätename / Seriennummer (vermutet)</string>
     <string name="dev_unavailable">Nicht verfügbar</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="dev_unavailable_cd">%1$s: nicht verfügbar; bisher kein bestätigter Gerätewert</string>
@@ -914,6 +914,14 @@
     <string name="ht_empty">Keine Werte in diesem Zeitraum.</string>
     <string name="ht_row_cd">%1$s, %2$s, %3$s: %4$d Werte, Bereich %5$s, Mittel %6$s</string>
     <!-- #142/#159 Live-Gerätemetadaten: Bezeichnungen und Herkunft -->
+    <string name="dev_meta_gdi_text">Zusatztext %1$d vom Band</string>
+    <string name="dev_meta_gdi_note">Texte, die das Band im Garmin-Protokoll zusätzlich mitsendet. Ihre Bedeutung ist nicht belegt; sie werden unverändert so angezeigt, wie sie empfangen wurden.</string>
+    <string name="src_garmin_other">Garmin-Protokoll (Zusatztexte)</string>
+    <string name="src_gatt_info">Standard-GATT-Geräteinformationen</string>
+    <string name="src_gatt_name">Standard-GATT-Gerätename</string>
+    <string name="src_gatt_time">Standard-GATT-Uhrzeit</string>
+    <string name="src_gatt_other">Sonstiger Standard-GATT-Wert</string>
+    <string name="src_garmin_5024">Garmin-Geräteinformation (5024)</string>
     <string name="dev_meta_masked">Maskiert</string>
     <string name="dev_meta_software">Software</string>
     <string name="dev_meta_hardware">Hardware</string>
@@ -974,6 +982,9 @@
     <string name="sd_cap_m_spo2">SpO₂</string>
     <string name="sd_cap_m_stress">Stress</string>
     <string name="sd_cap_m_respiration">Atemfrequenz</string>
+    <string name="sd_cap_raw">Verschiedene rohe BLE-Notification-Inhalte archiviert (gleiche zählen einmal, je Lauf begrenzt): %1$d</string>
+    <string name="sd_cap_fields">FIT-Rohfelder gespeichert: %1$d</string>
+    <string name="sd_cap_undecoded">Feldtypen, die die App nicht auswertet: %1$d (als Rohbytes gespeichert)</string>
     <string name="sd_cap_none">Noch nichts gespeichert.</string>
     <string name="sd_cap_unknown">Erfassungsstatus nicht verfügbar.</string>
     <string name="sd_only_invalid">Im Zeitraum gibt es nur Werte außerhalb des Darstellungsbereichs oder Gerätestatus. Sie sind gespeichert, werden aber nicht gezeichnet.</string>

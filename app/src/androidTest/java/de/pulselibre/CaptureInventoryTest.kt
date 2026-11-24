@@ -52,4 +52,14 @@ class CaptureInventoryTest {
         assertNull(inv.regularObservations)
         assertFalse(inv.isEmpty)
     }
+
+    @Test fun rawNotificationsAreNotCountedAsFiles() {
+        DownloadedFileArchive.create(db)
+        DownloadedFileArchive.store(db, byteArrayOf(1, 2, 3), byteArrayOf(9), "unknown_type", 1000L)
+        CirqaRawNotificationArchive.archive(db, byteArrayOf(7, 7), 1001L)
+        val inv = CaptureInventory.load(db)
+        assertEquals(1L, inv.archivedFiles)
+        assertEquals(3L, inv.archivedBytes)
+        assertEquals(1L, inv.rawNotifications)
+    }
 }
