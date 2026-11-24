@@ -1,8 +1,8 @@
 # OpenCode – lokalen CIRQA-Arbeitsstand mit main abgleichen
 - Agent/Umgebung: OpenCode FIT, Linux-Worktree
 - Beginn: 2026-11-24 11:58 UTC
-- Letzte Aktualisierung: 2026-11-24 13:04 UTC
-- Status: aktiv
+- Letzte Aktualisierung: 2026-11-24 13:18 UTC
+- Status: blockiert
 - Rolle/Zuständigkeit: FIT/BLE/Protokoll und lokaler Branch-Abgleich
 - Aktueller Auftrag: auf ausdrücklichen Nutzerwunsch den vollständigen lokalen Arbeitsstand sichern, mit aktuellem `origin/main` integrieren und einen sauberen lokalen Git-Status herstellen; nicht nach `main` pushen oder mergen
 - Jetzt in Bearbeitung: Branch `opencode/p0-cirqa-full-history-20261124`, aktuell 4 Commits voraus/9 hinter `origin/main`, zusätzlich 86 geänderte/untracked Pfade
@@ -11,5 +11,5 @@
 - Branch/Worktree: `/home/smiler/04_src/BLE-FIT-CIRQA-p0-cirqa-full-history-20261124`
 - Abstimmungsbedarf: Nutzer hat Push nach main freigegeben; Repository-Qualitätsgates bleiben bestehen, daher kein Direkt-Push an PR-/FULL-CI-/Review-Gates vorbei
 - Agent-sync-Nachrichten: `docs/collaboration/agent-chat/messages/2026-11-24_115800_opencode_START_main-reconcile.md`
-- Nachweise: `git fetch origin`; vollständiger lokaler Stand in `28a706c5` gesichert; `origin/main` `b588ba98` lokal integriert in `4b84e723`. Konflikte in S10-Testplan und Sitzungsprotokoll zugunsten der neueren dokumentierten Tatsachen gelöst; beide nur in `main` vorhandenen GUI-Abstimmungszeilen im Index erhalten. Keine privaten Captures in Git.
-- Nächster Schritt: vollständige lokale CI-Gates auf dem finalen Branch-Head ausführen; danach PR/Review und Main-FULL gemäß Projektregeln.
+- Nachweise: `git fetch origin`; vollständiger lokaler Stand in `28a706c5` gesichert; `origin/main` `b588ba98` lokal integriert in `4b84e723`; Konflikte in S10-Testplan/Sitzungsprotokoll fachlich aufgelöst. FULL: 122 Python bestanden; JVM/Build/R8, APK-Diagnose, Lint und Instrumentation-APK erfolgreich. API-35: nach einem separaten Emulator-Prozessabbruch bootete der Emulator, jedoch ein fehlgeschlagener GUI-Test `AnalysenTabTest#tabShowsFiveGroupsAndHonestModuleStates` (`AnalysenTabTest.kt:53`). GUI-Agent per `agent-sync` um Triage gebeten. Kein Push.
+- Nächster Schritt: GUI-Agent klärt den Testfehler; erst nach erfolgreichem API-35-FULL und unabhängigem Review PR-/Main-Gates fortsetzen.
