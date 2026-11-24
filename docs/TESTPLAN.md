@@ -34,7 +34,7 @@ Stand: 2026-11-17. Grundlage: Android-CI-Build `23c2cfd9`, Run `44101529585` (su
 
 ## Nicht Gegenstand dieses Builds
 
-- Ein echter historischer CIRQA-FIT-Download ist **nicht** implementiert oder freigegeben.
+- Ein echter historischer CIRQA-FIT-Download ist **nicht** implementiert oder freigegeben. *(Datierter Stand dieses Testplans; für den aktuellen Produktstand gilt `docs/protocol/sync/HISTORICAL_SYNC.md` mit dem gemergten `startSyncRequest`-Pfad und der P0-Entscheidung `docs/DATA_ACQUISITION_PRIORITY.md`. Hardwarefreigaben bleiben unverändert.)*
 - `CirqaLegacy5002Codec`, `CirqaLegacyCrc16`, `CirqaLegacyOfflineFileSession` und `CirqaVerifiedFitStore` sind reine Offline-Bausteine. Es gibt keinen UI-Test für sie.
 - Die `yw40`-CRC-Vergleichsvariable wurde anhand von `classes.dex`/`dexdump` als aktualisierter Endakkumulator bestätigt (DEX-Code-Unit-Offset `0x0042`, `if-eq v7,v4`). Connects Protokollbelege beweisen weiterhin keine CIRQA-Kompatibilität.
 - Der normale CI-Build führt JVM-Unit-Tests und APK-Assembly aus, **nicht** automatisch Emulator-/Instrumentierungs- und vollständige Lint-Tests.

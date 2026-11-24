@@ -17,7 +17,7 @@ Nur für Erwachsene; BMI ist ein Screening-Indikator, keine Diagnose oder indivi
 
 ## SpO2 – Diagramm, keine Diagnose
 Die FDA nennt 95–100 % als übliche Werte bei vielen gesunden Personen; Höhe, Grunderkrankungen und Messunsicherheit beeinflussen die Einordnung. Quelle: https://www.fda.gov/consumers/consumer-updates/pulse-oximeter-basics
-Handgelenk-Wearables sind nicht automatisch medizinisch validierte Pulsoximeter. Ohne gerätespezifische Validierung keine farbigen Alarm-/Diagnoseschwellen oder altersabhängigen Sollwerte. Zeige Trend, Zeitstempel, Messqualität soweit verfügbar und Herkunft der Daten; keine Daten erfinden.
+Handgelenk-Wearables sind nicht automatisch medizinisch validierte Pulsoximeter. Ohne gerätespezifische Validierung keine farbigen Alarm-/Diagnoseschwellen oder altersabhängigen Sollwerte. Zeige Trend, Zeitstempel, Messqualität soweit verfügbar und Herkunft der Daten; keine Daten erfinden. Diese Regeln betreffen Aussage und Darstellung: Rohwerte sind nach der P0-Entscheidung 24.11.2026 (`docs/DATA_ACQUISITION_PRIORITY.md`) auch ohne Validierung lokal zu erfassen und als ungeprüft zu markieren.
 Bei Beschwerden oder auffälligen Messwerten ärztlichen Rat einholen; bei schweren akuten Symptomen medizinische Notfallhilfe.
 
 ## Technische Abnahmekriterien
