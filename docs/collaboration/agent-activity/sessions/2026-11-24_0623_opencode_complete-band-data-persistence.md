@@ -1,0 +1,15 @@
+# OpenCode – vollständige CIRQA-Datenpersistenz
+- Agent/Umgebung: OpenCode, Linux-Worktree
+- Beginn: 2026-11-24 06:23 UTC
+- Letzte Aktualisierung: 2026-11-24 06:23 UTC
+- Status: aktiv
+- Rolle/Zuständigkeit: FIT-Decoder, Historien-Datenpfad und lokale Persistenz
+- Aktueller Auftrag: Nutzer beauftragt, alle aus dem Band gewonnenen Daten in der lokalen Datenbank zu speichern und die Priorität im Repository festzuhalten.
+- Jetzt in Bearbeitung: bestehenden FIT-Decoder-Prototyp prüfen; Kandidaten-/Generationen- und Backup-Pfad auf vollständige verlustfreie Persistenz ausrichten.
+- Zeitnah geplant: vollständige Inventur tatsächlich dekodierbarer FIT-Felder/Records; SQLite-Generationen, Replay und Backup/Restore ergänzen; synthetische Migration-, Rollback- und Roundtrip-Tests.
+- Betroffene Bereiche/Dateien: `FitHistoricalObservations.kt`, `CirqaDatabase.kt`, `DatabaseBackup.kt`, Committer/Generation-Modelle und Tests; Anforderungen und Kollaborationsdokumente.
+- Branch/Worktree: `opencode/cirqa-fit-data-v2-20261124`; bestehende lokale Decoderänderungen bleiben erhalten.
+- Abstimmungsbedarf: CI-Agent/DB-/Backup-Owner wegen gemeinsam genutztem Schema/Backup; GUI bleibt Owner der Darstellung.
+- Agent-sync-Nachrichten: `docs/collaboration/agent-chat/messages/2026-11-24_062300_opencode_START_complete-band-data-persistence.md`
+- Nachweise: CI-Architekturreview auf `origin/ci/release-qa-20261123`; Decoder-Prototyp und synthetische Tests sind lokal uncommitted; Persistenz noch nicht implementiert.
+- Nächster Schritt: Code-/Feldinventur und koordinierter Datenvertrag; keine Hardwareaktion.
