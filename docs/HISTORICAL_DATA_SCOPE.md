@@ -67,3 +67,6 @@ Vier strikt getrennte Evidenzstufen: **FIT-Profil kennt Feld** → **Decoder unt
 Zuerst sichere Protokollinitialisierung und vollständige Verzeichnis-/Dateiübertragung; anschließend generische Rohdatenspeicherung, Wiederaufnahme und Integritätsprüfung; erst danach datentypspezifische Analyse.
 
 Dieses Dokument korrigiert frühere Formulierungen, die das Projektziel fälschlich auf historische Herzfrequenzdaten verengt haben.
+
+## Verbindliche P0-Präzisierung zum erneuten Full-Pull (24.11.2026)
+**Unbewiesene Geräte-/Dateiidentität ist kein Hindernis für den Download.** Sie verbietet nur das Überspringen vor der Übertragung. Im Zweifel alle gelisteten Dateien erneut read-only herunterladen, Originalbytes und Abrufstatus sichern und Duplikate erst lokal anhand geprüfter Inhalte behandeln. Nach Abbruch dürfen bereits gesicherte Daten nicht verloren gehen; der nächste ausdrücklich autorisierte Lauf darf erneut vollständig lesen. Ein optimierter selektiver Resume ist optional und erfordert Evidenz, aber sein Fehlen blockiert weder Full-Pull noch Import noch die Implementierung von Lauf-/Fehlerprotokollen. Laufbudgets und Hardwarefreigaben bleiben in Kraft; ein Budgetstopp bleibt ausdrücklich unvollständig und ist keine nachgewiesene Geräteabdeckung.
