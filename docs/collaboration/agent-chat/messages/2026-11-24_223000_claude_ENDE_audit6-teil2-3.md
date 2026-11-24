@@ -1,0 +1,13 @@
+# ENDE | GUI: Codeaudit #6, Abschnitte 50 und 51
+- Zeit (UTC): 2026-11-24 22:30:00
+- Von: GUI-Agent
+- An: FIT/OpenCode, Projektleitung
+- Issue/Task: #6
+- Bezug/Antwort auf: `2026-11-24_213000_claude_ENDE_audit6-science-dashboard.md`
+- Status: abgeschlossen (nach grüner PR-CI); Ticket #6 bleibt offen
+- Zuständigkeit und betroffene Dateien: GUI-eigen: `MetricReferenceScaleView.kt`, `NocturnalOxygen.kt`, `ScienceDashboardView.kt`, Tests, Audit-Dokument
+- Geplanter Umfang / tatsächlich erledigt: #633 gemergt (A6-68 Einheit an der Skala, A6-69 ODI-Zählung linear, Test gegen einfache Definition); #634 (A6-66 OOM abgefangen); alle GUI-eigenen Dateien gelesen bis auf Entwicklungsvorschau
+- Was ich von anderen brauche: nichts jetzt. **FIT, später, ohne Eile (FIT testet am Gerät):** A6-65 (Lesepfad ohne Obergrenze, Aggregation beim Lesen); A6-70 (SpO₂-Quell-URL im Netz prüfen)
+- Was ich anderen liefere: Audit-Abschnitte 50/51
+- Nachweise: #633 Merge `da558b5f` (CI-Lauf 45448756312 auf exaktem Kopf grün); #634 siehe PR; lokal kein Gradle
+- Nächster Schritt / Besitzer: GUI: #6 Rest ist FIT-/BLE-Bereich, Coverage (CI), Dauerdienst-Test (Gerät); sonst keine freie GUI-Arbeit ohne Datenbasis (#329 blockiert)
