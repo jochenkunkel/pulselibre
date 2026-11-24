@@ -63,9 +63,9 @@ class DatabaseBackupV9ArchiveGapTest {
         }
     }
 
-    @Test fun statusAndImportTablesStayOutsideBackupUntilOwnerDecision() {
+    @Test fun statusAndImportTablesAreInsideBackupFromV11() {
         val base = ApplicationProvider.getApplicationContext<Context>()
-        val root = Files.createTempDirectory(base.cacheDir.toPath(), "v9-status-boundary-").toFile()
+        val root = Files.createTempDirectory(base.cacheDir.toPath(), "v11-status-boundary-").toFile()
         val context = isolated(base, root)
         val event = """{"schema":1,"type":"attempt","received_at_utc":"2026-11-23T01:00:00Z"}"""
         try {
@@ -78,19 +78,19 @@ class DatabaseBackupV9ArchiveGapTest {
 
             val backup = ByteArrayOutputStream().also { DatabaseBackup.write(context, it) }.toByteArray()
             val names = zipEntryNames(backup)
-            assertFalse(names.any { it.startsWith("observation_status_events") })
-            assertFalse(names.any { it.startsWith("import_runs") })
-            assertFalse(names.any { it.startsWith("import_errors") })
+            // Since backup v11 the audit tables are part of every backup; empty tables
+            // are written as empty JSONL entries, not omitted.
+            assertTrue(names.any { it.startsWith("observation_status_events") })
+            assertTrue(names.any { it.startsWith("import_runs") })
+            assertTrue(names.any { it.startsWith("import_errors") })
 
             DatabaseBackup.reset(context)
             val plan = DatabaseBackup.prepareRestore(context, ByteArrayInputStream(backup))
+            assertEquals(11, plan.version)
             plan.use { DatabaseBackup.restore(context, it) }
 
             CirqaDatabase(context).use { database ->
                 assertEquals(listOf(event), database.allLines())
-                // Current contract: these tables are created but write-inert and are not
-                // part of any backup version. If FIT starts writing them, extend the
-                // backup format before removing this guard.
                 assertEquals(0, countRows(database, "observation_status_events"))
                 assertEquals(0, countRows(database, "import_runs"))
                 assertEquals(0, countRows(database, "import_errors"))
