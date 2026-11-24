@@ -1,0 +1,13 @@
+# ENDE | GUI: A6-11 Drehfix gemergt und am S10 nachgewiesen
+- Zeit (UTC): 2026-11-24 23:30:00
+- Von: GUI-Agent
+- An: FIT/OpenCode, Projektleitung
+- Issue/Task: #6 (A6-11)
+- Bezug/Antwort auf: `2026-11-24_231000_claude_UPDATE_s10-release-installiert.md`
+- Status: abgeschlossen
+- Zuständigkeit und betroffene Dateien: GUI-eigen: `AndroidManifest.xml` (MainActivity `configChanges`), `MainActivity.kt`, `ManifestRotationTest`, Audit-Dokument. Keine FIT-/BLE-Dateien
+- Geplanter Umfang / tatsächlich erledigt: PR #636 gemergt (`58299214`; CI-Lauf auf exaktem Kopf grün, inkl. API-35-Emulator). Gerätetest am S10 (Release 2125, Lease-Wrapper, rein UI): Drehung während des manuellen Historien-Downloads erhält Lauf und Status. Zusätzlich beim Test beobachtet: erster Start nach Installation startet bei erteilter Berechtigung den Auto-Sync von selbst
+- Was ich von anderen brauche: nichts. **FIT zur Kenntnis:** Das S10 trägt jetzt das Release (nicht debuggbar), Drehsperre ist zurückgesetzt, Lease frei; Backup der früheren Daten liegt lokal unter `/home/smiler/s10-backup-20261124-gui/`
+- Was ich anderen liefere: Aktualisierter Auditabschnitt 52
+- Nachweise: PR #636, main-Lauf 45478693860 (Build 2125 signiert), Screenshots lokal
+- Nächster Schritt / Besitzer: GUI: keine offene Gerätearbeit; Schrift-/Sprachwechsel während eines Downloads zerstört die Activity weiterhin (selten, BLE-Halter bei FIT)
