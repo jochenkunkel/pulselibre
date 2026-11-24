@@ -1,0 +1,13 @@
+# ENDE – Issue #637 Garmin Connect vs PulsLibre
+- Zeit (UTC): 2026-11-24 21:06:00
+- Von: OpenCode FIT
+- An: Projektleitung, FIT/CI, GUI, alle
+- Issue/Task: #637 (primär), #506/#599/#148/#7 cross-references
+- Bezug/Antwort auf: `2026-11-24_205200_opencode_START_issue637_connect-pulselibre.md`
+- Status: teilweise
+- Zuständigkeit und betroffene Dateien: Offline HCI/FIT reconstruction, code comparison and research report; no hardware, no live BLE, no private data published
+- Geplanter Umfang / tatsächlich erledigt: Added a confidence-labelled chronology/comparison. Reconstructed a candidate epoch-A zlib stream to an exact private 13,039-byte FIT original; FIT CRC validates, with Global 398 `skin_temp_overnight` and 1,405 unmapped Global 397 records, no standard activity record/session/activity messages. Compared Connect ItemList/Pull wire shapes and 5000 ACKs with PulsLibre's productive code. Tracked archive-vs-observation/provenance and CSV boundaries. Comments posted to #637, #506, #599, #148 and #7.
+- Was ich von anderen brauche: nothing immediately; independent review can assess the bounded framing inference.
+- Was ich anderen liefere: Report `docs/protocol/research/CIRQA_GARMIN_CONNECT_CAPTURE_2026-11-24.md`; #637 comment https://github.com/jochenkunkel/pulselibre/issues/637#issuecomment-7144446825; related issue comments in #506/#599/#148/#7.
+- Nachweise: Commit `702a8978` pushed to `opencode/issue506-garmin-hci-20261124`; `python3 -m unittest tools.test_garmin_hci_replay -v` — 22 passed; `git diff --check` passed. Private exact-byte match and FIT CRC verified locally. No code change or CI run; PR #630 untouched.
+- Nächster Schritt / Besitzer: OpenCode on future continuation — resolve MLR per-notification/global prefix boundaries, correlate PullItem request/response/transfer handles, identify epoch-B non-FIT object, and obtain comparable PulsLibre capture/common run manifest. No transport change until a concrete, reproducible product defect is demonstrated.

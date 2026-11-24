@@ -1,8 +1,8 @@
 # OpenCode – Issue #637 Garmin Connect vs PulsLibre
 - Agent/Umgebung: OpenCode, separater Git-Worktree
 - Beginn: 2026-11-24 20:14 UTC
-- Letzte Aktualisierung: 2026-11-24 20:52 UTC
-- Status: aktiv
+- Letzte Aktualisierung: 2026-11-24 21:06 UTC
+- Status: pausiert
 - Rolle/Zuständigkeit: FIT/BLE-Protokollanalyse, Offline-Replay
 - Aktueller Auftrag: #637 – offline compare Garmin Connect request/ACK sequence and Daily-vs-Activity data with productive PulsLibre path and private originals/archive/SQLite/CSV; keep #506/#599/#148/#7 updated only with relevant evidence.
 - Jetzt in Bearbeitung: GATT attribution/replay correction complete; reconstruct FileAccess operations and route-5 transfer; inspect private FIT/archive correlation and PulsLibre's production selector/reconnect/request/ACK logic.
@@ -11,5 +11,5 @@
 - Branch/Worktree: `opencode/issue506-garmin-hci-20261124`, `/tmp/opencode/s10e-garmin-sync-analysis-20261124`, Basis `origin/main` bei Taskstart.
 - Abstimmungsbedarf: none currently; PR #630 remains in a separate branch/worktree and will not be touched. No hardware/BLE action.
 - Agent-sync-Nachrichten: offene #506-Aufträge und frühere ChatGPT-Zweitreview gelesen; keine neue direkte Agentenbitte erforderlich.
-- Nachweise: Ursprungsdateien und SHA-256-Manifest liegen privat unter `~/.local/share/pulselibre/s10e-garmin-sync-2026-11-24/`; `python3 -m unittest tools.test_garmin_hci_replay -v` – 22 bestanden. Bericht trennt bestätigte GATT-/GFDI-Befunde von offenen FIT-/History-Fragen.
-- Nächster Schritt: correlate each complete FileAccess message with responses/ACKs and resolve route-5 transfer bounds; then compare evidence with the private originals and code.
+- Nachweise: Ursprungsdateien und SHA-256-Manifest liegen privat unter `~/.local/share/pulselibre/s10e-garmin-sync-2026-11-24/`; exact FIT original match and CRC validated privately; `python3 -m unittest tools.test_garmin_hci_replay -v` – 22 bestanden; commit `702a8978` pushed. Issue comments: #637 `7144446825`, #506 `7144439900`, #599 `7144439939`, #148 `7144439902`, #7 `7144440019`.
+- Nächster Schritt: remaining MLR/pull correlation, epoch-B payload identity, and comparable PulsLibre trace; no speculative transport change.
