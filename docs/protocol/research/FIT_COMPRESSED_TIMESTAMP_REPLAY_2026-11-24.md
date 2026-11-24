@@ -45,10 +45,23 @@ No new distinct importable candidate was observed in this particular inventory.
 The previously documented 1,622 timestamp-16 heart-rate values are not counted
 as new recoveries.
 
+| S25 metric | Baseline | Candidate | Difference |
+| --- | ---: | ---: | ---: |
+| Unique source files | 45 | 45 | 0 |
+| Successfully decoded files | 45 | 45 | 0 |
+| Decoded observations | 29,365 | 29,365 | 0 |
+| Timestamped observations | 29,365 | 29,365 | 0 |
+| Missing timestamps | 0 | 0 | 0 |
+| Distinct quality-eligible candidates | 29,358 | 29,358 | 0 |
+| New SQLite imports | not tested | not tested | unverified |
+| Historical hours/days newly covered | not tested | not tested | unverified |
+
 An existing S25 backup snapshot contains all 45 source identities and all
 29,358 candidate sample identities in its canonical FIT observation provenance.
-This establishes presence of those sample IDs in that snapshot, not a new
-SQLite commit or verification of the later S10 run.
+An additional per-sample comparison against its canonical observation and
+provenance entries found zero mismatches in metric, value, unit, quality or
+timestamp for those 29,358 entries. This is a read-only comparison with an
+existing snapshot, not a new SQLite commit or verification of the later S10 run.
 
 An additional per-source/per-record comparison matched all 29,365 observations
 and all 178,816 emitted decoded-field occurrences between the two runs. There
@@ -70,12 +83,23 @@ SHA-256 before decoding; it does not open or modify SQLite.
 compile/run once against each decoder, then compare the identity, raw,
 timestamp and origin columns. Derived hashes must remain private too.
 
-The previously available S10 working snapshots under `/tmp` did not survive the
-host restart. Other local S10 evidence must be inventoried before declaring the
-S10 originals unavailable. In particular, no post-run SQLite backup for the
-24 November S10 run has yet been established. The recorded 20 import/commit
-failures have no demonstrated per-error exception classes; none is attributed
-to a timestamp cause by this report.
+The documented 23 November S10 before/after exports and extracted FIT copies
+under `/tmp/opencode/all-data-s10-acceptance-20261123/`, and the 24 November
+pre-run backup under `/tmp/opencode/p0-s10-run-20261124/`, did not survive the
+host restart. A bounded search of project workspaces, Downloads, Documents and
+Desktop found no replacement S10 backup; the two located S25 backups are not
+S10 evidence. No post-run backup was made for the 24 November run. Consequently
+the requested S10 before/after FIT replay and the additional recovered values
+and time ranges are **not verified**.
+
+The 24 November terminal ledger documented 32 FIT decodes, 12 successful
+commits with no importable data, and 20 failures in the subsequent
+import/commit path. The recorded aggregate does not separate SQLite execution,
+source conflicts, or other import failures, and no per-error exception details
+or post-run audit snapshot have been found. Thus decoder failures attributable
+to those 20, timestamp failures, quality-filter failures, individual SQLite
+failures and other causes are all **unknown**, not zero. No one of those 20
+has yet been demonstrated fixed by this PR.
 
 ## Integration gate
 

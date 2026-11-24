@@ -259,6 +259,29 @@ class HistoricalObservationRepositoryTest {
                     "SELECT COUNT(*) FROM fit_observation_provenance WHERE source_sha256 = ?",
                     arrayOf(sha)
                 ).use { row -> assertTrue(row.moveToFirst()); row.getLong(0) })
+                database.readableDatabase.rawQuery(
+                    """SELECT measured_at_ms, timestamp_origin FROM fit_generation_observations
+                       WHERE generation_id = ? ORDER BY record_ordinal""",
+                    arrayOf(FitDecoderGeneration.id(sha, FitHistoricalObservations.DECODER_VERSION,
+                        FitHistoricalObservations.PROFILE_VERSION))
+                ).use { row ->
+                    assertTrue(row.moveToFirst())
+                    assertEquals((0x4000001eL + 631_065_600L) * 1000, row.getLong(0))
+                    assertEquals("DIRECT", row.getString(1))
+                    assertTrue(row.moveToNext())
+                    assertEquals((0x40000021L + 631_065_600L) * 1000, row.getLong(0))
+                    assertEquals("RECONSTRUCTED_COMPRESSED", row.getString(1))
+                    assertTrue(!row.moveToNext())
+                }
+                database.readableDatabase.rawQuery(
+                    "SELECT DISTINCT decoder_version, quality FROM fit_observation_provenance WHERE source_sha256 = ?",
+                    arrayOf(sha)
+                ).use { row ->
+                    assertTrue(row.moveToFirst())
+                    assertEquals(FitHistoricalObservations.DECODER_VERSION, row.getString(0))
+                    assertEquals("PROFILE_VALID", row.getString(1))
+                    assertTrue(!row.moveToNext())
+                }
             }
         } finally {
             root.deleteRecursively()
