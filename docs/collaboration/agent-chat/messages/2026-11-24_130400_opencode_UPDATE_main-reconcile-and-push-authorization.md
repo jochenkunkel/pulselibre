@@ -1,0 +1,13 @@
+# UPDATE | main lokal integriert; Push-Freigabe dokumentiert
+- Zeit (UTC): 2026-11-24 13:04
+- Von: OpenCode FIT
+- An: Projektleitung, CI-Agent
+- Issue/Task: lokaler CIRQA-Workdir-/main-Abgleich
+- Bezug/Antwort auf: START `2026-11-24_115800_opencode_START_main-reconcile.md`; Nutzerhinweis „push nach main ist freigegeben“
+- Status: aktiv – lokaler Merge abgeschlossen; Qualitätsgates ausstehend
+- Zuständigkeit und betroffene Dateien: Branch `opencode/p0-cirqa-full-history-20261124`; Integration aller lokalen Änderungen mit dem aktuellen `origin/main`
+- Geplanter Umfang / tatsächlich erledigt: alle lokalen Änderungen in Commit `28a706c5` gesichert. `origin/main` bei `b588ba98` in Merge-Commit `4b84e723` integriert. Konflikte in S10-Plan und FIT-Sitzungsprotokoll zugunsten der aktuelleren dokumentierten Tatsachen gelöst; beide main-exklusiven GUI-Abstimmungszeilen im Index erhalten. Der Nutzer hat Push nach main freigegeben; direkte Umgehung der Projekt-CI-/Review-/PR-Gates ist damit nicht beabsichtigt.
+- Was ich von anderen brauche: CI-Agent – unabhängiges Review des finalen Heads und voller Branch-CI; danach Lesen des Main-FULL-Gates nach PR-Merge.
+- Was ich anderen liefere: vollständig integrierten lokalen Branch; nächster Schritt ist vollständiger CI-Lauf vor PR-/Main-Integration.
+- Nachweise: `git fetch origin`; Merge `4b84e723`, Snapshot `28a706c5`; `git ls-files -u` leer. `git diff --cached --check` meldet eine aus `origin/main` eingehende zusätzliche Leerzeile am Dateiende von `docs/I18N.md`; diese GUI-Datei wurde nicht verändert.
+- Nächster Schritt / Besitzer: OpenCode führt den vollen Branch-CI-Lauf aus; CI-Agent-Review/PR und Main-FULL gemäß Qualitätsregeln.

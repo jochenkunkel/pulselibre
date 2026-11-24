@@ -1,7 +1,7 @@
 # OpenCode – lokalen CIRQA-Arbeitsstand mit main abgleichen
 - Agent/Umgebung: OpenCode FIT, Linux-Worktree
 - Beginn: 2026-11-24 11:58 UTC
-- Letzte Aktualisierung: 2026-11-24 11:58 UTC
+- Letzte Aktualisierung: 2026-11-24 13:04 UTC
 - Status: aktiv
 - Rolle/Zuständigkeit: FIT/BLE/Protokoll und lokaler Branch-Abgleich
 - Aktueller Auftrag: auf ausdrücklichen Nutzerwunsch den vollständigen lokalen Arbeitsstand sichern, mit aktuellem `origin/main` integrieren und einen sauberen lokalen Git-Status herstellen; nicht nach `main` pushen oder mergen
@@ -9,7 +9,7 @@
 - Zeitnah geplant: vollständige lokale Änderung als geprüften Commit erhalten; `origin/main` integrieren; Konflikte bewusst lösen; geeignete Tests und abschließenden Status prüfen
 - Betroffene Bereiche/Dateien: aktueller kompletter Git-Arbeitsstand; insbesondere CIRQA-Diagnostik, S10-Testplan, Collaboration-Protokolle sowie die vom Nutzer zur Übernahme freigegebenen `docs/archive/2026-11-24/` und `docs/knowledge/`
 - Branch/Worktree: `/home/smiler/04_src/BLE-FIT-CIRQA-p0-cirqa-full-history-20261124`
-- Abstimmungsbedarf: keiner für lokalen, nicht gepushten Snapshot/Reconcile; PR-/Main-Merge bleibt explizit außerhalb des Auftrags
+- Abstimmungsbedarf: Nutzer hat Push nach main freigegeben; Repository-Qualitätsgates bleiben bestehen, daher kein Direkt-Push an PR-/FULL-CI-/Review-Gates vorbei
 - Agent-sync-Nachrichten: `docs/collaboration/agent-chat/messages/2026-11-24_115800_opencode_START_main-reconcile.md`
-- Nachweise: `git fetch origin` erfolgreich; Branch `a7e4b745`, `origin/main` `b588ba98`; keine Datei geändert oder committet, bevor der Auftrag registriert wurde
-- Nächster Schritt: alle 86 Pfade als lokalen Snapshot sichern und danach `origin/main` integrieren, ohne private Captures außerhalb des Repos anzufassen.
+- Nachweise: `git fetch origin`; vollständiger lokaler Stand in `28a706c5` gesichert; `origin/main` `b588ba98` lokal integriert in `4b84e723`. Konflikte in S10-Testplan und Sitzungsprotokoll zugunsten der neueren dokumentierten Tatsachen gelöst; beide nur in `main` vorhandenen GUI-Abstimmungszeilen im Index erhalten. Keine privaten Captures in Git.
+- Nächster Schritt: vollständige lokale CI-Gates auf dem finalen Branch-Head ausführen; danach PR/Review und Main-FULL gemäß Projektregeln.
