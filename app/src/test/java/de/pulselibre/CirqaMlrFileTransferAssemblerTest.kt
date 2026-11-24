@@ -42,6 +42,39 @@ class CirqaMlrFileTransferAssemblerTest {
         }
     }
 
+    @Test fun inflatesZlibStreamWithoutPerNotificationTransportPrefix() {
+        val expected = ByteArray(4_841) { (it * 31).toByte() }
+        val compressed = ByteArrayOutputStream().also { out ->
+            DeflaterOutputStream(out).use { it.write(expected) }
+        }.toByteArray()
+        CirqaMlrFileTransferAssembler(expected.size).use { assembler ->
+            var last: CirqaMlrFileTransferAssembler.ChunkResult? = null
+            var offset = 0
+            while (offset < compressed.size) {
+                val end = minOf(offset + 146, compressed.size)
+                val result = assembler.accept(compressed.copyOfRange(offset, end))
+                last = result
+                assertFalse(result.rejected)
+                offset = end
+            }
+            val result = last ?: error("missing compressed chunks")
+            assertTrue(result.complete)
+            assertEqualsMode(CirqaMlrFileTransferAssembler.Mode.ZLIB, result.mode)
+            assertArrayEquals(expected, assembler.assembledBytes())
+        }
+    }
+
+    @Test fun preservesRawFileThatStartsWithValidZlibHeader() {
+        val expected = byteArrayOf(0x78, 0x9c.toByte(), 0xff.toByte(), 1, 2, 3)
+        CirqaMlrFileTransferAssembler(expected.size).use { assembler ->
+            assertFalse(assembler.accept(expected.copyOfRange(0, 2)).rejected)
+            val result = assembler.accept(expected.copyOfRange(2, expected.size))
+            assertTrue(result.complete)
+            assertEqualsMode(CirqaMlrFileTransferAssembler.Mode.RAW, result.mode)
+            assertArrayEquals(expected, assembler.assembledBytes())
+        }
+    }
+
     @Test fun detectsZlibHeaderSplitAcrossShortNotifications() {
         val expected = byteArrayOf(7, 6, 5, 4, 3, 2, 1)
         val compressed = ByteArrayOutputStream().also { out ->

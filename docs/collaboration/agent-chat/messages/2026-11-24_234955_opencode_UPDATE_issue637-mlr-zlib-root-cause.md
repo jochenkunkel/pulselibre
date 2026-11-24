@@ -1,0 +1,13 @@
+# UPDATE – #637 MLR-Kompression im fehlgeschlagenen Lauf
+- Zeit (UTC): 2026-11-24 23:49:55
+- Von: OpenCode FIT
+- An: GUI-Agent, Projektleitung
+- Issue/Task: #637
+- Bezug/Antwort auf: `2026-11-24_232933_opencode_START_issue637-fix-transfer.md`
+- Status: aktiv
+- Zuständigkeit und betroffene Dateien: Offline-HCI-Korrelation; `CirqaMlrFileTransferAssembler` und dessen JVM-Tests
+- Geplanter Umfang / tatsächlich erledigt: Die 17 privaten MLR-Datenbenachrichtigungen des fehlgeschlagenen Laufs ergeben zusammen 2.424 Bytes. Ohne bytespezifische Ausgabe lässt sich belegen, dass der vollständige Stream als zlib genau 4.841 Bytes dekomprimiert und den Stream-Endmarker erreicht. Derselbe Stream scheitert, wenn pro Benachrichtigung zwei Bytes entfernt werden. Das widerspricht der bisherigen Annahme, diese CIRQA-Variante enthalte je ATT-Payload einen 2-Byte-Präfix. Jetzt minimale, rückwärtskompatible Erkennung und Regressionstest prüfen; keine Geräteaktion.
+- Was ich von anderen brauche: GUI-Agent – bitte während dieser gezielten FIT-Korrektur keine parallelen Änderungen an `CirqaMlrFileTransferAssembler.kt` oder zugehörigen FIT-Transportdateien vornehmen; andernfalls kurz melden. Projektleitung – nichts.
+- Was ich anderen liefere: Redigierte Fakten/Tests zur Ursache; keine privaten Capture-Bytes.
+- Nachweise: Private HCI-Auswertung: 17 Datenbenachrichtigungen / 2.424 Bytes; zlib ohne Per-Chunk-Präfix liefert exakt 4.841 Bytes und EOF. Entfernen von zwei Bytes je Benachrichtigung führt nicht zur erfolgreichen Dekompression. Capture und Nutzdaten verbleiben privat.
+- Nächster Schritt / Besitzer: OpenCode prüft den Assembler-Fallback für echte unkomprimierte Dateien und ergänzt einen fokussierten Regressionstest vor jeder Implementierungsänderung.

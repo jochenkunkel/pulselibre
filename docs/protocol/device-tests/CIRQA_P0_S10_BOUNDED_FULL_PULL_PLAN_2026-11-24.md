@@ -177,11 +177,25 @@ Der sichtbare `5043-Transport-ACK` hatte `gfdiAck=0`, `successFlag=0`,
 Fehlerstatus, aber kein Anwendungsnachweis für eine Item-List-Antwort. Die
 separate Item-List-Antwort ist im selben Terminalbericht dennoch belegt. Der
 Fehler ist somit **kein belegter negativer 5043-ACK und kein FIT-/SQLite-
-Importfehler**: der erste MLR-Datei-Transfer blieb nach Teilbytes stehen und
-verbraucht fast das gesamte Laufbudget. Ursache des Stillstands ist aus diesem
-einen Lauf nicht bewiesen. Die angeforderte Kompressionsfenster-Angabe 15 und
-der von der Pull-Antwort gemeldete Wert 11 sollten offline korreliert werden;
-ein kausaler Zusammenhang ist nicht belegt. Auch eine fehlende
-TransferStatus-Anwendungsantwort bleibt eine Forschungshypothese, keine
-festgestellte Ursache. Keine Wiederholung. Post-Run-Backup und
-Nachher-Inventar fehlen; Vorher-Backup und Screenshots bleiben privat.
+Importfehler**: der App-Assembler wartete nach 2.424 Bytes, obwohl die
+aufgezeichneten Datenbenachrichtigungen zusammen einen vollständigen
+Kompressionsstrom bilden. Die private HCI-Aufzeichnung wurde offline und ohne
+Ausgabe von Nutzdatenbytes korreliert: die 17 Datenbenachrichtigungen ergeben
+unverändert als zlib exakt 4.841 Ausgabebytes und erreichen den zlib-Endmarker.
+Wenn wie im bisherigen Assembler zwei Bytes je Benachrichtigung abgeschnitten
+werden, ist der Stream nicht mehr dekomprimierbar. Der CIRQA-Stream in diesem
+Lauf hatte somit **keinen** solchen Zwei-Byte-Präfix; die App behandelte ihn
+stattdessen als Rohdatei und wartete fälschlich auf 4.841 eingehende Bytes.
+Das erklärt den Stillstand und den Timeout, ohne einen Fehler des Bandes oder
+einen negativen 5043-ACK zu behaupten.
+
+Der angeforderte Kompressionsfensterwert 15 und der gemeldete Wert 11 erklären
+diesen Befund nicht; die tatsächlich empfangene zlib-Nutzlast ist vollständig
+und größenkonsistent. Eine TransferStatus-Antwort ist damit für diesen
+konkreten Stillstand nicht ursächlich. Der lokale Assembler-Fix erkennt jetzt
+direkte zlib-Streams zusätzlich zur bereits unterstützten Präfix-Variante und
+behält einen Rohdaten-Fallback für zlib-ähnliche Datei-Anfänge. Neue
+synthetische Regressionstests und der gesamte JVM-Unit-Testlauf waren lokal
+grün; ein Hardware-Re-Run ist nicht erfolgt und daher nicht als verifiziert
+ausgewiesen. Keine Wiederholung. Post-Run-Backup und Nachher-Inventar fehlen;
+Vorher-Backup und Screenshots bleiben privat.

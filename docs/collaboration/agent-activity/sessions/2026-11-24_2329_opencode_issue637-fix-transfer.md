@@ -1,15 +1,15 @@
 # OpenCode – #637 CIRQA-Transferfehler
 - Agent/Umgebung: OpenCode FIT, Linux-Worktree
 - Beginn: 2026-11-24 23:29 UTC
-- Letzte Aktualisierung: 2026-11-24 23:31 UTC
+- Letzte Aktualisierung: 2026-11-24 23:49 UTC
 - Status: aktiv
 - Rolle/Zuständigkeit: FIT-/GFDI-Protokoll, CIRQA-Sync und kontrollierte Geräteevidenz
 - Aktueller Auftrag: Ursache des unvollständigen ersten MLR-Transfers diagnostizieren und evidenzgestützt beheben
-- Jetzt in Bearbeitung: Offlineanalyse der S10-Terminaldiagnose, MLR-Dateiassemblierung, TransferStatus-Implementierung und Regressionstests
+- Jetzt in Bearbeitung: Offline-Korrelation beweist, dass die 17 MLR-Datenbenachrichtigungen als vollständiger zlib-Stream 4.841 Bytes ergeben, wenn keine zwei Bytes je Benachrichtigung abgeschnitten werden; Assembler behandelt aktuell nur die Präfix-Variante. Jetzt Fallback/Rohdatei-Sicherheit prüfen und Regressionstest entwerfen.
 - Zeitnah geplant: gezielte Unit-/Replaytests; nach Nutzerfreigabe ein rein lesender privater S10-Bugreport zur Fehlerkorrelation, kein weiterer Sync
 - Betroffene Bereiche/Dateien: `CirqaMlHandshakeProbe`, `CirqaMlrFileTransferAssembler`, TransferStatus-Analyse und bestehende Protokolltests
 - Branch/Worktree: `issue637-s10-test-20261125`, aktueller Worktree
-- Abstimmungsbedarf: GUI-Agent soll keine parallele Änderung an FIT-/BLE-Transportdateien vornehmen
+- Abstimmungsbedarf: GUI-Agent gebeten, keine parallele Änderung an `CirqaMlrFileTransferAssembler.kt` oder FIT-Transportdateien vorzunehmen
 - Agent-sync-Nachrichten: START `docs/collaboration/agent-chat/messages/2026-11-24_232933_opencode_START_issue637-fix-transfer.md`; UPDATE `docs/collaboration/agent-chat/messages/2026-11-24_233100_opencode_UPDATE_issue637-s10-bugreport.md`
-- Nachweise: S10-Laufbericht mit 17 MLR-Chunks/2.424 Bytes, 4.841 erwarteten Bytes, erfolgreich konfiguriertem MLR und Timeout nach 120,017 ms; Details in Gerätetestplan
-- Nächster Schritt: Quellpfad und private lokale Replay-Evidenz vergleichen; keine spekulativen proprietären Schreibantworten
+- Nachweise: S10-Laufbericht mit 17 MLR-Chunks/2.424 Bytes, 4.841 erwarteten Bytes und Timeout nach 120,017 ms. In-memory/offline: vollständige zlib-Dekompression ohne Präfix ergibt 4.841 Bytes mit EOF; Strippen von je zwei Bytes scheitert. Private Capture bleibt außerhalb Git.
+- Nächster Schritt: Fallback für unkomprimierte Dateien bei zlib-Header-Kollision absichern, fokussierten Test ergänzen und ausführen; keine Geräteaktion

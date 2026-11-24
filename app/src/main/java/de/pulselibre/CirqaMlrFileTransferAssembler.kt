@@ -7,10 +7,10 @@ import java.util.zip.Inflater
 /**
  * Reassembles one file carried by MLR data notifications.
  *
- * FileAccess data_size is the uncompressed size. The observed compressed
- * transfer variant prefixes each ATT value with two transport bytes; those
- * bytes are stripped only after a valid zlib header identifies that variant.
- * Uncompressed transfers retain the existing byte-for-byte path.
+ * FileAccess data_size is the uncompressed size. Compressed streams may arrive
+ * either directly or with two transport bytes prefixed to every ATT value; the
+ * latter are stripped only after a valid zlib header identifies that variant.
+ * Uncompressed transfers retain a byte-for-byte fallback.
  */
 internal class CirqaMlrFileTransferAssembler(
     private val expectedSize: Int,
@@ -27,6 +27,9 @@ internal class CirqaMlrFileTransferAssembler(
     private val raw = ByteArrayOutputStream(minOf(expectedSize.coerceAtLeast(0), 8192))
     private val undecidedPayloads = ArrayList<ByteArray>()
     private var inflater: Inflater? = null
+    private var compressionPrefixBytes = TRANSPORT_HEADER_BYTES
+    private var rawFallbackBytes = 0
+    private var rawFallbackAvailable = true
     private var compressedBytes = 0
     var mode: Mode = Mode.UNDECIDED
         private set
@@ -51,37 +54,30 @@ internal class CirqaMlrFileTransferAssembler(
                 undecidedPayloads.clear()
                 return result()
             }
-            val streamPrefix = undecidedPayloads.asSequence()
-                .filter { it.size > TRANSPORT_HEADER_BYTES }
-                .flatMap { it.copyOfRange(TRANSPORT_HEADER_BYTES, it.size).asSequence() }
-                .take(2)
-                .toList()
-            if (streamPrefix.size == 2) {
-                if (isZlibHeader(streamPrefix[0], streamPrefix[1])) {
-                    mode = Mode.ZLIB
-                    inflater = Inflater()
-                    for ((index, chunk) in undecidedPayloads.withIndex()) {
-                        acceptCompressed(chunk)
-                        if (rejected) break
-                        if (complete && index != undecidedPayloads.lastIndex) {
-                            rejected = true
-                            complete = false
-                            break
-                        }
+            val unprefixedHeader = prefixAfter(0)?.takeIf { isZlibHeader(it[0], it[1]) }
+            val prefixedHeader = prefixAfter(TRANSPORT_HEADER_BYTES)
+                ?.takeIf { isZlibHeader(it[0], it[1]) }
+            if (unprefixedHeader != null || prefixedHeader != null) {
+                compressionPrefixBytes =
+                    if (unprefixedHeader != null) 0 else TRANSPORT_HEADER_BYTES
+                mode = Mode.ZLIB
+                inflater = Inflater()
+                rawFallbackBytes = undecidedPayloads.sumOf { it.size }
+                rawFallbackAvailable = rawFallbackBytes <= expectedSize
+                for ((index, chunk) in undecidedPayloads.withIndex()) {
+                    acceptCompressed(chunk)
+                    if (rejected) {
+                        fallbackToRaw()
+                        break
                     }
-                } else {
-                    mode = Mode.RAW
-                    for ((index, chunk) in undecidedPayloads.withIndex()) {
-                        acceptRaw(chunk)
-                        if (rejected) break
-                        if (complete && index != undecidedPayloads.lastIndex) {
-                            rejected = true
-                            complete = false
-                            break
-                        }
+                    if (complete && index != undecidedPayloads.lastIndex) {
+                        rejected = true
+                        complete = false
+                        break
                     }
                 }
-                undecidedPayloads.clear()
+                if (complete || !rawFallbackAvailable) undecidedPayloads.clear()
+                if (mode != Mode.ZLIB) undecidedPayloads.clear()
                 return result()
             }
             val rawBytes = undecidedPayloads.sumOf { it.size }
@@ -103,7 +99,20 @@ internal class CirqaMlrFileTransferAssembler(
 
         when (mode) {
             Mode.RAW -> acceptRaw(payload)
-            Mode.ZLIB -> acceptCompressed(payload)
+            Mode.ZLIB -> {
+                if (rawFallbackAvailable) {
+                    if (payload.size > expectedSize - rawFallbackBytes) {
+                        rawFallbackAvailable = false
+                        undecidedPayloads.clear()
+                    } else {
+                        undecidedPayloads.add(payload.clone())
+                        rawFallbackBytes += payload.size
+                    }
+                }
+                acceptCompressed(payload)
+                if (rejected) fallbackToRaw()
+                if (complete) undecidedPayloads.clear()
+            }
             Mode.UNDECIDED -> error("mode must be selected")
         }
         return result()
@@ -119,17 +128,17 @@ internal class CirqaMlrFileTransferAssembler(
     }
 
     private fun acceptCompressed(payload: ByteArray) {
-        if (payload.size <= TRANSPORT_HEADER_BYTES) {
+        if (payload.size <= compressionPrefixBytes) {
             rejected = true
             return
         }
-        val dataSize = payload.size - TRANSPORT_HEADER_BYTES
+        val dataSize = payload.size - compressionPrefixBytes
         if (dataSize > maxCompressedBytes - compressedBytes) {
             rejected = true
             return
         }
         compressedBytes += dataSize
-        val offset = TRANSPORT_HEADER_BYTES
+        val offset = compressionPrefixBytes
         val z = inflater ?: run {
             rejected = true
             return
@@ -168,6 +177,46 @@ internal class CirqaMlrFileTransferAssembler(
         } catch (_: DataFormatException) {
             rejected = true
         }
+    }
+
+    /**
+     * A zlib-looking prefix is only a candidate: ordinary file bytes can begin
+     * with the same two values. Keep a bounded raw fallback until the compressed
+     * stream is verified, so classifying that raw file does not lose its bytes.
+     */
+    private fun fallbackToRaw() {
+        if (!rawFallbackAvailable) {
+            inflater?.end()
+            inflater = null
+            rejected = true
+            complete = false
+            undecidedPayloads.clear()
+            return
+        }
+        val candidates = undecidedPayloads.toList()
+        inflater?.end()
+        inflater = null
+        raw.reset()
+        rejected = false
+        complete = false
+        mode = Mode.RAW
+        undecidedPayloads.clear()
+        for ((index, chunk) in candidates.withIndex()) {
+            acceptRaw(chunk)
+            if (rejected || complete && index != candidates.lastIndex) break
+        }
+    }
+
+    private fun prefixAfter(offset: Int): List<Byte>? {
+        val bytes = ArrayList<Byte>(2)
+        for (chunk in undecidedPayloads) {
+            if (chunk.size <= offset) continue
+            for (index in offset until chunk.size) {
+                bytes.add(chunk[index])
+                if (bytes.size == 2) return bytes
+            }
+        }
+        return null
     }
 
     fun assembledBytes(): ByteArray? =
