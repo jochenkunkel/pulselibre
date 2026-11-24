@@ -13,6 +13,7 @@ public class Issue628Replay {
     public static void main(String[] args) throws Exception {
         int seen = 0, unique = 0, decoded = 0, observations = 0, timed = 0, missing = 0, eligible = 0;
         Set<String> files = new HashSet<>(), samples = new HashSet<>(), fingerprints = new HashSet<>();
+        Set<String> eligibleSamples = new HashSet<>();
         Map<String, Integer> metrics = new TreeMap<>();
         try (Stream<Path> paths = Files.list(Path.of(args[0]))) {
             for (Path path : paths.filter(f -> f.toString().toLowerCase(Locale.ROOT).endsWith(".fit")).sorted().toList()) {
@@ -29,10 +30,12 @@ public class Issue628Replay {
                     observations++;
                     if (observation.getTimestampEpochMillis() == null) missing++; else timed++;
                     if (observation.getTimestampEpochMillis() != null &&
-                        observation.getQuality() == FitHistoricalObservations.Quality.PROFILE_VALID &&
-                        fingerprints.add(observation.getDuplicateFingerprint())) {
-                        eligible++;
-                        metrics.merge(observation.getMetric().name(), 1, Integer::sum);
+                        observation.getQuality() == FitHistoricalObservations.Quality.PROFILE_VALID) {
+                        eligibleSamples.add(observation.getIdempotencyKey());
+                        if (fingerprints.add(observation.getDuplicateFingerprint())) {
+                            eligible++;
+                            metrics.merge(observation.getMetric().name(), 1, Integer::sum);
+                        }
                     }
                 }
             }
@@ -40,6 +43,8 @@ public class Issue628Replay {
         System.out.printf("seen=%d unique=%d decoded=%d observations=%d timed=%d missing=%d distinct_importable=%d metrics=%s%n",
             seen, unique, decoded, observations, timed, missing, eligible, metrics);
         if (args.length > 1) Files.write(Path.of(args[1]), new TreeSet<>(fingerprints),
+            StandardOpenOption.CREATE_NEW);
+        if (args.length > 2) Files.write(Path.of(args[2]), new TreeSet<>(eligibleSamples),
             StandardOpenOption.CREATE_NEW);
     }
 }

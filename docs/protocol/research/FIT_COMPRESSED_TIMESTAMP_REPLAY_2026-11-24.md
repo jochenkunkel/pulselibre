@@ -45,6 +45,20 @@ No new distinct importable candidate was observed in this particular inventory.
 The previously documented 1,622 timestamp-16 heart-rate values are not counted
 as new recoveries.
 
+An existing S25 backup snapshot contains all 45 source identities and all
+29,358 candidate sample identities in its canonical FIT observation provenance.
+This establishes presence of those sample IDs in that snapshot, not a new
+SQLite commit or verification of the later S10 run.
+
+An additional per-source/per-record comparison matched all 29,365 observations
+and all 178,816 emitted decoded-field occurrences between the two runs. There
+were no missing or added identities and no changed observation metric, value,
+unit, quality, timestamp or timestamp origin. For the field occurrences,
+encoded bytes, base type, length, byte order, timestamp and timestamp origin
+also matched. This comparison covers decoder-emitted fields in these 45 files,
+not unsupported interpretations, review-candidate version identifiers, other
+files, or device-history completeness.
+
 The aggregate tool is `tools/Issue628Replay.java`. Compile it against each
 version's Gradle `compileDebugKotlin` classes and the Kotlin standard library;
 run both against the same private directory. An optional second argument writes
@@ -52,6 +66,9 @@ fingerprints with `CREATE_NEW` for set comparison: use `umask 077` and a
 private local directory, and never commit or publish that file. The tool checks
 FIT CRC through the production decoder and deduplicates original bytes by
 SHA-256 before decoding; it does not open or modify SQLite.
+`tools/Issue628FieldDiff.java` similarly emits private hashed comparison rows;
+compile/run once against each decoder, then compare the identity, raw,
+timestamp and origin columns. Derived hashes must remain private too.
 
 The previously available S10 working snapshots under `/tmp` did not survive the
 host restart. Other local S10 evidence must be inventoried before declaring the
