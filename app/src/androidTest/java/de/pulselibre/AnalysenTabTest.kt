@@ -35,9 +35,21 @@ class AnalysenTabTest {
         InstrumentationRegistry.getInstrumentation().waitForIdleSync()
     }
 
+    /** The resting-pulse hero is built only after the trend data has loaded on a worker thread; wait for it instead of racing it. */
+    private fun waitForTag(scenario: ActivityScenario<MainActivity>, tag: String) {
+        val end = System.currentTimeMillis() + 15_000
+        var found = false
+        while (!found && System.currentTimeMillis() < end) {
+            scenario.onActivity { found = all(it.findViewById<View>(android.R.id.content)).any { v -> v.tag == tag } }
+            if (!found) Thread.sleep(100)
+        }
+        InstrumentationRegistry.getInstrumentation().waitForIdleSync()
+    }
+
     @Test fun tabShowsFiveGroupsAndHonestModuleStates() {
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
             openTab(scenario)
+            waitForTag(scenario, "resting_hero")
             scenario.onActivity { activity ->
                 val root = activity.findViewById<View>(android.R.id.content)
                 val view = root.findViewWithTag<View>("analysen_view")
