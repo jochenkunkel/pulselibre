@@ -972,6 +972,7 @@
     <string name="sd_cap_obs">Reguläre FIT-Messwerte: %1$d</string>
     <string name="sd_cap_cand">Gespeicherte, ungeprüfte Kandidaten (nicht als Messwerte gezählt): %1$s</string>
     <string name="sd_cap_none">Noch nichts gespeichert.</string>
+    <string name="sd_cap_unknown">Erfassungsstatus nicht verfügbar.</string>
     <string name="sd_only_invalid">Im Zeitraum gibt es nur Werte außerhalb des Darstellungsbereichs oder Gerätestatus. Sie sind gespeichert, werden aber nicht gezeichnet.</string>
     <string name="sd_summary">%1$d gültige Werte · Mittel %2$s · Min %3$s · Max %4$s · Zeitfenster mit Daten %5$d %%</string>
     <string name="sd_summary_no_valid">%1$d Werte, keine davon als gültig gezeichnet · Zeitfenster mit Daten %2$d %%</string>

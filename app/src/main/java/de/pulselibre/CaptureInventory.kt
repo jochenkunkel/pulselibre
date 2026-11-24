@@ -17,7 +17,11 @@ internal data class CaptureInventory(
     /** Stored but unverified candidates per metric (spo2, stress, respiration); not counted as measurements. */
     val candidatesByMetric: Map<String, Long>?
 ) {
-    val isEmpty: Boolean get() = (archivedFiles ?: 0L) == 0L && (importedFitFiles ?: 0L) == 0L &&
+    /** True only when no counter could be read at all — never report "nothing stored" for unreadable tables. */
+    val isUnknown: Boolean get() = archivedFiles == null && importedFitFiles == null &&
+        regularObservations == null && candidatesByMetric == null
+
+    val isEmpty: Boolean get() = !isUnknown && (archivedFiles ?: 0L) == 0L && (importedFitFiles ?: 0L) == 0L &&
         (regularObservations ?: 0L) == 0L && candidatesByMetric.isNullOrEmpty()
 
     companion object {

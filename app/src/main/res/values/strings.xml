@@ -972,6 +972,7 @@
     <string name="sd_cap_obs">Regular FIT measurements: %1$d</string>
     <string name="sd_cap_cand">Stored, unverified candidates (not counted as measurements): %1$s</string>
     <string name="sd_cap_none">Nothing stored yet.</string>
+    <string name="sd_cap_unknown">Capture status unavailable.</string>
     <string name="sd_only_invalid">The period only contains values outside the display range or device status. They are stored, but not drawn.</string>
     <string name="sd_summary">%1$d valid values · mean %2$s · min %3$s · max %4$s · time buckets with data %5$d %%</string>
     <string name="sd_summary_no_valid">%1$d values, none drawn as valid · time buckets with data %2$d %%</string>

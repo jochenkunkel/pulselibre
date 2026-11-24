@@ -19,12 +19,25 @@ class CaptureInventoryTest {
     @Before fun setUp() { db = SQLiteDatabase.create(null) }
     @After fun tearDown() { db.close() }
 
-    @Test fun missingTablesGiveNullNotZero() {
+    @Test fun missingTablesAreUnknownNotEmpty() {
         val inv = CaptureInventory.load(db)
         assertNull(inv.archivedFiles)
         assertNull(inv.importedFitFiles)
         assertNull(inv.candidatesByMetric)
+        assertTrue(inv.isUnknown)
+        assertFalse(inv.isEmpty)
+    }
+
+    @Test fun readableEmptyTablesAreEmptyNotUnknown() {
+        DownloadedFileArchive.create(db)
+        db.execSQL("CREATE TABLE fit_sources (source_sha256 TEXT PRIMARY KEY NOT NULL)")
+        db.execSQL("CREATE TABLE fit_generation_observations (generation_id TEXT NOT NULL)")
+        db.execSQL("CREATE TABLE fit_active_generations (generation_id TEXT NOT NULL)")
+        db.execSQL("CREATE TABLE fit_review_candidates (metric TEXT NOT NULL)")
+        val inv = CaptureInventory.load(db)
+        assertFalse(inv.isUnknown)
         assertTrue(inv.isEmpty)
+        assertEquals(0L, inv.archivedFiles)
     }
 
     @Test fun countsArchivedFilesAndCandidates() {

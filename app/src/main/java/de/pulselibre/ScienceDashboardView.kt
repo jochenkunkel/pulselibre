@@ -142,7 +142,8 @@ internal class ScienceDashboardView(context: Context) : LinearLayout(context) {
     private fun captureCard(inv: CaptureInventory): View {
         val lines = ArrayList<View>()
         lines += label(context.getString(R.string.sd_cap_intro), 12f, palette.muted)
-        if (inv.isEmpty) lines += label(context.getString(R.string.sd_cap_none), 13f, palette.muted)
+        if (inv.isUnknown) lines += label(context.getString(R.string.sd_cap_unknown), 13f, palette.muted)
+        else if (inv.isEmpty) lines += label(context.getString(R.string.sd_cap_none), 13f, palette.muted)
         else {
             inv.archivedFiles?.let { lines += label(context.getString(R.string.sd_cap_files, it, android.text.format.Formatter.formatShortFileSize(context, inv.archivedBytes ?: 0L)), 13f, palette.ink) }
             inv.importedFitFiles?.let { lines += label(context.getString(R.string.sd_cap_fit, it), 13f, palette.ink) }
