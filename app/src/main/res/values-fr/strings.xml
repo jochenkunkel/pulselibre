@@ -979,6 +979,7 @@
     <string name="sd_cap_obs">Mesures FIT régulières : %1$d</string>
     <string name="sd_cap_cand">Candidats enregistrés, non vérifiés (non comptés comme mesures) : %1$s</string>
     <string name="sd_cap_none">Rien d’enregistré pour l’instant.</string>
+    <string name="sd_cap_unknown">État de la capture indisponible.</string>
     <string name="sd_only_invalid">Sur la période, il n’y a que des valeurs hors de la plage d’affichage ou des états de l’appareil. Elles sont enregistrées, mais non tracées.</string>
     <string name="sd_summary">%1$d valeurs valides · moyenne %2$s · min %3$s · max %4$s · plages horaires avec données %5$d %%</string>
     <string name="sd_summary_no_valid">%1$d valeurs, aucune tracée comme valide · plages horaires avec données %2$d %%</string>
