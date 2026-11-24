@@ -1049,7 +1049,10 @@ class CirqaDatabase(private val contextRef: Context) :
             decoderVersion = FitHistoricalObservations.DECODER_VERSION,
             profileVersion = FitHistoricalObservations.PROFILE_VERSION,
             replayedAtEpochMillis = replayedAtEpochMillis,
-            observations = decoded.observations,
+            observations = decoded.observations.filter {
+                it.quality == FitHistoricalObservations.Quality.PROFILE_VALID &&
+                    it.timestampEpochMillis != null
+            },
             deviceKey = deviceKey,
             decodedFields = decoded.decodedFields
         )

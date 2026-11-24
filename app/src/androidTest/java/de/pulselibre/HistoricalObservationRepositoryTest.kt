@@ -192,6 +192,44 @@ class HistoricalObservationRepositoryTest {
         }
     }
 
+    @Test fun unchangedSampleCanBeReimportedByNewDecoderWithoutRewritingOriginalProvenance() {
+        val base = ApplicationProvider.getApplicationContext<Context>()
+        val root = Files.createTempDirectory(base.cacheDir.toPath(), "fit-version-reimport-").toFile()
+        val context = isolatedContext(base, root)
+        val sha = "e".repeat(64)
+        val sample = observation(sha, "versioned-sample", 2_000, 70.0, ordinal = 1)
+        try {
+            CirqaDatabase(context).use { database ->
+                fun commit(version: String, row: FitHistoricalObservations.Observation) =
+                    database.commitFitFile(sha, 128, "verified_fit/$sha.fit", 10_000, version,
+                        FitHistoricalObservations.PROFILE_VERSION, listOf(row), emptyList(),
+                        emptyList(), "version-test-device")
+                commit("2", sample)
+                commit("3", sample)
+                commit("3", sample)
+                database.readableDatabase.rawQuery(
+                    "SELECT decoder_version FROM fit_observation_provenance WHERE sample_id = ?",
+                    arrayOf("versioned-sample")
+                ).use { row ->
+                    assertTrue(row.moveToFirst())
+                    assertEquals("2", row.getString(0))
+                }
+                assertEquals(1L, database.readableDatabase.rawQuery(
+                    "SELECT COUNT(*) FROM observations WHERE sample_id = ?",
+                    arrayOf("versioned-sample")
+                ).use { row -> assertTrue(row.moveToFirst()); row.getLong(0) })
+                try {
+                    commit("3", sample.copy(timestampEpochMillis = 3_000))
+                    throw AssertionError("conflicting sample time must be rejected")
+                } catch (_: IllegalStateException) {
+                    // Existing canonical sample and provenance remain unchanged.
+                }
+            }
+        } finally {
+            root.deleteRecursively()
+        }
+    }
+
     @Test fun verifiedByteReplayMustMatchARegisteredSourceAndDoesNotAutoActivate() {
         val base = ApplicationProvider.getApplicationContext<Context>()
         val root = Files.createTempDirectory(base.cacheDir.toPath(), "fit-verified-replay-").toFile()

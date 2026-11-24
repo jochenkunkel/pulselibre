@@ -276,7 +276,7 @@ class CirqaFitOfflineInventoryTest {
             253.toByte(), 4, 0x86.toByte(),
             3, 1, 2,
             0
-        ) + u32(timestamp) + byteArrayOf(heartRate.toByte())
+        ) + u32(if (timestamp == -1) timestamp else 0x10000000 + timestamp) + byteArrayOf(heartRate.toByte())
         val file = ByteArray(14 + data.size + 2)
         file[0] = 14
         file[1] = 0x20
@@ -352,7 +352,7 @@ class CirqaFitOfflineInventoryTest {
             11, 1, 2,
             32, 1, 2,
             0
-        ) + byteArrayOf(0xA0.toByte(), 0x86.toByte(), 1, 0) +
+        ) + byteArrayOf(0xA0.toByte(), 0x86.toByte(), 1, 0x10) +
             byteArrayOf(deviceType.toByte()) + u16(manufacturer) + u16(product) +
             u16(softwareVersionHundredths) + u16(batteryVoltageRaw) +
             byteArrayOf(batteryStatus.toByte(), batteryLevel.toByte())

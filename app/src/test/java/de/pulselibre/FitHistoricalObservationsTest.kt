@@ -43,12 +43,12 @@ class FitHistoricalObservationsTest {
             11, 1, 2,                       // battery_status code
             32, 1, 2,                       // battery_level
             0
-        ) + u32(100_000) + byteArrayOf(7) + u16(15) + u32(123456) +
+        ) + u32(0x10000000 + 100_000) + byteArrayOf(7) + u16(15) + u32(123456) +
             u16(200) + u16(1234) + u16(3000) + byteArrayOf(2, 88)
 
         val result = FitHistoricalObservations.decode(fit(data))!!
         val metadata = result.deviceMetadata.single()
-        assertEquals((100_000L + 631_065_600L) * 1_000L, metadata.timestampEpochMillis)
+        assertEquals((0x10000000L + 100_000L + 631_065_600L) * 1_000L, metadata.timestampEpochMillis)
         assertEquals(7, metadata.deviceTypeCode)
         assertEquals(15, metadata.manufacturerCode)
         assertEquals(200, metadata.productCode)
@@ -75,7 +75,7 @@ class FitHistoricalObservationsTest {
     }
 
     @Test fun decodesSupportedRecordMeasurementsAndCompressedTimestamp() {
-        val timestamp = 100_000
+        val timestamp = 0x10000000 + 100_000
         val data = byteArrayOf(
             0x40, 0, 0, 20, 0, 3,
             253.toByte(), 4, 0x86.toByte(), // timestamp uint32
@@ -84,8 +84,7 @@ class FitHistoricalObservationsTest {
             0,                               // normal data record
         ) + u32(timestamp) + byteArrayOf(72, 90) + byteArrayOf(
             0x80.toByte(),                   // compressed record, local type 0, timestamp delta 0
-            73, 91
-        )
+        ) + u32(timestamp) + byteArrayOf(73, 91)
 
         val result = FitHistoricalObservations.decode(fit(data))!!
         assertEquals(2, result.dataRecordCount)
@@ -100,14 +99,91 @@ class FitHistoricalObservationsTest {
             (timestamp + 631_065_600L) * 1_000L,
             result.observations.first().timestampEpochMillis
         )
-        assertEquals(listOf(253, 3, 4, 3, 4, 253), result.decodedFields.map { it.fieldNumber })
+        assertEquals(listOf(253, 3, 4, 253, 3, 4, 253), result.decodedFields.map { it.fieldNumber })
         assertArrayEquals(u32(timestamp), result.decodedFields.first().rawBytes)
-        assertArrayEquals(byteArrayOf(73), result.decodedFields[3].rawBytes)
+        assertArrayEquals(byteArrayOf(73), result.decodedFields[4].rawBytes)
         assertEquals("COMPRESSED_TIMESTAMP_HEADER", result.decodedFields.last().fieldKind)
         assertArrayEquals(byteArrayOf(0x80.toByte()), result.decodedFields.last().rawBytes)
         assertTrue(result.observations.all {
             it.quality == FitHistoricalObservations.Quality.PROFILE_VALID
         })
+    }
+
+    @Test fun compressedTimestampUsesDifferentDefinitionWithoutTimestampField() {
+        val anchor = 0x4000001e
+        val data = byteArrayOf(
+            0x40, 0, 0, 20, 0, 2,
+            253.toByte(), 4, 0x86.toByte(), 3, 1, 2,
+            0
+        ) + u32(anchor) + byteArrayOf(70, 0x41, 0, 0, 20, 0, 1, 3, 1, 2,
+            0xa1.toByte(), 71, 0xa1.toByte(), 72)
+        val result = FitHistoricalObservations.decode(fit(data))!!
+        assertEquals(listOf(70.0, 71.0, 72.0), result.observations.map { it.value })
+        assertEquals(listOf(anchor.toLong(), anchor.toLong() + 3, anchor.toLong() + 3).map {
+            (it + 631_065_600L) * 1000
+        }, result.observations.map { it.timestampEpochMillis })
+        assertEquals(2, result.decodedFields.count { it.fieldKind == "COMPRESSED_TIMESTAMP_HEADER" })
+    }
+
+    @Test fun compressedTimestampSupportsAllLocalTypesAndRejectsMissingAnchorAndBadCrc() {
+        for (local in 0..3) {
+            val anchor = 0x4000001e
+            val definition = byteArrayOf(
+                (0x40 + local).toByte(), 0, 0, 20, 0, 1, 3, 1, 2
+            )
+            val compressed = byteArrayOf((0x80 or (local shl 5) or 1).toByte(), 77)
+            val anchorDef = byteArrayOf(0x4f, 0, 0, 20, 0, 1, 253.toByte(), 4, 0x86.toByte(), 15)
+            val file = fit(anchorDef + u32(anchor) + definition + compressed)
+            val result = FitHistoricalObservations.decode(file)!!
+            assertEquals(77.0, result.observations.single().value, 0.0)
+            assertEquals((anchor.toLong() + 3 + 631_065_600L) * 1000,
+                result.observations.single().timestampEpochMillis)
+            assertNull(FitHistoricalObservations.decode(fit(definition + compressed)))
+            val corrupt = file.copyOf().also { it[it.lastIndex] = (it.last().toInt() xor 1).toByte() }
+            assertNull(FitHistoricalObservations.decode(corrupt))
+        }
+    }
+
+    @Test fun directRelativeAndInvalidTimesAreNotInterpretedAsUtc() {
+        val def = byteArrayOf(0x40, 0, 0, 20, 0, 2,
+            253.toByte(), 4, 0x86.toByte(), 3, 1, 2)
+        val data = def + byteArrayOf(0) + u32(0x0fffffff) + byteArrayOf(70) +
+            byteArrayOf(0) + u32(0x10000000) + byteArrayOf(71) +
+            byteArrayOf(0) + u32(-1) + byteArrayOf(72)
+        val observations = FitHistoricalObservations.decode(fit(data))!!.observations
+        assertNull(observations[0].timestampEpochMillis)
+        assertEquals((0x10000000L + 631_065_600L) * 1000, observations[1].timestampEpochMillis)
+        assertNull(observations[2].timestampEpochMillis)
+        assertEquals(FitHistoricalObservations.Quality.MISSING_TIMESTAMP, observations[0].quality)
+    }
+
+    @Test fun invalidDirectTimestampFallsBackToMonitoringTimestamp16() {
+        val definition = byteArrayOf(0x40, 0, 0, 55, 0, 3,
+            253.toByte(), 4, 0x86.toByte(), 26, 2, 0x84.toByte(), 27, 1, 2)
+        val anchor = 0x4000fffe
+        val data = definition + byteArrayOf(0) + u32(anchor) + u16(0xffff) + byteArrayOf(70) +
+            byteArrayOf(0) + u32(-1) + u16(2) + byteArrayOf(71)
+        val observations = FitHistoricalObservations.decode(fit(data))!!.observations
+        assertEquals((anchor.toLong() + 4 + 631_065_600L) * 1000, observations[1].timestampEpochMillis)
+        assertEquals(FitHistoricalObservations.TimestampOrigin.RECONSTRUCTED_TS16, observations[1].timestampOrigin)
+    }
+
+    @Test fun relativeClockDoesNotReusePreviousAbsoluteAnchor() {
+        val def = byteArrayOf(0x40, 0, 0, 20, 0, 2,
+            253.toByte(), 4, 0x86.toByte(), 3, 1, 2)
+        val short = byteArrayOf(0x41, 0, 0, 20, 0, 1, 3, 1, 2)
+        val data = def + byteArrayOf(0) + u32(0x40000000) + byteArrayOf(70) +
+            byteArrayOf(0) + u32(42) + byteArrayOf(71) + short + byteArrayOf(0xa1.toByte(), 72)
+        assertNull(FitHistoricalObservations.decode(fit(data)))
+    }
+
+    @Test fun relativeStressTimeDoesNotFallBackToAnUnrelatedMessageTimestamp() {
+        val def = byteArrayOf(0x40, 0, 0, 0xe3.toByte(), 0, 3,
+            253.toByte(), 4, 0x86.toByte(), 0, 2, 0x83.toByte(), 1, 4, 0x86.toByte())
+        val data = def + byteArrayOf(0) + u32(0x40000000) + s16(42) + u32(10)
+        val candidate = FitHistoricalObservations.decode(fit(data))!!.reviewCandidates.single()
+        assertNull(candidate.timestampEpochMillis)
+        assertEquals(FitHistoricalObservations.TimestampOrigin.UNKNOWN, candidate.timestampOrigin)
     }
 
     @Test fun monitoringCyclesAreNotGuessedAsStepCounts() {
@@ -221,7 +297,7 @@ class FitHistoricalObservationsTest {
             1, 4, 0x86.toByte()  // stress_level_time: uint32 seconds, origin unverified
         )
         val result = FitHistoricalObservations.decode(fit(
-            definition + byteArrayOf(0) + s16(42) + u32(200_000)
+            definition + byteArrayOf(0) + s16(42) + u32(0x10000000 + 200_000)
         ))!!
 
         assertTrue("Stress must remain outside the persistent observation allowlist",
@@ -229,7 +305,7 @@ class FitHistoricalObservationsTest {
         val candidate = result.reviewCandidates.single()
         assertEquals("stress_level_value", candidate.profileFieldName)
         assertEquals(42.0, candidate.value, 0.0)
-        assertEquals(fitTime(200_000), candidate.timestampEpochMillis)
+        assertEquals(fitTime(0x10000000L + 200_000), candidate.timestampEpochMillis)
         assertEquals(FitHistoricalObservations.TimestampOrigin.DIRECT, candidate.timestampOrigin)
     }
 
@@ -240,9 +316,9 @@ class FitHistoricalObservationsTest {
             0, 2, 0x83.toByte() // respiration_rate: sint16
         )
         val data = definition +
-            byteArrayOf(0) + u32(210_000) + s16(1_234) +
-            byteArrayOf(0) + u32(210_060) + s16(-125) +
-            byteArrayOf(0) + u32(210_120) + s16(0x7fff)
+            byteArrayOf(0) + u32(0x10000000 + 210_000) + s16(1_234) +
+            byteArrayOf(0) + u32(0x10000000 + 210_060) + s16(-125) +
+            byteArrayOf(0) + u32(0x10000000 + 210_120) + s16(0x7fff)
 
         val result = FitHistoricalObservations.decode(fit(data))!!
 
@@ -250,7 +326,7 @@ class FitHistoricalObservationsTest {
         assertEquals(listOf(12.34, -1.25), result.reviewCandidates.map { it.value })
         assertEquals(listOf("breaths/min", "breaths/min"), result.reviewCandidates.map { it.unit })
         assertEquals(
-            listOf(fitTime(210_000), fitTime(210_060)),
+            listOf(fitTime(0x10000000L + 210_000), fitTime(0x10000000L + 210_060)),
             result.reviewCandidates.map { it.timestampEpochMillis }
         )
         assertEquals(listOf(1, 2), result.reviewCandidates.map { it.recordOrdinal })
@@ -292,7 +368,7 @@ class FitHistoricalObservationsTest {
     private fun fitTime(seconds: Long) = (seconds + 631_065_600L) * 1_000L
 
     @Test fun monitoringHeartRateWithTimestamp16IsReconstructedFromTheLastFullTimestamp() {
-        val base = 131_056 // low 16 bits 0xFFF0: the next value wraps around
+        val base = 0x10000000 + 131_056 // low 16 bits 0xFFF0: the next value wraps around
         val data = monitoringFull + monitoringShort +
             byteArrayOf(0) + u32(base) + byteArrayOf(60) +
             byteArrayOf(1) + u16(0x0010) + byteArrayOf(70) +        // wrap: base + 32
@@ -315,7 +391,7 @@ class FitHistoricalObservationsTest {
         assertEquals(FitHistoricalObservations.Quality.MISSING_TIMESTAMP, noBase.quality)
 
         val invalid = FitHistoricalObservations.decode(fit(monitoringFull + monitoringShort +
-            byteArrayOf(0) + u32(200_000) + byteArrayOf(60) +
+            byteArrayOf(0) + u32(0x10000000 + 200_000) + byteArrayOf(60) +
             byteArrayOf(1) + u16(0xFFFF) + byteArrayOf(70)))!!.observations
         assertEquals(FitHistoricalObservations.Quality.PROFILE_VALID, invalid[0].quality)
         assertEquals(FitHistoricalObservations.Quality.MISSING_TIMESTAMP, invalid[1].quality)
@@ -366,7 +442,7 @@ class FitHistoricalObservationsTest {
             6, 2, 0x84.toByte(),
             7, 2, 0x84.toByte(),
             0
-        ) + u32(210_000) + u32(12_345) + byteArrayOf(0x29, 0x09, 0x41, 0x01)
+        ) + u32(0x10000000 + 210_000) + u32(12_345) + byteArrayOf(0x29, 0x09, 0x41, 0x01)
         val observations = FitHistoricalObservations.decode(fit(data))!!.observations
         assertEquals(123.45, observations.single {
             it.metric == FitHistoricalObservations.Metric.DISTANCE
@@ -378,7 +454,7 @@ class FitHistoricalObservationsTest {
             it.metric == FitHistoricalObservations.Metric.POWER
         }.value, 0.0)
         assertTrue(observations.all {
-            it.timestampEpochMillis == (210_000L + 631_065_600L) * 1_000L
+            it.timestampEpochMillis == (0x10000000L + 210_000L + 631_065_600L) * 1_000L
         })
     }
 
@@ -421,11 +497,11 @@ class FitHistoricalObservationsTest {
             253.toByte(), 4, 0x86.toByte(),
             3, 1, 2,
             0,
-            0, 0x01.toByte(), 0x86.toByte(), 0xa0.toByte(), 75 // timestamp 100000, HR 75
+            0x10, 0x01.toByte(), 0x86.toByte(), 0xa0.toByte(), 75 // absolute timestamp, HR 75
         )
         val result = FitHistoricalObservations.decode(fit(data))!!
         assertEquals(75.0, result.observations.single().value, 0.0)
-        assertEquals((100_000 + 631_065_600L) * 1_000L,
+        assertEquals((0x10000000L + 100_000 + 631_065_600L) * 1_000L,
             result.observations.single().timestampEpochMillis)
     }
 
@@ -487,8 +563,8 @@ class FitHistoricalObservationsTest {
             3, 1, 2,
             85.toByte(), 2, 0x84.toByte(),
             0
-        ) + u32(100_000) + byteArrayOf(72) + u16(123) +
-            byteArrayOf(0x80.toByte(), 73) + u16(124)
+        ) + u32(0x10000000 + 100_000) + byteArrayOf(72) + u16(123) +
+            byteArrayOf(0x80.toByte()) + u32(0x10000000 + 100_000) + byteArrayOf(73) + u16(124)
         val result = FitHistoricalObservations.decode(fit(data))!!
         val unknown = result.unknownFields.single()
         assertEquals(FitHistoricalObservations.UnknownKind.UNKNOWN_STANDARD_FIELD, unknown.kind)
