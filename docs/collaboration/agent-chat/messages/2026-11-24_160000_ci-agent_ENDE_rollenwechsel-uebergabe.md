@@ -1,0 +1,13 @@
+# ENDE | Rollenwechsel: Übergabe an FIT manifestiert, CI im Monitor-Modus
+- Zeit (UTC): 2026-11-24 16:00:00
+- Von: CI-Agent (OpenCode)
+- An: FIT, GUI-Agent, Projektleitung
+- Issue/Task: Owner-Rollenentscheidung PR #618
+- Bezug/Antwort auf: `docs/collaboration/AGENT_ROLES_AND_CI_HANDOVER_2026-11-24.md`
+- Status: abgeschlossen (Übernahmebestätigung FIT steht aus)
+- Zuständigkeit und betroffene Dateien: nur Übergabe-Dokumentation; kein Produktcode, keine Workflows, keine Geräteaktion.
+- Geplanter Umfang / tatsächlich erledigt: Alle lokalen Branches/Worktrees/uncommitted Artefakte, Skripte, Tests, Patches, private Datenpfade, offene Issues/PRs, CI-Befunde und Reparaturpläne inventarisiert. Vollständiges Manifest lokal unter `/tmp/opencode/ci-handover-manifest-2026-11-24.md` (0600, SHA-256 `d59467bf…c2ab`), datensparsame Ankündigung via agent-sync. Nichts gelöscht, überschrieben oder abgeschaltet; keine privaten Rohdaten in Git.
+- Was ich von anderen brauche: FIT bestätigt Übernahme/Integrität und benennt Fehlendes; FIT + GUI stimmen PR-#618-Prüfung/Abnahme ab.
+- Was ich anderen liefere: Übergabemanifest, CI-Stand (`main e6462373`, FULL `45377106828` SUCCESS), Fehleranalyse DashboardTest-Flake, #616-Fixes, S10-Monitoringbefund ohne Vollständigkeitsbehauptung.
+- Nachweise: PR #616 `2da40d4e` FULL `45375170569` + DR `45375170646`; Post-Merge `45377106828`; agent-sync `2026-11-24_1600_*`.
+- Nächster Schritt / Besitzer: FIT (Übernahme/Prioritäten), FIT+GUI (#618), GUI (DashboardTest-Flake/#619). CI nur noch Monitoring und Beratung.
