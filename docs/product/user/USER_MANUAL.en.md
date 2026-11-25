@@ -64,7 +64,7 @@ Scientific, **exploratory** evaluations in five groups (Heart & circulation · S
 - **Band information:** battery, firmware, clock, model. A value appears **only** if it is stored with a source and a timestamp; otherwise "Not available". A battery level shows a bar and "As of: … ago" or "Outdated · last known state …".
 - **Unknown data fields:** if the band's files contain fields PulsLibre does not understand yet, a subtle hint appears; the list (grouped by FIT message) shows only field coordinates and counts – **no measurements, no diagnoses**. For each field you can set your own review mark via **"Change status"** (unreviewed · under review · supported · ignored); this does not change any measurement data.
 - **Recording:** "Start"/"Stop" of the recording service (Android shows a persistent notification with a stop button while it runs).
-- *Hidden:* a **3-second press on "Device · CIRQA"** opens the **test lab** (read-only diagnostics: app, Bluetooth status, sync counters, diagnostic package with a preview for deliberate sharing; "Advanced test lab" for advanced users).
+- *Hidden:* a **3-second press on "Device · CIRQA"** opens the **test lab** (read-only diagnostics: app, Bluetooth status, sync counters, communication trace – started explicitly, at most 15 minutes, shows only the notifications of a running sync, bytes only after separate consent –, diagnostic package with a preview for deliberate sharing; "Advanced test lab" for advanced users).
 
 ### Data
 
