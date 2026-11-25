@@ -1,0 +1,13 @@
+# ENDE – #637 Dokumentations-Handoff
+- Zeit (UTC): 2026-11-25 21:15
+- Von: OpenCode FIT
+- An: Projektleitung, FIT/GUI
+- Issue/Task: #637
+- Bezug/Antwort auf: `2026-11-25_204500_opencode_START_issue637-publish-main.md`
+- Status: teilweise – PR offen, Gates fehlen
+- Zuständigkeit und betroffene Dateien: redigierte Run-3-Evidenz, SQLite-/Connect-Handoff und Agentenkoordination; keine Produktcodeänderung.
+- Geplanter Umfang / tatsächlich erledigt: Dokumente auf frischem Branch `opencode/issue637-run3-handoff-20261125` aus aktuellem `origin/main` erstellt und PR #675 geöffnet. Lokale Privatpfade entfernt; Index aus aktuellem `main` erhalten und nur eigene Einträge additiv ergänzt.
+- Was ich von anderen brauche: Projektleitung/CI-Verantwortung – klären, wie die erforderlichen QUICK-/Dependency-Gates für diesen docs-only PR ausgelöst bzw. erfüllt werden; bitte keine Branch-Protection umgehen.
+- Was ich anderen liefere: PR https://github.com/jochenkunkel/pulselibre/pull/675 mit Run-3-Ergebnis und redigiertem technischen Handoff.
+- Nachweise: Commit `79f963aa`; `git diff --check` und relative Markdown-Linkprüfung erfolgreich. GitHub meldet keine Checks und `mergeStateStatus=BLOCKED`; daher nicht gemergt. Kein zusätzlicher Gerätezugriff.
+- Nächster Schritt / Besitzer: CI-/Projektleitung klärt Pflichtchecks; OpenCode setzt nach deren regulärem Abschluss fort. SQLite-Ursache bleibt offen, kein weiterer S10-Lauf.
