@@ -19,7 +19,10 @@ internal class WearableStatusButton(context: Context) : View(context) {
         private set
     var batteryPercent: Int? = null
         private set
-    /** Narrow screens drop the band outline so the title keeps its room; status, battery and gear stay. */
+    /**
+     * Phones narrower than 412 dp (e.g. S10, 360 dp): no band outline and tighter spacing (147 instead of 186 units),
+     * otherwise the header title was cut ("PulsLib"). Status, battery, value and gear stay.
+     */
     var compact: Boolean = false
         set(value) { field = value; requestLayout(); invalidate() }
 
@@ -45,9 +48,12 @@ internal class WearableStatusButton(context: Context) : View(context) {
         if (changed) invalidate() // polled every second: draw only on a real change
     }
 
-    /** Drawing origin of the design (SVG x units) after the optional band outline. */
-    private val shift get() = if (compact) 26f else 0f
-    private val designWidth get() = 186f - shift
+    // Horizontal layout in design units; the full variant follows the SVG exactly.
+    private val statusDx get() = if (compact) -20f else 0f
+    private val batteryDx get() = if (compact) -23f else 0f
+    private val dividerX get() = if (compact) 108f else 137f
+    private val gearX get() = if (compact) 127f else 160f
+    private val designWidth get() = if (compact) 147f else 186f
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         setMeasuredDimension((designWidth * density).toInt(), (48 * density).toInt())
@@ -61,15 +67,17 @@ internal class WearableStatusButton(context: Context) : View(context) {
         paint.style = Paint.Style.FILL
         paint.color = colors.background
         rect.set(0f, 0f, designWidth, 48f); canvas.drawRoundRect(rect, 24f, 24f, paint)
-        canvas.translate(-shift, 0f)
         stroke(INK, 2.6f)
         if (!compact) {
             rect.set(13f, 9f, 30f, 39f); canvas.drawRoundRect(rect, 7f, 7f, paint)
             stroke(INK, 1.5f); canvas.drawLine(18f, 13f, 25f, 13f, paint); canvas.drawLine(18f, 35f, 25f, 35f, paint)
         }
+        canvas.save(); canvas.translate(statusDx, 0f)
         paint.style = Paint.Style.FILL; paint.color = colors.status
         canvas.drawCircle(40f, 24f, 11f, paint)
         drawGlyph(canvas)
+        canvas.restore()
+        canvas.save(); canvas.translate(batteryDx, 0f)
         // Battery outline, fill proportional to the real percentage, or a dash without a value.
         stroke(INK, 2f)
         rect.set(61f, 17f, 82f, 31f); canvas.drawRoundRect(rect, 2f, 2f, paint)
@@ -84,8 +92,9 @@ internal class WearableStatusButton(context: Context) : View(context) {
         }
         textPaint.color = INK
         canvas.drawText(percent?.let { "$it%" } ?: "–", 90f, 30f, textPaint)
-        stroke(DIVIDER, 1.5f); canvas.drawLine(137f, 12f, 137f, 36f, paint)
-        drawGear(canvas, 160f, 24f)
+        canvas.restore()
+        stroke(DIVIDER, 1.5f); canvas.drawLine(dividerX, 12f, dividerX, 36f, paint)
+        drawGear(canvas, gearX, 24f)
         canvas.restore()
     }
 
