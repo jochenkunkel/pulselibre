@@ -75,7 +75,8 @@ internal object DiagnosticsCollector {
             permissionConnect = Build.VERSION.SDK_INT < 31 || granted(Manifest.permission.BLUETOOTH_CONNECT),
             permissionScan = Build.VERSION.SDK_INT < 31 || granted(Manifest.permission.BLUETOOTH_SCAN),
             permissionNotifications = Build.VERSION.SDK_INT < 33 || granted(Manifest.permission.POST_NOTIFICATIONS),
-            fitInventory = inventory
+            fitInventory = inventory,
+            lastStall = DashboardWorkerWatch.lastStall(context)
         )
     }
 }

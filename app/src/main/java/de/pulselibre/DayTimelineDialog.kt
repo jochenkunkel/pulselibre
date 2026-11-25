@@ -53,6 +53,10 @@ internal fun showDayTimeline(activity: MainActivity, worker: Executor) {
         dateButton.text = date.format(dateFormat)
         summary.text = activity.getString(R.string.day_reading); selected.text = ""; chartHolder.removeAllViews()
         val now = Instant.now()
+        summary.postDelayed({
+            if (dialog.isShowing && generation == request && summary.text.toString() == activity.getString(R.string.day_reading))
+                DashboardWorkerWatch.recordStall(activity.applicationContext, "day-timeline")
+        }, DashboardWorkerWatch.STALL_AFTER_MS)
         worker.execute {
             val read = try {
                 val reader = DashboardDayReader(activity.applicationContext)
