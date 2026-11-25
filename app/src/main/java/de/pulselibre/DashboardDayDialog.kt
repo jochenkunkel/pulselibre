@@ -96,7 +96,7 @@ internal fun showDashboardDay(
         // Diagnostic only: if this load is still pending after 15 s, log where the worker thread is stuck.
         overview.postDelayed({
             if (dialog.isShowing && generation == request && overview.text.toString() == activity.getString(R.string.day_reading))
-                DashboardWorkerWatch.logStall("day-dialog")
+                DashboardWorkerWatch.recordStall(activity.applicationContext, "day-dialog")
         }, DashboardWorkerWatch.STALL_AFTER_MS)
         worker.execute {
             val series = try { DashboardDayReader(activity.applicationContext).read(metric, day, now) }

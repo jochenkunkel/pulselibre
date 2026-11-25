@@ -55,7 +55,7 @@ internal fun showDayTimeline(activity: MainActivity, worker: Executor) {
         val now = Instant.now()
         summary.postDelayed({
             if (dialog.isShowing && generation == request && summary.text.toString() == activity.getString(R.string.day_reading))
-                DashboardWorkerWatch.logStall("day-timeline")
+                DashboardWorkerWatch.recordStall(activity.applicationContext, "day-timeline")
         }, DashboardWorkerWatch.STALL_AFTER_MS)
         worker.execute {
             val read = try {
