@@ -10,6 +10,23 @@ internal object CirqaSqliteBusyRetry {
         pause: (Long) -> Unit = { Thread.sleep(it) },
         retryable: (Exception) -> Boolean = { it is SQLiteDatabaseLockedException },
         operation: () -> T
+    ): T = runWithDelays(delaysMillis, pause, retryable, operation)
+
+    /**
+     * One retry for the sync DB open + idempotent import boundary. A native
+     * SQLiteOpenHelper busy wait may already take several seconds.
+     */
+    fun <T> runOnce(
+        pause: (Long) -> Unit = { Thread.sleep(it) },
+        retryable: (Exception) -> Boolean = { it is SQLiteDatabaseLockedException },
+        operation: () -> T
+    ): T = runWithDelays(longArrayOf(250), pause, retryable, operation)
+
+    private fun <T> runWithDelays(
+        delays: LongArray,
+        pause: (Long) -> Unit,
+        retryable: (Exception) -> Boolean,
+        operation: () -> T
     ): T {
         var attempt = 0
         while (true) {
@@ -17,8 +34,8 @@ internal object CirqaSqliteBusyRetry {
                 return operation()
             } catch (failure: Exception) {
                 if (!retryable(failure)) throw failure
-                if (attempt >= delaysMillis.size) throw failure
-                val delay = delaysMillis[attempt++]
+                if (attempt >= delays.size) throw failure
+                val delay = delays[attempt++]
                 try {
                     pause(delay)
                 } catch (interrupted: InterruptedException) {

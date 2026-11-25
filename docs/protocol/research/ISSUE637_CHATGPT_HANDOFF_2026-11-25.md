@@ -165,6 +165,39 @@ retry is bounded and does not duplicate FIT writes. First verify whether the
 observed Android open/configuration failure is reproducible on the emulator;
 do not assume the Python SQLite experiment models Android's WAL configuration.
 
+### Follow-up: API-35 emulator reproduction and bounded recovery
+
+On 2026-11-25, a focused instrumentation probe on the API-35 emulator held a
+write transaction on one `CirqaDatabase` connection while opening fresh
+`CirqaDatabase` helpers against the same synthetic database. Fresh helper opens
+reproduced `SQLiteDatabaseLockedException`; aggregate emulator Logcat diagnostics
+included `SQLITE_BUSY` at `PRAGMA journal_mode`. This demonstrates that the
+reported Android open/configuration failure is reproducible under controlled
+same-process SQLite contention. It does not identify the lock holder or prove
+that this exact interleaving occurred during S10 run #3.
+
+The probe then applied the existing bounded SQLite busy retry to the open/read
+operation. Once the test released the synthetic writer, the retry succeeded;
+the focused API-35 instrumentation test passed. No band, S10, or BLE access was
+involved.
+
+A minimal defensive change now wraps the FIT helper-open + verified import
+boundary in one `runOnce` retry (250 ms delay, retrying only
+`SQLiteDatabaseLockedException`). Retrying that whole boundary is safe because
+each FIT source import is transactional and idempotent; unrelated exceptions
+are not retried. The helper is explicitly opened before the import call so
+reporting distinguishes `SQLITE_OPEN` from `FIT_IMPORT_COMMIT`. Persistent
+contention still fails visibly after the single retry; existing sync/run
+budgets are unchanged. This is a bounded mitigation, not proof of the exact
+run-3 source or lock owner.
+
+Focused validation on API 35 passed:
+
+- `CirqaSqliteBusyRetryTest` and `CirqaSyncFileCompletionTest`.
+- `CirqaSqliteOpenContentionTest` (synthetic helper-open contention/recovery).
+- `CirqaFitBackfillInstrumentedTest` (2/2 existing transactional/idempotence
+  cases).
+
 ## Existing network / reverse-engineering evidence
 
 - Local comparison report:
