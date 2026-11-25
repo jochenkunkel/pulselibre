@@ -71,6 +71,14 @@ bestätigen keine Produktsemantik oder medizinische Validierung.
   enthält keine per-Datei-Laufzuordnung dieser Vorher-/Nachher-Deltas. Die
   hier belegte Bestandsänderung wird deshalb nicht als Transferabschluss oder
   vollständiger Lauf ausgegeben.
+- Den Exportcode habe ich statisch nachverfolgt: `ExportActivity.readUnifiedExport`
+  ruft `UnifiedMeasurements.refresh()` und danach `records()` auf;
+  `refreshHistorical()` projiziert aktive `fit_generation_observations` in
+  `unified_measurements`. Die 559 kanonischen Beobachtungen sind damit über
+  den bestehenden Pfad exportfähig, soweit ihr Zeitstempel im gewählten
+  Exportfenster liegt. Für diese konkreten Backups wurde kein neuer CSV-Export
+  erzeugt oder byteweise gegengeprüft; die Exportprüfung ist daher ein
+  Codepfadnachweis, kein konkreter CSV-Laufnachweis.
 
 ## Schlussfolgerung / nächster Nachweis
 
