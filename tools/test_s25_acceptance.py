@@ -108,6 +108,18 @@ class RunnerTest(unittest.TestCase):
         self.assertTrue(run.tab("Verlauf"))
         self.assertIn("input tap 100 2200", adb.commands)
 
+    def test_navigation_survives_whitespace_in_content_desc(self):
+        screen = xml(("", "  Gerät\n", (0, 2150, 200, 2250), True))
+        run = self.run_with(FakeAdb([screen]))
+        self.assertTrue(run.tab("Gerät"))
+
+    def test_navigation_prefers_resource_id_in_any_language(self):
+        screen = ('<?xml version="1.0"?><hierarchy><node text="" content-desc="Device" clickable="true" '
+                  'resource-id="de.pulselibre:id/navigation_item_Gerät" bounds="[0,2150][200,2250]"/></hierarchy>')
+        adb = FakeAdb([screen])
+        self.assertTrue(self.run_with(adb).tab("Gerät"))
+        self.assertIn("input tap 100 2200", adb.commands)
+
     def test_restore_resets_density_font_and_night_even_if_a_command_fails(self):
         adb = FakeAdb(["x"], shells={"cmd uimode night": "Night mode: yes", "settings get system font_scale": "1.0\n",
                                      "wm density": "Physical density: 480"})
