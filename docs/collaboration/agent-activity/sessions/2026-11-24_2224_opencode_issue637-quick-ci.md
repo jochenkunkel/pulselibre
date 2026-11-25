@@ -12,5 +12,5 @@
 - Abstimmungsbedarf: Review durch FIT/CI vor Merge; PR-Duplikat vermeiden
 - Agent-sync-Nachrichten: `docs/collaboration/agent-chat/messages/2026-11-24_222456_opencode_START_issue637-quick-ci.md`
 - Nachweise: `./tools/ci-local.sh --quick` nach den letzten Quelltextänderungen erfolgreich; 147 Python-Regressionstests und Android build/unit/R8/APK-Diagnose durchgelaufen. Die ergänzenden fokussierten JVM-Tests waren 23/23 erfolgreich. `git diff --cached --check` sauber. Keine Gerätekommunikation. Der Testreport enthält erwartete simulierte UI-FakeAdb-FAIL-Ausgaben, keine Geräteprüfung.
-- Ergebnis: keine bestehende PR gefunden. Vollständiger Branch-Head-CI-Lauf bleibt als Merge-Gate erforderlich.
-- Nächster Schritt: Änderung nach Repository-Workflow committen/einreichen und vollständige PR-CI abwarten; kein Merge vor grünem Pflichtlauf.
+- Ergebnis: PR #641 erstellt und gemergt; PR-FULL/API-35 sowie Post-Merge-Main-FULL/API-35 grün. Hardwaretest ist ein separater Folgetask.
+- Nächster Schritt: siehe S10-Testsession vom 2026-11-24 23:01 UTC; Hardwaretest nur mit Lease und gültigem Vorher-Backup.

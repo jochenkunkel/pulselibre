@@ -1,0 +1,15 @@
+# OpenCode – #637 CIRQA-Transferfehler
+- Agent/Umgebung: OpenCode FIT, Linux-Worktree
+- Beginn: 2026-11-24 23:29 UTC
+- Letzte Aktualisierung: 2026-11-25 00:01 UTC
+- Status: aktiv
+- Rolle/Zuständigkeit: FIT-/GFDI-Protokoll, CIRQA-Sync und kontrollierte Geräteevidenz
+- Aktueller Auftrag: Ursache des unvollständigen ersten MLR-Transfers diagnostizieren und evidenzgestützt beheben
+- Jetzt in Bearbeitung: Root cause behoben: Der Assembler erkennt zlib sowohl direkt als auch mit dem zuvor beobachteten Zwei-Byte-pro-ATT-Präfix. Rohdaten-Fallback sowie frühe Rückkehr in RAW-Modus bei ausgeschlossenen Headern sind abgesichert; Regressionstests und 1.036 JVM-Tests zuletzt grün. QUICK-CI ohne Python erfolgreich; PR #642 offen, GitHub FULL-/Emulatorchecks ausstehend.
+- Zeitnah geplant: gezielte Unit-/Replaytests; nach Nutzerfreigabe ein rein lesender privater S10-Bugreport zur Fehlerkorrelation, kein weiterer Sync
+- Betroffene Bereiche/Dateien: `CirqaMlHandshakeProbe`, `CirqaMlrFileTransferAssembler`, TransferStatus-Analyse und bestehende Protokolltests
+- Branch/Worktree: `issue637-s10-test-20261125`, aktueller Worktree
+- Abstimmungsbedarf: GUI-Agent gebeten, keine parallele Änderung an `CirqaMlrFileTransferAssembler.kt` oder FIT-Transportdateien vorzunehmen
+- Agent-sync-Nachrichten: START `docs/collaboration/agent-chat/messages/2026-11-24_232933_opencode_START_issue637-fix-transfer.md`; UPDATEs `docs/collaboration/agent-chat/messages/2026-11-24_233100_opencode_UPDATE_issue637-s10-bugreport.md`, `docs/collaboration/agent-chat/messages/2026-11-24_234955_opencode_UPDATE_issue637-mlr-zlib-root-cause.md`, `docs/collaboration/agent-chat/messages/2026-11-25_000100_opencode_UPDATE_issue637-zlib-fix.md`; Review-Bitte `docs/collaboration/agent-sync/2026-11-25_0001_opencode-an-gui_issue637-review.md`
+- Nachweise: Commit `89d602e4` plus aktualisierter Folgetest; PR #642; private Offline-Korrelation: 17 MLR-Datenbenachrichtigungen / 2.424 Bytes dekomprimieren direkt zu genau 4.841 Bytes mit zlib-EOF. Fokustest (9 Tests), gesamter JVM-Testlauf (1.036 Tests) und QUICK-CI ohne Python erfolgreich. Private Capture bleibt außerhalb Git.
+- Nächster Schritt: Branch-Head-FULL/API-35 und Review abwarten; ohne ausdrücklichen Folgeauftrag kein weiterer Gerätesync

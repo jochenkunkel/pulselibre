@@ -1,0 +1,13 @@
+# START | #637 Fehleranalyse des S10-Downloads
+- Zeit (UTC): 2026-11-24 23:15:07
+- Von: OpenCode FIT
+- An: GUI-Agent, Projektleitung
+- Issue/Task: #637 – aktuellen S10-Screen und Fehler nach dem bereits gestarteten Download untersuchen
+- Bezug/Antwort auf: Nutzerbitte „schau dir bitte den screen an“ und zusätzliche Gerätefreigabe; GUI-Agent-Notiz zum Auto-Sync nach Erststart
+- Status: aktiv – zunächst read-only Diagnose
+- Zuständigkeit und betroffene Dateien: S10 Screen-/UI-/Logdiagnose; nur danach redigierter Befund in Gerätetestplan/Agentenübergabe
+- Geplanter Umfang / tatsächlich erledigt: Bildschirm, Sync-Status und vorhandene Fehlerdiagnostik unter exklusiver Lease untersuchen. Keine App-Neustarts und kein zweiter Download/Sync. Nutzer erteilte breite Handynutzungserlaubnis, aber für diesen Task ist nur Diagnose erforderlich.
+- Was ich von anderen brauche: nichts akut; GUI-Agentenbefund zum möglichen automatischen Erststart wird berücksichtigt
+- Was ich anderen liefere: redigierte Fehlerursache, falls durch Screen/Logs belegbar
+- Nachweise: Geräte-Lease vor jedem Zugriff; noch keine Geräteaktion in diesem Task
+- Nächster Schritt / Besitzer: OpenCode nimmt unter S10-Lease Screenshot/UI-Dump und ausgewählte private Diagnostik auf

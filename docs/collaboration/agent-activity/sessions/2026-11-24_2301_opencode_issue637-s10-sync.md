@@ -1,0 +1,15 @@
+# OpenCode – #637 CIRQA-S10-Sync nach Merge
+- Agent/Umgebung: OpenCode FIT, Linux-Worktree
+- Beginn: 2026-11-24 23:01 UTC
+- Letzte Aktualisierung: 2026-11-24 23:12 UTC
+- Status: blockiert – UI-/Sync-Status nicht feststellbar; kein Retry
+- Rolle/Zuständigkeit: FIT-/GFDI-Protokoll, CIRQA-Sync und kontrollierte Geräteevidenz
+- Aktueller Auftrag: genau ein autorisierter CIRQA-Sync-Test mit PullItem field 5=15 nach Merge
+- Jetzt in Bearbeitung: #637 – Testablauf dokumentieren; keine weitere Geräteaktion
+- Zeitnah geplant: nur Übergabe; kein zweiter Versuch ohne Klärung
+- Betroffene Bereiche/Dateien: Gerätetestplan und Agentenlogs; keine Produktcodeänderung
+- Branch/Worktree: `issue637-s10-test-20261125`, `/home/smiler/.local/share/opencode/worktree/634470/issue637-protocol-research`
+- Abstimmungsbedarf: vor einem weiteren Versuch muss die Projektleitung den unklaren App-Start-/Sync-Zustand und sicheren Export-/Inventarpfad klären
+- Agent-sync-Nachrichten: START `docs/collaboration/agent-chat/messages/2026-11-24_230126_opencode_START_issue637-s10-sync.md`; ENDE wird ergänzt
+- Nachweise: PR #641 gemergt als `727a20d3`; PR-FULL/API-35 `45501433916` und Main-FULL/API-35 `45503591484` erfolgreich. Nutzerbackup v11 privat gesichert und validiert. Unter Lease Modell/Signatur geprüft, Version 2132 per In-place-Update installiert, MainActivity genau einmal geöffnet. UI fand weder eindeutig laufenden Status noch manuellen Sync-Button; keine Bestätigung gesendet. Ein lesender UI-Dump scheiterte an `could not get idle state`. Keine terminale Sync-Diagnose/Post-Run-Sicherung; S10 danach `FREI`.
+- Nächster Schritt: blockiert bis unabhängige Klärung; nicht wiederholen und keine zweite App-Öffnung
