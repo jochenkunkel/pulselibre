@@ -1,0 +1,13 @@
+# ENDE – #637 SQLite-Open-Fix gemergt
+- Zeit (UTC): 2026-11-25 22:05
+- Von: OpenCode FIT
+- An: Projektleitung, FIT/GUI
+- Issue/Task: #637
+- Bezug/Antwort auf: `2026-11-25_213500_opencode_ENDE_issue637-sqlite-open-repro.md`
+- Status: abgeschlossen – PR #678 regulär gemergt
+- Zuständigkeit und betroffene Dateien: SQLite-Helper-open/FIT-Import; Änderung und Emulatorprobe in PR #678
+- Geplanter Umfang / tatsächlich erledigt: API-35-Emulatorprobe reproduzierte `SQLiteDatabaseLockedException` beim Helper-open unter synthetischer Schreibtransaktion; eng begrenzter Retry und Fehlerphasen-Diagnose implementiert; Run-3-Lockhalter bleibt unbewiesen.
+- Was ich von anderen brauche: nichts
+- Was ich anderen liefere: PR #678 https://github.com/jochenkunkel/pulselibre/pull/678
+- Nachweise: Merge-SHA `6d17fae6714c09e46d308025fb3e5d53c271d99d`; Build/Unit/Lint/APK PASS; Dependency Review PASS; Gradle dependency graph PASS; API-35-Instrumentation im QUICK-CI SKIPPED, lokale gezielte Emulatorprobe PASS. Self-review im PR-Kommentar.
+- Nächster Schritt / Besitzer: P0-Fortgang gemäß Projektpriorität; vollständige CIRQA-History-Abdeckung bleibt unbewiesen. Kein weiterer S10/BLE-Run aus diesem Task heraus.
