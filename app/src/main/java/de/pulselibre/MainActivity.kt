@@ -634,7 +634,9 @@ class MainActivity : AppCompatActivity() {
                 setOnClickListener { action() }
             }
         val historicalSyncStatus = text(
-            getString(R.string.main_hist_status_none), 13f, muted
+            // The last terminal report survives the screen, so an interrupted run stays visible as incomplete.
+            getSharedPreferences("historical_sync_energy_policy", MODE_PRIVATE).getString("last_report", null)
+                ?: getString(R.string.main_hist_status_none), 13f, muted
         ).apply {
             setPadding(dp(16), dp(12), dp(16), dp(12))
             background = rounded(palette.card)
@@ -709,6 +711,9 @@ class MainActivity : AppCompatActivity() {
                     syncProgress.show(HistorySyncProgress(HistorySyncStage.CONNECTING))
                     val prefs = getSharedPreferences("historical_sync_energy_policy", MODE_PRIVATE)
                     prefs.edit().putLong("last_attempt", System.currentTimeMillis()).commit()
+                    // The user's explicit download wins over a running battery/metadata read (it holds the BLE gate).
+                    deviceMetadataProbe?.close()
+                    deviceMetadataProbe = null
                     val probe = CirqaMlHandshakeProbe(this@MainActivity, adapter)
                     historicalDownloadProbe?.close()
                     historicalDownloadProbe = probe
@@ -720,10 +725,10 @@ class MainActivity : AppCompatActivity() {
                     ) { message ->
                         runOnUiThread {
                             manualHistoricalSyncActive = false
+                            recordHistoricalSyncResult(prefs, message) // also after the screen closed (abort in onDestroy)
                             if (!destroyed) {
                                 historicalSyncStatus.text = message
                                 syncProgress.show(HistorySyncProgress.fromReport(message))
-                                recordHistoricalSyncResult(prefs, message)
                                 historyRefresh?.invoke()
                             }
                         }
@@ -972,12 +977,12 @@ class MainActivity : AppCompatActivity() {
         ) { message ->
             runOnUiThread {
                 automaticHistoricalSyncActive = false
+                // Persist success only for a completely drained run; partial/error runs remain retryable
+                // after the five-minute attempt cooldown. Recorded even after the screen closed (abort in onDestroy).
+                recordHistoricalSyncResult(prefs, message)
                 if (destroyed) return@runOnUiThread
                 statusView.text = message
                 syncProgressView?.show(HistorySyncProgress.fromReport(message))
-                // Persist success only for a completely drained run; partial/error runs remain retryable
-                // after the five-minute attempt cooldown.
-                recordHistoricalSyncResult(prefs, message)
                 historyRefresh?.invoke()
             }
         }
@@ -987,6 +992,8 @@ class MainActivity : AppCompatActivity() {
         preferences: android.content.SharedPreferences,
         report: String
     ) {
+        preferences.edit().putString("last_report", report.take(4000))
+            .putLong("last_report_at", System.currentTimeMillis()).apply()
         if (report.contains("runDrained=true") && report.contains("incompleteReason=none")) {
             preferences.edit().putLong("last_success", System.currentTimeMillis()).apply()
         }
@@ -1038,6 +1045,9 @@ class MainActivity : AppCompatActivity() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) !=
             PackageManager.PERMISSION_GRANTED) return
         if (!::adapter.isInitialized || !adapter.isEnabled) return
+        // Never a second GATT client while a history download or the recorder owns the band (it would disturb that run).
+        if (!DeviceMetadataStartPolicy.mayStart(CirqaBleSessionGate.isBusy(),
+                automaticHistoricalSyncActive || manualHistoricalSyncActive)) return
         deviceMetadataProbe?.close()
         val probe = DeviceMetadataProbe(applicationContext, adapter)
         deviceMetadataProbe = probe
@@ -1293,7 +1303,9 @@ class MainActivity : AppCompatActivity() {
         destroyed = true
         handler.removeCallbacksAndMessages(null)
         stopScan()
-        historicalDownloadProbe?.close()
+        // End a running download through its regular terminal path: report "incomplete", release the partial file,
+        // close GATT; recordHistoricalSyncResult still persists the report although this screen is gone.
+        historicalDownloadProbe?.abort("Download abgebrochen: Ansicht geschlossen.") // German diagnostic report, like all sync reports
         historicalDownloadProbe = null
         deviceMetadataProbe?.close()
         deviceMetadataProbe = null

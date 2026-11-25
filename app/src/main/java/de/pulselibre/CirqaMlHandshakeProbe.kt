@@ -49,9 +49,12 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private val serial = Handler(CirqaProbeThread.looper)
     private val ui = Handler(Looper.getMainLooper())
     private val cccd = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")
-    private var active = false
+    /** Volatile: [close] is called from the main thread while the session logic runs on [serial]. */
+    @Volatile private var active = false
     @Volatile private var terminationRequested = false
-    private var gatt: BluetoothGatt? = null
+    @Volatile private var gatt: BluetoothGatt? = null
+    /** A client still waiting for its delayed close after the MousePods stop command (see [finish]); [close] must reach it too. */
+    @Volatile private var closingGatt: BluetoothGatt? = null
     private var callback: ((String) -> Unit)? = null
     override var onReading: ((Int, GarminRealtime.Reading) -> Unit)? = null
     private var tx: BluetoothGattCharacteristic? = null
@@ -825,10 +828,12 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                 }
                 override fun onDescriptorWrite(g: BluetoothGatt, descriptor: BluetoothGattDescriptor, status: Int) {
                     if (callbackGeneration !== generation) return
-                    if (!active || descriptor.uuid != cccd) return
+                    if (!active || terminationRequested || descriptor.uuid != cccd) return
                     if (status != BluetoothGatt.GATT_SUCCESS) { finish("CCCD-Fehler: $status", g); return }
+                    // close() on the main thread may have cleared the session meanwhile: never crash the BLE thread.
+                    val handshake = session ?: return
                     mark("CCCD bestätigt; erster ML-Befehl wird gesendet")
-                    send(g, session!!.begin())
+                    send(g, handshake.begin())
                 }
                 @Deprecated("Android compatibility callback")
                 override fun onCharacteristicChanged(g: BluetoothGatt, characteristic: BluetoothGattCharacteristic) {
@@ -3110,6 +3115,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             txTrace.summary()
 
     companion object {
+        /** incompleteReason / terminalCause of a run ended by [abort] (screen closed, owner stopped it). */
+        const val ABORTED_BY_CALLER = "aborted-by-caller"
         private const val MAX_DIRECTORY_DIAGNOSTIC_ENTRIES = 12
         private const val MAX_SYNC_ITEM_LIST_PAGES = 64
         // ItemListStatus.SUCCESS is 0; 1 means FAIL_UNKNOWN_SESSION_ID.
@@ -3606,11 +3613,12 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             // Keep the session gate until GATT has actually been closed.
             // Best-effort MousePods stop command before GATT disconnect; never CLOSE_ALL.
             val stopHandle = if (mousePodsMode && motionStartIssued) motionHandle else null
-            if (stopHandle != null && g != null && tx != null &&
+            val stopCharacteristic = tx
+            if (stopHandle != null && g != null && stopCharacteristic != null &&
                 (Build.VERSION.SDK_INT < 31 ||
                     context.checkSelfPermission(android.Manifest.permission.BLUETOOTH_CONNECT) == android.content.pm.PackageManager.PERMISSION_GRANTED)) {
                 try {
-                    val characteristic = tx!!
+                    val characteristic = stopCharacteristic
                     val stop = byteArrayOf(stopHandle.toByte(), 0x00)
                     if (Build.VERSION.SDK_INT >= 33) {
                         g.writeCharacteristic(characteristic, stop,
@@ -3624,8 +3632,10 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                         g.writeCharacteristic(characteristic)
                     }
                 } catch (_: Exception) { /* Disconnect remains mandatory even if stop fails. */ }
+                closingGatt = g
                 serial.postDelayed({
                     safeClose(g)
+                    if (closingGatt === g) closingGatt = null
                     CirqaBleSessionGate.release(this)
                 }, 400L)
             } else {
@@ -3725,6 +3735,25 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             mousePodsMode = false
         }
     }
+    /**
+     * Ends a running session like an internal stop: the regular terminal report (incomplete, with [reason]) is built
+     * and delivered to the result callback, the partial file is released and GATT is closed before the session gate.
+     * Use this instead of [close] when the run's outcome must stay visible (P0: stops are reported as incomplete).
+     */
+    fun abort(reason: String) {
+        serial.post {
+            if (!active) return@post
+            // Explicit cause: an external stop is never a drained run, whatever the counters say at this moment.
+            if (syncRequestMode && syncIncompleteReason == null) syncIncompleteReason = ABORTED_BY_CALLER
+            finish(reason, gatt)
+        }
+    }
+
+    /**
+     * Immediate, silent teardown (no result is delivered). Called from the main thread while the session logic runs on
+     * [serial]: the volatile fences stop every callback first; the zlib inflater is released on [serial] so it is never
+     * closed under a running inflate.
+     */
     override fun close() {
         terminationRequested = true
         active = false
@@ -3733,7 +3762,14 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         passive5050Session.stop()
         serial.removeCallbacksAndMessages(null)
         ui.removeCallbacksAndMessages(null) // an undelivered result must not reach a closed screen (as before)
+        val assembler = mlrFileAssembler
+        if (assembler != null) serial.post {
+            assembler.close()
+            if (mlrFileAssembler === assembler) mlrFileAssembler = null
+        }
         safeClose(gatt)
+        safeClose(closingGatt)   // a pending delayed close was just removed with the serial callbacks
+        closingGatt = null
         CirqaBleSessionGate.release(this)
         gatt = null
         callback = null
