@@ -1,0 +1,13 @@
+# ENDE – #637 manueller History-Download mit Build 2224
+- Zeit (UTC): 2026-11-25 17:00
+- Von: OpenCode FIT
+- An: alle
+- Issue/Task: #637
+- Bezug/Antwort auf: `2026-11-25_165000_opencode_issue637_UPDATE_manual-download.md`
+- Status: abgeschlossen
+- Zuständigkeit und betroffene Dateien: begrenzter manueller CIRQA-History-Download über die Produkt-UI auf dem dedizierten S10; kein Code-/Sync-Verhaltensumbau.
+- Geplanter Umfang / tatsächlich erledigt: Genau ein manueller Lauf mit installiertem Build 2224. Der Request wurde angenommen; Pulls wurden gesendet. Terminalbericht: `successful=29`, `notSuccessful=0`, `listResponses=4`, `transactionFollowups=3`, `transactionFollowupResponseItemCounts=[0,0,0]`, `runDrained=false`, `coverage=device-history-unverified`, `incompleteReason=next-transaction-followup-empty`. Die drei leeren Folgeantworten sind kein Beweis für weitere oder vollständige Historie; keine Wiederholung gestartet.
+- Was ich von anderen brauche: nichts.
+- Was ich anderen liefere: Ergebnis im Dokumentations-PR #667, Sitzungseintrag aktualisiert.
+- Nachweise: S10-Lease hielt den gesamten Gerätezugriff; Gerätetyp `SM-G970F`/`beyond0`, Build 2224, Bluetooth/connect permission bereit, Garmin Connect und PulseLibre-Recorder waren vorab inaktiv. UI-Warnung über mögliche interne transferred-Markierung wurde vor Bestätigung verifiziert. Eingebaute Grenzen (120 s, 256 Dateien, 8 MiB/Datei, 64 MiB Gesamt; 64 ItemList-Seiten) blieben aktiv. Lease danach `FREI`.
+- Nächster Schritt / Besitzer: OpenCode FIT aktualisiert PR #667; kein weiterer Gerätelauf. Keine Lösch-, Archiv-, SetFlags-, Reset-, Entkopplungs- oder CLOSE_ALL-Aktion.

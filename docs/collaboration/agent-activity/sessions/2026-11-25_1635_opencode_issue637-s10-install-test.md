@@ -1,16 +1,16 @@
 # OpenCode – #637 S10-Installations- und Starttest
 - Agent/Umgebung: OpenCode FIT, Linux-Worktree
 - Beginn: 2026-11-25 16:35 UTC
-- Letzte Aktualisierung: 2026-11-25 16:50 UTC
-- Status: aktiv
+- Letzte Aktualisierung: 2026-11-25 17:00 UTC
+- Status: abgeschlossen
 - Rolle/Zuständigkeit: FIT/Android-Test, dediziertes S10
 - Aktueller Auftrag: Auf ausdrückliche Nutzerfreigabe den gemergten #637-Stand installieren und einen begrenzten Smoke-Test durchführen.
-- Jetzt in Bearbeitung: Nach neuer expliziter Nutzeranweisung ein einmaliger manueller History-Downloadtest mit Build 2224; kontrollierter Scope und Abbruchgrenzen siehe Agenten-Chat-UPDATE.
-- Zeitnah geplant: Terminalbericht und private/DB-Differenz nach dem Lauf prüfen und redigiert dokumentieren.
+- Jetzt in Bearbeitung: abgeschlossen. Ein manueller, durch die App bestätigter History-Download mit Build 2224 lief innerhalb des eingebauten 120-s-Budgets.
+- Zeitnah geplant: keine weitere S10-Aktion; Vollständigkeit der Bandhistorie bleibt offene Forschungsfrage.
 - Betroffene Bereiche/Dateien: App-APK aus aktuellem `main`; diese Aktivitätssitzung und Agenten-Chat.
 - Branch/Worktree: `opencode/issue637-s10-install-test-20261125`, `/tmp/opencode/issue637-s10-install-test-20261125`.
 - Abstimmungsbedarf: keiner; Nutzer hat den manuellen Downloadtest ausdrücklich angefordert. UI-Warnung zu möglicher interner „transferred“-Markierung offengelegt.
 - Agent-sync-Nachrichten: keine erforderlich.
-- Nachweise: Main-CI Run `45654658545` / Android CI `45654658545` erfolgreich; signiertes Artefakt `2.0.0_build2224`, Paket `de.pulselibre`. Gerätetyp `SM-G970F`/`beyond0` unter S10-Lease bestätigt; vorhandenes Build 2218 und identische Signatur festgestellt. `adb install -r` erfolgreich; `am start -W de.pulselibre/.MainActivity` meldete `Status: ok`, Activity resumed und Prozess vorhanden. S10-Lease danach `FREI`.
-- Ergebnisgrenze: Kein History-Sync/BLE-Probe, keine Instrumentation, kein Löschen/Deinstallieren. Ein anfänglicher Monkey-Start hinterließ keinen bestätigten Prozess; kein passender AndroidRuntime-Crash im begrenzten Logfenster. Direkter Activity-Start anschließend erfolgreich.
-- Nächster Schritt: Vor Gerätenutzung S10-Lease prüfen und eine Lease über den gesamten einzelnen manuellen Lauf halten; danach Lease freigeben. Keine destruktiven Bandkommandos.
+- Nachweise: Main-CI Run `45654658545` erfolgreich; signiertes Artefakt `2.0.0_build2224`, Paket `de.pulselibre`. S10 `SM-G970F`/`beyond0`; vorhandenes Build 2218 und identische Signatur; In-place-Update und direkter Activity-Start erfolgreich. Ein manueller Sync unter Lease: `accepted=true`, `itemListSent=true`, `pullSent=true`, `successful=29`, `notSuccessful=0`, `listResponses=4`, `transactionFollowups=3`, `transactionFollowupResponseItemCounts=[0, 0, 0]`, `runDrained=false`, `coverage=device-history-unverified`, `incompleteReason=next-transaction-followup-empty`. Lease danach `FREI`.
+- Ergebnisgrenze: Keine Lösch-/Archiv-/SetFlags-/Reset-/CLOSE_ALL-Befehle; keine Instrumentation. UI-Warnung über mögliche interne transferred-Markierung vor dem Start geprüft. Keine vollständige Historie behauptet.
+- Nächster Schritt: Testevidenz im Dokumentations-PR #667 aktualisieren; keine weitere S10-Aktion oder Wiederholung.
