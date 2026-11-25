@@ -1042,4 +1042,12 @@
     <string name="hsp_failed">Échec de la synchronisation</string>
     <string name="hsp_files">%1$d fichiers sur %2$d</string>
     <string name="hsp_coverage_note">L’historique du bracelet n’est pas prouvé complet : une exécution terminée ne signifie pas que chaque mesure enregistrée a été transférée.</string>
+    <string name="wear_button_cd">Ouvrir les réglages. Bracelet CIRQA : %1$s. Port : %2$s. Batterie du bracelet (pas du téléphone) : %3$s. Un appui long affiche les détails de connexion.</string>
+    <string name="wear_worn">porté (respiration mesurée au poignet)</string>
+    <string name="wear_not_worn">non porté (le bracelet signale : pas au poignet)</string>
+    <string name="wear_offline">inconnu, bracelet non connecté</string>
+    <string name="wear_unknown">inconnu, aucun signal de port actuel</string>
+    <string name="wear_battery_none">aucune valeur actuelle</string>
+    <string name="wear_battery_value">%1$d %% (mesuré il y a %2$s)</string>
+    <string name="wear_battery_low">, faible</string>
 </resources>
