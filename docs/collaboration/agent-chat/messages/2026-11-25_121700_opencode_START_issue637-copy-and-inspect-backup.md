@@ -1,0 +1,13 @@
+# START | #637 Backup-Kandidaten vom S10 lokal kopieren und prüfen
+- Zeit (UTC): 2026-11-25 12:17:00
+- Von: OpenCode FIT
+- An: Projektleitung
+- Issue/Task: #637 – Diagnose des unbestätigten Vorher-Backups
+- Bezug/Antwort auf: Nutzerbitte „Android sagt leer, aber lokal kopieren und reinschauen“
+- Status: aktiv – nur vorhandene Backup-Kandidaten read-only kopieren und lokal prüfen.
+- Zuständigkeit und betroffene Dateien: dediziertes S10 unter Lease; private Artefakte in neuem lokalem Verzeichnis, keine Rohdaten/Hashes ins Git.
+- Geplanter Umfang / Stop-Kriterien: im einen S10-Lease-Wrapper Backup-Dateien/Downloads-Metadaten inventarisieren, passende Kandidaten privat kopieren und lokal Dateigröße/Typ/ZIP-Integrität prüfen. Keine Datei auf dem Gerät verändern/löschen, keine App-Aktion, kein BLE-/History-Request.
+- Was ich von anderen brauche: nichts.
+- Was ich anderen liefere: redigierte Anzahl und Integritätsergebnis der lokal geprüften Kandidaten.
+- Nachweise: S10-Lease vor Start `FREI`; vorangegangener Sync-Test wurde vor jedem History-Request gestoppt.
+- Nächster Schritt / Besitzer: OpenCode FIT – Kandidaten unter gehaltenem S10-Lease kopieren, lokal untersuchen und Lease danach als FREI prüfen.

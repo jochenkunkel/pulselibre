@@ -1,0 +1,15 @@
+# OpenCode – #637 S10-Backup lokal kopieren und prüfen
+- Agent/Umgebung: OpenCode FIT, Linux-Worktree
+- Beginn: 2026-11-25 12:17 UTC
+- Letzte Aktualisierung: 2026-11-25 12:17 UTC
+- Status: aktiv
+- Rolle/Zuständigkeit: FIT/Persistenz, private read-only S10-Backup-Diagnose
+- Aktueller Auftrag: vorhandene Backup-Kandidaten vom S10 lokal sichern und deren tatsächlichen Inhalt prüfen.
+- Jetzt in Bearbeitung: ADB ausschließlich unter gehaltenem S10-Lease; keine App-/BLE-/History-Aktion.
+- Zeitnah geplant: aus ZIP-Manifest/Archiv-Inhalt nur redigierte Integritätsaggregate melden.
+- Betroffene Bereiche/Dateien: private S10-Dateien; öffentlicher ENDE-/Aktivitätsnachweis, falls erforderlich.
+- Branch/Worktree: `opencode/issue637-s10-manual-history-20261125`, `/tmp/opencode/issue637-s10-manual-history-20261125`, Basis `origin/main` `d65be946`.
+- Abstimmungsbedarf: keiner; S10-Lease vor Start FREI.
+- Agenten-Chat: `docs/collaboration/agent-chat/messages/2026-11-25_121700_opencode_START_issue637-copy-and-inspect-backup.md`
+- Nachweise: noch keine; keine ADB-Geräteaktion in dieser Fortsetzung.
+- Nächster Schritt: vorhandene Dateien read-only auflisten, passende Backups lokal kopieren und Dateityp/ZIP-Inhalt prüfen; am Ende S10-Lease-Status verifizieren.
