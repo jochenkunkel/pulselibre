@@ -3249,16 +3249,22 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                 )
             }
         } catch (e: Exception) {
+            val journalRetained = runCatching {
+                CirqaVerifiedRawFileStore(
+                    java.io.File(context.filesDir, "downloaded_originals_pending")
+                ).saveExact(data, item.dataSize)
+            }.isSuccess
             return CirqaSyncFileCompletion.Result(
                 format = format,
                 transfer = CirqaSyncFileCompletion.Stage.SUCCEEDED,
                 integrity = CirqaSyncFileCompletion.Stage.NOT_REACHED,
-                // archiveDownloadedFile first fsyncs a content-addressed private
-                // recovery copy; the SQLite inventory can be retried on next launch.
-                privateStorage = CirqaSyncFileCompletion.Stage.SUCCEEDED,
+                // Confirm the journal even if the failure occurred before its first save.
+                privateStorage = if (journalRetained) CirqaSyncFileCompletion.Stage.SUCCEEDED
+                    else CirqaSyncFileCompletion.Stage.FAILED,
                 decode = CirqaSyncFileCompletion.Stage.NOT_REACHED,
                 sqliteCommit = CirqaSyncFileCompletion.Stage.FAILED,
-                detail = "exactSize=true;originalPrivateJournal=retained;originalSqliteArchive=failed:${e.javaClass.simpleName}",
+                detail = "exactSize=true;originalPrivateJournal=${if (journalRetained) "retained" else "failed"};" +
+                    "originalSqliteArchive=failed:${e.javaClass.simpleName}",
                 failure = CirqaSyncFileCompletion.FailureDiagnostic(
                     CirqaSyncFileCompletion.FailurePhase.ORIGINAL_ARCHIVE,
                     e.javaClass.simpleName
