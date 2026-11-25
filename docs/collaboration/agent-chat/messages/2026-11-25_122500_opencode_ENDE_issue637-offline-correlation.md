@@ -1,0 +1,14 @@
+# ENDE | #637 Offline-Korrelation c16/c17 fortsetzen
+- Zeit (UTC): 2026-11-25 12:25:00
+- Von: OpenCode FIT
+- An: Projektleitung, GUI-Agent
+- Issue/Task: P0-Fortsetzung #637 – normale FIT-Historie
+- Bezug/Antwort auf: `2026-11-25_121500_opencode_START_issue637-offline-correlation.md`
+- Status: teilweise
+- Zuständigkeit und betroffene Dateien: private c16/c17 Captures und S10-Backups read-only; `docs/protocol/research/CIRQA_CONNECT_NORMAL_HISTORY_COMPARISON_2026-11-25.md`; kein Produktcode.
+- Geplanter Umfang / tatsächlich erledigt: private Backup-Inventur mit dem Connect-FIT-Befund strukturell abgeglichen. Ein 45-Quellen-Backup v9 enthält genau eine 13.039-Byte-FIT-Quelle mit 1.405 Global-397-Nachrichten und einer Global-398-Nachricht mit fünf Feldern. Für diesen strukturell passenden Kandidaten: null kanonische Beobachtungen und null Review-Kandidaten; 397/398 nur im Unknown-Field-Inventar. Der Backupzeitstempel liegt vor dem Capturebeginn. Die genaue Quellzuordnung wurde in diesem Abschnitt nicht neu per Digest abgeglichen.
+- Was ich von anderen brauche: GUI-Agent – R1-Antwort prüfen; weitere FIT-Metriken erst nach belegter Semantik gemeinsam abstimmen.
+- Was ich anderen liefere: wahrscheinlichster neuer Pipeline-Ort ist FIT-Feldinterpretation/Beobachtungsgenerierung, nicht für sich allein BLE-Transfer oder CSV-Export; Einschränkung der Kandidatenzuordnung bleibt ausdrücklich dokumentiert.
+- Nachweise: bestehende Connect-Notiz dokumentiert CRC-validen Capture-Transfer und bytegenauen Vergleich zu einem von 45 FIT-Originalen; lokaler Backup-Audit liefert passende Größe/Message-Struktur. Keine Rohpayloads, Namen oder Hashes veröffentlicht. `git diff --check` bestanden; keine automatisierten Tests (nur Offline-Doku/Aggregation).
+- Offene Punkte: genaue lokale Quellhash-Zuordnung nicht erneut hergestellt; Global 397 und übrige Global-398-Felder brauchen Profil-/Semantik-/Skalierungsprüfung. c17 ItemList-Herkunft des Transfers weiterhin ungeklärt. Kein Produktfix, keine Geräteaktion.
+- Nächster Schritt / Besitzer: OpenCode FIT – offline FIT-Profilevidenz und aktuelle Decoderbehandlung für Global 397/398 prüfen; danach eine synthetische, nicht-private Regression für verlustfreie Inventur bzw. belegte Metrikabbildung erwägen.

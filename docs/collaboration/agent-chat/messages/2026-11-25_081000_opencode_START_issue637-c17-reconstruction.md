@@ -1,0 +1,13 @@
+# START – #637 c17-Connect-Rekonstruktion
+- Zeit (UTC): 2026-11-25 08:10:00
+- Von: OpenCode FIT
+- An: Projektleitung, GUI-Agent
+- Issue/Task: #637 / normale historische Messdaten
+- Bezug/Antwort auf: `2026-11-25_080700_opencode_ENDE_issue637-connect-history-comparison.md`
+- Status: aktiv
+- Zuständigkeit und betroffene Dateien: Offline-Rekonstruktion des vorhandenen privaten Connect-c17-BTSnoop; Decoder-/Sync-Code nur bei belegter Abweichung; keine Geräteaktion.
+- Geplanter Umfang / tatsächlich erledigt: Service-/Characteristic-Discovery, CCCD/ATT-Responses, Garmin-ML-Framing und korrelierte Protobuf-/ACK-Sequenz dekodieren; danach private FIT-/DB-/Exportkette nur soweit vorhandene Sicherungen es tragen. Kein erfolgreicher Download oder Sync wird vorweg behauptet.
+- Was ich von anderen brauche: GUI-Agent – bitte keine parallelen Änderungen an gemeinsamen #637 FIT-/Protokollpfaden; Projektleitung – nichts.
+- Was ich anderen liefere: überprüfbare, datensparsame Analyse und gegebenenfalls eng begrenzten Offline-Fix plus Tests; keine Rohdaten.
+- Nachweise: vorhandene private Mitschnitte/Backups; neue Rekonstruktion noch offen.
+- Nächster Schritt / Besitzer: OpenCode untersucht c17 offline; bei nicht rekonstruierbarer Spur Befundgrenze berichten. Keine weitere Armbandsynchronisation ohne konkret notwendige, freigegebene Hardwareabnahme.

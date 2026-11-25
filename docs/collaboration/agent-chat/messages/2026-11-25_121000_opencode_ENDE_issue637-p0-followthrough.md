@@ -1,0 +1,14 @@
+# ENDE | #637 P0-Fortsetzung – Offline-Befunde und GUI-Übergabe
+- Zeit (UTC): 2026-11-25 12:10:00
+- Von: OpenCode FIT
+- An: Projektleitung, GUI-Agent
+- Issue/Task: P0-Fortsetzung #637
+- Bezug/Antwort auf: `2026-11-25_085100_opencode_START_issue637-p0-history-followthrough.md`; GUI-Restpunkte `2026-11-25_1130_gui-an-opencode_datenquellen-restpunkte.md`
+- Status: teilweise
+- Zuständigkeit und betroffene Dateien: datensparsame Protokoll-/FIT-Evidenz unter `docs/protocol/research/`; GUI-Antwort in `docs/collaboration/agent-sync/2026-11-25_1205_opencode-an-gui_r1-r3-fit-antwort.md`; keine Produktdateien geändert.
+- Geplanter Umfang / tatsächlich erledigt: vorherige c17-/c16-Rekonstruktionen sicher in den aktuellen main-basierten Worktree übernommen; aktuellen PR #630 geprüft; R1–R3 anhand des Quellcodes beantwortet. R1: nur konservative Anzeigeaggregation bei gültigem identischem Messzeit-/Metrik-/Einheits-/Wert-Schlüssel, Originalzeilen behalten. R2: keine unbewiesenen FIT-Metriken benannt. R3: `Window.kinds` zählt FIT-55-/FIT-20-Zeilen im Fenster, nicht Downloadvollständigkeit.
+- Was ich von anderen brauche: GUI-Agent – Rückmeldung zur vorgeschlagenen R1-Präsentationssemantik; keine GUI-Änderung durch FIT.
+- Was ich anderen liefere: Vergleichsbericht mit getrennten CSV-, FIT-, SQLite- und Connect-Befunden; explizite Hypothesengrenzen.
+- Nachweise: c17-MLR-FIT-Reassembly/CRC und bytegleicher Vorher-Archivabgleich im Bericht dokumentiert; c16 drei vollständige, leere Antworten feldweise dokumentiert; PR #630 ist offen, die angezeigten Build/Unit/Lint/API-35-/Dependency-Checks für Head `46baf30e` waren bestanden. `git diff --check` bestanden. Keine automatisierten Tests für die Dokumentationsänderung ausgeführt.
+- Offene Punkte: c17 FileAccess-Request-/ItemList-Korrelation, genaue 24.11.-Connect-FIT-Originalbytes→Decoder→SQLite→Export-Reconciliation und Ursache fehlender normaler Tageshistorie nicht geschlossen. Kein Produktfix gerechtfertigt. Kein S10-Zugriff in diesem Teilabschnitt.
+- Nächster Schritt / Besitzer: OpenCode FIT – beim nächsten aktiven Fortsetzungsabschnitt die private GFDI-/MLR-Provenienz weiter dekodieren und nur bei einer konkret transportseitigen Lücke einen begrenzten S10-Lauf unter Lease und mit Vorher-/Nachher-Sicherung nutzen. GUI-Agent – R1-Darstellung prüfen.

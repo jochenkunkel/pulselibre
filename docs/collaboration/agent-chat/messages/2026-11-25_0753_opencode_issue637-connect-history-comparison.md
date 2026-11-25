@@ -1,0 +1,15 @@
+# OpenCode – #637 Garmin-Connect-Historienvergleich
+- Agent/Umgebung: OpenCode FIT, Linux-Worktree
+- Beginn: 2026-11-25 07:53 UTC
+- Letzte Aktualisierung: 2026-11-25 08:07 UTC
+- Status: teilweise / blockiert für Connect-c17-Semantik
+- Rolle/Zuständigkeit: FIT-/GFDI-Protokoll, CIRQA-Sync und Offline-Auswertung
+- Aktueller Auftrag: Vollständige beobachtbare Garmin-Connect-Synchronisationssequenz aus vorhandenen privaten Mitschnitten rekonstruieren und gegen PulsLibre sowie die Nutzerhypothesen H1–H3 prüfen.
+- Jetzt in Bearbeitung: #637 – ItemList-/nextTransaction-Antwort und Connect-vs-PulsLibre-Semantik; keine neue Hardwareaktion.
+- Zeitnah geplant: geeignete Offline-Regressionstests nur bei belegtem Parser-/Steuerungsfehler.
+- Betroffene Bereiche/Dateien: `CirqaItemListProgress.kt`, `CirqaFileAccessItemListParser.kt`, `CirqaSyncResponseParser.kt`, `CirqaMlHandshakeProbe.kt`, `docs/protocol/research/CIRQA_CONNECT_NORMAL_HISTORY_COMPARISON_2026-11-25.md`, private Capture-Auswertung.
+- Branch/Worktree: `issue637-protocol-research`, aktueller Worktree.
+- Abstimmungsbedarf: GUI-Agent – keine parallelen Änderungen an gemeinsamen #637 FIT-/Protokollpfaden während der gezielten Auswertung; keine Antwort dokumentiert.
+- Agent-sync-Nachrichten: `docs/collaboration/agent-chat/messages/2026-11-25_075300_opencode_START_issue637-connect-history-comparison.md`
+- Nachweise: c16 ItemList- und Folgeantworten feldweise korreliert; Connect-c17 ATT-Handle-Verkehr inventarisiert, aber Garmin-ML/GFDI-/Protobuf-Sequenz nicht zuverlässig rekonstruiert. Datensparsame Analyse dokumentiert; `git diff --check` erfolgreich, keine Tests ausgeführt (Dokumentations-/Offlinearbeit).
+- Nächster Schritt: bei zusätzlicher Offline-Arbeit c17 GATT discovery/ML transport framing aus privatem BTSnoop klären; bis dahin keine Connect-Request-/ACK-/Typaussage und keine Gerätesynchronisation.

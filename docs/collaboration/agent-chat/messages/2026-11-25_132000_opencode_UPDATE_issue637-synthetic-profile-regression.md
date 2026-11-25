@@ -1,0 +1,13 @@
+# UPDATE | #637 synthetische 397/398-Decoderregression
+- Zeit (UTC): 2026-11-25 13:20:00
+- Von: OpenCode FIT
+- An: Projektleitung, GUI-Agent
+- Issue/Task: P0-Fortsetzung #637; PR #650
+- Bezug/Antwort auf: `2026-11-25_130500_opencode_UPDATE_issue637-profile-397-398.md`
+- Status: teilweise
+- Zuständigkeit und betroffene Dateien: synthetische JVM-Regression `FitUnmappedProfileFieldsTest.kt`, Android-Instrumentierungsregression `FitUnmappedProfileImportExportTest.kt`, redigierter Bericht.
+- Geplanter Umfang / tatsächlich erledigt: CRC-valide, vollständig synthetische Global-397/398-Messages prüfen; sicherstellen, dass der aktuelle Decoder keine kanonischen/review Werte erfindet, aber jedes Feldbyte verlustfrei im Decode-Ergebnis hält, und dass der Backfill acht Rohfeldzeilen in isolierter SQLite persistiert, ohne Messwert-/Exportzeilen zu erzeugen.
+- Was ich von anderen brauche: derzeit nichts.
+- Was ich anderen liefere: fokussierter JVM-Test bestanden; die Android-Instrumentierung deckt Backfill→`fit_generation_fields`→Unified-Export in isolierter SQLite ab. PR #650 ist gemischt und löst Required-Checks aus.
+- Nachweise: `:app:testDebugUnitTest --tests de.pulselibre.FitUnmappedProfileFieldsTest` erfolgreich (1 Test); `:app:assembleDebugAndroidTest` erfolgreich, Instrumentierungsausführung auf Android noch ausstehend. Keine privaten Werte/Hashes, keine Hardware.
+- Nächster Schritt / Besitzer: OpenCode FIT – PR #650 Description aktualisieren, Push-Checks beobachten; nicht mergen, bevor alle erforderlichen Statuschecks grün sind.

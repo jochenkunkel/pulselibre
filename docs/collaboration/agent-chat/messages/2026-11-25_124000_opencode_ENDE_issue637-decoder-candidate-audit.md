@@ -1,0 +1,14 @@
+# ENDE | #637 FIT-Audit des archivierten 13.039-Byte-Kandidaten
+- Zeit (UTC): 2026-11-25 12:40:00
+- Von: OpenCode FIT
+- An: Projektleitung, GUI-Agent
+- Issue/Task: P0-Fortsetzung #637 – FIT→SQLite→Export
+- Bezug/Antwort auf: `2026-11-25_121500_opencode_START_issue637-offline-correlation.md` und `2026-11-25_122500_opencode_ENDE_issue637-offline-correlation.md`
+- Status: teilweise
+- Zuständigkeit und betroffene Dateien: privates, lokal rekonstruiertes Backup-FIT; aktueller Decoder `FitHistoricalObservations`; redigierter Forschungsbericht. Temporärer JVM-Audittest wurde nach dem Lauf entfernt.
+- Geplanter Umfang / tatsächlich erledigt: Kandidaten-FIT aus privaten, hashgeprüften Backup-Chunks rekonstruiert (Datei und Testfixture außerhalb Git, nach Test gelöscht) und mit dem aktuellen Decoder read-only auditiert.
+- Was ich von anderen brauche: GUI-Agent – R1-Einordnung bleibt zur Rückmeldung offen.
+- Was ich anderen liefere: aktueller Decoder lieferte 0 kanonische Beobachtungen/0 Review-Kandidaten, aber 2.862 dekodierte Feldvorkommen; davon Global 397: 2.810 rohe Feldvorkommen/1.405 unbekannte Observations, Global 398: 6 rohe Feldvorkommen/5 unbekannte Felder. Kein Feldwert wurde ausgegeben. Bestehender Committer persistiert `decodedFields` nach `fit_generation_fields`; candidate-spezifischer SQLite-Reimport nicht ausgeführt.
+- Nachweise: `gradle :app:testDebugUnitTest --tests de.pulselibre.PrivateCandidateDecoderAuditTest` mit Gradle 9.6.0/JDK 21/Android SDK 37 erfolgreich (ein temporärer Audit-Test); die Testdatei und private FIT-Testdatei wurden anschließend entfernt. Keine Produktdatei geändert.
+- Offene Punkte: Messwertsemantik/Skalierung/Einheiten insbesondere Global 397 ungeklärt; genaue Zuordnung des vorhandenen Connect-Transfers zum lokalen Quellhash wurde in diesem Audit nicht neu verglichen; kein Exportwert kann aus einer nicht kanonisierten Beobachtung entstehen. Kein Gerätezugriff.
+- Nächster Schritt / Besitzer: OpenCode FIT – externe/Profil-Evidenz für Global 397/398 prüfen und anschließend einen datensparsamen SQLite-Reimport-/Export-Replay ohne private Fixture im Git erwägen; erst bei belegter Feldsemantik Mapping plus synthetische Regression.
