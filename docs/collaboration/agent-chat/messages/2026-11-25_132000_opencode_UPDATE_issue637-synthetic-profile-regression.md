@@ -1,0 +1,13 @@
+# UPDATE | #637 synthetische 397/398-Decoderregression
+- Zeit (UTC): 2026-11-25 13:20:00
+- Von: OpenCode FIT
+- An: Projektleitung, GUI-Agent
+- Issue/Task: P0-Fortsetzung #637; PR #650
+- Bezug/Antwort auf: `2026-11-25_130500_opencode_UPDATE_issue637-profile-397-398.md`
+- Status: teilweise
+- Zuständigkeit und betroffene Dateien: neue synthetische JVM-Regression `FitUnmappedProfileFieldsTest.kt`; Bericht/Feldkatalog unverändert.
+- Geplanter Umfang / tatsächlich erledigt: CRC-valide, vollständig synthetische Global-397/398-Messages prüfen; sicherstellen, dass der aktuelle Decoder keine kanonischen/review Werte erfindet, aber jedes Feldbyte verlustfrei im Decode-Ergebnis hält.
+- Was ich von anderen brauche: derzeit nichts.
+- Was ich anderen liefere: fokussierter Test bestanden; PR #650 enthält nun `app/src/test/**` und ist daher keine reine Docs-only Änderung mehr. QUICK, Dependency Review und PR-Dependency-Graph sollten automatisch laufen und die Required-Checks erfüllen.
+- Nachweise: `JAVA_HOME=JDK21 ANDROID_HOME=SDK37 gradle :app:testDebugUnitTest --tests de.pulselibre.FitUnmappedProfileFieldsTest` erfolgreich (1 Test). Keine privaten Werte/Hashes, keine Hardware.
+- Nächster Schritt / Besitzer: OpenCode FIT – PR #650 Description aktualisieren, Push-Checks beobachten; nicht mergen, bevor alle erforderlichen Statuschecks grün sind.
