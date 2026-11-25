@@ -20,7 +20,9 @@ internal object ScienceFitSeriesAdapter {
         metric: Metric,
         observations: List<HistoricalObservation>,
         rangeStartMs: Long,
-        rangeEndExclusiveMs: Long
+        rangeEndExclusiveMs: Long,
+        /** Only values of this FIT message kind (normal all-day history or activity); null = all kinds. */
+        kind: BandRecordKind? = null
     ): SeriesData {
         require(rangeStartMs >= 0 && rangeEndExclusiveMs > rangeStartMs)
 
@@ -29,6 +31,7 @@ internal object ScienceFitSeriesAdapter {
                 observation.metric == metric.key &&
                     observation.unit == metric.unit &&
                     observation.provenance?.quality == FitHistoricalObservations.Quality.PROFILE_VALID.name &&
+                    (kind == null || BandRecordKind.of(observation.provenance.globalMessageNumber) == kind) &&
                     observation.provenance.timestampOrigin in setOf(
                         FitHistoricalObservations.TimestampOrigin.DIRECT.name,
                         FitHistoricalObservations.TimestampOrigin.RECONSTRUCTED_TS16.name
@@ -79,11 +82,22 @@ internal object ScienceFitSeriesAdapter {
         metric: Metric,
         rangeStartMs: Long,
         rangeEndExclusiveMs: Long,
+        pageSize: Int = 5_000,
+        kind: BandRecordKind? = null
+    ): SeriesData = verifiedSeries(metric, readVerifiedObservations(repository, metric, rangeStartMs, rangeEndExclusiveMs, pageSize),
+        rangeStartMs, rangeEndExclusiveMs, kind)
+
+    /** All stored observations of [metric] in the range (every page), for several projections from one read. */
+    fun readVerifiedObservations(
+        repository: HistoricalObservationRepository,
+        metric: Metric,
+        rangeStartMs: Long,
+        rangeEndExclusiveMs: Long,
         pageSize: Int = 5_000
-    ): SeriesData {
+    ): List<HistoricalObservation> {
         require(rangeStartMs >= 0 && rangeEndExclusiveMs > rangeStartMs)
         require(pageSize in 1..5_000)
-        val observations = readAllPages { cursor ->
+        return readAllPages { cursor ->
             repository.read(
                 HistoricalObservationQuery(
                     startInclusive = Instant.ofEpochMilli(rangeStartMs),
@@ -94,7 +108,6 @@ internal object ScienceFitSeriesAdapter {
                 )
             )
         }
-        return verifiedSeries(metric, observations, rangeStartMs, rangeEndExclusiveMs)
     }
 
     internal fun readAllPages(
