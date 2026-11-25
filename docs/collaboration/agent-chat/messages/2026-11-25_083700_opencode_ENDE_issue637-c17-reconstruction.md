@@ -1,0 +1,13 @@
+# ENDE | #637 c17-Rekonstruktion (teilweise)
+- Zeit (UTC): 2026-11-25 08:37:00
+- Von: OpenCode FIT
+- An: Projektleitung, GUI-Agent
+- Issue/Task: #637 / normale historische Messdaten
+- Bezug/Antwort auf: `2026-11-25_081000_opencode_START_issue637-c17-reconstruction.md`
+- Status: teilweise
+- Zuständigkeit und betroffene Dateien: Offline-Auswertung bestehender privater BTSnoop-/Vorher-Backup-Daten; `docs/protocol/research/CIRQA_CONNECT_NORMAL_HISTORY_COMPARISON_2026-11-25.md`; keine Produkt-/Transportänderung.
+- Geplanter Umfang / tatsächlich erledigt: c17-ML-Handles stark über zwei Verbindungen desselben Peers zugeordnet. 29 ML-Registrierungsantworten vollständig, alle Status 0. Einen eingehenden MLR-zlib-Transfer bis EOF rekonstruiert: 4.012 → 12.981 Bytes, gültige FIT-Header- und Datei-CRC. Die 340 Record-Zeitstempel stimmen exakt mit dem bekannten Aktivitätsfenster überein; der FIT-Inhalt ist bytegleich mit einer bereits vor dem Lauf archivierten und kanonisch registrierten Quelle. Im Vorher-SQLite-Backup sind dieser Quelle 680 Beobachtungen/Provenienzzeilen zugeordnet (340 Herzfrequenz, 340 Distanz). Das belegt einen bereits bekannten Aktivitätsdatenpfad durch Transfer/Archiv/SQLite, nicht normale Tageshistorie oder neue Daten.
+- Was ich von anderen brauche: nichts.
+- Was ich anderen liefere: aktualisierter Vergleichsbericht mit Grenzen; keine Rohpayloads, Hashes oder Gerätekennungen.
+- Nachweise: private Capture-/Backup-Auswertung im Arbeitsspeicher; FIT-/zlib-Integritätsprüfung und bytegenauer Vergleich erfolgreich. Keine automatisierten Tests ausgeführt (Dokumentations-/Offline-Aufgabe).
+- Nächster Schritt / Besitzer: weiterer #637-Offline-Task – c17 FileAccess-Request-/ItemList-Korrelation und kausale Untersuchung der PulsLibre-c16-Folgeantworten. Kein Root Cause der normalen Historienlücke bestätigt, kein Fix gerechtfertigt, kein Hardwarelauf.

@@ -1,0 +1,13 @@
+# START – #637 Garmin-Connect-Historienvergleich
+- Zeit (UTC): 2026-11-25 07:53:00
+- Von: OpenCode FIT
+- An: Projektleitung, GUI-Agent
+- Issue/Task: #637 / P0 normale historische Messdaten
+- Bezug/Antwort auf: `2026-11-25_000100_opencode_UPDATE_issue637-zlib-fix.md`
+- Status: aktiv
+- Zuständigkeit und betroffene Dateien: Offline-Auswertung bereits gesicherter privater Connect-/CIRQA-Spuren; ItemList-/Sync-Parser und Dokumentation `docs/protocol/research/`; keine Geräteaktion.
+- Geplanter Umfang / tatsächlich erledigt: Vollständige beobachtbare Connect-Sequenz aus vorhandenem Mitschnitt rekonstruieren; mit PulsLibre-Code und S10-Lauf vergleichen; die vier Datenkategorien (Action, normale historische Messwerte, Live, Metadaten/Dateilisten) trennen; vorhandene `nextTransaction`-Evidenz feldweise prüfen.
+- Was ich von anderen brauche: GUI-Agent – bitte derzeit keine parallelen Änderungen an den gemeinsamen #637 FIT-/Protokollpfaden; Projektleitung – nichts.
+- Was ich anderen liefere: datensparsame technische Vergleichsanalyse mit Evidenzstufen, offenen Grenzen und ggf. Offline-Regressionen; keine privaten Rohdaten.
+- Nachweise: vorhandene HCI-Replays und private Bugreports; Auswertung noch offen.
+- Nächster Schritt / Besitzer: OpenCode setzt Offline-Auswertung fort; keine erneute Synchronisation, solange die bestehende Evidenz ausreicht.

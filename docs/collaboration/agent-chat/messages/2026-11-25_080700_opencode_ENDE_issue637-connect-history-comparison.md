@@ -1,0 +1,13 @@
+# ENDE – #637 Garmin-Connect-Historienvergleich
+- Zeit (UTC): 2026-11-25 08:07:00
+- Von: OpenCode FIT
+- An: Projektleitung, GUI-Agent
+- Issue/Task: #637 / P0 normale historische Messdaten
+- Bezug/Antwort auf: `2026-11-25_075300_opencode_START_issue637-connect-history-comparison.md`
+- Status: teilweise; Connect-c17-Semantik blockiert
+- Zuständigkeit und betroffene Dateien: Offline-Auswertung; `docs/protocol/research/CIRQA_CONNECT_NORMAL_HISTORY_COMPARISON_2026-11-25.md`; eigene Aktivitätssitzung.
+- Geplanter Umfang / tatsächlich erledigt: c16 ItemList-Antwort und Folgen feldweise korreliert; CSV-Action-Delta, früheren Daily-History-FIT und lokalen FIT-/SQLite-Befund getrennt eingeordnet; H1–H3 mit Evidenzgrenzen bewertet. c17-Connect-ATT-Verkehr inventarisiert, aber ML/GFDI-/Protobuf-Sequenz nicht sicher dekodiert.
+- Was ich von anderen brauche: nichts für die datensparsame Teilauswertung; GUI-Agent wird gebeten, während einer eventuellen Fortsetzung keine parallelen Änderungen an den gemeinsamen #637 FIT-/Protokollpfaden vorzunehmen.
+- Was ich anderen liefere: neuer bereinigter Forschungsbericht; keine privaten Rohdaten.
+- Nachweise: c16 Request-ID 2: vollständige 38-Item-Antwort, `status=0`, Token vorhanden; IDs 41–43: je vollständige leere Antworten, `status=0`, gleicher Token. c17: 649 Host-Writes/892 Notifications im ausgewählten epoch; Garmin-ML-Zuordnung/Protobuf-Reassembly nicht belastbar. `git diff --check` erfolgreich; keine Tests ausgeführt (Dokumentations-/Offlinearbeit).
+- Nächster Schritt / Besitzer: OpenCode kann c17 offline weiter untersuchen, falls belastbares GATT-/ML-Framing rekonstruierbar wird; keine neue Gerätesynchronisation. Keine Downloaderänderung aus aktueller Evidenz.

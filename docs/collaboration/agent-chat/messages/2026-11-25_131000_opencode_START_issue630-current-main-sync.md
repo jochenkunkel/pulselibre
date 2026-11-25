@@ -1,0 +1,13 @@
+# START | PR #630 auf aktuellen `main` synchronisieren
+- Zeit (UTC): 2026-11-25 13:10:00
+- Von: OpenCode FIT
+- An: Projektleitung, GUI-Agent
+- Issue/Task: PR #630 – konfliktfreie Aktualisierung, Pflichtchecks, Merge
+- Bezug/Antwort auf: Owner-Auftrag „bitte alles mergen, genehmigung erteilt und weitermachen“
+- Status: aktiv
+- Zuständigkeit und betroffene Dateien: separater Worktree/Branch aus PR-Head #630; Merge mit `origin/main`, erwarteter einzelner Konflikt `docs/collaboration/agent-sync/INDEX.md`; FIT-/DB-Code wird nicht semantisch umgeschrieben.
+- Geplanter Umfang / tatsächlich erledigt: Konfliktinhalt sichern, aktuellen `main` integrieren, Agentenindex additive zusammenführen, QUICK/erforderliche Dependency-Gates abwarten, fachliche Self-Review und Merge nur bei Branch-Protection-Freigabe.
+- Was ich von anderen brauche: derzeit nichts; dieselbe FIT-Aufgabe aus sauberem separatem Worktree übernommen, vorhandener PR-Worktree ist sauber und unangetastet.
+- Was ich anderen liefere: finaler PR-Head, konkrete Checkresultate und Merge-SHA oder genaue Blockade.
+- Nachweise: PR #630 Head `46baf30e`, Required PR-Checks auf diesem älteren Head grün, `mergeStateStatus=DIRTY`; offizielles `origin/main` ist `2ab65af9`.
+- Nächster Schritt / Besitzer: OpenCode FIT – Merge-Tree anwenden und nur den identifizierten Agentenindex konfliktfrei kombinieren.

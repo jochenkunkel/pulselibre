@@ -1,0 +1,15 @@
+# OpenCode – #637 c17-Connect-Rekonstruktion
+- Agent/Umgebung: OpenCode FIT, Linux-Worktree
+- Beginn: 2026-11-25 08:10 UTC
+- Letzte Aktualisierung: 2026-11-25 08:37 UTC
+- Status: abgeschlossen
+- Rolle/Zuständigkeit: FIT-/GFDI-Protokoll, CIRQA-Sync und Offline-Auswertung
+- Aktueller Auftrag: c17 aus bereits vorhandenen privaten Connect-Spuren besser rekonstruieren; nach belegtem Codefehler einen Offline-Fix samt fokussierten Regressionstests erstellen.
+- Jetzt in Bearbeitung: #637 – ATT/GATT-Handle- und ML-Transportzuordnung, keine neue Gerätesynchronisation.
+- Zeitnah geplant: Nachweis der Datenkette Originaldatei → Decoder → SQLite → Export, soweit vorhandene private Artefakte reichen.
+- Betroffene Bereiche/Dateien: `tools/garmin_hci_replay.py`, `app/src/main/java/de/pulselibre/GarminMlOffline.kt`, `CirqaMlHandshakeProbe.kt`, Parser-/Sync-Tests und `docs/protocol/research/`.
+- Branch/Worktree: `issue637-normal-history-followup-20261125`, aktueller Worktree; Basis `bf978fae` (PR #643 gemergter Head).
+- Abstimmungsbedarf: GUI-Agent – keine parallelen Änderungen an gemeinsamem #637 FIT-/Protokollpfad während der Analyse.
+- Agent-sync-Nachrichten: `docs/collaboration/agent-chat/messages/2026-11-25_081000_opencode_START_issue637-c17-reconstruction.md`
+- Nachweise: c17 ATT-Handles `0x0012`/`0x0015` durch zwei Verbindungen desselben Peers stark auf ML-RX `6a4e2810`/TX `6a4e2820` abgeleitet; 29 vollständige ML-Registrierungsantworten, alle Status 0. Ein eingehender MLR-Transfer ergibt einen vollständigen 12.981-B-FIT-Stream mit gültiger FIT-Header-/Datei-CRC, exakt bytegleich zu einer bereits vor dem Lauf archivierten und kanonisch registrierten Datei; im Vorher-SQLite-Backup sind 680 Beobachtungen/Provenienzzeilen (340 HR, 340 Distanz) derselben Quelle zugeordnet. Die 340 Record-Zeitstempel entsprechen exakt dem bekannten Aktivitätsfenster. Report um diesen End-to-End-Aktivitätsbefund ergänzt.
+- Nächster Schritt: offen bleibt die c17 FileAccess-Request-ID/ItemList-Zuordnung sowie der kausale Grund für PulsLibre-c16s vollständige leere Folgeantworten. Weiterarbeit braucht einen neuen Task; keine Geräteaktion und kein Produktfix aus diesem Befund.
