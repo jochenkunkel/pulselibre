@@ -24,6 +24,24 @@ internal object DashboardWorkerWatch {
         Thread(r, MAINTENANCE_THREAD_NAME).apply { priority = Thread.MIN_PRIORITY }
     }
 
+    private val maintenance by lazy { newMaintenanceWorker() }
+    private val maintenanceBusy = java.util.concurrent.atomic.AtomicBoolean(false)
+
+    /**
+     * Runs [task] on the process-wide maintenance thread unless one is already running. Every new MainActivity
+     * instance (relaunch, notification tap) used to start its own full FIT re-indexing; on the S10 three ran in parallel
+     * for minutes. Returns false when the request was skipped.
+     */
+    fun runMaintenanceOnce(task: () -> Unit): Boolean {
+        if (!maintenanceBusy.compareAndSet(false, true)) return false
+        try {
+            maintenance.execute { try { task() } finally { maintenanceBusy.set(false) } }
+        } catch (e: java.util.concurrent.RejectedExecutionException) {
+            maintenanceBusy.set(false); return false
+        }
+        return true
+    }
+
     /** Stack of every app worker thread, for [recordStall]; pure so it can be tested. */
     fun describe(threads: Map<Thread, Array<StackTraceElement>>): String = threads.entries
         .filter { it.key.name == THREAD_NAME || it.key.name == MAINTENANCE_THREAD_NAME }
