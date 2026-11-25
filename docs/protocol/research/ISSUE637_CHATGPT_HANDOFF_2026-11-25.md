@@ -133,6 +133,71 @@ and whether the failed source was retained in the private pending-original
 journal. The post-run backup inventory is aggregate-only and does not identify
 the particular source. Do not infer an item identity from private hashes.
 
+### Additional private-log correlation (2026-11-25, read-only)
+
+The protected run-3 Logcat was re-correlated against file modification times
+and the terminal report, without copying raw lines or identifiers here:
+
+- The repeated `PRAGMA journal_mode` / `PRAGMA cache_size` failures are logged
+  under the app's process ID, on four distinct app threads; the final open-path
+  exception occurs at device-local 20:22:08 (19:22:08 UTC), shortly before the
+  terminal UI snapshot at device-local 20:22:12. The captured failures are
+  logged in the app process; they do not demonstrate a separate app process,
+  but also do not identify which operation (or connection) held the conflicting
+  lock.
+- Earlier retry clusters occur at approximately device-local 20:20:26–20:20:37
+  and 20:21:58–20:22:08 (UTC 19:20–19:22). Repeated open/configuration failures
+  on multiple threads are consistent with concurrent helper/database activity,
+  but thread IDs and timestamps alone do not prove the specific
+  archive/import/backup operation or the owner of the SQLite lock.
+- The captured release stack reaches Android's SQLite open/configuration path;
+  app frames are R8-obfuscated and the matching mapping file is unavailable.
+  No source-level caller or per-file identity can therefore be assigned to
+  the terminal failure. The UI's broad `FIT_IMPORT_COMMIT` catch still spans
+  helper open, verified import/commit, and helper close.
+
+This narrows—but does not establish—the process-local contention hypothesis.
+It does **not** justify a product synchronization change yet. A next offline
+test should deterministically exercise Android `SQLiteOpenHelper` opens while
+a separately held connection/transaction is active, record thread-safe stage
+boundaries (open, source verification, transaction, close), and assert that
+retry is bounded and does not duplicate FIT writes. First verify whether the
+observed Android open/configuration failure is reproducible on the emulator;
+do not assume the Python SQLite experiment models Android's WAL configuration.
+
+### Follow-up: API-35 emulator reproduction and bounded recovery
+
+On 2026-11-25, a focused instrumentation probe on the API-35 emulator held a
+write transaction on one `CirqaDatabase` connection while opening fresh
+`CirqaDatabase` helpers against the same synthetic database. Fresh helper opens
+reproduced `SQLiteDatabaseLockedException`; aggregate emulator Logcat diagnostics
+included `SQLITE_BUSY` at `PRAGMA journal_mode`. This demonstrates that the
+reported Android open/configuration failure is reproducible under controlled
+same-process SQLite contention. It does not identify the lock holder or prove
+that this exact interleaving occurred during S10 run #3.
+
+The probe then applied the existing bounded SQLite busy retry to the open/read
+operation. Once the test released the synthetic writer, the retry succeeded;
+the focused API-35 instrumentation test passed. No band, S10, or BLE access was
+involved.
+
+A minimal defensive change now wraps the FIT helper-open + verified import
+boundary in one `runOnce` retry (250 ms delay, retrying only
+`SQLiteDatabaseLockedException`). Retrying that whole boundary is safe because
+each FIT source import is transactional and idempotent; unrelated exceptions
+are not retried. The helper is explicitly opened before the import call so
+reporting distinguishes `SQLITE_OPEN` from `FIT_IMPORT_COMMIT`. Persistent
+contention still fails visibly after the single retry; existing sync/run
+budgets are unchanged. This is a bounded mitigation, not proof of the exact
+run-3 source or lock owner.
+
+Focused validation on API 35 passed:
+
+- `CirqaSqliteBusyRetryTest` and `CirqaSyncFileCompletionTest`.
+- `CirqaSqliteOpenContentionTest` (synthetic helper-open contention/recovery).
+- `CirqaFitBackfillInstrumentedTest` (2/2 existing transactional/idempotence
+  cases).
+
 ## Existing network / reverse-engineering evidence
 
 - Local comparison report:
@@ -187,14 +252,15 @@ the available comparison materials.
 
 ## Next technical steps proposed
 
-1. Correlate the private log timestamps with archive/import/backup activity;
-   inspect source-level call stacks on the exact `origin/main` revision. The
-   BLE completion path is serial, but other DB users remain to be checked.
-2. Add a deterministic concurrency regression for concurrent archive/import
-   helper opens and a failure-stage classification test.
-3. Implement the smallest serialization/retry correction without changing BLE
-   commands, timeout, download budgets, FIT mapping, or backup format.
-4. Run focused JVM/SQLite tests and required QUICK/dependency gates. No FULL-CI
-   or device test is a merge gate under the current owner policy.
+1. Preserve the new log correlation as evidence, while keeping the lock owner
+   and failing FIT item explicitly unknown.
+2. Add an Android instrumentation/emulator reproduction for concurrent helper
+   open/configuration and an explicit failure-stage classification test; a
+   JVM-injected exception alone is insufficient.
+3. Only if reproduced, implement the smallest serialization/retry correction
+   without changing BLE commands, timeout, download budgets, FIT mapping, or
+   backup format.
+4. Run focused tests and required QUICK/dependency gates. No FULL-CI or device
+   test is a merge gate under the current owner policy.
 5. Only after offline evidence and a suitable green build, decide whether a
    further controlled S10 test is useful; do not start one automatically.
