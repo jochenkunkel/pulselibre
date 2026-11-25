@@ -3439,22 +3439,29 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         val fitImportTimingKey = "item:${syncCurrentLocalItemId ?: 0}:fit-import"
         val sqliteTimingKey = "item:${syncCurrentLocalItemId ?: 0}:sqlite-commit"
         syncTiming.start(fitImportTimingKey, CirqaSyncTiming.Stage.FIT_IMPORT)
+        var failurePhase = CirqaSyncFileCompletion.FailurePhase.SQLITE_OPEN
         val imported = try {
-            CirqaDatabase(context).use { store ->
-                CirqaFitBackfill.importDecodedVerifiedFile(
-                    saved.file,
-                    fitData,
-                    decoded,
-                    store,
-                    onBeforeSqliteCommit = {
-                        syncTiming.stop(fitImportTimingKey, CirqaSyncTiming.Stage.FIT_IMPORT)
-                        syncTiming.start(sqliteTimingKey, CirqaSyncTiming.Stage.SQLITE_COMMIT)
-                    },
-                    onAfterSqliteCommit = {
-                        syncTiming.stop(sqliteTimingKey, CirqaSyncTiming.Stage.SQLITE_COMMIT)
-                    }
-                )
-                    ?: error("verified FIT became invalid before SQLite import")
+            CirqaSqliteBusyRetry.runOnce {
+                failurePhase = CirqaSyncFileCompletion.FailurePhase.SQLITE_OPEN
+                CirqaDatabase(context).use { store ->
+                    // Force helper open before entering the broad import/commit boundary. The
+                    // open can itself fail while Android applies WAL mode to a fresh connection.
+                    store.writableDatabase
+                    failurePhase = CirqaSyncFileCompletion.FailurePhase.FIT_IMPORT_COMMIT
+                    CirqaFitBackfill.importDecodedVerifiedFile(
+                        saved.file,
+                        fitData,
+                        decoded,
+                        store,
+                        onBeforeSqliteCommit = {
+                            syncTiming.stop(fitImportTimingKey, CirqaSyncTiming.Stage.FIT_IMPORT)
+                            syncTiming.start(sqliteTimingKey, CirqaSyncTiming.Stage.SQLITE_COMMIT)
+                        },
+                        onAfterSqliteCommit = {
+                            syncTiming.stop(sqliteTimingKey, CirqaSyncTiming.Stage.SQLITE_COMMIT)
+                        }
+                    ) ?: error("verified FIT became invalid before SQLite import")
+                }
             }
         } catch (e: Exception) {
             return CirqaSyncFileCompletion.Result(
@@ -3469,7 +3476,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     "sha256=$sha;privateFit=${saved.outcome};observations=${decoded.observations.size};" +
                     "importable=${importable.size};sqlite=failed:${e.javaClass.simpleName}",
                 failure = CirqaSyncFileCompletion.FailureDiagnostic(
-                    CirqaSyncFileCompletion.FailurePhase.FIT_IMPORT_COMMIT,
+                    failurePhase,
                     e.javaClass.simpleName
                 )
             )

@@ -34,4 +34,21 @@ class CirqaSqliteBusyRetryTest {
             assertEquals(1, attempts)
         }
     }
+
+    @Test fun openRetryUsesOneShortDelayAfterNativeBusyWait() {
+        var attempts = 0
+        val pauses = mutableListOf<Long>()
+        val result = CirqaSqliteBusyRetry.runOnce(
+            pause = pauses::add,
+            retryable = { it is BusyException }
+        ) {
+            attempts++
+            if (attempts == 1) throw BusyException()
+            "opened"
+        }
+
+        assertEquals("opened", result)
+        assertEquals(2, attempts)
+        assertEquals(listOf(250L), pauses)
+    }
 }

@@ -195,6 +195,22 @@ class CirqaSyncFileCompletionTest {
         assertFalse(counts.redactedSummary().contains("exception message"))
     }
 
+    @Test fun databaseOpenFailureHasItsOwnRedactedPhase() {
+        val counts = CirqaSyncFileCompletion.StageCounts()
+        counts.record(
+            fit(sqlite = CirqaSyncFileCompletion.Stage.FAILED).copy(
+                failure = CirqaSyncFileCompletion.FailureDiagnostic(
+                    CirqaSyncFileCompletion.FailurePhase.SQLITE_OPEN,
+                    "SQLiteDatabaseLockedException"
+                )
+            )
+        )
+
+        assertTrue(counts.redactedSummary().contains(
+            "failureCauses=SQLITE_OPEN/SQLiteDatabaseLockedException:1"
+        ))
+    }
+
     @Test fun transferFailureCannotBeHiddenByDownstreamFlags() {
         val result = fit(transfer = CirqaSyncFileCompletion.Stage.FAILED)
         assertEquals(CirqaSyncFileCompletion.Status.FAILED, result.status)

@@ -1,8 +1,8 @@
 # OpenCode – #637 P0 Historische CIRQA-Messdaten
 - Agent/Umgebung: OpenCode FIT, Linux-Worktree
 - Beginn: 2026-11-25 08:51 UTC
-- Letzte Aktualisierung: 2026-11-25 21:30 UTC
-- Status: aktiv – SQLite-Open-Reproduktion belegt, eng begrenzter Retry implementiert/testet
+- Letzte Aktualisierung: 2026-11-25 21:35 UTC
+- Status: teilweise – SQLite-Open-Reproduktion und begrenzte Recovery validiert; PR/CI offen
 - Rolle/Zuständigkeit: FIT/GFDI/MLR, Protokoll, Datenbank-/Importpfad, Offline-FIT-Analyse
 - Aktueller Auftrag: Eigentümerauftrag zur eigenständigen P0-Fortsetzung: historische Messdaten zuverlässig herunterladen, dekodieren, speichern und exportieren oder eine konkrete technische Blockade belegen.
 - Jetzt in Bearbeitung: #637 Android-API-35-Emulatorprobe reproduzierte `SQLiteDatabaseLockedException` beim Öffnen frischer `CirqaDatabase`-Helper während einer synthetischen Schreibtransaktion; Emulator-Logcat zeigte `PRAGMA journal_mode`. Einmaliger Busy-Retry nach Lock-Freigabe besteht; FIT-Importpfad öffnet nun vorab und hat einen begrenzten Retry plus getrennte `SQLITE_OPEN`-Fehlerphase. Run 3 abgeschlossen, kein weiterer Gerätezugriff.
@@ -13,5 +13,6 @@
 - Agent-sync-Nachrichten: `docs/collaboration/agent-chat/messages/2026-11-25_085100_opencode_START_issue637-p0-history-followthrough.md`; `docs/collaboration/agent-chat/messages/2026-11-25_120500_opencode_ANTWORT_gui-fit-restpunkte.md`; `docs/collaboration/agent-chat/messages/2026-11-25_121000_opencode_ENDE_issue637-p0-followthrough.md`; `docs/collaboration/agent-chat/messages/2026-11-25_121500_opencode_START_issue637-offline-correlation.md`; `docs/collaboration/agent-chat/messages/2026-11-25_122500_opencode_ENDE_issue637-offline-correlation.md`; `docs/collaboration/agent-chat/messages/2026-11-25_124000_opencode_ENDE_issue637-decoder-candidate-audit.md`; `docs/collaboration/agent-chat/messages/2026-11-25_124500_opencode_UPDATE_issue637-docs-pr650.md`; `docs/collaboration/agent-chat/messages/2026-11-25_130500_opencode_UPDATE_issue637-profile-397-398.md`; `docs/collaboration/agent-chat/messages/2026-11-25_132000_opencode_UPDATE_issue637-synthetic-profile-regression.md`
 - Nachweise: S10-Re-Run am 2026-11-25: 29 gelistet/ausgewählt, 29 Pulls eingereiht, 28 transferiert/verifiziert/privat gespeichert, 25 dekodiert, 24 SQLite-committed, 18 importiert, 6 ohne importierbare Daten, ein `FIT_IMPORT_COMMIT/SQLiteDatabaseLockedException`; `runDrained=false`, `session-time-limit`, `device-history-unverified`. Backup-Diff +210 archivierte Originale/Referenzen; FIT-Originale und kanonische Beobachtungen unverändert; Backup-Integrität sauber. Redigierte Evidenz im S10-Testplan und ChatGPT-Handoff. Keine Rohdaten veröffentlicht.
 - Nachweise: `docs/protocol/research/ISSUE637_CHATGPT_HANDOFF_2026-11-25.md`; source-read-only Vergleich mit aktuellem `origin/main`; UPDATE/ENDE im Agenten-Chat.
-- Nächster Schritt: private Logkorrelation + Emulator-Reproduktion redigiert dokumentieren; focused tests/QUICK/Dependency-Gates auf aktuellem main, keine S10-Wiederholung ohne gesonderte Offline-Begründung.
-- Testnachweise (21:29 UTC): gezielte Unit-Tests `CirqaSqliteBusyRetryTest`/`CirqaSyncFileCompletionTest` und Emulator-`CirqaSqliteOpenContentionTest` liefen im kombinierten Gradle-Aufruf; separater `CirqaFitBackfillInstrumentedTest`: 2/2 bestanden. Kein S10-ADB-Zugriff.
+- Nächster Schritt: Self-review sowie QUICK/Dependency-Gates und PR nach regulärem Branch-Protection-Weg; keine S10-Wiederholung ohne gesonderte Offline-Begründung.
+- Testnachweise (21:34 UTC): gezielte Unit-Tests `CirqaSqliteBusyRetryTest`/`CirqaSyncFileCompletionTest` und Emulator-`CirqaSqliteOpenContentionTest` bestanden; separater `CirqaFitBackfillInstrumentedTest`: 2/2 bestanden. Kein S10-ADB-Zugriff.
+- ENDE-Nachricht: `docs/collaboration/agent-chat/messages/2026-11-25_213500_opencode_ENDE_issue637-sqlite-open-repro.md`.
