@@ -19,7 +19,7 @@ class CirqaSqliteBusyRetryTest {
         }
         assertEquals("archived", result)
         assertEquals(3, attempts)
-        assertEquals(listOf(100L, 250L), pauses)
+        assertEquals(listOf(50L, 100L), pauses)
     }
 
     @Test fun doesNotRetryUnrelatedFailures() {

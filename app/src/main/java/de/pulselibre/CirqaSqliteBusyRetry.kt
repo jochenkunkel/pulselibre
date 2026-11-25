@@ -4,7 +4,7 @@ import android.database.sqlite.SQLiteDatabaseLockedException
 
 /** Small bounded retry for SQLITE_BUSY during database open/short archive transactions. */
 internal object CirqaSqliteBusyRetry {
-    private val delaysMillis = longArrayOf(100, 250, 500, 1_000)
+    private val delaysMillis = longArrayOf(50, 100, 250, 500)
 
     fun <T> run(
         pause: (Long) -> Unit = { Thread.sleep(it) },
