@@ -86,8 +86,9 @@ class ExportActivity : AppCompatActivity() {
                     runOnUiThread {
                         if (isFinishing || isDestroyed) plan.close() else confirmRestore(plan)
                     }
-                } catch (_: Exception) {
-                    runOnUiThread { databaseFeedback.text = getString(R.string.ex_backup_invalid) }
+                } catch (e: Exception) {
+                    val reason = BackupFailure.reason(e)
+                    runOnUiThread { databaseFeedback.text = getString(R.string.ex_backup_invalid) + "\n" + getString(R.string.ex_backup_reason, reason) }
                 }
             }
         }
