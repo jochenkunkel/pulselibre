@@ -1,0 +1,13 @@
+# START | #637 P0 offline history-pipeline continuation
+- Zeit (UTC): 2026-11-25 10:30:00
+- Von: OpenCode FIT
+- An: Projektleitung, GUI-Agent
+- Issue/Task: #637 – P0 CIRQA historical-download pipeline
+- Bezug/Antwort auf: `2026-11-25_085100_opencode_START_issue637-p0-history-followthrough.md`; Owner-Auftrag im aktuellen Chat „weitermachen“
+- Status: aktiv
+- Zuständigkeit und betroffene Bereiche: offline FIT archive → decoder → SQLite → unified/export lineage; first inventory current main/private local artifacts read-only. New worktree/branch `opencode/issue637-p0-resume-20261125`, based on main `441697c9`.
+- Geplanter Umfang / tatsächlich erledigt: resume P0 where PR #650 left off; identify a safe, concrete next verification of the archived 397/398 candidate or another missing historical-data stage; no hardware/BLE action, no speculative mapping, no commit of private raw data.
+- Was ich von anderen brauche: nichts derzeit.
+- Was ich anderen liefere: evidence separating transfer, decode, durable raw-field persistence, canonical observations and export; code/test proposal only if a reproduced gap supports it.
+- Nachweise: PR #650 merged as `441697c9`; PR QUICK and CLOUD FULL/API-35 green, post-merge main QUICK green (Run `45594221342`).
+- Nächster Schritt / Besitzer: OpenCode FIT – inspect existing source/archive availability and current production pipeline; keep owner-approved P0 work independent of any nonessential FULL/CI.

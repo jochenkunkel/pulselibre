@@ -1,0 +1,15 @@
+# OpenCode – #637 P0 Offline-Historienpipeline fortsetzen
+- Agent/Umgebung: OpenCode FIT, Linux-Worktree
+- Beginn: 2026-11-25 10:30 UTC
+- Letzte Aktualisierung: 2026-11-25 10:30 UTC
+- Status: aktiv
+- Rolle/Zuständigkeit: FIT/GFDI/MLR, Protokoll, Datenbank-/Importpfad, Offline-FIT-Analyse
+- Aktueller Auftrag: Nutzer „weitermachen“; historische CIRQA-Daten pipeline offline weiterverfolgen und einen nächsten evidenzgestützten Gap schließen oder belegen.
+- Jetzt in Bearbeitung: initialer Read-only-Review des abgeschlossenen #637/PR-#650-Stands; candidate-specific SQLite/export replay und andere Archiv-/Importlücken prüfen.
+- Zeitnah geplant: gezielte synthetic regression/code change nur bei bestätigtem Gap; keine Geräteaktion.
+- Betroffene Bereiche/Dateien: `FitHistoricalObservations`, `FitObservationCommitter`, `CirqaFitBackfill`, `CirqaDatabase`, FIT evidence docs/tests.
+- Branch/Worktree: `opencode/issue637-p0-resume-20261125`, `/tmp/opencode/issue637-p0-resume-20261125`, Basis `origin/main` `441697c9`.
+- Abstimmungsbedarf: GUI-Agent/Projektleitung – keine parallele #637 FIT/DB-Änderung bekannt; derzeit keine konkrete Bitte.
+- Agent-sync-Nachrichten: `docs/collaboration/agent-chat/messages/2026-11-25_103000_opencode_START_issue637-p0-resume.md`
+- Nachweise: PR #650 merged; PR QUICK, targeted FULL/API-35 and post-merge QUICK all green. No candidate-specific SQLite replay has been done.
+- Nächster Schritt: local private evidence inventory read-only, source integrity and import/backup paths; no raw values printed or committed.
