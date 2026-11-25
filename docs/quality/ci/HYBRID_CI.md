@@ -1,6 +1,6 @@
 # Hybride CI: LOCAL (Self-hosted Runner) und CLOUD (GitHub-hosted)
 
-Stand: 2026-11-20 · Workflow: `.github/workflows/android.yml` · Lokale CI: `tools/ci-local.sh`
+Stand: 2026-11-20; Gate-Strategie aktualisiert 25.11.2026 · Workflow: `.github/workflows/android.yml` · Lokale CI: `tools/ci-local.sh`
 
 PulsLibre kann jeden Android-CI-Lauf entweder auf dem eigenen Entwicklungsrechner
 (**LOCAL**, GitHub Actions Self-hosted Runner) oder auf einem GitHub-hosted Runner
@@ -11,6 +11,8 @@ gepflegte CI-Definition.
 > **Betriebsmeldung vom 20.11.2026, 18:10 CET:** Der Nutzer meldet, dass der CI-Runner auf **LOCAL umgestellt** wurde. Dies ist eine Bedienerangabe; Online-Status, tatsächlich verwendete Runner-Labels und erfolgreiche Jobs sind damit **noch nicht technisch bestätigt**. Der konkrete Prüfauftrag für CI-Agent, GUI-Agent und FIT/BLE-Agent steht in [Agentenübergabe LOCAL-Runner](../../collaboration/agent-sync/2026-11-20_1810_chatgpt-an-alle_local-runner-testauftrag.md). Der CI-Agent soll zuerst **LOCAL/QUICK**, anschließend **LOCAL/FULL** einschließlich API-35-Emulator ausführen und Run-IDs, Commit-SHAs, effektive Runnerauswahl, Ergebnisse und Signaturstatus hier ergänzen. **Keine Instrumentation auf dem S25.** Concurrency-Änderungen zu #321 vorher mit dem zuständigen Agenten abstimmen. Die nachfolgenden Abschnitte zu Freigabeschaltern/Installation beschreiben den ursprünglichen Soll- und Vorbereitungsstand, bis die Verifikation nachgetragen ist.
 
 > **Statusnachtrag 22.11.2026, 11:38 UTC (read-only):** GitHub meldet weiterhin Sichtbarkeit `public`, den Runner `smurl-pulselibre` als `offline` sowie `PULSELIBRE_LOCAL_RUNNER_ENABLED=false` und `PULSELIBRE_PR_ON_LOCAL_ENABLED=false`. Die effektive Umgebung ist daher aktuell **CLOUD**. Volle CLOUD/FULL-Läufe `45016725356` (main, `53e03a4`) und `45016104283` (PR #450, `8ed2964`) sind grün, jeweils inklusive API-35-Emulator; das Log weist `Umgebung: CLOUD | Runner: GitHub Actions 1000004740 | Umfang: FULL` aus. Die historischen LOCAL-QUICK-/LOCAL-FULL-Nachweise vom 20.11. bleiben im [Runner-Übergabepaket](../../archive/2026-11-24/ci/LOCAL_RUNNER_MIGRATION_PACK_2026-11-20.md) dokumentiert; ein neuer LOCAL-Erfolg wird damit nicht behauptet. #281 bleibt offen, bis LOCAL auf freigegebenem Runner erneut nachgewiesen ist. Keine Schalter-, Sichtbarkeits- oder Secret-Änderung. Antwort: [Sync 11:38](../../collaboration/agent-sync/2026-11-22_1138_ci-agent-an-alle_alt-offene-ci-nachrichten.md).
+
+**Verbindliche neue CI-Gates (Owner 25.11.2026):** PR und `main` verwenden QUICK. FULL läuft nachts um 02:17 UTC, vor Releases auf exakt dem Release-Commit und vor nachweislich hochriskanten Änderungen. FIT führt Self-Review und Merge ohne Zweitfreigabe nach grünen erforderlichen Checks aus. Historische Statusmeldungen unten bleiben als datierte Evidenz erhalten; ältere FULL-Standard-Aussagen sind überholt. Siehe [FAST/FULL-Policy](../../ci/FAST_FULL_POLICY.md).
 
 ## 1. Architektur
 
@@ -84,9 +86,10 @@ zeigt den **angeforderten** Wert; bei automatischen Läufen steht dort `AUTO`.
 
 | Auslöser | Angefordert | Umfang | Tatsächlich |
 | --- | --- | --- | --- |
-| Push auf `main` | LOCAL | FULL | LOCAL, sobald freigegeben – sonst CLOUD |
-| Pull Request | LOCAL | FULL | CLOUD, solange PRs nicht freigegeben sind; Forks immer CLOUD |
-| Manuell | Eingabe | Eingabe | Eingabe, LOCAL nur wenn freigegeben |
+| Push auf `main` | LOCAL | QUICK | LOCAL, sobald freigegeben – sonst CLOUD |
+| Pull Request | LOCAL | QUICK | CLOUD, solange PRs nicht freigegeben sind; Forks immer CLOUD |
+| Täglich 02:17 UTC | AUTO | FULL | CLOUD, sofern keine besondere Runner-Freigabe | 
+| Manuell | Eingabe | Eingabe (Standard FULL) | Eingabe, LOCAL nur wenn freigegeben |
 
 ## 3. Freigabe-Schalter (Repository-Variablen)
 
