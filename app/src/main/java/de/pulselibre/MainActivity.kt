@@ -150,7 +150,9 @@ class MainActivity : AppCompatActivity() {
         if (::adapter.isInitialized && ::status.isInitialized && !adapter.isEnabled) {
             status.text = getString(R.string.main_bt_off)
         }
-        maybeStartAutomaticHistoricalSync()
+        if (HistoricalSyncPolicy.AUTOMATIC_SYNC_ENABLED) {
+            maybeStartAutomaticHistoricalSync()
+        }
     }
     override fun onPause() {
         stopDashboardPolling()
