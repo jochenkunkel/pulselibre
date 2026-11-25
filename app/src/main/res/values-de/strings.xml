@@ -1035,4 +1035,12 @@
     <string name="hsp_failed">Synchronisation fehlgeschlagen</string>
     <string name="hsp_files">%1$d von %2$d Dateien</string>
     <string name="hsp_coverage_note">Die Historie des Bandes ist nicht als vollständig nachgewiesen: Ein beendeter Lauf heißt nicht, dass jede gespeicherte Messung übertragen wurde.</string>
+    <string name="wear_button_cd">Einstellungen öffnen. CIRQA-Armband: %1$s. Tragestatus: %2$s. Armband-Akku (nicht Telefon): %3$s. Langes Drücken zeigt Verbindungsdetails.</string>
+    <string name="wear_worn">getragen (Atemmessung am Handgelenk)</string>
+    <string name="wear_not_worn">nicht getragen (Armband meldet: nicht am Handgelenk)</string>
+    <string name="wear_offline">unbekannt, Armband nicht verbunden</string>
+    <string name="wear_unknown">unbekannt, kein aktuelles Tragesignal</string>
+    <string name="wear_battery_none">keine aktuelle Angabe</string>
+    <string name="wear_battery_value">%1$d %% (gemessen vor %2$s)</string>
+    <string name="wear_battery_low">, niedrig</string>
 </resources>

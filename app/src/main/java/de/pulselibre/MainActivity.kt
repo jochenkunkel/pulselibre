@@ -43,6 +43,8 @@ class MainActivity : AppCompatActivity() {
     private var dashboardPolling = false
     private var dashboardLastEventId = -1L
     private var dashboardLastRefreshAt = 0L
+    private var historyLastEventId = -1L
+    private var historyLastRefreshAt = 0L
     private val dashboardWorker = DashboardWorkerWatch.newDashboardWorker()
     private var historicalDownloadProbe: CirqaMlHandshakeProbe? = null
     private var historicalSyncStatusView: TextView? = null
@@ -92,11 +94,19 @@ class MainActivity : AppCompatActivity() {
                         pollInFlight = false
                         if (dashboardPolling && !destroyed && latest != null) {
                             val now = android.os.SystemClock.elapsedRealtime()
-                            if (latest != dashboardLastEventId || now - dashboardLastRefreshAt >= 30_000L) {
+                            // Live data arrives about every second: rebuilding every second kept the screen busy (battery,
+                            // TalkBack focus, uiautomator never idle). New data refreshes after a short minimum interval.
+                            if (dashboardVisible && LiveRefreshPolicy.due(latest != dashboardLastEventId,
+                                    now - dashboardLastRefreshAt, LiveRefreshPolicy.DASHBOARD_MIN_MS)) {
                                 dashboardLastEventId = latest
                                 dashboardLastRefreshAt = now
-                                if (dashboardVisible) dashboardRefresh?.invoke()
-                                if (historyVisible) historyRefresh?.invoke()
+                                dashboardRefresh?.invoke()
+                            }
+                            if (historyVisible && LiveRefreshPolicy.due(latest != historyLastEventId,
+                                    now - historyLastRefreshAt, LiveRefreshPolicy.HISTORY_MIN_MS)) {
+                                historyLastEventId = latest
+                                historyLastRefreshAt = now
+                                historyRefresh?.invoke()
                             }
                         }
                     }
@@ -255,14 +265,10 @@ class MainActivity : AppCompatActivity() {
             setPadding(0, 0, (8 * resources.displayMetrics.density).toInt(), 0)
         }
         headerRow.addView(headerTitle, LinearLayout.LayoutParams(0, -2, 1f))
-        // Personal Easter egg: the dedicated humerus SVG-matched vector replaces the gear.
-        // Keep a 48dp touch target and an explicit accessibility label.
-        val avatarButton = android.widget.ImageView(this).apply {
-            setImageResource(R.drawable.ic_humerus_settings)
-            scaleType = android.widget.ImageView.ScaleType.FIT_CENTER
-            setPadding(dp(8), dp(8), dp(8), dp(8))
-            isClickable = true
-            isFocusable = true
+        // #649: one combined control for band status, band battery and settings (replaces antenna + settings button).
+        // Tap opens the settings menu as before; a long press shows the connection details of the former antenna button.
+        val statusButton = WearableStatusButton(this).apply {
+            compact = resources.configuration.screenWidthDp < 360
             setOnClickListener {
                 PersonalSettings.show(this@MainActivity) {
                     refreshBodyCardRef?.invoke()
@@ -270,26 +276,18 @@ class MainActivity : AppCompatActivity() {
                     dashboardLastRefreshAt = 0L
                 }
             }
-        }
-        // #179 variant 4: a real secondary action, not a decorative icon.
-        val linkInfoButton = android.widget.FrameLayout(this).apply {
-            minimumWidth = dp(48)
-            minimumHeight = dp(48)
-            isClickable = true
-            isFocusable = true
-            contentDescription = getString(R.string.main_link_status_cd)
-            background = rounded(palette.tinted, 24)
-            addView(PlIcon.view(this@MainActivity, PlIcon.SIGNAL, 23, violet),
-                android.widget.FrameLayout.LayoutParams(dp(23), dp(23), android.view.Gravity.CENTER))
-            setOnClickListener {
+            setOnLongClickListener {
                 androidx.appcompat.app.AlertDialog.Builder(this@MainActivity)
                     .setTitle(R.string.main_link_title)
                     .setMessage(CirqaLinkStatus.contentDescription(Strings.of(this@MainActivity), cirqaLink))
                     .setPositiveButton(R.string.action_close, null)
                     .show()
+                true
             }
         }
-        var lastHeaderStatus: CirqaLinkStatus.Result? = null
+        var wearInputs: WearableStatusReader.Inputs? = null
+        var wearInputsAt = 0L
+        var wearInputsLoading = false
         fun refreshAvatarConnectionBorder() {
             refreshCirqaCard()
             val link = cirqaLink
@@ -314,24 +312,28 @@ class MainActivity : AppCompatActivity() {
                     }.start()
                 }
             }
-            avatarButton.contentDescription = getString(R.string.main_open_settings)
-            linkInfoButton.contentDescription = getString(R.string.main_link_details_cd, CirqaLinkStatus.contentDescription(Strings.of(this), link))
-            if (link.online == lastHeaderStatus?.online) { lastHeaderStatus = link; return }
-            lastHeaderStatus = link
-            linkInfoButton.background = GradientDrawable().apply {
-                shape = GradientDrawable.OVAL
-                setColor(palette.tinted)
-                setStroke(dp(2), if (link.online) Color.rgb(31, 190, 112) else palette.muted)
+            // Stored data only (no BLE, no sync), at most every 15 s; the per-second refresh just re-evaluates freshness.
+            val now = System.currentTimeMillis()
+            if (!wearInputsLoading && now - wearInputsAt > 15_000L) {
+                wearInputsLoading = true
+                Thread {
+                    val inputs = try { CirqaDatabase(applicationContext).use { WearableStatusReader.read(applicationContext, it) } } catch (_: Exception) { null }
+                    runOnUiThread {
+                        wearInputsLoading = false
+                        wearInputsAt = System.currentTimeMillis()
+                        if (inputs != null) wearInputs = inputs
+                        if (!destroyed) connectionIndicatorRefresh?.invoke()
+                    }
+                }.start()
             }
+            val inputs = wearInputs
+            val state = WearableStatus.state(link.online, inputs?.respiration, now)
+            val percent = WearableStatus.shownBattery(link.online, inputs?.battery, now)
+            statusButton.show(state, percent,
+                WearableStatus.description(Strings.of(this), link, state, percent, inputs?.battery, now))
         }
         connectionIndicatorRefresh = { refreshAvatarConnectionBorder() }
-        headerRow.addView(linkInfoButton, LinearLayout.LayoutParams(dp(48), dp(48)).apply { marginEnd = dp(6) })
-        avatarButton.background = GradientDrawable().apply {
-            shape = GradientDrawable.OVAL
-            setColor(palette.tinted)
-            setStroke(dp(2), palette.accent)
-        }
-        headerRow.addView(avatarButton, LinearLayout.LayoutParams(dp(48), dp(48)))
+        headerRow.addView(statusButton, LinearLayout.LayoutParams(-2, dp(48)))
         // Large fonts / narrow screens: the subtitle uses the full width (no 60 dp indent) and wraps instead of being cut off.
         // #179/#209: reference variant 4 shows only "Deine Daten. Deine Kontrolle."; the former "· Offline" suffix was removed
         // (it was misread as a connection status). The offline-first promise belongs to Help/Privacy, not to the header.

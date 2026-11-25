@@ -32,27 +32,6 @@ class DashboardTest {
             }
         }
     }
-    @Test fun humerusSettingsButtonShowsAccessibleConnectionStatusAndKeepsTouchTarget() {
-        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
-            scenario.onActivity { activity ->
-                val root = activity.findViewById<ViewGroup>(android.R.id.content)
-                val button = findStatusIcon(root) ?: error("Verbindungsstatus-Icon fehlt")
-                assertTrue(button.isClickable)
-                assertTrue(button.isFocusable)
-                assertTrue(button.contentDescription.startsWith("CIRQA-Verbindungsstatus:"))
-                val expectedSize = (48 * activity.resources.displayMetrics.density + 0.5f).toInt()
-                assertEquals(expectedSize, button.layoutParams.width)
-                assertTrue(button.contentDescription.contains("schwarzer Rand") ||
-                    button.contentDescription.contains("grüner Rand"))
-            }
-        }
-    }
-    private fun findStatusIcon(view: android.view.View): android.view.View? {
-        // Since #179 the status control is a FrameLayout button, not an ImageView.
-        if (view.contentDescription?.toString()?.startsWith("CIRQA-Verbindungsstatus:") == true) return view
-        if (view is ViewGroup) for (i in 0 until view.childCount) findStatusIcon(view.getChildAt(i))?.let { return it }
-        return null
-    }
     @Test fun historyTabIsPresentAndOpensLocalTimeSeries() {
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
