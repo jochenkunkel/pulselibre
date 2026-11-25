@@ -14,8 +14,13 @@
 - Der Agent entscheidet, setzt um und **meldet danach** (START/ENDE im Agenten-Chat, `agent-sync`, PR-Beschreibung). Der Owner wird nur bei den unten genannten Ausnahmen oder bei einer echten, nicht selbst lösbaren Entscheidung gefragt.
 - Frühere Formulierungen in Dokumenten wie „nur mit ausdrücklicher Freigabe des Owners", „Einzelentscheidung bleibt erforderlich" oder „Freigabe abwarten" gelten **für alles außerhalb der Ausnahmen** nicht mehr. Historische Berichte bleiben als datierte Evidenz unverändert.
 
+## CI-Performance-Entscheidung des Owners (25.11.2026)
+- Keine 15-Minuten-FULL-Pflicht für jeden Commit oder PR; automatisches QUICK als Standard, nächtliches FULL und explizites FULL vor Release. Nur nachweislich hochriskante Änderungen benötigen FULL vor Merge.
+- FIT darf nach grünen erforderlichen QUICK-/Dependency-Checks selbstständig mergen; kein zweites Agenten-Review, keine zusätzliche Owner-Freigabe, keine künstliche Wartefrist. CI-Fehler bleiben echte Blocker für die jeweils erforderlichen Checks.
+- Historische Gate-Texte sind nach dieser neueren Owner-Entscheidung auszulegen; technisch konfigurierte GitHub-Schutzregeln sind regulär anzupassen, nicht zu umgehen.
+
 ## Was unverändert bleibt (keine Freigabe, sondern Qualitäts- und Koordinationsregeln)
-- FULL/API-35, Dependency Review und die weiteren Qualitätsgates; **Ausnahme FIT gemäß Owner-Ergänzung vom 25.11.2026: dokumentiertes Self-Review und eigenständiger Merge nach grünen Gates**; für andere Agenten prüft weiterhin ein unabhängiger Reviewer (Rollenvertrag [AGENT_ROLES_AND_CI_HANDOVER_2026-11-24.md](AGENT_ROLES_AND_CI_HANDOVER_2026-11-24.md)).
+- GitHub-QUICK und relevante Dependency-Prüfungen sind die normalen Merge-Gates; FULL/API-35 läuft nachts, vor Releases und bei nachweislich hochriskanten Änderungen vor Merge. **FIT: dokumentiertes Self-Review, eigenständiger Merge ohne zweite Freigabe.** Für andere Agenten gelten ihre Rollenregeln (Rollenvertrag [AGENT_ROLES_AND_CI_HANDOVER_2026-11-24.md](AGENT_ROLES_AND_CI_HANDOVER_2026-11-24.md)).
 - Geräte-Leases ([DEVICE_LEASE.md](DEVICE_LEASE.md)): ein Agent je Gerät, Wrapper nutzen, nach dem Lauf `FREI`. Das ist Koordination, keine Genehmigung.
 - Signierte Builds nur mit geprüfter Zertifikatskontinuität; keine Instrumentationstests auf dem S25.
 
