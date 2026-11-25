@@ -40,6 +40,30 @@ class WearableStatusButtonTest {
         }
     }
 
+    @Test fun glyphsAreCentredInTheStatusCircle() {
+        InstrumentationRegistry.getInstrumentation().runOnMainSync {
+            val context = ApplicationProvider.getApplicationContext<Context>()
+            val d = context.resources.displayMetrics.density
+            listOf(WearState.WORN, WearState.NOT_WORN, WearState.UNKNOWN).forEach { state ->
+                val button = WearableStatusButton(context)
+                button.show(state, null)
+                val bmp = render(button)
+                var sx = 0.0; var sy = 0.0; var n = 0
+                // White glyph pixels inside the circle (centre 40/24, radius 11 design units).
+                for (x in ((29 * d).toInt())..((51 * d).toInt())) for (y in ((13 * d).toInt())..((35 * d).toInt())) {
+                    val c = bmp.getPixel(x, y)
+                    if (android.graphics.Color.red(c) > 230 && android.graphics.Color.green(c) > 230 && android.graphics.Color.blue(c) > 230) {
+                        sx += x; sy += y; n++
+                    }
+                }
+                assertTrue("$state: no glyph", n > 0)
+                val cx = sx / n / d; val cy = sy / n / d
+                assertTrue("$state glyph centre x=$cx", kotlin.math.abs(cx - 40) < 1.6)
+                assertTrue("$state glyph centre y=$cy", kotlin.math.abs(cy - 24) < 1.6)
+            }
+        }
+    }
+
     @Test fun compactVariantLeavesRoomForTheTitle() {
         InstrumentationRegistry.getInstrumentation().runOnMainSync {
             val context = ApplicationProvider.getApplicationContext<Context>()

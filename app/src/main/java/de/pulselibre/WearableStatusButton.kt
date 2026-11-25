@@ -111,15 +111,17 @@ internal class WearableStatusButton(context: Context) : View(context) {
         paint.strokeCap = Paint.Cap.ROUND; paint.strokeJoin = Paint.Join.ROUND
         path.reset()
         when (state) {
-            WearState.WORN -> { path.moveTo(35f, 22f); path.rLineTo(4f, 4f); path.rLineTo(7f, -8f); canvas.drawPath(path, paint) }
+            // Check spans x 34.5–45.5 and y 20.5–28.5: centred on the circle (40/24); the SVG path sat 2 units too high.
+            WearState.WORN -> { path.moveTo(34.5f, 24.5f); path.rLineTo(4f, 4f); path.rLineTo(7f, -8f); canvas.drawPath(path, paint) }
             WearState.NOT_WORN -> {
                 canvas.drawLine(40f, 18f, 40f, 26f, paint)
                 paint.style = Paint.Style.FILL; canvas.drawCircle(40f, 30f, 1.5f, paint)
             }
             WearState.UNKNOWN -> {
-                path.moveTo(37f, 21f); path.arcTo(RectF(36.6f, 16.4f, 43.8f, 23.6f), 180f, 260f); path.lineTo(40f, 27f)
+                // Shifted 2 units down so the glyph's weight sits on the circle centre (40/24), like the check mark.
+                path.moveTo(37f, 23f); path.arcTo(RectF(36.6f, 18.4f, 43.8f, 25.6f), 180f, 260f); path.lineTo(40f, 29f)
                 canvas.drawPath(path, paint)
-                paint.style = Paint.Style.FILL; canvas.drawCircle(40f, 30.5f, 1.5f, paint)
+                paint.style = Paint.Style.FILL; canvas.drawCircle(40f, 32.5f, 1.5f, paint)
             }
             WearState.OFFLINE -> {
                 stroke(LOW, 2.6f); canvas.drawLine(28f, 35f, 49f, 14f, paint) // crosses band and status: "no link"
