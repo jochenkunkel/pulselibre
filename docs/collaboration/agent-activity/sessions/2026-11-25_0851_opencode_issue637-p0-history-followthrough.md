@@ -1,8 +1,8 @@
 # OpenCode – #637 P0 Historische CIRQA-Messdaten
 - Agent/Umgebung: OpenCode FIT, Linux-Worktree
 - Beginn: 2026-11-25 08:51 UTC
-- Letzte Aktualisierung: 2026-11-25 21:00 UTC
-- Status: aktiv – Dokumentations-PR
+- Letzte Aktualisierung: 2026-11-25 21:15 UTC
+- Status: blockiert – PR #675 ohne Checks
 - Rolle/Zuständigkeit: FIT/GFDI/MLR, Protokoll, Datenbank-/Importpfad, Offline-FIT-Analyse
 - Aktueller Auftrag: Eigentümerauftrag zur eigenständigen P0-Fortsetzung: historische Messdaten zuverlässig herunterladen, dekodieren, speichern und exportieren oder eine konkrete technische Blockade belegen.
 - Jetzt in Bearbeitung: #637-Dokumentations-Publish auf aktuellem `origin/main`; Run 3 abgeschlossen, kein weiterer Gerätezugriff. Redigierter ChatGPT-Handoff erstellt. Read-only Quellvergleich zum Zeitpunkt der Analyse auf `main=4f5566ad`: Archive-Helper-Lock umfasst Helper-Lebensdauer, FIT-Import liegt außerhalb; BLE-Completion läuft serialisiert, daher ist kein Race zwischen aufeinanderfolgenden Datei-Callbacks belegt.
@@ -13,4 +13,4 @@
 - Agent-sync-Nachrichten: `docs/collaboration/agent-chat/messages/2026-11-25_085100_opencode_START_issue637-p0-history-followthrough.md`; `docs/collaboration/agent-chat/messages/2026-11-25_120500_opencode_ANTWORT_gui-fit-restpunkte.md`; `docs/collaboration/agent-chat/messages/2026-11-25_121000_opencode_ENDE_issue637-p0-followthrough.md`; `docs/collaboration/agent-chat/messages/2026-11-25_121500_opencode_START_issue637-offline-correlation.md`; `docs/collaboration/agent-chat/messages/2026-11-25_122500_opencode_ENDE_issue637-offline-correlation.md`; `docs/collaboration/agent-chat/messages/2026-11-25_124000_opencode_ENDE_issue637-decoder-candidate-audit.md`; `docs/collaboration/agent-chat/messages/2026-11-25_124500_opencode_UPDATE_issue637-docs-pr650.md`; `docs/collaboration/agent-chat/messages/2026-11-25_130500_opencode_UPDATE_issue637-profile-397-398.md`; `docs/collaboration/agent-chat/messages/2026-11-25_132000_opencode_UPDATE_issue637-synthetic-profile-regression.md`
 - Nachweise: S10-Re-Run am 2026-11-25: 29 gelistet/ausgewählt, 29 Pulls eingereiht, 28 transferiert/verifiziert/privat gespeichert, 25 dekodiert, 24 SQLite-committed, 18 importiert, 6 ohne importierbare Daten, ein `FIT_IMPORT_COMMIT/SQLiteDatabaseLockedException`; `runDrained=false`, `session-time-limit`, `device-history-unverified`. Backup-Diff +210 archivierte Originale/Referenzen; FIT-Originale und kanonische Beobachtungen unverändert; Backup-Integrität sauber. Redigierte Evidenz im S10-Testplan und ChatGPT-Handoff. Keine Rohdaten veröffentlicht.
 - Nachweise: `docs/protocol/research/ISSUE637_CHATGPT_HANDOFF_2026-11-25.md`; source-read-only Vergleich mit aktuellem `origin/main`; UPDATE/ENDE im Agenten-Chat.
-- Nächster Schritt: Doku-PR veröffentlichen und Pflichtchecks prüfen; danach SQLite-Lock-Ursache offline korrelieren. Kein erneuter S10-Lauf ohne vorherige Offline-Diagnose.
+- Nächster Schritt: CI-/Projektleitung klärt erforderliche QUICK-/Dependency-Gates für PR #675; nach regulärem Abschluss SQLite-Lock-Ursache offline korrelieren. Kein erneuter S10-Lauf ohne vorherige Offline-Diagnose.
