@@ -1,15 +1,15 @@
 # OpenCode – #637 frisches Vorher-Backup am S10
 - Agent/Umgebung: OpenCode FIT, Linux-Worktree
 - Beginn: 2026-11-25 12:45 UTC
-- Letzte Aktualisierung: 2026-11-25 13:00 UTC
-- Status: aktiv
+- Letzte Aktualisierung: 2026-11-25 13:12 UTC
+- Status: blockiert
 - Rolle/Zuständigkeit: FIT/Persistenz, S10 Backup-Export unter Lease
 - Aktueller Auftrag: frisches Vorher-Backup vor einem ggf. manuellen History-Download erzeugen und lokal validieren.
-- Jetzt in Bearbeitung: erster frischer Export meldete `Backup fehlgeschlagen`; History-Button nicht bestätigt. Weiterer Backup-only-Versuch in Downloads-Wurzelverzeichnis, keine BLE-/History-Aktion.
+- Jetzt in Bearbeitung: blockiert vor Sync. Export im bestehenden Unterordner und erneut im Downloads-Wurzelverzeichnis meldete jeweils `Backup fehlgeschlagen`; beide lokal gezogenen Kandidaten waren 0 Byte. Kein History-Button bestätigt, kein BLE-/GFDI-Request.
 - Zeitnah geplant: falls Exportabschluss und Archivintegrität eindeutig bestätigt sind, Status an die bestehende kontrollierte Testplanung übergeben; andernfalls blockiert stoppen.
 - Betroffene Bereiche/Dateien: private S10-Captures; ggf. `docs/protocol/device-tests/CIRQA_P0_S10_BOUNDED_FULL_PULL_PLAN_2026-11-24.md`.
 - Branch/Worktree: `opencode/issue637-s10-manual-history-20261125`, `/tmp/opencode/issue637-s10-manual-history-20261125`, mit `origin/main` synchronisiert.
 - Abstimmungsbedarf: keiner; S10-Lease vor Start FREI.
-- Agenten-Chat: `docs/collaboration/agent-chat/messages/2026-11-25_124500_opencode_START_issue637-fresh-backup.md`; `docs/collaboration/agent-chat/messages/2026-11-25_130000_opencode_UPDATE_issue637-backup-failure.md`
-- Nachweise: Geräteidentität/App-Signatur verifiziert; Exportoberfläche meldet `Backup fehlgeschlagen`; kein History-Request. Lease wieder FREI.
-- Nächster Schritt: einmal Backup-only in Downloads-Wurzel versuchen, Rückmeldung aus Accessibility-Log prüfen; bei Fehlschlag Task vor BLE stoppen.
+- Agenten-Chat: `docs/collaboration/agent-chat/messages/2026-11-25_124500_opencode_START_issue637-fresh-backup.md`; `docs/collaboration/agent-chat/messages/2026-11-25_130000_opencode_UPDATE_issue637-backup-failure.md`; `docs/collaboration/agent-chat/messages/2026-11-25_131200_opencode_ENDE_issue637-fresh-backup.md`
+- Nachweise: S10/App-Version/Signatur geprüft; zwei lokale Kopien neuer Exportversuche jeweils 0 Byte, App-Feedback Fehler. Keine Sync-Aktion; keine bestehenden Dateien gelöscht/überschrieben; S10-Lease abschließend FREI.
+- Nächster Schritt: Export-Exception/-Pfad offline untersuchen; keinen weiteren Geräte-Export oder History-Sync starten, bis ein frisches Backup bestätigt und valide ist.

@@ -1,0 +1,12 @@
+# ENDE | #637 frisches S10-Vorher-Backup nicht herstellbar
+- Zeit (UTC): 2026-11-25 13:12
+- Von: OpenCode FIT
+- An: Projektleitung
+- Issue/Task: #637 – Vorbereitung eines manuellen CIRQA-History-Tests
+- Bezug/Antwort auf: `2026-11-25_124500_opencode_START_issue637-fresh-backup.md`
+- Status: blockiert vor Sync.
+- Zuständigkeit und betroffene Dateien: S10/Backup-Export; Testplan `docs/protocol/device-tests/CIRQA_P0_S10_BOUNDED_FULL_PULL_PLAN_2026-11-24.md`; private UI-/ZIP-Kopien außerhalb Git.
+- Tatsächlich erledigt: S10, App-Version 2204 und installierte Signaturkontinuität verifiziert. Zwei eindeutig benannte Backup-Exporte versucht: zunächst im bisherigen `Downloads/VideoDownloader`-Unterordner, dann im `Downloads`-Wurzelverzeichnis. Die App meldete jeweils `Backup fehlgeschlagen`; lokal kopierte Dateien waren jeweils 0 Byte.
+- Nachweise: ZIP-Prüfung der neuen Dateien fehlgeschlagen; ältere valide Backups bleiben als historische Vorher-/Nachher-Snapshots klassifiziert und wurden nicht als aktuell ausgegeben. Kein History-Button bestätigt; kein BLE-/GFDI-Request gesendet; keine vorhandene Datei gelöscht/überschrieben. S10-Lease anschließend `FREI`.
+- Was ich von anderen brauche: nichts unmittelbar.
+- Nächster Schritt / Besitzer: OpenCode FIT – Exportfehler offline diagnostizieren. Erst nach frischem, bestätigtem und integritätsgeprüftem Backup den autorisierten Einzellauf wieder aufnehmen.

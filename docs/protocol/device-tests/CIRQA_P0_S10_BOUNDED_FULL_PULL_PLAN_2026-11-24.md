@@ -226,3 +226,18 @@ Kopien des vorherigen Laufs, keine frische Sicherung nach dem aktuellen
 Exportversuch. Die drei neu angelegten `pre-run`-Dateien sind leer. Damit bleibt
 der aktuelle Backup-Gate geschlossen; kein History-Request wurde gesendet.
 Lease anschließend erneut `FREI`.
+
+**Frischer Export-Folgeversuch 2026-11-25 12:46–13:10 UTC – vor BLE gestoppt.**
+S10-Modell, App-Version 2204 und Signaturkontinuität wurden unter Lease erneut
+verifiziert. Ein neu benannter Export im bisherigen DocumentsUI-Unterordner
+`Downloads/VideoDownloader` endete mit der App-Rückmeldung „Backup
+fehlgeschlagen“; die lokale Kopie war 0 Byte. Der gleiche In-App-Export wurde
+anschließend im `Downloads`-Wurzelverzeichnis versucht und ebenfalls als
+fehlgeschlagen gemeldet; auch diese lokal kopierte Zieldatei war 0 Byte und
+bestand keine ZIP-Prüfung. Ein Zielordnerwechsel löst den Fehler somit nicht.
+Der Save-Dialog/Export wurde nur für diese Backup-Diagnose verwendet. Kein
+History-Button bestätigt, kein BLE-/GFDI-Request gesendet, keine vorhandene
+Datei gelöscht oder überschrieben. S10-Lease nach dem letzten Wrapper `FREI`.
+Der History-Test bleibt blockiert; als nächster Schritt ist die Ursache des
+generischen Exportfehlers offline zu untersuchen, statt weitere identische
+Geräte-Exporte oder einen Sync ohne aktuelles Backup zu starten.
