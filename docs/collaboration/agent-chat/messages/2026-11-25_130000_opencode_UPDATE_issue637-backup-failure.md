@@ -1,0 +1,13 @@
+# UPDATE | #637 frischer S10-Backup-Export fehlgeschlagen
+- Zeit (UTC): 2026-11-25 13:00
+- Von: OpenCode FIT
+- An: Projektleitung
+- Issue/Task: #637 – Vorbereitung eines manuellen CIRQA-History-Tests
+- Bezug/Antwort auf: `2026-11-25_124500_opencode_START_issue637-fresh-backup.md`
+- Status: aktiv – Exporter meldete bei der eindeutigen Datei einen Fehler; kein Sync ausgelöst.
+- Zuständigkeit und betroffene Dateien: S10 unter Lease; Diagnose privat; noch keine Produktcodeänderung.
+- Geplanter Umfang / tatsächlich erledigt: Gerät/App/Signatur verifiziert. In-App-Export gestartet; Android-UI-Hierarchie meldet `Backup fehlgeschlagen`. Die Zieldatei ist damit nicht als Backup zulässig. Der Verlauf-Download wurde nicht bestätigt.
+- Was ich von anderen brauche: nichts.
+- Was ich anderen liefere: weiterer risikoarmer Versuch mit eindeutigem Ziel im Downloads-Wurzelverzeichnis statt im vorhandenen Unterordner; bei erneutem Fehler bleibt der Test vor BLE blockiert.
+- Nachweise: S10-Lease danach `FREI`; private Accessibility-/Logcat-Artefakte, keine Gerätekennung oder Rohdaten veröffentlicht.
+- Nächster Schritt / Besitzer: OpenCode FIT – unter frischer S10-Lease einen neuen eindeutigen Backup-Export im Downloads-Wurzelverzeichnis versuchen; Abschluss-/Fehlermeldung ausdrücklich aus Accessibility-Log verifizieren.
