@@ -481,6 +481,6 @@ Geprüft: `RawDataExport`, `ExportFileWriter`, `ExportDateRange`, `DownloadedFil
 - **A6-78 (mittel, behoben):** Der CSV-Export baute die ganze Datei als einen String im Speicher (zusätzlich zur Datensatzliste). Jetzt zeilenweises Schreiben, byte-identisch (Test `streamingWriterIsByteIdenticalToTheStringExport`).
 - **A6-79 (niedrig, behoben):** `HistorySyncProgress` vergab den Zustand „unterbrochen“ nie; ein Abbruch durch Schließen der Ansicht (`incompleteReason=aborted-by-caller`) erscheint jetzt so. Test `runEndedFromOutsideIsInterruptedNotFailed`.
 - **A6-80 (niedrig, behoben):** `DialogProbe` hielt den letzten Dialog (und damit die Activity) mit starker Referenz bis zum nächsten Dialog; jetzt `WeakReference`.
-- **A6-81 (niedrig, offen):** `ScatterView` stürzt mit leerer Punktliste ab (`minOf`); alle Aufrufer zeigen das Diagramm erst ab zwei Punkten. Kein Handlungsbedarf, solange das so bleibt.
+- **A6-81 (niedrig, behoben):** `ScatterView` stürzte mit leerer Punktliste ab (`minOf` im Konstruktor); jetzt leeres Diagramm ohne Beschreibung. Emulator-Test `ScatterViewTest.emptyListDoesNotCrash`.
 - Ohne Befund: übrige Dateien dieses Abschnitts.
 - **Nicht Teil dieses Abschnitts (FIT):** Protokoll-, Decoder- und Importdateien (`Cirqa*`, `Garmin*`, `Fit*`, `ImportAuditRecorder`, `DeviceMetadataGattDecoder`).
