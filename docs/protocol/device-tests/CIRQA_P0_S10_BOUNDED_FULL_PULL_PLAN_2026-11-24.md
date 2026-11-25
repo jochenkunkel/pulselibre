@@ -238,9 +238,10 @@ Item-List-Seite mit 32 ausgewählten Dateien und 32 Pull-Requests;
 30 Integritätsprüfung, 31 private Speicherung, 26 Decode und SQLite-Commit,
 19 Import mit Beobachtungen sowie 7 Dateien ohne importierbare Daten. Ein
 weiteres Element scheiterte in `ORIGINAL_ARCHIVE` mit
-`SQLiteDatabaseLockedException`; es ist weder als vollständiger Transfer noch
-als verifiziert gezählt. Keine Transaction-Follow-ups; 30 von 32 wurden als
-erfolgreich ausgewiesen. Damit bleiben vollständige Übertragung und
+`SQLiteDatabaseLockedException`; die Stage-Zähler weisen insgesamt 31
+Transferabschlüsse, aber nur 30 Integritätsprüfungen aus. Keine
+Transaction-Follow-ups; 30 von 32 wurden als erfolgreich ausgewiesen. Damit
+bleiben vollständige Übertragung und
 Gerätehistorie unbewiesen.
 
 Das geprüfte Nachher-Backup v11 enthält 3.242 verifizierte Originale /
