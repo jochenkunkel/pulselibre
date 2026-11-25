@@ -447,7 +447,15 @@
     <string name="tr_details_days">\n%1$s Tage: </string>
     <string name="tr_details_unrated">nicht bewertbar · %1$s</string>
     <string name="tr_details_row">%1$s %2$s %3$s%4$s (davor %5$s) · %6$s/%7$s Tage</string>
-    <string name="tr_details_corr_head">\n\nZusammenhang (explorativ, 1 vorab festgelegte Hypothese): Schritte eines Tages ↔ Geräte-Ruhepuls am Folgetag\n</string>
+    <string name="tr_details_corr_head">\n\nZusammenhänge (explorativ, 3 vorab festgelegte Hypothesen, Benjamini-Hochberg-korrigiert; ein Zusammenhang belegt keine Ursache)</string>
+    <string name="tr_hyp_line">\n• %1$s: </string>
+    <string name="tr_hyp_steps_rest">Schritte eines Tages ↔ Geräte-Ruhepuls am Folgetag</string>
+    <string name="tr_hyp_sleep_rest">Schlafdauer ↔ Geräte-Ruhepuls am Folgetag</string>
+    <string name="tr_hyp_sleep_hrv">Schlafdauer ↔ HRV derselben Nacht</string>
+    <string name="tr_hyp_adjusted"> Korrigiertes p=%1$s.</string>
+    <string name="tr_hyp_lag0"> Sensitivität Lag 0: ρ=%1$s.</string>
+    <string name="tr_hyp_missing_sleep">nicht berechenbar – Schlafdaten werden noch nicht aus dem Band dekodiert.</string>
+    <string name="tr_hyp_missing_hrv">nicht berechenbar – HRV wird noch nicht aus dem Band dekodiert.</string>
     <string name="tr_details_corr_nr">%1$s · %2$s</string>
     <string name="tr_details_corr">%1$s · ρ=%2$s (95 %%: %3$s bis %4$s) · n=%5$s Tage. %6$s</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->

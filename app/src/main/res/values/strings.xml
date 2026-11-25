@@ -447,7 +447,15 @@
     <string name="tr_details_days">\n%1$s days: </string>
     <string name="tr_details_unrated">not assessable · %1$s</string>
     <string name="tr_details_row">%1$s %2$s %3$s%4$s (before: %5$s) · %6$s/%7$s days</string>
-    <string name="tr_details_corr_head">\n\nRelationship (exploratory, 1 pre-specified hypothesis): steps of one day ↔ device resting pulse the next day\n</string>
+    <string name="tr_details_corr_head">\n\nRelationships (exploratory, 3 pre-specified hypotheses, Benjamini–Hochberg corrected; an association is not a cause)</string>
+    <string name="tr_hyp_line">\n• %1$s: </string>
+    <string name="tr_hyp_steps_rest">steps of one day ↔ device resting pulse the next day</string>
+    <string name="tr_hyp_sleep_rest">sleep duration ↔ device resting pulse the next day</string>
+    <string name="tr_hyp_sleep_hrv">sleep duration ↔ HRV of the same night</string>
+    <string name="tr_hyp_adjusted"> Adjusted p=%1$s.</string>
+    <string name="tr_hyp_lag0"> Sensitivity lag 0: ρ=%1$s.</string>
+    <string name="tr_hyp_missing_sleep">not computable – sleep data are not decoded from the band yet.</string>
+    <string name="tr_hyp_missing_hrv">not computable – HRV is not decoded from the band yet.</string>
     <string name="tr_details_corr_nr">%1$s · %2$s</string>
     <string name="tr_details_corr">%1$s · ρ=%2$s (95 %%: %3$s to %4$s) · n=%5$s days. %6$s</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->

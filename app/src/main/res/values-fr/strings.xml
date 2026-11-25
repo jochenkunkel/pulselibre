@@ -447,7 +447,15 @@
     <string name="tr_details_days">\n%1$s jours : </string>
     <string name="tr_details_unrated">non évaluable · %1$s</string>
     <string name="tr_details_row">%1$s %2$s %3$s%4$s (avant : %5$s) · %6$s/%7$s jours</string>
-    <string name="tr_details_corr_head">\n\nCorrélation (exploratoire, 1 hypothèse fixée à l’avance) : pas d’un jour ↔ pouls au repos de l’appareil le lendemain\n</string>
+    <string name="tr_details_corr_head">\n\nCorrélations (exploratoires, 3 hypothèses fixées à l’avance, correction de Benjamini-Hochberg ; une corrélation n’est pas une cause)</string>
+    <string name="tr_hyp_line">\n• %1$s : </string>
+    <string name="tr_hyp_steps_rest">pas d’un jour ↔ pouls au repos de l’appareil le lendemain</string>
+    <string name="tr_hyp_sleep_rest">durée du sommeil ↔ pouls au repos de l’appareil le lendemain</string>
+    <string name="tr_hyp_sleep_hrv">durée du sommeil ↔ VFC de la même nuit</string>
+    <string name="tr_hyp_adjusted"> p corrigé=%1$s.</string>
+    <string name="tr_hyp_lag0"> Sensibilité décalage 0 : ρ=%1$s.</string>
+    <string name="tr_hyp_missing_sleep">non calculable – les données de sommeil ne sont pas encore décodées du bracelet.</string>
+    <string name="tr_hyp_missing_hrv">non calculable – la VFC n’est pas encore décodée du bracelet.</string>
     <string name="tr_details_corr_nr">%1$s · %2$s</string>
     <string name="tr_details_corr">%1$s · ρ=%2$s (95 %% : %3$s à %4$s) · n=%5$s jours. %6$s</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
