@@ -29,6 +29,7 @@ class FitHistoricalObservationsTest {
 
     private fun u16(value: Int) = byteArrayOf(value.toByte(), (value ushr 8).toByte())
     private fun s16(value: Int) = u16(value and 0xffff)
+    private fun f32(value: Float) = u32(java.lang.Float.floatToRawIntBits(value))
 
     @Test fun extractsWhitelistedTimestampedDeviceMetadataAndIgnoresSerialNumber() {
         val data = byteArrayOf(
@@ -72,6 +73,63 @@ class FitHistoricalObservationsTest {
         assertNull(metadata.batteryVoltageVolts)
         assertNull(metadata.batteryLevelPercent)
         assertNull(metadata.batteryStatusCode)
+    }
+
+    @Test fun skinTemperatureProfileFieldsRemainRawAndKnownDeviationsAreReviewOnly() {
+        val timestamp = 0x10000000 + 100_000
+        val data = byteArrayOf(
+            0x40, 0, 0, 398.toByte(), 1, 6,
+            253.toByte(), 4, 0x86.toByte(), // timestamp
+            0, 4, 0x86.toByte(),            // local_timestamp
+            1, 4, 0x88.toByte(),            // average_deviation, float32
+            2, 4, 0x88.toByte(),            // average_7_day_deviation, float32
+            3, 1, 2,                        // profile-unmapped field; preserve opaque
+            4, 4, 0x88.toByte(),            // nightly_value; no candidate unit inferred
+            0
+        ) + u32(timestamp) + u32(timestamp + 1) + f32(1.25f) + f32(-0.5f) +
+            byteArrayOf(7) + f32(2.0f)
+
+        val result = FitHistoricalObservations.decode(fit(data))!!
+
+        assertTrue(result.observations.isEmpty())
+        assertEquals(
+            listOf("average_deviation", "average_7_day_deviation"),
+            result.reviewCandidates.map { it.profileFieldName }
+        )
+        assertEquals(listOf(1.25, -0.5), result.reviewCandidates.map { it.value })
+        assertTrue(result.reviewCandidates.all { it.unit == "°C" })
+        assertTrue(result.reviewCandidates.all {
+            it.timestampEpochMillis == (timestamp + 631_065_600L) * 1_000L
+        })
+        assertEquals(listOf(3), result.unknownFields.map { it.fieldNumber })
+        assertEquals(listOf(253, 0, 1, 2, 3, 4), result.decodedFields.map { it.fieldNumber })
+        assertArrayEquals(f32(1.25f), result.decodedFields[2].rawBytes)
+        assertArrayEquals(f32(-0.5f), result.decodedFields[3].rawBytes)
+        assertArrayEquals(byteArrayOf(7), result.decodedFields[4].rawBytes)
+        assertArrayEquals(f32(2.0f), result.decodedFields[5].rawBytes)
+    }
+
+    @Test fun skinTemperatureReviewCandidatesRejectNonFiniteAndFitFloatSentinel() {
+        val data = byteArrayOf(
+            0x40, 0, 0, 398.toByte(), 1, 3,
+            253.toByte(), 4, 0x86.toByte(),
+            1, 4, 0x88.toByte(),
+            2, 4, 0x88.toByte(),
+            0
+        ) + u32(0x10000000 + 100_000) + f32(Float.POSITIVE_INFINITY) + u32(-1)
+
+        val result = FitHistoricalObservations.decode(fit(data))!!
+
+        assertTrue(result.reviewCandidates.isEmpty())
+        assertEquals(2, result.invalidMeasurementFieldCount)
+        assertEquals(
+            mapOf(FitHistoricalObservations.ExclusionReason.INVALID_SENTINEL to 1,
+                FitHistoricalObservations.ExclusionReason.NON_FINITE_VALUE to 1),
+            result.excludedFields.associate { it.reason to it.occurrenceCount }
+        )
+        assertEquals(3, result.decodedFields.size)
+        assertArrayEquals(f32(Float.POSITIVE_INFINITY), result.decodedFields[1].rawBytes)
+        assertArrayEquals(u32(-1), result.decodedFields[2].rawBytes)
     }
 
     @Test fun decodesSupportedRecordMeasurementsAndCompressedTimestamp() {
