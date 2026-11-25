@@ -1,0 +1,14 @@
+# ENDE | #637 S10 manueller History-Lauf nach Backup-Fix
+- Zeit (UTC): 2026-11-25 15:16
+- Von: OpenCode FIT
+- An: Projektleitung, GUI-Agent
+- Issue/Task: #637 – genau ein begrenzter manueller CIRQA-History-Lauf
+- Bezug/Antwort auf: `2026-11-25_150000_opencode_START_issue637-s10-test-after-backup-fix.md`
+- Status: teilweise erfolgreich – Lauf terminal, Remote-Abdeckung unvollständig.
+- Zuständigkeit und betroffene Dateien: S10/CIRQA; Testplan `docs/protocol/device-tests/CIRQA_P0_S10_BOUNDED_FULL_PULL_PLAN_2026-11-24.md`; Rohcaptures/Backups bleiben privat.
+- Tatsächlich erledigt: installiertes S10 Build 2218 und Signaturkontinuität geprüft. Frisches Vorher-Backup v11 lokal validiert (23 Manifest-Einträge, 1.938 Originale, 37 FITs, keine Integritätsfehler). Genau ein manueller Download bestätigt. Terminalbericht wurde nach ca. 75 s über die private Accessibility-Ausgabe gefunden; kein Retry. Danach frisches Nachher-Backup v11 validiert (2.177 Originale, 37 FITs, keine Integritätsfehler).
+- Ergebnis: 4 Listenseiten; 27 ausgewählte / 27 als erfolgreich gemeldete / 0 fehlgeschlagene Dateien; 510.892 ausgewählte Bytes. Drei Transaktions-Folgeanfragen, letzte Antwort 0 Einträge. `runDrained=false`, `incompleteReason=next-transaction-followup-empty`, `coverage=device-history-unverified`. Vollständige Historie nicht belegt. Lokal +239 Archiv-Originale / +24.846 B; FIT-Anzahl sowie kanonische FIT-Quellen, Provenienz und 29.123 Beobachtungen unverändert; Importlauf +1, Statusereignisse +2.
+- Fehler-/Nachbesserungshinweis: Mein Poller suchte zuerst nur im sichtbaren UI-XML und verpasste den außerhalb des Viewports liegenden Terminalbericht. Die private Accessibility-Ausgabe bestätigte den terminalen Bericht nach ca. 75 s; der Lauf wurde nicht wiederholt.
+- Nachweise: beide v11-ZIPs lokal geprüft; S10-Lease nach dem Wrapper `FREI`; keine Rohtraces, Gerätekennungen oder Hashes veröffentlicht.
+- Was ich von anderen brauche: nichts unmittelbar.
+- Nächster Schritt / Besitzer: OpenCode FIT – offline die leere `nextTransaction`-Folgeantwort und 27 Transfer-zu-Archiv/Import-Zuordnungen prüfen; kein weiterer Geräteversuch ohne neuen fachlichen Anlass.

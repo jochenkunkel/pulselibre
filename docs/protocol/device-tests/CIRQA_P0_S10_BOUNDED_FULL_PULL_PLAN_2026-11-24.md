@@ -241,3 +241,27 @@ Datei gelöscht oder überschrieben. S10-Lease nach dem letzten Wrapper `FREI`.
 Der History-Test bleibt blockiert; als nächster Schritt ist die Ursache des
 generischen Exportfehlers offline zu untersuchen, statt weitere identische
 Geräte-Exporte oder einen Sync ohne aktuelles Backup zu starten.
+
+**Einzellauf nach GUI-Backup-Fix 2026-11-25, S10 Build 2218:** Mit
+Signaturkontinuität wurde ein frisches Vorher-Backup erstellt, lokal kopiert
+und validiert: Backup v11, 23 Manifest-Einträge, 1.938 verifizierte Originale
+(779.267 B; 37 FITs), keine Manifest-/Archivfehler. Danach genau einmal den
+manuellen CIRQA-History-Download bestätigt. Ein terminaler Bericht lag nach ca.
+75 s vor; kein Retry.
+
+Der Lauf wurde angenommen (`accepted=true`, `itemListSent=true`, `pullSent=true`)
+und meldete 4 Listenseiten, 27 ausgewählte / 27 erfolgreiche / 0 fehlgeschlagene
+Dateien (510.892 ausgewählte Bytes). Drei Transaktions-Folgeanfragen wurden
+gestellt; die letzte Antwort enthielt 0 Einträge. Terminalstatus:
+`runDrained=false`, `incompleteReason=next-transaction-followup-empty`,
+`coverage=device-history-unverified`. Daher ist keine vollständige Remote-Historie
+belegt. Der terminale Bericht wurde zunächst übersehen, weil der Status außerhalb
+des sichtbaren UI-Bereichs lag; die private Accessibility-Ausgabe bestätigt ihn.
+
+Anschließend wurde ein Nachher-Backup lokal gezogen und geprüft: v11, 23
+Manifest-Einträge, 2.177 verifizierte Originale (804.113 B; 37 FITs), keine
+Manifest-/Archivfehler. Gegenüber vorher: +239 Originale, +24.846 B, FIT-Anzahl
+unverändert. Die kanonischen FIT-Quellen, Provenienz und 29.123 Beobachtungen
+blieben unverändert; `import_runs` stieg um 1 und `observation_status_events`
+um 2. Diese lokalen Differenzen beweisen keine vollständige Geräteabdeckung.
+Keine Wiederholung/Retry; S10-Lease danach `FREI`.
