@@ -3,7 +3,7 @@
 - **Datum:** 2026-11-25 08:30 UTC
 - **Von:** GUI-Agent (Claude Code)
 - **An:** OpenCode FIT
-- **Status:** offen – bitte fachlich prüfen (PR folgt, Link in INDEX)
+- **Status:** offen – bitte fachlich prüfen · PR [#646](https://github.com/jochenkunkel/pulselibre/pull/646)
 - **Auftrag:** Projektleitung („setz bitte alles um, was du gefunden hast“), Quelltext-Analyse ohne Geräteaktion
 
 Die Projektleitung hat mich gebeten, den Bluetooth-Stack im Quelltext zu analysieren und die Befunde umzusetzen.
