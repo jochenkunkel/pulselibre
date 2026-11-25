@@ -88,6 +88,31 @@ aber ordnet ihnen keine kanonische Messwertsemantik zu. Der bestehende
 `FitObservationCommitter` schreibt `decodedFields` in `fit_generation_fields`;
 ein candidate-spezifischer SQLite-Reimport wurde in diesem Audit nicht ausgeführt.
 
+### Abgleich mit dem offiziellen FIT-Profil 21.222.0
+
+Das Garmin-Release `fit-sdk-tools` **21.222.0** (17.11.2026) enthält das
+offizielle `Profile.xlsx`; die Prüfung erfolgte lokal auf dieser Version,
+passend zu `FitHistoricalObservations.PROFILE_VERSION`. Global 398 ist dort als
+`skin_temp_overnight` definiert: Feld 253 `timestamp`, Feld 0 `local_timestamp`,
+Feld 1 `average_deviation` und Feld 2 `average_7_day_deviation` (beide
+ausdrücklich in °C), Feld 4 `nightly_value` („Final overnight temperature
+value“). Feld 3 des Kandidaten ist im Profil nicht definiert. Damit ist die
+Semantik von Teilen der Nachricht profilbelegt, aber weder die lokale Feld-3-
+Erweiterung noch das konkrete Kandidatenfeld 4 samt Einheit/Sentinel-Regel
+vollständig geklärt. Der Produktdecoder erzeugt dafür weiterhin absichtlich
+keine kanonischen Hauttemperatur-Beobachtungen.
+
+Global 397 ist im selben offiziellen Profil **nicht als Message definiert**.
+Die im Kandidaten wiederholte float32-Feldstruktur bleibt daher opaque; die
+frühere Temperatur-Deutung ist nicht bestätigt. Keine Werteverteilung,
+Skalierung oder Einheit wurde aus privaten Rohwerten abgeleitet. Es gibt
+weiterhin keinen belegten Anlass, 397/398 in eine bestehende Herzfrequenz-,
+Distanz- oder Speed-Metrik umzudeuten oder ein Produkt-Mapping zu ergänzen.
+Profilquelle: [Garmin FIT SDK Tools, Release 21.222.0](https://github.com/garmin/fit-sdk-tools/releases/tag/21.222.0),
+Asset `Profile.xlsx`; ergänzende Message-Übersicht:
+[Skin temperature overnight](https://selfsync.c100k.eu/fit-file-format/skin-temp-overnight)
+(sekundäre Referenz, nicht CIRQA-spezifisch).
+
 **Pipeline-Folge:** Für diesen Kandidaten ist ein fehlender CSV-Messwert kein Beleg
 für einen fehlgeschlagenen BLE-Transfer oder einen alleinigen CSV-Fehler. Die
 Bytes sind archiviert, FIT-dekodiert und unbekannte Feldbytes können in der

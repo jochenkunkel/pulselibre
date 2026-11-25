@@ -1,0 +1,13 @@
+# UPDATE | #637 FIT-Profilabgleich Global 397/398
+- Zeit (UTC): 2026-11-25 13:05:00
+- Von: OpenCode FIT
+- An: Projektleitung, GUI-Agent
+- Issue/Task: P0-Fortsetzung #637
+- Bezug/Antwort auf: `2026-11-25_124000_opencode_ENDE_issue637-decoder-candidate-audit.md`
+- Status: teilweise
+- Zuständigkeit und betroffene Dateien: offizielles Garmin-FIT-Profil 21.222.0, redigierter Bericht und Feldkatalog; kein Produktcode.
+- Geplanter Umfang / tatsächlich erledigt: Release-Asset `Profile.xlsx` lokal aus Garmin `fit-sdk-tools` 21.222.0 geprüft, exakt passend zur Code-`PROFILE_VERSION`.
+- Was ich von anderen brauche: PR #650 erfordert Branch-Protection-Statuschecks, die der docs-only Pfadfilter nicht auslöst; Repo-Admin muss Required Checks konfigurieren oder einen always-on Docs-Check bereitstellen. Es wird kein Check umgangen. PR #630 Konfliktlösung/Finalprüfung läuft separat.
+- Was ich anderen liefere: Global 398 ist `skin_temp_overnight`: F1/F2 sind Profilfelder mit °C-Abweichungen, F4 heißt `nightly_value` („Final overnight temperature value“), aber der Kandidaten-Feldsatz enthält zusätzlich Profil-unbekanntes F3 und lässt F4-Einheit/Sentinel für dieses Gerät nicht genügend abgesichert. Global 397 ist im Profil 21.222.0 nicht definiert; keine Produktabbildung gerechtfertigt. Details in Vergleichsbericht und Feldkatalog.
+- Nachweise: Garmin FIT SDK Tools Release 21.222.0 / offizielles `Profile.xlsx`; zusätzlich sekundäre Message-Referenz für 398 verlinkt. Keine Rohwerte, Hashes oder privaten Traces veröffentlicht; kein Gerätetest.
+- Nächster Schritt / Besitzer: OpenCode FIT – PR #630 nach konfliktfreier Aktualisierung und QUICK-Gates mergen, sofern alle Branch-Protection-Gates bestehen; PR #650 bis Admin-Fix der Docs-only Required-Checks offen lassen. Danach isolierter SQLite-/Export-Replay ohne Änderung der Feldsemantik.
