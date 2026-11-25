@@ -277,11 +277,11 @@ class MainActivity : AppCompatActivity() {
                 }
             }
             setOnLongClickListener {
-                androidx.appcompat.app.AlertDialog.Builder(this@MainActivity)
+                DialogProbe.track(androidx.appcompat.app.AlertDialog.Builder(this@MainActivity)
                     .setTitle(R.string.main_link_title)
                     .setMessage(CirqaLinkStatus.contentDescription(Strings.of(this@MainActivity), cirqaLink))
                     .setPositiveButton(R.string.action_close, null)
-                    .show()
+                    .create()).show()
                 true
             }
         }
