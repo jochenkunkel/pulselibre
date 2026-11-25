@@ -3233,9 +3233,9 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         syncTiming.start(archiveTimingKey, CirqaSyncTiming.Stage.ARCHIVE)
         try {
             val contentAlreadyPresent = CirqaSqliteBusyRetry.run {
-                CirqaDatabase(context).use {
-                    it.archiveDownloadedFile(data, item.referenceBytes, label, System.currentTimeMillis())
-                }
+                CirqaDatabase.archiveDownloadedOriginal(
+                    context, data, item.referenceBytes, label, System.currentTimeMillis()
+                )
             }
             syncCurrentLocalItemId?.let { localId ->
                 syncArchivedLocalIds.add(localId)

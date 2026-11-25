@@ -2135,6 +2135,17 @@ class CirqaDatabase(private val contextRef: Context) :
          */
         private val downloadedFileArchiveLock = Any()
 
+        /** Serialize helper creation through close, not only the inner archive transaction. */
+        fun archiveDownloadedOriginal(
+            context: Context,
+            bytes: ByteArray,
+            reference: ByteArray,
+            label: String,
+            at: Long
+        ): Boolean = synchronized(downloadedFileArchiveLock) {
+            CirqaDatabase(context).use { it.archiveDownloadedFile(bytes, reference, label, at) }
+        }
+
         /**
          * Every metric the FIT import stores as an untrusted review candidate ([FitObservationCommitter]). Reading,
          * restoring and validating a backup must accept exactly this set: until 25.11.2026 the restore checks only knew

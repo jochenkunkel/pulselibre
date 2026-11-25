@@ -76,9 +76,9 @@ class DownloadedFileArchiveTest {
             val writes = originals.mapIndexed { index, bytes ->
                 pool.submit {
                     check(start.await(5, TimeUnit.SECONDS))
-                    CirqaDatabase(context).use { database ->
-                        database.archiveDownloadedFile(bytes, byteArrayOf(index.toByte()), "fit", 2_000L + index)
-                    }
+                    CirqaDatabase.archiveDownloadedOriginal(
+                        context, bytes, byteArrayOf(index.toByte()), "fit", 2_000L + index
+                    )
                 }
             }
             start.countDown()
