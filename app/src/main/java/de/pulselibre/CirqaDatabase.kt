@@ -2118,7 +2118,8 @@ class CirqaDatabase(private val contextRef: Context) :
          */
         val FIT_REVIEW_CANDIDATE_METRICS: Set<String> = setOf(
             "spo2", "spo2_confidence", "spo2_measurement_mode", "stress", "respiration",
-            "sleep_level", "monitoring_cycles", "monitoring_activity_type"
+            "sleep_level", "monitoring_cycles", "monitoring_activity_type",
+            "skin_temperature_deviation", "skin_temperature_7_day_deviation"
         )
         private val keyFormat = java.time.format.DateTimeFormatterBuilder().appendInstant(9).toFormatter()
         internal fun timeKey(time: java.time.Instant): String = keyFormat.format(time)
