@@ -43,6 +43,8 @@ class MainActivity : AppCompatActivity() {
     private var dashboardPolling = false
     private var dashboardLastEventId = -1L
     private var dashboardLastRefreshAt = 0L
+    private var historyLastEventId = -1L
+    private var historyLastRefreshAt = 0L
     private val dashboardWorker = DashboardWorkerWatch.newDashboardWorker()
     private var historicalDownloadProbe: CirqaMlHandshakeProbe? = null
     private var historicalSyncStatusView: TextView? = null
@@ -92,11 +94,19 @@ class MainActivity : AppCompatActivity() {
                         pollInFlight = false
                         if (dashboardPolling && !destroyed && latest != null) {
                             val now = android.os.SystemClock.elapsedRealtime()
-                            if (latest != dashboardLastEventId || now - dashboardLastRefreshAt >= 30_000L) {
+                            // Live data arrives about every second: rebuilding every second kept the screen busy (battery,
+                            // TalkBack focus, uiautomator never idle). New data refreshes after a short minimum interval.
+                            if (dashboardVisible && LiveRefreshPolicy.due(latest != dashboardLastEventId,
+                                    now - dashboardLastRefreshAt, LiveRefreshPolicy.DASHBOARD_MIN_MS)) {
                                 dashboardLastEventId = latest
                                 dashboardLastRefreshAt = now
-                                if (dashboardVisible) dashboardRefresh?.invoke()
-                                if (historyVisible) historyRefresh?.invoke()
+                                dashboardRefresh?.invoke()
+                            }
+                            if (historyVisible && LiveRefreshPolicy.due(latest != historyLastEventId,
+                                    now - historyLastRefreshAt, LiveRefreshPolicy.HISTORY_MIN_MS)) {
+                                historyLastEventId = latest
+                                historyLastRefreshAt = now
+                                historyRefresh?.invoke()
                             }
                         }
                     }
