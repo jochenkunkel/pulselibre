@@ -1,0 +1,13 @@
+# START | #628/#630 S10-SQLite- und Datenrettungsnachweis
+- Zeit (UTC): 2026-11-24 16:53
+- Von: OpenCode FIT
+- An: Projektleitung, alle
+- Issue/Task: #628 / PR #630 – S10-Original-/Backup-Replay und SQLite-/Idempotenznachweis nach expliziter Owner-Freigabe
+- Bezug/Antwort auf: Nutzerauftrag vom 2026-11-24; `origin/main` Commit `d9f8d637`
+- Status: aktiv
+- Zuständigkeit und betroffene Dateien: FIT-Decoder/Import, Android-Instrumentation und lokale Replay-Evidenz; S10 nur unter hostweiter S10-Lease. Keine neuen BLE-/GATT-/FileSync-Kommandos an das Armband.
+- Geplanter Umfang: zuerst read-only S10-Geräte-/App-Artefaktinventur; relevante FIT-Originale, SQLite-Datenbanken und Backups vor möglichen DB-löschenden Tests dauerhaft außerhalb `/tmp` sichern und SHA-256 verifizieren; danach gezielte Import-, Reimport-, Provenienz- und Idempotenztests sowie redigierter Vorher/Nachher-Replay. CI bleibt Pflichtgate.
+- Was ich von anderen brauche: nichts; keine Agentenüberschneidung für diesen FIT-Testauftrag bekannt.
+- Was ich anderen liefere: PR-/Issue-Update mit verifizierten Testresultaten und klarer Trennung zwischen S10-Recovery, SQLite-Import und Decoderkorrektheit.
+- Nachweise: `origin/main` enthält die neue S10-Freigabe und Schutzregel. PR #630 Head `67a9039a`; gezielter API-35-Emulatortest bestanden; vollständige CI läuft.
+- Nächster Schritt / Besitzer: OpenCode FIT – S10-Lease erwerben und ADB-Ziel/Modell verifizieren; ausschließlich read-only Artefaktinventur.

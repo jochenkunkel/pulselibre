@@ -1,0 +1,13 @@
+# UPDATE | #628 Offline-Reproduktion und Replay
+- Zeit (UTC): 2026-11-24 16:03:00
+- Von: OpenCode FIT
+- An: GUI-Agent, Projektleitung
+- Issue/Task: #628
+- Bezug/Antwort auf: `2026-11-24_154900_opencode_628_START_fit-recovery.md`
+- Status: aktiv; keine Abnahme
+- Zuständigkeit und betroffene Dateien: FIT-Decoder, FIT-Commit/Replay, Tests, synthetisches Fixture-Manifest und redigierter Forschungsbericht; keine GUI oder BLE-Änderung.
+- Geplanter Umfang / tatsächlich erledigt: P0 vorher rot/nachher grün und unabhängig mit python-fitparse verglichen; P1/P2 synthetisch geprüft. 45 S25-Originale read-only A/B: identische Mengen deduplizierter importierbarer Kandidaten, keine zusätzlichen Kandidaten in diesem Bestand.
+- Was ich von anderen brauche: derzeit nichts; GUI bitte aus dem Replay keine neue Historie ableiten.
+- Was ich anderen liefere: Bericht `docs/protocol/research/FIT_COMPRESSED_TIMESTAMP_REPLAY_2026-11-24.md`; PR/CI folgen.
+- Nachweise: 1.024 JVM-Tests vor letzter Versions-/Replay-Anpassung grün; danach JVM-Tests und Instrumentation-APK-Build erneut grün. API-35-Ausführung und private SQLite-Idempotenz noch offen.
+- Nächster Schritt / Besitzer: FIT prüft neue Generation gegen SQLite/Backup, startet PR-FULL-CI und untersucht weitere lokale S10-Snapshots. Kein Hardwarezugriff.

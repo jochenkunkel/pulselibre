@@ -284,7 +284,9 @@ internal object FitObservationCommitter {
                     )
                 }
                 if (existingProvenance != null) {
-                    check(existingProvenance == StoredFitProvenance(
+                    // Retain the original decoder provenance for an unchanged sample.
+                    // A later generation may reproduce it without rewriting history.
+                    check(existingProvenance.copy(decoderVersion = decoderVersion) == StoredFitProvenance(
                         sampleId, record.deviceId, record.metric, record.measuredAtEpochMillis,
                         sourceSha256, observation.recordOrdinal, observation.globalMessageNumber,
                         observation.fieldNumber, observation.quality.name, decoderVersion

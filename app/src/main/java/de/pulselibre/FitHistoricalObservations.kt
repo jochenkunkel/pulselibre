@@ -13,10 +13,12 @@ import java.security.MessageDigest
  */
 object FitHistoricalObservations {
     private const val FIT_EPOCH_UNIX_SECONDS = 631_065_600L
+    private const val MIN_ABSOLUTE_FIT_TIME = 0x1000_0000L
+    private const val INVALID_FIT_TIME = 0xffff_ffffL
     const val MAX_OBSERVATIONS = 50_000
-    const val DECODER_VERSION = "2"
+    const val DECODER_VERSION = "3"
     /** Review candidates evolve independently from the trusted observation decoder. */
-    const val REVIEW_CANDIDATE_DECODER_VERSION = "2"
+    const val REVIEW_CANDIDATE_DECODER_VERSION = "3"
     const val PROFILE_VERSION = "21.222.0"
     const val MAX_DECODED_FIELDS = 1_000_000
     private const val GLOBAL_RECORD = 20
@@ -323,15 +325,8 @@ object FitHistoricalObservations {
             val localType = if (compressed) (headerByte ushr 5) and 0x03
                 else headerByte and 0x0f
             val definition = definitions[localType] ?: return null
-            val compressedTimestampField = if (compressed) {
-                definition.fields.firstOrNull {
-                    it.number == 253 && it.baseType and 0x1f == 6 && it.size == 4
-                } ?: return null
-            } else null
-
             val fieldBytes = LinkedHashMap<FieldDefinition, Int>()
             for (field in definition.fields) {
-                if (compressed && field == compressedTimestampField) continue
                 if (!requireBytes(field.size)) return null
                 fieldBytes[field] = cursor
                 val key = classify(definition.globalNumber, field)
@@ -353,6 +348,7 @@ object FitHistoricalObservations {
                 val delta = headerByte and 0x1f
                 var reconstructed = (old and -32L) + delta
                 if (reconstructed < old) reconstructed += 32
+                if (reconstructed >= INVALID_FIT_TIME) return null
                 reconstructed
             } else null
             val directTimestamp = if (!compressed) {
@@ -362,21 +358,27 @@ object FitHistoricalObservations {
                     readUnsigned32(file, it, timestampField.size, definition.bigEndian, timestampField)
                 }
             } else null
-            val timestamp16 = if (!compressed && directTimestamp == null)
+            // A relative FIT clock must not reuse an older absolute clock as its anchor.
+            if (directTimestamp != null && directTimestamp < MIN_ABSOLUTE_FIT_TIME) {
+                previousFitTimestamp = null
+            }
+            val timestamp16 = if (!compressed && (directTimestamp == null || directTimestamp == INVALID_FIT_TIME))
                 reconstructMonitoringTimestamp16(definition, fieldBytes, file, previousFitTimestamp)
             else null
-            val fitTimestamp = compressedTimestamp ?: directTimestamp ?: timestamp16
+            val fitTimestamp = compressedTimestamp
+                ?: directTimestamp?.takeIf { it != INVALID_FIT_TIME }
+                ?: timestamp16
             val timestampOrigin = when {
                 compressedTimestamp != null -> TimestampOrigin.RECONSTRUCTED_COMPRESSED
                 timestamp16 != null -> TimestampOrigin.RECONSTRUCTED_TS16
-                directTimestamp != null && directTimestamp != 0xffff_ffffL -> TimestampOrigin.DIRECT
+                directTimestamp != null && directTimestamp in MIN_ABSOLUTE_FIT_TIME until INVALID_FIT_TIME -> TimestampOrigin.DIRECT
                 else -> TimestampOrigin.UNKNOWN
             }
-            if (fitTimestamp != null && fitTimestamp != 0xffff_ffffL) {
+            if (fitTimestamp != null && fitTimestamp in MIN_ABSOLUTE_FIT_TIME until INVALID_FIT_TIME) {
                 previousFitTimestamp = fitTimestamp
             }
             val timestampMillis = fitTimestamp
-                ?.takeIf { it != 0xffff_ffffL }
+                ?.takeIf { it in MIN_ABSOLUTE_FIT_TIME until INVALID_FIT_TIME }
                 ?.let { (it + FIT_EPOCH_UNIX_SECONDS) * 1_000L }
 
             decodedRecordOrdinal++
@@ -398,7 +400,7 @@ object FitHistoricalObservations {
                     timestampOrigin = timestampOrigin
                 )
             }
-            if (compressed && compressedTimestampField != null) {
+            if (compressed) {
                 if (decodedFields.size >= MAX_DECODED_FIELDS) return null
                 decodedFields += DecodedField(
                     sourceFileSha256 = fileSha,
@@ -481,9 +483,13 @@ object FitHistoricalObservations {
                 else listOf(CandidateField(0, "stress_level_value", 0x83, 0x7fff, "profile_raw"))
                 val stressTime = if (definition.globalNumber == GLOBAL_STRESS_LEVEL)
                     fitDateTimeMillis(definition, fieldBytes, file) else null
-                val candidateTime = stressTime?.first ?: timestampMillis
+                val stressTimeRelative = definition.globalNumber == GLOBAL_STRESS_LEVEL &&
+                    definition.fields.firstOrNull { it.number == 1 && it.size == 4 && it.baseType and 0x1f == 6 }
+                        ?.let { field -> fieldBytes[field]?.let { readU32(file, it, definition.bigEndian) } }
+                        ?.let { it < MIN_ABSOLUTE_FIT_TIME } == true
+                val candidateTime = if (stressTimeRelative) null else stressTime?.first ?: timestampMillis
                 val candidateTimeOrigin = if (stressTime != null)
-                    TimestampOrigin.DIRECT else timestampOrigin
+                    TimestampOrigin.DIRECT else if (stressTimeRelative) TimestampOrigin.UNKNOWN else timestampOrigin
                 for (candidateField in candidateFields) {
                     val field = definition.fields.firstOrNull { it.number == candidateField.number }
                         ?: continue
@@ -771,7 +777,8 @@ object FitHistoricalObservations {
         val offset = fieldBytes[field] ?: return null
         val raw = readSupportedUnsigned(file, offset, field, definition.bigEndian, 4) ?: return null
         if (raw == invalidSentinel(field)) return null
-        return previous + ((raw - (previous and 0xffffL)) and 0xffffL)
+        return (previous + ((raw - (previous and 0xffffL)) and 0xffffL))
+            .takeIf { it < INVALID_FIT_TIME }
     }
 
     private fun readSupportedUnsigned(
@@ -839,7 +846,7 @@ object FitHistoricalObservations {
         if (field.baseType and 0x1f != 6) return null
         val offset = fieldBytes[field] ?: return null
         val seconds = readU32(file, offset, definition.bigEndian)
-        if (seconds == 0xffff_ffffL) return null
+        if (seconds !in MIN_ABSOLUTE_FIT_TIME until INVALID_FIT_TIME) return null
         return (seconds + FIT_EPOCH_UNIX_SECONDS) * 1_000L to TimestampOrigin.DIRECT
     }
 
