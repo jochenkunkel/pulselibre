@@ -1034,4 +1034,12 @@
     <string name="hsp_failed">Synchronization failed</string>
     <string name="hsp_files">%1$d of %2$d files</string>
     <string name="hsp_coverage_note">The band history is not proven complete: a finished run does not mean that every stored measurement was transferred.</string>
+    <string name="wear_button_cd">Open settings. CIRQA band: %1$s. Wear status: %2$s. Band battery (not phone): %3$s. Long press shows connection details.</string>
+    <string name="wear_worn">worn (respiration measured on the wrist)</string>
+    <string name="wear_not_worn">not worn (band reports: off wrist)</string>
+    <string name="wear_offline">unknown, band not connected</string>
+    <string name="wear_unknown">unknown, no current wear signal</string>
+    <string name="wear_battery_none">no current value</string>
+    <string name="wear_battery_value">%1$d %% (measured %2$s ago)</string>
+    <string name="wear_battery_low">, low</string>
 </resources>

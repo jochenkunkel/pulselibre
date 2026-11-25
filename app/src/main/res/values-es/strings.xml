@@ -1042,4 +1042,12 @@
     <string name="hsp_failed">Sincronización fallida</string>
     <string name="hsp_files">%1$d de %2$d archivos</string>
     <string name="hsp_coverage_note">No está demostrado que el historial de la pulsera esté completo: una ejecución terminada no significa que se haya transferido cada medición guardada.</string>
+    <string name="wear_button_cd">Abrir ajustes. Pulsera CIRQA: %1$s. Uso: %2$s. Batería de la pulsera (no del teléfono): %3$s. Una pulsación larga muestra los detalles de conexión.</string>
+    <string name="wear_worn">puesta (respiración medida en la muñeca)</string>
+    <string name="wear_not_worn">no puesta (la pulsera indica: fuera de la muñeca)</string>
+    <string name="wear_offline">desconocido, pulsera no conectada</string>
+    <string name="wear_unknown">desconocido, sin señal de uso actual</string>
+    <string name="wear_battery_none">sin valor actual</string>
+    <string name="wear_battery_value">%1$d %% (medido hace %2$s)</string>
+    <string name="wear_battery_low">, baja</string>
 </resources>
