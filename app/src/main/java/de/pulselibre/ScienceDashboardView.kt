@@ -31,15 +31,22 @@ internal class ScienceDashboardView(context: Context) : LinearLayout(context) {
     private val ranges = listOf(R.string.sd_r24 to 24L, R.string.sd_r7 to 168L, R.string.sd_r30 to 720L)
     private val specs = listOf(
         R.string.sd_hr_band to ScienceSeriesLoader.HEART_RATE_BAND,
+        R.string.sd_hr_band_activity to ScienceSeriesLoader.HEART_RATE_BAND_ACTIVITY,
         R.string.sd_distance_band to ScienceSeriesLoader.DISTANCE_BAND, R.string.sd_speed_band to ScienceSeriesLoader.SPEED_BAND,
         R.string.sd_hr_live to ScienceSeriesLoader.HEART_RATE_LIVE,
         R.string.sd_spo2 to ScienceSeriesLoader.SPO2_LIVE, R.string.sd_resp to ScienceSeriesLoader.RESPIRATION_LIVE,
         R.string.sd_stress to ScienceSeriesLoader.STRESS_LIVE)
 
+    /**
+     * Band cards and the FIT message kind they show (data source matrix, docs/product/ui/DATENQUELLEN_DIAGRAMME.md):
+     * all-day history (monitoring) and recorded activities (record) are separate cards; distance and speed exist only
+     * in activity records.
+     */
     private val fitMetrics = mapOf(
-        ScienceSeriesLoader.HEART_RATE_BAND.key to ScienceFitSeriesAdapter.Metric.HEART_RATE,
-        ScienceSeriesLoader.DISTANCE_BAND.key to ScienceFitSeriesAdapter.Metric.DISTANCE,
-        ScienceSeriesLoader.SPEED_BAND.key to ScienceFitSeriesAdapter.Metric.SPEED)
+        ScienceSeriesLoader.HEART_RATE_BAND.key to (ScienceFitSeriesAdapter.Metric.HEART_RATE to BandRecordKind.MONITORING),
+        ScienceSeriesLoader.HEART_RATE_BAND_ACTIVITY.key to (ScienceFitSeriesAdapter.Metric.HEART_RATE to BandRecordKind.ACTIVITY),
+        ScienceSeriesLoader.DISTANCE_BAND.key to (ScienceFitSeriesAdapter.Metric.DISTANCE to BandRecordKind.ACTIVITY),
+        ScienceSeriesLoader.SPEED_BAND.key to (ScienceFitSeriesAdapter.Metric.SPEED to BandRecordKind.ACTIVITY))
 
     init {
         orientation = VERTICAL; tag = "science_dashboard"
@@ -95,12 +102,18 @@ internal class ScienceDashboardView(context: Context) : LinearLayout(context) {
                     val unified = UnifiedMeasurements(db.writableDatabase)
                     unified.refresh()
                     val observations = HistoricalObservationRepository(context.applicationContext)
+                    // One read per FIT metric, shared by its all-day and activity cards.
+                    val fitRead = HashMap<ScienceFitSeriesAdapter.Metric, List<HistoricalObservation>>()
                     specs.map { (title, spec) ->
                         if (ticket != generation) throw java.util.concurrent.CancellationException("superseded")
-                        val fitMetric = fitMetrics[spec.key]
-                        val data = if (fitMetric != null) {
+                        val fit = fitMetrics[spec.key]
+                        val data = if (fit != null) {
                             // unified_measurements is a display projection without FIT quality or timestamp-origin fields.
-                            ScienceFitSeriesAdapter.readVerifiedSeries(observations, fitMetric, start, end + 1)
+                            val (metric, kind) = fit
+                            val rows = fitRead.getOrPut(metric) {
+                                ScienceFitSeriesAdapter.readVerifiedObservations(observations, metric, start, end + 1)
+                            }
+                            ScienceFitSeriesAdapter.verifiedSeries(metric, rows, start, end + 1, kind)
                         } else {
                             ScienceSeriesLoader.load(db.readableDatabase, spec, start, end)
                         }

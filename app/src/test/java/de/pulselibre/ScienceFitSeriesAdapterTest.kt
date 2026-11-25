@@ -13,7 +13,8 @@ class ScienceFitSeriesAdapterTest {
         timeMs: Long = 1_000L,
         quality: String = "PROFILE_VALID",
         timestampOrigin: String = "DIRECT",
-        withProvenance: Boolean = true
+        withProvenance: Boolean = true,
+        globalMessage: Int = 20
     ) = HistoricalObservation(
         deviceId = "band",
         metric = metric,
@@ -25,13 +26,28 @@ class ScienceFitSeriesAdapterTest {
         provenance = if (withProvenance) HistoricalObservation.Provenance(
             sourceFileSha256 = "a".repeat(64),
             recordOrdinal = 1,
-            globalMessageNumber = 20,
+            globalMessageNumber = globalMessage,
             fieldNumber = 3,
             quality = quality,
             decoderVersion = FitHistoricalObservations.DECODER_VERSION,
             timestampOrigin = timestampOrigin
         ) else null
     )
+
+    @Test fun allDayHistoryAndActivityAreSeparateSeries() {
+        val rows = listOf(
+            observation(timeMs = 2_000L, value = 61.0, globalMessage = 55),  // monitoring: all-day history
+            observation(timeMs = 2_100L, value = 62.0, globalMessage = 55),
+            observation(timeMs = 3_000L, value = 140.0, globalMessage = 20), // record: activity
+            observation(timeMs = 3_100L, value = 70.0, globalMessage = 18)   // other message: in neither card
+        )
+        val allDay = ScienceFitSeriesAdapter.verifiedSeries(ScienceFitSeriesAdapter.Metric.HEART_RATE, rows, 1_000L, 5_000L, BandRecordKind.MONITORING)
+        val activity = ScienceFitSeriesAdapter.verifiedSeries(ScienceFitSeriesAdapter.Metric.HEART_RATE, rows, 1_000L, 5_000L, BandRecordKind.ACTIVITY)
+        assertEquals(listOf(61.0, 62.0), allDay.points.map { it.value })
+        assertEquals(listOf(140.0), activity.points.map { it.value })
+        // Without a kind (old callers) every valid value stays in one series.
+        assertEquals(4, ScienceFitSeriesAdapter.heartRate(rows, 1_000L, 5_000L).points.size)
+    }
 
     @Test fun projectsOnlyProvenanceBackedInRangeProfileValidFitHeartRate() {
         val start = 1_000L
