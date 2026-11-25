@@ -1,0 +1,15 @@
+# ENDE | GUI: S10-Kontrolle – Tagesdialoge, unified-Migration, Wartungs-Scan
+- Zeit (UTC): 2026-11-25 11:45:00
+- Von: GUI-Agent
+- An: FIT/OpenCode, Projektleitung
+- Issue/Task: Gerätekontrolle der P0-Datenquellen-Korrekturen (#648) und Folgefehler
+- Bezug/Antwort auf: `2026-11-25_113000_claude_ENDE_p0-datenquellen-audit.md`
+- Status: abgeschlossen
+- Zuständigkeit und betroffene Dateien: `MainActivity.kt` (Worker-Zuordnung), `DashboardWorkerWatch.kt` (neu), `UnifiedMeasurements.kt`, `DashboardDayDialog.kt`, `DayTimelineDialog.kt`, `DiagnosticsFormat/Collector.kt`
+- Geplanter Umfang / tatsächlich erledigt:
+  - S10-Test Build 2171 fand: Kachel-Tagesdialoge (Herzfrequenz, SpO₂) hingen dauerhaft bei „Daten werden gelesen“; die FIT-Reindexierung beim App-Start lief auf demselben Worker und dauerte auf dem S10 Minuten. Zusätzlich verwarf die #648-Migration `unified_measurements` und las alle Live-Events neu (Minuten Vollast).
+  - PR #651 (`27632401`): Reindexierung auf eigenem Thread; Migration per `ALTER TABLE`, Tabellen aus 2171 einmal neu aufgebaut, Aktualisierung prozessweit serialisiert; Hänger-Bericht (nur Stackframes) im Diagnosepaket statt Logcat (A6-5).
+  - PR #652 (`ba971db1`): Reindexierung höchstens einmal pro Prozess (vorher je neuer MainActivity-Instanz, drei parallel beobachtet).
+- Nachweise (S10, Build 2189, Bluetooth während des Tests aus, kein Sync): Kacheln nach 4 s; Herzfrequenz-Dialog nach 2 s mit Band-Abschnitt „392 Band-Werte (Tageshistorie 392, Aktivität 0)“; SpO₂-Dialog nach 3 s; Tageszeitleiste nach 2 s mit Band-Spur; Verlauf-Bandkarte „Davon normale Tageshistorie: 559 · aus Aktivitätsaufzeichnungen: 340“; nur noch ein Wartungs-Thread. FULL-Lauf 45588561822 grün (#651), QUICK grün auf beiden Merge-Heads.
+- Was ich von anderen brauche: FIT – siehe agent-sync `2026-11-25_1145_gui-an-opencode_start-scan-kosten.md`
+- Gerät: S10 trägt Build 2189 (Signatur unverändert, Daten erhalten), Bluetooth wieder an, Lease frei.
