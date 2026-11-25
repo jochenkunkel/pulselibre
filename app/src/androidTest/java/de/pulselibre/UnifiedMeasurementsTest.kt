@@ -124,8 +124,8 @@ class UnifiedMeasurementsTest {
             for (sql in listOf("CREATE TABLE events(id INTEGER PRIMARY KEY AUTOINCREMENT, kind TEXT NOT NULL, payload_json TEXT NOT NULL)",
                     "CREATE TABLE observations(device_id TEXT NOT NULL, metric TEXT NOT NULL, measured_at_ms INTEGER NOT NULL, value REAL NOT NULL, unit TEXT NOT NULL, sample_id TEXT NOT NULL DEFAULT '', received_at_ms INTEGER, PRIMARY KEY(device_id, metric, measured_at_ms, sample_id))",
                     "CREATE TABLE fit_observation_provenance(sample_id TEXT PRIMARY KEY NOT NULL)",
-                    "CREATE TABLE fit_generation_observations(generation_id TEXT NOT NULL, sample_id TEXT NOT NULL, device_id TEXT NOT NULL, metric TEXT NOT NULL, measured_at_ms INTEGER NOT NULL, value REAL NOT NULL, unit TEXT NOT NULL, received_at_ms INTEGER, global_message_number INTEGER NOT NULL DEFAULT 55, PRIMARY KEY(generation_id, sample_id))",
-                    "CREATE TABLE fit_active_generations(generation_id TEXT PRIMARY KEY NOT NULL)",
+                    "CREATE TABLE fit_generation_observations(generation_id TEXT NOT NULL, sample_id TEXT NOT NULL, device_id TEXT NOT NULL, metric TEXT NOT NULL, measured_at_ms INTEGER NOT NULL, value REAL NOT NULL, unit TEXT NOT NULL, received_at_ms INTEGER, global_message_number INTEGER NOT NULL DEFAULT 55, timestamp_origin TEXT NOT NULL DEFAULT 'DIRECT', PRIMARY KEY(generation_id, sample_id))",
+                    "CREATE TABLE fit_active_generations(source_sha256 TEXT PRIMARY KEY NOT NULL, generation_id TEXT NOT NULL UNIQUE)",
                     "CREATE TABLE fit_decoder_generations(generation_id TEXT PRIMARY KEY NOT NULL, output_count INTEGER NOT NULL)")) file.execSQL(sql)
         } finally { file.close() }
         val copy = SQLiteDatabase.openOrCreateDatabase(path, null)
