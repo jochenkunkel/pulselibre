@@ -30,6 +30,15 @@ internal class WearableStatusButton(context: Context) : View(context) {
         set(value) { field = value; requestLayout(); invalidate() }
 
     private val density = resources.displayMetrics.density
+    /**
+     * The SVG colours are made for the light theme (light pill on the violet header). In the dark theme a light pill
+     * was a glaring grey patch on the dark header: there the pill uses the app's tinted surface, ink and accent.
+     */
+    private val dark = AppPalette.of(context).dark
+    private val ink = if (dark) AppPalette(true).ink else INK
+    private val muted = if (dark) AppPalette(true).muted else MUTED
+    private val divider = if (dark) DARK_DIVIDER else DIVIDER
+    private val batteryFill = if (dark) AppPalette(true).accent else BATTERY
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
     /** Sized in design units: the canvas is scaled to the view height (48 units). */
     private val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { typeface = Typeface.DEFAULT_BOLD; textSize = 15f }
@@ -71,14 +80,20 @@ internal class WearableStatusButton(context: Context) : View(context) {
         val s = height / 48f
         canvas.save()
         canvas.scale(s, s)
-        val colors = COLORS.getValue(state)
+        val colors = (if (dark) DARK_COLORS else COLORS).getValue(state)
         paint.style = Paint.Style.FILL
         paint.color = colors.background
         rect.set(0f, 0f, designWidth, 48f); canvas.drawRoundRect(rect, 24f, 24f, paint)
-        stroke(INK, 2.6f)
+        if (dark) {
+            // Thin outline in the state colour keeps the pill readable against the dark header.
+            stroke(colors.status, 1.2f); paint.alpha = 150
+            rect.set(0.6f, 0.6f, designWidth - 0.6f, 47.4f); canvas.drawRoundRect(rect, 23.4f, 23.4f, paint)
+            paint.alpha = 255
+        }
+        stroke(ink, 2.6f)
         if (!compact) {
             rect.set(13f, 9f, 30f, 39f); canvas.drawRoundRect(rect, 7f, 7f, paint)
-            stroke(INK, 1.5f); canvas.drawLine(18f, 13f, 25f, 13f, paint); canvas.drawLine(18f, 35f, 25f, 35f, paint)
+            stroke(ink, 1.5f); canvas.drawLine(18f, 13f, 25f, 13f, paint); canvas.drawLine(18f, 35f, 25f, 35f, paint)
         }
         canvas.save(); canvas.translate(statusDx, 0f)
         paint.style = Paint.Style.FILL; paint.color = colors.status
@@ -87,21 +102,21 @@ internal class WearableStatusButton(context: Context) : View(context) {
         canvas.restore()
         canvas.save(); canvas.translate(batteryDx, 0f)
         // Battery outline, fill proportional to the real percentage, or a dash without a value.
-        stroke(INK, 2f)
+        stroke(ink, 2f)
         rect.set(61f, 17f, 82f, 31f); canvas.drawRoundRect(rect, 2f, 2f, paint)
-        stroke(INK, 3f); canvas.drawLine(83f, 21f, 83f, 27f, paint)
+        stroke(ink, 3f); canvas.drawLine(83f, 21f, 83f, 27f, paint)
         val percent = batteryPercent
         if (percent != null) {
             paint.style = Paint.Style.FILL
-            paint.color = if (batteryStale) MUTED else if (WearableStatus.isLow(percent)) LOW else BATTERY
+            paint.color = if (batteryStale) muted else if (WearableStatus.isLow(percent)) LOW else batteryFill
             rect.set(64f, 20f, 64f + 15f * percent / 100f, 28f); canvas.drawRoundRect(rect, 1f, 1f, paint)
         } else {
-            stroke(MUTED, 2f); canvas.drawLine(66f, 24f, 78f, 24f, paint)
+            stroke(muted, 2f); canvas.drawLine(66f, 24f, 78f, 24f, paint)
         }
-        textPaint.color = if (batteryStale) MUTED else INK
+        textPaint.color = if (batteryStale) muted else ink
         canvas.drawText(percent?.let { "$it%" } ?: "–", 90f, 30f, textPaint)
         canvas.restore()
-        stroke(DIVIDER, 1.5f); canvas.drawLine(dividerX, 12f, dividerX, 36f, paint)
+        stroke(divider, 1.5f); canvas.drawLine(dividerX, 12f, dividerX, 36f, paint)
         drawGear(canvas, gearX, 24f)
         canvas.restore()
     }
@@ -131,7 +146,7 @@ internal class WearableStatusButton(context: Context) : View(context) {
     }
 
     private fun drawGear(canvas: Canvas, cx: Float, cy: Float) {
-        stroke(INK, 2.2f)
+        stroke(ink, 2.2f)
         canvas.drawCircle(cx, cy, 6.5f, paint)
         canvas.drawCircle(cx, cy, 3f, paint)
         for (i in 0 until 8) {
@@ -145,7 +160,7 @@ internal class WearableStatusButton(context: Context) : View(context) {
         paint.style = Paint.Style.STROKE; paint.color = color; paint.strokeWidth = width
     }
 
-    private data class Colors(val background: Int, val status: Int)
+    internal data class Colors(val background: Int, val status: Int)
 
     companion object {
         const val TAG = "wearable_status_button"
@@ -159,6 +174,14 @@ internal class WearableStatusButton(context: Context) : View(context) {
             WearState.NOT_WORN to Colors(0xFFFFF2D4.toInt(), 0xFFE69B00.toInt()),
             WearState.OFFLINE to Colors(0xFFECEBF2.toInt(), 0xFF8990A0.toInt()),
             WearState.UNKNOWN to Colors(0xFFEEE3FF.toInt(), 0xFF7450A8.toInt())
+        )
+        private val DARK_DIVIDER = 0xFF4A3F6B.toInt()
+        /** Dark theme: the app's tinted surface (AppPalette.tinted) for every state, brighter status colours. */
+        internal val DARK_COLORS = mapOf(
+            WearState.WORN to Colors(0xFF2B2443.toInt(), 0xFF34A84A.toInt()),
+            WearState.NOT_WORN to Colors(0xFF2B2443.toInt(), 0xFFE69B00.toInt()),
+            WearState.OFFLINE to Colors(0xFF2B2443.toInt(), 0xFF6E7487.toInt()),
+            WearState.UNKNOWN to Colors(0xFF2B2443.toInt(), 0xFF8A63C9.toInt())
         )
     }
 }
