@@ -25,7 +25,8 @@ class UnifiedMeasurementsTest {
         db.execSQL("CREATE TABLE fit_observation_provenance(sample_id TEXT PRIMARY KEY NOT NULL)")
         db.execSQL("""CREATE TABLE fit_generation_observations(generation_id TEXT NOT NULL, sample_id TEXT NOT NULL,
             device_id TEXT NOT NULL, metric TEXT NOT NULL, measured_at_ms INTEGER NOT NULL, value REAL NOT NULL,
-            unit TEXT NOT NULL, received_at_ms INTEGER, PRIMARY KEY(generation_id, sample_id))""")
+            unit TEXT NOT NULL, received_at_ms INTEGER, global_message_number INTEGER NOT NULL DEFAULT 55,
+            PRIMARY KEY(generation_id, sample_id))""")
         db.execSQL("CREATE TABLE fit_active_generations(generation_id TEXT PRIMARY KEY NOT NULL)")
         db.execSQL("CREATE TABLE fit_decoder_generations(generation_id TEXT PRIMARY KEY NOT NULL, output_count INTEGER NOT NULL)")
     }
@@ -35,11 +36,39 @@ class UnifiedMeasurementsTest {
     private fun live(bpm: Int, ms: Long) = db.execSQL("INSERT INTO events(kind, payload_json) VALUES('reading', ?)",
         arrayOf("""{"schema":1,"type":"reading","service":6,"received_at_utc":"${java.time.Instant.ofEpochMilli(ms)}","bpm":$bpm}"""))
 
-    private fun band(id: String, value: Double, ms: Long, generation: String = "g1") {
+    private fun band(id: String, value: Double, ms: Long, generation: String = "g1", message: Int = 55) {
         db.execSQL("INSERT OR IGNORE INTO fit_decoder_generations VALUES(?, 0)", arrayOf(generation))
         db.execSQL("INSERT OR IGNORE INTO fit_active_generations VALUES(?)", arrayOf(generation))
-        db.execSQL("INSERT INTO fit_generation_observations VALUES(?, ?, 'fit', 'heart_rate', ?, ?, 'bpm', NULL)",
-            arrayOf<Any>(generation, id, ms, value))
+        db.execSQL("INSERT INTO fit_generation_observations VALUES(?, ?, 'fit', 'heart_rate', ?, ?, 'bpm', NULL, ?)",
+            arrayOf<Any>(generation, id, ms, value, message))
+    }
+
+    @Test fun normalHistoryAndActivityStayDistinguishable() {
+        band("m1", 60.0, t0 + 1000, message = 55); band("m2", 61.0, t0 + 2000, message = 55)
+        band("a1", 140.0, t0 + 3000, message = 20); band("x1", 70.0, t0 + 4000, message = 999)
+        val unified = UnifiedMeasurements(db)
+        unified.refresh()
+        val kinds = unified.bandKindCounts("heart_rate", t0, t0 + day)
+        assertEquals(2, kinds[BandRecordKind.MONITORING]); assertEquals(1, kinds[BandRecordKind.ACTIVITY])
+        assertEquals(1, kinds[BandRecordKind.OTHER])
+        // An activity alone is no normal history: nothing of it may be counted as monitoring.
+        assertEquals(mapOf(BandRecordKind.ACTIVITY to 1), unified.bandKindCounts("heart_rate", t0 + 2500, t0 + 3500))
+    }
+
+    @Test fun derivedTableWithoutMessageKindIsRebuilt() {
+        // A copy from before `fit_message`: dropped and rebuilt, nothing from the old copy survives.
+        db.execSQL("""CREATE TABLE unified_measurements(origin TEXT NOT NULL, device_id TEXT NOT NULL, metric TEXT NOT NULL,
+            measured_at_ms INTEGER NOT NULL, value REAL NOT NULL, unit TEXT NOT NULL, sample_id TEXT NOT NULL DEFAULT '',
+            received_at_ms INTEGER, PRIMARY KEY(origin, device_id, metric, measured_at_ms, sample_id)) WITHOUT ROWID""")
+        db.execSQL("INSERT INTO unified_measurements VALUES('band', 'fit', 'heart_rate', ?, 99, 'bpm', 'stale', NULL)", arrayOf<Any>(t0 + 10))
+        db.execSQL("CREATE TABLE unified_state(key TEXT PRIMARY KEY NOT NULL, value TEXT NOT NULL)")
+        db.execSQL("INSERT INTO unified_state VALUES('historical_signature', '0,0,0,0,0')")
+        band("m1", 60.0, t0 + 1000, message = 55)
+        val unified = UnifiedMeasurements(db)
+        unified.refresh()
+        val rows = unified.points(MeasurementOrigin.BAND, "heart_rate", t0, t0 + day)
+        assertEquals(listOf(60.0), rows.map { it.second })
+        assertEquals(mapOf(BandRecordKind.MONITORING to 1), unified.bandKindCounts("heart_rate", t0, t0 + day))
     }
 
     @Test fun liveBandAndImportSitInOneTableWithSeparateOrigins() {
@@ -158,7 +187,7 @@ class ScienceSeriesLoaderTest {
     @After fun close() = db.close()
 
     private fun put(origin: String, metric: String, unit: String, ms: Long, value: Double, id: String) =
-        db.execSQL("INSERT INTO unified_measurements VALUES(?, 'd', ?, ?, ?, ?, ?, NULL)", arrayOf<Any>(origin, metric, ms, value, unit, id))
+        db.execSQL("INSERT INTO unified_measurements VALUES(?, 'd', ?, ?, ?, ?, ?, NULL, NULL)", arrayOf<Any>(origin, metric, ms, value, unit, id))
 
     @Test fun heartRateIsBucketedAndZeroIsInvalidNotAValue() {
         put("band", "heart_rate", "bpm", t0 + 1_000, 60.0, "a"); put("band", "heart_rate", "bpm", t0 + 2_000, 80.0, "b")

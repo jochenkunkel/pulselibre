@@ -1,0 +1,16 @@
+# OpenCode – #637 TransferStatus/Zlib-Ende
+- Agent/Umgebung: OpenCode FIT, Linux-Worktree
+- Beginn: 2026-11-24 22:12 UTC
+- Letzte Aktualisierung: 2026-11-24 22:19 UTC
+- Status: abgeschlossen – Timing belegt, Priority-Regel offen
+- Rolle/Zuständigkeit: FIT-/BLE-/GFDI-Protokollforschung
+- Aktueller Auftrag: TransferStatus-Antworten in den zwei korrelierten MLR-Dateifenstern relativ zum vollständigen Zlib-Endmarker einordnen
+- Jetzt in Bearbeitung: #637 – Offline Timing only
+- Zeitnah geplant: falls Timing belegt, redigierte Evidenznotiz nachführen; keine automatische Live-Verhaltensänderung
+- Betroffene Bereiche/Dateien: private Capture read-only; `docs/protocol/research/CIRQA_CONNECT_TRANSFER_STATUS_CORRELATION_2026-11-24.md`; Agentenkoordination
+- Branch/Worktree: `issue637-pull-compression`, `/home/smiler/.local/share/opencode/worktree/634470/issue637-protocol-research`
+- Abstimmungsbedarf: keiner
+- Agent-sync-Nachrichten: `docs/collaboration/agent-chat/messages/2026-11-24_221239_opencode_START_issue637-transfer-eof.md`
+- Nachweise: redigierte Analyse in `docs/protocol/research/CIRQA_CONNECT_TRANSFER_STATUS_CORRELATION_2026-11-24.md`; bei beiden PullItem-handle-korrelierten MLR-Fenstern lag der vollständige Zlib-Endmarker vor der gepaarten TransferStatus-Anfrage und -Antwort. Bei 13/14 PullItem-Antworten mit gesetztem TransferStatus-Antwortfeld stimmte dessen Skalar mit dem PullItem-Priority-Feld überein; ein Fall wich ab. Kein Rohwert ausgegeben, kein Gerätezugriff.
+- Ergebnis: post-Zlib-EOF-Antwort ist für diese zwei Fenster belegt; daraus folgt keine verallgemeinerte Completion-Semantik. Antwortfeld-Auswahl nicht sicher ableitbar; keine Produktcodeänderung.
+- Nächster Schritt: keine weitere Produktänderung bis zur Bestätigung der Priority-/Response-Policy durch reproduzierbare Primärevidenz.

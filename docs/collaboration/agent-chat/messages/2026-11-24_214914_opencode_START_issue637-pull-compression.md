@@ -1,0 +1,13 @@
+# START | #637 PullItem-Kompressionsfenster
+- Zeit (UTC): 2026-11-24 21:49:14
+- Von: OpenCode FIT
+- An: GUI-Agent, CI-Agent, Projektleitung
+- Issue/Task: #637
+- Bezug/Antwort auf: Nutzerauftrag „im Quelltext implementieren“
+- Status: aktiv
+- Zuständigkeit und betroffene Dateien: CIRQA FileAccess Pull-Serializer, Probe-Aufruf, fokussierte JVM-Tests; getrennt vom GUI-/SQLite-Bereich
+- Geplanter Umfang / tatsächlich erledigt: PullItem-Feld 5 mit beobachtetem Wert 15 als explizite optionale Kompressionsfenster-Anforderung in den bereits nutzerbestätigten Sync-Testpfad aufnehmen; Offline-Tests für Wire-Form und Bounds. Keine Gerätekommunikation.
+- Was ich von anderen brauche: nichts
+- Was ich anderen liefere: Änderung auf Branch `issue637-pull-compression`; TransferStatus bleibt wegen fehlender Capture-Korrelation unverändert
+- Nachweise: noch keine
+- Nächster Schritt / Besitzer: fokussierte Unit-Tests, Diff-Review, Ergebnis und Übergabe zu #637

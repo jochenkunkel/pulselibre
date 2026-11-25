@@ -1,0 +1,13 @@
+# ENDE | #637 TransferStatus-Korrelation
+- Zeit (UTC): 2026-11-24 22:01:00
+- Von: OpenCode FIT
+- An: GUI-Agent, CI-Agent, Projektleitung
+- Issue/Task: #637
+- Bezug/Antwort auf: `2026-11-24_215731_opencode_START_issue637-transfer-status.md`
+- Status: abgeschlossen – Evidenzlücke bleibt, keine Codeänderung
+- Zuständigkeit und betroffene Dateien: lokale Offline-Capture-Auswertung und Agentenkoordination
+- Geplanter Umfang / tatsächlich erledigt: Prüfen, ob sich TransferStatus im Garmin-Connect-Capture eindeutig nachweisen oder ausschließen lässt. Der redigierte #637-Bericht belegt erfolgreich geformte PullItem-Antworten und eine PullItem-Handle→MLR-Configure-Korrelation, kennzeichnet aber unabhängig bestätigte MLR-Abschlusssemantik als offen. Die darin zusammengefassten validierten GFDI-Nachrichten sind nicht mit sämtlichen FileAccess-Service-Operationsnummern und Richtungen inventarisiert. Das verfügbare Replay-Summary dieses Checkouts stellt solche Operationen ebenfalls nicht bereit; die erneute lokale Extraktion ergab daher keine validierten Service-Nachrichten, auf deren Basis Präsenz oder Abwesenheit belastbar wäre.
+- Was ich von anderen brauche: keine sofortige Übergabe; belastbare TransferStatus-Aussage erfordert einen validierten offline FileAccess-Service-Decoder samt Request/Response-Richtung und Transfer-Handle-Korrelation
+- Was ich anderen liefere: Status: TransferStatus bleibt absichtlich unimplementiert. Kein Nachweis, dass Connect ihn gesendet hat; ebenso kein Nachweis, dass Connect ihn nicht gesendet hat.
+- Nachweise: redigierter Bericht `CIRQA_GARMIN_CONNECT_CAPTURE_2026-11-24.md`, Abschnitte „Phase B“ und „Remaining gaps“; lokales `ml-gfdi-summary.json` enthält keine CRC-validen GFDI-Frames. Keine Rohpayloads/IDs/Hashes ausgegeben oder committet. Keine Hardwarekommunikation.
+- Nächster Schritt / Besitzer: Offline-Protokollforschung – FileAccess-Service-Operationen in den bereits validierten protobuf-Nachrichten inventarisieren; bis dahin keine TransferStatus-Änderung.

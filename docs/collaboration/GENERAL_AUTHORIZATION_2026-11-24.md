@@ -2,13 +2,29 @@
 
 **Entscheidung der Projektleitung:** Agenten sollen nicht mehr für jede Einzelmaßnahme beim Owner nachfragen. Eine **Generalfreigabe ist erteilt.** Sie gilt für alle aktiven Agenten (FIT/OpenCode, GUI, CI im Rahmen seiner Monitor-Rolle) und bleibt bis zum ausdrücklichen Widerruf des Owners in Kraft.
 
+## Owner-Entscheidung 25.11.2026 – Protokollautonomie und Testphase
+
+**Owner-Entscheidung 25.11.2026:** FIT/OpenCode fragt den Owner **nie wegen neuer BLE-/GATT-/MLR-/GFDI-/FileSync-Kommandos** um Einzelfreigabe. Neue Protokollkommandos und begrenzte Tests am dedizierten CIRQA-Testarmband sind grundsätzlich autorisiert. FIT dokumentiert erwartete Wirkung, Payload, Stop-Bedingungen und Ergebnisse; bei unbekannter Wirkung zuerst Offline-Analyse und kleinsten kontrollierten Versuch. Keine unkontrollierte Dauerlast oder destruktiven Eingriffe (Reset, Firmware, Entkoppeln, Löschen, Archive, SetFlags, CLOSE_ALL) ohne gesonderte Entscheidung. Geräte-Lease, Backup- und Signaturkontinuität bleiben. **Kein FULL-CI als Gate für einen Merge nach `main`, unabhängig vom Änderungstyp**; erforderliches QUICK, relevante Dependency-Checks und FIT-Self-Review genügen. FULL läuft nachts und vor Release, sonst optional. Nach Owner-Angabe sind S10 und CIRQA ausschließlich Testgeräte ohne bislang produzierte private Gesundheitsdaten; interne Testdatenanalyse braucht keine Datenschutz-Einzelfreigabe. Öffentliche Veröffentlichung von Secrets, Pairing-Material, Gerätekennungen und ungeprüften Traces bleibt untersagt; bei späteren echten Personendaten neu bewerten.
+
+## Ergänzung des Owners vom 25.11.2026 – FIT-Selbstfreigabe und App-Start
+- FIT/OpenCode darf den automatischen History-Download beim App-Start abschalten. Ziel ist ein kontrollierter, explizit ausgelöster manueller Download statt unbeabsichtigter BLE-Synchronisierung bei Installation, Start und Tests. Manueller Download muss erhalten bleiben und wird bei kontrollierten Tests **von FIT selbst über UI/ADB unter S10-Lease** ausgelöst; keine einzelne Rückfrage an den Owner für jeden manuellen Lauf. Änderungen sind mit zielgerichteten Tests zu sichern.
+- Für FIT-eigene Änderungen entfällt die verpflichtende Freigabe durch einen zweiten Agenten. FIT führt ein dokumentiertes Self-Review durch und darf nach **grünen verpflichtenden GitHub-CI- und Dependency-Gates** eigenständig nach `main` mergen. Unabhängiges Review bleibt optional und kann bei konkreten Risiken angefordert werden; keine Pflichtwartezeit.
+- Technisch durchgesetzte GitHub-Branch-Protection darf nicht umgangen werden. Falls sie ein fremdes Review zwingend fordert, muss die Repository-Regel auf legitimem Weg angepasst oder das Gate erfüllt werden; keine Umgehung durch Admin-Bypass.
+- Unverändert: S10/S25-Leases, Gerätesicherheit, Backup/Restore-Schutz, APK-Signaturkontinuität, Schutz vor Veröffentlichung von Geheimnissen und künftig echten Personendaten sowie ausdrückliche Freigaben für destruktive Aktionen.
+- Diese Owner-Entscheidung ersetzt widersprechende ältere Vorgaben über FIT-Zweitreview und vorbehaltene Entscheidungen zur Deaktivierung des App-Start-Auto-Syncs.
+
 ## Was das bedeutet
 - **Keine Einzelrückfrage** für fachliche, technische und organisatorische Entscheidungen innerhalb der zugewiesenen Zuständigkeit: Umsetzung, Refactoring, Limit-/Timeout-/Budgetänderungen, Tests, Merges nach erfüllten Qualitätsgates, Geräteläufe im Rahmen der Lease-Regeln, Anpassung von Dokumentation und Prozessen.
 - Der Agent entscheidet, setzt um und **meldet danach** (START/ENDE im Agenten-Chat, `agent-sync`, PR-Beschreibung). Der Owner wird nur bei den unten genannten Ausnahmen oder bei einer echten, nicht selbst lösbaren Entscheidung gefragt.
 - Frühere Formulierungen in Dokumenten wie „nur mit ausdrücklicher Freigabe des Owners", „Einzelentscheidung bleibt erforderlich" oder „Freigabe abwarten" gelten **für alles außerhalb der Ausnahmen** nicht mehr. Historische Berichte bleiben als datierte Evidenz unverändert.
 
+## CI-Performance-Entscheidung des Owners (25.11.2026)
+- Keine 15-Minuten-FULL-Pflicht für jeden Commit oder PR; automatisches QUICK als Standard, nächtliches FULL und explizites FULL vor Release. FULL ist vor keinem Merge erforderlich; bei Hochrisikoänderungen gezielte Tests nach FIT-Ermessen.
+- FIT darf nach grünen erforderlichen QUICK-/Dependency-Checks selbstständig mergen; kein zweites Agenten-Review, keine zusätzliche Owner-Freigabe, keine künstliche Wartefrist. CI-Fehler bleiben echte Blocker für die jeweils erforderlichen Checks.
+- Historische Gate-Texte sind nach dieser neueren Owner-Entscheidung auszulegen; technisch konfigurierte GitHub-Schutzregeln sind regulär anzupassen, nicht zu umgehen.
+
 ## Was unverändert bleibt (keine Freigabe, sondern Qualitäts- und Koordinationsregeln)
-- FULL/API-35, Dependency Review und die weiteren Qualitätsgates; **niemand gibt eigene Änderungen frei**, ein unabhängiger Reviewer prüft (Rollenvertrag [AGENT_ROLES_AND_CI_HANDOVER_2026-11-24.md](AGENT_ROLES_AND_CI_HANDOVER_2026-11-24.md)).
+- GitHub-QUICK und relevante Dependency-Prüfungen sind die normalen Merge-Gates; FULL/API-35 läuft nachts und vor Releases, sonst optional; kein FULL-Merge-Gate. **FIT: dokumentiertes Self-Review, eigenständiger Merge ohne zweite Freigabe.** Für andere Agenten gelten ihre Rollenregeln (Rollenvertrag [AGENT_ROLES_AND_CI_HANDOVER_2026-11-24.md](AGENT_ROLES_AND_CI_HANDOVER_2026-11-24.md)).
 - Geräte-Leases ([DEVICE_LEASE.md](DEVICE_LEASE.md)): ein Agent je Gerät, Wrapper nutzen, nach dem Lauf `FREI`. Das ist Koordination, keine Genehmigung.
 - Signierte Builds nur mit geprüfter Zertifikatskontinuität; keine Instrumentationstests auf dem S25.
 

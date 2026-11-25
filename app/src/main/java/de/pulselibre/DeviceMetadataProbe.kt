@@ -59,11 +59,18 @@ internal class DeviceMetadataProbe(private val context: Context, private val ada
         } catch (_: SecurityException) {
             result(ProbeResult(emptyList(), "Bluetooth-Berechtigung fehlt.")); return
         }
+        // One BLE session at a time: a second GATT client would subscribe the same ML channel and register GFDI again,
+        // and the running history download would take that foreign registration response for its own.
+        if (!CirqaBleSessionGate.acquire(this)) {
+            result(ProbeResult(emptyList(), "CIRQA Bluetooth belegt; Metadaten-Abfrage übersprungen.")); return
+        }
         active = true
         callback = result
         notes = ArrayList()
         try {
-            gatt = device.connectGatt(context, false, gattCallback, BluetoothDevice.TRANSPORT_LE)
+            // Callbacks on the main looper, like every timeout and finish(): all state stays on one thread.
+            gatt = device.connectGatt(context, false, gattCallback, BluetoothDevice.TRANSPORT_LE,
+                BluetoothDevice.PHY_LE_1M_MASK, handler)
             handler.postDelayed({ if (active) finish("Gesamt-Zeitlimit (40 s) erreicht.") }, TOTAL_TIMEOUT_MS)
         } catch (_: SecurityException) {
             finish("Bluetooth-Berechtigung fehlt.")
@@ -293,7 +300,7 @@ internal class DeviceMetadataProbe(private val context: Context, private val ada
 
     private fun finish(summary: String) {
         handler.post {
-            if (!active) { safeClose(gatt); return@post }
+            if (!active) { safeClose(gatt); CirqaBleSessionGate.release(this); return@post }
             active = false
             handler.removeCallbacksAndMessages(null)
             // A late status response may still have arrived: decode before closing.
@@ -325,6 +332,7 @@ internal class DeviceMetadataProbe(private val context: Context, private val ada
             }
             safeClose(gatt)
             gatt = null
+            CirqaBleSessionGate.release(this)
             val full = buildString {
                 append(summary)
                 notes.forEach { append(" | ").append(it) }
@@ -341,6 +349,7 @@ internal class DeviceMetadataProbe(private val context: Context, private val ada
         handler.removeCallbacksAndMessages(null)
         safeClose(gatt)
         gatt = null
+        CirqaBleSessionGate.release(this)
         callback = null
     }
 
@@ -352,4 +361,9 @@ internal class DeviceMetadataProbe(private val context: Context, private val ada
         const val ML_MTU_PAYLOAD = 19
         const val CHUNK_GAP_MS = 60L
     }
+}
+
+/** When the device page may start [DeviceMetadataProbe]: never beside another BLE session or a history download. */
+internal object DeviceMetadataStartPolicy {
+    fun mayStart(bleSessionBusy: Boolean, historySyncActive: Boolean): Boolean = !bleSessionBusy && !historySyncActive
 }

@@ -1,0 +1,15 @@
+# OpenCode – #637 S10-Download-Fehleranalyse
+- Agent/Umgebung: OpenCode FIT, Linux-Worktree
+- Beginn: 2026-11-24 23:15 UTC
+- Letzte Aktualisierung: 2026-11-24 23:22 UTC
+- Status: abgeschlossen – Fehler eingegrenzt, Root Cause offen
+- Rolle/Zuständigkeit: FIT-/GFDI-Protokoll, CIRQA-Sync und kontrollierte Geräteevidenz
+- Aktueller Auftrag: Nutzer bittet, den durch den vorherigen Start ausgelösten Download-Fehler am S10 zu analysieren
+- Jetzt in Bearbeitung: Bericht und Übergabe aktualisiert; keine weitere Geräteaktion
+- Zeitnah geplant: offline Korrelation der Kompressionsfenster-Antwort und TransferStatus-Evidenz; kein Geräte-Retry
+- Betroffene Bereiche/Dateien: S10 unter Lease; Gerätetestplan und Koordinationslogs
+- Branch/Worktree: `issue637-s10-test-20261125`, aktueller Repository-Worktree
+- Abstimmungsbedarf: GUI-Agentenbefund bestätigte Auto-Sync beim Erststart; Root Cause des MLR-Stalls bleibt offen
+- Agent-sync-Nachrichten: `docs/collaboration/agent-chat/messages/2026-11-24_231507_opencode_START_issue637-s10-error-analysis.md`
+- Nachweise: unter S10-Lease Screenshots und erweiterten Sync-Bericht read-only geprüft; S10 nach jeder Nutzung `FREI`. Terminal `session-time-limit` nach 120,017 ms. 31 Items gelistet, Pull-Antwort und MLR-Konfiguration erfolgreich; erster Transfer empfing 17 Chunks/2,424 Bytes bei 4,841 erwarteten Bytes und blieb unvollständig; keine Dateien archiviert/importiert. Kein Retry.
+- Nächster Schritt: offline vorhandene Protokolle/Decoder zur möglichen Beziehung von Response-Feld 7=11 zu angefordertem Kompressionsfeld 5=15 und TransferStatus-Korrelation prüfen; keine Geräteaktion ohne gesonderte Freigabe

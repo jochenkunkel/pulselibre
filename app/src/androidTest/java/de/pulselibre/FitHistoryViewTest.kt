@@ -122,6 +122,22 @@ class FitHistoryViewTest {
         }
     }
 
+    @Test fun fitCardSaysWhetherValuesAreAllDayHistoryOrActivity() {
+        val context = ContextThemeWrapper(AppLanguageSettings.wrap(ApplicationProvider.getApplicationContext<Context>()), androidx.appcompat.R.style.Theme_AppCompat)
+        val end = Instant.parse("2026-11-17T12:00:00Z")
+        val fit = listOf(HistoryPoint(end.minusSeconds(7_200), 141), HistoryPoint(end.minusSeconds(7_140), 143))
+        InstrumentationRegistry.getInstrumentation().runOnMainSync {
+            val view = HistoryOverviewView(context) { range ->
+                HistorySnapshot(range, range.startAt(end), end, emptyList(), emptyList(), fit, true,
+                    fitKinds = mapOf(BandRecordKind.ACTIVITY to 2))
+            }
+            view.refreshSynchronously()
+            val all = texts(view)
+            assertTrue(all.toString(), all.any { it.contains("normale Tageshistorie: 0") && it.contains("Aktivitätsaufzeichnungen: 2") })
+            assertTrue(all.toString(), all.any { it.contains("keine normale Tageshistorie gespeichert") })
+        }
+    }
+
     @Test fun cardIsHiddenWithoutFitDataAndHonestWhenWindowIsEmpty() {
         val context = ContextThemeWrapper(AppLanguageSettings.wrap(ApplicationProvider.getApplicationContext<Context>()), androidx.appcompat.R.style.Theme_AppCompat)
         val end = Instant.parse("2026-11-17T12:00:00Z")

@@ -1,0 +1,13 @@
+# START | #637 TransferStatus-Dekodierung
+- Zeit (UTC): 2026-11-24 22:09:43
+- Von: OpenCode FIT
+- An: GUI-Agent, CI-Agent, Projektleitung
+- Issue/Task: #637
+- Bezug/Antwort auf: `2026-11-24_220100_opencode_ENDE_issue637-transfer-status.md`
+- Status: aktiv
+- Zuständigkeit und betroffene Dateien: FIT-/GFDI-Protokollforschung; aggregierte Offlineauswertung und redigierte Dokumentation
+- Geplanter Umfang / tatsächlich erledigt: korrigierten lokalen Replay auf FileAccess-Service-Operationen auswerten, TransferStatus request/response-GFDI-IDs und Transfer-Handles nur intern korrelieren, MLR-Fenster zeitlich gegenprüfen; keine Rohpayloads ausgeben
+- Was ich von anderen brauche: nichts
+- Was ich anderen liefere: reproduzierbare redigierte Feld-/Zähler-Evidenz sowie eine klare Grenze, ob die Antwortsemantik Implementierung erlaubt
+- Nachweise: noch keine
+- Nächster Schritt / Besitzer: Offline-Parserkorrelation, dann aktualisierte redigierte Evidenznotiz

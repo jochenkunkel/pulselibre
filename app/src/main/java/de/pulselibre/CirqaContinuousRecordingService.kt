@@ -50,6 +50,8 @@ class CirqaContinuousRecordingService : Service() {
     private var running = false
     private lateinit var log: CirqaLocalLog
     private var attempts = 0
+    /** Attempts since the last reading: drives the backoff, so a long good connection starts again at 2 s. */
+    private var attemptsSinceReading = 0
     private var readings = 0
     private val attemptGate = RecorderAttemptGate()
     private var lastReadingPersistedMs = 0L
@@ -172,6 +174,7 @@ class CirqaContinuousRecordingService : Service() {
     private fun sample() {
         if (!running) return
         attempts++
+        attemptsSinceReading++
         val token = attemptGate.start()
         currentToken = token
         attemptStartedMs = System.currentTimeMillis()
@@ -198,6 +201,7 @@ class CirqaContinuousRecordingService : Service() {
             handler.post {
                 if (attemptGate.accepts(token, current)) {
                     readings++
+                    attemptsSinceReading = 0
                     val nowMs = System.currentTimeMillis()
                     lastReadingMs = nowMs
                     if (nowMs - lastReadingPersistedMs >= 5_000L) {
@@ -238,8 +242,8 @@ class CirqaContinuousRecordingService : Service() {
 
     private fun scheduleReconnect(token: Int, reason: String) {
         if (!attemptGate.canRetry(token)) return
-        // Bounded backoff: 2, 4, 8, 16, 32, then 60 seconds.
-        val delayMs = RecorderBackoff.delayMs(attempts)
+        // Bounded backoff: 2, 4, 8, 16, 32, then 60 seconds, counted since the last reading (not since service start).
+        val delayMs = RecorderBackoff.delayMs(attemptsSinceReading.coerceAtLeast(1))
         updateNotification(getString(R.string.svc_reconnect, delayMs / 1000))
         log.append("reconnect_scheduled", mapOf("reason" to reason, "delay_ms" to delayMs))
         handler.postDelayed({

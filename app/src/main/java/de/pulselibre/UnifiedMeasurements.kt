@@ -14,6 +14,24 @@ enum class MeasurementOrigin(val code: String) {
     BAND("band")
 }
 
+/**
+ * Which FIT message a band value comes from. Normal (all-day) history and activity recordings are different data:
+ * a downloaded activity proves nothing about the continuous history and must never be shown as if it were it.
+ */
+enum class BandRecordKind(val globalMessageNumber: Int?) {
+    /** FIT `monitoring` (global 55): the band's normal all-day history. */
+    MONITORING(55),
+    /** FIT `record` (global 20): samples of an explicitly recorded activity. */
+    ACTIVITY(20),
+    /** Any other message number, or unknown. */
+    OTHER(null);
+
+    companion object {
+        fun of(globalMessageNumber: Int?): BandRecordKind =
+            entries.firstOrNull { it.globalMessageNumber != null && it.globalMessageNumber == globalMessageNumber } ?: OTHER
+    }
+}
+
 /** Live reading services and the numeric fields that count as measurements (shared with the CSV export). */
 object LiveReadingFields {
     val FIELDS: Map<Int, List<Pair<String, String>>> = mapOf(
@@ -77,6 +95,18 @@ class UnifiedMeasurements(private val db: SQLiteDatabase) {
     }
 
     fun ensureSchema() {
+        // Derived table: a copy built before `fit_message` existed is dropped and rebuilt from its sources.
+        val hasTable = db.rawQuery("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'unified_measurements'", null)
+            .use { it.moveToFirst() }
+        val hasKind = hasTable && db.rawQuery("PRAGMA table_info(unified_measurements)", null).use { c ->
+            var found = false
+            while (c.moveToNext()) if (c.getString(1) == "fit_message") found = true
+            found
+        }
+        if (hasTable && !hasKind) {
+            db.execSQL("DROP TABLE unified_measurements")
+            db.execSQL("DROP TABLE IF EXISTS unified_state")
+        }
         db.execSQL("""CREATE TABLE IF NOT EXISTS unified_measurements (
             origin TEXT NOT NULL CHECK(origin IN ('live', 'import', 'band')),
             device_id TEXT NOT NULL,
@@ -86,6 +116,8 @@ class UnifiedMeasurements(private val db: SQLiteDatabase) {
             unit TEXT NOT NULL,
             sample_id TEXT NOT NULL DEFAULT '',
             received_at_ms INTEGER,
+            -- FIT global message number of band values (BandRecordKind); NULL for live and import
+            fit_message INTEGER,
             PRIMARY KEY(origin, device_id, metric, measured_at_ms, sample_id)
         ) WITHOUT ROWID""")
         db.execSQL("CREATE INDEX IF NOT EXISTS unified_measurements_by_time ON unified_measurements(measured_at_ms)")
@@ -168,6 +200,25 @@ class UnifiedMeasurements(private val db: SQLiteDatabase) {
         db.rawQuery("SELECT MAX(measured_at_ms) FROM unified_measurements WHERE origin = ? AND metric = ? AND measured_at_ms <= ?",
             arrayOf(origin.code, metric, notAfterMs.toString())).use { if (it.moveToFirst() && !it.isNull(0)) it.getLong(0) else null }
 
+    /**
+     * Band values of [metric] in [startMs, endMs) per FIT message kind, so a view can say how much of it is normal
+     * all-day history and how much comes from recorded activities.
+     */
+    fun bandKindCounts(metric: String, startMs: Long, endMs: Long): Map<BandRecordKind, Int> {
+        val out = LinkedHashMap<BandRecordKind, Int>()
+        db.rawQuery(
+            """SELECT fit_message, COUNT(*) FROM unified_measurements
+               WHERE origin = 'band' AND metric = ? AND measured_at_ms >= ? AND measured_at_ms < ? GROUP BY fit_message""",
+            arrayOf(metric, startMs.toString(), endMs.toString())
+        ).use { c ->
+            while (c.moveToNext()) {
+                val kind = BandRecordKind.of(if (c.isNull(0)) null else c.getInt(0))
+                out[kind] = (out[kind] ?: 0) + c.getInt(1)
+            }
+        }
+        return out
+    }
+
     fun exists(origin: MeasurementOrigin, metric: String): Boolean =
         db.rawQuery("SELECT 1 FROM unified_measurements WHERE origin = ? AND metric = ? LIMIT 1", arrayOf(origin.code, metric)).use { it.moveToFirst() }
 
@@ -204,8 +255,8 @@ class UnifiedMeasurements(private val db: SQLiteDatabase) {
                    FROM observations r LEFT JOIN fit_observation_provenance p ON p.sample_id = r.sample_id
                    WHERE p.sample_id IS NULL""")
             db.execSQL(
-                """INSERT OR IGNORE INTO unified_measurements(origin, device_id, metric, measured_at_ms, value, unit, sample_id, received_at_ms)
-                   SELECT 'band', g.device_id, g.metric, g.measured_at_ms, g.value, g.unit, g.sample_id, g.received_at_ms
+                """INSERT OR IGNORE INTO unified_measurements(origin, device_id, metric, measured_at_ms, value, unit, sample_id, received_at_ms, fit_message)
+                   SELECT 'band', g.device_id, g.metric, g.measured_at_ms, g.value, g.unit, g.sample_id, g.received_at_ms, g.global_message_number
                    FROM fit_generation_observations g JOIN fit_active_generations a ON a.generation_id = g.generation_id""")
             setState("historical_signature", signature)
             db.setTransactionSuccessful()

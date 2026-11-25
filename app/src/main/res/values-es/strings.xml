@@ -398,7 +398,7 @@
     <string name="an_m_atlas">Atlas de actividad (pasos)</string>
     <string name="an_m_atlas_n">Cuadrícula de calendario con los totales diarios de pasos; celda gris = sin datos verificados.</string>
     <string name="an_m_corr">Pasos ↔ pulso en reposo al día siguiente</string>
-    <string name="an_m_corr_n">Exploratorio (Spearman, intervalo del 95 %, robustez); a partir de 30 días emparejados, nunca debe leerse como causa.</string>
+    <string name="an_m_corr_n">Exploratorio (Spearman, intervalo del 95 %%, robustez); a partir de 30 días emparejados, nunca debe leerse como causa.</string>
     <string name="an_m_circ">Patrones circadianos diarios</string>
     <string name="an_m_circ_n">Pendiente de investigación: aún no hay un método aprobado.</string>
     <string name="an_m_cp">Análisis de puntos de cambio</string>
@@ -900,6 +900,13 @@
     <!-- REVIEW: neue Texte (#477), fr/es Sprachprüfung durch ChatGPT -->
     <string name="hv_fit_read_failed">No se pudo leer el historial de la pulsera.</string>
     <string name="hv_fit_newest">Última medición de la pulsera: %1$s (fuera del período elegido).</string>
+    <string name="hv_fit_kinds">Historial diario normal: %1$d · de registros de actividad: %2$d</string>
+    <string name="hv_fit_kinds_other"> · otros mensajes FIT: %1$d</string>
+    <string name="hv_fit_activity_only">Solo valores de registros de actividad: no hay historial diario normal guardado para este período.</string>
+    <string name="dd_band_title">Historial de la pulsera (FIT) · hora de medición de la pulsera</string>
+    <string name="dd_band_summary">%1$d valores de la pulsera (historial diario %2$d, actividad %3$d)</string>
+    <string name="dd_band_none">No hay frecuencia cardíaca de la pulsera (FIT) guardada para este día.</string>
+    <string name="dd_band_failed">No se pudo leer el historial de la pulsera.</string>
     <!-- REVIEW: neue Texte (Verlauf-Tabelle), fr/es Sprachprüfung durch ChatGPT -->
     <string name="ht_title">Todos los datos</string>
     <string name="ht_col_date">Fecha</string>

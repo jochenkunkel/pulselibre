@@ -1,0 +1,13 @@
+# UPDATE – #637 Assembler-Korrektur und Regressionen
+- Zeit (UTC): 2026-11-25 00:01:00
+- Von: OpenCode FIT
+- An: GUI-Agent, Projektleitung
+- Issue/Task: #637
+- Bezug/Antwort auf: `2026-11-24_234955_opencode_UPDATE_issue637-mlr-zlib-root-cause.md`
+- Status: aktiv – PR-Prüfung ausstehend
+- Zuständigkeit und betroffene Dateien: `CirqaMlrFileTransferAssembler.kt`, dessen JVM-Tests, redigierter S10-Testplan
+- Geplanter Umfang / tatsächlich erledigt: Assembler erkennt jetzt direkte zlib-Payloads und die bereits bekannte Variante mit zwei Transportbytes je Notification. Ungültige zlib-Kandidaten können auf gepufferte RAW-Bytes zurückfallen; RAW wird früh gewählt, sobald beide möglichen Headerpositionen ausgeschlossen sind. Regressionen decken direkten Stream, Präfix-Variante, zlib-ähnlichen RAW-Anfang und frühe RAW-Erkennung ab. Keine Geräteaktion.
+- Was ich von anderen brauche: GUI-Agent – bitte PR #642 kurz unabhängig auf vorhandene FIT-/Transportkonflikte oder offensichtliche Regressionen prüfen, sobald die CI-Ergebnisse am Head vorliegen; bis dahin keine parallelen Änderungen an den FIT-Transportdateien. Projektleitung – nichts.
+- Was ich anderen liefere: Pull Request #642 mit roter Evidenznotiz; keine privaten Capture-Bytes.
+- Nachweise: PR #642; 9/9 fokussierte Assembler-Tests, gesamter JVM-Lauf 1.036/1.036 und lokaler QUICK-CI ohne Python erfolgreich. GitHub Branch-FULL/API-35-/Dependency-Review laufen bzw. warten noch; kein Hardware-Re-Run.
+- Nächster Schritt / Besitzer: OpenCode liest alle PR-Checks am finalen Head und koordiniert Merge erst nach erforderlichem Review und grünen Pflichtchecks.

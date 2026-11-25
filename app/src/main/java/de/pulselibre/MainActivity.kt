@@ -150,7 +150,9 @@ class MainActivity : AppCompatActivity() {
         if (::adapter.isInitialized && ::status.isInitialized && !adapter.isEnabled) {
             status.text = getString(R.string.main_bt_off)
         }
-        maybeStartAutomaticHistoricalSync()
+        if (HistoricalSyncPolicy.AUTOMATIC_SYNC_ENABLED) {
+            maybeStartAutomaticHistoricalSync()
+        }
     }
     override fun onPause() {
         stopDashboardPolling()
@@ -181,8 +183,22 @@ class MainActivity : AppCompatActivity() {
     private var cirqaGattState = ""
     private val cirqaConnectionHistory = CirqaConnectionHistory()
 
+    /** The layout decides "narrow" once while it is built; see [onConfigurationChanged]. */
+    private var builtNarrow = false
+
+    /**
+     * A rotation is handled here instead of recreating the activity (manifest `configChanges`, A6-11): a running history download
+     * and its status survive. Only when the width crosses the "narrow phone" threshold the compact layout decision is stale; then
+     * the activity is rebuilt as before.
+     */
+    override fun onConfigurationChanged(newConfig: android.content.res.Configuration) {
+        super.onConfigurationChanged(newConfig)
+        if ((newConfig.screenWidthDp < 340) != builtNarrow) recreate()
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        builtNarrow = resources.configuration.screenWidthDp < 340
         val manager = getSystemService(BLUETOOTH_SERVICE) as BluetoothManager
         adapter = manager.adapter
         val palette = AppPalette.of(this)
@@ -618,7 +634,9 @@ class MainActivity : AppCompatActivity() {
                 setOnClickListener { action() }
             }
         val historicalSyncStatus = text(
-            getString(R.string.main_hist_status_none), 13f, muted
+            // The last terminal report survives the screen, so an interrupted run stays visible as incomplete.
+            getSharedPreferences("historical_sync_energy_policy", MODE_PRIVATE).getString("last_report", null)
+                ?: getString(R.string.main_hist_status_none), 13f, muted
         ).apply {
             setPadding(dp(16), dp(12), dp(16), dp(12))
             background = rounded(palette.card)
@@ -693,6 +711,9 @@ class MainActivity : AppCompatActivity() {
                     syncProgress.show(HistorySyncProgress(HistorySyncStage.CONNECTING))
                     val prefs = getSharedPreferences("historical_sync_energy_policy", MODE_PRIVATE)
                     prefs.edit().putLong("last_attempt", System.currentTimeMillis()).commit()
+                    // The user's explicit download wins over a running battery/metadata read (it holds the BLE gate).
+                    deviceMetadataProbe?.close()
+                    deviceMetadataProbe = null
                     val probe = CirqaMlHandshakeProbe(this@MainActivity, adapter)
                     historicalDownloadProbe?.close()
                     historicalDownloadProbe = probe
@@ -704,10 +725,10 @@ class MainActivity : AppCompatActivity() {
                     ) { message ->
                         runOnUiThread {
                             manualHistoricalSyncActive = false
+                            recordHistoricalSyncResult(prefs, message) // also after the screen closed (abort in onDestroy)
                             if (!destroyed) {
                                 historicalSyncStatus.text = message
                                 syncProgress.show(HistorySyncProgress.fromReport(message))
-                                recordHistoricalSyncResult(prefs, message)
                                 historyRefresh?.invoke()
                             }
                         }
@@ -775,8 +796,12 @@ class MainActivity : AppCompatActivity() {
         recorderRow.addView(playButton, LinearLayout.LayoutParams(0, -2, 1f).apply { rightMargin = dp(8) })
         recorderRow.addView(stopButton, LinearLayout.LayoutParams(0, -2, 1f))
         deviceView(recorderRow, 12)
-        recorderRefresh = {
+        var shownRecorderRunning: Boolean? = null
+        recorderRefresh = refresh@{
             val running = RecorderStatus.isRunning(getSharedPreferences(CirqaContinuousRecordingService.PREFS, MODE_PRIVATE))
+            // Polled once a second: touching the views only on a real change keeps the screen quiet for TalkBack and uiautomator.
+            if (running == shownRecorderRunning) return@refresh
+            shownRecorderRunning = running
             if (running) setRecorderState(getString(R.string.main_rec_on), PlIcon.RECORD_START) else setRecorderState(getString(R.string.main_rec_off), PlIcon.RECORD_STOP)
             recorderState.setTextColor(muted)
             playButton.alpha = if (running) 0.45f else 1f
@@ -952,12 +977,12 @@ class MainActivity : AppCompatActivity() {
         ) { message ->
             runOnUiThread {
                 automaticHistoricalSyncActive = false
+                // Persist success only for a completely drained run; partial/error runs remain retryable
+                // after the five-minute attempt cooldown. Recorded even after the screen closed (abort in onDestroy).
+                recordHistoricalSyncResult(prefs, message)
                 if (destroyed) return@runOnUiThread
                 statusView.text = message
                 syncProgressView?.show(HistorySyncProgress.fromReport(message))
-                // Persist success only for a completely drained run; partial/error runs remain retryable
-                // after the five-minute attempt cooldown.
-                recordHistoricalSyncResult(prefs, message)
                 historyRefresh?.invoke()
             }
         }
@@ -967,6 +992,8 @@ class MainActivity : AppCompatActivity() {
         preferences: android.content.SharedPreferences,
         report: String
     ) {
+        preferences.edit().putString("last_report", report.take(4000))
+            .putLong("last_report_at", System.currentTimeMillis()).apply()
         if (report.contains("runDrained=true") && report.contains("incompleteReason=none")) {
             preferences.edit().putLong("last_success", System.currentTimeMillis()).apply()
         }
@@ -1018,6 +1045,9 @@ class MainActivity : AppCompatActivity() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) !=
             PackageManager.PERMISSION_GRANTED) return
         if (!::adapter.isInitialized || !adapter.isEnabled) return
+        // Never a second GATT client while a history download or the recorder owns the band (it would disturb that run).
+        if (!DeviceMetadataStartPolicy.mayStart(CirqaBleSessionGate.isBusy(),
+                automaticHistoricalSyncActive || manualHistoricalSyncActive)) return
         deviceMetadataProbe?.close()
         val probe = DeviceMetadataProbe(applicationContext, adapter)
         deviceMetadataProbe = probe
@@ -1273,7 +1303,9 @@ class MainActivity : AppCompatActivity() {
         destroyed = true
         handler.removeCallbacksAndMessages(null)
         stopScan()
-        historicalDownloadProbe?.close()
+        // End a running download through its regular terminal path: report "incomplete", release the partial file,
+        // close GATT; recordHistoricalSyncResult still persists the report although this screen is gone.
+        historicalDownloadProbe?.abort("Download abgebrochen: Ansicht geschlossen.") // German diagnostic report, like all sync reports
         historicalDownloadProbe = null
         deviceMetadataProbe?.close()
         deviceMetadataProbe = null

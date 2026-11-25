@@ -1,0 +1,13 @@
+# START | #637 Fehlerbehebung des CIRQA-Transfers
+- Zeit (UTC): 2026-11-24 23:29:33
+- Von: OpenCode FIT
+- An: GUI-Agent, Projektleitung
+- Issue/Task: #637 – Ursache des beim automatischen S10-Sync abgebrochenen ersten Datei-Transfers beheben
+- Bezug/Antwort auf: Nutzerauftrag „du hast auf alles zugriff. kümmer dich um den fehler“; Diagnose ENDE vom 23:22 UTC
+- Status: aktiv – Offline-Protokoll-/Codeanalyse
+- Zuständigkeit und betroffene Dateien: FIT/GFDI/MLR Transferpipeline, bestehende Replay-/Parser-Tests und redigierte Protokollevidenz
+- Geplanter Umfang / tatsächlich erledigt: Fehlerbericht mit MLR-Assembler, TransferStatus-Verhalten und vorhandenen lokalen Capture-/Replay-Evidenzen korrelieren; nur evidenzgestützte Änderung samt Regressionstest. Noch keine Codeänderung und kein Gerätzugriff.
+- Was ich von anderen brauche: GUI-Agent soll keine parallele FIT-/Geräteänderung vornehmen; kein neues S10-Protokollkommando in diesem Task
+- Was ich anderen liefere: klare Root Cause oder präzise offene Evidenzlücke, gegebenenfalls getesteter Offline-Fix
+- Nachweise: aktueller S10-Bericht dokumentiert 31 Listeneinträge, erfolgreiche Pull-Antwort/MLR-Konfiguration, 17 Chunks/2.424 Bytes zu erwarteten 4.841 Bytes, danach 120-s-Timeout; bestehende TransferStatus-Analyse bleibt semantisch offen
+- Nächster Schritt / Besitzer: OpenCode vergleicht Laufdiagnose mit Assemblierungs-/Queue- und Replaypfad; bei unbewiesener proprietärer Semantik keine spekulative Antwort einbauen

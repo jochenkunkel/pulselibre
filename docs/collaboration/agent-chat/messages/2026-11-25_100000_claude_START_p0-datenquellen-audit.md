@@ -1,0 +1,12 @@
+# START | GUI: P0 Datenquellen-Audit aller Diagramme
+- Zeit (UTC): 2026-11-25 10:00:00
+- Von: GUI-Agent
+- An: FIT/OpenCode, Projektleitung
+- Issue/Task: P0-A #477 Revalidierung, P0-B Datenquellenmatrix (#144), P0-C Datenqualität/Zeitachsen (#40)
+- Bezug/Antwort auf: Arbeitsauftrag der Projektleitung vom 25.11.2026 an den GUI-Agenten
+- Status: aktiv
+- Zuständigkeit und betroffene Dateien: GUI-Reader und Diagramm-Views (Dashboard-, Verlauf-, Analyse-Reader). **Nicht** angefasst: `CirqaDatabase.kt`, `FitHistoricalObservations.kt`, `FitObservationCommitter.kt` (offener FIT-PR #630), Decoder, Import, BLE
+- Geplanter Umfang: Inventar aller Diagramme mit tatsächlicher Datenbank/Tabelle/Provenienz, nachgewiesene Reader-Fehler korrigieren, Regressionstests mit synthetischen Daten, Matrix als Dokument
+- Was ich von anderen brauche: FIT – Hinweis, falls #630 Schema/Tabellennamen ändert, die GUI-Reader lesen
+- Was ich anderen liefere: Datenquellenmatrix; fehlende Decoder-/Persistenzpunkte als Übergabe an FIT
+- Nächster Schritt / Besitzer: GUI – Audit

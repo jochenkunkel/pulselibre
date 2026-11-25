@@ -5,6 +5,7 @@
 ## Weitere UI-Dokumente
 
 - [Dashboard-Implementierung und Teststand](DASHBOARD_IMPLEMENTATION.md) – beschreibt aktuellen Code und offene UI-Tests.
+- [Datenquellen aller Diagramme](DATENQUELLEN_DIAGRAMME.md) – welche Ansicht welche Tabelle und Herkunft liest (P0-Audit 25.11.2026).
 - [App-Vision](../../archive/2026-11-24/APP_VISION.md) – Produktvision, nicht gleichbedeutend mit freigegebenem UI.
 - [Branding](../BRANDING.md) – Logo, Erscheinungsbild.
 - [Wissenschaftlicher Kachelbauplan](../../science/SCIENTIFIC_DASHBOARD_TILE_BLUEPRINT.md) – **fachliche Berechnungsregeln**, nicht in UI-Dokumente duplizieren.

@@ -42,6 +42,13 @@ internal class MainNavigationView(
                 isFocusable = true
                 contentDescription = label
                 tag = "navigation_item_$id"
+                // uiautomator/adb see no view tags: a stable, language-independent resource id lets scripts find the tab.
+                androidx.core.view.ViewCompat.setAccessibilityDelegate(this, object : androidx.core.view.AccessibilityDelegateCompat() {
+                    override fun onInitializeAccessibilityNodeInfo(host: View, info: androidx.core.view.accessibility.AccessibilityNodeInfoCompat) {
+                        super.onInitializeAccessibilityNodeInfo(host, info)
+                        info.viewIdResourceName = "${activity.packageName}:id/navigation_item_$id"
+                    }
+                })
                 setOnClickListener { navigate(index) }
                 addView(PlIcon.view(activity, icons[index], 24, palette.muted).apply {
                     tag = "navigation_icon_$id"

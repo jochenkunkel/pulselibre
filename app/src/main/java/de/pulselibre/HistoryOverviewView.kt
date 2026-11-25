@@ -181,7 +181,8 @@ class HistoryOverviewView(
         // Zuerst, weil sie die meisten Werte enthaelt; feinere Aufloesung, weil die Banddaten dicht sind.
         if (snapshot.fitAvailable || snapshot.fitHeartRate.isNotEmpty() || snapshot.fitReadFailed) {
             metricCard(FIT_HEART_RATE_TITLE, "bpm", snapshot.fitHeartRate, snapshot, 240, palette.pulse,
-                HistoryResolution.forFitRange(snapshot.range), TimeBasis.DEVICE_MEASURED, fitEmptyNote(snapshot))
+                HistoryResolution.forFitRange(snapshot.range), TimeBasis.DEVICE_MEASURED, fitEmptyNote(snapshot),
+                FitKindText.note(Strings.of(context), snapshot.fitKinds))
         }
         metricCard("Herzfrequenz", "bpm", snapshot.heartRate, snapshot, 240, palette.pulse, resolution)
         metricCard("Sauerstoffsättigung · SpO₂", "%", snapshot.oxygen, snapshot, 100, palette.oxygen, resolution)
@@ -300,7 +301,9 @@ class HistoryOverviewView(
         accent: Int,
         resolution: HistoryResolution,
         basis: TimeBasis = TimeBasis.PHONE_RECEIVED,
-        emptyNote: String? = null
+        emptyNote: String? = null,
+        /** Where the shown values come from (e.g. normal band history vs. activity recordings); shown with data only. */
+        sourceNote: String? = null
     ) {
         val buckets = aggregateHistoryPoints(points, snapshot.start, snapshot.end, resolution)
         // Fit the vertical range to the observed data (e.g. SpO₂ 89–100 % no longer squeezed into the top of 0–100).
@@ -339,6 +342,9 @@ class HistoryOverviewView(
         card.addView(heading)
         card.addView(label(context.getString(R.string.hv_card_summary, points.size, buckets.size, DomainText.tr(context, resolution.label), scale.minimum.toString(), scale.maximum.toString(), unit),
             12f, palette.muted), LayoutParams(-1, -2).apply { topMargin = dp(4) })
+        if (points.isNotEmpty()) sourceNote?.let { note ->
+            card.addView(label(note, 12f, palette.ink).apply { tag = "history_source_note" }, LayoutParams(-1, -2).apply { topMargin = dp(4) })
+        }
         if (points.isEmpty()) {
             card.addView(label(DomainText.tr(context, basis.emptyText), 14f, palette.muted),
                 LayoutParams(-1, -2).apply { topMargin = dp(18); bottomMargin = dp(18) })
