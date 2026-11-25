@@ -1,5 +1,8 @@
 # Temporäre Forschungsdaten-Freigabe für das aktuelle CIRQA-Armband
 
+> **Owner-Klarstellung 25.11.2026:** S10 ist ausschließliches Testgerät; das aktuelle Armband hat bislang keine privaten Gesundheitsdaten erzeugt. Interne Testdatenanalyse benötigt keine zusätzliche Datenschutz-Einzelfreigabe. Vor öffentlicher Veröffentlichung weiterhin Tokens, Pairing-Material, Seriennummern und fremde Daten ausschließen. Neue BLE-Kommandos sind gemäß `AGENTS.md` ohne Einzelfreigabe erlaubt; destruktive Bandaktionen nicht.
+
+
 **Projektentscheidung vom 21.11.2026, bis zum ausdrücklichen Widerruf bzw. zur Umstellung auf reale personenbezogene Betriebsdaten.**
 
 Der Projektverantwortliche erklärt, dass **die derzeit auf dem Testarmband befindlichen Daten keiner Person zugeordnet werden können**. Er erlaubt ausdrücklich **allen beauftragten PulsLibre-Agenten (Codex, Claude Code, OpenCode, ChatGPT und weiteren)**, diese **aktuellen Armband-Rohdaten** für die Entwicklung und Validierung zu nutzen, statt ausschließlich redigierte Summen zu verwenden.
@@ -8,7 +11,7 @@ Der Projektverantwortliche erklärt, dass **die derzeit auf dem Testarmband befi
 
 - Originale FIT-Dateien, BLE-/GATT-/HCI-Traces, Roh-Payloads, unbekannte Felder, Metadaten und dazugehörige SQLite-Daten **lokal lesen, auswerten, zwischen den autorisierten Entwicklungsagenten teilen und für Decoder-, Sync-, GUI- und Regressionstests verwenden**.
 - Nachvollziehbare Rohdatenbeispiele und reproduzierbare Testfixtures **in einem zugriffsbeschränkten Entwicklungsbereich** ablegen, sofern sie nach Prüfung tatsächlich nur Daten dieses Testarmbands enthalten. Für GitHub-Issues/PRs vorzugsweise kleine, zweckgebundene Ausschnitte und aggregierte Befunde.
-- Die bereits erteilte Freigabe umfasst die **Datennutzung**, nicht automatisch neue aktive BLE-Kommandos, Reset, Löschung, Firmwareänderung, Entkoppeln oder andere riskante Geräteaktionen.
+- Die Owner-Entscheidung vom 25.11.2026 erlaubt neue aktive BLE-Kommandos ohne Einzelfreigabe; Reset, Löschung, Firmwareänderung und Entkoppeln bleiben gesondert genehmigungspflichtig.
 
 ## Grenzen und Umschaltregel
 

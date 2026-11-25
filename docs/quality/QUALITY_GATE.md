@@ -1,15 +1,20 @@
-# Release gate (no phone installation until green)
+# PulsLibre: getrennte Entwicklungs- und Release-Gates
 
 ## Soll-Zustand und derzeitige CI-Abdeckung
 
 **GitHub Actions (Stand 23.11.2026):** `.github/workflows/android.yml` startet automatisch bei Pull Requests gegen `main` und Pushes auf `main`, soweit `paths-ignore` die Änderung nicht ausschließt (insbesondere reine Dokumentationsänderungen unter `docs/**` bzw. mit `.md`/`.mdx`/`.rst`/`.txt` lösen keinen Lauf aus). Zusätzlich ist `workflow_dispatch` möglich: `test_scope=QUICK` führt den begrenzten Schnelllauf aus; `test_scope=FULL` fordert auch Lint, Android-Test-APK und Emulator-Instrumentierung an. Der Ausführungsort wird über `run_environment=LOCAL|CLOUD` und die Runner-Konfiguration gesteuert. Eine signierte Update-Debug-APK wird nur bei entsprechend konfigurierten Signing-Secrets bereitgestellt. **Diese Beschreibung belegt keinen konkreten erfolgreichen CI-Lauf**; vor einer Freigabe müssen die tatsächlichen Ergebnisse aller erforderlichen Gates geprüft werden. Siehe auch [Docs-only-CI-Regel](ci/DOCS_ONLY_CI_POLICY.md) und [Hybrid-CI](ci/HYBRID_CI.md).
 
-## Mandatory CI
-- Compile debug app and androidTest APK
-- JVM tests and lint
-- Android emulator instrumentation tests (launch + no INTERNET permission)
-- Upload APK only after successful checks
-- Manual inspection of CI results and APK metadata before recommending installation
+## Normal development gate (PR / main)
+- QUICK: Python regression tests, JVM unit tests, debug and R8 release builds, APK/signing diagnostics.
+- FIT may self-review and merge after green required QUICK and applicable dependency checks, without second-agent approval.
+- No routine lint, instrumentation APK or emulator gate on each PR/commit.
+
+## FULL gate (nightly / high risk / release)
+- Nightly 02:17 UTC: lint, androidTest APK, API-35 emulator instrumentation plus QUICK phases.
+- Before release: successful FULL on exact release commit, validated signing certificate continuity and APK metadata.
+- Before merge of demonstrably high-risk changes: targeted FULL, documented by FIT.
+- No phone installation solely on the basis of a QUICK run; preserve device lease, backup and signing protections.
+- Inspect actual CI results; skipped or absent jobs are never reported as successful.
 
 ## Hardware-independent fault scenarios to add
 - Permission grant/deny/revoke; Bluetooth disabled mid-scan

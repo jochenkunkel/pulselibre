@@ -11,13 +11,12 @@ Beide Umgebungen führen dieselben Phasen aus (`tools/ci/run-ci.sh`), gesteuert
 - Run **all JVM unit tests** with `testDebugUnitTest` and Python HCI validator regression tests.
 - Compile the Android app with `assembleDebug` and the R8 release variant with `assembleRelease`.
 - A signed update APK artifact is uploaded only if the four stable signing secrets are available and the run succeeds; no unsigned APK upload is promised.
-- Lint and the emulator instrumentation suite run because push-to-main uses `FULL`.
-- Preserve an active `main` FULL run when newer commits arrive. GitHub keeps at most one pending run per concurrency group and coalesces further pushes to the newest pending commit. Superseded pull-request runs may still be cancelled to avoid wasting minutes. Offline policy tests cover the intended active/pending behavior; Actions runs remain the end-to-end scheduler evidence.
+- Lint and the emulator instrumentation suite run on nightly/manual `FULL`, not on ordinary PR/main pushes.
+- Preserve an active `main` QUICK run when newer commits arrive. GitHub keeps at most one pending run per concurrency group and coalesces further pushes to the newest pending commit. Superseded pull-request runs may still be cancelled to avoid wasting minutes. Offline policy tests cover the intended active/pending behavior; Actions runs remain the end-to-end scheduler evidence.
 
 ## Full verification
 
-Triggered automatically by pushes and pull requests against `main`; also manually
-through Actions > Android CI > Run workflow with **Testumfang = FULL**.
+Triggered by the nightly schedule (02:17 UTC), and manually through Actions > Android CI > Run workflow with **Testumfang = FULL**. Risk-based FULL is required before merging destructive migrations, backup/restore changes or new BLE transport semantics.
 
 - All JVM unit tests and APK builds (debug + R8 release).
 - Android lint and instrumentation APK build.
@@ -25,7 +24,7 @@ through Actions > Android CI > Run workflow with **Testumfang = FULL**.
 
 ## Quick verification
 
-Manual runs with **Testumfang = QUICK** skip lint, the instrumentation APK and
+Automatic PR/main runs and manual runs with **Testumfang = QUICK** skip lint, the instrumentation APK and
 the emulator. QUICK is a deliberate subset, not a way to pass a failing test:
 every test that exists belongs to one of the two scopes.
 
@@ -42,9 +41,7 @@ GitHub. Reports land in `build/ci-reports/` and `app/build/reports/`.
 
 ## Tradeoff
 
-FULL costs an emulator boot (~1–3 minutes) and lint on every push. QUICK is
-roughly the build plus unit tests. The emulator remains mandatory before merges
-and releases.
+FULL costs an emulator boot (~1–3 minutes) and lint, so it runs nightly, before releases and for demonstrably high-risk changes. QUICK is roughly the build plus unit tests. The emulator is **not** mandatory for ordinary merges.
 
 ## Testmatrix (Stand 2026-11-20)
 

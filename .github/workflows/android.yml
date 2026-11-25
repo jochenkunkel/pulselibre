@@ -4,11 +4,11 @@ name: Android CI
 # Automatische Läufe verwenden dokumentierte Standardwerte (siehe
 # docs/ci/HYBRID_CI.md): Push = LOCAL bei Freigabe, sonst CLOUD;
 # PR = CLOUD, außer LOCAL ist ausdrücklich für vertrauenswürdige PRs freigegeben;
-# beide Trigger verwenden FULL.
+# PR und main verwenden QUICK, nächtliche und manuelle FULL-Läufe verwenden FULL.
 run-name: >-
   Android CI · ${{ github.ref_name }} ·
   ${{ github.event_name == 'workflow_dispatch' && inputs.run_environment || 'AUTO' }} ·
-  ${{ github.event_name == 'workflow_dispatch' && inputs.test_scope || 'FULL' }}
+  ${{ github.event_name == 'workflow_dispatch' && inputs.test_scope || (github.event_name == 'schedule' && 'FULL' || 'QUICK') }}
 
 on:
   pull_request:
@@ -27,6 +27,8 @@ on:
       - '**/*.mdx'
       - '**/*.rst'
       - '**/*.txt'
+  schedule:
+    - cron: '17 2 * * *' # täglicher FULL-Lauf auf main (UTC)
   workflow_dispatch:
     inputs:
       run_environment:
@@ -41,14 +43,14 @@ on:
         description: 'Testumfang – QUICK: Build + Unit-Tests, FULL: inkl. Lint + Emulator'
         type: choice
         required: true
-        default: QUICK
+        default: FULL
         options:
           - QUICK
           - FULL
 
 concurrency:
   # LOCAL- und CLOUD-Läufe desselben Refs blockieren sich nicht gegenseitig.
-  # Überholte PR-Läufe dürfen enden; ein aktiver Main-/Dispatch-FULL-Lauf darf
+  # Überholte PR-Läufe dürfen enden; ein aktiver Main-/Dispatch-/Schedule-FULL-Lauf darf
   # durch Folge-Pushes nicht gekappt werden. GitHub hält je Gruppe höchstens
   # einen Pending-Lauf und ersetzt diesen bei weiteren Pushes durch den neuesten.
   group: pulselibre-android-${{ github.ref }}-${{ github.event_name == 'workflow_dispatch' && inputs.run_environment || 'auto' }}
@@ -81,7 +83,7 @@ jobs:
     permissions:
       contents: read
     env:
-      CI_SCOPE: ${{ github.event_name == 'workflow_dispatch' && inputs.test_scope || 'FULL' }}
+      CI_SCOPE: ${{ (github.event_name == 'schedule' && 'FULL' || github.event_name == 'workflow_dispatch' && inputs.test_scope || 'QUICK') }}
       CI_ENVIRONMENT: >-
         ${{ (
           (github.event_name == 'push' &&
@@ -173,7 +175,7 @@ jobs:
 
   emulator:
     name: "Emulator-Instrumentationstests (API 35)"
-    if: github.event_name != 'workflow_dispatch' || inputs.test_scope == 'FULL'
+    if: github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.test_scope == 'FULL')
     needs: build
     runs-on: >-
       ${{ fromJSON(

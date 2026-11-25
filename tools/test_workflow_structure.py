@@ -106,9 +106,28 @@ class AndroidWorkflowTest(unittest.TestCase):
                 self.assertNotIn("${{", job.get("name", ""))
 
     def test_emulator_only_runs_for_full_scope(self):
+        # Automatische PR-/Push-Läufe bleiben QUICK; der Emulator läuft nur
+        # im geplanten FULL-Lauf oder bei explizit manuell gewähltem FULL.
         emulator = self.workflow["jobs"]["emulator"]
-        self.assertIn("inputs.test_scope == 'FULL'", emulator["if"])
-        self.assertIn("github.event_name != 'workflow_dispatch'", emulator["if"])
+        condition = emulator["if"]
+        self.assertIn("inputs.test_scope == 'FULL'", condition)
+        self.assertIn("github.event_name == 'schedule'", condition)
+        self.assertNotIn("github.event_name != 'workflow_dispatch'", condition)
+
+    def test_automatic_runs_default_to_quick(self):
+        triggers = workflow_triggers(self.workflow)
+        self.assertIn("schedule", triggers)
+        self.assertTrue(triggers["schedule"])
+        scope_input = triggers["workflow_dispatch"]["inputs"]["test_scope"]
+        self.assertEqual(scope_input["default"], "FULL")
+        build_scope = self.workflow["jobs"]["build"]["env"]["CI_SCOPE"]
+        self.assertIn("github.event_name == 'schedule'", build_scope)
+        self.assertIn("'QUICK'", build_scope)
+        # Der Emulator-Job läuft nur bei schedule/dispatch FULL; sein Scope
+        # darf für automatische Läufe nicht still QUICK werden.
+        emulator_scope = self.workflow["jobs"]["emulator"]["env"]["CI_SCOPE"]
+        self.assertIn("inputs.test_scope", emulator_scope)
+        self.assertIn("'FULL'", emulator_scope)
 
     def test_concurrency_cancels_only_superseded_pull_requests(self):
         concurrency = self.workflow["concurrency"]
