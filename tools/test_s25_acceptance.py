@@ -120,6 +120,15 @@ class RunnerTest(unittest.TestCase):
         self.assertTrue(self.run_with(adb).tab("Gerät"))
         self.assertIn("input tap 100 2200", adb.commands)
 
+    def test_empty_dump_is_retried_then_raises_instead_of_reusing_old_data(self):
+        good = xml(("Gerät", "", (0, 0, 100, 100), True))
+        adb = FakeAdb(["ERROR: could not get idle state.", "ERROR: could not get idle state.", good])
+        # two failed attempts (tty and file fallback empty), the third succeeds
+        self.assertEqual(self.run_with(adb).dump()[0].text, "Gerät")
+        failing = FakeAdb(["ERROR: could not get idle state."])
+        with self.assertRaises(s.AdbError):
+            self.run_with(failing).dump(attempts=2)
+
     def test_restore_resets_density_font_and_night_even_if_a_command_fails(self):
         adb = FakeAdb(["x"], shells={"cmd uimode night": "Night mode: yes", "settings get system font_scale": "1.0\n",
                                      "wm density": "Physical density: 480"})

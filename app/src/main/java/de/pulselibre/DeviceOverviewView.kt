@@ -45,7 +45,7 @@ internal class DeviceOverviewView(context: Context) : LinearLayout(context) {
     fun update(link: CirqaLinkStatus.Result, running: Boolean) {
         val changed = this.link?.kind != link.kind || this.link?.online != link.online || recorderRunning != running
         this.link = link; recorderRunning = running
-        if (changed) render() else heroSubtitle?.text = link.label
+        if (changed) render() else heroSubtitle?.let { if (it.text.toString() != link.label) it.text = link.label }
     }
 
     /**

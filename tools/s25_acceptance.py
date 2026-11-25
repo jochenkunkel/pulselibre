@@ -185,15 +185,26 @@ class Run:
         self.checks.append(Check(ticket, name, status, detail))
         print(f"[{status}] {ticket} {name}" + (f" – {detail}" if detail else ""))
 
-    def dump(self) -> list[Node]:
-        nodes = parse_nodes(self.adb.exec_out("uiautomator dump /dev/tty").decode(errors="replace"))
-        if nodes:
-            return nodes
-        # Fallback for devices where the tty dump stays empty: dump to a file, read it, delete it again.
-        self.adb.shell("uiautomator dump /sdcard/s25_ui.xml")
-        raw = self.adb.shell("cat /sdcard/s25_ui.xml")
-        self.adb.shell("rm /sdcard/s25_ui.xml")
-        return parse_nodes(raw)
+    def dump(self, attempts: int = 3) -> list[Node]:
+        """Fresh hierarchy or an AdbError; never a stale or silently empty one.
+
+        uiautomator reports "could not get idle state" while the screen keeps changing (for example during a sync).
+        An empty answer is retried after a short pause and then raised, so no check ever runs on old data.
+        """
+        for attempt in range(attempts):
+            nodes = parse_nodes(self.adb.exec_out("uiautomator dump /dev/tty").decode(errors="replace"))
+            if nodes:
+                return nodes
+            # Fallback for devices where the tty dump stays empty: dump to a file, read it, delete it again.
+            self.adb.shell("uiautomator dump /sdcard/s25_ui.xml")
+            raw = self.adb.shell("cat /sdcard/s25_ui.xml")
+            self.adb.shell("rm /sdcard/s25_ui.xml")
+            nodes = parse_nodes(raw)
+            if nodes:
+                return nodes
+            if attempt + 1 < attempts:
+                self.adb.sleep(1.5)
+        raise AdbError(f"UI dump stayed empty after {attempts} attempts (screen still changing? sync running?). Use a screenshot instead.")
 
     def shot(self, name: str) -> None:
         path = self.out / f"{name}.png"
