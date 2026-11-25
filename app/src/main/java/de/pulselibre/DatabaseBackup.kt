@@ -38,6 +38,8 @@ internal const val MAX_UNCOMPRESSED_BYTES = 2L * 1024L * 1024L * 1024L
 internal const val MAX_ENTRY_BYTES = 1536L * 1024L * 1024L
 private const val MAX_LINE_BYTES = 2 * 1024 * 1024
 internal const val MAX_RECORDS = 20_000_000L
+/** Headroom kept free when writing or extracting an archive in the app cache. */
+private const val MIN_FREE_BYTES = 64L * 1024L * 1024L
 private const val MAX_MANIFEST_BYTES = 64 * 1024
 private const val EVENTS_ENTRY = "cirqa_events.jsonl"
 private const val READINGS_ENTRY = "legacy_readings.jsonl"
@@ -141,6 +143,11 @@ class PreparedDatabaseRestore internal constructor(
 object DatabaseBackup {
     /** Stream a consistent snapshot into a temporary archive, then copy it to the chosen SAF file. */
     fun write(context: Context, destination: OutputStream): DatabaseBackupReport {
+        // The archive is built in the cache first: say so clearly instead of failing halfway with a disk error.
+        val database = context.getDatabasePath("cirqa_measurements.db").length()
+        require(context.cacheDir.usableSpace > database + MIN_FREE_BYTES) {
+            "Zu wenig freier Speicher für das temporäre Backup (frei ${context.cacheDir.usableSpace / 1_048_576} MiB)"
+        }
         val temp = File.createTempFile("pulselibre-backup-", ".zip", context.cacheDir)
         try {
             val report = writeArchive(context, temp)
@@ -164,6 +171,9 @@ object DatabaseBackup {
 
     /** Read, bound, checksum and validate the complete archive before showing overwrite confirmation. */
     fun prepareRestore(context: Context, source: InputStream): PreparedDatabaseRestore {
+        require(context.cacheDir.usableSpace > MIN_FREE_BYTES) {
+            "Zu wenig freier Speicher zum Prüfen des Backups (frei ${context.cacheDir.usableSpace / 1_048_576} MiB)"
+        }
         val directory = File(context.cacheDir, "database-restore-${UUID.randomUUID()}")
         require(directory.mkdir()) { "Temporärer Wiederherstellungsbereich kann nicht erstellt werden" }
         try {
@@ -1598,7 +1608,7 @@ object DatabaseBackup {
             decoderVersion = item.getString("decoder_version")
         )
         require(row.sampleId.isNotBlank() && row.deviceId.isNotBlank() &&
-            row.metric in setOf("spo2", "stress", "respiration") &&
+            row.metric in CirqaDatabase.FIT_REVIEW_CANDIDATE_METRICS &&
             (row.measuredAtEpochMillis == null || row.measuredAtEpochMillis >= 0) &&
             row.value.isFinite() && row.unit.isNotBlank() &&
             row.sourceSha256.matches(Regex("[0-9a-f]{64}")) && row.recordOrdinal > 0 &&
