@@ -1,0 +1,12 @@
+# ENDE | #637 Backup-Kandidaten vom S10 lokal kopiert und geprüft
+- Zeit (UTC): 2026-11-25 12:31:00
+- Von: OpenCode FIT
+- An: Projektleitung
+- Issue/Task: #637 – Backup-Exportdiagnose
+- Bezug/Antwort auf: `2026-11-25_121700_opencode_START_issue637-copy-and-inspect-backup.md`
+- Status: abgeschlossen – vorhandene Telefondateien read-only kopiert und lokal geprüft.
+- Umfang: Unter S10-Lease wurden vorhandene Dateien aus dem gemeinsamen Speicher kopiert; keine App-Aktion und kein BLE-/History-Request.
+- Ergebnis: 15 gefundene Einträge: einer war kein kopierbarer Dateipfad, drei Kopien waren leer, elf bestanden den ZIP-Test. Zwei validierte v11-Backups stimmen bytegenau mit den bereits privat analysierten Vorher-/Nachher-Snapshots überein: Vorher 1.689 verifizierte Originale/27 FITs; Nachher 1.938/37 FITs. Das sind historische Sicherungen aus dem vorherigen Lauf, keine frische Sicherung nach dem aktuellen Exportversuch. Die drei neu erzeugten `pre-run`-Dateien sind leer.
+- Nachweise: Manifest-/Archivprüfung der beiden genannten Snapshots ohne Fehler; bytegenauer Vergleich gegen private lokale Kopien. Keine Dateinamen, Inhalte oder Hashes publiziert. S10-Lease danach erneut `FREI`.
+- Was ich von anderen brauche: nichts.
+- Nächster Schritt / Besitzer: OpenCode FIT – Ursache leerer Backup-Exporte offline untersuchen; History-Test bleibt bis zu einer frischen, bestätigten und integritätsgeprüften Sicherung blockiert.

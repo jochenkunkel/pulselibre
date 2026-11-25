@@ -214,3 +214,15 @@ Der Lauf ist blockiert, nicht erfolgreich oder unvollständig übertragen: Vor
 einem neuen Versuch muss ein frisches, vom Exporter als abgeschlossen
 bestätigtes und integritätsgeprüftes Vorher-Backup verfügbar sein. Frühere
 Backups gelten nicht automatisch als aktueller Gerätestand.
+
+**Read-only-Nachprüfung 2026-11-25 12:28–12:30 UTC:** Vorhandene Dateien
+wurden unter einer exklusiven S10-Lease lokal kopiert; es wurde keine App-,
+BLE- oder History-Aktion ausgelöst. Von 15 gefundenen Einträgen war einer kein
+kopierbarer Dateipfad, drei Kopien waren leer und elf bestanden den ZIP-Test.
+Zwei validierte v11-Backups stimmen bytegenau mit bereits privat untersuchten
+Snapshots überein: der frühere Vorherstand enthält 1.689 verifizierte Originale
+(27 FITs), der frühere Nachherstand 1.938 (37 FITs). Beide sind historische
+Kopien des vorherigen Laufs, keine frische Sicherung nach dem aktuellen
+Exportversuch. Die drei neu angelegten `pre-run`-Dateien sind leer. Damit bleibt
+der aktuelle Backup-Gate geschlossen; kein History-Request wurde gesendet.
+Lease anschließend erneut `FREI`.
