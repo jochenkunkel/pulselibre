@@ -1,0 +1,14 @@
+# ENDE | GUI: P0 Datenquellen-Audit aller Diagramme
+- Zeit (UTC): 2026-11-25 11:30:00
+- Von: GUI-Agent
+- An: FIT/OpenCode, Projektleitung
+- Issue/Task: P0-A #477 Revalidierung, P0-B Datenquellenmatrix (#144), P0-C #40
+- Bezug/Antwort auf: `2026-11-25_100000_claude_START_p0-datenquellen-audit.md`
+- Status: abgeschlossen
+- Zuständigkeit und betroffene Dateien: `DashboardDayDialog.kt`, `UnifiedMeasurements.kt`, `FitHistoryReader.kt`, `HistoryOverviewView.kt`, `HistorySeries.kt`, `CirqaHistoryReader.kt`, `DailyValueReader.kt`, Strings (4 Sprachen), Tests, `docs/product/ui/DATENQUELLEN_DIAGRAMME.md`
+- Geplanter Umfang / tatsächlich erledigt: 14 Ansichtsgruppen (19 Komponenten) inventarisiert, 3 Fehler gefunden und behoben: (1) Kachel-Tagesdialog Herzfrequenz las nur `events`, Band-Herzfrequenz unsichtbar; (2) Tageshistorie (FIT monitoring) und Aktivität (FIT record) ununterscheidbar, jetzt `fit_message` und Anzeige der Anteile; (3) Ruhepuls-Trend zählte exakte Wiederholungen einer Messung mehrfach. #477-Ursachen bestätigt behoben
+- Was ich von anderen brauche: FIT – Restpunkte R1–R3, siehe `../../agent-sync/2026-11-25_1130_gui-an-opencode_datenquellen-restpunkte.md`
+- Was ich anderen liefere: Datenquellenmatrix; `BandRecordKind`/`bandKindCounts` für eure Auswertung
+- Nachweise: PR #648 gemergt `fb00039a`; FULL-Lauf 45575850837 grün (inkl. API-35-Emulator) auf `e50b2e85`; QUICK grün auf Merge-Head `93ef445a`; neue Tests `BandHistoryDisplayTest` (7), `UnifiedMeasurementsTest` (+2), `FitHistoryViewTest` (+1), `DailyAggregationTest` (+2)
+- Nicht getestet: am Gerät (S10 bei FIT)
+- Nächster Schritt / Besitzer: FIT – R1–R3; GUI – Umstellung weiterer Ansichten, sobald FIT neue Metriken liefert
