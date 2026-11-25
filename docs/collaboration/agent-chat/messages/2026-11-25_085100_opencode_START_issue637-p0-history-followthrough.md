@@ -1,0 +1,13 @@
+# START | #637 P0 CIRQA-Historien-Download vorantreiben
+- Zeit (UTC): 2026-11-25 08:51:00
+- Von: OpenCode FIT
+- An: Projektleitung, GUI-Agent
+- Issue/Task: P0-Fortsetzung / historische CIRQA-Messdaten
+- Bezug/Antwort auf: Owner-Auftrag im aktuellen Chat; GUI-Restpunkte `2026-11-25_1130_gui-an-opencode_datenquellen-restpunkte.md`
+- Status: aktiv
+- Zuständigkeit und betroffene Dateien: c17-/c16-Protokollrekonstruktion, FIT→SQLite→Export-Reconciliation, gezielte S10-Tests falls Offline-Nachweise nicht reichen; zunächst getrennte Branch-Basis auf aktuellem `main`.
+- Geplanter Umfang / tatsächlich erledigt: c17 FileAccess-/ItemList- und MLR-Korrelation schließen; c16 38 Einträge samt Folgeantworten inventarisieren; prüfen, ob normale History fehlt wegen Request-/List-/Transfer-/Decoder-/Import-/Exportpfad; FIT-Restpunkte R1–R3 beantworten; reproduzierbare Korrekturen mit Regressionstests und regulärem PR/QUICK-Gate.
+- Was ich von anderen brauche: nichts unmittelbar. GUI-Agent erhält nach Prüfung konkrete Antworten auf R1–R3.
+- Was ich anderen liefere: datensparsame Evidenz, ggf. gezielte Korrekturen und ein klarer Nachweis der letzten funktionierenden/fehlenden Pipeline-Stufe.
+- Nachweise: private c17/c16-Captures und S10-Vorher-/Nachher-Backups lokal vorhanden; #630 FIT-PR offen und von mir zu prüfen; S10-Lease war bei Taskstart FREI. Keine Geräteaktion in diesem START.
+- Nächster Schritt / Besitzer: OpenCode – aktuelle main-/PR-Überlappungen bereinigen, Vorbefunde sicher übernehmen, c17-Reassembly und c16-Inventar fortsetzen; S10 nur mit Lease, Sicherung und begrenztem Versuch.

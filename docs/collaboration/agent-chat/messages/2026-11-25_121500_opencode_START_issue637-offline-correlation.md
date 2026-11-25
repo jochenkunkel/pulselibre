@@ -1,0 +1,13 @@
+# START | #637 Offline-Korrelation c16/c17 fortsetzen
+- Zeit (UTC): 2026-11-25 12:15:00
+- Von: OpenCode FIT
+- An: Projektleitung, GUI-Agent
+- Issue/Task: P0-Fortsetzung #637 – historische CIRQA-Daten
+- Bezug/Antwort auf: `2026-11-25_121000_opencode_ENDE_issue637-p0-followthrough.md`
+- Status: aktiv
+- Zuständigkeit und betroffene Dateien: rein lokale/private c16-/c17-HCI- und Backup-Artefakte; ggf. redigierter Evidenzbericht. Keine aktive Gerätekommunikation und keine GUI-/FIT-Produktdateien.
+- Geplanter Umfang / tatsächlich erledigt: vorhandene Capture-/Replay-/Backup-Artefakte inventarisieren; prüfen, ob PullItem/ItemList/Transfer/FIT-Quelle über Request-ID, Größen-/Bytefolge und SQLite-Provenienz weiter korreliert werden kann. Bei fehlender Evidenz kein Parser-/Sync-Fix.
+- Was ich von anderen brauche: nichts unmittelbar; bestehende GUI-Bitte R1 bleibt beantwortet, Rückmeldung kann später folgen.
+- Was ich anderen liefere: nächste belegbare Pipeline-Stufe für den c16-/c17-Befund oder eine genaue Offline-Evidenzlücke.
+- Nachweise: keine neue Analyse in diesem Abschnitt; frühere Vergleichsevidenz steht in `CIRQA_CONNECT_NORMAL_HISTORY_COMPARISON_2026-11-25.md`. PR #630 bleibt offen.
+- Nächster Schritt / Besitzer: OpenCode FIT – lokale Artefakte und Capture-Zuordnung prüfen; danach datensparsam dokumentieren.

@@ -1,0 +1,15 @@
+# OpenCode – #637 P0 Historische CIRQA-Messdaten
+- Agent/Umgebung: OpenCode FIT, Linux-Worktree
+- Beginn: 2026-11-25 08:51 UTC
+- Letzte Aktualisierung: 2026-11-25 12:40 UTC
+- Status: pausiert
+- Rolle/Zuständigkeit: FIT/GFDI/MLR, Protokoll, Datenbank-/Importpfad, Offline-FIT-Analyse
+- Aktueller Auftrag: Eigentümerauftrag zur eigenständigen P0-Fortsetzung: historische Messdaten zuverlässig herunterladen, dekodieren, speichern und exportieren oder eine konkrete technische Blockade belegen.
+- Jetzt in Bearbeitung: #637-Fortsetzung; aktueller Decoder auf dem lokalen, hashgeprüften 13.039-B-FIT-Kandidaten geprüft: null kanonische Beobachtungen, aber rohe 397/398-Feldvorkommen im Decoderresultat. Profilsemantik und candidate-spezifischer SQLite-Reimport bleiben offen. Keine Geräteaktion.
+- Zeitnah geplant: begrenzter S10-Test nur falls Offline-Evidenz verbleibende Hypothesen offen lässt; dokumentierte FIT-Rohfelder und Review-Kandidaten für normale Tageshistorie.
+- Betroffene Bereiche/Dateien: `app/src/main/java/de/pulselibre/{GarminProtobufReassembler,FitHistoricalObservations,FitObservationCommitter,CirqaDatabase}.kt`, gezielte FIT-/Sync-Tests, `tools/garmin_hci_replay.py`, `docs/protocol/research/`, Agenten-Chat/-Sync.
+- Branch/Worktree: `opencode/issue637-p0-history-followthrough-20261125`, `/tmp/opencode/issue637-p0-history-followthrough-20261125`, Basis `origin/main` `2ab65af9`.
+- Abstimmungsbedarf: GUI-Agent – R1–R3 fachlich beantwortet; GUI-Rückmeldung zur präsentationsseitigen R1-Behandlung erbeten. PR #630 bleibt offen, daher FIT-/DB-Dateien nicht parallel anfassen.
+- Agent-sync-Nachrichten: `docs/collaboration/agent-chat/messages/2026-11-25_085100_opencode_START_issue637-p0-history-followthrough.md`; `docs/collaboration/agent-chat/messages/2026-11-25_120500_opencode_ANTWORT_gui-fit-restpunkte.md`; `docs/collaboration/agent-chat/messages/2026-11-25_121000_opencode_ENDE_issue637-p0-followthrough.md`; `docs/collaboration/agent-chat/messages/2026-11-25_121500_opencode_START_issue637-offline-correlation.md`; `docs/collaboration/agent-chat/messages/2026-11-25_122500_opencode_ENDE_issue637-offline-correlation.md`; `docs/collaboration/agent-chat/messages/2026-11-25_124000_opencode_ENDE_issue637-decoder-candidate-audit.md`
+- Nachweise: c17 Aktivitäts-FIT vollständig per CRC-validem MLR/zlib rekonstruiert und mit bestehender SQLite-Quelle abgeglichen; c16-Folgeantworten vollständig leer; temporärer JVM-Audit des 13.039-B-FIT-Kandidaten grün: 0 Beobachtungen, 0 Review-Kandidaten, 2.862 dekodierte Felder, darunter 2.810 Global-397- und 6 Global-398-Feldvorkommen. Exakte Capture-Quellhash-Zuordnung und SQLite-Reimport nicht ausgeführt. PR #630 weiterhin offen, angezeigte Checks Build/Unit/Lint, API-35 und Dependency Review bestanden.
+- Nächster Schritt: belastbare FIT-Profil-Evidenz für Global 397/398 prüfen; dann isolated SQLite-Reimport/Export-Replay erwägen, ohne private Rohdateien ins Git zu übernehmen.

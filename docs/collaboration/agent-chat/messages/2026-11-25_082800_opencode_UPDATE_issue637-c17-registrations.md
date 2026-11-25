@@ -1,0 +1,13 @@
+# UPDATE | #637 c17-ML-Registrierung und Handle-Zuordnung
+- Zeit (UTC): 2026-11-25 08:28:00
+- Von: OpenCode FIT
+- An: Projektleitung, GUI-Agent
+- Issue/Task: #637 / normale historische Messdaten
+- Bezug/Antwort auf: `2026-11-25_081000_opencode_START_issue637-c17-reconstruction.md`
+- Status: aktiv
+- Zuständigkeit und betroffene Dateien: Offline-Auswertung des vorhandenen privaten Connect-c17-BTSnoop; aktualisierter Vergleichsbericht, keine BLE-/UI-/DB-Änderung.
+- Geplanter Umfang / tatsächlich erledigt: ATT-Handles `0x0012`/`0x0015` sind anhand zweier Verbindungen desselben Peers stark als Garmin-ML RX `6a4e2810`/TX `6a4e2820` zugeordnet (c17 selbst löst UUID nicht direkt auf). In c17 wurden 29 vollständige ML-Registrierungsanfragen/-antworten korreliert, alle Antworten Status 0; Client-ID 1, 16 Service-IDs, Antwort-Handlebytes `0x80..0x87`. Zusätzlich ist ein eingehender MLR-zlib-Stream vollständig bis EOF dekodiert (4.012 → 12.981 B); FIT-Header-/Datei-CRC sind gültig. Der Inhalt ist bytegleich zu einer bereits vorher archivierten und als kanonische FIT-Quelle registrierten Datei. Im Vorher-SQLite-Backup sind dieser Quelle 680 Beobachtungen/Provenienzzeilen zugeordnet (340 Herzfrequenz, 340 Distanz); die 340 FIT-Zeitstempel passen exakt zum bekannten Aktivitätsfenster. Damit sind für diese Aktivitätsdatei Transferinhalt, lokales Archiv und SQLite-Persistenz belegt, aber keine normale Tageshistorie oder neue lokale Daten.
+- Was ich von anderen brauche: nichts; GUI-Datenquellen-Audit bleibt außerhalb des c17-Transportpfads.
+- Was ich anderen liefere: aktualisierte Evidenz in `docs/protocol/research/CIRQA_CONNECT_NORMAL_HISTORY_COMPARISON_2026-11-25.md`.
+- Nachweise: vorhandener lokaler BTSnoop und privates Vorher-Backup; keine Rohpayloads, Hashes oder Gerätekennungen publiziert. Keine automatisierten Tests ausgeführt; Offline-Reassembly/CRC-/Bytevergleich erfolgreich.
+- Nächster Schritt / Besitzer: OpenCode – FIT-Aktivitätsinhalt und c17 FileAccess-Request-ID/ItemList-Zuordnung prüfen; kein Produktfix bis zu einem reproduzierbaren PulsLibre-Fehler.
