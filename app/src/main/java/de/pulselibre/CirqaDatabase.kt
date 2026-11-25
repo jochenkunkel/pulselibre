@@ -1532,8 +1532,38 @@ class CirqaDatabase(private val contextRef: Context) :
         it.getLong(0)
     }
 
-    /** Run a callback against a consistent read snapshot of both local SQLite stores. */
+    /**
+     * Run a callback against a consistent read snapshot of both local SQLite stores.
+     *
+     * On Android 11+ (SQLite ≥ 3.28) the stores are first copied with `VACUUM INTO` – a read-only operation of a few
+     * seconds – and [block] runs on the copies. Before (25.11.2026) the whole backup export ran inside an exclusive
+     * transaction on the live database for minutes; the recorder, which logs readings on the main thread, waited for
+     * the lock and the app showed "PulsLibre reagiert nicht" (S10, build 2232). Older Android keeps the previous path.
+     */
     @Synchronized internal fun <T> readStoredSnapshot(block: (SQLiteDatabase) -> T): T =
+        if (android.os.Build.VERSION.SDK_INT >= 30) readFromSnapshotCopy(block) else readInLiveTransaction(block)
+
+    private fun <T> readFromSnapshotCopy(block: (SQLiteDatabase) -> T): T {
+        val directory = java.io.File(contextRef.cacheDir, "db-snapshot-${java.util.UUID.randomUUID()}")
+        require(directory.mkdirs()) { "Temporärer Snapshot-Bereich kann nicht erstellt werden" }
+        try {
+            val mainCopy = java.io.File(directory, "main.db")
+            val legacyCopy = java.io.File(directory, "legacy.db")
+            writableDatabase.execSQL("VACUUM main INTO ?", arrayOf(mainCopy.absolutePath))
+            LocalReadingStore(contextRef).use { it.writableDatabase.execSQL("VACUUM main INTO ?", arrayOf(legacyCopy.absolutePath)) }
+            val copy = SQLiteDatabase.openDatabase(mainCopy.absolutePath, null, SQLiteDatabase.OPEN_READWRITE)
+            try {
+                copy.execSQL("ATTACH DATABASE ? AS legacy", arrayOf(legacyCopy.absolutePath))
+                return block(copy)
+            } finally {
+                copy.close()
+            }
+        } finally {
+            directory.deleteRecursively()
+        }
+    }
+
+    private fun <T> readInLiveTransaction(block: (SQLiteDatabase) -> T): T =
         withLegacyDatabase { db ->
             db.beginTransaction()
             try {
