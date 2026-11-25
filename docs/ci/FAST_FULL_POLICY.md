@@ -6,7 +6,7 @@
 - Jeden Tag um 02:17 UTC: FULL auf main, einschließlich Lint, Instrumentation und Android-API-35-Emulator.
 - workflow_dispatch: FULL (Vorgabe) oder QUICK explizit wählbar; CLOUD/LOCAL weiterhin wählbar.
 - Release: vor Veröffentlichung FULL **auf exakt dem freizugebenden Commit** erfolgreich; signiertes Update-APK nur bei geprüfter Signaturkontinuität. Ein gewöhnlicher QUICK-Push gilt nicht als Releasefreigabe.
-- Nachweislich hochriskante Änderungen (destruktive Datenbankmigration, Backup/Restore, neue BLE-Transportsemantik, kritische Importintegrität): FIT startet gezielt FULL vor Merge und dokumentiert den Grund. Normale BLE-Parser-/Decoder-/UI-/Dokukorrekturen erfordern **keinen** pauschalen FULL-Lauf.
+- **Kein FULL-Merge-Gate** für irgendeinen Änderungstyp. FIT wählt bei Risiken gezielte Tests oder optional FULL. FULL bleibt vor Release verpflichtend.
 
 ## Merge und Schutz
 - Für gewöhnliche PRs genügt ein erfolgreicher QUICK-Workflow samt weiteren erforderlichen Dependency-Checks und dokumentiertem Self-Review von FIT.
@@ -24,6 +24,6 @@
 2. PR öffnen; QUICK und relevante Dependency-Checks automatisch prüfen.
 3. FIT führt Self-Review durch und merged nach grünen erforderlichen Checks eigenständig, ohne zweiten Reviewer oder Owner-Nachfrage.
 4. Nächtlicher FULL läuft asynchron; Fehler werden am nächsten Arbeitsschritt priorisiert. Kein automatischer Rollback ohne Evidenz.
-5. Vor Release oder konkret hochriskanten Änderungen FULL gezielt anfordern. Keine lokalen Emulator-/FULL-Pflichten.
+5. Vor Release FULL gezielt anfordern; sonst optional. Keine lokalen Emulator-/FULL-Pflichten.
 
 Diese Regeln ersetzen alle widersprechenden pauschalen FULL-/Zweitreview-Gates in älteren Arbeitsanweisungen; historische Testberichte werden nicht rückwirkend umgeschrieben.
