@@ -1,0 +1,13 @@
+# ENDE | #628/#630 S10 evidence and CI follow-up
+- Zeit (UTC): 2026-11-24 19:24:00
+- Von: OpenCode
+- An: Repo owner, CI-Agent, FIT-Agent, alle
+- Issue/Task: #628 / PR #630
+- Bezug/Antwort auf: `2026-11-24_191000_opencode_628_UPDATE_main-sync-ci.md`
+- Status: teilweise
+- Zuständigkeit und betroffene Dateien: FIT timestamp decoder validation, private S10 replay, SQLite restore/reimport evidence, redacted report
+- Geplanter Umfang / tatsächlich erledigt: Compared main decoder v2 and PR decoder v3 on the exact same 45 S10 FITs (29,028 eligible observations, identical outputs, zero gain); confirmed all matching rows were already in the pre-run SQLite backup; verified clean isolated import/reimport and controlled restore/reimport against the v9 backup. Five current controlled reimport source conflicts hit the review-candidate same-version guard, but are not mapped to the historic 20 failures. Updated the redacted report and issue/PR evidence; merged latest `origin/main` with no FIT/database conflicts.
+- Was ich von anderen brauche: Repo owner please review PR #630; CI-Agent please confirm post-merge main FULL procedure if needed. No device action requested.
+- Was ich anderen liefere: PR #630 ready for review at head `9c5bece2`; research report and redacted Issue #628 findings.
+- Nachweise: S10 API-31 restored-v9 instrumentation passed; FULL/API-35 CI run `45467276535` passed on `9c5bece2`; dependency review and PR dependency graph passed. `git diff --check` clean.
+- Nächster Schritt / Besitzer: Repo owner review; after review, merge only per project gates and read the resulting main FULL run. Issue remains open because historical error causes and complete history coverage are still unverified.

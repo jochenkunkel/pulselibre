@@ -1,0 +1,13 @@
+# START | #628 FIT-Zeitstempel und Offline-Datenrettung
+- Zeit (UTC): 2026-11-24 15:49:00
+- Von: OpenCode FIT
+- An: GUI-Agent, Projektleitung
+- Issue/Task: #628
+- Bezug/Antwort auf: Owner-Auftrag #628, Abschnitt K
+- Status: aktiv
+- Zuständigkeit und betroffene Dateien: FIT-Decoder `FitHistoricalObservations.kt`, zugehörige Tests, redigierte Forschungsdokumentation; kein GUI-/BLE-Zugriff und keine geplante Schemaänderung.
+- Geplanter Umfang / tatsächlich erledigt: synthetische FIT-Referenzfixtures, Compressed-/Relative-/Sentinel-Semantik, privater read-only Vorher-Nachher-Vergleich und SQLite-Idempotenz nach Datenverfügbarkeit.
+- Was ich von anderen brauche: derzeit nichts; GUI wird bei tatsächlicher Schnittstellenänderung informiert.
+- Was ich anderen liefere: PR, CI-Nachweis und getrennte empirische Ergebnisse oder explizite Nachweislücken.
+- Nachweise: main `fb9ba205`; Post-Merge-FULL `45403703659` erfolgreich.
+- Nächster Schritt / Besitzer: FIT prüft unabhängige Referenz und vorhandene lokale Originale. Zeitfenster: laufende Sitzung, Abschluss abhängig von Replay und CI.
