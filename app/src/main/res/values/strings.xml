@@ -898,6 +898,13 @@
     <string name="main_row_service">Service data: %1$s</string>
     <string name="hv_fit_read_failed">Band history could not be read.</string>
     <string name="hv_fit_newest">Newest band measurement: %1$s (outside the selected window).</string>
+    <string name="hv_fit_kinds">Normal all-day history: %1$d · from activity recordings: %2$d</string>
+    <string name="hv_fit_kinds_other"> · other FIT messages: %1$d</string>
+    <string name="hv_fit_activity_only">Only values from activity recordings – no normal all-day history is stored for this period.</string>
+    <string name="dd_band_title">Band history (FIT) · band measurement time</string>
+    <string name="dd_band_summary">%1$d band values (all-day history %2$d, activity %3$d)</string>
+    <string name="dd_band_none">No band heart rate (FIT) stored for this day.</string>
+    <string name="dd_band_failed">Band history could not be read.</string>
     <string name="ht_title">All data</string>
     <string name="ht_col_date">Date</string>
     <string name="ht_col_source">Source</string>

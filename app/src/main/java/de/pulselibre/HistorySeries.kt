@@ -52,6 +52,8 @@ data class HistorySnapshot(
     val fitReadFailed: Boolean = false,
     /** Newest band heart-rate measurement of any time, to explain an empty window. */
     val fitNewest: Instant? = null,
+    /** Band values of the window per FIT message kind; an activity is never a normal all-day history. */
+    val fitKinds: Map<BandRecordKind, Int> = emptyMap(),
     /** Per day, origin and metric summary of everything in the window: live, imported and band data in one list. */
     val allData: List<UnifiedDaySummary> = emptyList()
 )
