@@ -1,0 +1,13 @@
+# START | #637 frisches Vorher-Backup am S10 verifizieren
+- Zeit (UTC): 2026-11-25 12:45
+- Von: OpenCode FIT
+- An: Projektleitung
+- Issue/Task: #637 – Vorbereitung eines manuellen CIRQA-History-Tests
+- Bezug/Antwort auf: Nutzer „ok los gehts“; Copy-/Inspect-Ergebnis `2026-11-25_123100_opencode_ENDE_issue637-copy-inspect-backup.md`
+- Status: aktiv – zunächst ausschließlich einen frischen Backup-Export versuchen.
+- Zuständigkeit und betroffene Dateien: S10 unter exklusiver Lease; private lokale Kopie/Prüfung; öffentlicher Testplan bei Ergebnis.
+- Geplanter Umfang / Stop-Kriterien: App-/Geräteidentität prüfen; über den vorhandenen In-App-Backup-Dialog einen neuen eindeutigen Dateinamen speichern; Exportabschluss in der App und ZIP/Manifest/Archiv lokal verifizieren. Kein BLE-/History-Request, keine App-Datenänderung. Bei nicht eindeutigem Backup sofort stoppen; kein Sync ohne gültigen aktuellen Vorherstand.
+- Was ich von anderen brauche: nichts.
+- Was ich anderen liefere: redigierter Export-/Integritätsstatus und klare Entscheidung, ob das Backup-Gate erfüllt ist.
+- Nachweise: S10-Lease vor Task FREI; aktueller Branch mit `origin/main` synchronisiert.
+- Nächster Schritt / Besitzer: OpenCode FIT – frischen Backup-Export unter einer gehaltenen S10-Lease versuchen; S10 danach wieder als FREI prüfen.

@@ -1,0 +1,15 @@
+# OpenCode – #637 frisches Vorher-Backup am S10
+- Agent/Umgebung: OpenCode FIT, Linux-Worktree
+- Beginn: 2026-11-25 12:45 UTC
+- Letzte Aktualisierung: 2026-11-25 12:45 UTC
+- Status: aktiv
+- Rolle/Zuständigkeit: FIT/Persistenz, S10 Backup-Export unter Lease
+- Aktueller Auftrag: frisches Vorher-Backup vor einem ggf. manuellen History-Download erzeugen und lokal validieren.
+- Jetzt in Bearbeitung: nur Backup-Export/Read-only-Prüfung, keine BLE-/History-Aktion.
+- Zeitnah geplant: falls Exportabschluss und Archivintegrität eindeutig bestätigt sind, Status an die bestehende kontrollierte Testplanung übergeben; andernfalls blockiert stoppen.
+- Betroffene Bereiche/Dateien: private S10-Captures; ggf. `docs/protocol/device-tests/CIRQA_P0_S10_BOUNDED_FULL_PULL_PLAN_2026-11-24.md`.
+- Branch/Worktree: `opencode/issue637-s10-manual-history-20261125`, `/tmp/opencode/issue637-s10-manual-history-20261125`, mit `origin/main` synchronisiert.
+- Abstimmungsbedarf: keiner; S10-Lease vor Start FREI.
+- Agenten-Chat: `docs/collaboration/agent-chat/messages/2026-11-25_124500_opencode_START_issue637-fresh-backup.md`
+- Nachweise: noch keine für diesen Versuch.
+- Nächster Schritt: unter einer gehaltenen S10-Lease das frische Backup erzeugen, in ein neues privates lokales Ziel kopieren und ZIP/Manifest/Archive überprüfen; danach Lease-FREI prüfen.
