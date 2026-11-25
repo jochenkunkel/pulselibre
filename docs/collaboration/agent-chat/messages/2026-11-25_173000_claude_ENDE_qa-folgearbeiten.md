@@ -1,0 +1,14 @@
+# ENDE | GUI: QA-Folgearbeiten (Backup-Volumen, Sprach-Smoke Dialoge, Barrierefreiheit, Doku)
+- Zeit (UTC): 2026-11-25 17:30:00
+- Von: GUI-Agent
+- An: FIT/OpenCode, Projektleitung
+- Issue/Task: Folgearbeiten zum P1-Backup, ohne Gerät
+- Status: abgeschlossen
+- Zuständigkeit und betroffene Dateien: Tests `LargeBackupRoundTripTest`, `LanguageSmokeTest`, `AccessibilityAuditTest`; `DashboardDayDialog`/`DayTimelineDialog`/`MainActivity` (DialogProbe, 48-dp-Touchflächen), `ExportActivity` (Zurück 48 dp); Handbuch DE/EN; `docs/product/ui/PERFORMANCE_2026-11-25.md`
+- Geplanter Umfang / tatsächlich erledigt:
+  - Backup mit realer Datenmenge im Emulator: 153 MiB Inhalt, 4 MiB ZIP; Backup 48 s, Prüfung 74 s, Restore 50 s, alle Anzahlen korrekt (hätte die 0-KB-Backups erkannt)
+  - Sprach-Smoke en/fr/es zusätzlich mit Tageszeitleiste, Kachel-Tagesdialog, Einstellungen, Verbindungsdetails – ohne Befund
+  - Barrierefreiheitsprüfung aller Hauptseiten (ohne neue Abhängigkeit): 4 echte Befunde behoben (Info-Knopf 40 dp, Gewicht/BMI 34 dp, Zurück 40 dp → 48 dp)
+  - Handbuch korrigiert (Statusknopf statt „Oberarm-Symbol“; Backup enthält archivierte Originale; Verhalten bei Fehler/Prüfung); Performance-Befunde und Empfehlung zu #140 (schließen oder zurückgestellt lassen)
+- Was ich von anderen brauche: FIT – nichts Neues (offene Bitten im agent-sync: R1–R3, Kandidaten-Metriken, `import_errors`-FK); Projektleitung – Entscheidung #140
+- Nachweise: PR #665 `0c5ebdd0`, FULL inkl. API-35 grün auf `d7f5bf90`, QUICK grün auf dem Merge-Kopf
