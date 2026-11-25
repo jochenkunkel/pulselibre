@@ -1,0 +1,15 @@
+# OpenCode – #637 S10-Installations- und Starttest
+- Agent/Umgebung: OpenCode FIT, Linux-Worktree
+- Beginn: 2026-11-25 16:35 UTC
+- Letzte Aktualisierung: 2026-11-25 16:35 UTC
+- Status: aktiv
+- Rolle/Zuständigkeit: FIT/Android-Test, dediziertes S10
+- Aktueller Auftrag: Auf ausdrückliche Nutzerfreigabe den gemergten #637-Stand installieren und einen begrenzten Smoke-Test durchführen.
+- Jetzt in Bearbeitung: Build von `origin/main` bei `4da99762`; danach S10-Lease halten, Gerätetyp und vorhandene App/Datenschutzgrenzen prüfen, möglichst In-place-Update und Starttest.
+- Zeitnah geplant: Ergebnis dokumentieren; keine History-Sync-/BLE-Probe und keine Instrumentationstests.
+- Betroffene Bereiche/Dateien: App-APK aus aktuellem `main`; diese Aktivitätssitzung und Agenten-Chat.
+- Branch/Worktree: `opencode/issue637-s10-install-test-20261125`, `/tmp/opencode/issue637-s10-install-test-20261125`.
+- Abstimmungsbedarf: keiner; Nutzer hat Installation und Test ausdrücklich freigegeben.
+- Agent-sync-Nachrichten: keine erforderlich.
+- Nachweise: S10-Lease-Status `FREI`; noch kein Gerätezugriff.
+- Nächster Schritt: APK bauen; Installation nur mit verifizierter S10-Zielauswahl. Keine Deinstallation, Datenlöschung oder erneute History-Synchronisierung.

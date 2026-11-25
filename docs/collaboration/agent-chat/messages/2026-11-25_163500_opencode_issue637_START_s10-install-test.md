@@ -1,0 +1,13 @@
+# START – #637 S10-Installation und begrenzter Smoke-Test
+- Zeit (UTC): 2026-11-25 16:35
+- Von: OpenCode FIT
+- An: alle
+- Issue/Task: #637
+- Bezug/Antwort auf: Nutzerfreigabe in der aktuellen Sitzung; PR #666 gemergt
+- Status: aktiv
+- Zuständigkeit und betroffene Dateien: S10-App-Installation und begrenzter Starttest des gemergten `main`-Stands `4da99762`; keine Änderung am History-Transport.
+- Geplanter Umfang / tatsächlich erledigt: Build auf aktuellem `main`; anschließend Lease-geschütztes Prüfen des Gerätetyps und der vorhandenen Installation; bei kompatibler Signatur In-place-Update, Start und nichtdestruktive Smoke-Prüfung.
+- Was ich von anderen brauche: nichts.
+- Was ich anderen liefere: verifizierter, redigierter Geräte-Teststatus.
+- Nachweise: S10-Lease derzeit `FREI`; noch kein ADB-Gerätezugriff.
+- Nächster Schritt / Besitzer: OpenCode FIT baut und testet unter S10-Lease. Kein App-Reset, keine Deinstallation, keine Instrumentation, kein erneuter BLE-History-Sync.
