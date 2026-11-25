@@ -54,8 +54,11 @@ internal class CirqaMlrFileTransferAssembler(
                 undecidedPayloads.clear()
                 return result()
             }
-            val unprefixedHeader = prefixAfter(0)?.takeIf { isZlibHeader(it[0], it[1]) }
-            val prefixedHeader = prefixAfter(TRANSPORT_HEADER_BYTES)
+            val unprefixedPrefix = prefixAfter(0)
+            val prefixedPrefix = prefixAfter(TRANSPORT_HEADER_BYTES)
+            val unprefixedHeader = unprefixedPrefix
+                ?.takeIf { isZlibHeader(it[0], it[1]) }
+            val prefixedHeader = prefixedPrefix
                 ?.takeIf { isZlibHeader(it[0], it[1]) }
             if (unprefixedHeader != null || prefixedHeader != null) {
                 compressionPrefixBytes =
@@ -78,6 +81,20 @@ internal class CirqaMlrFileTransferAssembler(
                 }
                 if (complete || !rawFallbackAvailable) undecidedPayloads.clear()
                 if (mode != Mode.ZLIB) undecidedPayloads.clear()
+                return result()
+            }
+            if (unprefixedPrefix != null && prefixedPrefix != null) {
+                mode = Mode.RAW
+                for ((index, chunk) in undecidedPayloads.withIndex()) {
+                    acceptRaw(chunk)
+                    if (rejected) break
+                    if (complete && index != undecidedPayloads.lastIndex) {
+                        rejected = true
+                        complete = false
+                        break
+                    }
+                }
+                undecidedPayloads.clear()
                 return result()
             }
             val rawBytes = undecidedPayloads.sumOf { it.size }

@@ -75,6 +75,18 @@ class CirqaMlrFileTransferAssemblerTest {
         }
     }
 
+    @Test fun selectsRawModeAfterBothCompressionOffsetsAreRuledOut() {
+        val expected = ByteArray(20) { (it + 1).toByte() }
+        CirqaMlrFileTransferAssembler(expected.size).use { assembler ->
+            val first = assembler.accept(expected.copyOfRange(0, 4))
+            assertFalse(first.rejected)
+            assertEqualsMode(CirqaMlrFileTransferAssembler.Mode.RAW, assembler.mode)
+            val result = assembler.accept(expected.copyOfRange(4, expected.size))
+            assertTrue(result.complete)
+            assertArrayEquals(expected, assembler.assembledBytes())
+        }
+    }
+
     @Test fun detectsZlibHeaderSplitAcrossShortNotifications() {
         val expected = byteArrayOf(7, 6, 5, 4, 3, 2, 1)
         val compressed = ByteArrayOutputStream().also { out ->
