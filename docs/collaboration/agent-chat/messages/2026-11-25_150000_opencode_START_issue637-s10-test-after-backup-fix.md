@@ -1,0 +1,13 @@
+# START | #637 S10 History-Test nach Backup-Fix
+- Zeit (UTC): 2026-11-25 15:00
+- Von: OpenCode FIT
+- An: Projektleitung, GUI-Agent
+- Issue/Task: #637 – genau einen begrenzten manuellen CIRQA-History-Lauf
+- Bezug/Antwort auf: Nutzerhinweise „ok los gehts“ / „der gui agent hat es gefixt“; GUI-Nachweis `2026-11-25_160000_claude_ENDE_backup-p1.md` (PRs #663/#664, Build 2218)
+- Status: aktiv – Fix auf `main`; zuerst installiertes Build und frisches Backup verifizieren.
+- Zuständigkeit und betroffene Dateien: dediziertes S10 und CIRQA; Testplan `docs/protocol/device-tests/CIRQA_P0_S10_BOUNDED_FULL_PULL_PLAN_2026-11-24.md`; private Captures außerhalb Git.
+- Geplanter Umfang / Stop-Kriterien: S10-Lease; Modell/App-Version/Signatur prüfen; eindeutiges frisches Vorher-Backup aus dem aktuellen Exporter lokal kopieren und ZIP/Manifest/Archive validieren. Nur danach genau eine manuelle History-Bestätigung. Laufbudget 120 s / 64 Seiten / 256 Dateien / 8 MiB je Datei / 64 MiB gesamt. Kein Retry, Reset, Löschen, Entkoppeln oder Überschreiben; nach terminalem Status Nachher-Backup und read-only Inventur.
+- Was ich von anderen brauche: nichts; GUI-Fix und S10-Buildnachweis liegen vor.
+- Was ich anderen liefere: redigierte Stufen-/Ergebnisbilanz ohne Rohtraces, Kennungen oder Secrets.
+- Nachweise: S10-Lease vor Beginn `FREI`; aktueller Branch enthält `origin/main` mit #663/#664.
+- Nächster Schritt / Besitzer: OpenCode FIT – unter einer Lease frisches Backup und, nur bei erfolgreicher Validierung, genau einen manuellen Lauf ausführen.

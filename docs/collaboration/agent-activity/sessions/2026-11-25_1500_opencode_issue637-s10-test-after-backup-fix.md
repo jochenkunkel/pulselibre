@@ -1,0 +1,15 @@
+# OpenCode – #637 S10 History-Test nach Backup-Fix
+- Agent/Umgebung: OpenCode FIT, Linux-Worktree
+- Beginn: 2026-11-25 15:00 UTC
+- Letzte Aktualisierung: 2026-11-25 15:00 UTC
+- Status: aktiv
+- Rolle/Zuständigkeit: FIT/GFDI, begrenzter manueller S10-History-Test mit Vorher-/Nachher-Backup
+- Aktueller Auftrag: nach GUI-Backup-Fix genau einen kontrollierten manuellen CIRQA-History-Lauf versuchen.
+- Jetzt in Bearbeitung: installierte Build-/Signaturkontinuität und frisches Backup unter Lease; kein BLE-Request bis Backup lokal validiert.
+- Zeitnah geplant: bei erfolgreichem Backup ein einziger manueller Download mit 120-s/64-Seiten/256-Dateien/8-MiB-pro-Datei/64-MiB-Laufbudgets; terminale Anzeige beobachten, Nachher-Backup/Read-only-Audit.
+- Betroffene Bereiche/Dateien: Testplan `docs/protocol/device-tests/CIRQA_P0_S10_BOUNDED_FULL_PULL_PLAN_2026-11-24.md`; private Artefakte außerhalb Git.
+- Branch/Worktree: `opencode/issue637-s10-manual-history-20261125`, `/tmp/opencode/issue637-s10-manual-history-20261125`, enthält `origin/main` `374885a9` mit #663/#664.
+- Abstimmungsbedarf: keiner; S10 vor Task `FREI`. Kein paralleler Geräteeinsatz bekannt.
+- Agenten-Chat: `docs/collaboration/agent-chat/messages/2026-11-25_150000_opencode_START_issue637-s10-test-after-backup-fix.md`
+- Nachweise: GUI-Agent meldet Build 2218 und verifizierten 8,27-MB-Backup; dieses Task benötigt eigenes frisches Vorher-Backup.
+- Nächster Schritt: Lease-held Preflight; nur bei valider frischer Sicherung manuelle Download-UI positiv bestätigen.
