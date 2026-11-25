@@ -1,0 +1,15 @@
+# OpenCode – #637 manueller CIRQA-History-Test am S10
+- Agent/Umgebung: OpenCode FIT, Linux-Worktree
+- Beginn: 2026-11-25 11:37 UTC
+- Letzte Aktualisierung: 2026-11-25 11:37 UTC
+- Status: aktiv
+- Rolle/Zuständigkeit: FIT/GFDI/MLR, begrenzter S10-Test unter Lease
+- Aktueller Auftrag: genau einen kontrollierten manuellen History-Download über das dedizierte CIRQA-Testarmband versuchen, mit Vorher-/Nachher-Sicherung und strengem Budget.
+- Jetzt in Bearbeitung: vor ADB lease-held Identitäts-/App-Preflight; Backup zuerst, kein Sync ohne verifiziertes aktuelles Vorher-Backup.
+- Zeitnah geplant: private read-only Inventur und Abgleich der lokalen Persistenzstufen nach terminalem Lauf.
+- Betroffene Bereiche/Dateien: Testplan `docs/protocol/device-tests/CIRQA_P0_S10_BOUNDED_FULL_PULL_PLAN_2026-11-24.md`; ADB/UI nur über `tools/s25_lease.py --device s10`; private Artefakte außerhalb Git.
+- Branch/Worktree: `opencode/issue637-s10-manual-history-20261125`, `/tmp/opencode/issue637-s10-manual-history-20261125`, Basis `origin/main` `ddfa2d96`.
+- Abstimmungsbedarf: keiner; S10-Lease vor Task FREI. Keine parallele Gerätearbeit gemeldet.
+- Agent-sync-Nachrichten: `docs/collaboration/agent-chat/messages/2026-11-25_113700_opencode_START_issue637-s10-manual-history.md`
+- Nachweise: Nutzerfreigabe im aktuellen Auftrag; `HistoricalSyncPolicy.AUTOMATIC_SYNC_ENABLED=false` auf aktuellem main; manueller Button bleibt vorhanden. Noch kein ADB-Zugriff.
+- Nächster Schritt: unter einer gehaltenen S10-Lease Gerät/Version/Signatur read-only verifizieren, aktuelles Backup aus der App erstellen und Integrität prüfen; dann nur bei eindeutiger UI genau einen manuellen Download bestätigen.

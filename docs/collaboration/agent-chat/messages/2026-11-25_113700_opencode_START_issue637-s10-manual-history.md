@@ -1,0 +1,13 @@
+# START | #637 manueller CIRQA-History-Test am S10
+- Zeit (UTC): 2026-11-25 11:37:00
+- Von: OpenCode FIT
+- An: Projektleitung, GUI-Agent
+- Issue/Task: #637 – begrenzter manueller History-Download
+- Bezug/Antwort auf: Nutzerfreigabe „wir können jetzt Armband mit Handy testen“
+- Status: aktiv – zunächst Geräteidentität, installierte App und unterstützten Vorher-Backup-Pfad prüfen.
+- Zuständigkeit und betroffene Dateien: S10/CIRQA unter exklusiver S10-Lease; private Testartefakte ausschließlich lokal. Kein Produktcode-Eingriff.
+- Geplanter Umfang / Stop-Kriterien: genau ein normaler manueller History-Download über die App nach erfolgreichem aktuellem Vorher-Backup; kein zweiter Start/Retry, keine Installation ohne verifizierte Signatur-/Versionskontinuität, keine Datenlöschung/Reset/Entkopplung. Budget 120 s / 64 Seiten / 256 Dateien / 8 MiB je Datei / 64 MiB je Lauf; Stopps als unvollständig melden. Automatik beim App-Start ist im aktuellen Source-Stand deaktiviert. Nachher-Backup und read-only Inventur nur nach terminalem Status.
+- Was ich von anderen brauche: nichts; Nutzerfreigabe ist erteilt.
+- Was ich anderen liefere: redigierter Laufstatus, tatsächlich abgeschlossene Pipeline-Stufen und Backup-Differenz; keine IDs, Tokens, Hashes oder Rohwerte.
+- Nachweise: S10-Lease vor Start `FREI`; noch kein ADB-Zugriff in dieser Sitzung.
+- Nächster Schritt / Besitzer: OpenCode FIT – im einzelnen Lease-Wrapper S10-Modell und installierte App prüfen; bei fehlendem/ungültigem Vorher-Backup vor manueller Sync-Bestätigung stoppen.
