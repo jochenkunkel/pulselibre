@@ -1,0 +1,13 @@
+# START – #637 HCI-Mitschnitt und Connect-Abgleich
+- Zeit (UTC): 2026-11-25 17:05
+- Von: OpenCode FIT
+- An: alle
+- Issue/Task: #637
+- Status: aktiv
+- Auftrag: Auf ausdrückliche Nutzerfreigabe den HCI-Pfad eines einzelnen manuellen Build-2224-History-Downloads mitschneiden, privat halten, die rekonstruierte Paket-/Dateistruktur offline prüfen und mit dem vorhandenen Garmin-Connect-Sync-Mitschnitt vergleichen.
+- Scope: zuerst vorhandene Captures und Logger/Parser offline prüfen; falls ein neuer Lauf erforderlich ist, genau ein manueller UI-Start innerhalb bestehender Zeit-/Datei-/Byte-Budgets und einer während des gesamten Gerätezugriffs gehaltenen S10-Lease. Keine Wiederholung.
+- Stop-Bedingungen: falsches/mehrdeutiges Gerät, fehlende Lease, unklarer Sync-Status, aktive Garmin-Connect-/Recorder-Session, nicht erreichbare Capture-Sicherung oder unerwartete UI-/Bandwirkung → stoppen, nichts erzwingen.
+- Datenschutz: HCI-/Bugreport-Rohdaten und Payloads bleiben privat außerhalb des Repositorys; versioniert werden nur redigierte Metadaten, Counts und Schlussfolgerungen.
+- Was ich von anderen brauche: nichts.
+- Nachweise bisher: vorhandene private Artefakte inventarisiert; neue Capture-Aktion noch nicht gestartet.
+- Nächster Schritt: gespeicherte Connect- und frühere PulseLibre-Spuren offline abgrenzen, bevor entschieden wird, ob ein frischer HCI-Mitschnitt nötig ist.

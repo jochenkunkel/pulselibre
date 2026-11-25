@@ -1,0 +1,16 @@
+# OpenCode – #637 HCI-Mitschnitt des manuellen Downloads und Connect-Abgleich
+- Agent/Umgebung: OpenCode / PulsLibre FIT
+- Beginn: 2026-11-25 17:05 UTC
+- Letzte Aktualisierung: 2026-11-25 17:05 UTC
+- Status: aktiv
+- Rolle/Zuständigkeit: CIRQA/BLE-Protokoll, Offline-Replay und evidenzbasierte Dokumentation
+- Aktueller Auftrag: Auf ausdrückliche Nutzerfreigabe den HCI-Pfad eines einzelnen manuellen Build-2224-History-Downloads erfassen, privat sichern und nachträglich mit den vorhandenen Garmin-Connect-Captures vergleichen; rekonstruierte Struktur unabhängig validieren.
+- Jetzt in Bearbeitung: #637 – private Capture-Verfügbarkeit/zeitliche Abgrenzung und passiver S10-Mitschnitt vorbereiten.
+- Zeitnah geplant: redigierte Replay-/Strukturprüfung sowie Dokumentation mit klaren Evidenzgrenzen.
+- Betroffene Bereiche/Dateien: `tools/btsnoop_summary.py`, `tools/garmin_hci_replay.py`, `docs/protocol/research/CIRQA_CONNECT_NORMAL_HISTORY_COMPARISON_2026-11-25.md`; S10 nur innerhalb gehaltener Lease.
+- Branch/Worktree: `opencode/issue637-hci-compare-20261125`, `/tmp/opencode/issue637-hci-compare-20261125`
+- Abstimmungsbedarf: keiner; Owner hat einen HCI-mitgeschnittenen manuellen Download und unabhängige Strukturkontrolle ausdrücklich freigegeben.
+- Agent-sync-Nachrichten: keine neue technische Fremdzuständigkeit; Start/Ende im Agenten-Chat.
+- Nachweise: Vorhandene private Connect-/PulsLibre-Captures und redigierte Parserausgaben werden zunächst offline inventarisiert. S10-Lease zuletzt FREI (17:05 UTC); kein neuer Lauf gestartet.
+- Stop-Bedingungen: kein Zugriff ohne S10-Lease; vor dem manuellen Sync Bluetooth-/App-/Connect-Zustand prüfen; nur eine UI-bestätigte manuelle Anfrage; keine Wiederholung, kein Reset, Löschen, Unpairing, Archiv-/Flag-Kommando oder CLOSE_ALL. Rohmitschnitt bleibt außerhalb von Git.
+- Nächster Schritt: vorhandenen Connect-Capture-Stand offline sichern/prüfen, dann Capture-Methode und privaten Speicherpfad vor einem einzelnen begrenzten Lauf verifizieren.
