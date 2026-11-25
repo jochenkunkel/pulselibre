@@ -913,6 +913,7 @@
     <string name="hv_fit_kinds">Historial diario normal: %1$d · de registros de actividad: %2$d</string>
     <string name="hv_fit_kinds_other"> · otros mensajes FIT: %1$d</string>
     <string name="hv_fit_activity_only">Solo valores de registros de actividad: no hay historial diario normal guardado para este período.</string>
+    <string name="hv_fit_duplicates">%1$d valores estaban en varios archivos FIT y se cuentan una sola vez.</string>
     <string name="dd_band_title">Historial de la pulsera (FIT) · hora de medición de la pulsera</string>
     <string name="dd_band_summary">%1$d valores de la pulsera (historial diario %2$d, actividad %3$d)</string>
     <string name="dd_band_none">No hay frecuencia cardíaca de la pulsera (FIT) guardada para este día.</string>

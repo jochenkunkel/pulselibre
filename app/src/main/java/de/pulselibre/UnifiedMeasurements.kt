@@ -94,7 +94,7 @@ class UnifiedMeasurements(private val db: SQLiteDatabase) {
         const val VALID_SQL = "NOT ((metric IN ('bpm', 'resting_bpm', 'heart_rate') AND value <= 0) OR (metric IN ('breaths_per_min', 'stress') AND value < 0))"
 
         /** Layout version of the derived table, kept in `unified_state` under [SCHEMA_KEY]. */
-        const val SCHEMA_VERSION = "2"
+        const val SCHEMA_VERSION = "3"
         private const val SCHEMA_KEY = "schema"
 
         /**
@@ -108,22 +108,22 @@ class UnifiedMeasurements(private val db: SQLiteDatabase) {
         db.execSQL("CREATE TABLE IF NOT EXISTS unified_state(key TEXT PRIMARY KEY NOT NULL, value TEXT NOT NULL)")
         val hasTable = db.rawQuery("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'unified_measurements'", null)
             .use { it.moveToFirst() }
-        val hasKind = hasTable && db.rawQuery("PRAGMA table_info(unified_measurements)", null).use { c ->
-            var found = false
-            while (c.moveToNext()) if (c.getString(1) == "fit_message") found = true
-            found
+        val columns = if (!hasTable) emptySet() else db.rawQuery("PRAGMA table_info(unified_measurements)", null).use { c ->
+            buildSet { while (c.moveToNext()) add(c.getString(1)) }
         }
-        if (hasTable && !hasKind) {
-            // Version 1: add the column in place. Live rows keep their (expensive) state; only the cheap historical
-            // origins are rebuilt so band rows get their FIT message kind.
-            db.execSQL("ALTER TABLE unified_measurements ADD COLUMN fit_message INTEGER")
-            db.execSQL("DELETE FROM unified_state WHERE key = 'historical_signature'")
-        } else if (hasTable && state(SCHEMA_KEY) == null) {
-            // Built by build 2171, which dropped the table while other threads were refreshing it: live rows may be
+        if (hasTable && "fit_message" in columns && state(SCHEMA_KEY) == null) {
+            // Built by build 2171 (fit_message, but no schema key), which dropped the table while other threads were refreshing it: live rows may be
             // missing. It is derived data, so rebuild it once completely (serialized by REFRESH_LOCK).
             db.execSQL("DELETE FROM unified_measurements")
             db.execSQL("DELETE FROM unified_state")
         }
+        // Columns added later are added in place. Live rows keep their (expensive) state; only the cheap historical
+        // origins are rebuilt so band rows get the new values.
+        if (hasTable && "fit_message" !in columns) db.execSQL("ALTER TABLE unified_measurements ADD COLUMN fit_message INTEGER")
+        if (hasTable && "display_duplicate" !in columns)
+            db.execSQL("ALTER TABLE unified_measurements ADD COLUMN display_duplicate INTEGER NOT NULL DEFAULT 0")
+        if (hasTable && ("fit_message" !in columns || "display_duplicate" !in columns))
+            db.execSQL("DELETE FROM unified_state WHERE key = 'historical_signature'")
         db.execSQL("""CREATE TABLE IF NOT EXISTS unified_measurements (
             origin TEXT NOT NULL CHECK(origin IN ('live', 'import', 'band')),
             device_id TEXT NOT NULL,
@@ -135,6 +135,9 @@ class UnifiedMeasurements(private val db: SQLiteDatabase) {
             received_at_ms INTEGER,
             -- FIT global message number of band values (BandRecordKind); NULL for live and import
             fit_message INTEGER,
+            -- 1: the same measurement (device, metric, valid time, unit, value) is also in another FIT file and is
+            -- counted there (R1). Kept and exported, but charts and daily aggregates count it once.
+            display_duplicate INTEGER NOT NULL DEFAULT 0,
             PRIMARY KEY(origin, device_id, metric, measured_at_ms, sample_id)
         ) WITHOUT ROWID""")
         db.execSQL("CREATE INDEX IF NOT EXISTS unified_measurements_by_time ON unified_measurements(measured_at_ms)")
@@ -205,7 +208,7 @@ class UnifiedMeasurements(private val db: SQLiteDatabase) {
         val out = ArrayList<Triple<Long, Double, String>>()
         db.rawQuery(
             """SELECT measured_at_ms, value, unit FROM unified_measurements
-               WHERE origin = ? AND metric = ? AND measured_at_ms >= ? AND measured_at_ms < ?
+               WHERE origin = ? AND metric = ? AND measured_at_ms >= ? AND measured_at_ms < ? AND display_duplicate = 0
                ORDER BY measured_at_ms, device_id, sample_id""" + (limit?.let { " LIMIT $it" } ?: ""),
             arrayOf(origin.code, metric, startMs.toString(), endMs.toString())
         ).use { c -> while (c.moveToNext()) out += Triple(c.getLong(0), c.getDouble(1), c.getString(2)) }
@@ -225,7 +228,8 @@ class UnifiedMeasurements(private val db: SQLiteDatabase) {
         val out = LinkedHashMap<BandRecordKind, Int>()
         db.rawQuery(
             """SELECT fit_message, COUNT(*) FROM unified_measurements
-               WHERE origin = 'band' AND metric = ? AND measured_at_ms >= ? AND measured_at_ms < ? GROUP BY fit_message""",
+               WHERE origin = 'band' AND metric = ? AND measured_at_ms >= ? AND measured_at_ms < ? AND display_duplicate = 0
+               GROUP BY fit_message""",
             arrayOf(metric, startMs.toString(), endMs.toString())
         ).use { c ->
             while (c.moveToNext()) {
@@ -239,7 +243,19 @@ class UnifiedMeasurements(private val db: SQLiteDatabase) {
     fun exists(origin: MeasurementOrigin, metric: String): Boolean =
         db.rawQuery("SELECT 1 FROM unified_measurements WHERE origin = ? AND metric = ? LIMIT 1", arrayOf(origin.code, metric)).use { it.moveToFirst() }
 
-    /** Everything in [startMs, endMs) as export records, oldest first; the single source for the CSV export. */
+    /**
+     * Band values of [metric] in [startMs, endMs) that are also in another FIT file and are therefore counted once (R1);
+     * shown as a note so the smaller count is explained.
+     */
+    fun bandDuplicateCount(metric: String, startMs: Long, endMs: Long): Int =
+        db.rawQuery("""SELECT COUNT(*) FROM unified_measurements WHERE origin = 'band' AND metric = ? AND measured_at_ms >= ?
+                       AND measured_at_ms < ? AND display_duplicate = 1""", arrayOf(metric, startMs.toString(), endMs.toString()))
+            .use { if (it.moveToFirst()) it.getInt(0) else 0 }
+
+    /**
+     * Everything in [startMs, endMs) as export records, oldest first; the single source for the CSV export. Cross-file
+     * duplicates are exported too: the export keeps every original row.
+     */
     fun records(startMs: Long, endMs: Long): List<RawExportRecord> {
         val out = ArrayList<RawExportRecord>()
         db.rawQuery(
@@ -272,8 +288,13 @@ class UnifiedMeasurements(private val db: SQLiteDatabase) {
                    FROM observations r LEFT JOIN fit_observation_provenance p ON p.sample_id = r.sample_id
                    WHERE p.sample_id IS NULL""")
             db.execSQL(
-                """INSERT OR IGNORE INTO unified_measurements(origin, device_id, metric, measured_at_ms, value, unit, sample_id, received_at_ms, fit_message)
-                   SELECT 'band', g.device_id, g.metric, g.measured_at_ms, g.value, g.unit, g.sample_id, g.received_at_ms, g.global_message_number
+                """INSERT OR IGNORE INTO unified_measurements(origin, device_id, metric, measured_at_ms, value, unit, sample_id, received_at_ms, fit_message, display_duplicate)
+                   SELECT 'band', g.device_id, g.metric, g.measured_at_ms, g.value, g.unit, g.sample_id, g.received_at_ms, g.global_message_number,
+                          CASE WHEN g.timestamp_origin <> 'UNKNOWN' AND EXISTS (
+                              SELECT 1 FROM fit_generation_observations g2 JOIN fit_active_generations a2 ON a2.generation_id = g2.generation_id
+                              WHERE g2.measured_at_ms = g.measured_at_ms AND g2.metric = g.metric AND g2.device_id = g.device_id
+                                AND g2.unit = g.unit AND g2.value = g.value AND g2.timestamp_origin <> 'UNKNOWN'
+                                AND a2.source_sha256 < a.source_sha256) THEN 1 ELSE 0 END
                    FROM fit_generation_observations g JOIN fit_active_generations a ON a.generation_id = g.generation_id""")
             setState("historical_signature", signature)
             db.setTransactionSuccessful()
@@ -292,7 +313,7 @@ class UnifiedMeasurements(private val db: SQLiteDatabase) {
                       COUNT(CASE WHEN $VALID_SQL THEN 1 END), SUM(CASE WHEN $VALID_SQL THEN 0 ELSE 1 END),
                       MIN(CASE WHEN $VALID_SQL THEN value END), AVG(CASE WHEN $VALID_SQL THEN value END),
                       MAX(CASE WHEN $VALID_SQL THEN value END)
-               FROM unified_measurements WHERE measured_at_ms >= ? AND measured_at_ms <= ?
+               FROM unified_measurements WHERE measured_at_ms >= ? AND measured_at_ms <= ? AND display_duplicate = 0
                GROUP BY day, origin, metric, unit ORDER BY day DESC, origin, metric""",
             arrayOf(offsetMs.toString(), startMs.toString(), endMs.toString())
         ).use { c ->
