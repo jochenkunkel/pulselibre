@@ -1,7 +1,7 @@
 # OpenCode – #637 HCI-Mitschnitt des manuellen Downloads und Connect-Abgleich
 - Agent/Umgebung: OpenCode / PulsLibre FIT
 - Beginn: 2026-11-25 17:05 UTC
-- Letzte Aktualisierung: 2026-11-25 17:27 UTC
+- Letzte Aktualisierung: 2026-11-25 17:32 UTC
 - Status: abgeschlossen
 - Rolle/Zuständigkeit: CIRQA/BLE-Protokoll, Offline-Replay und evidenzbasierte Dokumentation
 - Aktueller Auftrag: Auf ausdrückliche Nutzerfreigabe den HCI-Pfad eines einzelnen manuellen Build-2224-History-Downloads erfassen, privat sichern und nachträglich mit den vorhandenen Garmin-Connect-Captures vergleichen; rekonstruierte Struktur unabhängig validieren.
@@ -13,4 +13,4 @@
 - Agent-sync-Nachrichten: keine neue technische Fremdzuständigkeit; Start/Ende im Agenten-Chat.
 - Nachweise: Vorher-/Nachher-Bugreports privat gesichert; Vorher-HCI ist exaktes Bytepräfix des Nachher-HCI. Isolierter HCI-Anhang 443.683 Bytes / 8.161 Records; Replay 1.658 ATT-PDUs, 122 Writes und 1.458 Notifications, direkte Discovery von Garmin-ML-Service/RX/TX. Separater lokaler Protokoll-Replay: 242/242 COBS/GFDI-Kandidaten mit gültiger CRC, 146 vollständige Protobuf-Nachrichten; eine ItemList mit 29 Items, 29 Pull-Requests und 29 Pull-Responses (`result=0`, `transport=0`), kein Follow-up-Request. Connect c17 derselbe Handle-Pfad nur stark abgeleitet (649 Writes/892 Notifications). Produktbericht: 29 ausgewählte/queued Pulls, 28 transferred, 25 verified/private-stored, 23 decoded/SQLite-committed, 17 mit importierbaren Daten, 6 ohne; 3 `ORIGINAL_ARCHIVE/SQLiteDatabaseLockedException`, ein Item bei 6.010/0 Bytes und 120-s-Limit. `runDrained=false`, `device-history-unverified`; keine Wiederholung. `tools/test_garmin_hci_replay.py` 21/21 und `tools/test_btsnoop_summary.py` 8/8 bestanden. S10-Lease danach FREI. FIT-Bytes aus MLR wurden nicht separat rekonstruiert/CRC-geprüft.
 - Stop-Bedingungen: kein Zugriff ohne S10-Lease; vor dem manuellen Sync Bluetooth-/App-/Connect-Zustand prüfen; nur eine UI-bestätigte manuelle Anfrage; keine Wiederholung, kein Reset, Löschen, Unpairing, Archiv-/Flag-Kommando oder CLOSE_ALL. Rohmitschnitt bleibt außerhalb von Git.
-- Nächster Schritt: redigierten Vergleich über PR veröffentlichen; HCI-Mitschnitt und Logcat privat belassen. Keine Produkt-/Transportänderung und keine weitere Hardwareaktion.
+- Nächster Schritt: redigierter Vergleich ist in [PR #669](https://github.com/jochenkunkel/pulselibre/pull/669) veröffentlicht; PR offen/BLOCKED ohne ausgelöste Checks (docs-only). HCI-Mitschnitt und Logcat bleiben privat. Keine Produkt-/Transportänderung und keine weitere Hardwareaktion.
