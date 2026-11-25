@@ -267,9 +267,11 @@ The SQLite difference confirms a persistence increase, not full history
 coverage or independent semantic validation. The audit script's legacy summary
 counter `canonical_observation_rows` remained 0 because it only recognizes
 older table names; the version-11 table inventory above is authoritative for
-these deltas. The error count is aggregate and does not assign the added rows
-to an individual file. Run-level counts and the per-file report are preserved
-in protected local storage only.
+these deltas. The diff is between snapshots, not a per-run attribution:
+app-start archive recovery/backfill can also change inventory, so the added
+rows cannot all be assigned to the 32 selected files. The error count is
+aggregate and does not assign the added rows to an individual file. Run-level
+counts and the per-file report are preserved in protected local storage only.
 
 The required QUICK and dependency gates for #678 passed before the run.
 Main FULL/API-35 run `45719176447` on `0d894299` was still in progress when

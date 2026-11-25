@@ -249,8 +249,10 @@ Archivgruppenfehler blieben 0. Der geprüfte SQLite-Diff weist jeweils +597
 Zeilen in `canonical_observations`, FIT-Generationsbeobachtungen und
 FIT-Beobachtungsprovenienz, 2 FIT-Originale und 5 Import-Fehlerzeilen aus;
 unbekannte Felder bleiben in den FIT-Generationen inventarisiert.
-`downloaded_file_archive` stieg um 376 Tabellenzeilen. Dies
-belegt Persistenzzuwachs, aber weder semantische Vollständigkeit noch eine
+`downloaded_file_archive` stieg um 376 Tabellenzeilen. Dies ist ein
+Snapshot-Diff und nicht einzelnen Dateien dieses Laufs zuzuordnen
+(App-Start-Recovery/Backfill kann ebenfalls Inventar ergänzen). Er belegt
+Persistenzzuwachs, aber weder semantische Vollständigkeit noch eine
 vollständige Gerätehistorie. Der Import-Open-Retry aus #678 verhindert nicht
 alle SQLite-Locks: der verbliebene Fehler lag laut Stage-Klassifikation im
 Originalarchiv, nicht im FIT-Import/Commit. Lockhalter und konkrete Ursache
