@@ -122,7 +122,7 @@ class MainActivity : AppCompatActivity() {
      * thread, and never communicates with the device.
      */
     private fun scheduleUnknownFitInventoryScan() {
-        // Not on [dashboardWorker] (tiles and day dialogs waited minutes behind it on the S10) and at most one per process.
+        // Never on the tile/dialog worker (they waited minutes behind this scan on the S10), and at most one per process.
         DashboardWorkerWatch.runMaintenanceOnce {
             try {
                 val fitRoot = java.io.File(applicationContext.filesDir, "verified_fit")
