@@ -2,6 +2,8 @@ package de.pulselibre
 
 /** App-entry policy for the bounded historical sync; no timer or background worker. */
 object HistoricalSyncPolicy {
+    /** History downloads must be explicitly started by the user; app entry never initiates BLE sync. */
+    const val AUTOMATIC_SYNC_ENABLED = false
     const val MIN_ATTEMPT_INTERVAL_MS = 5 * 60_000L
     const val FRESHNESS_MS = 15 * 60_000L
 

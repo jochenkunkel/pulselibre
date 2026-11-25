@@ -5,6 +5,10 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class HistoricalSyncPolicyTest {
+    @Test fun appEntryNeverStartsHistoricalSyncAutomatically() {
+        assertFalse(HistoricalSyncPolicy.AUTOMATIC_SYNC_ENABLED)
+    }
+
     @Test fun neverSyncedIsDueAtAppEntry() {
         assertTrue(HistoricalSyncPolicy.isDue(100_000L, 0L, 0L))
     }
