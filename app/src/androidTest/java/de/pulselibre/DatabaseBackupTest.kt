@@ -937,6 +937,44 @@ class DatabaseBackupTest {
         }
     }
 
+    @Test fun everyReviewCandidateMetricSurvivesBackupValidationAndRestore() {
+        // 25.11.2026 (S10): the restore check rejected backups with sleep_level candidates ("Backup ungültig").
+        val base = ApplicationProvider.getApplicationContext<Context>()
+        val root = Files.createTempDirectory(base.cacheDir.toPath(), "candidate-backup-").toFile()
+        val context = isolatedContext(base, root)
+        try {
+            val sha = "d".repeat(64)
+            val fields = listOf("reading_spo2", "reading_confidence", "spo2_measurement_mode", "stress_level_value",
+                "respiration_rate", "sleep_level", "monitoring_cycles", "monitoring_activity_type")
+            val candidates = fields.mapIndexed { i, name ->
+                FitHistoricalObservations.ReviewCandidate(
+                    profileFieldName = name, value = 1.0 + i, unit = "profile_raw", timestampEpochMillis = 10_000L + i,
+                    sourceFileSha256 = sha, recordOrdinal = i + 1, globalMessageNumber = 200 + i, fieldNumber = 0,
+                    timestampOrigin = FitHistoricalObservations.TimestampOrigin.DIRECT
+                )
+            }
+            CirqaDatabase(context).use { database ->
+                database.ensureHistoricalStoreCopied()
+                database.commitFitFile(
+                    sourceSha256 = sha, fileBytes = 100, relativePath = "verified_fit/$sha.fit",
+                    validatedAtEpochMillis = 7_000, decoderVersion = FitHistoricalObservations.DECODER_VERSION,
+                    profileVersion = FitHistoricalObservations.PROFILE_VERSION, observations = emptyList(),
+                    deviceMetadata = emptyList(), reviewCandidates = candidates
+                )
+            }
+            val backup = ByteArrayOutputStream().also { DatabaseBackup.write(context, it) }.toByteArray()
+            val plan = DatabaseBackup.prepareRestore(context, ByteArrayInputStream(backup))
+            assertEquals(fields.size.toLong(), plan.canonicalFitReviewCandidates)
+            DatabaseBackup.reset(context)
+            plan.use { DatabaseBackup.restore(context, it) }
+            CirqaDatabase(context).use { store ->
+                val metrics = store.readableDatabase.rawQuery("SELECT metric FROM fit_review_candidates ORDER BY metric", null)
+                    .use { c -> buildList { while (c.moveToNext()) add(c.getString(0)) } }
+                assertEquals(CirqaDatabase.FIT_REVIEW_CANDIDATE_METRICS.sorted(), metrics)
+            }
+        } finally { root.deleteRecursively() }
+    }
+
     @Test fun auditTablesSurviveBackupRoundTrip() {
         val base = ApplicationProvider.getApplicationContext<Context>()
         val root = Files.createTempDirectory(base.cacheDir.toPath(), "audit-backup-").toFile()

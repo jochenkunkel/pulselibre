@@ -564,6 +564,8 @@
     <string name="ex_backup_running">Création de la sauvegarde …</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="ex_backup_done">Sauvegarde enregistrée : %1$d événements, %2$d mesures historiques, %3$d sources FIT historiques/%4$d lignes de provenance ; %5$d mesures canoniques, %6$d sources FIT canoniques/%7$d lignes de provenance et %8$d lignes de métadonnées FIT, %9$d lignes de métadonnées XML brutes dérivées. Les contenus originaux archivés disponibles sont inclus et peuvent contenir des identifiants sensibles.</string>
+    <string name="ex_backup_failed_removed">Échec de la sauvegarde. Le fichier cible vide a été supprimé.</string>
+    <string name="ex_backup_reason">Cause : %1$s</string>
     <string name="ex_backup_failed">Échec de la sauvegarde. Vérifiez l’emplacement ; un fichier cible créé peut être incomplet et devrait être supprimé.</string>
     <string name="ex_backup_checking">Vérification de la sauvegarde …</string>
     <string name="ex_backup_invalid">Sauvegarde non valide ou illisible. Base de données inchangée.</string>

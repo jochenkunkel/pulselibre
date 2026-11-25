@@ -28,10 +28,18 @@ import java.util.zip.ZipOutputStream
 
 private const val BACKUP_FORMAT = "de.pulselibre.local-database-backup"
 private const val BACKUP_VERSION = 11
-private const val MAX_ARCHIVE_BYTES = 128L * 1024L * 1024L
-private const val MAX_ENTRY_BYTES = 120L * 1024L * 1024L
+/**
+ * Size limits. Until 25.11.2026 one 128 MiB constant bounded both the ZIP file and the sum of the *uncompressed* JSON
+ * lines; real data (all FIT field generations, original files) passed it, every backup failed and left a 0-byte file.
+ * Now the compressed file and the uncompressed content have separate limits; restore uses the same ones (zip-bomb guard).
+ */
+internal const val MAX_ARCHIVE_BYTES = 512L * 1024L * 1024L
+internal const val MAX_UNCOMPRESSED_BYTES = 2L * 1024L * 1024L * 1024L
+internal const val MAX_ENTRY_BYTES = 1536L * 1024L * 1024L
 private const val MAX_LINE_BYTES = 2 * 1024 * 1024
-private const val MAX_RECORDS = 1_000_000L
+internal const val MAX_RECORDS = 20_000_000L
+/** Headroom kept free when writing or extracting an archive in the app cache. */
+private const val MIN_FREE_BYTES = 64L * 1024L * 1024L
 private const val MAX_MANIFEST_BYTES = 64 * 1024
 private const val EVENTS_ENTRY = "cirqa_events.jsonl"
 private const val READINGS_ENTRY = "legacy_readings.jsonl"
@@ -135,6 +143,11 @@ class PreparedDatabaseRestore internal constructor(
 object DatabaseBackup {
     /** Stream a consistent snapshot into a temporary archive, then copy it to the chosen SAF file. */
     fun write(context: Context, destination: OutputStream): DatabaseBackupReport {
+        // The archive is built in the cache first: say so clearly instead of failing halfway with a disk error.
+        val database = context.getDatabasePath("cirqa_measurements.db").length()
+        require(context.cacheDir.usableSpace > database + MIN_FREE_BYTES) {
+            "Zu wenig freier Speicher für das temporäre Backup (frei ${context.cacheDir.usableSpace / 1_048_576} MiB)"
+        }
         val temp = File.createTempFile("pulselibre-backup-", ".zip", context.cacheDir)
         try {
             val report = writeArchive(context, temp)
@@ -158,6 +171,9 @@ object DatabaseBackup {
 
     /** Read, bound, checksum and validate the complete archive before showing overwrite confirmation. */
     fun prepareRestore(context: Context, source: InputStream): PreparedDatabaseRestore {
+        require(context.cacheDir.usableSpace > MIN_FREE_BYTES) {
+            "Zu wenig freier Speicher zum Prüfen des Backups (frei ${context.cacheDir.usableSpace / 1_048_576} MiB)"
+        }
         val directory = File(context.cacheDir, "database-restore-${UUID.randomUUID()}")
         require(directory.mkdir()) { "Temporärer Wiederherstellungsbereich kann nicht erstellt werden" }
         try {
@@ -901,7 +917,7 @@ object DatabaseBackup {
                             generations.bytes + generationObservations.bytes + activeGenerations.bytes +
                             generationFields.bytes + reviewCandidates.bytes + legacyReviewCandidates.bytes +
                             liveMetadata.bytes + originalFiles.bytes + importRuns.bytes +
-                            importErrors.bytes + statusEvents.bytes <= MAX_ARCHIVE_BYTES
+                            importErrors.bytes + statusEvents.bytes <= MAX_UNCOMPRESSED_BYTES
                     ) {
                         "Lokale Datenbank ist zu groß für ein Backup"
                     }
@@ -976,7 +992,7 @@ object DatabaseBackup {
                         if (count < 0) break
                         entryBytes += count
                         totalBytes += count
-                        require(entryBytes <= MAX_ENTRY_BYTES && totalBytes <= MAX_ARCHIVE_BYTES) {
+                        require(entryBytes <= MAX_ENTRY_BYTES && totalBytes <= MAX_UNCOMPRESSED_BYTES) {
                             "Backup ist zu groß"
                         }
                         out.write(buffer, 0, count)
@@ -1592,7 +1608,7 @@ object DatabaseBackup {
             decoderVersion = item.getString("decoder_version")
         )
         require(row.sampleId.isNotBlank() && row.deviceId.isNotBlank() &&
-            row.metric in setOf("spo2", "stress", "respiration") &&
+            row.metric in CirqaDatabase.FIT_REVIEW_CANDIDATE_METRICS &&
             (row.measuredAtEpochMillis == null || row.measuredAtEpochMillis >= 0) &&
             row.value.isFinite() && row.unit.isNotBlank() &&
             row.sourceSha256.matches(Regex("[0-9a-f]{64}")) && row.recordOrdinal > 0 &&
@@ -1894,4 +1910,13 @@ object DatabaseBackup {
     }
 
     private fun ByteArray.toHex(): String = joinToString("") { "%02x".format(it.toInt() and 255) }
+}
+
+/** Technical, data-free reason of a failed backup for the user and support (class and message only, no values). */
+internal object BackupFailure {
+    fun reason(e: Throwable): String {
+        val root = generateSequence(e) { it.cause }.last()
+        val message = root.message?.lineSequence()?.firstOrNull()?.take(160)
+        return if (message.isNullOrBlank()) root.javaClass.simpleName else "${root.javaClass.simpleName}: $message"
+    }
 }

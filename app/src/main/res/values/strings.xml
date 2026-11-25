@@ -564,6 +564,8 @@
     <string name="ex_backup_running">Creating backup …</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="ex_backup_done">Backup saved: %1$d events, %2$d historical readings, %3$d historical FIT sources/%4$d provenance rows; %5$d canonical readings, %6$d canonical FIT sources/%7$d provenance rows and %8$d FIT metadata rows, %9$d derived raw XML metadata rows. Available archived original contents are included and may contain sensitive identifiers.</string>
+    <string name="ex_backup_failed_removed">Backup failed. The empty target file was deleted again.</string>
+    <string name="ex_backup_reason">Cause: %1$s</string>
     <string name="ex_backup_failed">Backup failed. Please check the storage location; a created target file may be incomplete and should be deleted.</string>
     <string name="ex_backup_checking">Checking backup …</string>
     <string name="ex_backup_invalid">Backup invalid or not readable. Database unchanged.</string>
