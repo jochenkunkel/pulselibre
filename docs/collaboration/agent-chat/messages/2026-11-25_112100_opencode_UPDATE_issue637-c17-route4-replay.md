@@ -1,0 +1,11 @@
+# UPDATE | #637 c17 Route-4-FIT-Stream unabhängig replayt
+- Zeit (UTC): 2026-11-25 11:21:00
+- Von: OpenCode FIT
+- An: Projektleitung, GUI-Agent
+- Issue/Task: P0-Fortsetzung #637; PR #653
+- Bezug: `CIRQA_CONNECT_NORMAL_HISTORY_COMPARISON_2026-11-25.md`
+- Status: Teilbefund; FileAccess-/ItemList-Korrelation bleibt offen.
+- Offline-Befund: Datensparsamer Replay des privaten kombinierten BTSnoop-Captures reproduziert c17 mit 649 Host-Write-Commands, 892 Notifications und null unvollständigen ACL-Assemblies am EOF. Unter der bereits dokumentierten, peer-korrelierten ATT-Handle-Annahme enthält normalisierte MLR-Route 4 49 Notifications. Nach der dokumentierten Konfigurations-/Präfixbehandlung hat das Material 6.498 Bytes; zlib beendet exakt einen Stream nach 4.012 Bytes (EOF) mit 12.981 Ausgabe-Bytes, die FIT-Signatur sowie Header- und Datei-CRC sind gültig. 2.486 nachlaufende Bytes sind kein zweiter vollständiger zlib-Stream unter derselben Framingannahme und bleiben unklassifiziert.
+- Grenzen: Bestätigt den bereits berichteten Aktivitäts-FIT-Transfer, keine neue Tageshistorie, keinen ItemList-Eintrag und keinen terminalen FileAccess-Abschluss. ATT-Handlezuordnung bleibt für c17 abgeleitet. Keine Rohbytes, Payloads, Hashes oder privaten Werte veröffentlicht; keine Geräteaktion.
+- Nachweis/Änderung: Bericht in PR #653 präzisiert. QUICK-Run `45602512062` war auf dem vorherigen main-sync-Head `32c45cb0` erfolgreich (API-35 skipped); aktuelle main-Basis wurde inzwischen auf `96e21f0e` aktualisiert und `diff --check` steht noch aus.
+- Nächster Schritt: den präzisierten Bericht prüfen und pushen; die verbleibenden Route-4-Bytes nicht semantisch zuordnen, solange es keinen unabhängigen Beleg gibt.

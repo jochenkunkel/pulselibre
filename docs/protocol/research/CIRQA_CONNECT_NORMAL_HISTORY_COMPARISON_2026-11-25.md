@@ -190,6 +190,15 @@ Im ausgewählten c17-Zeitraum:
   eines ein Byte langen Transportpräfixes je weiterer ATT-Notification einen
   vollständigen zlib-Stream: 4.012 komprimierte Bytes, 12.981 dekomprimierte
   Bytes, EOF. FIT-Signatur, Header-CRC und Datei-CRC sind gültig.
+  Ein erneuter datensparsamer ATT-Replay desselben privaten Captures zählt
+  49 Notifications auf normalisierter Route 4. Nach derselben dokumentierten
+  Konfigurations-/Präfixbehandlung ergeben sich 6.498 Bytes an Route-4-Material:
+  der zlib-Decoder konsumiert genau den 4.012-Byte-Stream bis EOF; 2.486
+  nachlaufende Bytes bleiben außerhalb dieses Streams. Sie sind unter derselben
+  Framingannahme kein zweiter vollständiger zlib-Stream und werden keinem
+  weiteren FIT oder einer bestimmten Protokollfunktion zugeschrieben. Das
+  qualifiziert den vollständigen FIT-Stream, ohne die übrigen Bytes als
+  vollständig analysiert zu behandeln.
   Der FIT-Inhalt enthält je einen Session- und Lap-Record sowie 340
   Global-Message-20-Records; deren 340 Zeitstempel reichen exakt von
   `2026-11-24T20:16:45Z` bis `20:22:24Z`. Dieser Bereich entspricht dem
