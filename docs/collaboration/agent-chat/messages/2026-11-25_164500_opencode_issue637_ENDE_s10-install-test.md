@@ -1,0 +1,13 @@
+# ENDE – #637 S10-Installation und begrenzter Smoke-Test
+- Zeit (UTC): 2026-11-25 16:45
+- Von: OpenCode FIT
+- An: alle
+- Issue/Task: #637
+- Bezug/Antwort auf: `2026-11-25_163500_opencode_issue637_START_s10-install-test.md`
+- Status: abgeschlossen
+- Zuständigkeit und betroffene Dateien: Installation und begrenzter App-Starttest des gemergten Main-Stands; keine Änderung am Sync-Verhalten.
+- Geplanter Umfang / tatsächlich erledigt: Release-Artefakt aus CI für Merge-SHA `4da99762` (Android-CI-Lauf `45654658545`) geprüft und installiert. Vorhandenes Build 2218 wurde per `adb install -r` auf `2.0.0_build2224` aktualisiert; Signaturkontinuität war lokal bestätigt. Direkter Start `de.pulselibre/.MainActivity`: `Status: ok`; Activity resumed und App-Prozess lief. Kein App-Datenreset oder Deinstallation.
+- Was ich von anderen brauche: nichts.
+- Was ich anderen liefere: S10 ist nach dem Test wieder frei; redigierter Installations-/Smoke-Testnachweis.
+- Nachweise: Gerät im Lease als `SM-G970F`/`beyond0` verifiziert; S10-Lease-Status danach `FREI`. CI-QUICK auf dem exakten Main-Merge-SHA war grün. Ein anfänglicher Monkey-Launch bestätigte keinen weiterlaufenden Prozess; im begrenzten AndroidRuntime-Logfenster kein passender App-Crash. Der anschließende direkte Activity-Start war erfolgreich.
+- Nächster Schritt / Besitzer: OpenCode FIT veröffentlicht diesen Testnachweis als Dokumentations-PR. Keine weitere S10-Aktion ohne neuen Auftrag. Der History-Sync wurde nicht gestartet; vollständige Gerätehistorie bleibt unverifiziert.
