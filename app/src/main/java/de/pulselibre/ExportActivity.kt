@@ -57,8 +57,17 @@ class ExportActivity : AppCompatActivity() {
                     runOnUiThread {
                         databaseFeedback.text = getString(R.string.ex_backup_done, report.events, report.legacyReadings, report.fitSources, report.fitProvenance, report.canonicalReadings, report.canonicalFitSources, report.canonicalFitProvenance, report.canonicalDeviceMetadata, report.rawDeviceMetadata)
                     }
-                } catch (_: Exception) {
-                    runOnUiThread { databaseFeedback.text = getString(R.string.ex_backup_failed) }
+                } catch (e: Exception) {
+                    // The picker already created the target file: never leave a 0-byte "backup" behind.
+                    val removed = runCatching { android.provider.DocumentsContract.deleteDocument(contentResolver, uri) }.getOrDefault(false)
+                    val reason = BackupFailure.reason(e)
+                    runOnUiThread {
+                        databaseFeedback.text = getString(if (removed) R.string.ex_backup_failed_removed else R.string.ex_backup_failed) +
+                            "\n" + getString(R.string.ex_backup_reason, reason)
+                    }
+                } catch (e: OutOfMemoryError) {
+                    runCatching { android.provider.DocumentsContract.deleteDocument(contentResolver, uri) }
+                    runOnUiThread { databaseFeedback.text = getString(R.string.ex_backup_failed) + "\n" + getString(R.string.ex_backup_reason, "OutOfMemoryError") }
                 }
             }
         }

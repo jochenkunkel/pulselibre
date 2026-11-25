@@ -28,10 +28,16 @@ import java.util.zip.ZipOutputStream
 
 private const val BACKUP_FORMAT = "de.pulselibre.local-database-backup"
 private const val BACKUP_VERSION = 11
-private const val MAX_ARCHIVE_BYTES = 128L * 1024L * 1024L
-private const val MAX_ENTRY_BYTES = 120L * 1024L * 1024L
+/**
+ * Size limits. Until 25.11.2026 one 128 MiB constant bounded both the ZIP file and the sum of the *uncompressed* JSON
+ * lines; real data (all FIT field generations, original files) passed it, every backup failed and left a 0-byte file.
+ * Now the compressed file and the uncompressed content have separate limits; restore uses the same ones (zip-bomb guard).
+ */
+internal const val MAX_ARCHIVE_BYTES = 512L * 1024L * 1024L
+internal const val MAX_UNCOMPRESSED_BYTES = 2L * 1024L * 1024L * 1024L
+internal const val MAX_ENTRY_BYTES = 1536L * 1024L * 1024L
 private const val MAX_LINE_BYTES = 2 * 1024 * 1024
-private const val MAX_RECORDS = 1_000_000L
+internal const val MAX_RECORDS = 20_000_000L
 private const val MAX_MANIFEST_BYTES = 64 * 1024
 private const val EVENTS_ENTRY = "cirqa_events.jsonl"
 private const val READINGS_ENTRY = "legacy_readings.jsonl"
@@ -901,7 +907,7 @@ object DatabaseBackup {
                             generations.bytes + generationObservations.bytes + activeGenerations.bytes +
                             generationFields.bytes + reviewCandidates.bytes + legacyReviewCandidates.bytes +
                             liveMetadata.bytes + originalFiles.bytes + importRuns.bytes +
-                            importErrors.bytes + statusEvents.bytes <= MAX_ARCHIVE_BYTES
+                            importErrors.bytes + statusEvents.bytes <= MAX_UNCOMPRESSED_BYTES
                     ) {
                         "Lokale Datenbank ist zu groß für ein Backup"
                     }
@@ -976,7 +982,7 @@ object DatabaseBackup {
                         if (count < 0) break
                         entryBytes += count
                         totalBytes += count
-                        require(entryBytes <= MAX_ENTRY_BYTES && totalBytes <= MAX_ARCHIVE_BYTES) {
+                        require(entryBytes <= MAX_ENTRY_BYTES && totalBytes <= MAX_UNCOMPRESSED_BYTES) {
                             "Backup ist zu groß"
                         }
                         out.write(buffer, 0, count)
@@ -1894,4 +1900,13 @@ object DatabaseBackup {
     }
 
     private fun ByteArray.toHex(): String = joinToString("") { "%02x".format(it.toInt() and 255) }
+}
+
+/** Technical, data-free reason of a failed backup for the user and support (class and message only, no values). */
+internal object BackupFailure {
+    fun reason(e: Throwable): String {
+        val root = generateSequence(e) { it.cause }.last()
+        val message = root.message?.lineSequence()?.firstOrNull()?.take(160)
+        return if (message.isNullOrBlank()) root.javaClass.simpleName else "${root.javaClass.simpleName}: $message"
+    }
 }

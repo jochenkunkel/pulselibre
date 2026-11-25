@@ -564,6 +564,8 @@
     <string name="ex_backup_running">Creando la copia de seguridad …</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="ex_backup_done">Copia de seguridad guardada: %1$d eventos, %2$d mediciones históricas, %3$d fuentes FIT históricas/%4$d filas de procedencia; %5$d mediciones canónicas, %6$d fuentes FIT canónicas/%7$d filas de procedencia y %8$d filas de metadatos FIT, %9$d filas de metadatos XML sin procesar derivadas. Se incluyen los contenidos originales archivados disponibles, que pueden contener identificadores sensibles.</string>
+    <string name="ex_backup_failed_removed">La copia de seguridad falló. Se eliminó el archivo de destino vacío.</string>
+    <string name="ex_backup_reason">Causa: %1$s</string>
     <string name="ex_backup_failed">Error en la copia de seguridad. Comprueba la ubicación; un archivo de destino creado puede estar incompleto y debería borrarse.</string>
     <string name="ex_backup_checking">Comprobando la copia de seguridad …</string>
     <string name="ex_backup_invalid">Copia de seguridad no válida o ilegible. Base de datos sin cambios.</string>

@@ -564,6 +564,8 @@
     <string name="ex_backup_running">Backup wird erstellt …</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="ex_backup_done">Backup gespeichert: %1$d Ereignisse, %2$d historische Messwerte, %3$d historische FIT-Quellen/%4$d Herkunftszeilen; %5$d kanonische Messwerte, %6$d kanonische FIT-Quellen/%7$d Herkunftszeilen und %8$d FIT-Metadatenzeilen, %9$d abgeleitete Raw-XML-Metadatenzeilen. Vorhandene archivierte Originalinhalte sind enthalten und können sensible Kennungen enthalten.</string>
+    <string name="ex_backup_failed_removed">Backup fehlgeschlagen. Die leere Zieldatei wurde wieder gelöscht.</string>
+    <string name="ex_backup_reason">Ursache: %1$s</string>
     <string name="ex_backup_failed">Backup fehlgeschlagen. Bitte Speicherort prüfen; eine angelegte Zieldatei kann unvollständig sein und sollte gelöscht werden.</string>
     <string name="ex_backup_checking">Backup wird geprüft …</string>
     <string name="ex_backup_invalid">Backup ungültig oder nicht lesbar. Datenbank unverändert.</string>
