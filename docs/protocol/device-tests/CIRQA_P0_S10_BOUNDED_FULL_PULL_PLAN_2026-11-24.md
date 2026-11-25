@@ -9,15 +9,18 @@ Sync-Kommandos am aktuellen CIRQA-Testarmband ausdrücklich freigegeben.
 
 Der Plan fügt keine Protokollkommandos hinzu und ändert keine Laufbudgets,
 Leases oder Freigaben. Keine SetFlags-, Archive-, Delete-, Reset-, CLOSE_ALL-,
-Legacy-Experiment- oder unbekannten Requests. Der Test ist nur nach
-unabhängigem Review und grünem FULL/API-35-Gate auf dem exakten Branch-Head
-auszuführen. Diese Voraussetzungen sind vor Ausführung erneut zu bestätigen.
+Legacy-Experiment- oder unbekannten Requests. Der signierte Build muss die
+Versions-/Signaturkontinuität wahren; erforderliche QUICK- und
+Dependency-Gates müssen grün sein und FIT dokumentiert den Self-Review.
+FULL/API-35 ist nach der aktuellen Owner-Entscheidung kein Merge- oder
+Hardwaretest-Gate. Der manuelle History-Download bleibt verfügbar;
+automatischer History-Sync beim App-Start ist deaktiviert.
 
 ## Einmaliger Lauf
 
 1. **Abstimmung / Build**
-   - CI-Agent bestätigt Dateigrenzen, prüft den Sync-/Queue-Testplan unabhängig
-     und bestätigt das FULL/API-35-Ergebnis auf dem Branch-Head.
+   - Aktuellen Code, Laufgrenzen und den manuellen UI-Startpfad prüfen;
+     erforderliche QUICK-/Dependency-Checks und FIT-Self-Review dokumentieren.
    - Einen korrekt signierten Build mit Versions-/Zertifikatskontinuität
      verwenden; keine App-Daten löschen und nicht deinstallieren.
    - Vor Testbeginn App-Build und laufende Geräteaufzeichnung/-jobs prüfen.
@@ -29,17 +32,14 @@ auszuführen. Diese Voraussetzungen sind vor Ausführung erneut zu bestätigen.
    - Vor Sync das vorhandene lokale App-Backup privat exportieren und ZIP-
      Integrität prüfen. Keine Rohdatei, Hash, Seriennummer, UID, Token,
      Geräteadresse oder private Messreihe ins Git/PR schreiben.
-   - `MainActivity.onResume()` kann einen automatischen Sync starten, wenn die
-     lokale Frische-/Cooldown-Policy ihn als fällig bewertet. `ExportActivity`
-     ist im Manifest `exported=false`; ein expliziter Component-Start durch
-     `adb shell` ist daher kein verfügbarer, unterstützter Weg zum Vorab-Backup.
-     Die Launcher-`MainActivity` nicht öffnen, bevor ein sicherer Exportpfad
-     feststeht.
-   - Falls kein bereits verfügbarer, unterstützter Weg zum Export ohne
-     `MainActivity` existiert, vor jeglichem Start stoppen. Keine
-     `run-as`-, Root- oder SharedPreferences-Manipulation und `ExportActivity`
-     nicht für externe Starts freigeben. Der Ablauf benötigt dann eine
-     abgestimmte technische Lösung, die Backup vor Sync gewährleistet.
+   - Auto-History-Sync beim App-Start ist deaktiviert. `ExportActivity` ist im
+     Manifest `exported=false`; ein expliziter Component-Start durch `adb shell`
+     ist kein verfügbarer unterstützter Weg zum Vorab-Backup. Für das Backup
+     den UI-Export verwenden und erst danach die manuelle Sync-Aktion starten.
+   - Falls der unterstützte UI-Export vor dem Sync nicht erfolgreich geprüft
+     werden kann, vor der manuellen Sync-Aktion stoppen. Keine `run-as`-, Root-
+     oder SharedPreferences-Manipulation und `ExportActivity` nicht für externe
+     Starts freigeben.
 3. **Vorher-Inventar**
    - Aus der privaten lokalen Datenbank read-only `integrity_check`,
      Schema-/Backup-Version, archivierte Originale (Anzahl/Bytes),
@@ -48,12 +48,8 @@ auszuführen. Diese Voraussetzungen sind vor Ausführung erneut zu bestätigen.
    - Export-/Inventarbericht lokal speichern; Rohoriginale und SQLite-Backup
      nicht überschreiben.
 4. **Ein Sync**
-   - Nach geprüftem Backup die Launcher-`MainActivity` genau einmal öffnen.
-     Wenn deren bekannte automatische Historien-Sync-Policy den Lauf startet,
-     zählt das als den einen freigegebenen Lauf; den manuellen Button nicht
-     zusätzlich betätigen. Nur wenn kein automatischer Lauf startet und der
-     Status einen eindeutigen, nicht laufenden Zustand zeigt, darf der Nutzer
-     genau einmal den normalen manuellen Full-Pull bestätigen.
+   - Nach geprüftem Backup den normalen manuellen Full-Pull genau einmal
+     bestätigen. Der App-Start selbst löst keinen History-Sync aus.
    - Ein vorhandener alter Terminaltext oder ein unklarer Status genügt nicht
      als Nachweis eines neuen Laufs: dann stoppen, nicht zusätzlich manuell
      starten. Kein Testlabor-Retry, keine zweite Verbindung und keine neue
@@ -224,4 +220,44 @@ Beobachtungen. Der Lauf wurde nicht abgebrochen oder wiederholt; das appinterne
 120-s-Limit blieb unverändert. Lease danach `FREI`. Die verbleibende
 SQLite-Lock-Exception liegt diesmal im FIT-Import/Commit-Pfad; Ursache und
 Rückwirkung auf den fehlgeschlagenen Import sind offline zu triagieren. Roh-
-und Gerätedaten verbleiben ausschließlich lokal privat.
+ und Gerätedaten verbleiben ausschließlich lokal privat.
+
+**2026-11-25 23:13 UTC – genau ein manueller Folgelauf nach SQLite-open-Fix #678, Build 2271.**
+Unter einem einzelnen S10-Lease wurden Modell und installierte Version 2263
+geprüft; der signierte Main-Build 2271 hatte dieselbe Signatur und wurde ohne
+Datenlöschung in-place installiert. Vor dem Update wurde über den unterstützten
+UI-Export ein frisches Backup v11 erstellt, lokal geöffnet und geprüft:
+3.054 verifizierte Originale / 1.009.688 Bytes, 37 FIT-Originale, 3.060
+Archiv-Referenzen; Manifest- und Archivgruppenfehler jeweils 0. Genau ein
+manueller Download wurde bestätigt; die angezeigte Run-ID war neu.
+
+Der terminale Report nach dem unveränderten 120-s-Limit meldet eine
+Item-List-Seite mit 32 ausgewählten Dateien und 32 Pull-Requests;
+`runDrained=false`, `incompleteReason=session-time-limit`,
+`coverage=device-history-unverified`. 31 Transfers erreichten Transferabschluss,
+30 Integritätsprüfung, 31 private Speicherung, 26 Decode und SQLite-Commit,
+19 Import mit Beobachtungen sowie 7 Dateien ohne importierbare Daten. Ein
+weiteres Element scheiterte in `ORIGINAL_ARCHIVE` mit
+`SQLiteDatabaseLockedException`; es ist weder als vollständiger Transfer noch
+als verifiziert gezählt. Keine Transaction-Follow-ups; 30 von 32 wurden als
+erfolgreich ausgewiesen. Damit bleiben vollständige Übertragung und
+Gerätehistorie unbewiesen.
+
+Das geprüfte Nachher-Backup v11 enthält 3.242 verifizierte Originale /
+1.065.612 Bytes, 39 FIT-Originale und 3.248 Archiv-Referenzen. Manifest- und
+Archivgruppenfehler blieben 0. Der geprüfte SQLite-Diff weist jeweils +597
+Zeilen in `canonical_observations`, FIT-Generationsbeobachtungen und
+FIT-Beobachtungsprovenienz, 2 FIT-Originale und 5 Import-Fehlerzeilen aus;
+unbekannte Felder bleiben in den FIT-Generationen inventarisiert.
+`downloaded_file_archive` stieg um 376 Tabellenzeilen. Dies
+belegt Persistenzzuwachs, aber weder semantische Vollständigkeit noch eine
+vollständige Gerätehistorie. Der Import-Open-Retry aus #678 verhindert nicht
+alle SQLite-Locks: der verbliebene Fehler lag laut Stage-Klassifikation im
+Originalarchiv, nicht im FIT-Import/Commit. Lockhalter und konkrete Ursache
+bleiben unbekannt; empfangene Originale und Details bleiben privat.
+
+Lease nach dem Lauf `FREI`; kein Retry und kein zweiter BLE-Lauf. Die
+instrumentierte Main-FULL-Prüfung `45719176447` auf `0d894299` war zum
+Zeitpunkt der Dokumentation noch aktiv; sie ist kein Merge-Gate nach aktueller
+Owner-Entscheidung. Hardwaretest nicht als Nachweis vollständiger Historie
+interpretieren.

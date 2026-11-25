@@ -229,6 +229,54 @@ redistributed, or represented as analyzed. Public reverse-engineered
 Gadgetbridge documentation and the project’s private HCI captures were used as
 the available comparison materials.
 
+### Controlled follow-up after PR #678 (2026-11-25, one S10 run)
+
+One manual-only S10 run was performed under a single lease after validating
+the signed main APK (version 2271, matching installed signer) and creating a
+fresh, locally verified pre-run backup. No retry or second BLE run occurred;
+the lease was released (`FREI`).
+
+The terminal report lists 32 selected files and 32 pull requests, then ends
+with `runDrained=false`, `session-time-limit`, and
+`coverage=device-history-unverified`. Stage counters: 31 transfer-complete,
+30 integrity-verified, 31 privately stored, 26 decoded/SQLite-committed,
+19 imported, 7 with no importable data, and one
+`ORIGINAL_ARCHIVE/SQLiteDatabaseLockedException`. There were no transaction
+follow-ups. The previous fix retries a bounded SQLite lock at the FIT
+helper-open/import boundary; it does not make archive-stage contention
+impossible. The lock holder and exact cause of this archive failure are not
+established. The complete original exception text and identifiers remain
+private.
+
+Backup v11 before/after:
+
+| Counter | Before | After | Delta |
+| --- | ---: | ---: | ---: |
+| Verified archived originals | 3,054 | 3,242 | +188 |
+| Original bytes | 1,009,688 | 1,065,612 | +55,924 |
+| Verified FIT originals | 37 | 39 | +2 |
+| Archive reference rows | 3,060 | 3,248 | +188 |
+| `canonical_observations` table rows | 29,123 | 29,720 | +597 |
+| FIT generation observations | 57,687 | 58,284 | +597 |
+| FIT observation provenance rows | 29,123 | 29,720 | +597 |
+| `downloaded_file_archive` export rows | 6,115 | 6,491 | +376 |
+| Import error rows | 25 | 30 | +5 |
+
+Both backups passed manifest and archive-group validation (zero failures).
+The SQLite difference confirms a persistence increase, not full history
+coverage or independent semantic validation. The audit script's legacy summary
+counter `canonical_observation_rows` remained 0 because it only recognizes
+older table names; the version-11 table inventory above is authoritative for
+these deltas. The error count is aggregate and does not assign the added rows
+to an individual file. Run-level counts and the per-file report are preserved
+in protected local storage only.
+
+The required QUICK and dependency gates for #678 passed before the run.
+Main FULL/API-35 run `45719176447` on `0d894299` was still in progress when
+this handoff was drafted; FULL is not a merge gate under the current owner
+policy. No Garmin Connect comparison or complete historical coverage is
+established by this follow-up.
+
 ## Questions for ChatGPT review
 
 1. Is a narrowly scoped process-wide lock around each completed file's
