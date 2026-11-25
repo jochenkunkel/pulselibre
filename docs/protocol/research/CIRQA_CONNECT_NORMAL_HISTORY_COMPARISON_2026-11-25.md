@@ -113,6 +113,13 @@ Asset `Profile.xlsx`; ergänzende Message-Übersicht:
 [Skin temperature overnight](https://selfsync.c100k.eu/fit-file-format/skin-temp-overnight)
 (sekundäre Referenz, nicht CIRQA-spezifisch).
 
+Eine ergänzende **synthetische** Android-Instrumentierungsregression speist
+Nachrichten 397/398 durch den bestehenden Backfill in eine isolierte SQLite:
+acht FIT-Rohfeldzeilen werden gespeichert, während kanonische Beobachtungen,
+Generationsbeobachtungen, Provenienzzeilen und Unified-/CSV-Exportzeilen bei
+null bleiben. Das prüft den Codepfad für diese Feldform, nicht den privaten
+Kandidaten selbst und nicht dessen exakte Capture-/Item-Zuordnung.
+
 **Pipeline-Folge:** Für diesen Kandidaten ist ein fehlender CSV-Messwert kein Beleg
 für einen fehlgeschlagenen BLE-Transfer oder einen alleinigen CSV-Fehler. Die
 Bytes sind archiviert, FIT-dekodiert und unbekannte Feldbytes können in der
