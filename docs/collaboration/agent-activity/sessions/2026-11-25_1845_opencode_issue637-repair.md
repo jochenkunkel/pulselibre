@@ -1,0 +1,16 @@
+# OpenCode – #637 Download-/Archivfehler reparieren und S10-End-to-End-Nachweis
+- Agent/Umgebung: OpenCode / PulsLibre FIT
+- Beginn: 2026-11-25 18:45 UTC
+- Letzte Aktualisierung: 2026-11-25 19:12 UTC
+- Status: aktiv
+- Rolle/Zuständigkeit: CIRQA/BLE-Protokoll, FIT-Import und lokale Persistenz
+- Aktueller Auftrag: #637 – SQLite-Originalarchiv-Lock, abgebrochener MLR-Transfer, kontrollierter S10-Nachweis sowie ImportAudit-FK-Fehler aus GUI-Hinweis beheben
+- Jetzt in Bearbeitung: Stacktrace-/DB-Zugriffspfad, MLR-Request/Configure/Notification-Korrelation, gezielte Regressionstests
+- Zeitnah geplant: kontrollierter S10-Lauf nach Codekorrektur und grünen Pflichtchecks; danach normale Tageshistorie gegen Connect weiter untersuchen
+- Betroffene Bereiche/Dateien: `CirqaDatabase`, `CirqaMlHandshakeProbe`, `CirqaFitBackfill`, Download-/Transfer-/Import-Tests und redigierte Evidenz
+- Branch/Worktree: `opencode/issue637-p0-repair-20261125` / `/tmp/opencode/issue637-p0-repair-20261125`
+- Abstimmungsbedarf: GUI-Agent-Hinweis auf FK-Fehler wird im Auftrag mit umgesetzt; keine GUI-Dateien geplant
+- Agent-sync-Nachrichten: keine neue blockierende Übergabe erforderlich
+- Nachweise: privater Stacktrace: mehrere Threads scheitern beim Helper-Open an `PRAGMA journal_mode`; Codepfad erzeugte pro Datei neue `CirqaDatabase`-Helper. Private HCI-Korrelation: 29 erfolgreiche Pull-Responses, 28 Configure-Writes; der nicht konfigurierte 6.010-B-Transfer wurde am Sitzungsende empfangen, rund 0,2 s nach `BluetoothGatt.close()`. Vorhandene 120-s-Grenze blieb unverändert. Implementiert: global serialisierter Originalarchivpfad, bounded SQLITE_BUSY retry, fsync-gestütztes Pending-Original mit Recovery, Timeout-Endstufe für aktuelles Item und korrekte Parent-first-Reihenfolge für `import_runs`/`import_errors`.
+- Tests: fokussierte JVM-Tests für Retry/Timeout und bestehende Backfill-/Sync-/Assembler-Tests bestanden; `assembleDebugAndroidTest` kompiliert die neuen SQLite-Concurrency-, Originaljournal- und ImportAudit-FK-Regressionsfälle. Instrumentationstests noch nicht ausgeführt.
+- Nächster Schritt: Diff prüfen/committen, PR öffnen und erforderliche GitHub-Checks abwarten; anschließend kontrollierter S10-Test unter Lease, falls Gate grün.

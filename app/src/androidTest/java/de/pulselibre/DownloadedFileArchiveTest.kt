@@ -14,6 +14,9 @@ import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.nio.file.Files
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
 /** Generated data only. Emulator/CI, never instrumentation on physical phones. */
 @RunWith(AndroidJUnit4::class)
@@ -53,6 +56,76 @@ class DownloadedFileArchiveTest {
                     assertTrue(it.moveToFirst())
                     assertEquals(3, it.getInt(0))
                 }
+            }
+        } finally {
+            root.deleteRecursively()
+        }
+    }
+
+    @Test fun concurrentHelpersArchiveWithoutLosingEitherOriginal() {
+        val base = ApplicationProvider.getApplicationContext<Context>()
+        val root = Files.createTempDirectory(base.cacheDir.toPath(), "parallel-original-archive-").toFile()
+        val context = isolated(base, root)
+        val start = CountDownLatch(1)
+        val pool = Executors.newFixedThreadPool(2)
+        val originals = listOf(
+            ByteArray(4096) { (it % 251).toByte() },
+            ByteArray(6144) { ((it * 7) % 251).toByte() }
+        )
+        try {
+            val writes = originals.mapIndexed { index, bytes ->
+                pool.submit {
+                    check(start.await(5, TimeUnit.SECONDS))
+                    CirqaDatabase.archiveDownloadedOriginal(
+                        context, bytes, byteArrayOf(index.toByte()), "fit", 2_000L + index
+                    )
+                }
+            }
+            start.countDown()
+            writes.forEach { it.get(15, TimeUnit.SECONDS) }
+            CirqaDatabase(context).use { database ->
+                database.readableDatabase.rawQuery(
+                    "SELECT COUNT(*) FROM downloaded_files", null
+                ).use { rows ->
+                    assertTrue(rows.moveToFirst())
+                    assertEquals(originals.size, rows.getInt(0))
+                }
+                originals.forEach { original ->
+                    val sha = DownloadedFileArchive.sha256(original)
+                    database.readableDatabase.rawQuery(
+                        "SELECT payload FROM downloaded_files WHERE content_sha256=?",
+                        arrayOf(sha)
+                    ).use { rows ->
+                        assertTrue(rows.moveToFirst())
+                        assertArrayEquals(original, rows.getBlob(0))
+                    }
+                }
+            }
+            assertEquals(0, File(root, "downloaded_originals_pending").listFiles().orEmpty().size)
+        } finally {
+            pool.shutdownNow()
+            root.deleteRecursively()
+        }
+    }
+
+    @Test fun exactPrivateJournalSurvivesDatabaseOpenFailure() {
+        val base = ApplicationProvider.getApplicationContext<Context>()
+        val root = Files.createTempDirectory(base.cacheDir.toPath(), "failed-original-db-").toFile()
+        val context = isolated(base, root)
+        val original = ByteArray(8192) { ((it * 13) % 251).toByte() }
+        try {
+            // A directory at the database filename deterministically prevents SQLite open.
+            assertTrue(File(root, "cirqa_measurements.db").mkdir())
+            try {
+                CirqaDatabase(context).use {
+                    it.archiveDownloadedFile(original, byteArrayOf(3, 1, 4), "fit", 3_000)
+                }
+                throw AssertionError("expected database open failure")
+            } catch (_: android.database.sqlite.SQLiteException) {
+                val sha = DownloadedFileArchive.sha256(original)
+                val journal = File(root, "downloaded_originals_pending/$sha.bin")
+                assertTrue(journal.isFile)
+                assertArrayEquals(original, journal.readBytes())
             }
         } finally {
             root.deleteRecursively()
