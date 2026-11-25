@@ -1,16 +1,16 @@
 # OpenCode – #637 S10-Installations- und Starttest
 - Agent/Umgebung: OpenCode FIT, Linux-Worktree
 - Beginn: 2026-11-25 16:35 UTC
-- Letzte Aktualisierung: 2026-11-25 16:45 UTC
-- Status: abgeschlossen
+- Letzte Aktualisierung: 2026-11-25 16:50 UTC
+- Status: aktiv
 - Rolle/Zuständigkeit: FIT/Android-Test, dediziertes S10
 - Aktueller Auftrag: Auf ausdrückliche Nutzerfreigabe den gemergten #637-Stand installieren und einen begrenzten Smoke-Test durchführen.
-- Jetzt in Bearbeitung: abgeschlossen. Signiertes Release-Update aus Main-CI für `4da99762` in-place installiert; direkte MainActivity-Smoke-Prüfung erfolgreich.
-- Zeitnah geplant: Ergebnis per Dokumentations-PR veröffentlichen; kein erneuter History-Sync.
+- Jetzt in Bearbeitung: Nach neuer expliziter Nutzeranweisung ein einmaliger manueller History-Downloadtest mit Build 2224; kontrollierter Scope und Abbruchgrenzen siehe Agenten-Chat-UPDATE.
+- Zeitnah geplant: Terminalbericht und private/DB-Differenz nach dem Lauf prüfen und redigiert dokumentieren.
 - Betroffene Bereiche/Dateien: App-APK aus aktuellem `main`; diese Aktivitätssitzung und Agenten-Chat.
 - Branch/Worktree: `opencode/issue637-s10-install-test-20261125`, `/tmp/opencode/issue637-s10-install-test-20261125`.
-- Abstimmungsbedarf: keiner; Nutzer hat Installation und Test ausdrücklich freigegeben.
+- Abstimmungsbedarf: keiner; Nutzer hat den manuellen Downloadtest ausdrücklich angefordert. UI-Warnung zu möglicher interner „transferred“-Markierung offengelegt.
 - Agent-sync-Nachrichten: keine erforderlich.
 - Nachweise: Main-CI Run `45654658545` / Android CI `45654658545` erfolgreich; signiertes Artefakt `2.0.0_build2224`, Paket `de.pulselibre`. Gerätetyp `SM-G970F`/`beyond0` unter S10-Lease bestätigt; vorhandenes Build 2218 und identische Signatur festgestellt. `adb install -r` erfolgreich; `am start -W de.pulselibre/.MainActivity` meldete `Status: ok`, Activity resumed und Prozess vorhanden. S10-Lease danach `FREI`.
 - Ergebnisgrenze: Kein History-Sync/BLE-Probe, keine Instrumentation, kein Löschen/Deinstallieren. Ein anfänglicher Monkey-Start hinterließ keinen bestätigten Prozess; kein passender AndroidRuntime-Crash im begrenzten Logfenster. Direkter Activity-Start anschließend erfolgreich.
-- Nächster Schritt: Dokumentations-PR bereitstellen; bei Bedarf GUI-Sichtprüfung separat abstimmen. Vollständige CIRQA-Historie bleibt unverifiziert.
+- Nächster Schritt: Vor Gerätenutzung S10-Lease prüfen und eine Lease über den gesamten einzelnen manuellen Lauf halten; danach Lease freigeben. Keine destruktiven Bandkommandos.

@@ -1,0 +1,13 @@
+# UPDATE – #637: angeforderter manueller Downloadtest
+- Zeit (UTC): 2026-11-25 16:50
+- Von: OpenCode FIT
+- An: alle
+- Issue/Task: #637
+- Bezug/Antwort auf: Nutzeranweisung nach Installations-/Smoke-Test; `2026-11-25_163500_opencode_issue637_START_s10-install-test.md`
+- Status: aktiv
+- Zuständigkeit und betroffene Dateien: ein manueller Produkt-History-Download mit gemergtem Build 2224 auf dem S10, danach redigierter Ergebnisnachweis.
+- Geplanter Umfang / tatsächlich erledigt: Die App-Warnung sagt, der Sync-Request kann Daten am Band intern als übertragen markieren. App-Code sendet keine Delete-, Archive-, SetFlags- oder Reset-Befehle. Der Nutzer hat ausdrücklich den Downloadtest verlangt. Genau ein manueller Lauf; integrierte Limits: max. 120 s, 256 Dateien, 8 MiB/Datei, 64 MiB insgesamt, plus Item-List-Limit 64. Stop bei Fehler, Timeout oder unerwartetem Verhalten.
+- Was ich von anderen brauche: nichts.
+- Was ich anderen liefere: Ergebnis und Status nach dem einzelnen Lauf.
+- Nachweise: Installierter Build 2224, Main-Merge-SHA `4da99762`; S10 war zuletzt `FREI`. Noch kein neuer Download gestartet.
+- Nächster Schritt / Besitzer: OpenCode FIT prüft Lease, Gerät und Garmin-Connect-/Recorder-Zustand; führt höchstens diesen einen manuellen Lauf aus. Keine Wiederholung des neuen Laufs, kein Reset/Unpairing/Archive/SetFlags/CLOSE_ALL, keine Ausgabe privater Rohdaten.
