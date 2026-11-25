@@ -71,6 +71,7 @@ class Node:
     desc: str
     bounds: tuple[int, int, int, int]
     clickable: bool = False
+    res_id: str = ""
 
     @property
     def center(self) -> tuple[int, int]:
@@ -113,6 +114,11 @@ class Adb:
         return self._runner(["exec-out", command], timeout)
 
 
+def norm(value: str) -> str:
+    """Collapses any run of whitespace (blanks, line breaks, NBSP) so labels compare reliably."""
+    return " ".join(value.split())
+
+
 def parse_nodes(xml_text: str) -> list[Node]:
     start = xml_text.find("<?xml")
     end = xml_text.rfind("</hierarchy>")
@@ -124,8 +130,8 @@ def parse_nodes(xml_text: str) -> list[Node]:
         m = re.fullmatch(r"\[(\d+),(\d+)\]\[(\d+),(\d+)\]", item.get("bounds", ""))
         if not m:
             continue
-        nodes.append(Node(item.get("text", ""), item.get("content-desc", ""), tuple(int(g) for g in m.groups()),
-                          item.get("clickable") == "true"))
+        nodes.append(Node(norm(item.get("text", "")), norm(item.get("content-desc", "")), tuple(int(g) for g in m.groups()),
+                          item.get("clickable") == "true", item.get("resource-id", "")))
     return nodes
 
 
@@ -179,15 +185,26 @@ class Run:
         self.checks.append(Check(ticket, name, status, detail))
         print(f"[{status}] {ticket} {name}" + (f" – {detail}" if detail else ""))
 
-    def dump(self) -> list[Node]:
-        nodes = parse_nodes(self.adb.exec_out("uiautomator dump /dev/tty").decode(errors="replace"))
-        if nodes:
-            return nodes
-        # Fallback for devices where the tty dump stays empty: dump to a file, read it, delete it again.
-        self.adb.shell("uiautomator dump /sdcard/s25_ui.xml")
-        raw = self.adb.shell("cat /sdcard/s25_ui.xml")
-        self.adb.shell("rm /sdcard/s25_ui.xml")
-        return parse_nodes(raw)
+    def dump(self, attempts: int = 3) -> list[Node]:
+        """Fresh hierarchy or an AdbError; never a stale or silently empty one.
+
+        uiautomator reports "could not get idle state" while the screen keeps changing (for example during a sync).
+        An empty answer is retried after a short pause and then raised, so no check ever runs on old data.
+        """
+        for attempt in range(attempts):
+            nodes = parse_nodes(self.adb.exec_out("uiautomator dump /dev/tty").decode(errors="replace"))
+            if nodes:
+                return nodes
+            # Fallback for devices where the tty dump stays empty: dump to a file, read it, delete it again.
+            self.adb.shell("uiautomator dump /sdcard/s25_ui.xml")
+            raw = self.adb.shell("cat /sdcard/s25_ui.xml")
+            self.adb.shell("rm /sdcard/s25_ui.xml")
+            nodes = parse_nodes(raw)
+            if nodes:
+                return nodes
+            if attempt + 1 < attempts:
+                self.adb.sleep(1.5)
+        raise AdbError(f"UI dump stayed empty after {attempts} attempts (screen still changing? sync running?). Use a screenshot instead.")
 
     def shot(self, name: str) -> None:
         path = self.out / f"{name}.png"
@@ -244,7 +261,9 @@ class Run:
             self.swipe(up=False)
 
     def tab(self, name: str) -> bool:
-        nodes = [n for n in self.dump() if n.label == name]
+        dumped = self.dump()
+        # Language-independent anchor first (resource id set by MainNavigationView), then the visible label.
+        nodes = [n for n in dumped if n.res_id.endswith(f"/navigation_item_{name}")] or [n for n in dumped if n.label == norm(name)]
         if not nodes:
             return False
         self.tap_node(max(nodes, key=lambda n: n.center[1]))  # the bottom navigation, not a heading

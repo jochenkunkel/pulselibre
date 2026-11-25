@@ -791,8 +791,12 @@ class MainActivity : AppCompatActivity() {
         recorderRow.addView(playButton, LinearLayout.LayoutParams(0, -2, 1f).apply { rightMargin = dp(8) })
         recorderRow.addView(stopButton, LinearLayout.LayoutParams(0, -2, 1f))
         deviceView(recorderRow, 12)
-        recorderRefresh = {
+        var shownRecorderRunning: Boolean? = null
+        recorderRefresh = refresh@{
             val running = RecorderStatus.isRunning(getSharedPreferences(CirqaContinuousRecordingService.PREFS, MODE_PRIVATE))
+            // Polled once a second: touching the views only on a real change keeps the screen quiet for TalkBack and uiautomator.
+            if (running == shownRecorderRunning) return@refresh
+            shownRecorderRunning = running
             if (running) setRecorderState(getString(R.string.main_rec_on), PlIcon.RECORD_START) else setRecorderState(getString(R.string.main_rec_off), PlIcon.RECORD_STOP)
             recorderState.setTextColor(muted)
             playButton.alpha = if (running) 0.45f else 1f

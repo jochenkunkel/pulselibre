@@ -108,6 +108,27 @@ class RunnerTest(unittest.TestCase):
         self.assertTrue(run.tab("Verlauf"))
         self.assertIn("input tap 100 2200", adb.commands)
 
+    def test_navigation_survives_whitespace_in_content_desc(self):
+        screen = xml(("", "  Gerät\n", (0, 2150, 200, 2250), True))
+        run = self.run_with(FakeAdb([screen]))
+        self.assertTrue(run.tab("Gerät"))
+
+    def test_navigation_prefers_resource_id_in_any_language(self):
+        screen = ('<?xml version="1.0"?><hierarchy><node text="" content-desc="Device" clickable="true" '
+                  'resource-id="de.pulselibre:id/navigation_item_Gerät" bounds="[0,2150][200,2250]"/></hierarchy>')
+        adb = FakeAdb([screen])
+        self.assertTrue(self.run_with(adb).tab("Gerät"))
+        self.assertIn("input tap 100 2200", adb.commands)
+
+    def test_empty_dump_is_retried_then_raises_instead_of_reusing_old_data(self):
+        good = xml(("Gerät", "", (0, 0, 100, 100), True))
+        adb = FakeAdb(["ERROR: could not get idle state.", "ERROR: could not get idle state.", good])
+        # two failed attempts (tty and file fallback empty), the third succeeds
+        self.assertEqual(self.run_with(adb).dump()[0].text, "Gerät")
+        failing = FakeAdb(["ERROR: could not get idle state."])
+        with self.assertRaises(s.AdbError):
+            self.run_with(failing).dump(attempts=2)
+
     def test_restore_resets_density_font_and_night_even_if_a_command_fails(self):
         adb = FakeAdb(["x"], shells={"cmd uimode night": "Night mode: yes", "settings get system font_scale": "1.0\n",
                                      "wm density": "Physical density: 480"})
