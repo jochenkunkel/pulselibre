@@ -982,6 +982,34 @@ class DatabaseBackupTest {
         } finally { root.deleteRecursively() }
     }
 
+    @Test fun recorderCanWriteWhileABackupReadsItsSnapshot() {
+        // 25.11.2026 (S10, build 2232): the backup held an exclusive transaction for minutes; the recorder's write on
+        // the main thread waited for it and the app showed "reagiert nicht". The snapshot must not block writers.
+        val base = ApplicationProvider.getApplicationContext<Context>()
+        val root = Files.createTempDirectory(base.cacheDir.toPath(), "snapshot-writer-").toFile()
+        val context = isolatedContext(base, root)
+        try {
+            val event = """{"schema":1,"type":"reading","received_at_utc":"2026-11-25T19:00:00Z","service":6,"bpm":70}"""
+            CirqaDatabase(context).use { assertTrue(it.insertLine(event)) }
+            CirqaDatabase(context).use { reader ->
+                reader.ensureHistoricalStoreCopied()
+                reader.readStoredSnapshot { snapshot ->
+                    val before = snapshot.rawQuery("SELECT COUNT(*) FROM main.events", null).use { it.moveToFirst(); it.getLong(0) }
+                    val t0 = System.nanoTime()
+                    val written = CirqaDatabase(context).use { writer ->
+                        writer.insertLine(event.replace("19:00:00Z", "19:00:01Z").replace("70", "71"))
+                    }
+                    val ms = (System.nanoTime() - t0) / 1_000_000
+                    assertTrue("live write during snapshot", written)
+                    assertTrue("live write waited $ms ms", ms < 2_000)
+                    // The snapshot is unaffected by the concurrent write.
+                    assertEquals(before, snapshot.rawQuery("SELECT COUNT(*) FROM main.events", null).use { it.moveToFirst(); it.getLong(0) })
+                }
+            }
+            CirqaDatabase(context).use { assertEquals(2L, it.eventCount()) }
+        } finally { root.deleteRecursively() }
+    }
+
     @Test fun auditTablesSurviveBackupRoundTrip() {
         val base = ApplicationProvider.getApplicationContext<Context>()
         val root = Files.createTempDirectory(base.cacheDir.toPath(), "audit-backup-").toFile()

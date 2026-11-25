@@ -145,7 +145,8 @@ object DatabaseBackup {
     fun write(context: Context, destination: OutputStream): DatabaseBackupReport {
         // The archive is built in the cache first: say so clearly instead of failing halfway with a disk error.
         val database = context.getDatabasePath("cirqa_measurements.db").length()
-        require(context.cacheDir.usableSpace > database + MIN_FREE_BYTES) {
+        // Snapshot copy of the database plus the temporary archive both live in the cache.
+        require(context.cacheDir.usableSpace > 2 * database + MIN_FREE_BYTES) {
             "Zu wenig freier Speicher für das temporäre Backup (frei ${context.cacheDir.usableSpace / 1_048_576} MiB)"
         }
         val temp = File.createTempFile("pulselibre-backup-", ".zip", context.cacheDir)
