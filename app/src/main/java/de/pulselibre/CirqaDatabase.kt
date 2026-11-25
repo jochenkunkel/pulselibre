@@ -996,10 +996,7 @@ class CirqaDatabase(private val contextRef: Context) :
 
     /** Returns raw FIT-derived values separately from trusted historical observations. */
     fun readUntrustedFitCandidates(metric: String? = null): List<StoredFitReviewCandidate> {
-        require(metric == null || metric in setOf(
-            "spo2", "spo2_confidence", "spo2_measurement_mode", "stress", "respiration",
-            "sleep_level", "monitoring_cycles", "monitoring_activity_type"
-        ))
+        require(metric == null || metric in FIT_REVIEW_CANDIDATE_METRICS)
         val result = mutableListOf<StoredFitReviewCandidate>()
         val sql = """SELECT sample_id, device_id, metric, measured_at_ms, value, unit, source_sha256,
                             record_ordinal, global_message_number, field_number, quality,
@@ -2060,7 +2057,7 @@ class CirqaDatabase(private val contextRef: Context) :
         )
         candidates.forEach { item ->
             require(item.sampleId.isNotBlank() && item.deviceId.isNotBlank() &&
-                item.metric in setOf("spo2", "stress", "respiration") &&
+                item.metric in FIT_REVIEW_CANDIDATE_METRICS &&
                 (item.measuredAtEpochMillis == null || item.measuredAtEpochMillis >= 0) &&
                 item.value.isFinite() && item.unit.isNotBlank() &&
                 item.sourceSha256.matches(Regex("[0-9a-f]{64}")) && item.recordOrdinal > 0 &&
@@ -2114,6 +2111,15 @@ class CirqaDatabase(private val contextRef: Context) :
     }
 
     companion object {
+        /**
+         * Every metric the FIT import stores as an untrusted review candidate ([FitObservationCommitter]). Reading,
+         * restoring and validating a backup must accept exactly this set: until 25.11.2026 the restore checks only knew
+         * spo2/stress/respiration, so every backup with sleep_level etc. candidates was rejected as "invalid".
+         */
+        val FIT_REVIEW_CANDIDATE_METRICS: Set<String> = setOf(
+            "spo2", "spo2_confidence", "spo2_measurement_mode", "stress", "respiration",
+            "sleep_level", "monitoring_cycles", "monitoring_activity_type"
+        )
         private val keyFormat = java.time.format.DateTimeFormatterBuilder().appendInstant(9).toFormatter()
         internal fun timeKey(time: java.time.Instant): String = keyFormat.format(time)
         private fun timeKey(timestamp: String): String? = try { timeKey(java.time.Instant.parse(timestamp)) }

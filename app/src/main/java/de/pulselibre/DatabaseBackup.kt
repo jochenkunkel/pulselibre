@@ -1608,7 +1608,7 @@ object DatabaseBackup {
             decoderVersion = item.getString("decoder_version")
         )
         require(row.sampleId.isNotBlank() && row.deviceId.isNotBlank() &&
-            row.metric in setOf("spo2", "stress", "respiration") &&
+            row.metric in CirqaDatabase.FIT_REVIEW_CANDIDATE_METRICS &&
             (row.measuredAtEpochMillis == null || row.measuredAtEpochMillis >= 0) &&
             row.value.isFinite() && row.unit.isNotBlank() &&
             row.sourceSha256.matches(Regex("[0-9a-f]{64}")) && row.recordOrdinal > 0 &&
