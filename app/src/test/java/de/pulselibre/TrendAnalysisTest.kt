@@ -70,4 +70,21 @@ class DailyAggregationTest {
             java.time.Instant.parse("2026-11-18T18:00:00Z") to 7000.0)
         assertEquals(7000.0, DailyAggregation.group(rows, berlin, steps = true).values.single(), 0.0)
     }
+    @Test fun exactRepeatsOfOneReadingCountOnce() {
+        val t = java.time.Instant.parse("2026-11-18T08:00:00Z")
+        val rows = listOf(t to 50.0, t to 50.0, t to 50.0, t.plusSeconds(60) to 70.0, t.plusSeconds(120) to 72.0)
+        // Without de-duplication the median would be 50; the three distinct readings give 70.
+        assertEquals(70.0, DailyAggregation.group(rows, berlin, steps = false).values.single(), 0.0)
+        // Same time, different value is no repeat: both stay.
+        assertEquals(55.0, DailyAggregation.group(listOf(t to 50.0, t to 60.0), berlin, steps = false).values.single(), 0.0)
+    }
+    @Test fun daylightSavingDaysKeepTheirLocalBoundaries() {
+        // 29.03.2026 has 23 h, 25.10.2026 has 25 h in Berlin: values just before local midnight stay on their day.
+        val springLate = java.time.Instant.parse("2026-03-29T21:59:00Z") // 23:59 CEST
+        val autumnLate = java.time.Instant.parse("2026-10-25T22:59:00Z") // 23:59 CET
+        val g = DailyAggregation.group(listOf(springLate to 60.0, autumnLate to 62.0), berlin, steps = false)
+        assertEquals(60.0, g[LocalDate.of(2026, 3, 29)]!!, 0.0)
+        assertEquals(62.0, g[LocalDate.of(2026, 10, 25)]!!, 0.0)
+        assertEquals(2, g.size)
+    }
 }
