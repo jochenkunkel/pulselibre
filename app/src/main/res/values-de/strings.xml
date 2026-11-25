@@ -1045,7 +1045,6 @@
     <string name="hsp_failed">Synchronisation fehlgeschlagen</string>
     <string name="hsp_files">%1$d von %2$d Dateien</string>
     <string name="hsp_coverage_note">Die Historie des Bandes ist nicht als vollständig nachgewiesen: Ein beendeter Lauf heißt nicht, dass jede gespeicherte Messung übertragen wurde.</string>
-    <string name="wear_button_cd">Einstellungen öffnen. CIRQA-Armband: %1$s. Tragestatus: %2$s. Armband-Akku (nicht Telefon): %3$s. Langes Drücken zeigt Verbindungsdetails.</string>
     <string name="wear_worn">getragen (Atemmessung am Handgelenk)</string>
     <string name="wear_not_worn">nicht getragen (Armband meldet: nicht am Handgelenk)</string>
     <string name="wear_offline">unbekannt, Armband nicht verbunden</string>
@@ -1053,4 +1052,21 @@
     <string name="wear_battery_none">keine aktuelle Angabe</string>
     <string name="wear_battery_value">%1$d %% (gemessen vor %2$s)</string>
     <string name="wear_battery_low">, niedrig</string>
+    <string name="wear_battery_last">zuletzt bekannt %1$d %% (vor %2$s)</string>
+    <string name="wear_battery_last_untimed">zuletzt bekannt %1$d %% (Zeitpunkt unbekannt)</string>
+    <string name="wear_zone_status_cd">CIRQA-Armband: %1$s. Tragestatus: %2$s. Tippen für Details.</string>
+    <string name="wear_zone_battery_cd">Armband-Akku (nicht Telefon): %1$s. Tippen für Details.</string>
+    <string name="wear_zone_settings_cd">Einstellungen öffnen</string>
+    <string name="wear_status_title">CIRQA-Armband</string>
+    <string name="wear_status_detail">Verbindung: %1$s\n\nTragestatus: %2$s\n\nDie Verbindung gilt als aktiv, wenn die Aufzeichnung gerade Werte empfängt oder Android das Armband als verbunden meldet. „Getragen“ erscheint nur, wenn das Armband es selbst meldet (Atemmessung oder Meldung „nicht am Handgelenk“, höchstens 2 Minuten alt).</string>
+    <string name="wear_battery_title">Armband-Akku</string>
+    <string name="wear_battery_detail">%1$d %% · gemessen vor %2$s · Quelle: %3$s</string>
+    <string name="wear_battery_detail_old">Der Wert ist älter als 12 Stunden oder das Armband ist gerade nicht verbunden; er wird deshalb grau als „zuletzt bekannt“ angezeigt.</string>
+    <string name="wear_battery_detail_none">Für das Armband liegt noch kein Akkuwert vor. Ein Wert erscheint, sobald die Geräteseite oder eine FIT-Datei des Armbands einen liefert.</string>
+    <string name="wear_battery_detail_low">Akku niedrig.</string>
+    <string name="wear_battery_detail_note">Dies ist der Akku des Armbands, nicht der des Telefons.</string>
+    <string name="wear_src_gatt">Bluetooth-Akkudienst</string>
+    <string name="wear_src_gdi">Gerätestatus des Armbands</string>
+    <string name="wear_src_fit">FIT-Datei des Armbands</string>
+    <string name="wear_src_other">Armband</string>
 </resources>
