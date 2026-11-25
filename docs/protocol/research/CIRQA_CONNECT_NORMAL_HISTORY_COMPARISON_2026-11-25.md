@@ -208,6 +208,98 @@ Ursache leerer Antworten. Filterwerte nicht übernehmen oder erraten: Connect
 bezieht sie aus Agent-spezifischer Konfiguration, während PulsLibre ein
 ungefiltertes vollständiges Inventar anstrebt.
 
+## Manueller Build-2224-Lauf mit passivem HCI-Mitschnitt (2026-11-25)
+
+Auf ausdrückliche Nutzerfreigabe wurde genau ein weiterer manueller History-
+Download über die Produkt-UI gestartet. HCI-Snoop war bereits eingeschaltet
+und blieb unverändert. Vorher-/Nachher-Bugreports wurden privat gesichert; der
+nachher extrahierte BTSnoop-Strom beginnt bytegenau mit dem Vorher-Strom. Der
+isolierte Anhang umfasst 443.683 Bytes (8.161 HCI-Records). Rohmitschnitt,
+Bugreports, Logcat und daraus erzeugte Eventdateien liegen ausschließlich im
+zugriffsbeschränkten privaten S10-Artefaktordner und nicht im Repository.
+
+Der unabhängige HCI-Replay rekonstruierte für die eine neue CIRQA-Verbindung
+1.658 ATT-PDUs: 122 Host-Write-Commands auf Value-Handle `0x0015` und 1.458
+Band-Notifications auf `0x0012`. Anders als beim Connect-App-Start c17 enthält
+dieser Lauf die GATT-Discovery direkt: Service `6a4e2800`, RX `6a4e2810`
+(Handle `0x0012`) und TX `6a4e2820` (Handle `0x0015`). Die Verbindung lief im
+BTSnoop-Quellzeitraum 18:11:16–18:13:41; die absolute HCI-Uhr ist nicht
+unabhängig validiert und liegt ungefähr eine Stunde neben der Host-Uhr.
+Der isolierte Replay fand keine offenen ACL/L2CAP-Fragmente; 12 Hinweise auf
+überlappende GATT-Servicebereiche bleiben eine bekannte Parser-Mehrdeutigkeit.
+
+Ein davon getrennter, nur lokal ausgeführter Protokoll-Replay entfernte die
+ML-Routing-Bytes, reassemblierte COBS/GFDI und prüfte Länge sowie CRC:
+242/242 GFDI-Frames waren CRC-valide; 146 Protobuf-Nachrichten wurden
+vollständig reassembliert, ohne unvollständige oder verworfene Nachricht. Auf
+der FileAccess-Ebene ergaben sich:
+
+| Richtung | Request-/Response-Typ und Service-Feld | Vollständige Nachrichten |
+| --- | --- | ---: |
+| PulsLibre → CIRQA | 5043 `item_list_request` (Service-Feld 9) | 1 |
+| CIRQA → PulsLibre | 5044 `item_list_response` (Service-Feld 10), `status=0`, 29 Items, kein `session_id`, `next_transaction_id` vorhanden | 1 |
+| PulsLibre → CIRQA | 5043 `pull_item_request` (Service-Feld 1) | 29 |
+| CIRQA → PulsLibre | 5044 `pull_item_response` (Service-Feld 2), `resultCode=0`, `transport=0` | 29 |
+
+Es gab in dieser Spur keine weitere ItemList-Anfrage. Das bestätigt die
+kontrollierte Ein-Seiten-/29-Pulls-Sequenz auf der Protobuf-Ebene; der positive
+Pull-Response-Code ist aber kein Dateibyte-, FIT-CRC- oder Archivnachweis.
+
+Der Produkt-Terminalbericht desselben UI-Laufs bestätigt `accepted=true`,
+`itemListSent=true`, `pullSent=true`, 25 erfolgreiche und 3 nicht erfolgreiche
+Dateiabschlüsse, eine List-Antwort und keine Transaction-Followups. Ein
+anschließender read-only UI-Bericht präzisierte die Pipeline: 29 Dateien
+ausgewählt und Pull-Requests eingereiht; 28 erreichten `transferred`, 25
+`verified` und `privateStored`, 23 `decoded`/`sqliteCommitted`, davon 17 mit
+importierbaren Daten und 6 ohne. Drei Fehler wurden als
+`ORIGINAL_ARCHIVE/SQLiteDatabaseLockedException` klassifiziert. Beim
+Zeitlimit war ein weiteres Item mit erwarteten 6.010 Bytes und 0 empfangenen
+Bytes noch aktuell. Diese UI-Zähler sind Produktdiagnostik, keine unabhängige
+HCI-Rekonstruktion der Dateibytes.
+
+Der Lauf endete am eingebauten 120-s-Limit mit `runDrained=false`,
+`device-history-unverified`, `incompleteReason=session-time-limit`. Es wurde
+kein zweiter Lauf gestartet. Dies ist ein **unvollständiger** und im Ergebnis
+abweichender Lauf gegenüber dem vorherigen Build-2224-Lauf (29 erfolgreiche,
+0 nicht erfolgreiche Abschlüsse; vier List-Antworten und drei leere
+Transaction-Followups), nicht der Nachweis eines stabilen neuen Verhaltens.
+
+### Abgleich mit Garmin Connect
+
+- Die ATT-Value-Handles stimmen mit Connect c17 überein: dort 649
+  Write-Commands auf `0x0015` und 892 Notifications auf `0x0012`. In c17 selbst
+  war die UUID-Discovery nicht aufgelöst; die Garmin-ML-Zuordnung ist für
+  Connect daher aus früheren Verbindungen desselben Peers abgeleitet, während
+  sie für den neuen PulsLibre-Lauf direkt entdeckt wurde. Paketanzahlen sind
+  wegen ML-Kontrollverkehr, Fragmentierung und unterschiedlicher Phasen keine
+  Dateimengen und kein Erfolgsvergleich.
+- Connect c17 zeigte 29 angenommene ML-Registrierungen, aber keinen
+  zuverlässig korrelierten ItemList-/Pull-Request. Außerdem dokumentiert das
+  getrennte Connect-Capture vom 24.11. eine ItemList-Antwort mit 39 Einträgen
+  und zusätzliche Filterfelder; der damalige PulsLibre-Lauf hatte eine andere
+  List-/Fortsetzungsstichprobe. Diese getrennten Captures erlauben keinen
+  direkten kausalen Vergleich von Session, Filter, Pulls oder Geräteseiten.
+- Der neue PulsLibre-HCI-Replay belegt die Transportstruktur bis GATT/ATT und
+  die Garmin-ML-Charakteristiken; ein lokaler Offline-Replay dekodierte auch
+  die FileAccess-GFDI-/Protobuf-Kontrollnachrichten samt ItemList-/Pull-
+  Zählern. Die MLR-Dateibytes wurden hingegen nicht als vollständige Streams
+  mit Item-UID/Transfer-Handle korreliert und unabhängig auf FIT-Header/-CRC
+  geprüft. Die 25 `verified`-Zähler sind daher Produktpipeline-Evidenz, kein
+  zweiter FIT-Validator aus dem HCI-Capture.
+- Der Produktbericht zeigt für drei Einträge einen Fehler am Schritt
+  `ORIGINAL_ARCHIVE` vom Typ `SQLiteDatabaseLockedException`; er zeigt außerdem
+  für das aktuelle Item 0 von 6.010 erwarteten Bytes bei Ablauf des Budgets.
+  Das sind konkrete Pipelinebefunde dieses Laufs, aber kein Beleg, dass eine
+  Connect-Filter-/ACK-Abweichung diese Fehler verursacht hat. Ein Codefix oder
+  eine Wiederholung wurde nicht daraus abgeleitet.
+
+**Folgerung:** Ein gemeinsamer Garmin-ML-GATT-Transport ist für PulsLibre direkt
+und für Connect c17 stark abgeleitet belegt. Ein unterschiedlicher
+FileAccess-Wire-Pfad oder eine Connect-spezifische Filter-/ACK-Ursache ist
+weiterhin nicht bewiesen. Der 120-s-Abbruch mit drei nicht erfolgreichen
+Dateien ist der konkrete Befund dieses einzelnen Laufs; keine Wiederholung,
+keine Transportänderung und keine Vollständigkeitsbehauptung folgen daraus.
+
 ## Connect-App-Start am 25.11. und Sequenzvergleich
 
 Der vorhandene Connect-Bugreport, Screenshots und BTSnoop wurden offline

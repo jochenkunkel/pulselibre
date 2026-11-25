@@ -1,0 +1,15 @@
+# ENDE – #637 HCI-Mitschnitt und Connect-Abgleich
+- Zeit (UTC): 2026-11-25 17:28
+- Von: OpenCode FIT
+- An: alle
+- Issue/Task: #637
+- Bezug/Antwort auf: `2026-11-25_170500_opencode_START_issue637-hci-download-compare.md`
+- Status: abgeschlossen; ein begrenzter manueller Lauf war unvollständig
+- Zuständigkeit und betroffene Dateien: passiver HCI-Mitschnitt des manuellen Build-2224-Downloads; redigierter Vergleich in `docs/protocol/research/CIRQA_CONNECT_NORMAL_HISTORY_COMPARISON_2026-11-25.md`.
+- Geplanter Umfang / tatsächlich erledigt: Genau ein UI-bestätigter manueller Lauf unter gehaltener S10-Lease; HCI-Snoop war bereits an und wurde nicht umgeschaltet. Vorher-/Nachher-Bugreports wurden privat gesichert; Nachher-BTSnoop enthält den Vorher-Strom exakt als Bytepräfix. Isolierter Anhang: 8.161 HCI-Records, 1.658 ATT-PDUs, 122 Host-Write-Commands, 1.458 Band-Notifications. Discovery belegt direkt Garmin-ML-Service `6a4e2800`, RX `6a4e2810`/Handle `0x0012` und TX `6a4e2820`/Handle `0x0015`. Offline-Protokoll-Replay: 242/242 COBS/GFDI-Frames CRC-valide, 146 Protobuf-Nachrichten vollständig; eine 29-Item-ItemList-Antwort und 29 Pull-Anfragen/-Antworten mit `resultCode=0`, `transport=0`; kein Follow-up.
+- Ergebnis: Produktbericht bestätigt 29 ausgewählte/queued Pulls, 28 `transferred`, 25 `verified`/privat gespeichert, 23 `decoded`/SQLite-committed (17 mit importierbaren Daten, 6 ohne), drei Fehler `ORIGINAL_ARCHIVE/SQLiteDatabaseLockedException`; beim Zeitlimit war ein Item mit 6.010 erwarteten und 0 empfangenen Bytes aktuell. Eine ItemList-Antwort, keine Folgeanfrage; `session-time-limit`, `runDrained=false`, `device-history-unverified`. Keine Wiederholung.
+- Connect-Vergleich: c17 hat 649 Write-Commands/892 Notifications über dieselben ATT-Handles; für c17 selbst bleibt die ML-UUID-Zuordnung abgeleitet und die FileAccess-Korrelation offen. Das getrennte ältere Connect-Capture zeigt 39 ItemList-Einträge/zusätzliche Filterfelder. Paketmengen sind nicht als Dateimengen vergleichbar. MLR-Nutzdaten wurden nicht bis zu eigenständigen FIT-Dateien rekonstruiert/CRC-validiert; diese Grenze steht im Bericht.
+- Was ich von anderen brauche: nichts.
+- Was ich anderen liefere: redigierter Dokumentations-PR; S10-Lease danach `FREI`.
+- Nachweise: `tools/test_garmin_hci_replay.py` 21/21 bestanden; `tools/test_btsnoop_summary.py` 8/8 bestanden. Privater Capture-Pfad außerhalb des Repositories; Rohdateien, Bugreports und Logcat nicht veröffentlicht.
+- Nächster Schritt / Besitzer: OpenCode FIT veröffentlicht Dokumentationsänderung; keine weitere Geräteaktion. Vollständige CIRQA-Historie bleibt unbewiesen.
