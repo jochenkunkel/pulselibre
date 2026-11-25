@@ -92,10 +92,20 @@ class UnifiedMeasurements(private val db: SQLiteDatabase) {
          * (meaning not yet established). Only these documented cases are excluded; no quality thresholds are invented.
          */
         const val VALID_SQL = "NOT ((metric IN ('bpm', 'resting_bpm', 'heart_rate') AND value <= 0) OR (metric IN ('breaths_per_min', 'stress') AND value < 0))"
+
+        /** Layout version of the derived table, kept in `unified_state` under [SCHEMA_KEY]. */
+        const val SCHEMA_VERSION = "2"
+        private const val SCHEMA_KEY = "schema"
+
+        /**
+         * One refresh at a time per process. Several screens refresh from their own threads and connections; run in
+         * parallel they parsed the same events several times and raced on the shared cursor in `unified_state`.
+         */
+        private val REFRESH_LOCK = Any()
     }
 
-    fun ensureSchema() {
-        // Derived table: a copy built before `fit_message` existed is dropped and rebuilt from its sources.
+    fun ensureSchema(): Unit = synchronized(REFRESH_LOCK) {
+        db.execSQL("CREATE TABLE IF NOT EXISTS unified_state(key TEXT PRIMARY KEY NOT NULL, value TEXT NOT NULL)")
         val hasTable = db.rawQuery("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'unified_measurements'", null)
             .use { it.moveToFirst() }
         val hasKind = hasTable && db.rawQuery("PRAGMA table_info(unified_measurements)", null).use { c ->
@@ -104,8 +114,15 @@ class UnifiedMeasurements(private val db: SQLiteDatabase) {
             found
         }
         if (hasTable && !hasKind) {
-            db.execSQL("DROP TABLE unified_measurements")
-            db.execSQL("DROP TABLE IF EXISTS unified_state")
+            // Version 1: add the column in place. Live rows keep their (expensive) state; only the cheap historical
+            // origins are rebuilt so band rows get their FIT message kind.
+            db.execSQL("ALTER TABLE unified_measurements ADD COLUMN fit_message INTEGER")
+            db.execSQL("DELETE FROM unified_state WHERE key = 'historical_signature'")
+        } else if (hasTable && state(SCHEMA_KEY) == null) {
+            // Built by build 2171, which dropped the table while other threads were refreshing it: live rows may be
+            // missing. It is derived data, so rebuild it once completely (serialized by REFRESH_LOCK).
+            db.execSQL("DELETE FROM unified_measurements")
+            db.execSQL("DELETE FROM unified_state")
         }
         db.execSQL("""CREATE TABLE IF NOT EXISTS unified_measurements (
             origin TEXT NOT NULL CHECK(origin IN ('live', 'import', 'band')),
@@ -121,11 +138,11 @@ class UnifiedMeasurements(private val db: SQLiteDatabase) {
             PRIMARY KEY(origin, device_id, metric, measured_at_ms, sample_id)
         ) WITHOUT ROWID""")
         db.execSQL("CREATE INDEX IF NOT EXISTS unified_measurements_by_time ON unified_measurements(measured_at_ms)")
-        db.execSQL("CREATE TABLE IF NOT EXISTS unified_state(key TEXT PRIMARY KEY NOT NULL, value TEXT NOT NULL)")
+        if (state(SCHEMA_KEY) != SCHEMA_VERSION) setState(SCHEMA_KEY, SCHEMA_VERSION)
     }
 
-    /** Brings the table up to date; cheap when nothing changed. Idempotent, safe to call often. */
-    fun refresh() {
+    /** Brings the table up to date; cheap when nothing changed. Idempotent, safe to call often, one at a time. */
+    fun refresh(): Unit = synchronized(REFRESH_LOCK) {
         ensureSchema()
         refreshLive()
         refreshHistorical()

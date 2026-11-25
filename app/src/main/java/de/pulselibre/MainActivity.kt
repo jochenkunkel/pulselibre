@@ -43,7 +43,9 @@ class MainActivity : AppCompatActivity() {
     private var dashboardPolling = false
     private var dashboardLastEventId = -1L
     private var dashboardLastRefreshAt = 0L
-    private val dashboardWorker = java.util.concurrent.Executors.newSingleThreadExecutor()
+    private val dashboardWorker = DashboardWorkerWatch.newDashboardWorker()
+    /** FIT re-indexing on app entry runs here, not on [dashboardWorker]: it took minutes on the S10 and every tile and day dialog waited behind it. */
+    private val maintenanceWorker = DashboardWorkerWatch.newMaintenanceWorker()
     private var historicalDownloadProbe: CirqaMlHandshakeProbe? = null
     private var historicalSyncStatusView: TextView? = null
     private var syncProgressView: HistorySyncProgressView? = null
@@ -122,8 +124,8 @@ class MainActivity : AppCompatActivity() {
      * thread, and never communicates with the device.
      */
     private fun scheduleUnknownFitInventoryScan() {
-        if (dashboardWorker.isShutdown) return
-        dashboardWorker.execute {
+        if (maintenanceWorker.isShutdown) return
+        maintenanceWorker.execute {
             try {
                 val fitRoot = java.io.File(applicationContext.filesDir, "verified_fit")
                 CirqaDatabase(applicationContext).use { database ->
@@ -1296,6 +1298,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         dashboardWorker.shutdownNow()
+        maintenanceWorker.shutdownNow()
         stopDashboardPolling()
         runCatching { pollDatabase.close() }
         dashboardRefresh = null

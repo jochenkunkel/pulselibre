@@ -55,20 +55,76 @@ class UnifiedMeasurementsTest {
         assertEquals(mapOf(BandRecordKind.ACTIVITY to 1), unified.bandKindCounts("heart_rate", t0 + 2500, t0 + 3500))
     }
 
-    @Test fun derivedTableWithoutMessageKindIsRebuilt() {
-        // A copy from before `fit_message`: dropped and rebuilt, nothing from the old copy survives.
+    @Test fun versionOneTableIsUpgradedInPlaceWithoutReReadingLiveEvents() {
+        // A copy from before `fit_message`, with its live cursor already at the newest event.
+        live(80, t0 + 500)
         db.execSQL("""CREATE TABLE unified_measurements(origin TEXT NOT NULL, device_id TEXT NOT NULL, metric TEXT NOT NULL,
             measured_at_ms INTEGER NOT NULL, value REAL NOT NULL, unit TEXT NOT NULL, sample_id TEXT NOT NULL DEFAULT '',
             received_at_ms INTEGER, PRIMARY KEY(origin, device_id, metric, measured_at_ms, sample_id)) WITHOUT ROWID""")
-        db.execSQL("INSERT INTO unified_measurements VALUES('band', 'fit', 'heart_rate', ?, 99, 'bpm', 'stale', NULL)", arrayOf<Any>(t0 + 10))
+        db.execSQL("INSERT INTO unified_measurements VALUES('live', 'CIRQA', 'bpm', ?, 77, 'bpm', 'kept', NULL)", arrayOf<Any>(t0 + 10))
+        db.execSQL("INSERT INTO unified_measurements VALUES('band', 'fit', 'heart_rate', ?, 99, 'bpm', 'stale', NULL)", arrayOf<Any>(t0 + 20))
         db.execSQL("CREATE TABLE unified_state(key TEXT PRIMARY KEY NOT NULL, value TEXT NOT NULL)")
-        db.execSQL("INSERT INTO unified_state VALUES('historical_signature', '0,0,0,0,0')")
+        db.execSQL("INSERT INTO unified_state VALUES('live_event_id', '1')")
+        db.execSQL("INSERT INTO unified_state VALUES('historical_signature', 'old')")
         band("m1", 60.0, t0 + 1000, message = 55)
         val unified = UnifiedMeasurements(db)
         unified.refresh()
-        val rows = unified.points(MeasurementOrigin.BAND, "heart_rate", t0, t0 + day)
-        assertEquals(listOf(60.0), rows.map { it.second })
+        // Live rows stay as they were (no full re-read of all events); event 1 is not parsed again.
+        assertEquals(listOf(77.0), unified.points(MeasurementOrigin.LIVE, "bpm", t0, t0 + day).map { it.second })
+        // Band rows are rebuilt with their kind; the stale band row is gone.
+        assertEquals(listOf(60.0), unified.points(MeasurementOrigin.BAND, "heart_rate", t0, t0 + day).map { it.second })
         assertEquals(mapOf(BandRecordKind.MONITORING to 1), unified.bandKindCounts("heart_rate", t0, t0 + day))
+    }
+
+    @Test fun tableOfBuild2171IsRebuiltOnceCompletely() {
+        // Build 2171 created the new layout but no schema marker, and could lose live rows: rebuild once.
+        live(80, t0 + 1000); live(81, t0 + 2000)
+        UnifiedMeasurements(db).ensureSchema()
+        db.execSQL("DELETE FROM unified_state")                       // as left by 2171: no schema marker
+        db.execSQL("INSERT INTO unified_state VALUES('live_event_id', '2')")   // cursor claims all events are done
+        val unified = UnifiedMeasurements(db)
+        unified.refresh()
+        assertEquals(listOf(80.0, 81.0), unified.points(MeasurementOrigin.LIVE, "bpm", t0, t0 + day).map { it.second })
+        // Afterwards the marker exists and nothing is rebuilt again.
+        live(82, t0 + 3000)
+        unified.refresh()
+        assertEquals(3, unified.points(MeasurementOrigin.LIVE, "bpm", t0, t0 + day).size)
+    }
+
+    @Test fun parallelRefreshesFromSeveralThreadsLoseNothing() {
+        for (i in 0 until 3000) live(60 + i % 40, t0 + i * 1000L)
+        val path = java.io.File.createTempFile("unified", ".db").apply { delete() }
+        val file = SQLiteDatabase.openOrCreateDatabase(path, null)
+        try {
+            // Same schema in a real file so several connections can work on it at once.
+            for (sql in listOf("CREATE TABLE events(id INTEGER PRIMARY KEY AUTOINCREMENT, kind TEXT NOT NULL, payload_json TEXT NOT NULL)",
+                    "CREATE TABLE observations(device_id TEXT NOT NULL, metric TEXT NOT NULL, measured_at_ms INTEGER NOT NULL, value REAL NOT NULL, unit TEXT NOT NULL, sample_id TEXT NOT NULL DEFAULT '', received_at_ms INTEGER, PRIMARY KEY(device_id, metric, measured_at_ms, sample_id))",
+                    "CREATE TABLE fit_observation_provenance(sample_id TEXT PRIMARY KEY NOT NULL)",
+                    "CREATE TABLE fit_generation_observations(generation_id TEXT NOT NULL, sample_id TEXT NOT NULL, device_id TEXT NOT NULL, metric TEXT NOT NULL, measured_at_ms INTEGER NOT NULL, value REAL NOT NULL, unit TEXT NOT NULL, received_at_ms INTEGER, global_message_number INTEGER NOT NULL DEFAULT 55, PRIMARY KEY(generation_id, sample_id))",
+                    "CREATE TABLE fit_active_generations(generation_id TEXT PRIMARY KEY NOT NULL)",
+                    "CREATE TABLE fit_decoder_generations(generation_id TEXT PRIMARY KEY NOT NULL, output_count INTEGER NOT NULL)")) file.execSQL(sql)
+        } finally { file.close() }
+        val copy = SQLiteDatabase.openOrCreateDatabase(path, null)
+        copy.beginTransaction()
+        try {
+            db.rawQuery("SELECT kind, payload_json FROM events ORDER BY id", null).use { c ->
+                while (c.moveToNext()) copy.execSQL("INSERT INTO events(kind, payload_json) VALUES(?, ?)", arrayOf(c.getString(0), c.getString(1)))
+            }
+            copy.setTransactionSuccessful()
+        } finally { copy.endTransaction(); copy.close() }
+        val errors = java.util.concurrent.ConcurrentLinkedQueue<Throwable>()
+        val threads = (1..4).map {
+            Thread {
+                try { SQLiteDatabase.openDatabase(path.path, null, SQLiteDatabase.OPEN_READWRITE).use { UnifiedMeasurements(it).refresh() } }
+                catch (t: Throwable) { errors.add(t) }
+            }
+        }
+        threads.forEach { it.start() }; threads.forEach { it.join(60_000) }
+        assertTrue(errors.toString(), errors.isEmpty())
+        SQLiteDatabase.openDatabase(path.path, null, SQLiteDatabase.OPEN_READWRITE).use {
+            assertEquals(3000, UnifiedMeasurements(it).points(MeasurementOrigin.LIVE, "bpm", t0, t0 + day).size)
+        }
+        SQLiteDatabase.deleteDatabase(path)
     }
 
     @Test fun liveBandAndImportSitInOneTableWithSeparateOrigins() {
