@@ -900,6 +900,13 @@
     <!-- REVIEW: neue Texte (#477), fr/es Sprachprüfung durch ChatGPT -->
     <string name="hv_fit_read_failed">L’historique du bracelet n’a pas pu être lu.</string>
     <string name="hv_fit_newest">Dernière mesure du bracelet : %1$s (hors de la période choisie).</string>
+    <string name="hv_fit_kinds">Historique quotidien normal : %1$d · issus d’enregistrements d’activité : %2$d</string>
+    <string name="hv_fit_kinds_other"> · autres messages FIT : %1$d</string>
+    <string name="hv_fit_activity_only">Uniquement des valeurs d’enregistrements d’activité – aucun historique quotidien normal n’est enregistré pour cette période.</string>
+    <string name="dd_band_title">Historique du bracelet (FIT) · heure de mesure du bracelet</string>
+    <string name="dd_band_summary">%1$d valeurs du bracelet (historique quotidien %2$d, activité %3$d)</string>
+    <string name="dd_band_none">Aucune fréquence cardiaque du bracelet (FIT) enregistrée ce jour.</string>
+    <string name="dd_band_failed">L’historique du bracelet n’a pas pu être lu.</string>
     <!-- REVIEW: neue Texte (Verlauf-Tabelle), fr/es Sprachprüfung durch ChatGPT -->
     <string name="ht_title">Toutes les données</string>
     <string name="ht_col_date">Date</string>

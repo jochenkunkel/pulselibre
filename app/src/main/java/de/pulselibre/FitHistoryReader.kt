@@ -29,7 +29,9 @@ class FitHistoryReader(private val context: Context) {
     /** Result of one window read; [truncated] is true when [FitHistoryMapping.MAX_POINTS] cut the window. */
     data class Window(val points: List<HistoryPoint>, val available: Boolean, val truncated: Boolean,
                       /** Newest FIT heart-rate measurement of any time; explains an empty window (older data or a band clock offset). */
-                      val newest: Instant? = null)
+                      val newest: Instant? = null,
+                      /** Values of the window per FIT message kind: normal all-day history vs. recorded activities. */
+                      val kinds: Map<BandRecordKind, Int> = emptyMap())
 
     /** Runs [block] on the unified measurements (live, import and band in one table), brought up to date first. */
     private fun <T> unified(block: (UnifiedMeasurements) -> T): T = CirqaDatabase(context).use { db ->
@@ -47,7 +49,8 @@ class FitHistoryReader(private val context: Context) {
             .mapNotNull { (t, v, _) -> Math.round(v).takeIf { it in 1..240 }?.let { HistoryPoint(Instant.ofEpochMilli(t), it.toInt()) } }
             .toList()
         Window(points, u.exists(MeasurementOrigin.BAND, FitHistoryMapping.METRIC), truncated,
-            u.latest(MeasurementOrigin.BAND, FitHistoryMapping.METRIC, Long.MAX_VALUE / 4)?.let { Instant.ofEpochMilli(it) })
+            u.latest(MeasurementOrigin.BAND, FitHistoryMapping.METRIC, Long.MAX_VALUE / 4)?.let { Instant.ofEpochMilli(it) },
+            u.bandKindCounts(FitHistoryMapping.METRIC, start.toEpochMilli(), end.toEpochMilli()))
     }
 
     /** Measurement time of the newest band heart-rate observation not after [notAfter], or null when there is none. */
@@ -57,4 +60,17 @@ class FitHistoryReader(private val context: Context) {
 
     /** Newest band heart-rate measurement regardless of the window (also later than "now" if the band clock is ahead). */
     fun newestMeasuredAt(): Instant? = latestMeasuredAt(Instant.ofEpochMilli(Long.MAX_VALUE / 4))
+}
+
+/** Honest wording of where band values come from: normal all-day history and activity recordings are not the same. */
+internal object FitKindText {
+    fun note(strings: Strings, kinds: Map<BandRecordKind, Int>): String? {
+        val monitoring = kinds[BandRecordKind.MONITORING] ?: 0
+        val activity = kinds[BandRecordKind.ACTIVITY] ?: 0
+        val other = kinds[BandRecordKind.OTHER] ?: 0
+        if (monitoring + activity + other == 0) return null
+        val base = strings.get(R.string.hv_fit_kinds, monitoring, activity) +
+            (if (other > 0) strings.get(R.string.hv_fit_kinds_other, other) else "")
+        return if (monitoring == 0 && activity > 0) base + "\n" + strings.get(R.string.hv_fit_activity_only) else base
+    }
 }

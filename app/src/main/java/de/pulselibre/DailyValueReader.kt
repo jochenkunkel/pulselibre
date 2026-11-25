@@ -12,8 +12,12 @@ import java.time.ZoneId
  * Steps: highest cumulative daily counter reading of that day.
  */
 internal object DailyAggregation {
+    /**
+     * An exact repeat of one reading (same reception time, same value, e.g. replayed after a reconnect) counts once,
+     * as in the day view ([DashboardDayReader]); otherwise it would weigh twice in the resting-pulse median.
+     */
     fun group(rows: List<Pair<Instant, Double>>, zone: ZoneId, steps: Boolean): Map<LocalDate, Double> =
-        rows.groupBy({ it.first.atZone(zone).toLocalDate() }, { it.second }).mapValues { (_, v) ->
+        rows.distinct().groupBy({ it.first.atZone(zone).toLocalDate() }, { it.second }).mapValues { (_, v) ->
             if (steps) v.max() else TrendAnalysis.median(v)
         }
 }
