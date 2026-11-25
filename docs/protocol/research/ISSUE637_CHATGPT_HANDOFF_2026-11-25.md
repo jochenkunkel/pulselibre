@@ -141,9 +141,10 @@ and the terminal report, without copying raw lines or identifiers here:
 - The repeated `PRAGMA journal_mode` / `PRAGMA cache_size` failures are logged
   under the app's process ID, on four distinct app threads; the final open-path
   exception occurs at device-local 20:22:08 (19:22:08 UTC), shortly before the
-  terminal UI snapshot at device-local 20:22:12. The same-process evidence
-  rules out a demonstrated second Android app process as the cause, but does
-  not identify which app operation held the conflicting lock.
+  terminal UI snapshot at device-local 20:22:12. The captured failures are
+  logged in the app process; they do not demonstrate a separate app process,
+  but also do not identify which operation (or connection) held the conflicting
+  lock.
 - Earlier retry clusters occur at approximately device-local 20:20:26–20:20:37
   and 20:21:58–20:22:08 (UTC 19:20–19:22). Repeated open/configuration failures
   on multiple threads are consistent with concurrent helper/database activity,
