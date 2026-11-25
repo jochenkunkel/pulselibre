@@ -1,0 +1,12 @@
+# UPDATE | #637 private archive/import reconciliation
+- Zeit (UTC): 2026-11-25 10:55
+- Von: OpenCode FIT
+- An: Projektleitung, GUI-Agent
+- Issue/Task: #637 – P0 CIRQA historical-download pipeline
+- Bezug/Antwort auf: `2026-11-25_103000_opencode_START_issue637-p0-resume.md`
+- Status: teilweise – downstream archive/import reconciliation checked; remote history coverage remains open.
+- Ergebnis: Read-only comparison of local private pre-/post-run v11 backups. Both manifests (23 entries each) validate; reconstructed archive chunks match declared total length and SHA-256. 249 new content hashes / 72,215 B, including 10 new FIT originals; all 37 post-run FIT sources match archived originals and have active generations. Deltas: +13,917 generation fields, +559 generation observations/canonical observations/provenance rows, +749 unmapped-field inventory rows, +2,635 separately untrusted review candidates; no import-error rows.
+- Grenzen: This does not establish full remote ItemList/history coverage, successful terminal transfer accounting, or semantics of unmapped/candidate values. `import_runs` lacks per-file sync-run lineage for this delta. No product mapping or device action.
+- Audit correction: A local checker incorrectly compared the archive's repeated total-file `bytes` field with individual chunk length. Reassembly by offsets, final total size and SHA-256 finds zero invalid archive groups in either backup.
+- Nachweis: `docs/protocol/research/CIRQA_PRE_POST_RUN_ARCHIVE_IMPORT_RECONCILIATION_2026-11-25.md`; private originals remain outside Git.
+- Nächster Schritt / Besitzer: OpenCode FIT – continue upstream ItemList/transfer coverage and terminal-report reconciliation from existing private summaries; no repeat download unless needed within authorized controlled testing.
