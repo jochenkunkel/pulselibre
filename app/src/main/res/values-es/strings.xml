@@ -1053,7 +1053,6 @@
     <string name="hsp_failed">Sincronización fallida</string>
     <string name="hsp_files">%1$d de %2$d archivos</string>
     <string name="hsp_coverage_note">No está demostrado que el historial de la pulsera esté completo: una ejecución terminada no significa que se haya transferido cada medición guardada.</string>
-    <string name="wear_button_cd">Abrir ajustes. Pulsera CIRQA: %1$s. Uso: %2$s. Batería de la pulsera (no del teléfono): %3$s. Una pulsación larga muestra los detalles de conexión.</string>
     <string name="wear_worn">puesta (respiración medida en la muñeca)</string>
     <string name="wear_not_worn">no puesta (la pulsera indica: fuera de la muñeca)</string>
     <string name="wear_offline">desconocido, pulsera no conectada</string>
@@ -1061,4 +1060,21 @@
     <string name="wear_battery_none">sin valor actual</string>
     <string name="wear_battery_value">%1$d %% (medido hace %2$s)</string>
     <string name="wear_battery_low">, baja</string>
+    <string name="wear_battery_last">último conocido %1$d %% (hace %2$s)</string>
+    <string name="wear_battery_last_untimed">último conocido %1$d %% (hora desconocida)</string>
+    <string name="wear_zone_status_cd">Pulsera CIRQA: %1$s. Uso: %2$s. Toca para ver detalles.</string>
+    <string name="wear_zone_battery_cd">Batería de la pulsera (no del teléfono): %1$s. Toca para ver detalles.</string>
+    <string name="wear_zone_settings_cd">Abrir ajustes</string>
+    <string name="wear_status_title">Pulsera CIRQA</string>
+    <string name="wear_status_detail">Conexión: %1$s\n\nUso: %2$s\n\nLa conexión se considera activa cuando la grabación recibe valores o Android indica la pulsera como conectada. «Puesta» solo aparece si la pulsera lo indica ella misma (medición de la respiración o mensaje «fuera de la muñeca», como máximo de hace 2 minutos).</string>
+    <string name="wear_battery_title">Batería de la pulsera</string>
+    <string name="wear_battery_detail">%1$d %% · medido hace %2$s · fuente: %3$s</string>
+    <string name="wear_battery_detail_old">El valor tiene más de 12 horas o la pulsera no está conectada; por eso se muestra en gris como «último conocido».</string>
+    <string name="wear_battery_detail_none">Todavía no hay valor de batería de la pulsera. Aparece en cuanto la página Dispositivo o un archivo FIT de la pulsera lo proporcione.</string>
+    <string name="wear_battery_detail_low">Batería baja.</string>
+    <string name="wear_battery_detail_note">Es la batería de la pulsera, no la del teléfono.</string>
+    <string name="wear_src_gatt">servicio de batería Bluetooth</string>
+    <string name="wear_src_gdi">estado del dispositivo de la pulsera</string>
+    <string name="wear_src_fit">archivo FIT de la pulsera</string>
+    <string name="wear_src_other">pulsera</string>
 </resources>

@@ -1045,7 +1045,6 @@
     <string name="hsp_failed">Synchronization failed</string>
     <string name="hsp_files">%1$d of %2$d files</string>
     <string name="hsp_coverage_note">The band history is not proven complete: a finished run does not mean that every stored measurement was transferred.</string>
-    <string name="wear_button_cd">Open settings. CIRQA band: %1$s. Wear status: %2$s. Band battery (not phone): %3$s. Long press shows connection details.</string>
     <string name="wear_worn">worn (respiration measured on the wrist)</string>
     <string name="wear_not_worn">not worn (band reports: off wrist)</string>
     <string name="wear_offline">unknown, band not connected</string>
@@ -1053,4 +1052,21 @@
     <string name="wear_battery_none">no current value</string>
     <string name="wear_battery_value">%1$d %% (measured %2$s ago)</string>
     <string name="wear_battery_low">, low</string>
+    <string name="wear_battery_last">last known %1$d %% (%2$s ago)</string>
+    <string name="wear_battery_last_untimed">last known %1$d %% (time unknown)</string>
+    <string name="wear_zone_status_cd">CIRQA band: %1$s. Wear status: %2$s. Tap for details.</string>
+    <string name="wear_zone_battery_cd">Band battery (not phone): %1$s. Tap for details.</string>
+    <string name="wear_zone_settings_cd">Open settings</string>
+    <string name="wear_status_title">CIRQA band</string>
+    <string name="wear_status_detail">Connection: %1$s\n\nWear status: %2$s\n\nThe connection counts as active when the recording is receiving values or Android reports the band as connected. “Worn” only appears when the band reports it itself (respiration measurement or “off wrist” message, at most 2 minutes old).</string>
+    <string name="wear_battery_title">Band battery</string>
+    <string name="wear_battery_detail">%1$d %% · measured %2$s ago · source: %3$s</string>
+    <string name="wear_battery_detail_old">The value is older than 12 hours or the band is not connected right now; it is therefore shown grey as “last known”.</string>
+    <string name="wear_battery_detail_none">No battery value for the band yet. A value appears as soon as the device page or a FIT file from the band provides one.</string>
+    <string name="wear_battery_detail_low">Battery low.</string>
+    <string name="wear_battery_detail_note">This is the band\'s battery, not the phone\'s.</string>
+    <string name="wear_src_gatt">Bluetooth battery service</string>
+    <string name="wear_src_gdi">band device status</string>
+    <string name="wear_src_fit">band FIT file</string>
+    <string name="wear_src_other">band</string>
 </resources>

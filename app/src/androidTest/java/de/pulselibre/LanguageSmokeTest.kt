@@ -73,8 +73,9 @@ class LanguageSmokeTest {
             val openers = listOf<Pair<String, (View) -> Unit>>(
                 "Tageszeitleiste" to { root -> root.findViewWithTag<View>("day_timeline_teaser").performClick() },
                 "Kachel-Tagesdialog" to { root -> root.findViewWithTag<View>("dashboard_metric_Herzfrequenz")?.performClick() },
-                "Einstellungen" to { root -> root.findViewWithTag<View>(WearableStatusButton.TAG).performClick() },
-                "Verbindungsdetails" to { root -> root.findViewWithTag<View>(WearableStatusButton.TAG).performLongClick() }
+                "Einstellungen" to { root -> root.findViewWithTag<View>(WearableStatusControl.TAG_SETTINGS).performClick() },
+                "Verbindungsdetails" to { root -> root.findViewWithTag<View>(WearableStatusControl.TAG_STATUS).performClick() },
+                "Akku-Details" to { root -> root.findViewWithTag<View>(WearableStatusControl.TAG_BATTERY).performClick() }
             )
             openers.forEach { (name, open) ->
                 var before: Any? = null

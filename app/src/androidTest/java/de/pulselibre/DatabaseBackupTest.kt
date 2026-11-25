@@ -944,8 +944,14 @@ class DatabaseBackupTest {
         val context = isolatedContext(base, root)
         try {
             val sha = "d".repeat(64)
-            val fields = listOf("reading_spo2", "reading_confidence", "spo2_measurement_mode", "stress_level_value",
-                "respiration_rate", "sleep_level", "monitoring_cycles", "monitoring_activity_type")
+            // Profile field -> stored metric, as written by FitObservationCommitter. ReviewCandidateMetricsTest (JVM) checks
+            // that CirqaDatabase.FIT_REVIEW_CANDIDATE_METRICS covers the importer; here every one must survive the round trip.
+            val written = mapOf("reading_spo2" to "spo2", "reading_confidence" to "spo2_confidence",
+                "spo2_measurement_mode" to "spo2_measurement_mode", "stress_level_value" to "stress",
+                "respiration_rate" to "respiration", "sleep_level" to "sleep_level", "monitoring_cycles" to "monitoring_cycles",
+                "monitoring_activity_type" to "monitoring_activity_type", "average_deviation" to "skin_temperature_deviation",
+                "average_7_day_deviation" to "skin_temperature_7_day_deviation")
+            val fields = written.keys.toList()
             val candidates = fields.mapIndexed { i, name ->
                 FitHistoricalObservations.ReviewCandidate(
                     profileFieldName = name, value = 1.0 + i, unit = "profile_raw", timestampEpochMillis = 10_000L + i,
@@ -970,7 +976,8 @@ class DatabaseBackupTest {
             CirqaDatabase(context).use { store ->
                 val metrics = store.readableDatabase.rawQuery("SELECT metric FROM fit_review_candidates ORDER BY metric", null)
                     .use { c -> buildList { while (c.moveToNext()) add(c.getString(0)) } }
-                assertEquals(CirqaDatabase.FIT_REVIEW_CANDIDATE_METRICS.sorted(), metrics)
+                assertEquals(written.values.sorted(), metrics)
+                assertEquals(CirqaDatabase.FIT_REVIEW_CANDIDATE_METRICS, written.values.toSet())
             }
         } finally { root.deleteRecursively() }
     }
