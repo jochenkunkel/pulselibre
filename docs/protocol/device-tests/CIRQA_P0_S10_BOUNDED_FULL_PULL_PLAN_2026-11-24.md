@@ -219,8 +219,8 @@ Archivgruppenprüfung bestanden. Der Inventardiff beträgt +210 Originale und
 Beobachtungen. Der Lauf wurde nicht abgebrochen oder wiederholt; das appinterne
 120-s-Limit blieb unverändert. Lease danach `FREI`. Die verbleibende
 SQLite-Lock-Exception liegt diesmal im FIT-Import/Commit-Pfad; Ursache und
-Rückwirkung auf den fehlgeschlagenen Import sind offline zu triagieren. Roh-
- und Gerätedaten verbleiben ausschließlich lokal privat.
+Rückwirkung auf den fehlgeschlagenen Import sind offline zu triagieren.
+Roh- und Gerätedaten verbleiben ausschließlich lokal privat.
 
 **2026-11-25 23:13 UTC – genau ein manueller Folgelauf nach SQLite-open-Fix #678, Build 2271.**
 Unter einem einzelnen S10-Lease wurden Modell und installierte Version 2263
