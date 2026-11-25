@@ -268,7 +268,7 @@ class MainActivity : AppCompatActivity() {
         // #649: one combined control for band status, band battery and settings (replaces antenna + settings button).
         // Tap opens the settings menu as before; a long press shows the connection details of the former antenna button.
         val statusButton = WearableStatusButton(this).apply {
-            compact = resources.configuration.screenWidthDp < 360
+            compact = resources.configuration.screenWidthDp < 412
             setOnClickListener {
                 PersonalSettings.show(this@MainActivity) {
                     refreshBodyCardRef?.invoke()

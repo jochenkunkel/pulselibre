@@ -40,6 +40,18 @@ class WearableStatusButtonTest {
         }
     }
 
+    @Test fun compactVariantLeavesRoomForTheTitle() {
+        InstrumentationRegistry.getInstrumentation().runOnMainSync {
+            val context = ApplicationProvider.getApplicationContext<Context>()
+            val d = context.resources.displayMetrics.density
+            val button = WearableStatusButton(context)
+            button.show(WearState.WORN, 100, "x")
+            assertEquals((186 * d).toInt(), render(button).width)
+            button.compact = true
+            assertEquals((147 * d).toInt(), render(button).width)
+        }
+    }
+
     @Test fun batteryFillFollowsTheRealValueAndLowIsRed() {
         InstrumentationRegistry.getInstrumentation().runOnMainSync {
             val context = ApplicationProvider.getApplicationContext<Context>()
@@ -67,6 +79,9 @@ class WearableStatusButtonTest {
                 assertEquals((48 * activity.resources.displayMetrics.density + 0.5f).toInt(), button.layoutParams.height)
                 assertTrue(button.contentDescription.toString(), button.contentDescription.startsWith("Einstellungen öffnen. CIRQA-Armband:"))
                 assertTrue(button.contentDescription.contains("Armband-Akku (nicht Telefon)"))
+                // The title is not cut by the button (S10, 360 dp: "PulsLib" with the full-width variant).
+                val title = all(root).filterIsInstance<android.widget.TextView>().first { it.text.toString() == "PulsLibre" }
+                assertTrue("title cut", title.paint.measureText("PulsLibre") <= title.width - title.paddingLeft - title.paddingRight + 1)
                 // The former separate antenna button is gone.
                 assertTrue(all(root).none { it.contentDescription?.toString()?.startsWith("CIRQA-Verbindungsstatus:") == true })
                 button.performClick()
