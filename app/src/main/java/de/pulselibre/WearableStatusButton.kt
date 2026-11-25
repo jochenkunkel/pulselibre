@@ -118,9 +118,10 @@ internal class WearableStatusButton(context: Context) : View(context) {
                 paint.style = Paint.Style.FILL; canvas.drawCircle(40f, 30f, 1.5f, paint)
             }
             WearState.UNKNOWN -> {
-                path.moveTo(37f, 21f); path.arcTo(RectF(36.6f, 16.4f, 43.8f, 23.6f), 180f, 260f); path.lineTo(40f, 27f)
+                // Shifted 2 units down so the glyph's weight sits on the circle centre (40/24), like the check mark.
+                path.moveTo(37f, 23f); path.arcTo(RectF(36.6f, 18.4f, 43.8f, 25.6f), 180f, 260f); path.lineTo(40f, 29f)
                 canvas.drawPath(path, paint)
-                paint.style = Paint.Style.FILL; canvas.drawCircle(40f, 30.5f, 1.5f, paint)
+                paint.style = Paint.Style.FILL; canvas.drawCircle(40f, 32.5f, 1.5f, paint)
             }
             WearState.OFFLINE -> {
                 stroke(LOW, 2.6f); canvas.drawLine(28f, 35f, 49f, 14f, paint) // crosses band and status: "no link"
