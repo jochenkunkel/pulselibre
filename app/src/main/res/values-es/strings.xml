@@ -447,7 +447,15 @@
     <string name="tr_details_days">\n%1$s días: </string>
     <string name="tr_details_unrated">no evaluable · %1$s</string>
     <string name="tr_details_row">%1$s %2$s %3$s%4$s (antes: %5$s) · %6$s/%7$s días</string>
-    <string name="tr_details_corr_head">\n\nRelación (exploratoria, 1 hipótesis fijada de antemano): pasos de un día ↔ pulso en reposo del dispositivo al día siguiente\n</string>
+    <string name="tr_details_corr_head">\n\nRelaciones (exploratorias, 3 hipótesis fijadas de antemano, corrección de Benjamini-Hochberg; una relación no demuestra una causa)</string>
+    <string name="tr_hyp_line">\n• %1$s: </string>
+    <string name="tr_hyp_steps_rest">pasos de un día ↔ pulso en reposo del dispositivo al día siguiente</string>
+    <string name="tr_hyp_sleep_rest">duración del sueño ↔ pulso en reposo del dispositivo al día siguiente</string>
+    <string name="tr_hyp_sleep_hrv">duración del sueño ↔ VFC de la misma noche</string>
+    <string name="tr_hyp_adjusted"> p corregido=%1$s.</string>
+    <string name="tr_hyp_lag0"> Sensibilidad desfase 0: ρ=%1$s.</string>
+    <string name="tr_hyp_missing_sleep">no calculable: los datos de sueño aún no se decodifican de la pulsera.</string>
+    <string name="tr_hyp_missing_hrv">no calculable: la VFC aún no se decodifica de la pulsera.</string>
     <string name="tr_details_corr_nr">%1$s · %2$s</string>
     <string name="tr_details_corr">%1$s · ρ=%2$s (95 %%: %3$s a %4$s) · n=%5$s días. %6$s</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->

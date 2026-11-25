@@ -33,7 +33,9 @@ internal object PairedCorrelation {
         val ciHigh: Double?,
         val lagDays: Int,
         val verdict: Verdict,
-        val note: String
+        val note: String,
+        /** Two-sided p for rho = 0 (Fisher z with the same effective n as the interval); null when not computable. */
+        val pValue: Double? = null
     )
 
     /** Pairs x(day) with y(day + lagDays); only days where both exist. Lag 1 = effect on the following day. */
@@ -65,8 +67,10 @@ internal object PairedCorrelation {
         val hi = tanh(z + 1.96 * se)
         val excludesZero = lo > 0 || hi < 0
         val verdict = if (excludesZero && abs(rho) >= MIN_EFFECT) Verdict.EXPLORATORY_ASSOCIATION else Verdict.NO_RELIABLE_ASSOCIATION
+        val twoSided = 2.0 * (1.0 - normalCdf(abs(z) / se))
         return Result(n, rho, r, effective, lo, hi, lagDays, verdict,
-            "Spearman ρ, 95-%-Intervall mit effektivem n≈${"%.0f".format(java.util.Locale.GERMANY, effective)}; keine Aussage über Ursache und Wirkung.")
+            "Spearman ρ, 95-%-Intervall mit effektivem n≈${"%.0f".format(java.util.Locale.GERMANY, effective)}; keine Aussage über Ursache und Wirkung.",
+            twoSided.coerceIn(0.0, 1.0))
     }
 
     /**
@@ -123,6 +127,14 @@ internal object PairedCorrelation {
             adj[i] = running
         }
         return adj.toList()
+    }
+
+    /** Standard normal CDF (Abramowitz & Stegun 7.1.26, absolute error < 1.5e-7). */
+    fun normalCdf(x: Double): Double {
+        val t = 1.0 / (1.0 + 0.3275911 * abs(x) / sqrt(2.0))
+        val poly = t * (0.254829592 + t * (-0.284496736 + t * (1.421413741 + t * (-1.453152027 + t * 1.061405429))))
+        val erf = 1.0 - poly * kotlin.math.exp(-x * x / 2.0)
+        return if (x >= 0) 0.5 * (1.0 + erf) else 0.5 * (1.0 - erf)
     }
 
     fun ranks(v: List<Double>): List<Double> {
