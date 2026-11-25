@@ -49,6 +49,8 @@ internal data class HistorySyncProgress(
             fun p(stage: HistorySyncStage) = HistorySyncProgress(stage, counts?.first, counts?.second)
             return when {
                 report.contains("runDrained=true") && report.contains("incompleteReason=none") && notSuccessful == 0 -> p(HistorySyncStage.FINISHED)
+                // Ended from outside (screen closed, user stop): say "interrupted", not just "incomplete" (#646).
+                report.contains("incompleteReason=${CirqaMlHandshakeProbe.ABORTED_BY_CALLER}") -> p(HistorySyncStage.INTERRUPTED)
                 report.contains("runDrained=") || report.contains("incompleteReason=") -> p(HistorySyncStage.FINISHED_INCOMPLETE)
                 else -> HistorySyncProgress(HistorySyncStage.FAILED)
             }
