@@ -3,12 +3,6 @@ name: Gradle Dependency Submission
 on:
   pull_request:
     branches: [main]
-    paths-ignore:
-      - 'docs/**'
-      - '**/*.md'
-      - '**/*.mdx'
-      - '**/*.rst'
-      - '**/*.txt'
   push:
     branches: [main]
     paths-ignore:
