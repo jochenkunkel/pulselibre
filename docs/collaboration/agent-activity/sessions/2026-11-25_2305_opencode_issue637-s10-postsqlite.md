@@ -1,0 +1,14 @@
+# OpenCode – #637 S10-Folgetest nach SQLite-Open-Fix
+- Agent/Umgebung: OpenCode FIT, Linux-Worktree
+- Beginn: 2026-11-25 23:05 UTC
+- Letzte Aktualisierung: 2026-11-25 23:05 UTC
+- Status: aktiv – Offline-Vorbedingungen und Geräte-Backup-/APK-Pfad prüfen
+- Rolle/Zuständigkeit: FIT/GFDI/MLR, CIRQA-History-Download, lokale Datenpersistenz
+- Aktueller Auftrag: Nach reproduziertem Android SQLite-open Fehler und gemergtem begrenztem Retry (#678) entscheiden und, falls alle Vorbedingungen erfüllt sind, genau einen kontrollierten manuellen S10-History-Run unter Lease durchführen.
+- Jetzt in Bearbeitung: `origin/main=0d894299`; aktuelle Owner-/CI-Regeln und S10-Run-3-Evidenz lesen; kompatiblen signierten Build, supported Vorher-Backup, Gerät-Lease und unveränderte 120-s-/Dateibudgets offline/unter Wrapper verifizieren.
+- Zeitnah geplant: Falls Vorbedingungen nicht belastbar erfüllbar sind, stoppen und die konkrete Lücke melden; keine App-Öffnung/Installation/ADB außerhalb des gehaltenen S10-Lease-Wrappers.
+- Betroffene Bereiche/Dateien: S10-Testplan, redigierter Issue-#637-Handoff und Agentenkommunikation; private Run-/Backup-Artefakte bleiben außerhalb Git.
+- Branch/Worktree: `opencode/issue637-s10-postsqlite-20261125`, `/tmp/opencode/issue637-sqlite-open-repro-20261125`.
+- Abstimmungsbedarf: nichts; keine Hardware-/BLE-Aktion vor bestätigten Vorbedingungen.
+- Nachweise: PR #678 (`6d17fae6714c09e46d308025fb3e5d53c271d99`) und erforderliche QUICK-/Dependency-Gates grün; lokale API-35-Repro und FIT-Backfill-Instrumentation grün. Frühere S10-Run-3-Werte bleiben `runDrained=false`, `device-history-unverified`.
+- Nächster Schritt: Build-Artefakt-/Signaturkontinuität, Backup-Exportierbarkeit und Lease-Status ohne ungeschützten Gerätezugriff verifizieren; dann einen vorbereiteten Wrapper-Lauf mit klaren Stop-Bedingungen.
