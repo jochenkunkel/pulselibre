@@ -3232,8 +3232,10 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         val archiveTimingKey = "item:${syncCurrentLocalItemId ?: 0}:archive"
         syncTiming.start(archiveTimingKey, CirqaSyncTiming.Stage.ARCHIVE)
         try {
-            val contentAlreadyPresent = CirqaDatabase(context).use {
-                it.archiveDownloadedFile(data, item.referenceBytes, label, System.currentTimeMillis())
+            val contentAlreadyPresent = CirqaSqliteBusyRetry.run {
+                CirqaDatabase(context).use {
+                    it.archiveDownloadedFile(data, item.referenceBytes, label, System.currentTimeMillis())
+                }
             }
             syncCurrentLocalItemId?.let { localId ->
                 syncArchivedLocalIds.add(localId)
@@ -3251,10 +3253,12 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                 format = format,
                 transfer = CirqaSyncFileCompletion.Stage.SUCCEEDED,
                 integrity = CirqaSyncFileCompletion.Stage.NOT_REACHED,
-                privateStorage = CirqaSyncFileCompletion.Stage.FAILED,
+                // archiveDownloadedFile first fsyncs a content-addressed private
+                // recovery copy; the SQLite inventory can be retried on next launch.
+                privateStorage = CirqaSyncFileCompletion.Stage.SUCCEEDED,
                 decode = CirqaSyncFileCompletion.Stage.NOT_REACHED,
                 sqliteCommit = CirqaSyncFileCompletion.Stage.FAILED,
-                detail = "exactSize=true;originalSqliteArchive=failed:${e.javaClass.simpleName}",
+                detail = "exactSize=true;originalPrivateJournal=retained;originalSqliteArchive=failed:${e.javaClass.simpleName}",
                 failure = CirqaSyncFileCompletion.FailureDiagnostic(
                     CirqaSyncFileCompletion.FailurePhase.ORIGINAL_ARCHIVE,
                     e.javaClass.simpleName
@@ -3512,6 +3516,14 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         terminationRequested = true
         if (syncRequestMode) {
             if (message.startsWith("120-s-Zeitlimit") || message.startsWith("40-s-Zeitlimit")) {
+                if (syncCurrentItem != null &&
+                    CirqaSyncTimeoutFinalizer.failCurrentItem(syncCurrentLocalItemId, syncPipelineLedger)
+                ) {
+                    syncFailedFiles++
+                    syncFileResults = (syncFileResults +
+                        "in-flight-transfer-timeout;expected=$syncExpectedSize;wireBytes=$mlrBytes;")
+                        .take(1800)
+                }
                 syncContinuationRequest.timeout()
             } else {
                 syncContinuationRequest.abort()
