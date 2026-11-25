@@ -967,9 +967,10 @@
     <string name="sd_r24">24 Stunden</string>
     <string name="sd_r7">7 Tage</string>
     <string name="sd_r30">30 Tage</string>
-    <string name="sd_hr_band">Herzfrequenz · Band (FIT)</string>
-    <string name="sd_distance_band">Strecke · Band (FIT)</string>
-    <string name="sd_speed_band">Geschwindigkeit · Band (FIT)</string>
+    <string name="sd_hr_band">Herzfrequenz · Band, normale Tageshistorie (FIT)</string>
+    <string name="sd_hr_band_activity">Herzfrequenz · Band, Aktivitätsaufzeichnungen (FIT)</string>
+    <string name="sd_distance_band">Strecke · Band, Aktivitäten (FIT)</string>
+    <string name="sd_speed_band">Geschwindigkeit · Band, Aktivitäten (FIT)</string>
     <string name="sd_hr_live">Herzfrequenz · Telefon (live)</string>
     <string name="sd_spo2">SpO₂ · Qualität ungeprüft</string>
     <string name="sd_resp">Atemfrequenz</string>

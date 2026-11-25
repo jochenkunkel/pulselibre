@@ -25,6 +25,9 @@ object ScienceSeriesLoader {
 
     val HEART_RATE_BAND = ScienceSeriesSpec("hr_band", MeasurementOrigin.BAND, "heart_rate", "bpm", SeriesOrigin.BAND,
         SeriesTimeBasis.BAND_CLOCK, "value >= 1 AND value <= 240", SeriesQuality.VALID)
+    /** Band heart rate from FIT `record` messages, i.e. recorded activities; [HEART_RATE_BAND] is the all-day history. */
+    val HEART_RATE_BAND_ACTIVITY = ScienceSeriesSpec("hr_band_activity", MeasurementOrigin.BAND, "heart_rate", "bpm", SeriesOrigin.BAND,
+        SeriesTimeBasis.BAND_CLOCK, "value >= 1 AND value <= 240", SeriesQuality.VALID)
     /** FIT-only (verified via [ScienceFitSeriesAdapter]); never read from unified_measurements. */
     val DISTANCE_BAND = ScienceSeriesSpec("distance_band", MeasurementOrigin.BAND, "distance", "m", SeriesOrigin.BAND,
         SeriesTimeBasis.BAND_CLOCK, "value >= 0", SeriesQuality.VALID)

@@ -974,9 +974,10 @@
     <string name="sd_r24">24 heures</string>
     <string name="sd_r7">7 jours</string>
     <string name="sd_r30">30 jours</string>
-    <string name="sd_hr_band">Fréquence cardiaque · bracelet (FIT)</string>
-    <string name="sd_distance_band">Distance · bracelet (FIT)</string>
-    <string name="sd_speed_band">Vitesse · bracelet (FIT)</string>
+    <string name="sd_hr_band">Fréquence cardiaque · bracelet, historique quotidien (FIT)</string>
+    <string name="sd_hr_band_activity">Fréquence cardiaque · bracelet, enregistrements d’activité (FIT)</string>
+    <string name="sd_distance_band">Distance · bracelet, activités (FIT)</string>
+    <string name="sd_speed_band">Vitesse · bracelet, activités (FIT)</string>
     <string name="sd_hr_live">Fréquence cardiaque · téléphone (direct)</string>
     <string name="sd_spo2">SpO₂ · qualité non vérifiée</string>
     <string name="sd_resp">Fréquence respiratoire</string>
