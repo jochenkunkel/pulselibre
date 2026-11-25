@@ -1,0 +1,13 @@
+# UPDATE | #628 S10-Suche und SQLite-Abnahmetests
+- Zeit (UTC): 2026-11-24 16:17:00
+- Von: OpenCode FIT
+- An: Projektleitung, GUI-Agent
+- Issue/Task: #628
+- Bezug/Antwort auf: `2026-11-24_160300_opencode_628_UPDATE_offline-replay.md`
+- Status: aktiv; S10-Originalreplay mangels verfügbarer Kopie offen
+- Zuständigkeit und betroffene Dateien: FIT-Instrumentation, Forschungsbericht, eigene Agentenkoordination; keine GUI-/BLE-Dateien.
+- Geplanter Umfang / tatsächlich erledigt: Dokumentierte S10-Exporte unter `/tmp` nach Neustart nicht mehr vorhanden; begrenzte Suche in Projektarbeitsplätzen und üblichen Nutzerverzeichnissen fand keine Ersatzkopie. 45 S25-Originale zeigen unveränderte Felder/Zeitstempel; vorhandenes S25-Backup enthält 29.358 passende Sample-IDs mit übereinstimmenden Werten und Zeiten.
+- Was ich von anderen brauche: nichts unmittelbar; falls eine vorhandene private S10-Exportkopie bekannt ist, bitte deren lokalen Übergabepfad mitteilen, keine Rohdaten veröffentlichen.
+- Was ich anderen liefere: redigierte Ergebnismatrix und synthetischen isolierten SQLite-Test mit Reimport, Zeit-/Versions-/Provenienzprüfung in PR #630.
+- Nachweise: JVM-Suite und Android-Test-APK lokal grün; API-35 auf PR-Head läuft. 20 S10-Fehler weiterhin nur aggregiert im Import-/Commitpfad, keine Einzelursachen oder Fixwirkung nachgewiesen.
+- Nächster Schritt / Besitzer: FIT integriert neuesten main-Stand, überprüft vollständige GitHub-CI und bewertet den PR getrennt vom offenen S10-Datenrettungsnachweis.

@@ -45,10 +45,10 @@ class LocalReadingStoreTest {
         val root = File(context.cacheDir, "fit-backfill-test-${System.nanoTime()}")
         assertTrue(root.mkdir())
         try {
-            val bytes = fitWithHeartRate(100_000, 72)
+            val bytes = fitWithHeartRate(700_000_000, 72)
             val valid = File(root, CirqaFitBackfill.expectedFileName(bytes))
             valid.writeBytes(bytes)
-            val outOfRangeBytes = fitWithHeartRate(101_000, 250)
+            val outOfRangeBytes = fitWithHeartRate(700_001_000, 250)
             File(root, CirqaFitBackfill.expectedFileName(outOfRangeBytes)).writeBytes(outOfRangeBytes)
             val invalidBytes = byteArrayOf(1, 2, 3)
             File(root, CirqaFitBackfill.expectedFileName(invalidBytes)).writeBytes(invalidBytes)
@@ -103,7 +103,7 @@ class LocalReadingStoreTest {
                 val records = store.readWindow(ExportWindow(0, Long.MAX_VALUE))
                 assertEquals(1, records.size)
                 assertEquals(72.0, records.single().value, 0.0)
-                assertEquals((100_000L + 631_065_600L) * 1_000L,
+                assertEquals((700_000_000L + 631_065_600L) * 1_000L,
                     store.cursorFor("cirqa-fit").lastCommittedEpochMillis)
                 val db = store.readableDatabase
                 assertEquals(2, db.rawQuery("SELECT COUNT(*) FROM fit_sources", null).use {

@@ -51,15 +51,15 @@ object SyntheticFitFixtures {
         0xfd, 0x04, 0x86, // field 253: uint32 timestamp placeholder
         0x03, 0x01, 0x02, // field 3: uint8 heart-rate placeholder
         0x00, // first data-record header
-        0x10, 0x27, 0x00, 0x00, PLACEHOLDER_HEART_RATE_BPM
+        0x10, 0x27, 0x00, 0x10, PLACEHOLDER_HEART_RATE_BPM
     )
 
     /** One importable placeholder observation; valid header CRC and file CRC. */
     val heartRatePlaceholder = Fixture(
-        id = "hr-placeholder-v1",
+        id = "hr-placeholder-v2-absolute-time",
         purpose = "positive import/CRC/decoder regression with one synthetic placeholder record",
         bytes = build(heartRatePayload),
-        expectedSha256 = "b642717725e46f4bf6ebb7d33b857862c530a55acf29e780dea76349ea293b00",
+        expectedSha256 = "9c6f9a7c2ecfa337cf99faf224df82c117300d06ece28f79af0cc63c1c813c8e",
         expectedDataSize = heartRatePayload.size,
         expectedPayload = heartRatePayload,
         expectedDecodedObservations = 1,
@@ -83,10 +83,10 @@ object SyntheticFitFixtures {
         val tampered = build(heartRatePayload)
         tampered[tampered.lastIndex] = (tampered[tampered.lastIndex].toInt() xor 1).toByte()
         Fixture(
-            id = "file-crc-tampered-v1",
+            id = "file-crc-tampered-v2",
             purpose = "negative fixture: structurally valid envelope, corrupted file CRC",
             bytes = tampered,
-            expectedSha256 = "5e6fd71b213775ee9bf3bf4d909e28f2993351e021afbb44614c8e49c98b88b8",
+            expectedSha256 = "05f7933b4b2c3c52f030ac7bdd4a3d85ec6989d10a9dd1ae0acfea82c558ea4b",
             expectedDataSize = heartRatePayload.size,
             expectedPayload = heartRatePayload,
             expectedDecodedObservations = null,

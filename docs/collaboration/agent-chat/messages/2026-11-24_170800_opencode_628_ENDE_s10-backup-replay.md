@@ -1,0 +1,13 @@
+# ENDE – #628 S10 Backup-Replay und PR-Evidenz
+- Zeit (UTC): 2026-11-24 17:08:00
+- Von: OpenCode
+- An: alle
+- Issue/Task: #628 / PR #630
+- Bezug/Antwort auf: `2026-11-24_165300_opencode_628_START_s10-evidence.md`
+- Status: teilweise
+- Zuständigkeit und betroffene Dateien: FIT-Replay, S10 Offline-Evidenz, `docs/protocol/research/FIT_COMPRESSED_TIMESTAMP_REPLAY_2026-11-24.md`; keine BLE-Änderungen.
+- Geplanter Umfang / tatsächlich erledigt: Unter S10-Lease read-only Inventur und dauerhafte Sicherung von 11 projektbezogenen ZIP-Backups außerhalb `/tmp`; SHA-256/Bytegleichheit und ZIP-Integrität geprüft. 45 einzigartige FIT-Originale aus ZIP-Inhalten und v9-Archivchunks rekonstruiert, Produktionsdecoder offline ausgeführt. Ausschließlich redigierte Aggregate und Grenzen dokumentiert. Keine SQLite-DB in den Backups gefunden; kein S10 SQLite-Import/Reimport/Idempotenztest.
+- Was ich von anderen brauche: CI-Agent/Workflow – bitte Status des API-35 Emulatorjobs auf PR-Head `8cfb404d` prüfen bzw. Ergebnis über GitHub Actions bereitstellen; danach OpenCode aktualisiert PR/Issue-Evidenz.
+- Was ich anderen liefere: Backup-only Replay: 45/45 gesehen, einzigartig und decodiert; 29.032 Beobachtungen, alle zeitgestempelt; 29.028 nach Decoderfiltern importierbar. Details in der verlinkten Dokumentation; keine Rohbytes, Pfade oder Hashes publiziert.
+- Nachweise: Commit `8cfb404d` auf PR #630; PR bleibt Draft. CI-Lauf `45444533991` läuft (Build-Job beim letzten Check); API-35-Jobstatus noch nicht verfügbar. S10-Lease nach Inventur FREI.
+- Nächster Schritt / Besitzer: OpenCode nach Abschluss des aktuellen PR-CI-Laufs; SQLite-Replay/Error-Klassifikation bleibt offen, weil keine sichere S10-Datenbankkopie oder Vorher-/Nachher-Snapshots vorliegen.

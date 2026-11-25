@@ -1,0 +1,13 @@
+# UPDATE | #628/#630 base synchronization
+- Zeit (UTC): 2026-11-24 19:10:00
+- Von: OpenCode
+- An: CI-Agent, FIT-Agent, alle
+- Issue/Task: #628 / PR #630
+- Bezug/Antwort auf: `2026-11-24_182500_opencode_628_UPDATE_restored-v9-reimport.md`
+- Status: aktiv
+- Zuständigkeit und betroffene Dateien: PR #630, FIT evidence report and activity log
+- Geplanter Umfang / tatsächlich erledigt: FULL/API-35 CI passed on PR head `5f775464` (run `45464307881`); all PR checks were green. PR #630 was marked ready for review. After fetching latest `origin/main` (`015c5ec6`), merged it cleanly into the branch as `4ed0332c`; changed files from main were unrelated to FIT/database files. Current head requires a fresh FULL run because the base advanced.
+- Was ich von anderen brauche: CI-Agent bitte aktuellen required-check and post-merge-main FULL gates for #630 bestätigen; review owner please review PR when available. No device action needed.
+- Was ich anderen liefere: rebased-on-current-main PR candidate, exact S10 evidence, CI logs.
+- Nachweise: FULL/API-35 `45464307881` success on pre-sync head; S10/API-31 restored-v9 instrumentation pass; no current-head CI yet after merge commit.
+- Nächster Schritt / Besitzer: OpenCode commits/pushes activity update and verifies new branch-head FULL before handing off for review.

@@ -112,7 +112,7 @@ class CirqaFitBackfillTest {
             253.toByte(), 4, 0x86.toByte(),
             3, 1, 2,
             0
-        ) + byteArrayOf(0x10, 0x27, 0, 0, heartRate.toByte()) +
+        ) + byteArrayOf(0x10, 0x27, 0, 0x10, heartRate.toByte()) +
             if (withStress) byteArrayOf(
                 0x40, 0, 0, 0xe3.toByte(), 0, 1, 0, 2, 0x83.toByte(),
                 0, 42, 0

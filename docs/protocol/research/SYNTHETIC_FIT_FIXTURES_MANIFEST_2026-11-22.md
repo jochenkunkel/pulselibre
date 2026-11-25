@@ -1,5 +1,13 @@
 # Manifest: synthetische FIT-Regressionstest-Fixtures (CI-Agent, 22.11.2026)
 
+> **Ergänzung #628, 24.11.2026:** Die nachstehende Tabelle dokumentiert den
+> historischen Stand. Die aktuelle Test-Suite verwendet `hr-placeholder-v2-absolute-time`
+> (`9c6f9a7c2ecfa337cf99faf224df82c117300d06ece28f79af0cc63c1c813c8e`)
+> und `file-crc-tampered-v2`
+> (`05f7933b4b2c3c52f030ac7bdd4a3d85ec6989d10a9dd1ae0acfea82c558ea4b`).
+> Die Änderung ersetzt den relativen Testzeitwert durch einen absoluten FIT-Wert;
+> beide Fixtures bleiben synthetisch. Die leere Fixture ist unverändert.
+
 ## Herkunft und Zweck
 
 - **Herkunft pro Datei:** `generated-fixture` / `synthetic`. Alle Bytes werden zur Testlaufzeit in `app/src/test/java/de/pulselibre/SyntheticFitFixtures.kt` aus literalen Platzhalterwerten erzeugt. Kein Byte stammt von einem Gerät, einem BLE-/GATT-/HCI-Trace, einem Original-FIT-Export, einer Kopplung oder einer Health-Datenbank.

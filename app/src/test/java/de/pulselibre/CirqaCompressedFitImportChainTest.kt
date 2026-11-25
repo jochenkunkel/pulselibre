@@ -46,7 +46,7 @@ class CirqaCompressedFitImportChainTest {
             253.toByte(), 4, 0x86.toByte(),
             3, 1, 2,
             0
-        ) + byteArrayOf(0x10, 0x27, 0, 0, 72)
+        ) + byteArrayOf(0x10, 0x27, 0, 0x10, 72)
         val file = ByteArray(14 + data.size + 2)
         file[0] = 14
         file[1] = 0x20
