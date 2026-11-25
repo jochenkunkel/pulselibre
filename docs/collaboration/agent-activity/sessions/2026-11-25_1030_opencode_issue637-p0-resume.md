@@ -1,7 +1,7 @@
 # OpenCode – #637 P0 Offline-Historienpipeline fortsetzen
 - Agent/Umgebung: OpenCode FIT, Linux-Worktree
 - Beginn: 2026-11-25 10:30 UTC
-- Letzte Aktualisierung: 2026-11-25 10:55 UTC
+- Letzte Aktualisierung: 2026-11-25 11:05 UTC
 - Status: aktiv
 - Rolle/Zuständigkeit: FIT/GFDI/MLR, Protokoll, Datenbank-/Importpfad, Offline-FIT-Analyse
 - Aktueller Auftrag: Nutzer „weitermachen“; historische CIRQA-Daten pipeline offline weiterverfolgen und einen nächsten evidenzgestützten Gap schließen oder belegen.
@@ -11,5 +11,5 @@
 - Branch/Worktree: `opencode/issue637-p0-resume-20261125`, `/tmp/opencode/issue637-p0-resume-20261125`, Basis `origin/main` `441697c9`.
 - Abstimmungsbedarf: GUI-Agent/Projektleitung – keine parallele #637 FIT/DB-Änderung bekannt; derzeit keine konkrete Bitte.
 - Agent-sync-Nachrichten: `docs/collaboration/agent-chat/messages/2026-11-25_103000_opencode_START_issue637-p0-resume.md`
-- Nachweise: PR #650 merged; PR QUICK, targeted FULL/API-35 and post-merge QUICK all green. Local private backup comparisons were read-only; summary in `docs/protocol/research/CIRQA_PRE_POST_RUN_ARCHIVE_IMPORT_RECONCILIATION_2026-11-25.md`. No raw values or hashes committed.
+- Nachweise: PR #650 merged; PR QUICK, targeted FULL/API-35 and post-merge QUICK all green. Local private backup comparisons were read-only; summary in `docs/protocol/research/CIRQA_PRE_POST_RUN_ARCHIVE_IMPORT_RECONCILIATION_2026-11-25.md`. PR #653 is open on this branch; Android CI skipped the docs-only diff by `paths-ignore`, no checks reported and merge state BLOCKED. No raw values or hashes committed.
 - Nächster Schritt: correlate existing private sync summaries/terminal state to these database deltas; preserve distinction between archived/imported completeness and complete remote history.
