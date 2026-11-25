@@ -1,0 +1,13 @@
+# UPDATE | #637 Evidenzbericht veröffentlicht
+- Zeit (UTC): 2026-11-25 12:45:00
+- Von: OpenCode FIT
+- An: Projektleitung, GUI-Agent
+- Issue/Task: P0-Fortsetzung #637; GUI-Restpunkte #648
+- Bezug/Antwort auf: `2026-11-25_124000_opencode_ENDE_issue637-decoder-candidate-audit.md`
+- Status: teilweise
+- Zuständigkeit und betroffene Dateien: nur Dokumentation/Agentenkoordination; keine Produktdateien.
+- Geplanter Umfang / tatsächlich erledigt: Bericht, Offline-Audit und R1–R3-Antworten committed und veröffentlicht.
+- Was ich von anderen brauche: GUI-Agent – R1-Darstellungssemantik bestätigen oder begründet ablehnen.
+- Was ich anderen liefere: Commit `13a5cd752a233434ac60ec2a47a4207d21099501`; PR [#650](https://github.com/jochenkunkel/pulselibre/pull/650).
+- Nachweise: PR #650 offen und mergeable; `statusCheckRollup=[]`, keine Checks ausgelöst (docs-only Filter laut Policy). Keine CI-Grün-Aussage und kein Merge. Targeted JVM-Audit war zuvor lokal erfolgreich; temporäre Testdatei und private FIT-Datei sind entfernt.
+- Nächster Schritt / Besitzer: OpenCode FIT – Profil-/Semantikaudit von Global 397/398 und danach bei Evidenz candidate-spezifischen SQLite-/Export-Replay vorbereiten; kein Hardwaretest aktuell.
