@@ -1,15 +1,15 @@
 # OpenCode – #637 P0 Offline-Historienpipeline fortsetzen
 - Agent/Umgebung: OpenCode FIT, Linux-Worktree
 - Beginn: 2026-11-25 10:30 UTC
-- Letzte Aktualisierung: 2026-11-25 12:00 UTC
+- Letzte Aktualisierung: 2026-11-25 11:14 UTC
 - Status: aktiv
 - Rolle/Zuständigkeit: FIT/GFDI/MLR, Protokoll, Datenbank-/Importpfad, Offline-FIT-Analyse
 - Aktueller Auftrag: Nutzer „weitermachen“; historische CIRQA-Daten pipeline offline weiterverfolgen und einen nächsten evidenzgestützten Gap schließen oder belegen.
 - Jetzt in Bearbeitung: read-only reconciliation privater Pre-/Post-Run-v11-Backups: 249 neue Originale / 72.215 B, davon 10 FITs; alle 37 FIT-Originale matchen die Quellen und aktive Generationen; +559 kanonische Beobachtungen mit Provenienz, alle neuen 559 sind Global 55/monitoring; +13.917 Generation-Felder, +749 Unmapped-Inventarzeilen, +2.635 getrennte Review-Kandidaten. Manifest- und rekonstruierte Chunk-Hashes bestanden. Kein Produktmapping und keine Geräteaktion.
 - Zeitnah geplant: sichere lokale Reindex-Skip-Bedingungen ausarbeiten; GUI-Agent gebeten, den redundanten zweiten FIT-Decoder-Aufruf im App-Startup zu entfernen; Upstream ItemList-/Transferabdeckung und Terminalreport bleiben offen.
 - Betroffene Bereiche/Dateien: `CirqaFitBackfill`, `CirqaUnknownFitInventory`, `MainActivity`-Aufrufkoordination, `FitObservationStore`, FIT research docs.
-- Branch/Worktree: `opencode/issue637-p0-resume-20261125`, `/tmp/opencode/issue637-p0-resume-20261125`, Basis `origin/main` `441697c9`.
+- Branch/Worktree: `opencode/issue637-p0-resume-20261125`, `/tmp/opencode/issue637-p0-resume-20261125`, `origin/main`-Stand `5f26be0b` integriert durch Merge-Commit `32c45cb0`.
 - Abstimmungsbedarf: GUI-Agent/Projektleitung – keine parallele #637 FIT/DB-Änderung bekannt; derzeit keine konkrete Bitte.
-- Agent-sync-Nachrichten: `docs/collaboration/agent-chat/messages/2026-11-25_103000_opencode_START_issue637-p0-resume.md`
-- Nachweise: PR #650 merged; PR QUICK, targeted FULL/API-35 and post-merge QUICK all green. Local private backup comparisons were read-only; summary in `docs/protocol/research/CIRQA_PRE_POST_RUN_ARCHIVE_IMPORT_RECONCILIATION_2026-11-25.md`. PR #653 includes latest-main sync (`98ac2aee`) and coordination reply; Android CI skips the docs-only diff by `paths-ignore`, no checks reported and merge state BLOCKED. No raw values or hashes committed.
-- Nächster Schritt: correlate existing private sync summaries/terminal state to these database deltas; preserve distinction between archived/imported completeness and complete remote history.
+- Agent-sync-Nachrichten: `docs/collaboration/agent-chat/messages/2026-11-25_103000_opencode_START_issue637-p0-resume.md`; `docs/collaboration/agent-chat/messages/2026-11-25_111400_opencode_UPDATE_issue637-pr653-main-sync.md`; `docs/collaboration/agent-sync/2026-11-25_1114_opencode-an-projektleitung_pr653-main-sync-gates.md`
+- Nachweise: PR #650 merged; PR QUICK, targeted FULL/API-35 and post-merge QUICK all green. Local private backup comparisons were read-only; summary in `docs/protocol/research/CIRQA_PRE_POST_RUN_ARCHIVE_IMPORT_RECONCILIATION_2026-11-25.md`. PR #653 includes `origin/main` `5f26be0b` via `32c45cb0`; `diff --check` clean. Manual CLOUD/QUICK `45599915858` on prior exact head succeeded but is not attached to PR rollup; `45602512062` is running on current head. Dependency Review and Gradle graph required contexts are absent; no merge. No raw values or hashes committed.
+- Nächster Schritt: capture `45602512062` result and verify PR-required gates without bypass. Continue offline correlation of existing private sync summaries/terminal state to database deltas; preserve distinction between archived/imported completeness and complete remote history.
