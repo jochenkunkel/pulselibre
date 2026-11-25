@@ -178,13 +178,17 @@ Im ausgewählten c17-Zeitraum:
   überein, in denen die Charakteristiken direkt als Garmin-ML RX
   `6a4e2810` und TX `6a4e2820` entdeckt wurden. Die c17-Zuordnung ist damit
   stark abgeleitet, nicht in c17 selbst entdeckt.
-- In c17 wurden 29 vollständige ML-Registrierungsanfragen und die jeweils
-  zugehörigen Antworten korreliert: alle Antworten haben Status 0; beteiligt
-  sind 16 Service-IDs. Die beobachteten Control-Nachrichten verwenden Client-ID
-  1; Antwort-Handlebytes liegen zwischen 0x80 und 0x87. Das belegt angenommene
-  ML-Registrierungen, aber weder deren nachgelagerte GFDI-Semantik noch einen
-  History-Request. Diese Werte werden nicht als Datei- oder Messdatentransfer
-  interpretiert.
+- Ein erneuter struktureller Replay ordnet in c17 29 13-Byte-Hostnachrichten
+  dem beobachteten Connect-Client-ID-1-Registrierungspräfix zu. Dazu lassen sich
+  in Capture-Reihenfolge 29 16-Byte-Antworten nach Service-ID paaren; alle
+  Antwortstatusbytes sind 0, beteiligt sind 16 verschiedene Service-IDs. Das
+  ist eine sequenzielle Service-ID-Korrelation, keine GFDI-Request-ID-Korrelation.
+  Das Antwortbyte an der Handle-Kandidatenposition liegt 21-mal im Bereich
+  `0x80..0x87` und 8-mal im Bereich `1..127`. Die gemischte Form ist
+  semantisch ungeklärt; daraus wird kein zugewiesener ML-Handle normalisiert
+  oder einem GFDI-Datenkanal zugeordnet. Die Statuswerte allein belegen keine
+  nachgelagerte GFDI-Semantik und keinen History-Request. Diese Nachrichten
+  werden nicht als Datei- oder Messdatentransfer interpretiert.
 - Ein eingehender MLR-Datenkanal (nach Routing-Flag-Normalisierung Route 4)
   lieferte nach Abtrennung der ersten, 5 Byte langen Konfigurationsantwort und
   eines ein Byte langen Transportpräfixes je weiterer ATT-Notification einen

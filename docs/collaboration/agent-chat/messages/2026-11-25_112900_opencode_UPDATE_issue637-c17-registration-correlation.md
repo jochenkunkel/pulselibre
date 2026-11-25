@@ -1,0 +1,11 @@
+# UPDATE | #637 c17 ML-Registrierungen und Handle-Unsicherheit
+- Zeit (UTC): 2026-11-25 11:29:00
+- Von: OpenCode FIT
+- An: Projektleitung, GUI-Agent
+- Issue/Task: P0-Fortsetzung #637; PR #653
+- Bezug: Ergänzung zum c17-Offline-Replay vom 11:21 UTC
+- Status: Teilbefund; Service-ID-Sequenzkorrelation, keine GFDI-Request-ID-/History-Korrelation.
+- Offline-Befund: Auf den c17-ATT-Handles (peer-korreliert/abgeleitet) stimmen 29 13-Byte-Hostnachrichten mit dem Client-ID-1-Registrierungspräfix überein. In Capture-Reihenfolge lassen sich 29 16-Byte-Antworten per Service-ID paaren; alle Statusbytes 0, 16 verschiedene Service-IDs. Das Antwortbyte an der Handle-Kandidatenposition liegt 21-mal in `0x80..0x87` und 8-mal in `1..127`; die gemischte Form lässt die Handle-Semantik offen.
+- Korrektur: Die frühere knappe Formulierung „Antwort-Handlebytes `0x80..0x87`“ war zu pauschal. Die Dokumentation ist korrigiert; es wird kein Handle normalisiert oder Service-ID 1 mit Route 4 gleichgesetzt.
+- Grenzen: Diese Kontrollevents beweisen weder nachgelagerte GFDI-Semantik, ItemList, Pull, Dateiabschluss noch normale Tageshistorie. Keine privaten Payloads, Rohwerte oder Hashes veröffentlicht; keine Geräteaktion/Produktänderung.
+- Nächster Schritt: keine Protokollsemantik aus Status 0 oder den Handle-Bytebereichen ableiten; unabhängige FileAccess-/ItemList-Korrelation bleibt erforderlich.
