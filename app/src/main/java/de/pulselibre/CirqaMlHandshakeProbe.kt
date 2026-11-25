@@ -131,6 +131,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private var syncPageNextTransactionId: Long? = null
     private val syncListContinuation = CirqaItemListContinuationPolicy()
     private var syncTransactionFollowupResponseItems: Int? = null
+    private val syncTransactionFollowupResponseItemCounts = mutableListOf<Int>()
     private var syncListPageCount = 0
     private var archivedRawNotifications = 0
     private var archivedRawNotificationBytes = 0L
@@ -1261,6 +1262,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         when (syncIncompleteReason) {
             "next-transaction-followup-pending" -> {
                 syncTransactionFollowupResponseItems = page.items.size
+                syncTransactionFollowupResponseItemCounts += page.items.size
                 syncIncompleteReason = null
             }
             "item-list-session-followup-pending" -> syncIncompleteReason = null
@@ -2258,6 +2260,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         syncPageNextTransactionId = null
         syncListContinuation.reset()
         syncTransactionFollowupResponseItems = null
+        syncTransactionFollowupResponseItemCounts.clear()
         syncListPageCount = 0
         archivedRawNotifications = 0
         archivedRawNotificationBytes = 0L
@@ -3539,6 +3542,9 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     "stages=[${syncFileStageCounts.redactedSummary()}],queued=${syncPendingItems.size}," +
                     "transactionFollowups=${syncListContinuation.transactionFollowups}," +
                     "transactionFollowupResponseItems=${syncTransactionFollowupResponseItems ?: "none"}," +
+                    "transactionFollowupResponseItemCounts=${syncTransactionFollowupResponseItemCounts.joinToString(
+                        prefix = "[", postfix = "]"
+                    )}," +
                     "selected=$syncSelectedFiles,queuedTotal=$syncQueuedFiles,selectedBytes=$syncQueuedBytes,skipped=$syncSkippedFiles," +
                     "pages=$syncListPageCount,currentBytes=${mlrData.size()},details=$syncFileResults," +
                     "pipeline=[${syncPipelineLedger.summary()}],pipelineItems=[${syncPipelineLedger.orderedSummary()}]," +
@@ -3706,6 +3712,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             syncPageNextTransactionId = null
             syncListContinuation.reset()
             syncTransactionFollowupResponseItems = null
+            syncTransactionFollowupResponseItemCounts.clear()
             syncListPageCount = 0
             syncQueuedFiles = 0
             syncQueuedBytes = 0L
