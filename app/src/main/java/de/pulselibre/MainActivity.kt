@@ -277,11 +277,11 @@ class MainActivity : AppCompatActivity() {
                 }
             }
             setOnLongClickListener {
-                androidx.appcompat.app.AlertDialog.Builder(this@MainActivity)
+                DialogProbe.track(androidx.appcompat.app.AlertDialog.Builder(this@MainActivity)
                     .setTitle(R.string.main_link_title)
                     .setMessage(CirqaLinkStatus.contentDescription(Strings.of(this@MainActivity), cirqaLink))
                     .setPositiveButton(R.string.action_close, null)
-                    .show()
+                    .create()).show()
                 true
             }
         }
@@ -439,7 +439,7 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
-        bodyHeader.addView(healthInfo, LinearLayout.LayoutParams(dp(40), dp(40)))
+        bodyHeader.addView(healthInfo, LinearLayout.LayoutParams(dp(48), dp(48))) // 48 dp touch target (AccessibilityAuditTest)
         bodyCard.addView(bodyHeader)
 
         // Narrow screens or large system fonts: avatar centred above the values (never cut off, never wrapped per character).
@@ -503,7 +503,7 @@ class MainActivity : AppCompatActivity() {
                 }
                 if (onClick != null) {
                     row.isClickable = true; row.isFocusable = true; row.setOnClickListener { onClick() }
-                    row.minimumHeight = dp(34)
+                    row.minimumHeight = dp(48) // touch target (AccessibilityAuditTest); was 34 dp
                     if (tagName != null) row.tag = tagName
                     if (description != null) row.contentDescription = description
                 }

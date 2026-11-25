@@ -217,8 +217,8 @@ class ExportActivity : AppCompatActivity() {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
         }
-        headerRow.addView(label("‹", 32f, Color.WHITE), LinearLayout.LayoutParams(dp(40), dp(48)).apply {
-            rightMargin = dp(8)
+        headerRow.addView(label("‹", 32f, Color.WHITE), LinearLayout.LayoutParams(dp(48), dp(48)).apply { // 48 dp touch target
+            rightMargin = dp(0) // the wider target takes the former margin, the title keeps its position
         })
         headerRow.getChildAt(0).apply {
             isClickable = true

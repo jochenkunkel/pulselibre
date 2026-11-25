@@ -74,7 +74,7 @@ internal fun showDashboardDay(
     content.addView(bandHolder)
     val dialog = AlertDialog.Builder(activity).setTitle(MetricText.title(activity, title))
         .setView(ScrollView(activity).apply { addView(content) })
-        .setPositiveButton(R.string.action_close, null).create()
+        .setPositiveButton(R.string.action_close, null).create().also { DialogProbe.track(it) }
     var request = 0
     val dateFormat = DateTimeFormatter.ofLocalizedDate(java.time.format.FormatStyle.MEDIUM).withLocale(locale)
     val timeFormat = DateTimeFormatter.ofPattern("HH:mm:ss XXX").withZone(zone)
