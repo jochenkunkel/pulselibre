@@ -19,6 +19,9 @@ internal class WearableStatusButton(context: Context) : View(context) {
         private set
     var batteryPercent: Int? = null
         private set
+    /** The shown value is only the last known one (offline or older than 12 h): drawn grey. */
+    var batteryStale: Boolean = false
+        private set
     /**
      * Phones narrower than 412 dp (e.g. S10, 360 dp): no band outline and tighter spacing (147 instead of 186 units),
      * otherwise the header title was cut ("PulsLib"). Status, battery, value and gear stay.
@@ -34,19 +37,24 @@ internal class WearableStatusButton(context: Context) : View(context) {
     private val path = Path()
 
     init {
-        isClickable = true
-        isFocusable = true
-        tag = TAG
+        // Drawing only: the three touch areas of [WearableStatusControl] carry clicks and TalkBack labels.
+        importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO
         minimumHeight = (48 * density).toInt()
     }
 
-    fun show(state: WearState, batteryPercent: Int?, description: String) {
-        val changed = state != this.state || batteryPercent != this.batteryPercent
+    fun show(state: WearState, battery: WearableStatus.BatteryShown?) {
+        val percent = battery?.percent
+        val stale = battery != null && !battery.current
+        val changed = state != this.state || percent != batteryPercent || stale != batteryStale
         this.state = state
-        this.batteryPercent = batteryPercent
-        if (contentDescription?.toString() != description) contentDescription = description
+        batteryPercent = percent
+        batteryStale = stale
         if (changed) invalidate() // polled every second: draw only on a real change
     }
+
+    /** Touch-area widths in design units (status | battery | settings) for the current variant. */
+    internal fun zoneUnits(): Triple<Float, Float, Float> =
+        if (compact) Triple(48f, 51f, 48f) else Triple(56f, 81f, 49f)
 
     // Horizontal layout in design units; the full variant follows the SVG exactly.
     private val statusDx get() = if (compact) -20f else 0f
@@ -85,12 +93,12 @@ internal class WearableStatusButton(context: Context) : View(context) {
         val percent = batteryPercent
         if (percent != null) {
             paint.style = Paint.Style.FILL
-            paint.color = if (WearableStatus.isLow(percent)) LOW else BATTERY
+            paint.color = if (batteryStale) MUTED else if (WearableStatus.isLow(percent)) LOW else BATTERY
             rect.set(64f, 20f, 64f + 15f * percent / 100f, 28f); canvas.drawRoundRect(rect, 1f, 1f, paint)
         } else {
             stroke(MUTED, 2f); canvas.drawLine(66f, 24f, 78f, 24f, paint)
         }
-        textPaint.color = INK
+        textPaint.color = if (batteryStale) MUTED else INK
         canvas.drawText(percent?.let { "$it%" } ?: "–", 90f, 30f, textPaint)
         canvas.restore()
         stroke(DIVIDER, 1.5f); canvas.drawLine(dividerX, 12f, dividerX, 36f, paint)
@@ -150,5 +158,62 @@ internal class WearableStatusButton(context: Context) : View(context) {
             WearState.OFFLINE to Colors(0xFFECEBF2.toInt(), 0xFF8990A0.toInt()),
             WearState.UNKNOWN to Colors(0xFFEEE3FF.toInt(), 0xFF7450A8.toInt())
         )
+    }
+}
+
+/**
+ * The header control (#649): the drawn pill plus three invisible touch areas on top of it – band/connection, band
+ * battery, settings – each at least 48 dp and with its own TalkBack label.
+ */
+internal class WearableStatusControl(context: Context) : android.widget.FrameLayout(context) {
+    val drawing = WearableStatusButton(context)
+    val statusZone = zone(TAG_STATUS)
+    val batteryZone = zone(TAG_BATTERY)
+    val settingsZone = zone(TAG_SETTINGS)
+    private val zones = android.widget.LinearLayout(context).apply { orientation = android.widget.LinearLayout.HORIZONTAL }
+    private val density = resources.displayMetrics.density
+
+    var compact: Boolean
+        get() = drawing.compact
+        set(value) { drawing.compact = value; layoutZones() }
+
+    init {
+        tag = WearableStatusButton.TAG
+        addView(drawing, LayoutParams(-2, -1))
+        listOf(statusZone, batteryZone, settingsZone).forEach { zones.addView(it) }
+        addView(zones, LayoutParams(-1, -1))
+        layoutZones()
+    }
+
+    private fun zone(name: String) = View(context).apply {
+        tag = name
+        isClickable = true
+        isFocusable = true
+        minimumHeight = (48 * resources.displayMetrics.density).toInt()
+        background = android.util.TypedValue().let { tv ->
+            context.theme.resolveAttribute(android.R.attr.selectableItemBackground, tv, true)
+            androidx.core.content.ContextCompat.getDrawable(context, tv.resourceId)
+        }
+    }
+
+    private fun layoutZones() {
+        val (a, b, c) = drawing.zoneUnits()
+        listOf(statusZone to a, batteryZone to b, settingsZone to c).forEach { (v, units) ->
+            v.layoutParams = android.widget.LinearLayout.LayoutParams((units * density).toInt(), -1)
+        }
+    }
+
+    fun show(state: WearState, battery: WearableStatus.BatteryShown?, statusDescription: String, batteryDescription: String,
+             settingsDescription: String) {
+        drawing.show(state, battery)
+        if (statusZone.contentDescription?.toString() != statusDescription) statusZone.contentDescription = statusDescription
+        if (batteryZone.contentDescription?.toString() != batteryDescription) batteryZone.contentDescription = batteryDescription
+        if (settingsZone.contentDescription?.toString() != settingsDescription) settingsZone.contentDescription = settingsDescription
+    }
+
+    companion object {
+        const val TAG_STATUS = "wearable_zone_status"
+        const val TAG_BATTERY = "wearable_zone_battery"
+        const val TAG_SETTINGS = "wearable_zone_settings"
     }
 }

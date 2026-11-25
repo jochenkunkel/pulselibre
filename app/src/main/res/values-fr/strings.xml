@@ -1053,7 +1053,6 @@
     <string name="hsp_failed">Échec de la synchronisation</string>
     <string name="hsp_files">%1$d fichiers sur %2$d</string>
     <string name="hsp_coverage_note">L’historique du bracelet n’est pas prouvé complet : une exécution terminée ne signifie pas que chaque mesure enregistrée a été transférée.</string>
-    <string name="wear_button_cd">Ouvrir les réglages. Bracelet CIRQA : %1$s. Port : %2$s. Batterie du bracelet (pas du téléphone) : %3$s. Un appui long affiche les détails de connexion.</string>
     <string name="wear_worn">porté (respiration mesurée au poignet)</string>
     <string name="wear_not_worn">non porté (le bracelet signale : pas au poignet)</string>
     <string name="wear_offline">inconnu, bracelet non connecté</string>
@@ -1061,4 +1060,21 @@
     <string name="wear_battery_none">aucune valeur actuelle</string>
     <string name="wear_battery_value">%1$d %% (mesuré il y a %2$s)</string>
     <string name="wear_battery_low">, faible</string>
+    <string name="wear_battery_last">dernier connu %1$d %% (il y a %2$s)</string>
+    <string name="wear_battery_last_untimed">dernier connu %1$d %% (heure inconnue)</string>
+    <string name="wear_zone_status_cd">Bracelet CIRQA : %1$s. Port : %2$s. Touchez pour les détails.</string>
+    <string name="wear_zone_battery_cd">Batterie du bracelet (pas du téléphone) : %1$s. Touchez pour les détails.</string>
+    <string name="wear_zone_settings_cd">Ouvrir les réglages</string>
+    <string name="wear_status_title">Bracelet CIRQA</string>
+    <string name="wear_status_detail">Connexion : %1$s\n\nPort : %2$s\n\nLa connexion est considérée comme active lorsque l’enregistrement reçoit des valeurs ou qu’Android signale le bracelet comme connecté. « Porté » n’apparaît que si le bracelet le signale lui-même (mesure de la respiration ou message « pas au poignet », au plus 2 minutes).</string>
+    <string name="wear_battery_title">Batterie du bracelet</string>
+    <string name="wear_battery_detail">%1$d %% · mesuré il y a %2$s · source : %3$s</string>
+    <string name="wear_battery_detail_old">La valeur date de plus de 12 heures ou le bracelet n’est pas connecté ; elle est donc affichée en gris comme « dernière connue ».</string>
+    <string name="wear_battery_detail_none">Aucune valeur de batterie pour le bracelet pour l’instant. Une valeur apparaît dès que la page Appareil ou un fichier FIT du bracelet en fournit une.</string>
+    <string name="wear_battery_detail_low">Batterie faible.</string>
+    <string name="wear_battery_detail_note">Il s’agit de la batterie du bracelet, pas de celle du téléphone.</string>
+    <string name="wear_src_gatt">service de batterie Bluetooth</string>
+    <string name="wear_src_gdi">état de l’appareil du bracelet</string>
+    <string name="wear_src_fit">fichier FIT du bracelet</string>
+    <string name="wear_src_other">bracelet</string>
 </resources>
