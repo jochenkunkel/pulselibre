@@ -1,0 +1,15 @@
+# OpenCode – #637 FIT-Feldinventar und History-Pagination reparieren
+- Agent/Umgebung: OpenCode FIT, Linux-Worktree
+- Beginn: 2026-11-25 15:23 UTC
+- Letzte Aktualisierung: 2026-11-25 15:23 UTC
+- Status: aktiv
+- Rolle/Zuständigkeit: FIT/Decoder/SQLite sowie CIRQA-History-`nextTransaction`
+- Aktueller Auftrag: zwei getrennte Befunde des einen begrenzten S10-Laufs analysieren und belegbare Code-/Testfixes umsetzen.
+- Jetzt in Bearbeitung: offline Backups/terminalen Laufbericht mit FIT-Profil, Decoder, Import und Pagination-Zustandsmaschine korrelieren.
+- Zeitnah geplant: gezielte Regressionen und Self-Review; PR mit QUICK/relevanten Dependency-Gates, keine CI-/Merge-Behauptung ohne Statusnachweis.
+- Betroffene Bereiche/Dateien: `app/src/main/java/de/pulselibre/{CirqaMlHandshakeProbe,GarminProtobufReassembler,FitHistoricalObservations,FitObservationCommitter,CirqaDatabase}.kt`, Tests, `docs/protocol/`.
+- Branch/Worktree: `opencode/issue637-history-repair-20261125`, `/tmp/opencode/issue637-history-repair-20261125`, Basis `origin/main` `2db32b01`.
+- Abstimmungsbedarf: keiner; S10-Lease frei, vorerst offline-only. Keine parallele Geräteaktion.
+- Agenten-Chat: `docs/collaboration/agent-chat/messages/2026-11-25_152300_opencode_START_issue637-datafield-and-pagination-fix.md`
+- Nachweise: vorangegangener S10-Lauf terminal nach ca. 75 s: 4 Listen-Seiten, 27/27 Transfers erfolgreich, 3 Transaktions-Folgeanfragen, letzte Antwort 0 Elemente, `runDrained=false`; 37 FIT-Quellen und 29.123 kanonische FIT-Beobachtungen unverändert.
+- Nächster Schritt: verbindliche Protokoll-/Projektvorgaben und aktuelle Codepfade prüfen; private Backups unter `/home/smiler/.local/share/pulselibre/private-s10/issue637-manual-run-20261125-attempt5/` ausschließlich lokal analysieren.
