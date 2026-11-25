@@ -198,4 +198,19 @@ behält einen Rohdaten-Fallback für zlib-ähnliche Datei-Anfänge. Neue
 synthetische Regressionstests und der gesamte JVM-Unit-Testlauf waren lokal
 grün; ein Hardware-Re-Run ist nicht erfolgt und daher nicht als verifiziert
 ausgewiesen. Keine Wiederholung. Post-Run-Backup und Nachher-Inventar fehlen;
-Vorher-Backup und Screenshots bleiben privat.
+ Vorher-Backup und Screenshots bleiben privat.
+
+**2026-11-25 11:56–12:15 UTC – nutzerautorisierter Folgetest vor Sync gestoppt.**
+Unter S10-Lease wurden Modell und installierte Paket-Signaturkontinuität
+read-only verifiziert; der aktuelle Source-Stand deaktiviert den History-Sync
+beim App-Eintritt. Der unterstützte In-App-Datenbankbackup-Export wurde vor
+jedem History-Request versucht. Innerhalb des begrenzten Wartefensters erschien
+keine bestätigte Backup-Fertigmeldung; der privat gezogene Kandidat war leer und
+bestand die ZIP-Prüfung nicht. Dieses Artefakt wurde nicht als Sicherung
+akzeptiert und nicht veröffentlicht. **Kein History-Button bestätigt, kein
+BLE-/GFDI-Sync-Request gesendet, keine App-Daten gelöscht oder überschrieben.**
+Der S10-Lease wurde freigegeben und anschließend als `FREI` verifiziert.
+Der Lauf ist blockiert, nicht erfolgreich oder unvollständig übertragen: Vor
+einem neuen Versuch muss ein frisches, vom Exporter als abgeschlossen
+bestätigtes und integritätsgeprüftes Vorher-Backup verfügbar sein. Frühere
+Backups gelten nicht automatisch als aktueller Gerätestand.

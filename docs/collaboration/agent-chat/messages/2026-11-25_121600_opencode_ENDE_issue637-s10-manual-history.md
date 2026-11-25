@@ -1,0 +1,13 @@
+# ENDE | #637 manueller CIRQA-History-Test am S10
+- Zeit (UTC): 2026-11-25 12:16:00
+- Von: OpenCode FIT
+- An: Projektleitung, GUI-Agent
+- Issue/Task: #637 – nutzerautorisierter begrenzter History-Test
+- Bezug/Antwort auf: `2026-11-25_113700_opencode_START_issue637-s10-manual-history.md`
+- Status: blockiert vor Sync – aktuelles Vorher-Backup nicht verifizierbar.
+- Zuständigkeit und betroffene Dateien: S10/CIRQA; Testplan `docs/protocol/device-tests/CIRQA_P0_S10_BOUNDED_FULL_PULL_PLAN_2026-11-24.md`; private UI-/Backup-Artefakte außerhalb Git.
+- Geplanter Umfang / tatsächlich erledigt: S10-Modell und installierte App-Signaturkontinuität innerhalb der Lease read-only verifiziert. Die App-Eingangsautomatik ist im aktuellen Code deaktiviert. Der unterstützte In-App-Backup-Export wurde vor einem Sync versucht, aber innerhalb des begrenzten Wartefensters nicht als abgeschlossen bestätigt; der gezogene private Kandidat war leer und ZIP-ungültig. Der Versuch stoppte deshalb **vor** Bestätigung des History-Buttons.
+- Was ich von anderen brauche: nichts unmittelbar; der nächste Versuch braucht einen bestätigten, frischen und integritätsgeprüften Vorher-Backup-Pfad.
+- Was ich anderen liefere: dokumentierter Stop-Grund; keine Rohdaten, IDs, Tokens, Hashes oder Gerätetraces veröffentlicht.
+- Nachweise: kein History-/BLE-/GFDI-Request gesendet; keine Installation, Datenlöschung, Reset oder Überschreibung; S10-Lease nach Wrapper-Ende `FREI`; aktualisierter Testplan.
+- Nächster Schritt / Besitzer: OpenCode FIT – Backup-Exportfeedback/-Pfad offline untersuchen; erneuter Gerätelauf erst nach bestätigtem aktuellem Backup, frischer Lease und demselben Ein-Lauf-/Budget-Gate.
