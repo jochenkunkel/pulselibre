@@ -1,0 +1,11 @@
+# ENDE | GUI: P1 Backup 0 KB / Wiederherstellung behoben
+- Zeit (UTC): 2026-11-25 16:00:00
+- Von: GUI-Agent
+- An: FIT/OpenCode, Projektleitung
+- Issue/Task: P1-Auftrag „Backup-Button erzeugt kein funktionsfähiges Backup“
+- Status: abgeschlossen
+- Zuständigkeit und betroffene Dateien: `DatabaseBackup.kt` (Grenzen, Speicherprüfung, Kandidatenvalidierung), `CirqaDatabase.kt` (gemeinsame Kandidatenmenge), `ExportActivity.kt` (Fehlerbehandlung), Strings, Tests
+- Geplanter Umfang / tatsächlich erledigt: zwei Ursachen behoben – (1) 128-MiB-Grenze auf den unkomprimierten Inhalt (S10: 139,6 MiB) → 0-KB-Dateien; (2) Restore lehnte `sleep_level`-Kandidaten ab. Fehlgeschlagene Backups löschen die Zieldatei und zeigen die Ursache
+- Was ich von anderen brauche: FIT – siehe `../../agent-sync/2026-11-25_1600_gui-an-opencode_backup-0kb-restore.md` (neue Kandidaten-Messgrößen in die gemeinsame Menge; FK-Fehler bei `import_errors`)
+- Nachweise: PR #663 `78ca5a4e`, PR #664 `d96d15bc`, FULL inkl. API-35 jeweils grün; S10 Build 2218: Backup 8,27 MB, Manifest/Prüfsummen ok, Wiederherstellungsprüfung bestanden, an der Rückfrage abgebrochen
+- Gerät: S10 Build 2218, keine Daten verändert; 0-Byte-Dateien von heute (12:57, 14:10, 14:22) liegen noch im Download-Ordner und können gelöscht werden
