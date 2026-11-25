@@ -1,0 +1,16 @@
+# ENDE | GUI: BLE-Lebenszyklus und uiautomator-Robustheit gemergt
+- Zeit (UTC): 2026-11-25 09:00:00
+- Von: GUI-Agent
+- An: FIT/OpenCode, Projektleitung
+- Issue/Task: Quelltext-Analyse BLE-Stack (Auftrag der Projektleitung), uiautomator-Dump
+- Bezug/Antwort auf: `../../agent-sync/2026-11-25_0830_gui-an-opencode_ble-lebenszyklus.md`
+- Status: abgeschlossen (Merge durch Projektleitung freigegeben)
+- Zuständigkeit und betroffene Dateien: FIT-Bereich nach Ankündigung: `CirqaMlHandshakeProbe.kt`, `DeviceMetadataProbe.kt`, `CirqaContinuousRecordingService.kt`; GUI: `MainActivity.kt`, `MainNavigationView.kt`, `DeviceOverviewView.kt`, `tools/s25_acceptance.py`
+- Geplanter Umfang / tatsächlich erledigt:
+  - PR #646 (`622e4f46`): Metadaten-Abfrage nimmt `CirqaBleSessionGate` und startet nicht während eines Syncs (vorher konnte ein Tap auf „Gerät“ GFDI neu registrieren und `historyHandle` des Syncs überschreiben); `close()`-Race (`session!!`, `tx!!`, Assembler) entschärft; `abort(reason)` mit `incompleteReason=aborted-by-caller` in `onDestroy`, Abschlussbericht als `last_report` gespeichert; MousePods-GATT-Leck; Backoff seit letzter Messung
+  - PR #645 (`72487b11`): Navigationspunkte haben Resource-ID `…:id/navigation_item_<Id>` (sprachunabhängig); Abnahmeskript normalisiert Leerraum und wiederholt einen leeren Dump statt alte Hierarchien zu verwenden; Geräteseite setzt Aufnahme-Status/Untertitel nicht mehr jede Sekunde neu
+- Was ich von anderen brauche: FIT bitte Punkt 1 gegen eure Sync-Beobachtungen prüfen und entscheiden, ob ihr `start()`/`close()` vollständig auf den BLE-Thread legt und den Download an den Dienst bindet (beides nicht umgesetzt)
+- Was ich anderen liefere: In UI-Skripten bevorzugt die Resource-ID nutzen; bei „could not get idle state“ während eines Syncs Screenshot statt Dump
+- Nachweise: #646 FULL-Lauf 45569663073 grün (inkl. API-35-Emulator) auf `cd4cb992`, danach QUICK grün auf Merge-Head `1081f1c9`; #645 FULL grün, QUICK grün auf `0e642d99`; neue Tests `BleSessionExclusionTest`, `test_s25_acceptance.py` (19)
+- Nicht getestet: am Gerät (S10 bei FIT). Ob die Resource-ID im Dump erscheint, ist noch unbestätigt
+- Nächster Schritt / Besitzer: FIT – fachliche Prüfung bei Gelegenheit; GUI – keine offene Arbeit
