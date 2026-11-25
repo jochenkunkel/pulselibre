@@ -22,7 +22,9 @@ internal data class DiagnosticsSnapshot(
     val permissionConnect: Boolean,
     val permissionScan: Boolean,
     val permissionNotifications: Boolean,
-    val fitInventory: String
+    val fitInventory: String,
+    /** Where a day view last waited too long for the dashboard worker (stack frames only), or null. */
+    val lastStall: String? = null
 )
 
 internal object DiagnosticsFormat {
@@ -43,6 +45,7 @@ internal object DiagnosticsFormat {
         appendLine("Android: ${s.androidRelease} (API ${s.sdkInt}) · ${s.deviceModel}")
         appendLine("Datenbank-Integrität (quick_check): ${s.dbIntegrity}")
         append("Datenbankgröße: ${bytes(s.dbBytes)}")
+        s.lastStall?.let { append("\nLetzte hängende Ansicht (nur Programmstellen): ").append(it) }
     }
 
     fun bluetooth(s: DiagnosticsSnapshot): String = buildString {
