@@ -36,7 +36,7 @@ AVDMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/avdmanager"
 [ -x "$EMULATOR_BIN" ] || ci_die "Android Emulator fehlt: $EMULATOR_BIN"
 
 if ! { [ -r /dev/kvm ] && [ -w /dev/kvm ]; }; then
-  ci_die "KVM nicht nutzbar. Ohne Hardwarevirtualisierung werden keine Emulator-Tests vorgetäuscht. Siehe docs/ci/HYBRID_CI.md#kvm."
+  ci_die "KVM nicht nutzbar. Ohne Hardwarevirtualisierung werden keine Emulator-Tests vorgetäuscht. Siehe docs/quality/ci/HYBRID_CI.md#kvm."
 fi
 
 REPORT_DIR="$(ci_artifact_dir)"
