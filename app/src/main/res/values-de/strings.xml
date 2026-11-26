@@ -647,11 +647,11 @@
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="ex_reset_title">Lokale Datenbank zurücksetzen?</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
-    <string name="ex_reset_msg">Alle lokal gespeicherten CIRQA-Ereignisse, historischen Messwerte und Synchronisationsstände werden dauerhaft gelöscht. App-Einstellungen bleiben erhalten. Diese Aktion kann nicht rückgängig gemacht werden.</string>
+    <string name="ex_reset_msg">Alle lokal gespeicherten CIRQA-Ereignisse, historischen Messwerte, Synchronisationsstände und die heruntergeladenen Originaldateien des Bands (FIT-Dateien) werden dauerhaft gelöscht. Sie kommen nur über ein Backup oder einen neuen Download vom Band zurück. Persönliche Einstellungen bleiben erhalten. Diese Aktion kann nicht rückgängig gemacht werden.</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="ex_reset_delete">Daten löschen</string>
     <string name="ex_reset_running">Datenbank wird zurückgesetzt …</string>
-    <string name="ex_reset_done">Lokale Datenbank wurde geleert.</string>
+    <string name="ex_reset_done">Lokale Datenbank geleert, %1$d Originaldateien gelöscht.</string>
     <string name="ex_reset_failed">Reset fehlgeschlagen. Datenbank bitte prüfen.</string>
     <string name="ex_rec_title">Aufzeichnung läuft</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->

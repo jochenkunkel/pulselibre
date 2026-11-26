@@ -647,11 +647,11 @@
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="ex_reset_title">¿Restablecer la base de datos local?</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
-    <string name="ex_reset_msg">Todos los eventos CIRQA, mediciones históricas y estados de sincronización almacenados localmente se borrarán de forma permanente. Los ajustes de la app se conservan. Esta acción no se puede deshacer.</string>
+    <string name="ex_reset_msg">Se eliminan definitivamente todos los eventos CIRQA, mediciones históricas, estados de sincronización y los archivos originales descargados de la pulsera (archivos FIT) guardados localmente. Solo vuelven mediante una copia de seguridad o una nueva descarga desde la pulsera. Los ajustes personales se conservan. Esta acción no se puede deshacer.</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="ex_reset_delete">Borrar datos</string>
     <string name="ex_reset_running">Restableciendo la base de datos …</string>
-    <string name="ex_reset_done">La base de datos local se vació.</string>
+    <string name="ex_reset_done">Base de datos local vaciada, %1$d archivos originales eliminados.</string>
     <string name="ex_reset_failed">Error al restablecer. Comprueba la base de datos.</string>
     <string name="ex_rec_title">Grabación en curso</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
