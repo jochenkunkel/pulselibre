@@ -271,12 +271,25 @@ class UnifiedMeasurements(private val db: SQLiteDatabase) {
 
     private fun refreshHistorical() {
         // Cheap change signature; any change rebuilds the two historical origins (they are rebuildable copies).
+        // Counts alone are insufficient: activating a replacement immutable FIT generation can
+        // leave every count and output_count unchanged while changing the projected measurements.
+        val activeGenerations = buildString {
+            db.rawQuery(
+                "SELECT source_sha256, generation_id FROM fit_active_generations ORDER BY source_sha256",
+                null
+            ).use { rows ->
+                while (rows.moveToNext()) {
+                    append(rows.getString(0)).append(':').append(rows.getString(1)).append(';')
+                }
+            }
+        }
         val signature = listOf(
             scalar("SELECT COUNT(*) FROM observations"),
             scalar("SELECT COUNT(*) FROM fit_observation_provenance"),
             scalar("SELECT COUNT(*) FROM fit_generation_observations"),
             scalar("SELECT COUNT(*) FROM fit_active_generations"),
-            scalar("SELECT COALESCE(SUM(output_count), 0) FROM fit_decoder_generations")
+            scalar("SELECT COALESCE(SUM(output_count), 0) FROM fit_decoder_generations"),
+            activeGenerations
         ).joinToString(",")
         if (state("historical_signature") == signature) return
         db.beginTransaction()
