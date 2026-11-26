@@ -60,7 +60,7 @@ internal object CirqaVerifiedRawArchive {
                 digest.update(buffer, 0, read)
             }
         }
-        val actual = digest.digest().joinToString("") { "%02x".format(it.toInt() and 0xff) }
+        val actual = digest.digest().lowerHex()
         return actual == expected
     }
 }
