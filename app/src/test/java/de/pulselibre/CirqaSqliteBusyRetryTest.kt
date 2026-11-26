@@ -1,6 +1,7 @@
 package de.pulselibre
 
 import android.database.sqlite.SQLiteDatabaseLockedException
+import android.database.sqlite.SQLiteException
 import android.database.sqlite.SQLiteTableLockedException
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -34,6 +35,21 @@ class CirqaSqliteBusyRetryTest {
         assertEquals("opened", result)
         assertEquals(2, attempts)
         assertEquals(listOf(250L), pauses)
+    }
+
+    @Test fun defaultPredicateDoesNotRetryUnclassifiedSqliteFailure() {
+        var attempts = 0
+        val pauses = mutableListOf<Long>()
+        try {
+            CirqaSqliteBusyRetry.run(pause = pauses::add) {
+                attempts++
+                throw SQLiteException("disk failure")
+            }
+            throw AssertionError("expected SQLiteException")
+        } catch (_: SQLiteException) {
+            assertEquals(1, attempts)
+            assertEquals(emptyList<Long>(), pauses)
+        }
     }
 
     @Test fun retriesOnlyTheSpecificDatabaseLockedExceptionWithBoundedBackoff() {
