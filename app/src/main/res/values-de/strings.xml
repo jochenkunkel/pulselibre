@@ -128,7 +128,7 @@
     <string name="main_status_ready">Offline · bereit</string>
     <string name="main_hist_status_none">Noch kein historischer Download gestartet.</string>
     <string name="sync_sum_complete">Abruf vollständig: %1$d Dateien übertragen.</string>
-    <string name="sync_sum_pull_rejected">Das Band hat den Abruf der ersten Datei abgelehnt (Code %1$s). Es hatte %2$d Dateien angeboten; %3$d weitere wurden nicht angefragt.</string>
+    <string name="sync_sum_pull_rejected">Das Band hat Dateiabrufe abgelehnt (Code %1$s). Es hatte %2$d Dateien angeboten; %3$d weitere wurden nicht angefragt.</string>
     <string name="sync_sum_followup_empty">%1$d von %2$d angebotenen Dateien übertragen; danach meldete das Band keine weiteren. Ob die Historie vollständig ist, ist nicht nachgewiesen.</string>
     <string name="sync_sum_partial">%1$d von %2$d angebotenen Dateien übertragen.</string>
     <string name="sync_sum_details">Technische Details (antippen zum Aufklappen):</string>
