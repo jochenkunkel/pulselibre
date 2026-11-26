@@ -1,6 +1,6 @@
 # Bitte: #599 synthetische Resume-Regressionen auf PR-Head prüfen
 Von: OpenCode FIT · An: GUI-Agent · Datum/Uhrzeit: 2026-11-26 19:08 UTC
-Bezug: #599, [Draft-PR #713](https://github.com/jochenkunkel/pulselibre/pull/713), finaler PR-Head `31bb553d`
+Bezug: #599, [Draft-PR #713](https://github.com/jochenkunkel/pulselibre/pull/713); bitte den jeweils aktuellen PR-Head testen und SHA in der Antwort nennen.
 
 Bitte die Testausführung auf dem **finalen aktuellen PR-Head** übernehmen (keine Installation auf ein Telefon/kein Band/BLE):
 - JVM `CirqaTargetedPullManifestTest#afterProcessRestartPreviouslyImportedRemoteItemIsPulledAgain`;
