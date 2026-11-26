@@ -134,10 +134,10 @@ class ReplayTests(unittest.TestCase):
         self.assertEqual(0, summary["att_pdus"])
         self.assertEqual(1, summary["errors"]["reserved_pb_flag"])
 
-    def test_overlapping_service_ranges_withhold_characteristic_attribution(self):
+    def test_overlapping_service_ranges_within_one_server_withhold_attribution(self):
         parser = replay_module.Replay()
         epoch = "c-test"
-        parser.services[epoch] = [
+        parser.services[(epoch, "controller_to_host")] = [
             (1, 10, "00001800-0000-1000-8000-00805f9b34fb"),
             (5, 20, "6a4e2800-667b-11e3-949a-0800200c9a66"),
         ]
@@ -151,8 +151,48 @@ class ReplayTests(unittest.TestCase):
             b"\x09\x15\x05\x00\x0c\x06\x00"
             + bytes.fromhex("6a4e2810667b11e3949a0800200c9a66")[::-1],
         )
-        self.assertIsNone(parser.characteristic_services[(epoch, 6)])
+        self.assertIsNone(parser.characteristic_services[(epoch, "controller_to_host", 6)])
         self.assertEqual(1, parser.error_counts["ambiguous_overlapping_service_ranges"])
+
+    def test_opposite_server_handle_ranges_do_not_conflict_or_cross_attribute(self):
+        parser = replay_module.Replay()
+        epoch = "c-dual-role"
+        generic_access = "00001800-0000-1000-8000-00805f9b34fb"
+        generic_attribute = "00001801-0000-1000-8000-00805f9b34fb"
+        parser.services[(epoch, "controller_to_host")] = [(1, 10, generic_access)]
+        parser.services[(epoch, "host_to_controller")] = [(1, 10, generic_attribute)]
+        parser.read_by_type_requests[(epoch, "host_to_controller")] = deque([
+            "00002803-0000-1000-8000-00805f9b34fb"
+        ])
+        parser.read_by_type_requests[(epoch, "controller_to_host")] = deque([
+            "00002803-0000-1000-8000-00805f9b34fb"
+        ])
+        record = replay_module.Record(1, 0, 0, 0, 1, 0, BT_EPOCH, 2, b"")
+        declaration = b"\x09\x07\x02\x00\x02\x03\x00\x00\x2a"
+
+        parser._read_by_type(record, epoch, "controller_to_host", declaration)
+        parser._read_by_type(
+            record, epoch, "host_to_controller",
+            b"\x09\x07\x02\x00\x02\x03\x00\x01\x2a",
+        )
+
+        self.assertEqual(
+            generic_access,
+            parser.characteristic_services[(epoch, "controller_to_host", 3)],
+        )
+        self.assertEqual(
+            generic_attribute,
+            parser.characteristic_services[(epoch, "host_to_controller", 3)],
+        )
+        self.assertNotEqual(
+            parser.characteristics[(epoch, "controller_to_host", 3)],
+            parser.characteristics[(epoch, "host_to_controller", 3)],
+        )
+        self.assertNotIn("ambiguous_overlapping_service_ranges", parser.error_counts)
+        parser._att(record, epoch, 1, "host_to_controller", b"\x12\x03\x00x", 1, 0)
+        self.assertEqual("00002a00-0000-1000-8000-00805f9b34fb", parser.events[-1]["characteristic_uuid"])
+        parser._att(record, epoch, 1, "host_to_controller", b"\x1b\x03\x00x", 1, 0)
+        self.assertEqual("00002a01-0000-1000-8000-00805f9b34fb", parser.events[-1]["characteristic_uuid"])
 
     def test_overlong_l2cap_start_is_rejected_and_counted(self):
         malformed_l2cap = struct.pack("<HH", 2, 4) + b"abc"
