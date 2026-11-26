@@ -641,6 +641,8 @@
     <string name="ex_restore_all">Paramètres et données de santé</string>
     <string name="ex_restore_settings_only">Paramètres uniquement</string>
     <string name="ex_restore_settings_done">Paramètres restaurés depuis la sauvegarde ; données de santé inchangées.</string>
+    <string name="ex_ble_busy">Une opération Bluetooth est en cours (p. ex. un téléchargement de l’historique). Attendez qu’elle soit terminée, puis réessayez. Rien n’a été modifié.</string>
+    <string name="ex_restore_originals_note">Les fichiers originaux du bracelet stockés localement sont conservés lors de la restauration ; ce qui manque dans la sauvegarde est réintégré au prochain démarrage.</string>
     <string name="ex_rec_restarted">Enregistrement relancé.</string>
     <string name="ex_rec_restart_failed">Impossible de relancer l’enregistrement – veuillez le démarrer depuis l’aperçu.</string>
     <string name="ex_restore_failed">Échec de la restauration. Veuillez vérifier la base de données.</string>

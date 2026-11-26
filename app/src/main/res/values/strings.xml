@@ -641,6 +641,8 @@
     <string name="ex_restore_all">Settings and health data</string>
     <string name="ex_restore_settings_only">Settings only</string>
     <string name="ex_restore_settings_done">Settings restored from the backup; health data unchanged.</string>
+    <string name="ex_ble_busy">A Bluetooth operation is running (e.g. a history download). Please wait until it has finished and try again. Nothing was changed.</string>
+    <string name="ex_restore_originals_note">The band\'s locally stored original files are kept by a restore; whatever of them is missing in the backup is added again on the next start.</string>
     <string name="ex_rec_restarted">Recording started again.</string>
     <string name="ex_rec_restart_failed">Recording could not be started again – please start it on the overview.</string>
     <string name="ex_restore_failed">Restore failed. Please check the database.</string>
