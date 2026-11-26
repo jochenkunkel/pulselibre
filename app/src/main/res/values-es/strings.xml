@@ -599,7 +599,7 @@
     <string name="ex_local_only">Solo en tu dispositivo · Sin nube · Sin inicio de sesión</string>
     <string name="ex_db_title">Base de datos local</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
-    <string name="ex_db_note">La copia contiene eventos CIRQA, mediciones históricas, estados de sincronización y contenidos originales archivados disponibles, incluidos campos desconocidos e identificadores. El ZIP no está cifrado y contiene datos sensibles de salud y del dispositivo.</string>
+    <string name="ex_db_note">La copia contiene eventos CIRQA, mediciones históricas, estados de sincronización y contenidos originales archivados disponibles, incluidos campos desconocidos e identificadores, además de tus ajustes personales (perfil, tema, idioma). El ZIP no está cifrado y contiene datos sensibles de salud y del dispositivo.</string>
     <string name="ex_btn_backup">Crear copia de seguridad</string>
     <string name="ex_btn_backup_cd">Crear una copia de seguridad local de la base de datos</string>
     <string name="ex_btn_fit">Exportar los originales FIT</string>
@@ -618,15 +618,31 @@
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="ex_btn_reset">Restablecer la base de datos</string>
     <string name="ex_btn_reset_cd">Borrar todas las entradas locales de la base de datos</string>
-    <string name="ex_prefs_kept">Los ajustes de la app se conservan al restaurar y al restablecer.</string>
+    <string name="ex_prefs_kept">Los ajustes personales (perfil, tema, idioma, detección de actividad, grabación, disposición del panel) forman parte de las copias nuevas; una restauración los reemplaza y un restablecimiento los conserva.</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="ex_restore_title">¿Reemplazar la base de datos?</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
-    <string name="ex_restore_msg">La copia de seguridad del %1$s contiene %2$d eventos, %3$d mediciones históricas, %4$d estados de sincronización, %5$d fuentes FIT y %6$d filas de procedencia FIT. %7$d mediciones canónicas y %8$d fuentes FIT canónicas/%9$d filas de procedencia, así como %10$d filas de metadatos FIT y %11$d filas de metadatos XML sin procesar derivadas. Los archivos originales no están incluidos; las rutas y los identificadores XML no se guardan.\n\nSe reemplazarán todas las entradas de la base de datos almacenadas actualmente. Los ajustes de la app se conservan. Continúa solo con una copia de seguridad de una fuente de confianza.</string>
+    <string name="ex_restore_msg">La copia de seguridad del %1$s contiene %2$d eventos, %3$d mediciones históricas, %4$d estados de sincronización, %5$d fuentes FIT y %6$d filas de procedencia FIT. %7$d mediciones canónicas y %8$d fuentes FIT canónicas/%9$d filas de procedencia, así como %10$d filas de metadatos FIT y %11$d filas de metadatos XML sin procesar derivadas. Los archivos originales no están incluidos; las rutas y los identificadores XML no se guardan.\n\nSe reemplazarán todas las entradas de la base de datos almacenadas actualmente. %12$s Continúa solo con una copia de seguridad de una fuente de confianza.</string>
     <string name="ex_replace">Reemplazar</string>
     <string name="ex_restore_cancelled">Restauración cancelada.</string>
     <string name="ex_restore_running">Restaurando la base de datos …</string>
     <string name="ex_restore_done">Base de datos restaurada desde la copia de seguridad.</string>
+    <string name="ex_progress_snapshot">Creando una instantánea de la base de datos …</string>
+    <string name="ex_progress_write">Escribiendo la tabla %1$d de %2$d …</string>
+    <string name="ex_progress_copy">Guardando el archivo …</string>
+    <string name="ex_progress_extract">Descomprimiendo la copia …</string>
+    <string name="ex_progress_validate">Comprobando la entrada %1$d de %2$d …</string>
+    <string name="ex_progress_references">Comprobando referencias …</string>
+    <string name="ex_progress_restore">Restaurando los datos (puede tardar un minuto) …</string>
+    <string name="ex_progress_settings">Restaurando los ajustes …</string>
+    <string name="ex_progress_keep_open">No cierres la app mientras tanto.</string>
+    <string name="ex_restore_settings_replaced">La copia también contiene tus ajustes personales (%1$d valores: perfil, tema, idioma y más). Puedes restaurar solo los ajustes o los ajustes junto con los datos de salud.</string>
+    <string name="ex_restore_settings_kept">Esta copia antigua no contiene ajustes; se conservan tus ajustes actuales.</string>
+    <string name="ex_restore_all">Ajustes y datos de salud</string>
+    <string name="ex_restore_settings_only">Solo ajustes</string>
+    <string name="ex_restore_settings_done">Ajustes restaurados desde la copia; datos de salud sin cambios.</string>
+    <string name="ex_rec_restarted">Grabación reiniciada.</string>
+    <string name="ex_rec_restart_failed">No se pudo reiniciar la grabación; iníciala desde la vista general.</string>
     <string name="ex_restore_failed">Error en la restauración. Comprueba la base de datos.</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="ex_reset_title">¿Restablecer la base de datos local?</string>
@@ -639,7 +655,7 @@
     <string name="ex_reset_failed">Error al restablecer. Comprueba la base de datos.</string>
     <string name="ex_rec_title">Grabación en curso</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
-    <string name="ex_rec_msg">La grabación CIRQA local en curso debe detenerse antes de la operación en la base de datos.</string>
+    <string name="ex_rec_msg">La grabación local de CIRQA en curso se detiene antes de la operación de base de datos y se reinicia automáticamente después.</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="ex_rec_stop">Detener y continuar</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->

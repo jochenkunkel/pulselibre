@@ -76,7 +76,7 @@ internal object CommunicationTrace {
     }
 
     fun format(state: State, trace: Trace?, now: Long): String = buildString {
-        appendLine("Es wird keine eigene Bluetooth-Verbindung aufgebaut. Gezeigt werden die Notifications, die ein laufender Sync ohnehin lokal archiviert; identische Notifications nur einmal (erste Ankunft).")
+        appendLine("Es wird keine eigene Bluetooth-Verbindung aufgebaut. Gezeigt werden die Notifications, die ein laufender Sync ohnehin lokal archiviert; identische Notifications nur einmal (erste Ankunft). Kein vollständiger Ablauf-Trace: gesendete Befehle und Verkehr außerhalb eines Syncs sind nicht enthalten.")
         appendLine()
         when (state) {
             State.Idle -> { append("Keine Aufzeichnung gestartet."); return@buildString }

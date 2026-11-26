@@ -599,7 +599,7 @@
     <string name="ex_local_only">Nur auf deinem Gerät · Keine Cloud · Keine Anmeldung</string>
     <string name="ex_db_title">Lokale Datenbank</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
-    <string name="ex_db_note">Backup enthält CIRQA-Ereignisse, historische Messwerte, Synchronisationsstände und vorhandene archivierte Originalinhalte einschließlich unbekannter Felder und Kennungen. Die ZIP-Datei ist unverschlüsselt und enthält sensible Gesundheits- und Gerätedaten.</string>
+    <string name="ex_db_note">Backup enthält CIRQA-Ereignisse, historische Messwerte, Synchronisationsstände und vorhandene archivierte Originalinhalte einschließlich unbekannter Felder und Kennungen sowie deine persönlichen Einstellungen (Profil, Design, Sprache). Die ZIP-Datei ist unverschlüsselt und enthält sensible Gesundheits- und Gerätedaten.</string>
     <string name="ex_btn_backup">Backup erstellen</string>
     <string name="ex_btn_backup_cd">Lokales Datenbankbackup erstellen</string>
     <string name="ex_btn_fit">FIT-Originale exportieren</string>
@@ -618,15 +618,31 @@
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="ex_btn_reset">Datenbank zurücksetzen</string>
     <string name="ex_btn_reset_cd">Alle lokalen Datenbankeinträge löschen</string>
-    <string name="ex_prefs_kept">App-Einstellungen bleiben bei Wiederherstellung und Reset erhalten.</string>
+    <string name="ex_prefs_kept">Persönliche Einstellungen (Profil, Design, Sprache, Aktivitätserkennung, Aufzeichnung, Dashboard-Anordnung) sind Teil neuer Backups; eine Wiederherstellung ersetzt sie, ein Reset behält sie.</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="ex_restore_title">Datenbank ersetzen?</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
-    <string name="ex_restore_msg">Das Backup vom %1$s enthält %2$d Ereignisse, %3$d historische Messwerte, %4$d Synchronisationsstände, %5$d FIT-Quellen und %6$d FIT-Herkunftszeilen. %7$d kanonische Messwerte und %8$d kanonische FIT-Quellen/%9$d Herkunftszeilen sowie %10$d FIT-Metadatenzeilen und %11$d abgeleitete Raw-XML-Metadatenzeilen. Neue Backups können auch archivierte Originalinhalte und sensible Kennungen enthalten.\n\nAlle aktuell gespeicherten Datenbankeinträge werden ersetzt. App-Einstellungen bleiben erhalten. Nur mit einem Backup aus vertrauenswürdiger Quelle fortfahren.</string>
+    <string name="ex_restore_msg">Das Backup vom %1$s enthält %2$d Ereignisse, %3$d historische Messwerte, %4$d Synchronisationsstände, %5$d FIT-Quellen und %6$d FIT-Herkunftszeilen. %7$d kanonische Messwerte und %8$d kanonische FIT-Quellen/%9$d Herkunftszeilen sowie %10$d FIT-Metadatenzeilen und %11$d abgeleitete Raw-XML-Metadatenzeilen. Neue Backups können auch archivierte Originalinhalte und sensible Kennungen enthalten.\n\nAlle aktuell gespeicherten Datenbankeinträge werden ersetzt. %12$s Nur mit einem Backup aus vertrauenswürdiger Quelle fortfahren.</string>
     <string name="ex_replace">Ersetzen</string>
     <string name="ex_restore_cancelled">Wiederherstellung abgebrochen.</string>
     <string name="ex_restore_running">Datenbank wird wiederhergestellt …</string>
     <string name="ex_restore_done">Datenbank aus Backup wiederhergestellt.</string>
+    <string name="ex_progress_snapshot">Momentaufnahme der Datenbank wird erstellt …</string>
+    <string name="ex_progress_write">Tabelle %1$d von %2$d wird geschrieben …</string>
+    <string name="ex_progress_copy">Datei wird gespeichert …</string>
+    <string name="ex_progress_extract">Backup wird entpackt …</string>
+    <string name="ex_progress_validate">Eintrag %1$d von %2$d wird geprüft …</string>
+    <string name="ex_progress_references">Verweise werden geprüft …</string>
+    <string name="ex_progress_restore">Daten werden eingespielt (kann eine Minute dauern) …</string>
+    <string name="ex_progress_settings">Einstellungen werden übernommen …</string>
+    <string name="ex_progress_keep_open">Bitte die App währenddessen nicht schließen.</string>
+    <string name="ex_restore_settings_replaced">Das Backup enthält auch deine persönlichen Einstellungen (%1$d Werte: Profil, Design, Sprache und mehr). Du kannst nur die Einstellungen oder die Einstellungen zusammen mit den Gesundheitsdaten wiederherstellen.</string>
+    <string name="ex_restore_settings_kept">Dieses ältere Backup enthält keine Einstellungen; deine aktuellen Einstellungen bleiben erhalten.</string>
+    <string name="ex_restore_all">Einstellungen und Gesundheitsdaten</string>
+    <string name="ex_restore_settings_only">Nur Einstellungen</string>
+    <string name="ex_restore_settings_done">Einstellungen aus dem Backup übernommen; Gesundheitsdaten unverändert.</string>
+    <string name="ex_rec_restarted">Aufzeichnung wieder gestartet.</string>
+    <string name="ex_rec_restart_failed">Aufzeichnung konnte nicht wieder gestartet werden – bitte in der Übersicht starten.</string>
     <string name="ex_restore_failed">Wiederherstellung fehlgeschlagen. Bitte Datenbank prüfen.</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="ex_reset_title">Lokale Datenbank zurücksetzen?</string>
@@ -639,7 +655,7 @@
     <string name="ex_reset_failed">Reset fehlgeschlagen. Datenbank bitte prüfen.</string>
     <string name="ex_rec_title">Aufzeichnung läuft</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
-    <string name="ex_rec_msg">Die laufende lokale CIRQA-Aufzeichnung muss vor dem Datenbankvorgang beendet werden.</string>
+    <string name="ex_rec_msg">Die laufende lokale CIRQA-Aufzeichnung wird vor dem Datenbankvorgang beendet und danach automatisch wieder gestartet.</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="ex_rec_stop">Beenden und fortfahren</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->

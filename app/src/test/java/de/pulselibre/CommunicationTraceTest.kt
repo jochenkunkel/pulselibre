@@ -40,6 +40,8 @@ class CommunicationTraceTest {
     @Test fun honestTextsForIdleEmptyWindowAndLimit() {
         assertTrue(CommunicationTrace.format(CommunicationTrace.State.Idle, null, t0).contains("Keine Aufzeichnung gestartet"))
         assertTrue(CommunicationTrace.format(CommunicationTrace.State.Idle, null, t0).contains("keine eigene Bluetooth-Verbindung"))
+        // FIT 26.11.: the view must not suggest completeness or contain sent commands.
+        assertTrue(CommunicationTrace.format(CommunicationTrace.State.Idle, null, t0).contains("Kein vollständiger Ablauf-Trace"))
         val rec = CommunicationTrace.State.Recording(t0, t0 + CommunicationTrace.MAX_WINDOW_MS)
         val empty = CommunicationTrace.format(rec, CommunicationTrace.Trace(0, 0, emptyList()), t0 + 60_000)
         assertTrue(empty, empty.contains("noch 14 min"))
