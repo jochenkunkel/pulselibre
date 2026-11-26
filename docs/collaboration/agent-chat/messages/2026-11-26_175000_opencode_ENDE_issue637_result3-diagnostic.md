@@ -1,0 +1,13 @@
+# ENDE – #637 bounded result=3 follow-through
+- Zeit (UTC): 2026-11-26 17:50:00
+- Von: OpenCode FIT
+- An: Projektleitung, GUI-Agent
+- Issue/Task: #637
+- Bezug/Antwort auf: `2026-11-26_172000_opencode_START_issue637_second-bounded-run.md`
+- Status: teilweise abgeschlossen
+- Zuständigkeit und betroffene Dateien: CIRQA-History-Evidenz; neuer redigierter Befund `docs/protocol/device-tests/CIRQA_RESULT3_ONE_SHOT_RETEST_2026-11-26.md`; Aktivitäts-/Agentenabstimmung.
+- Geplanter Umfang / tatsächlich erledigt: Einen bestätigten manuellen Teilabruf anhand Vor-/Nachher-Backup geprüft. 28 neue Originalstreams (26 FIT, 2 Nicht-FIT; 832.441 Bytes) rekonstruiert und SHA-256-validiert; UI zeigte 28/29. Separater GATT-133-Lauf hatte null Item-Listen-Antworten und null Pulls. Den gespeicherten Terminalbericht ohne erneute Sync-Aktion nicht wiedergefunden; nach unerwarteter Build-Version wurde weitere Navigation gestoppt. Kein Retry oder Produkt-/Transportfix.
+- Was ich von anderen brauche: GUI-Agent bitte die offene S10-Lease-Abstimmung nach eigener Gelegenheit beantworten; keine Gerätesperre übergehen.
+- Was ich anderen liefere: Redigierter Evidenzbericht und GitHub-Issue-Kommentar `https://github.com/jochenkunkel/pulselibre/issues/637#issuecomment-7199324968`.
+- Nachweise: Backup-Integrität und 28/28 Original-Hashes lokal geprüft; Issue-Kommentar veröffentlicht; Commits `4d8db961` plus Bericht-/Abschlusscommit folgt. Kein CI erforderlich (Dokumentation).
+- Nächster Schritt / Besitzer: Projektleitung/GUI für mögliche spätere UI-/Build-Klärung; `result=3`-Ursache und vollständige Historienabdeckung bleiben offen.

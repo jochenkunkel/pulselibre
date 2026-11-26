@@ -1,15 +1,15 @@
 # OpenCode FIT – #637 `result=3`-S10-Diagnose
 - Agent/Umgebung: OpenCode FIT, Linux-Worktree
 - Beginn: 2026-11-26 16:46 UTC
-- Letzte Aktualisierung: 2026-11-26 17:20 UTC
-- Status: aktiv
+- Letzte Aktualisierung: 2026-11-26 17:50 UTC
+- Status: abgeschlossen
 - Rolle/Zuständigkeit: FIT/History-Download, Diagnose und Persistenzevidenz
 - Aktueller Auftrag: Kontrollierter, einmaliger Diagnoseversuch zum wiederholten `0 von 38`-Pull-Abbruch unter `result=3`.
-- Jetzt in Bearbeitung: Letzter manueller Lauf terminal mit GATT 133 vor Item-Liste/Pull; kein neuer `result=3`-Befund. Benutzer wies Fortsetzung an. Separater einzelner Wiederholungslauf mit Erkennung von Text und Content-Description, strikt 120 s, kein Retry.
-- Zeitnah geplant: Ergebnis redigiert in Issue #637 und ENDE-Nachricht dokumentieren; keinen Transportfix ohne belegte Ursache ableiten.
+- Jetzt in Bearbeitung: Abgeschlossen: separater Einmal-Lauf zeigte über Backup 28 neue Originalreferenzen/832.441 Bytes, deren Streams 28/28 SHA-256-validiert; UI 28/29. Terminaler Bericht ließ sich ohne erneute Sync-Aktion nicht auslesen.
+- Zeitnah geplant: Keine weitere Geräteaktion in dieser Sitzung; Fortsetzung nur mit geklärter App-/Statusansicht und frischer Lease.
 - Betroffene Bereiche/Dateien: private S10-App-/Backup-/Sync-Statusdaten (nur lokal); `docs/protocol/device-tests/CIRQA_P0_S10_BOUNDED_FULL_PULL_PLAN_2026-11-24.md` als Schutzplan; Agentenchat/-sync.
 - Branch/Worktree: `opencode/issue637-result3-diagnostic-20261126`, `/tmp/opencode/issue637-result3-diagnostic-20261126`, Basis `origin/main=5253b703`.
 - Abstimmungsbedarf: keiner; GUI-Analyse des Befunds liegt vor.
 - Agent-sync-Nachrichten: `docs/collaboration/agent-chat/messages/2026-11-26_164600_opencode_START_issue637_result3-s10-diagnostic.md`; bisheriger Befund `docs/collaboration/agent-sync/2026-11-26_1240_gui-an-opencode_s10-download-und-decoder4.md`.
-- Nachweise: Vor-/Nachher-Backup v12 vollständig verifiziert; Zähler unverändert. Erster manueller Lauf mit GATT 133, `sync-not-accepted`, 0 List-Antworten und 0 Pull-Requests. Das vorherige Beobachterfenster überschritt einmalig das 120-s-Limit um 20 s, dokumentiert in `e686ed0b`. Lease nach Status- und Backup-Wrapper jeweils `FREI`.
-- Nächster Schritt: genau ein neuer manueller Lauf in frischer Lease, strikt innerhalb 120 s; danach kein weiterer Versuch.
+- Nachweise: Vor-/Nachher-Backup v12 vollständig verifiziert; 28 neue Originalstreams aus Backup rekonstruiert und gehasht. GATT-133-Lauf separat ohne Liste/Pull. Frühere Beobachterüberschreitung um 20 s dokumentiert. Issue #637 kommentiert; Bericht `CIRQA_RESULT3_ONE_SHOT_RETEST_2026-11-26.md`; Agent-sync-Abstimmung zur GUI-Lease gepusht. Geräte-Lease am Ende `FREI`. Kein Transport-/Produktcode geändert.
+- Nächster Schritt: Run-ID/29. Datei und `result=3`-Ursache offen halten; nicht aus den 28 Archivdateien vollständige Coverage ableiten.
