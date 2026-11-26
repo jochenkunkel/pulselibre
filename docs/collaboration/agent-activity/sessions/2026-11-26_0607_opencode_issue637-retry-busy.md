@@ -1,0 +1,15 @@
+# OpenCode – #637 SQLite BUSY/LOCKED retry classification
+- Agent/Umgebung: OpenCode FIT, Linux-Worktree
+- Beginn: 2026-11-26 06:07 UTC
+- Letzte Aktualisierung: 2026-11-26 07:25 UTC
+- Status: aktiv – Code/Test-Self-Review fertig; finaler QUICK nach Aktivitätsnotiz ausstehend
+- Rolle/Zuständigkeit: FIT/GFDI/MLR, History-Transport, SQLite/Backup-Evidenz
+- Aktueller Auftrag: Nach dem Fehler-Audit die konkrete Lücke schließen: begrenzte Retry-Defaults auf beide Android-Ausnahmen für `SQLITE_BUSY` und `SQLITE_LOCKED` (`SQLiteDatabaseLockedException` und `SQLiteTableLockedException`) erweitern; Tests müssen echte Android-Exceptiontypen gegen die Defaults prüfen.
+- Jetzt in Bearbeitung: Separater aktueller `origin/main`-Branch; nur Retry-Utility und fokussierte Tests. Retry-Delays und Aufrufgrenzen nicht ändern.
+- Erledigt: Retry-Defaults umfassen jetzt `SQLiteDatabaseLockedException` (Android SQLITE_BUSY) und `SQLiteTableLockedException` (SQLITE_LOCKED). Tests prüfen beide tatsächlichen Klassen und die Nicht-Wiederholung einer allgemeinen `SQLiteException`. `git diff --check` sauber; gezielte Unit-Tests grün. Self-Review bestätigte unveränderte Backoffs/Grenzen und keine Fehlerunterdrückung.
+- Qualitätssicherung: Lokaler QUICK auf Implementation vor letztem negativen Regressionstest erfolgreich; fokussierter Test danach ebenfalls grün. PR #683 Checks auf Commit `f054f8ac` vollständig grün (Build/Unit/Lint/APK, Dependency Review, dependency graph; API-35-Instrumentation im QUICK erwartungsgemäß übersprungen). Nach dieser Koordinationsänderung wird der endgültige PR-Head erneut geprüft.
+- Betroffene Dateien: `CirqaSqliteBusyRetry.kt`, `CirqaSqliteBusyRetryTest.kt`, Koordinationsnachweise.
+- Branch/Worktree: `opencode/issue637-retry-busy-exceptions-20261126`, `/tmp/opencode/issue637-sqlite-open-repro-20261125`.
+- Abstimmungsbedarf: keiner bekannt; kein Gerätezugriff.
+- Nachweise: Im Audit bestätigte Lücke: beide Defaults klassifizieren bisher nur `SQLiteDatabaseLockedException`; Android JNI mappt SQLITE_BUSY auf diesen Typ und SQLITE_LOCKED auf `SQLiteTableLockedException`. Vorhandene Unit-Tests nutzen ausschließlich benutzerdefiniertes `retryable`.
+- Nächster Schritt: Chat-/Aktivitätseintrag auf Branch dokumentieren, finalen Required-QUICK abwarten, dann bei grünem finalem Head regulär mergen.
