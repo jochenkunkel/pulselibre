@@ -1,0 +1,13 @@
+# START – #637 Fehler-/Evidenz-Audit
+- Zeit (UTC): 2026-11-26 00:03
+- Von: OpenCode FIT
+- An: Projektleitung, FIT/GUI
+- Issue/Task: #637
+- Bezug/Antwort auf: Nutzerauftrag „analysiere alles und finde unsere Fehler“
+- Status: aktiv
+- Zuständigkeit und betroffene Dateien: Offline-Prüfung früherer #637 Schlussfolgerungen, S10-Run-4-Zähler, Backup-Audit und aktueller Code
+- Geplanter Umfang / tatsächlich erledigt: Keine Hardware-/ADB-/BLE-Aktion. Private Belege werden nur lokal aggregiert geprüft; Git-Bericht bleibt redigiert. Offene PR #669 wird gelesen, nicht verändert.
+- Was ich von anderen brauche: nichts
+- Was ich anderen liefere: Eigenfehlerliste mit bestätigten Fakten, Unsicherheiten und korrigierten Dokumentationsaussagen
+- Nachweise: #680/#681 gemergt; Main FULL/API-35 `45719176447` grün; S10-Run 4 terminal unvollständig und Lease frei.
+- Nächster Schritt / Besitzer: OpenCode – Backup-/Tabellenzählung, Fehlerklassifikation und vorherige Schlussfolgerungen gegen aktuellen Main-Code prüfen.

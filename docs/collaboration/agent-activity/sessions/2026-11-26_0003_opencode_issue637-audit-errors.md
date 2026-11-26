@@ -1,0 +1,14 @@
+# OpenCode – #637 Fehler-/Evidenz-Audit nach S10-Folgelauf
+- Agent/Umgebung: OpenCode FIT, Linux-Worktree
+- Beginn: 2026-11-26 00:03 UTC
+- Letzte Aktualisierung: 2026-11-26 00:03 UTC
+- Status: aktiv – read-only/offline Audit
+- Rolle/Zuständigkeit: FIT/GFDI/MLR, History-Transport, SQLite/Backup-Evidenz
+- Aktueller Auftrag: Nutzerauftrag „analysiere alles und finde unsere Fehler“ – bisherige #637 Schlussfolgerungen, privaten S10-Snapshot-Audit, PR-/CI-Nachweise und aktuellen Code gegenprüfen; eigene Fehlaussagen/Prozessfehler benennen und belegbare Dokumentationsfehler korrigieren.
+- Jetzt in Bearbeitung: Ausgangs- und Nachher-Backups/Run-4-Report aggregiert vergleichen; Zählermapping und Root-Cause-Behauptungen an Code und Rohmetadaten messen; offene PR #669 als parallele Evidenz berücksichtigen, nicht überschreiben.
+- Zeitnah geplant: Redigierten Auditbericht mit Befunden, Evidenz, Unsicherheiten und Korrekturen erstellen; keine Geräte-/ADB-/BLE-Aktion, kein neuer Download, keine Rohdatenveröffentlichung.
+- Betroffene Bereiche/Dateien: #637 Testplan/Handoff, relevante SQLite-/Sync-Codepfade, Agentenkommunikation; private Backups und Logs bleiben außerhalb Git.
+- Branch/Worktree: `opencode/issue637-audit-our-errors-20261126`, `/tmp/opencode/issue637-sqlite-open-repro-20261125`.
+- Abstimmungsbedarf: nichts; offene PR #669 bleibt unberührt.
+- Nachweise: #680 (`1e5c2057`) und #681 (`630a1ad9`) regulär gemergt; Main FULL/API-35 `45719176447` grün. Run 4 meldete `runDrained=false`, `device-history-unverified`, eine `ORIGINAL_ARCHIVE/SQLiteDatabaseLockedException`; keine vollständige Historie behauptet.
+- Nächster Schritt: Prüfziffern/Tabellen, Runstage und Backup-Auditdefinitionen unabhängig rekonstruieren, dann Korrekturliste und gezielte Tests ausweisen.
