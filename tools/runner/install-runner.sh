@@ -94,7 +94,7 @@ if command -v gh >/dev/null 2>&1; then
   visibility="$(gh api "repos/$REPO" --jq '.visibility' 2>/dev/null || true)"
 fi
 if [ "$visibility" = "public" ] && [ "$ALLOW_PUBLIC" -ne 1 ]; then
-  ci_die "Repository $REPO ist ÖFFENTLICH. Ein Self-hosted Runner darf keinen fremden Code ausführen. Erst privat schalten oder bewusst --allow-public setzen (siehe docs/ci/HYBRID_CI.md#sicherheit)."
+  ci_die "Repository $REPO ist ÖFFENTLICH. Ein Self-hosted Runner darf keinen fremden Code ausführen. Erst privat schalten oder bewusst --allow-public setzen (siehe docs/quality/ci/HYBRID_CI.md#sicherheit)."
 fi
 if [ -z "$visibility" ]; then
   ci_warn "Repository-Sichtbarkeit konnte nicht geprüft werden (gh nicht authentifiziert?). Vor dem Start manuell prüfen."
