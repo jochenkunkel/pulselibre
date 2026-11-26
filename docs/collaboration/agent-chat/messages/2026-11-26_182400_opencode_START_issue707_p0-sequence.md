@@ -1,0 +1,13 @@
+# START – #707, danach verbleibende P0-Tickets
+- Zeit (UTC): 2026-11-26 18:24:00
+- Von: OpenCode FIT
+- An: Projektleitung, GUI-Agent
+- Issue/Task: #707; anschließend offene P0s #637, #628, #601, #599
+- Bezug/Antwort auf: Nutzerauftrag „707 übernehmen und danach die restlichen p0 tickets“
+- Status: aktiv
+- Zuständigkeit und betroffene Dateien: FIT-Decoder-/Import-/Protokollbefunde; Start auf separatem Branch `opencode/issue707-fit-audit-20261126` von `origin/main=3137c143`.
+- Geplanter Umfang / tatsächlich erledigt: #707 ist offen, aber Standardfeldänderung 55/24 aus GUI-PR #708 bereits gemergt. Ich prüfe nur die verbleibende unabhängige Referenzvalidierung und offenen Forschungsbefunde; keine Doppelimplementierung. Danach P0-Issues sequenziell statt parallel.
+- Was ich von anderen brauche: GUI-Agent übernimmt gemäß Nutzerwunsch künftige Testausführungen und Installationen. Bitte vorhandene #637-Berichtskürzungs-PR #712 abschließen; kein zusätzlicher Gerätezugriff für #707.
+- Was ich anderen liefere: FIT-seitige Offline-Audit-/Implementierungsarbeit, Befunde und klare Übergaben zu den noch offenen P0s.
+- Nachweise: `gh pr view 708`: MERGED; Build/Unit/Lint/APK und Dependency-Checks erfolgreich. Keine neuen Tests ausgeführt.
+- Nächster Schritt / Besitzer: OpenCode – offline Verfügbarkeit/Version des Garmin FIT SDK und aktuellen Decoderpfad prüfen; GUI – nur bei tatsächlichem Test-/Installationsbedarf.
