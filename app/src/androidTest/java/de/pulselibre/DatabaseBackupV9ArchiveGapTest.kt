@@ -41,7 +41,7 @@ class DatabaseBackupV9ArchiveGapTest {
                 database.archiveDownloadedFile(original, byteArrayOf(1, 2), "unknown", 1_000)
             }
             val backup = ByteArrayOutputStream().also { DatabaseBackup.write(context, it) }.toByteArray()
-            assertEquals(11, DatabaseBackup.prepareRestore(context, ByteArrayInputStream(backup)).use { it.version })
+            assertEquals(12, DatabaseBackup.prepareRestore(context, ByteArrayInputStream(backup)).use { it.version })
 
             // The ZIP checksum is updated to match the tampered entry, so the rejection
             // must come from the whole-archive content validation in consume(), not from
@@ -86,7 +86,7 @@ class DatabaseBackupV9ArchiveGapTest {
 
             DatabaseBackup.reset(context)
             val plan = DatabaseBackup.prepareRestore(context, ByteArrayInputStream(backup))
-            assertEquals(11, plan.version)
+            assertEquals(12, plan.version)
             plan.use { DatabaseBackup.restore(context, it) }
 
             CirqaDatabase(context).use { database ->

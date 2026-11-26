@@ -18,6 +18,7 @@ class CirqaSyncRunReportTest {
                 fileSummary = "successful=14,notSuccessful=0,stages=[transferred=14,verified=14," +
                     "privateStored=14,decoded=13,sqliteCommitted=13,imported=8,noImportableData=5]," +
                     "queued=0,transactionFollowups=3,transactionFollowupResponseItems=0," +
+                    "transactionFollowupResponseItemCounts=[0,0,0]," +
                     "selected=14,selectedBytes=53425,skipped=20,pages=4,currentBytes=0",
                 terminalEvidence = CirqaSyncTerminalEvidence.Snapshot(
                     terminalCause = "next-transaction-followup-empty",
@@ -52,6 +53,7 @@ class CirqaSyncRunReportTest {
         assertTrue(report.substring(0, itemDetails).contains("skipped=20"))
         assertTrue(report.substring(0, itemDetails).contains("listed=34"))
         assertTrue(report.substring(0, itemDetails).contains("transactionTokenPresent=true"))
+        assertTrue(report.substring(0, itemDetails).contains("transactionFollowupResponseItemCounts=[0,0,0]"))
         assertTrue(report.contains("next-transaction-followup-empty"))
     }
 

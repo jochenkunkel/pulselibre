@@ -5,7 +5,7 @@
 PulsLibre ist eine **lokale, offline arbeitende** App für das Garmin-CIRQA-Armband. Alle Daten bleiben auf deinem Telefon; es gibt keine Cloud, kein Konto und keine Internetberechtigung. Die App stellt **keine Diagnosen** und keine Gesundheits- oder Fitness-Scores bereit.
 
 ## 1. Der Kopfbereich
-- Oben stehen Logo, „PulsLibre“ und „Deine Daten. Deine Kontrolle.“. Rechts zwei Schaltflächen: **Verbindungsstatus** (grüner Ring = Armband verbunden und liefert Werte; Tippen erklärt den Zustand) und **Einstellungen** (Oberarm-Symbol).
+- Oben stehen Logo, „PulsLibre“ und „Deine Daten. Deine Kontrolle.“. Rechts ein gemeinsamer **Statusknopf** mit Armband-Zustand, Armband-Akku und Zahnrad. Das Symbol im Kreis zeigt: ✓ getragen, ! nicht getragen, durchgestrichen = nicht verbunden, ? = unbekannt. „Getragen“ erscheint nur, wenn das Armband es selbst meldet (Atemmessung bzw. Meldung „nicht am Handgelenk“), sonst „unbekannt“. Der Akkuwert ist der des **Armbands**, nicht des Handys; ohne aktuellen Wert (älter als 12 Stunden oder nicht verbunden) steht „–“. **Tippen** öffnet die Einstellungen, **langes Drücken** zeigt die Verbindungsdetails.
 - Auf der Übersicht ist der Kopf groß mit Bergillustration. Sobald du nach unten scrollst, wird er klein (ohne Berge), damit mehr Platz für Messwerte bleibt; am oberen Rand wird er wieder groß. Das gilt auf allen Reitern mit genug Inhalt.
 
 ## 2. Reiter in der unteren Leiste
@@ -64,7 +64,7 @@ Wissenschaftliche, **explorative** Auswertungen in fünf Gruppen (Herz & Kreisla
 - **Bandinformationen:** Akku, Firmware, Uhrzeit, Modell. Ein Wert erscheint **nur**, wenn er mit Quelle und Zeitstempel gespeichert ist; sonst „Nicht verfügbar“. Ein Akkustand zeigt Balken und „Stand: vor …“ bzw. „Veraltet · letzter bekannter Stand …“.
 - **Unbekannte Datenfelder:** Wenn die Dateien des Bands Felder enthalten, die PulsLibre noch nicht versteht, erscheint ein dezenter Hinweis; die Liste (nach FIT-Nachricht gruppiert) zeigt nur Feldkoordinaten und Häufigkeiten – **keine Messwerte, keine Diagnosen**. Pro Feld kannst du über **„Status ändern“** eine eigene Prüfmarke setzen (ungeprüft · in Prüfung · unterstützt · ignoriert); das verändert keine Messdaten.
 - **Aufzeichnung:** „Starten“/„Stoppen“ des Aufzeichnungsdienstes (Android zeigt dabei eine dauerhafte Benachrichtigung mit Stopp-Taste).
-- *Versteckt:* Ein **3-Sekunden-Druck auf „Gerät · CIRQA“** öffnet das **Testlabor** (nur lesende Diagnose: App, Bluetooth-Status, Synchronisationszähler, Diagnosepaket mit Vorschau zum bewussten Teilen; „Erweitertes Testlabor“ für Fortgeschrittene).
+- *Versteckt:* Ein **3-Sekunden-Druck auf „Gerät · CIRQA“** öffnet das **Testlabor** (nur lesende Diagnose: App, Bluetooth-Status, Synchronisationszähler, Kommunikationsaufzeichnung – ausdrücklich gestartet, höchstens 15 Minuten, zeigt nur die Notifications eines laufenden Syncs, Bytes erst nach separater Zustimmung –, Diagnosepaket mit Vorschau zum bewussten Teilen; „Erweitertes Testlabor“ für Fortgeschrittene).
 
 ### Daten
 
@@ -75,9 +75,13 @@ Lokaler Export und Sicherung deiner Daten (Zeitraum wählen, exportieren) sowie 
 
 > **Datenschutz-Hinweis:** Die Datenbanksicherung ist **nicht verschlüsselt**. Sie enthält deine Gesundheitsdaten im Klartext. Speichere sie nur an einem Ort, dem du vertraust (nicht in einem öffentlich geteilten oder ungesicherten Cloud-Ordner).
 
-**Backup und FIT-Originale:** Die Datenbanksicherung enthält deine Messwerte, Ereignisse und Synchronisationsstände, aber **nicht** die Original-Dateien des Bands. Nach einer Wiederherstellung (z. B. auf einem anderen Handy) kommen die Band-Verlaufswerte deshalb nur aus der Sicherung; die App kann sie nicht aus den Originalen neu berechnen. Mit **„FIT-Originale exportieren“** legst du die Original-Dateien zusätzlich als ZIP ab (mit Warnhinweis; sie können Gesundheitsdaten enthalten und sind ebenfalls nicht verschlüsselt).
+**Was das Backup enthält:** deine Messwerte, Ereignisse, Synchronisationsstände, die dekodierten FIT-Daten samt aller Rohfelder und die in der App archivierten Originalinhalte der heruntergeladenen Banddateien sowie deine persönlichen Einstellungen (Profil mit Name, Geburtsdatum, Größe, Gewicht und Zielen, Design, Sprache, Aktivitätserkennung, Aufzeichnungsstart, Dashboard-Anordnung). Mit **„FIT-Originale exportieren“** legst du die geprüften FIT-Dateien zusätzlich einzeln als ZIP ab (mit Warnhinweis; sie können Gesundheitsdaten enthalten und sind ebenfalls nicht verschlüsselt).
 
-## 3. Einstellungen (Oberarm-Symbol)
+**Wenn ein Backup nicht klappt:** Die App meldet „Backup fehlgeschlagen“ mit einer technischen Ursache (ohne Messwerte) und löscht die leere Zieldatei wieder. Vorher prüft sie, ob genug freier Speicher vorhanden ist. Ein Backup darf als ZIP bis 512 MB und entpackt bis 2 GB groß sein; die ZIP-Datei ist meist nur ein Bruchteil des Inhalts (Beispiel: 8 MB ZIP für 140 MB Inhalt).
+
+**Wiederherstellen:** Die App prüft das ganze Backup (Prüfsummen, Verweise, Vollständigkeit), **bevor** sie fragt, ob die Datenbank ersetzt werden soll. Bis zu dieser Rückfrage wird nichts verändert; „Abbrechen“ lässt alles, wie es ist. Ist ein Backup ungültig, nennt die App die Ursache. Bei einem Backup mit Einstellungen fragt die App, ob nur die Einstellungen oder die Einstellungen zusammen mit den Gesundheitsdaten wiederhergestellt werden sollen („Nur Einstellungen“ lässt alle Messdaten unverändert); ältere Backups ohne Einstellungen lassen deine aktuellen Einstellungen unverändert. „Datenbank zurücksetzen“ behält die Einstellungen, löscht aber auch die heruntergeladenen Originaldateien des Bands. Lokale Originaldateien bleiben beim Wiederherstellen erhalten und werden beim nächsten Start ergänzt, falls sie im Backup fehlen. Läuft gerade ein Bluetooth-Vorgang (z. B. ein Historien-Download), warten Zurücksetzen und Wiederherstellen nicht, sondern brechen ohne Änderung ab.
+
+## 3. Einstellungen (Statusknopf oben rechts)
 
 ![Einstellungen](images/09-einstellungen.png)  
 *Abb. 9 – Einstellungen: Profil, Körper & Ziele, Sonstiges*

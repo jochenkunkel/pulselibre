@@ -47,7 +47,7 @@ Legende Verfügbarkeit: **ok** = liest die fachlich richtige Quelle; **behoben**
 | Tageszeitleiste | `DayTimelineDialog` → `DayTimelineView` | Puls, Schritte, Band-Puls | `DashboardDayReader`, `FitHistoryReader` | `events`, `unified_measurements` | live + band | eigene Spur je Zeitbasis | – | ok | – |
 | Verlauf: Puls / SpO₂ (Telefonzeit) | `HistoryOverviewView` → `HistoryScatterChartView`, `HistoryDensityChartView` | 24 h / 7 / 30 Tage | `CirqaHistoryReader` (`HistoryDataCache`) | `events` | live | Empfangszeit | Bereichsfilter 1–240 / 1–100 | ok | – |
 | **Verlauf: Herzfrequenz · Band-Verlauf (FIT)** | `HistoryOverviewView` | Band-Herzfrequenz | `FitHistoryReader` | `unified_measurements` (band) | band | Messzeit des Bandes | 1–240 bpm, max. 150 000 Punkte | ok (#477), **Anteile behoben** | vorher keine Unterscheidung Tageshistorie/Aktivität |
-| Verlauf: „Alle Daten“ (Tageszeilen) | `HistoryOverviewView` | min/Ø/max je Tag, Herkunft, Größe | `UnifiedMeasurements.dailySummary` | `unified_measurements` | live + import + band | Tagesgrenze mit UTC-Offset am Fensterende | ungültige Sentinels getrennt gezählt | ok | Restpunkt R1 (Duplikate über Dateien) |
+| Verlauf: „Alle Daten“ (Tageszeilen) | `HistoryOverviewView` | min/Ø/max je Tag, Herkunft, Größe | `UnifiedMeasurements.dailySummary` | `unified_measurements` | live + import + band | Tagesgrenze mit UTC-Offset am Fensterende | ungültige Sentinels getrennt gezählt | ok | R1 umgesetzt: Duplikate über Dateien zählen einmal |
 | Analysen: Ruhepuls-Trend, Schritte (90 Tage), Aktivitätsatlas, Streudiagramm | `TrendCardView` → `RestingPulseChartView`, `DailyBarsView`, `ActivityAtlasView`, `ScatterView` | ein Wert je Tag | `DailyValueReader` | `events` | live | Empfangszeit, ganze lokale Tage | Ruhepuls = Median Gerätewert | nur live | FIT: Ruhepuls/Schritte nicht dekodiert |
 | Analysen: Wissenschaft (Herzfrequenz, Distanz, Tempo, SpO₂, Atmung, Stress) | `ScienceDashboardView` → `ScienceViews` | Zeitreihen gebündelt | `ScienceSeriesLoader`, `ScienceFitSeriesAdapter` | `unified_measurements`, FIT-Tabellen | live + band, getrennt je Karte | Zeitbasis je Karte benannt | SpO₂ UNVERIFIED, Statuscodes getrennt | ok, **Band getrennt** (#656) | Band-Herzfrequenz als zwei Karten: Tageshistorie (monitoring) und Aktivität (record); Strecke/Tempo als Aktivität benannt |
 | Header: Armbandstatus/Akku/Einstellungen (#649) | `WearableStatusButton` | Tragezustand, Armband-Akku | `WearableStatusReader` | `events` (Service 21), `live_device_metadata`, `fit_device_metadata` | live + FIT-Metadaten | Empfangs-/Beobachtungszeit | Tragezustand nur aus Atemstatus −100 / gültigem Atemwert (≤ 2 min), Akku ≤ 12 h | ok | – |
@@ -66,12 +66,16 @@ Generationen gebaut wird. **Nicht** abgedeckt hatte #477 den Kachel-Tagesdialog.
 
 ## Restpunkte
 
-- **R1 – Duplikate über Dateien (offen, FIT):** `sample_id` hängt an der Quelldatei
-  (`sha256(source:ordinal:global:field:decoder)`). Ein erneuter Download **derselben** Datei ist idempotent (gleicher
-  SHA, eine aktive Generation). Enthalten **zwei verschiedene** Dateien dieselbe Messung (gleiche Zeit, gleicher Wert),
-  stehen beide in `unified_measurements` und zählen in „Alle Daten“ doppelt. Ob das bei CIRQA vorkommt, ist unbelegt.
-  FIT führt dafür `duplicateFingerprint`. Bitte an FIT: festlegen, ob solche Paare dieselbe Messung sind, dann
-  entdupliziert die Anzeige danach.
+- **R1 – Duplikate über Dateien (umgesetzt 25.11.2026 nach FIT-Empfehlung):** `sample_id` hängt an der Quelldatei.
+  Enthalten **zwei verschiedene** Dateien dieselbe Messung – gleiches Gerät, gleiche Messgröße, gültiger Messzeitpunkt
+  (Zeitbasis nicht `UNKNOWN`), gleiche Einheit, exakt gleicher Wert –, zählen Diagramme und Tagesübersichten sie nur
+  einmal: Die Kopie der Datei mit dem kleinsten SHA-256 bleibt sichtbar, die anderen bekommen in
+  `unified_measurements.display_duplicate` eine 1. Wiederholungen innerhalb einer Datei, fehlende oder unbekannte
+  Zeitbasis und Werte ohne FIT-Herkunft werden nie zusammengefasst. Alle Originalzeilen bleiben gespeichert und gehen
+  vollständig in den CSV-Export. Der Verlauf nennt die Zahl der so einmal gezählten Werte. Gleiche Regel im Speicher
+  für die Wissenschaftsansicht: `CrossFileDuplicates`. Das ist Anzeigeaggregation, kein Beweis, dass beide Dateien
+  dieselbe physische Probe enthalten. Tests: `UnifiedMeasurementsTest.sameMeasurementInTwoFilesCountsOnceButStaysExported`,
+  `CrossFileDuplicatesTest`.
 - **R2 – Größen ohne Band-Historie (FIT):** Schritte, Ruhepuls, SpO₂, Stress, Atmung, Body Battery werden aus FIT
   nicht dekodiert (`FitHistoricalObservations.mapping`: monitoring nur Feld 27). Die zugehörigen Ansichten zeigen
   deshalb nur Live-Daten. Sobald FIT sie liefert, sind `DailyValueReader`, `NightOxygenReader` und Schritt-Ansichten
@@ -94,5 +98,5 @@ Generationen gebaut wird. **Nicht** abgedeckt hatte #477 den Kachel-Tagesdialog.
 | Datenmenge 1 Hz | `BandHistoryDisplayTest.oneHertzActivityDayStaysBounded` |
 | Lesefehler | `FitHistoryViewTest` (A6-29), Tagesdialog: `dd_band_failed` |
 
-Nicht durch eigene Tests abgedeckt: Duplikate über verschiedene Dateien (R1, Semantik offen) sowie Messzeit gegen
+Nicht durch eigene Tests abgedeckt: Messzeit gegen
 Importzeit über die Band-Spalte `received_at_ms` (die Oberfläche verwendet nur `measured_at_ms`).

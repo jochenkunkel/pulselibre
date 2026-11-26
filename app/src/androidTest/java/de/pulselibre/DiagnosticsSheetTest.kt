@@ -17,6 +17,8 @@ class DiagnosticsSheetTest {
         listOf(v) + ((v as? ViewGroup)?.let { g -> (0 until g.childCount).flatMap { all(g.getChildAt(it)) } } ?: emptyList())
 
     @Test fun showsFiveAreasLoadsReadOnlyDataAndKeepsAdvancedEntry() {
+        androidx.test.core.app.ApplicationProvider.getApplicationContext<android.content.Context>()
+            .getSharedPreferences("communication_trace", 0).edit().clear().commit()
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
             scenario.onActivity { DiagnosticsSheet.show(it) }
             val dialog = DialogTestSupport.awaitDialog("Testlabor")
@@ -42,7 +44,7 @@ class DiagnosticsSheetTest {
                 trace = tv.first { it.tag == "diagnostics_body_trace" }.text.toString()
                 export = tv.first { it.tag == "diagnostics_body_export" }.text.toString()
             }
-            assertTrue(trace.contains("noch nicht verfügbar"))
+            assertTrue(trace, trace.contains("Keine Aufzeichnung gestartet") && trace.contains("keine eigene Bluetooth-Verbindung"))
             assertTrue(export.contains("Vorschau"))
             assertFalse("keine MAC im Export", Regex("([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}").containsMatchIn(export))
         }

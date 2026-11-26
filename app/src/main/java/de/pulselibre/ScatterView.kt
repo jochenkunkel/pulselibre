@@ -22,7 +22,8 @@ internal class ScatterView(
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
 
     init {
-        contentDescription = context.getString(R.string.tr_scatter_cd, xLabel, yLabel, points.size.toString(),
+        // A6-81: an empty list must not crash (minOf); the chart is then simply empty.
+        if (points.isNotEmpty()) contentDescription = context.getString(R.string.tr_scatter_cd, xLabel, yLabel, points.size.toString(),
             xLabel, nf.format(points.minOf { it.first }), nf.format(points.maxOf { it.first }),
             yLabel, nf.format(points.minOf { it.second }), nf.format(points.maxOf { it.second }))
     }

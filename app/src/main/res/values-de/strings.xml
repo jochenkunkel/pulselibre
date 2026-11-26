@@ -447,7 +447,15 @@
     <string name="tr_details_days">\n%1$s Tage: </string>
     <string name="tr_details_unrated">nicht bewertbar · %1$s</string>
     <string name="tr_details_row">%1$s %2$s %3$s%4$s (davor %5$s) · %6$s/%7$s Tage</string>
-    <string name="tr_details_corr_head">\n\nZusammenhang (explorativ, 1 vorab festgelegte Hypothese): Schritte eines Tages ↔ Geräte-Ruhepuls am Folgetag\n</string>
+    <string name="tr_details_corr_head">\n\nZusammenhänge (explorativ, 3 vorab festgelegte Hypothesen, Benjamini-Hochberg-korrigiert; ein Zusammenhang belegt keine Ursache)</string>
+    <string name="tr_hyp_line">\n• %1$s: </string>
+    <string name="tr_hyp_steps_rest">Schritte eines Tages ↔ Geräte-Ruhepuls am Folgetag</string>
+    <string name="tr_hyp_sleep_rest">Schlafdauer ↔ Geräte-Ruhepuls am Folgetag</string>
+    <string name="tr_hyp_sleep_hrv">Schlafdauer ↔ HRV derselben Nacht</string>
+    <string name="tr_hyp_adjusted"> Korrigiertes p=%1$s.</string>
+    <string name="tr_hyp_lag0"> Sensitivität Lag 0: ρ=%1$s.</string>
+    <string name="tr_hyp_missing_sleep">nicht berechenbar – Schlafdaten werden noch nicht aus dem Band dekodiert.</string>
+    <string name="tr_hyp_missing_hrv">nicht berechenbar – HRV wird noch nicht aus dem Band dekodiert.</string>
     <string name="tr_details_corr_nr">%1$s · %2$s</string>
     <string name="tr_details_corr">%1$s · ρ=%2$s (95 %%: %3$s bis %4$s) · n=%5$s Tage. %6$s</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
@@ -556,6 +564,8 @@
     <string name="ex_backup_running">Backup wird erstellt …</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="ex_backup_done">Backup gespeichert: %1$d Ereignisse, %2$d historische Messwerte, %3$d historische FIT-Quellen/%4$d Herkunftszeilen; %5$d kanonische Messwerte, %6$d kanonische FIT-Quellen/%7$d Herkunftszeilen und %8$d FIT-Metadatenzeilen, %9$d abgeleitete Raw-XML-Metadatenzeilen. Vorhandene archivierte Originalinhalte sind enthalten und können sensible Kennungen enthalten.</string>
+    <string name="ex_backup_failed_removed">Backup fehlgeschlagen. Die leere Zieldatei wurde wieder gelöscht.</string>
+    <string name="ex_backup_reason">Ursache: %1$s</string>
     <string name="ex_backup_failed">Backup fehlgeschlagen. Bitte Speicherort prüfen; eine angelegte Zieldatei kann unvollständig sein und sollte gelöscht werden.</string>
     <string name="ex_backup_checking">Backup wird geprüft …</string>
     <string name="ex_backup_invalid">Backup ungültig oder nicht lesbar. Datenbank unverändert.</string>
@@ -589,7 +599,7 @@
     <string name="ex_local_only">Nur auf deinem Gerät · Keine Cloud · Keine Anmeldung</string>
     <string name="ex_db_title">Lokale Datenbank</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
-    <string name="ex_db_note">Backup enthält CIRQA-Ereignisse, historische Messwerte, Synchronisationsstände und vorhandene archivierte Originalinhalte einschließlich unbekannter Felder und Kennungen. Die ZIP-Datei ist unverschlüsselt und enthält sensible Gesundheits- und Gerätedaten.</string>
+    <string name="ex_db_note">Backup enthält CIRQA-Ereignisse, historische Messwerte, Synchronisationsstände und vorhandene archivierte Originalinhalte einschließlich unbekannter Felder und Kennungen sowie deine persönlichen Einstellungen (Profil, Design, Sprache). Die ZIP-Datei ist unverschlüsselt und enthält sensible Gesundheits- und Gerätedaten.</string>
     <string name="ex_btn_backup">Backup erstellen</string>
     <string name="ex_btn_backup_cd">Lokales Datenbankbackup erstellen</string>
     <string name="ex_btn_fit">FIT-Originale exportieren</string>
@@ -608,28 +618,46 @@
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="ex_btn_reset">Datenbank zurücksetzen</string>
     <string name="ex_btn_reset_cd">Alle lokalen Datenbankeinträge löschen</string>
-    <string name="ex_prefs_kept">App-Einstellungen bleiben bei Wiederherstellung und Reset erhalten.</string>
+    <string name="ex_prefs_kept">Persönliche Einstellungen (Profil, Design, Sprache, Aktivitätserkennung, Aufzeichnung, Dashboard-Anordnung) sind Teil neuer Backups; eine Wiederherstellung ersetzt sie, ein Reset behält sie.</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="ex_restore_title">Datenbank ersetzen?</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
-    <string name="ex_restore_msg">Das Backup vom %1$s enthält %2$d Ereignisse, %3$d historische Messwerte, %4$d Synchronisationsstände, %5$d FIT-Quellen und %6$d FIT-Herkunftszeilen. %7$d kanonische Messwerte und %8$d kanonische FIT-Quellen/%9$d Herkunftszeilen sowie %10$d FIT-Metadatenzeilen und %11$d abgeleitete Raw-XML-Metadatenzeilen. Neue Backups können auch archivierte Originalinhalte und sensible Kennungen enthalten.\n\nAlle aktuell gespeicherten Datenbankeinträge werden ersetzt. App-Einstellungen bleiben erhalten. Nur mit einem Backup aus vertrauenswürdiger Quelle fortfahren.</string>
+    <string name="ex_restore_msg">Das Backup vom %1$s enthält %2$d Ereignisse, %3$d historische Messwerte, %4$d Synchronisationsstände, %5$d FIT-Quellen und %6$d FIT-Herkunftszeilen. %7$d kanonische Messwerte und %8$d kanonische FIT-Quellen/%9$d Herkunftszeilen sowie %10$d FIT-Metadatenzeilen und %11$d abgeleitete Raw-XML-Metadatenzeilen. Neue Backups können auch archivierte Originalinhalte und sensible Kennungen enthalten.\n\nAlle aktuell gespeicherten Datenbankeinträge werden ersetzt. %12$s Nur mit einem Backup aus vertrauenswürdiger Quelle fortfahren.</string>
     <string name="ex_replace">Ersetzen</string>
     <string name="ex_restore_cancelled">Wiederherstellung abgebrochen.</string>
     <string name="ex_restore_running">Datenbank wird wiederhergestellt …</string>
     <string name="ex_restore_done">Datenbank aus Backup wiederhergestellt.</string>
+    <string name="ex_progress_snapshot">Momentaufnahme der Datenbank wird erstellt …</string>
+    <string name="ex_progress_write">Tabelle %1$d von %2$d wird geschrieben …</string>
+    <string name="ex_progress_copy">Datei wird gespeichert …</string>
+    <string name="ex_progress_extract">Backup wird entpackt …</string>
+    <string name="ex_progress_validate">Eintrag %1$d von %2$d wird geprüft …</string>
+    <string name="ex_progress_references">Verweise werden geprüft …</string>
+    <string name="ex_progress_restore">Daten werden eingespielt (kann eine Minute dauern) …</string>
+    <string name="ex_progress_settings">Einstellungen werden übernommen …</string>
+    <string name="ex_progress_keep_open">Bitte die App währenddessen nicht schließen.</string>
+    <string name="ex_restore_settings_replaced">Das Backup enthält auch deine persönlichen Einstellungen (%1$d Werte: Profil, Design, Sprache und mehr). Du kannst nur die Einstellungen oder die Einstellungen zusammen mit den Gesundheitsdaten wiederherstellen.</string>
+    <string name="ex_restore_settings_kept">Dieses ältere Backup enthält keine Einstellungen; deine aktuellen Einstellungen bleiben erhalten.</string>
+    <string name="ex_restore_all">Einstellungen und Gesundheitsdaten</string>
+    <string name="ex_restore_settings_only">Nur Einstellungen</string>
+    <string name="ex_restore_settings_done">Einstellungen aus dem Backup übernommen; Gesundheitsdaten unverändert.</string>
+    <string name="ex_ble_busy">Gerade läuft ein Bluetooth-Vorgang (z. B. ein Historien-Download). Bitte warten, bis er beendet ist, und es dann erneut versuchen. Es wurde nichts verändert.</string>
+    <string name="ex_restore_originals_note">Lokal gespeicherte Originaldateien des Bands bleiben beim Wiederherstellen erhalten; was davon im Backup fehlt, wird beim nächsten Start wieder ergänzt.</string>
+    <string name="ex_rec_restarted">Aufzeichnung wieder gestartet.</string>
+    <string name="ex_rec_restart_failed">Aufzeichnung konnte nicht wieder gestartet werden – bitte in der Übersicht starten.</string>
     <string name="ex_restore_failed">Wiederherstellung fehlgeschlagen. Bitte Datenbank prüfen.</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="ex_reset_title">Lokale Datenbank zurücksetzen?</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
-    <string name="ex_reset_msg">Alle lokal gespeicherten CIRQA-Ereignisse, historischen Messwerte und Synchronisationsstände werden dauerhaft gelöscht. App-Einstellungen bleiben erhalten. Diese Aktion kann nicht rückgängig gemacht werden.</string>
+    <string name="ex_reset_msg">Alle lokal gespeicherten CIRQA-Ereignisse, historischen Messwerte, Synchronisationsstände und die heruntergeladenen Originaldateien des Bands (FIT-Dateien) werden dauerhaft gelöscht. Sie kommen nur über ein Backup oder einen neuen Download vom Band zurück. Persönliche Einstellungen bleiben erhalten. Diese Aktion kann nicht rückgängig gemacht werden.</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="ex_reset_delete">Daten löschen</string>
     <string name="ex_reset_running">Datenbank wird zurückgesetzt …</string>
-    <string name="ex_reset_done">Lokale Datenbank wurde geleert.</string>
+    <string name="ex_reset_done">Lokale Datenbank geleert, %1$d Originaldateien gelöscht.</string>
     <string name="ex_reset_failed">Reset fehlgeschlagen. Datenbank bitte prüfen.</string>
     <string name="ex_rec_title">Aufzeichnung läuft</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
-    <string name="ex_rec_msg">Die laufende lokale CIRQA-Aufzeichnung muss vor dem Datenbankvorgang beendet werden.</string>
+    <string name="ex_rec_msg">Die laufende lokale CIRQA-Aufzeichnung wird vor dem Datenbankvorgang beendet und danach automatisch wieder gestartet.</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="ex_rec_stop">Beenden und fortfahren</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
@@ -680,6 +708,7 @@
     <string name="bat_fresh">Stand: %1$s</string>
     <string name="bat_stale">Veraltet · letzter bekannter Stand %1$s</string>
     <string name="bat_time_unknown">Zeitpunkt unbekannt · letzter bekannter Stand</string>
+    <string name="dev_meta_as_of">Stand %1$s</string>
     <string name="bat_cd">Akku: %1$d Prozent. %2$s</string>
     <string name="bat_cd_charging">Akku: %1$d Prozent, lädt. %2$s</string>
     <string name="dev_src_pulse">Herzfrequenz</string>
@@ -901,6 +930,7 @@
     <string name="hv_fit_kinds">Davon normale Tageshistorie: %1$d · aus Aktivitätsaufzeichnungen: %2$d</string>
     <string name="hv_fit_kinds_other"> · sonstige FIT-Nachrichten: %1$d</string>
     <string name="hv_fit_activity_only">Nur Werte aus Aktivitätsaufzeichnungen – für diesen Zeitraum ist keine normale Tageshistorie gespeichert.</string>
+    <string name="hv_fit_duplicates">%1$d Werte waren in mehreren FIT-Dateien enthalten und zählen einmal.</string>
     <string name="dd_band_title">Band-Verlauf (FIT) · Messzeit des Bandes</string>
     <string name="dd_band_summary">%1$d Band-Werte (Tageshistorie %2$d, Aktivität %3$d)</string>
     <string name="dd_band_none">Keine Band-Herzfrequenz (FIT) an diesem Tag gespeichert.</string>
@@ -1035,7 +1065,6 @@
     <string name="hsp_failed">Synchronisation fehlgeschlagen</string>
     <string name="hsp_files">%1$d von %2$d Dateien</string>
     <string name="hsp_coverage_note">Die Historie des Bandes ist nicht als vollständig nachgewiesen: Ein beendeter Lauf heißt nicht, dass jede gespeicherte Messung übertragen wurde.</string>
-    <string name="wear_button_cd">Einstellungen öffnen. CIRQA-Armband: %1$s. Tragestatus: %2$s. Armband-Akku (nicht Telefon): %3$s. Langes Drücken zeigt Verbindungsdetails.</string>
     <string name="wear_worn">getragen (Atemmessung am Handgelenk)</string>
     <string name="wear_not_worn">nicht getragen (Armband meldet: nicht am Handgelenk)</string>
     <string name="wear_offline">unbekannt, Armband nicht verbunden</string>
@@ -1043,4 +1072,21 @@
     <string name="wear_battery_none">keine aktuelle Angabe</string>
     <string name="wear_battery_value">%1$d %% (gemessen vor %2$s)</string>
     <string name="wear_battery_low">, niedrig</string>
+    <string name="wear_battery_last">zuletzt bekannt %1$d %% (vor %2$s)</string>
+    <string name="wear_battery_last_untimed">zuletzt bekannt %1$d %% (Zeitpunkt unbekannt)</string>
+    <string name="wear_zone_status_cd">CIRQA-Armband: %1$s. Tragestatus: %2$s. Tippen für Details.</string>
+    <string name="wear_zone_battery_cd">Armband-Akku (nicht Telefon): %1$s. Tippen für Details.</string>
+    <string name="wear_zone_settings_cd">Einstellungen öffnen</string>
+    <string name="wear_status_title">CIRQA-Armband</string>
+    <string name="wear_status_detail">Verbindung: %1$s\n\nTragestatus: %2$s\n\nDie Verbindung gilt als aktiv, wenn die Aufzeichnung gerade Werte empfängt oder Android das Armband als verbunden meldet. „Getragen“ erscheint nur, wenn das Armband es selbst meldet (Atemmessung oder Meldung „nicht am Handgelenk“, höchstens 2 Minuten alt).</string>
+    <string name="wear_battery_title">Armband-Akku</string>
+    <string name="wear_battery_detail">%1$d %% · gemessen vor %2$s · Quelle: %3$s</string>
+    <string name="wear_battery_detail_old">Der Wert ist älter als 12 Stunden oder das Armband ist gerade nicht verbunden; er wird deshalb grau als „zuletzt bekannt“ angezeigt.</string>
+    <string name="wear_battery_detail_none">Für das Armband liegt noch kein Akkuwert vor. Ein Wert erscheint, sobald die Geräteseite oder eine FIT-Datei des Armbands einen liefert.</string>
+    <string name="wear_battery_detail_low">Akku niedrig.</string>
+    <string name="wear_battery_detail_note">Dies ist der Akku des Armbands, nicht der des Telefons.</string>
+    <string name="wear_src_gatt">Bluetooth-Akkudienst</string>
+    <string name="wear_src_gdi">Gerätestatus des Armbands</string>
+    <string name="wear_src_fit">FIT-Datei des Armbands</string>
+    <string name="wear_src_other">Armband</string>
 </resources>

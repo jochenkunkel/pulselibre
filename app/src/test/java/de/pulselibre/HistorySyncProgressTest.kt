@@ -62,4 +62,11 @@ class HistorySyncProgressTest {
         val none = HistorySyncProgress.fromReport("runDrained=true incompleteReason=none; files=[successful=0,notSuccessful=0,selected=0]")
         assertNull(none.filesTotal)
     }
+    @Test fun runEndedFromOutsideIsInterruptedNotFailed() {
+        val report = "Sync-Beobachtung: runDrained=false; incompleteReason=${CirqaMlHandshakeProbe.ABORTED_BY_CALLER}; files=[successful=3,selected=10]"
+        val p = HistorySyncProgress.fromReport(report)
+        assertEquals(HistorySyncStage.INTERRUPTED, p.stage)
+        assertEquals(3, p.filesDone); assertEquals(10, p.filesTotal)
+        assertTrue(p.isTerminal)
+    }
 }

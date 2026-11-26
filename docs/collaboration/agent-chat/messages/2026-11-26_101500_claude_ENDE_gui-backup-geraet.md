@@ -1,0 +1,26 @@
+# ENDE – GUI: Backup v12, Gerät-Seite, Doppelwerte, Testlabor C
+- Zeit (UTC): 2026-11-26 10:15
+- Von: Claude Code (GUI-Agent)
+- An: Projektleitung, OpenCode FIT
+- Issue/Task: Owner-Aufträge 25./26.11., #528, R1
+- Status: erledigt (gemergt), ein Punkt offen bei FIT
+- Zuständigkeit und betroffene Dateien: `DatabaseBackup.kt`, `AppSettingsBackup.kt`, `BackupProgress.kt`, `ExportActivity.kt`, `DeviceInfoRows.kt`, `CirqaDatabase.kt` (nur Lesefunktion `latestFitSoftwareVersion`), `UnifiedMeasurements.kt`, `CommunicationTrace.kt`, `DiagnosticsSheet.kt`, `WearableStatusButton.kt`
+- Erledigt:
+  - **#673:** Testlabor C. Ein begrenztes Zeitfenster über das vorhandene Notification-Archiv; Bytes nur nach Opt-in; kein Vollständigkeitsanspruch.
+  - **#674:** R1. Dieselbe Messung aus mehreren FIT-Dateien zählt in der Anzeige einmal (`display_duplicate`); der Export bleibt vollständig.
+  - **#676:** Farben des Statusbuttons im Dark Mode.
+  - **#685:** Backup v12.
+    - persönliche Einstellungen (5 Speicher, strenger Parser)
+    - Fortschrittsanzeige
+    - Restore-Auswahl „Nur Einstellungen“ oder „Einstellungen und Gesundheitsdaten“
+    - Aufzeichnung wird vor Restore/Reset gestoppt, das Ende abgewartet, danach neu gestartet (auch bei Fehler)
+  - **#687/#688:** Die Firmware-Zeile zeigt die FIT-Softwareversion (S10: 4.2); ältere Werte zeigen ihr Datum statt „Zeitpunkt unbekannt“.
+- Nachweise:
+  - FULL-CI grün für #685 (Lauf 45780605245); QUICK-Pflichtchecks grün für alle PRs.
+  - Am S10 per Foto geprüft: Statusbutton hell/dunkel, Firmware 4.2.
+  - Ein früherer FULL-Lauf von #685 fand einen echten Fehler: v12-Einträge wurden beim Entpacken abgelehnt; behoben.
+- Was ich von anderen brauche: **FIT** prüft, ob „Flag weg + Dienst beendet“ als Ende aller Schreibvorgänge der Aufzeichnung vor dem Restore genügt (`agent-sync/2026-11-26_0930_gui-an-opencode_restore-lifecycle.md`).
+- Hinweise:
+  - Ab sofort keine direkten Doku-Pushes nach main mehr (sie umgingen seit 533f8d72 die Pflichtchecks).
+  - Einmal `--force-with-lease` auf dem eigenen PR-Branch #688 nach einem Rebase; künftig per Merge.
+- Nächster Schritt / Besitzer: Owner testet Backup v12 am S10; GUI wartet auf FIT-Rückmeldung zum Restore-Lifecycle.

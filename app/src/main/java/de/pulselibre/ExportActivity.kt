@@ -38,6 +38,32 @@ class ExportActivity : AppCompatActivity() {
     private lateinit var throughTimeButton: TextView
     private lateinit var feedback: TextView
     private lateinit var databaseFeedback: TextView
+    /** Bar and step text while a backup is created, checked or restored (null phase = hidden). */
+    private lateinit var databaseProgress: android.widget.ProgressBar
+    @Volatile private var progressShownKey: String? = null
+
+    /**
+     * Worker-thread progress → main thread. Only a changed text is posted, so a busy copy loop cannot flood the UI.
+     * The feedback line keeps the step; "do not close the app" stays visible below it.
+     */
+    private fun progressSink(): BackupProgress = BackupProgress { phase, done, total ->
+        val text = BackupProgressText.text(Strings.of(this), phase, done, total)
+        if (text == progressShownKey) return@BackupProgress
+        progressShownKey = text
+        val percent = BackupProgressText.percent(phase, done, total)
+        runOnUiThread {
+            if (isFinishing || isDestroyed) return@runOnUiThread
+            databaseFeedback.text = text + "\n" + getString(R.string.ex_progress_keep_open)
+            databaseProgress.visibility = android.view.View.VISIBLE
+            databaseProgress.isIndeterminate = percent == null
+            if (percent != null) databaseProgress.progress = percent
+        }
+    }
+
+    private fun hideProgress() {
+        progressShownKey = null
+        if (::databaseProgress.isInitialized) databaseProgress.visibility = android.view.View.GONE
+    }
     private val executor = Executors.newSingleThreadExecutor()
     private val operationHandler = Handler(Looper.getMainLooper())
     private var pendingWindow: ExportWindow? = null
@@ -53,12 +79,23 @@ class ExportActivity : AppCompatActivity() {
                 try {
                     val output = contentResolver.openOutputStream(uri)
                         ?: error("Backup-Ziel kann nicht geöffnet werden")
-                    val report = output.use { DatabaseBackup.write(this, it) }
+                    val report = output.use { DatabaseBackup.write(this, it, progressSink()) }
                     runOnUiThread {
+                        hideProgress()
                         databaseFeedback.text = getString(R.string.ex_backup_done, report.events, report.legacyReadings, report.fitSources, report.fitProvenance, report.canonicalReadings, report.canonicalFitSources, report.canonicalFitProvenance, report.canonicalDeviceMetadata, report.rawDeviceMetadata)
                     }
-                } catch (_: Exception) {
-                    runOnUiThread { databaseFeedback.text = getString(R.string.ex_backup_failed) }
+                } catch (e: Exception) {
+                    // The picker already created the target file: never leave a 0-byte "backup" behind.
+                    val removed = runCatching { android.provider.DocumentsContract.deleteDocument(contentResolver, uri) }.getOrDefault(false)
+                    val reason = BackupFailure.reason(e)
+                    runOnUiThread {
+                        hideProgress()
+                        databaseFeedback.text = getString(if (removed) R.string.ex_backup_failed_removed else R.string.ex_backup_failed) +
+                            "\n" + getString(R.string.ex_backup_reason, reason)
+                    }
+                } catch (e: OutOfMemoryError) {
+                    runCatching { android.provider.DocumentsContract.deleteDocument(contentResolver, uri) }
+                    runOnUiThread { hideProgress(); databaseFeedback.text = getString(R.string.ex_backup_failed) + "\n" + getString(R.string.ex_backup_reason, "OutOfMemoryError") }
                 }
             }
         }
@@ -73,12 +110,14 @@ class ExportActivity : AppCompatActivity() {
                 try {
                     val input = contentResolver.openInputStream(uri)
                         ?: error("Backup-Datei kann nicht geöffnet werden")
-                    val plan = input.use { DatabaseBackup.prepareRestore(this, it) }
+                    val plan = input.use { DatabaseBackup.prepareRestore(this, it, progressSink()) }
                     runOnUiThread {
+                        hideProgress()
                         if (isFinishing || isDestroyed) plan.close() else confirmRestore(plan)
                     }
-                } catch (_: Exception) {
-                    runOnUiThread { databaseFeedback.text = getString(R.string.ex_backup_invalid) }
+                } catch (e: Exception) {
+                    val reason = BackupFailure.reason(e)
+                    runOnUiThread { hideProgress(); databaseFeedback.text = getString(R.string.ex_backup_invalid) + "\n" + getString(R.string.ex_backup_reason, reason) }
                 }
             }
         }
@@ -207,8 +246,8 @@ class ExportActivity : AppCompatActivity() {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
         }
-        headerRow.addView(label("‹", 32f, Color.WHITE), LinearLayout.LayoutParams(dp(40), dp(48)).apply {
-            rightMargin = dp(8)
+        headerRow.addView(label("‹", 32f, Color.WHITE), LinearLayout.LayoutParams(dp(48), dp(48)).apply { // 48 dp touch target
+            rightMargin = dp(0) // the wider target takes the former margin, the title keeps its position
         })
         headerRow.getChildAt(0).apply {
             isClickable = true
@@ -374,7 +413,15 @@ class ExportActivity : AppCompatActivity() {
             getString(R.string.ex_btn_reset), getString(R.string.ex_btn_reset_cd), Color.rgb(170, 52, 65)
         ) { confirmReset() }, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) })
         databaseFeedback = label(getString(R.string.ex_prefs_kept), 12f, muted)
+        databaseProgress = android.widget.ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal).apply {
+            max = 100; visibility = android.view.View.GONE; tag = "database_progress"
+            progressTintList = android.content.res.ColorStateList.valueOf(palette.accent)
+            importantForAccessibility = android.view.View.IMPORTANT_FOR_ACCESSIBILITY_NO // the text below says the same
+        }
+        dataPanel.addView(databaseProgress, LinearLayout.LayoutParams(-1, dp(8)).apply { topMargin = dp(12) })
         dataPanel.addView(databaseFeedback, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(10) })
+        // Screen readers hear each step as it changes.
+        androidx.core.view.ViewCompat.setAccessibilityLiveRegion(databaseFeedback, androidx.core.view.ViewCompat.ACCESSIBILITY_LIVE_REGION_POLITE)
         updateLabels()
         screen.addView(MainNavigationView(this, 4))
         setContentView(screen)
@@ -385,23 +432,21 @@ class ExportActivity : AppCompatActivity() {
             .setTitle(getString(R.string.ex_restore_title))
             .setMessage(
                 getString(R.string.ex_restore_msg, plan.createdAt, plan.events, plan.legacyReadings, plan.syncCursors, plan.fitSources, plan.fitProvenance,
-                    plan.canonicalReadings, plan.canonicalFitSources, plan.canonicalFitProvenance, plan.canonicalDeviceMetadata, plan.rawDeviceMetadata)
+                    plan.canonicalReadings, plan.canonicalFitSources, plan.canonicalFitProvenance, plan.canonicalDeviceMetadata, plan.rawDeviceMetadata,
+                    if (plan.containsSettings) getString(R.string.ex_restore_settings_replaced, plan.appSettings)
+                    else getString(R.string.ex_restore_settings_kept)) + "\n\n" + getString(R.string.ex_restore_originals_note)
             )
             .setNegativeButton(getString(R.string.action_cancel)) { _, _ ->
                 plan.close()
                 databaseFeedback.text = getString(R.string.ex_restore_cancelled)
             }
-            .setPositiveButton(getString(R.string.ex_replace)) { _, _ ->
-                stopRecorderThen(onCancel = { plan.close() }) {
-                    databaseFeedback.text = getString(R.string.ex_restore_running)
-                    executor.execute {
-                        try {
-                            DatabaseBackup.restore(this, plan); HistoryDataCache.invalidate()
-                            runOnUiThread { databaseFeedback.text = getString(R.string.ex_restore_done) }
-                        } catch (_: Exception) {
-                            runOnUiThread { databaseFeedback.text = getString(R.string.ex_restore_failed) }
-                        } finally { plan.close() }
-                    }
+            .setPositiveButton(getString(if (plan.containsSettings) R.string.ex_restore_all else R.string.ex_replace)) { _, _ ->
+                stopRecorderThen(onCancel = { plan.close() }) { stopped -> runRestore(plan, includeData = true, restartRecorder = stopped) }
+            }
+            .apply {
+                // Owner request 26.11.2026: a v12 backup can bring back only the configuration, leaving health data alone.
+                if (plan.containsSettings) setNeutralButton(getString(R.string.ex_restore_settings_only)) { _, _ ->
+                    runRestore(plan, includeData = false) // the databases are not touched: the recorder may keep running
                 }
             }
             .setOnCancelListener {
@@ -409,6 +454,51 @@ class ExportActivity : AppCompatActivity() {
                 databaseFeedback.text = getString(R.string.ex_restore_cancelled)
             }
             .show()
+    }
+
+    private fun runRestore(plan: PreparedDatabaseRestore, includeData: Boolean, restartRecorder: Boolean = false) {
+        // Replacing the databases while a BLE session (e.g. a history download) still writes would mix both states.
+        val gate = Any()
+        if (includeData && !CirqaBleSessionGate.acquire(gate)) {
+            databaseFeedback.text = getString(R.string.ex_ble_busy)
+            plan.close()
+            if (restartRecorder) restartRecorder()
+            return
+        }
+        databaseFeedback.text = getString(if (includeData) R.string.ex_restore_running else R.string.ex_progress_settings)
+        executor.execute {
+            try {
+                val settingsRestored = plan.containsSettings
+                DatabaseBackup.restore(this, plan, progressSink(), includeData)
+                if (includeData) HistoryDataCache.invalidate()
+                runOnUiThread {
+                    hideProgress()
+                    databaseFeedback.text = getString(if (includeData) R.string.ex_restore_done else R.string.ex_restore_settings_done)
+                    if (settingsRestored && !isFinishing && !isDestroyed) {
+                        // Theme and language of the restored settings take effect now (activity is recreated).
+                        AppAppearance.apply(AppAppearance.preference(this))
+                        recreate()
+                    }
+                }
+            } catch (_: Exception) {
+                runOnUiThread { hideProgress(); databaseFeedback.text = getString(R.string.ex_restore_failed) }
+            } finally {
+                plan.close()
+                CirqaBleSessionGate.release(gate)
+                // FIT 26.11.: the previous recording state comes back after the restore, also when it failed.
+                if (restartRecorder) runOnUiThread { restartRecorder() }
+            }
+        }
+    }
+
+    /** Starts the recording again that [stopRecorderThen] stopped; says so if Android refuses. */
+    private fun restartRecorder() {
+        val ok = try {
+            androidx.core.content.ContextCompat.startForegroundService(this,
+                Intent(this, CirqaContinuousRecordingService::class.java).setAction(CirqaContinuousRecordingService.ACTION_START))
+            true
+        } catch (_: Exception) { false }
+        if (!isFinishing && !isDestroyed) databaseFeedback.append("\n" + getString(if (ok) R.string.ex_rec_restarted else R.string.ex_rec_restart_failed))
     }
 
     private fun confirmReset() {
@@ -419,14 +509,24 @@ class ExportActivity : AppCompatActivity() {
             )
             .setNegativeButton(getString(R.string.action_cancel), null)
             .setPositiveButton(getString(R.string.ex_reset_delete)) { _, _ ->
-                stopRecorderThen {
+                stopRecorderThen { stopped ->
+                    // FIT 26.11.: a running history download writes originals; deleting them under it would lose bytes.
+                    val gate = Any()
+                    if (!CirqaBleSessionGate.acquire(gate)) {
+                        databaseFeedback.text = getString(R.string.ex_ble_busy)
+                        if (stopped) restartRecorder()
+                        return@stopRecorderThen
+                    }
                     databaseFeedback.text = getString(R.string.ex_reset_running)
                     executor.execute {
                         try {
-                            DatabaseBackup.reset(this); HistoryDataCache.invalidate()
-                            runOnUiThread { databaseFeedback.text = getString(R.string.ex_reset_done) }
+                            val deleted = DatabaseBackup.reset(this); HistoryDataCache.invalidate(); TrendCache.invalidate()
+                            runOnUiThread { databaseFeedback.text = getString(R.string.ex_reset_done, deleted) }
                         } catch (_: Exception) {
                             runOnUiThread { databaseFeedback.text = getString(R.string.ex_reset_failed) }
+                        } finally {
+                            CirqaBleSessionGate.release(gate)
+                            if (stopped) runOnUiThread { restartRecorder() }
                         }
                     }
                 }
@@ -435,10 +535,15 @@ class ExportActivity : AppCompatActivity() {
     }
 
     /** Stop the explicit background recorder before a destructive database operation. */
-    private fun stopRecorderThen(onCancel: () -> Unit = {}, action: () -> Unit) {
+    /**
+     * Stops the recording before the databases are replaced and waits until it has really ended: the running flag is
+     * cleared AND the service is gone (its last write finished). [action] learns whether it was stopped here, so the
+     * caller can start it again afterwards (FIT 26.11.2026: restore the previous recording state, also on errors).
+     */
+    private fun stopRecorderThen(onCancel: () -> Unit = {}, action: (stopped: Boolean) -> Unit) {
         val prefs = getSharedPreferences(CirqaContinuousRecordingService.PREFS, MODE_PRIVATE)
-        if (!RecorderStatus.isRunning(prefs)) {
-            action()
+        if (!RecorderStatus.isRunning(prefs) && !AutoStartRecording.isServiceAlive(this)) {
+            action(false)
             return
         }
         AlertDialog.Builder(this)
@@ -457,7 +562,7 @@ class ExportActivity : AppCompatActivity() {
                 val deadline = SystemClock.elapsedRealtime() + 10_000L
                 val wait = object : Runnable {
                     override fun run() {
-                        if (!RecorderStatus.isRunning(prefs)) action()
+                        if (!RecorderStatus.isRunning(prefs) && !AutoStartRecording.isServiceAlive(this@ExportActivity)) action(true)
                         else if (SystemClock.elapsedRealtime() >= deadline) {
                             databaseFeedback.text = getString(R.string.ex_rec_still)
                             onCancel()

@@ -1,0 +1,13 @@
+# START – #637 Android-SQLite-Open-Reproduktion
+- Zeit (UTC): 2026-11-25 21:09
+- Von: OpenCode FIT
+- An: Projektleitung, FIT/GUI
+- Issue/Task: #637
+- Bezug/Antwort auf: `2026-11-25_205500_opencode_ENDE_issue637-sqlite-log-correlation.md`
+- Status: aktiv
+- Zuständigkeit und betroffene Dateien: isolierter Android-Instrumentierungstest für `SQLiteOpenHelper`-/WAL-Open-Konkurrenz; nur temporäre SQLite-DB unter Emulator.
+- Geplanter Umfang / tatsächlich erledigt: Erst reproduzierbare Testsequenz gegen aktuellen `main` entwerfen; wenn lokale API-35-Emulatorausführung verfügbar, gezielt und ausschließlich dort ausführen (`ANDROID_SERIAL=emulator-5554`). Keine Produktcodeänderung, keine private DB, kein S10/BLE.
+- Was ich von anderen brauche: nichts
+- Was ich anderen liefere: Nachweis, ob eine aktive Transaktion beim konkurrierenden Helper-Open die beobachtete Konfigurationssperre reproduziert, oder belastbare negative Reproduktion samt Grenzen.
+- Nachweise: Basis `origin/main=c4b66931`; PR #677 (Dokumentation) unabhängig und mit eigenem Check-Watcher.
+- Nächster Schritt / Besitzer: OpenCode FIT untersucht testbare Minimalreproduktion und Emulatorverfügbarkeit.

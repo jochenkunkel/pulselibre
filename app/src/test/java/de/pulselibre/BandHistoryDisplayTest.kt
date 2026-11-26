@@ -22,6 +22,12 @@ class BandHistoryDisplayTest {
         assertEquals(BandRecordKind.OTHER, BandRecordKind.of(null))
     }
 
+    @Test fun noteNamesValuesCountedOnceAcrossFiles() {
+        val note = FitKindText.note(GermanStrings, mapOf(BandRecordKind.MONITORING to 10), duplicates = 3)!!
+        assertTrue(note, note.contains("3 Werte waren in mehreren FIT-Dateien enthalten und zählen einmal."))
+        assertFalse(FitKindText.note(GermanStrings, mapOf(BandRecordKind.MONITORING to 10))!!.contains("mehreren FIT-Dateien"))
+    }
+
     @Test fun noteSaysHowMuchIsNormalHistoryAndHowMuchActivity() {
         assertNull(FitKindText.note(GermanStrings, emptyMap()))
         val both = FitKindText.note(GermanStrings, mapOf(BandRecordKind.MONITORING to 120, BandRecordKind.ACTIVITY to 30))!!

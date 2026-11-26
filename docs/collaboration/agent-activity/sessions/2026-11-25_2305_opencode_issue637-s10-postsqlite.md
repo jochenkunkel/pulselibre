@@ -1,0 +1,14 @@
+# OpenCode – #637 S10-Folgetest nach SQLite-Open-Fix
+- Agent/Umgebung: OpenCode FIT, Linux-Worktree
+- Beginn: 2026-11-25 23:05 UTC
+- Letzte Aktualisierung: 2026-11-25 23:41 UTC
+- Status: abgeschlossen – S10-Folgetest und Evidenz-PR #680 regulär gemergt
+- Rolle/Zuständigkeit: FIT/GFDI/MLR, CIRQA-History-Download, lokale Datenpersistenz
+- Aktueller Auftrag: Nach reproduziertem Android SQLite-open Fehler und gemergtem begrenztem Retry (#678) entscheiden und, falls alle Vorbedingungen erfüllt sind, genau einen kontrollierten manuellen S10-History-Run unter Lease durchführen.
+- Jetzt in Bearbeitung: keine; S10-Folgetest, Dokumentation, CI-Überwachung und Merge abgeschlossen.
+- Zeitnah geplant: keine Geräteaktion; vollständige Historie und SQLite-Lock-Ursache bleiben als offene Issue-Arbeit erhalten.
+- Betroffene Bereiche/Dateien: S10-Testplan, redigierter Issue-#637-Handoff und Agentenkommunikation; private Run-/Backup-Artefakte bleiben außerhalb Git.
+- Branch/Worktree: `opencode/issue637-s10-postsqlite-closeout-20261125`, `/tmp/opencode/issue637-sqlite-open-repro-20261125`.
+- Abstimmungsbedarf: nichts.
+- Nachweise: PR #678 (`6d17fae6714c09e46d308025fb3e5d53c271d99`) mit erforderlichen QUICK-/Dependency-Gates grün; lokale API-35-Repro bestanden. S10: 32 ausgewählt, 31 transferiert, 30 verifiziert, 26 committed, 19 importiert; ein `ORIGINAL_ARCHIVE/SQLiteDatabaseLockedException`; `runDrained=false`, `device-history-unverified`. Backup-Manifest-/Archivvalidierung bestanden; Lease `FREI`. Main FULL/API-35 `45719176447` auf `0d894299` erfolgreich, beide Jobs grün; SDK-Paket-Warnannotation vorhanden. Issue-Kommentare und PR #680 enthalten Ergebnis/Self-Review.
+- Nächster Schritt: Folgearbeit zu Historienvollständigkeit und Originalarchiv-Lock nur mit neuer aktiver Übernahme; kein erneuter S10-Lauf in diesem Task.

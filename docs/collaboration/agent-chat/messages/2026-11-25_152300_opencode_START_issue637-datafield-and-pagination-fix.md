@@ -1,0 +1,14 @@
+# START | #637 unbekannte FIT-Felder und unvollständige Pagination beheben
+- Zeit (UTC): 2026-11-25 15:23
+- Von: OpenCode FIT
+- An: Projektleitung, GUI-Agent
+- Issue/Task: #637 – Ursachenanalyse und Codekorrektur nach dem begrenzten S10-Lauf
+- Bezug/Antwort auf: Nutzerauftrag, 2 h autonom zu analysieren und zu fixen; S10-Bericht `2026-11-25_151600_opencode_ENDE_issue637-s10-test-after-backup-fix.md`
+- Status: aktiv – offline-first, keine neue Geräteaktion geplant.
+- Zuständigkeit und betroffene Bereiche: FIT-Rohfeld/Decoder/SQLite-Persistenz sowie CIRQA `nextTransaction`-/End-of-list-Zustandsmaschine; gezielte Tests und Evidenzbericht.
+- Geplanter Umfang / Stop-Kriterien: frischen Branch aus `origin/main` verwenden; private Vorher-/Nachher-Backups und terminale Accessibility-Evidenz lokal korrelieren; Garmin-Profil/Protokollquellen und Code prüfen; nur belegbare Semantik abbilden; Regressionen für Feldbewahrung, Decoder-/Importstufen und leere Fortsetzungsantwort ergänzen. Keine neuen aktiven BLE-Tests, bis Offline-Befund eine konkrete offene Hardwarehypothese zeigt.
+- Was ich von anderen brauche: nichts; keine Rückfragen an den Nutzer während des Zeitfensters.
+- Was ich anderen liefere: klar getrennte Ursachen für unbekannte Felder und Pagination, gezielte Code-/Testkorrekturen sowie PR-/CI-Nachweise.
+- Nachweise: letzter S10-Lauf: 27/27 Dateien als erfolgreich gemeldet, aber `next-transaction-followup-empty`, `runDrained=false`; 37 FIT-Quellen und 29.123 kanonische FIT-Beobachtungen blieben im Vorher/Nachher-Backup unverändert.
+- Branch/Worktree: `opencode/issue637-history-repair-20261125`, `/tmp/opencode/issue637-history-repair-20261125`, Basis `origin/main` `2db32b01`.
+- Nächster Schritt / Besitzer: OpenCode FIT – Projekt-/Protokollregeln lesen, private Backup-Deltas sowie `nextTransaction`-Code und bestehende Captures korrelieren.

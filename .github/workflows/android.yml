@@ -2,7 +2,7 @@ name: Android CI
 
 # Ausführungsort und Testumfang sind bei manuellen Läufen frei wählbar.
 # Automatische Läufe verwenden dokumentierte Standardwerte (siehe
-# docs/ci/HYBRID_CI.md): Push = LOCAL bei Freigabe, sonst CLOUD;
+# docs/quality/ci/HYBRID_CI.md): Push = LOCAL bei Freigabe, sonst CLOUD;
 # PR = CLOUD, außer LOCAL ist ausdrücklich für vertrauenswürdige PRs freigegeben;
 # PR und main verwenden QUICK, nächtliche und manuelle FULL-Läufe verwenden FULL.
 run-name: >-
@@ -13,12 +13,6 @@ run-name: >-
 on:
   pull_request:
     branches: [main]
-    paths-ignore:
-      - 'docs/**'
-      - '**/*.md'
-      - '**/*.mdx'
-      - '**/*.rst'
-      - '**/*.txt'
   push:
     branches: [main]
     paths-ignore:

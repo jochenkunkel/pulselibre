@@ -27,11 +27,19 @@ import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
 
 private const val BACKUP_FORMAT = "de.pulselibre.local-database-backup"
-private const val BACKUP_VERSION = 11
-private const val MAX_ARCHIVE_BYTES = 128L * 1024L * 1024L
-private const val MAX_ENTRY_BYTES = 120L * 1024L * 1024L
+private const val BACKUP_VERSION = 12
+/**
+ * Size limits. Until 25.11.2026 one 128 MiB constant bounded both the ZIP file and the sum of the *uncompressed* JSON
+ * lines; real data (all FIT field generations, original files) passed it, every backup failed and left a 0-byte file.
+ * Now the compressed file and the uncompressed content have separate limits; restore uses the same ones (zip-bomb guard).
+ */
+internal const val MAX_ARCHIVE_BYTES = 512L * 1024L * 1024L
+internal const val MAX_UNCOMPRESSED_BYTES = 2L * 1024L * 1024L * 1024L
+internal const val MAX_ENTRY_BYTES = 1536L * 1024L * 1024L
 private const val MAX_LINE_BYTES = 2 * 1024 * 1024
-private const val MAX_RECORDS = 1_000_000L
+internal const val MAX_RECORDS = 20_000_000L
+/** Headroom kept free when writing or extracting an archive in the app cache. */
+private const val MIN_FREE_BYTES = 64L * 1024L * 1024L
 private const val MAX_MANIFEST_BYTES = 64 * 1024
 private const val EVENTS_ENTRY = "cirqa_events.jsonl"
 private const val READINGS_ENTRY = "legacy_readings.jsonl"
@@ -81,6 +89,8 @@ private val BACKUP_V10_ENTRIES = BACKUP_V9_ENTRIES + CANONICAL_FIT_GENERATION_FI
 private val BACKUP_V11_ENTRIES = BACKUP_V10_ENTRIES + setOf(
     IMPORT_RUNS_ENTRY, IMPORT_ERRORS_ENTRY, OBSERVATION_STATUS_EVENTS_ENTRY
 )
+/** v12: personal configuration (profile, theme, language, activity detection, auto-start, dashboard layout). */
+private val BACKUP_V12_ENTRIES = BACKUP_V11_ENTRIES + AppSettingsBackup.ENTRY
 
 data class DatabaseBackupReport(
     val createdAt: String,
@@ -126,27 +136,43 @@ class PreparedDatabaseRestore internal constructor(
     val canonicalActiveFitGenerations: Long,
     val canonicalFitReviewCandidates: Long,
     val legacyFitReviewCandidates: Long,
-    val liveDeviceMetadata: Long
+    val liveDeviceMetadata: Long,
+    /** Personal settings in the backup (v12+); 0 for older backups, whose restore leaves the settings as they are. */
+    val appSettings: Long = 0
 ) : Closeable {
+    /** True for v12+ backups: their restore replaces the personal settings (even an empty set means "defaults"). */
+    val containsSettings: Boolean get() = version >= 12
+
     override fun close() { directory.deleteRecursively() }
 }
 
 /** Versioned, checksummed archive for both local SQLite stores. The archive is not encrypted. */
 object DatabaseBackup {
     /** Stream a consistent snapshot into a temporary archive, then copy it to the chosen SAF file. */
-    fun write(context: Context, destination: OutputStream): DatabaseBackupReport {
+    fun write(context: Context, destination: OutputStream, progress: BackupProgress = BackupProgress.NONE): DatabaseBackupReport {
+        // The archive is built in the cache first: say so clearly instead of failing halfway with a disk error.
+        val database = context.getDatabasePath("cirqa_measurements.db").length()
+        // Snapshot copy of the database plus the temporary archive both live in the cache.
+        require(context.cacheDir.usableSpace > 2 * database + MIN_FREE_BYTES) {
+            "Zu wenig freier Speicher für das temporäre Backup (frei ${context.cacheDir.usableSpace / 1_048_576} MiB)"
+        }
         val temp = File.createTempFile("pulselibre-backup-", ".zip", context.cacheDir)
         try {
-            val report = writeArchive(context, temp)
+            val report = writeArchive(context, temp, progress)
+            val size = temp.length().coerceAtLeast(1)
+            progress.update(BackupProgress.Phase.COPY, 0, 100)
             BufferedInputStream(FileInputStream(temp)).use { source ->
                 val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
                 var copied = 0L
+                var shown = 0
                 while (true) {
                     val count = source.read(buffer)
                     if (count < 0) break
                     copied += count
                     require(copied <= MAX_ARCHIVE_BYTES) { "Backup-Datei überschreitet das Größenlimit" }
                     destination.write(buffer, 0, count)
+                    val percent = (copied * 100 / size).toInt()
+                    if (percent != shown) { shown = percent; progress.update(BackupProgress.Phase.COPY, percent, 100) }
                 }
                 destination.flush()
             }
@@ -157,10 +183,14 @@ object DatabaseBackup {
     }
 
     /** Read, bound, checksum and validate the complete archive before showing overwrite confirmation. */
-    fun prepareRestore(context: Context, source: InputStream): PreparedDatabaseRestore {
+    fun prepareRestore(context: Context, source: InputStream, progress: BackupProgress = BackupProgress.NONE): PreparedDatabaseRestore {
+        require(context.cacheDir.usableSpace > MIN_FREE_BYTES) {
+            "Zu wenig freier Speicher zum Prüfen des Backups (frei ${context.cacheDir.usableSpace / 1_048_576} MiB)"
+        }
         val directory = File(context.cacheDir, "database-restore-${UUID.randomUUID()}")
         require(directory.mkdir()) { "Temporärer Wiederherstellungsbereich kann nicht erstellt werden" }
         try {
+            progress.update(BackupProgress.Phase.EXTRACT, 0, 0)
             val extracted = extractArchive(source, directory)
             val manifestFile = extracted.getValue(MANIFEST_ENTRY)
             val manifestBytes = manifestFile.readBytes()
@@ -179,7 +209,8 @@ object DatabaseBackup {
                 8 -> BACKUP_V8_ENTRIES
                 9 -> BACKUP_V9_ENTRIES
                 10 -> BACKUP_V10_ENTRIES
-                BACKUP_VERSION -> BACKUP_V11_ENTRIES
+                11 -> BACKUP_V11_ENTRIES
+                BACKUP_VERSION -> BACKUP_V12_ENTRIES
                 else -> throw IllegalArgumentException("Backup-Version wird nicht unterstützt")
             }
             require(extracted.keys == dataEntries + MANIFEST_ENTRY) {
@@ -193,7 +224,8 @@ object DatabaseBackup {
             val entryMetadata = manifest.getJSONObject("entries")
             require(entryMetadata.length() == dataEntries.size) { "Backup-Metadaten sind unvollständig" }
             val recordCounts = mutableMapOf<String, Long>()
-            dataEntries.forEach { name ->
+            dataEntries.forEachIndexed { index, name ->
+                progress.update(BackupProgress.Phase.VALIDATE, index, dataEntries.size)
                 val file = extracted.getValue(name)
                 val metadata = entryMetadata.getJSONObject(name)
                 require(sha256(file) == metadata.getString("sha256")) { "Backup-Prüfsumme stimmt nicht: $name" }
@@ -201,6 +233,10 @@ object DatabaseBackup {
                 val count = validateJsonLines(name, file)
                 require(count == metadata.getLong("records")) { "Backup-Datensatzanzahl stimmt nicht: $name" }
                 recordCounts[name] = count
+            }
+            progress.update(BackupProgress.Phase.REFERENCES, 0, 1)
+            if (version >= 12) {
+                File(directory, AppSettingsBackup.ENTRY).useLines { AppSettingsBackup.validateAll(it) }
             }
             if (version >= 9) {
                 File(directory, DownloadedFileArchive.BACKUP_ENTRY).useLines { lines ->
@@ -256,7 +292,8 @@ object DatabaseBackup {
                 canonicalFitReviewCandidates =
                     recordCounts[CANONICAL_FIT_REVIEW_CANDIDATES_ENTRY] ?: 0,
                 legacyFitReviewCandidates = recordCounts[LEGACY_FIT_REVIEW_CANDIDATES_ENTRY] ?: 0,
-                liveDeviceMetadata = recordCounts[LIVE_DEVICE_METADATA_ENTRY] ?: 0
+                liveDeviceMetadata = recordCounts[LIVE_DEVICE_METADATA_ENTRY] ?: 0,
+                appSettings = recordCounts[AppSettingsBackup.ENTRY] ?: 0
             )
         } catch (error: Exception) {
             directory.deleteRecursively()
@@ -264,11 +301,20 @@ object DatabaseBackup {
         }
     }
 
-    /** Replace all rows in both stores in one SQLite transaction; settings and preferences remain. */
-    fun restore(context: Context, plan: PreparedDatabaseRestore) {
+    /**
+     * Replace all rows in both stores in one SQLite transaction. From v12 the personal settings are replaced too (after
+     * the data, so a failed data restore leaves them untouched); older backups leave the current settings as they are.
+     */
+    fun restore(context: Context, plan: PreparedDatabaseRestore, progress: BackupProgress = BackupProgress.NONE,
+                /** false = only the personal settings (v12+); the databases stay exactly as they are. */
+                includeData: Boolean = true) {
+        require(includeData || plan.containsSettings) { "Dieses Backup enthält keine Einstellungen" }
         try {
-            restoreRows(context, plan)
-            if (plan.version >= 11) {
+            if (includeData) {
+                progress.update(BackupProgress.Phase.RESTORE, 0, 0)
+                restoreRows(context, plan)
+            }
+            if (includeData && plan.version >= 11) {
                 val db = CirqaDatabase(context)
                 val sql = db.writableDatabase
                 try {
@@ -290,6 +336,11 @@ object DatabaseBackup {
                 } finally {
                     db.close()
                 }
+            }
+            if (plan.version >= 12) {
+                progress.update(BackupProgress.Phase.SETTINGS, 0, 0)
+                val settings = File(plan.directory, AppSettingsBackup.ENTRY).useLines { AppSettingsBackup.validateAll(it) }
+                AppSettingsBackup.restore(context, settings)
             }
         } finally { TrendCache.invalidate() } // A6-33
     }
@@ -468,13 +519,41 @@ object DatabaseBackup {
     }
 
     /** Clear only the two local data stores. Profile, appearance and test settings are retained. */
-    fun reset(context: Context) {
+    /**
+     * Private directories with downloaded band originals. The app re-imports them on every start (FIT backfill and
+     * archive migration), so a reset that kept them brought the band values straight back (owner 26.11.2026: reset
+     * deletes them too).
+     */
+    internal val ORIGINAL_DIRECTORIES = listOf("verified_fit", "verified_raw", "downloaded_originals_pending", "cirqa_fit_history")
+
+    /** Empties both databases and deletes the downloaded originals; returns how many original files were deleted. */
+    fun reset(context: Context): Int {
         CirqaDatabase(context).use { it.replaceAllStoredRows(emptySequence(), emptySequence(), emptySequence()) }
+        return deleteOriginals(context.filesDir)
     }
 
-    private fun writeArchive(context: Context, target: File): DatabaseBackupReport {
+    internal fun deleteOriginals(filesDir: File): Int {
+        var deleted = 0
+        fun clear(dir: File) {
+            for (child in dir.listFiles().orEmpty()) {
+                // Never follow a symbolic link out of the app's private storage.
+                if (java.nio.file.Files.isSymbolicLink(child.toPath())) { child.delete(); continue }
+                if (child.isDirectory) { clear(child); child.delete() }
+                else if (child.delete()) deleted++
+            }
+        }
+        for (name in ORIGINAL_DIRECTORIES) {
+            val dir = File(filesDir, name)
+            if (java.nio.file.Files.isSymbolicLink(dir.toPath())) { dir.delete(); continue }
+            if (dir.isDirectory) clear(dir)
+        }
+        return deleted
+    }
+
+    private fun writeArchive(context: Context, target: File, progress: BackupProgress): DatabaseBackupReport {
         val now = Instant.now().toString()
         val metadata = JSONObject()
+        val entriesTotal = BACKUP_V12_ENTRIES.size
         var eventCount = 0L
         var readingCount = 0L
         var cursorCount = 0L
@@ -496,7 +575,9 @@ object DatabaseBackup {
         ZipOutputStream(BufferedOutputStream(FileOutputStream(target))).use { zip ->
             CirqaDatabase(context).use { database ->
                 database.ensureHistoricalStoreCopied()
+                progress.update(BackupProgress.Phase.SNAPSHOT, 0, 1)
                 database.readStoredSnapshot { db ->
+                    progress.update(BackupProgress.Phase.WRITE, 0, entriesTotal)
                     val events = writeJsonLines(zip, EVENTS_ENTRY) { emit ->
                         db.rawQuery("SELECT payload_json FROM main.events ORDER BY received_at_utc, id", null).use { rows ->
                             while (rows.moveToNext()) emit(rows.getString(0))
@@ -504,6 +585,7 @@ object DatabaseBackup {
                     }
                     eventCount = events.records
                     metadata.put(EVENTS_ENTRY, entryMetadata(events))
+                    progress.update(BackupProgress.Phase.WRITE, metadata.length(), entriesTotal)
 
                     val readings = writeJsonLines(zip, READINGS_ENTRY) { emit ->
                         db.rawQuery(
@@ -520,6 +602,7 @@ object DatabaseBackup {
                     }
                     readingCount = readings.records
                     metadata.put(READINGS_ENTRY, entryMetadata(readings))
+                    progress.update(BackupProgress.Phase.WRITE, metadata.length(), entriesTotal)
 
                     val cursors = writeJsonLines(zip, CURSORS_ENTRY) { emit ->
                         db.rawQuery(
@@ -532,6 +615,7 @@ object DatabaseBackup {
                     }
                     cursorCount = cursors.records
                     metadata.put(CURSORS_ENTRY, entryMetadata(cursors))
+                    progress.update(BackupProgress.Phase.WRITE, metadata.length(), entriesTotal)
 
                     val sources = writeJsonLines(zip, FIT_SOURCES_ENTRY) { emit ->
                         db.rawQuery(
@@ -548,6 +632,7 @@ object DatabaseBackup {
                     }
                     fitSourceCount = sources.records
                     metadata.put(FIT_SOURCES_ENTRY, entryMetadata(sources))
+                    progress.update(BackupProgress.Phase.WRITE, metadata.length(), entriesTotal)
 
                     val provenance = writeJsonLines(zip, FIT_PROVENANCE_ENTRY) { emit ->
                         db.rawQuery(
@@ -567,6 +652,7 @@ object DatabaseBackup {
                     }
                     fitProvenanceCount = provenance.records
                     metadata.put(FIT_PROVENANCE_ENTRY, entryMetadata(provenance))
+                    progress.update(BackupProgress.Phase.WRITE, metadata.length(), entriesTotal)
 
                     val canonicalReadings = writeJsonLines(zip, CANONICAL_READINGS_ENTRY) { emit ->
                         db.rawQuery(
@@ -583,6 +669,7 @@ object DatabaseBackup {
                     }
                     canonicalReadingCount = canonicalReadings.records
                     metadata.put(CANONICAL_READINGS_ENTRY, entryMetadata(canonicalReadings))
+                    progress.update(BackupProgress.Phase.WRITE, metadata.length(), entriesTotal)
 
                     val canonicalCursors = writeJsonLines(zip, CANONICAL_CURSORS_ENTRY) { emit ->
                         db.rawQuery(
@@ -595,6 +682,7 @@ object DatabaseBackup {
                     }
                     canonicalCursorCount = canonicalCursors.records
                     metadata.put(CANONICAL_CURSORS_ENTRY, entryMetadata(canonicalCursors))
+                    progress.update(BackupProgress.Phase.WRITE, metadata.length(), entriesTotal)
 
                     val canonicalSources = writeJsonLines(zip, CANONICAL_FIT_SOURCES_ENTRY) { emit ->
                         db.rawQuery(
@@ -611,6 +699,7 @@ object DatabaseBackup {
                     }
                     canonicalFitSourceCount = canonicalSources.records
                     metadata.put(CANONICAL_FIT_SOURCES_ENTRY, entryMetadata(canonicalSources))
+                    progress.update(BackupProgress.Phase.WRITE, metadata.length(), entriesTotal)
 
                     val canonicalProvenance = writeJsonLines(zip, CANONICAL_FIT_PROVENANCE_ENTRY) { emit ->
                         db.rawQuery(
@@ -630,6 +719,7 @@ object DatabaseBackup {
                     }
                     canonicalFitProvenanceCount = canonicalProvenance.records
                     metadata.put(CANONICAL_FIT_PROVENANCE_ENTRY, entryMetadata(canonicalProvenance))
+                    progress.update(BackupProgress.Phase.WRITE, metadata.length(), entriesTotal)
 
                     val canonicalDeviceMetadata = writeJsonLines(zip, CANONICAL_DEVICE_METADATA_ENTRY) { emit ->
                         db.rawQuery(
@@ -655,6 +745,7 @@ object DatabaseBackup {
                     }
                     canonicalDeviceMetadataCount = canonicalDeviceMetadata.records
                     metadata.put(CANONICAL_DEVICE_METADATA_ENTRY, entryMetadata(canonicalDeviceMetadata))
+                    progress.update(BackupProgress.Phase.WRITE, metadata.length(), entriesTotal)
                     val rawDeviceMetadata = writeJsonLines(zip, RAW_DEVICE_METADATA_ENTRY) { emit ->
                         db.rawQuery(
                             """SELECT source_sha256, file_bytes, verified_at_ms, parser_version,
@@ -675,6 +766,7 @@ object DatabaseBackup {
                     }
                     rawDeviceMetadataCount = rawDeviceMetadata.records
                     metadata.put(RAW_DEVICE_METADATA_ENTRY, entryMetadata(rawDeviceMetadata))
+                    progress.update(BackupProgress.Phase.WRITE, metadata.length(), entriesTotal)
                     val canonicalUnmappedFields = writeJsonLines(zip, CANONICAL_UNMAPPED_FIT_FIELDS_ENTRY) { emit ->
                         db.rawQuery(
                             """SELECT source_sha256, global_message_number, field_kind, field_number,
@@ -705,6 +797,7 @@ object DatabaseBackup {
                         }
                     }
                     metadata.put(CANONICAL_UNMAPPED_FIT_FIELDS_ENTRY, entryMetadata(canonicalUnmappedFields))
+                    progress.update(BackupProgress.Phase.WRITE, metadata.length(), entriesTotal)
                     val generations = writeJsonLines(zip, CANONICAL_FIT_GENERATIONS_ENTRY) { emit ->
                         db.rawQuery(
                             """SELECT generation_id, source_sha256, decoder_version, profile_version,
@@ -725,6 +818,7 @@ object DatabaseBackup {
                     }
                     canonicalFitGenerationCount = generations.records
                     metadata.put(CANONICAL_FIT_GENERATIONS_ENTRY, entryMetadata(generations))
+                    progress.update(BackupProgress.Phase.WRITE, metadata.length(), entriesTotal)
                     val generationObservations = writeJsonLines(
                         zip, CANONICAL_FIT_GENERATION_OBSERVATIONS_ENTRY
                     ) { emit ->
@@ -781,6 +875,7 @@ object DatabaseBackup {
                     }
                     canonicalFitGenerationFieldCount = generationFields.records
                     metadata.put(CANONICAL_FIT_GENERATION_FIELDS_ENTRY, entryMetadata(generationFields))
+                    progress.update(BackupProgress.Phase.WRITE, metadata.length(), entriesTotal)
                     val activeGenerations = writeJsonLines(zip, CANONICAL_ACTIVE_FIT_GENERATIONS_ENTRY) { emit ->
                         db.rawQuery(
                             """SELECT source_sha256, generation_id FROM main.fit_active_generations
@@ -824,6 +919,7 @@ object DatabaseBackup {
                     }
                     canonicalFitReviewCandidateCount = reviewCandidates.records
                     metadata.put(CANONICAL_FIT_REVIEW_CANDIDATES_ENTRY, entryMetadata(reviewCandidates))
+                    progress.update(BackupProgress.Phase.WRITE, metadata.length(), entriesTotal)
                     val legacyReviewCandidates = writeJsonLines(zip, LEGACY_FIT_REVIEW_CANDIDATES_ENTRY) { emit ->
                         db.rawQuery(
                             """SELECT sample_id, device_id, metric, measured_at_ms, value, unit,
@@ -852,6 +948,7 @@ object DatabaseBackup {
                     }
                     legacyFitReviewCandidateCount = legacyReviewCandidates.records
                     metadata.put(LEGACY_FIT_REVIEW_CANDIDATES_ENTRY, entryMetadata(legacyReviewCandidates))
+                    progress.update(BackupProgress.Phase.WRITE, metadata.length(), entriesTotal)
 
                     val liveMetadata = writeJsonLines(zip, LIVE_DEVICE_METADATA_ENTRY) { emit ->
                         db.rawQuery(
@@ -871,28 +968,36 @@ object DatabaseBackup {
                     }
                     liveDeviceMetadataCount = liveMetadata.records
                     metadata.put(LIVE_DEVICE_METADATA_ENTRY, entryMetadata(liveMetadata))
+                    progress.update(BackupProgress.Phase.WRITE, metadata.length(), entriesTotal)
                     val originalFiles = writeJsonLines(zip, DownloadedFileArchive.BACKUP_ENTRY) { emit ->
                         DownloadedFileArchive.export(db, emit)
                     }
                     metadata.put(DownloadedFileArchive.BACKUP_ENTRY, entryMetadata(originalFiles))
+                    progress.update(BackupProgress.Phase.WRITE, metadata.length(), entriesTotal)
                     val importRuns = writeJsonLines(zip, IMPORT_RUNS_ENTRY) { emit ->
                         db.rawQuery("SELECT * FROM main.import_runs ORDER BY import_run_id", null).use { rows ->
                             while (rows.moveToNext()) emit(encodeAuditRow(rows))
                         }
                     }
                     metadata.put(IMPORT_RUNS_ENTRY, entryMetadata(importRuns))
+                    progress.update(BackupProgress.Phase.WRITE, metadata.length(), entriesTotal)
                     val importErrors = writeJsonLines(zip, IMPORT_ERRORS_ENTRY) { emit ->
                         db.rawQuery("SELECT * FROM main.import_errors ORDER BY import_run_id, id", null).use { rows ->
                             while (rows.moveToNext()) emit(encodeAuditRow(rows))
                         }
                     }
                     metadata.put(IMPORT_ERRORS_ENTRY, entryMetadata(importErrors))
+                    progress.update(BackupProgress.Phase.WRITE, metadata.length(), entriesTotal)
                     val statusEvents = writeJsonLines(zip, OBSERVATION_STATUS_EVENTS_ENTRY) { emit ->
                         db.rawQuery("SELECT * FROM main.observation_status_events ORDER BY id", null).use { rows ->
                             while (rows.moveToNext()) emit(encodeAuditRow(rows))
                         }
                     }
                     metadata.put(OBSERVATION_STATUS_EVENTS_ENTRY, entryMetadata(statusEvents))
+                    progress.update(BackupProgress.Phase.WRITE, metadata.length(), entriesTotal)
+                    val settings = writeJsonLines(zip, AppSettingsBackup.ENTRY) { emit -> AppSettingsBackup.export(context, emit) }
+                    metadata.put(AppSettingsBackup.ENTRY, entryMetadata(settings))
+                    progress.update(BackupProgress.Phase.WRITE, metadata.length(), entriesTotal)
                     require(
                         events.bytes + readings.bytes + cursors.bytes + sources.bytes + provenance.bytes +
                             canonicalReadings.bytes + canonicalCursors.bytes + canonicalSources.bytes +
@@ -901,7 +1006,7 @@ object DatabaseBackup {
                             generations.bytes + generationObservations.bytes + activeGenerations.bytes +
                             generationFields.bytes + reviewCandidates.bytes + legacyReviewCandidates.bytes +
                             liveMetadata.bytes + originalFiles.bytes + importRuns.bytes +
-                            importErrors.bytes + statusEvents.bytes <= MAX_ARCHIVE_BYTES
+                            importErrors.bytes + statusEvents.bytes + settings.bytes <= MAX_UNCOMPRESSED_BYTES
                     ) {
                         "Lokale Datenbank ist zu groß für ein Backup"
                     }
@@ -959,7 +1064,7 @@ object DatabaseBackup {
         .put("sha256", value.sha256)
 
     private fun extractArchive(source: InputStream, directory: File): Map<String, File> {
-        val allowed = BACKUP_V11_ENTRIES + MANIFEST_ENTRY
+        val allowed = BACKUP_V12_ENTRIES + MANIFEST_ENTRY
         val files = linkedMapOf<String, File>()
         var totalBytes = 0L
         ZipInputStream(BufferedInputStream(source)).use { zip ->
@@ -976,7 +1081,7 @@ object DatabaseBackup {
                         if (count < 0) break
                         entryBytes += count
                         totalBytes += count
-                        require(entryBytes <= MAX_ENTRY_BYTES && totalBytes <= MAX_ARCHIVE_BYTES) {
+                        require(entryBytes <= MAX_ENTRY_BYTES && totalBytes <= MAX_UNCOMPRESSED_BYTES) {
                             "Backup ist zu groß"
                         }
                         out.write(buffer, 0, count)
@@ -1057,6 +1162,7 @@ object DatabaseBackup {
                     LEGACY_FIT_REVIEW_CANDIDATES_ENTRY -> parseFitReviewCandidate(line)
                     LIVE_DEVICE_METADATA_ENTRY -> parseLiveDeviceMetadata(line)
                     IMPORT_RUNS_ENTRY, IMPORT_ERRORS_ENTRY, OBSERVATION_STATUS_EVENTS_ENTRY -> JSONObject(line)
+                    AppSettingsBackup.ENTRY -> AppSettingsBackup.parse(line)
                     DownloadedFileArchive.BACKUP_ENTRY -> DownloadedFileArchive.parse(line)
                 }
                 count++
@@ -1592,7 +1698,7 @@ object DatabaseBackup {
             decoderVersion = item.getString("decoder_version")
         )
         require(row.sampleId.isNotBlank() && row.deviceId.isNotBlank() &&
-            row.metric in setOf("spo2", "stress", "respiration") &&
+            row.metric in CirqaDatabase.FIT_REVIEW_CANDIDATE_METRICS &&
             (row.measuredAtEpochMillis == null || row.measuredAtEpochMillis >= 0) &&
             row.value.isFinite() && row.unit.isNotBlank() &&
             row.sourceSha256.matches(Regex("[0-9a-f]{64}")) && row.recordOrdinal > 0 &&
@@ -1894,4 +2000,13 @@ object DatabaseBackup {
     }
 
     private fun ByteArray.toHex(): String = joinToString("") { "%02x".format(it.toInt() and 255) }
+}
+
+/** Technical, data-free reason of a failed backup for the user and support (class and message only, no values). */
+internal object BackupFailure {
+    fun reason(e: Throwable): String {
+        val root = generateSequence(e) { it.cause }.last()
+        val message = root.message?.lineSequence()?.firstOrNull()?.take(160)
+        return if (message.isNullOrBlank()) root.javaClass.simpleName else "${root.javaClass.simpleName}: $message"
+    }
 }
