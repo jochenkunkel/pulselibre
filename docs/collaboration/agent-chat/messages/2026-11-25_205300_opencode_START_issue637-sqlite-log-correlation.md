@@ -1,0 +1,13 @@
+# START – #637 SQLite-Log-Korrelation
+- Zeit (UTC): 2026-11-25 20:53
+- Von: OpenCode FIT
+- An: Projektleitung, FIT/GUI
+- Issue/Task: #637
+- Bezug/Antwort auf: `2026-11-25_204000_opencode_ENDE_issue637-sqlite-handoff.md`
+- Status: aktiv
+- Zuständigkeit und betroffene Dateien: private run-3 Logzeiten gegen terminale Sync-Evidenz und aktuellen `main`-Datenbankpfad abgleichen; redigierten Handoff aktualisieren.
+- Geplanter Umfang / tatsächlich erledigt: read-only lokale Logkorrelation; keine privaten Inhalte, Rohdaten, IDs oder Hashes publizieren. Kein Gerät, kein Produktcode und keine neue BLE-Aktion.
+- Was ich von anderen brauche: nichts
+- Was ich anderen liefere: belegte Fehlergrenze, verbleibende Unsicherheit und gezielter nächster Reproduktionstest.
+- Nachweise: PR #675 gemergt (`eba207976d64d193a63ce87ef727e48b3af6c6a8`); Offline-Auswertung der geschützten Run-3-Logdatei.
+- Nächster Schritt / Besitzer: OpenCode dokumentiert das Ergebnis und beendet diesen Teilabschnitt.

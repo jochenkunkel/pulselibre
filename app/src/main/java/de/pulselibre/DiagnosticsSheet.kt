@@ -18,7 +18,8 @@ import androidx.appcompat.app.AppCompatActivity
 
 /**
  * Hidden test laboratory (#172, stage 1): five read-only areas A–E as tiles in one bottom-anchored dialog.
- * Opens by the hidden gesture only. Nothing here scans, connects or writes to the band; no trace is recorded.
+ * Opens by the hidden gesture only. Nothing here scans, connects or writes to the band; part C only marks a time window over notifications the sync
+ * already archives (#528, [CommunicationTrace]).
  */
 internal object DiagnosticsSheet {
     fun show(activity: AppCompatActivity) {
@@ -28,11 +29,11 @@ internal object DiagnosticsSheet {
             text = t; textSize = size; setTextColor(color); if (bold) setTypeface(null, Typeface.BOLD)
         }
         val content = LinearLayout(activity).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(16), dp(8), dp(16), dp(8)) }
-        content.addView(text("Nur lesende Diagnose. Es wird nichts gescannt, verbunden oder aufgezeichnet.", 12f, palette.muted)
+        content.addView(text("Nur lesende Diagnose. Es wird nichts gescannt, verbunden oder an das Band gesendet.", 12f, palette.muted)
             .apply { setPadding(0, 0, 0, dp(10)) })
 
         val details = LinkedHashMap<String, TextView>()
-        fun tile(key: String, icon: PlIcon, title: String, subtitle: String) {
+        fun tile(key: String, icon: PlIcon, title: String, subtitle: String, extra: View? = null) {
             val body = text("Wird geladen …", 12f, palette.ink).apply {
                 visibility = View.GONE; setPadding(dp(34), dp(6), 0, dp(6)); setTextIsSelectable(true); tag = "diagnostics_body_$key"
             }
@@ -48,17 +49,72 @@ internal object DiagnosticsSheet {
                 t.addView(text(title, 15f, palette.ink, true).apply { importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO })
                 t.addView(text(subtitle, 12f, palette.muted).apply { importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO })
                 addView(t, LinearLayout.LayoutParams(0, -2, 1f))
-                setOnClickListener { body.visibility = if (body.visibility == View.VISIBLE) View.GONE else View.VISIBLE }
+                setOnClickListener {
+                    val show = body.visibility != View.VISIBLE
+                    body.visibility = if (show) View.VISIBLE else View.GONE
+                    extra?.visibility = body.visibility
+                }
             }
             content.addView(header, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) })
             content.addView(body, LinearLayout.LayoutParams(-1, -2))
+            extra?.let { it.visibility = View.GONE; content.addView(it, LinearLayout.LayoutParams(-1, -2)) }
+        }
+        fun action(label: String, tagName: String) = text(label, 14f, palette.accent, true).apply {
+            setPadding(dp(34), dp(8), dp(12), dp(8)); minimumHeight = dp(48); gravity = Gravity.CENTER_VERTICAL
+            isClickable = true; isFocusable = true; tag = tagName
+        }
+        val traceToggle = action("", "diagnostics_trace_toggle")
+        val tracePayloads = android.widget.CheckBox(activity).apply {
+            text = "Vollständige Bytes anzeigen (separates Opt-in, gilt nur für diese Aufzeichnung)"
+            setTextColor(palette.ink); textSize = 13f; minimumHeight = dp(48); tag = "diagnostics_trace_payloads"
+            setPadding(dp(8), 0, 0, 0)
+        }
+        val traceRefresh = action("Aktualisieren", "diagnostics_trace_refresh")
+        val traceControls = LinearLayout(activity).apply {
+            orientation = LinearLayout.VERTICAL
+            addView(traceToggle); addView(tracePayloads, LinearLayout.LayoutParams(-1, -2).apply { marginStart = dp(26) })
+            addView(traceRefresh)
         }
         tile("app", PlIcon.INFO, "A · App-Diagnose", "Version, Android, Datenbank-Integrität")
         tile("bluetooth", PlIcon.SIGNAL, "B · Bluetooth-Diagnose", "Status und Berechtigungen, ohne Scan/Verbindung")
-        tile("trace", PlIcon.SESSIONS, "C · Kommunikationsaufzeichnung", "Opt-in, begrenzt – noch nicht verfügbar")
+        tile("trace", PlIcon.SESSIONS, "C · Kommunikationsaufzeichnung",
+            "Ausdrücklich starten, max. ${CommunicationTrace.MAX_WINDOW_MS / 60_000} min, Bytes nur nach Opt-in", traceControls)
         tile("sync", PlIcon.DATA, "D · Synchronisation", "FIT-Inventur und lokaler Datenbankabgleich")
         tile("export", PlIcon.STORAGE, "E · Diagnosepaket", "Vorschau, dann bewusst teilen")
-        details.getValue("trace").text = DiagnosticsFormat.TRACE_PLACEHOLDER
+        val traceBody = details.getValue("trace")
+        fun refreshTrace() {
+            val now = System.currentTimeMillis()
+            val state = CommunicationTrace.current(activity, now)
+            val payloads = CommunicationTrace.payloadsAllowed(activity)
+            traceToggle.text = if (state is CommunicationTrace.State.Recording) "Aufzeichnung stoppen" else "Aufzeichnung starten"
+            tracePayloads.setOnCheckedChangeListener(null)
+            tracePayloads.isChecked = payloads
+            tracePayloads.isEnabled = state !is CommunicationTrace.State.Idle
+            traceBody.text = CommunicationTrace.format(state, null, now)
+            val window = when (state) {
+                is CommunicationTrace.State.Recording -> state.startMs to now
+                is CommunicationTrace.State.Finished -> state.startMs to state.endMs
+                CommunicationTrace.State.Idle -> null
+            } ?: return
+            Thread {
+                val trace = runCatching {
+                    CirqaDatabase(activity).use { CommunicationTrace.read(it.readableDatabase, window.first, window.second, payloads) }
+                }.getOrNull()
+                activity.runOnUiThread {
+                    traceBody.text = if (trace == null) "Archiv nicht lesbar." else CommunicationTrace.format(state, trace, now)
+                    tracePayloads.setOnCheckedChangeListener { _, checked ->
+                        CommunicationTrace.allowPayloads(activity, checked); refreshTrace()
+                    }
+                }
+            }.start()
+        }
+        traceToggle.setOnClickListener {
+            if (CommunicationTrace.current(activity) is CommunicationTrace.State.Recording) CommunicationTrace.stop(activity)
+            else CommunicationTrace.start(activity)
+            refreshTrace()
+        }
+        traceRefresh.setOnClickListener { refreshTrace() }
+        refreshTrace()
 
         val share = text("Diagnosepaket teilen …", 14f, palette.accent, true).apply {
             setPadding(dp(34), dp(8), dp(12), dp(8)); isClickable = true; isFocusable = true; tag = "diagnostics_share"

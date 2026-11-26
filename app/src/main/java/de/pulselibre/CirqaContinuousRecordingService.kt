@@ -48,6 +48,7 @@ class CirqaContinuousRecordingService : Service() {
     private val handler = Handler(Looper.getMainLooper())
     private var probe: RecorderLink? = null
     private var running = false
+    private var stopPending = false
     private lateinit var log: CirqaLocalLog
     private var attempts = 0
     /** Attempts since the last reading: drives the backoff, so a long good connection starts again at 2 s. */
@@ -77,7 +78,7 @@ class CirqaContinuousRecordingService : Service() {
             return START_NOT_STICKY
         }
         if (intent?.action != ACTION_START) return START_NOT_STICKY
-        if (running) return START_NOT_STICKY
+        if (running || stopPending) return START_NOT_STICKY
         val notification = notification(getString(R.string.svc_collecting))
         try {
             if (Build.VERSION.SDK_INT >= 29) {
@@ -252,14 +253,25 @@ class CirqaContinuousRecordingService : Service() {
     }
 
     private fun stopCollection(reason: String) {
+        if (stopPending) return
         if (running) log.append("session_end", mapOf("reason" to reason, "attempts" to attempts, "readings" to readings))
+        stopPending = true
         running = false
-        getSharedPreferences(PREFS, MODE_PRIVATE).edit().putBoolean(KEY_RUNNING, false).apply()
         attemptGate.stop()
         unregisterBluetoothStateReceiver()
         handler.removeCallbacksAndMessages(null)
-        probe?.close()
+        val closingProbe = probe
         probe = null
+        if (closingProbe == null) {
+            completeStop()
+        } else {
+            closingProbe.closeWhenQuiescent { handler.post { completeStop() } }
+        }
+    }
+
+    /** Publish the terminal state only after the link has fenced and drained its writer work. */
+    private fun completeStop() {
+        getSharedPreferences(PREFS, MODE_PRIVATE).edit().putBoolean(KEY_RUNNING, false).apply()
         stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
     }

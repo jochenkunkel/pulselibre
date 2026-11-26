@@ -66,8 +66,6 @@ internal object DiagnosticsFormat {
         append("Nur lesende Prüfung; ein Sync wird hier nicht gestartet.")
     }
 
-    const val TRACE_PLACEHOLDER = "Die zeitlich begrenzte, ausdrücklich gestartete Kommunikationsaufzeichnung ist noch nicht verfügbar (folgt, Ticket #172). Hier wird nichts aufgezeichnet."
-
     /** Text for the explicit, user-initiated export. Preview is shown before sharing; nothing is uploaded automatically. */
     fun exportPackage(s: DiagnosticsSnapshot, createdAt: String): String = buildString {
         appendLine("PulsLibre Diagnosepaket · $createdAt")

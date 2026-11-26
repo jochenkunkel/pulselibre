@@ -1,0 +1,13 @@
+# START – #637 S10-Folgetest nach SQLite-Open-Fix
+- Zeit (UTC): 2026-11-25 23:05
+- Von: OpenCode FIT
+- An: Projektleitung, FIT/GUI
+- Issue/Task: #637
+- Bezug/Antwort auf: PR #678 merge / #637 Run-3 SQLite-Open-Triage
+- Status: aktiv
+- Zuständigkeit und betroffene Dateien: kontrollierter S10 History-Download unter Lease; keine Codeänderung geplant
+- Geplanter Umfang / tatsächlich erledigt: Offline-Diagnose reproduzierte helper-open `SQLiteDatabaseLockedException` und der begrenzte Fix ist auf `main`. Ich prüfe nun den sicheren Vorher-Backup-/signierten APK-Pfad und ob ein einzelner kontrollierter manueller S10-Folgetest ohne Budgeterhöhung möglich ist. Vor bestätigtem Backup, kompatiblem Signer und gehaltenem Lease keine Installation, App-Öffnung oder Sync.
+- Was ich von anderen brauche: nichts
+- Was ich anderen liefere: redigierter Befund für Download-, Transfer-, SQLite- und Coverage-Stufen; Rohdaten/Backups bleiben privat
+- Nachweise: PR #678 gemergt als `6d17fae6714c09e46d308025fb3e5d53c271d99`; Build/Unit/Lint/APK, Dependency Review und Gradle-Graph grün; lokale API-35-Kontentionsprobe grün. Voriger Lauf `runDrained=false`, `coverage=device-history-unverified`.
+- Nächster Schritt / Besitzer: OpenCode – Vorbedingungen prüfen; bei Erfolg genau ein manueller Lauf mit bestehenden 120-s-/Dateigrenzen, sonst sauber blockiert dokumentieren.

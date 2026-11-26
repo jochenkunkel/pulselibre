@@ -47,6 +47,30 @@ internal object ImportAuditRecorder {
         return db.insertWithOnConflict("import_runs", null, values, SQLiteDatabase.CONFLICT_IGNORE) >= 0
     }
 
+    /** Update the parent row with terminal counters; it must exist before child errors are inserted. */
+    @Synchronized
+    fun finishRun(
+        db: SQLiteDatabase,
+        runId: String,
+        finishedAtMs: Long,
+        status: String,
+        observedCount: Int,
+        statusCount: Int,
+        errorCount: Int
+    ): Boolean {
+        require(runId.isNotBlank() && finishedAtMs >= 0)
+        require(status in setOf("COMPLETED", "PARTIAL", "FAILED"))
+        require(observedCount >= 0 && statusCount >= 0 && errorCount >= 0)
+        val values = ContentValues().apply {
+            put("finished_at_ms", finishedAtMs)
+            put("status", status)
+            put("observed_count", observedCount)
+            put("status_count", statusCount)
+            put("error_count", errorCount)
+        }
+        return db.update("import_runs", values, "import_run_id=?", arrayOf(runId)) == 1
+    }
+
     @Synchronized
     fun recordFileError(
         db: SQLiteDatabase,

@@ -1,0 +1,12 @@
+# OpenCode – GUI-Abstimmungen und #637 Download-/Import-Recherche
+- Agent/Umgebung: OpenCode FIT, Linux-Worktree
+- Beginn: 2026-11-26 08:00 UTC
+- Letzte Aktualisierung: 2026-11-26 08:35 UTC
+- Status: aktiv – PR #686 offen, finale Pflichtchecks laufen
+- Rolle/Zuständigkeit: FIT/BLE/SQLite/Import; fachliche Übergaben an GUI
+- Auftrag: offene GUI-Fragen aus agent-sync/Tickets beantworten, damit GUI weiterarbeiten kann; anschließend den aktuellen History-Download-/Archiv-/FIT-Importpfad offline auf reproduzierbaren Fehler prüfen.
+- Jetzt in Bearbeitung: Abstimmungen zu Restore während laufender Aufzeichnung, #528 Diagnose-Trace und R1–R3 beantwortet; Cache-Invalidierungslücke bei aktiver FIT-Generation im `UnifiedMeasurements`-Projektionspfad mit Android-Regressionstest adressiert.
+- Betroffene Dateien: agent-sync Antwort/Index, agent-chat, diese Sitzung; danach nur eng begrenzte FIT-/Importdateien, falls konkreter Fehler mit Regressionstest belegt ist.
+- Abstimmungsbedarf: GUI-Agent kann auf Basis der gepushten Antworten fortfahren; die Entscheidung zu Scan-Skip benötigt noch eine separate FIT-Folgeumsetzung. Keine Hardware-/BLE-Aktion.
+- Grenzen: keine Gerätezugriffe, keine Laufbudget-/Sync-Verhaltensänderung, keine Rohdaten oder privaten Diagnosen ins Repo.
+- Nachweise: `git diff --check` erfolgreich. Gradle 9.6.0 mit Android SDK: `:app:compileDebugAndroidTestKotlin` und `:app:testDebugUnitTest` erfolgreich; der Instrumentationstest wurde nicht ausgeführt. Cache-Fix und GUI-Antworten in PR #686, Branch-Head `bbe50069`; Build/Unit/Lint/APK, Dependency Review und Graph-Checks für diesen Head laufen. Der weitere Koordinationsnachtrag zur sicheren FIT-Scan-Skip-Logik ist ergänzt und wird auf denselben PR-Branch gepusht. Keine Geräteaktionen.

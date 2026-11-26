@@ -69,7 +69,7 @@ internal object HistoryDataCache {
         return HistorySnapshot(range, start, windowEnd,
             pulse.slice(start.toEpochMilli(), windowEnd.toEpochMilli()),
             oxygen.slice(start.toEpochMilli(), windowEnd.toEpochMilli()),
-            fit?.points.orEmpty(), fit?.available ?: false, fitFailed, fit?.newest, fit?.kinds.orEmpty(), allData)
+            fit?.points.orEmpty(), fit?.available ?: false, fitFailed, fit?.newest, fit?.kinds.orEmpty(), fit?.duplicates ?: 0, allData)
     }
 
     private fun sync(context: Context, now: Instant) {
