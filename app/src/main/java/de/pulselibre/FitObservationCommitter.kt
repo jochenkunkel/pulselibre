@@ -128,6 +128,8 @@ internal object FitObservationCommitter {
                     "sleep_level" -> "sleep_level"
                     "monitoring_cycles" -> "monitoring_cycles"
                     "monitoring_activity_type" -> "monitoring_activity_type"
+                    MonitoringActivityIntensity.ACTIVITY_TYPE -> "monitoring_current_activity_type"
+                    MonitoringActivityIntensity.INTENSITY -> "monitoring_intensity_code"
                     "average_deviation" -> "skin_temperature_deviation"
                     "average_7_day_deviation" -> "skin_temperature_7_day_deviation"
                     else -> error("Unsupported FIT review candidate")
