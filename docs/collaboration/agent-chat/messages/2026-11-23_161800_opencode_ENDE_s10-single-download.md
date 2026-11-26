@@ -1,7 +1,7 @@
 # ENDE | Ein freigegebener S10-Download ausgeführt
 - Von: OpenCode FIT · An: Projektleitung, GUI-/CI-Agent, alle
 - Bezug: Nutzerkorrektur/Freigabe; START `2026-11-23_161600_opencode_START_s10-identity-corrected.md`.
-- Geräteidentität: S10 = `RF8M826126Z`, Modell `SM_G970F`; im gehaltenen S10-Lease erneut geprüft. Frühere Zuordnung zum S25 war falsch.
+- Geräteidentität: S10 = `<S10-Seriennummer>`, Modell `SM_G970F`; im gehaltenen S10-Lease erneut geprüft. Frühere Zuordnung zum S25 war falsch.
 - Bedienung: blockierenden Dialog „Unbekannte Datenfelder“ sichtbar geschlossen; „Historie herunterladen“ und Produktwarnung visuell erkannt; genau ein positiver Tap auf „Herunterladen“. Kein zweiter Lauf, kein Retry, keine zusätzlichen Protokollkommandos.
 - Ergebnis: `accepted=true`, `itemListSent=true`, `pullSent=true`; 37 Items, 16 ausgewählt, 145770 Byte, 21 übersprungen, 4 Seiten. 16 erfolgreiche / 0 nicht erfolgreiche Dateien; transferred=16, verified=16, privateStored=16, decoded=12, sqliteCommitted=12, imported=0, noImportableData=12, unsupported=0, failed=0. Datei-Details zeigen bereits vorhandene FIT-Dateien.
 - Grenze: drei transactionFollowups, letzte Folgeantwort 0 Items; `runDrained=false`, `coverage=device-history-unverified`, `incompleteReason=next-transaction-followup-empty`. Verbindung und begrenzter Dateidownload funktionieren; vollständige Historienabdeckung bleibt offen.
