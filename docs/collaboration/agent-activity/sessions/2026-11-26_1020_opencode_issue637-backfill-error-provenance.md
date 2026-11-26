@@ -1,0 +1,16 @@
+# OpenCode FIT – #637 Backfill-Fehlerprovenienz
+- Agent/Umgebung: OpenCode FIT, Linux-Worktree
+- Beginn: 2026-11-26 10:20 UTC
+- Letzte Aktualisierung: 2026-11-26 10:24 UTC
+- Status: abgeschlossen – Backfill-Fehlerzähler ist aggregiert; invalid outcomes werden nicht als Detailfehler persistiert; konkrete drei Run-Fehler bleiben rückwirkend unzuordenbar
+- Rolle/Zuständigkeit: FIT/Decoder/Import-/SQLite Offline-Audit
+- Aktueller Auftrag: Issue #637 – prüfen, ob drei aggregierte PARTIAL-Backfill-Fehler aus dem privaten Run einer bestimmten Quelle/Datei/Ursache zugeordnet werden können
+- Jetzt erledigt: aktuellen Import-/Backfill-Fehlerpfad statisch/read-only untersucht; präzisierten Befund in Issue #637 veröffentlicht
+- Zeitnah geplant: nur bei konkretem, reproduzierbarem Codebefund einen minimalen synthetischen Test/Fix vorschlagen
+- Betroffene Bereiche/Dateien: zunächst `app/src/main/java/de/pulselibre` und relevante Unit-Tests; keine Produktdateiänderung geplant
+- Branch/Worktree: `opencode/issue637-backfill-error-provenance`, `/tmp/opencode/issue637-backfill-error-provenance`
+- Abstimmungsbedarf: keiner
+- Agent-sync-Nachrichten: keine
+- Nachweise: `CirqaFitBackfill.run()` setzt `error_count=failed+invalid`; Invalidfälle werden nicht per-file persistiert; geworfene Fehler erhalten `source_sha256=null`; Maintenance-Aufrufer verwirft Result und schluckt Top-Level-Exception. Issue-Kommentar `7189212650`.
+- Tests: keine Backfill-Tests ausgeführt; read-only Quelltextaudit. Separat: Offline-Replay-Regression `python3 -m unittest tools.test_garmin_hci_replay -v` – 22 bestanden.
+- Nächster Schritt: Für zukünftige Läufe könnte eine datensparsame, begrenzte Persistenz je Kandidat Ursache + content hash ergänzen; historische drei Fehler sind nicht rekonstruierbar. Vollständige Historienabdeckung/Connect-Parität bleiben offen. Keine Geräte-/BLE-Aktion.

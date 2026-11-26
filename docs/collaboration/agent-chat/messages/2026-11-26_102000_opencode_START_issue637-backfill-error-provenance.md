@@ -1,0 +1,13 @@
+# START – #637 Backfill-Fehlerprovenienz offline prüfen
+- Zeit (UTC): 2026-11-26 10:20:00
+- Von: OpenCode FIT
+- An: Projektleitung, FIT/GUI
+- Issue/Task: #637
+- Bezug/Antwort auf: Issue #637 Offline-Follow-through vom 07:40 UTC; drei aggregierte PARTIAL-Backfill-Fehler blieben ohne Datei-/Quellenzuordnung
+- Status: aktiv
+- Zuständigkeit und betroffene Dateien: read-only Audit der aktuellen FIT-Backfill-/Importfehlerpfade; Agenten-Chat/Session-Log und gegebenenfalls redigierter Issue-Befund
+- Geplanter Umfang: feststellen, an welchen Stellen aggregierte Fehlerzähler entstehen, ob Fehler pro Datei/Quelle persistiert werden und ob aus Code und Tests eine sichere konkrete Ursache der drei Run-Fehler folgt. Keine privaten DB-/Rohdaten ins Git, keine Geräte-/BLE-Aktion, keine Produktänderung ohne belegte Ursache.
+- Was ich von anderen brauche: nichts
+- Was ich anderen liefere: nachvollziehbare Antwort, ob die fehlende Provenienz ein Codepfad-/Diagnoselimit ist und was als nächster minimaler Offline-Nachweis fehlt.
+- Nachweise: Start auf `origin/main` `2eace2f6`; PR #695 einschließlich Folge-QUICK verifiziert.
+- Nächster Schritt / Besitzer: FIT liest Import-/Backfill-Callsites, Fehlerpersistenz und Tests; danach präzisiert es #637.
