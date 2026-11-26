@@ -1072,7 +1072,7 @@ object FitHistoricalObservations {
 
     private fun sha256(value: ByteArray): String =
         MessageDigest.getInstance("SHA-256").digest(value)
-            .joinToString("") { "%02x".format(it.toInt() and 0xff) }
+            .lowerHex()
 }
 
 /**

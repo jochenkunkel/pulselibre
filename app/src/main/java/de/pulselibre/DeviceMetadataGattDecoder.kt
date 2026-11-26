@@ -53,7 +53,7 @@ internal object DeviceMetadataGattDecoder {
             DeviceMetadataSources.GATT_CURRENT_TIME, nowMs)
     }
 
-    private fun hex(value: ByteArray): String = value.take(128).joinToString("") { "%02x".format(it.toInt() and 255) }
+    private fun hex(value: ByteArray): String = value.take(128).lowerHex()
     private fun u8(b: Byte): Int = b.toInt() and 0xff
     private fun u16(b: ByteArray, i: Int): Int = u8(b[i]) or (u8(b[i + 1]) shl 8)
 }

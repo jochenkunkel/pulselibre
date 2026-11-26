@@ -36,5 +36,5 @@ object CirqaTargetedPullPolicy {
                 "${identity.uidKey}:${identity.dataTypeKey}:${identity.dataSize}:${identity.flags}"
                     .toByteArray()
             )
-            .joinToString("") { "%02x".format(it.toInt() and 255) }
+            .lowerHex()
 }
