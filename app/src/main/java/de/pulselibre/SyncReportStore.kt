@@ -26,7 +26,7 @@ internal object SyncReportStore {
         return null
     }
 
-    fun pullResults(report: String): List<String> = Regex("""pull#\d+:[^|\]]*\|[^\]]*""").findAll(report).map { it.value }.toList()
+    fun pullResults(report: String): List<String> = Regex("""pull#\d+:[^|\]]*\|[^\]|]*""").findAll(report).map { it.value }.toList()
 
     fun prioritized(report: String): String {
         val terminal = bracketed(report, "terminal=[")
