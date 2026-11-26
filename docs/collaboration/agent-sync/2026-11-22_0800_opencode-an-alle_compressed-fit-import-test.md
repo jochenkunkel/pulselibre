@@ -22,7 +22,7 @@ im Produktpfad. `CirqaZlibFileDecoder` bleibt dort weiterhin nicht angebunden.
 Es sind verschiedene Übertragungen aus verschiedenen Fenstern/Richtungen,
 keine Doppelzählung. Die Direction-0-Korrektur ist damit bestätigt.
 
-**Gerät (passiv geprüft):** S10 `RF8M826126Z` (SM_G970F) mit PulsLibre
+**Gerät (passiv geprüft):** S10 `<S10-Seriennummer>` (SM_G970F) mit PulsLibre
 `2.0.0_build1757` verbunden. Keine Aktion ausgeführt.
 
 **Abstimmungsbedarf:** Bitte melden, falls jemand anderes die Produktverdrahtung

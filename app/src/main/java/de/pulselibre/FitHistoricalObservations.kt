@@ -16,7 +16,7 @@ object FitHistoricalObservations {
     private const val MIN_ABSOLUTE_FIT_TIME = 0x1000_0000L
     private const val INVALID_FIT_TIME = 0xffff_ffffL
     const val MAX_OBSERVATIONS = 50_000
-    const val DECODER_VERSION = "5"
+    const val DECODER_VERSION = "6"
     /** Review candidates evolve independently from the trusted observation decoder. */
     const val REVIEW_CANDIDATE_DECODER_VERSION = "3"
     const val PROFILE_VERSION = "21.222.0"
@@ -995,7 +995,11 @@ object FitHistoricalObservations {
         expectedBaseType: Int
     ): Long? {
         val base = field.baseType and 0x1f
-        if (base != (expectedBaseType and 0x1f)) return null
+        val expected = expectedBaseType and 0x1f
+        // #707 real-file check: the CIRQA band writes the profile enum 269/2 (spo2 mode) as uint8 (0x02). A one-byte
+        // enum and a uint8 carry the same value (the Garmin SDK reads both), so a single byte may use either type.
+        val oneByteCodes = setOf(0, 2)
+        if (base != expected && !(base in oneByteCodes && expected in oneByteCodes)) return null
         return when (base) {
             0, 2, 13 -> if (field.size == 1) (file[offset].toInt() and 0xff).toLong() else null // enum, uint8, byte
             3 -> if (field.size == 2) {

@@ -3,7 +3,7 @@
 - Datum: 2026-11-22
 - Verantwortung: OpenCode
 - Freigabe: Nutzer, 2026-11-22 – „Beides nacheinander“ (zuerst GATT `0x180F`/`0x2A19`, dann Garmin `GDIDeviceStatus`), „teste so oft du benötigst um die daten zu finden“, alle zusätzlichen Werte anzeigen **und** in die Datenbank schreiben.
-- Gerät: Samsung Galaxy S25, Serial `RF8M826126Z`, gekoppeltes CIRQA (`CIRQA Smart Band`).
+- Gerät: Samsung Galaxy S25, Serial `<S10-Seriennummer>`, gekoppeltes CIRQA (`CIRQA Smart Band`).
 
 ## Ziel
 
@@ -20,7 +20,7 @@ Nachweis, welche Gerätewerte das Band tatsächlich liefert, und Persistenz dies
 
 ## Ablauf
 
-1. Geräteauswahl: nur `ANDROID_SERIAL=RF8M826126Z`; Emulator läuft parallel in CI und darf nicht adressiert werden.
+1. Geräteauswahl: nur `ANDROID_SERIAL=<S10-Seriennummer>`; Emulator läuft parallel in CI und darf nicht adressiert werden.
 2. `adb install -r app/build/outputs/apk/debug/app-debug.apk` (nur innerhalb der Nutzerfreigabe; bei Signaturkonflikt **kein** Uninstall, sondern Abbruch).
 3. App starten, Berechtigung Bluetooth „Nearby devices“ prüfen (nicht neu erteilen, falls bereits gewährt).
 4. Reiter „Gerät“ öffnen – ein Auslesen startet automatisch. 40 s warten.
@@ -43,7 +43,7 @@ Die 37 % / `NORMAL` aus der einmaligen Diagnose vom 18.11.2026 sind **kein** erw
 
 ## Ergebnis der begrenzten Läufe (2026-11-22, UTC 19:59–20:38)
 
-Alle Gerätezugriffe liefen im gehaltenen Wrapper `python3 tools/s25_lease.py run --agent OpenCode --minutes ... -- bash ...` mit `ANDROID_SERIAL=RF8M826126Z`; vor und nach jedem Lauf wurde `status` geprüft (`FREI`). Der Reiter „Gerät“ wurde über `am start -n de.pulselibre/.MainActivity --ei de.pulselibre.MAIN_TAB 2` direkt geöffnet, weil `uiautomator` auf dem S25 wiederholt `ERROR: could not get idle state.` meldete. Es gab **keine** Instrumentationstests auf dem S25, kein Pairing/Unpairing, keinen Reset und kein `CLOSE_ALL`.
+Alle Gerätezugriffe liefen im gehaltenen Wrapper `python3 tools/s25_lease.py run --agent OpenCode --minutes ... -- bash ...` mit `ANDROID_SERIAL=<S10-Seriennummer>`; vor und nach jedem Lauf wurde `status` geprüft (`FREI`). Der Reiter „Gerät“ wurde über `am start -n de.pulselibre/.MainActivity --ei de.pulselibre.MAIN_TAB 2` direkt geöffnet, weil `uiautomator` auf dem S25 wiederholt `ERROR: could not get idle state.` meldete. Es gab **keine** Instrumentationstests auf dem S25, kein Pairing/Unpairing, keinen Reset und kein `CLOSE_ALL`.
 
 | Beobachtung | Nachweis |
 | --- | --- |

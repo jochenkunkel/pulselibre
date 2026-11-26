@@ -32,7 +32,7 @@ freigegeben. Details: `docs/archive/2026-11-24/ci/COMBINED_COVERAGE_2026-11-22.m
 - 9 neue Tests grün; alle 108 Python-Tests unter `tools/` grün.
 - `bash -n` für beide Skripte grün.
 - Echtcheck ohne `ANDROID_SERIAL` bei angeschlossenem S10: Exit 1 mit
-  `Physisches Android-Gerät sichtbar (RF8M826126Z)`; mit
+  `Physisches Android-Gerät sichtbar (<S10-Seriennummer>)`; mit
   `ANDROID_SERIAL=emulator-5554`: Exit 0. Dabei wurde nur `adb devices`
   gelesen – keine Instrumentation, keine Installation, keine Geräteänderung.
 
