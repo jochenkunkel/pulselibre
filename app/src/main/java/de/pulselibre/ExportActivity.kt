@@ -434,7 +434,7 @@ class ExportActivity : AppCompatActivity() {
                 getString(R.string.ex_restore_msg, plan.createdAt, plan.events, plan.legacyReadings, plan.syncCursors, plan.fitSources, plan.fitProvenance,
                     plan.canonicalReadings, plan.canonicalFitSources, plan.canonicalFitProvenance, plan.canonicalDeviceMetadata, plan.rawDeviceMetadata,
                     if (plan.containsSettings) getString(R.string.ex_restore_settings_replaced, plan.appSettings)
-                    else getString(R.string.ex_restore_settings_kept))
+                    else getString(R.string.ex_restore_settings_kept)) + "\n\n" + getString(R.string.ex_restore_originals_note)
             )
             .setNegativeButton(getString(R.string.action_cancel)) { _, _ ->
                 plan.close()
@@ -457,6 +457,14 @@ class ExportActivity : AppCompatActivity() {
     }
 
     private fun runRestore(plan: PreparedDatabaseRestore, includeData: Boolean, restartRecorder: Boolean = false) {
+        // Replacing the databases while a BLE session (e.g. a history download) still writes would mix both states.
+        val gate = Any()
+        if (includeData && !CirqaBleSessionGate.acquire(gate)) {
+            databaseFeedback.text = getString(R.string.ex_ble_busy)
+            plan.close()
+            if (restartRecorder) restartRecorder()
+            return
+        }
         databaseFeedback.text = getString(if (includeData) R.string.ex_restore_running else R.string.ex_progress_settings)
         executor.execute {
             try {
@@ -476,6 +484,7 @@ class ExportActivity : AppCompatActivity() {
                 runOnUiThread { hideProgress(); databaseFeedback.text = getString(R.string.ex_restore_failed) }
             } finally {
                 plan.close()
+                CirqaBleSessionGate.release(gate)
                 // FIT 26.11.: the previous recording state comes back after the restore, also when it failed.
                 if (restartRecorder) runOnUiThread { restartRecorder() }
             }
@@ -501,6 +510,13 @@ class ExportActivity : AppCompatActivity() {
             .setNegativeButton(getString(R.string.action_cancel), null)
             .setPositiveButton(getString(R.string.ex_reset_delete)) { _, _ ->
                 stopRecorderThen { stopped ->
+                    // FIT 26.11.: a running history download writes originals; deleting them under it would lose bytes.
+                    val gate = Any()
+                    if (!CirqaBleSessionGate.acquire(gate)) {
+                        databaseFeedback.text = getString(R.string.ex_ble_busy)
+                        if (stopped) restartRecorder()
+                        return@stopRecorderThen
+                    }
                     databaseFeedback.text = getString(R.string.ex_reset_running)
                     executor.execute {
                         try {
@@ -509,6 +525,7 @@ class ExportActivity : AppCompatActivity() {
                         } catch (_: Exception) {
                             runOnUiThread { databaseFeedback.text = getString(R.string.ex_reset_failed) }
                         } finally {
+                            CirqaBleSessionGate.release(gate)
                             if (stopped) runOnUiThread { restartRecorder() }
                         }
                     }

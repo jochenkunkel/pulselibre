@@ -2,6 +2,8 @@ package de.pulselibre
 
 import android.content.Context
 import android.content.Intent
+import android.os.Handler
+import android.os.Looper
 import androidx.core.content.ContextCompat
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -31,7 +33,10 @@ class CirqaRecorderStallSimulationTest {
         }
     }
 
-    private class FakeLink(private val readingEveryMs: Long?) : RecorderLink {
+    private class FakeLink(
+        private val readingEveryMs: Long?,
+        private val closeDelayMs: Long = 0
+    ) : RecorderLink {
         @Volatile var closed = false
         override var onReading: ((Int, GarminRealtime.Reading) -> Unit)? = null
         private var thread: Thread? = null
@@ -45,6 +50,11 @@ class CirqaRecorderStallSimulationTest {
             }.also { it.isDaemon = true; it.start() }
         }
         override fun close() { closed = true; thread?.interrupt() }
+        override fun closeWhenQuiescent(onQuiescent: () -> Unit) {
+            close()
+            if (closeDelayMs == 0L) onQuiescent()
+            else Handler(Looper.getMainLooper()).postDelayed(onQuiescent, closeDelayMs)
+        }
     }
 
     private val links = ArrayList<FakeLink>()
@@ -95,5 +105,20 @@ class CirqaRecorderStallSimulationTest {
         val types = eventTypes().map { it.optString("type") }
         assertEquals("no stall while readings flow", 0, types.count { it == "stall_detected" })
         assertEquals("single attempt", 1, types.count { it == "attempt_start" })
+    }
+
+    @Test fun recorderRemainsRunningUntilLinkQuiescenceCallback() {
+        CirqaContinuousRecordingService.linkFactory = { FakeLink(null, closeDelayMs = 1_500).also { links += it } }
+        start()
+        val prefs = context.getSharedPreferences(CirqaContinuousRecordingService.PREFS, Context.MODE_PRIVATE)
+        assertTrue("recorder started", await(5_000) { RecorderStatus.isRunning(prefs) })
+
+        context.startService(Intent(context, CirqaContinuousRecordingService::class.java)
+            .setAction(CirqaContinuousRecordingService.ACTION_STOP))
+
+        Thread.sleep(400)
+        assertTrue("stop is not published before link quiescence", RecorderStatus.isRunning(prefs))
+        assertTrue("terminal stopped state follows quiescence", await(5_000) { !RecorderStatus.isRunning(prefs) })
+        assertTrue("link was closed", links.single().closed)
     }
 }
