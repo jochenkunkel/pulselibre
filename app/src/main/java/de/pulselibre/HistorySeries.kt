@@ -54,6 +54,8 @@ data class HistorySnapshot(
     val fitNewest: Instant? = null,
     /** Band values of the window per FIT message kind; an activity is never a normal all-day history. */
     val fitKinds: Map<BandRecordKind, Int> = emptyMap(),
+    /** Band values of the window also in another FIT file; charts count them once (R1). */
+    val fitDuplicates: Int = 0,
     /** Per day, origin and metric summary of everything in the window: live, imported and band data in one list. */
     val allData: List<UnifiedDaySummary> = emptyList()
 )

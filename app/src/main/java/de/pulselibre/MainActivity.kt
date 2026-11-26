@@ -265,27 +265,36 @@ class MainActivity : AppCompatActivity() {
             setPadding(0, 0, (8 * resources.displayMetrics.density).toInt(), 0)
         }
         headerRow.addView(headerTitle, LinearLayout.LayoutParams(0, -2, 1f))
-        // #649: one combined control for band status, band battery and settings (replaces antenna + settings button).
-        // Tap opens the settings menu as before; a long press shows the connection details of the former antenna button.
-        val statusButton = WearableStatusButton(this).apply {
+        // #649: one combined control with three touch areas: band/connection, band battery, settings.
+        var wearInputs: WearableStatusReader.Inputs? = null
+        val statusButton = WearableStatusControl(this).apply {
             compact = resources.configuration.screenWidthDp < 412
-            setOnClickListener {
+            settingsZone.setOnClickListener {
                 PersonalSettings.show(this@MainActivity) {
                     refreshBodyCardRef?.invoke()
                     dashboardLastEventId = -1L
                     dashboardLastRefreshAt = 0L
                 }
             }
-            setOnLongClickListener {
-                androidx.appcompat.app.AlertDialog.Builder(this@MainActivity)
-                    .setTitle(R.string.main_link_title)
-                    .setMessage(CirqaLinkStatus.contentDescription(Strings.of(this@MainActivity), cirqaLink))
+            statusZone.setOnClickListener {
+                val now = System.currentTimeMillis()
+                val state = WearableStatus.state(cirqaLink.online, wearInputs?.respiration, now)
+                DialogProbe.track(androidx.appcompat.app.AlertDialog.Builder(this@MainActivity)
+                    .setTitle(R.string.wear_status_title)
+                    .setMessage(WearableStatus.statusDetails(Strings.of(this@MainActivity), cirqaLink, state))
                     .setPositiveButton(R.string.action_close, null)
-                    .show()
-                true
+                    .create()).show()
+            }
+            batteryZone.setOnClickListener {
+                val reading = wearInputs?.battery
+                val shown = WearableStatus.battery(cirqaLink.online, reading, System.currentTimeMillis())
+                DialogProbe.track(androidx.appcompat.app.AlertDialog.Builder(this@MainActivity)
+                    .setTitle(R.string.wear_battery_title)
+                    .setMessage(WearableStatus.batteryDetails(Strings.of(this@MainActivity), reading, shown))
+                    .setPositiveButton(R.string.action_close, null)
+                    .create()).show()
             }
         }
-        var wearInputs: WearableStatusReader.Inputs? = null
         var wearInputsAt = 0L
         var wearInputsLoading = false
         fun refreshAvatarConnectionBorder() {
@@ -300,7 +309,10 @@ class MainActivity : AppCompatActivity() {
                     Thread {
                         val stats = try { DeviceStatsReader(applicationContext).read(java.time.Instant.now(), java.time.ZoneId.systemDefault()) } catch (_: Exception) { null }
                         // #142/#159: newest provenance-backed values drive the battery row and every extra row.
-                        val metadata = try { pollDatabase.latestLiveDeviceMetadata() } catch (_: Exception) { emptyList() }
+                        val metadata = try {
+                            DeviceInfoRows.withFitSoftwareVersion(pollDatabase.latestLiveDeviceMetadata(),
+                                runCatching { pollDatabase.latestFitSoftwareVersion() }.getOrNull())
+                        } catch (_: Exception) { emptyList() }
                         val liveBattery = DeviceMetadataFormat.batteryReading(metadata)
                         val battery = liveBattery ?: DeviceBatteryReader.read(applicationContext)
                         runOnUiThread {
@@ -328,9 +340,10 @@ class MainActivity : AppCompatActivity() {
             }
             val inputs = wearInputs
             val state = WearableStatus.state(link.online, inputs?.respiration, now)
-            val percent = WearableStatus.shownBattery(link.online, inputs?.battery, now)
-            statusButton.show(state, percent,
-                WearableStatus.description(Strings.of(this), link, state, percent, inputs?.battery, now))
+            val battery = WearableStatus.battery(link.online, inputs?.battery, now)
+            val strings = Strings.of(this)
+            statusButton.show(state, battery, WearableStatus.statusZoneDescription(strings, link, state),
+                WearableStatus.batteryZoneDescription(strings, battery), getString(R.string.wear_zone_settings_cd))
         }
         connectionIndicatorRefresh = { refreshAvatarConnectionBorder() }
         headerRow.addView(statusButton, LinearLayout.LayoutParams(-2, dp(48)))
@@ -439,7 +452,7 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
-        bodyHeader.addView(healthInfo, LinearLayout.LayoutParams(dp(40), dp(40)))
+        bodyHeader.addView(healthInfo, LinearLayout.LayoutParams(dp(48), dp(48))) // 48 dp touch target (AccessibilityAuditTest)
         bodyCard.addView(bodyHeader)
 
         // Narrow screens or large system fonts: avatar centred above the values (never cut off, never wrapped per character).
@@ -503,7 +516,7 @@ class MainActivity : AppCompatActivity() {
                 }
                 if (onClick != null) {
                     row.isClickable = true; row.isFocusable = true; row.setOnClickListener { onClick() }
-                    row.minimumHeight = dp(34)
+                    row.minimumHeight = dp(48) // touch target (AccessibilityAuditTest); was 34 dp
                     if (tagName != null) row.tag = tagName
                     if (description != null) row.contentDescription = description
                 }

@@ -1,0 +1,13 @@
+# UPDATE – #637 S10-Folgetest nach SQLite-open-Fix
+- Zeit (UTC): 2026-11-25 23:20
+- Von: OpenCode FIT
+- An: Projektleitung, FIT/GUI
+- Issue/Task: #637
+- Bezug/Antwort auf: `2026-11-25_230500_opencode_START_issue637-s10-postsqlite.md`
+- Status: aktiv – Hardwarelauf abgeschlossen, FULL/API-35 läuft noch
+- Zuständigkeit und betroffene Dateien: S10-Folgetest; redigierter Testplan und technischer Handoff
+- Geplanter Umfang / tatsächlich erledigt: Unter einem S10-Lease genau einen manuellen Download auf signiertem Build 2271 durchgeführt. Frisches Backup v11 vor/nach dem Lauf geprüft. 32 ausgewählt/angefordert; 31 transferiert, 30 verifiziert, 26 dekodiert und SQLite-committed, 19 importiert, 7 ohne importierbare Daten. Ein verbleibender `ORIGINAL_ARCHIVE/SQLiteDatabaseLockedException`. Terminalstatus `runDrained=false`, `session-time-limit`, `device-history-unverified`; keine Follow-up-Transaktionen. Backup-Diff u. a. +188 verifizierte Archive-Originale, +2 FIT-Originale sowie je +597 Zeilen in Beobachtungs-/Provenienztabellen. Kein Retry.
+- Was ich von anderen brauche: nichts
+- Was ich anderen liefere: Redigierte Zahlen in Testplan/Handoff; Rohdaten, Run-Details und Backups bleiben zugriffsbeschränkt außerhalb Git.
+- Nachweise: Main-Build 2271, Signaturkontinuität bestanden; Vor-/Nachher-Backup v11 mit null Manifest-/Archivgruppenfehlern; Lease danach `FREI`. Manuell gestarteter Main-FULL/API-35-Lauf `45719176447` war bei diesem Update noch aktiv.
+- Nächster Schritt / Besitzer: OpenCode – CI-Lauf zu Ende überwachen und dann ENDE mit exaktem Resultat/Limitierungen veröffentlichen; keine weitere Geräteaktion.

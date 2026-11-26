@@ -43,7 +43,7 @@ internal fun showDayTimeline(activity: MainActivity, worker: Executor) {
     content.addView(summary)
     val dialog = AlertDialog.Builder(activity).setTitle(R.string.main_day_link_title)
         .setView(ScrollView(activity).apply { addView(content) })
-        .setPositiveButton(R.string.action_close, null).create()
+        .setPositiveButton(R.string.action_close, null).create().also { DialogProbe.track(it) }
     val dateFormat = DateTimeFormatter.ofLocalizedDate(java.time.format.FormatStyle.MEDIUM).withLocale(locale)
     var request = 0
     var date = LocalDate.now(zone)

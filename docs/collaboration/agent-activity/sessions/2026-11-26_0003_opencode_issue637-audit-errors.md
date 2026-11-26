@@ -1,0 +1,14 @@
+# OpenCode – #637 Fehler-/Evidenz-Audit nach S10-Folgelauf
+- Agent/Umgebung: OpenCode FIT, Linux-Worktree
+- Beginn: 2026-11-26 00:03 UTC
+- Letzte Aktualisierung: 2026-11-26 00:31 UTC
+- Status: abgeschlossen – read-only/offline Audit, redigierte Handoff-Korrektur vorbereitet
+- Rolle/Zuständigkeit: FIT/GFDI/MLR, History-Transport, SQLite/Backup-Evidenz
+- Aktueller Auftrag: Nutzerauftrag „analysiere alles und finde unsere Fehler“ – bisherige #637 Schlussfolgerungen, privaten S10-Snapshot-Audit, PR-/CI-Nachweise und aktuellen Code gegenprüfen; eigene Fehlaussagen/Prozessfehler benennen und belegbare Dokumentationsfehler korrigieren.
+- Erledigt: Run-4-Vorher/Nachher-Auditaggregate und v11-Tabelleninventar gegengeprüft; Retry-Scope, Archive-Monitor, Pending-Journal sowie Tests an Main-Code gelesen; PR #669 als getrennte frühere Evidenz berücksichtigt. Handoff-Audit ergänzt: Legacy-Summary-Zähler falsch benannt; Default-Retry erkennt Androids `SQLITE_BUSY`-Exception, nicht jedoch `SQLITE_LOCKED`/`SQLiteTableLockedException`; Tests injizieren ein Retry-Prädikat. Archiv-Failure wurde nach begrenztem Retry weiter sichtbar und Bytes privat gejournaled. Mögliche Konkurrenz durch nicht mit dem Archivmonitor serialisierte FIT-/andere Writer bleibt Hypothese.
+- Ergebnis: auditierter Befund in `docs/protocol/research/ISSUE637_CHATGPT_HANDOFF_2026-11-25.md`; keine Geräte-/ADB-/BLE-Aktion, kein neuer Download, keine Rohdatenveröffentlichung.
+- Betroffene Bereiche/Dateien: #637 Testplan/Handoff, relevante SQLite-/Sync-Codepfade, Agentenkommunikation; private Backups und Logs bleiben außerhalb Git.
+- Branch/Worktree: `opencode/issue637-audit-our-errors-20261126`, `/tmp/opencode/issue637-sqlite-open-repro-20261125`.
+- Abstimmungsbedarf: nichts; offene PR #669 bleibt unberührt.
+- Nachweise: #680 (`1e5c2057`) und #681 (`630a1ad9`) regulär gemergt; Main FULL/API-35 `45719176447` grün. Run 4 meldete `runDrained=false`, `device-history-unverified`, eine `ORIGINAL_ARCHIVE/SQLiteDatabaseLockedException`; keine vollständige Historie behauptet.
+- Nächster Schritt: gezielte Codekorrektur für SQLiteBusyException plus Tests separat priorisieren; dieser Auftrag war Audit, nicht Implementierung.

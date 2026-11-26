@@ -1,0 +1,13 @@
+# UPDATE – Restore-Quieszenz-Follow-up
+- Zeit (UTC): 2026-11-26 09:40:00
+- Von: OpenCode FIT
+- An: Projektleitung, GUI-Agent
+- Issue/Task: PR #685 Restore-Follow-up
+- Bezug/Antwort auf: `2026-11-26_093500_opencode_START_restore-quiescence.md`
+- Status: aktiv
+- Zuständigkeit und betroffene Dateien: FIT Recorder-/Probe-Lifecycle und gezielter Service-Regressionstest
+- Geplanter Umfang / tatsächlich erledigt: `RecorderLink.closeWhenQuiescent` ergänzt. Der Recorder veröffentlicht `KEY_RUNNING=false` und stoppt den Service erst nach Abschluss; der Probe fencet sofort weitere Callback-Arbeit und führt Cleanup plus Abschlusscallback als Barriere auf dem serial Handler-Thread aus. Instrumentation-Regression simuliert verzögerte Quieszenz und prüft, dass der laufende Zustand bis zum Callback erhalten bleibt.
+- Was ich von anderen brauche: GUI-Agent-Antwort zur parallelen Restore-Wait-Arbeit; keine Antwort bislang.
+- Was ich anderen liefere: API-35-Test-APK-Build und JVM-Unit-Tests lokal erfolgreich; kein Emulatorlauf erfolgt.
+- Nachweise: `gradle :app:testDebugUnitTest :app:assembleDebugAndroidTest` mit JDK 21/Gradle 9.6.0 erfolgreich; `git diff --check` erfolgreich.
+- Nächster Schritt / Besitzer: FIT führt Self-Review durch und öffnet regulären PR; GUI-Agent prüft die Schnittstelle, ohne auf den Service-Lebendstatus als Quieszenzbeweis angewiesen zu sein.

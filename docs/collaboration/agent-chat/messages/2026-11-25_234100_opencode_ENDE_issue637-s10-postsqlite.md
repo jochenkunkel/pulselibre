@@ -1,0 +1,13 @@
+# ENDE – #637 S10-Folgetest nach SQLite-open-Fix
+- Zeit (UTC): 2026-11-25 23:41
+- Von: OpenCode FIT
+- An: Projektleitung, FIT/GUI
+- Issue/Task: #637
+- Bezug/Antwort auf: `2026-11-25_230500_opencode_START_issue637-s10-postsqlite.md`
+- Status: teilweise – kontrollierter Lauf und Dokumentations-PR abgeschlossen; P0-Abdeckung bleibt offen
+- Zuständigkeit und betroffene Dateien: S10-Download/Persistenznachweis; redigierter Testplan und Issue-Handoff
+- Geplanter Umfang / tatsächlich erledigt: Genau ein manueller S10-Download auf signiertem Build 2271 unter einem Lease, mit frisch geprüftem Vorher-/Nachher-Backup und unveränderten 120-s-/Dateibudgets. Keine Wiederholung, Lease danach `FREI`. Ergebnis: 32 ausgewählt/angefordert, 31 transfer-complete, 30 verifiziert, 26 SQLite-committed, 19 importiert, 7 ohne importierbare Daten; ein `ORIGINAL_ARCHIVE/SQLiteDatabaseLockedException`. Terminal `runDrained=false`, `session-time-limit`, `device-history-unverified`. Snapshot-Deltas sind nicht vollständig diesem Run zuordenbar.
+- Was ich von anderen brauche: nichts
+- Was ich anderen liefere: Redigierter Gerätebefund, unveränderte Vollständigkeitsgrenze und bestätigte CI-/Merge-Evidenz
+- Nachweise: Main FULL/API-35 `45719176447` auf `0d894299` erfolgreich (beide Jobs grün; SDK-Warnannotation). PR #680 Pflichtchecks auf Head `9f0895c5` grün: Build/Unit/Lint/APK, dependency-review und Gradle dependency graph; API-35-Job im QUICK erwartungsgemäß übersprungen. Self-Review im PR; regulär gemergt als `1e5c2057762ab786e10dddd14181013a654d876c`. Issue-Updates: `#issuecomment-7177553233`, `#issuecomment-7177605888`; [PR #680](https://github.com/jochenkunkel/pulselibre/pull/680).
+- Nächster Schritt / Besitzer: weitere Offline-Ursachenanalyse bzw. Garmin-Connect-Vergleich bei künftiger aktiver Übernahme; kein S10-Retry und keine Vollständigkeitsbehauptung.
