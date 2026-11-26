@@ -641,6 +641,8 @@
     <string name="ex_restore_all">Ajustes y datos de salud</string>
     <string name="ex_restore_settings_only">Solo ajustes</string>
     <string name="ex_restore_settings_done">Ajustes restaurados desde la copia; datos de salud sin cambios.</string>
+    <string name="ex_rec_restarted">Grabación reiniciada.</string>
+    <string name="ex_rec_restart_failed">No se pudo reiniciar la grabación; iníciala desde la vista general.</string>
     <string name="ex_restore_failed">Error en la restauración. Comprueba la base de datos.</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="ex_reset_title">¿Restablecer la base de datos local?</string>
@@ -653,7 +655,7 @@
     <string name="ex_reset_failed">Error al restablecer. Comprueba la base de datos.</string>
     <string name="ex_rec_title">Grabación en curso</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
-    <string name="ex_rec_msg">La grabación CIRQA local en curso debe detenerse antes de la operación en la base de datos.</string>
+    <string name="ex_rec_msg">La grabación local de CIRQA en curso se detiene antes de la operación de base de datos y se reinicia automáticamente después.</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="ex_rec_stop">Detener y continuar</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->

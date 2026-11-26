@@ -641,6 +641,8 @@
     <string name="ex_restore_all">Settings and health data</string>
     <string name="ex_restore_settings_only">Settings only</string>
     <string name="ex_restore_settings_done">Settings restored from the backup; health data unchanged.</string>
+    <string name="ex_rec_restarted">Recording started again.</string>
+    <string name="ex_rec_restart_failed">Recording could not be started again – please start it on the overview.</string>
     <string name="ex_restore_failed">Restore failed. Please check the database.</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="ex_reset_title">Reset local database?</string>
@@ -653,7 +655,7 @@
     <string name="ex_reset_failed">Reset failed. Please check the database.</string>
     <string name="ex_rec_title">Recording in progress</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
-    <string name="ex_rec_msg">The running local CIRQA recording must be stopped before the database operation.</string>
+    <string name="ex_rec_msg">The running local CIRQA recording is stopped before the database operation and started again afterwards.</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="ex_rec_stop">Stop and continue</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->

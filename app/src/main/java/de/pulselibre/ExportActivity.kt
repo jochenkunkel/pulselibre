@@ -441,7 +441,7 @@ class ExportActivity : AppCompatActivity() {
                 databaseFeedback.text = getString(R.string.ex_restore_cancelled)
             }
             .setPositiveButton(getString(if (plan.containsSettings) R.string.ex_restore_all else R.string.ex_replace)) { _, _ ->
-                stopRecorderThen(onCancel = { plan.close() }) { runRestore(plan, includeData = true) }
+                stopRecorderThen(onCancel = { plan.close() }) { stopped -> runRestore(plan, includeData = true, restartRecorder = stopped) }
             }
             .apply {
                 // Owner request 26.11.2026: a v12 backup can bring back only the configuration, leaving health data alone.
@@ -456,7 +456,7 @@ class ExportActivity : AppCompatActivity() {
             .show()
     }
 
-    private fun runRestore(plan: PreparedDatabaseRestore, includeData: Boolean) {
+    private fun runRestore(plan: PreparedDatabaseRestore, includeData: Boolean, restartRecorder: Boolean = false) {
         databaseFeedback.text = getString(if (includeData) R.string.ex_restore_running else R.string.ex_progress_settings)
         executor.execute {
             try {
@@ -474,8 +474,22 @@ class ExportActivity : AppCompatActivity() {
                 }
             } catch (_: Exception) {
                 runOnUiThread { hideProgress(); databaseFeedback.text = getString(R.string.ex_restore_failed) }
-            } finally { plan.close() }
+            } finally {
+                plan.close()
+                // FIT 26.11.: the previous recording state comes back after the restore, also when it failed.
+                if (restartRecorder) runOnUiThread { restartRecorder() }
+            }
         }
+    }
+
+    /** Starts the recording again that [stopRecorderThen] stopped; says so if Android refuses. */
+    private fun restartRecorder() {
+        val ok = try {
+            androidx.core.content.ContextCompat.startForegroundService(this,
+                Intent(this, CirqaContinuousRecordingService::class.java).setAction(CirqaContinuousRecordingService.ACTION_START))
+            true
+        } catch (_: Exception) { false }
+        if (!isFinishing && !isDestroyed) databaseFeedback.append("\n" + getString(if (ok) R.string.ex_rec_restarted else R.string.ex_rec_restart_failed))
     }
 
     private fun confirmReset() {
@@ -486,7 +500,7 @@ class ExportActivity : AppCompatActivity() {
             )
             .setNegativeButton(getString(R.string.action_cancel), null)
             .setPositiveButton(getString(R.string.ex_reset_delete)) { _, _ ->
-                stopRecorderThen {
+                stopRecorderThen { stopped ->
                     databaseFeedback.text = getString(R.string.ex_reset_running)
                     executor.execute {
                         try {
@@ -494,6 +508,8 @@ class ExportActivity : AppCompatActivity() {
                             runOnUiThread { databaseFeedback.text = getString(R.string.ex_reset_done) }
                         } catch (_: Exception) {
                             runOnUiThread { databaseFeedback.text = getString(R.string.ex_reset_failed) }
+                        } finally {
+                            if (stopped) runOnUiThread { restartRecorder() }
                         }
                     }
                 }
@@ -502,10 +518,15 @@ class ExportActivity : AppCompatActivity() {
     }
 
     /** Stop the explicit background recorder before a destructive database operation. */
-    private fun stopRecorderThen(onCancel: () -> Unit = {}, action: () -> Unit) {
+    /**
+     * Stops the recording before the databases are replaced and waits until it has really ended: the running flag is
+     * cleared AND the service is gone (its last write finished). [action] learns whether it was stopped here, so the
+     * caller can start it again afterwards (FIT 26.11.2026: restore the previous recording state, also on errors).
+     */
+    private fun stopRecorderThen(onCancel: () -> Unit = {}, action: (stopped: Boolean) -> Unit) {
         val prefs = getSharedPreferences(CirqaContinuousRecordingService.PREFS, MODE_PRIVATE)
-        if (!RecorderStatus.isRunning(prefs)) {
-            action()
+        if (!RecorderStatus.isRunning(prefs) && !AutoStartRecording.isServiceAlive(this)) {
+            action(false)
             return
         }
         AlertDialog.Builder(this)
@@ -524,7 +545,7 @@ class ExportActivity : AppCompatActivity() {
                 val deadline = SystemClock.elapsedRealtime() + 10_000L
                 val wait = object : Runnable {
                     override fun run() {
-                        if (!RecorderStatus.isRunning(prefs)) action()
+                        if (!RecorderStatus.isRunning(prefs) && !AutoStartRecording.isServiceAlive(this@ExportActivity)) action(true)
                         else if (SystemClock.elapsedRealtime() >= deadline) {
                             databaseFeedback.text = getString(R.string.ex_rec_still)
                             onCancel()

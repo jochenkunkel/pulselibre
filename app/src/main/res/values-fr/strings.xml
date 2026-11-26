@@ -641,6 +641,8 @@
     <string name="ex_restore_all">Paramètres et données de santé</string>
     <string name="ex_restore_settings_only">Paramètres uniquement</string>
     <string name="ex_restore_settings_done">Paramètres restaurés depuis la sauvegarde ; données de santé inchangées.</string>
+    <string name="ex_rec_restarted">Enregistrement relancé.</string>
+    <string name="ex_rec_restart_failed">Impossible de relancer l’enregistrement – veuillez le démarrer depuis l’aperçu.</string>
     <string name="ex_restore_failed">Échec de la restauration. Veuillez vérifier la base de données.</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="ex_reset_title">Réinitialiser la base de données locale ?</string>
@@ -653,7 +655,7 @@
     <string name="ex_reset_failed">Échec de la réinitialisation. Veuillez vérifier la base de données.</string>
     <string name="ex_rec_title">Enregistrement en cours</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
-    <string name="ex_rec_msg">L’enregistrement CIRQA local en cours doit être arrêté avant l’opération sur la base de données.</string>
+    <string name="ex_rec_msg">L’enregistrement CIRQA local en cours est arrêté avant l’opération sur la base de données, puis relancé automatiquement.</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="ex_rec_stop">Arrêter et continuer</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->

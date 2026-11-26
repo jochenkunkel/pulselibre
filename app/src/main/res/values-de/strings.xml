@@ -641,6 +641,8 @@
     <string name="ex_restore_all">Einstellungen und Gesundheitsdaten</string>
     <string name="ex_restore_settings_only">Nur Einstellungen</string>
     <string name="ex_restore_settings_done">Einstellungen aus dem Backup übernommen; Gesundheitsdaten unverändert.</string>
+    <string name="ex_rec_restarted">Aufzeichnung wieder gestartet.</string>
+    <string name="ex_rec_restart_failed">Aufzeichnung konnte nicht wieder gestartet werden – bitte in der Übersicht starten.</string>
     <string name="ex_restore_failed">Wiederherstellung fehlgeschlagen. Bitte Datenbank prüfen.</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="ex_reset_title">Lokale Datenbank zurücksetzen?</string>
@@ -653,7 +655,7 @@
     <string name="ex_reset_failed">Reset fehlgeschlagen. Datenbank bitte prüfen.</string>
     <string name="ex_rec_title">Aufzeichnung läuft</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
-    <string name="ex_rec_msg">Die laufende lokale CIRQA-Aufzeichnung muss vor dem Datenbankvorgang beendet werden.</string>
+    <string name="ex_rec_msg">Die laufende lokale CIRQA-Aufzeichnung wird vor dem Datenbankvorgang beendet und danach automatisch wieder gestartet.</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="ex_rec_stop">Beenden und fortfahren</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
