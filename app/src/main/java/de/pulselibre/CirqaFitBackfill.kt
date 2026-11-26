@@ -404,6 +404,6 @@ class CirqaFitBackfill(
         /** Content-addressed stores use this exact lowercase SHA-256 filename. */
         fun expectedFileName(bytes: ByteArray): String =
             MessageDigest.getInstance("SHA-256").digest(bytes)
-                .joinToString("") { "%02x".format(it.toInt() and 0xff) } + ".fit"
+                .lowerHex() + ".fit"
     }
 }

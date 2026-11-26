@@ -57,7 +57,7 @@ internal object CirqaUnknownFitInventory {
             val decoded = try {
                 val bytes = file.readBytes()
                 val hash = MessageDigest.getInstance("SHA-256").digest(bytes)
-                    .joinToString("") { "%02x".format(it.toInt() and 255) }
+                    .lowerHex()
                 if (hash != file.name.removeSuffix(".fit")) null
                 else FitHistoricalObservations.decode(bytes)?.let { bytes.size.toLong() to it }
             } catch (_: java.io.IOException) {
