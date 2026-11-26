@@ -866,4 +866,25 @@ class FitHistoricalObservationsTest {
         assertEquals(FitHistoricalObservations.MAX_OBSERVATIONS, atLimit!!.observations.size)
         assertNull(FitHistoricalObservations.decode(heartRateFile(FitHistoricalObservations.MAX_OBSERVATIONS + 1)))
     }
+
+    // #707: proprietary 233/2 (4-byte array) and 397/1 (float32) have no Garmin profile meaning. They must never become
+    // measurements or review candidates, but their exact bytes stay in the raw generation and in the unknown inventory.
+    @Test fun proprietary233And397StayRawUnchangedAndNeverBecomeMeasurements() {
+        val ts = 0x10000000 + 200_000
+        val tag = byteArrayOf(0xC0.toByte(), 0x2A, 0x01, 0xB8.toByte())
+        val data = byteArrayOf(0x40, 0, 0, 0xE9.toByte(), 0x00, 2, 253.toByte(), 4, 0x86.toByte(), 2, 4, 0x0D) +
+            byteArrayOf(0) + u32(ts) + tag +
+            byteArrayOf(0x41, 0, 0, 0x8D.toByte(), 0x01, 2, 253.toByte(), 4, 0x86.toByte(), 1, 4, 0x88.toByte()) +
+            byteArrayOf(1) + u32(ts + 1) + f32(36.75f)
+        val result = FitHistoricalObservations.decode(fit(data))!!
+        assertTrue(result.observations.isEmpty())
+        assertTrue(result.reviewCandidates.isEmpty())
+        val f233 = result.decodedFields.single { it.globalMessageNumber == 233 && it.fieldNumber == 2 }
+        assertArrayEquals(tag, f233.rawBytes)
+        val f397 = result.decodedFields.single { it.globalMessageNumber == 397 && it.fieldNumber == 1 }
+        assertArrayEquals(f32(36.75f), f397.rawBytes)
+        assertEquals(0x88, f397.baseTypeCode)
+        assertTrue(result.unknownFields.any { it.globalMessageNumber == 233 })
+        assertTrue(result.unknownFields.any { it.globalMessageNumber == 397 })
+    }
 }
