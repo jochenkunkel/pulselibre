@@ -1,0 +1,15 @@
+# OpenCode FIT – #599 sichere Full-Pull-Fortsetzung
+- Agent/Umgebung: OpenCode FIT, Linux-Worktree
+- Beginn: 2026-11-26 19:02 UTC
+- Letzte Aktualisierung: 2026-11-26 19:02 UTC
+- Status: aktiv
+- Rolle/Zuständigkeit: CIRQA-History-Sync, FIT-Archiv/Import
+- Aktueller Auftrag: #599 sequenziell bearbeiten; sichere Fortsetzung unter Owner-P0-Klarstellung prüfen und nötigenfalls eng begrenzt verbessern.
+- Jetzt in Bearbeitung: Offline-Code-/Testaudit der Run-Persistenz, Timeout-/Abbruchstatus, itembezogenen Stages und erneuten Full-Pulls. Keine BLE-/Geräteaktion. Tests und Installationen übernimmt GUI-Agent.
+- Zeitnah geplant: Rückmeldung/Gates #601 später einarbeiten; #599 soll fehlende Resume-/Run-Durabilität ohne unsichere Remote-Skips schließen.
+- Betroffene Bereiche/Dateien: `CirqaMlHandshakeProbe.kt`, `CirqaTargetedPullManifest.kt`, `CirqaSyncPipelineLedger.kt`, Sync-Report-/Auditpersistenz und gezielte synthetische Tests.
+- Branch/Worktree: `opencode/issue601-p0-audit-20261126`, `/tmp/opencode/issue601-p0-audit-20261126`, Basis `origin/main=b515b873`.
+- Abstimmungsbedarf: GUI-Testausführung/Installationen sind gemäß Nutzerwunsch delegiert; keine Hardwarefreigabe angefordert.
+- Agent-sync-Nachrichten: START in `docs/collaboration/agent-chat/messages/2026-11-26_190200_opencode_START_issue599_safe-resume.md`.
+- Nachweise: Issue #599 verlangt sichere Resume-/Skip-Nachweise und FULL/API-35; aktuelle Owner-Klarstellung macht Full-Pull verbindlichen sicheren Fallback und selektive Skip-Optimierung nicht zum P0-Blocker.
+- Nächster Schritt: Run-/Item-Statuspersistenz und bestehende Fortsetzungslogik identifizieren, dann fokussierte Lösung und GUI-Testbitte abstimmen.
