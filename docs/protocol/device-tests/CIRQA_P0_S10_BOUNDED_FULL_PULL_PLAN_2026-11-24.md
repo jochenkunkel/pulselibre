@@ -199,3 +199,29 @@ synthetische Regressionstests und der gesamte JVM-Unit-Testlauf waren lokal
 grün; ein Hardware-Re-Run ist nicht erfolgt und daher nicht als verifiziert
 ausgewiesen. Keine Wiederholung. Post-Run-Backup und Nachher-Inventar fehlen;
 Vorher-Backup und Screenshots bleiben privat.
+
+**2026-11-25 19:17 UTC – erneuter manueller Lauf nach #670, Build 2250.**
+Unter exklusiver S10-Lease wurden Modell, Build und Signaturkontinuität
+geprüft; das In-place-Update erhielt App-Daten. Frisches Vorher-Backup v11:
+2.844 archivierte Originale / 984.816 Bytes, 37 FIT-Originale,
+2.850 Archiv-Referenzzeilen. Genau ein manueller Download wurde bestätigt.
+Der neue terminale Bericht (neue Run-ID; nicht der vorherige UI-Bericht) meldet
+eine Listenantwort mit 29 Dateien und 29 Pull-Requests. Ergebnis:
+`runDrained=false`, `incompleteReason=session-time-limit`,
+`coverage=device-history-unverified`; 28 Dateien transferiert, verifiziert
+und privat gespeichert; 25 dekodiert, 24 SQLite-committed, 18 importiert,
+6 ohne importierbare Daten, 1 Fehler `FIT_IMPORT_COMMIT/SQLiteDatabaseLockedException`.
+27 Dateien wurden als abgeschlossen und 1 als fehlgeschlagen gezählt; beim
+Timeout war ein Item mit erwarteten 6.010 Bytes und 0 empfangenen Bytes aktiv.
+Damit sind weder 29/29 vollständige Transfers noch eine vollständige
+Gerätehistorie belegt.
+
+Das geprüfte Nachher-Backup v11 enthält 3.054 Originale / 1.009.688 Bytes,
+weiterhin 37 FIT-Originale und 3.060 Archiv-Referenzzeilen; Manifest- und
+Archivgruppenprüfung bestanden. Der Inventardiff beträgt +210 Originale und
++210 Referenzen, aber keine zusätzlichen FIT-Originale oder kanonischen
+Beobachtungen. Der Lauf wurde nicht abgebrochen oder wiederholt; das appinterne
+120-s-Limit blieb unverändert. Lease danach `FREI`. Die verbleibende
+SQLite-Lock-Exception liegt diesmal im FIT-Import/Commit-Pfad; Ursache und
+Rückwirkung auf den fehlgeschlagenen Import sind offline zu triagieren. Roh-
+und Gerätedaten verbleiben ausschließlich lokal privat.

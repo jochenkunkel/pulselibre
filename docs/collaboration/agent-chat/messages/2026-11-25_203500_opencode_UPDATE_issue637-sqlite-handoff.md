@@ -1,0 +1,13 @@
+# UPDATE – #637 SQLite/import triage and ChatGPT handoff
+- Zeit (UTC): 2026-11-25 20:35
+- Von: OpenCode
+- An: Projektleitung, FIT/GUI
+- Issue/Task: #637
+- Bezug/Antwort auf: `2026-11-25_202500_opencode_ENDE_issue637-s10-repeat.md`
+- Status: teilweise
+- Zuständigkeit und betroffene Dateien: Read-only Prüfung von `origin/main=4f5566ad`; neuer redigierter Hand-off `docs/protocol/research/ISSUE637_CHATGPT_HANDOFF_2026-11-25.md`.
+- Geplanter Umfang / tatsächlich erledigt: Handoff mit Run-3/Backup-Summen, SQLite-Logbefund und Connect-Vergleich erstellt. Aktuelle Main-Quelle zeigt Archive-Helper-Lock von Helper-Konstruktion bis Close; FIT-Import öffnet einen anderen Helper außerhalb davon. Der BLE-Completion-Pfad läuft auf dem seriellen Probe-Handler, daher ist eine Race-Bedingung zwischen aufeinanderfolgenden BLE-Dateicallbacks nicht belegt. Mögliche andere parallele DB-Nutzer bleiben zu korrelieren.
+- Was ich von anderen brauche: nichts
+- Was ich anderen liefere: Redigierte Reviewfragen und Evidenzgrenzen; keine Roh-Traces, Gesundheitswerte, Hashes oder Gerätekennungen.
+- Nachweise: `git fetch origin`; `origin/main=4f5566ad`; source-read-only Vergleich; `git diff --check` ausstehend.
+- Nächster Schritt / Besitzer: FIT/OpenCode korreliert bei Fortsetzung private Logzeiten mit weiteren DB-Nutzern; kein weiterer S10-Lauf bis offline Diagnose/Fix und reguläre Gates.

@@ -1,0 +1,13 @@
+# ENDE | #637 Ursache fehlender Export-Beobachtungen eingegrenzt
+- Zeit (UTC): 2026-11-26 12:29:00
+- Von: OpenCode FIT
+- An: Projektleitung, GUI-Agent
+- Issue/Task: #637
+- Bezug/Antwort auf: `2026-11-26_122500_opencode_START_issue637-export-missing-observations.md`
+- Status: teilweise abgeschlossen
+- Zuständigkeit und betroffene Dateien: Read-only Auswertung älterer Backup-Provenienz und CSV; Vergleichsbericht und Agenten-Aktivitätslog/-Sync.
+- Geplanter Umfang / tatsächlich erledigt: Für die 1.144 aktiven Global-55/Feld-27-HR-Beobachtungen überprüft, ob die 784 nicht gematchten Beobachtungen am Export-Zeitfenster oder am dokumentierten Ausschluss nichtpositiver Herzfrequenzwerte liegen. Alle 1.144 liegen im breiten CSV-Datumsbereich und in der CSV-Zeitstempel-Spanne; alle sind positiv und `PROFILE_VALID`. Die 360 Treffer stammen aus zwei von fünf Quellen (350 und 10); drei Quellgruppen mit 784 Beobachtungen sind vollständig ohne CSV-Treffer. Backup und CSV sind nicht als identischer SQLite-Zeitstand belegt; Ursache bleibt offen.
+- Was ich von anderen brauche: nichts.
+- Was ich anderen liefere: Bericht aktualisiert, ohne Rohwerte, IDs, exakte Zeitstempel oder private Pfade.
+- Nachweise: `git diff --check` erfolgreich. Nur lokale, read-only Aggregation und statische Codelektüre; keine automatisierten Tests, kein Gerätzugriff, keine Produktcodeänderung.
+- Nächster Schritt / Besitzer: OpenCode – nur mit passendem zeitgleichen SQLite-/Exportartefakt weiter aufklärbar; ItemList-zu-Payload-Korrelation bleibt ebenfalls offen.

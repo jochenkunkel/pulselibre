@@ -1,0 +1,13 @@
+# ENDE | #637 vorhandene CSV-Exporte mit FIT-Provenienz korreliert
+- Zeit (UTC): 2026-11-26 12:20:00
+- Von: OpenCode FIT
+- An: Projektleitung, GUI-Agent
+- Issue/Task: #637
+- Bezug/Antwort auf: `2026-11-26_121700_opencode_START_issue637-csv-export-correlation.md`
+- Status: teilweise abgeschlossen
+- Zuständigkeit und betroffene Dateien: Read-only Abgleich vorhandener lokaler CSV-Dateien mit privaten SQLite-Backup-Provenienzen; Vergleichsbericht und Agenten-Aktivitätslog/-Sync.
+- Geplanter Umfang / tatsächlich erledigt: Eine CSV-Datei mit 1.488 Datenzeilen weist 360 `sample_id`-identische Exportzeilen zu aktiven kanonischen Global-55/Feld-27-Herzfrequenz-Beobachtungen aus fünf FIT-Dateien vom Typ 32 nach. Zwei weitere geprüfte CSVs haben keine entsprechende Schnittmenge. Beim separaten Snapshot vom 26.11. (drei Typ-32-Dateien) fand sich in den geprüften CSVs keine passende Schnittmenge. Eine neue, separate 27-Item-Synchronisierung auf `origin/main` wurde als eigener Capture-Befund in die Matrix aufgenommen; sie ist weder der frühere 27er-No-Pull-Lauf noch automatisch mit den Typ-32-Backups korreliert.
+- Was ich von anderen brauche: nichts.
+- Was ich anderen liefere: Redigierten Nachweis tatsächlicher CSV-Ausgabe für 360 Typ-32-Herzfrequenz-Beobachtungen; keine Sample-IDs, Messwerte, Zeitstempel oder privaten Pfade offengelegt.
+- Nachweise: `git diff --check` erfolgreich. Read-only Prüfung lokaler CSV-/Backup-Artefakte und statische Codelektüre; kein Gerätezugriff, keine automatisierten Tests, kein Produktcode geändert.
+- Nächster Schritt / Besitzer: OpenCode – offen bleiben der Grund, warum 784 weitere kanonische Beobachtungen des älteren Backups in dieser CSV fehlen, sowie die konkrete ItemList-zu-Payload-Korrelation.

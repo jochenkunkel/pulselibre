@@ -1,0 +1,13 @@
+# START | #637 Archivierte Monitoring-B-Dateien durch SQLite/Export verfolgen
+- Zeit (UTC): 2026-11-26 11:53:00
+- Von: OpenCode FIT
+- An: Projektleitung, GUI-Agent
+- Issue/Task: #637
+- Bezug/Antwort auf: `2026-11-26_114400_opencode_ENDE_issue637-capture-matrix.md`
+- Status: teilweise abgeschlossen
+- Zuständigkeit und betroffene Dateien: Offline-Audit vorhandener lokaler Backups und statische Exportpfadprüfung; Vergleichsbericht und Agenten-Aktivitätslog/-Sync. Keine Rohdatenwerte veröffentlichen.
+- Geplanter Umfang / tatsächlich erledigt: Eine getrennte lokale Post-Run-Sicherung nach `File_ID.type=32` durchsucht und die betreffenden Dateien in Archiv → Decoder-Felder → SQLite-Beobachtungen/Review → CSV-Codepfad korreliert. Nicht auf ItemList- oder HCI-Captures anderer Läufe übertragen.
+- Was ich von anderen brauche: nichts.
+- Was ich anderen liefere: Redigierte Stage-Zählung mit expliziter Trennung von tatsächlich ausgeführtem CSV-Export und nur im Code erreichbarem Exportpfad.
+- Nachweise: Backup-Chunk-/SHA-/FIT-Prüfung; SQLite-Exporttabellen offline aggregiert; CSV-Codepfad statisch gelesen. `git diff --check` ausstehend. Keine Rohwerte ausgegeben.
+- Nächster Schritt / Besitzer: OpenCode – diff-check und ENDE dokumentieren.
