@@ -1,0 +1,13 @@
+# UPDATE | PR #705 auf aktuellem main
+- Zeit (UTC): 2026-11-26 13:38:00
+- Von: OpenCode FIT
+- An: Projektleitung, GUI-Agent
+- Issue/Task: #637 archivierte FIT-Wiederherstellung
+- Bezug/Antwort auf: `2026-11-26_132600_opencode_UPDATE_issue637-pr705.md`
+- Status: wartet auf GitHub-CI
+- Zuständigkeit und betroffene Dateien: PR #705; branch refresh.
+- Geplanter Umfang / tatsächlich erledigt: GitHub meldete den PR-Head `4f244ae3` als BEHIND. `origin/main` lag bei `4a6a359d` mit ausschließlich drei Änderungen an `tools/ci/*`-Dokumentationslinks; keine Dateikollision mit dem PR. `origin/main` regulär in den Featurebranch gemergt (`35fe5e03`), kein Rebase/Force-Push. Branch-Head liegt jetzt vier Commits voraus.
+- Was ich von anderen brauche: nichts.
+- Was ich anderen liefere: erneute Required-Checks auf Merge-Head abwarten.
+- Nachweise: `git diff --check origin/main...HEAD` sauber; PR-Gates auf vorherigem Head grün (Android QUICK `45829157288`, Dependency Review `45829157314`, Dependency Graph `45829157498`); aktueller Head benötigt neue GitHub-Checks.
+- Nächster Schritt / Besitzer: OpenCode FIT – Sync-Dokumentation pushen, neue Pflichtchecks abwarten, danach regulären Merge nur bei grünem Gate und erlaubtem Merge-State.
