@@ -1,0 +1,13 @@
+# START | #637 vorhandene CSV-Exporte mit FIT-Provenienz korrelieren
+- Zeit (UTC): 2026-11-26 12:17:00
+- Von: OpenCode FIT
+- An: Projektleitung, GUI-Agent
+- Issue/Task: #637
+- Bezug/Antwort auf: `2026-11-26_115600_opencode_ENDE_issue637-monitoring-pipeline.md`
+- Status: abgeschlossen
+- Zuständigkeit und betroffene Dateien: Read-only Vergleich vorhandener lokaler CSV-Exporte mit SQLite-Backup-Provenienz; anschließend redigierter Bericht und Agenten-Aktivitätslog/-Sync.
+- Geplanter Umfang / tatsächlich erledigt: Vorhandene CSVs über Header, Zeilenzahlen und `sample_id`-Schnittmengen mit Typ-32-Generationsbeobachtungen verglichen; keine Werte, IDs, Zeitstempel oder Rohdaten ausgegeben. Neue `origin/main`-Evidenz auf getrennte 27-Item-Syncs beachtet.
+- Was ich von anderen brauche: nichts.
+- Was ich anderen liefere: Aussage, ob tatsächlich vorhandene Exportzeilen auf kanonische Typ-32-Provenienz zurückgeführt werden können; Exportdateien bleiben lokal.
+- Nachweise: Eine vorhandene CSV mit 1.488 Datenzeilen enthält 360 sample-id-identische `heart_rate`/`bpm`-Zeilen zu aktiven Global-55/Feld-27-Beobachtungen aus fünf Typ-32-Dateien eines älteren Backups. In den geprüften CSVs fand sich für den separaten 26.11.-Snapshot mit drei Typ-32-Dateien keine passende ID. `git diff --check` erfolgreich; kein Gerätzugriff und keine Produktcodeänderung.
+- Nächster Schritt / Besitzer: OpenCode – Bericht aktualisiert; verbleibend sind die Gründe für nicht exportierte Beobachtungen und die ItemList-zu-Payload-Korrelation.
