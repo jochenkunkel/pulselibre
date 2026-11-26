@@ -11,7 +11,7 @@ in ihre lokale Datenbank importiert. Offen ist weiterhin die Vollständigkeit.
 
 ## Gerät und Voraussetzungen
 
-- Gerät: S10 `RF8M826126Z` (SM_G970F), USB, bereits angeschlossen.
+- Gerät: S10 `<S10-Seriennummer>` (SM_G970F), USB, bereits angeschlossen.
 - Installierte App: `de.pulselibre`, `2.0.0_build1757` (passiv geprüft).
 - `run-as de.pulselibre` funktioniert **nicht** (nicht debuggable), kein Root.
   Die App besitzt jedoch `ExportActivity` mit SAF-Export (`DatabaseBackup.write`).

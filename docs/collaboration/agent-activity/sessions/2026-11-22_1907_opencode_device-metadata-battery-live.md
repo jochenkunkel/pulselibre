@@ -12,7 +12,7 @@
 - Nachweise:
   - `gradle :app:testDebugUnitTest` grün (952 Tests), `gradle :app:assembleDebugAndroidTest` grün, `./tools/ci-local.sh --quick` grün inkl. R8/APK-Diagnose.
   - FULL-Lauf inkl. Emulator: erster Lauf flakelig beim Emulator-Install; zweiter Lauf rot durch sechs echte Schema-v8-Testfehler (Versionserwartungen, v8-Backup-Eintrag, FIT-Backfill gegen fehlende Legacy-Tabelle). Nach Korrektur komplette Emulator-Suite grün (134 Tests, 0 Fehler). Erneuter voller Lauf nach finalem Commit gestartet; Ergebnis wird vor einem Merge gelesen.
-  - Bounded S25-Läufe im gehaltenen Lease-Wrapper (`RF8M826126Z`): GATT `device_name=CIRQA Smart Band` + fünf weitere Characteristics mit Quelle/Zeit in `live_device_metadata`; kein `0x2A19`; Garmin-Status-Request quittiert, keine Batterie-Antwort im 18-s-Fenster. Siehe `docs/protocol/device-tests/CIRQA_LIVE_DEVICE_METADATA_BOUNDED_TEST_2026-11-22.md`.
+  - Bounded S25-Läufe im gehaltenen Lease-Wrapper (`<S10-Seriennummer>`): GATT `device_name=CIRQA Smart Band` + fünf weitere Characteristics mit Quelle/Zeit in `live_device_metadata`; kein `0x2A19`; Garmin-Status-Request quittiert, keine Batterie-Antwort im 18-s-Fenster. Siehe `docs/protocol/device-tests/CIRQA_LIVE_DEVICE_METADATA_BOUNDED_TEST_2026-11-22.md`.
   - Issue #159 (P2 UI) und #142 (P1 Research) korrigiert; 37 %/NORMAL nur als historischer Einmalbefund dokumentiert.
 - Status: **abgeschlossen**; PR #520 nach grünem vollem Branch-Head-CI gemergt, anschließender voller `main`-Lauf `45074902617` grün. Alle Nachweise unten final.
 - Nächster Schritt: keiner; #496 bleibt geparkt. Ein vorheriger FULL-Lauf auf dem Zwischenstand scheiterte nur an einem Emulator-Offline-Flake, nicht an einem Test.

@@ -21,7 +21,7 @@ GUARD = ROOT / ".github" / "scripts" / "require-emulator-serial.sh"
 RUN_CI = ROOT / "tools" / "ci" / "run-ci.sh"
 BASH = shutil.which("bash") or "/bin/bash"
 
-PHYSICAL = "RF8M826126Z\tdevice"
+PHYSICAL = "R00000TEST0\tdevice"
 EMULATOR = "emulator-5554\tdevice"
 DEVICES_HEADER = "List of devices attached\n"
 
@@ -60,7 +60,7 @@ class DeviceSafetyGateTests(unittest.TestCase):
         self.assertEqual(0, result.returncode, result.stderr)
 
     def test_explicit_physical_serial_fails(self):
-        result = self.run_guard(DEVICES_HEADER + EMULATOR + "\n", serial="RF8M826126Z")
+        result = self.run_guard(DEVICES_HEADER + EMULATOR + "\n", serial="R00000TEST0")
         self.assertNotEqual(0, result.returncode)
         self.assertIn("ANDROID_SERIAL", result.stderr + result.stdout)
 
@@ -80,7 +80,7 @@ class DeviceSafetyGateTests(unittest.TestCase):
         self.assertEqual(0, result.returncode, result.stderr)
 
     def test_offline_physical_device_is_ignored(self):
-        result = self.run_guard("List of devices attached\nRF8M826126Z\toffline\n")
+        result = self.run_guard("List of devices attached\nR00000TEST0\toffline\n")
         self.assertEqual(0, result.returncode, result.stderr)
 
     def test_missing_adb_fails_closed(self):

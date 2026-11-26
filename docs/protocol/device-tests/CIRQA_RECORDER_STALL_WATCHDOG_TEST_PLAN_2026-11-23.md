@@ -1,7 +1,7 @@
 # Testplan: Stillstands-Wächter der Daueraufzeichnung (#529, #25)
 
 Status: **Freigabe durch den Nutzer am 23.11.2026 (gilt für den Tag); erster Lauf 06:54–07:04 UTC abgebrochen (Fremdinstallation ohne Lease, danach Freigabe des Geräts auf Nutzerwunsch), nach ca. 5 min, ohne Ergebnis. #529 bleibt offen; Wiederholung unter Lease (ETA 40 min) steht aus.** Gerät aktuell FREI.
-Gerät: S10 (`RF8M826126Z`) mit dem Band; Build: signierter Build von `main` mit PR #525.
+Gerät: S10 (`<S10-Seriennummer>`) mit dem Band; Build: signierter Build von `main` mit PR #525.
 
 ## 1. Was getestet wird
 Der Wächter beendet eine offene Verbindung, die 10 Minuten lang keinen Messwert liefert, und baut sie über den vorhandenen, begrenzten Reconnect-Pfad (2/4/8/16/32/60 s) neu auf. Er sendet keine neuen BLE-Kommandos.
