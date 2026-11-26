@@ -41,9 +41,17 @@ Offline-Analyse der 37 lokalen CIRQA-Originale vom 25.11.2026 (Testband, nicht i
 - 233 bleibt byte-genau als Rohfeld und im Unbekannt-Inventar erhalten. Der Test `proprietary233And397StayRawUnchangedAndNeverBecomeMeasurements` sichert das ab.
 - C0 würde gegenüber dem Standardfeld 20/3 keinen neuen Messwert liefern. Deshalb gibt es **keine** Produktfreigabe.
 
+## Nachricht 397 (Feld 1, float32)
+
+- **Vorkommen:** nur in einer Datei vom FIT-Dateityp 73, also nicht im Profil. Dieselbe Datei enthält auch die offizielle Nachricht `skin_temp_overnight` (398).
+- **Takt:** 1 421 Werte im **1-Minuten-Takt** über 24,1 h (Feld 253 = Zeitstempel, 2 Lücken).
+- **Werte:** −10,9 … +0,6, Mittel −2,1, Standardabweichung 1,8, Stundenmittel zwischen −6,3 und −0,4.
+- **Gegenprobe:** Das offizielle 398 meldet `average_deviation` −0,065 °C und `nightly_value` 35,8 °C. **Kein** Zeitfenster (1–12 h innerhalb der 24 h vor 398) ergibt diesen Mittelwert, bestes Fenster −0,20.
+- **Bewertung:** 397/1 ist **plausibel** eine minütliche Hauttemperatur-Größe, denn sie steht in derselben Datei, läuft über 24 h und hat starke Einbrüche, wie man sie bei nicht getragenem Testband erwartet. Eine Abweichung, deren Nachtmittel 398 ergibt, ist sie aber **nicht** nachweislich. Einheit und Bezug sind **nicht nachgewiesen**, deshalb gibt es keine Produktnutzung.
+
 ## Offen
 - Bedeutung von B8 und B0 sowie der Kanäle 0 und 1.
 - Wie 233 in Monitoring-Dateien ohne `record` taktet.
-- 397/1 (float32), Einheit unbekannt.
+- Bezug und Einheit von 397/1. Für eine Prüfung braucht es Nächte, in denen das Band getragen wird.
 
 Ohne Garmin-Dokumentation ist dafür eine Gegenprobe mit kontrollierter Belastung nötig, etwa Ruhe gegen Bewegung bei bekanntem Puls.
