@@ -210,6 +210,69 @@ ungefiltertes vollständiges Inventar anstrebt.
 
 ## Connect-App-Start am 25.11. und Sequenzvergleich
 
+### Capture-Deduplikation und Layer-Replay (Offline-Nachprüfung 2026-11-26)
+
+Die drei lokal gefundenen Kopien von `s10-garmin-sync-delta.hci` haben
+identische Inhalte (je 120.566 Bytes; lokal per SHA-256 gruppiert, Digest
+nicht veröffentlicht). Im größeren `s10-garmin-sync-20261122.hci` sind
+`delta` (2.102 HCI-Records) und `window` (714 HCI-Records) jeweils exakte,
+zusammenhängende Record-Teilfolgen, beginnend bei Record 11.121 bzw. 12.509.
+Sie sind daher keine unabhängigen Dialoge und dürfen bei Ereigniszählungen
+nicht zusätzlich zum größeren Capture addiert werden.
+
+Das größere Capture wurde mit `tools/garmin_hci_replay.py` erneut auf
+HCI-ACL→L2CAP→ATT geprüft: 13.223 Records, vier ATT-Verbindungsepochen,
+keine vom Parser gemeldeten Reassembly-Fehler und fünf ungültige ACL-
+Verbindungshandle-Records. Die fünf Records bleiben verworfen; der
+Capture-Endzustand enthält noch eine offene HCI-Verbindung. `delta` und
+`window` sind darin enthalten. Ihre früher separat berichteten Counts sind
+folglich Ausschnitte, keine zusätzlichen Verbindungen.
+
+Für einen privaten, redigierten GFDI-Metadaten-Replay wurde außerdem der
+bereits vorhandene Offline-Analyzer auf das größere Capture angewandt. Er
+liefert in vier getrennten Reliable-Handle-Streams 101, 80, 184 und 249
+vollständige CRC-validierte Protobuf-Nachrichten; die zugehörigen
+FileAccess-Service-Feldmengen unterscheiden sich je Stream. Die
+ItemList-Antwortzahlen je Stream sind (2; 0; 0; 12) und die Seitenlängen
+enthalten sowohl nichtleere als auch leere Antworten. Das ist ein
+connection-/stream-begrenzter Befund, keine Aussage über Vollständigkeit der
+Bandhistorie. Die lokale Analyzer-Version bindet den HCI-Handle statisch und
+rekonstruiert Reliable-Handle-Streams; sie ist kein allgemeiner
+Verbindungs-agnostischer Parser. Daher werden aus diesen Summen allein weder
+ein neuer Connect-Dialog über alle Verbindungen noch eine erste
+PulsLibre-Abweichung abgeleitet.
+
+Die abweichende FileAccess-Feldform ist auf Wire-Ebene sichtbar, aber
+Filterwirkung und Bedeutungen der proprietären Felder bleiben ungeklärt.
+Insbesondere ist weder eine kausale Connect-vs-PulsLibre-Divergenz noch ein
+Fehler in ACK-, Fragment-, Pull- oder `nextTransaction`-Behandlung belegt.
+Es wird deshalb kein Produktverhalten geändert. Die private Rohaufnahme,
+Hashes, Tokenwerte und Payloads verbleiben außerhalb des Repositorys.
+
+### Früheste derzeit belegte Wire-Form-Abweichung
+
+Der derzeit früheste **vergleichbare** Unterschied liegt bei der
+FileAccess-`item_list_request`, nicht beim davorliegenden Bootstrap: Die
+redigierte Connect-Auditspur vom 24.11. enthält Requestformen mit den
+zusätzlichen optionalen Feldern `exclude_all_flags`, `get_flags` und/oder
+`included_data_types`. PulsLibre baut in
+`CirqaFileAccessListRequest.smartRequest()` dagegen für die initiale Liste eine
+leere `item_list_request` und für die Transaktionsfortsetzung nur
+`transaction_id`; für eine Session-Seite wird nur `session_id` eingesetzt.
+Die Request- und Parserpfade sind in `CirqaMlHandshakeProbe` verbunden.
+
+Das ist der erste konkret sichtbare Request-Shape-Unterschied innerhalb der
+FileAccess-Listenoperation. Er ist **keine nachgewiesene Ursache** der leeren
+PulsLibre-Folgeantwort: Connects konkrete Filterwerte und deren Bedeutung sind
+nicht veröffentlicht, die Aufnahmen stammen aus unterschiedlichen Läufen,
+und die hier neu deduplizierte 21./22.-November-Datei ist kein vollständiger
+Connect-vs-PulsLibre A/B-Test. Auch der Analyzer, der die historischen
+FileAccess-Feldformen extrahiert, bindet den Transport-Handle statisch.
+Folglich lässt sich daraus weder ableiten, welche optionalen Felder im
+ungefilterten PulsLibre-Inventar sicher wären, noch dass diese Felder vor
+PulsLibre-`nextTransaction` die erste kausale Abweichung darstellen. Keine
+Filterwerte oder Zusatzfelder werden daher in den Produktrequest übernommen.
+
 Der vorhandene Connect-Bugreport, Screenshots und BTSnoop wurden offline
 chronologisch verglichen. Der Start der App löste eine automatische GATT-
 Verbindung aus. Der Screenshot dokumentiert keinen expliziten Sync-Tap; deshalb

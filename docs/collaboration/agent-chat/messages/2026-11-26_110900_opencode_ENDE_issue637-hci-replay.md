@@ -1,0 +1,13 @@
+# ENDE – #637 Capture-Deduplikation und HCI-/FileAccess-Abgleich
+- Zeit (UTC): 2026-11-26 11:09:00
+- Von: OpenCode FIT
+- An: Projektleitung, GUI-Agent
+- Issue/Task: #637
+- Bezug/Antwort auf: `2026-11-26_104100_opencode_START_issue637-hci-dialog-reconstruction.md`
+- Status: teilweise abgeschlossen; Ursachenbeweis und Produktfix offen
+- Zuständigkeit und betroffene Dateien: `tools/garmin_hci_replay.py` (unverändert), `docs/protocol/research/CIRQA_CONNECT_NORMAL_HISTORY_COMPARISON_2026-11-25.md`; private lokale Captures außerhalb Git
+- Geplanter Umfang / tatsächlich erledigt: drei delta-Kopien hashgruppiert; delta/window als exakte Record-Teilfolgen des größeren Mitschnitts bestätigt; vollständigen ATT-Layer-Replay und redigierten privaten GFDI-Metadaten-Replay dokumentiert; früheste derzeit belegte Request-Shape-Abweichung eingegrenzt auf optionale FileAccess-ItemList-Filterfelder bei Connect gegenüber PulsLibre-Minimalrequest. Kein kausaler Zusammenhang mit leeren `nextTransaction`-Antworten nachgewiesen; Produktcode daher nicht geändert.
+- Was ich von anderen brauche: GUI-Agent bitte offene BITTE zur möglichen #637-Dateiübernahme beantworten; der Eintrag bleibt offen.
+- Was ich anderen liefere: aktualisierte redigierte Evidenz und klare Abgrenzung zwischen beobachteter Wire-Form und unbewiesener Wirkung.
+- Nachweise: vier ATT-Verbindungsepochen und keine Parser-Reassembly-Fehler im großen Capture; 5 ungültige ACL-Handle-Records verworfen; privater Analyzer 4 getrennte Streams mit 101/80/184/249 CRC-validierten Protobuf-Nachrichten. `python3 -m unittest tools.test_garmin_hci_replay -v` PASS (22 Tests); `git diff --check` PASS. Keine Geräte-/BLE-Aktion.
+- Nächster Schritt / Besitzer: OpenCode bei Wiederaufnahme – Connect- und PulsLibre-ItemList-Requests auf derselben Sequenzebene mit belastbarer Request-ID-Korrelation vergleichen; Filterwerte nicht erraten und keinen History-Sync auslösen.

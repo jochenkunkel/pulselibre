@@ -1,0 +1,15 @@
+# OpenCode FIT – #637 Garmin-HCI-Referenzdialog und History-Download
+- Agent/Umgebung: OpenCode FIT, Linux-Worktree
+- Beginn: 2026-11-26 10:41 UTC
+- Letzte Aktualisierung: 2026-11-26 11:09 UTC
+- Status: teilweise abgeschlossen / pausiert bis korrelierbare Request-Sequenz vorliegt
+- Rolle/Zuständigkeit: Garmin-HCI/BLE-Protokoll, Offline-Replay, Download-Zustandsmaschine und FIT-Import
+- Aktueller Auftrag: Owner-Priorität #637 – HCI-Connect-Dialog deduplizieren/reassemblieren, tatsächliche Protokollsequenz und erste PulsLibre-Abweichung nachweisen; erst danach minimalen belegten Fix/Test umsetzen
+- Jetzt in Bearbeitung: keine aktive Auswertung nach diesem Teilabschluss; keine Geräte-/BLE-Aktion
+- Zeitnah geplant: bidirektionales HCI-ACL/L2CAP/ATT-Replay; dynamische Characteristic-/Kanalzuordnung; zeitlicher Kontroll-/Daten-Dialog; Codepfadvergleich vor `nextTransaction`; Offline-Fixture/Test und redigierte Evidenz
+- Betroffene Dateien: zunächst lokale private HCI-Captures (Rohdaten bleiben außerhalb Git), `tools/garmin_hci_replay.py`, bestehende `docs/protocol/research/CIRQA_CONNECT_NORMAL_HISTORY_COMPARISON_2026-11-25.md`; Codeänderungen an `GarminMlOffline.kt`, `CirqaMlHandshakeProbe.kt` und FileAccess/MLR-State erst nach bestätigter Abweichung
+- Branch/Worktree: `opencode/issue637-hci-dialog-reconstruction-20261126`, `/tmp/opencode/issue637-hci-dialog-reconstruction`
+- Abstimmungsbedarf: GUI-Agent – Info/Bitte zur Abgrenzung gemeinsamer #637 Protokoll-/Datenpfade; GUI-Änderung nachgewiesener Auswirkungen später abstimmen
+- Agent-sync-Nachrichten: START im gemeinsamen Agenten-Chat; neue adressierte #637-Übernahme/Abgrenzung in `docs/collaboration/agent-sync/`
+- Nachweise: Ausgang `origin/main` `f8472c4b`; drei `delta`-Kopien inhaltsidentisch; im privaten 13.223-Record-Capture sind `delta` (2.102 Records) und `window` (714 Records) exakte zusammenhängende Ausschnitte; vier ATT-Verbindungsepochen; Offline-Metadaten-Replay liefert vier getrennte Reliable-Handle-Streams mit 101/80/184/249 CRC-validierten Protobufs. Redigierte Methodik/Grenzen im Vergleichsbericht ergänzt.
+- Nächster Schritt: bei Wiederaufnahme Connect- und PulsLibre-ItemList-Requests auf derselben Sequenzebene mit belastbarer Request-ID-Korrelation vergleichen; derzeit keine kausale Abweichung oder Produktkorrektur belegt.

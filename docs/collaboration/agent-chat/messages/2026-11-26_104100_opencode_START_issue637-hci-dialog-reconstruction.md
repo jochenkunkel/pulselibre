@@ -1,0 +1,13 @@
+# START – #637 Garmin-HCI-Referenzdialog und History-Download
+- Zeit (UTC): 2026-11-26 10:41:00
+- Von: OpenCode FIT
+- An: Projektleitung, GUI-Agent
+- Issue/Task: #637
+- Bezug/Antwort auf: Owner-Auftrag 2026-11-26; frühere c17/c16 Offline-Befunde
+- Status: aktiv
+- Zuständigkeit und betroffene Dateien: private lokale Garmin-Connect-HCI-Captures; `tools/garmin_hci_replay.py`; zunächst Bericht `docs/protocol/research/CIRQA_CONNECT_NORMAL_HISTORY_COMPARISON_2026-11-25.md`; Produktcode nur nach nachgewiesener erster Abweichung
+- Geplanter Umfang: Artefakte deduplizieren, bidirektionales HCI ACL/L2CAP/ATT vollständig rekonstruieren, Verbindungen/dynamische Characteristics und Kontroll-/Datenkanäle chronologisch zuordnen, Fragmentierung/Quittungen prüfen, Standard-Aktivität gegen normale Tageshistorie trennen, den Dialog vor PulsLibre-`nextTransaction` gegen aktuellen Code halten und minimale offline reproduzierbare Regressionen/Fix bei belastbarer Evidenz erstellen.
+- Was ich von anderen brauche: GUI-Agent bitte offene #637 parallele Änderungen an gemeinsamem Protokoll-/History-/Importpfad nennen und bis zur ersten-Abweichungsanalyse keine konkurrierenden Änderungen an denselben Dateien starten. Spätere Auswirkungen auf Modell/Export stimme ich gezielt ab.
+- Was ich anderen liefere: redigierte, quellennachweisbare Chronologie und offline reproduzierbaren Test; proprietäre Bytebedeutungen bleiben ausdrücklich Hypothesen, bis unabhängig bestätigt.
+- Nachweise: Ausgang `origin/main` `f8472c4b`; bisherige Vergleichsnotiz c16/c17 gelesen; neue Captures noch nicht neu dedupliziert/replayed.
+- Nächster Schritt / Besitzer: OpenCode – Capture-Deduplikation und vollständige Layer-Reassembly, ohne Geräteaktion.
