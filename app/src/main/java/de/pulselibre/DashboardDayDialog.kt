@@ -101,10 +101,11 @@ internal fun showDashboardDay(
         worker.execute {
             val series = try { DashboardDayReader(activity.applicationContext).read(metric, day, now) }
                 catch (_: Exception) { null }
-            val band = if (metric != DashboardMeasurement.PULSE) null else try {
-                val window = FitHistoryReader(activity.applicationContext).read(day.start, day.end)
-                BandDay(DayBandBuckets.reduce(window.points, day), window.points.size, window.kinds, failed = false)
-            } catch (_: Exception) { BandDay(emptyList(), 0, emptyMap(), failed = true) }
+            val bandSeries = BandSeries.of(metric)
+            val band = if (bandSeries == null) null else try {
+                val window = FitHistoryReader(activity.applicationContext).read(bandSeries, day.start, day.end)
+                BandDay(DayBandBuckets.reduce(window.points, day), window.points.size, window.kinds, failed = false, series = bandSeries)
+            } catch (_: Exception) { BandDay(emptyList(), 0, emptyMap(), failed = true, series = bandSeries) }
             activity.runOnUiThread {
                 if (!dialog.isShowing || generation != request || activity.isDestroyed) return@runOnUiThread
                 band?.let { showBandDay(activity, bandHolder, day, it, palette, strings) }
@@ -306,7 +307,8 @@ internal class DayChart(
 }
 
 /** Band heart rate (FIT) of one local day: reduced chart points, the stored value count and the FIT message kinds. */
-internal data class BandDay(val points: List<DayObservation>, val count: Int, val kinds: Map<BandRecordKind, Int>, val failed: Boolean)
+internal data class BandDay(val points: List<DayObservation>, val count: Int, val kinds: Map<BandRecordKind, Int>, val failed: Boolean,
+                             val series: BandSeries = BandSeries.HEART_RATE)
 
 /** Same reduction as the live day series: per observed minute the minimum, the maximum and the latest value. */
 internal object DayBandBuckets {
@@ -330,17 +332,26 @@ private fun showBandDay(activity: MainActivity, holder: LinearLayout, day: Dashb
     holder.addView(text(activity.getString(R.string.dd_band_title), 15f, palette.ink).apply { setPadding(0, (16 * density).toInt(), 0, 0) })
     when {
         band.failed -> holder.addView(text(activity.getString(R.string.dd_band_failed), 13f, palette.muted))
-        band.count == 0 -> holder.addView(text(activity.getString(R.string.dd_band_none), 13f, palette.muted))
+        band.count == 0 -> holder.addView(text(activity.getString(
+            if (band.series == BandSeries.HEART_RATE) R.string.dd_band_none else R.string.dd_band_none_metric), 13f, palette.muted))
         else -> {
-            holder.addView(text(activity.getString(R.string.dd_band_summary, band.count,
-                band.kinds[BandRecordKind.MONITORING] ?: 0, band.kinds[BandRecordKind.ACTIVITY] ?: 0), 13f, palette.muted)
-                .apply { tag = "day_band_summary" })
+            // Monitoring/record split exists only for heart rate; stress, SpO2 and respiration have their own FIT messages.
+            val summary = if (band.series == BandSeries.HEART_RATE) activity.getString(R.string.dd_band_summary, band.count,
+                band.kinds[BandRecordKind.MONITORING] ?: 0, band.kinds[BandRecordKind.ACTIVITY] ?: 0)
+                else activity.getString(R.string.dd_band_summary_plain, band.count)
+            holder.addView(text(summary, 13f, palette.muted).apply { tag = "day_band_summary" })
             // An activity recording alone is no normal all-day history: say so instead of implying a full day.
-            if ((band.kinds[BandRecordKind.MONITORING] ?: 0) == 0 && (band.kinds[BandRecordKind.ACTIVITY] ?: 0) > 0)
+            if (band.series == BandSeries.HEART_RATE &&
+                (band.kinds[BandRecordKind.MONITORING] ?: 0) == 0 && (band.kinds[BandRecordKind.ACTIVITY] ?: 0) > 0)
                 holder.addView(text(strings.get(R.string.hv_fit_activity_only), 12f, palette.ink).apply { tag = "day_band_activity_only" })
             if (band.points.size >= 2) {
-                val chart = DayChart(activity, day, band.points, null, false, palette.pulse, palette.track, palette.ink)
-                holder.addView(text(activity.getString(R.string.dd_scale, chart.min.toString(), chart.max.toString(), "bpm"), 13f, palette.ink))
+                val color = when (band.series) { BandSeries.HEART_RATE -> palette.pulse; BandSeries.SPO2 -> palette.oxygen; else -> palette.accent }
+                val unit = when (band.series) {
+                    BandSeries.HEART_RATE -> activity.getString(R.string.dd_unit_bpm); BandSeries.SPO2 -> "%"
+                    BandSeries.STRESS -> activity.getString(R.string.dd_unit_device_scale)
+                    BandSeries.RESPIRATION -> activity.getString(R.string.dd_unit_breaths) }
+                val chart = DayChart(activity, day, band.points, null, false, color, palette.track, palette.ink)
+                holder.addView(text(activity.getString(R.string.dd_scale, chart.min.toString(), chart.max.toString(), unit), 13f, palette.ink))
                 holder.addView(chart, LinearLayout.LayoutParams(-1, (160 * density).toInt()))
             }
         }

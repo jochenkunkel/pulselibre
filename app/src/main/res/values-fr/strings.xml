@@ -937,6 +937,11 @@
     <string name="dd_band_summary">%1$d valeurs du bracelet (historique quotidien %2$d, activité %3$d)</string>
     <string name="dd_band_none">Aucune fréquence cardiaque du bracelet (FIT) enregistrée ce jour.</string>
     <string name="dd_band_failed">L’historique du bracelet n’a pas pu être lu.</string>
+    <string name="dd_band_none_metric">Aucune valeur du bracelet (FIT) de cette mesure enregistrée ce jour-là.</string>
+    <string name="dd_band_summary_plain">%1$d valeurs du bracelet</string>
+    <string name="dd_unit_bpm">bpm</string>
+    <string name="dd_unit_device_scale">échelle de l’appareil</string>
+    <string name="dd_unit_breaths">respirations/min</string>
     <!-- REVIEW: neue Texte (Verlauf-Tabelle), fr/es Sprachprüfung durch ChatGPT -->
     <string name="ht_title">Toutes les données</string>
     <string name="ht_col_date">Date</string>

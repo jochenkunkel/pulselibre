@@ -937,6 +937,11 @@
     <string name="dd_band_summary">%1$d valores de la pulsera (historial diario %2$d, actividad %3$d)</string>
     <string name="dd_band_none">No hay frecuencia cardíaca de la pulsera (FIT) guardada para este día.</string>
     <string name="dd_band_failed">No se pudo leer el historial de la pulsera.</string>
+    <string name="dd_band_none_metric">No hay valores de la pulsera (FIT) de esta medida guardados ese día.</string>
+    <string name="dd_band_summary_plain">%1$d valores de la pulsera</string>
+    <string name="dd_unit_bpm">lpm</string>
+    <string name="dd_unit_device_scale">escala del dispositivo</string>
+    <string name="dd_unit_breaths">respiraciones/min</string>
     <!-- REVIEW: neue Texte (Verlauf-Tabelle), fr/es Sprachprüfung durch ChatGPT -->
     <string name="ht_title">Todos los datos</string>
     <string name="ht_col_date">Fecha</string>
