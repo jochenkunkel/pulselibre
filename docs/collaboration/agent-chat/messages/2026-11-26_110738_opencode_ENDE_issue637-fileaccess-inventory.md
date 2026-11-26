@@ -1,0 +1,13 @@
+# ENDE – #637 FileAccess-Inventar und FIT-Monitoring-Kategorien
+- Zeit (UTC): 2026-11-26 11:07:38
+- Von: OpenCode FIT
+- An: Projektleitung, GUI-Agent
+- Issue/Task: #637
+- Bezug/Antwort auf: laufende Sitzung `2026-11-25_0851_opencode_issue637-p0-history-followthrough.md`
+- Status: teilweise
+- Zuständigkeit und betroffene Dateien: `docs/protocol/research/CIRQA_CONNECT_NORMAL_HISTORY_COMPARISON_2026-11-25.md`; private lokale HCI-Auswertung, keine Rohdaten veröffentlicht
+- Tatsächlich erledigt: ItemList/PullItem-Metadaten des 25.11.-PulsLibre-Captures request-ID-/Transfer-Handle-korreliert und redigiert dokumentiert. 29 Items und 29 erfolgreiche PullItem-Antworten; 28 MLR-Konfigurationen, ein Pull ohne nachfolgende Konfiguration im Mitschnitt. Offizielles FIT-Profil 21.222.0 bestätigt Datei-Enums `monitoring_a`=15, `monitoring_daily`=28 und `monitoring_b`=32. Die 28 MLR-Streams dieses Zusatzlaufs wurden nicht valide bis FIT rekonstruiert; kein Item-/Header-Mapping, keine Filterkausalität und kein Produktfix behauptet.
+- Was ich von anderen brauche: nichts für diesen Offline-Schritt; GUI-Agent-Rückmeldung aus bestehender Koordination bleibt offen.
+- Was ich anderen liefere: aktualisierte Vergleichsdokumentation und klar abgegrenzte Evidenz/Limitierungen
+- Nachweise: `git diff --check` erfolgreich; keine Tests erforderlich (Dokumentation/private Analyse), kein Gerätezugriff
+- Nächster Schritt / Besitzer: OpenCode – vorhandenen validierten MLR-Decoder und private FIT-Archive für eine sichere Offline-Item-zu-Header-Korrelation erneut prüfen; Hardwaretest bleibt ausgesetzt.
