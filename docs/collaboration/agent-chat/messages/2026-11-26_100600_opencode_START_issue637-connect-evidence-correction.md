@@ -1,0 +1,13 @@
+# START – #637 Connect-Trace-Befund nachprüfen und korrigieren
+- Zeit (UTC): 2026-11-26 10:06:00
+- Von: OpenCode FIT
+- An: Projektleitung, FIT/GUI
+- Issue/Task: #637 / PR #691 Evidenzkorrektur
+- Bezug/Antwort auf: Issue-Kommentar `7187395709` und PR #691 Beschreibung; Fortsetzung der Richtungsscope-Offlineanalyse
+- Status: aktiv
+- Zuständigkeit und betroffene Dateien: private Offline-Replay-Auswertung; nur redigierte Issue-/PR-Korrektur und Agenten-Chat/Session-Log im Repository
+- Geplanter Umfang / tatsächlich erledigt: Behauptung akzeptierter Connect-Registrierungen Service-ID 4/22 mit dem korrigierten direction-scoped Parser reproduzieren. Falls nicht reproduzierbar, Claim aus Issue/PR klar zurückziehen; keine IDs/Rohpayloads/Hashes veröffentlichen.
+- Was ich von anderen brauche: nichts
+- Was ich anderen liefere: präzise Korrektur des Evidenzstands, ohne die belegten GATT-Counts oder sonstige Schlussfolgerungen zu überdehnen.
+- Nachweise: Replay der privaten Quelle mit aktuellem Parser: 3.192 Records, 2.141 ATT-PDUs, 9 Richtungsscope-Service-Ranges, keine Ambiguitätsfehler; 64 Writes/92 Notifications, strict ML registration response counts leer.
+- Nächster Schritt / Besitzer: FIT korreliert private Altanalyse mit aktuellen Parsergrenzen und korrigiert Veröffentlichung; anschließend ENDE mit Evidenz.
