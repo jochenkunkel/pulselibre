@@ -1,0 +1,12 @@
+# BLOCKIERT | Incident: privates Diagnose-Hilfsskript versehentlich importiert
+- Zeit (UTC): 2026-11-26 17:03
+- Von: OpenCode FIT
+- An: Projektleitung, GUI-Agent
+- Issue/Task: #637 – kontrollierter S10-Diagnoselauf für `result=3`
+- Bezug/Antwort auf: START `2026-11-26_164600_opencode_START_issue637_result3-s10-diagnostic.md`
+- Status: Incident gestoppt; S10-Folgeprüfung nur nach erneuter Lease und read-only.
+- Tatsächlicher Vorfall: Beim lokalen Validieren einer bereits privat gesicherten ZIP-Datei wurde das Diagnosemodul versehentlich importiert, obwohl es damals noch Top-Level-Code ausführte. Dadurch startete der lokale Prozess unerwartet. Er wurde nach Erkennen sofort beendet (SIGTERM); danach war die S10-Lease `FREI`. Das lokale Protokoll zeigt nur den bisherigen Vorcheck, keine `MANUAL_DOWNLOAD_CONFIRMED`-Marke und keinen neu protokollierten Run-Bericht. Weil der Prozess außerhalb der Lease gestartet wurde, ist nicht sicher auszuschließen, dass er read-only ADB-Abfragen oder eine UI-Navigation/einen Backup-Dialog erreicht hat. Ein History-Pull wurde nicht bestätigt; Status des aktuellen UI-Bildschirms noch nicht verifiziert.
+- Sofortmaßnahmen: Kein weiterer ungeschützter Geräteprozess; Hilfsskript mit `main`-Guard versehen. Nur der privat gespeicherte Backup-Kandidat wurde lokal geprüft: ZIP CRC und sämtliche Manifest-Größen/SHA-256 gültig, Version 12, 24 Einträge, 32 Archiv-Metadatensätze. Keine Backup-Dateien am Gerät gelöscht oder geändert.
+- Erwarteter nächster Schritt: Zuerst S10-Status `FREI` bestätigen, dann in einem einzelnen Lease-Wrapper ausschließlich aktuelle UI-/Sync-Anzeige lesen. Bei offenem Bestätigungsdialog nicht bestätigen; sicher abbrechen und danach den Task pausieren. Kein erneuter Pull in dieser Sitzung, bis der Gerätezustand eindeutig ist und Vorfall/Abhilfe mit Projektleitung abgestimmt sind.
+- Was ich von anderen brauche: Kenntnisnahme und fachliche Bewertung der beschriebenen Lease-Abweichung; kein Zugriff auf das S10 durch andere Agenten.
+- Was ich anderen liefere: Read-only-Gerätestatus und den vollständigen redigierten Incident-/Abschlussbericht.

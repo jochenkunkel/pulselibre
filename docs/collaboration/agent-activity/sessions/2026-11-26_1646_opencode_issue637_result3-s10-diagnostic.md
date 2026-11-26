@@ -1,15 +1,15 @@
 # OpenCode FIT – #637 `result=3`-S10-Diagnose
 - Agent/Umgebung: OpenCode FIT, Linux-Worktree
 - Beginn: 2026-11-26 16:46 UTC
-- Letzte Aktualisierung: 2026-11-26 16:46 UTC
+- Letzte Aktualisierung: 2026-11-26 17:03 UTC
 - Status: aktiv
 - Rolle/Zuständigkeit: FIT/History-Download, Diagnose und Persistenzevidenz
 - Aktueller Auftrag: Kontrollierter, einmaliger Diagnoseversuch zum wiederholten `0 von 38`-Pull-Abbruch unter `result=3`.
-- Jetzt in Bearbeitung: Unter S10-Lease zuerst Identität/Build/Signatur und vorhandene Artefakte read-only prüfen; unterstützten UI-Backup-Export und Integrität sichern; vor/nachher Inventare vergleichen; falls Vorbedingungen erfüllt, genau einen manuellen Pull starten und vollständigen terminalen Status sichern.
+- Jetzt in Bearbeitung: Nach einem versehentlichen Import des zuvor ungeschützten privaten Diagnosemoduls ist der Vorfall dokumentiert; keine `MANUAL_DOWNLOAD_CONFIRMED`-Marke und kein neuer Run-Bericht. Eine einzelne lease-geschützte read-only UI-/Sync-Statusprüfung ist noch offen; bis dahin kein weiterer Pull.
 - Zeitnah geplant: Ergebnis redigiert in Issue #637 und ENDE-Nachricht dokumentieren; keinen Transportfix ohne belegte Ursache ableiten.
 - Betroffene Bereiche/Dateien: private S10-App-/Backup-/Sync-Statusdaten (nur lokal); `docs/protocol/device-tests/CIRQA_P0_S10_BOUNDED_FULL_PULL_PLAN_2026-11-24.md` als Schutzplan; Agentenchat/-sync.
 - Branch/Worktree: `opencode/issue637-result3-diagnostic-20261126`, `/tmp/opencode/issue637-result3-diagnostic-20261126`, Basis `origin/main=5253b703`.
 - Abstimmungsbedarf: keiner; GUI-Analyse des Befunds liegt vor.
 - Agent-sync-Nachrichten: `docs/collaboration/agent-chat/messages/2026-11-26_164600_opencode_START_issue637_result3-s10-diagnostic.md`; bisheriger Befund `docs/collaboration/agent-sync/2026-11-26_1240_gui-an-opencode_s10-download-und-decoder4.md`.
-- Nachweise: S10-Lease `FREI` vor Task; keine neue Geräteaktion gestartet.
-- Nächster Schritt: Vorbedingungen im einzelnen gehaltenen Lease-Wrapper prüfen. Bei nicht unterstütztem Backup, unklarer Signatur/Build, belegt/verändertem Gerät oder unklarem Status sofort abbrechen, nichts starten.
+- Nachweise: Erfolgreich gespeicherte lokale Backup-ZIP (Version 12, 24 manifestierte Einträge; ZIP-CRC und Manifest-SHA-256/Bytes geprüft; 32 Archiv-Metadatensätze). Erste zwei Skriptläufe stoppten vor Pull. Späteres versehentliches Importieren startete das Diagnosemodul außerhalb einer Lease; Prozess mit SIGTERM beendet; unmittelbar danach Lease `FREI`. Ungeklärter UI-Zustand, daher Statusprüfung ausschließlich unter Lease.
+- Nächster Schritt: Lease-Status prüfen, dann nur UI-/Sync-Anzeige lesen. Kein Bestätigen eines Downloads und danach Task pausieren/abstimmen.
