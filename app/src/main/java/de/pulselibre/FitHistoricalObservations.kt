@@ -809,12 +809,17 @@ object FitHistoricalObservations {
                 "monitoring_activity_type" -> Metric.MONITORING_ACTIVITY_TYPE
                 else -> null
             } ?: return@mapNotNull null
-            val value = candidate.value
-            // FIT status codes are not measurements. SpO2's profile range is
-            // 70–100%; confidence/mode and other profile enums remain raw codes.
-            if ((metric == Metric.STRESS && value !in 0.0..100.0) ||
-                (metric == Metric.RESPIRATION && value < 0.0) ||
-                (metric == Metric.SPO2 && value !in 70.0..100.0) ||
+            // Monitoring field 3 "cycles" has profile scale 2 (the steps/strokes subfields
+            // are not applied here: no step count is derived from cycles).
+            val value = if (metric == Metric.MONITORING_CYCLES) candidate.value / 2.0 else candidate.value
+            // #696: status codes are not measurements; they stay as review candidates and raw
+            // decoded fields. Stress: 1–100 only (0, -1, -2 are status). Respiration: positive
+            // only (0 is kept as status, never "apnoea"; -100/-200/-300 are status). SpO2: only
+            // the physical percent bounds, no medical threshold (0xFF was excluded above).
+            // Confidence/mode/sleep level/activity type stay raw profile codes.
+            if ((metric == Metric.STRESS && value !in 1.0..100.0) ||
+                (metric == Metric.RESPIRATION && value <= 0.0) ||
+                (metric == Metric.SPO2 && value !in 1.0..100.0) ||
                 (metric == Metric.MONITORING_ACTIVITY_TYPE && value >= 255.0)) return@mapNotNull null
             val quality = if (candidate.timestampEpochMillis == null)
                 Quality.MISSING_TIMESTAMP else Quality.PROFILE_VALID

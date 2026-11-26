@@ -76,10 +76,15 @@ Generationen gebaut wird. **Nicht** abgedeckt hatte #477 den Kachel-Tagesdialog.
   für die Wissenschaftsansicht: `CrossFileDuplicates`. Das ist Anzeigeaggregation, kein Beweis, dass beide Dateien
   dieselbe physische Probe enthalten. Tests: `UnifiedMeasurementsTest.sameMeasurementInTwoFilesCountsOnceButStaysExported`,
   `CrossFileDuplicatesTest`.
-- **R2 – Größen ohne Band-Historie (FIT):** Schritte, Ruhepuls, SpO₂, Stress, Atmung, Body Battery werden aus FIT
-  nicht dekodiert (`FitHistoricalObservations.mapping`: monitoring nur Feld 27). Die zugehörigen Ansichten zeigen
-  deshalb nur Live-Daten. Sobald FIT sie liefert, sind `DailyValueReader`, `NightOxygenReader` und Schritt-Ansichten
-  auf `unified_measurements` umzustellen.
+- **R2 – Größen ohne Band-Historie (teilweise gelöst durch #696, 26.11.2026):** Der FIT-Decoder (Version 4, Profil
+  21.222.0) übernimmt jetzt kanonisch: `stress` (227/0, nur 1–100), `respiration` (297/0, nur > 0, Atemzüge/min),
+  `spo2` (269/0, 1–100 %, keine medizinische Schwelle), `spo2_confidence` und `spo2_measurement_mode` (Rohcodes),
+  `sleep_level` (275/0, Code 0–4), `skin_temperature_deviation` und `skin_temperature_7_day_deviation` (398/1–2, °C-Abweichung),
+  `monitoring_cycles` (55/3, Profilskala 2, **keine** Schritte) und `monitoring_activity_type` (55/5, Code). Status- und
+  Sentinelwerte bleiben Prüfkandidaten bzw. Rohfelder, sie sind keine Messwerte. Sichtbar sind die Werte in „Alle Daten“ (mit
+  Namen; Codes ohne Mittelwert) und im CSV-Export. **Noch offen (GUI-Folgeschritt):** Die Kacheln/Diagramme für Stress,
+  SpO₂, Atmung und Schlaf zeigen weiter nur Live-Daten; Schritte aus FIT bleiben gesperrt (233/397, Monitoring 24/26/27
+  ebenfalls).
 - **R3 – Normale Historie unvollständig (FIT):** Dass Aktivitäten ankommen, beweist keine vollständige Tageshistorie.
   Die Oberfläche weist jetzt aus, wie viele Band-Werte aus `monitoring` stammen. Ist das 0, sagt sie es ausdrücklich.
 

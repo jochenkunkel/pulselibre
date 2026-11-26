@@ -986,6 +986,13 @@
     <string name="ht_m_stress">Stress</string>
     <string name="ht_m_battery">Body Battery</string>
     <string name="ht_m_breath">Respiration rate</string>
+    <string name="ht_m_spo2_confidence">SpO₂ confidence (raw code)</string>
+    <string name="ht_m_spo2_mode">SpO₂ measurement mode (code)</string>
+    <string name="ht_m_sleep_level">Sleep level (code)</string>
+    <string name="ht_m_skin_dev">Skin temperature deviation (°C)</string>
+    <string name="ht_m_skin_dev7">Skin temperature deviation 7 days (°C)</string>
+    <string name="ht_m_cycles">Monitoring cycles</string>
+    <string name="ht_m_activity_type">Activity type (code)</string>
     <string name="ht_m_distance">Distance (m)</string>
     <string name="ht_m_speed">Speed (m/s)</string>
     <string name="ht_m_cadence">Cadence (rpm)</string>

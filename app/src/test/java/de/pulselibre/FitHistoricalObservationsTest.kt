@@ -281,7 +281,8 @@ class FitHistoricalObservationsTest {
         val result = FitHistoricalObservations.decode(fit(data))!!
         assertEquals(FitHistoricalObservations.Metric.MONITORING_CYCLES,
             result.observations.single().metric)
-        assertEquals(0x1234.toDouble(), result.observations.single().value, 0.0)
+        // Profile scale 2: the stored raw count is twice the cycles.
+        assertEquals(0x1234 / 2.0, result.observations.single().value, 0.0)
         assertFalse(result.observations.any { it.metric == FitHistoricalObservations.Metric.CADENCE })
     }
 
@@ -408,6 +409,40 @@ class FitHistoricalObservationsTest {
         assertEquals(fitTime(0x10000000L + 200_000), candidate.timestampEpochMillis)
         assertEquals(FitHistoricalObservations.TimestampOrigin.DIRECT, candidate.timestampOrigin)
         assertEquals(candidate.timestampEpochMillis, result.observations.single().timestampEpochMillis)
+    }
+
+    @Test fun statusCodesAndZerosAreNeverCanonicalAndSpo2HasNoMedicalThreshold() {
+        // #696: stress 0/-1/-2 and respiration 0/-1/-2/-3 (scaled) are statuses; they stay review candidates only.
+        val stressDefinition = byteArrayOf(
+            0x40, 0, 0, 0xe3.toByte(), 0, 2, // global 227
+            0, 2, 0x83.toByte(), 1, 4, 0x86.toByte() // stress_level_value sint16, stress_level_time
+        )
+        val stress = FitHistoricalObservations.decode(fit(stressDefinition +
+            byteArrayOf(0) + s16(0) + u32(0x10000000 + 1) +
+            byteArrayOf(0) + s16(-1) + u32(0x10000000 + 2) +
+            byteArrayOf(0) + s16(-2) + u32(0x10000000 + 3) +
+            byteArrayOf(0) + s16(1) + u32(0x10000000 + 4) +
+            byteArrayOf(0) + s16(100) + u32(0x10000000 + 5)))!!
+        assertEquals(listOf(1.0, 100.0), stress.observations.map { it.value })
+        assertEquals(listOf(0.0, -1.0, -2.0, 1.0, 100.0), stress.reviewCandidates.map { it.value })
+
+        val respDefinition = byteArrayOf(0x40, 0, 0, 0x29, 0x01, 2, 253.toByte(), 4, 0x86.toByte(), 0, 2, 0x83.toByte())
+        val resp = FitHistoricalObservations.decode(fit(respDefinition +
+            byteArrayOf(0) + u32(0x10000000 + 10) + s16(0) +
+            byteArrayOf(0) + u32(0x10000000 + 11) + s16(-100) +
+            byteArrayOf(0) + u32(0x10000000 + 12) + s16(-300) +
+            byteArrayOf(0) + u32(0x10000000 + 13) + s16(1_550)))!!
+        assertEquals(listOf(15.5), resp.observations.map { it.value })
+        assertEquals(4, resp.reviewCandidates.size)
+
+        // SpO2: no 70 % decoder threshold (owner: no medical limits as filters); only physical percent bounds.
+        val spo2Definition = byteArrayOf(0x40, 0, 0, 0x0d, 0x01, 2, 253.toByte(), 4, 0x86.toByte(), 0, 1, 2)
+        val spo2 = FitHistoricalObservations.decode(fit(spo2Definition +
+            byteArrayOf(0) + u32(200_000) + byteArrayOf(65) +
+            byteArrayOf(0) + u32(200_060) + byteArrayOf(0) +
+            byteArrayOf(0) + u32(200_120) + byteArrayOf(101)))!!
+        assertEquals(listOf(65.0), spo2.observations.map { it.value })
+        assertEquals(listOf(65.0, 0.0, 101.0), spo2.reviewCandidates.map { it.value })
     }
 
     @Test fun respirationRateIsCanonicalAndNegativeStatusesAreNotMeasurements() {
