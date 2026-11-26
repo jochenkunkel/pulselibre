@@ -31,11 +31,16 @@ class UnknownFieldsViewTest {
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
             var view: UnknownFieldsView? = null
             scenario.onActivity { activity ->
-                val v = UnknownFieldsView(activity)
+                val v = UnknownFieldsView(activity).apply { tabShown = true }
                 (activity.findViewById<ViewGroup>(android.R.id.content)).addView(v)
                 v.show(UnknownFieldsSummary.summarize(Strings.of(activity), emptyList()))
                 assertEquals(View.GONE, v.visibility)
                 v.show(UnknownFieldsSummary.summarize(Strings.of(activity), listOf(field(85), field(86))))
+                assertEquals(View.VISIBLE, v.visibility)
+                // Another tab is open: content alone must not show the card there (S10, 26.11.2026).
+                v.tabShown = false
+                assertEquals(View.GONE, v.visibility)
+                v.tabShown = true
                 assertEquals(View.VISIBLE, v.visibility)
                 val texts = all(v).filterIsInstance<TextView>().map { it.text.toString() }
                 assertTrue(texts.contains("Unbekannte Datenfelder entdeckt (2 Typen)"))
@@ -57,7 +62,7 @@ class UnknownFieldsViewTest {
     @Test fun entryOffersAStatusChoiceThatStatesNoMeasurementDataIsChanged() {
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
-                val v = UnknownFieldsView(activity)
+                val v = UnknownFieldsView(activity).apply { tabShown = true }
                 (activity.findViewById<ViewGroup>(android.R.id.content)).addView(v)
                 v.show(UnknownFieldsSummary.summarize(Strings.of(activity), listOf(field(85))))
                 v.performClick()
@@ -78,7 +83,7 @@ class UnknownFieldsViewTest {
     @Test fun bytePreviewNeedsAWarnedConfirmationAndFailsClosedForMissingOriginals() {
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
-                val v = UnknownFieldsView(activity)
+                val v = UnknownFieldsView(activity).apply { tabShown = true }
                 (activity.findViewById<ViewGroup>(android.R.id.content)).addView(v)
                 v.show(UnknownFieldsSummary.summarize(Strings.of(activity), listOf(field(85))))
                 v.performClick()

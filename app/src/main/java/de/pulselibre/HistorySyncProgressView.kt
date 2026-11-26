@@ -6,7 +6,11 @@ import android.widget.LinearLayout
 import android.widget.TextView
 
 /** Stage line, optional file count and bar for the historical download; hidden while idle. Tag: history_sync_progress. */
-internal class HistorySyncProgressView(context: Context) : LinearLayout(context) {
+internal class HistorySyncProgressView(context: Context) : LinearLayout(context), TabAwareVisibility {
+    private var stage = HistorySyncStage.IDLE
+    override var tabShown = false
+        set(value) { field = value; visibility = TabAwareVisibility.visibility(value, hasContent) }
+    override val hasContent: Boolean get() = stage != HistorySyncStage.IDLE
     private val palette = AppPalette.of(context)
     private val strings = Strings.of(context)
     private val titleView = TextView(context).apply { textSize = 14f; setTextColor(palette.ink); setTypeface(null, android.graphics.Typeface.BOLD) }
@@ -26,8 +30,9 @@ internal class HistorySyncProgressView(context: Context) : LinearLayout(context)
     }
 
     fun show(progress: HistorySyncProgress) {
-        if (progress.stage == HistorySyncStage.IDLE) { visibility = GONE; return }
-        visibility = VISIBLE
+        stage = progress.stage
+        visibility = TabAwareVisibility.visibility(tabShown, hasContent)
+        if (!hasContent) return
         titleView.text = HistorySyncProgressText.title(strings, progress)
         val detail = HistorySyncProgressText.detail(strings, progress)
         detailView.text = detail.orEmpty(); detailView.visibility = if (detail == null) GONE else VISIBLE
