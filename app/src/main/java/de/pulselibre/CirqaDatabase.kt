@@ -1487,6 +1487,9 @@ class CirqaDatabase(private val contextRef: Context) :
         readableDatabase.rawQuery(
             """SELECT CAST(software_version AS TEXT), observed_at_ms FROM fit_device_metadata
                WHERE software_version IS NOT NULL AND observed_at_ms IS NOT NULL
+                 -- Only the band itself (it carries a product code). Sub-devices in the same files (device type 10, no
+                 -- manufacturer/product) report software "1"; the newest row must not turn the Firmware row into "1".
+                 AND product_code IS NOT NULL
                ORDER BY observed_at_ms DESC, source_sha256 DESC, record_ordinal DESC LIMIT 1""", null
         ).use { rows ->
             if (!rows.moveToFirst()) null
