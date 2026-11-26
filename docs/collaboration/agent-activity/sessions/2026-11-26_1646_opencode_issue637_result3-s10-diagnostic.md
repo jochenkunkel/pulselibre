@@ -1,15 +1,15 @@
 # OpenCode FIT – #637 `result=3`-S10-Diagnose
 - Agent/Umgebung: OpenCode FIT, Linux-Worktree
 - Beginn: 2026-11-26 16:46 UTC
-- Letzte Aktualisierung: 2026-11-26 17:15 UTC
+- Letzte Aktualisierung: 2026-11-26 17:20 UTC
 - Status: aktiv
 - Rolle/Zuständigkeit: FIT/History-Download, Diagnose und Persistenzevidenz
 - Aktueller Auftrag: Kontrollierter, einmaliger Diagnoseversuch zum wiederholten `0 von 38`-Pull-Abbruch unter `result=3`.
-- Jetzt in Bearbeitung: Genau ein manueller Pull unter Lease bestätigt. Kein neuer terminaler Run-Bericht im Skriptfenster. Korrektur: Dieses Fenster war 140 s und überschritt die dokumentierte 120-s-Laufgrenze um 20 s. Kein Retry. Nächster/letzter Schritt: lease-geschützter read-only Statusnachblick, dann keine weitere BLE-Aktion.
+- Jetzt in Bearbeitung: Letzter manueller Lauf terminal mit GATT 133 vor Item-Liste/Pull; kein neuer `result=3`-Befund. Benutzer wies Fortsetzung an. Separater einzelner Wiederholungslauf mit Erkennung von Text und Content-Description, strikt 120 s, kein Retry.
 - Zeitnah geplant: Ergebnis redigiert in Issue #637 und ENDE-Nachricht dokumentieren; keinen Transportfix ohne belegte Ursache ableiten.
 - Betroffene Bereiche/Dateien: private S10-App-/Backup-/Sync-Statusdaten (nur lokal); `docs/protocol/device-tests/CIRQA_P0_S10_BOUNDED_FULL_PULL_PLAN_2026-11-24.md` als Schutzplan; Agentenchat/-sync.
 - Branch/Worktree: `opencode/issue637-result3-diagnostic-20261126`, `/tmp/opencode/issue637-result3-diagnostic-20261126`, Basis `origin/main=5253b703`.
 - Abstimmungsbedarf: keiner; GUI-Analyse des Befunds liegt vor.
 - Agent-sync-Nachrichten: `docs/collaboration/agent-chat/messages/2026-11-26_164600_opencode_START_issue637_result3-s10-diagnostic.md`; bisheriger Befund `docs/collaboration/agent-sync/2026-11-26_1240_gui-an-opencode_s10-download-und-decoder4.md`.
-- Nachweise: Privates Vorher-Backup ZIP v12 (24 Manifest-Einträge; ZIP CRC und SHA-256/Bytes geprüft; 32 Archiv-Metadatensätze). Build 2371/Signaturkontinuität geprüft. Genau ein `MANUAL_DOWNLOAD_CONFIRMED`; kein terminaler Report im 140-s-Beobachterfenster (Planlimit 120 s, um 20 s überschritten); Lease nach Wrapper `FREI`. Incident-Commit `b2ca59a7`; Incident-Kommentar [7198532965](https://github.com/jochenkunkel/pulselibre/issues/637#issuecomment-7198532965).
-- Nächster Schritt: S10-Lease erneut prüfen; nur innerhalb eines einzelnen Wrappers die Vorbedingungen kontrollieren und genau einen manuellen Lauf starten. Kein Retry; bei jeder Abweichung abbrechen.
+- Nachweise: Vor-/Nachher-Backup v12 vollständig verifiziert; Zähler unverändert. Erster manueller Lauf mit GATT 133, `sync-not-accepted`, 0 List-Antworten und 0 Pull-Requests. Das vorherige Beobachterfenster überschritt einmalig das 120-s-Limit um 20 s, dokumentiert in `e686ed0b`. Lease nach Status- und Backup-Wrapper jeweils `FREI`.
+- Nächster Schritt: genau ein neuer manueller Lauf in frischer Lease, strikt innerhalb 120 s; danach kein weiterer Versuch.

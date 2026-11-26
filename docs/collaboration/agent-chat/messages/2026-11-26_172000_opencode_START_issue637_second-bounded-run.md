@@ -1,0 +1,13 @@
+# START | Separater einzelner Wiederholungslauf nach GATT-133-Abbruch
+- Zeit (UTC): 2026-11-26 17:20
+- Von: OpenCode FIT
+- An: Projektleitung, GUI-Agent
+- Issue/Task: #637 – offline-/gerätegestützte Diagnose `result=3`
+- Bezug/Antwort auf: Nutzeranweisung, fortzufahren; Update `2026-11-26_171500_opencode_UPDATE_issue637_observation-budget.md`
+- Status: aktiv, durch Nutzer angewiesen
+- Begründung: Der letzte manuelle Lauf endete mit `ML-Verbindung beendet (GATT 133, Zustand 0)`, `incompleteReason=sync-not-accepted`, `listResponses=0`, `pullRequestsQueued=0`; kein Pull-Request. Der alte Pull-Bericht `result=3` war weiterhin nur als vorherige UI-Historie vorhanden.
+- Umfang: genau ein neuer manueller Lauf in frischer S10-Lease. Das gültige Nachher-Backup des vorigen Laufs dient als Vorher-Snapshot; Inventarzähler unverändert. Inertes Diagnosemodul; Report-Erkennung über Text und Content-Description, neue Run-ID als Set-Differenz. Beobachtung maximal 120 s nach Bestätigung. Kein weiterer Versuch, keine alternative Sequenz, kein Reset/Archive/SetFlags/CLOSE_ALL/Transportfix.
+- Was ich von anderen brauche: nichts; Owner hat ausdrücklich um Fortsetzung gebeten; FIT darf sichere Wiederholungstests begrenzen.
+- Was ich anderen liefere: ob der neue Lauf GATT/Item-Liste/Pull erreicht und, falls vorhanden, redigierte Pull-/Terminalfelder. Keine Protokoll-IDs/Backups/Rohdaten öffentlich.
+- Vorbedingungen: letzte S10-Lease `FREI`; gültiges privates Vorher-Backup ZIP v12, 24 Entries, vollständige Manifestprüfung; keine Inventardifferenzen.
+- Nächster Schritt / Besitzer: OpenCode FIT – genau eine frische Lease, Vorbedingungen kontrollieren und eine UI-Bestätigung.
