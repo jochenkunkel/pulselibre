@@ -746,7 +746,7 @@ class MainActivity : AppCompatActivity() {
                             manualHistoricalSyncActive = false
                             recordHistoricalSyncResult(prefs, message) // also after the screen closed (abort in onDestroy)
                             if (!destroyed) {
-                                historicalSyncStatus.text = SyncReportSummary.display(Strings.of(this@MainActivity), message)
+                                historicalSyncStatus.text = SyncReportSummary.display(Strings.of(this@MainActivity), SyncReportStore.forStorage(message))
                                 syncProgress.show(HistorySyncProgress.fromReport(message))
                                 historyRefresh?.invoke()
                             }
@@ -1004,7 +1004,7 @@ class MainActivity : AppCompatActivity() {
                 // after the five-minute attempt cooldown. Recorded even after the screen closed (abort in onDestroy).
                 recordHistoricalSyncResult(prefs, message)
                 if (destroyed) return@runOnUiThread
-                statusView.text = SyncReportSummary.display(Strings.of(this), message)
+                statusView.text = SyncReportSummary.display(Strings.of(this), SyncReportStore.forStorage(message))
                 syncProgressView?.show(HistorySyncProgress.fromReport(message))
                 historyRefresh?.invoke()
             }
@@ -1015,7 +1015,8 @@ class MainActivity : AppCompatActivity() {
         preferences: android.content.SharedPreferences,
         report: String
     ) {
-        preferences.edit().putString("last_report", report.take(4000))
+        // #637: keep the diagnosis (terminal state, pull results) readable instead of cutting it at 4000 characters.
+        preferences.edit().putString("last_report", SyncReportStore.forStorage(report))
             .putLong("last_report_at", System.currentTimeMillis()).apply()
         if (report.contains("runDrained=true") && report.contains("incompleteReason=none")) {
             preferences.edit().putLong("last_success", System.currentTimeMillis()).apply()
