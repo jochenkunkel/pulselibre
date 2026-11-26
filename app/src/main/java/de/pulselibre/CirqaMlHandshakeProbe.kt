@@ -3787,7 +3787,25 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
      * [serial]: the volatile fences stop every callback first; the zlib inflater is released on [serial] so it is never
      * closed under a running inflate.
      */
-    override fun close() = closeWhenQuiescent {}
+    override fun close() {
+        // Preserve the existing fire-and-forget close contract for diagnostic
+        // callers that immediately hand the BLE gate to another probe.
+        terminationRequested = true
+        active = false
+        legacy5030Only?.let { it.abort(it.token) }
+        passive5050Session.stop()
+        serial.removeCallbacksAndMessages(null)
+        ui.removeCallbacksAndMessages(null)
+        val assembler = mlrFileAssembler
+        if (assembler != null) serial.post {
+            assembler.close()
+            if (mlrFileAssembler === assembler) mlrFileAssembler = null
+        }
+        safeClose(gatt)
+        safeClose(closingGatt)
+        closingGatt = null
+        clearClosedProbeState()
+    }
 
     /**
      * Fences callbacks immediately, then completes teardown on the shared serial
@@ -3820,25 +3838,29 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                 assembler.close()
                 if (mlrFileAssembler === assembler) mlrFileAssembler = null
             }
-            CirqaBleSessionGate.release(this)
-            gatt = null
-            callback = null
-            session = null
-            realtimeMode = false
-            continuousRecordingMode = false
-            historyDiagnosticMode = false
-            syncNextTransactionProbeMode = false
-            syncNextTransactionFollowupSent = false
-            syncNextTransactionFirstItemCount = null
-            legacy5007TestMode = false
-            legacy5031TestMode = false
-            legacyHistoryDownloadMode = false
-            bootstrapAckMode = false
-            configurationTestMode = false
-            rawCaptureMode = false
-            expandedMode = false
-            exploratoryMode = false
+            clearClosedProbeState()
             onQuiescent()
         }
+    }
+
+    private fun clearClosedProbeState() {
+        CirqaBleSessionGate.release(this)
+        gatt = null
+        callback = null
+        session = null
+        realtimeMode = false
+        continuousRecordingMode = false
+        historyDiagnosticMode = false
+        syncNextTransactionProbeMode = false
+        syncNextTransactionFollowupSent = false
+        syncNextTransactionFirstItemCount = null
+        legacy5007TestMode = false
+        legacy5031TestMode = false
+        legacyHistoryDownloadMode = false
+        bootstrapAckMode = false
+        configurationTestMode = false
+        rawCaptureMode = false
+        expandedMode = false
+        exploratoryMode = false
     }
 }
