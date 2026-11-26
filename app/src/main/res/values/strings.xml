@@ -176,6 +176,11 @@
     <string name="metric_vigorous">Vigorous intensity minutes</string>
     <string name="metric_vigorous_short">Intensity high</string>
     <string name="metric_sleep">Sleep</string>
+    <string name="sleep_band_title">Sleep stages from the band (FIT)</string>
+    <string name="sleep_band_summary">%1$d stage changes between %2$s and %3$s (band time)</string>
+    <string name="sleep_band_cd">Sleep stages from the band: awake %1$d, light %2$d, deep %3$d, REM %4$d, unmeasurable %5$d reports</string>
+    <string name="sleep_band_legend">awake %1$d · light %2$d · deep %3$d · REM %4$d · unmeasurable %5$d</string>
+    <string name="sleep_band_note">Marked is when the band reported which stage. No sleep duration is calculated while the intervals are not validated.</string>
     <string name="metric_steps">Steps</string>
     <string name="metric_steps_today">Steps today</string>
     <string name="metric_no_data">No measurement data</string>

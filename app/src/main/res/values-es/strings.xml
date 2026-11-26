@@ -176,6 +176,11 @@
     <string name="metric_vigorous">Minutos de intensidad alta</string>
     <string name="metric_vigorous_short">Intensidad alta</string>
     <string name="metric_sleep">Sueño</string>
+    <string name="sleep_band_title">Fases del sueño de la pulsera (FIT)</string>
+    <string name="sleep_band_summary">%1$d cambios de fase entre %2$s y %3$s (hora de la pulsera)</string>
+    <string name="sleep_band_cd">Fases del sueño de la pulsera: despierto %1$d, ligero %2$d, profundo %3$d, REM %4$d, no medible %5$d registros</string>
+    <string name="sleep_band_legend">despierto %1$d · ligero %2$d · profundo %3$d · REM %4$d · no medible %5$d</string>
+    <string name="sleep_band_note">Se marca cuándo la pulsera informó de cada fase. No se calcula la duración del sueño mientras los intervalos no estén validados.</string>
     <string name="metric_steps">Pasos</string>
     <string name="metric_steps_today">Pasos hoy</string>
     <string name="metric_no_data">Sin datos de medición</string>

@@ -176,6 +176,11 @@
     <string name="metric_vigorous">Minutes d’intensité élevée</string>
     <string name="metric_vigorous_short">Intensité élevée</string>
     <string name="metric_sleep">Sommeil</string>
+    <string name="sleep_band_title">Stades de sommeil du bracelet (FIT)</string>
+    <string name="sleep_band_summary">%1$d changements de stade entre %2$s et %3$s (heure du bracelet)</string>
+    <string name="sleep_band_cd">Stades de sommeil du bracelet : éveil %1$d, léger %2$d, profond %3$d, paradoxal %4$d, non mesurable %5$d signalements</string>
+    <string name="sleep_band_legend">éveil %1$d · léger %2$d · profond %3$d · paradoxal %4$d · non mesurable %5$d</string>
+    <string name="sleep_band_note">Indique quand le bracelet a signalé quel stade. Aucune durée de sommeil n’est calculée tant que les intervalles ne sont pas validés.</string>
     <string name="metric_steps">Pas</string>
     <string name="metric_steps_today">Pas aujourd’hui</string>
     <string name="metric_no_data">Aucune donnée de mesure</string>

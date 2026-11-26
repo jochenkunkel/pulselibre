@@ -176,6 +176,11 @@
     <string name="metric_vigorous">Intensive Intensitätsminuten</string>
     <string name="metric_vigorous_short">Intensität hoch</string>
     <string name="metric_sleep">Schlaf</string>
+    <string name="sleep_band_title">Schlafstufen vom Band (FIT)</string>
+    <string name="sleep_band_summary">%1$d Stufenwechsel zwischen %2$s und %3$s (Bandzeit)</string>
+    <string name="sleep_band_cd">Schlafstufen vom Band: wach %1$d, leicht %2$d, tief %3$d, REM %4$d, nicht messbar %5$d Meldungen</string>
+    <string name="sleep_band_legend">wach %1$d · leicht %2$d · tief %3$d · REM %4$d · nicht messbar %5$d</string>
+    <string name="sleep_band_note">Markiert ist, wann das Band welche Stufe gemeldet hat. Eine Schlafdauer wird nicht berechnet, solange die Intervalle nicht geprüft sind.</string>
     <string name="metric_steps">Schritte</string>
     <string name="metric_steps_today">Schritte heute</string>
     <string name="metric_no_data">Keine Messdaten</string>
