@@ -34,6 +34,20 @@ class DeviceInfoRowsTest {
         assertTrue(values.all(covered))
     }
 
+    @Test fun fitSoftwareVersionFillsTheFirmwareRowWhenNoNewerLiveValueExists() {
+        // Owner report 26.11.2026: FIT files carry software 4.2, live metadata has none -> "Firmware: nicht verfügbar".
+        val fit = v(DeviceMetadataFields.SOFTWARE_VERSION, "4.2", at = 5000L, source = DeviceMetadataSources.FIT_DEVICE_INFO)
+        val merged = DeviceInfoRows.withFitSoftwareVersion(listOf(v(DeviceMetadataFields.DEVICE_NAME, "CIRQA")), fit)
+        assertEquals("4.2", DeviceInfoRows.firmware(merged, s)?.text)
+        assertEquals(DeviceMetadataSources.FIT_DEVICE_INFO, DeviceInfoRows.firmware(merged, s)?.source)
+        // An older live value is replaced, a newer one wins; without a FIT value nothing changes.
+        val olderLive = listOf(v(DeviceMetadataFields.SOFTWARE_VERSION, "4.1", at = 1000L))
+        assertEquals("4.2", DeviceInfoRows.firmware(DeviceInfoRows.withFitSoftwareVersion(olderLive, fit), s)?.text)
+        val newerLive = listOf(v(DeviceMetadataFields.SOFTWARE_VERSION, "4.3", at = 9000L))
+        assertEquals("4.3", DeviceInfoRows.firmware(DeviceInfoRows.withFitSoftwareVersion(newerLive, fit), s)?.text)
+        assertEquals(olderLive, DeviceInfoRows.withFitSoftwareVersion(olderLive, null))
+    }
+
     @Test fun noValueMeansNoRowValue() {
         assertNull(DeviceInfoRows.firmware(emptyList(), s))
         assertNull(DeviceInfoRows.identity(emptyList(), s))

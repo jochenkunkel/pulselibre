@@ -1309,6 +1309,22 @@ class CirqaDatabase(private val contextRef: Context) :
     }
 
     /** Newest value per field, newest first. Call on a worker thread. */
+    /**
+     * Newest software version the band reported in a FIT `device_info` message, or null. Live metadata got these values
+     * only once (migration backfill); later FIT imports write them to `fit_device_metadata` only, so the Gerät page
+     * read "Firmware: nicht verfügbar" although every FIT file carries the version (owner report 26.11.2026).
+     */
+    internal fun latestFitSoftwareVersion(): LiveDeviceMetadata? =
+        readableDatabase.rawQuery(
+            """SELECT CAST(software_version AS TEXT), observed_at_ms FROM fit_device_metadata
+               WHERE software_version IS NOT NULL AND observed_at_ms IS NOT NULL
+               ORDER BY observed_at_ms DESC, source_sha256 DESC, record_ordinal DESC LIMIT 1""", null
+        ).use { rows ->
+            if (!rows.moveToFirst()) null
+            else LiveDeviceMetadata(DeviceMetadataFields.SOFTWARE_VERSION, rows.getString(0), null,
+                DeviceMetadataSources.FIT_DEVICE_INFO, rows.getLong(1))
+        }
+
     internal fun latestLiveDeviceMetadata(): List<LiveDeviceMetadata> =
         readableDatabase.rawQuery(
             """SELECT field_key, value_text, unit, source, observed_at_ms

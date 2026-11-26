@@ -18,6 +18,17 @@ internal object DeviceInfoRows {
     fun firmware(values: List<LiveDeviceMetadata>, strings: Strings): Shown? =
         shown(newest(values, DeviceMetadataFields.SOFTWARE_VERSION) ?: newest(values, DeviceMetadataFields.FIRMWARE_VERSION), strings)
 
+    /**
+     * Adds the newest FIT software version when it is newer than any stored live software value (or there is none), so
+     * the Firmware row shows the version from the band's own files. Never invents a value.
+     */
+    fun withFitSoftwareVersion(live: List<LiveDeviceMetadata>, fit: LiveDeviceMetadata?): List<LiveDeviceMetadata> {
+        if (fit == null || fit.valueText.isBlank()) return live
+        val newestLive = newest(live, DeviceMetadataFields.SOFTWARE_VERSION)
+        return if (newestLive != null && newestLive.observedAtMs >= fit.observedAtMs) live
+            else live.filterNot { it.fieldKey == DeviceMetadataFields.SOFTWARE_VERSION } + fit
+    }
+
     fun bandClock(values: List<LiveDeviceMetadata>, strings: Strings): Shown? =
         shown(newest(values, DeviceMetadataFields.BAND_CLOCK), strings)
 
