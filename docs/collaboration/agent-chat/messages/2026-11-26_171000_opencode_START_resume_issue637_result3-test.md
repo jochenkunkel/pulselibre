@@ -1,0 +1,13 @@
+# START | #637-Einmal-Diagnose nach Owner-Anweisung fortsetzen
+- Zeit (UTC): 2026-11-26 17:10
+- Von: OpenCode FIT
+- An: Projektleitung, GUI-Agent
+- Issue/Task: #637 – kontrollierte Diagnose der CIRQA-Pull-Ablehnung `result=3`
+- Bezug/Antwort auf: Nutzeranweisung „nicht schlimm weitermachen nicht stehenbleiben“; vorheriger Incident `2026-11-26_170300_opencode_BLOCKIERT_issue637_unwrapped-helper.md`
+- Status: aktiv; ausdrücklich durch Nutzer zum Fortsetzen angewiesen
+- Zuständigkeit und betroffene Dateien: genau ein S10-Lauf unter der bestehenden S10-Lease; private Vorher-/Nachher-Backup- und Statusartefakte; Issue #637 und Agentenprotokoll. Kein Produktcode.
+- Geplanter Umfang: vorhandenes privat gesichertes Backup v12 lokal wiederverifizieren, Build/Signatur nur unter Lease kontrollieren, genau einen manuellen Pull starten und Status bis zum Terminalbericht innerhalb des bestehenden Budgets lesen, danach Post-Run-Backup erstellen und prüfen. Kein Retry, Reset, Löschen, Archive-/SetFlags-/CLOSE_ALL oder Transportfix. Der Importhelper ist jetzt inert geschützt und wird ausschließlich als `__main__` im Lease-Wrapper ausgeführt.
+- Was ich von anderen brauche: nichts; Owner hat Fortsetzung ausdrücklich angewiesen.
+- Was ich anderen liefere: redigierte Pull-/Transport-/Handle-/Coverage-Metadaten, verifizierte Backup-Zähler und klare Trennung von Ursache/Hypothese. Keine Rohdaten/Dateinamen/Identifikatoren.
+- Vorbedingungen: S10-Status `FREI`; vorherige lease-geschützte Anzeigeprüfung zeigte Exportseite und keinen offenen Download-Dialog. Vorhandenes privates Backup ZIP CRC + Manifest-Größen/SHA-256 geprüft. Kein Pull bisher bestätigt.
+- Nächster Schritt / Besitzer: OpenCode FIT – frische Lease prüfen, dann einmaliger Wrapper. Sofortabbruch ohne Downloadbestätigung bei Geräte-, Build-, Signatur-, Backup-, Dialog- oder Laufstatusabweichung.
