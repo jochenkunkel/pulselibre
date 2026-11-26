@@ -131,6 +131,7 @@
     <string name="sync_sum_pull_rejected">Das Band hat Dateiabrufe abgelehnt (Code %1$s). Es hatte %2$d Dateien angeboten; %3$d weitere wurden nicht angefragt.</string>
     <string name="sync_sum_followup_empty">%1$d von %2$d angebotenen Dateien übertragen; danach meldete das Band keine weiteren. Ob die Historie vollständig ist, ist nicht nachgewiesen.</string>
     <string name="sync_sum_partial">%1$d von %2$d angebotenen Dateien übertragen.</string>
+    <string name="sync_sum_no_daily_history">Das Band hat nur Aktivitätsaufzeichnungen angeboten, keine Tageshistorie (Stress, SpO₂, Atmung, Ganztagespuls, Schlaf). Häufiger Grund: Garmin Connect hat diese Dateien bereits vom Band abgeholt.</string>
     <string name="sync_sum_details">Technische Details (antippen zum Aufklappen):</string>
     <string name="main_hist_heading">Historische Gerätedaten</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
