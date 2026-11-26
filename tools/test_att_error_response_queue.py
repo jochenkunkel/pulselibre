@@ -86,7 +86,7 @@ class AttErrorResponseQueueTests(unittest.TestCase):
             (acl_complete_l2cap(0x40, l2cap(4, characteristic_response(b"\x10\x28")), 1)),
         ]
         parser, summary = self.parse(records)
-        self.assertIn(("c1", 0x0003), parser.characteristics)
+        self.assertIn(("c1", "controller_to_host", 0x0003), parser.characteristics)
         self.assertEqual(0, len(parser.read_by_type_requests[("c1", "host_to_controller")]))
         self.assertEqual(1, summary["att_opcodes"].get("error_response"))
         self.assertEqual(2, summary["att_opcodes"].get("read_by_type_request"))
