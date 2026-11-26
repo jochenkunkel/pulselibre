@@ -951,7 +951,9 @@ class DatabaseBackupTest {
                 "spo2_measurement_mode" to "spo2_measurement_mode", "stress_level_value" to "stress",
                 "respiration_rate" to "respiration", "sleep_level" to "sleep_level", "monitoring_cycles" to "monitoring_cycles",
                 "monitoring_activity_type" to "monitoring_activity_type", "average_deviation" to "skin_temperature_deviation",
-                "average_7_day_deviation" to "skin_temperature_7_day_deviation")
+                "average_7_day_deviation" to "skin_temperature_7_day_deviation",
+                MonitoringActivityIntensity.ACTIVITY_TYPE to "monitoring_current_activity_type", // #707: 55/24
+                MonitoringActivityIntensity.INTENSITY to "monitoring_intensity_code")
             val fields = written.keys.toList()
             val candidates = fields.mapIndexed { i, name ->
                 FitHistoricalObservations.ReviewCandidate(
