@@ -37,4 +37,26 @@ class SyncReportSummaryTest {
         assertTrue(shown.endsWith(rejected))
         assertTrue(shown.contains("Technische Details (antippen zum Aufklappen):"))
     }
+
+    // #637, S10 26.11.: after a Garmin Connect sync the band only listed activity/workout/device files.
+    private val onlyActivity = followupEmpty + "; items=[page=1,status=0,items=29;items=29; " +
+        "types=FIT_TYPE_4:20,FIT_TYPE_5:4,FIT_TYPE_1:1,format_3:1,FIT_TYPE_72:1,format_0:1,FIT_TYPE_74:1; sizes=1|page=2,status=0,items=0; types=; sizes=]"
+
+    @Test fun offeredTypesAreParsedFromAllPages() {
+        assertEquals(setOf(4, 5, 1, 72, 74), SyncReportSummary.offeredFitTypes(onlyActivity))
+    }
+
+    @Test fun onlyActivityFilesShowTheDailyHistoryHint() {
+        assertTrue(SyncReportSummary.lacksDailyHistory(onlyActivity))
+        val shown = SyncReportSummary.display(GermanStrings, onlyActivity)
+        assertTrue(shown, shown.contains("keine Tageshistorie") && shown.contains("Garmin Connect"))
+        assertTrue(shown.endsWith(onlyActivity))
+    }
+
+    @Test fun monitoringOrSleepFilesOrNoTypeInfoShowNoHint() {
+        assertTrue(!SyncReportSummary.lacksDailyHistory(onlyActivity.replace("FIT_TYPE_74:1", "FIT_TYPE_32:2")))
+        assertTrue(!SyncReportSummary.lacksDailyHistory(onlyActivity.replace("FIT_TYPE_74:1", "FIT_TYPE_49:1")))
+        assertTrue(!SyncReportSummary.lacksDailyHistory(followupEmpty))
+        assertTrue(!SyncReportSummary.display(GermanStrings, followupEmpty).contains("Tageshistorie"))
+    }
 }
