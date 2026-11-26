@@ -324,16 +324,18 @@ established by this follow-up.
   private `downloaded_originals_pending` journal. This is recoverable local
   storage, but not evidence that the required SQLite archive/inventory write
   succeeded.
-- **Retry scope is narrower than the broad “SQLite busy” name suggests.**
+- **Retry scope does not yet cover both SQLite contention result classes.**
   `CirqaSqliteBusyRetry.run` surrounds the original-archive call, and
   `archiveDownloadedFile` has its own process-wide monitor and pending journal.
   The bounded retry was therefore attempted for the run-4 archive failure;
   it was exhausted. `runOnce` surrounds FIT helper-open/import. Neither retry
   proves the lock holder or fixes persistent contention. The default predicate
-  currently recognizes `SQLiteDatabaseLockedException` only, not the distinct
-  Android `SQLiteBusyException`; regression tests inject a custom predicate and
-  do not test either real exception against the defaults. Thus the implementation
-  does not yet cover both named SQLite BUSY/LOCKED exception classes.
+  currently recognizes `SQLiteDatabaseLockedException` only. Android maps
+  `SQLITE_BUSY` to this exception and `SQLITE_LOCKED` to the distinct
+  `SQLiteTableLockedException`; the latter is not included. Regression tests
+  inject a custom predicate and do not test either actual Android exception
+  against the defaults. Thus the implementation does not yet cover both SQLite
+  BUSY/LOCKED result classes.
 - **Potential contention remains, not a confirmed root cause:** the archive
   monitor serializes archive callers, but FIT imports and other database
   writers do not take that monitor. Their overlap is a plausible source of
@@ -353,8 +355,17 @@ established by this follow-up.
   Garmin Connect parity or device-history completeness.
 
 **Audit conclusion:** the remaining actionable code gap is exception
-classification coverage (and a regression test using actual Android exception
-types); the observed run-4 archive failure itself is already bounded, visible,
-and journaled. Do not claim its cause fixed or use these findings to justify
-another device run. Address the classification gap in a focused code change
-before relying on retry for Android `SQLITE_BUSY` cases.
+classification coverage for `SQLITE_LOCKED` (and regression tests using actual
+Android exception types); `SQLITE_BUSY` is already represented by the current
+`SQLiteDatabaseLockedException` check. The observed run-4 archive failure itself
+is already bounded, visible, and journaled. Do not claim its cause fixed or use
+these findings to justify another device run. Address the classification gap
+in a focused code change before relying on retry for Android `SQLITE_LOCKED`
+cases.
+
+**Correction to the first audit note:** Android has no `SQLiteBusyException`
+class. The mapping above was checked against the Android framework JNI source
+(`android_database_SQLiteCommon.cpp`, `throw_sqlite3_exception`, primary result
+codes 5 and 6). The issue comment posted during the follow-up records this
+correction; the public API and code fix use the actual framework exception
+classes.
