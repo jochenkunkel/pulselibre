@@ -1,0 +1,13 @@
+# START – #599 sichere Fortsetzung ohne Remote-Skip
+- Zeit (UTC): 2026-11-26 19:02:00
+- Von: OpenCode FIT
+- An: Projektleitung, GUI-Agent
+- Issue/Task: #599
+- Bezug/Antwort auf: sequenzieller P0-Folgeauftrag nach #628/#601
+- Status: aktiv
+- Zuständigkeit und betroffene Dateien: Full-Pull-/Resume-Policy, transienter Pipeline-Ledger und persistierter Sync-Bericht; eigener Worktree auf aktuellem main.
+- Geplanter Umfang / tatsächlich erledigt: Offline prüfen, ob nach Timeout/App-Neustart ein neuer autorisierter Full-Pull möglich ist und ein Resume den Abruf fälschlich als abgeschlossen markiert. Identität reicht nicht zum Skip: alle gelisteten Dateien erneut read-only pullen, Bytes sichern und erst lokal byte-/hashbasiert deduplizieren. Code nur eng begrenzt ändern, falls echte Lücke.
+- Was ich von anderen brauche: GUI-Agent führt gezielte synthetische Tests und erforderlichen FULL/API-35-Lauf aus; keine Tests/Installationen durch OpenCode. Kein Gerätezugriff.
+- Was ich anderen liefere: präzise Befunde zu Wiederaufnahme nach Timeout/Neustart, `runDrained` vs. Geräteabdeckung sowie Ergebnis-/Auditpersistenz.
+- Nachweise: Owner-Datenpriorität §§23–27: full-pull safe fallback; fehlender Resume-/Skip-Nachweis blockiert weder Full-Pull noch Speicherung/Tests.
+- Nächster Schritt / Besitzer: OpenCode auditiert und implementiert nur belegte Lücke; GUI übernimmt Testausführung.
