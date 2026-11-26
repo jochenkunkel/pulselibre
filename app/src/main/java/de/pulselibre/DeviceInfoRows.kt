@@ -53,6 +53,22 @@ internal object DeviceInfoRows {
         }
     }
 
+    /**
+     * Freshness line of a device value: "vor 5 min" while fresh, the date of an older but known observation
+     * ("Stand 25.11.2026 22:14"), and "Zeitpunkt unbekannt" only when there really is no usable time (owner 26.11.2026:
+     * the FIT firmware value has a known, just older time).
+     */
+    fun freshness(strings: Strings, observedAtMs: Long, nowMs: Long, zone: java.time.ZoneId = java.time.ZoneId.systemDefault()): String {
+        val age = nowMs - observedAtMs
+        return when {
+            age in 0..DeviceBatteryFormat.STALE_AFTER_MS -> DeviceBatteryFormat.ageText(strings, age)
+            observedAtMs > 0 && age > 0 -> strings.get(R.string.dev_meta_as_of,
+                java.time.Instant.ofEpochMilli(observedAtMs).atZone(zone).format(AS_OF))
+            else -> strings.get(R.string.bat_time_unknown)
+        }
+    }
+    private val AS_OF = java.time.format.DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")
+
     const val GDI_TEXT_PREFIX = "gdi_text_"
     fun gdiTextNumber(key: String): Int? = if (key.startsWith(GDI_TEXT_PREFIX)) key.removePrefix(GDI_TEXT_PREFIX).toIntOrNull() else null
 }

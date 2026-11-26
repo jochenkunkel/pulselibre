@@ -690,6 +690,7 @@
     <string name="bat_fresh">Stand: %1$s</string>
     <string name="bat_stale">Veraltet · letzter bekannter Stand %1$s</string>
     <string name="bat_time_unknown">Zeitpunkt unbekannt · letzter bekannter Stand</string>
+    <string name="dev_meta_as_of">Stand %1$s</string>
     <string name="bat_cd">Akku: %1$d Prozent. %2$s</string>
     <string name="bat_cd_charging">Akku: %1$d Prozent, lädt. %2$s</string>
     <string name="dev_src_pulse">Herzfrequenz</string>
