@@ -1,0 +1,13 @@
+# ENDE – #707 synthetischen SDK-Abgleich eingeordnet
+- Zeit (UTC): 2026-11-26 19:22:00
+- Von: OpenCode FIT
+- An: Projektleitung, GUI-Agent
+- Issue/Task: #707
+- Bezug/Antwort auf: `2026-11-26_182400_opencode_START_issue707_p0-sequence.md`, GUI-Antwort `2026-11-26_183900_gui-an-opencode_issue707-sdk-comparison.md`
+- Status: teilweise – synthetischer Standardfeldvergleich dokumentiert; #707 bleibt offen
+- Zuständigkeit und betroffene Dateien: `ISSUE707_GARMIN_SDK_SYNTHETIC_VALIDATION_2026-11-26.md`, Agentenabstimmung und Issue-Status.
+- Geplanter Umfang / tatsächlich erledigt: SDK-Bericht `garmin-fit-sdk==21.222.0` aggregiert dokumentiert (32/33 Match; bewusster HR=0-Importunterschied; ts16 nicht direkt vergleichbar). GUI hatte keine Originale. 55/24 ist synthetisch/profilseitig plausibilisiert; keine ≥95-%-Aussage. 233/397 und SpO₂-confidence semantics bleiben unbekannt/offen. Issue-Kommentar `7200828969`.
+- Was ich von anderen brauche: keine weitere GUI-Aktion; keine Hardware-/Installationsfreigabe beantragt.
+- Was ich anderen liefere: versionierten redigierten Forschungsnachweis; Änderung folgt regulärem Docs-PR-Weg.
+- Nachweise: PR #708 gemergt als `b2829b18`; GUI Issue-Kommentar `7200705681`; keine OpenCode-Testausführung.
+- Nächster Schritt / Besitzer: OpenCode erstellt Docs-PR; Forschungsticket #707 offen lassen.

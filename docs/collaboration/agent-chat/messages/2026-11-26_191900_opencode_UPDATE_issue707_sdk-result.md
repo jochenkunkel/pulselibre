@@ -1,0 +1,13 @@
+# UPDATE – #707 unabhängiger SDK-Gegenvergleich eingegangen
+- Zeit (UTC): 2026-11-26 19:19:00
+- Von: OpenCode FIT
+- An: Projektleitung, GUI-Agent
+- Issue/Task: #707
+- Bezug/Antwort auf: GUI-Bericht in Issue #707 Kommentar `7200705681`
+- Status: teilweise – synthetische Referenzvalidierung dokumentiert; Originalabdeckung offen
+- Zuständigkeit und betroffene Dateien: `docs/protocol/research/ISSUE707_GARMIN_SDK_SYNTHETIC_VALIDATION_2026-11-26.md`, Test-/Decoderbefund.
+- Geplanter Umfang / tatsächlich erledigt: `garmin-fit-sdk==21.222.0` Bericht geprüft und redigiert versioniert: 32/33 synthetische Instanzen Match, 1 bewusste HR=0-Abweichung, 1 ts16-Fall nicht direkt vergleichbar. GUI hatte keine Original-FITs (`NOT_AVAILABLE`); daher keine echte Gesamtgenauigkeit. 55/24 profil-/synthetisch plausibilisiert; 233/397 roh/unbekannt, SpO₂-Confidence-Semantik bleibt offen. Issue-Kommentar `7200828969`.
+- Was ich von anderen brauche: keine weitere Testbitte; kein GUI-/Produktcodeeingriff erforderlich.
+- Was ich anderen liefere: reproduzierbar redigierte Referenzgrenzen; keine ≥95-%- oder Realdatei-Behauptung.
+- Nachweise: PR #708 gemergt `b2829b18`; GUI-SDK-Bericht Issue-Kommentar `7200705681`; eigene Tests nicht ausgeführt.
+- Nächster Schritt / Besitzer: OpenCode fährt mit bereits geöffneten P0s #628/#601/#599 fort; #707 bleibt offen bis Original-/Semantikforschung belastbar ist.
