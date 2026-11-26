@@ -1063,7 +1063,7 @@ class CirqaDatabase(private val contextRef: Context) :
     ): String {
         require(sourceBytes.isNotEmpty())
         val sourceSha256 = MessageDigest.getInstance("SHA-256").digest(sourceBytes)
-            .joinToString("") { "%02x".format(it.toInt() and 0xff) }
+            .lowerHex()
         check(FitFileHeader.inspectVerified(sourceBytes) != null) { "FIT replay source failed envelope/CRC validation" }
         val decoded = FitHistoricalObservations.decode(sourceBytes)
             ?: error("FIT replay decoder rejected the verified source")
@@ -2420,7 +2420,7 @@ class CirqaDatabase(private val contextRef: Context) :
 
         private fun lineSha256(line: String): String = MessageDigest.getInstance("SHA-256")
             .digest(line.toByteArray(Charsets.UTF_8))
-            .joinToString("") { "%02x".format(it.toInt() and 255) }
+            .lowerHex()
     }
 }
 

@@ -25,7 +25,7 @@ class CirqaVerifiedRawFileStore(private val root: File) {
         val lock = locks.computeIfAbsent(root.canonicalPath) { Any() }
         return synchronized(lock) {
             val sha = MessageDigest.getInstance("SHA-256").digest(bytes)
-                .joinToString("") { "%02x".format(it.toInt() and 255) }
+                .lowerHex()
             val target = File(root, "$sha.bin")
             fun existing(): Saved? {
                 if (!target.exists()) return null

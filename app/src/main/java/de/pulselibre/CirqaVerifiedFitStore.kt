@@ -34,7 +34,7 @@ class CirqaVerifiedFitStore(private val root: File) {
         val lock = publicationLocks.computeIfAbsent(root.canonicalPath) { Any() }
         return synchronized(lock) {
             val sha = MessageDigest.getInstance("SHA-256").digest(fileBytes)
-                .joinToString("") { "%02x".format(it.toInt() and 255) }
+                .lowerHex()
             val target = File(root, "$sha.fit")
             fun existing(): Saved? {
                 if (!target.exists()) return null

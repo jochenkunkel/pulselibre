@@ -1111,7 +1111,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         ) {
             val sha = java.security.MessageDigest.getInstance("SHA-256")
                 .digest(mlrData.toByteArray())
-                .joinToString("") { "%02x".format(it.toInt() and 255) }
+                .lowerHex()
             targetedPullManifest.recordCompletedImport(item, sha)
         } else null
         syncFileResults = (syncFileResults + "file${syncCompletedFiles + syncFailedFiles}[" +
@@ -1688,7 +1688,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                                     acks5004Queued++
                                     val ack = CirqaLegacy5004AckCandidate.mlGattValueCandidate(handle, ackOffset)
                                     if (ack5004Hex.isEmpty()) ack5004Hex =
-                                        ack.joinToString("") { "%02x".format(it) }
+                                        ack.lowerHex()
                                     queueAck(g, ack)
                                 }
                                 return
@@ -3216,7 +3216,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             else if (item != null) CirqaSyncFileCompletion.Format.NON_FIT
             else CirqaSyncFileCompletion.Format.UNKNOWN
         val magic = data.copyOfRange(0, minOf(4, data.size))
-            .joinToString("") { "%02x".format(it) }
+            .lowerHex()
         if (item == null || data.size.toLong() != syncExpectedSize ||
             data.size.toLong() != item.dataSize
         ) {
@@ -3226,7 +3226,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             )
         }
         val digest = java.security.MessageDigest.getInstance("SHA-256").digest(data)
-        val sha = digest.copyOfRange(0, 6).joinToString("") { "%02x".format(it) }
+        val sha = digest.copyOfRange(0, 6).lowerHex()
         syncTiming.stop(validationTimingKey, CirqaSyncTiming.Stage.VALIDATION)
         // Lossless original storage precedes FIT/quality filtering. Unknown formats,
         // unsupported fields and status-only records must remain available in SQLite.

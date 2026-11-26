@@ -93,7 +93,7 @@ class GarminFileListProbe {
             if (rawFrames.size < 32 && rawBytes + frame.size <= 8192) {
                 rawFrames.add("RX +${(System.nanoTime() - rawStartNanos) / 1_000_000}ms Frame #$frames " +
                     "${GarminGfdiHeader.describe(frame)} " +
-                    "CRC=OK: " + frame.joinToString("") { "%02x".format(it.toInt() and 255) })
+                    "CRC=OK: " + frame.lowerHex())
                 rawBytes += frame.size
             } else droppedRawFrames++
         }
