@@ -458,7 +458,8 @@ class DatabaseBackupTest {
                     assertEquals(2, rows.getInt(7))
                     assertEquals(269, rows.getInt(8))
                     assertEquals(0, rows.getInt(9))
-                    assertEquals(FitHistoricalObservations.DECODER_VERSION, rows.getString(10))
+                    // Review candidates carry their own decoder version (it no longer equals the observation decoder, #696).
+                    assertEquals(FitHistoricalObservations.REVIEW_CANDIDATE_DECODER_VERSION, rows.getString(10))
                     assertFalse(rows.moveToNext())
                 }
                 assertEquals(0, db.rawQuery("PRAGMA foreign_key_check", null).use {
