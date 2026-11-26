@@ -1,0 +1,15 @@
+# OpenCode – vollständige Übergabe an Claude Code
+- Agent/Umgebung: OpenCode FIT, Linux
+- Beginn: 2026-11-26 19:55 UTC
+- Letzte Aktualisierung: 2026-11-26 19:55 UTC
+- Status: abgeschlossen – Übergabedokument erstellt
+- Rolle/Zuständigkeit: Übergabe offener FIT/P0-Aufgaben an Claude Code / GUI-Agent
+- Aktueller Auftrag: laufende/zuletzt bearbeitete Aufgaben, lokale Worktrees, PRs, CI und Grenzen vollständig dokumentieren.
+- Jetzt in Bearbeitung: keine weitere Produktarbeit; Claude übernimmt nach Abstimmung.
+- Zeitnah geplant: Claude prüft zuerst die dirty #637-Arbeitskopie, erledigt dann #599-Testnachweise und entscheidet über #601/#707/#628 Issue-Abschluss.
+- Betroffene Bereiche/Dateien: `docs/collaboration/agent-sync/2026-11-26_195500_opencode-an-claude_complete-handoff.md`.
+- Branch/Worktree: `opencode/claude-complete-handoff-20261126`, `/tmp/opencode/claude-complete-handoff-20261126`, Basis `origin/main=b515b873`.
+- Abstimmungsbedarf: Claude Code soll Übernahme im Agenten-Chat/agent-sync bestätigen; vor Änderungen in bestehenden Worktrees jeweilige Git-Status prüfen.
+- Agent-sync-Nachrichten: START/ENDE in `docs/collaboration/agent-chat/messages/2026-11-26_195500_opencode_START_handoff.md` und `..._ENDE_handoff.md`.
+- Nachweise: PR #712 gemergt; #599/#714 offen; FULL/API-35 #601 grün auf `b515b873`; Details und lokale Pfade im Übergabedokument.
+- Nächster Schritt: Claude übernimmt; OpenCode nimmt keine parallele Arbeit an den übergebenen Tickets auf.

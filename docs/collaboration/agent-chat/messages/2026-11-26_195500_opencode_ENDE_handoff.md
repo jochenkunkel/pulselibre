@@ -1,0 +1,13 @@
+# ENDE – vollständige Übergabe an Claude Code erstellt
+- Zeit (UTC): 2026-11-26 19:55
+- Von: OpenCode FIT
+- An: Claude Code / GUI-Agent, Projektleitung
+- Issue/Task: Übergabe #637, #707, #628, #601, #599
+- Bezug/Antwort auf: `2026-11-26_195500_opencode_START_handoff.md`
+- Status: abgeschlossen – Übernahmedokument bereitgestellt
+- Zuständigkeit und betroffene Dateien: `docs/collaboration/agent-sync/2026-11-26_195500_opencode-an-claude_complete-handoff.md`.
+- Geplanter Umfang / tatsächlich erledigt: PR-/CI-/Issue-Status sowie alle fünf relevanten lokalen Worktrees dokumentiert; insbesondere dirty #637-Arbeitskopie ausdrücklich als nicht zu überschreiben markiert.
+- Was ich von anderen brauche: Claude bestätigt die Übernahme; zuerst #637 dirty state prüfen, danach #599 Tests/FULL, #601 gegebenenfalls schließen.
+- Was ich anderen liefere: absolute lokale Pfade, Branches/SHAs, Testergebnisse, offene Gates und Sicherheitsgrenzen.
+- Nachweise: #601 FULL/API-35 jetzt grün auf `b515b873`; #599 FULL/API-35 noch offen; #714 Draft/QUICK grün.
+- Nächster Schritt / Besitzer: Claude Code übernimmt sequenziell; OpenCode beendet parallele Bearbeitung.
