@@ -22,7 +22,7 @@ if command -v sudo >/dev/null 2>&1 && sudo -n true 2>/dev/null; then
 elif command -v sudo >/dev/null 2>&1; then
   sudo chmod 666 /dev/kvm
 else
-  ci_die "Kein sudo verfügbar. Runner-Benutzer in die Gruppe 'kvm' aufnehmen (docs/ci/HYBRID_CI.md#kvm)."
+  ci_die "Kein sudo verfügbar. Runner-Benutzer in die Gruppe 'kvm' aufnehmen (docs/quality/ci/HYBRID_CI.md#kvm)."
 fi
 
 [ -r /dev/kvm ] && [ -w /dev/kvm ] || ci_die "KVM weiterhin nicht nutzbar nach Rechteanpassung."
