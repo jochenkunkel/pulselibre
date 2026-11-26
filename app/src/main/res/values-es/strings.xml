@@ -599,7 +599,7 @@
     <string name="ex_local_only">Solo en tu dispositivo · Sin nube · Sin inicio de sesión</string>
     <string name="ex_db_title">Base de datos local</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
-    <string name="ex_db_note">La copia contiene eventos CIRQA, mediciones históricas, estados de sincronización y contenidos originales archivados disponibles, incluidos campos desconocidos e identificadores. El ZIP no está cifrado y contiene datos sensibles de salud y del dispositivo.</string>
+    <string name="ex_db_note">La copia contiene eventos CIRQA, mediciones históricas, estados de sincronización y contenidos originales archivados disponibles, incluidos campos desconocidos e identificadores, además de tus ajustes personales (perfil, tema, idioma). El ZIP no está cifrado y contiene datos sensibles de salud y del dispositivo.</string>
     <string name="ex_btn_backup">Crear copia de seguridad</string>
     <string name="ex_btn_backup_cd">Crear una copia de seguridad local de la base de datos</string>
     <string name="ex_btn_fit">Exportar los originales FIT</string>

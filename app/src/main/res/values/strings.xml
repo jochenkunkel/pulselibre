@@ -599,7 +599,7 @@
     <string name="ex_local_only">Only on your device · No cloud · No sign-in</string>
     <string name="ex_db_title">Local database</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
-    <string name="ex_db_note">A backup contains CIRQA events, historical readings, synchronization states and available archived original contents, including unknown fields and identifiers. The ZIP file is not encrypted and contains sensitive health and device data.</string>
+    <string name="ex_db_note">A backup contains CIRQA events, historical readings, synchronization states and available archived original contents, including unknown fields and identifiers, plus your personal settings (profile, theme, language). The ZIP file is not encrypted and contains sensitive health and device data.</string>
     <string name="ex_btn_backup">Create backup</string>
     <string name="ex_btn_backup_cd">Create a local database backup</string>
     <string name="ex_btn_fit">Export FIT originals</string>

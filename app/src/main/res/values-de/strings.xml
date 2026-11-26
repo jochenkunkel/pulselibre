@@ -599,7 +599,7 @@
     <string name="ex_local_only">Nur auf deinem Gerät · Keine Cloud · Keine Anmeldung</string>
     <string name="ex_db_title">Lokale Datenbank</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
-    <string name="ex_db_note">Backup enthält CIRQA-Ereignisse, historische Messwerte, Synchronisationsstände und vorhandene archivierte Originalinhalte einschließlich unbekannter Felder und Kennungen. Die ZIP-Datei ist unverschlüsselt und enthält sensible Gesundheits- und Gerätedaten.</string>
+    <string name="ex_db_note">Backup enthält CIRQA-Ereignisse, historische Messwerte, Synchronisationsstände und vorhandene archivierte Originalinhalte einschließlich unbekannter Felder und Kennungen sowie deine persönlichen Einstellungen (Profil, Design, Sprache). Die ZIP-Datei ist unverschlüsselt und enthält sensible Gesundheits- und Gerätedaten.</string>
     <string name="ex_btn_backup">Backup erstellen</string>
     <string name="ex_btn_backup_cd">Lokales Datenbankbackup erstellen</string>
     <string name="ex_btn_fit">FIT-Originale exportieren</string>
