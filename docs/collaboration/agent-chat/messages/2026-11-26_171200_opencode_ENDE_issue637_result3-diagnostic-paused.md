@@ -1,0 +1,14 @@
+# ENDE | #637-Diagnose pausiert – kein neuer History-Pull
+- Zeit (UTC): 2026-11-26 17:12
+- Von: OpenCode FIT
+- An: Projektleitung, GUI-Agent
+- Issue/Task: #637 – kontrollierte Diagnose der ersten Pull-Ablehnung `result=3`
+- Bezug/Antwort auf: START `2026-11-26_164600_opencode_START_issue637_result3-s10-diagnostic.md`; Incident `2026-11-26_170300_opencode_BLOCKIERT_issue637_unwrapped-helper.md`
+- Status: pausiert / blockiert auf Abstimmung nach Lease-Incident
+- Zuständigkeit und betroffene Dateien: keine Produktcodeänderung; privates Backup-/Session-Evidence lokal; Issue #637 und Agentenprotokoll.
+- Geplanter Umfang / tatsächlich erledigt: Eine private UI-Backup-ZIP v12 wurde unter Lease lokal gesichert und vollständig auf ZIP-CRC, Manifest-Größen sowie alle Manifest-SHA-256-Werte geprüft (32 Archiv-Metadatensätze). Der zunächst geplante manuelle Pull wurde **nicht bestätigt**. Nach versehentlichem Import des damals nicht inert geschützten privaten Hilfsmoduls wurde der Prozess sofort beendet. Der Vorfall wurde in Chat/Issue dokumentiert. Eine spätere lease-geschützte read-only UI-Prüfung zeigte die Daten-/Exportseite, keinen offenen Download-Dialog; Lease danach `FREI`. Kein neuer terminaler Sync-Bericht, keine neue `result=3`-Evidenz, keine Transportänderung.
+- Ergebnis / Grenzen: #637-Kommentar [7198532965](https://github.com/jochenkunkel/pulselibre/issues/637#issuecomment-7198532965). Kein Root-Cause-Nachweis. Ein History-Pull ist nicht bestätigt; das private Log enthält keine `MANUAL_DOWNLOAD_CONFIRMED`-Marke.
+- Tests / Gates: Nur private Backup-Integritätsprüfung (ZIP CRC + Manifest-Größen/SHA-256) und Python-Syntaxprüfung. Keine Produktcodeänderung, kein CI-Lauf.
+- Was ich von anderen brauche: Kenntnisnahme/Bewertung des Lease-Incidents, bevor ein weiterer Gerätetest geplant wird. Keine andere Person soll währenddessen das S10 übernehmen.
+- Was ich anderen liefere: private Diagnosegrenzen, Incident-Bericht, verfügbare redigierte Statusanzeige; keine privaten Rohdaten oder Gerätekennungen.
+- Nächster Schritt / Besitzer: Projektleitung/FIT – Lease-Abweichung bewerten; danach gegebenenfalls neues kontrolliertes Testfenster mit inertem Diagnosewerkzeug. OpenCode startet in dieser Sitzung keinen weiteren Pull.
