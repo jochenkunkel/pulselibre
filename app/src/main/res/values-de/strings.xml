@@ -641,6 +641,8 @@
     <string name="ex_restore_all">Einstellungen und Gesundheitsdaten</string>
     <string name="ex_restore_settings_only">Nur Einstellungen</string>
     <string name="ex_restore_settings_done">Einstellungen aus dem Backup übernommen; Gesundheitsdaten unverändert.</string>
+    <string name="ex_ble_busy">Gerade läuft ein Bluetooth-Vorgang (z. B. ein Historien-Download). Bitte warten, bis er beendet ist, und es dann erneut versuchen. Es wurde nichts verändert.</string>
+    <string name="ex_restore_originals_note">Lokal gespeicherte Originaldateien des Bands bleiben beim Wiederherstellen erhalten; was davon im Backup fehlt, wird beim nächsten Start wieder ergänzt.</string>
     <string name="ex_rec_restarted">Aufzeichnung wieder gestartet.</string>
     <string name="ex_rec_restart_failed">Aufzeichnung konnte nicht wieder gestartet werden – bitte in der Übersicht starten.</string>
     <string name="ex_restore_failed">Wiederherstellung fehlgeschlagen. Bitte Datenbank prüfen.</string>

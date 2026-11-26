@@ -641,6 +641,8 @@
     <string name="ex_restore_all">Ajustes y datos de salud</string>
     <string name="ex_restore_settings_only">Solo ajustes</string>
     <string name="ex_restore_settings_done">Ajustes restaurados desde la copia; datos de salud sin cambios.</string>
+    <string name="ex_ble_busy">Hay una operación Bluetooth en curso (p. ej. una descarga del historial). Espera a que termine e inténtalo de nuevo. No se ha cambiado nada.</string>
+    <string name="ex_restore_originals_note">Los archivos originales de la pulsera guardados localmente se conservan al restaurar; lo que falte en la copia se vuelve a añadir en el siguiente inicio.</string>
     <string name="ex_rec_restarted">Grabación reiniciada.</string>
     <string name="ex_rec_restart_failed">No se pudo reiniciar la grabación; iníciala desde la vista general.</string>
     <string name="ex_restore_failed">Error en la restauración. Comprueba la base de datos.</string>
