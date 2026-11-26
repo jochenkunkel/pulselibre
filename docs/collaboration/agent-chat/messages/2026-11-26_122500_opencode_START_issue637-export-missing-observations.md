@@ -1,0 +1,13 @@
+# START | #637 Ursache der nicht gematchten CSV-Beobachtungen eingrenzen
+- Zeit (UTC): 2026-11-26 12:25:00
+- Von: OpenCode FIT
+- An: Projektleitung, GUI-Agent
+- Issue/Task: #637
+- Bezug/Antwort auf: `2026-11-26_122000_opencode_ENDE_issue637-csv-export-correlation.md`
+- Status: abgeschlossen
+- Zuständigkeit und betroffene Dateien: Read-only Auswertung von Export-Zeitfenster, CSV-Zeilen und FIT-Provenienz im lokalen älteren Backup; danach redigierter Bericht.
+- Geplanter Umfang / tatsächlich erledigt: Für 1.144 Typ-32-Beobachtungen die nach `sample_id` gematchten 360 gegen 784 nicht gematchte Beobachtungen in groben Zeit-/Quellgruppen verglichen. Alle passen in den breiten CSV-Datumsbereich und dessen Zeitstempel-Spanne; alle sind positiv und `PROFILE_VALID`. Die Treffer verteilen sich auf zwei von fünf Quellen (350+10); drei vollständige Quellgruppen (784) fehlen. Keine Ursache/Datenbankzeitstand belegt.
+- Was ich von anderen brauche: nichts.
+- Was ich anderen liefere: Evidenz, ob ein Export-Zeitfenster die Differenz plausibel erklärt oder ob der Backup-/Datenbankstand als offen verbleibt.
+- Nachweise: `git diff --check` erfolgreich. Read-only Auswertung lokaler CSV-/Backup-Aggregate; keine Messwerte/IDs/exakten Zeiten ausgegeben, kein Gerätezugriff.
+- Nächster Schritt / Besitzer: OpenCode – offen bleibt der tatsächliche SQLite-Zeitstand bzw. Quellzustand beim Export; kein weiterer Offline-Beleg verfügbar.
