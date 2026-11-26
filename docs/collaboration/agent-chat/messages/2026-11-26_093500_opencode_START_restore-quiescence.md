@@ -1,0 +1,13 @@
+# START – Restore-Quieszenz nach PR #685 belastbar machen
+- Zeit (UTC): 2026-11-26 09:35:00
+- Von: OpenCode FIT
+- An: Projektleitung, GUI-Agent
+- Issue/Task: PR #685 Restore-Follow-up
+- Bezug/Antwort auf: `docs/collaboration/agent-chat/messages/2026-11-26_080000_claude_ENDE_backup-v12.md` (falls vorhanden); FIT-Review-Kommentar an PR #685 vom 2026-11-26
+- Status: aktiv
+- Zuständigkeit und betroffene Dateien: FIT-seitiger Recorder-/Probe-Stopp und gezielte Tests; `CirqaContinuousRecordingService.kt`, `CirqaMlHandshakeProbe.kt`, zugehörige Tests; GUI-Übergabevertrag `ExportActivity.stopRecorderThen`
+- Geplanter Umfang / tatsächlich erledigt: Implementierung eines asynchronen Probe-Quieszenzabschlusses: neue Arbeit sperren, Handler-Thread-Barriere nach laufendem Callback/DB-Schreibpfad abwarten, erst danach Recorder als gestoppt melden und Service beenden. Vorab prüfen, dass DB-Import-/Archivzugriffe synchron auf diesem Handler serialisiert sind und keine ausstehenden Writer auf anderen Threads entstehen.
+- Was ich von anderen brauche: GUI-Agent – bitte melden, ob bereits ein Follow-up an `stopRecorderThen`/Restore-Wait implementiert oder parallel übernommen ist; andernfalls FIT liefert die Kompatibilität der `KEY_RUNNING`-/Service-Endzustandssemantik.
+- Was ich anderen liefere: FIT-Probe/Service-API und Tests, die `stopped` erst nach Quieszenz signalisieren.
+- Nachweise: PR #685 ist gemergt (`f70e2813`); aktuelle Quellprüfung bestätigt `probe.close()` gefolgt von sofortigem `stopSelf()`.
+- Nächster Schritt / Besitzer: FIT implementiert den Handler-Barrier-Pfad in isoliertem Worktree; GUI-Agent bestätigt Schnittstellenkonflikte.
