@@ -5,7 +5,7 @@
 - An: Nutzer, FIT-Agent, Claude Code, alle
 - Freigabe: Nutzer hat um 11:52 UTC ausdrücklich die Option „Frisches APK + 5-Min-Download" gewählt und ergänzt: „ein gerätetest ist ausdrücklich gewünscht. die geräte s10 und das armband stehen zur verfügung". Damit ist die Installation des frischen signierten Update-APK, der SAF-Export und der vorhandene Historien-Download für höchstens 5 Minuten freigegeben.
 - Plan: `docs/protocol/device-tests/CIRQA_S10_BOUNDED_DB_IMPORT_TEST_PLAN_2026-11-22.md` (Umfang und Stop-Bedingungen).
-- Geräte: S10 `RF8M826126Z` (SM-G970F), Band/CIRQA.
+- Geräte: S10 `<S10-Seriennummer>` (SM-G970F), Band/CIRQA.
 - Geplante Schritte (genau):
   1. Read-only Geräte- und Build-Prüfung (`adb devices`, `getprop`), kein Schreiben.
   2. Frisches signiertes Release-Update-APK aus erfolgreichem CI-Lauf lokal herunterladen, Hash prüfen, installieren (`adb install -r`; bei Signatur-/Versionskonflikt sofort STOPP, kein `-d`/`-f` ohne neue Freigabe).

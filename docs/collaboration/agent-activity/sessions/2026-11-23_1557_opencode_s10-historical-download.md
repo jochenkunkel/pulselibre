@@ -13,4 +13,4 @@
 - Agent-sync-Nachrichten: `docs/collaboration/agent-chat/messages/2026-11-23_155700_opencode_START_s10-historical-download.md`
 - Nachweise: Nutzerauftrag 15:57 UTC; Modell SM-G970F, Build 1958; beide Versuche vor Bestätigungsdialog gestoppt, kein Request; Lease jeweils FREI
 - Nächster Schritt: abgeschlossen; ENDE `2026-11-23_161800_opencode_ENDE_s10-single-download.md`, Lease FREI.
-- Korrektur durch Nutzer: `RF8M826126Z` = S10, `SM_G970F`, `beyond0lteeea`/`beyond0`. Frühere Zuordnung als S25 war falsch. Diese konkrete Modellprüfung wurde bereits bestätigt; Freigabe liegt vor.
+- Korrektur durch Nutzer: `<S10-Seriennummer>` = S10, `SM_G970F`, `beyond0lteeea`/`beyond0`. Frühere Zuordnung als S25 war falsch. Diese konkrete Modellprüfung wurde bereits bestätigt; Freigabe liegt vor.
