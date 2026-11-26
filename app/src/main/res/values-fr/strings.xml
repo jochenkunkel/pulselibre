@@ -627,6 +627,15 @@
     <string name="ex_restore_cancelled">Restauration annulée.</string>
     <string name="ex_restore_running">Restauration de la base de données …</string>
     <string name="ex_restore_done">Base de données restaurée à partir de la sauvegarde.</string>
+    <string name="ex_progress_snapshot">Création d’un instantané de la base de données …</string>
+    <string name="ex_progress_write">Écriture de la table %1$d sur %2$d …</string>
+    <string name="ex_progress_copy">Enregistrement du fichier …</string>
+    <string name="ex_progress_extract">Décompression de la sauvegarde …</string>
+    <string name="ex_progress_validate">Vérification de l’entrée %1$d sur %2$d …</string>
+    <string name="ex_progress_references">Vérification des références …</string>
+    <string name="ex_progress_restore">Restauration des données (peut prendre une minute) …</string>
+    <string name="ex_progress_settings">Restauration des paramètres …</string>
+    <string name="ex_progress_keep_open">Ne fermez pas l’application pendant ce temps.</string>
     <string name="ex_restore_settings_replaced">La sauvegarde contient aussi vos paramètres personnels (%1$d valeurs : profil, thème, langue, etc.) ; ils sont également remplacés.</string>
     <string name="ex_restore_settings_kept">Cette ancienne sauvegarde ne contient aucun paramètre ; vos paramètres actuels sont conservés.</string>
     <string name="ex_restore_failed">Échec de la restauration. Veuillez vérifier la base de données.</string>

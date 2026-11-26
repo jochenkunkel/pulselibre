@@ -627,6 +627,15 @@
     <string name="ex_restore_cancelled">Restauración cancelada.</string>
     <string name="ex_restore_running">Restaurando la base de datos …</string>
     <string name="ex_restore_done">Base de datos restaurada desde la copia de seguridad.</string>
+    <string name="ex_progress_snapshot">Creando una instantánea de la base de datos …</string>
+    <string name="ex_progress_write">Escribiendo la tabla %1$d de %2$d …</string>
+    <string name="ex_progress_copy">Guardando el archivo …</string>
+    <string name="ex_progress_extract">Descomprimiendo la copia …</string>
+    <string name="ex_progress_validate">Comprobando la entrada %1$d de %2$d …</string>
+    <string name="ex_progress_references">Comprobando referencias …</string>
+    <string name="ex_progress_restore">Restaurando los datos (puede tardar un minuto) …</string>
+    <string name="ex_progress_settings">Restaurando los ajustes …</string>
+    <string name="ex_progress_keep_open">No cierres la app mientras tanto.</string>
     <string name="ex_restore_settings_replaced">La copia también contiene tus ajustes personales (%1$d valores: perfil, tema, idioma y más); también se reemplazan.</string>
     <string name="ex_restore_settings_kept">Esta copia antigua no contiene ajustes; se conservan tus ajustes actuales.</string>
     <string name="ex_restore_failed">Error en la restauración. Comprueba la base de datos.</string>

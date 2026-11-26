@@ -627,6 +627,15 @@
     <string name="ex_restore_cancelled">Wiederherstellung abgebrochen.</string>
     <string name="ex_restore_running">Datenbank wird wiederhergestellt …</string>
     <string name="ex_restore_done">Datenbank aus Backup wiederhergestellt.</string>
+    <string name="ex_progress_snapshot">Momentaufnahme der Datenbank wird erstellt …</string>
+    <string name="ex_progress_write">Tabelle %1$d von %2$d wird geschrieben …</string>
+    <string name="ex_progress_copy">Datei wird gespeichert …</string>
+    <string name="ex_progress_extract">Backup wird entpackt …</string>
+    <string name="ex_progress_validate">Eintrag %1$d von %2$d wird geprüft …</string>
+    <string name="ex_progress_references">Verweise werden geprüft …</string>
+    <string name="ex_progress_restore">Daten werden eingespielt (kann eine Minute dauern) …</string>
+    <string name="ex_progress_settings">Einstellungen werden übernommen …</string>
+    <string name="ex_progress_keep_open">Bitte die App währenddessen nicht schließen.</string>
     <string name="ex_restore_settings_replaced">Das Backup enthält auch deine persönlichen Einstellungen (%1$d Werte: Profil, Design, Sprache und mehr); sie werden ebenfalls ersetzt.</string>
     <string name="ex_restore_settings_kept">Dieses ältere Backup enthält keine Einstellungen; deine aktuellen Einstellungen bleiben erhalten.</string>
     <string name="ex_restore_failed">Wiederherstellung fehlgeschlagen. Bitte Datenbank prüfen.</string>

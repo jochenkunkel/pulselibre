@@ -128,3 +128,46 @@ class AppSettingsBackupTest {
         } finally { cleanup(); root.deleteRecursively() }
     }
 }
+
+/** Owner feedback 25.11.2026: every long backup step reports progress, ending at 100 %. */
+@RunWith(AndroidJUnit4::class)
+class BackupProgressReportTest {
+    @Test fun backupCheckAndRestoreReportTheirSteps() {
+        val base = ApplicationProvider.getApplicationContext<Context>()
+        val root = Files.createTempDirectory(base.cacheDir.toPath(), "progress-").toFile()
+        val context = object : ContextWrapper(base) {
+            override fun getApplicationContext(): Context = this
+            override fun getFilesDir(): File = root
+            override fun getDatabasePath(name: String): File = File(root, name)
+            override fun getSharedPreferences(name: String, mode: Int): SharedPreferences = base.getSharedPreferences("progress-test-$name", mode)
+            override fun openOrCreateDatabase(name: String, mode: Int, factory: SQLiteDatabase.CursorFactory?): SQLiteDatabase =
+                openOrCreateDatabase(name, mode, factory, null)
+            override fun openOrCreateDatabase(name: String, mode: Int, factory: SQLiteDatabase.CursorFactory?,
+                                              errorHandler: DatabaseErrorHandler?): SQLiteDatabase =
+                SQLiteDatabase.openOrCreateDatabase(getDatabasePath(name).absolutePath, factory, errorHandler)
+        }
+        try {
+            CirqaDatabase(context).use { it.ensureHistoricalStoreCopied() }
+            val seen = mutableListOf<Triple<BackupProgress.Phase, Int, Int>>()
+            val sink = BackupProgress { p, d, t -> seen += Triple(p, d, t) }
+            val backup = ByteArrayOutputStream().also { DatabaseBackup.write(context, it, sink) }.toByteArray()
+            val writes = seen.filter { it.first == BackupProgress.Phase.WRITE }
+            assertTrue(seen.first().first == BackupProgress.Phase.SNAPSHOT)
+            assertEquals(writes.last().third, writes.last().second) // all entries written
+            assertEquals(Triple(BackupProgress.Phase.COPY, 100, 100), seen.last())
+            val percents = seen.mapNotNull { BackupProgressText.percent(it.first, it.second, it.third) }
+            assertEquals(percents, percents.sorted())
+
+            seen.clear()
+            val plan = DatabaseBackup.prepareRestore(context, ByteArrayInputStream(backup), sink)
+            assertEquals(listOf(BackupProgress.Phase.EXTRACT, BackupProgress.Phase.VALIDATE, BackupProgress.Phase.REFERENCES),
+                seen.map { it.first }.distinct())
+            seen.clear()
+            plan.use { DatabaseBackup.restore(context, it, sink) }
+            assertEquals(listOf(BackupProgress.Phase.RESTORE, BackupProgress.Phase.SETTINGS), seen.map { it.first }.distinct())
+        } finally {
+            AppSettingsBackup.STORES.forEach { base.deleteSharedPreferences("progress-test-$it") }
+            root.deleteRecursively()
+        }
+    }
+}

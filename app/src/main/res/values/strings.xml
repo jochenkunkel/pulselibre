@@ -627,6 +627,15 @@
     <string name="ex_restore_cancelled">Restore cancelled.</string>
     <string name="ex_restore_running">Restoring database …</string>
     <string name="ex_restore_done">Database restored from backup.</string>
+    <string name="ex_progress_snapshot">Creating a snapshot of the database …</string>
+    <string name="ex_progress_write">Writing table %1$d of %2$d …</string>
+    <string name="ex_progress_copy">Saving the file …</string>
+    <string name="ex_progress_extract">Unpacking the backup …</string>
+    <string name="ex_progress_validate">Checking entry %1$d of %2$d …</string>
+    <string name="ex_progress_references">Checking references …</string>
+    <string name="ex_progress_restore">Restoring the data (may take a minute) …</string>
+    <string name="ex_progress_settings">Restoring the settings …</string>
+    <string name="ex_progress_keep_open">Do not close the app meanwhile.</string>
     <string name="ex_restore_settings_replaced">The backup also contains your personal settings (%1$d values: profile, theme, language and more); they are replaced as well.</string>
     <string name="ex_restore_settings_kept">This older backup contains no settings; your current settings are kept.</string>
     <string name="ex_restore_failed">Restore failed. Please check the database.</string>
