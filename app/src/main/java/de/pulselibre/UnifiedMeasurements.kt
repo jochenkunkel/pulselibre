@@ -102,6 +102,20 @@ class UnifiedMeasurements(private val db: SQLiteDatabase) {
          * parallel they parsed the same events several times and raced on the shared cursor in `unified_state`.
          */
         private val REFRESH_LOCK = Any()
+
+        /**
+         * Empties the derived table and its cursors in [schema] (inside the caller's transaction), e.g. when every
+         * source row is replaced. Safe when the table was never created.
+         */
+        // No REFRESH_LOCK here: the caller holds a write transaction, and taking the lock inside it could wait on a
+        // refresh that itself waits for that transaction. SQLite serializes the two writers anyway.
+        fun clearDerived(db: SQLiteDatabase, schema: String = "main") {
+            val exists = { name: String -> db.rawQuery("SELECT 1 FROM $schema.sqlite_master WHERE type = 'table' AND name = ?",
+                arrayOf(name)).use { it.moveToFirst() } }
+            if (exists("unified_measurements")) db.execSQL("DELETE FROM $schema.unified_measurements")
+            // Keep the layout marker so the next refresh does not treat the empty table as one of build 2171.
+            if (exists("unified_state")) db.execSQL("DELETE FROM $schema.unified_state WHERE key <> '$SCHEMA_KEY'")
+        }
     }
 
     fun ensureSchema(): Unit = synchronized(REFRESH_LOCK) {

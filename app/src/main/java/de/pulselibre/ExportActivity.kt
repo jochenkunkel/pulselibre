@@ -504,8 +504,8 @@ class ExportActivity : AppCompatActivity() {
                     databaseFeedback.text = getString(R.string.ex_reset_running)
                     executor.execute {
                         try {
-                            DatabaseBackup.reset(this); HistoryDataCache.invalidate()
-                            runOnUiThread { databaseFeedback.text = getString(R.string.ex_reset_done) }
+                            val deleted = DatabaseBackup.reset(this); HistoryDataCache.invalidate(); TrendCache.invalidate()
+                            runOnUiThread { databaseFeedback.text = getString(R.string.ex_reset_done, deleted) }
                         } catch (_: Exception) {
                             runOnUiThread { databaseFeedback.text = getString(R.string.ex_reset_failed) }
                         } finally {

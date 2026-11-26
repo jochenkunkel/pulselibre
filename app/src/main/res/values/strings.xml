@@ -647,11 +647,11 @@
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="ex_reset_title">Reset local database?</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
-    <string name="ex_reset_msg">All locally stored CIRQA events, historical readings and synchronization states will be permanently deleted. App settings are kept. This action cannot be undone.</string>
+    <string name="ex_reset_msg">All locally stored CIRQA events, historical readings, sync states and the band\'s downloaded original files (FIT files) are permanently deleted. They only come back from a backup or a new download from the band. Personal settings are kept. This cannot be undone.</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="ex_reset_delete">Delete data</string>
     <string name="ex_reset_running">Resetting database …</string>
-    <string name="ex_reset_done">Local database was emptied.</string>
+    <string name="ex_reset_done">Local database emptied, %1$d original files deleted.</string>
     <string name="ex_reset_failed">Reset failed. Please check the database.</string>
     <string name="ex_rec_title">Recording in progress</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->

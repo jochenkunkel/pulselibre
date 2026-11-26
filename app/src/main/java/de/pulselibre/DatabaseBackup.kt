@@ -519,8 +519,35 @@ object DatabaseBackup {
     }
 
     /** Clear only the two local data stores. Profile, appearance and test settings are retained. */
-    fun reset(context: Context) {
+    /**
+     * Private directories with downloaded band originals. The app re-imports them on every start (FIT backfill and
+     * archive migration), so a reset that kept them brought the band values straight back (owner 26.11.2026: reset
+     * deletes them too).
+     */
+    internal val ORIGINAL_DIRECTORIES = listOf("verified_fit", "verified_raw", "downloaded_originals_pending", "cirqa_fit_history")
+
+    /** Empties both databases and deletes the downloaded originals; returns how many original files were deleted. */
+    fun reset(context: Context): Int {
         CirqaDatabase(context).use { it.replaceAllStoredRows(emptySequence(), emptySequence(), emptySequence()) }
+        return deleteOriginals(context.filesDir)
+    }
+
+    internal fun deleteOriginals(filesDir: File): Int {
+        var deleted = 0
+        fun clear(dir: File) {
+            for (child in dir.listFiles().orEmpty()) {
+                // Never follow a symbolic link out of the app's private storage.
+                if (java.nio.file.Files.isSymbolicLink(child.toPath())) { child.delete(); continue }
+                if (child.isDirectory) { clear(child); child.delete() }
+                else if (child.delete()) deleted++
+            }
+        }
+        for (name in ORIGINAL_DIRECTORIES) {
+            val dir = File(filesDir, name)
+            if (java.nio.file.Files.isSymbolicLink(dir.toPath())) { dir.delete(); continue }
+            if (dir.isDirectory) clear(dir)
+        }
+        return deleted
     }
 
     private fun writeArchive(context: Context, target: File, progress: BackupProgress): DatabaseBackupReport {
