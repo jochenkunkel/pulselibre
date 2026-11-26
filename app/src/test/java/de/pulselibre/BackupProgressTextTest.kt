@@ -4,11 +4,10 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import de.pulselibre.BackupProgress.Phase as P
 
 /** Owner feedback 25.11.2026: long backups show their step and an overall percentage that only moves forward. */
 class BackupProgressTextTest {
-    private val P = BackupProgress.Phase
-
     @Test fun backupPercentRisesThroughSnapshotWriteAndCopy() {
         val steps = listOf(P.SNAPSHOT to (0 to 1)) + (0..25).map { P.WRITE to (it to 25) } + (0..100 step 10).map { P.COPY to (it to 100) }
         val percents = steps.map { (phase, n) -> BackupProgressText.percent(phase, n.first, n.second)!! }
