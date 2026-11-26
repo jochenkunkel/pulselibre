@@ -52,6 +52,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     /** Volatile: [close] is called from the main thread while the session logic runs on [serial]. */
     @Volatile private var active = false
     @Volatile private var terminationRequested = false
+    @Volatile private var closeRequested = false
     @Volatile private var gatt: BluetoothGatt? = null
     /** A client still waiting for its delayed close after the MousePods stop command (see [finish]); [close] must reach it too. */
     @Volatile private var closingGatt: BluetoothGatt? = null
@@ -3786,39 +3787,58 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
      * [serial]: the volatile fences stop every callback first; the zlib inflater is released on [serial] so it is never
      * closed under a running inflate.
      */
-    override fun close() {
+    override fun close() = closeWhenQuiescent {}
+
+    /**
+     * Fences callbacks immediately, then completes teardown on the shared serial
+     * worker. A callback already doing archive/import work finishes before this
+     * barrier runs, so the recorder can safely advertise a stopped state only
+     * after [onQuiescent].
+     */
+    @Synchronized
+    override fun closeWhenQuiescent(onQuiescent: () -> Unit) {
+        if (closeRequested) {
+            serial.post { onQuiescent() }
+            return
+        }
+        closeRequested = true
         terminationRequested = true
         active = false
-        // Same state-object cleanup as finish(): nothing may stay "running" after close().
-        legacy5030Only?.let { it.abort(it.token) }
-        passive5050Session.stop()
         serial.removeCallbacksAndMessages(null)
         ui.removeCallbacksAndMessages(null) // an undelivered result must not reach a closed screen (as before)
-        val assembler = mlrFileAssembler
-        if (assembler != null) serial.post {
-            assembler.close()
-            if (mlrFileAssembler === assembler) mlrFileAssembler = null
+        val closingGatt = gatt
+        val closingGattPending = this.closingGatt
+        safeClose(closingGatt)
+        safeClose(closingGattPending)
+        this.closingGatt = null
+        serial.post {
+            // Same state-object cleanup as finish(): nothing may stay "running" after close().
+            legacy5030Only?.let { it.abort(it.token) }
+            passive5050Session.stop()
+            val assembler = mlrFileAssembler
+            if (assembler != null) {
+                assembler.close()
+                if (mlrFileAssembler === assembler) mlrFileAssembler = null
+            }
+            CirqaBleSessionGate.release(this)
+            gatt = null
+            callback = null
+            session = null
+            realtimeMode = false
+            continuousRecordingMode = false
+            historyDiagnosticMode = false
+            syncNextTransactionProbeMode = false
+            syncNextTransactionFollowupSent = false
+            syncNextTransactionFirstItemCount = null
+            legacy5007TestMode = false
+            legacy5031TestMode = false
+            legacyHistoryDownloadMode = false
+            bootstrapAckMode = false
+            configurationTestMode = false
+            rawCaptureMode = false
+            expandedMode = false
+            exploratoryMode = false
+            onQuiescent()
         }
-        safeClose(gatt)
-        safeClose(closingGatt)   // a pending delayed close was just removed with the serial callbacks
-        closingGatt = null
-        CirqaBleSessionGate.release(this)
-        gatt = null
-        callback = null
-        session = null
-        realtimeMode = false
-        continuousRecordingMode = false
-        historyDiagnosticMode = false
-        syncNextTransactionProbeMode = false
-        syncNextTransactionFollowupSent = false
-        syncNextTransactionFirstItemCount = null
-        legacy5007TestMode = false
-        legacy5031TestMode = false
-        legacyHistoryDownloadMode = false
-        bootstrapAckMode = false
-        configurationTestMode = false
-        rawCaptureMode = false
-        expandedMode = false
-        exploratoryMode = false
     }
 }
