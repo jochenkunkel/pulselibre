@@ -618,15 +618,17 @@
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="ex_btn_reset">Restablecer la base de datos</string>
     <string name="ex_btn_reset_cd">Borrar todas las entradas locales de la base de datos</string>
-    <string name="ex_prefs_kept">Los ajustes de la app se conservan al restaurar y al restablecer.</string>
+    <string name="ex_prefs_kept">Los ajustes personales (perfil, tema, idioma, detección de actividad, grabación, disposición del panel) forman parte de las copias nuevas; una restauración los reemplaza y un restablecimiento los conserva.</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="ex_restore_title">¿Reemplazar la base de datos?</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
-    <string name="ex_restore_msg">La copia de seguridad del %1$s contiene %2$d eventos, %3$d mediciones históricas, %4$d estados de sincronización, %5$d fuentes FIT y %6$d filas de procedencia FIT. %7$d mediciones canónicas y %8$d fuentes FIT canónicas/%9$d filas de procedencia, así como %10$d filas de metadatos FIT y %11$d filas de metadatos XML sin procesar derivadas. Los archivos originales no están incluidos; las rutas y los identificadores XML no se guardan.\n\nSe reemplazarán todas las entradas de la base de datos almacenadas actualmente. Los ajustes de la app se conservan. Continúa solo con una copia de seguridad de una fuente de confianza.</string>
+    <string name="ex_restore_msg">La copia de seguridad del %1$s contiene %2$d eventos, %3$d mediciones históricas, %4$d estados de sincronización, %5$d fuentes FIT y %6$d filas de procedencia FIT. %7$d mediciones canónicas y %8$d fuentes FIT canónicas/%9$d filas de procedencia, así como %10$d filas de metadatos FIT y %11$d filas de metadatos XML sin procesar derivadas. Los archivos originales no están incluidos; las rutas y los identificadores XML no se guardan.\n\nSe reemplazarán todas las entradas de la base de datos almacenadas actualmente. %12$s Continúa solo con una copia de seguridad de una fuente de confianza.</string>
     <string name="ex_replace">Reemplazar</string>
     <string name="ex_restore_cancelled">Restauración cancelada.</string>
     <string name="ex_restore_running">Restaurando la base de datos …</string>
     <string name="ex_restore_done">Base de datos restaurada desde la copia de seguridad.</string>
+    <string name="ex_restore_settings_replaced">La copia también contiene tus ajustes personales (%1$d valores: perfil, tema, idioma y más); también se reemplazan.</string>
+    <string name="ex_restore_settings_kept">Esta copia antigua no contiene ajustes; se conservan tus ajustes actuales.</string>
     <string name="ex_restore_failed">Error en la restauración. Comprueba la base de datos.</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="ex_reset_title">¿Restablecer la base de datos local?</string>

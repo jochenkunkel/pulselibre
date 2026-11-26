@@ -618,15 +618,17 @@
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="ex_btn_reset">Reset database</string>
     <string name="ex_btn_reset_cd">Delete all local database entries</string>
-    <string name="ex_prefs_kept">App settings are kept during restore and reset.</string>
+    <string name="ex_prefs_kept">Personal settings (profile, theme, language, activity detection, recording, dashboard layout) are part of new backups; a restore replaces them, a reset keeps them.</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="ex_restore_title">Replace database?</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
-    <string name="ex_restore_msg">The backup from %1$s contains %2$d events, %3$d historical readings, %4$d synchronization states, %5$d FIT sources and %6$d FIT provenance rows. %7$d canonical readings and %8$d canonical FIT sources/%9$d provenance rows as well as %10$d FIT metadata rows and %11$d derived raw XML metadata rows. New backups may also include archived original contents and sensitive identifiers.\n\nAll currently stored database entries will be replaced. App settings are kept. Only continue with a backup from a trusted source.</string>
+    <string name="ex_restore_msg">The backup from %1$s contains %2$d events, %3$d historical readings, %4$d synchronization states, %5$d FIT sources and %6$d FIT provenance rows. %7$d canonical readings and %8$d canonical FIT sources/%9$d provenance rows as well as %10$d FIT metadata rows and %11$d derived raw XML metadata rows. New backups may also include archived original contents and sensitive identifiers.\n\nAll currently stored database entries will be replaced. %12$s Only continue with a backup from a trusted source.</string>
     <string name="ex_replace">Replace</string>
     <string name="ex_restore_cancelled">Restore cancelled.</string>
     <string name="ex_restore_running">Restoring database …</string>
     <string name="ex_restore_done">Database restored from backup.</string>
+    <string name="ex_restore_settings_replaced">The backup also contains your personal settings (%1$d values: profile, theme, language and more); they are replaced as well.</string>
+    <string name="ex_restore_settings_kept">This older backup contains no settings; your current settings are kept.</string>
     <string name="ex_restore_failed">Restore failed. Please check the database.</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="ex_reset_title">Reset local database?</string>

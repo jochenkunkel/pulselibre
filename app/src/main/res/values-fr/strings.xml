@@ -618,15 +618,17 @@
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="ex_btn_reset">Réinitialiser la base de données</string>
     <string name="ex_btn_reset_cd">Supprimer toutes les entrées locales de la base de données</string>
-    <string name="ex_prefs_kept">Les paramètres de l’app sont conservés lors de la restauration et de la réinitialisation.</string>
+    <string name="ex_prefs_kept">Les paramètres personnels (profil, thème, langue, détection d’activité, enregistrement, disposition du tableau de bord) font partie des nouvelles sauvegardes ; une restauration les remplace, une réinitialisation les conserve.</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="ex_restore_title">Remplacer la base de données ?</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
-    <string name="ex_restore_msg">La sauvegarde du %1$s contient %2$d événements, %3$d mesures historiques, %4$d états de synchronisation, %5$d sources FIT et %6$d lignes de provenance FIT. %7$d mesures canoniques et %8$d sources FIT canoniques/%9$d lignes de provenance ainsi que %10$d lignes de métadonnées FIT et %11$d lignes de métadonnées XML brutes dérivées. Les fichiers originaux ne sont pas inclus ; les chemins et les identifiants XML ne sont pas sauvegardés.\n\nToutes les entrées actuellement enregistrées dans la base de données seront remplacées. Les paramètres de l’app sont conservés. Ne continuez qu’avec une sauvegarde provenant d’une source de confiance.</string>
+    <string name="ex_restore_msg">La sauvegarde du %1$s contient %2$d événements, %3$d mesures historiques, %4$d états de synchronisation, %5$d sources FIT et %6$d lignes de provenance FIT. %7$d mesures canoniques et %8$d sources FIT canoniques/%9$d lignes de provenance ainsi que %10$d lignes de métadonnées FIT et %11$d lignes de métadonnées XML brutes dérivées. Les fichiers originaux ne sont pas inclus ; les chemins et les identifiants XML ne sont pas sauvegardés.\n\nToutes les entrées actuellement enregistrées dans la base de données seront remplacées. %12$s Ne continuez qu’avec une sauvegarde provenant d’une source de confiance.</string>
     <string name="ex_replace">Remplacer</string>
     <string name="ex_restore_cancelled">Restauration annulée.</string>
     <string name="ex_restore_running">Restauration de la base de données …</string>
     <string name="ex_restore_done">Base de données restaurée à partir de la sauvegarde.</string>
+    <string name="ex_restore_settings_replaced">La sauvegarde contient aussi vos paramètres personnels (%1$d valeurs : profil, thème, langue, etc.) ; ils sont également remplacés.</string>
+    <string name="ex_restore_settings_kept">Cette ancienne sauvegarde ne contient aucun paramètre ; vos paramètres actuels sont conservés.</string>
     <string name="ex_restore_failed">Échec de la restauration. Veuillez vérifier la base de données.</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="ex_reset_title">Réinitialiser la base de données locale ?</string>

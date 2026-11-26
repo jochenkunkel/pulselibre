@@ -395,7 +395,9 @@ class ExportActivity : AppCompatActivity() {
             .setTitle(getString(R.string.ex_restore_title))
             .setMessage(
                 getString(R.string.ex_restore_msg, plan.createdAt, plan.events, plan.legacyReadings, plan.syncCursors, plan.fitSources, plan.fitProvenance,
-                    plan.canonicalReadings, plan.canonicalFitSources, plan.canonicalFitProvenance, plan.canonicalDeviceMetadata, plan.rawDeviceMetadata)
+                    plan.canonicalReadings, plan.canonicalFitSources, plan.canonicalFitProvenance, plan.canonicalDeviceMetadata, plan.rawDeviceMetadata,
+                    if (plan.containsSettings) getString(R.string.ex_restore_settings_replaced, plan.appSettings)
+                    else getString(R.string.ex_restore_settings_kept))
             )
             .setNegativeButton(getString(R.string.action_cancel)) { _, _ ->
                 plan.close()
@@ -406,8 +408,16 @@ class ExportActivity : AppCompatActivity() {
                     databaseFeedback.text = getString(R.string.ex_restore_running)
                     executor.execute {
                         try {
+                            val settingsRestored = plan.containsSettings
                             DatabaseBackup.restore(this, plan); HistoryDataCache.invalidate()
-                            runOnUiThread { databaseFeedback.text = getString(R.string.ex_restore_done) }
+                            runOnUiThread {
+                                databaseFeedback.text = getString(R.string.ex_restore_done)
+                                if (settingsRestored && !isFinishing && !isDestroyed) {
+                                    // Theme and language of the restored settings take effect now (activity is recreated).
+                                    AppAppearance.apply(AppAppearance.preference(this))
+                                    recreate()
+                                }
+                            }
                         } catch (_: Exception) {
                             runOnUiThread { databaseFeedback.text = getString(R.string.ex_restore_failed) }
                         } finally { plan.close() }

@@ -27,7 +27,7 @@ import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
 
 private const val BACKUP_FORMAT = "de.pulselibre.local-database-backup"
-private const val BACKUP_VERSION = 11
+private const val BACKUP_VERSION = 12
 /**
  * Size limits. Until 25.11.2026 one 128 MiB constant bounded both the ZIP file and the sum of the *uncompressed* JSON
  * lines; real data (all FIT field generations, original files) passed it, every backup failed and left a 0-byte file.
@@ -89,6 +89,8 @@ private val BACKUP_V10_ENTRIES = BACKUP_V9_ENTRIES + CANONICAL_FIT_GENERATION_FI
 private val BACKUP_V11_ENTRIES = BACKUP_V10_ENTRIES + setOf(
     IMPORT_RUNS_ENTRY, IMPORT_ERRORS_ENTRY, OBSERVATION_STATUS_EVENTS_ENTRY
 )
+/** v12: personal configuration (profile, theme, language, activity detection, auto-start, dashboard layout). */
+private val BACKUP_V12_ENTRIES = BACKUP_V11_ENTRIES + AppSettingsBackup.ENTRY
 
 data class DatabaseBackupReport(
     val createdAt: String,
@@ -134,8 +136,13 @@ class PreparedDatabaseRestore internal constructor(
     val canonicalActiveFitGenerations: Long,
     val canonicalFitReviewCandidates: Long,
     val legacyFitReviewCandidates: Long,
-    val liveDeviceMetadata: Long
+    val liveDeviceMetadata: Long,
+    /** Personal settings in the backup (v12+); 0 for older backups, whose restore leaves the settings as they are. */
+    val appSettings: Long = 0
 ) : Closeable {
+    /** True for v12+ backups: their restore replaces the personal settings (even an empty set means "defaults"). */
+    val containsSettings: Boolean get() = version >= 12
+
     override fun close() { directory.deleteRecursively() }
 }
 
@@ -196,7 +203,8 @@ object DatabaseBackup {
                 8 -> BACKUP_V8_ENTRIES
                 9 -> BACKUP_V9_ENTRIES
                 10 -> BACKUP_V10_ENTRIES
-                BACKUP_VERSION -> BACKUP_V11_ENTRIES
+                11 -> BACKUP_V11_ENTRIES
+                BACKUP_VERSION -> BACKUP_V12_ENTRIES
                 else -> throw IllegalArgumentException("Backup-Version wird nicht unterstützt")
             }
             require(extracted.keys == dataEntries + MANIFEST_ENTRY) {
@@ -218,6 +226,9 @@ object DatabaseBackup {
                 val count = validateJsonLines(name, file)
                 require(count == metadata.getLong("records")) { "Backup-Datensatzanzahl stimmt nicht: $name" }
                 recordCounts[name] = count
+            }
+            if (version >= 12) {
+                File(directory, AppSettingsBackup.ENTRY).useLines { AppSettingsBackup.validateAll(it) }
             }
             if (version >= 9) {
                 File(directory, DownloadedFileArchive.BACKUP_ENTRY).useLines { lines ->
@@ -273,7 +284,8 @@ object DatabaseBackup {
                 canonicalFitReviewCandidates =
                     recordCounts[CANONICAL_FIT_REVIEW_CANDIDATES_ENTRY] ?: 0,
                 legacyFitReviewCandidates = recordCounts[LEGACY_FIT_REVIEW_CANDIDATES_ENTRY] ?: 0,
-                liveDeviceMetadata = recordCounts[LIVE_DEVICE_METADATA_ENTRY] ?: 0
+                liveDeviceMetadata = recordCounts[LIVE_DEVICE_METADATA_ENTRY] ?: 0,
+                appSettings = recordCounts[AppSettingsBackup.ENTRY] ?: 0
             )
         } catch (error: Exception) {
             directory.deleteRecursively()
@@ -281,7 +293,10 @@ object DatabaseBackup {
         }
     }
 
-    /** Replace all rows in both stores in one SQLite transaction; settings and preferences remain. */
+    /**
+     * Replace all rows in both stores in one SQLite transaction. From v12 the personal settings are replaced too (after
+     * the data, so a failed data restore leaves them untouched); older backups leave the current settings as they are.
+     */
     fun restore(context: Context, plan: PreparedDatabaseRestore) {
         try {
             restoreRows(context, plan)
@@ -307,6 +322,10 @@ object DatabaseBackup {
                 } finally {
                     db.close()
                 }
+            }
+            if (plan.version >= 12) {
+                val settings = File(plan.directory, AppSettingsBackup.ENTRY).useLines { AppSettingsBackup.validateAll(it) }
+                AppSettingsBackup.restore(context, settings)
             }
         } finally { TrendCache.invalidate() } // A6-33
     }
@@ -910,6 +929,8 @@ object DatabaseBackup {
                         }
                     }
                     metadata.put(OBSERVATION_STATUS_EVENTS_ENTRY, entryMetadata(statusEvents))
+                    val settings = writeJsonLines(zip, AppSettingsBackup.ENTRY) { emit -> AppSettingsBackup.export(context, emit) }
+                    metadata.put(AppSettingsBackup.ENTRY, entryMetadata(settings))
                     require(
                         events.bytes + readings.bytes + cursors.bytes + sources.bytes + provenance.bytes +
                             canonicalReadings.bytes + canonicalCursors.bytes + canonicalSources.bytes +
@@ -918,7 +939,7 @@ object DatabaseBackup {
                             generations.bytes + generationObservations.bytes + activeGenerations.bytes +
                             generationFields.bytes + reviewCandidates.bytes + legacyReviewCandidates.bytes +
                             liveMetadata.bytes + originalFiles.bytes + importRuns.bytes +
-                            importErrors.bytes + statusEvents.bytes <= MAX_UNCOMPRESSED_BYTES
+                            importErrors.bytes + statusEvents.bytes + settings.bytes <= MAX_UNCOMPRESSED_BYTES
                     ) {
                         "Lokale Datenbank ist zu groß für ein Backup"
                     }
@@ -1074,6 +1095,7 @@ object DatabaseBackup {
                     LEGACY_FIT_REVIEW_CANDIDATES_ENTRY -> parseFitReviewCandidate(line)
                     LIVE_DEVICE_METADATA_ENTRY -> parseLiveDeviceMetadata(line)
                     IMPORT_RUNS_ENTRY, IMPORT_ERRORS_ENTRY, OBSERVATION_STATUS_EVENTS_ENTRY -> JSONObject(line)
+                    AppSettingsBackup.ENTRY -> AppSettingsBackup.parse(line)
                     DownloadedFileArchive.BACKUP_ENTRY -> DownloadedFileArchive.parse(line)
                 }
                 count++
