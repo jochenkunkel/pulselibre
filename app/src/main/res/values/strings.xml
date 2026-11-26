@@ -127,6 +127,11 @@
     <string name="main_open_testlab">Open test lab</string>
     <string name="main_status_ready">Offline · ready</string>
     <string name="main_hist_status_none">No historical download started yet.</string>
+    <string name="sync_sum_complete">Download complete: %1$d files transferred.</string>
+    <string name="sync_sum_pull_rejected">The band rejected the download of the first file (code %1$s). It had offered %2$d files; %3$d more were not requested.</string>
+    <string name="sync_sum_followup_empty">%1$d of %2$d offered files transferred; afterwards the band reported no more. Whether the history is complete is not proven.</string>
+    <string name="sync_sum_partial">%1$d of %2$d offered files transferred.</string>
+    <string name="sync_sum_details">Technical details (tap to expand):</string>
     <string name="main_hist_heading">Historical device data</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="main_hist_info">Files are stored locally and privately. FIT measurements are also imported into SQLite; unknown file types are kept as originals.</string>
