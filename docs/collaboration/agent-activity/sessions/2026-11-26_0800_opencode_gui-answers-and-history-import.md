@@ -1,0 +1,12 @@
+# OpenCode – GUI-Abstimmungen und #637 Download-/Import-Recherche
+- Agent/Umgebung: OpenCode FIT, Linux-Worktree
+- Beginn: 2026-11-26 08:00 UTC
+- Letzte Aktualisierung: 2026-11-26 08:26 UTC
+- Status: aktiv – fokussierter Fix geprüft, PR-Publikation/FIT-Self-Review ausstehend
+- Rolle/Zuständigkeit: FIT/BLE/SQLite/Import; fachliche Übergaben an GUI
+- Auftrag: offene GUI-Fragen aus agent-sync/Tickets beantworten, damit GUI weiterarbeiten kann; anschließend den aktuellen History-Download-/Archiv-/FIT-Importpfad offline auf reproduzierbaren Fehler prüfen.
+- Jetzt in Bearbeitung: Abstimmungen zu Restore während laufender Aufzeichnung, #528 Diagnose-Trace und R1–R3 beantwortet; Cache-Invalidierungslücke bei aktiver FIT-Generation im `UnifiedMeasurements`-Projektionspfad mit Android-Regressionstest adressiert.
+- Betroffene Dateien: agent-sync Antwort/Index, agent-chat, diese Sitzung; danach nur eng begrenzte FIT-/Importdateien, falls konkreter Fehler mit Regressionstest belegt ist.
+- Abstimmungsbedarf: GUI-Agent soll Antworten lesen; Restore-Umsetzung nur nach Befund und ohne GUI-Dateien. Keine Hardware-/BLE-Aktion.
+- Grenzen: keine Gerätezugriffe, keine Laufbudget-/Sync-Verhaltensänderung, keine Rohdaten oder privaten Diagnosen ins Repo.
+- Nachweise: `git diff --check` erfolgreich. Gradle 9.6.0 mit Android SDK: `:app:compileDebugAndroidTestKotlin` und `:app:testDebugUnitTest` erfolgreich; der Instrumentationstest wurde nicht ausgeführt. Befund dokumentiert in `docs/protocol/research/ISSUE637_UNIFIED_HISTORY_PROJECTION_INVALIDATION_2026-11-26.md`. System-Gradle 4.4.1 ungeeignet. Keine Geräteaktionen.
