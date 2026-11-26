@@ -1019,6 +1019,9 @@
     <string name="sd_spo2">SpO₂ · qualité non vérifiée</string>
     <string name="sd_resp">Fréquence respiratoire</string>
     <string name="sd_stress">Stress (échelle de l’appareil)</string>
+    <string name="sd_spo2_band">SpO₂ · bracelet (FIT), qualité non vérifiée</string>
+    <string name="sd_resp_band">Fréquence respiratoire · bracelet (FIT)</string>
+    <string name="sd_stress_band">Stress · bracelet (FIT, échelle de l’appareil)</string>
     <string name="sd_src_band">Source : bracelet · Base de temps : heure de mesure du bracelet</string>
     <string name="sd_src_live">Source : téléphone (direct) · Base de temps : heure de réception</string>
     <string name="sd_loading">Lecture des données …</string>

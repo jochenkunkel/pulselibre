@@ -346,6 +346,20 @@ class ScienceSeriesLoaderTest {
         assertEquals(1, stress.valid); assertEquals(1, stress.invalid)
     }
 
+    @Test fun bandSeriesOfIssue696ReadTheCanonicalFitMetrics() {
+        put("band", "spo2", "percent", t0 + 1_000, 96.0, "s1")
+        put("band", "respiration", "breaths/min", t0 + 1_000, 14.5, "r1")
+        put("band", "stress", "device_scale", t0 + 1_000, 42.0, "x1")
+        put("live", "stress", "device_scale", t0 + 1_000, 30.0, "live") // never mixed into the band card
+        val day = t0 + 86_400_000L
+        val spo2 = SeriesAnalysis.assess(ScienceSeriesLoader.load(db, ScienceSeriesLoader.SPO2_BAND, t0, day))
+        assertEquals(1, spo2.unverified); assertEquals(0, spo2.valid)
+        val resp = SeriesAnalysis.assess(ScienceSeriesLoader.load(db, ScienceSeriesLoader.RESPIRATION_BAND, t0, day))
+        assertEquals(1, resp.valid); assertEquals(14.5, resp.minimum!!, 0.0)
+        val stress = SeriesAnalysis.assess(ScienceSeriesLoader.load(db, ScienceSeriesLoader.STRESS_BAND, t0, day))
+        assertEquals(1, stress.valid); assertEquals(42.0, stress.minimum!!, 0.0)
+    }
+
     @Test fun emptyTableGivesAnEmptySeriesNotZeros() {
         assertEquals(SeriesState.EMPTY, SeriesAnalysis.assess(ScienceSeriesLoader.load(db, ScienceSeriesLoader.HEART_RATE_LIVE, t0, t0 + 86_400_000L)).state)
     }

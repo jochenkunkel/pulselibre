@@ -1012,6 +1012,9 @@
     <string name="sd_spo2">SpO₂ · quality unverified</string>
     <string name="sd_resp">Respiration rate</string>
     <string name="sd_stress">Stress (device scale)</string>
+    <string name="sd_spo2_band">SpO₂ · band (FIT), quality unverified</string>
+    <string name="sd_resp_band">Respiration rate · band (FIT)</string>
+    <string name="sd_stress_band">Stress · band (FIT, device scale)</string>
     <string name="sd_src_band">Source: band · Time basis: band measurement time</string>
     <string name="sd_src_live">Source: phone (live) · Time basis: reception time</string>
     <string name="sd_loading">Reading data …</string>
