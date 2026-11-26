@@ -18,7 +18,11 @@ import org.junit.runner.RunWith
 /** Synthetic-only SQLite/export regression for opaque and review-only FIT profile fields. */
 @RunWith(AndroidJUnit4::class)
 class FitUnmappedProfileImportExportTest {
-    @Test fun unknown397AndKnown398CandidatesPersistRawWithoutCanonicalOrExportRows() {
+    /**
+     * #696: 398/1–2 (skin temperature deviations, Garmin profile) are canonical now; 397 stays opaque and never becomes a
+     * measurement or export row.
+     */
+    @Test fun unknown397StaysRawWhileKnown398DeviationsBecomeCanonical() {
         val base = ApplicationProvider.getApplicationContext<Context>()
         val root = Files.createTempDirectory(base.cacheDir.toPath(), "fit-unknown-profile-").toFile()
         val fitDirectory = File(root, "verified_fit").also { assertTrue(it.mkdir()) }
@@ -35,8 +39,8 @@ class FitUnmappedProfileImportExportTest {
             assertEquals(1, result.filesImported)
             assertEquals(CirqaFitBackfill.FileStatus.IMPORTED,
                 result.fileResults.single().status)
-            assertEquals(0, result.importableObservations)
-            assertEquals(0, result.committedObservations)
+            assertEquals(2, result.importableObservations)
+            assertEquals(2, result.committedObservations)
             assertEquals(2, result.reviewCandidates)
 
             CirqaDatabase(context).use { database ->
@@ -54,12 +58,15 @@ class FitUnmappedProfileImportExportTest {
                     assertTrue(it.moveToFirst())
                     it.getInt(0)
                 })
-                assertEquals(0, count(db, "fit_generation_observations"))
-                assertEquals(0, count(db, "observations"))
-                assertEquals(0, count(db, "fit_observation_provenance"))
+                assertEquals(listOf("skin_temperature_7_day_deviation", "skin_temperature_deviation"),
+                    db.rawQuery("SELECT metric FROM fit_generation_observations ORDER BY metric", null).use { c ->
+                        buildList { while (c.moveToNext()) add(c.getString(0)) } })
+                assertEquals(0, db.rawQuery("SELECT COUNT(*) FROM fit_generation_observations WHERE global_message_number = 397",
+                    null).use { assertTrue(it.moveToFirst()); it.getInt(0) })
                 val unified = UnifiedMeasurements(db)
                 unified.refresh()
-                assertTrue(unified.records(0, Long.MAX_VALUE).isEmpty())
+                assertEquals(setOf("skin_temperature_deviation", "skin_temperature_7_day_deviation"),
+                    unified.records(0, Long.MAX_VALUE).map { it.metric }.toSet())
                 assertEquals("ok", db.rawQuery("PRAGMA quick_check", null).use {
                     assertTrue(it.moveToFirst())
                     it.getString(0)
