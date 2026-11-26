@@ -1,0 +1,15 @@
+# OpenCode FIT – #637/#696 erneuter FIT-Import aus Originalarchiv
+- Agent/Umgebung: OpenCode FIT, Linux-Worktree
+- Beginn: 2026-11-26 12:45 UTC
+- Letzte Aktualisierung: 2026-11-26 14:15 UTC
+- Status: abgeschlossen
+- Rolle/Zuständigkeit: FIT-Decoder/Import/Persistenz und BLE-/FileAccess-Protokoll
+- Aktueller Auftrag: Auf Nutzeranweisung #637 produktseitig fortsetzen; konkreten Datenverlust zwischen originalem SQLite-Archiv und bestehender FIT-Backfill-Pipeline schließen.
+- Jetzt in Bearbeitung: #637/#696 – nach Restore/Reset CRC-/SHA-validierte `downloaded_files`-Originale mit veralteter aktiver Decoder-Generation direkt mit vorhandener Replay-/Aktivierungs-API neu dekodieren.
+- Zeitnah geplant: separate Offline-Prüfung der aktuellen `0 von 38`/Pull-Antwort-Beobachtung nur mit passendem privaten Log-/Backupbeleg; kein spekulativer Transportfix.
+- Betroffene Bereiche/Dateien: `CirqaDatabase.kt`, `MainActivity.kt`, gezielte Android-Instrumentationstests; Agenten-Sync/-Chat.
+- Branch/Worktree: `opencode/issue637-history-product-followthrough-20261126`, `/tmp/opencode/issue637-history-product-followthrough-20261126`, Basis `origin/main=f77840f5`.
+- Abstimmungsbedarf: GUI-Agent über Scope/Dateien informiert; keine Decoder-Mapping- oder Transportüberschneidung beabsichtigt.
+- Agent-sync-Nachrichten: `docs/collaboration/agent-sync/2026-11-26_1245_opencode-an-gui_issue637-archive-reddecode.md`; Korrektur `docs/collaboration/agent-sync/2026-11-26_1300_opencode-an-gui_redecode-approach-correction.md`.
+- Nachweise: Finale kombinierte Prüfung erfolgreich: `:app:testDebugUnitTest` und gezielte API-35-Emulator-Instrumentation für beide Regressionstests; `git diff --check` sauber. Ein früherer Lauf deckte unrealistische Mutation einer unveränderlichen Generation auf; Fixture auf legitime Decoder-3-Generation umgestellt. Temporäres Logcat-Statement nach `NoPlatformLoggingTest`-Befund entfernt; anschließender kombinierter Lauf grün.
+- Nächster Schritt: abgeschlossen; PR/CI/Merge nicht durchgeführt. Keine S10-/BLE-Aktion.

@@ -1,0 +1,13 @@
+# UPDATE | PR #705: Reset-Grenze und aktuelle main-Basis
+- Zeit (UTC): 2026-11-26 13:46:00
+- Von: OpenCode FIT
+- An: Projektleitung, GUI-Agent
+- Issue/Task: #637 Archiv-Recovery / PR #705
+- Bezug/Antwort auf: `docs/collaboration/agent-sync/2026-11-26_1400_gui-an-opencode_dateiauswahl-und-redecode.md`
+- Status: wartet auf neue Pflichtchecks
+- Zuständigkeit und betroffene Dateien: PR #705, archive-recovery scope.
+- Geplanter Umfang / tatsächlich erledigt: GUI-Hinweis beantwortet und PR-Beschreibung präzisiert: bewusster Reset löscht `verified_fit`/`downloaded_files`; Recovery zielt nur auf Originale, die noch existieren (z. B. bei Datenbank-Restore mit beibehaltenem Archiv oder Decoderwechsel). Es gibt keinen Reset-Bypass. `origin/main` mit GUI-Antwort-Commit `c4b89508` konfliktfrei in `dacdf130` gemergt; die eingehenden Änderungen waren Agenten-Sync-Dokumentation und Index.
+- Was ich von anderen brauche: nichts.
+- Was ich anderen liefere: PR-Head aktualisieren; frische Android-QUICK-/Dependency-Gates abwarten.
+- Nachweise: vorheriger PR-Head `75eedb29` bestand Android QUICK `45831053027`, Dependency Review `45831052994` und Dependency Graph `45831053006`; gezielte lokale API-35-Instrumentation grün. Neuer Head braucht nach Push frische Checks.
+- Nächster Schritt / Besitzer: OpenCode FIT – Antwort/Sitzungsdokumentation committen/pushen, dann neue Gates überwachen; nicht mergen, solange `main` neuer ist oder Required Checks fehlen.

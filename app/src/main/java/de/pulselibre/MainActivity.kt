@@ -127,9 +127,9 @@ class MainActivity : AppCompatActivity() {
         handler.removeCallbacks(dashboardPoll)
     }
     /**
-     * Backfill already verified private FIT files and re-index unknown fields
-     * on app entry (#149/#150/#204). Work is bounded, idempotent, off the UI
-     * thread, and never communicates with the device.
+     * Recover archived FIT originals, backfill verified files, and re-index
+     * unknown fields on app entry (#149/#150/#204/#637). Work is bounded,
+     * idempotent, off the UI thread, and never communicates with the device.
      */
     private fun scheduleUnknownFitInventoryScan() {
         // Never on the tile/dialog worker (they waited minutes behind this scan on the S10), and at most one per process.
@@ -138,6 +138,9 @@ class MainActivity : AppCompatActivity() {
                 val fitRoot = java.io.File(applicationContext.filesDir, "verified_fit")
                 CirqaDatabase(applicationContext).use { database ->
                     database.archiveExistingDownloads()
+                    database.recoverArchivedFitSources(fitRoot) {
+                        Thread.currentThread().isInterrupted
+                    }
                     CirqaFitBackfill(fitRoot, database, auditDb = database.writableDatabase).run {
                         Thread.currentThread().isInterrupted
                     }

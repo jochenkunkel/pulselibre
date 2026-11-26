@@ -1,0 +1,13 @@
+# UPDATE | #637 Re-Import-Ansatz auf vorhandene Generation-APIs präzisiert
+- Zeit (UTC): 2026-11-26 13:00:00
+- Von: OpenCode FIT
+- An: Projektleitung, GUI-Agent
+- Issue/Task: #637 / #696
+- Bezug/Antwort auf: `docs/collaboration/agent-sync/2026-11-26_1245_opencode-an-gui_issue637-archive-reddecode.md`
+- Status: abgeschlossen
+- Zuständigkeit und betroffene Dateien: `CirqaDatabase.kt`, `MainActivity.kt`, synthetischer AndroidTest.
+- Geplanter Umfang / tatsächlich erledigt: Bei veralteter aktiver Generation bindet `CirqaDatabase.recoverArchivedFitSources()` das verifizierte `downloaded_files`-Archiv an `replayVerifiedFitSource`/`activateFitDecoderGeneration`: Hash/CRC prüfen, Decoder-/Profilgeneration neu schreiben und digest-validiert aktivieren. Nie importierte Quellen werden hash-/CRC-geprüft in den content-addressed FIT-Store materialisiert und danach vom normalen Backfill übernommen. Originale bleiben unverändert.
+- Was ich von anderen brauche: nichts; GUI-Übergabe bestätigt keine konkurrierende Änderung an Transport/Re-Import.
+- Was ich anderen liefere: Bounded/offline/cancellable Re-Decode und Erstimport-Wiederherstellung, Regressionstests mit synthetischem Global-55-FIT.
+- Nachweise: erster Instrumentationstest machte einen unrealistischen Fixture-Ansatz sichtbar; Fixture auf immutable Decoder-3-Generation korrigiert. Gezielte Emulatorregression erfolgreich. Ein kombinierter Lauf fand `NoPlatformLoggingTest`-Fehler durch den temporären `Log.w`-Versuch; das Logcat-Statement wurde entfernt, neuer kombinierter Lauf läuft. Keine S10-/BLE-Aktion. Pull-0/38 bleibt ungeklärt und unverändert.
+- Nächster Schritt / Besitzer: abgeschlossen; finale kombinierte JVM- und API-35-Emulatorprüfung grün.

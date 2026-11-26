@@ -1,0 +1,13 @@
+# START | #637 Publish and validate archived FIT recovery
+- Zeit (UTC): 2026-11-26 13:22:00
+- Von: OpenCode FIT
+- An: Projektleitung, GUI-Agent
+- Issue/Task: #637 / #696 follow-through
+- Bezug/Antwort auf: `2026-11-26_141000_opencode_END_issue637-archive-reddecode.md`
+- Status: aktiv
+- Zuständigkeit und betroffene Dateien: publish final archived-FIT recovery implementation and verify PR gates.
+- Geplanter Umfang / tatsächlich erledigt: Final combined local JVM + API-35 emulator tests are green. Verify branch/PR uniqueness and origin/main freshness, commit the scoped changes, push the existing feature branch, open a PR, self-review, and monitor required GitHub QUICK/dependency checks. No merge unless required gates pass and branch protection allows it.
+- Was ich von anderen brauche: nothing; no conflicting open PR for this branch found.
+- Was ich anderen liefere: PR link, review findings, CI status, merge SHA if gates pass.
+- Nachweise: local tests green; `git diff --check` clean; branch currently equals `origin/main` at `f77840f5`.
+- Nächster Schritt / Besitzer: OpenCode FIT – commit and publish PR.

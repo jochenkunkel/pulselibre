@@ -15,6 +15,16 @@ import java.security.MessageDigest
 class CirqaDatabase(private val contextRef: Context) :
     SQLiteOpenHelper(contextRef, "cirqa_measurements.db", null, 11), FitObservationStore {
 
+    data class ArchivedFitReplayResult(
+        val candidatesSeen: Int,
+        val generationsActivated: Int,
+        val filesMaterialized: Int,
+        val invalidCandidates: Int,
+        val failedCandidates: Int,
+        val bytesRead: Long,
+        val truncated: Boolean
+    )
+
     override fun onConfigure(db: SQLiteDatabase) {
         super.onConfigure(db)
         db.setForeignKeyConstraintsEnabled(true)
@@ -1072,6 +1082,164 @@ class CirqaDatabase(private val contextRef: Context) :
     }
 
     /**
+     * Recovers FITs from immutable `downloaded_files` originals. Stale active
+     * generations are re-decoded and activated through the existing generation
+     * API; never-imported sources are materialized for the normal backfill.
+     * Processing is offline, cancellable, and bounded by the backfill budgets.
+     */
+    fun recoverArchivedFitSources(
+        destination: java.io.File,
+        cancelled: () -> Boolean = { false }
+    ): ArchivedFitReplayResult {
+        val decoderVersion = FitHistoricalObservations.DECODER_VERSION
+        val profileVersion = FitHistoricalObservations.PROFILE_VERSION
+        val db = writableDatabase
+        db.execSQL("CREATE TABLE IF NOT EXISTS unified_state(key TEXT PRIMARY KEY NOT NULL, value TEXT NOT NULL)")
+        val cursorKey = "fit_archive_replay_cursor:$decoderVersion:$profileVersion"
+        val previousCursor = db.rawQuery(
+            "SELECT value FROM unified_state WHERE key = ?",
+            arrayOf(cursorKey)
+        ).use { if (it.moveToFirst()) it.getString(0) else "" }
+        require(destination.isDirectory || destination.mkdirs()) { "Cannot create FIT recovery directory" }
+        require(destination.isDirectory && !java.nio.file.Files.isSymbolicLink(destination.toPath())) {
+            "Unsafe FIT recovery directory"
+        }
+        if (cancelled()) return ArchivedFitReplayResult(0, 0, 0, 0, 0, 0, truncated = true)
+
+        data class Candidate(
+            val sha: String,
+            val size: Int,
+            val receivedAt: Long,
+            val deviceKey: String,
+            val hasActiveGeneration: Boolean
+        )
+        val candidates = mutableListOf<Candidate>()
+        db.rawQuery(
+            """SELECT f.content_sha256, f.file_bytes, COALESCE(f.received_at_ms, 0),
+                      COALESCE((
+                          SELECT o.device_id
+                          FROM fit_generation_observations o
+                          WHERE o.generation_id = a.generation_id
+                          ORDER BY o.device_id LIMIT 1
+                      ), 'cirqa-fit'),
+                      a.generation_id
+               FROM downloaded_files f
+               LEFT JOIN fit_active_generations a ON a.source_sha256 = f.content_sha256
+               LEFT JOIN fit_decoder_generations g ON g.generation_id = a.generation_id
+               WHERE f.content_sha256 > ?
+                 AND f.file_bytes BETWEEN 14 AND ?
+                 AND substr(f.payload, 9, 4) = X'2E464954'
+                 AND NOT (
+                     a.generation_id IS NOT NULL
+                     AND g.decoder_version = ? AND g.profile_version = ?
+                 )
+               ORDER BY f.content_sha256
+               LIMIT ?""",
+            arrayOf(
+                previousCursor,
+                CirqaFitBackfill.MAX_FIT_FILE_BYTES.toString(),
+                decoderVersion,
+                profileVersion,
+                (CirqaFitBackfill.MAX_FILES + 1).toString()
+            )
+        ).use { rows ->
+            while (rows.moveToNext()) {
+                candidates += Candidate(
+                    rows.getString(0), rows.getInt(1), rows.getLong(2), rows.getString(3),
+                    !rows.isNull(4)
+                )
+            }
+        }
+        if (candidates.isEmpty()) {
+            db.delete("unified_state", "key = ?", arrayOf(cursorKey))
+            return ArchivedFitReplayResult(0, 0, 0, 0, 0, 0, truncated = false)
+        }
+
+        var seen = 0
+        var activated = 0
+        var materialized = 0
+        var invalid = 0
+        var failed = 0
+        var bytesRead = 0L
+        var lastProcessed = previousCursor
+        var truncated = candidates.size > CirqaFitBackfill.MAX_FILES
+        for (candidate in candidates.take(CirqaFitBackfill.MAX_FILES)) {
+            if (cancelled()) {
+                truncated = true
+                break
+            }
+            if (candidate.size.toLong() > CirqaFitBackfill.MAX_TOTAL_BYTES - bytesRead) {
+                truncated = true
+                break
+            }
+            seen++
+            val sourceBytes = readArchivedFitBytes(db, candidate.sha, candidate.size, cancelled)
+            if (sourceBytes == null) {
+                if (cancelled()) {
+                    truncated = true
+                    break
+                }
+                invalid++
+            } else {
+                bytesRead += sourceBytes.size
+                try {
+                    if (!candidate.hasActiveGeneration) {
+                        CirqaVerifiedFitStore(destination).saveVerified(sourceBytes)
+                        materialized++
+                    } else {
+                        val generationId = replayVerifiedFitSource(
+                            sourceBytes = sourceBytes,
+                            replayedAtEpochMillis = candidate.receivedAt,
+                            deviceKey = candidate.deviceKey
+                        )
+                        activateFitDecoderGeneration(candidate.sha, generationId)
+                        activated++
+                    }
+                } catch (_: Exception) {
+                    // Keep the immutable original and move on; later app-entry
+                    // passes wrap around and retry sources that remain stale.
+                    failed++
+                }
+            }
+            lastProcessed = candidate.sha
+            db.execSQL(
+                "INSERT OR REPLACE INTO unified_state(key, value) VALUES(?, ?)",
+                arrayOf(cursorKey, lastProcessed)
+            )
+        }
+        return ArchivedFitReplayResult(seen, activated, materialized, invalid, failed, bytesRead, truncated)
+    }
+
+    private fun readArchivedFitBytes(
+        db: SQLiteDatabase,
+        sourceSha256: String,
+        expectedSize: Int,
+        cancelled: () -> Boolean
+    ): ByteArray? {
+        val bytes = ByteArray(expectedSize)
+        var offset = 0
+        while (offset < expectedSize) {
+            if (cancelled()) return null
+            val requested = minOf(DownloadedFileArchive.CHUNK_BYTES, expectedSize - offset)
+            val chunk = db.rawQuery(
+                """SELECT substr(payload, ?, ?)
+                   FROM downloaded_files WHERE content_sha256 = ? AND file_bytes = ?""",
+                arrayOf((offset + 1).toString(), requested.toString(), sourceSha256, expectedSize.toString())
+            ).use { rows ->
+                if (!rows.moveToFirst() || rows.isNull(0)) return null
+                rows.getBlob(0)
+            }
+            if (chunk.size != requested) return null
+            chunk.copyInto(bytes, offset)
+            offset += chunk.size
+        }
+        if (DownloadedFileArchive.sha256(bytes) != sourceSha256 ||
+            FitFileHeader.inspectVerified(bytes) == null
+        ) return null
+        return bytes
+    }
+
+    /**
      * Store already-decoded output for a specific decoder/profile identity.
      * This never changes fit_sources, legacy readings, or an existing active
      * pointer; the first normal import must establish that pointer.
@@ -1241,6 +1409,7 @@ class CirqaDatabase(private val contextRef: Context) :
         } finally {
             db.endTransaction()
         }
+        TrendCache.invalidate()
     }
 
     fun storedFitUnmappedFields(): List<StoredFitUnmappedField> =

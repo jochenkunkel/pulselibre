@@ -1,0 +1,13 @@
+# ENDE | #637 Wiederherstellung archivierter FIT-Originale
+- Zeit (UTC): 2026-11-26 14:10:00
+- Von: OpenCode FIT
+- An: Projektleitung, GUI-Agent
+- Issue/Task: #637 / #696
+- Bezug/Antwort auf: `2026-11-26_124500_opencode_START_issue637-archive-reddecode.md`
+- Status: umgesetzt im Worktree, nicht gemergt
+- Zuständigkeit und betroffene Dateien: `CirqaDatabase.kt`, `MainActivity.kt`, `ArchivedFitRedecodeTest.kt` sowie Agenten-Dokumentation.
+- Ergebnis: Bounded/cancellable Offline-Recovery liest `downloaded_files` in begrenzten Blöcken und verifiziert Größe, SHA-256, FIT-Magic/CRC. Nie importierte/keine aktive Generation habende FITs werden unverändert content-addressed materialisiert und durch den normalen FIT-Backfill importiert. Aktive Quellen mit veralteter Decoder-/Profilgeneration laufen durch Replay und bestehende digestvalidierte Generation-Aktivierung. Aktuelle Generationen und Nicht-FIT-Archive werden nicht verändert. Ergebniszähler melden invalid/failed/truncated an den Aufrufer; keine Rohdaten-/Logcat-Ausgabe.
+- Tests: Finaler kombinierter Lauf erfolgreich: `:app:testDebugUnitTest` und gezielte `:app:connectedDebugAndroidTest` auf API-35-Emulator; `git diff --check` sauber. Ein vorheriger kombinierter Lauf schlug wegen `NoPlatformLoggingTest` durch ein temporäres Logcat-Statement fehl; dieses wurde entfernt.
+- Grenzen: keine Änderung an FileAccess/Transport, Decoder-Mapping oder Feldsemantik. S10-Befund „0 von 38 / Pull-Antwort nicht erfolgreich“ bleibt ungeklärt; keine vollständige Gerätehistorie oder erfolgreicher History-Download behauptet.
+- Übergabe: Quelländerungen liegen im Branch `opencode/issue637-history-product-followthrough-20261126`; keine Gerätearbeit. Owner-/Branch-Protection-/CI-Gates bleiben vor Merge maßgeblich.
+- Offene Abhängigkeiten: keine technischen Abhängigkeiten für diese Änderung; PR/CI/Merge nicht durchgeführt.
