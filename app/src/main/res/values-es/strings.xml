@@ -131,6 +131,7 @@
     <string name="sync_sum_pull_rejected">La pulsera rechazó descargas de archivos (código %1$s). Ofrecía %2$d archivos; no se solicitaron otros %3$d.</string>
     <string name="sync_sum_followup_empty">%1$d de %2$d archivos ofrecidos transferidos; después la pulsera no informó de más. No está demostrado que el historial esté completo.</string>
     <string name="sync_sum_partial">%1$d de %2$d archivos ofrecidos transferidos.</string>
+    <string name="sync_sum_no_daily_history">La pulsera solo ofreció registros de actividad, sin historial diario (estrés, SpO₂, respiración, pulso continuo, sueño). Motivo habitual: Garmin Connect ya recogió estos archivos de la pulsera.</string>
     <string name="sync_sum_details">Detalles técnicos (toca para desplegar):</string>
     <string name="main_hist_heading">Datos históricos del dispositivo</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->

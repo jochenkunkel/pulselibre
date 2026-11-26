@@ -27,7 +27,28 @@ internal object SyncReportSummary {
         }
     }
 
+    /**
+     * FIT file types the band offered (its own labels "FIT_TYPE_<n>" = FIT profile file type n). Daily history –
+     * stress, SpO2, breathing, all-day pulse, sleep – only comes from monitoring_a (15), monitoring_daily (28),
+     * monitoring_b (32) and sleep (49) files; activity files (4) only hold pulse/distance of a recording (#637).
+     */
+    private val DAILY_HISTORY_TYPES = setOf(15, 28, 32, 49)
+
+    fun offeredFitTypes(report: String): Set<Int> =
+        Regex("""types=([^;|\]]*)""").findAll(report)
+            .flatMap { Regex("""FIT_TYPE_(\d+):""").findAll(it.groupValues[1]) }
+            .mapNotNull { it.groupValues[1].toIntOrNull() }.toSet()
+
+    /** True when the band listed FIT files but none with daily history. */
+    fun lacksDailyHistory(report: String): Boolean {
+        val types = offeredFitTypes(report)
+        return types.isNotEmpty() && types.none { it in DAILY_HISTORY_TYPES }
+    }
+
     /** Text for the status card: readable summary, then the hint and the technical report. */
-    fun display(strings: Strings, report: String): String =
-        explain(strings, report)?.let { it + "\n\n" + strings.get(R.string.sync_sum_details) + "\n" + report } ?: report
+    fun display(strings: Strings, report: String): String {
+        val summary = explain(strings, report) ?: return report
+        val daily = if (lacksDailyHistory(report)) "\n\n" + strings.get(R.string.sync_sum_no_daily_history) else ""
+        return summary + daily + "\n\n" + strings.get(R.string.sync_sum_details) + "\n" + report
+    }
 }

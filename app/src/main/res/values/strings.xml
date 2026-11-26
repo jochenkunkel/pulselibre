@@ -131,6 +131,7 @@
     <string name="sync_sum_pull_rejected">The band rejected file downloads (code %1$s). It had offered %2$d files; %3$d more were not requested.</string>
     <string name="sync_sum_followup_empty">%1$d of %2$d offered files transferred; afterwards the band reported no more. Whether the history is complete is not proven.</string>
     <string name="sync_sum_partial">%1$d of %2$d offered files transferred.</string>
+    <string name="sync_sum_no_daily_history">The band only offered activity recordings, no daily history (stress, SpO₂, breathing, all-day pulse, sleep). A common reason: Garmin Connect has already collected these files from the band.</string>
     <string name="sync_sum_details">Technical details (tap to expand):</string>
     <string name="main_hist_heading">Historical device data</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
