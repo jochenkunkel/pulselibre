@@ -7,7 +7,7 @@
 #   bash tools/ci/bootstrap-toolchain.sh            # install missing parts
 #   bash tools/ci/bootstrap-toolchain.sh --force    # re-download
 #
-# The Android SDK is NOT installed here; see docs/ci/HYBRID_CI.md.
+# The Android SDK is NOT installed here; see docs/quality/ci/HYBRID_CI.md.
 set -euo pipefail
 
 source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/lib.sh"
