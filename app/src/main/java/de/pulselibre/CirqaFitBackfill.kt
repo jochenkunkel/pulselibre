@@ -76,12 +76,14 @@ class CirqaFitBackfill(
                 false
             }
         } ?: false
-        fun auditFailure(alias: String, errorClass: String) {
+        fun auditFailure(alias: String, errorClass: String, sourceSha: String? = null, error: Throwable? = null) {
             val db = auditDb ?: return
             if (!auditRunCreated) return
             val at = System.currentTimeMillis()
             try {
-                ImportAuditRecorder.recordFileError(db, auditRunId, null, errorClass, at)
+                // #628: keep which local source failed and why (redacted), so repeated SOURCE_CONFLICTs can be classified.
+                ImportAuditRecorder.recordFileError(db, auditRunId, sourceSha?.takeIf { it.matches(Regex("[0-9a-f]{64}")) },
+                    errorClass, at, reason = error?.let(ImportAuditRecorder::reasonOf))
                 ImportAuditRecorder.recordStatusEvent(
                     db, "$auditRunId:$alias:$errorClass", deviceKey, "unknown", errorClass, at,
                     FitHistoricalObservations.DECODER_VERSION, FitHistoricalObservations.PROFILE_VERSION
@@ -133,33 +135,33 @@ class CirqaFitBackfill(
                 importVerifiedFileDetailed(file, readings, deviceKey) {
                     decodedBeforeFailure = it
                 }
-            } catch (_: IOException) {
+            } catch (e: IOException) {
                 failed++
-                auditFailure("file-${index + 1}", "READ")
+                auditFailure("file-${index + 1}", "READ", file.name.substringBefore('.'), e)
                 fileResults += failedResult(index, FailureStage.READ)
                 continue
-            } catch (_: SQLiteException) {
+            } catch (e: SQLiteException) {
                 failed++
-                auditFailure("file-${index + 1}", "DATABASE")
+                auditFailure("file-${index + 1}", "DATABASE", file.name.substringBefore('.'), e)
                 importable += decodedBeforeFailure?.eligibleObservations ?: 0
                 fileResults += failedResult(index, FailureStage.DATABASE, decodedBeforeFailure)
                 continue
-            } catch (_: IllegalArgumentException) {
+            } catch (e: IllegalArgumentException) {
                 // require(...) detects a decoder/source contract violation before the
                 // atomic commit. Treat it like any other per-file failure so that later
                 // files and the unknown-field inventory scan are still processed.
                 failed++
-                auditFailure("file-${index + 1}", "SOURCE_CONFLICT")
+                auditFailure("file-${index + 1}", "SOURCE_CONFLICT", file.name.substringBefore('.'), e)
                 importable += decodedBeforeFailure?.eligibleObservations ?: 0
                 fileResults += failedResult(index, FailureStage.SOURCE_CONFLICT, decodedBeforeFailure)
                 continue
-            } catch (_: IllegalStateException) {
+            } catch (e: IllegalStateException) {
                 // check(...)/error(...) in FitObservationCommitter deliberately detect a
                 // conflict with already committed data. The transaction is rolled back;
                 // the integrity check stays active, but the failure is isolated to this
                 // input file instead of aborting the whole import run.
                 failed++
-                auditFailure("file-${index + 1}", "SOURCE_CONFLICT")
+                auditFailure("file-${index + 1}", "SOURCE_CONFLICT", file.name.substringBefore('.'), e)
                 importable += decodedBeforeFailure?.eligibleObservations ?: 0
                 fileResults += failedResult(index, FailureStage.SOURCE_CONFLICT, decodedBeforeFailure)
                 continue
