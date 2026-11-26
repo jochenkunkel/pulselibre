@@ -67,6 +67,30 @@ class UnifiedMeasurementsTest {
         assertEquals(12, unified.records(t0, t0 + day).size)
     }
 
+    @Test fun restoredEventsWithNewIdsDoNotDoubleTheLiveRows() {
+        // S10 26.11.2026: after a restore the Verlauf showed every live value twice. Events are AUTOINCREMENT, so the
+        // re-inserted rows got ids above the old cursor and the "MAX(id) < cursor" check never fired.
+        live(70, t0 + 1000); live(71, t0 + 2000)
+        val unified = UnifiedMeasurements(db)
+        unified.refresh()
+        db.execSQL("DELETE FROM events")
+        live(70, t0 + 1000); live(71, t0 + 2000); live(72, t0 + 3000) // restored plus one new reading
+        unified.refresh()
+        assertEquals(listOf(70.0, 71.0, 72.0), unified.points(MeasurementOrigin.LIVE, "bpm", t0, t0 + day).map { it.second })
+    }
+
+    @Test fun layoutThreeIsRebuiltOnceToDropStaleRows() {
+        live(70, t0 + 1000)
+        UnifiedMeasurements(db).refresh()
+        // A stale live row from an earlier restore, and the old layout marker.
+        db.execSQL("INSERT INTO unified_measurements(origin, device_id, metric, measured_at_ms, value, unit, sample_id) VALUES('live', 'CIRQA', 'bpm', ?, 70, 'bpm', 'stale')",
+            arrayOf<Any>(t0 + 1000))
+        db.execSQL("UPDATE unified_state SET value = '3' WHERE key = 'schema'")
+        val unified = UnifiedMeasurements(db)
+        unified.refresh()
+        assertEquals(listOf(70.0), unified.points(MeasurementOrigin.LIVE, "bpm", t0, t0 + day).map { it.second })
+    }
+
     @Test fun normalHistoryAndActivityStayDistinguishable() {
         band("m1", 60.0, t0 + 1000, message = 55); band("m2", 61.0, t0 + 2000, message = 55)
         band("a1", 140.0, t0 + 3000, message = 20); band("x1", 70.0, t0 + 4000, message = 999)
