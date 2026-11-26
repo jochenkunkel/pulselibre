@@ -1,15 +1,15 @@
 # OpenCode FIT – #637 Connect-Trace-Evidenzkorrektur
 - Agent/Umgebung: OpenCode FIT, Linux-Worktree
 - Beginn: 2026-11-26 10:06 UTC
-- Letzte Aktualisierung: 2026-11-26 10:06 UTC
-- Status: aktiv
+- Letzte Aktualisierung: 2026-11-26 10:08 UTC
+- Status: abgeschlossen – frühere Service-ID-4/22-Behauptung in Issue #637 und PR #691 ausdrücklich zurückgezogen; Trace belegt keine erfolgreiche Registrierung oder FIT-History-Übertragung
 - Rolle/Zuständigkeit: FIT/GFDI/MLR-Protokoll und Offline-Trace-Analyse
 - Aktueller Auftrag: #637 – publizierten Connect-Trace-Claim zu akzeptierten Registrierungen Service-ID 4/22 reproduzieren oder zurückziehen
-- Jetzt in Bearbeitung: direction-scoped Offline-Replay und konservative Protokollkorrelation; redigierte Korrektur für Issue #637 und PR #691
+- Jetzt erledigt: direction-scoped Offline-Replay; redigierte Korrektur auf Issue #637 und PR #691 veröffentlicht. Keine bestätigte Zuordnung zu FileAccess/FIT/History.
 - Zeitnah geplant: weiteres Offline-Decoding nur, wenn die Quelle/Parsergrenzen eine konkrete Hypothese stützen
 - Betroffene Bereiche/Dateien: private lokale Captures/Summaries; Agenten-Chat/Activity-Docs; GitHub Issue #637 und PR #691 Kommentare
 - Branch/Worktree: `opencode/issue637-connect-evidence-correction`, `/tmp/opencode/issue637-connect-evidence-correction`
 - Abstimmungsbedarf: keiner
 - Agent-sync-Nachrichten: keine erforderlich
 - Nachweise: aktueller Parser auf privater Connect-Quelle: 3.192 HCI records, 2.141 ATT PDUs, 9 Service-Ranges ohne Overlap-Fehler, 64 Writes/92 Notifications, strict Register-Response-Zähler leer.
-- Nächster Schritt: ältere `service IDs 4/22`-Korrelation auf Provenienz prüfen und öffentlich berichtigen, falls nicht belegbar.
+- Ergebnis: 3.192 HCI-Records, 2.141 ATT-PDUs, neun GATT-Service-Ranges ohne Overlap-Ambiguität; 64 Host-Writes/92 Notifications; strict ML-Registrierungsantworten 0; CRC-valide GFDI-Frames 0 laut vorhandener Metadatenzusammenfassung. Keine Geräte-/BLE-Aktion.
