@@ -1007,6 +1007,7 @@
     <string name="ht_m_skin_dev7">Desviación de la temperatura cutánea 7 días (°C)</string>
     <string name="ht_m_cycles">Ciclos de monitorización</string>
     <string name="ht_m_activity_type">Tipo de actividad (código)</string>
+    <string name="ht_m_intensity_code">Intensidad de movimiento (código)</string>
     <string name="ht_m_distance">Distancia (m)</string>
     <string name="ht_m_speed">Velocidad (m/s)</string>
     <string name="ht_m_cadence">Cadencia (rpm)</string>

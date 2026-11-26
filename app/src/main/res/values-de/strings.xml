@@ -1003,6 +1003,7 @@
     <string name="ht_m_skin_dev7">Hauttemperatur-Abweichung 7 Tage (°C)</string>
     <string name="ht_m_cycles">Monitoring-Zyklen</string>
     <string name="ht_m_activity_type">Aktivitätstyp (Code)</string>
+    <string name="ht_m_intensity_code">Bewegungsintensität (Code)</string>
     <string name="ht_m_distance">Distanz (m)</string>
     <string name="ht_m_speed">Geschwindigkeit (m/s)</string>
     <string name="ht_m_cadence">Kadenz (U/min)</string>

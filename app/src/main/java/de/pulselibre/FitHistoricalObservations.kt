@@ -16,7 +16,7 @@ object FitHistoricalObservations {
     private const val MIN_ABSOLUTE_FIT_TIME = 0x1000_0000L
     private const val INVALID_FIT_TIME = 0xffff_ffffL
     const val MAX_OBSERVATIONS = 50_000
-    const val DECODER_VERSION = "4"
+    const val DECODER_VERSION = "5"
     /** Review candidates evolve independently from the trusted observation decoder. */
     const val REVIEW_CANDIDATE_DECODER_VERSION = "3"
     const val PROFILE_VERSION = "21.222.0"
@@ -46,6 +46,10 @@ object FitHistoricalObservations {
         SKIN_TEMPERATURE_7_DAY_DEVIATION("°C"),
         MONITORING_CYCLES("cycles"),
         MONITORING_ACTIVITY_TYPE("profile_code"),
+        /** #707: 55/24 `current_activity_type_intensity`, low 5 bits (FIT activity_type enum). */
+        MONITORING_CURRENT_ACTIVITY_TYPE("profile_code"),
+        /** #707: 55/24, high 3 bits. A context-dependent code, not a clinical load, MET or percentage. */
+        MONITORING_INTENSITY_CODE("profile_code"),
     }
 
     enum class Quality { PROFILE_VALID, MISSING_TIMESTAMP, OUTSIDE_DISPLAY_RANGE }
@@ -726,6 +730,41 @@ object FitHistoricalObservations {
                             ExclusionReason.INVALID_SENTINEL)
                     }
                 }
+                // #707: 55/24 current_activity_type_intensity (byte). Garmin FIT SDK components:
+                // activity_type = bits 0-4, intensity = bits 5-7. 0xFF is the byte invalid value.
+                definition.fields.firstOrNull { it.number == 24 && it.size == 1 }?.let { field24 ->
+                    val offset24 = fieldBytes[field24] ?: return@let
+                    val raw = readCandidateValue(file, offset24, field24, definition.bigEndian, expectedBaseType = 13)
+                    when {
+                        raw == null -> {
+                            unsupportedFields++
+                            trackExcluded(GLOBAL_MONITORING, 24, null, "current_activity_type_intensity",
+                                ExclusionReason.UNSUPPORTED_ENCODING)
+                        }
+                        raw == 0xffL -> {
+                            invalidMeasurementFields++
+                            trackExcluded(GLOBAL_MONITORING, 24, null, "current_activity_type_intensity",
+                                ExclusionReason.INVALID_SENTINEL)
+                        }
+                        else -> for ((name, value) in MonitoringActivityIntensity.components(raw.toInt())) {
+                            if (reviewCandidates.size >= MAX_OBSERVATIONS) return null
+                            reviewCandidates += ReviewCandidate(
+                                profileFieldName = name,
+                                value = value.toDouble(),
+                                unit = "profile_code",
+                                timestampEpochMillis = timestampMillis,
+                                sourceFileSha256 = fileSha,
+                                recordOrdinal = monitoringRecordOrdinal,
+                                globalMessageNumber = GLOBAL_MONITORING,
+                                fieldNumber = 24,
+                                timestampOrigin = timestampOrigin,
+                                // Two components share field 24: the component name keeps their keys apart.
+                                idempotencyKey = sha256(("$fileSha:$monitoringRecordOrdinal:$GLOBAL_MONITORING:24:$name:" +
+                                    REVIEW_CANDIDATE_DECODER_VERSION).toByteArray())
+                            )
+                        }
+                    }
+                }
                 if (activity != null) {
                     if (reviewCandidates.size >= MAX_OBSERVATIONS) return null
                     reviewCandidates += ReviewCandidate(
@@ -807,6 +846,8 @@ object FitHistoricalObservations {
                 "average_7_day_deviation" -> Metric.SKIN_TEMPERATURE_7_DAY_DEVIATION
                 "monitoring_cycles" -> Metric.MONITORING_CYCLES
                 "monitoring_activity_type" -> Metric.MONITORING_ACTIVITY_TYPE
+                MonitoringActivityIntensity.ACTIVITY_TYPE -> Metric.MONITORING_CURRENT_ACTIVITY_TYPE
+                MonitoringActivityIntensity.INTENSITY -> Metric.MONITORING_INTENSITY_CODE
                 else -> null
             } ?: return@mapNotNull null
             // Monitoring field 3 "cycles" has profile scale 2 (the steps/strokes subfields
@@ -956,7 +997,7 @@ object FitHistoricalObservations {
         val base = field.baseType and 0x1f
         if (base != (expectedBaseType and 0x1f)) return null
         return when (base) {
-            0, 2 -> if (field.size == 1) (file[offset].toInt() and 0xff).toLong() else null
+            0, 2, 13 -> if (field.size == 1) (file[offset].toInt() and 0xff).toLong() else null // enum, uint8, byte
             3 -> if (field.size == 2) {
                 val raw = readU16(file, offset, bigEndian)
                 (if (raw and 0x8000 != 0) raw - 0x1_0000 else raw).toLong()
@@ -1028,4 +1069,21 @@ object FitHistoricalObservations {
     private fun sha256(value: ByteArray): String =
         MessageDigest.getInstance("SHA-256").digest(value)
             .joinToString("") { "%02x".format(it.toInt() and 0xff) }
+}
+
+/**
+ * #707: FIT monitoring field 24 `current_activity_type_intensity` is one byte with two profile components
+ * (Garmin FIT SDK; confirmed by Garmin in the SDK forum and by independent decoders): `activity_type = raw & 0x1F`,
+ * `intensity = (raw >> 5) & 0x07`. Example 0xA8 = sedentary (8) / intensity 5, 0x46 = walking (6) / intensity 2.
+ * The intensity is a context-dependent code (cadence for walking/running, log motion strength otherwise), not a
+ * clinical load; it is unrelated to the separately profiled field 55/28.
+ */
+internal object MonitoringActivityIntensity {
+    const val ACTIVITY_TYPE = "current_activity_type"
+    const val INTENSITY = "current_intensity"
+
+    fun components(raw: Int): List<Pair<String, Int>> {
+        require(raw in 0..0xff)
+        return listOf(ACTIVITY_TYPE to (raw and 0x1f), INTENSITY to ((raw shr 5) and 0x07))
+    }
 }

@@ -80,7 +80,7 @@ Generationen gebaut wird. **Nicht** abgedeckt hatte #477 den Kachel-Tagesdialog.
   21.222.0) übernimmt jetzt kanonisch: `stress` (227/0, nur 1–100), `respiration` (297/0, nur > 0, Atemzüge/min),
   `spo2` (269/0, 1–100 %, keine medizinische Schwelle), `spo2_confidence` und `spo2_measurement_mode` (Rohcodes),
   `sleep_level` (275/0, Code 0–4), `skin_temperature_deviation` und `skin_temperature_7_day_deviation` (398/1–2, °C-Abweichung),
-  `monitoring_cycles` (55/3, Profilskala 2, **keine** Schritte) und `monitoring_activity_type` (55/5, Code). Status- und
+  `monitoring_cycles` (55/3, Profilskala 2, **keine** Schritte) und `monitoring_activity_type` (55/5, Code). Seit #707 (Decoder 5) zusätzlich aus 55/24 `current_activity_type_intensity`: `monitoring_current_activity_type` (Bits 0–4) und `monitoring_intensity_code` (Bits 5–7, kontextabhängiger Code, keine klinische Belastung). Status- und
   Sentinelwerte bleiben Prüfkandidaten bzw. Rohfelder, sie sind keine Messwerte. Sichtbar sind die Werte in „Alle Daten“ (mit
   Namen; Codes ohne Mittelwert), im CSV-Export und als eigene Band-Karten in Analysen → Wissenschaft (SpO₂, Atmung,
   Stress). Der Kachel-Tagesdialog zeigt für SpO₂, Stress und Atmung einen eigenen Band-Abschnitt. **Noch offen (GUI-Folgeschritt):** Die Übersichtskacheln (aktueller Wert) und Schlaf zeigen weiter nur Live-Daten; Schritte aus FIT bleiben gesperrt (233/397, Monitoring 24/26/27

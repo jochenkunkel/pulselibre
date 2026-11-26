@@ -281,7 +281,8 @@ class HistoryOverviewView(
         "skin_temperature_deviation" -> R.string.ht_m_skin_dev
         "skin_temperature_7_day_deviation" -> R.string.ht_m_skin_dev7
         "monitoring_cycles" -> R.string.ht_m_cycles
-        "monitoring_activity_type" -> R.string.ht_m_activity_type
+        "monitoring_activity_type", "monitoring_current_activity_type" -> R.string.ht_m_activity_type
+        "monitoring_intensity_code" -> R.string.ht_m_intensity_code
         "distance" -> R.string.ht_m_distance
         "speed" -> R.string.ht_m_speed
         "cadence" -> R.string.ht_m_cadence
