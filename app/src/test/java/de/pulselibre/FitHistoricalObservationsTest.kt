@@ -535,6 +535,59 @@ class FitHistoricalObservationsTest {
         assertEquals(FitHistoricalObservations.Quality.MISSING_TIMESTAMP, invalid[1].quality)
     }
 
+    // ---- #707 Abschnitt X: Testvektoren für 55/24, 55/26, 55/27 ----
+
+    @Test fun issue707ActivityTypeIntensityComponentsForAll256Bytes() {
+        assertEquals(listOf(MonitoringActivityIntensity.ACTIVITY_TYPE to 8, MonitoringActivityIntensity.INTENSITY to 5),
+            MonitoringActivityIntensity.components(0xA8)) // sedentary, intensity 5
+        assertEquals(listOf(MonitoringActivityIntensity.ACTIVITY_TYPE to 6, MonitoringActivityIntensity.INTENSITY to 2),
+            MonitoringActivityIntensity.components(0x46)) // walking, intensity 2
+        for (raw in 0..255) {
+            val (type, intensity) = MonitoringActivityIntensity.components(raw).map { it.second }
+            assertEquals("roundtrip $raw", raw, type + 32 * intensity)
+            assertTrue(type in 0..31 && intensity in 0..7)
+        }
+    }
+
+    @Test fun issue707Field24IsDecodedIntoTwoCanonicalCodesAndInvalidByteIsExcluded() {
+        val definition = byteArrayOf(0x40, 0, 0, 55, 0, 2, 253.toByte(), 4, 0x86.toByte(), 24, 1, 0x0D) // byte
+        val result = FitHistoricalObservations.decode(fit(definition +
+            byteArrayOf(0) + u32(0x10000000 + 100) + byteArrayOf(0xA8.toByte()) +
+            byteArrayOf(0) + u32(0x10000000 + 160) + byteArrayOf(0x46) +
+            byteArrayOf(0) + u32(0x10000000 + 220) + byteArrayOf(0xFF.toByte())))!!
+        val byMetric = result.observations.groupBy { it.metric }
+        assertEquals(listOf(8.0, 6.0), byMetric.getValue(FitHistoricalObservations.Metric.MONITORING_CURRENT_ACTIVITY_TYPE).map { it.value })
+        assertEquals(listOf(5.0, 2.0), byMetric.getValue(FitHistoricalObservations.Metric.MONITORING_INTENSITY_CODE).map { it.value })
+        assertTrue(result.observations.all { it.fieldNumber == 24 && it.quality == FitHistoricalObservations.Quality.PROFILE_VALID })
+        // Two components of one field need distinct keys (idempotent import).
+        assertEquals(result.observations.size, result.observations.map { it.idempotencyKey }.distinct().size)
+        assertEquals(1, result.invalidMeasurementFieldCount)
+        assertFalse("no step or heart-rate inference", result.observations.any {
+            it.metric == FitHistoricalObservations.Metric.HEART_RATE || it.metric.name.contains("STEP") })
+    }
+
+    @Test fun issue707Timestamp16TicketVectorAddsSixtySeconds() {
+        val anchor = 0x1000A6D4
+        val result = FitHistoricalObservations.decode(fit(monitoringFull + monitoringShort +
+            byteArrayOf(0) + u32(anchor) + byteArrayOf(60) +
+            byteArrayOf(1) + u16(0xA710) + byteArrayOf(61)))!!.observations
+        assertEquals(fitTime(anchor + 60L), result[1].timestampEpochMillis)
+    }
+
+    @Test fun issue707HeartRateZeroInvalidAndMissingAreNeverMeasurements() {
+        val onlyTime = byteArrayOf(0x42, 0, 0, 55, 0, 1, 26, 2, 0x84.toByte()) // timestamp_16 without field 27
+        val result = FitHistoricalObservations.decode(fit(monitoringFull + monitoringShort + onlyTime +
+            byteArrayOf(0) + u32(0x10000000 + 1_000) + byteArrayOf(72) +
+            byteArrayOf(1) + u16((0x10000000 + 1_060) and 0xffff) + byteArrayOf(0) +            // HR 0: no valid HR
+            byteArrayOf(1) + u16((0x10000000 + 1_120) and 0xffff) + byteArrayOf(0xFF.toByte()) + // invalid
+            byteArrayOf(2) + u16((0x10000000 + 1_180) and 0xffff)))!!                             // field 27 missing
+        val valid = result.observations.filter { it.quality == FitHistoricalObservations.Quality.PROFILE_VALID }
+        assertEquals(listOf(72.0), valid.map { it.value })
+        assertTrue("0 bpm is never a valid measurement", result.observations.none {
+            it.value == 0.0 && it.quality == FitHistoricalObservations.Quality.PROFILE_VALID })
+        assertEquals("no heart rate invented for the missing field", 2, result.observations.size)
+    }
+
     @Test fun timestamp16IsOnlyReconstructedForMonitoringMessages() {
         // record (global 20) with a field 26 must not be treated as timestamp_16
         val data = byteArrayOf(0x40, 0, 0, 20, 0, 2, 253.toByte(), 4, 0x86.toByte(), 3, 1, 2) +
