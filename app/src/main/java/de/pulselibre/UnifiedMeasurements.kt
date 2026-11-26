@@ -94,7 +94,7 @@ class UnifiedMeasurements(private val db: SQLiteDatabase) {
         const val VALID_SQL = "NOT ((metric IN ('bpm', 'resting_bpm', 'heart_rate') AND value <= 0) OR (metric IN ('breaths_per_min', 'stress') AND value < 0))"
 
         /** Layout version of the derived table, kept in `unified_state` under [SCHEMA_KEY]. */
-        const val SCHEMA_VERSION = "3"
+        const val SCHEMA_VERSION = "4"
         private const val SCHEMA_KEY = "schema"
 
         /**
@@ -125,7 +125,12 @@ class UnifiedMeasurements(private val db: SQLiteDatabase) {
         val columns = if (!hasTable) emptySet() else db.rawQuery("PRAGMA table_info(unified_measurements)", null).use { c ->
             buildSet { while (c.moveToNext()) add(c.getString(1)) }
         }
-        if (hasTable && "fit_message" in columns && state(SCHEMA_KEY) == null) {
+        if (hasTable && state(SCHEMA_KEY) in setOf("2", "3")) {
+            // Layouts 2/3 could keep stale live rows after a restore (events got new ids, the id check never fired), and
+            // the S10 showed doubled live values (26.11.2026). Derived data: rebuild once completely.
+            db.execSQL("DELETE FROM unified_measurements")
+            db.execSQL("DELETE FROM unified_state")
+        } else if (hasTable && "fit_message" in columns && state(SCHEMA_KEY) == null) {
             // Built by build 2171 (fit_message, but no schema key), which dropped the table while other threads were refreshing it: live rows may be
             // missing. It is derived data, so rebuild it once completely (serialized by REFRESH_LOCK).
             db.execSQL("DELETE FROM unified_measurements")
@@ -178,7 +183,11 @@ class UnifiedMeasurements(private val db: SQLiteDatabase) {
         val maxId = scalar("SELECT MAX(id) FROM events")
         var cursor = state("live_event_id")?.toLongOrNull() ?: 0L
         var unreadable = state("live_unreadable")?.toLongOrNull() ?: 0L
-        if (maxId < cursor) { // events were replaced (restore/reset): rebuild this origin
+        // Events were replaced (restore/reset): rebuild this origin. `events.id` is AUTOINCREMENT, so after a restore or
+        // a reset followed by new readings MAX(id) can exceed the old cursor; the cursor's own row is gone then.
+        val cursorRowGone = cursor > 0 &&
+            db.rawQuery("SELECT 1 FROM events WHERE id = ?", arrayOf(cursor.toString())).use { !it.moveToFirst() }
+        if (maxId < cursor || cursorRowGone) {
             db.execSQL("DELETE FROM unified_measurements WHERE origin = 'live'")
             cursor = 0L
             unreadable = 0L
