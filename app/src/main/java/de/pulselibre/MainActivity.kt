@@ -654,6 +654,7 @@ class MainActivity : AppCompatActivity() {
         val historicalSyncStatus = text(
             // The last terminal report survives the screen, so an interrupted run stays visible as incomplete.
             getSharedPreferences("historical_sync_energy_policy", MODE_PRIVATE).getString("last_report", null)
+                ?.let { SyncReportSummary.display(Strings.of(this), it) }
                 ?: getString(R.string.main_hist_status_none), 13f, muted
         ).apply {
             setPadding(dp(16), dp(12), dp(16), dp(12))
@@ -745,7 +746,7 @@ class MainActivity : AppCompatActivity() {
                             manualHistoricalSyncActive = false
                             recordHistoricalSyncResult(prefs, message) // also after the screen closed (abort in onDestroy)
                             if (!destroyed) {
-                                historicalSyncStatus.text = message
+                                historicalSyncStatus.text = SyncReportSummary.display(Strings.of(this@MainActivity), message)
                                 syncProgress.show(HistorySyncProgress.fromReport(message))
                                 historyRefresh?.invoke()
                             }
@@ -999,7 +1000,7 @@ class MainActivity : AppCompatActivity() {
                 // after the five-minute attempt cooldown. Recorded even after the screen closed (abort in onDestroy).
                 recordHistoricalSyncResult(prefs, message)
                 if (destroyed) return@runOnUiThread
-                statusView.text = message
+                statusView.text = SyncReportSummary.display(Strings.of(this), message)
                 syncProgressView?.show(HistorySyncProgress.fromReport(message))
                 historyRefresh?.invoke()
             }
