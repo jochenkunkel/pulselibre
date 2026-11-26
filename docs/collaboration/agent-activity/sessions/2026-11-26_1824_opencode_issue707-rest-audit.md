@@ -1,15 +1,15 @@
 # OpenCode FIT – #707 Standardfeld-/FIT-Audit und P0-Folgearbeit
 - Agent/Umgebung: OpenCode FIT, separater Linux-Worktree
 - Beginn: 2026-11-26 18:24 UTC
-- Letzte Aktualisierung: 2026-11-26 18:45 UTC
-- Status: pausiert – wartet auf GUI-Gegenvergleich
+- Letzte Aktualisierung: 2026-11-26 19:22 UTC
+- Status: pausiert – dieser Audit abgeschlossen; Issue #707 bleibt für Original-/Semantikforschung offen
 - Rolle/Zuständigkeit: FIT-Decoder, Archiv-/Importpfad, Protokoll-/P0-Arbeit
 - Aktueller Auftrag: Auf Nutzeranweisung #707 übernehmen; danach verbleibende offene P0-Issues sequenziell abarbeiten.
-- Jetzt in Bearbeitung: #707 statisch gegen aktuellen Code auditiert; 55/24-Implementierung aus PR #708 ist gemergt. Unabhängigen Garmin-FIT-SDK-Vergleich an GUI delegiert. 233/2 und 397/1 bleiben semantisch unbekannt; 269-confidence bleibt unskaliert.
+- Jetzt in Bearbeitung: #707 statisch und gegen GUI-Bericht zum offiziellen `garmin-fit-sdk==21.222.0` abgeglichen; 55/24-Implementierung aus PR #708 ist gemergt. Bericht: 32/33 synthetische Feldinstanzen matchen; Originaldateien im GUI-Workspace `NOT_AVAILABLE`. 233/2 und 397/1 bleiben unbekannt; SpO₂-confidence semantics bleiben offen.
 - Zeitnah geplant: Offene P0s laut aktueller Issue-Liste: #637, #628, #601, #599; Status, bereits gemergte PRs und vorhandene Agentenarbeit vor jeweiliger Übernahme erneut abgleichen. Reihenfolge nach Blockern/Überschneidung.
 - Betroffene Bereiche/Dateien: zunächst `docs/protocol/research/ISSUE707_*` und FIT-Test-/Decoderpfad nur bei nachgewiesenem Defekt; keine privaten FIT-Dateien ins Git. Tests/Installationen gemäß Nutzerwunsch an GUI-Agent abgeben.
 - Branch/Worktree: `opencode/issue707-fit-audit-20261126`, `/tmp/opencode/issue707-fit-audit-20261126`, Basis `origin/main=3137c143`.
 - Abstimmungsbedarf: GUI-Agent – Tests/Installationen künftig übernehmen; vorhandene GUI-PR #712 bleibt unberührt.
-- Agent-sync-Nachrichten: `docs/collaboration/agent-chat/messages/2026-11-26_182400_opencode_START_issue707_p0-sequence.md`, `docs/collaboration/agent-sync/2026-11-26_183000_opencode-an-gui_issue707-sdk-comparison.md`, `docs/collaboration/agent-sync/2026-11-26_184000_opencode-an-gui_issue601-validation.md`.
-- Nachweise: PR #708 bereits MERGED mit grünen QUICK-/Dependency-Checks; Issue #707 bleibt offen. 32 lokale FIT-Dateien unter geschütztem privaten Backup-Pfad inventarisiert, noch nicht verarbeitet.
-- Nächster Schritt: Nach GUI-Ergebnis unabhängigen Vergleich dokumentieren und #707 schließen/Restforschung präzise offen lassen; währenddessen nächste P0-Abnahme bearbeiten. Keine Testausführung/Installation durch OpenCode.
+- Agent-sync-Nachrichten: `docs/collaboration/agent-chat/messages/2026-11-26_182400_opencode_START_issue707_p0-sequence.md`, `docs/collaboration/agent-sync/2026-11-26_183000_opencode-an-gui_issue707-sdk-comparison.md`, `docs/collaboration/agent-sync/2026-11-26_183900_gui-an-opencode_issue707-sdk-comparison.md`, `docs/collaboration/agent-chat/messages/2026-11-26_191900_opencode_UPDATE_issue707_sdk-result.md`.
+- Nachweise: PR #708 MERGED; GUI-SDK-Bericht `7200705681`; OpenCode-Einordnung Issue-Kommentar `7200828969`; versionierter Forschungsbericht `docs/protocol/research/ISSUE707_GARMIN_SDK_SYNTHETIC_VALIDATION_2026-11-26.md`. Keine Tests/Installationen durch OpenCode.
+- Nächster Schritt: Bericht regulär per PR veröffentlichen; #707 offen lassen und keine ≥95-%-Behauptung. Andere P0-Aufgaben laufen separat.
