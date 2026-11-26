@@ -46,6 +46,31 @@ class CirqaTargetedPullManifestTest {
         assertNull(manifest.completedImportSha256(item))
     }
 
+    @Test fun afterProcessRestartPreviouslyImportedRemoteItemIsPulledAgain() {
+        val persistentStorage = MemoryStorage()
+        val beforeRestart = CirqaTargetedPullManifest(persistentStorage)
+        assertTrue(beforeRestart.recordCompletedImport(item, "a".repeat(64)))
+        listOf("session-1", "session-2", "session-3").forEach {
+            assertTrue(beforeRestart.observe(item, it))
+        }
+
+        // A new manifest instance represents a fresh process reading the same
+        // durable preferences. Local import identity is not proof of remote
+        // immutability, so safe continuation starts with another full pull.
+        val afterRestart = CirqaTargetedPullManifest(persistentStorage)
+        val identity = afterRestart.identity(item) ?: error("valid synthetic item must have identity")
+        val completedImport = CirqaTargetedPullPolicy.CompletedImport(
+            identity = identity.policyIdentity,
+            contentSha256 = afterRestart.completedImportSha256(item) ?: error("stored import must survive"),
+            importSucceeded = true,
+            uidStabilityEvidence = afterRestart.stabilityEvidence(item)
+        )
+        assertEquals(3, completedImport.uidStabilityEvidence?.matchingSuccessfulSessions)
+        assertTrue(
+            CirqaTargetedPullPolicy.shouldPull(identity.policyIdentity, listOf(completedImport))
+        )
+    }
+
     @Test fun failedDurableObservationDoesNotCount() {
         val storage = MemoryStorage().apply { failWrites = true }
         val manifest = CirqaTargetedPullManifest(storage)
