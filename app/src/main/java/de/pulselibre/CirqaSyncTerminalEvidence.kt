@@ -59,6 +59,7 @@ internal object CirqaSyncTerminalEvidence {
         val proposed = when {
             message.startsWith("120-s-Zeitlimit") -> "session-time-limit"
             message.startsWith("40-s-Zeitlimit") -> "diagnostic-time-limit"
+            message.startsWith(CirqaSyncSessionDeadline.TOTAL_MESSAGE) -> "session-total-limit"
             incompleteReason != "none" -> incompleteReason
             runDrained -> "drained"
             else -> "not-drained"
