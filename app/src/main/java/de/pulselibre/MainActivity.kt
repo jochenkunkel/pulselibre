@@ -309,7 +309,10 @@ class MainActivity : AppCompatActivity() {
                     Thread {
                         val stats = try { DeviceStatsReader(applicationContext).read(java.time.Instant.now(), java.time.ZoneId.systemDefault()) } catch (_: Exception) { null }
                         // #142/#159: newest provenance-backed values drive the battery row and every extra row.
-                        val metadata = try { pollDatabase.latestLiveDeviceMetadata() } catch (_: Exception) { emptyList() }
+                        val metadata = try {
+                            DeviceInfoRows.withFitSoftwareVersion(pollDatabase.latestLiveDeviceMetadata(),
+                                runCatching { pollDatabase.latestFitSoftwareVersion() }.getOrNull())
+                        } catch (_: Exception) { emptyList() }
                         val liveBattery = DeviceMetadataFormat.batteryReading(metadata)
                         val battery = liveBattery ?: DeviceBatteryReader.read(applicationContext)
                         runOnUiThread {

@@ -79,6 +79,30 @@ class UnifiedMeasurementsTest {
         assertEquals(mapOf(BandRecordKind.ACTIVITY to 1), unified.bandKindCounts("heart_rate", t0 + 2500, t0 + 3500))
     }
 
+    @Test fun activatingSameSizeReplacementGenerationRefreshesBandProjection() {
+        val source = "s1"
+        band("old-sample", 60.0, t0 + 1000, generation = "g1")
+        // A second immutable decoder output has the same row count but different content.
+        db.execSQL("UPDATE fit_decoder_generations SET output_count=1 WHERE generation_id='g1'")
+        db.execSQL("INSERT OR IGNORE INTO fit_decoder_generations VALUES('g2', 0)")
+        db.execSQL("UPDATE fit_decoder_generations SET output_count=1 WHERE generation_id='g2'")
+        db.execSQL("""INSERT INTO fit_generation_observations(generation_id, sample_id, device_id, metric,
+            measured_at_ms, value, unit, received_at_ms, global_message_number, timestamp_origin)
+            VALUES('g2', 'new-sample', 'fit', 'heart_rate', ?, 75.0, 'bpm', NULL, 55, 'DIRECT')""",
+            arrayOf<Any>(t0 + 1000))
+        val unified = UnifiedMeasurements(db)
+        unified.refresh()
+        assertEquals(listOf(60.0), unified.points(
+            MeasurementOrigin.BAND, "heart_rate", t0, t0 + day
+        ).map { it.second })
+
+        db.execSQL("UPDATE fit_active_generations SET generation_id='g2' WHERE source_sha256=?", arrayOf(source))
+        unified.refresh()
+        assertEquals(listOf(75.0), unified.points(
+            MeasurementOrigin.BAND, "heart_rate", t0, t0 + day
+        ).map { it.second })
+    }
+
     @Test fun versionOneTableIsUpgradedInPlaceWithoutReReadingLiveEvents() {
         // A copy from before `fit_message`, with its live cursor already at the newest event.
         live(80, t0 + 500)

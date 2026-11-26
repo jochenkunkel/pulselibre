@@ -314,3 +314,58 @@ established by this follow-up.
    test is a merge gate under the current owner policy.
 5. Only after offline evidence and a suitable green build, decide whether a
    further controlled S10 test is useful; do not start one automatically.
+
+## Independent error audit (2026-11-26, offline)
+
+- **No full-history result was misstated in the terminal summary or this
+  handoff:** run 4 is explicitly incomplete (`runDrained=false`,
+  `device-history-unverified`). The 31 private-storage successes include the
+  original whose SQLite archive failed: the exact bytes were retained in the
+  private `downloaded_originals_pending` journal. This is recoverable local
+  storage, but not evidence that the required SQLite archive/inventory write
+  succeeded.
+- **Retry scope does not yet cover both SQLite contention result classes.**
+  `CirqaSqliteBusyRetry.run` surrounds the original-archive call, and
+  `archiveDownloadedFile` has its own process-wide monitor and pending journal.
+  The bounded retry was therefore attempted for the run-4 archive failure;
+  it was exhausted. `runOnce` surrounds FIT helper-open/import. Neither retry
+  proves the lock holder or fixes persistent contention. The default predicate
+  currently recognizes `SQLiteDatabaseLockedException` only. Android maps
+  `SQLITE_BUSY` to this exception and `SQLITE_LOCKED` to the distinct
+  `SQLiteTableLockedException`; the latter is not included. Regression tests
+  inject a custom predicate and do not test either actual Android exception
+  against the defaults. Thus the implementation does not yet cover both SQLite
+  BUSY/LOCKED result classes.
+- **Potential contention remains, not a confirmed root cause:** the archive
+  monitor serializes archive callers, but FIT imports and other database
+  writers do not take that monitor. Their overlap is a plausible source of
+  contention; available evidence does not establish that it caused this
+  particular exception. The evidence PR #669 separately reports three archive
+  failures on its earlier run; do not combine those counts with run 4.
+- **Audit-script summary defect:** its legacy `canonical_observation_rows`
+  and `fit_source_rows` counters return zero for v11 because they recognize old
+  export names. The per-table row counts and the explicit v11 table-name
+  deltas in the table above are correct; these zero summary values must not be
+  used as evidence of empty canonical tables. This naming defect was already
+  disclosed in the preceding handoff text.
+- The +188 archive count, +2 FIT originals, +597 generation-observation rows,
+  and +597 provenance rows are snapshot differences, not run-attributed
+  results. The archive validation covers SQLite archive chunks, not a complete
+  inventory of every separate private file store. No evidence here proves
+  Garmin Connect parity or device-history completeness.
+
+**Audit conclusion:** the remaining actionable code gap is exception
+classification coverage for `SQLITE_LOCKED` (and regression tests using actual
+Android exception types); `SQLITE_BUSY` is already represented by the current
+`SQLiteDatabaseLockedException` check. The observed run-4 archive failure itself
+is already bounded, visible, and journaled. Do not claim its cause fixed or use
+these findings to justify another device run. Address the classification gap
+in a focused code change before relying on retry for Android `SQLITE_LOCKED`
+cases.
+
+**Correction to the first audit note:** Android has no `SQLiteBusyException`
+class. The mapping above was checked against the Android framework JNI source
+(`android_database_SQLiteCommon.cpp`, `throw_sqlite3_exception`, primary result
+codes 5 and 6). The issue comment posted during the follow-up records this
+correction; the public API and code fix use the actual framework exception
+classes.

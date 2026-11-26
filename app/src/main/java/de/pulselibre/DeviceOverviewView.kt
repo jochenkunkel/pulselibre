@@ -187,7 +187,7 @@ internal class DeviceOverviewView(context: Context) : LinearLayout(context) {
             } else if (fixed != null) {
                 val age = System.currentTimeMillis() - fixed.observedAtMs
                 val fresh = age in 0..DeviceBatteryFormat.STALE_AFTER_MS
-                val freshness = if (fresh) DeviceBatteryFormat.ageText(strings, age) else strings.get(R.string.bat_time_unknown)
+                val freshness = DeviceInfoRows.freshness(strings, fixed.observedAtMs, System.currentTimeMillis())
                 val column = LinearLayout(context).apply { orientation = VERTICAL; gravity = Gravity.END }
                 column.addView(label(fixed.text, 13f, palette.ink, true).apply { gravity = Gravity.END })
                 column.addView(label(freshness, 11f, if (fresh) palette.muted else palette.ink).apply { gravity = Gravity.END },
@@ -217,9 +217,7 @@ internal class DeviceOverviewView(context: Context) : LinearLayout(context) {
                 val column = LinearLayout(context).apply { orientation = VERTICAL; gravity = Gravity.END }
                 column.addView(label(DeviceMetadataFormat.displayValue(entry, strings), 13f, palette.ink, true).apply { gravity = Gravity.END })
                 val age = System.currentTimeMillis() - entry.observedAtMs
-                val freshness = if (age in 0..DeviceBatteryFormat.STALE_AFTER_MS)
-                    DeviceBatteryFormat.ageText(strings, age)
-                else strings.get(R.string.bat_time_unknown)
+                val freshness = DeviceInfoRows.freshness(strings, entry.observedAtMs, System.currentTimeMillis())
                 column.addView(label(freshness, 11f, if (age in 0..DeviceBatteryFormat.STALE_AFTER_MS) palette.muted else palette.ink).apply { gravity = Gravity.END },
                     LayoutParams(-2, -2).apply { topMargin = dp(3) })
                 // Label and value share the row (value may wrap) so a long note never squeezes the name to one letter per line.

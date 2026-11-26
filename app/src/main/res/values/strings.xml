@@ -706,6 +706,7 @@
     <string name="bat_fresh">As of: %1$s</string>
     <string name="bat_stale">Outdated · last known state %1$s</string>
     <string name="bat_time_unknown">Time unknown · last known state</string>
+    <string name="dev_meta_as_of">As of %1$s</string>
     <string name="bat_cd">Battery: %1$d percent. %2$s</string>
     <string name="bat_cd_charging">Battery: %1$d percent, charging. %2$s</string>
     <string name="dev_src_pulse">Heart rate</string>
