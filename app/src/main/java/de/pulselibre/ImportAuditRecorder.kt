@@ -78,7 +78,9 @@ internal object ImportAuditRecorder {
         sourceSha256: String?,
         errorClass: String,
         occurredAtMs: Long,
-        decision: String = "FILE_SKIPPED"
+        decision: String = "FILE_SKIPPED",
+        /** Already redacted reason (see [redactReason]); the fixed placeholder when none is known. */
+        reason: String? = null
     ): Boolean {
         require(runId.isNotBlank() && errorClass.matches(Regex("[A-Z_]{1,32}")) && occurredAtMs >= 0)
         require(decision in setOf("FILE_SKIPPED", "RUN_ABORTED"))
@@ -104,12 +106,26 @@ internal object ImportAuditRecorder {
             put("import_run_id", runId)
             if (sourceSha256 == null) putNull("source_sha256") else put("source_sha256", sourceSha256)
             put("error_class", errorClass)
-            put("redacted_message", REDACTED_MESSAGE)
+            put("redacted_message", reason?.let(::redactReason)?.takeIf { it.isNotBlank() } ?: REDACTED_MESSAGE)
             put("occurred_at_ms", occurredAtMs)
             put("decision", decision)
         }
         return db.insert("import_errors", null, values) >= 0
     }
+
+    /**
+     * #628: a reason that can classify a per-file failure without leaking data. Keeps the exception type and the
+     * developer-written message, replaces every run of 4+ digits/hex characters (values, hashes, offsets) by `#`, drops
+     * everything but letters, digits, space and basic punctuation, and caps the length.
+     */
+    fun redactReason(raw: String): String = raw
+        .replace(Regex("""\b(?=[0-9A-Fa-f]*\d)[0-9A-Fa-f]{4,}\b|\d+"""), "#") // hex only with a digit: words stay
+        .replace(Regex("""[^A-Za-zÄÖÜäöüß#:.,()/ _-]"""), "")
+        .replace(Regex(" {2,}"), " ")
+        .trim()
+        .take(160)
+
+    fun reasonOf(error: Throwable): String = redactReason("${error.javaClass.simpleName}: ${error.message.orEmpty()}")
 
     /**
      * One durable status event for a processing outcome. Only fixed error classes and
