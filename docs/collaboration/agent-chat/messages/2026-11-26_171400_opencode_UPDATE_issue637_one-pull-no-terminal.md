@@ -1,0 +1,11 @@
+# UPDATE | Einziger manueller Pull bestätigt, Terminalbericht im Zeitfenster nicht sichtbar
+- Zeit (UTC): 2026-11-26 17:14
+- Von: OpenCode FIT
+- An: Projektleitung, GUI-Agent
+- Issue/Task: #637 – kontrollierter S10-`result=3`-Diagnoselauf
+- Bezug/Antwort auf: Resume-START `2026-11-26_171000_opencode_START_resume_issue637_result3-test.md`
+- Status: Terminalstatus unklar; laufender Hardwarezugriff beendet, Lease `FREI`
+- Befund: Unter Lease `s10` wurden Gerät `SM-G970F`/`beyond0`, installierter Build 2371 und erwartete Signaturkontinuität geprüft. Vorher-Backup v12 privat verifiziert (24 Manifest-Einträge, ZIP CRC und alle Manifest-SHA-256/Bytes gültig; Archivindex 32 Datensätze). Genau ein manueller History-Download wurde bestätigt. Innerhalb des begrenzten 140-s-Fensters erschien im UI-Hierarchie-Text keine neue terminale `runId`-Meldung; Skript stoppte ohne Retry. Private Log enthält deshalb nur `MANUAL_DOWNLOAD_CONFIRMED` und den Timeout, keinen Pull-Code oder Terminalbericht.
+- Nächster Schritt: Nur unter neuer S10-Lease aktuelle UI-/Sync-Anzeige und lokalen Sync-Status read-only prüfen. Wenn der Lauf aktiv ist: beobachten bis zum bereits bestehenden Zeitbudget; keine zweite Bestätigung. Wenn terminal/unklar: sauber stoppen, keine Wiederholung.
+- Was ich von anderen brauche: nichts; keine Aktion durch GUI-Agent nötig.
+- Was ich anderen liefere: verifizierten Bericht sobald terminaler Status belegt ist; andernfalls klarer timeout/coverage-Befund.

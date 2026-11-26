@@ -1,15 +1,15 @@
 # OpenCode FIT – #637 `result=3`-S10-Diagnose
 - Agent/Umgebung: OpenCode FIT, Linux-Worktree
 - Beginn: 2026-11-26 16:46 UTC
-- Letzte Aktualisierung: 2026-11-26 17:10 UTC
+- Letzte Aktualisierung: 2026-11-26 17:14 UTC
 - Status: aktiv
 - Rolle/Zuständigkeit: FIT/History-Download, Diagnose und Persistenzevidenz
 - Aktueller Auftrag: Kontrollierter, einmaliger Diagnoseversuch zum wiederholten `0 von 38`-Pull-Abbruch unter `result=3`.
-- Jetzt in Bearbeitung: Owner wies Fortsetzung ausdrücklich an. Nach lease-geschützter read-only Prüfung: genau einen manuellen S10-Pull mit inertem, explizit ausgeführtem Hilfsprogramm versuchen; vorhandenes Backup lokal verifizieren, Post-Run-Backup und terminalen Status sichern.
+- Jetzt in Bearbeitung: Genau ein manueller Pull unter Lease wurde bestätigt; vorhandenes Vorher-Backup v12 ist geprüft. Im 140-s-Fenster erschien kein neuer terminaler Run-Bericht. Der Pull wurde nicht wiederholt. Nächster Schritt: lease-geschützte read-only Prüfung, ob Sync noch aktiv ist oder ein terminaler Bericht angezeigt wird.
 - Zeitnah geplant: Ergebnis redigiert in Issue #637 und ENDE-Nachricht dokumentieren; keinen Transportfix ohne belegte Ursache ableiten.
 - Betroffene Bereiche/Dateien: private S10-App-/Backup-/Sync-Statusdaten (nur lokal); `docs/protocol/device-tests/CIRQA_P0_S10_BOUNDED_FULL_PULL_PLAN_2026-11-24.md` als Schutzplan; Agentenchat/-sync.
 - Branch/Worktree: `opencode/issue637-result3-diagnostic-20261126`, `/tmp/opencode/issue637-result3-diagnostic-20261126`, Basis `origin/main=5253b703`.
 - Abstimmungsbedarf: keiner; GUI-Analyse des Befunds liegt vor.
 - Agent-sync-Nachrichten: `docs/collaboration/agent-chat/messages/2026-11-26_164600_opencode_START_issue637_result3-s10-diagnostic.md`; bisheriger Befund `docs/collaboration/agent-sync/2026-11-26_1240_gui-an-opencode_s10-download-und-decoder4.md`.
-- Nachweise: Erfolgreich gespeicherte private Backup-ZIP (Version 12, 24 manifestierte Einträge; ZIP-CRC und Manifest-SHA-256/Bytes geprüft; 32 Archiv-Metadatensätze). Spätere lease-geschützte read-only Prüfung zeigte Exportseite und keinen offenen Download-Dialog; Lease `FREI`. Kein `MANUAL_DOWNLOAD_CONFIRMED`, kein neuer Run-Bericht. Incident-Commit `b2ca59a7`; Issue-Kommentar [7198532965](https://github.com/jochenkunkel/pulselibre/issues/637#issuecomment-7198532965).
+- Nachweise: Privates Vorher-Backup ZIP v12 (24 Manifest-Einträge; ZIP CRC und SHA-256/Bytes geprüft; 32 Archiv-Metadatensätze). Build 2371/Signaturkontinuität geprüft. Genau ein `MANUAL_DOWNLOAD_CONFIRMED`; kein terminaler Report in 140 s; Lease nach Wrapper `FREI`. Voriger Incident-Commit `b2ca59a7`; Incident-Kommentar [7198532965](https://github.com/jochenkunkel/pulselibre/issues/637#issuecomment-7198532965).
 - Nächster Schritt: S10-Lease erneut prüfen; nur innerhalb eines einzelnen Wrappers die Vorbedingungen kontrollieren und genau einen manuellen Lauf starten. Kein Retry; bei jeder Abweichung abbrechen.
