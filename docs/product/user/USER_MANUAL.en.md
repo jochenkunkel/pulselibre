@@ -64,7 +64,7 @@ Scientific, **exploratory** evaluations in five groups (Heart & circulation · S
 - **Band information:** battery, firmware, clock, model. A value appears **only** if it is stored with a source and a timestamp; otherwise "Not available". A battery level shows a bar and "As of: … ago" or "Outdated · last known state …".
 - **Unknown data fields:** if the band's files contain fields PulsLibre does not understand yet, a subtle hint appears; the list (grouped by FIT message) shows only field coordinates and counts – **no measurements, no diagnoses**. For each field you can set your own review mark via **"Change status"** (unreviewed · under review · supported · ignored); this does not change any measurement data.
 - **Recording:** "Start"/"Stop" of the recording service (Android shows a persistent notification with a stop button while it runs).
-- *Hidden:* a **3-second press on "Device · CIRQA"** opens the **test lab** (read-only diagnostics: app, Bluetooth status, sync counters, diagnostic package with a preview for deliberate sharing; "Advanced test lab" for advanced users).
+- *Hidden:* a **3-second press on "Device · CIRQA"** opens the **test lab** (read-only diagnostics: app, Bluetooth status, sync counters, communication trace – started explicitly, at most 15 minutes, shows only the notifications of a running sync, bytes only after separate consent –, diagnostic package with a preview for deliberate sharing; "Advanced test lab" for advanced users).
 
 ### Data
 
@@ -75,11 +75,11 @@ Local export and backup of your data (choose a range, export) as well as notes o
 
 > **Privacy note:** the database backup is **not encrypted**. It contains your health data in plain text. Store it only in a place you trust (not in a publicly shared or unsecured cloud folder).
 
-**What the backup contains:** your readings, events, sync states, the decoded FIT data including all raw fields, and the original contents of downloaded band files archived in the app. With **"Export FIT originals"** you additionally save the verified FIT files individually as a ZIP (with a warning; they may contain health data and are also not encrypted).
+**What the backup contains:** your readings, events, sync states, the decoded FIT data including all raw fields, and the original contents of downloaded band files archived in the app. It also contains your personal settings (profile with name, birth date, height, weight and goals, theme, language, activity detection, recording start, dashboard layout). With **"Export FIT originals"** you additionally save the verified FIT files individually as a ZIP (with a warning; they may contain health data and are also not encrypted).
 
 **If a backup fails:** the app shows "Backup failed" with a technical cause (no readings) and deletes the empty target file again. It checks free storage first. A backup may be up to 512 MB as ZIP and up to 2 GB unpacked; the ZIP is usually a fraction of the content (example: 8 MB ZIP for 140 MB content).
 
-**Restoring:** the app checks the whole backup (checksums, references, completeness) **before** asking whether to replace the database. Nothing changes until that question; "Cancel" leaves everything as it is. If a backup is invalid, the app names the cause.
+**Restoring:** the app checks the whole backup (checksums, references, completeness) **before** asking whether to replace the database. Nothing changes until that question; "Cancel" leaves everything as it is. If a backup is invalid, the app names the cause. For a backup with settings, the app asks whether to restore only the settings or the settings together with the health data ("Settings only" leaves all measurements unchanged); older backups without settings leave your current settings unchanged. "Reset database" keeps the settings but also deletes the band's downloaded original files. A restore keeps the local original files and adds them again on the next start if the backup lacks them. While a Bluetooth operation runs (e.g. a history download), reset and restore stop without changes.
 
 ## 3. Settings (status button, top right)
 

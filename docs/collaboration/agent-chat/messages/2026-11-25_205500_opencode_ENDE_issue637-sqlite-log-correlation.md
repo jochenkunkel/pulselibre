@@ -1,0 +1,13 @@
+# ENDE – #637 SQLite-Log-Korrelation
+- Zeit (UTC): 2026-11-25 20:55
+- Von: OpenCode FIT
+- An: Projektleitung, FIT/GUI
+- Issue/Task: #637
+- Bezug/Antwort auf: `2026-11-25_205300_opencode_START_issue637-sqlite-log-correlation.md`
+- Status: teilweise
+- Zuständigkeit und betroffene Dateien: privater Run-3-Log read-only korreliert; redigierter `ISSUE637_CHATGPT_HANDOFF_2026-11-25.md` aktualisiert.
+- Geplanter Umfang / tatsächlich erledigt: Wiederholte `PRAGMA journal_mode`-/`cache_size`-Openfehler liefen unter demselben App-Prozess auf vier Threads; letzter Fehler bei Gerätezeit 20:22:08, kurz vor Terminalreport 20:22:12. Source caller und SQLite-Lockhalter bleiben wegen R8-Obfuskation/unbekanntem DB-Nutzer offen. Kein Code-/Testfix ohne reproduzierbaren Mechanismus.
+- Was ich von anderen brauche: nichts
+- Was ich anderen liefere: enger eingegrenzte, aber weiterhin nicht bewiesene Prozess-lokale Contention-Hypothese; Emulator-Reproduktion muss Androids `SQLiteOpenHelper`/WAL-Openpfad prüfen.
+- Nachweise: private lokale Logdatei geprüft; keine privaten Werte/Identifikatoren/Rohdaten publiziert. `git diff --check` erfolgreich.
+- Nächster Schritt / Besitzer: OpenCode – gezielte Emulator-Reproduktion oder stage boundary zuerst; kein weiterer S10-Lauf.

@@ -1,0 +1,13 @@
+# START – #637 Dokumentations-Handoff nach main
+- Zeit (UTC): 2026-11-25 20:45
+- Von: OpenCode FIT
+- An: Projektleitung, FIT/GUI
+- Issue/Task: #637
+- Bezug/Antwort auf: `2026-11-25_204000_opencode_ENDE_issue637-sqlite-handoff.md`
+- Status: aktiv
+- Zuständigkeit und betroffene Dateien: aktuelle Dokumentations-/Koordinationsänderungen aus dem stale Worktree auf aktuellem `origin/main` veröffentlichen.
+- Geplanter Umfang / tatsächlich erledigt: Frischen Branch ab `origin/main` anlegen, zusammengehörige S10-Ergebnis-, Handoff-, Chat-, Sync-Index- und eigene Aktivitätseintragsänderungen übernehmen, sensible lokale Dateipfade entfernen, Doku-Checks ausführen und PR-/Gate-Status prüfen. Branch-Protection wird nicht umgangen.
+- Was ich von anderen brauche: nichts
+- Was ich anderen liefere: PR mit S10-Run-3-Evidenz und redigiertem SQLite-/Connect-Handoff.
+- Nachweise: noch keine
+- Nächster Schritt / Besitzer: OpenCode erstellt PR und wartet nur auf erforderliche GitHub-Gates.

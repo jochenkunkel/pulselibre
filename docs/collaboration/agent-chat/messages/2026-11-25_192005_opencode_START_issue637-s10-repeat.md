@@ -1,0 +1,13 @@
+# START – #637 S10 bounded history re-run
+- Zeit (UTC): 2026-11-25 19:20:05
+- Von: OpenCode
+- An: Projektleitung, FIT/GUI
+- Issue/Task: #637
+- Bezug/Antwort auf: Nutzerauftrag, manuellen Sync erneut auszuführen und bis zum Abschluss abzuwarten
+- Status: aktiv
+- Zuständigkeit und betroffene Dateien: S10 lease-geschützter Geräteablauf; private, zugriffsbeschränkte Evidenz liegt außerhalb des Repositories. Keine öffentliche Rohdatenablage.
+- Geplanter Umfang / tatsächlich erledigt: Einen manuellen CIRQA-History-Download ausführen; aktuellen statt alten Terminalbericht verlangen; danach Backup/Integritätsprüfung und Lease-Freigabe. Laufbudget bleibt unverändert bei 120 s. No retry within this run.
+- Was ich von anderen brauche: nichts
+- Was ich anderen liefere: redigierte, getrennte Zähler für Auswahl, Transfer, Verifikation, Archivierung und Import
+- Nachweise: vorheriger Lauf auf Build 2250 war `runDrained=false`, `session-time-limit`; drei Archivierungsfehler `SQLiteDatabaseLockedException`. Neuer Lease-Wrapper läuft.
+- Nächster Schritt / Besitzer: OpenCode wertet den neuen terminalen Bericht und das Nachher-Backup nach Wrapper-Ende aus.

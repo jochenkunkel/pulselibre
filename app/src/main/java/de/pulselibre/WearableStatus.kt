@@ -35,12 +35,19 @@ internal object WearableStatus {
         }
     }
 
-    /** Percentage to draw, or null for "–": offline, no value, a value without time or older than [BATTERY_MAX_AGE_MS]. */
-    fun shownBattery(online: Boolean, reading: BatteryReading?, nowMs: Long): Int? {
-        if (!online || reading == null) return null
-        val observed = reading.observedAtMs ?: return null
-        if (observed > nowMs + 60_000L || nowMs - observed > BATTERY_MAX_AGE_MS) return null
-        return reading.percent.takeIf { it in 0..100 }
+    /** What the battery part of the button shows: the newest known value, marked [current] only when it is fresh. */
+    data class BatteryShown(val percent: Int, val current: Boolean, val ageMs: Long?)
+
+    /**
+     * The newest stored band battery value, or null when none exists. It is always shown (the device page shows it too);
+     * [BatteryShown.current] is false when the band is offline, the value has no time or is older than
+     * [BATTERY_MAX_AGE_MS] – the button then draws it grey as "last known".
+     */
+    fun battery(online: Boolean, reading: BatteryReading?, nowMs: Long): BatteryShown? {
+        val percent = reading?.percent?.takeIf { it in 0..100 } ?: return null
+        val observed = reading.observedAtMs?.takeIf { it <= nowMs + 60_000L }
+        val age = observed?.let { (nowMs - it).coerceAtLeast(0) }
+        return BatteryShown(percent, online && age != null && age <= BATTERY_MAX_AGE_MS, age)
     }
 
     fun isLow(percent: Int?): Boolean = percent != null && percent <= LOW_BATTERY_PERCENT
@@ -49,20 +56,44 @@ internal object WearableStatus {
     fun newestBattery(vararg readings: BatteryReading?): BatteryReading? =
         readings.filterNotNull().maxByOrNull { it.observedAtMs ?: Long.MIN_VALUE }
 
-    fun description(strings: Strings, link: CirqaLinkStatus.Result, state: WearState, shownPercent: Int?,
-                    battery: BatteryReading?, nowMs: Long): String {
-        val wear = strings.get(when (state) {
-            WearState.WORN -> R.string.wear_worn
-            WearState.NOT_WORN -> R.string.wear_not_worn
-            WearState.OFFLINE -> R.string.wear_offline
-            WearState.UNKNOWN -> R.string.wear_unknown
-        })
-        val batteryText = if (shownPercent == null) strings.get(R.string.wear_battery_none) else {
-            val age = battery?.observedAtMs?.let { CirqaLinkStatus.ageText(strings, (nowMs - it).coerceAtLeast(0)) } ?: ""
-            strings.get(R.string.wear_battery_value, shownPercent, age) +
-                (if (isLow(shownPercent)) strings.get(R.string.wear_battery_low) else "")
+    fun wearText(strings: Strings, state: WearState): String = strings.get(when (state) {
+        WearState.WORN -> R.string.wear_worn
+        WearState.NOT_WORN -> R.string.wear_not_worn
+        WearState.OFFLINE -> R.string.wear_offline
+        WearState.UNKNOWN -> R.string.wear_unknown
+    })
+
+    fun batteryText(strings: Strings, shown: BatteryShown?): String = when {
+        shown == null -> strings.get(R.string.wear_battery_none)
+        shown.current -> strings.get(R.string.wear_battery_value, shown.percent, CirqaLinkStatus.ageText(strings, shown.ageMs ?: 0)) +
+            (if (isLow(shown.percent)) strings.get(R.string.wear_battery_low) else "")
+        shown.ageMs != null -> strings.get(R.string.wear_battery_last, shown.percent, CirqaLinkStatus.ageText(strings, shown.ageMs))
+        else -> strings.get(R.string.wear_battery_last_untimed, shown.percent)
+    }
+
+    fun statusZoneDescription(strings: Strings, link: CirqaLinkStatus.Result, state: WearState): String =
+        strings.get(R.string.wear_zone_status_cd, link.label, wearText(strings, state))
+
+    fun batteryZoneDescription(strings: Strings, shown: BatteryShown?): String =
+        strings.get(R.string.wear_zone_battery_cd, batteryText(strings, shown))
+
+    fun statusDetails(strings: Strings, link: CirqaLinkStatus.Result, state: WearState): String =
+        strings.get(R.string.wear_status_detail, link.label, wearText(strings, state))
+
+    fun batteryDetails(strings: Strings, reading: BatteryReading?, shown: BatteryShown?): String = buildString {
+        if (reading == null || shown == null) { append(strings.get(R.string.wear_battery_detail_none)) } else {
+            val source = strings.get(when (reading.source) {
+                null -> R.string.wear_src_fit
+                "GATT_BATTERY" -> R.string.wear_src_gatt
+                "GARMIN_GDI_STATUS" -> R.string.wear_src_gdi
+                else -> R.string.wear_src_other
+            })
+            val age = shown.ageMs?.let { CirqaLinkStatus.ageText(strings, it) } ?: "?"
+            append(strings.get(R.string.wear_battery_detail, shown.percent, age, source))
+            if (isLow(shown.percent)) append("\n").append(strings.get(R.string.wear_battery_detail_low))
+            if (!shown.current) append("\n\n").append(strings.get(R.string.wear_battery_detail_old))
         }
-        return strings.get(R.string.wear_button_cd, link.label, wear, batteryText)
+        append("\n\n").append(strings.get(R.string.wear_battery_detail_note))
     }
 }
 

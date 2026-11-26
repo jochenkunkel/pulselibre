@@ -28,6 +28,7 @@ object FitHistoricalObservations {
     private const val GLOBAL_SPO2_DATA = 269
     private const val GLOBAL_STRESS_LEVEL = 227
     private const val GLOBAL_SLEEP_LEVEL = 275
+    private const val GLOBAL_SKIN_TEMP_OVERNIGHT = 398
 
     enum class Metric(val unit: String) {
         HEART_RATE("bpm"),
@@ -151,7 +152,7 @@ object FitHistoricalObservations {
         val baseType: Int?, val size: Int, val developerDataIndex: Int?,
         val kind: UnknownKind, val definitionCount: Int, val occurrenceCount: Int
     )
-    enum class ExclusionReason { UNSUPPORTED_ENCODING, INVALID_SENTINEL }
+    enum class ExclusionReason { UNSUPPORTED_ENCODING, INVALID_SENTINEL, NON_FINITE_VALUE }
     /** Profile structure and count only; intentionally omits the rejected value and source identity. */
     data class ExcludedField(
         val globalMessageNumber: Int,
@@ -243,8 +244,23 @@ object FitHistoricalObservations {
                     UnknownKey(global, field.number, field.baseType, field.size, null,
                         UnknownKind.INCOMPATIBLE_KNOWN_FIELD) else null
             }
+            if (global == GLOBAL_SKIN_TEMP_OVERNIGHT) {
+                val expectedBaseType = when (field.number) {
+                    0 -> 6 // local_timestamp: uint32
+                    1, 2, 4 -> 8 // profile float32; F4 unit/sentinel semantics stay unpromoted
+                    else -> null
+                }
+                if (expectedBaseType != null) {
+                    return if (field.baseType and 0x1f != expectedBaseType || field.size != 4)
+                        UnknownKey(global, field.number, field.baseType, field.size, null,
+                            UnknownKind.INCOMPATIBLE_KNOWN_FIELD) else null
+                }
+            }
             if (global == GLOBAL_DEVICE_INFO && field.number in setOf(1, 2, 4, 5, 10, 11, 32)) return null
-            val kind = if (global in setOf(GLOBAL_RECORD, GLOBAL_MONITORING, GLOBAL_DEVICE_INFO))
+            val kind = if (global in setOf(
+                    GLOBAL_RECORD, GLOBAL_MONITORING, GLOBAL_DEVICE_INFO,
+                    GLOBAL_SKIN_TEMP_OVERNIGHT
+                ))
                 UnknownKind.UNKNOWN_STANDARD_FIELD else UnknownKind.UNKNOWN_MESSAGE
             return UnknownKey(global, field.number, field.baseType, field.size, null, kind)
         }
@@ -569,6 +585,59 @@ object FitHistoricalObservations {
                 }
             }
 
+            // Garmin FIT Profile 21.222.0 defines fields 1/2 as skin-temperature
+            // deviations in °C. Keep them review-only: the raw fields are always
+            // persisted, and this does not establish clinical validity or a
+            // canonical health observation. Field 3 is intentionally opaque;
+            // field 4's unit/sentinel semantics are not sufficiently established.
+            if (definition.globalNumber == GLOBAL_SKIN_TEMP_OVERNIGHT) {
+                for ((fieldNumber, name) in listOf(
+                    1 to "average_deviation",
+                    2 to "average_7_day_deviation"
+                )) {
+                    val field = definition.fields.firstOrNull { it.number == fieldNumber } ?: continue
+                    val offset = fieldBytes[field] ?: continue
+                    val rawBits = readCandidateUnsigned32(file, offset, field, definition.bigEndian)
+                    when {
+                        rawBits == null -> {
+                            unsupportedFields++
+                            trackExcluded(
+                                GLOBAL_SKIN_TEMP_OVERNIGHT, fieldNumber, null, name,
+                                ExclusionReason.UNSUPPORTED_ENCODING
+                            )
+                        }
+                        rawBits == 0xffff_ffffL -> {
+                            invalidMeasurementFields++
+                            trackExcluded(
+                                GLOBAL_SKIN_TEMP_OVERNIGHT, fieldNumber, null, name,
+                                ExclusionReason.INVALID_SENTINEL
+                            )
+                        }
+                        !Float.fromBits(rawBits.toInt()).isFinite() -> {
+                            invalidMeasurementFields++
+                            trackExcluded(
+                                GLOBAL_SKIN_TEMP_OVERNIGHT, fieldNumber, null, name,
+                                ExclusionReason.NON_FINITE_VALUE
+                            )
+                        }
+                        else -> {
+                            if (reviewCandidates.size >= MAX_OBSERVATIONS) return null
+                            reviewCandidates += ReviewCandidate(
+                                profileFieldName = name,
+                                value = Float.fromBits(rawBits.toInt()).toDouble(),
+                                unit = "°C",
+                                timestampEpochMillis = timestampMillis,
+                                sourceFileSha256 = fileSha,
+                                recordOrdinal = decodedRecordOrdinal,
+                                globalMessageNumber = GLOBAL_SKIN_TEMP_OVERNIGHT,
+                                fieldNumber = fieldNumber,
+                                timestampOrigin = timestampOrigin
+                            )
+                        }
+                    }
+                }
+            }
+
             // Keep sleep-level codes as review-only profile candidates. A
             // timestamped level transition is not by itself a validated sleep
             // interval or a derived sleep duration.
@@ -834,6 +903,16 @@ object FitHistoricalObservations {
             6 -> if (field.size == 4) readU32(file, offset, bigEndian) else null
             else -> null
         }
+    }
+
+    private fun readCandidateUnsigned32(
+        file: ByteArray,
+        offset: Int,
+        field: FieldDefinition,
+        bigEndian: Boolean
+    ): Long? {
+        if (field.baseType and 0x1f != 8 || field.size != 4) return null
+        return readU32(file, offset, bigEndian)
     }
 
     /** Stress level field 1 is the record's own FIT timestamp, not message field 253. */

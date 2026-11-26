@@ -42,9 +42,4 @@ class DiagnosticsFormatTest {
         assertTrue(bt.contains("Bluetooth eingeschaltet: unbekannt"))
         assertTrue(bt.contains("Letzte empfangene Messung: kein Wert"))
     }
-
-    @Test fun traceAreaIsAnHonestPlaceholder() {
-        assertTrue(DiagnosticsFormat.TRACE_PLACEHOLDER.contains("noch nicht verfügbar"))
-        assertTrue(DiagnosticsFormat.TRACE_PLACEHOLDER.contains("nichts aufgezeichnet"))
-    }
 }

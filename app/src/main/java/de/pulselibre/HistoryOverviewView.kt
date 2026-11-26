@@ -182,7 +182,7 @@ class HistoryOverviewView(
         if (snapshot.fitAvailable || snapshot.fitHeartRate.isNotEmpty() || snapshot.fitReadFailed) {
             metricCard(FIT_HEART_RATE_TITLE, "bpm", snapshot.fitHeartRate, snapshot, 240, palette.pulse,
                 HistoryResolution.forFitRange(snapshot.range), TimeBasis.DEVICE_MEASURED, fitEmptyNote(snapshot),
-                FitKindText.note(Strings.of(context), snapshot.fitKinds))
+                FitKindText.note(Strings.of(context), snapshot.fitKinds, snapshot.fitDuplicates))
         }
         metricCard("Herzfrequenz", "bpm", snapshot.heartRate, snapshot, 240, palette.pulse, resolution)
         metricCard("Sauerstoffsättigung · SpO₂", "%", snapshot.oxygen, snapshot, 100, palette.oxygen, resolution)

@@ -99,22 +99,35 @@ class CirqaDatabase(private val contextRef: Context) :
 
     /** Preserve every received file before any semantic filtering. */
     fun archiveDownloadedFile(bytes: ByteArray, reference: ByteArray, label: String, at: Long): Boolean {
-        val db = writableDatabase
-        var contentAlreadyPresent = false
-        db.beginTransaction()
-        try {
-            contentAlreadyPresent = DownloadedFileArchive.store(db, bytes, reference, label, at)
-            db.setTransactionSuccessful()
-        } finally {
-            db.endTransaction()
+        return synchronized(downloadedFileArchiveLock) {
+            // This private, fsync'd content-addressed copy is a recovery journal for the
+            // SQLite archive transaction. If a competing helper holds the DB lock, the
+            // exact source bytes survive and archiveExistingDownloads() retries later.
+            val pending = CirqaVerifiedRawFileStore(
+                java.io.File(contextRef.filesDir, "downloaded_originals_pending")
+            ).saveExact(bytes, bytes.size.toLong())
+            val db = writableDatabase
+            var contentAlreadyPresent = false
+            db.beginTransaction()
+            try {
+                contentAlreadyPresent = DownloadedFileArchive.store(db, bytes, reference, label, at)
+                db.setTransactionSuccessful()
+            } finally {
+                db.endTransaction()
+            }
+            pending.file.delete()
+            contentAlreadyPresent
         }
-        return contentAlreadyPresent
     }
 
     /** Offline migration of existing content-addressed originals; never touches the band. */
     fun archiveExistingDownloads(): Int {
         var count = 0
-        for ((name, suffix) in listOf("verified_fit" to ".fit", "verified_raw" to ".bin")) {
+        for ((name, suffix) in listOf(
+            "verified_fit" to ".fit",
+            "verified_raw" to ".bin",
+            "downloaded_originals_pending" to ".bin"
+        )) {
             val directory = java.io.File(contextRef.filesDir, name)
             if (!directory.isDirectory || java.nio.file.Files.isSymbolicLink(directory.toPath())) continue
             for (file in directory.listFiles().orEmpty()) {
@@ -125,7 +138,10 @@ class CirqaDatabase(private val contextRef: Context) :
                 val archived = readableDatabase.rawQuery(
                     "SELECT 1 FROM downloaded_files WHERE content_sha256=? AND file_bytes=?",
                     arrayOf(sha, file.length().toString())).use { it.moveToFirst() }
-                if (archived) continue
+                if (archived) {
+                    if (name == "downloaded_originals_pending") file.delete()
+                    continue
+                }
                 val bytes = file.readBytes()
                 check(DownloadedFileArchive.sha256(bytes) == sha) { "Local original hash mismatch" }
                 archiveDownloadedFile(bytes, byteArrayOf(), name, file.lastModified().coerceAtLeast(0))
@@ -1293,6 +1309,22 @@ class CirqaDatabase(private val contextRef: Context) :
     }
 
     /** Newest value per field, newest first. Call on a worker thread. */
+    /**
+     * Newest software version the band reported in a FIT `device_info` message, or null. Live metadata got these values
+     * only once (migration backfill); later FIT imports write them to `fit_device_metadata` only, so the Gerät page
+     * read "Firmware: nicht verfügbar" although every FIT file carries the version (owner report 26.11.2026).
+     */
+    internal fun latestFitSoftwareVersion(): LiveDeviceMetadata? =
+        readableDatabase.rawQuery(
+            """SELECT CAST(software_version AS TEXT), observed_at_ms FROM fit_device_metadata
+               WHERE software_version IS NOT NULL AND observed_at_ms IS NOT NULL
+               ORDER BY observed_at_ms DESC, source_sha256 DESC, record_ordinal DESC LIMIT 1""", null
+        ).use { rows ->
+            if (!rows.moveToFirst()) null
+            else LiveDeviceMetadata(DeviceMetadataFields.SOFTWARE_VERSION, rows.getString(0), null,
+                DeviceMetadataSources.FIT_DEVICE_INFO, rows.getLong(1))
+        }
+
     internal fun latestLiveDeviceMetadata(): List<LiveDeviceMetadata> =
         readableDatabase.rawQuery(
             """SELECT field_key, value_text, unit, source, observed_at_ms
@@ -1516,8 +1548,38 @@ class CirqaDatabase(private val contextRef: Context) :
         it.getLong(0)
     }
 
-    /** Run a callback against a consistent read snapshot of both local SQLite stores. */
+    /**
+     * Run a callback against a consistent read snapshot of both local SQLite stores.
+     *
+     * On Android 11+ (SQLite ≥ 3.28) the stores are first copied with `VACUUM INTO` – a read-only operation of a few
+     * seconds – and [block] runs on the copies. Before (25.11.2026) the whole backup export ran inside an exclusive
+     * transaction on the live database for minutes; the recorder, which logs readings on the main thread, waited for
+     * the lock and the app showed "PulsLibre reagiert nicht" (S10, build 2232). Older Android keeps the previous path.
+     */
     @Synchronized internal fun <T> readStoredSnapshot(block: (SQLiteDatabase) -> T): T =
+        if (android.os.Build.VERSION.SDK_INT >= 30) readFromSnapshotCopy(block) else readInLiveTransaction(block)
+
+    private fun <T> readFromSnapshotCopy(block: (SQLiteDatabase) -> T): T {
+        val directory = java.io.File(contextRef.cacheDir, "db-snapshot-${java.util.UUID.randomUUID()}")
+        require(directory.mkdirs()) { "Temporärer Snapshot-Bereich kann nicht erstellt werden" }
+        try {
+            val mainCopy = java.io.File(directory, "main.db")
+            val legacyCopy = java.io.File(directory, "legacy.db")
+            writableDatabase.execSQL("VACUUM main INTO ?", arrayOf(mainCopy.absolutePath))
+            LocalReadingStore(contextRef).use { it.writableDatabase.execSQL("VACUUM main INTO ?", arrayOf(legacyCopy.absolutePath)) }
+            val copy = SQLiteDatabase.openDatabase(mainCopy.absolutePath, null, SQLiteDatabase.OPEN_READWRITE)
+            try {
+                copy.execSQL("ATTACH DATABASE ? AS legacy", arrayOf(legacyCopy.absolutePath))
+                return block(copy)
+            } finally {
+                copy.close()
+            }
+        } finally {
+            directory.deleteRecursively()
+        }
+    }
+
+    private fun <T> readInLiveTransaction(block: (SQLiteDatabase) -> T): T =
         withLegacyDatabase { db ->
             db.beginTransaction()
             try {
@@ -1578,6 +1640,10 @@ class CirqaDatabase(private val contextRef: Context) :
             db.execSQL("DELETE FROM legacy.readings")
             db.execSQL("DELETE FROM legacy.fit_sources")
             db.execSQL("DELETE FROM legacy.sync_cursors")
+            // Derived read model of the Verlauf (owner report 26.11.2026): its live rows are only ever appended from a
+            // cursor, so after a reset/restore they stayed visible. Emptying it lets the next refresh rebuild it from
+            // the replaced source rows.
+            UnifiedMeasurements.clearDerived(db, "main")
 
             val eventInsert = db.compileStatement(
                 "INSERT INTO main.events(line_sha256, received_at_utc, kind, service, payload_json, dashboard_time) VALUES(?, ?, ?, ?, ?, ?)"
@@ -2112,13 +2178,33 @@ class CirqaDatabase(private val contextRef: Context) :
 
     companion object {
         /**
+         * SQLiteOpenHelper synchronizes only per helper instance. A history pull can
+         * complete several files on different callback threads, each constructing a
+         * helper for the same database. Serializing this open+transaction boundary
+         * prevents concurrent helpers from racing while Android applies journal mode.
+         */
+        private val downloadedFileArchiveLock = Any()
+
+        /** Serialize helper creation through close, not only the inner archive transaction. */
+        fun archiveDownloadedOriginal(
+            context: Context,
+            bytes: ByteArray,
+            reference: ByteArray,
+            label: String,
+            at: Long
+        ): Boolean = synchronized(downloadedFileArchiveLock) {
+            CirqaDatabase(context).use { it.archiveDownloadedFile(bytes, reference, label, at) }
+        }
+
+        /**
          * Every metric the FIT import stores as an untrusted review candidate ([FitObservationCommitter]). Reading,
          * restoring and validating a backup must accept exactly this set: until 25.11.2026 the restore checks only knew
          * spo2/stress/respiration, so every backup with sleep_level etc. candidates was rejected as "invalid".
          */
         val FIT_REVIEW_CANDIDATE_METRICS: Set<String> = setOf(
             "spo2", "spo2_confidence", "spo2_measurement_mode", "stress", "respiration",
-            "sleep_level", "monitoring_cycles", "monitoring_activity_type"
+            "sleep_level", "monitoring_cycles", "monitoring_activity_type",
+            "skin_temperature_deviation", "skin_temperature_7_day_deviation"
         )
         private val keyFormat = java.time.format.DateTimeFormatterBuilder().appendInstant(9).toFormatter()
         internal fun timeKey(time: java.time.Instant): String = keyFormat.format(time)

@@ -1,0 +1,15 @@
+# OpenCode – #637 FIT-Feldinventar und History-Pagination reparieren
+- Agent/Umgebung: OpenCode FIT, Linux-Worktree
+- Beginn: 2026-11-25 15:23 UTC
+- Letzte Aktualisierung: 2026-11-25 15:45 UTC
+- Status: abgeschlossen – Code korrigiert, CI/PR-Nachweis offen
+- Rolle/Zuständigkeit: FIT/Decoder/SQLite sowie CIRQA-History-`nextTransaction`
+- Aktueller Auftrag: zwei getrennte Befunde des einen begrenzten S10-Laufs analysieren und belegbare Code-/Testfixes umsetzen.
+- Jetzt in Bearbeitung: abgeschlossen. Profil-398-Felder F1/F2 werden als Review-only Kandidaten erfasst; Kandidatenmetriken und -Decoder-Version werden korrekt in SQLite/Backup zugelassen. Terminalreport protokolliert jetzt alle beschränkten Transaction-Folgeantwort-Zähler.
+- Zeitnah geplant: PR aufmachen, GitHub QUICK/Dependency-Gates überwachen; kein Merge ohne erforderliche grüne Checks.
+- Betroffene Bereiche/Dateien: `app/src/main/java/de/pulselibre/{CirqaMlHandshakeProbe,GarminProtobufReassembler,FitHistoricalObservations,FitObservationCommitter,CirqaDatabase}.kt`, Tests, `docs/protocol/`.
+- Branch/Worktree: `opencode/issue637-history-repair-20261125`, `/tmp/opencode/issue637-history-repair-20261125`, Basis `origin/main` `2db32b01`.
+- Abstimmungsbedarf: keiner; S10-Lease frei, vorerst offline-only. Keine parallele Geräteaktion.
+- Agenten-Chat: `docs/collaboration/agent-chat/messages/2026-11-25_152300_opencode_START_issue637-datafield-and-pagination-fix.md`
+- Nachweise: lokaler Replay der 37 privaten, hashverifizierten FIT-Originale: 37 dekodiert, 29.123 kanonische Beobachtungen, 2.842 rohe Global-397-Feldvorkommen bleiben opaque; genau zwei profilbelegte Global-398 Review-Kandidaten. S10-Run: 27/27 Transfers vollständig, 3 leere Transaktions-Folgeantworten; kein belegter Fehler, um das Limit sicher zu überschreiten. Gezielte JVM-Tests grün; AndroidTest-Kotlin kompiliert.
+- Nächster Schritt: PR/CI; Hardware-Re-Run nicht erforderlich, da kein neues Funkverhalten, und Geräteabdeckung darf nicht aus lokalem Decoder-Fix abgeleitet werden.

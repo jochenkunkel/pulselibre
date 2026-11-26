@@ -31,7 +31,6 @@ internal object ScienceFitSeriesAdapter {
                 observation.metric == metric.key &&
                     observation.unit == metric.unit &&
                     observation.provenance?.quality == FitHistoricalObservations.Quality.PROFILE_VALID.name &&
-                    (kind == null || BandRecordKind.of(observation.provenance.globalMessageNumber) == kind) &&
                     observation.provenance.timestampOrigin in setOf(
                         FitHistoricalObservations.TimestampOrigin.DIRECT.name,
                         FitHistoricalObservations.TimestampOrigin.RECONSTRUCTED_TS16.name
@@ -42,6 +41,10 @@ internal object ScienceFitSeriesAdapter {
                     observation.measuredAt.toEpochMilli() >= rangeStartMs &&
                     observation.measuredAt.toEpochMilli() < rangeEndExclusiveMs
             }
+            .toList()
+            // Same measurement in two FIT files: shown once (R1), decided before the kind split like the SQL rule.
+            .let(CrossFileDuplicates::countOnce)
+            .filter { kind == null || BandRecordKind.of(it.provenance!!.globalMessageNumber) == kind }
             .sortedBy { it.measuredAt }
             .map { observation ->
                 SeriesPoint(
