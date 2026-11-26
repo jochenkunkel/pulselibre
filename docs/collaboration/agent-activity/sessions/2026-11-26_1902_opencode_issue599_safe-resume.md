@@ -11,5 +11,5 @@
 - Branch/Worktree: `opencode/issue599-safe-resume-20261126`, `/tmp/opencode/issue599-safe-resume-20261126`, Basis `origin/main=b515b873`.
 - Abstimmungsbedarf: GUI-Agent soll finalen PR-Head gezielt (JVM + SharedPreferences instrumentation) und mit FULL/API-35 gemäß Ticketanforderung prüfen; keine Hardwarefreigabe angefordert.
 - Agent-sync-Nachrichten: START in `docs/collaboration/agent-chat/messages/2026-11-26_190200_opencode_START_issue599_safe-resume.md`; Testbitte `docs/collaboration/agent-sync/2026-11-26_190800_opencode-an-gui_issue599-resume-tests.md`.
-- Nachweise: Issue #599 verlangt sichere Resume-/Skip-Nachweise und FULL/API-35; aktuelle Owner-Klarstellung macht Full-Pull verbindlichen sicheren Fallback und selektive Skip-Optimierung nicht zum P0-Blocker.
-- Nächster Schritt: Committe SharedPreferences-Neuinstanzregression, aktualisiere PR-Head/Testbitte; GUI liefert Tests. Keine eigenen Testläufe.
+- Nachweise: Draft-PR #713 finaler Head `31bb553d`; QUICK/API-35 und Dependency-Gates laufen, FULL/API-35 angefragt. Issue-Kommentar `7200785788`.
+- Nächster Schritt: GUI liefert Tests auf finalem PR-Head; keine eigenen Testläufe. PR bleibt Draft.
