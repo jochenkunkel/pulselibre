@@ -1,5 +1,7 @@
 # PulsLibre – manueller Testplan für Galaxy S25
 
+> **Gültigkeitsgrenze 26.11.2026:** Der folgende manuelle Testplan ist auf Build/Stand **17.11.2026** bezogen und darf **nicht** als Freigabe- oder Funktionsnachweis aktueller Builds interpretiert werden. Seitdem sind u. a. Sync-/FIT-/Diagnoseänderungen gemergt; aktuelle Abnahme braucht Build-SHA, zugehörige GitHub-CI und gegebenenfalls einen neuen kontrollierten Geräteversuch. Alleiniger verantwortlicher Entwickler/Tester: Claude Code / GUI-Agent. Die im historischen Plan untersagten experimentellen Aktionen sind **keine allgemeine Aufhebung späterer expliziter Owner-Freigaben**; jeweils die aktuelle Sicherheits- und Lease-Regel aus [AGENTS.md](../../AGENTS.md) beachten. Vollständiger historischer Download bleibt unbewiesen.
+
 Stand: 2026-11-17. Grundlage: Android-CI-Build `23c2cfd9`, Run `44101529585` (success), signiertes Artifact `pulselibre-signed-update-apk`. Nachfolgende reine Branding-/Dokumentationsänderungen sind **nicht Bestandteil** dieser APK. Ziel: sichere Abnahme vorhandener App-Funktionen; der separat freigegebene einmalige GFDI-5007-Kompatibilitätstest bleibt ein eigener, eng begrenzter Versuch.
 
 ## Vorbereitungen und Sicherheitsregeln
