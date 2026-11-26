@@ -16,7 +16,7 @@ object FitHistoricalObservations {
     private const val MIN_ABSOLUTE_FIT_TIME = 0x1000_0000L
     private const val INVALID_FIT_TIME = 0xffff_ffffL
     const val MAX_OBSERVATIONS = 50_000
-    const val DECODER_VERSION = "3"
+    const val DECODER_VERSION = "4"
     /** Review candidates evolve independently from the trusted observation decoder. */
     const val REVIEW_CANDIDATE_DECODER_VERSION = "3"
     const val PROFILE_VERSION = "21.222.0"
@@ -36,6 +36,16 @@ object FitHistoricalObservations {
         DISTANCE("m"),
         SPEED("m/s"),
         POWER("W"),
+        STRESS("device_scale"),
+        RESPIRATION("breaths/min"),
+        SPO2("percent"),
+        SPO2_CONFIDENCE("profile_code"),
+        SPO2_MEASUREMENT_MODE("profile_code"),
+        SLEEP_LEVEL("profile_code"),
+        SKIN_TEMPERATURE_DEVIATION("°C"),
+        SKIN_TEMPERATURE_7_DAY_DEVIATION("°C"),
+        MONITORING_CYCLES("cycles"),
+        MONITORING_ACTIVITY_TYPE("profile_code"),
     }
 
     enum class Quality { PROFILE_VALID, MISSING_TIMESTAMP, OUTSIDE_DISPLAY_RANGE }
@@ -503,9 +513,12 @@ object FitHistoricalObservations {
                     definition.fields.firstOrNull { it.number == 1 && it.size == 4 && it.baseType and 0x1f == 6 }
                         ?.let { field -> fieldBytes[field]?.let { readU32(file, it, definition.bigEndian) } }
                         ?.let { it < MIN_ABSOLUTE_FIT_TIME } == true
-                val candidateTime = if (stressTimeRelative) null else stressTime?.first ?: timestampMillis
-                val candidateTimeOrigin = if (stressTime != null)
-                    TimestampOrigin.DIRECT else if (stressTimeRelative) TimestampOrigin.UNKNOWN else timestampOrigin
+                val candidateTime = if (definition.globalNumber == GLOBAL_STRESS_LEVEL) {
+                    if (stressTimeRelative) null else stressTime?.first
+                } else timestampMillis
+                val candidateTimeOrigin = if (definition.globalNumber == GLOBAL_STRESS_LEVEL) {
+                    if (stressTime != null) TimestampOrigin.DIRECT else TimestampOrigin.UNKNOWN
+                } else timestampOrigin
                 for (candidateField in candidateFields) {
                     val field = definition.fields.firstOrNull { it.number == candidateField.number }
                         ?: continue
@@ -779,6 +792,50 @@ object FitHistoricalObservations {
             }
         }
 
+        // These profile-confirmed fields now enter the canonical FIT observation
+        // stream. Keep decodedFields as the lossless source of raw bytes and never
+        // turn unknown time/status values into measurements.
+        val canonicalized = reviewCandidates.mapNotNull { candidate ->
+            val metric = when (candidate.profileFieldName) {
+                "stress_level_value" -> Metric.STRESS
+                "respiration_rate" -> Metric.RESPIRATION
+                "reading_spo2" -> Metric.SPO2
+                "reading_confidence" -> Metric.SPO2_CONFIDENCE
+                "spo2_measurement_mode" -> Metric.SPO2_MEASUREMENT_MODE
+                "sleep_level" -> Metric.SLEEP_LEVEL
+                "average_deviation" -> Metric.SKIN_TEMPERATURE_DEVIATION
+                "average_7_day_deviation" -> Metric.SKIN_TEMPERATURE_7_DAY_DEVIATION
+                "monitoring_cycles" -> Metric.MONITORING_CYCLES
+                "monitoring_activity_type" -> Metric.MONITORING_ACTIVITY_TYPE
+                else -> null
+            } ?: return@mapNotNull null
+            val value = candidate.value
+            // FIT status codes are not measurements. SpO2's profile range is
+            // 70–100%; confidence/mode and other profile enums remain raw codes.
+            if ((metric == Metric.STRESS && value !in 0.0..100.0) ||
+                (metric == Metric.RESPIRATION && value < 0.0) ||
+                (metric == Metric.SPO2 && value !in 70.0..100.0) ||
+                (metric == Metric.MONITORING_ACTIVITY_TYPE && value >= 255.0)) return@mapNotNull null
+            val quality = if (candidate.timestampEpochMillis == null)
+                Quality.MISSING_TIMESTAMP else Quality.PROFILE_VALID
+            val semanticKey = "${metric.name}:${candidate.timestampEpochMillis ?: "missing"}:${value.toBits()}"
+            Observation(
+                metric = metric,
+                timestampEpochMillis = candidate.timestampEpochMillis,
+                value = value,
+                unit = metric.unit,
+                sourceFileSha256 = candidate.sourceFileSha256,
+                recordOrdinal = candidate.recordOrdinal,
+                globalMessageNumber = candidate.globalMessageNumber,
+                fieldNumber = candidate.fieldNumber,
+                quality = quality,
+                timestampOrigin = candidate.timestampOrigin,
+                idempotencyKey = candidate.idempotencyKey,
+                duplicateFingerprint = sha256(semanticKey.toByteArray())
+            )
+        }
+        if (observations.size + canonicalized.size > MAX_OBSERVATIONS) return null
+        observations += canonicalized
         return Result(observations, recordOrdinal, unsupportedFields, deviceMetadata,
             unknown.map { (key, count) ->
                 UnknownField(fileSha, key.global, key.field, key.baseType, key.size,

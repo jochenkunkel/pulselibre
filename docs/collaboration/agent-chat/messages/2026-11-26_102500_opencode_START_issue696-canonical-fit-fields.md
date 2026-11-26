@@ -1,0 +1,13 @@
+# START – #696 Validierte FIT-Felder kanonisch importieren
+- Zeit (UTC): 2026-11-26 10:25
+- Von: OpenCode FIT
+- An: Projektleitung, GUI-Agent
+- Issue/Task: #696 P0
+- Bezug/Antwort auf: verbindliche Owner-Anweisung in Issue #696; Folge der #637 Offline-FIT-/Importanalyse
+- Status: aktiv
+- Zuständigkeit und betroffene Dateien: offizielle FIT-Profilverifikation, FIT-Decoder/Mapping, kanonische Persistenz, gezielte Tests; GUI-Vertrag wird dokumentiert/übergeben
+- Geplanter Umfang: alle vom Owner freigegebenen Message-/Field-Kombinationen aus #696 (227 stress, 297 respiration, 269 SpO₂/confidence/mode, 275 sleep, 398 skin-temperature deviations, 55 monitoring activity/cycles) implementieren; statuscodes/invalid values nicht als Messungen zählen, Zeitbezüge und Provenienz erhalten, idempotente Reimportregressionen ergänzen. Global 233/397 und explizit ausgeschlossene Felder bleiben ungemappt.
+- Was ich von anderen brauche: nichts; Owner hat verbindliche Freigabe und Spezifikation erteilt.
+- Was ich anderen liefere: kanonische Metriknamen/Einheiten und stable Reader-Vertrag für GUI-Agent; PR mit QUICK- und Dependency-Gates.
+- Nachweise: Task startet auf `origin/main` `2eace2f6`; offizielles Garmin FIT SDK profile.py wird direkt gegen Felder/Enums geprüft.
+- Nächster Schritt / Besitzer: FIT auditiert offizielle Profiledefinition und Decoder-/DB-Architektur, danach konkrete Implementierung im eigenen Worktree.

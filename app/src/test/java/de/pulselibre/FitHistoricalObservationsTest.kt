@@ -91,7 +91,11 @@ class FitHistoricalObservationsTest {
 
         val result = FitHistoricalObservations.decode(fit(data))!!
 
-        assertTrue(result.observations.isEmpty())
+        assertEquals(
+            listOf(FitHistoricalObservations.Metric.SKIN_TEMPERATURE_DEVIATION,
+                FitHistoricalObservations.Metric.SKIN_TEMPERATURE_7_DAY_DEVIATION),
+            result.observations.map { it.metric }
+        )
         assertEquals(
             listOf("average_deviation", "average_7_day_deviation"),
             result.reviewCandidates.map { it.profileFieldName }
@@ -275,10 +279,13 @@ class FitHistoricalObservationsTest {
             0
         ) + u32(200_000) + u32(0x1234)
         val result = FitHistoricalObservations.decode(fit(data))!!
-        assertTrue(result.observations.isEmpty())
+        assertEquals(FitHistoricalObservations.Metric.MONITORING_CYCLES,
+            result.observations.single().metric)
+        assertEquals(0x1234.toDouble(), result.observations.single().value, 0.0)
+        assertFalse(result.observations.any { it.metric == FitHistoricalObservations.Metric.CADENCE })
     }
 
-    @Test fun spo2AndStressRemainReviewOnlyAndRespectInvalidSentinels() {
+    @Test fun spo2AndStressBecomeCanonicalAndRespectInvalidSentinels() {
         val spo2Definition = byteArrayOf(
             0x40, 0, 0, 0x0d, 0x01, 2, // global message 269
             253.toByte(), 4, 0x86.toByte(), 0, 1, 2
@@ -288,7 +295,8 @@ class FitHistoricalObservationsTest {
                 byteArrayOf(0) + u32(200_000) + byteArrayOf(97) +
                 byteArrayOf(0) + u32(200_060) + byteArrayOf(0xff.toByte())
         ))!!
-        assertTrue(spo2.observations.isEmpty())
+        assertEquals(listOf(FitHistoricalObservations.Metric.SPO2), spo2.observations.map { it.metric })
+        assertEquals(97.0, spo2.observations.single().value, 0.0)
         assertEquals(1, spo2.reviewCandidates.size)
         assertEquals("reading_spo2", spo2.reviewCandidates.single().profileFieldName)
         assertEquals(97.0, spo2.reviewCandidates.single().value, 0.0)
@@ -315,16 +323,18 @@ class FitHistoricalObservationsTest {
                 byteArrayOf(0) + s16(42) +
                 byteArrayOf(0) + s16(0x7fff)
         ))!!
-        assertTrue(stress.observations.isEmpty())
+        assertEquals(listOf(FitHistoricalObservations.Metric.STRESS), stress.observations.map { it.metric })
         assertEquals(1, stress.reviewCandidates.size)
         assertEquals("stress_level_value", stress.reviewCandidates.single().profileFieldName)
         assertEquals(42.0, stress.reviewCandidates.single().value, 0.0)
         assertEquals("profile_raw", stress.reviewCandidates.single().unit)
         assertNull(stress.reviewCandidates.single().timestampEpochMillis)
+        assertEquals(FitHistoricalObservations.Quality.MISSING_TIMESTAMP,
+            stress.observations.single().quality)
         assertEquals(1, stress.invalidMeasurementFieldCount)
     }
 
-    @Test fun spo2ConfidenceAndModeAreRetainedAsSeparateReviewCandidates() {
+    @Test fun spo2ConfidenceAndModeAreCanonicalSeparateProfileCodes() {
         val definition = byteArrayOf(
             0x40, 0, 0, 0x0d, 0x01, 4,
             253.toByte(), 4, 0x86.toByte(),
@@ -336,7 +346,11 @@ class FitHistoricalObservationsTest {
             definition + byteArrayOf(0) + u32(200_000) + byteArrayOf(96, 3, 1)
         ))!!
 
-        assertTrue(result.observations.isEmpty())
+        assertEquals(
+            listOf(FitHistoricalObservations.Metric.SPO2, FitHistoricalObservations.Metric.SPO2_CONFIDENCE,
+                FitHistoricalObservations.Metric.SPO2_MEASUREMENT_MODE),
+            result.observations.map { it.metric }
+        )
         assertEquals(
             listOf("reading_spo2", "reading_confidence", "spo2_measurement_mode"),
             result.reviewCandidates.map { it.profileFieldName }
@@ -345,7 +359,7 @@ class FitHistoricalObservationsTest {
         assertEquals(listOf(0, 1, 2), result.reviewCandidates.map { it.fieldNumber })
     }
 
-    @Test fun sleepLevelAndMonitoringCyclesRemainRawReviewCandidates() {
+    @Test fun sleepLevelAndMonitoringCyclesAreCanonicalWithoutStepInference() {
         val sleepDefinition = byteArrayOf(
             0x40, 0, 0, 0x13, 0x01, 2, // global 275
             253.toByte(), 4, 0x86.toByte(),
@@ -362,7 +376,13 @@ class FitHistoricalObservationsTest {
                 monitoringDefinition + byteArrayOf(0) + u32(200_060) + u32(120) + byteArrayOf(6)
         ))!!
 
-        assertTrue(result.observations.isEmpty())
+        assertEquals(
+            listOf(FitHistoricalObservations.Metric.SLEEP_LEVEL,
+                FitHistoricalObservations.Metric.MONITORING_CYCLES,
+                FitHistoricalObservations.Metric.MONITORING_ACTIVITY_TYPE),
+            result.observations.map { it.metric }
+        )
+        assertFalse(result.observations.any { it.metric.name.contains("STEP") })
         assertEquals(
             listOf("sleep_level", "monitoring_cycles", "monitoring_activity_type"),
             result.reviewCandidates.map { it.profileFieldName }
@@ -381,16 +401,16 @@ class FitHistoricalObservationsTest {
             definition + byteArrayOf(0) + s16(42) + u32(0x10000000 + 200_000)
         ))!!
 
-        assertTrue("Stress must remain outside the persistent observation allowlist",
-            result.observations.isEmpty())
+        assertEquals(FitHistoricalObservations.Metric.STRESS, result.observations.single().metric)
         val candidate = result.reviewCandidates.single()
         assertEquals("stress_level_value", candidate.profileFieldName)
         assertEquals(42.0, candidate.value, 0.0)
         assertEquals(fitTime(0x10000000L + 200_000), candidate.timestampEpochMillis)
         assertEquals(FitHistoricalObservations.TimestampOrigin.DIRECT, candidate.timestampOrigin)
+        assertEquals(candidate.timestampEpochMillis, result.observations.single().timestampEpochMillis)
     }
 
-    @Test fun respirationRateIsDecodedAsAnUnpersistedSignedProfileCandidate() {
+    @Test fun respirationRateIsCanonicalAndNegativeStatusesAreNotMeasurements() {
         val definition = byteArrayOf(
             0x40, 0, 0, 0x29, 0x01, 2, // global message 297
             253.toByte(), 4, 0x86.toByte(), // FIT timestamp
@@ -403,7 +423,8 @@ class FitHistoricalObservationsTest {
 
         val result = FitHistoricalObservations.decode(fit(data))!!
 
-        assertTrue("Candidate must not enter the persistence allowlist", result.observations.isEmpty())
+        assertEquals(listOf(12.34), result.observations.map { it.value })
+        assertEquals(FitHistoricalObservations.Metric.RESPIRATION, result.observations.single().metric)
         assertEquals(listOf(12.34, -1.25), result.reviewCandidates.map { it.value })
         assertEquals(listOf("breaths/min", "breaths/min"), result.reviewCandidates.map { it.unit })
         assertEquals(
@@ -416,6 +437,7 @@ class FitHistoricalObservationsTest {
             it.profileFieldName == "respiration_rate" &&
                 it.globalMessageNumber == 297 && it.fieldNumber == 0
         })
+        assertFalse(result.observations.any { it.value < 0.0 })
     }
 
     @Test fun respirationRateCandidateRejectsWrongBaseTypeAndRetainsMissingTimestamp() {

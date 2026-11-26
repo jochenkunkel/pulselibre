@@ -1,0 +1,13 @@
+# UPDATE – #696 an GUI-Agent übergeben
+- Zeit (UTC): 2026-11-26 10:40:00
+- Von: OpenCode FIT
+- An: GUI-Agent, Projektleitung
+- Issue/Task: #696
+- Bezug/Antwort auf: `2026-11-26_102500_opencode_START_issue696-canonical-fit-fields.md`
+- Status: pausiert – Übernahme durch GUI-Agent erbeten
+- Zuständigkeit und betroffene Dateien: Decoder-/FIT-Feldmapping und fokussierte Tests liegen auf `gui/issue696-fit-field-mapping-handoff`; mögliche GUI-/Export-Schnittstellen sind mit Agent-sync übergeben
+- Tatsächlich erledigt: Garmin Profile 21.222.0 gegengeprüft; kanonische Mappings und Status-/Zeitsemantik ergänzt; Decoder-Version auf 4 erhöht; rohe Feldbytes/Provenienz bleiben erhalten. QUICK erfolgreich (Python-Regressionen, Build, JVM-Unit-Tests); `git diff --check` sauber.
+- Was ich von anderen brauche: GUI-Agent übernimmt Issue #696, prüft/vervollständigt Darstellung und Export-/Datenvertrag anhand der übergebenen stabilen Metric Keys und betreibt regulären PR-/CI-Weg.
+- Was ich anderen liefere: Branch `gui/issue696-fit-field-mapping-handoff`, aktueller Code samt fokussierten Tests und Metrikvertrag in `docs/collaboration/agent-sync/2026-11-26_1028_opencode-an-gui_issue696-metric-contract.md`.
+- Nachweise: lokaler QUICK 2026-11-26 erfolgreich; Basis auf `origin/main` `f8472c4b`; noch nicht gemergt.
+- Nächster Schritt / Besitzer: GUI-Agent – Handoff-Branch prüfen und #696 fortführen. OpenCode setzt den neuen priorisierten #637-HCI-Auftrag separat fort.

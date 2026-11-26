@@ -26,7 +26,13 @@ class FitUnmappedProfileFieldsTest {
 
         assertNotNull(result)
         result!!
-        assertTrue(result.observations.isEmpty())
+        assertEquals(
+            listOf(
+                FitHistoricalObservations.Metric.SKIN_TEMPERATURE_DEVIATION,
+                FitHistoricalObservations.Metric.SKIN_TEMPERATURE_7_DAY_DEVIATION
+            ),
+            result.observations.map { it.metric }
+        )
         assertEquals(
             listOf("average_deviation", "average_7_day_deviation"),
             result.reviewCandidates.map { it.profileFieldName }
