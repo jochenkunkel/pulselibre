@@ -12,3 +12,10 @@
 - Was ich anderen liefere: Codekorrektur und Testnachweis im separaten PR
 - Nachweise: Aktueller Main `229c8af9`; eigener Branch basiert auf aktuellem `origin/main`.
 - Nächster Schritt / Besitzer: OpenCode – Tests ergänzen, fokussiert ausführen und PR-Gates dokumentieren.
+
+## UPDATE (2026-11-26 07:25 UTC)
+- Korrekturklassifikation bestätigt: Android JNI mappt SQLITE_BUSY → `SQLiteDatabaseLockedException`, SQLITE_LOCKED → `SQLiteTableLockedException`; keine Android-Klasse `SQLiteBusyException`.
+- Implementation/test fertig: beide realen Klassen werden durch Default-Policy begrenzt wiederholt; generisches `SQLiteException` nicht. Delays/Call-Sites unverändert.
+- Nachweise: fokussierte Unit-Tests grün; lokaler QUICK grün, danach finaler Negativtest hinzugefügt und erneut fokussiert grün. PR #683 `f054f8ac`: erforderlicher Build/Unit/Lint/APK sowie Dependency Review/Graph grün; FULL-Emulator im QUICK übersprungen.
+- Self-Review: `git diff --check` sauber, Änderungen eng auf Utility/Test beschränkt; keine Geräteaktion. GitHub-PR meldete `CLEAN`/`MERGEABLE`.
+- Nächster Schritt: abschließenden ENDE-Eintrag hinzufügen und Required-QUICK auf dann finalem Head abwarten, danach regulär mergen.
