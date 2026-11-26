@@ -1012,6 +1012,9 @@
     <string name="sd_spo2">SpO₂ · Qualität ungeprüft</string>
     <string name="sd_resp">Atemfrequenz</string>
     <string name="sd_stress">Stress (Geräteskala)</string>
+    <string name="sd_spo2_band">SpO₂ · Band (FIT), Qualität ungeprüft</string>
+    <string name="sd_resp_band">Atemfrequenz · Band (FIT)</string>
+    <string name="sd_stress_band">Stress · Band (FIT, Geräteskala)</string>
     <string name="sd_src_band">Quelle: Band · Zeitbasis: Messzeit des Bandes</string>
     <string name="sd_src_live">Quelle: Telefon (live) · Zeitbasis: Empfangszeit</string>
     <string name="sd_loading">Daten werden gelesen …</string>
