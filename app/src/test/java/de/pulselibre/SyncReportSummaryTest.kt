@@ -16,7 +16,7 @@ class SyncReportSummaryTest {
         "files=[successful=38,notSuccessful=0,selected=38]; terminal=[listed=38,selected=38,pendingQueue=0]"
 
     @Test fun rejectedPullNamesCodeOfferedAndUnrequestedFiles() {
-        assertEquals("Das Band hat den Abruf der ersten Datei abgelehnt (Code 3). Es hatte 38 Dateien angeboten; " +
+        assertEquals("Das Band hat Dateiabrufe abgelehnt (Code 3). Es hatte 38 Dateien angeboten; " +
             "37 weitere wurden nicht angefragt.", SyncReportSummary.explain(GermanStrings, rejected))
     }
 

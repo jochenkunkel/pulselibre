@@ -128,7 +128,7 @@
     <string name="main_status_ready">Hors ligne · prêt</string>
     <string name="main_hist_status_none">Aucun téléchargement de données historiques lancé.</string>
     <string name="sync_sum_complete">Téléchargement complet : %1$d fichiers transférés.</string>
-    <string name="sync_sum_pull_rejected">Le bracelet a refusé le téléchargement du premier fichier (code %1$s). Il proposait %2$d fichiers ; %3$d autres n’ont pas été demandés.</string>
+    <string name="sync_sum_pull_rejected">Le bracelet a refusé des téléchargements de fichiers (code %1$s). Il proposait %2$d fichiers ; %3$d autres n’ont pas été demandés.</string>
     <string name="sync_sum_followup_empty">%1$d fichiers sur %2$d proposés transférés ; ensuite le bracelet n’en a plus signalé. L’exhaustivité de l’historique n’est pas prouvée.</string>
     <string name="sync_sum_partial">%1$d fichiers sur %2$d proposés transférés.</string>
     <string name="sync_sum_details">Détails techniques (toucher pour déplier) :</string>
