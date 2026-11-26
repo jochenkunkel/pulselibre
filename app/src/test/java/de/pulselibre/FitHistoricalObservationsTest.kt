@@ -335,6 +335,15 @@ class FitHistoricalObservationsTest {
         assertEquals(1, stress.invalidMeasurementFieldCount)
     }
 
+    @Test fun spo2ModeWrittenAsUint8IsAcceptedLikeTheGarminSdk() {
+        // #707: on all 8 real CIRQA spo2_data definitions field 2 (mode) is uint8 (0x02), not enum (0x00).
+        val definition = byteArrayOf(0x40, 0, 0, 0x0d, 0x01, 4, 253.toByte(), 4, 0x86.toByte(), 0, 1, 2, 1, 1, 2, 2, 1, 2)
+        val result = FitHistoricalObservations.decode(fit(definition + byteArrayOf(0) + u32(0x10000000 + 1) + byteArrayOf(95, 3, 1)))!!
+        assertEquals(listOf("reading_spo2", "reading_confidence", "spo2_measurement_mode"), result.reviewCandidates.map { it.profileFieldName })
+        assertEquals(1.0, result.observations.single { it.metric == FitHistoricalObservations.Metric.SPO2_MEASUREMENT_MODE }.value, 0.0)
+        assertEquals(0, result.unsupportedMeasurementFieldCount)
+    }
+
     @Test fun spo2ConfidenceAndModeAreCanonicalSeparateProfileCodes() {
         val definition = byteArrayOf(
             0x40, 0, 0, 0x0d, 0x01, 4,
