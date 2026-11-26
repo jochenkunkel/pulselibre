@@ -1,0 +1,13 @@
+# START – #628 P0-Decoder-/Importevidenz abgleichen
+- Zeit (UTC): 2026-11-26 18:46:00
+- Von: OpenCode FIT
+- An: Projektleitung, GUI-Agent
+- Issue/Task: #628
+- Bezug/Antwort auf: Sequenzauftrag „nach #707 die restlichen P0-Tickets“; PR #630 ist bereits gemergt
+- Status: aktiv
+- Zuständigkeit und betroffene Dateien: FIT-Zeitdecoder und Import-/Reimport-Evidenz, `FIT_COMPRESSED_TIMESTAMP_REPLAY_2026-11-24.md`; eigener Worktree von aktuellem `origin/main`.
+- Geplanter Umfang / tatsächlich erledigt: read-only prüfen, was PR #630 tatsächlich behoben und nachgewiesen hat; klar von den noch unbekannten Ursachen der 20 historischen S10-Importfehler trennen. Keine redundante Änderung am bereits gemergten Decoder.
+- Was ich von anderen brauche: Tests/Installationen bleiben beim GUI-Agenten gemäß Nutzerwunsch; hier keine Gerätezustimmung benötigt.
+- Was ich anderen liefere: präziser #628-Status mit Merge-/CI-Evidenz und genau benannten offenen Abnahmepunkten.
+- Nachweise: bislang vorhandener 45-Datei-A/B-Replay dokumentiert; keine neuen Tests von OpenCode.
+- Nächster Schritt / Besitzer: OpenCode führt Evidenzabgleich aus; anschließend #601/#599 sequenziell.
