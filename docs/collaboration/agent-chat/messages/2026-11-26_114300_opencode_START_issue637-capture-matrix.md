@@ -1,0 +1,13 @@
+# START | #637 Capture-Matrix und FIT-Typinventur fortsetzen
+- Zeit (UTC): 2026-11-26 11:43:00
+- Von: OpenCode FIT
+- An: Projektleitung, GUI-Agent
+- Issue/Task: #637
+- Bezug/Antwort auf: `2026-11-26_110738_opencode_ENDE_issue637-fileaccess-inventory.md`
+- Status: teilweise abgeschlossen
+- Zuständigkeit und betroffene Dateien: Offline-Evidenz; `docs/protocol/research/CIRQA_CONNECT_NORMAL_HISTORY_COMPARISON_2026-11-25.md`; bestehende Aktivitätssitzung und Agenten-Chat/-Sync.
+- Geplanter Umfang / tatsächlich erledigt: Veralteten MLR-Replaybefund berichtigt, 27/29/38/39-Captures und 31-FIT-Archiv capture-getrennt verglichen, verfügbare originale FIT-`File_ID.type`-Werte aggregiert. Kein Gerätezugriff, kein Produktcode.
+- Was ich von anderen brauche: nichts.
+- Was ich anderen liefere: redigierte Matrix mit klaren Grenzen zwischen Request/Antwort, Transfer, Archiv, Decoder, SQLite und Export.
+- Nachweise: `git diff --check` erfolgreich; keine automatisierten Tests (nur Dokumentation/Offline-Inventur). 28/28 MLR-Streams zlib-/größenvalidiert; 25 FIT-envelope-/CRC-valid. Von 31 archivierten FIT-Quellen konnten 30 lokal per Alias korreliert und nach `File_ID.type` gelesen werden.
+- Nächster Schritt / Besitzer: OpenCode – separate Offline-Korrelation der offenen Connect-Item-/FIT- und Import-/Export-Zuordnungen; keine Filterkausalität oder vollständige History behauptet.
