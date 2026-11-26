@@ -79,7 +79,7 @@ Lokaler Export und Sicherung deiner Daten (Zeitraum wählen, exportieren) sowie 
 
 **Wenn ein Backup nicht klappt:** Die App meldet „Backup fehlgeschlagen“ mit einer technischen Ursache (ohne Messwerte) und löscht die leere Zieldatei wieder. Vorher prüft sie, ob genug freier Speicher vorhanden ist. Ein Backup darf als ZIP bis 512 MB und entpackt bis 2 GB groß sein; die ZIP-Datei ist meist nur ein Bruchteil des Inhalts (Beispiel: 8 MB ZIP für 140 MB Inhalt).
 
-**Wiederherstellen:** Die App prüft das ganze Backup (Prüfsummen, Verweise, Vollständigkeit), **bevor** sie fragt, ob die Datenbank ersetzt werden soll. Bis zu dieser Rückfrage wird nichts verändert; „Abbrechen“ lässt alles, wie es ist. Ist ein Backup ungültig, nennt die App die Ursache. Beim Wiederherstellen werden auch die Einstellungen aus dem Backup übernommen; ältere Backups ohne Einstellungen lassen deine aktuellen Einstellungen unverändert. „Datenbank zurücksetzen“ behält die Einstellungen.
+**Wiederherstellen:** Die App prüft das ganze Backup (Prüfsummen, Verweise, Vollständigkeit), **bevor** sie fragt, ob die Datenbank ersetzt werden soll. Bis zu dieser Rückfrage wird nichts verändert; „Abbrechen“ lässt alles, wie es ist. Ist ein Backup ungültig, nennt die App die Ursache. Bei einem Backup mit Einstellungen fragt die App, ob nur die Einstellungen oder die Einstellungen zusammen mit den Gesundheitsdaten wiederhergestellt werden sollen („Nur Einstellungen“ lässt alle Messdaten unverändert); ältere Backups ohne Einstellungen lassen deine aktuellen Einstellungen unverändert. „Datenbank zurücksetzen“ behält die Einstellungen.
 
 ## 3. Einstellungen (Statusknopf oben rechts)
 

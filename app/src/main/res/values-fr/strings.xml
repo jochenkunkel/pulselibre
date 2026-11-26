@@ -636,8 +636,11 @@
     <string name="ex_progress_restore">Restauration des données (peut prendre une minute) …</string>
     <string name="ex_progress_settings">Restauration des paramètres …</string>
     <string name="ex_progress_keep_open">Ne fermez pas l’application pendant ce temps.</string>
-    <string name="ex_restore_settings_replaced">La sauvegarde contient aussi vos paramètres personnels (%1$d valeurs : profil, thème, langue, etc.) ; ils sont également remplacés.</string>
+    <string name="ex_restore_settings_replaced">La sauvegarde contient aussi vos paramètres personnels (%1$d valeurs : profil, thème, langue, etc.). Vous pouvez restaurer uniquement les paramètres ou les paramètres avec les données de santé.</string>
     <string name="ex_restore_settings_kept">Cette ancienne sauvegarde ne contient aucun paramètre ; vos paramètres actuels sont conservés.</string>
+    <string name="ex_restore_all">Paramètres et données de santé</string>
+    <string name="ex_restore_settings_only">Paramètres uniquement</string>
+    <string name="ex_restore_settings_done">Paramètres restaurés depuis la sauvegarde ; données de santé inchangées.</string>
     <string name="ex_restore_failed">Échec de la restauration. Veuillez vérifier la base de données.</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="ex_reset_title">Réinitialiser la base de données locale ?</string>

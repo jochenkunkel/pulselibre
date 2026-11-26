@@ -440,26 +440,13 @@ class ExportActivity : AppCompatActivity() {
                 plan.close()
                 databaseFeedback.text = getString(R.string.ex_restore_cancelled)
             }
-            .setPositiveButton(getString(R.string.ex_replace)) { _, _ ->
-                stopRecorderThen(onCancel = { plan.close() }) {
-                    databaseFeedback.text = getString(R.string.ex_restore_running)
-                    executor.execute {
-                        try {
-                            val settingsRestored = plan.containsSettings
-                            DatabaseBackup.restore(this, plan, progressSink()); HistoryDataCache.invalidate()
-                            runOnUiThread {
-                                hideProgress()
-                                databaseFeedback.text = getString(R.string.ex_restore_done)
-                                if (settingsRestored && !isFinishing && !isDestroyed) {
-                                    // Theme and language of the restored settings take effect now (activity is recreated).
-                                    AppAppearance.apply(AppAppearance.preference(this))
-                                    recreate()
-                                }
-                            }
-                        } catch (_: Exception) {
-                            runOnUiThread { hideProgress(); databaseFeedback.text = getString(R.string.ex_restore_failed) }
-                        } finally { plan.close() }
-                    }
+            .setPositiveButton(getString(if (plan.containsSettings) R.string.ex_restore_all else R.string.ex_replace)) { _, _ ->
+                stopRecorderThen(onCancel = { plan.close() }) { runRestore(plan, includeData = true) }
+            }
+            .apply {
+                // Owner request 26.11.2026: a v12 backup can bring back only the configuration, leaving health data alone.
+                if (plan.containsSettings) setNeutralButton(getString(R.string.ex_restore_settings_only)) { _, _ ->
+                    runRestore(plan, includeData = false) // the databases are not touched: the recorder may keep running
                 }
             }
             .setOnCancelListener {
@@ -467,6 +454,28 @@ class ExportActivity : AppCompatActivity() {
                 databaseFeedback.text = getString(R.string.ex_restore_cancelled)
             }
             .show()
+    }
+
+    private fun runRestore(plan: PreparedDatabaseRestore, includeData: Boolean) {
+        databaseFeedback.text = getString(if (includeData) R.string.ex_restore_running else R.string.ex_progress_settings)
+        executor.execute {
+            try {
+                val settingsRestored = plan.containsSettings
+                DatabaseBackup.restore(this, plan, progressSink(), includeData)
+                if (includeData) HistoryDataCache.invalidate()
+                runOnUiThread {
+                    hideProgress()
+                    databaseFeedback.text = getString(if (includeData) R.string.ex_restore_done else R.string.ex_restore_settings_done)
+                    if (settingsRestored && !isFinishing && !isDestroyed) {
+                        // Theme and language of the restored settings take effect now (activity is recreated).
+                        AppAppearance.apply(AppAppearance.preference(this))
+                        recreate()
+                    }
+                }
+            } catch (_: Exception) {
+                runOnUiThread { hideProgress(); databaseFeedback.text = getString(R.string.ex_restore_failed) }
+            } finally { plan.close() }
+        }
     }
 
     private fun confirmReset() {

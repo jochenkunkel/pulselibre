@@ -636,8 +636,11 @@
     <string name="ex_progress_restore">Daten werden eingespielt (kann eine Minute dauern) …</string>
     <string name="ex_progress_settings">Einstellungen werden übernommen …</string>
     <string name="ex_progress_keep_open">Bitte die App währenddessen nicht schließen.</string>
-    <string name="ex_restore_settings_replaced">Das Backup enthält auch deine persönlichen Einstellungen (%1$d Werte: Profil, Design, Sprache und mehr); sie werden ebenfalls ersetzt.</string>
+    <string name="ex_restore_settings_replaced">Das Backup enthält auch deine persönlichen Einstellungen (%1$d Werte: Profil, Design, Sprache und mehr). Du kannst nur die Einstellungen oder die Einstellungen zusammen mit den Gesundheitsdaten wiederherstellen.</string>
     <string name="ex_restore_settings_kept">Dieses ältere Backup enthält keine Einstellungen; deine aktuellen Einstellungen bleiben erhalten.</string>
+    <string name="ex_restore_all">Einstellungen und Gesundheitsdaten</string>
+    <string name="ex_restore_settings_only">Nur Einstellungen</string>
+    <string name="ex_restore_settings_done">Einstellungen aus dem Backup übernommen; Gesundheitsdaten unverändert.</string>
     <string name="ex_restore_failed">Wiederherstellung fehlgeschlagen. Bitte Datenbank prüfen.</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="ex_reset_title">Lokale Datenbank zurücksetzen?</string>

@@ -636,8 +636,11 @@
     <string name="ex_progress_restore">Restaurando los datos (puede tardar un minuto) …</string>
     <string name="ex_progress_settings">Restaurando los ajustes …</string>
     <string name="ex_progress_keep_open">No cierres la app mientras tanto.</string>
-    <string name="ex_restore_settings_replaced">La copia también contiene tus ajustes personales (%1$d valores: perfil, tema, idioma y más); también se reemplazan.</string>
+    <string name="ex_restore_settings_replaced">La copia también contiene tus ajustes personales (%1$d valores: perfil, tema, idioma y más). Puedes restaurar solo los ajustes o los ajustes junto con los datos de salud.</string>
     <string name="ex_restore_settings_kept">Esta copia antigua no contiene ajustes; se conservan tus ajustes actuales.</string>
+    <string name="ex_restore_all">Ajustes y datos de salud</string>
+    <string name="ex_restore_settings_only">Solo ajustes</string>
+    <string name="ex_restore_settings_done">Ajustes restaurados desde la copia; datos de salud sin cambios.</string>
     <string name="ex_restore_failed">Error en la restauración. Comprueba la base de datos.</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="ex_reset_title">¿Restablecer la base de datos local?</string>

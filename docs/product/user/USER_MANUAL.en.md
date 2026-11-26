@@ -79,7 +79,7 @@ Local export and backup of your data (choose a range, export) as well as notes o
 
 **If a backup fails:** the app shows "Backup failed" with a technical cause (no readings) and deletes the empty target file again. It checks free storage first. A backup may be up to 512 MB as ZIP and up to 2 GB unpacked; the ZIP is usually a fraction of the content (example: 8 MB ZIP for 140 MB content).
 
-**Restoring:** the app checks the whole backup (checksums, references, completeness) **before** asking whether to replace the database. Nothing changes until that question; "Cancel" leaves everything as it is. If a backup is invalid, the app names the cause. A restore also brings back the settings from the backup; older backups without settings leave your current settings unchanged. "Reset database" keeps the settings.
+**Restoring:** the app checks the whole backup (checksums, references, completeness) **before** asking whether to replace the database. Nothing changes until that question; "Cancel" leaves everything as it is. If a backup is invalid, the app names the cause. For a backup with settings, the app asks whether to restore only the settings or the settings together with the health data ("Settings only" leaves all measurements unchanged); older backups without settings leave your current settings unchanged. "Reset database" keeps the settings.
 
 ## 3. Settings (status button, top right)
 

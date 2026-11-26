@@ -305,11 +305,16 @@ object DatabaseBackup {
      * Replace all rows in both stores in one SQLite transaction. From v12 the personal settings are replaced too (after
      * the data, so a failed data restore leaves them untouched); older backups leave the current settings as they are.
      */
-    fun restore(context: Context, plan: PreparedDatabaseRestore, progress: BackupProgress = BackupProgress.NONE) {
+    fun restore(context: Context, plan: PreparedDatabaseRestore, progress: BackupProgress = BackupProgress.NONE,
+                /** false = only the personal settings (v12+); the databases stay exactly as they are. */
+                includeData: Boolean = true) {
+        require(includeData || plan.containsSettings) { "Dieses Backup enthält keine Einstellungen" }
         try {
-            progress.update(BackupProgress.Phase.RESTORE, 0, 0)
-            restoreRows(context, plan)
-            if (plan.version >= 11) {
+            if (includeData) {
+                progress.update(BackupProgress.Phase.RESTORE, 0, 0)
+                restoreRows(context, plan)
+            }
+            if (includeData && plan.version >= 11) {
                 val db = CirqaDatabase(context)
                 val sql = db.writableDatabase
                 try {

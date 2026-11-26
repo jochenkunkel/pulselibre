@@ -92,6 +92,37 @@ class AppSettingsBackupTest {
         }
     }
 
+    @Test fun settingsOnlyRestoreLeavesTheHealthDataAlone() {
+        val root = Files.createTempDirectory(base.cacheDir.toPath(), "settings-only-").toFile()
+        val context = isolated(root)
+        fun events() = CirqaDatabase(context).use { db ->
+            db.readableDatabase.rawQuery("SELECT COUNT(*) FROM events", null).use { it.moveToFirst(); it.getLong(0) }
+        }
+        try {
+            CirqaDatabase(context).use { db ->
+                db.ensureHistoricalStoreCopied()
+                assertTrue(db.insertLine("""{"schema":1,"type":"attempt","received_at_utc":"2026-11-23T00:00:00Z"}"""))
+            }
+            context.getSharedPreferences("local_personal_profile", 0).edit().putString("display_name", "Aus Backup").commit()
+            val backup = ByteArrayOutputStream().also { DatabaseBackup.write(context, it) }.toByteArray()
+            CirqaDatabase(context).use { db ->
+                assertTrue(db.insertLine("""{"schema":1,"type":"attempt","received_at_utc":"2026-11-24T00:00:00Z"}"""))
+            }
+            context.getSharedPreferences("local_personal_profile", 0).edit().putString("display_name", "Neu").commit()
+            assertEquals(2L, events())
+
+            DatabaseBackup.prepareRestore(context, ByteArrayInputStream(backup)).use {
+                DatabaseBackup.restore(context, it, includeData = false)
+            }
+            assertEquals("health data untouched", 2L, events())
+            assertEquals("Aus Backup", context.getSharedPreferences("local_personal_profile", 0).getString("display_name", null))
+
+            // The full restore replaces both.
+            DatabaseBackup.prepareRestore(context, ByteArrayInputStream(backup)).use { DatabaseBackup.restore(context, it) }
+            assertEquals(1L, events())
+        } finally { cleanup(); root.deleteRecursively() }
+    }
+
     @Test fun strictParserRejectsForeignStoresTypesAndOversizedValues() {
         val ok = AppSettingsBackup.parse("""{"store":"app_appearance","key":"theme","type":"string","value":"dark"}""")
         assertEquals("dark", ok.value)
