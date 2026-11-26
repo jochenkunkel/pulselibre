@@ -1,8 +1,8 @@
 # OpenCode FIT – #628 P0-Follow-up
 - Agent/Umgebung: OpenCode FIT, Linux-Worktree
 - Beginn: 2026-11-26 18:46 UTC
-- Letzte Aktualisierung: 2026-11-26 18:46 UTC
-- Status: aktiv
+- Letzte Aktualisierung: 2026-11-26 18:50 UTC
+- Status: pausiert – technische Korrektur gemergt; historische Ursachen/Abdeckung weiter offen
 - Rolle/Zuständigkeit: FIT-Decoder/Import, offline P0-Evidenz
 - Aktueller Auftrag: #628 nach gemergtem PR #630 erneut am aktuellen main abgleichen; implementierte Timestamp-Korrektur von weiterhin nicht klassifizierten historischen Importfehlern trennen.
 - Jetzt in Bearbeitung: Nur read-only Code-, Issue- und CI-Evidenzabgleich; keine lokale Testausführung/Installation. Tests/Installationen gemäß Nutzerwunsch GUI überlassen.
@@ -11,5 +11,5 @@
 - Branch/Worktree: `opencode/issue628-p0-audit-20261126`, `/tmp/opencode/issue628-p0-audit-20261126`, Basis `origin/main=3137c143`.
 - Abstimmungsbedarf: keiner für Offline-Abgleich; GUI übernimmt angeforderte Testausführung.
 - Agent-sync-Nachrichten: folgt mit START.
-- Nachweise: PR #630 ist bereits gemergt; bisher dokumentierte Replay-Ergebnisse zeigen 0 zusätzliche importierbare Werte und die 20 historischen Fehler bleiben unklassifiziert.
-- Nächster Schritt: Issue-/CI-Metadaten und aktuelle Codepfade verifizieren, danach präzisen Reststatus in #628 dokumentieren.
+- Nachweise: PR #630 gemergt als `16ebb5d7`; GitHub-PR-Headchecks Build/Unit/Lint/APK und Dependency-Gates SUCCESS, API-35-Job im PR-Lauf SKIPPED; FULL/API-35-Run `45467276535` SUCCESS auf Head `9c5bece2`. Read-only Abgleich; keine Tests/Installationen durch OpenCode. Issue-Kommentar `7200609177` hält fest: 0 zusätzliche S10-Observations, 20 historische Fehler unklassifiziert, Issue bleibt offen.
+- Nächster Schritt: Sequenziell mit #601 fortfahren; GUI-Testergebnis zu dessen bereits delegiertem Abnahmepaket berücksichtigen.

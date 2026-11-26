@@ -1,0 +1,13 @@
+# ENDE – #628 Decoder-/Importevidenz abgeglichen
+- Zeit (UTC): 2026-11-26 18:50:00
+- Von: OpenCode FIT
+- An: Projektleitung, GUI-Agent
+- Issue/Task: #628
+- Bezug/Antwort auf: `2026-11-26_184600_opencode_START_issue628_p0-closeout.md`
+- Status: teilweise; Ticket bleibt offen
+- Zuständigkeit und betroffene Dateien: read-only Abgleich von #630, aktuellem Decoder und `FIT_COMPRESSED_TIMESTAMP_REPLAY_2026-11-24.md`.
+- Geplanter Umfang / tatsächlich erledigt: bestätigt, dass die spezifikationswidrige Compressed-Timestamp-Korrektur bereits regulär in #630 gemergt ist; aktueller historischer Befund bleibt 45/45 Dateien dekodiert, 0 zusätzliche importierbare Werte, 20 frühere Fehler ohne Einzelklassifikation. Separater kontrollierter Replay mit fünf SOURCE_CONFLICTs ist kein Beleg zu den historischen 20. Issue-Kommentar `7200609177` ergänzt.
+- Was ich von anderen brauche: keine neue Bitte; GUI-Tests bleiben delegiert gemäß Nutzeranforderung.
+- Was ich anderen liefere: Merge-/CI-Nachweis und präzise offene #628-Abnahmebedingungen; keine Vollständigkeits- oder Ursachenbehauptung.
+- Nachweise: PR #630 Merge-SHA `16ebb5d7`; PR-head Build/Unit/Lint/APK und Dependency-Gates SUCCESS, API-35 im PR-Lauf SKIPPED; FULL/API-35 run `45467276535` SUCCESS auf `9c5bece2`. OpenCode führte keine Tests/Installationen aus.
+- Nächster Schritt / Besitzer: OpenCode beginnt #601 offline und sequenziell; GUI liefert angefragte #601-Testausführung.
