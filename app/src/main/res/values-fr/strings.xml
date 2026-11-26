@@ -647,11 +647,11 @@
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="ex_reset_title">Réinitialiser la base de données locale ?</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
-    <string name="ex_reset_msg">Tous les événements CIRQA, mesures historiques et états de synchronisation stockés localement seront supprimés définitivement. Les paramètres de l’app sont conservés. Cette action est irréversible.</string>
+    <string name="ex_reset_msg">Tous les événements CIRQA, mesures historiques, états de synchronisation et fichiers originaux téléchargés du bracelet (fichiers FIT) stockés localement sont définitivement supprimés. Ils ne reviennent que par une sauvegarde ou un nouveau téléchargement depuis le bracelet. Les paramètres personnels sont conservés. Cette action est irréversible.</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="ex_reset_delete">Supprimer les données</string>
     <string name="ex_reset_running">Réinitialisation de la base de données …</string>
-    <string name="ex_reset_done">La base de données locale a été vidée.</string>
+    <string name="ex_reset_done">Base de données locale vidée, %1$d fichiers originaux supprimés.</string>
     <string name="ex_reset_failed">Échec de la réinitialisation. Veuillez vérifier la base de données.</string>
     <string name="ex_rec_title">Enregistrement en cours</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->

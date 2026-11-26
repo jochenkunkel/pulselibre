@@ -1640,6 +1640,10 @@ class CirqaDatabase(private val contextRef: Context) :
             db.execSQL("DELETE FROM legacy.readings")
             db.execSQL("DELETE FROM legacy.fit_sources")
             db.execSQL("DELETE FROM legacy.sync_cursors")
+            // Derived read model of the Verlauf (owner report 26.11.2026): its live rows are only ever appended from a
+            // cursor, so after a reset/restore they stayed visible. Emptying it lets the next refresh rebuild it from
+            // the replaced source rows.
+            UnifiedMeasurements.clearDerived(db, "main")
 
             val eventInsert = db.compileStatement(
                 "INSERT INTO main.events(line_sha256, received_at_utc, kind, service, payload_json, dashboard_time) VALUES(?, ?, ?, ?, ?, ?)"
