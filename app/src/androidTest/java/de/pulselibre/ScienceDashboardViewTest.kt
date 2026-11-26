@@ -21,13 +21,18 @@ class ScienceDashboardViewTest {
             scenario.onActivity { activity ->
                 activity.findViewById<View>(android.R.id.content).findViewWithTag<View>("navigation_item_Analysen").performClick()
             }
-            val end = System.currentTimeMillis() + 20_000
+            // The cards load off the main thread; on a cold CI emulator this took longer than 20 s once.
+            // Wait for the tagged card itself (language-independent) instead of a localized text.
+            val end = System.currentTimeMillis() + 45_000
             var texts = emptyList<String>()
+            var ready = false
             while (System.currentTimeMillis() < end) {
                 scenario.onActivity { activity ->
-                    texts = all(activity.findViewById(android.R.id.content)).filterIsInstance<TextView>().map { it.text.toString() }
+                    val views = all(activity.findViewById(android.R.id.content))
+                    texts = views.filterIsInstance<TextView>().map { it.text.toString() }
+                    ready = views.any { it.tag == "science_not_available" }
                 }
-                if (texts.any { it.startsWith("Noch nicht verfügbar") || it.startsWith("Not available yet") }) break
+                if (ready) break
                 InstrumentationRegistry.getInstrumentation().waitForIdleSync(); Thread.sleep(250)
             }
             scenario.onActivity { activity ->
