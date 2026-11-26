@@ -29,6 +29,30 @@ class CirqaFileAccessItemListParserTest {
             CirqaTargetedPullPolicy.CompletedImport(identity, "a".repeat(64), true, evidence))))
     }
 
+    // #637: shape from the Garmin Connect capture – Smart 43 → 12 {1: ItemReference{uid, data_type{1=0,2="FIT_TYPE_32",3=0},
+    // size, transaction(5), 6=1}}. Synthetic values only.
+    @Test fun parsesDeviceItemAvailablePushWithLabel() {
+        val uid = byteArrayOf(9, 8, 7, 6, 5, 4, 3, 2)
+        val type = scalarField(1, 0) + field(2, "FIT_TYPE_32".toByteArray()) + scalarField(3, 0)
+        val ref = field(1, uid) + field(2, type) + scalarField(3, 3018) + scalarField(5, 707) + scalarField(6, 1)
+        val pushed = CirqaFileAccessItemListParser.parseItemAvailable(field(43, field(12, field(1, ref))))!!
+        assertArrayEquals(uid, pushed.item.uid)
+        assertEquals(3018L, pushed.item.dataSize)
+        assertEquals(707L, pushed.item.transactionId)
+        assertEquals("FIT_TYPE_32", pushed.gdxmlStrings[0L])
+        assertArrayEquals(ref, pushed.item.referenceBytes)
+    }
+
+    @Test fun itemAvailableIgnoresOtherFileAccessMessagesAndMalformedReferences() {
+        val ref = field(1, byteArrayOf(1)) + scalarField(3, 10)
+        // FA 5 (transfer complete) and FA 10 (list response) are not pushes.
+        assertNull(CirqaFileAccessItemListParser.parseItemAvailable(field(43, field(5, field(1, ref)))))
+        assertNull(CirqaFileAccessItemListParser.parseItemAvailable(field(43, field(10, scalarField(1, 0)))))
+        // Empty UID and truncated protobuf are rejected (fail-closed).
+        assertNull(CirqaFileAccessItemListParser.parseItemAvailable(field(43, field(12, field(1, field(1, byteArrayOf()))))))
+        assertNull(CirqaFileAccessItemListParser.parseItemAvailable(byteArrayOf(0x5a, 0x05, 0x62)))
+    }
+
     private fun field(number: Int, bytes: ByteArray): ByteArray {
         val out = java.io.ByteArrayOutputStream()
         out.write(varint((number.toLong() shl 3) or 2))

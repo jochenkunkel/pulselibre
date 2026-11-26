@@ -145,6 +145,10 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private var syncQueuedBytes = 0L
     private var syncProgressCallback: ((HistorySyncProgress) -> Unit)? = null
     private var syncSkippedFiles = 0
+    /** #637: files the band announced itself (FA 12) and that were queued in addition to the list. */
+    private var syncPushedFiles = 0
+    /** UIDs (hex, memory only) already queued in this run; a push never duplicates a listed file. */
+    private val syncSeenUids = HashSet<String>()
     private var syncIncompleteReason: String? = null
     private val syncGdxmlStrings = linkedMapOf<Long, String>()
     private var mlrHandle: Int? = null
@@ -165,6 +169,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private var itemListRepeatabilityFirstPage: CirqaFileAccessItemListParser.ItemListPage? = null
     private val fileAccessFramer = CirqaRfcommStreamFramer()
     private val fileAccessReassembler = GarminProtobufReassembler()
+    /** Device-initiated 5043 FileAccess messages (push/transfer notices); kept apart from 5044 responses. */
+    private val devicePushReassembler = GarminProtobufReassembler()
     private var fileAccessDiag = ""
     private var legacy5002RequestWriteClaimed = false
     private var legacy5002RequestSent = false
@@ -1384,6 +1390,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     "keine Vollständigkeit behauptet.", g)
                 return
             }
+            syncSeenUids += item.uid.lowerHex()
             val localId = syncPipelineLedger.select()
             syncSelectedFiles++
             syncPendingItems.addLast(SyncQueueItem(item, localId))
@@ -1402,6 +1409,46 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             pageSummary
         syncItemSummary = syncItemSummary.take(1800)
         if (syncPendingItems.isEmpty()) requestNextSyncItemListPage(g) else sendNextSyncFile(g)
+    }
+
+    /**
+     * #637: the band announces new daily-history files (FIT 32/44/49, …) itself with a device 5043 FileAccess 12 while a
+     * session is open. Garmin Connect ACKs every device 5043 chunk at GFDI level and pulls such an item at once; files it
+     * has pulled and flagged disappear from the band. PulsLibre ACKs the chunk the same way and queues the announced
+     * item for the same read-only pull. It never sets flags, archives or deletes anything.
+     */
+    private fun handleDeviceFileAccessPush(g: BluetoothGatt, frame: ByteArray) {
+        val handle = historyHandle ?: return
+        val body = frame.copyOfRange(4, frame.size - 2)
+        if (body.size < 14) return
+        val id = (body[0].toInt() and 255) or ((body[1].toInt() and 255) shl 8)
+        val offset = (0..3).fold(0L) { n, k -> n or ((body[2 + k].toLong() and 255L) shl (8 * k)) }
+        queueAck(g, CirqaLegacy5043AckCandidate.mlGattValueCandidate(handle, id, offset, 5043))
+        val message = devicePushReassembler.acceptMessage(frame) ?: return
+        val pushed = CirqaFileAccessItemListParser.parseItemAvailable(message.payload) ?: return
+        val item = pushed.item
+        syncGdxmlStrings.putAll(pushed.gdxmlStrings)
+        if (!syncSeenUids.add(item.uid.lowerHex())) return
+        if (syncQueuedFiles >= CirqaSyntheticDownloadLimits.MAX_FILES ||
+            item.dataSize !in 1..CirqaVerifiedRawFileStore.MAX_FILE_BYTES ||
+            item.dataSize > CirqaSyntheticDownloadLimits.MAX_TOTAL_BYTES - syncQueuedBytes
+        ) {
+            syncSkippedFiles++
+            return
+        }
+        val idle = syncPendingItems.isEmpty() && syncCurrentItem == null
+        val localId = syncPipelineLedger.select()
+        syncSelectedFiles++
+        syncPushedFiles++
+        syncPendingItems.addLast(SyncQueueItem(item, localId))
+        syncPipelineLedger.record(localId, CirqaSyncPipelineLedger.Stage.QUEUED)
+        syncQueuedFiles++
+        syncQueuedBytes += item.dataSize
+        syncItemSummary = (syncItemSummary + "|push;" +
+            CirqaFileAccessItemListParser.redactedSummary(listOf(item), syncGdxmlStrings)).take(1800)
+        serial.post { mark("Band meldet neue Datei; read-only Abruf eingeplant") }
+        // Only start a pull when nothing is in flight; otherwise the queue continues after the current transfer.
+        if (idle && !syncContinuationRequest.isOutstanding()) sendNextSyncFile(g)
     }
 
     private fun drainDeferredAcks(g: BluetoothGatt) {
@@ -2274,6 +2321,9 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         syncQueuedFiles = 0
         syncQueuedBytes = 0L
         syncSkippedFiles = 0
+        syncPushedFiles = 0
+        syncSeenUids.clear()
+        devicePushReassembler.reset()
         syncIncompleteReason = null
         syncGdxmlStrings.clear()
         mlrHandle = null
@@ -2490,6 +2540,10 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     }
                     serial.post { mark("FileAccess: $fileAccessDiag") }
                 }
+                continue
+            }
+            if (verified.messageType == 5043 && syncRequestMode && syncAccepted) {
+                handleDeviceFileAccessPush(g, frame)
                 continue
             }
             if (verified.messageType != 5044) {
@@ -3609,7 +3663,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     "transactionFollowupResponseItemCounts=${syncTransactionFollowupResponseItemCounts.joinToString(
                         prefix = "[", postfix = "]"
                     )}," +
-                    "selected=$syncSelectedFiles,queuedTotal=$syncQueuedFiles,selectedBytes=$syncQueuedBytes,skipped=$syncSkippedFiles," +
+                    "selected=$syncSelectedFiles,queuedTotal=$syncQueuedFiles,selectedBytes=$syncQueuedBytes,skipped=$syncSkippedFiles,pushed=$syncPushedFiles," +
                     "pages=$syncListPageCount,currentBytes=${mlrData.size()},details=$syncFileResults," +
                     "pipeline=[${syncPipelineLedger.summary()}],pipelineItems=[${syncPipelineLedger.orderedSummary()}]," +
                     "pipelineStageOrder=selected,queued,ble-write-accepted,response-received,transfer-completed," +
@@ -3782,6 +3836,9 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             syncQueuedFiles = 0
             syncQueuedBytes = 0L
             syncSkippedFiles = 0
+            syncPushedFiles = 0
+            syncSeenUids.clear()
+            devicePushReassembler.reset()
             syncIncompleteReason = null
             syncProgressCallback = null
             syncGdxmlStrings.clear()

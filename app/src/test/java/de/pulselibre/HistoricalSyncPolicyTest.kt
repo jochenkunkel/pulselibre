@@ -5,8 +5,9 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class HistoricalSyncPolicyTest {
-    @Test fun appEntryNeverStartsHistoricalSyncAutomatically() {
-        assertFalse(HistoricalSyncPolicy.AUTOMATIC_SYNC_ENABLED)
+    // Owner 26.11.2026 (#637): daily-history files vanish from the band once Garmin Connect has pulled them.
+    @Test fun appEntryFetchesHistoryAutomatically() {
+        assertTrue(HistoricalSyncPolicy.AUTOMATIC_SYNC_ENABLED)
     }
 
     @Test fun neverSyncedIsDueAtAppEntry() {
