@@ -51,3 +51,67 @@ Insgesamt hat Connect in diesem Mitschnitt **52 Dateien abgerufen und 52-mal sei
   - Ob das Band Dateien wirklich löscht oder nur ausblendet. Klären würde das eine Liste mit `get_flags` ohne Ausschluss.
   - Was 24/20 in `FA 21` bedeuten.
   - Die Bedeutung von `FA 3` (Connect lädt Dateien **auf** das Band, z. B. FIT_TYPE_41/39/29/11), `FA 18/19/20` und Smart 86.
+
+## 5. Mitschnitt 24.11.2026: zwei Phasen (21:51 MEZ)
+
+Quelle: privater S10-Mitschnitt `s10e-garmin-sync-2026-11-24`, offline vollständig rekonstruiert. Hier stehen nur Handles, UUIDs, Feldnummern, Typlabels und Zählungen.
+
+### 5.1 Verbindungen und Dienst (BEWIESEN)
+
+| | Phase 1 | Phase 2 |
+|---|---|---|
+| HCI | LE-Verbindung A, 20:51:00–20:51:54Z | **neue** LE-Verbindung B, 20:51:55–20:52:14Z (derselbe HCI-Handle 64, neu vergeben) |
+| Ende | Disconnect 0x16 = *vom lokalen Host beendet*, d. h. Connect hat getrennt | Disconnect 0x16 |
+| ATT schreiben / Notification | 0x0015 / 0x0012 (CCCD-Write 0x0013) | 0x001F / 0x001C (CCCD-Write 0x001D) |
+| Characteristic-Paar | 2820 / 2810 | 2822 / 2812 |
+| Garmin-ML-Dienst | `6a4e2800-…` | derselbe Dienst |
+
+- **Discovery in Phase 2** (Dienst 0x000E–0x001F):
+  - 2803 → 0x0010 (Props 0x0E)
+  - **2810 → 0x0012 (0x1C: Notify, Write, WriteNoResp)**, **2820 → 0x0015 (0x0C: Write, WriteNoResp)**
+  - 2811 → 0x0017, 2821 → 0x001A
+  - **2812 → 0x001C, 2822 → 0x001F**
+- Phase 1 enthält keine eigene Discovery, weil Connect gecachte Handles benutzt. Über die Discovery aus Phase 2 sind 0x0012/0x0015 aber eindeutig 2810/2820 **desselben Dienstes**: Die GATT-Tabelle des Bandes ist in beiden Verbindungen dieselbe.
+- Ergebnis: **Dieselbe Garmin-ML-Instanz, zwei aufeinanderfolgende Verbindungen, je ein anderes RX/TX-Paar.** Es sind keine zwei gleichzeitigen Kanäle und kein anderer Dienst.
+
+### 5.2 ML-Ebene (BEWIESEN)
+- Beide Verbindungen beginnen mit ML-`CLOSE_ALL` (Typ 5/6) für **client_id 1**.
+- Phase 1 registriert danach GFDI (1), 4, 0x16, 6, 7, 0x1D, 0x0A, 8, 0x14 sowie die MLR-Pipes 0x2018 … 0xE018 rotierend für 15 Transfers.
+- Am Ende schließt Connect einzelne Handles (Typ 2/3).
+- Phase 2 registriert nur 4, 0x16, GFDI und einmal 0x2018.
+- PulsLibre nutzt **client_id 2** und dasselbe Schema: optionales `CLOSE_ALL`, Register GFDI, später 0x2018.
+
+### 5.3 GFDI-Startsequenz: beide Phasen gleich und wie in PulsLibre
+```
+←5024 →ACK ←5050 →ACK →5050 ←ACK →5043:Smart13(sync_request) ←5044:Smart13 →5043:Smart30 ←5044:Smart30
+→5031 (→5043:Smart8 nur Phase 1) →5026 →5030 ←5052 ←5043:{21,21,21,16,13,24,8,10,42,13,86,13} ←5036 …
+```
+
+### 5.4 Datenanforderungen (BEWIESEN)
+
+| | Phase 1 (2810/2820) | Phase 2 (2812/2822) |
+|---|---|---|
+| Push vom Band | `FA 12` FIT_TYPE_32 (neue monitoring_b) | – |
+| ItemList | `{4: exclude_all_flags, 5: get_flags}` + `{5, 6: included_data_types}` | identisch |
+| Liste | **20 Einträge** (siehe unten) | 6 Einträge: 4× FIT_TYPE_5, 1× FIT_TYPE_1, 1 Nicht-FIT |
+| Pulls | **15**: alle Tagesdateien | **1**: der Nicht-FIT-Eintrag, dessen Pull in Phase 1 ohne Flag blieb |
+| set_flags | 14 (Flag-UUID von Connect) | 0 |
+| Abschluss | `FA 5` → `FA 21{1=24}`, `FA 20`, Close der ML-Handles, Trennung durch Connect | `FA 5` → `FA 21`, `FA 20`, Trennung |
+
+Die 20 Einträge der Phase-1-Liste: 3× FIT_TYPE_32 (monitoring_b), 2× 44, 1× 49 (Schlaf), 1× 68, 1× 73 (Hauttemperatur/397/398), 1× 79, 1× 72, 1× KPI, 3× Activity_AutoDetect, 4× FIT_TYPE_5, 1× FIT_TYPE_1 und 1 Nicht-FIT.
+
+### 5.5 Antworten auf die Fragen
+- **Gibt es in Phase 1 eine Anforderung für kontinuierliche Tageshistorie, die PulsLibre nicht ausführt?**
+  - Es gibt **keine eigene Daily-History-Anfrage.** Connect holt die Tageshistorie mit derselben FileAccess-Kette, die PulsLibre nutzt: ItemList, dann PullItem.
+  - Die Unterschiede sind (1) die Delta-Filter 4/5 mit Connects Flag, (2) die Reaktion auf den Push `FA 12` und (3) **set_flags nach jedem Pull**.
+  - Die Tagesdateien (32/44/49/68/73/79, Feld 6=1) stehen in Phase 1 in der Liste, weil Connect sie noch nicht geflaggt hatte. PulsLibres ungefilterte Liste enthält sie ebenfalls, solange sie nicht geflaggt sind; belegt ist das mit 2× monitoring_b am 25.11.
+- **Warum nutzt Connect in der zweiten Verbindung 2812/2822?**
+  - Belegt ist nur: Connect selbst hat Verbindung A getrennt (0x16) und 1,6 s später neu verbunden.
+  - Es ist derselbe ML-Client (client_id 1), und beide Verbindungen beginnen mit `CLOSE_ALL`.
+  - Eine Ursache für die Paarwahl zeigt der Mitschnitt nicht. **Plausibel**, aber nicht belegt: Connects ML-Schicht nimmt pro neuer Sitzung ein anderes freies Paar aus 2810–2819, damit verspätete Notifications der alten Sitzung nicht in die neue gelangen.
+- **Hat der Wechsel mit der Tageshistorie zu tun?** **Nein.** Die gesamte Tageshistorie lief in Phase 1 über 2810/2820. Phase 2 enthält nur einen Wiederholungs-Pull eines Nicht-FIT-Eintrags. 2812/2822 ist damit **kein** Tageshistorie-Kanal.
+- **PulsLibre** wählt in `GarminMlOffline.findCharacteristicPair()` das erste Paar aus 2810–2819. Das ist im Normalfall 2810/2820, wie bei Connect in Phase 1. Der produktive Historienlauf nutzt dieselbe Auswahl (`CirqaMlHandshakeProbe`, Meldung „0x2810–0x2819“).
+- **Quittierungen und Sequenzen:**
+  - Connect quittiert jedes Geräte-5043 und 5044 auf GFDI-Ebene (5000).
+  - PulsLibre quittierte bisher nur 5044. Seit #732 quittiert es auch Geräte-5043 während des Laufs.
+  - `FA 21` auf `FA 5` sendet PulsLibre weiterhin nicht, weil die Bedeutung unbelegt ist. Die MLR-Sequenzbytes (2-Byte-Header) sind in beiden Phasen gleich aufgebaut.
