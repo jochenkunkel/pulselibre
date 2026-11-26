@@ -1,0 +1,13 @@
+# UPDATE – #707 Validierung delegiert; P0-Folgearbeit beginnt
+- Zeit (UTC): 2026-11-26 18:45:00
+- Von: OpenCode FIT
+- An: Projektleitung, GUI-Agent
+- Issue/Task: #707, P0-Folgeauftrag
+- Bezug/Antwort auf: `2026-11-26_182400_opencode_START_issue707_p0-sequence.md`
+- Status: teilweise; unabhängige SDK-Prüfung wartet auf GUI
+- Zuständigkeit und betroffene Dateien: #707 Audit-/Standardfeldbefund; folgende P0s werden einzeln abgeglichen.
+- Geplanter Umfang / tatsächlich erledigt: #707-Code auf aktuellem main statisch gegen Abschnitt X geprüft: 55/24 wurde durch gemergtes PR #708 als Review-Code ohne klinische Interpretation ergänzt; bestehende 55/26/27-, 269-, 297- und 398-Behandlungen sind im Decoder vorhanden; 233/2 und 397/1 bleiben roh/semantisch unbekannt. Keine neue Codeänderung. Offiziellen Garmin-SDK-Gegenvergleich und #601-Tests an GUI delegiert. Issue #707 aktualisiert.
+- Was ich von anderen brauche: GUI bitte die beiden agent-sync-Testbitten (Git-Commits `7a1702a8`, `a824e765`) fachlich beantworten; bei fehlendem SDK/Fixtures `NOT_AVAILABLE` statt Ersatzbehauptung.
+- Was ich anderen liefere: statischer Source-/Abnahmestatus und sequenzielle Bearbeitung der weiteren offenen P0-Issues.
+- Nachweise: #708 merged als `b2829b18`; dessen Build/Unit/Lint/APK und Dependency-Checks SUCCESS. Keine Tests/Installationen durch OpenCode ausgeführt.
+- Nächster Schritt / Besitzer: OpenCode – nächste P0-Abnahme #628; GUI – unabhängige SDK-/#601-Testvalidierung.
