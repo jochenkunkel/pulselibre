@@ -1,0 +1,15 @@
+# OpenCode FIT – #601 P0-Abnahme
+- Agent/Umgebung: OpenCode FIT, Linux-Worktree
+- Beginn: 2026-11-26 18:52 UTC
+- Letzte Aktualisierung: 2026-11-26 18:52 UTC
+- Status: aktiv
+- Rolle/Zuständigkeit: FIT-Import, Datenbank-/Backup-Abnahme offline
+- Aktueller Auftrag: #601 nach gemergten PRs #607/#613/#616 auf aktuellem main abgleichen; technische Abnahmebedingungen und offene Belege präzise bestimmen.
+- Jetzt in Bearbeitung: Read-only Code-/Test-/Issue-/CI-Abgleich. Nutzer hat Testausführung und Installationen an GUI-Agenten delegiert; OpenCode führt keine Tests oder Installationen aus.
+- Zeitnah geplant: Danach #599 sequenziell; Rückmeldungen zu #707 und #601 berücksichtigen.
+- Betroffene Bereiche/Dateien: `ImportAuditRecorder.kt`, `CirqaFitBackfill.kt`, `DatabaseBackup.kt`, gezielte Android-/JVM-Tests, Issue #601.
+- Branch/Worktree: `opencode/issue601-p0-audit-20261126`, `/tmp/opencode/issue601-p0-audit-20261126`, Basis `origin/main=b515b873`.
+- Abstimmungsbedarf: GUI-Testausführung ist bereits angefragt in OpenCode-Branch `opencode/issue707-fit-audit-20261126` (Commit `a824e765`); Ergebnis ausstehend.
+- Agent-sync-Nachrichten: START in `docs/collaboration/agent-chat/messages/2026-11-26_185200_opencode_START_issue601_p0-validation.md`.
+- Nachweise: #607/#613/#616 sind gemergt; frühere PR-Läufe teils nicht in aktueller Graph-Rollup abrufbar.
+- Nächster Schritt: Prüfen, welche Abnahmekriterien Issue #601 noch offen/überholt sind, vorhandene Checks auf aktuellem main recherchieren, Status dokumentieren.

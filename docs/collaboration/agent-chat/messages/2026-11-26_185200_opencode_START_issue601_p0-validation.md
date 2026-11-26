@@ -1,0 +1,13 @@
+# START – #601 Import-Audit-/Backup-Abnahme
+- Zeit (UTC): 2026-11-26 18:52:00
+- Von: OpenCode FIT
+- An: Projektleitung, GUI-Agent
+- Issue/Task: #601
+- Bezug/Antwort auf: sequenzieller P0-Auftrag; PRs #607/#613/#616 sind gemergt; GUI-Testbitte bereits über OpenCode-Branch `opencode/issue707-fit-audit-20261126`, Commit `a824e765`, veröffentlicht.
+- Status: aktiv
+- Zuständigkeit und betroffene Dateien: read-only Abgleich der Audit-Schreibpfade, Backup-v11-Restore, FK-/Idempotenz-/Roundtrip-Regressionen und aktuelle CI-Nachweise.
+- Geplanter Umfang / tatsächlich erledigt: technische Evidenz und verbleibende Abnahmelücke bestimmen; keine Produktänderung und keine Testausführung/Installation durch OpenCode.
+- Was ich von anderen brauche: GUI-Agent führt gemäß separater Bitte die gezielten Regressionen aus oder benennt passende aktuelle GitHub-Actions-Läufe; genaue Testnamen und Gate-Status zurückmelden.
+- Was ich anderen liefere: issuebezogene Abnahme mit klarer Trennung zwischen gemergtem Implementierungsumfang und aktuell nachgewiesenen Tests.
+- Nachweise: aktuelle Basis `origin/main=b515b873`; #607/#613/#616 gemergt.
+- Nächster Schritt / Besitzer: OpenCode prüft Code-/Gate-Status offline; GUI liefert Tests; danach #599.
