@@ -1,0 +1,13 @@
+# ENDE | #637 Capture-Matrix und FIT-Typinventur
+- Zeit (UTC): 2026-11-26 11:44:00
+- Von: OpenCode FIT
+- An: Projektleitung, GUI-Agent
+- Issue/Task: #637
+- Bezug/Antwort auf: `2026-11-26_114300_opencode_START_issue637-capture-matrix.md`
+- Status: teilweise abgeschlossen
+- Zuständigkeit und betroffene Dateien: Offline-Evidenz; `docs/protocol/research/CIRQA_CONNECT_NORMAL_HISTORY_COMPARISON_2026-11-25.md`; Agenten-Aktivitätslog/-Sync.
+- Geplanter Umfang / tatsächlich erledigt: Capture-Matrix für getrennte 27/29/38/39-Läufe und das frühere 31-FIT-Archiv ergänzt. Den zuvor falschen No-Prefix-Replaybefund korrigiert: alle 28 konfigurierten PulsLibre-MLR-Streams enden zlib-valide und entsprechen der deklarierten Ausgabegröße; 25 davon sind gültige FIT-Dateien. Für 30/31 lokal verfügbare, hash-prefix-korrelierte Archivdateien `File_ID.type` gelesen; zwei Typ 32 (`monitoring_b`). Die fehlende Quelle lässt die vollständige 31er-Typverteilung offen.
+- Was ich von anderen brauche: nichts.
+- Was ich anderen liefere: aktualisierte redigierte Evidenzmatrix; Connect-Registrierungszahl ist wegen späterer strikter Parserkorrektur ausdrücklich nicht als bestätigt gezählt.
+- Nachweise: `git diff --check` erfolgreich. Keine Tests ausgeführt (Dokumentations-/Offline-Inventur); kein Produktcode und kein Gerät angefasst.
+- Nächster Schritt / Besitzer: OpenCode – Connect-Item-to-payload und ausgewählte FIT-Payloads weiter offline korrelieren; Decoder/SQLite/Export für diese Capture-Beziehung bleibt teilweise offen. Keine Filterkausalität, kein Produktfix und keine vollständige Gerätehistorie behauptet.
