@@ -18,7 +18,7 @@ Eine Datei gilt als erreichbar, wenn ein Pfad von einem Startpunkt zu ihr führt
 | Gruppe | Dateien | Bewertung / Maßnahme |
 |---|---|---|
 | Protokoll-Forschung, nur in Tests benutzt | `Cirqa5050ExperimentComparison`, `Cirqa5050OfflineCapabilities`, `Cirqa5050SyncHypothesis`, `CirqaBootstrapGapAnalysis`, `CirqaBoundedLegacyFile`, `CirqaConnect531HandshakeModel`, `CirqaConnect531Host5024Response`, `CirqaConnectDirectoryTransition`, `CirqaConnectionIndicator`, `CirqaFileListCounterGate`, `CirqaLegacy5030To5007Session`, `CirqaLegacyFitFileSelector`, `CirqaLegacyOfflineFileSession`, `CirqaMinuteAggregation`, `CirqaRawDeviceMetadataBackfill`, `CirqaSyncDiagnosticSession`, `CirqaSyncExperimentGate`, `DiagnosticReport`, `FitRecordStructure`, `GarminCompactAck`, `GarminDeviceInformationReference`, `GarminHistoryFrameStream` | Kein Nutzerrisiko, weil keine Laufzeit. Sie dokumentieren geprüfte Protokollhypothesen und sind getestet. **Behalten.** Bei der Modularisierung (#496, geparkt) in ein Forschungsmodul verschieben. |
-| Fachregeln, nur in eigenen Tests benutzt | `GroundRules` (BMI/WHO), `NutritionRules` (DGE), `ExportDateRange` | Doppelte Logik: Die App rechnet BMI in `ProfileMath`. **Behalten bis zur Konsolidierung** (Folgepunkt: auf eine Implementierung reduzieren). |
+| Fachregeln, nur in eigenen Tests benutzt | `GroundRules` (WHO-Aktivität), `NutritionRules` (DGE), `ExportDateRange` | Dokumentierte Fachregeln ohne UI. Die doppelte BMI-Logik (`adultBmi`, Bewertung ab 18 statt 20 Jahren) wurde entfernt; BMI gibt es nur noch in `ProfileMath.Bmi`. |
 | Toter Code ohne Tests | `DashboardInfoIconView` | **Entfernt** (dieser PR). |
 | Fehlalarm der Analyse | `BleFormatting` (`toHex()` wird von Decoder und Backup benutzt) | keine Maßnahme |
 
