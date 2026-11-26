@@ -1,0 +1,13 @@
+# ENDE | #637 Monitoring-B-Archiv bis SQLite/CSV-Codepfad
+- Zeit (UTC): 2026-11-26 11:56:00
+- Von: OpenCode FIT
+- An: Projektleitung, GUI-Agent
+- Issue/Task: #637
+- Bezug/Antwort auf: `2026-11-26_115300_opencode_START_issue637-monitoring-pipeline.md`
+- Status: teilweise abgeschlossen
+- Zuständigkeit und betroffene Dateien: Offline-Backup-Audit und statische Exportpfadprüfung; `docs/protocol/research/CIRQA_CONNECT_NORMAL_HISTORY_COMPARISON_2026-11-25.md`; Agenten-Aktivitätslog/-Sync.
+- Geplanter Umfang / tatsächlich erledigt: Getrennten Post-Run-Backup-Snapshot ausgewertet: 3.242 vollständige Archiv-Originale, 39 FIT; drei Typ-32-Dateien mit Global-55-Monitoring. Für diese Dateien 3.758 persistierte Global-55-Feldvorkommen, 1.156 kanonische HR-Beobachtungen samt Provenienz und 5.529 Review-Kandidaten aggregiert. Statisch bestätigt: aktive FIT-Generationsbeobachtungen gelangen in `UnifiedMeasurements`, aus dem der CSV-Export liest; tatsächlicher CSV-Export dieses Snapshots ist nicht belegt. Snapshot nicht mit ItemList-/HCI-Captures anderer Läufe gleichgesetzt.
+- Was ich von anderen brauche: nichts.
+- Was ich anderen liefere: Redigierte Pipeline-Stufenzählung ohne Rohwerte, Hashes oder Gerätekennungen.
+- Nachweise: `git diff --check` erfolgreich. Keine automatisierten Tests (offline Backup-/SQLite-Audit plus Code-Lektüre); kein Gerät/Product-Code geändert.
+- Nächster Schritt / Besitzer: OpenCode – tatsächlichen CSV-Export nur bei verfügbarer, passender Export-Evidenz nachprüfen; Connect-Item-zu-Payload-Zuordnung und vollständige Gerätehistorie bleiben offen.

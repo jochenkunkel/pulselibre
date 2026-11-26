@@ -134,6 +134,94 @@ Sentinel-Verhalten validiert werden.
 
 ## Konkrete `next_transaction_id`-Antworten
 
+### Capture- und Archivmatrix (nicht gleichzusetzende Läufe)
+
+Die Zahlen 27, 29, 38 und 39 stammen aus unterschiedlichen Sitzungen und
+bezeichnen nicht dieselbe Geräteliste. **27** bezeichnet hier sowohl einen
+früheren Zwei-Listen-No-Pull-Repeatability-Lauf als auch einen späteren
+separaten historischen Sync; diese zwei 27er-Befunde sind ebenfalls nicht
+gleichzusetzen. Der 31-FIT-Bestand ist seinerseits ein früheres V24/V25-Archiv,
+kein Teil der späteren ItemList-Captures.
+
+| Evidenz | Request / Auswahl | Antwort und Transfer | Archiv / Decoder / SQLite / Export |
+| --- | --- | --- | --- |
+| S10 Repeatability, Lauf 13: **27** | Nach einem `sync_request` wurden im bestätigten No-Pull-Modus zwei ItemList-Abfragen in derselben BLE-Sitzung gesendet; der Plan dokumentiert nur den Listenvergleich und keinen Transfer-Pull. | Beide Antworten enthielten 27 Items; die UID-/Metadatenpaare waren innerhalb des Laufs unverändert. Keine MLR-Chunks, Datei-Pulls oder Importe. Der sitzungsübergreifende Bestand hatte sich zuvor verändert; diese 27 sind keine vollständige Gerätehistorie. | Kein Originalarchiv- oder Decoder-/SQLite-/Exportnachweis aus diesem No-Pull-Lauf. Quelle: [`CIRQA_ITEM_LIST_REPEATABILITY_TEST_PLAN.md`](../device-tests/CIRQA_ITEM_LIST_REPEATABILITY_TEST_PLAN.md). |
+| Separater PulsLibre-Historienlauf, 26.11.: **27** | Eine initiale ItemList mit 27 Einträgen und drei begrenzte Transaktions-Folgeantworten; die genaue Filterwirkung ist nicht belegt. Dies ist nicht der Repeatability-No-Pull-Lauf in der Zeile darüber. | Vier vollständige Antworten: zunächst 27 Items, danach drei erfolgreiche leere Antworten. Alle 27 Items wurden transferiert, verifiziert und privat archiviert; 26 waren FIT, eines non-FIT. `runDrained=false`/`device-history-unverified` bleibt bestehen. | 26 FIT-Dateien SQLite-committed; 19 hatten importierbare Werte, 7 keine. Für diesen Lauf wurde hier kein tatsächlicher CSV-Export an Typ-32-Provenienzen korreliert. Capture-Nachtrag auf `origin/main` vom 26.11.; getrennt von c16/29/38/39 führen. |
+| PulsLibre c16: **38** | Vollständig reassemblierte initiale ItemList-Antwort (Request-ID 2); drei begrenzte Folgeanfragen (IDs 41–43) mit demselben `next_transaction_id`; keine Connect-Filtersemantik daraus abgeleitet. | Initial 38 Items; jede der drei vollständigen Folgeantworten war `status=0`, hatte 0 Items und wiederholte den Token. Diese c16-ItemList-Evidenz allein korreliert keine ausgewählten Items mit Pulls oder MLR-Streams. | Kein aus c16 abgeleiteter Originalbytes-, Decoder-, SQLite- oder Exportnachweis in diesem Vergleich. Siehe Tabelle unten für die Feld-/Antwortdetails. |
+| PulsLibre manueller Lauf 25.11.: **29** | ItemList mit 29 Einträgen; vollständige PullItem-Anfrage/-Antwort-Korrelation. Im hier vorliegenden HCI-Nachweis ist die initiale Request-Form nicht mit einer gleichzeitigen Connect-Aufzeichnung verglichen. | 29 PullItem-Antworten erfolgreich; 28 MLR-Konfigurationen und Streams. 28/28 erreichen zlib-EOF und deklarierte Größe; 25 sind FIT-envelope- und CRC-valide. Eine Pull-Antwort ohne beobachtete MLR-Konfiguration bleibt unzugeordnet. Keine Labels 15/28/32 in dieser Liste. | Lokaler Vorher/Nachher-Hashvergleich: die 25 validen FIT-Streams waren bereits vor dem Lauf archiviert; der Lauf fügte keine neuen FIT-Hashes hinzu. Separates Backup-Audit: 45 FIT-Quellen und 559 kanonische HR-Beobachtungen aus FIT Global 55/Feld 27 über zwei Quellen; nicht als Zuordnung dieser 25 Transfers ausgeben. |
+| Garmin Connect, Capture 24.11.: **39** | Eine erfolgreiche ItemList-Antwort mit 39 Items, ohne Session-Cursor und mit Transaktionstoken. Der begrenzte Audit beobachtete sechs Requestformen: Felder 4+5, 5+6, jeweils mit Transaktionsfeld 2, danach Wiederholungen der beiden ersten Formen. Feldformen sind belegt, nicht die Wertewirkung auf die Auswahl. | 39 Pull-Anfragen und erfolgreiche Pull-Antworten. Ein früher Replay-Bericht ordnete 38 Transferkonfigurationen zu; eine spätere strikte Parser-Nachprüfung hat den Registrierungsbefund zurückgenommen, daher wird diese Registrierungskorrelation hier nicht als bestätigt gewertet. Unabhängig davon dokumentiert die private Byte-Rekonstruktion 38 Streams in erwarteter Größe, bytegleich im PulsLibre-Nachher-Archiv; der 39. Transfer ist nicht vollständig belegt. | Unter den 38 rekonstruierten Dateien sind 34 FIT mit gültiger Datei-CRC und Quellenzeile im Nachher-Backup; Beobachtungs-/Review-Kandidaten im Archiv sind dokumentiert. Kein Beweis für vollständige tägliche Abdeckung oder Connect-UI-Gleichheit. Quellen: [`CIRQA_CONNECT_S10_CAPTURE_COMPARISON_2026-11-23.md`](CIRQA_CONNECT_S10_CAPTURE_COMPARISON_2026-11-23.md) und [`CIRQA_CONNECT_TRANSACTION_FILTER_AUDIT_2026-11-24.md`](CIRQA_CONNECT_TRANSACTION_FILTER_AUDIT_2026-11-24.md). |
+| Früheres PulsLibre V24/V25-Archiv: **31 FIT** | V24/V25-Übertragung umfasste 33 gelistete Dateien (31 FIT, 2 Nicht-FIT); dies ist kein Request-/ItemList-Vergleich mit den oben genannten späteren Läufen. | Alle 33 gelisteten Dateien wurden im damaligen Lauf als übertragen und privat gespeichert berichtet; keine Aussage, dass die Liste die gesamte Gerätehistorie umfasste. | Die veröffentlichte Inventur dokumentiert 31/31 FIT als Größen-, Magic-, Header-/Datei-CRC- und SHA-256-validiert. Eine zusätzliche lokale, hash-prefix-korrelierte Prüfung der aktuell verfügbaren Originale konnte 30/31 Dateien erneut öffnen und `File_ID.type` aus den FIT-Bytes lesen: 1=`device`×1, 4=`activity`×14, 5=`workout`×4, 32=`monitoring_b`×2; die übrigen Typ-IDs 44×4, 49×1, 68×1, 73×1, 74×1 und 79×1 bleiben hier ohne behauptete Semantik. Unter den 30 neu geprüften Dateien wurde kein Typ 15 oder 28 beobachtet; die fehlende 31. Quelle verhindert diese Aussage für den ganzen Satz. Decoder-/SQLite-Inventur: 294 passende importierbare Kandidaten (129 Herzfrequenz, 129 Distanz, 36 Geschwindigkeit) in SQLite; weitere Monitoring-, Schlaf-, HRV-, Stress-, SpO₂- und Atemfelder blieben je nach Feld/Zeitstempel nicht kanonisch importiert. Die Inventur belegt weder Export/UI-Abdeckung noch vollständige Historie. Quelle: [`CIRQA_OFFLINE_FILE_INVENTORY_2026-11-18.md`](CIRQA_OFFLINE_FILE_INVENTORY_2026-11-18.md); Profilnamen nach Garmin FIT Profile 21.222.0. |
+
+**Request-/Antwortgrenze:** Nur c16 und der 25.11.-PulsLibre-Lauf sind in diesem
+Bericht feldweise als vollständige ItemList-/Folgeantworten bzw. ItemList-zu-
+Pull-Korrelation beschrieben. Für Connect 24.11. ist der erfolgreiche
+39er-ItemList-/Pull-/Transferpfad separat dokumentiert. Der 27er-No-Pull-Lauf
+ist eine Repeatability-Beobachtung, kein Dateiabruf. Die 31 FIT sind ein
+Archiv-/Importbestand aus V24/V25. Diese Daten dürfen daher weder als
+identische Stichproben noch als Beleg für dieselbe Auswahlentscheidung
+verglichen werden.
+
+### Getrennter Post-Run-Snapshot: Typ 32 bis SQLite/CSV-Codepfad
+
+Ein weiterer, eigenständiger lokaler Post-Run-Backup-Snapshot vom 26.11. wurde
+offline anhand vollständiger Archiv-Chunks, SHA-256 und FIT-Envelope geprüft.
+Er enthält 3.242 vollständige Originale, darunter 39 FIT. Aus den tatsächlichen
+FIT-`File_ID.type`-Bytes wurden drei Typ-32-Dateien identifiziert; jede hat eine
+aktive Decoder-Generation und enthält Global Message 55 (`monitoring`). Diese
+Snapshot-Zählung ist weder eine Fortsetzung der 29er-ItemList noch die
+Rekonstruktion einer 39er-Connect-Liste.
+
+Für diese drei Monitoring-B-Dateien ist die Pipeline wie folgt belegt:
+
+| Stufe | Capture-spezifischer Befund |
+| --- | --- |
+| Originalarchiv | 3/3 FIT-Originale vollständig aus Archiv-Chunks rekonstruiert und als Typ 32 gelesen; 3/3 mit aktiver FIT-Generation. |
+| Decoder/Feldpersistenz | 3.758 rohe Global-55-Feldvorkommen sind in `canonical_fit_generation_fields` persistiert. Die Originaldateien enthalten zusätzlich Monitoring-Nachrichten 227, 269 und 297; unbekannte bzw. nicht freigegebene Felder bleiben separat inventarisiert. |
+| Kanonische SQLite-Beobachtungen | 1.156 Global-55-Herzfrequenz-Beobachtungen sind in `canonical_fit_generation_observations` vorhanden und über 1.156 Provenienzzeilen mit den Dateien verbunden. |
+| Review-Kandidaten | 5.529 Kandidaten bleiben explizit `UNTRUSTED_PROFILE_CANDIDATE`: Stress 1.572, SpO₂ 1.120, SpO₂-Konfidenz 1.122, Atmung 1.572 sowie Monitoring-Aktivitätstyp 12 und Zyklen 131. Sie sind nicht mit kanonischen Messungen gleichzusetzen. |
+| CSV-Export | Der aktuelle `UnifiedMeasurements`-Code materialisiert aktive FIT-Generationsbeobachtungen in die Unified-Tabelle; `ExportActivity` liest daraus CSV-Zeilen. Damit liegt für die 1.156 kanonischen HR-Beobachtungen ein Codepfad zum Export vor. Ein tatsächlich ausgeführter CSV-Export dieses Snapshots wurde nicht nachgewiesen. Review-Kandidaten und rohe Feldbytes werden dadurch nicht als CSV-Messwerte ausgegeben. |
+
+Das belegt für diesen separaten Snapshot: Typ-32-Historie kann archiviert,
+feldweise decodiert und teilweise kanonisch in SQLite persistiert werden; die
+HR-Provenienz erreicht den vorgesehenen Unified-/CSV-Codepfad. Es beweist
+weder, dass dieselben Dateien in einem der oben genannten HCI-Captures
+angeboten wurden, noch dass der Export tatsächlich ausgeführt wurde oder die
+Gerätehistorie vollständig ist.
+
+### Nachweis eines vorhandenen CSV-Exports aus einem früheren Snapshot
+
+Zusätzlich wurde eine vorhandene lokale CSV-Datei read-only über ihre
+`sample_id`s mit einem älteren, separaten Backup-Snapshot abgeglichen. In diesem
+Backup lagen fünf FIT-Dateien mit `File_ID.type=32` und 1.144 aktive, kanonische
+Global-55/Feld-27-Herzfrequenz-Beobachtungen. Die 1.488 Datenzeilen umfassende
+CSV-Datei enthält **360 sample-id-identische Zeilen** aus genau dieser
+Provenienzgruppe; alle 360 sind `heart_rate`/`bpm`. Es wurden weder Messwerte
+noch Sample-IDs veröffentlicht. Zwei weitere vorhandene CSV-Dateien hatten
+keine `sample_id`-Überschneidung mit dieser Typ-32-Provenienz.
+
+Damit ist für mindestens diese 360 Typ-32-Herzfrequenz-Beobachtungen nicht nur
+der Export-Codepfad, sondern auch eine tatsächliche CSV-Ausgabe mit
+FIT-Provenienz belegt. Die übrigen 784 Beobachtungen dieses Backup-Snapshots
+wurden in dieser CSV nicht wiedergefunden; Grund und zeitlicher
+Datenbankzustand sind nicht festgestellt. Eine weitere redigierte Prüfung
+schränkt die Erklärung ein: Alle 1.144 Beobachtungen liegen innerhalb des
+breiten Datumsbereichs der CSV und innerhalb der darin vorhandenen
+Zeitstempel-Spanne; alle haben `PROFILE_VALID`-Qualität und einen positiven
+Herzfrequenzwert. Daher erklären weder das gewählte Export-Zeitfenster noch der
+im Unified-Export verwendete Ausschluss nichtpositiver Herzfrequenzwerte die
+784 fehlenden IDs. Die 360 Treffer stammen aus zwei der fünf Typ-32-Quellen
+(350 aus einer, 10 aus einer weiteren); die übrigen drei Quellgruppen mit
+insgesamt 784 Beobachtungen haben keine CSV-Treffer. Da der verwendete
+Backup-Snapshot und der tatsächliche Export keinen nachgewiesen identischen
+SQLite-Zeitstand teilen, lässt sich daraus nicht entscheiden, ob diese drei
+Quellgruppen beim Export noch nicht in der exportierten Datenbankgeneration
+vorlagen oder ob ein anderer Zustandspfad wirkte. Keine Ursache ist damit
+bewiesen.
+
+Für den getrennten 26.11.-Snapshot mit drei Typ-32-Dateien fand sich in den
+geprüften CSV-Dateien keine passende `sample_id`-Überschneidung. Keiner dieser
+Exportnachweise ordnet die Dateien einem der 27/29/38/39-ItemList-Captures zu.
+
 Aus dem privaten c16-HCI-Replay; Smart-Protobufs und äußere GFDI-Frames wurden
 vollständig reassembliert und die Request-ID-Korrelation geprüft. Zeitbasis:
 HCI-Quellkonvertierung, absolut nicht unabhängig als UTC validiert.
@@ -215,6 +303,60 @@ chronologisch verglichen. Der Start der App löste eine automatische GATT-
 Verbindung aus. Der Screenshot dokumentiert keinen expliziten Sync-Tap; deshalb
 wird diese Interaktion nicht als manuell ausgelöster vollständiger Sync
 bezeichnet.
+
+### FileAccess-Inventar des PulsLibre-Laufs vom 25.11.
+
+Eine zusätzliche private, metadatenbegrenzte Auswertung des HCI-Deltas zum
+manuell gestarteten PulsLibre-Lauf korreliert die ItemList-Antwort und Pulls
+über ihre Protobuf-Request-IDs und Transfer-Handles:
+
+- Die vollständige ItemList-Antwort enthält 29 Einträge (`status=0`); alle 29
+  Items haben eine korrelierte PullItem-Anfrage und -Antwort mit
+  `resultCode=0`/Transportstatus 0.
+- Die ItemList-Metadaten kategorisieren 19 Items als `FIT_TYPE_4`, vier als
+  `FIT_TYPE_5`, je eines als `FIT_TYPE_1`, `FIT_TYPE_72` und `FIT_TYPE_74`,
+  zwei als `format_0` sowie eines als `format_3`. Diese sind FileAccess-
+  Metadatenlabels, **keine** aus den übertragenen FIT-Bytes gelesenen
+  `File_ID.type`-Werte. In Garmins offiziellem [FIT SDK Profile
+  21.222.0](https://github.com/garmin/fit-python-sdk/blob/21.222.0/garmin_fit_sdk/profile.py)
+  sind die enum-Werte 1=`device`, 4=`activity` und 5=`workout`; für die übrigen
+  Labels ist damit keine FIT-Payload-Semantik belegt. Das offizielle Profil
+  definiert außerdem FIT-File-Enums 15=`monitoring_a`, 28=`monitoring_daily`
+  und 32=`monitoring_b`. Dies bestätigt die Namen als offizielle FIT-File-
+  Kategorien, **nicht** deren Auftreten in diesem ItemList-/Transfermitschnitt.
+- Für 28 Pull-Antworten wurde eine MLR-Konfiguration beobachtet; die 29.
+  Antwort (Item-Metadatengröße 6.010 Bytes) hat im Mitschnitt keine
+  nachfolgende Konfiguration. Der Mitschnitt endet rund 56,5 Sekunden nach
+  dieser Antwort. Das ist ein unvollständiger Mitschnittbefund, kein Beleg,
+  dass PulsLibre den Pull verworfen oder das Band die Datei nicht geliefert
+  hat.
+- Eine korrigierte Offline-Rekonstruktion ohne zusätzlich angenommene
+  Zwei-Byte-Präfixe pro Notification brachte alle 28 konfigurierten MLR-Streams
+  bis zum zlib-EOF; bei allen 28 stimmt die dekomprimierte Länge mit der
+  PullItem-deklarierten Größe überein. Bei 25 Streams sind zusätzlich FIT-
+  Signatur, deklarierte Länge, Header-CRC und Datei-CRC gültig. Die alternative
+  Zwei-Byte-Präfix-Interpretation validiert 0/28 und wird daher für diese
+  Capture-Rekonstruktion verworfen. Für die drei übrigen Streams ist ein
+  erfolgreicher zlib-Abschluss mit passender Größe belegt, aber keine valide
+  FIT-Datei.
+- Für die 25 validen FIT-Dateien wurde `File_ID.type` unabhängig aus den
+  übertragenen Bytes gelesen: die Labels `FIT_TYPE_4`, `FIT_TYPE_5`,
+  `FIT_TYPE_1` und `FIT_TYPE_72` stimmen jeweils mit dem jeweiligen Payload-
+  Typ überein. Die zwei `format_0`- und eine `format_3`-Datei sind keine FIT-
+  Dateien. Daraus folgt weiterhin nicht, dass ein beobachtetes Label
+  `FIT_TYPE_15`, `FIT_TYPE_28` oder `FIT_TYPE_32` in der Liste aufgetreten
+  wäre: keines dieser drei Monitoring-Labels ist in dieser 29-Item-Liste
+  beobachtet. Eine Pull-Antwort hat keine zugehörige MLR-Konfiguration im
+  Mitschnitt; ihre Payload-Zuordnung bleibt offen. Alle diese Befunde sind
+  capture-spezifisch und ersetzen weder den separaten Terminal-/Backup-
+  Nachweis noch einen Nachweis vollständiger Gerätehistorie.
+
+Damit liegt nun eine konkrete **FileAccess-Auswahl** für PulsLibre vor, aber
+weiterhin kein belastbarer Vergleich mit Connects ausgewählten Monitoring-
+Items oder deren `File_ID.type`. Eine Ursache für fehlende normale
+Monitoring-Historie und insbesondere eine Wirkung optionaler ItemList-Filter
+ist damit nicht bewiesen. Es gibt weiterhin keinen Grund, Requestfilter oder
+Downloader-Auswahl spekulativ zu ändern.
 
 Im ausgewählten c17-Zeitraum:
 
