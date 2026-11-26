@@ -1,0 +1,14 @@
+# OpenCode – #637 SQLite BUSY/LOCKED retry classification
+- Agent/Umgebung: OpenCode FIT, Linux-Worktree
+- Beginn: 2026-11-26 06:07 UTC
+- Letzte Aktualisierung: 2026-11-26 06:07 UTC
+- Status: aktiv
+- Rolle/Zuständigkeit: FIT/GFDI/MLR, History-Transport, SQLite/Backup-Evidenz
+- Aktueller Auftrag: Nach dem Fehler-Audit die konkrete Lücke schließen: begrenzte Retry-Defaults auf beide Android-Ausnahmen für `SQLITE_BUSY` und `SQLITE_LOCKED` (`SQLiteDatabaseLockedException` und `SQLiteTableLockedException`) erweitern; Tests müssen echte Android-Exceptiontypen gegen die Defaults prüfen.
+- Jetzt in Bearbeitung: Separater aktueller `origin/main`-Branch; nur Retry-Utility und fokussierte Tests. Retry-Delays und Aufrufgrenzen nicht ändern.
+- Zeitnah geplant: Zielgerichtete JVM-Unit-Tests, QUICK falls machbar; Self-Review und regulärer PR-/Required-Checks-Weg.
+- Betroffene Dateien: `CirqaSqliteBusyRetry.kt`, `CirqaSqliteBusyRetryTest.kt`, Koordinationsnachweise.
+- Branch/Worktree: `opencode/issue637-retry-busy-exceptions-20261126`, `/tmp/opencode/issue637-sqlite-open-repro-20261125`.
+- Abstimmungsbedarf: keiner bekannt; kein Gerätezugriff.
+- Nachweise: Im Audit bestätigte Lücke: beide Defaults klassifizieren bisher nur `SQLiteDatabaseLockedException`; Android JNI mappt SQLITE_BUSY auf diesen Typ und SQLITE_LOCKED auf `SQLiteTableLockedException`. Vorhandene Unit-Tests nutzen ausschließlich benutzerdefiniertes `retryable`.
+- Nächster Schritt: Fehlerklassen im Default ergänzen und echte Typen in den Default-Tests prüfen.

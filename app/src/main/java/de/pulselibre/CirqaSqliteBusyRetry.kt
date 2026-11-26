@@ -1,14 +1,17 @@
 package de.pulselibre
 
 import android.database.sqlite.SQLiteDatabaseLockedException
+import android.database.sqlite.SQLiteTableLockedException
 
-/** Small bounded retry for SQLITE_BUSY during database open/short archive transactions. */
+/** Small bounded retry for SQLite BUSY/LOCKED during database open/short archive transactions. */
 internal object CirqaSqliteBusyRetry {
     private val delaysMillis = longArrayOf(50, 100, 250, 500)
 
     fun <T> run(
         pause: (Long) -> Unit = { Thread.sleep(it) },
-        retryable: (Exception) -> Boolean = { it is SQLiteDatabaseLockedException },
+        retryable: (Exception) -> Boolean = {
+            it is SQLiteDatabaseLockedException || it is SQLiteTableLockedException
+        },
         operation: () -> T
     ): T = runWithDelays(delaysMillis, pause, retryable, operation)
 
@@ -18,7 +21,9 @@ internal object CirqaSqliteBusyRetry {
      */
     fun <T> runOnce(
         pause: (Long) -> Unit = { Thread.sleep(it) },
-        retryable: (Exception) -> Boolean = { it is SQLiteDatabaseLockedException },
+        retryable: (Exception) -> Boolean = {
+            it is SQLiteDatabaseLockedException || it is SQLiteTableLockedException
+        },
         operation: () -> T
     ): T = runWithDelays(longArrayOf(250), pause, retryable, operation)
 
