@@ -49,6 +49,6 @@ class SyncReportStoreTest {
 
     @Test fun readableSummaryStillWorksOnTheStoredForm() {
         val stored = SyncReportStore.forStorage(longReport(items = 80, pulls = 1))
-        assertTrue(SyncReportSummary.explain(GermanStrings, stored)!!.startsWith("Das Band hat den Abruf der ersten Datei abgelehnt (Code 0)"))
+        assertTrue(SyncReportSummary.explain(GermanStrings, stored)!!.startsWith("Das Band hat Dateiabrufe abgelehnt (Code 0)"))
     }
 }

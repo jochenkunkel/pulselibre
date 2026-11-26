@@ -128,7 +128,7 @@
     <string name="main_status_ready">Offline · ready</string>
     <string name="main_hist_status_none">No historical download started yet.</string>
     <string name="sync_sum_complete">Download complete: %1$d files transferred.</string>
-    <string name="sync_sum_pull_rejected">The band rejected the download of the first file (code %1$s). It had offered %2$d files; %3$d more were not requested.</string>
+    <string name="sync_sum_pull_rejected">The band rejected file downloads (code %1$s). It had offered %2$d files; %3$d more were not requested.</string>
     <string name="sync_sum_followup_empty">%1$d of %2$d offered files transferred; afterwards the band reported no more. Whether the history is complete is not proven.</string>
     <string name="sync_sum_partial">%1$d of %2$d offered files transferred.</string>
     <string name="sync_sum_details">Technical details (tap to expand):</string>

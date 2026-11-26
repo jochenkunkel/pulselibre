@@ -124,6 +124,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private var pendingSyncWriteTag: SyncWriteTag? = null
     private var syncCompletedFiles = 0
     private var syncFailedFiles = 0
+    /** Rejected pull responses in a row (#637); reset by every accepted pull. */
+    private var syncConsecutivePullRejections = 0
     private val syncFileStageCounts = CirqaSyncFileCompletion.StageCounts()
     private var syncFileResults = ""
     private var syncHasPaginationSession = false
@@ -2253,6 +2255,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         syncNextRequestId = 3
         syncCompletedFiles = 0
         syncFailedFiles = 0
+        syncConsecutivePullRejections = 0
         syncFileStageCounts.reset()
         syncFileResults = ""
         syncHasPaginationSession = false
@@ -2303,17 +2306,36 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             syncProgressCallback = null
         } else {
             emitSyncProgress(HistorySyncStage.CONNECTING)
-            serial.postDelayed({
-                if (active && fileAccessListMode) {
-                    // finish() builds the single canonical report (including validation).
-                    syncIncompleteReason = syncIncompleteReason ?: if (stopBeforePull) {
-                        "diagnostic-time-limit"
-                    } else {
-                        "session-time-limit"
+            if (stopBeforePull) {
+                serial.postDelayed({
+                    if (active && fileAccessListMode) {
+                        syncIncompleteReason = syncIncompleteReason ?: "diagnostic-time-limit"
+                        finish("40-s-Zeitlimit; $fileAccessDiag", gatt)
                     }
-                    finish("${if (stopBeforePull) "40-s" else "120-s"}-Zeitlimit; $fileAccessDiag", gatt)
+                }, 40_000L)
+            } else {
+                // #637: end after 120 s WITHOUT progress (or the 15 min hard cap), not 120 s after the start.
+                val deadline = CirqaSyncSessionDeadline(android.os.SystemClock.elapsedRealtime())
+                val watchdog = object : Runnable {
+                    override fun run() {
+                        if (!active || !fileAccessListMode) return
+                        val signature = "${syncPipelineLedger.summary()}|$mlrBytes|$syncFailedFiles" // band chatter alone is no progress
+                        when (deadline.check(signature, android.os.SystemClock.elapsedRealtime())) {
+                            null -> serial.postDelayed(this, CirqaSyncSessionDeadline.CHECK_INTERVAL_MS)
+                            CirqaSyncSessionDeadline.Expiry.IDLE -> {
+                                // finish() builds the single canonical report (including validation).
+                                syncIncompleteReason = syncIncompleteReason ?: "session-time-limit"
+                                finish("${CirqaSyncSessionDeadline.IDLE_MESSAGE} ohne Fortschritt; $fileAccessDiag", gatt)
+                            }
+                            CirqaSyncSessionDeadline.Expiry.TOTAL -> {
+                                syncIncompleteReason = syncIncompleteReason ?: "session-total-limit"
+                                finish("${CirqaSyncSessionDeadline.TOTAL_MESSAGE}; $fileAccessDiag", gatt)
+                            }
+                        }
+                    }
                 }
-            }, if (stopBeforePull) 40_000L else CirqaSyntheticDownloadLimits.MAX_SESSION_MILLIS)
+                serial.postDelayed(watchdog, CirqaSyncSessionDeadline.CHECK_INTERVAL_MS)
+            }
         }
     }
 
@@ -2562,9 +2584,10 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                             "dataErrorSource=${pull.dataSpecificErrorSource ?: "none"}," +
                             "dataErrorCode=${pull.dataSpecificErrorCode ?: "none"}]").take(1000)
                         syncTransferHandle = pull.transferHandle
-                        if (pull.resultCode != 0L || pull.transport != 0L ||
+                        val pullRejected = pull.resultCode != 0L || pull.transport != 0L ||
                             pull.transferHandle !in 1..0xffff_ffffL
-                        ) {
+                        if (!pullRejected) syncConsecutivePullRejections = 0
+                        if (pullRejected) {
                             val failedLocalId = syncPullRequestItems[completedMessage.requestId]
                             if (failedLocalId == null ||
                                 syncPipelineLedger.record(
@@ -2572,8 +2595,22 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                                     CirqaSyncPipelineLedger.Stage.FAILED
                                 )
                             ) syncFailedFiles++
-                            syncFileResults = (syncFileResults + "pull-rejected;").take(1800)
-                            finish("Pull-Antwort nicht erfolgreich; weitere Abrufe gestoppt.", g)
+                            syncFileResults = (syncFileResults + "pull-rejected(result=${pull.resultCode});").take(1800)
+                            syncConsecutivePullRejections++
+                            if (CirqaPullRejectionPolicy.stopAfter(syncConsecutivePullRejections)) {
+                                finish("Pull-Antwort nicht erfolgreich; ${syncConsecutivePullRejections} Ablehnungen in Folge, weitere Abrufe gestoppt.", g)
+                            } else {
+                                // #637: one rejected file (e.g. result=3) no longer ends the whole run; the next listed
+                                // file is requested. Nothing of the rejected item was configured or transferred.
+                                syncCurrentItem = null
+                                syncCurrentLocalItemId = null
+                                syncCurrentPullRequestId = null
+                                syncExpectedSize = 0L
+                                mlrFileAssembler?.close()
+                                mlrFileAssembler = null
+                                serial.post { mark("Pull abgelehnt (result=${pull.resultCode}); nächste Datei") }
+                                sendNextSyncFile(g)
+                            }
                         } else if (syncMlrRegistrationPending || mlrConfigureResponseSeen) {
                             // Duplicate pull responses must not allocate/configure a
                             // second MLR pipe while the current transfer is active.
@@ -3529,7 +3566,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         // Fence asynchronous GATT callbacks before snapshotting any state.
         terminationRequested = true
         if (syncRequestMode) {
-            if (message.startsWith("120-s-Zeitlimit") || message.startsWith("40-s-Zeitlimit")) {
+            if (message.startsWith("120-s-Zeitlimit") || message.startsWith("40-s-Zeitlimit") ||
+                message.startsWith(CirqaSyncSessionDeadline.TOTAL_MESSAGE)) {
                 if (syncCurrentItem != null &&
                     CirqaSyncTimeoutFinalizer.failCurrentItem(syncCurrentLocalItemId, syncPipelineLedger)
                 ) {
@@ -3731,6 +3769,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             syncNextRequestId = 3
             syncCompletedFiles = 0
             syncFailedFiles = 0
+        syncConsecutivePullRejections = 0
             syncFileResults = ""
             syncHasPaginationSession = false
             syncHasNextTransactionId = false
