@@ -857,7 +857,11 @@ class MainActivity : AppCompatActivity() {
             overview.forEach { it.visibility = if (index == 0) android.view.View.VISIBLE else android.view.View.GONE }
             historyViews.forEach { it.visibility = if (index == 1) android.view.View.VISIBLE else android.view.View.GONE }
             analysisViews.forEach { it.visibility = if (index == MainNavigationView.ANALYSEN) android.view.View.VISIBLE else android.view.View.GONE }
-            deviceViews.forEach { it.visibility = if (index == 2 && (debugDevicesVisible || it !in debugDeviceViews)) android.view.View.VISIBLE else android.view.View.GONE }
+            deviceViews.forEach {
+                val shown = index == 2 && (debugDevicesVisible || it !in debugDeviceViews)
+                if (it is TabAwareVisibility) it.tabShown = shown
+                else it.visibility = if (shown) android.view.View.VISIBLE else android.view.View.GONE
+            }
             if (index == 1) {
                 dashboardLastEventId = -1L
                 dashboardLastRefreshAt = 0L

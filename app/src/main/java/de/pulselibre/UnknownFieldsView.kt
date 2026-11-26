@@ -14,7 +14,10 @@ import androidx.appcompat.app.AlertDialog
  * Subtle hint on the device page: "Unbekannte Datenfelder entdeckt (N Typen)". Hidden when there is nothing to show.
  * Tapping opens the read-only list (coordinates, counters, classification, status); no raw values, no medical labels.
  */
-internal class UnknownFieldsView(context: Context) : LinearLayout(context) {
+internal class UnknownFieldsView(context: Context) : LinearLayout(context), TabAwareVisibility {
+    override var tabShown = false
+        set(value) { field = value; visibility = TabAwareVisibility.visibility(value, hasContent) }
+    override val hasContent: Boolean get() = summary?.isEmpty == false
     private val palette = AppPalette.of(context)
     private fun dp(v: Int) = (v * resources.displayMetrics.density + 0.5f).toInt()
     private var summary: UnknownFieldsSummary.Summary? = null
@@ -28,8 +31,8 @@ internal class UnknownFieldsView(context: Context) : LinearLayout(context) {
     fun show(value: UnknownFieldsSummary.Summary) {
         summary = value
         removeAllViews()
-        if (value.isEmpty) { visibility = View.GONE; return }
-        visibility = View.VISIBLE
+        visibility = TabAwareVisibility.visibility(tabShown, hasContent)
+        if (value.isEmpty) return
         background = GradientDrawable().apply { setColor(palette.tinted); cornerRadius = dp(14).toFloat() }
         setPadding(dp(14), dp(12), dp(14), dp(12))
         isClickable = true; isFocusable = true
