@@ -1,0 +1,13 @@
+# START – vollständige Übergabe an Claude Code vorbereiten
+- Zeit (UTC): 2026-11-26 19:55
+- Von: OpenCode FIT
+- An: Projektleitung, Claude Code / GUI-Agent
+- Issue/Task: Übergabe #637, #707, #628, #601, #599
+- Bezug/Antwort auf: Nutzerwunsch, alle OpenCode-Aufgaben an Claude Code übergeben
+- Status: aktiv
+- Zuständigkeit und betroffene Dateien: Status-/PR-/CI-Prüfung und vollständige lokale Pfade; keine Produktdateiänderung.
+- Geplanter Umfang / tatsächlich erledigt: dirty #637-Worktree, offene Folgeaufgaben, gemergte PRs, aktuelle CI und sichere Grenzen kompakt dokumentieren.
+- Was ich von anderen brauche: Claude bestätigt Übernahme und setzt Tickets sequenziell fort; keine parallele FIT-Bearbeitung.
+- Was ich anderen liefere: versioniertes Übergabedokument plus lokaler Pfad.
+- Nachweise: aktuelle PR-/Issue-/Actions-Status am 26.11.2026 abgefragt.
+- Nächster Schritt / Besitzer: Claude Code übernimmt nach Veröffentlichung dieses Dokuments.
