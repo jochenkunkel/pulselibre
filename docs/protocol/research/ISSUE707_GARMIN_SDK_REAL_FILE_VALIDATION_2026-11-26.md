@@ -33,7 +33,7 @@ keine Werte, Zeitreihen, Hashes oder Dateinamen.
 
 - **Gesamt vor dem Fix:** 16 321 Übereinstimmungen bei 16 952 vergleichbaren Feldinstanzen. Das sind **96,3 %** (ohne die 19 Zyklen-Zeitartefakte des SDK).
 - **Einziger echter Fehler: 269/2.** Alle 8 echten `spo2_data`-Definitionen deklarieren Feld 2 als `uint8` (0x02); PulsLibre akzeptierte nur `enum` (0x00) und verwarf jeden Wert. Der Fix (Decoder 6) akzeptiert ein Byte als `enum` oder `uint8`, wie das SDK.
-- **Nach dem Fix:** 16 952 / 16 952 = **100 %** auf diesem Bestand. Das ist rechnerisch aus denselben Daten abgeleitet, die SpO₂-Modus-Werte selbst sind unverändert. Ein erneuter Lauf mit Decoder 6 über dieselben Originale steht noch aus.
+- **Nach dem Fix:** 16 952 / 16 952 = **100 %** auf diesem Bestand. Das ist rechnerisch aus denselben Daten abgeleitet, die SpO₂-Modus-Werte selbst sind unverändert. Der erneute Lauf mit Decoder 6 ist unten dokumentiert.
 
 ## Grenzen
 
@@ -41,3 +41,22 @@ keine Werte, Zeitreihen, Hashes oder Dateinamen.
 - Die Zeitrekonstruktion von `timestamp_16` ist mit derselben Regel geprüft, nicht unabhängig von Garmin. Das SDK selbst rekonstruiert nicht.
 - 55/24 (Decoder 5, #708) und die #696-Statusfilter waren in diesem Backup noch nicht enthalten. 55/24 ist nur synthetisch gegen das SDK geprüft (3/3).
 - 233 und 397 stehen nicht im Profil und sind hier nicht bewertet. Die Semantik der SpO₂-Konfidenz bleibt offen.
+
+## Nachlauf mit Decoder 6 (26.11.2026, spät)
+
+Dieselben 37 Originale wurden auf der Desktop-JVM mit `FitHistoricalObservations` aus `main` (Decoder 6, inklusive 55/24 und #696-Statusfiltern) dekodiert und gegen `garmin-fit-sdk==21.222.0` verglichen. Verglichen wurde je Datei, Messzeit und Wert.
+
+| Messgröße | PulsLibre | SDK | identisch |
+|---|---:|---:|---:|
+| SpO₂-Modus 269/2 | 631 | 631 | **631** |
+| SpO₂-Konfidenz 269/1 | 631 | 631 | 631 |
+| 55/24 Aktivitätstyp (Bits 0–4) | 174 | 174 | **174** |
+| 55/24 Intensität (Bits 5–7) | 174 | 174 | **174** |
+
+- Damit ist 55/24 erstmals auf echten Dateien geprüft und nicht mehr nur synthetisch.
+- Die übrigen kanonischen Messgrößen und Zeitstempel (0 MISSING_TIMESTAMP) stehen in `ISSUE628_FIT_TIMESTAMP_SDK_REPLAY_2026-11-26.md`.
+- **Standardfeld-Genauigkeit (a) für den genannten Umfang: 100 %**, ohne kritische Fehlinterpretation.
+- **233/2 und 397/1:** Diese Felder stehen nicht im Garmin-Profil.
+  - Sie bleiben byte-genau in der Rohgeneration und im Unbekannt-Inventar erhalten. Der Test `proprietary233And397StayRawUnchangedAndNeverBecomeMeasurements` sichert das ab.
+  - Sie werden weder Messwert noch Review-Kandidat.
+  - Ihre Semantik ist **nicht nachgewiesen**.
