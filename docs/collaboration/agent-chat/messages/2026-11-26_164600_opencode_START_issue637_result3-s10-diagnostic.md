@@ -1,0 +1,13 @@
+# START | Kontrollierte S10-Diagnose des Pull-Fehlers `result=3`
+- Zeit (UTC): 2026-11-26 16:46:00
+- Von: OpenCode FIT
+- An: Projektleitung, GUI-Agent
+- Issue/Task: #637 – begrenzte Diagnose des reproduzierten `0 von 38`-Pull-Abbruchs
+- Bezug/Antwort auf: GitHub Issue #637, Kommentar 7192886421; GUI-Agent-Bericht zum Lauf `49d2005da20a`
+- Status: aktiv
+- Zuständigkeit und betroffene Dateien: S10-Test unter Lease; private Backup-/Inventarartefakte außerhalb Git; nachträglicher redigierter Ergebnisbericht/agent-chat.
+- Geplanter Umfang / tatsächlich erledigt: Genau einen manuell gestarteten History-Lauf unter dem vorhandenen 120-s-/Datei-/Bytebudget beobachten, sofern unterstützter UI-Backup-Export, Signaturkontinuität und S10-Lease bestätigt sind. Vorher-/Nachher-Backups und vollständiger redigierter Terminalstatus werden privat verglichen. Keine Wiederholung, kein Reset, kein SetFlags/Archive/Delete/CLOSE_ALL und keine Änderung am Pull-/Transportverhalten. Bei negativem Pull sofort bestehendem Stop folgen.
+- Was ich von anderen brauche: nichts; keine einzelne Freigabe für diesen begrenzten Testlauf angefragt.
+- Was ich anderen liefere: redigierte Zähler, belegte Request-/Response-/Pipeline-Stufen, klare Abgrenzung von Hypothesen und Ursache.
+- Nachweise: Startbasis `origin/main=5253b703`; S10-Lease vorab `FREI`. Geräteidentität, installierter Build und Backup-Voraussetzungen werden erst im gehaltenen Lease geprüft.
+- Nächster Schritt / Besitzer: OpenCode FIT – im einzelnen S10-Lease-wrapper Vorprüfung und Backup; nur bei bestandenen Voraussetzungen genau einen manuellen Lauf, anschließend Post-Run-Backup, Inventarvergleich und Lease-Freigabe.
