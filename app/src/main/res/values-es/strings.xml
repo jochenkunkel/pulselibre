@@ -128,7 +128,7 @@
     <string name="main_status_ready">Sin conexión · preparado</string>
     <string name="main_hist_status_none">Todavía no se ha iniciado ninguna descarga de datos históricos.</string>
     <string name="sync_sum_complete">Descarga completa: %1$d archivos transferidos.</string>
-    <string name="sync_sum_pull_rejected">La pulsera rechazó la descarga del primer archivo (código %1$s). Ofrecía %2$d archivos; no se solicitaron otros %3$d.</string>
+    <string name="sync_sum_pull_rejected">La pulsera rechazó descargas de archivos (código %1$s). Ofrecía %2$d archivos; no se solicitaron otros %3$d.</string>
     <string name="sync_sum_followup_empty">%1$d de %2$d archivos ofrecidos transferidos; después la pulsera no informó de más. No está demostrado que el historial esté completo.</string>
     <string name="sync_sum_partial">%1$d de %2$d archivos ofrecidos transferidos.</string>
     <string name="sync_sum_details">Detalles técnicos (toca para desplegar):</string>
