@@ -48,6 +48,15 @@ class DeviceInfoRowsTest {
         assertEquals(olderLive, DeviceInfoRows.withFitSoftwareVersion(olderLive, null))
     }
 
+    @Test fun olderValueShowsItsDateInsteadOfTimeUnknown() {
+        val utc = java.time.ZoneOffset.UTC
+        val at = java.time.Instant.parse("2026-11-25T22:14:00Z").toEpochMilli()
+        assertEquals("Stand 25.11.2026 22:14", DeviceInfoRows.freshness(s, at, at + 24 * 3_600_000L, utc))
+        assertEquals("vor 5 min", DeviceInfoRows.freshness(s, at, at + 5 * 60_000L, utc))
+        assertEquals("Zeitpunkt unbekannt · letzter bekannter Stand", DeviceInfoRows.freshness(s, 0L, at, utc))
+        assertEquals("Zeitpunkt unbekannt · letzter bekannter Stand", DeviceInfoRows.freshness(s, at + 60_000L, at, utc)) // future
+    }
+
     @Test fun noValueMeansNoRowValue() {
         assertNull(DeviceInfoRows.firmware(emptyList(), s))
         assertNull(DeviceInfoRows.identity(emptyList(), s))

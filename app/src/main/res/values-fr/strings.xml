@@ -690,6 +690,7 @@
     <string name="bat_fresh">État : %1$s</string>
     <string name="bat_stale">Obsolète · dernier état connu %1$s</string>
     <string name="bat_time_unknown">Heure inconnue · dernier état connu</string>
+    <string name="dev_meta_as_of">État au %1$s</string>
     <string name="bat_cd">Batterie : %1$d pour cent. %2$s</string>
     <string name="bat_cd_charging">Batterie : %1$d pour cent, en charge. %2$s</string>
     <string name="dev_src_pulse">Fréquence cardiaque</string>
