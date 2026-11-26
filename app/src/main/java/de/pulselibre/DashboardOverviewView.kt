@@ -59,7 +59,7 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
             if (metric.title == "Herzfrequenz") pulseCard(metric, activity)
             else metricCard(metric, palette.oxygen)
         }
-        addView(metricCard(overview.sleep, violet),
+        addView(sleepCard(overview.sleep),
             LayoutParams(-1, -2).apply { bottomMargin = dp(8) })
         addNightOxygenCard()
         heading(context.getString(R.string.ov_today_glance))
@@ -86,7 +86,7 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
             DashboardLayout.rows(part).forEach { row ->
                 val key = row.first()
                 when {
-                    key == DashboardLayout.SLEEP -> addView(metricCard(overview.sleep, violet), LayoutParams(-1, -2).apply { bottomMargin = dp(8) })
+                    key == DashboardLayout.SLEEP -> addView(sleepCard(overview.sleep), LayoutParams(-1, -2).apply { bottomMargin = dp(8) })
                     key == DashboardLayout.NIGHT -> addNightOxygenCard()
                     key == DashboardLayout.STEPS -> {
                         addStepContextChip()
@@ -507,6 +507,31 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
     private fun valuesText(count: Int) = context.getString(if (count == 1) R.string.ov_values_one else R.string.ov_values_many, count)
 
     private fun card(metric: DashboardMetric) = MetricCard(metric)
+
+    /** Sleep tile plus the band's sleep stages of the last 24 h (#329, owner 26.11.2026: events only, no duration). */
+    private fun sleepCard(metric: DashboardMetric) = metricCard(metric, violet).apply {
+        val box = LinearLayout(context).apply { orientation = VERTICAL; visibility = View.GONE; tag = "sleep_band_stages" }
+        content.addView(box, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) })
+        val app = context.applicationContext
+        Thread {
+            val night = try { SleepStages.read(app) } catch (_: Exception) { null }
+            post {
+                if (night == null || night.events.isEmpty()) return@post
+                val colors = mapOf(1 to palette.pulse, 2 to palette.oxygen, 3 to palette.primary, 4 to palette.indicator, 0 to palette.muted)
+                val time = DateTimeFormatter.ofPattern("HH:mm").withZone(ZoneId.systemDefault())
+                val c = night.counts
+                box.addView(label(context.getString(R.string.sleep_band_title), 13f, ink, true))
+                box.addView(label(context.getString(R.string.sleep_band_summary, night.events.size,
+                    time.format(Instant.ofEpochMilli(night.firstMs!!)), time.format(Instant.ofEpochMilli(night.lastMs!!))), 12f, muted))
+                box.addView(SleepStageStripView(context, night, colors, palette.track).apply {
+                    contentDescription = context.getString(R.string.sleep_band_cd, c[1] ?: 0, c[2] ?: 0, c[3] ?: 0, c[4] ?: 0, c[0] ?: 0)
+                }, LinearLayout.LayoutParams(-1, dp(70)).apply { topMargin = dp(4) })
+                box.addView(label(context.getString(R.string.sleep_band_legend, c[1] ?: 0, c[2] ?: 0, c[3] ?: 0, c[4] ?: 0, c[0] ?: 0), 12f, ink))
+                box.addView(label(context.getString(R.string.sleep_band_note), 11f, muted).apply { tag = "sleep_band_note" })
+                box.visibility = View.VISIBLE
+            }
+        }.start()
+    }
 
     private fun receptionLabel(f: ReceptionFreshness) = when (f) {
         ReceptionFreshness.UNKNOWN -> context.getString(R.string.reception_unknown)

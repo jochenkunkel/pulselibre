@@ -1,12 +1,13 @@
 package de.pulselibre
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.ByteArrayOutputStream
 
-/** Synthetic-only regression: undocumented FIT fields remain raw, not guessed measurements. */
+/** Synthetic-only regression: unknown fields stay raw and profiled values remain review-only. */
 class FitUnmappedProfileFieldsTest {
     @Test fun global397And398FieldsAreRetainedWithoutInventingObservations() {
         val data = globalMessage(397, listOf(
@@ -25,8 +26,22 @@ class FitUnmappedProfileFieldsTest {
 
         assertNotNull(result)
         result!!
-        assertTrue(result.observations.isEmpty())
-        assertTrue(result.reviewCandidates.isEmpty())
+        assertEquals(
+            listOf(
+                FitHistoricalObservations.Metric.SKIN_TEMPERATURE_DEVIATION,
+                FitHistoricalObservations.Metric.SKIN_TEMPERATURE_7_DAY_DEVIATION
+            ),
+            result.observations.map { it.metric }
+        )
+        assertEquals(
+            listOf("average_deviation", "average_7_day_deviation"),
+            result.reviewCandidates.map { it.profileFieldName }
+        )
+        assertTrue(result.reviewCandidates.all {
+            it.globalMessageNumber == 398 &&
+                it.quality == "UNTRUSTED_PROFILE_CANDIDATE" &&
+                it.decoderVersion == FitHistoricalObservations.REVIEW_CANDIDATE_DECODER_VERSION
+        })
         assertEquals(2, result.decodedFields.count { it.globalMessageNumber == 397 })
         assertEquals(6, result.decodedFields.count { it.globalMessageNumber == 398 })
         assertTrue(result.unknownFields.any {
@@ -34,6 +49,9 @@ class FitUnmappedProfileFieldsTest {
         })
         assertTrue(result.unknownFields.any {
             it.globalMessageNumber == 398 && it.fieldNumber == 3
+        })
+        assertFalse(result.unknownFields.any {
+            it.globalMessageNumber == 398 && it.fieldNumber in setOf(0, 1, 2, 4)
         })
         assertTrue(result.decodedFields.all { it.rawBytes.size == it.fieldSize })
     }

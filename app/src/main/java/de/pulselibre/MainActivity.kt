@@ -43,9 +43,9 @@ class MainActivity : AppCompatActivity() {
     private var dashboardPolling = false
     private var dashboardLastEventId = -1L
     private var dashboardLastRefreshAt = 0L
+    private var historyLastEventId = -1L
+    private var historyLastRefreshAt = 0L
     private val dashboardWorker = DashboardWorkerWatch.newDashboardWorker()
-    /** FIT re-indexing on app entry runs here, not on [dashboardWorker]: it took minutes on the S10 and every tile and day dialog waited behind it. */
-    private val maintenanceWorker = DashboardWorkerWatch.newMaintenanceWorker()
     private var historicalDownloadProbe: CirqaMlHandshakeProbe? = null
     private var historicalSyncStatusView: TextView? = null
     private var syncProgressView: HistorySyncProgressView? = null
@@ -94,11 +94,19 @@ class MainActivity : AppCompatActivity() {
                         pollInFlight = false
                         if (dashboardPolling && !destroyed && latest != null) {
                             val now = android.os.SystemClock.elapsedRealtime()
-                            if (latest != dashboardLastEventId || now - dashboardLastRefreshAt >= 30_000L) {
+                            // Live data arrives about every second: rebuilding every second kept the screen busy (battery,
+                            // TalkBack focus, uiautomator never idle). New data refreshes after a short minimum interval.
+                            if (dashboardVisible && LiveRefreshPolicy.due(latest != dashboardLastEventId,
+                                    now - dashboardLastRefreshAt, LiveRefreshPolicy.DASHBOARD_MIN_MS)) {
                                 dashboardLastEventId = latest
                                 dashboardLastRefreshAt = now
-                                if (dashboardVisible) dashboardRefresh?.invoke()
-                                if (historyVisible) historyRefresh?.invoke()
+                                dashboardRefresh?.invoke()
+                            }
+                            if (historyVisible && LiveRefreshPolicy.due(latest != historyLastEventId,
+                                    now - historyLastRefreshAt, LiveRefreshPolicy.HISTORY_MIN_MS)) {
+                                historyLastEventId = latest
+                                historyLastRefreshAt = now
+                                historyRefresh?.invoke()
                             }
                         }
                     }
@@ -119,17 +127,20 @@ class MainActivity : AppCompatActivity() {
         handler.removeCallbacks(dashboardPoll)
     }
     /**
-     * Backfill already verified private FIT files and re-index unknown fields
-     * on app entry (#149/#150/#204). Work is bounded, idempotent, off the UI
-     * thread, and never communicates with the device.
+     * Recover archived FIT originals, backfill verified files, and re-index
+     * unknown fields on app entry (#149/#150/#204/#637). Work is bounded,
+     * idempotent, off the UI thread, and never communicates with the device.
      */
     private fun scheduleUnknownFitInventoryScan() {
-        if (maintenanceWorker.isShutdown) return
-        maintenanceWorker.execute {
+        // Never on the tile/dialog worker (they waited minutes behind this scan on the S10), and at most one per process.
+        DashboardWorkerWatch.runMaintenanceOnce {
             try {
                 val fitRoot = java.io.File(applicationContext.filesDir, "verified_fit")
                 CirqaDatabase(applicationContext).use { database ->
                     database.archiveExistingDownloads()
+                    database.recoverArchivedFitSources(fitRoot) {
+                        Thread.currentThread().isInterrupted
+                    }
                     CirqaFitBackfill(fitRoot, database, auditDb = database.writableDatabase).run {
                         Thread.currentThread().isInterrupted
                     }
@@ -257,41 +268,38 @@ class MainActivity : AppCompatActivity() {
             setPadding(0, 0, (8 * resources.displayMetrics.density).toInt(), 0)
         }
         headerRow.addView(headerTitle, LinearLayout.LayoutParams(0, -2, 1f))
-        // Personal Easter egg: the dedicated humerus SVG-matched vector replaces the gear.
-        // Keep a 48dp touch target and an explicit accessibility label.
-        val avatarButton = android.widget.ImageView(this).apply {
-            setImageResource(R.drawable.ic_humerus_settings)
-            scaleType = android.widget.ImageView.ScaleType.FIT_CENTER
-            setPadding(dp(8), dp(8), dp(8), dp(8))
-            isClickable = true
-            isFocusable = true
-            setOnClickListener {
+        // #649: one combined control with three touch areas: band/connection, band battery, settings.
+        var wearInputs: WearableStatusReader.Inputs? = null
+        val statusButton = WearableStatusControl(this).apply {
+            compact = resources.configuration.screenWidthDp < 412
+            settingsZone.setOnClickListener {
                 PersonalSettings.show(this@MainActivity) {
                     refreshBodyCardRef?.invoke()
                     dashboardLastEventId = -1L
                     dashboardLastRefreshAt = 0L
                 }
             }
-        }
-        // #179 variant 4: a real secondary action, not a decorative icon.
-        val linkInfoButton = android.widget.FrameLayout(this).apply {
-            minimumWidth = dp(48)
-            minimumHeight = dp(48)
-            isClickable = true
-            isFocusable = true
-            contentDescription = getString(R.string.main_link_status_cd)
-            background = rounded(palette.tinted, 24)
-            addView(PlIcon.view(this@MainActivity, PlIcon.SIGNAL, 23, violet),
-                android.widget.FrameLayout.LayoutParams(dp(23), dp(23), android.view.Gravity.CENTER))
-            setOnClickListener {
-                androidx.appcompat.app.AlertDialog.Builder(this@MainActivity)
-                    .setTitle(R.string.main_link_title)
-                    .setMessage(CirqaLinkStatus.contentDescription(Strings.of(this@MainActivity), cirqaLink))
+            statusZone.setOnClickListener {
+                val now = System.currentTimeMillis()
+                val state = WearableStatus.state(cirqaLink.online, wearInputs?.respiration, now)
+                DialogProbe.track(androidx.appcompat.app.AlertDialog.Builder(this@MainActivity)
+                    .setTitle(R.string.wear_status_title)
+                    .setMessage(WearableStatus.statusDetails(Strings.of(this@MainActivity), cirqaLink, state))
                     .setPositiveButton(R.string.action_close, null)
-                    .show()
+                    .create()).show()
+            }
+            batteryZone.setOnClickListener {
+                val reading = wearInputs?.battery
+                val shown = WearableStatus.battery(cirqaLink.online, reading, System.currentTimeMillis())
+                DialogProbe.track(androidx.appcompat.app.AlertDialog.Builder(this@MainActivity)
+                    .setTitle(R.string.wear_battery_title)
+                    .setMessage(WearableStatus.batteryDetails(Strings.of(this@MainActivity), reading, shown))
+                    .setPositiveButton(R.string.action_close, null)
+                    .create()).show()
             }
         }
-        var lastHeaderStatus: CirqaLinkStatus.Result? = null
+        var wearInputsAt = 0L
+        var wearInputsLoading = false
         fun refreshAvatarConnectionBorder() {
             refreshCirqaCard()
             val link = cirqaLink
@@ -304,7 +312,10 @@ class MainActivity : AppCompatActivity() {
                     Thread {
                         val stats = try { DeviceStatsReader(applicationContext).read(java.time.Instant.now(), java.time.ZoneId.systemDefault()) } catch (_: Exception) { null }
                         // #142/#159: newest provenance-backed values drive the battery row and every extra row.
-                        val metadata = try { pollDatabase.latestLiveDeviceMetadata() } catch (_: Exception) { emptyList() }
+                        val metadata = try {
+                            DeviceInfoRows.withFitSoftwareVersion(pollDatabase.latestLiveDeviceMetadata(),
+                                runCatching { pollDatabase.latestFitSoftwareVersion() }.getOrNull())
+                        } catch (_: Exception) { emptyList() }
                         val liveBattery = DeviceMetadataFormat.batteryReading(metadata)
                         val battery = liveBattery ?: DeviceBatteryReader.read(applicationContext)
                         runOnUiThread {
@@ -316,24 +327,29 @@ class MainActivity : AppCompatActivity() {
                     }.start()
                 }
             }
-            avatarButton.contentDescription = getString(R.string.main_open_settings)
-            linkInfoButton.contentDescription = getString(R.string.main_link_details_cd, CirqaLinkStatus.contentDescription(Strings.of(this), link))
-            if (link.online == lastHeaderStatus?.online) { lastHeaderStatus = link; return }
-            lastHeaderStatus = link
-            linkInfoButton.background = GradientDrawable().apply {
-                shape = GradientDrawable.OVAL
-                setColor(palette.tinted)
-                setStroke(dp(2), if (link.online) Color.rgb(31, 190, 112) else palette.muted)
+            // Stored data only (no BLE, no sync), at most every 15 s; the per-second refresh just re-evaluates freshness.
+            val now = System.currentTimeMillis()
+            if (!wearInputsLoading && now - wearInputsAt > 15_000L) {
+                wearInputsLoading = true
+                Thread {
+                    val inputs = try { CirqaDatabase(applicationContext).use { WearableStatusReader.read(applicationContext, it) } } catch (_: Exception) { null }
+                    runOnUiThread {
+                        wearInputsLoading = false
+                        wearInputsAt = System.currentTimeMillis()
+                        if (inputs != null) wearInputs = inputs
+                        if (!destroyed) connectionIndicatorRefresh?.invoke()
+                    }
+                }.start()
             }
+            val inputs = wearInputs
+            val state = WearableStatus.state(link.online, inputs?.respiration, now)
+            val battery = WearableStatus.battery(link.online, inputs?.battery, now)
+            val strings = Strings.of(this)
+            statusButton.show(state, battery, WearableStatus.statusZoneDescription(strings, link, state),
+                WearableStatus.batteryZoneDescription(strings, battery), getString(R.string.wear_zone_settings_cd))
         }
         connectionIndicatorRefresh = { refreshAvatarConnectionBorder() }
-        headerRow.addView(linkInfoButton, LinearLayout.LayoutParams(dp(48), dp(48)).apply { marginEnd = dp(6) })
-        avatarButton.background = GradientDrawable().apply {
-            shape = GradientDrawable.OVAL
-            setColor(palette.tinted)
-            setStroke(dp(2), palette.accent)
-        }
-        headerRow.addView(avatarButton, LinearLayout.LayoutParams(dp(48), dp(48)))
+        headerRow.addView(statusButton, LinearLayout.LayoutParams(-2, dp(48)))
         // Large fonts / narrow screens: the subtitle uses the full width (no 60 dp indent) and wraps instead of being cut off.
         // #179/#209: reference variant 4 shows only "Deine Daten. Deine Kontrolle."; the former "· Offline" suffix was removed
         // (it was misread as a connection status). The offline-first promise belongs to Help/Privacy, not to the header.
@@ -439,7 +455,7 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
-        bodyHeader.addView(healthInfo, LinearLayout.LayoutParams(dp(40), dp(40)))
+        bodyHeader.addView(healthInfo, LinearLayout.LayoutParams(dp(48), dp(48))) // 48 dp touch target (AccessibilityAuditTest)
         bodyCard.addView(bodyHeader)
 
         // Narrow screens or large system fonts: avatar centred above the values (never cut off, never wrapped per character).
@@ -503,7 +519,7 @@ class MainActivity : AppCompatActivity() {
                 }
                 if (onClick != null) {
                     row.isClickable = true; row.isFocusable = true; row.setOnClickListener { onClick() }
-                    row.minimumHeight = dp(34)
+                    row.minimumHeight = dp(48) // touch target (AccessibilityAuditTest); was 34 dp
                     if (tagName != null) row.tag = tagName
                     if (description != null) row.contentDescription = description
                 }
@@ -638,6 +654,7 @@ class MainActivity : AppCompatActivity() {
         val historicalSyncStatus = text(
             // The last terminal report survives the screen, so an interrupted run stays visible as incomplete.
             getSharedPreferences("historical_sync_energy_policy", MODE_PRIVATE).getString("last_report", null)
+                ?.let { SyncReportSummary.display(Strings.of(this), it) }
                 ?: getString(R.string.main_hist_status_none), 13f, muted
         ).apply {
             setPadding(dp(16), dp(12), dp(16), dp(12))
@@ -729,7 +746,7 @@ class MainActivity : AppCompatActivity() {
                             manualHistoricalSyncActive = false
                             recordHistoricalSyncResult(prefs, message) // also after the screen closed (abort in onDestroy)
                             if (!destroyed) {
-                                historicalSyncStatus.text = message
+                                historicalSyncStatus.text = SyncReportSummary.display(Strings.of(this@MainActivity), SyncReportStore.forStorage(message))
                                 syncProgress.show(HistorySyncProgress.fromReport(message))
                                 historyRefresh?.invoke()
                             }
@@ -840,7 +857,11 @@ class MainActivity : AppCompatActivity() {
             overview.forEach { it.visibility = if (index == 0) android.view.View.VISIBLE else android.view.View.GONE }
             historyViews.forEach { it.visibility = if (index == 1) android.view.View.VISIBLE else android.view.View.GONE }
             analysisViews.forEach { it.visibility = if (index == MainNavigationView.ANALYSEN) android.view.View.VISIBLE else android.view.View.GONE }
-            deviceViews.forEach { it.visibility = if (index == 2 && (debugDevicesVisible || it !in debugDeviceViews)) android.view.View.VISIBLE else android.view.View.GONE }
+            deviceViews.forEach {
+                val shown = index == 2 && (debugDevicesVisible || it !in debugDeviceViews)
+                if (it is TabAwareVisibility) it.tabShown = shown
+                else it.visibility = if (shown) android.view.View.VISIBLE else android.view.View.GONE
+            }
             if (index == 1) {
                 dashboardLastEventId = -1L
                 dashboardLastRefreshAt = 0L
@@ -983,7 +1004,7 @@ class MainActivity : AppCompatActivity() {
                 // after the five-minute attempt cooldown. Recorded even after the screen closed (abort in onDestroy).
                 recordHistoricalSyncResult(prefs, message)
                 if (destroyed) return@runOnUiThread
-                statusView.text = message
+                statusView.text = SyncReportSummary.display(Strings.of(this), SyncReportStore.forStorage(message))
                 syncProgressView?.show(HistorySyncProgress.fromReport(message))
                 historyRefresh?.invoke()
             }
@@ -994,7 +1015,8 @@ class MainActivity : AppCompatActivity() {
         preferences: android.content.SharedPreferences,
         report: String
     ) {
-        preferences.edit().putString("last_report", report.take(4000))
+        // #637: keep the diagnosis (terminal state, pull results) readable instead of cutting it at 4000 characters.
+        preferences.edit().putString("last_report", SyncReportStore.forStorage(report))
             .putLong("last_report_at", System.currentTimeMillis()).apply()
         if (report.contains("runDrained=true") && report.contains("incompleteReason=none")) {
             preferences.edit().putLong("last_success", System.currentTimeMillis()).apply()
@@ -1298,7 +1320,6 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         dashboardWorker.shutdownNow()
-        maintenanceWorker.shutdownNow()
         stopDashboardPolling()
         runCatching { pollDatabase.close() }
         dashboardRefresh = null

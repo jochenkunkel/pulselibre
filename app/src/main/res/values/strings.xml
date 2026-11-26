@@ -127,6 +127,11 @@
     <string name="main_open_testlab">Open test lab</string>
     <string name="main_status_ready">Offline · ready</string>
     <string name="main_hist_status_none">No historical download started yet.</string>
+    <string name="sync_sum_complete">Download complete: %1$d files transferred.</string>
+    <string name="sync_sum_pull_rejected">The band rejected the download of the first file (code %1$s). It had offered %2$d files; %3$d more were not requested.</string>
+    <string name="sync_sum_followup_empty">%1$d of %2$d offered files transferred; afterwards the band reported no more. Whether the history is complete is not proven.</string>
+    <string name="sync_sum_partial">%1$d of %2$d offered files transferred.</string>
+    <string name="sync_sum_details">Technical details (tap to expand):</string>
     <string name="main_hist_heading">Historical device data</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="main_hist_info">Files are stored locally and privately. FIT measurements are also imported into SQLite; unknown file types are kept as originals.</string>
@@ -171,6 +176,11 @@
     <string name="metric_vigorous">Vigorous intensity minutes</string>
     <string name="metric_vigorous_short">Intensity high</string>
     <string name="metric_sleep">Sleep</string>
+    <string name="sleep_band_title">Sleep stages from the band (FIT)</string>
+    <string name="sleep_band_summary">%1$d stage changes between %2$s and %3$s (band time)</string>
+    <string name="sleep_band_cd">Sleep stages from the band: awake %1$d, light %2$d, deep %3$d, REM %4$d, unmeasurable %5$d reports</string>
+    <string name="sleep_band_legend">awake %1$d · light %2$d · deep %3$d · REM %4$d · unmeasurable %5$d</string>
+    <string name="sleep_band_note">Marked is when the band reported which stage. No sleep duration is calculated while the intervals are not validated.</string>
     <string name="metric_steps">Steps</string>
     <string name="metric_steps_today">Steps today</string>
     <string name="metric_no_data">No measurement data</string>
@@ -447,7 +457,15 @@
     <string name="tr_details_days">\n%1$s days: </string>
     <string name="tr_details_unrated">not assessable · %1$s</string>
     <string name="tr_details_row">%1$s %2$s %3$s%4$s (before: %5$s) · %6$s/%7$s days</string>
-    <string name="tr_details_corr_head">\n\nRelationship (exploratory, 1 pre-specified hypothesis): steps of one day ↔ device resting pulse the next day\n</string>
+    <string name="tr_details_corr_head">\n\nRelationships (exploratory, 3 pre-specified hypotheses, Benjamini–Hochberg corrected; an association is not a cause)</string>
+    <string name="tr_hyp_line">\n• %1$s: </string>
+    <string name="tr_hyp_steps_rest">steps of one day ↔ device resting pulse the next day</string>
+    <string name="tr_hyp_sleep_rest">sleep duration ↔ device resting pulse the next day</string>
+    <string name="tr_hyp_sleep_hrv">sleep duration ↔ HRV of the same night</string>
+    <string name="tr_hyp_adjusted"> Adjusted p=%1$s.</string>
+    <string name="tr_hyp_lag0"> Sensitivity lag 0: ρ=%1$s.</string>
+    <string name="tr_hyp_missing_sleep">not computable – sleep data are not decoded from the band yet.</string>
+    <string name="tr_hyp_missing_hrv">not computable – HRV is not decoded from the band yet.</string>
     <string name="tr_details_corr_nr">%1$s · %2$s</string>
     <string name="tr_details_corr">%1$s · ρ=%2$s (95 %%: %3$s to %4$s) · n=%5$s days. %6$s</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
@@ -556,6 +574,8 @@
     <string name="ex_backup_running">Creating backup …</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="ex_backup_done">Backup saved: %1$d events, %2$d historical readings, %3$d historical FIT sources/%4$d provenance rows; %5$d canonical readings, %6$d canonical FIT sources/%7$d provenance rows and %8$d FIT metadata rows, %9$d derived raw XML metadata rows. Available archived original contents are included and may contain sensitive identifiers.</string>
+    <string name="ex_backup_failed_removed">Backup failed. The empty target file was deleted again.</string>
+    <string name="ex_backup_reason">Cause: %1$s</string>
     <string name="ex_backup_failed">Backup failed. Please check the storage location; a created target file may be incomplete and should be deleted.</string>
     <string name="ex_backup_checking">Checking backup …</string>
     <string name="ex_backup_invalid">Backup invalid or not readable. Database unchanged.</string>
@@ -589,7 +609,7 @@
     <string name="ex_local_only">Only on your device · No cloud · No sign-in</string>
     <string name="ex_db_title">Local database</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
-    <string name="ex_db_note">A backup contains CIRQA events, historical readings, synchronization states and available archived original contents, including unknown fields and identifiers. The ZIP file is not encrypted and contains sensitive health and device data.</string>
+    <string name="ex_db_note">A backup contains CIRQA events, historical readings, synchronization states and available archived original contents, including unknown fields and identifiers, plus your personal settings (profile, theme, language). The ZIP file is not encrypted and contains sensitive health and device data.</string>
     <string name="ex_btn_backup">Create backup</string>
     <string name="ex_btn_backup_cd">Create a local database backup</string>
     <string name="ex_btn_fit">Export FIT originals</string>
@@ -608,28 +628,46 @@
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="ex_btn_reset">Reset database</string>
     <string name="ex_btn_reset_cd">Delete all local database entries</string>
-    <string name="ex_prefs_kept">App settings are kept during restore and reset.</string>
+    <string name="ex_prefs_kept">Personal settings (profile, theme, language, activity detection, recording, dashboard layout) are part of new backups; a restore replaces them, a reset keeps them.</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="ex_restore_title">Replace database?</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
-    <string name="ex_restore_msg">The backup from %1$s contains %2$d events, %3$d historical readings, %4$d synchronization states, %5$d FIT sources and %6$d FIT provenance rows. %7$d canonical readings and %8$d canonical FIT sources/%9$d provenance rows as well as %10$d FIT metadata rows and %11$d derived raw XML metadata rows. New backups may also include archived original contents and sensitive identifiers.\n\nAll currently stored database entries will be replaced. App settings are kept. Only continue with a backup from a trusted source.</string>
+    <string name="ex_restore_msg">The backup from %1$s contains %2$d events, %3$d historical readings, %4$d synchronization states, %5$d FIT sources and %6$d FIT provenance rows. %7$d canonical readings and %8$d canonical FIT sources/%9$d provenance rows as well as %10$d FIT metadata rows and %11$d derived raw XML metadata rows. New backups may also include archived original contents and sensitive identifiers.\n\nAll currently stored database entries will be replaced. %12$s Only continue with a backup from a trusted source.</string>
     <string name="ex_replace">Replace</string>
     <string name="ex_restore_cancelled">Restore cancelled.</string>
     <string name="ex_restore_running">Restoring database …</string>
     <string name="ex_restore_done">Database restored from backup.</string>
+    <string name="ex_progress_snapshot">Creating a snapshot of the database …</string>
+    <string name="ex_progress_write">Writing table %1$d of %2$d …</string>
+    <string name="ex_progress_copy">Saving the file …</string>
+    <string name="ex_progress_extract">Unpacking the backup …</string>
+    <string name="ex_progress_validate">Checking entry %1$d of %2$d …</string>
+    <string name="ex_progress_references">Checking references …</string>
+    <string name="ex_progress_restore">Restoring the data (may take a minute) …</string>
+    <string name="ex_progress_settings">Restoring the settings …</string>
+    <string name="ex_progress_keep_open">Do not close the app meanwhile.</string>
+    <string name="ex_restore_settings_replaced">The backup also contains your personal settings (%1$d values: profile, theme, language and more). You can restore only the settings or the settings together with the health data.</string>
+    <string name="ex_restore_settings_kept">This older backup contains no settings; your current settings are kept.</string>
+    <string name="ex_restore_all">Settings and health data</string>
+    <string name="ex_restore_settings_only">Settings only</string>
+    <string name="ex_restore_settings_done">Settings restored from the backup; health data unchanged.</string>
+    <string name="ex_ble_busy">A Bluetooth operation is running (e.g. a history download). Please wait until it has finished and try again. Nothing was changed.</string>
+    <string name="ex_restore_originals_note">The band\'s locally stored original files are kept by a restore; whatever of them is missing in the backup is added again on the next start.</string>
+    <string name="ex_rec_restarted">Recording started again.</string>
+    <string name="ex_rec_restart_failed">Recording could not be started again – please start it on the overview.</string>
     <string name="ex_restore_failed">Restore failed. Please check the database.</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="ex_reset_title">Reset local database?</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
-    <string name="ex_reset_msg">All locally stored CIRQA events, historical readings and synchronization states will be permanently deleted. App settings are kept. This action cannot be undone.</string>
+    <string name="ex_reset_msg">All locally stored CIRQA events, historical readings, sync states and the band\'s downloaded original files (FIT files) are permanently deleted. They only come back from a backup or a new download from the band. Personal settings are kept. This cannot be undone.</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="ex_reset_delete">Delete data</string>
     <string name="ex_reset_running">Resetting database …</string>
-    <string name="ex_reset_done">Local database was emptied.</string>
+    <string name="ex_reset_done">Local database emptied, %1$d original files deleted.</string>
     <string name="ex_reset_failed">Reset failed. Please check the database.</string>
     <string name="ex_rec_title">Recording in progress</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
-    <string name="ex_rec_msg">The running local CIRQA recording must be stopped before the database operation.</string>
+    <string name="ex_rec_msg">The running local CIRQA recording is stopped before the database operation and started again afterwards.</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="ex_rec_stop">Stop and continue</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
@@ -680,6 +718,7 @@
     <string name="bat_fresh">As of: %1$s</string>
     <string name="bat_stale">Outdated · last known state %1$s</string>
     <string name="bat_time_unknown">Time unknown · last known state</string>
+    <string name="dev_meta_as_of">As of %1$s</string>
     <string name="bat_cd">Battery: %1$d percent. %2$s</string>
     <string name="bat_cd_charging">Battery: %1$d percent, charging. %2$s</string>
     <string name="dev_src_pulse">Heart rate</string>
@@ -901,10 +940,16 @@
     <string name="hv_fit_kinds">Normal all-day history: %1$d · from activity recordings: %2$d</string>
     <string name="hv_fit_kinds_other"> · other FIT messages: %1$d</string>
     <string name="hv_fit_activity_only">Only values from activity recordings – no normal all-day history is stored for this period.</string>
+    <string name="hv_fit_duplicates">%1$d values were contained in several FIT files and are counted once.</string>
     <string name="dd_band_title">Band history (FIT) · band measurement time</string>
     <string name="dd_band_summary">%1$d band values (all-day history %2$d, activity %3$d)</string>
     <string name="dd_band_none">No band heart rate (FIT) stored for this day.</string>
     <string name="dd_band_failed">Band history could not be read.</string>
+    <string name="dd_band_none_metric">No band values (FIT) of this measure stored on this day.</string>
+    <string name="dd_band_summary_plain">%1$d band values</string>
+    <string name="dd_unit_bpm">bpm</string>
+    <string name="dd_unit_device_scale">device scale</string>
+    <string name="dd_unit_breaths">breaths/min</string>
     <string name="ht_title">All data</string>
     <string name="ht_col_date">Date</string>
     <string name="ht_col_source">Source</string>
@@ -956,6 +1001,14 @@
     <string name="ht_m_stress">Stress</string>
     <string name="ht_m_battery">Body Battery</string>
     <string name="ht_m_breath">Respiration rate</string>
+    <string name="ht_m_spo2_confidence">SpO₂ confidence (raw code)</string>
+    <string name="ht_m_spo2_mode">SpO₂ measurement mode (code)</string>
+    <string name="ht_m_sleep_level">Sleep level (code)</string>
+    <string name="ht_m_skin_dev">Skin temperature deviation (°C)</string>
+    <string name="ht_m_skin_dev7">Skin temperature deviation 7 days (°C)</string>
+    <string name="ht_m_cycles">Monitoring cycles</string>
+    <string name="ht_m_activity_type">Activity type (code)</string>
+    <string name="ht_m_intensity_code">Motion intensity (code)</string>
     <string name="ht_m_distance">Distance (m)</string>
     <string name="ht_m_speed">Speed (m/s)</string>
     <string name="ht_m_cadence">Cadence (rpm)</string>
@@ -967,13 +1020,17 @@
     <string name="sd_r24">24 hours</string>
     <string name="sd_r7">7 days</string>
     <string name="sd_r30">30 days</string>
-    <string name="sd_hr_band">Heart rate · band (FIT)</string>
-    <string name="sd_distance_band">Distance · band (FIT)</string>
-    <string name="sd_speed_band">Speed · band (FIT)</string>
+    <string name="sd_hr_band">Heart rate · band, all-day history (FIT)</string>
+    <string name="sd_hr_band_activity">Heart rate · band, activity recordings (FIT)</string>
+    <string name="sd_distance_band">Distance · band, activities (FIT)</string>
+    <string name="sd_speed_band">Speed · band, activities (FIT)</string>
     <string name="sd_hr_live">Heart rate · phone (live)</string>
     <string name="sd_spo2">SpO₂ · quality unverified</string>
     <string name="sd_resp">Respiration rate</string>
     <string name="sd_stress">Stress (device scale)</string>
+    <string name="sd_spo2_band">SpO₂ · band (FIT), quality unverified</string>
+    <string name="sd_resp_band">Respiration rate · band (FIT)</string>
+    <string name="sd_stress_band">Stress · band (FIT, device scale)</string>
     <string name="sd_src_band">Source: band · Time basis: band measurement time</string>
     <string name="sd_src_live">Source: phone (live) · Time basis: reception time</string>
     <string name="sd_loading">Reading data …</string>
@@ -1034,4 +1091,28 @@
     <string name="hsp_failed">Synchronization failed</string>
     <string name="hsp_files">%1$d of %2$d files</string>
     <string name="hsp_coverage_note">The band history is not proven complete: a finished run does not mean that every stored measurement was transferred.</string>
+    <string name="wear_worn">worn (respiration measured on the wrist)</string>
+    <string name="wear_not_worn">not worn (band reports: off wrist)</string>
+    <string name="wear_offline">unknown, band not connected</string>
+    <string name="wear_unknown">unknown, no current wear signal</string>
+    <string name="wear_battery_none">no current value</string>
+    <string name="wear_battery_value">%1$d %% (measured %2$s ago)</string>
+    <string name="wear_battery_low">, low</string>
+    <string name="wear_battery_last">last known %1$d %% (%2$s ago)</string>
+    <string name="wear_battery_last_untimed">last known %1$d %% (time unknown)</string>
+    <string name="wear_zone_status_cd">CIRQA band: %1$s. Wear status: %2$s. Tap for details.</string>
+    <string name="wear_zone_battery_cd">Band battery (not phone): %1$s. Tap for details.</string>
+    <string name="wear_zone_settings_cd">Open settings</string>
+    <string name="wear_status_title">CIRQA band</string>
+    <string name="wear_status_detail">Connection: %1$s\n\nWear status: %2$s\n\nThe connection counts as active when the recording is receiving values or Android reports the band as connected. “Worn” only appears when the band reports it itself (respiration measurement or “off wrist” message, at most 2 minutes old).</string>
+    <string name="wear_battery_title">Band battery</string>
+    <string name="wear_battery_detail">%1$d %% · measured %2$s ago · source: %3$s</string>
+    <string name="wear_battery_detail_old">The value is older than 12 hours or the band is not connected right now; it is therefore shown grey as “last known”.</string>
+    <string name="wear_battery_detail_none">No battery value for the band yet. A value appears as soon as the device page or a FIT file from the band provides one.</string>
+    <string name="wear_battery_detail_low">Battery low.</string>
+    <string name="wear_battery_detail_note">This is the band\'s battery, not the phone\'s.</string>
+    <string name="wear_src_gatt">Bluetooth battery service</string>
+    <string name="wear_src_gdi">band device status</string>
+    <string name="wear_src_fit">band FIT file</string>
+    <string name="wear_src_other">band</string>
 </resources>

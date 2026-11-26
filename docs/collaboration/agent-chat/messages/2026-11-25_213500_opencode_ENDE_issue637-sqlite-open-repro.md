@@ -1,0 +1,13 @@
+# ENDE – #637 SQLite-Open-Reproduktion und begrenzte Recovery
+- Zeit (UTC): 2026-11-25 21:35
+- Von: OpenCode FIT
+- An: Projektleitung, FIT/GUI
+- Issue/Task: #637
+- Bezug/Antwort auf: `2026-11-25_210900_opencode_START_issue637-sqlite-open-repro.md`
+- Status: teilweise – Fehler reproduziert und begrenzte Recovery implementiert; lokales QUICK grün, PR/GitHub-Checks noch offen
+- Zuständigkeit und betroffene Dateien: SQLite-Helper-open/FIT-Import; `CirqaMlHandshakeProbe.kt`, `CirqaSqliteBusyRetry.kt`, `CirqaSyncFileCompletion.kt`, gezielte Tests und Handoff
+- Geplanter Umfang / tatsächlich erledigt: API-35-Emulatorprobe reproduzierte `SQLiteDatabaseLockedException`/`PRAGMA journal_mode` bei frischen Helper-open während synthetischem Write-Lock. Ein einmaliger Retry nach Lock-Freigabe erholte sich. FIT-Import erhält einen auf `SQLiteDatabaseLockedException` begrenzten einmaligen Retry, explizites Helper-open und separate `SQLITE_OPEN`-Fehlerphase. Handoff um Befunde und Grenzen ergänzt.
+- Was ich von anderen brauche: nichts
+- Was ich anderen liefere: reproduzierbare Probe und gezielte Regressionstests im Branch
+- Nachweise: `:app:testDebugUnitTest --tests de.pulselibre.CirqaSqliteBusyRetryTest --tests de.pulselibre.CirqaSyncFileCompletionTest` und API-35 `:app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=de.pulselibre.CirqaSqliteOpenContentionTest` erfolgreich; `CirqaFitBackfillInstrumentedTest` 2/2 bestanden. `./tools/ci-local.sh --quick` erfolgreich (151 Python tests, build/unit/R8/APK-Diagnose). Der integrierte UI smoke zeigte zwei nicht-P0-FAILs (#6 Screenreader-Zusammenfassung Verteilungsdiagramm, #267 SpO₂-Ausblenden); außerhalb dieses Patches. Kein S10/BLE-Zugriff.
+- Nächster Schritt / Besitzer: OpenCode – PR/GitHub-QUICK und Dependency-Gates nach Branch-Protection. S10-Lauf bleibt aus, bis Offline-Evidenz ihn begründet.

@@ -9,5 +9,5 @@
 - Geplanter Umfang / tatsächlich erledigt: Genau ein manueller CIRQA-Download unter S10-Lease. Neuer Terminalbericht wurde anhand einer gegenüber dem vorherigen UI-Bericht abweichenden Run-ID identifiziert. Nachher-Backup erstellt und geprüft. Kein Retry; Lauf bis zum appinternen 120-s-Limit beobachtet.
 - Was ich von anderen brauche: nichts
 - Was ich anderen liefere: 29 gelistet/ausgewählt, 29 Pull-Requests; 28 übertragen, verifiziert und privat archiviert; 25 dekodiert, 24 SQLite-committed, 18 importiert, 6 ohne importierbare Daten; ein FIT-Import/Commit-Fehler `SQLiteDatabaseLockedException`. `runDrained=false`, `session-time-limit`, Gerätehistorie weiter unverified. Nachher-Backup-Integrität bestanden; S10-Lease FREI.
-- Nachweise: privater Laufbericht und Backup bleiben unter `/home/smiler/.local/share/pulselibre/private-s10/issue637-p0-repair-post670-20261125-attempt3/`; nur redigierte Summen wurden dokumentiert. Keine Behauptung von 29/29 oder vollständiger Historie.
+- Nachweise: Privater Laufbericht und Backup verbleiben in zugriffsbeschränktem lokalen Speicher und werden nicht verlinkt oder veröffentlicht; nur redigierte Summen wurden dokumentiert. Keine Behauptung von 29/29 oder vollständiger Historie.
 - Nächster Schritt / Besitzer: OpenCode triagiert den FIT-Import/SQLite-Lock offline; kein weiterer S10-Lauf in diesem Task.

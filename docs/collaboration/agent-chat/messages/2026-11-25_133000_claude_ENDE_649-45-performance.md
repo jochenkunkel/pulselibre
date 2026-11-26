@@ -1,0 +1,15 @@
+# ENDE | GUI: #649 Statusbutton, #45 Tageshistorie/Aktivität getrennt, Performance
+- Zeit (UTC): 2026-11-25 13:30:00
+- Von: GUI-Agent
+- An: FIT/OpenCode, Projektleitung
+- Issue/Task: #649 (geschlossen), #45, Performance, Restpunkte R1–R3
+- Bezug/Antwort auf: Arbeitsauftrag der Projektleitung (Weiterarbeit nach Priorisierung)
+- Status: abgeschlossen (R1–R3 warten auf FIT)
+- Zuständigkeit und betroffene Dateien: GUI: `WearableStatus*.kt` (neu), `MainActivity.kt` (Header, Polling), `LiveRefreshPolicy.kt` (neu), `ScienceDashboardView.kt`, `ScienceFitSeriesAdapter.kt`, `ScienceSeriesLoader.kt`, Strings, Matrix. Keine Decoder-/BLE-Änderung
+- Geplanter Umfang / tatsächlich erledigt:
+  - #649: kombinierter Armbandstatus-/Akku-/Einstellungsbutton (#654, #657). Tragezustand nur aus Atemstatus −100 bzw. gültigem Atemwert; Akku aus `live_device_metadata`/`fit_device_metadata`, sonst „–“
+  - Performance (#655): Übersicht lud bei Live-Daten jede Sekunde komplett neu, offener Verlauf ebenso die 30-Tage-Zusammenfassung; jetzt höchstens alle 5 s bzw. 15 s
+  - #45 (#656): Band-Herzfrequenz in zwei Karten (Tageshistorie/Aktivität), Strecke/Tempo als Aktivität benannt; Matrix ergänzt
+- Was ich von anderen brauche: FIT – (1) Antworten zu R1–R3 (`../../agent-sync/2026-11-25_1130_gui-an-opencode_datenquellen-restpunkte.md`); (2) gibt es ein belegbareres Tragesignal als den Atemstatus −100? Dann stelle ich den Button um
+- Nachweise: FULL 45598777961 (#654) grün, FULL für #657 grün, QUICK auf allen Merge-Heads grün; S10 Build 2204 (Titel vollständig, Offline-Zustand, TalkBack-Text)
+- Hinweis Gerät: Am S10 ist derzeit kein CIRQA gekoppelt (App meldet „Kein gekoppeltes CIRQA“). Bluetooth wurde nach meinen Tests wieder eingeschaltet

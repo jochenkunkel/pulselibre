@@ -14,6 +14,29 @@ import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 class HistoryOverviewViewTest {
+    @Test fun bandFitMetricsOfIssue696HaveNamesAndCodesHaveNoMean() {
+        val context = AppLanguageSettings.wrap(ApplicationProvider.getApplicationContext<Context>())
+        val end = Instant.parse("2026-11-17T12:00:00Z")
+        val day = end.toEpochMilli() / 86_400_000L
+        val rows = listOf(
+            UnifiedDaySummary(day, MeasurementOrigin.BAND, "stress", "device_scale", 3, 12.0, 30.0, 61.0, 0),
+            UnifiedDaySummary(day, MeasurementOrigin.BAND, "respiration", "breaths/min", 2, 12.5, 14.0, 15.5, 0),
+            UnifiedDaySummary(day, MeasurementOrigin.BAND, "sleep_level", "profile_code", 4, 1.0, 2.5, 4.0, 0)
+        )
+        InstrumentationRegistry.getInstrumentation().runOnMainSync {
+            val view = HistoryOverviewView(context) { range ->
+                HistorySnapshot(range, range.startAt(end), end, emptyList(), emptyList(), allData = rows)
+            }
+            view.refreshSynchronously()
+            val texts = descendants(view).filterIsInstance<TextView>().map { it.text.toString() }
+            assertTrue(texts.toString(), texts.any { it.startsWith("Band · Stress") })
+            assertTrue(texts.toString(), texts.any { it.startsWith("Band · Atemfrequenz") })
+            val sleep = descendants(view).first { it.contentDescription?.contains("Schlafstufe (Code)") == true }
+            assertTrue(sleep.contentDescription.toString(), sleep.contentDescription.endsWith("–"))
+            assertFalse("no raw keys shown", texts.any { it.contains("sleep_level") || it.contains("respiration (") })
+        }
+    }
+
     @Test fun rangeControlsRefreshAndEmptyStateHasNoSyntheticSamples() {
         val context = AppLanguageSettings.wrap(ApplicationProvider.getApplicationContext<Context>())
         val end = Instant.parse("2026-11-17T12:00:00Z")

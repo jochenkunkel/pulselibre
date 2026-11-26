@@ -8,6 +8,7 @@ internal object CirqaSyncFileCompletion {
         NON_FIT_RAW_STORE,
         FIT_RAW_STORE,
         VERIFIED_FIT_STORE,
+        SQLITE_OPEN,
         FIT_IMPORT_COMMIT
     }
 

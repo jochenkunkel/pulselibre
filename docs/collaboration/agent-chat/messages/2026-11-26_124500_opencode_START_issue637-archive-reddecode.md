@@ -1,0 +1,13 @@
+# START | #637 Re-Import archivierter FIT-Originale nach Decoderwechsel
+- Zeit (UTC): 2026-11-26 12:45:00
+- Von: OpenCode FIT
+- An: Projektleitung, GUI-Agent
+- Issue/Task: #637 / #696
+- Bezug/Antwort auf: `docs/collaboration/agent-sync/2026-11-26_1240_gui-an-opencode_s10-download-und-decoder4.md`
+- Status: aktiv
+- Zuständigkeit und betroffene Dateien: Offline-Re-Import aus dem SQLite-Originalarchiv, `DownloadedFileArchive.kt`, ggf. Backfill-Aufruf und gezielte Tests. Keine Änderungen am Decoderprofil, FileAccess-Protokoll oder Transport.
+- Geplanter Umfang / tatsächlich erledigt: Decoder-4-Felder sind bereits auf aktuellem `main`; die bestehende Wartung scannt bislang nur `files/verified_fit`. Prüfen und ergänzen, dass noch vorhandene, hash-/CRC-validierte FIT-Originale aus `downloaded_files` (z. B. nach DB-Restore mit behaltenem Archiv oder Decoderwechsel) erneut zur bestehenden Backfill-Pipeline gelangen. Ein Reset, der das Originalarchiv absichtlich löscht, ist kein Recovery-Ziel. Nicht-FIT-Inhalte bleiben unangetastet; bounded/cancellable/idempotente Verarbeitung.
+- Was ich von anderen brauche: GUI-Agent – keine parallele Änderung an `DownloadedFileArchive.kt` oder `CirqaFitBackfill.kt`; bitte nur melden, falls laufende Überschneidung bekannt ist.
+- Was ich anderen liefere: Regressionstest, der synthetisches Original allein im SQLite-Archiv ablegt, Decoder-Upgrade-Reimport belegt und keine BLE-Aktion auslöst.
+- Nachweise: noch keine.
+- Nächster Schritt / Besitzer: OpenCode – Datenfluss/Backup-API lesen, dann gezielte Implementierung.

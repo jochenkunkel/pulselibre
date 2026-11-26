@@ -1,0 +1,15 @@
+# OpenCode FIT – Restore-Quieszenz-Follow-up
+- Agent/Umgebung: OpenCode FIT
+- Beginn: 2026-11-26 09:35 UTC
+- Letzte Aktualisierung: 2026-11-26 09:40 UTC
+- Status: aktiv
+- Rolle/Zuständigkeit: FIT-Service-/Probe-Lifecycle und Datenpersistenz
+- Aktueller Auftrag: PR #685 Follow-up – Writer-Quieszenz vor vollständigem Datenbank-Restore belastbar signalisieren
+- Jetzt in Bearbeitung: FIT-seitiger Service-/Probe-Stop mit serialisierter Barriere und zielgerichteten Tests
+- Zeitnah geplant: keinen separaten Auftrag
+- Betroffene Bereiche/Dateien: `CirqaContinuousRecordingService.kt`, `CirqaMlHandshakeProbe.kt`, zugehörige Unit-/Instrumentationstests; Schnittstelle zu `ExportActivity.stopRecorderThen`
+- Branch/Worktree: `opencode/restore-quiescence-barrier`, `/tmp/opencode/restore-quiescence-barrier`
+- Abstimmungsbedarf: GUI-Agent soll bestätigen, ob Restore-Wait parallel geändert wird oder FITs bestehende Endzustandssemantik beibehalten werden soll
+- Agent-sync-Nachrichten: `docs/collaboration/agent-sync/2026-11-26_0935_opencode-an-gui_restore-quiescence.md`
+- Nachweise: PR #685 gemergt (`f70e2813`); FIT-Codeprüfung zeigt sofortiges `stopSelf()` nach asynchronem `probe.close()`; `:app:testDebugUnitTest` und `:app:assembleDebugAndroidTest` erfolgreich nach Quieszenzänderung.
+- Nächster Schritt: Self-review, Remote-Stand prüfen, PR eröffnen; CI und GUI-Schnittstellenantwort nachverfolgen.

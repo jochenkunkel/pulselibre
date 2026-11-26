@@ -52,6 +52,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     /** Volatile: [close] is called from the main thread while the session logic runs on [serial]. */
     @Volatile private var active = false
     @Volatile private var terminationRequested = false
+    @Volatile private var closeRequested = false
     @Volatile private var gatt: BluetoothGatt? = null
     /** A client still waiting for its delayed close after the MousePods stop command (see [finish]); [close] must reach it too. */
     @Volatile private var closingGatt: BluetoothGatt? = null
@@ -131,6 +132,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private var syncPageNextTransactionId: Long? = null
     private val syncListContinuation = CirqaItemListContinuationPolicy()
     private var syncTransactionFollowupResponseItems: Int? = null
+    private val syncTransactionFollowupResponseItemCounts = mutableListOf<Int>()
     private var syncListPageCount = 0
     private var archivedRawNotifications = 0
     private var archivedRawNotificationBytes = 0L
@@ -1261,6 +1263,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         when (syncIncompleteReason) {
             "next-transaction-followup-pending" -> {
                 syncTransactionFollowupResponseItems = page.items.size
+                syncTransactionFollowupResponseItemCounts += page.items.size
                 syncIncompleteReason = null
             }
             "item-list-session-followup-pending" -> syncIncompleteReason = null
@@ -2258,6 +2261,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         syncPageNextTransactionId = null
         syncListContinuation.reset()
         syncTransactionFollowupResponseItems = null
+        syncTransactionFollowupResponseItemCounts.clear()
         syncListPageCount = 0
         archivedRawNotifications = 0
         archivedRawNotificationBytes = 0L
@@ -3229,8 +3233,10 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         val archiveTimingKey = "item:${syncCurrentLocalItemId ?: 0}:archive"
         syncTiming.start(archiveTimingKey, CirqaSyncTiming.Stage.ARCHIVE)
         try {
-            val contentAlreadyPresent = CirqaDatabase(context).use {
-                it.archiveDownloadedFile(data, item.referenceBytes, label, System.currentTimeMillis())
+            val contentAlreadyPresent = CirqaSqliteBusyRetry.run {
+                CirqaDatabase.archiveDownloadedOriginal(
+                    context, data, item.referenceBytes, label, System.currentTimeMillis()
+                )
             }
             syncCurrentLocalItemId?.let { localId ->
                 syncArchivedLocalIds.add(localId)
@@ -3244,14 +3250,22 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                 )
             }
         } catch (e: Exception) {
+            val journalRetained = runCatching {
+                CirqaVerifiedRawFileStore(
+                    java.io.File(context.filesDir, "downloaded_originals_pending")
+                ).saveExact(data, item.dataSize)
+            }.isSuccess
             return CirqaSyncFileCompletion.Result(
                 format = format,
                 transfer = CirqaSyncFileCompletion.Stage.SUCCEEDED,
                 integrity = CirqaSyncFileCompletion.Stage.NOT_REACHED,
-                privateStorage = CirqaSyncFileCompletion.Stage.FAILED,
+                // Confirm the journal even if the failure occurred before its first save.
+                privateStorage = if (journalRetained) CirqaSyncFileCompletion.Stage.SUCCEEDED
+                    else CirqaSyncFileCompletion.Stage.FAILED,
                 decode = CirqaSyncFileCompletion.Stage.NOT_REACHED,
                 sqliteCommit = CirqaSyncFileCompletion.Stage.FAILED,
-                detail = "exactSize=true;originalSqliteArchive=failed:${e.javaClass.simpleName}",
+                detail = "exactSize=true;originalPrivateJournal=${if (journalRetained) "retained" else "failed"};" +
+                    "originalSqliteArchive=failed:${e.javaClass.simpleName}",
                 failure = CirqaSyncFileCompletion.FailureDiagnostic(
                     CirqaSyncFileCompletion.FailurePhase.ORIGINAL_ARCHIVE,
                     e.javaClass.simpleName
@@ -3426,22 +3440,29 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         val fitImportTimingKey = "item:${syncCurrentLocalItemId ?: 0}:fit-import"
         val sqliteTimingKey = "item:${syncCurrentLocalItemId ?: 0}:sqlite-commit"
         syncTiming.start(fitImportTimingKey, CirqaSyncTiming.Stage.FIT_IMPORT)
+        var failurePhase = CirqaSyncFileCompletion.FailurePhase.SQLITE_OPEN
         val imported = try {
-            CirqaDatabase(context).use { store ->
-                CirqaFitBackfill.importDecodedVerifiedFile(
-                    saved.file,
-                    fitData,
-                    decoded,
-                    store,
-                    onBeforeSqliteCommit = {
-                        syncTiming.stop(fitImportTimingKey, CirqaSyncTiming.Stage.FIT_IMPORT)
-                        syncTiming.start(sqliteTimingKey, CirqaSyncTiming.Stage.SQLITE_COMMIT)
-                    },
-                    onAfterSqliteCommit = {
-                        syncTiming.stop(sqliteTimingKey, CirqaSyncTiming.Stage.SQLITE_COMMIT)
-                    }
-                )
-                    ?: error("verified FIT became invalid before SQLite import")
+            CirqaSqliteBusyRetry.runOnce {
+                failurePhase = CirqaSyncFileCompletion.FailurePhase.SQLITE_OPEN
+                CirqaDatabase(context).use { store ->
+                    // Force helper open before entering the broad import/commit boundary. The
+                    // open can itself fail while Android applies WAL mode to a fresh connection.
+                    store.writableDatabase
+                    failurePhase = CirqaSyncFileCompletion.FailurePhase.FIT_IMPORT_COMMIT
+                    CirqaFitBackfill.importDecodedVerifiedFile(
+                        saved.file,
+                        fitData,
+                        decoded,
+                        store,
+                        onBeforeSqliteCommit = {
+                            syncTiming.stop(fitImportTimingKey, CirqaSyncTiming.Stage.FIT_IMPORT)
+                            syncTiming.start(sqliteTimingKey, CirqaSyncTiming.Stage.SQLITE_COMMIT)
+                        },
+                        onAfterSqliteCommit = {
+                            syncTiming.stop(sqliteTimingKey, CirqaSyncTiming.Stage.SQLITE_COMMIT)
+                        }
+                    ) ?: error("verified FIT became invalid before SQLite import")
+                }
             }
         } catch (e: Exception) {
             return CirqaSyncFileCompletion.Result(
@@ -3456,7 +3477,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     "sha256=$sha;privateFit=${saved.outcome};observations=${decoded.observations.size};" +
                     "importable=${importable.size};sqlite=failed:${e.javaClass.simpleName}",
                 failure = CirqaSyncFileCompletion.FailureDiagnostic(
-                    CirqaSyncFileCompletion.FailurePhase.FIT_IMPORT_COMMIT,
+                    failurePhase,
                     e.javaClass.simpleName
                 )
             )
@@ -3509,6 +3530,14 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         terminationRequested = true
         if (syncRequestMode) {
             if (message.startsWith("120-s-Zeitlimit") || message.startsWith("40-s-Zeitlimit")) {
+                if (syncCurrentItem != null &&
+                    CirqaSyncTimeoutFinalizer.failCurrentItem(syncCurrentLocalItemId, syncPipelineLedger)
+                ) {
+                    syncFailedFiles++
+                    syncFileResults = (syncFileResults +
+                        "in-flight-transfer-timeout;expected=$syncExpectedSize;wireBytes=$mlrBytes;")
+                        .take(1800)
+                }
                 syncContinuationRequest.timeout()
             } else {
                 syncContinuationRequest.abort()
@@ -3539,6 +3568,9 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     "stages=[${syncFileStageCounts.redactedSummary()}],queued=${syncPendingItems.size}," +
                     "transactionFollowups=${syncListContinuation.transactionFollowups}," +
                     "transactionFollowupResponseItems=${syncTransactionFollowupResponseItems ?: "none"}," +
+                    "transactionFollowupResponseItemCounts=${syncTransactionFollowupResponseItemCounts.joinToString(
+                        prefix = "[", postfix = "]"
+                    )}," +
                     "selected=$syncSelectedFiles,queuedTotal=$syncQueuedFiles,selectedBytes=$syncQueuedBytes,skipped=$syncSkippedFiles," +
                     "pages=$syncListPageCount,currentBytes=${mlrData.size()},details=$syncFileResults," +
                     "pipeline=[${syncPipelineLedger.summary()}],pipelineItems=[${syncPipelineLedger.orderedSummary()}]," +
@@ -3706,6 +3738,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             syncPageNextTransactionId = null
             syncListContinuation.reset()
             syncTransactionFollowupResponseItems = null
+            syncTransactionFollowupResponseItemCounts.clear()
             syncListPageCount = 0
             syncQueuedFiles = 0
             syncQueuedBytes = 0L
@@ -3755,21 +3788,62 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
      * closed under a running inflate.
      */
     override fun close() {
+        // Preserve the existing fire-and-forget close contract for diagnostic
+        // callers that immediately hand the BLE gate to another probe.
         terminationRequested = true
         active = false
-        // Same state-object cleanup as finish(): nothing may stay "running" after close().
         legacy5030Only?.let { it.abort(it.token) }
         passive5050Session.stop()
         serial.removeCallbacksAndMessages(null)
-        ui.removeCallbacksAndMessages(null) // an undelivered result must not reach a closed screen (as before)
+        ui.removeCallbacksAndMessages(null)
         val assembler = mlrFileAssembler
         if (assembler != null) serial.post {
             assembler.close()
             if (mlrFileAssembler === assembler) mlrFileAssembler = null
         }
         safeClose(gatt)
-        safeClose(closingGatt)   // a pending delayed close was just removed with the serial callbacks
+        safeClose(closingGatt)
         closingGatt = null
+        clearClosedProbeState()
+    }
+
+    /**
+     * Fences callbacks immediately, then completes teardown on the shared serial
+     * worker. A callback already doing archive/import work finishes before this
+     * barrier runs, so the recorder can safely advertise a stopped state only
+     * after [onQuiescent].
+     */
+    @Synchronized
+    override fun closeWhenQuiescent(onQuiescent: () -> Unit) {
+        if (closeRequested) {
+            serial.post { onQuiescent() }
+            return
+        }
+        closeRequested = true
+        terminationRequested = true
+        active = false
+        serial.removeCallbacksAndMessages(null)
+        ui.removeCallbacksAndMessages(null) // an undelivered result must not reach a closed screen (as before)
+        val closingGatt = gatt
+        val closingGattPending = this.closingGatt
+        safeClose(closingGatt)
+        safeClose(closingGattPending)
+        this.closingGatt = null
+        serial.post {
+            // Same state-object cleanup as finish(): nothing may stay "running" after close().
+            legacy5030Only?.let { it.abort(it.token) }
+            passive5050Session.stop()
+            val assembler = mlrFileAssembler
+            if (assembler != null) {
+                assembler.close()
+                if (mlrFileAssembler === assembler) mlrFileAssembler = null
+            }
+            clearClosedProbeState()
+            onQuiescent()
+        }
+    }
+
+    private fun clearClosedProbeState() {
         CirqaBleSessionGate.release(this)
         gatt = null
         callback = null

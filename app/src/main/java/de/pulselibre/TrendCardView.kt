@@ -36,7 +36,9 @@ internal class TrendCardView(context: Context) : LinearLayout(context) {
         val today: LocalDate = LocalDate.now(),
         val sensitivity: PairedCorrelation.Sensitivity? = null,
         /** Daily steps INCLUDING today's running counter (atlas only); empty = use [stepsDaily]. */
-        val stepsWithToday: Map<LocalDate, Double> = emptyMap()
+        val stepsWithToday: Map<LocalDate, Double> = emptyMap(),
+        /** All pre-specified hypotheses (#45), Benjamini–Hochberg corrected; [correlation] is the first one. */
+        val hypotheses: List<RelationshipHypotheses.Outcome> = emptyList()
     )
 
     init {
@@ -82,11 +84,14 @@ internal class TrendCardView(context: Context) : LinearLayout(context) {
         val windows = listOf(7, 28, 90)
         val restTrends = windows.map { TrendAnalysis.analyze(rest, today, it, 1.0) }
         val stepTrends = windows.map { TrendAnalysis.analyze(steps, today, it, 500.0) }
+        // Sleep and HRV are not decoded from the band yet (FIT): those hypotheses stay named and "not computable".
+        val hypotheses = RelationshipHypotheses.evaluate(steps, rest)
+        val primary = hypotheses.first()
         return Data(FitnessOverview.assess(stepTrends[1], restTrends[1]), restTrends, stepTrends,
-            PairedCorrelation.analyze(steps, rest, 1),
+            primary.primary!!.copy(verdict = primary.verdict),
             PairedCorrelation.pair(steps, rest, 1).map { it.second to it.third }, rest, steps, today,
             PairedCorrelation.sensitivity(steps, rest, 1),
-            reader.read(DashboardMeasurement.STEPS, first, today.plusDays(1), zone))
+            reader.read(DashboardMeasurement.STEPS, first, today.plusDays(1), zone), hypotheses)
     }
 
     private fun showMessage(text: String) {
@@ -393,14 +398,30 @@ internal class TrendCardView(context: Context) : LinearLayout(context) {
                     else append(context.getString(R.string.tr_details_row, nf.format(r.current.median), r.direction.arrow, if (r.delta!! > 0) "+" else "", nf.format(r.delta), nf.format(r.baseline.median), r.current.validDays.toString(), r.windowDays.toString()))
                 }
             }
-            val c = d.correlation
             append(context.getString(R.string.tr_details_corr_head))
-            if (c.rho == null) append(context.getString(R.string.tr_details_corr_nr, DomainText.tr(context, c.verdict.label), DomainText.tr(context, c.note)))
-            else append(context.getString(R.string.tr_details_corr, DomainText.tr(context, c.verdict.label), nf.format(c.rho), nf.format(c.ciLow), nf.format(c.ciHigh), c.pairs.toString(), DomainText.tr(context, c.note)))
+            d.hypotheses.forEach { h -> append(hypothesisLine(h)) }
             append(context.getString(R.string.tr_details_foot))
         }
         androidx.appcompat.app.AlertDialog.Builder(context).setTitle(context.getString(R.string.tr_methods_title))
             .setMessage(text).setPositiveButton(context.getString(R.string.action_ok), null).show()
+    }
+
+    private fun hypothesisLine(h: RelationshipHypotheses.Outcome): String = buildString {
+        append(context.getString(R.string.tr_hyp_line, context.getString(when (h.id) {
+            RelationshipHypotheses.Id.STEPS_REST_NEXT_DAY -> R.string.tr_hyp_steps_rest
+            RelationshipHypotheses.Id.SLEEP_REST_NEXT_DAY -> R.string.tr_hyp_sleep_rest
+            RelationshipHypotheses.Id.SLEEP_HRV -> R.string.tr_hyp_sleep_hrv
+        })))
+        val c = h.primary
+        when {
+            c == null -> append(context.getString(if (h.missing == RelationshipHypotheses.Missing.HRV_NOT_DECODED) R.string.tr_hyp_missing_hrv else R.string.tr_hyp_missing_sleep))
+            c.rho == null -> append(context.getString(R.string.tr_details_corr_nr, DomainText.tr(context, h.verdict.label), DomainText.tr(context, c.note)))
+            else -> {
+                append(context.getString(R.string.tr_details_corr, DomainText.tr(context, h.verdict.label), nf.format(c.rho), nf.format(c.ciLow), nf.format(c.ciHigh), c.pairs.toString(), DomainText.tr(context, c.note)))
+                h.adjustedP?.let { append(context.getString(R.string.tr_hyp_adjusted, NumberFormat.getNumberInstance(context.displayLocale()).apply { maximumFractionDigits = 3 }.format(it))) }
+                h.lagZero?.rho?.let { append(context.getString(R.string.tr_hyp_lag0, nf.format(it))) }
+            }
+        }
     }
 
     private fun showScatter() {

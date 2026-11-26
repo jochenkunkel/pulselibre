@@ -127,6 +127,11 @@
     <string name="main_open_testlab">Abrir el laboratorio de pruebas</string>
     <string name="main_status_ready">Sin conexión · preparado</string>
     <string name="main_hist_status_none">Todavía no se ha iniciado ninguna descarga de datos históricos.</string>
+    <string name="sync_sum_complete">Descarga completa: %1$d archivos transferidos.</string>
+    <string name="sync_sum_pull_rejected">La pulsera rechazó la descarga del primer archivo (código %1$s). Ofrecía %2$d archivos; no se solicitaron otros %3$d.</string>
+    <string name="sync_sum_followup_empty">%1$d de %2$d archivos ofrecidos transferidos; después la pulsera no informó de más. No está demostrado que el historial esté completo.</string>
+    <string name="sync_sum_partial">%1$d de %2$d archivos ofrecidos transferidos.</string>
+    <string name="sync_sum_details">Detalles técnicos (toca para desplegar):</string>
     <string name="main_hist_heading">Datos históricos del dispositivo</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="main_hist_info">Los archivos se guardan de forma local y privada. Las mediciones FIT además se importan a SQLite; los tipos de archivo desconocidos se conservan como originales.</string>
@@ -171,6 +176,11 @@
     <string name="metric_vigorous">Minutos de intensidad alta</string>
     <string name="metric_vigorous_short">Intensidad alta</string>
     <string name="metric_sleep">Sueño</string>
+    <string name="sleep_band_title">Fases del sueño de la pulsera (FIT)</string>
+    <string name="sleep_band_summary">%1$d cambios de fase entre %2$s y %3$s (hora de la pulsera)</string>
+    <string name="sleep_band_cd">Fases del sueño de la pulsera: despierto %1$d, ligero %2$d, profundo %3$d, REM %4$d, no medible %5$d registros</string>
+    <string name="sleep_band_legend">despierto %1$d · ligero %2$d · profundo %3$d · REM %4$d · no medible %5$d</string>
+    <string name="sleep_band_note">Se marca cuándo la pulsera informó de cada fase. No se calcula la duración del sueño mientras los intervalos no estén validados.</string>
     <string name="metric_steps">Pasos</string>
     <string name="metric_steps_today">Pasos hoy</string>
     <string name="metric_no_data">Sin datos de medición</string>
@@ -447,7 +457,15 @@
     <string name="tr_details_days">\n%1$s días: </string>
     <string name="tr_details_unrated">no evaluable · %1$s</string>
     <string name="tr_details_row">%1$s %2$s %3$s%4$s (antes: %5$s) · %6$s/%7$s días</string>
-    <string name="tr_details_corr_head">\n\nRelación (exploratoria, 1 hipótesis fijada de antemano): pasos de un día ↔ pulso en reposo del dispositivo al día siguiente\n</string>
+    <string name="tr_details_corr_head">\n\nRelaciones (exploratorias, 3 hipótesis fijadas de antemano, corrección de Benjamini-Hochberg; una relación no demuestra una causa)</string>
+    <string name="tr_hyp_line">\n• %1$s: </string>
+    <string name="tr_hyp_steps_rest">pasos de un día ↔ pulso en reposo del dispositivo al día siguiente</string>
+    <string name="tr_hyp_sleep_rest">duración del sueño ↔ pulso en reposo del dispositivo al día siguiente</string>
+    <string name="tr_hyp_sleep_hrv">duración del sueño ↔ VFC de la misma noche</string>
+    <string name="tr_hyp_adjusted"> p corregido=%1$s.</string>
+    <string name="tr_hyp_lag0"> Sensibilidad desfase 0: ρ=%1$s.</string>
+    <string name="tr_hyp_missing_sleep">no calculable: los datos de sueño aún no se decodifican de la pulsera.</string>
+    <string name="tr_hyp_missing_hrv">no calculable: la VFC aún no se decodifica de la pulsera.</string>
     <string name="tr_details_corr_nr">%1$s · %2$s</string>
     <string name="tr_details_corr">%1$s · ρ=%2$s (95 %%: %3$s a %4$s) · n=%5$s días. %6$s</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
@@ -556,6 +574,8 @@
     <string name="ex_backup_running">Creando la copia de seguridad …</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="ex_backup_done">Copia de seguridad guardada: %1$d eventos, %2$d mediciones históricas, %3$d fuentes FIT históricas/%4$d filas de procedencia; %5$d mediciones canónicas, %6$d fuentes FIT canónicas/%7$d filas de procedencia y %8$d filas de metadatos FIT, %9$d filas de metadatos XML sin procesar derivadas. Se incluyen los contenidos originales archivados disponibles, que pueden contener identificadores sensibles.</string>
+    <string name="ex_backup_failed_removed">La copia de seguridad falló. Se eliminó el archivo de destino vacío.</string>
+    <string name="ex_backup_reason">Causa: %1$s</string>
     <string name="ex_backup_failed">Error en la copia de seguridad. Comprueba la ubicación; un archivo de destino creado puede estar incompleto y debería borrarse.</string>
     <string name="ex_backup_checking">Comprobando la copia de seguridad …</string>
     <string name="ex_backup_invalid">Copia de seguridad no válida o ilegible. Base de datos sin cambios.</string>
@@ -589,7 +609,7 @@
     <string name="ex_local_only">Solo en tu dispositivo · Sin nube · Sin inicio de sesión</string>
     <string name="ex_db_title">Base de datos local</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
-    <string name="ex_db_note">La copia contiene eventos CIRQA, mediciones históricas, estados de sincronización y contenidos originales archivados disponibles, incluidos campos desconocidos e identificadores. El ZIP no está cifrado y contiene datos sensibles de salud y del dispositivo.</string>
+    <string name="ex_db_note">La copia contiene eventos CIRQA, mediciones históricas, estados de sincronización y contenidos originales archivados disponibles, incluidos campos desconocidos e identificadores, además de tus ajustes personales (perfil, tema, idioma). El ZIP no está cifrado y contiene datos sensibles de salud y del dispositivo.</string>
     <string name="ex_btn_backup">Crear copia de seguridad</string>
     <string name="ex_btn_backup_cd">Crear una copia de seguridad local de la base de datos</string>
     <string name="ex_btn_fit">Exportar los originales FIT</string>
@@ -608,28 +628,46 @@
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="ex_btn_reset">Restablecer la base de datos</string>
     <string name="ex_btn_reset_cd">Borrar todas las entradas locales de la base de datos</string>
-    <string name="ex_prefs_kept">Los ajustes de la app se conservan al restaurar y al restablecer.</string>
+    <string name="ex_prefs_kept">Los ajustes personales (perfil, tema, idioma, detección de actividad, grabación, disposición del panel) forman parte de las copias nuevas; una restauración los reemplaza y un restablecimiento los conserva.</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="ex_restore_title">¿Reemplazar la base de datos?</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
-    <string name="ex_restore_msg">La copia de seguridad del %1$s contiene %2$d eventos, %3$d mediciones históricas, %4$d estados de sincronización, %5$d fuentes FIT y %6$d filas de procedencia FIT. %7$d mediciones canónicas y %8$d fuentes FIT canónicas/%9$d filas de procedencia, así como %10$d filas de metadatos FIT y %11$d filas de metadatos XML sin procesar derivadas. Los archivos originales no están incluidos; las rutas y los identificadores XML no se guardan.\n\nSe reemplazarán todas las entradas de la base de datos almacenadas actualmente. Los ajustes de la app se conservan. Continúa solo con una copia de seguridad de una fuente de confianza.</string>
+    <string name="ex_restore_msg">La copia de seguridad del %1$s contiene %2$d eventos, %3$d mediciones históricas, %4$d estados de sincronización, %5$d fuentes FIT y %6$d filas de procedencia FIT. %7$d mediciones canónicas y %8$d fuentes FIT canónicas/%9$d filas de procedencia, así como %10$d filas de metadatos FIT y %11$d filas de metadatos XML sin procesar derivadas. Los archivos originales no están incluidos; las rutas y los identificadores XML no se guardan.\n\nSe reemplazarán todas las entradas de la base de datos almacenadas actualmente. %12$s Continúa solo con una copia de seguridad de una fuente de confianza.</string>
     <string name="ex_replace">Reemplazar</string>
     <string name="ex_restore_cancelled">Restauración cancelada.</string>
     <string name="ex_restore_running">Restaurando la base de datos …</string>
     <string name="ex_restore_done">Base de datos restaurada desde la copia de seguridad.</string>
+    <string name="ex_progress_snapshot">Creando una instantánea de la base de datos …</string>
+    <string name="ex_progress_write">Escribiendo la tabla %1$d de %2$d …</string>
+    <string name="ex_progress_copy">Guardando el archivo …</string>
+    <string name="ex_progress_extract">Descomprimiendo la copia …</string>
+    <string name="ex_progress_validate">Comprobando la entrada %1$d de %2$d …</string>
+    <string name="ex_progress_references">Comprobando referencias …</string>
+    <string name="ex_progress_restore">Restaurando los datos (puede tardar un minuto) …</string>
+    <string name="ex_progress_settings">Restaurando los ajustes …</string>
+    <string name="ex_progress_keep_open">No cierres la app mientras tanto.</string>
+    <string name="ex_restore_settings_replaced">La copia también contiene tus ajustes personales (%1$d valores: perfil, tema, idioma y más). Puedes restaurar solo los ajustes o los ajustes junto con los datos de salud.</string>
+    <string name="ex_restore_settings_kept">Esta copia antigua no contiene ajustes; se conservan tus ajustes actuales.</string>
+    <string name="ex_restore_all">Ajustes y datos de salud</string>
+    <string name="ex_restore_settings_only">Solo ajustes</string>
+    <string name="ex_restore_settings_done">Ajustes restaurados desde la copia; datos de salud sin cambios.</string>
+    <string name="ex_ble_busy">Hay una operación Bluetooth en curso (p. ej. una descarga del historial). Espera a que termine e inténtalo de nuevo. No se ha cambiado nada.</string>
+    <string name="ex_restore_originals_note">Los archivos originales de la pulsera guardados localmente se conservan al restaurar; lo que falte en la copia se vuelve a añadir en el siguiente inicio.</string>
+    <string name="ex_rec_restarted">Grabación reiniciada.</string>
+    <string name="ex_rec_restart_failed">No se pudo reiniciar la grabación; iníciala desde la vista general.</string>
     <string name="ex_restore_failed">Error en la restauración. Comprueba la base de datos.</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="ex_reset_title">¿Restablecer la base de datos local?</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
-    <string name="ex_reset_msg">Todos los eventos CIRQA, mediciones históricas y estados de sincronización almacenados localmente se borrarán de forma permanente. Los ajustes de la app se conservan. Esta acción no se puede deshacer.</string>
+    <string name="ex_reset_msg">Se eliminan definitivamente todos los eventos CIRQA, mediciones históricas, estados de sincronización y los archivos originales descargados de la pulsera (archivos FIT) guardados localmente. Solo vuelven mediante una copia de seguridad o una nueva descarga desde la pulsera. Los ajustes personales se conservan. Esta acción no se puede deshacer.</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="ex_reset_delete">Borrar datos</string>
     <string name="ex_reset_running">Restableciendo la base de datos …</string>
-    <string name="ex_reset_done">La base de datos local se vació.</string>
+    <string name="ex_reset_done">Base de datos local vaciada, %1$d archivos originales eliminados.</string>
     <string name="ex_reset_failed">Error al restablecer. Comprueba la base de datos.</string>
     <string name="ex_rec_title">Grabación en curso</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
-    <string name="ex_rec_msg">La grabación CIRQA local en curso debe detenerse antes de la operación en la base de datos.</string>
+    <string name="ex_rec_msg">La grabación local de CIRQA en curso se detiene antes de la operación de base de datos y se reinicia automáticamente después.</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="ex_rec_stop">Detener y continuar</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
@@ -680,6 +718,7 @@
     <string name="bat_fresh">Estado: %1$s</string>
     <string name="bat_stale">Obsoleto · último estado conocido %1$s</string>
     <string name="bat_time_unknown">Hora desconocida · último estado conocido</string>
+    <string name="dev_meta_as_of">Estado al %1$s</string>
     <string name="bat_cd">Batería: %1$d por ciento. %2$s</string>
     <string name="bat_cd_charging">Batería: %1$d por ciento, cargando. %2$s</string>
     <string name="dev_src_pulse">Frecuencia cardíaca</string>
@@ -903,10 +942,16 @@
     <string name="hv_fit_kinds">Historial diario normal: %1$d · de registros de actividad: %2$d</string>
     <string name="hv_fit_kinds_other"> · otros mensajes FIT: %1$d</string>
     <string name="hv_fit_activity_only">Solo valores de registros de actividad: no hay historial diario normal guardado para este período.</string>
+    <string name="hv_fit_duplicates">%1$d valores estaban en varios archivos FIT y se cuentan una sola vez.</string>
     <string name="dd_band_title">Historial de la pulsera (FIT) · hora de medición de la pulsera</string>
     <string name="dd_band_summary">%1$d valores de la pulsera (historial diario %2$d, actividad %3$d)</string>
     <string name="dd_band_none">No hay frecuencia cardíaca de la pulsera (FIT) guardada para este día.</string>
     <string name="dd_band_failed">No se pudo leer el historial de la pulsera.</string>
+    <string name="dd_band_none_metric">No hay valores de la pulsera (FIT) de esta medida guardados ese día.</string>
+    <string name="dd_band_summary_plain">%1$d valores de la pulsera</string>
+    <string name="dd_unit_bpm">lpm</string>
+    <string name="dd_unit_device_scale">escala del dispositivo</string>
+    <string name="dd_unit_breaths">respiraciones/min</string>
     <!-- REVIEW: neue Texte (Verlauf-Tabelle), fr/es Sprachprüfung durch ChatGPT -->
     <string name="ht_title">Todos los datos</string>
     <string name="ht_col_date">Fecha</string>
@@ -960,6 +1005,14 @@
     <string name="ht_m_stress">Estrés</string>
     <string name="ht_m_battery">Body Battery</string>
     <string name="ht_m_breath">Frecuencia respiratoria</string>
+    <string name="ht_m_spo2_confidence">Confianza SpO₂ (código bruto)</string>
+    <string name="ht_m_spo2_mode">Modo de medición SpO₂ (código)</string>
+    <string name="ht_m_sleep_level">Fase del sueño (código)</string>
+    <string name="ht_m_skin_dev">Desviación de la temperatura cutánea (°C)</string>
+    <string name="ht_m_skin_dev7">Desviación de la temperatura cutánea 7 días (°C)</string>
+    <string name="ht_m_cycles">Ciclos de monitorización</string>
+    <string name="ht_m_activity_type">Tipo de actividad (código)</string>
+    <string name="ht_m_intensity_code">Intensidad de movimiento (código)</string>
     <string name="ht_m_distance">Distancia (m)</string>
     <string name="ht_m_speed">Velocidad (m/s)</string>
     <string name="ht_m_cadence">Cadencia (rpm)</string>
@@ -974,13 +1027,17 @@
     <string name="sd_r24">24 horas</string>
     <string name="sd_r7">7 días</string>
     <string name="sd_r30">30 días</string>
-    <string name="sd_hr_band">Frecuencia cardíaca · pulsera (FIT)</string>
-    <string name="sd_distance_band">Distancia · pulsera (FIT)</string>
-    <string name="sd_speed_band">Velocidad · pulsera (FIT)</string>
+    <string name="sd_hr_band">Frecuencia cardíaca · pulsera, historial diario (FIT)</string>
+    <string name="sd_hr_band_activity">Frecuencia cardíaca · pulsera, registros de actividad (FIT)</string>
+    <string name="sd_distance_band">Distancia · pulsera, actividades (FIT)</string>
+    <string name="sd_speed_band">Velocidad · pulsera, actividades (FIT)</string>
     <string name="sd_hr_live">Frecuencia cardíaca · teléfono (en vivo)</string>
     <string name="sd_spo2">SpO₂ · calidad sin verificar</string>
     <string name="sd_resp">Frecuencia respiratoria</string>
     <string name="sd_stress">Estrés (escala del dispositivo)</string>
+    <string name="sd_spo2_band">SpO₂ · pulsera (FIT), calidad no verificada</string>
+    <string name="sd_resp_band">Frecuencia respiratoria · pulsera (FIT)</string>
+    <string name="sd_stress_band">Estrés · pulsera (FIT, escala del dispositivo)</string>
     <string name="sd_src_band">Fuente: pulsera · Base de tiempo: hora de medición de la pulsera</string>
     <string name="sd_src_live">Fuente: teléfono (en vivo) · Base de tiempo: hora de recepción</string>
     <string name="sd_loading">Leyendo los datos …</string>
@@ -1042,4 +1099,28 @@
     <string name="hsp_failed">Sincronización fallida</string>
     <string name="hsp_files">%1$d de %2$d archivos</string>
     <string name="hsp_coverage_note">No está demostrado que el historial de la pulsera esté completo: una ejecución terminada no significa que se haya transferido cada medición guardada.</string>
+    <string name="wear_worn">puesta (respiración medida en la muñeca)</string>
+    <string name="wear_not_worn">no puesta (la pulsera indica: fuera de la muñeca)</string>
+    <string name="wear_offline">desconocido, pulsera no conectada</string>
+    <string name="wear_unknown">desconocido, sin señal de uso actual</string>
+    <string name="wear_battery_none">sin valor actual</string>
+    <string name="wear_battery_value">%1$d %% (medido hace %2$s)</string>
+    <string name="wear_battery_low">, baja</string>
+    <string name="wear_battery_last">último conocido %1$d %% (hace %2$s)</string>
+    <string name="wear_battery_last_untimed">último conocido %1$d %% (hora desconocida)</string>
+    <string name="wear_zone_status_cd">Pulsera CIRQA: %1$s. Uso: %2$s. Toca para ver detalles.</string>
+    <string name="wear_zone_battery_cd">Batería de la pulsera (no del teléfono): %1$s. Toca para ver detalles.</string>
+    <string name="wear_zone_settings_cd">Abrir ajustes</string>
+    <string name="wear_status_title">Pulsera CIRQA</string>
+    <string name="wear_status_detail">Conexión: %1$s\n\nUso: %2$s\n\nLa conexión se considera activa cuando la grabación recibe valores o Android indica la pulsera como conectada. «Puesta» solo aparece si la pulsera lo indica ella misma (medición de la respiración o mensaje «fuera de la muñeca», como máximo de hace 2 minutos).</string>
+    <string name="wear_battery_title">Batería de la pulsera</string>
+    <string name="wear_battery_detail">%1$d %% · medido hace %2$s · fuente: %3$s</string>
+    <string name="wear_battery_detail_old">El valor tiene más de 12 horas o la pulsera no está conectada; por eso se muestra en gris como «último conocido».</string>
+    <string name="wear_battery_detail_none">Todavía no hay valor de batería de la pulsera. Aparece en cuanto la página Dispositivo o un archivo FIT de la pulsera lo proporcione.</string>
+    <string name="wear_battery_detail_low">Batería baja.</string>
+    <string name="wear_battery_detail_note">Es la batería de la pulsera, no la del teléfono.</string>
+    <string name="wear_src_gatt">servicio de batería Bluetooth</string>
+    <string name="wear_src_gdi">estado del dispositivo de la pulsera</string>
+    <string name="wear_src_fit">archivo FIT de la pulsera</string>
+    <string name="wear_src_other">pulsera</string>
 </resources>

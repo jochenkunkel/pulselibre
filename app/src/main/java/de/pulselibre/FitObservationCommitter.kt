@@ -40,7 +40,8 @@ internal object FitObservationCommitter {
                 it.idempotencyKey.isNotBlank() && it.recordOrdinal > 0 &&
                 it.globalMessageNumber >= 0 && it.fieldNumber >= 0 &&
                 (it.timestampEpochMillis == null || it.timestampEpochMillis >= 0) &&
-                it.quality == "UNTRUSTED_PROFILE_CANDIDATE"
+                it.quality == "UNTRUSTED_PROFILE_CANDIDATE" &&
+                it.decoderVersion.matches(Regex("[0-9]{1,8}"))
         }) { "FIT review candidate does not match validated source" }
         require(reviewCandidates.map { it.idempotencyKey }.distinct().size == reviewCandidates.size) {
             "Duplicate FIT review candidate idempotency key in one file"
@@ -127,6 +128,10 @@ internal object FitObservationCommitter {
                     "sleep_level" -> "sleep_level"
                     "monitoring_cycles" -> "monitoring_cycles"
                     "monitoring_activity_type" -> "monitoring_activity_type"
+                    MonitoringActivityIntensity.ACTIVITY_TYPE -> "monitoring_current_activity_type"
+                    MonitoringActivityIntensity.INTENSITY -> "monitoring_intensity_code"
+                    "average_deviation" -> "skin_temperature_deviation"
+                    "average_7_day_deviation" -> "skin_temperature_7_day_deviation"
                     else -> error("Unsupported FIT review candidate")
                 }
                 candidateInsert.clearBindings()
@@ -142,7 +147,7 @@ internal object FitObservationCommitter {
                 candidateInsert.bindLong(10, candidate.fieldNumber.toLong())
                 candidateInsert.bindString(11, candidate.quality)
                 candidateInsert.bindString(12, candidate.timestampOrigin.name)
-                candidateInsert.bindString(13, decoderVersion)
+                candidateInsert.bindString(13, candidate.decoderVersion)
                 candidateInsert.executeInsert()
                 db.rawQuery(
                     """SELECT device_id, metric, measured_at_ms, value, unit, source_sha256,
@@ -152,7 +157,7 @@ internal object FitObservationCommitter {
                     arrayOf(candidate.idempotencyKey)
                 ).use { row ->
                     check(row.moveToFirst()) { "FIT review candidate insert was not retained" }
-                    if (row.getString(11) == decoderVersion) {
+                    if (row.getString(11) == candidate.decoderVersion) {
                         check(row.getString(0) == deviceKey && row.getString(1) == metric &&
                             sameNullableLong(row, 2, candidate.timestampEpochMillis) &&
                             row.getDouble(3).toBits() == candidate.value.toBits() &&

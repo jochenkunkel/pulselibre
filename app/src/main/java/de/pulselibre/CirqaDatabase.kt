@@ -15,6 +15,16 @@ import java.security.MessageDigest
 class CirqaDatabase(private val contextRef: Context) :
     SQLiteOpenHelper(contextRef, "cirqa_measurements.db", null, 11), FitObservationStore {
 
+    data class ArchivedFitReplayResult(
+        val candidatesSeen: Int,
+        val generationsActivated: Int,
+        val filesMaterialized: Int,
+        val invalidCandidates: Int,
+        val failedCandidates: Int,
+        val bytesRead: Long,
+        val truncated: Boolean
+    )
+
     override fun onConfigure(db: SQLiteDatabase) {
         super.onConfigure(db)
         db.setForeignKeyConstraintsEnabled(true)
@@ -99,22 +109,35 @@ class CirqaDatabase(private val contextRef: Context) :
 
     /** Preserve every received file before any semantic filtering. */
     fun archiveDownloadedFile(bytes: ByteArray, reference: ByteArray, label: String, at: Long): Boolean {
-        val db = writableDatabase
-        var contentAlreadyPresent = false
-        db.beginTransaction()
-        try {
-            contentAlreadyPresent = DownloadedFileArchive.store(db, bytes, reference, label, at)
-            db.setTransactionSuccessful()
-        } finally {
-            db.endTransaction()
+        return synchronized(downloadedFileArchiveLock) {
+            // This private, fsync'd content-addressed copy is a recovery journal for the
+            // SQLite archive transaction. If a competing helper holds the DB lock, the
+            // exact source bytes survive and archiveExistingDownloads() retries later.
+            val pending = CirqaVerifiedRawFileStore(
+                java.io.File(contextRef.filesDir, "downloaded_originals_pending")
+            ).saveExact(bytes, bytes.size.toLong())
+            val db = writableDatabase
+            var contentAlreadyPresent = false
+            db.beginTransaction()
+            try {
+                contentAlreadyPresent = DownloadedFileArchive.store(db, bytes, reference, label, at)
+                db.setTransactionSuccessful()
+            } finally {
+                db.endTransaction()
+            }
+            pending.file.delete()
+            contentAlreadyPresent
         }
-        return contentAlreadyPresent
     }
 
     /** Offline migration of existing content-addressed originals; never touches the band. */
     fun archiveExistingDownloads(): Int {
         var count = 0
-        for ((name, suffix) in listOf("verified_fit" to ".fit", "verified_raw" to ".bin")) {
+        for ((name, suffix) in listOf(
+            "verified_fit" to ".fit",
+            "verified_raw" to ".bin",
+            "downloaded_originals_pending" to ".bin"
+        )) {
             val directory = java.io.File(contextRef.filesDir, name)
             if (!directory.isDirectory || java.nio.file.Files.isSymbolicLink(directory.toPath())) continue
             for (file in directory.listFiles().orEmpty()) {
@@ -125,7 +148,10 @@ class CirqaDatabase(private val contextRef: Context) :
                 val archived = readableDatabase.rawQuery(
                     "SELECT 1 FROM downloaded_files WHERE content_sha256=? AND file_bytes=?",
                     arrayOf(sha, file.length().toString())).use { it.moveToFirst() }
-                if (archived) continue
+                if (archived) {
+                    if (name == "downloaded_originals_pending") file.delete()
+                    continue
+                }
                 val bytes = file.readBytes()
                 check(DownloadedFileArchive.sha256(bytes) == sha) { "Local original hash mismatch" }
                 archiveDownloadedFile(bytes, byteArrayOf(), name, file.lastModified().coerceAtLeast(0))
@@ -996,10 +1022,7 @@ class CirqaDatabase(private val contextRef: Context) :
 
     /** Returns raw FIT-derived values separately from trusted historical observations. */
     fun readUntrustedFitCandidates(metric: String? = null): List<StoredFitReviewCandidate> {
-        require(metric == null || metric in setOf(
-            "spo2", "spo2_confidence", "spo2_measurement_mode", "stress", "respiration",
-            "sleep_level", "monitoring_cycles", "monitoring_activity_type"
-        ))
+        require(metric == null || metric in FIT_REVIEW_CANDIDATE_METRICS)
         val result = mutableListOf<StoredFitReviewCandidate>()
         val sql = """SELECT sample_id, device_id, metric, measured_at_ms, value, unit, source_sha256,
                             record_ordinal, global_message_number, field_number, quality,
@@ -1056,6 +1079,164 @@ class CirqaDatabase(private val contextRef: Context) :
             deviceKey = deviceKey,
             decodedFields = decoded.decodedFields
         )
+    }
+
+    /**
+     * Recovers FITs from immutable `downloaded_files` originals. Stale active
+     * generations are re-decoded and activated through the existing generation
+     * API; never-imported sources are materialized for the normal backfill.
+     * Processing is offline, cancellable, and bounded by the backfill budgets.
+     */
+    fun recoverArchivedFitSources(
+        destination: java.io.File,
+        cancelled: () -> Boolean = { false }
+    ): ArchivedFitReplayResult {
+        val decoderVersion = FitHistoricalObservations.DECODER_VERSION
+        val profileVersion = FitHistoricalObservations.PROFILE_VERSION
+        val db = writableDatabase
+        db.execSQL("CREATE TABLE IF NOT EXISTS unified_state(key TEXT PRIMARY KEY NOT NULL, value TEXT NOT NULL)")
+        val cursorKey = "fit_archive_replay_cursor:$decoderVersion:$profileVersion"
+        val previousCursor = db.rawQuery(
+            "SELECT value FROM unified_state WHERE key = ?",
+            arrayOf(cursorKey)
+        ).use { if (it.moveToFirst()) it.getString(0) else "" }
+        require(destination.isDirectory || destination.mkdirs()) { "Cannot create FIT recovery directory" }
+        require(destination.isDirectory && !java.nio.file.Files.isSymbolicLink(destination.toPath())) {
+            "Unsafe FIT recovery directory"
+        }
+        if (cancelled()) return ArchivedFitReplayResult(0, 0, 0, 0, 0, 0, truncated = true)
+
+        data class Candidate(
+            val sha: String,
+            val size: Int,
+            val receivedAt: Long,
+            val deviceKey: String,
+            val hasActiveGeneration: Boolean
+        )
+        val candidates = mutableListOf<Candidate>()
+        db.rawQuery(
+            """SELECT f.content_sha256, f.file_bytes, COALESCE(f.received_at_ms, 0),
+                      COALESCE((
+                          SELECT o.device_id
+                          FROM fit_generation_observations o
+                          WHERE o.generation_id = a.generation_id
+                          ORDER BY o.device_id LIMIT 1
+                      ), 'cirqa-fit'),
+                      a.generation_id
+               FROM downloaded_files f
+               LEFT JOIN fit_active_generations a ON a.source_sha256 = f.content_sha256
+               LEFT JOIN fit_decoder_generations g ON g.generation_id = a.generation_id
+               WHERE f.content_sha256 > ?
+                 AND f.file_bytes BETWEEN 14 AND ?
+                 AND substr(f.payload, 9, 4) = X'2E464954'
+                 AND NOT (
+                     a.generation_id IS NOT NULL
+                     AND g.decoder_version = ? AND g.profile_version = ?
+                 )
+               ORDER BY f.content_sha256
+               LIMIT ?""",
+            arrayOf(
+                previousCursor,
+                CirqaFitBackfill.MAX_FIT_FILE_BYTES.toString(),
+                decoderVersion,
+                profileVersion,
+                (CirqaFitBackfill.MAX_FILES + 1).toString()
+            )
+        ).use { rows ->
+            while (rows.moveToNext()) {
+                candidates += Candidate(
+                    rows.getString(0), rows.getInt(1), rows.getLong(2), rows.getString(3),
+                    !rows.isNull(4)
+                )
+            }
+        }
+        if (candidates.isEmpty()) {
+            db.delete("unified_state", "key = ?", arrayOf(cursorKey))
+            return ArchivedFitReplayResult(0, 0, 0, 0, 0, 0, truncated = false)
+        }
+
+        var seen = 0
+        var activated = 0
+        var materialized = 0
+        var invalid = 0
+        var failed = 0
+        var bytesRead = 0L
+        var lastProcessed = previousCursor
+        var truncated = candidates.size > CirqaFitBackfill.MAX_FILES
+        for (candidate in candidates.take(CirqaFitBackfill.MAX_FILES)) {
+            if (cancelled()) {
+                truncated = true
+                break
+            }
+            if (candidate.size.toLong() > CirqaFitBackfill.MAX_TOTAL_BYTES - bytesRead) {
+                truncated = true
+                break
+            }
+            seen++
+            val sourceBytes = readArchivedFitBytes(db, candidate.sha, candidate.size, cancelled)
+            if (sourceBytes == null) {
+                if (cancelled()) {
+                    truncated = true
+                    break
+                }
+                invalid++
+            } else {
+                bytesRead += sourceBytes.size
+                try {
+                    if (!candidate.hasActiveGeneration) {
+                        CirqaVerifiedFitStore(destination).saveVerified(sourceBytes)
+                        materialized++
+                    } else {
+                        val generationId = replayVerifiedFitSource(
+                            sourceBytes = sourceBytes,
+                            replayedAtEpochMillis = candidate.receivedAt,
+                            deviceKey = candidate.deviceKey
+                        )
+                        activateFitDecoderGeneration(candidate.sha, generationId)
+                        activated++
+                    }
+                } catch (_: Exception) {
+                    // Keep the immutable original and move on; later app-entry
+                    // passes wrap around and retry sources that remain stale.
+                    failed++
+                }
+            }
+            lastProcessed = candidate.sha
+            db.execSQL(
+                "INSERT OR REPLACE INTO unified_state(key, value) VALUES(?, ?)",
+                arrayOf(cursorKey, lastProcessed)
+            )
+        }
+        return ArchivedFitReplayResult(seen, activated, materialized, invalid, failed, bytesRead, truncated)
+    }
+
+    private fun readArchivedFitBytes(
+        db: SQLiteDatabase,
+        sourceSha256: String,
+        expectedSize: Int,
+        cancelled: () -> Boolean
+    ): ByteArray? {
+        val bytes = ByteArray(expectedSize)
+        var offset = 0
+        while (offset < expectedSize) {
+            if (cancelled()) return null
+            val requested = minOf(DownloadedFileArchive.CHUNK_BYTES, expectedSize - offset)
+            val chunk = db.rawQuery(
+                """SELECT substr(payload, ?, ?)
+                   FROM downloaded_files WHERE content_sha256 = ? AND file_bytes = ?""",
+                arrayOf((offset + 1).toString(), requested.toString(), sourceSha256, expectedSize.toString())
+            ).use { rows ->
+                if (!rows.moveToFirst() || rows.isNull(0)) return null
+                rows.getBlob(0)
+            }
+            if (chunk.size != requested) return null
+            chunk.copyInto(bytes, offset)
+            offset += chunk.size
+        }
+        if (DownloadedFileArchive.sha256(bytes) != sourceSha256 ||
+            FitFileHeader.inspectVerified(bytes) == null
+        ) return null
+        return bytes
     }
 
     /**
@@ -1228,6 +1409,7 @@ class CirqaDatabase(private val contextRef: Context) :
         } finally {
             db.endTransaction()
         }
+        TrendCache.invalidate()
     }
 
     fun storedFitUnmappedFields(): List<StoredFitUnmappedField> =
@@ -1296,6 +1478,22 @@ class CirqaDatabase(private val contextRef: Context) :
     }
 
     /** Newest value per field, newest first. Call on a worker thread. */
+    /**
+     * Newest software version the band reported in a FIT `device_info` message, or null. Live metadata got these values
+     * only once (migration backfill); later FIT imports write them to `fit_device_metadata` only, so the Gerät page
+     * read "Firmware: nicht verfügbar" although every FIT file carries the version (owner report 26.11.2026).
+     */
+    internal fun latestFitSoftwareVersion(): LiveDeviceMetadata? =
+        readableDatabase.rawQuery(
+            """SELECT CAST(software_version AS TEXT), observed_at_ms FROM fit_device_metadata
+               WHERE software_version IS NOT NULL AND observed_at_ms IS NOT NULL
+               ORDER BY observed_at_ms DESC, source_sha256 DESC, record_ordinal DESC LIMIT 1""", null
+        ).use { rows ->
+            if (!rows.moveToFirst()) null
+            else LiveDeviceMetadata(DeviceMetadataFields.SOFTWARE_VERSION, rows.getString(0), null,
+                DeviceMetadataSources.FIT_DEVICE_INFO, rows.getLong(1))
+        }
+
     internal fun latestLiveDeviceMetadata(): List<LiveDeviceMetadata> =
         readableDatabase.rawQuery(
             """SELECT field_key, value_text, unit, source, observed_at_ms
@@ -1519,8 +1717,38 @@ class CirqaDatabase(private val contextRef: Context) :
         it.getLong(0)
     }
 
-    /** Run a callback against a consistent read snapshot of both local SQLite stores. */
+    /**
+     * Run a callback against a consistent read snapshot of both local SQLite stores.
+     *
+     * On Android 11+ (SQLite ≥ 3.28) the stores are first copied with `VACUUM INTO` – a read-only operation of a few
+     * seconds – and [block] runs on the copies. Before (25.11.2026) the whole backup export ran inside an exclusive
+     * transaction on the live database for minutes; the recorder, which logs readings on the main thread, waited for
+     * the lock and the app showed "PulsLibre reagiert nicht" (S10, build 2232). Older Android keeps the previous path.
+     */
     @Synchronized internal fun <T> readStoredSnapshot(block: (SQLiteDatabase) -> T): T =
+        if (android.os.Build.VERSION.SDK_INT >= 30) readFromSnapshotCopy(block) else readInLiveTransaction(block)
+
+    private fun <T> readFromSnapshotCopy(block: (SQLiteDatabase) -> T): T {
+        val directory = java.io.File(contextRef.cacheDir, "db-snapshot-${java.util.UUID.randomUUID()}")
+        require(directory.mkdirs()) { "Temporärer Snapshot-Bereich kann nicht erstellt werden" }
+        try {
+            val mainCopy = java.io.File(directory, "main.db")
+            val legacyCopy = java.io.File(directory, "legacy.db")
+            writableDatabase.execSQL("VACUUM main INTO ?", arrayOf(mainCopy.absolutePath))
+            LocalReadingStore(contextRef).use { it.writableDatabase.execSQL("VACUUM main INTO ?", arrayOf(legacyCopy.absolutePath)) }
+            val copy = SQLiteDatabase.openDatabase(mainCopy.absolutePath, null, SQLiteDatabase.OPEN_READWRITE)
+            try {
+                copy.execSQL("ATTACH DATABASE ? AS legacy", arrayOf(legacyCopy.absolutePath))
+                return block(copy)
+            } finally {
+                copy.close()
+            }
+        } finally {
+            directory.deleteRecursively()
+        }
+    }
+
+    private fun <T> readInLiveTransaction(block: (SQLiteDatabase) -> T): T =
         withLegacyDatabase { db ->
             db.beginTransaction()
             try {
@@ -1581,6 +1809,10 @@ class CirqaDatabase(private val contextRef: Context) :
             db.execSQL("DELETE FROM legacy.readings")
             db.execSQL("DELETE FROM legacy.fit_sources")
             db.execSQL("DELETE FROM legacy.sync_cursors")
+            // Derived read model of the Verlauf (owner report 26.11.2026): its live rows are only ever appended from a
+            // cursor, so after a reset/restore they stayed visible. Emptying it lets the next refresh rebuild it from
+            // the replaced source rows.
+            UnifiedMeasurements.clearDerived(db, "main")
 
             val eventInsert = db.compileStatement(
                 "INSERT INTO main.events(line_sha256, received_at_utc, kind, service, payload_json, dashboard_time) VALUES(?, ?, ?, ?, ?, ?)"
@@ -2060,7 +2292,7 @@ class CirqaDatabase(private val contextRef: Context) :
         )
         candidates.forEach { item ->
             require(item.sampleId.isNotBlank() && item.deviceId.isNotBlank() &&
-                item.metric in setOf("spo2", "stress", "respiration") &&
+                item.metric in FIT_REVIEW_CANDIDATE_METRICS &&
                 (item.measuredAtEpochMillis == null || item.measuredAtEpochMillis >= 0) &&
                 item.value.isFinite() && item.unit.isNotBlank() &&
                 item.sourceSha256.matches(Regex("[0-9a-f]{64}")) && item.recordOrdinal > 0 &&
@@ -2114,6 +2346,36 @@ class CirqaDatabase(private val contextRef: Context) :
     }
 
     companion object {
+        /**
+         * SQLiteOpenHelper synchronizes only per helper instance. A history pull can
+         * complete several files on different callback threads, each constructing a
+         * helper for the same database. Serializing this open+transaction boundary
+         * prevents concurrent helpers from racing while Android applies journal mode.
+         */
+        private val downloadedFileArchiveLock = Any()
+
+        /** Serialize helper creation through close, not only the inner archive transaction. */
+        fun archiveDownloadedOriginal(
+            context: Context,
+            bytes: ByteArray,
+            reference: ByteArray,
+            label: String,
+            at: Long
+        ): Boolean = synchronized(downloadedFileArchiveLock) {
+            CirqaDatabase(context).use { it.archiveDownloadedFile(bytes, reference, label, at) }
+        }
+
+        /**
+         * Every metric the FIT import stores as an untrusted review candidate ([FitObservationCommitter]). Reading,
+         * restoring and validating a backup must accept exactly this set: until 25.11.2026 the restore checks only knew
+         * spo2/stress/respiration, so every backup with sleep_level etc. candidates was rejected as "invalid".
+         */
+        val FIT_REVIEW_CANDIDATE_METRICS: Set<String> = setOf(
+            "spo2", "spo2_confidence", "spo2_measurement_mode", "stress", "respiration",
+            "sleep_level", "monitoring_cycles", "monitoring_activity_type",
+            "skin_temperature_deviation", "skin_temperature_7_day_deviation",
+            "monitoring_current_activity_type", "monitoring_intensity_code" // #707: 55/24 components
+        )
         private val keyFormat = java.time.format.DateTimeFormatterBuilder().appendInstant(9).toFormatter()
         internal fun timeKey(time: java.time.Instant): String = keyFormat.format(time)
         private fun timeKey(timestamp: String): String? = try { timeKey(java.time.Instant.parse(timestamp)) }

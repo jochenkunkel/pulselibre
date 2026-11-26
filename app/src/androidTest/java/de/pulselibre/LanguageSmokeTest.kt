@@ -19,7 +19,7 @@ import org.junit.runner.RunWith
  * i18n smoke test: the whole test suite runs in German ([GermanTestRunner]), so a defect that only exists in another language
  * (a bad format string, a missing argument) was never executed in CI. It once crashed the app at start in English
  * ("UnknownFormatConversionException", build 2125). This test starts the real activities in every non-German language, visits
- * every main tab, and fails on a crash, on the wrong language, or on an unresolved format placeholder shown to the user.
+ * every main tab and the main dialogs, and fails on a crash, on the wrong language, or on an unresolved format placeholder shown to the user.
  */
 @RunWith(AndroidJUnit4::class)
 class LanguageSmokeTest {
@@ -64,6 +64,33 @@ class LanguageSmokeTest {
                     if (id == "Analysen") assertEquals("Sprache $language", expectedAnalyses, root.findViewWithTag<View>("navigation_item_Analysen").contentDescription)
                     assertNoUnresolvedPlaceholders(root, "$language/$id")
                 }
+            }
+        }
+        // Dialogs: the day timeline, the heart-rate tile day dialog, settings and the connection details of the header button.
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            scenario.onActivity { it.findViewById<View>(android.R.id.content).findViewWithTag<View>("navigation_item_Übersicht").performClick() }
+            settle()
+            val openers = listOf<Pair<String, (View) -> Unit>>(
+                "Tageszeitleiste" to { root -> root.findViewWithTag<View>("day_timeline_teaser").performClick() },
+                "Kachel-Tagesdialog" to { root -> root.findViewWithTag<View>("dashboard_metric_Herzfrequenz")?.performClick() },
+                "Einstellungen" to { root -> root.findViewWithTag<View>(WearableStatusControl.TAG_SETTINGS).performClick() },
+                "Verbindungsdetails" to { root -> root.findViewWithTag<View>(WearableStatusControl.TAG_STATUS).performClick() },
+                "Akku-Details" to { root -> root.findViewWithTag<View>(WearableStatusControl.TAG_BATTERY).performClick() }
+            )
+            openers.forEach { (name, open) ->
+                var before: Any? = null
+                scenario.onActivity { before = DialogProbe.current; open(it.findViewById(android.R.id.content)) }
+                settle()
+                scenario.onActivity {
+                    val dialog = DialogProbe.current
+                    if (dialog != null && dialog !== before && dialog.isShowing) {
+                        assertNoUnresolvedPlaceholders(dialog.window!!.decorView, "$language/Dialog $name")
+                        dialog.dismiss()
+                    } else if (name != "Kachel-Tagesdialog") {
+                        throw AssertionError("$language: Dialog $name wurde nicht geöffnet")
+                    }
+                }
+                settle()
             }
         }
         ActivityScenario.launch(ExportActivity::class.java).use { scenario ->

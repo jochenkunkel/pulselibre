@@ -50,7 +50,24 @@ class DashboardWorkerWatchTest {
         val src = listOf(File("src/main/java/de/pulselibre"), File("app/src/main/java/de/pulselibre")).first { it.isDirectory }
         val main = File(src, "MainActivity.kt").readText()
         val scan = main.substringAfter("private fun scheduleUnknownFitInventoryScan()").substringBefore("override fun onResume")
-        assertTrue(scan.contains("maintenanceWorker.execute"))
+        assertTrue(scan.contains("DashboardWorkerWatch.runMaintenanceOnce"))
         assertFalse(scan.contains("dashboardWorker"))
+    }
+
+    @Test fun onlyOneMaintenanceRunAtATimePerProcess() {
+        val release = CountDownLatch(1)
+        val started = CountDownLatch(1)
+        val ran = java.util.concurrent.atomic.AtomicInteger()
+        assertTrue(DashboardWorkerWatch.runMaintenanceOnce { ran.incrementAndGet(); started.countDown(); release.await(5, TimeUnit.SECONDS) })
+        assertTrue(started.await(2, TimeUnit.SECONDS))
+        // A second activity instance while the first scan runs: skipped, not queued behind it.
+        assertFalse(DashboardWorkerWatch.runMaintenanceOnce { ran.incrementAndGet() })
+        release.countDown()
+        // After the first finished, a new request is accepted again.
+        val second = CountDownLatch(1)
+        var accepted = false
+        repeat(50) { if (!accepted) { accepted = DashboardWorkerWatch.runMaintenanceOnce { ran.incrementAndGet(); second.countDown() }; if (!accepted) Thread.sleep(20) } }
+        assertTrue(accepted); assertTrue(second.await(2, TimeUnit.SECONDS))
+        assertEquals(2, ran.get())
     }
 }

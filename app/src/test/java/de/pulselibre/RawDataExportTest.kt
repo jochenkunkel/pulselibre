@@ -35,4 +35,14 @@ class RawDataExportTest {
         assertEquals(4, csv.trim().split("\r\n").size)
         assertTrue(csv.indexOf("1970-01-01T00:00:00.100Z") < csv.indexOf("1970-01-01T00:00:00.200Z"))
     }
+    @Test fun negativeStatusCodesStayNumbers() {
+        // Garmin respiration status -100 must be exported as the number -100.0, not as the text '-100.0.
+        val csv = exportRawCsv(listOf(RawExportRecord("CIRQA", "breaths_per_min", 100, -100.0, "breaths/min")), ExportWindow(0, 200))
+        assertTrue(csv, csv.contains(",\"-100.0\","))
+        assertFalse(csv, csv.contains("'-100.0"))
+    }
+    @Test fun textStartingWithMinusIsStillGuarded() {
+        val csv = exportRawCsv(listOf(RawExportRecord("-cmd", "hr", 100, 70.0, "bpm")), ExportWindow(0, 200))
+        assertTrue(csv, csv.contains("\"'-cmd\""))
+    }
 }

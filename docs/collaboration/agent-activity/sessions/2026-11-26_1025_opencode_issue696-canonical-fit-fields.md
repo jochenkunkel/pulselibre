@@ -1,0 +1,15 @@
+# OpenCode FIT – #696 kanonische FIT-Felder
+- Agent/Umgebung: OpenCode FIT, Linux-Worktree
+- Beginn: 2026-11-26 10:25 UTC
+- Letzte Aktualisierung: 2026-11-26 10:40 UTC
+- Status: pausiert – auf Wunsch des Owners an GUI-Agent übergeben
+- Rolle/Zuständigkeit: FIT-Profil/Decoder, Import/Persistenz, SQLite und FIT-Regressionsprüfungen
+- Aktueller Auftrag: P0 #696 – vom Owner explizit freigegebene offizielle Garmin-FIT-Felder kanonisch und verlustfrei zuordnen
+- Jetzt in Bearbeitung: keiner – #696 zur Übernahme durch GUI-Agent vorbereitet
+- Zeitnah geplant: GUI-Agent übernimmt Abschluss/Integration von #696 auf `gui/issue696-fit-field-mapping-handoff`; OpenCode fokussiert auf den neuen vorrangigen #637-HCI-Dialogauftrag
+- Betroffene Dateien: voraussichtlich `FitHistoricalObservations.kt`, FIT profile tables/decoder, `CirqaDatabase.kt`, `FitObservationCommitter.kt`, Tests und GUI-Datenvertrag; genaue Liste folgt nach Quellprüfung
+- Branch/Worktree: `gui/issue696-fit-field-mapping-handoff`, `/tmp/opencode/issue696-fit-field-canonical-import`
+- Abstimmungsbedarf: GUI-Agent erhält stable metric names/units; keine Entscheidung/Freigabe vom Owner erforderlich
+- Agent-sync-Nachrichten: START im gemeinsamen Agenten-Chat; #696-Metrikvertrag und Übergabe an GUI-Agent in `docs/collaboration/agent-sync/`
+- Nachweise: Garmin FIT Profile `21.222.0`; Decoder v4/Feldabbildungen und Regressionen vorbereitet; lokales QUICK erfolgreich am 2026-11-26 (Build, JVM-Tests, Python-Regressionen); `git diff --check` sauber; Änderungen noch nicht gemergt
+- Nächster Schritt: GUI-Agent nimmt Branch und Issue #696 entgegen, prüft stabile GUI-/Exportnamen, ergänzt notwendige GUI-Auswirkungen und führt erforderliche Checks/PR-Integration aus

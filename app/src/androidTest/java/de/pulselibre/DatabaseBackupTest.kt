@@ -403,7 +403,7 @@ class DatabaseBackupTest {
 
             val plan = DatabaseBackup.prepareRestore(context, ByteArrayInputStream(bytes.toByteArray()))
             try {
-                assertEquals(11, plan.version)
+                assertEquals(12, plan.version)
                 assertEquals(3L, plan.canonicalReadings)
                 assertEquals(1L, plan.canonicalDeviceMetadata)
                 assertEquals(1L, plan.rawDeviceMetadata)
@@ -458,7 +458,8 @@ class DatabaseBackupTest {
                     assertEquals(2, rows.getInt(7))
                     assertEquals(269, rows.getInt(8))
                     assertEquals(0, rows.getInt(9))
-                    assertEquals(FitHistoricalObservations.DECODER_VERSION, rows.getString(10))
+                    // Review candidates carry their own decoder version (it no longer equals the observation decoder, #696).
+                    assertEquals(FitHistoricalObservations.REVIEW_CANDIDATE_DECODER_VERSION, rows.getString(10))
                     assertFalse(rows.moveToNext())
                 }
                 assertEquals(0, db.rawQuery("PRAGMA foreign_key_check", null).use {
@@ -851,7 +852,7 @@ class DatabaseBackupTest {
             DatabaseBackup.write(context, archive)
             val plan = DatabaseBackup.prepareRestore(context, ByteArrayInputStream(archive.toByteArray()))
             plan.use {
-                assertEquals(11, it.version)
+                assertEquals(12, it.version)
                 assertEquals(2L, it.liveDeviceMetadata)
                 // Restore into a fresh store to prove the entry is actually replayed.
                 val freshRoot = Files.createTempDirectory(base.cacheDir.toPath(), "backup-v8-restore-").toFile()
@@ -937,6 +938,81 @@ class DatabaseBackupTest {
         }
     }
 
+    @Test fun everyReviewCandidateMetricSurvivesBackupValidationAndRestore() {
+        // 25.11.2026 (S10): the restore check rejected backups with sleep_level candidates ("Backup ungültig").
+        val base = ApplicationProvider.getApplicationContext<Context>()
+        val root = Files.createTempDirectory(base.cacheDir.toPath(), "candidate-backup-").toFile()
+        val context = isolatedContext(base, root)
+        try {
+            val sha = "d".repeat(64)
+            // Profile field -> stored metric, as written by FitObservationCommitter. ReviewCandidateMetricsTest (JVM) checks
+            // that CirqaDatabase.FIT_REVIEW_CANDIDATE_METRICS covers the importer; here every one must survive the round trip.
+            val written = mapOf("reading_spo2" to "spo2", "reading_confidence" to "spo2_confidence",
+                "spo2_measurement_mode" to "spo2_measurement_mode", "stress_level_value" to "stress",
+                "respiration_rate" to "respiration", "sleep_level" to "sleep_level", "monitoring_cycles" to "monitoring_cycles",
+                "monitoring_activity_type" to "monitoring_activity_type", "average_deviation" to "skin_temperature_deviation",
+                "average_7_day_deviation" to "skin_temperature_7_day_deviation",
+                MonitoringActivityIntensity.ACTIVITY_TYPE to "monitoring_current_activity_type", // #707: 55/24
+                MonitoringActivityIntensity.INTENSITY to "monitoring_intensity_code")
+            val fields = written.keys.toList()
+            val candidates = fields.mapIndexed { i, name ->
+                FitHistoricalObservations.ReviewCandidate(
+                    profileFieldName = name, value = 1.0 + i, unit = "profile_raw", timestampEpochMillis = 10_000L + i,
+                    sourceFileSha256 = sha, recordOrdinal = i + 1, globalMessageNumber = 200 + i, fieldNumber = 0,
+                    timestampOrigin = FitHistoricalObservations.TimestampOrigin.DIRECT
+                )
+            }
+            CirqaDatabase(context).use { database ->
+                database.ensureHistoricalStoreCopied()
+                database.commitFitFile(
+                    sourceSha256 = sha, fileBytes = 100, relativePath = "verified_fit/$sha.fit",
+                    validatedAtEpochMillis = 7_000, decoderVersion = FitHistoricalObservations.DECODER_VERSION,
+                    profileVersion = FitHistoricalObservations.PROFILE_VERSION, observations = emptyList(),
+                    deviceMetadata = emptyList(), reviewCandidates = candidates
+                )
+            }
+            val backup = ByteArrayOutputStream().also { DatabaseBackup.write(context, it) }.toByteArray()
+            val plan = DatabaseBackup.prepareRestore(context, ByteArrayInputStream(backup))
+            assertEquals(fields.size.toLong(), plan.canonicalFitReviewCandidates)
+            DatabaseBackup.reset(context)
+            plan.use { DatabaseBackup.restore(context, it) }
+            CirqaDatabase(context).use { store ->
+                val metrics = store.readableDatabase.rawQuery("SELECT metric FROM fit_review_candidates ORDER BY metric", null)
+                    .use { c -> buildList { while (c.moveToNext()) add(c.getString(0)) } }
+                assertEquals(written.values.sorted(), metrics)
+                assertEquals(CirqaDatabase.FIT_REVIEW_CANDIDATE_METRICS, written.values.toSet())
+            }
+        } finally { root.deleteRecursively() }
+    }
+
+    @Test fun recorderCanWriteWhileABackupReadsItsSnapshot() {
+        // 25.11.2026 (S10, build 2232): the backup held an exclusive transaction for minutes; the recorder's write on
+        // the main thread waited for it and the app showed "reagiert nicht". The snapshot must not block writers.
+        val base = ApplicationProvider.getApplicationContext<Context>()
+        val root = Files.createTempDirectory(base.cacheDir.toPath(), "snapshot-writer-").toFile()
+        val context = isolatedContext(base, root)
+        try {
+            val event = """{"schema":1,"type":"reading","received_at_utc":"2026-11-25T19:00:00Z","service":6,"bpm":70}"""
+            CirqaDatabase(context).use { assertTrue(it.insertLine(event)) }
+            CirqaDatabase(context).use { reader ->
+                reader.ensureHistoricalStoreCopied()
+                reader.readStoredSnapshot { snapshot ->
+                    val before = snapshot.rawQuery("SELECT COUNT(*) FROM main.events", null).use { it.moveToFirst(); it.getLong(0) }
+                    val t0 = System.nanoTime()
+                    val written = CirqaDatabase(context).use { writer ->
+                        writer.insertLine(event.replace("19:00:00Z", "19:00:01Z").replace("70", "71"))
+                    }
+                    val ms = (System.nanoTime() - t0) / 1_000_000
+                    assertTrue("live write during snapshot", written)
+                    assertTrue("live write waited $ms ms", ms < 2_000)
+                    // The snapshot is unaffected by the concurrent write.
+                    assertEquals(before, snapshot.rawQuery("SELECT COUNT(*) FROM main.events", null).use { it.moveToFirst(); it.getLong(0) })
+                }
+            }
+            CirqaDatabase(context).use { assertEquals(2L, it.eventCount()) }
+        } finally { root.deleteRecursively() }
+    }
+
     @Test fun auditTablesSurviveBackupRoundTrip() {
         val base = ApplicationProvider.getApplicationContext<Context>()
         val root = Files.createTempDirectory(base.cacheDir.toPath(), "audit-backup-").toFile()
@@ -954,7 +1030,7 @@ class DatabaseBackupTest {
             }
             val backup = ByteArrayOutputStream().also { DatabaseBackup.write(context, it) }.toByteArray()
             val plan = DatabaseBackup.prepareRestore(context, ByteArrayInputStream(backup))
-            assertEquals(11, plan.version)
+            assertEquals(12, plan.version)
             DatabaseBackup.reset(context)
             plan.use { DatabaseBackup.restore(context, it) }
             CirqaDatabase(context).use { store ->

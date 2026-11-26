@@ -64,8 +64,21 @@ class CirqaFitBackfill(
         }
         val auditRunId = UUID.randomUUID().toString()
         val auditStartedAt = System.currentTimeMillis()
+        val auditRunCreated = auditDb?.let { db ->
+            try {
+                ImportAuditRecorder.recordRun(
+                    db, auditRunId, auditStartedAt, null, null,
+                    FitHistoricalObservations.DECODER_VERSION,
+                    FitHistoricalObservations.PROFILE_VERSION,
+                    "RUNNING", 0, 0, 0
+                )
+            } catch (_: Exception) {
+                false
+            }
+        } ?: false
         fun auditFailure(alias: String, errorClass: String) {
             val db = auditDb ?: return
+            if (!auditRunCreated) return
             val at = System.currentTimeMillis()
             try {
                 ImportAuditRecorder.recordFileError(db, auditRunId, null, errorClass, at)
@@ -182,15 +195,16 @@ class CirqaFitBackfill(
             }
         }
         auditDb?.let { db ->
-            try {
-                ImportAuditRecorder.recordRun(
-                    db, auditRunId, auditStartedAt, System.currentTimeMillis(), null,
-                    FitHistoricalObservations.DECODER_VERSION, FitHistoricalObservations.PROFILE_VERSION,
-                    if (failed == 0 && invalid == 0 && !truncated) "COMPLETED" else "PARTIAL",
-                    importable, persistedReviewCandidates, failed + invalid
-                )
-            } catch (_: Exception) {
-                // Audit is best-effort and never changes the import result.
+            if (auditRunCreated) {
+                try {
+                    ImportAuditRecorder.finishRun(
+                        db, auditRunId, System.currentTimeMillis(),
+                        if (failed == 0 && invalid == 0 && !truncated) "COMPLETED" else "PARTIAL",
+                        importable, persistedReviewCandidates, failed + invalid
+                    )
+                } catch (_: Exception) {
+                    // Audit is best-effort and never changes the import result.
+                }
             }
         }
         return Result(

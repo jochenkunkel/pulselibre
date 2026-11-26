@@ -177,7 +177,7 @@ ci_resolve_android_sdk() {
       return 0
     fi
   done
-  ci_die "Android SDK nicht gefunden. Setze ANDROID_SDK_ROOT oder installiere das SDK (siehe docs/ci/HYBRID_CI.md)."
+  ci_die "Android SDK nicht gefunden. Setze ANDROID_SDK_ROOT oder installiere das SDK (siehe docs/quality/ci/HYBRID_CI.md)."
 }
 
 # Prefer build-tools 35.0.0 (as used by the established CI), fall back to the newest.

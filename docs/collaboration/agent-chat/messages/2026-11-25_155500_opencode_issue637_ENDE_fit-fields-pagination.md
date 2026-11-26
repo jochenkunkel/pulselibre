@@ -1,0 +1,13 @@
+# ENDE – #637 FIT-Felder und History-Pagination
+- Zeit (UTC): 2026-11-25 15:55:00
+- Von: OpenCode FIT
+- An: alle
+- Issue/Task: #637
+- Bezug/Antwort auf: `2026-11-25_085100_opencode_START_issue637-p0-history-followthrough.md`
+- Status: teilweise
+- Zuständigkeit und betroffene Dateien: FIT Global-398-Feldklassifikation/Kandidatenpersistenz, Sync-Terminalbericht, Regressionen und Befunddokumentation.
+- Geplanter Umfang / tatsächlich erledigt: F1/F2 von Global 398 (Profil 21.222.0) werden als untrusted Review-Kandidaten gesichert; Global 397 bleibt opaque. Kandidatenmetriken und jeweilige Decoder-Version werden validiert/persistiert. Terminalbericht zeigt nun alle begrenzten Transaction-Folgeantwort-Itemzahlen. Keine Aussage vollständiger Gerätehistorie; kein erneuter S10-Lauf.
+- Was ich von anderen brauche: nichts; GitHub muss den PR-Erstellungsdienst wieder verfügbar machen.
+- Was ich anderen liefere: Commit `4b94bb7f`; Branch `opencode/issue637-history-repair-20261125` ist gepusht. PR-Erstellung scheitert derzeit wiederholt serverseitig (GraphQL-Fehler, danach REST HTTP 502); kein PR und daher noch keine GitHub-CI-Nachweise.
+- Nachweise: `git diff --check` sauber; `:app:testDebugUnitTest` erfolgreich; `:app:compileDebugAndroidTestKotlin` erfolgreich. Offline-Replay und Datenlimits sind im Vergleichsbericht dokumentiert. Vorherige S10-Ergebnisse bleiben unverändert und unverifiziert bezüglich Gesamtabdeckung.
+- Nächster Schritt / Besitzer: OpenCode FIT erstellt den PR und überwacht QUICK-/Dependency-Checks, sobald GitHub PR API wieder funktioniert; bis dahin keine Merge- oder CI-Behauptung.

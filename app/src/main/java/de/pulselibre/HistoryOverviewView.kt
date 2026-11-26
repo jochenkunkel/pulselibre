@@ -182,7 +182,7 @@ class HistoryOverviewView(
         if (snapshot.fitAvailable || snapshot.fitHeartRate.isNotEmpty() || snapshot.fitReadFailed) {
             metricCard(FIT_HEART_RATE_TITLE, "bpm", snapshot.fitHeartRate, snapshot, 240, palette.pulse,
                 HistoryResolution.forFitRange(snapshot.range), TimeBasis.DEVICE_MEASURED, fitEmptyNote(snapshot),
-                FitKindText.note(Strings.of(context), snapshot.fitKinds))
+                FitKindText.note(Strings.of(context), snapshot.fitKinds, snapshot.fitDuplicates))
         }
         metricCard("Herzfrequenz", "bpm", snapshot.heartRate, snapshot, 240, palette.pulse, resolution)
         metricCard("Sauerstoffsättigung · SpO₂", "%", snapshot.oxygen, snapshot, 100, palette.oxygen, resolution)
@@ -237,7 +237,8 @@ class HistoryOverviewView(
                 val day = dayFormat.format(java.time.LocalDate.ofEpochDay(row.dayIndex))
                 val noValid = row.count == 0
                 val range = if (noValid) "–" else "${number.format(row.minimum)}–${number.format(row.maximum)}"
-                val mean = if (noValid) "–" else number.format(row.mean)
+                // Profile codes (sleep level, SpO2 mode/confidence, activity type) are categories: a mean is meaningless.
+                val mean = if (noValid || row.unit == "profile_code") "–" else number.format(row.mean)
                 val invalidNote = if (row.invalid > 0) context.getString(R.string.ht_invalid, row.invalid) else null
                 val label = if (invalidNote == null) "$source · $metric" else "$source · $metric\n$invalidNote"
                 val description = context.getString(R.string.ht_row_cd, day, source, metric, row.count, range, mean) +
@@ -271,7 +272,17 @@ class HistoryOverviewView(
         "rr_ms" -> R.string.ht_m_rr
         "stress" -> R.string.ht_m_stress
         "body_battery" -> R.string.ht_m_battery
-        "breaths_per_min" -> R.string.ht_m_breath
+        "breaths_per_min", "respiration" -> R.string.ht_m_breath
+        // #696: band metrics from FIT (Garmin profile 21.222.0)
+        "spo2" -> R.string.ht_metric_spo2
+        "spo2_confidence" -> R.string.ht_m_spo2_confidence
+        "spo2_measurement_mode" -> R.string.ht_m_spo2_mode
+        "sleep_level" -> R.string.ht_m_sleep_level
+        "skin_temperature_deviation" -> R.string.ht_m_skin_dev
+        "skin_temperature_7_day_deviation" -> R.string.ht_m_skin_dev7
+        "monitoring_cycles" -> R.string.ht_m_cycles
+        "monitoring_activity_type", "monitoring_current_activity_type" -> R.string.ht_m_activity_type
+        "monitoring_intensity_code" -> R.string.ht_m_intensity_code
         "distance" -> R.string.ht_m_distance
         "speed" -> R.string.ht_m_speed
         "cadence" -> R.string.ht_m_cadence

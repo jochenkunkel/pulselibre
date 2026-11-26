@@ -29,6 +29,7 @@ class FitHistoricalObservationsTest {
 
     private fun u16(value: Int) = byteArrayOf(value.toByte(), (value ushr 8).toByte())
     private fun s16(value: Int) = u16(value and 0xffff)
+    private fun f32(value: Float) = u32(java.lang.Float.floatToRawIntBits(value))
 
     @Test fun extractsWhitelistedTimestampedDeviceMetadataAndIgnoresSerialNumber() {
         val data = byteArrayOf(
@@ -72,6 +73,67 @@ class FitHistoricalObservationsTest {
         assertNull(metadata.batteryVoltageVolts)
         assertNull(metadata.batteryLevelPercent)
         assertNull(metadata.batteryStatusCode)
+    }
+
+    @Test fun skinTemperatureProfileFieldsRemainRawAndKnownDeviationsAreReviewOnly() {
+        val timestamp = 0x10000000 + 100_000
+        val data = byteArrayOf(
+            0x40, 0, 0, 398.toByte(), 1, 6,
+            253.toByte(), 4, 0x86.toByte(), // timestamp
+            0, 4, 0x86.toByte(),            // local_timestamp
+            1, 4, 0x88.toByte(),            // average_deviation, float32
+            2, 4, 0x88.toByte(),            // average_7_day_deviation, float32
+            3, 1, 2,                        // profile-unmapped field; preserve opaque
+            4, 4, 0x88.toByte(),            // nightly_value; no candidate unit inferred
+            0
+        ) + u32(timestamp) + u32(timestamp + 1) + f32(1.25f) + f32(-0.5f) +
+            byteArrayOf(7) + f32(2.0f)
+
+        val result = FitHistoricalObservations.decode(fit(data))!!
+
+        assertEquals(
+            listOf(FitHistoricalObservations.Metric.SKIN_TEMPERATURE_DEVIATION,
+                FitHistoricalObservations.Metric.SKIN_TEMPERATURE_7_DAY_DEVIATION),
+            result.observations.map { it.metric }
+        )
+        assertEquals(
+            listOf("average_deviation", "average_7_day_deviation"),
+            result.reviewCandidates.map { it.profileFieldName }
+        )
+        assertEquals(listOf(1.25, -0.5), result.reviewCandidates.map { it.value })
+        assertTrue(result.reviewCandidates.all { it.unit == "°C" })
+        assertTrue(result.reviewCandidates.all {
+            it.timestampEpochMillis == (timestamp + 631_065_600L) * 1_000L
+        })
+        assertEquals(listOf(3), result.unknownFields.map { it.fieldNumber })
+        assertEquals(listOf(253, 0, 1, 2, 3, 4), result.decodedFields.map { it.fieldNumber })
+        assertArrayEquals(f32(1.25f), result.decodedFields[2].rawBytes)
+        assertArrayEquals(f32(-0.5f), result.decodedFields[3].rawBytes)
+        assertArrayEquals(byteArrayOf(7), result.decodedFields[4].rawBytes)
+        assertArrayEquals(f32(2.0f), result.decodedFields[5].rawBytes)
+    }
+
+    @Test fun skinTemperatureReviewCandidatesRejectNonFiniteAndFitFloatSentinel() {
+        val data = byteArrayOf(
+            0x40, 0, 0, 398.toByte(), 1, 3,
+            253.toByte(), 4, 0x86.toByte(),
+            1, 4, 0x88.toByte(),
+            2, 4, 0x88.toByte(),
+            0
+        ) + u32(0x10000000 + 100_000) + f32(Float.POSITIVE_INFINITY) + u32(-1)
+
+        val result = FitHistoricalObservations.decode(fit(data))!!
+
+        assertTrue(result.reviewCandidates.isEmpty())
+        assertEquals(2, result.invalidMeasurementFieldCount)
+        assertEquals(
+            mapOf(FitHistoricalObservations.ExclusionReason.INVALID_SENTINEL to 1,
+                FitHistoricalObservations.ExclusionReason.NON_FINITE_VALUE to 1),
+            result.excludedFields.associate { it.reason to it.occurrenceCount }
+        )
+        assertEquals(3, result.decodedFields.size)
+        assertArrayEquals(f32(Float.POSITIVE_INFINITY), result.decodedFields[1].rawBytes)
+        assertArrayEquals(u32(-1), result.decodedFields[2].rawBytes)
     }
 
     @Test fun decodesSupportedRecordMeasurementsAndCompressedTimestamp() {
@@ -217,10 +279,14 @@ class FitHistoricalObservationsTest {
             0
         ) + u32(200_000) + u32(0x1234)
         val result = FitHistoricalObservations.decode(fit(data))!!
-        assertTrue(result.observations.isEmpty())
+        assertEquals(FitHistoricalObservations.Metric.MONITORING_CYCLES,
+            result.observations.single().metric)
+        // Profile scale 2: the stored raw count is twice the cycles.
+        assertEquals(0x1234 / 2.0, result.observations.single().value, 0.0)
+        assertFalse(result.observations.any { it.metric == FitHistoricalObservations.Metric.CADENCE })
     }
 
-    @Test fun spo2AndStressRemainReviewOnlyAndRespectInvalidSentinels() {
+    @Test fun spo2AndStressBecomeCanonicalAndRespectInvalidSentinels() {
         val spo2Definition = byteArrayOf(
             0x40, 0, 0, 0x0d, 0x01, 2, // global message 269
             253.toByte(), 4, 0x86.toByte(), 0, 1, 2
@@ -230,7 +296,8 @@ class FitHistoricalObservationsTest {
                 byteArrayOf(0) + u32(200_000) + byteArrayOf(97) +
                 byteArrayOf(0) + u32(200_060) + byteArrayOf(0xff.toByte())
         ))!!
-        assertTrue(spo2.observations.isEmpty())
+        assertEquals(listOf(FitHistoricalObservations.Metric.SPO2), spo2.observations.map { it.metric })
+        assertEquals(97.0, spo2.observations.single().value, 0.0)
         assertEquals(1, spo2.reviewCandidates.size)
         assertEquals("reading_spo2", spo2.reviewCandidates.single().profileFieldName)
         assertEquals(97.0, spo2.reviewCandidates.single().value, 0.0)
@@ -257,16 +324,18 @@ class FitHistoricalObservationsTest {
                 byteArrayOf(0) + s16(42) +
                 byteArrayOf(0) + s16(0x7fff)
         ))!!
-        assertTrue(stress.observations.isEmpty())
+        assertEquals(listOf(FitHistoricalObservations.Metric.STRESS), stress.observations.map { it.metric })
         assertEquals(1, stress.reviewCandidates.size)
         assertEquals("stress_level_value", stress.reviewCandidates.single().profileFieldName)
         assertEquals(42.0, stress.reviewCandidates.single().value, 0.0)
         assertEquals("profile_raw", stress.reviewCandidates.single().unit)
         assertNull(stress.reviewCandidates.single().timestampEpochMillis)
+        assertEquals(FitHistoricalObservations.Quality.MISSING_TIMESTAMP,
+            stress.observations.single().quality)
         assertEquals(1, stress.invalidMeasurementFieldCount)
     }
 
-    @Test fun spo2ConfidenceAndModeAreRetainedAsSeparateReviewCandidates() {
+    @Test fun spo2ConfidenceAndModeAreCanonicalSeparateProfileCodes() {
         val definition = byteArrayOf(
             0x40, 0, 0, 0x0d, 0x01, 4,
             253.toByte(), 4, 0x86.toByte(),
@@ -278,7 +347,11 @@ class FitHistoricalObservationsTest {
             definition + byteArrayOf(0) + u32(200_000) + byteArrayOf(96, 3, 1)
         ))!!
 
-        assertTrue(result.observations.isEmpty())
+        assertEquals(
+            listOf(FitHistoricalObservations.Metric.SPO2, FitHistoricalObservations.Metric.SPO2_CONFIDENCE,
+                FitHistoricalObservations.Metric.SPO2_MEASUREMENT_MODE),
+            result.observations.map { it.metric }
+        )
         assertEquals(
             listOf("reading_spo2", "reading_confidence", "spo2_measurement_mode"),
             result.reviewCandidates.map { it.profileFieldName }
@@ -287,7 +360,7 @@ class FitHistoricalObservationsTest {
         assertEquals(listOf(0, 1, 2), result.reviewCandidates.map { it.fieldNumber })
     }
 
-    @Test fun sleepLevelAndMonitoringCyclesRemainRawReviewCandidates() {
+    @Test fun sleepLevelAndMonitoringCyclesAreCanonicalWithoutStepInference() {
         val sleepDefinition = byteArrayOf(
             0x40, 0, 0, 0x13, 0x01, 2, // global 275
             253.toByte(), 4, 0x86.toByte(),
@@ -304,7 +377,13 @@ class FitHistoricalObservationsTest {
                 monitoringDefinition + byteArrayOf(0) + u32(200_060) + u32(120) + byteArrayOf(6)
         ))!!
 
-        assertTrue(result.observations.isEmpty())
+        assertEquals(
+            listOf(FitHistoricalObservations.Metric.SLEEP_LEVEL,
+                FitHistoricalObservations.Metric.MONITORING_CYCLES,
+                FitHistoricalObservations.Metric.MONITORING_ACTIVITY_TYPE),
+            result.observations.map { it.metric }
+        )
+        assertFalse(result.observations.any { it.metric.name.contains("STEP") })
         assertEquals(
             listOf("sleep_level", "monitoring_cycles", "monitoring_activity_type"),
             result.reviewCandidates.map { it.profileFieldName }
@@ -323,16 +402,50 @@ class FitHistoricalObservationsTest {
             definition + byteArrayOf(0) + s16(42) + u32(0x10000000 + 200_000)
         ))!!
 
-        assertTrue("Stress must remain outside the persistent observation allowlist",
-            result.observations.isEmpty())
+        assertEquals(FitHistoricalObservations.Metric.STRESS, result.observations.single().metric)
         val candidate = result.reviewCandidates.single()
         assertEquals("stress_level_value", candidate.profileFieldName)
         assertEquals(42.0, candidate.value, 0.0)
         assertEquals(fitTime(0x10000000L + 200_000), candidate.timestampEpochMillis)
         assertEquals(FitHistoricalObservations.TimestampOrigin.DIRECT, candidate.timestampOrigin)
+        assertEquals(candidate.timestampEpochMillis, result.observations.single().timestampEpochMillis)
     }
 
-    @Test fun respirationRateIsDecodedAsAnUnpersistedSignedProfileCandidate() {
+    @Test fun statusCodesAndZerosAreNeverCanonicalAndSpo2HasNoMedicalThreshold() {
+        // #696: stress 0/-1/-2 and respiration 0/-1/-2/-3 (scaled) are statuses; they stay review candidates only.
+        val stressDefinition = byteArrayOf(
+            0x40, 0, 0, 0xe3.toByte(), 0, 2, // global 227
+            0, 2, 0x83.toByte(), 1, 4, 0x86.toByte() // stress_level_value sint16, stress_level_time
+        )
+        val stress = FitHistoricalObservations.decode(fit(stressDefinition +
+            byteArrayOf(0) + s16(0) + u32(0x10000000 + 1) +
+            byteArrayOf(0) + s16(-1) + u32(0x10000000 + 2) +
+            byteArrayOf(0) + s16(-2) + u32(0x10000000 + 3) +
+            byteArrayOf(0) + s16(1) + u32(0x10000000 + 4) +
+            byteArrayOf(0) + s16(100) + u32(0x10000000 + 5)))!!
+        assertEquals(listOf(1.0, 100.0), stress.observations.map { it.value })
+        assertEquals(listOf(0.0, -1.0, -2.0, 1.0, 100.0), stress.reviewCandidates.map { it.value })
+
+        val respDefinition = byteArrayOf(0x40, 0, 0, 0x29, 0x01, 2, 253.toByte(), 4, 0x86.toByte(), 0, 2, 0x83.toByte())
+        val resp = FitHistoricalObservations.decode(fit(respDefinition +
+            byteArrayOf(0) + u32(0x10000000 + 10) + s16(0) +
+            byteArrayOf(0) + u32(0x10000000 + 11) + s16(-100) +
+            byteArrayOf(0) + u32(0x10000000 + 12) + s16(-300) +
+            byteArrayOf(0) + u32(0x10000000 + 13) + s16(1_550)))!!
+        assertEquals(listOf(15.5), resp.observations.map { it.value })
+        assertEquals(4, resp.reviewCandidates.size)
+
+        // SpO2: no 70 % decoder threshold (owner: no medical limits as filters); only physical percent bounds.
+        val spo2Definition = byteArrayOf(0x40, 0, 0, 0x0d, 0x01, 2, 253.toByte(), 4, 0x86.toByte(), 0, 1, 2)
+        val spo2 = FitHistoricalObservations.decode(fit(spo2Definition +
+            byteArrayOf(0) + u32(200_000) + byteArrayOf(65) +
+            byteArrayOf(0) + u32(200_060) + byteArrayOf(0) +
+            byteArrayOf(0) + u32(200_120) + byteArrayOf(101)))!!
+        assertEquals(listOf(65.0), spo2.observations.map { it.value })
+        assertEquals(listOf(65.0, 0.0, 101.0), spo2.reviewCandidates.map { it.value })
+    }
+
+    @Test fun respirationRateIsCanonicalAndNegativeStatusesAreNotMeasurements() {
         val definition = byteArrayOf(
             0x40, 0, 0, 0x29, 0x01, 2, // global message 297
             253.toByte(), 4, 0x86.toByte(), // FIT timestamp
@@ -345,7 +458,8 @@ class FitHistoricalObservationsTest {
 
         val result = FitHistoricalObservations.decode(fit(data))!!
 
-        assertTrue("Candidate must not enter the persistence allowlist", result.observations.isEmpty())
+        assertEquals(listOf(12.34), result.observations.map { it.value })
+        assertEquals(FitHistoricalObservations.Metric.RESPIRATION, result.observations.single().metric)
         assertEquals(listOf(12.34, -1.25), result.reviewCandidates.map { it.value })
         assertEquals(listOf("breaths/min", "breaths/min"), result.reviewCandidates.map { it.unit })
         assertEquals(
@@ -358,6 +472,7 @@ class FitHistoricalObservationsTest {
             it.profileFieldName == "respiration_rate" &&
                 it.globalMessageNumber == 297 && it.fieldNumber == 0
         })
+        assertFalse(result.observations.any { it.value < 0.0 })
     }
 
     @Test fun respirationRateCandidateRejectsWrongBaseTypeAndRetainsMissingTimestamp() {
@@ -418,6 +533,59 @@ class FitHistoricalObservationsTest {
             byteArrayOf(1) + u16(0xFFFF) + byteArrayOf(70)))!!.observations
         assertEquals(FitHistoricalObservations.Quality.PROFILE_VALID, invalid[0].quality)
         assertEquals(FitHistoricalObservations.Quality.MISSING_TIMESTAMP, invalid[1].quality)
+    }
+
+    // ---- #707 Abschnitt X: Testvektoren für 55/24, 55/26, 55/27 ----
+
+    @Test fun issue707ActivityTypeIntensityComponentsForAll256Bytes() {
+        assertEquals(listOf(MonitoringActivityIntensity.ACTIVITY_TYPE to 8, MonitoringActivityIntensity.INTENSITY to 5),
+            MonitoringActivityIntensity.components(0xA8)) // sedentary, intensity 5
+        assertEquals(listOf(MonitoringActivityIntensity.ACTIVITY_TYPE to 6, MonitoringActivityIntensity.INTENSITY to 2),
+            MonitoringActivityIntensity.components(0x46)) // walking, intensity 2
+        for (raw in 0..255) {
+            val (type, intensity) = MonitoringActivityIntensity.components(raw).map { it.second }
+            assertEquals("roundtrip $raw", raw, type + 32 * intensity)
+            assertTrue(type in 0..31 && intensity in 0..7)
+        }
+    }
+
+    @Test fun issue707Field24IsDecodedIntoTwoCanonicalCodesAndInvalidByteIsExcluded() {
+        val definition = byteArrayOf(0x40, 0, 0, 55, 0, 2, 253.toByte(), 4, 0x86.toByte(), 24, 1, 0x0D) // byte
+        val result = FitHistoricalObservations.decode(fit(definition +
+            byteArrayOf(0) + u32(0x10000000 + 100) + byteArrayOf(0xA8.toByte()) +
+            byteArrayOf(0) + u32(0x10000000 + 160) + byteArrayOf(0x46) +
+            byteArrayOf(0) + u32(0x10000000 + 220) + byteArrayOf(0xFF.toByte())))!!
+        val byMetric = result.observations.groupBy { it.metric }
+        assertEquals(listOf(8.0, 6.0), byMetric.getValue(FitHistoricalObservations.Metric.MONITORING_CURRENT_ACTIVITY_TYPE).map { it.value })
+        assertEquals(listOf(5.0, 2.0), byMetric.getValue(FitHistoricalObservations.Metric.MONITORING_INTENSITY_CODE).map { it.value })
+        assertTrue(result.observations.all { it.fieldNumber == 24 && it.quality == FitHistoricalObservations.Quality.PROFILE_VALID })
+        // Two components of one field need distinct keys (idempotent import).
+        assertEquals(result.observations.size, result.observations.map { it.idempotencyKey }.distinct().size)
+        assertEquals(1, result.invalidMeasurementFieldCount)
+        assertFalse("no step or heart-rate inference", result.observations.any {
+            it.metric == FitHistoricalObservations.Metric.HEART_RATE || it.metric.name.contains("STEP") })
+    }
+
+    @Test fun issue707Timestamp16TicketVectorAddsSixtySeconds() {
+        val anchor = 0x1000A6D4
+        val result = FitHistoricalObservations.decode(fit(monitoringFull + monitoringShort +
+            byteArrayOf(0) + u32(anchor) + byteArrayOf(60) +
+            byteArrayOf(1) + u16(0xA710) + byteArrayOf(61)))!!.observations
+        assertEquals(fitTime(anchor + 60L), result[1].timestampEpochMillis)
+    }
+
+    @Test fun issue707HeartRateZeroInvalidAndMissingAreNeverMeasurements() {
+        val onlyTime = byteArrayOf(0x42, 0, 0, 55, 0, 1, 26, 2, 0x84.toByte()) // timestamp_16 without field 27
+        val result = FitHistoricalObservations.decode(fit(monitoringFull + monitoringShort + onlyTime +
+            byteArrayOf(0) + u32(0x10000000 + 1_000) + byteArrayOf(72) +
+            byteArrayOf(1) + u16((0x10000000 + 1_060) and 0xffff) + byteArrayOf(0) +            // HR 0: no valid HR
+            byteArrayOf(1) + u16((0x10000000 + 1_120) and 0xffff) + byteArrayOf(0xFF.toByte()) + // invalid
+            byteArrayOf(2) + u16((0x10000000 + 1_180) and 0xffff)))!!                             // field 27 missing
+        val valid = result.observations.filter { it.quality == FitHistoricalObservations.Quality.PROFILE_VALID }
+        assertEquals(listOf(72.0), valid.map { it.value })
+        assertTrue("0 bpm is never a valid measurement", result.observations.none {
+            it.value == 0.0 && it.quality == FitHistoricalObservations.Quality.PROFILE_VALID })
+        assertEquals("no heart rate invented for the missing field", 2, result.observations.size)
     }
 
     @Test fun timestamp16IsOnlyReconstructedForMonitoringMessages() {

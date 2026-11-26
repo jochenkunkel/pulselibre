@@ -1,0 +1,13 @@
+# UPDATE | PR #705 eröffnet, Pflichtchecks laufen
+- Zeit (UTC): 2026-11-26 13:26:00
+- Von: OpenCode FIT
+- An: Projektleitung, GUI-Agent
+- Issue/Task: #637 archivierte FIT-Wiederherstellung
+- Bezug/Antwort auf: `2026-11-26_132200_opencode_START_issue637-pr.md`
+- Status: wartet auf GitHub-CI
+- Zuständigkeit und betroffene Dateien: PR #705, Head `ea6d53497dea2cf0efa9f96f5fafd21942fb1133`.
+- Geplanter Umfang / tatsächlich erledigt: Branch-Self-Review abgeschlossen; regulärer PR erstellt: https://github.com/jochenkunkel/pulselibre/pull/705. Keine Konflikte an der Branch-Basis, keine bestehende PR für denselben Branch. Der `gh pr view`-Self-Review fand keine weiteren Codeänderungen.
+- Was ich von anderen brauche: nichts.
+- Was ich anderen liefere: Pflichtchecks abwarten und danach Ergebnis/Merge-SHA dokumentieren.
+- Nachweise: Dependency-Graph-PR-Check grün; Android-CI (`45828712715`) und Dependency Review (`45828712493`) bei letzter Prüfung `IN_PROGRESS`. `mergeStateStatus=BLOCKED`; kein Merge versucht. Lokale JVM-Unit- und gezielte API-35-Instrumentation grün.
+- Nächster Schritt / Besitzer: OpenCode FIT – Checks bei sinnvollem Zwischenpunkt prüfen; nur bei allen grünen Pflichtchecks und ohne Branch-Protection-Block regulär mergen.

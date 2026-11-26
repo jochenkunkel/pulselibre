@@ -24,4 +24,13 @@ class ExportFileWriterTest {
         assertTrue(out.toString("UTF-8").startsWith("device_id,metric,"))
         assertEquals(1, out.toString("UTF-8").trim().split("\r\n").size)
     }
+
+    @Test fun streamingWriterIsByteIdenticalToTheStringExport() {
+        val records = (0 until 2_000).map { RawExportRecord("CIRQA", if (it % 3 == 0) "stress" else "bpm", 1_000L + it * 997L % 50_000L,
+            if (it % 7 == 0) -100.0 else 60.0 + it % 40, "u", "s$it", if (it % 2 == 0) null else 5_000L + it) }
+        val window = ExportWindow(0, 100_000)
+        val out = ByteArrayOutputStream()
+        writeRawExport(out, records, window)
+        assertArrayEquals(exportRawCsv(records, window).toByteArray(Charsets.UTF_8), out.toByteArray())
+    }
 }

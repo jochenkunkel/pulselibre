@@ -163,7 +163,7 @@ emulator() {
   fi
   ci_group "Emulator-Instrumentationstests (API 35)"
   if ! { [ -r /dev/kvm ] && [ -w /dev/kvm ]; }; then
-    ci_die "KVM nicht verfügbar: Emulator-Tests können nicht ehrlich ausgeführt werden. Siehe docs/ci/HYBRID_CI.md#kvm."
+    ci_die "KVM nicht verfügbar: Emulator-Tests können nicht ehrlich ausgeführt werden. Siehe docs/quality/ci/HYBRID_CI.md#kvm."
   fi
   # Fail-closed safety gate: instrumentation tests must never overwrite a
   # physical test device's profile/settings. Extracted into its own script so

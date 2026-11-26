@@ -239,6 +239,54 @@ Das wiederholte Token allein erklärt nicht, ob die Transaktion terminal sein
 soll; die lokale Fortsetzungspolitik begrenzt Wiederholungen und behauptet
 ausdrücklich keine vollständige Bandhistorie.
 
+## Decoder-Nachtrag nach dem S10-Lauf (2026-11-25)
+
+Im S10-Vorher-/Nachher-Backup blieben FIT-Quellen (37), unbekannte-Feld-
+Inventareinträge (12.473), kanonische FIT-Beobachtungen (29.123) und
+FIT-Review-Kandidaten (2.635) unverändert. Der Lauf fügte daher keine neue FIT-
+Quelle und keine neuen FIT-Feldsignaturen hinzu. Die +239 verifizierten
+Archiv-Originale stammen aus dem separaten empfangenen Roh-/Notification-Archiv;
+sie sind kein Nachweis zusätzlicher FIT-Dateien.
+
+Der Produktdecoder klassifizierte Global 398 vorher als vollständig unbekannte
+Message, obwohl Profil 21.222.0 F1/F2 als `average_deviation` und
+`average_7_day_deviation` in °C definiert. Der Decoder erzeugt jetzt für genau
+diese zwei korrekt typisierten endlichen float32-Felder
+`UNTRUSTED_PROFILE_CANDIDATE`s (Review-Decoder-Version 4), weiterhin **keine**
+kanonischen Beobachtungen. FIT-Sentinel/NaN/Inf werden nicht als Kandidaten
+ausgegeben; die exakten Feldbytes bleiben in `decodedFields` erhalten. Global
+398/F0, F1, F2 und F4 werden als profilbekannt eingestuft; F3 bleibt unbekannt.
+F4 wird mangels abgesicherter Kandidaten-Unit/Sentinel-Regel nicht semantisch
+ausgegeben. Global 397 bleibt vollständig opaque, weil es in Profil 21.222.0
+keine definierte Message ist.
+
+Ein lokaler Replay des Post-Run-Backups mit dem geänderten Decoder prüfte alle
+37 hashverifizierten FIT-Originale ohne Decode-Fehler. Er fand zwei neue
+Review-Kandidaten insgesamt (je einer für F1 und F2), 29.123 kanonische
+Beobachtungen unverändert, 2.842 rohe Global-397-Feldvorkommen über 1.421
+Nachrichten sowie sechs rohe Global-398-Feldvorkommen; davon bleibt F3 eine
+opaque Unmapped-Signatur. Der Replay schreibt keine Datenbank und gibt keine
+privaten Feldwerte oder Quellhashes aus. Das Gerätesync-/Backup selbst wurde
+nicht mit diesem Codebuild wiederholt.
+
+Zum Sync-Abschluss: Der aktuelle Lauf erhielt vier vollständige ItemList-
+Antworten (27 Einträge, danach drei erfolgreiche, leere Folgeantworten mit
+wiederkehrendem Transaktionskontext). Alle 27 gelisteten Dateien wurden
+transferiert/verifiziert/privat gespeichert; 26 wurden FIT-dekodiert und
+SQLite-committed (19 mit importierbaren Werten, 7 ohne solche Werte), eine
+Datei war non-FIT. Das entspricht dem bereits unabhängig beobachteten
+Connect-Muster. Ohne `session_id` gibt es keinen weiteren Seiten-Cursor; der
+wiederkehrende `next_transaction_id`-Wert und die leeren Antworten beweisen
+weder, dass weitere Dateien existieren, noch dass keine existieren. Deshalb
+bleibt der Lauf korrekt `runDrained=false`/`device-history-unverified`; eine
+automatische oder manuelle Wiederholung bzw. unbegrenztes Chaining wäre kein
+belegter Fix und könnte den CIRQA unnötig belasten.
+Der Terminalbericht wird im Produktcode zusätzlich künftig die Item-Anzahlen
+aller begrenzten Transaktions-Folgeantworten als redigierte Liste ausgeben
+(z. B. `[0,0,0]`); zuvor war nur die letzte Antwort sichtbar. So lässt sich
+ein leerer Abschluss von einer davor nichtleeren Antwort unterscheiden, ohne
+Tokens oder Rohdaten offenzulegen.
+
 Das ältere Connect-Capture vom 24.11. zeigt eine andere Stichprobe: eine
 ItemList-Antwort mit 39 Einträgen, ohne Session-Cursor und mit Transaktionstoken;
 die frühere begrenzte Filter-Auditspur sah mehrere ItemList-Requestformen mit
