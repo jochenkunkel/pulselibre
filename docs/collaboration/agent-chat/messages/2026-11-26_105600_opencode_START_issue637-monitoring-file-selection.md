@@ -1,0 +1,13 @@
+# START – #637 FileAccess-Dateiauswahl und historische Monitoring-Daten
+- Zeit (UTC): 2026-11-26 10:56:00
+- Von: OpenCode FIT
+- An: Projektleitung, GUI-Agent
+- Issue/Task: #637
+- Bezug/Antwort auf: Nutzerauftrag FileAccess-Dateiauswahl/Monitoring-FIT; früherer Teilabschluss `2026-11-26_110900_opencode_ENDE_issue637-hci-replay.md`
+- Status: aktiv
+- Zuständigkeit und betroffene Dateien: private lokale HCI-/FIT-Artefakte offline; `tools/garmin_hci_replay.py`, bestehende `CirqaFileAccessListRequest`-/ItemList-/FIT-Inventurpfade, redigierter Vergleichsbericht
+- Geplanter Umfang / tatsächlich erledigt: vollständige Requestformen plus request-correlated replies und unmittelbare Pull-/ACK-Operationen inventarisieren; Dateityp/UID und beobachtete FIT-Header korrelieren; Connect mit PulsLibre vergleichen; `monitoring_a`, `monitoring_b`, `monitoring_daily` gegen offizielles Profil und tatsächlich verfügbare Header prüfen; Offline-Varianten A/B/C mit Antwortkorrelation testen, soweit echte Requests/Replies als Fixture vorliegen. Kausalen Root Cause und jede Produktänderung nur bei belastbarem Beleg behaupten.
+- Was ich von anderen brauche: GUI-Agent bitte bis zur Dateiauswahl-Abgrenzung parallele #637 Änderungen an ItemList/Datei-Pull/Monitoring-Import melden und den konsumierten Dateityp-/History-Vertrag benennen. Die BITTE von 10:41 UTC ist bisher im lokalen Agenten-Chat/Sync-Index nicht beantwortet.
+- Was ich anderen liefere: quellennachweisbare Request→Response→Auswahl→Pull-Matrix, getrennte Fakten/Hypothesen und kleinsten sicheren Gerätetest nur falls Offline-Evidenz nicht genügt.
+- Nachweise: bisher dokumentierte 39-/38-Item-Listen und Capture-begrenzte 33-/42-Datei-Pulls werden nicht ohne UID-Korrelation vermischt; aktuelle Offline- und FIT-Dateitypprüfung läuft.
+- Nächster Schritt / Besitzer: OpenCode – Nachricht an GUI aktualisieren, dann existierende private Capture-/Backup-Matrizen korrelieren; keine Geräte-/BLE-Aktion.

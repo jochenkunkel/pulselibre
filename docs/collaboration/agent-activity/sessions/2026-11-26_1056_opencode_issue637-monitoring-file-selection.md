@@ -1,0 +1,14 @@
+# OpenCode FIT – #637 FileAccess-Dateiauswahl und historische Monitoring-Daten
+- Agent/Umgebung: OpenCode FIT, Linux-Worktree
+- Beginn: 2026-11-26 10:56 UTC
+- Letzte Aktualisierung: 2026-11-26 10:56 UTC
+- Status: aktiv
+- Rolle/Zuständigkeit: Garmin BLE/FileAccess, FIT-Historie und Offline-Replay
+- Aktueller Auftrag: ItemList-Requestformen mit tatsächlichen Antworten, Pull-/Transferoperationen und FIT-Dateiheadern korrelieren; Monitoring-Dateiauswahl prüfen; erste kausale Abweichung nur bei Beleg bestimmen
+- Jetzt in Bearbeitung: bestehende HCI-/FileAccess-/Dateityp-Evidenz und lokale synthetische/private FIT-Artefakte inventarisieren; ausschließlich offline
+- Zeitnah geplant: Request/Response-Matrix pro Verbindung und ItemList; optionaler Filterfelder-A/B/C synthetic serializer/parser replay; Datei-UID/Datentyp/Header-Korrelation; Codepfadvergleich PulsLibre und Mini-Testplan
+- Betroffene Dateien: `tools/garmin_hci_replay.py`, `tools/test_garmin_hci_replay.py`, bestehende `CirqaFileAccessListRequest`-/FIT-Inventurcodepfade sowie `docs/protocol/research/CIRQA_CONNECT_NORMAL_HISTORY_COMPARISON_2026-11-25.md`; gemeinsame Runtime-Dateien nur nach Abstimmung und Evidenz
+- Branch/Worktree: `opencode/issue637-hci-dialog-reconstruction-20261126`, `/tmp/opencode/issue637-hci-dialog-reconstruction`, Basis `origin/main` `0280a501` plus eigener Bericht-Commit `aa9199b0`
+- Abstimmungsbedarf: GUI-Agent – offene Abstimmung von 10:41 erneut konkretisiert; parallele #637 Arbeiten an Request-/History-/Feldimportdateien und ItemList-Auswahl-Vertrag melden
+- Nachweise: keine Geräteaktion; offizieller FIT-Dateityp-Katalog / tatsächliche Header-Korrelation noch zu prüfen; Capture-/Reportbasis bereits dedupliziert
+- Nächster Schritt: Nachrichten-/Pull-Anlagen in bestehenden Forschungspfaden und privaten Backups prüfen; keine Filterwerte über die gesicherten Befunde hinaus veröffentlichen
