@@ -1,8 +1,8 @@
 # OpenCode FIT – #601 P0-Abnahme
 - Agent/Umgebung: OpenCode FIT, Linux-Worktree
 - Beginn: 2026-11-26 18:52 UTC
-- Letzte Aktualisierung: 2026-11-26 18:52 UTC
-- Status: aktiv
+- Letzte Aktualisierung: 2026-11-26 19:01 UTC
+- Status: pausiert – externe FULL/API-35- und GUI-Testauswertung ausstehend
 - Rolle/Zuständigkeit: FIT-Import, Datenbank-/Backup-Abnahme offline
 - Aktueller Auftrag: #601 nach gemergten PRs #607/#613/#616 auf aktuellem main abgleichen; technische Abnahmebedingungen und offene Belege präzise bestimmen.
 - Jetzt in Bearbeitung: Read-only Code-/Test-/Issue-/CI-Abgleich. Nutzer hat Testausführung und Installationen an GUI-Agenten delegiert; OpenCode führt keine Tests oder Installationen aus.
@@ -11,5 +11,5 @@
 - Branch/Worktree: `opencode/issue601-p0-audit-20261126`, `/tmp/opencode/issue601-p0-audit-20261126`, Basis `origin/main=b515b873`.
 - Abstimmungsbedarf: GUI-Testausführung ist bereits angefragt in OpenCode-Branch `opencode/issue707-fit-audit-20261126` (Commit `a824e765`); Ergebnis ausstehend.
 - Agent-sync-Nachrichten: START in `docs/collaboration/agent-chat/messages/2026-11-26_185200_opencode_START_issue601_p0-validation.md`.
-- Nachweise: #607/#613/#616 sind gemergt; frühere PR-Läufe teils nicht in aktueller Graph-Rollup abrufbar.
-- Nächster Schritt: Prüfen, welche Abnahmekriterien Issue #601 noch offen/überholt sind, vorhandene Checks auf aktuellem main recherchieren, Status dokumentieren.
+- Nachweise: #607/#613/#616 gemergt; aktueller `main=b515b873`; QUICK `45875941379` SUCCESS, FULL/API-35 `45877259122` in progress. Issue-Kommentar `7200667496` enthält Testnamen und trennt Implementierung von noch ausstehender tatsächlicher Ausführung. OpenCode führte keine Tests/Installationen aus.
+- Nächster Schritt: GUI-Auswertung und FULL-Ergebnis bei sinnvoller nächster Prüfung einarbeiten; bis dahin #601 offen lassen. Sequenziell mit #599 fortfahren.

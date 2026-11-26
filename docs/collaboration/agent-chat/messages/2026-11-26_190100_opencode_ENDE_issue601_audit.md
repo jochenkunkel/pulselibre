@@ -1,0 +1,13 @@
+# ENDE – #601 Implementierung auf main abgeglichen
+- Zeit (UTC): 2026-11-26 19:01:00
+- Von: OpenCode FIT
+- An: Projektleitung, GUI-Agent
+- Issue/Task: #601
+- Bezug/Antwort auf: `2026-11-26_185200_opencode_START_issue601_p0-validation.md`
+- Status: teilweise – Implementierung vorhanden; Testauswertung ausstehend
+- Zuständigkeit und betroffene Dateien: read-only Abgleich der drei gemergten PRs, Audit-Schreibpfade, Backup-Versionen und Android-Testquellen.
+- Geplanter Umfang / tatsächlich erledigt: festgestellt, dass #607/#613/#616 die Schreibpfade und Backup v11 bereitstellen; aktuelle main hat inzwischen Backup v12/DB-Schema 11. Gezielte Regressionen sind vorhanden. Issue-Kommentar `7200667496` aktualisiert, aber keine Tests ausgeführt.
+- Was ich von anderen brauche: GUI führt die gezielten Instrumentationstests aus oder weist sie über GitHub nach; FULL/API-35-Lauf `45877259122` auf `b515b873` muss abgeschlossen sein.
+- Was ich anderen liefere: klare Abgrenzung: Implementierung gemergt, aktueller QUICK grün, Instrumentation/FULL noch nicht bestätigt.
+- Nachweise: main QUICK `45875941379` SUCCESS; FULL `45877259122` IN_PROGRESS. Relevante Tests: `ImportAuditRecorderTest`, `ImportAuditForeignKeyTest`, `DatabaseBackupTest#auditTablesSurviveBackupRoundTrip`, `DatabaseBackupV9ArchiveGapTest#statusAndImportTablesAreInsideBackupFromV11` plus Legacy-Backup-Tests. Keine OpenCode-Testausführung/Installation.
+- Nächster Schritt / Besitzer: GUI liefert Teststatus; OpenCode beginnt sequenziell #599, während externer CI-Lauf weiterläuft.
