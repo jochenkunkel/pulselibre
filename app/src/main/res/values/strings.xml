@@ -935,6 +935,11 @@
     <string name="dd_band_summary">%1$d band values (all-day history %2$d, activity %3$d)</string>
     <string name="dd_band_none">No band heart rate (FIT) stored for this day.</string>
     <string name="dd_band_failed">Band history could not be read.</string>
+    <string name="dd_band_none_metric">No band values (FIT) of this measure stored on this day.</string>
+    <string name="dd_band_summary_plain">%1$d band values</string>
+    <string name="dd_unit_bpm">bpm</string>
+    <string name="dd_unit_device_scale">device scale</string>
+    <string name="dd_unit_breaths">breaths/min</string>
     <string name="ht_title">All data</string>
     <string name="ht_col_date">Date</string>
     <string name="ht_col_source">Source</string>

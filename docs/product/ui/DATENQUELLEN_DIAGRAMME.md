@@ -43,7 +43,7 @@ Legende Verfügbarkeit: **ok** = liest die fachlich richtige Quelle; **behoben**
 | Übersicht: Kachel-Insight mit Stundenspur | `DashboardOverviewView` → `SparkView` | Tagesverlauf + Vorwoche | `TileInsightReader` (`DashboardDayReader`, `FitHistoryReader`) | `events`, `unified_measurements` | live + band (Puls) | getrennt: Telefonzeit / Bandzeit | Band-Tag nur mit ≥ Mindestanzahl Werte | ok (#477) | – |
 | Übersicht: Schritte heute | `StepBarsView` | Tageszähler | `DashboardDayReader` | `events` | live | Empfangszeit | – | nur live | FIT: Schritte nicht dekodiert |
 | Übersicht: Nacht-SpO₂ | `DashboardOverviewView` | SpO₂ der Nacht | `NightOxygenReader` | `events` | live | Empfangszeit | ungeprüft (UNVERIFIED) | nur live | FIT: SpO₂ nicht dekodiert |
-| **Kachel-Tagesdialog** | `DashboardDayDialog` → `DayChart` | Tagesverlauf einer Größe | `DashboardDayReader` + **`FitHistoryReader`** | `events` + `unified_measurements` | live + **band (Puls)** | getrennt, Bandzeit eigenes Diagramm | Duplikate/ungültige gezählt | **behoben** | vorher nur `events`: Band-Herzfrequenz unsichtbar |
+| **Kachel-Tagesdialog** | `DashboardDayDialog` → `DayChart` | Tagesverlauf einer Größe | `DashboardDayReader` + **`FitHistoryReader`** (`BandSeries`) | `events` + `unified_measurements` | live + **band (Puls, seit #696 auch SpO₂, Stress, Atmung)** | getrennt, Bandzeit eigenes Diagramm | Duplikate/ungültige gezählt | **behoben** | vorher nur `events`: Band-Herzfrequenz unsichtbar |
 | Tageszeitleiste | `DayTimelineDialog` → `DayTimelineView` | Puls, Schritte, Band-Puls | `DashboardDayReader`, `FitHistoryReader` | `events`, `unified_measurements` | live + band | eigene Spur je Zeitbasis | – | ok | – |
 | Verlauf: Puls / SpO₂ (Telefonzeit) | `HistoryOverviewView` → `HistoryScatterChartView`, `HistoryDensityChartView` | 24 h / 7 / 30 Tage | `CirqaHistoryReader` (`HistoryDataCache`) | `events` | live | Empfangszeit | Bereichsfilter 1–240 / 1–100 | ok | – |
 | **Verlauf: Herzfrequenz · Band-Verlauf (FIT)** | `HistoryOverviewView` | Band-Herzfrequenz | `FitHistoryReader` | `unified_measurements` (band) | band | Messzeit des Bandes | 1–240 bpm, max. 150 000 Punkte | ok (#477), **Anteile behoben** | vorher keine Unterscheidung Tageshistorie/Aktivität |
@@ -83,7 +83,7 @@ Generationen gebaut wird. **Nicht** abgedeckt hatte #477 den Kachel-Tagesdialog.
   `monitoring_cycles` (55/3, Profilskala 2, **keine** Schritte) und `monitoring_activity_type` (55/5, Code). Status- und
   Sentinelwerte bleiben Prüfkandidaten bzw. Rohfelder, sie sind keine Messwerte. Sichtbar sind die Werte in „Alle Daten“ (mit
   Namen; Codes ohne Mittelwert), im CSV-Export und als eigene Band-Karten in Analysen → Wissenschaft (SpO₂, Atmung,
-  Stress). **Noch offen (GUI-Folgeschritt):** Übersichtskacheln, Tagesdialog und Schlaf zeigen weiter nur Live-Daten; Schritte aus FIT bleiben gesperrt (233/397, Monitoring 24/26/27
+  Stress). Der Kachel-Tagesdialog zeigt für SpO₂, Stress und Atmung einen eigenen Band-Abschnitt. **Noch offen (GUI-Folgeschritt):** Die Übersichtskacheln (aktueller Wert) und Schlaf zeigen weiter nur Live-Daten; Schritte aus FIT bleiben gesperrt (233/397, Monitoring 24/26/27
   ebenfalls).
 - **R3 – Normale Historie unvollständig (FIT):** Dass Aktivitäten ankommen, beweist keine vollständige Tageshistorie.
   Die Oberfläche weist jetzt aus, wie viele Band-Werte aus `monitoring` stammen. Ist das 0, sagt sie es ausdrücklich.
