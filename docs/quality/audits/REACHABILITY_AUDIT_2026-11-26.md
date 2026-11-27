@@ -29,3 +29,24 @@ Eine Datei gilt als erreichbar, wenn ein Pfad von einem Startpunkt zu ihr führt
   - Download und Abbruch sind durch die gezielten Tests aus #599 und #637 abgedeckt.
   - Backup und Audit sind durch #601 belegt.
 - Die kombinierte Coverage (JVM + Instrumentation) erzeugt die CI bereits als Artefakt `pulselibre-combined-jacoco` in jedem FULL-Lauf.
+
+## Nachtrag 27.11.2026 (#661): Audit der 129 FIT-/Protokolldateien
+
+Methode: Für jede im Issue genannte Datei wurde gezählt, wie viele andere Produktionsdateien sie oder eine ihrer
+Deklarationen verwenden und welche Tests sie prüfen.
+
+| Ergebnis | Dateien |
+|---|---:|
+| benutzt und getestet | 109 |
+| existiert nicht mehr (bereits entfernt oder umbenannt) | 6 |
+| nur von Tests benutzt | 14 |
+
+Von den 14 nur in Tests benutzten Dateien wurden **11 samt ihrem eigenen Test entfernt** (Experimente der
+Protokollsuche ohne produktiven Aufrufer): `Cirqa5050ExperimentComparison`, `Cirqa5050SyncHypothesis`,
+`CirqaBootstrapGapAnalysis`, `CirqaConnect531HandshakeModel`, `CirqaFileListCounterGate`,
+`CirqaLegacy5030To5007Session`, `CirqaLegacyOfflineFileSession`, `CirqaMinuteAggregation`,
+`CirqaRawDeviceMetadataBackfill`, `CirqaSyncDiagnosticSession`, `CirqaSyncExperimentGate`. Sie stehen weiter in der
+Git-Historie.
+
+Bleiben vorerst: `Cirqa5050OfflineCapabilities` und `CirqaConnectDirectoryTransition` (Tests weiter genutzter Klassen
+verwenden sie) sowie `CirqaRawDeviceMetadata` (Parser wird produktiv benutzt).
