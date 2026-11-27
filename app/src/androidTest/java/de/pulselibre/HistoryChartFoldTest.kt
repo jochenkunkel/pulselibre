@@ -44,7 +44,7 @@ class HistoryChartFoldTest {
             assertEquals(1, views.count { it.tag == "history_series_Herzfrequenz" })
             assertNotNull(views.firstOrNull { it.tag == "history_series_Stress" })
             assertNotNull("SpO2 stays visible without data", views.firstOrNull { it.tag == "history_series_Sauerstoffsättigung · SpO₂" })
-            assertNull("measures without data are not shown", views.firstOrNull { it.tag == "history_series_HRV" })
+            assertNull("measures without data are not shown", views.firstOrNull { it.tag == "history_series_HRV (ms)" })
             // stress starts folded: no chart, expand button
             val stressFold = views.first { it.tag == "history_fold_Stress" } as TextView
             assertEquals("+", stressFold.text.toString())

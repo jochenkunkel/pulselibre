@@ -62,7 +62,7 @@ internal object DomainText {
         "Stress" to R.string.ht_m_stress,
         "Atemfrequenz" to R.string.ht_m_breath,
         "Ruhepuls" to R.string.ht_m_resting,
-        "HRV" to R.string.ht_m_hrv,
+        "HRV (ms)" to R.string.ht_m_hrv,
         "Body Battery" to R.string.ht_m_battery,
         "Tagesziel erreicht" to R.string.dom_goal_reached,
         "Zu wenige gültige Messwerte." to R.string.dom_night_few,

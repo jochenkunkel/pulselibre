@@ -29,7 +29,7 @@ object HistoryMetricCatalog {
         Spec("respiration", "Atemfrequenz", "/min", setOf("breaths_per_min", "respiration"), 1.0, 60.0, 60, false),
         Spec("resting_heart_rate", "Ruhepuls", "bpm",
             setOf("resting_bpm", "resting_heart_rate", "current_day_resting_heart_rate"), 1.0, 240.0, 240, false),
-        Spec("hrv", "HRV", "ms", setOf("hrv"), 1.0, 300.0, 300, false),
+        Spec("hrv", "HRV (ms)", "ms", setOf("hrv"), 1.0, 300.0, 300, false),
         Spec("body_battery", "Body Battery", "", setOf("body_battery"), 0.0, 100.0, 100, false)
     )
 
