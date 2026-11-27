@@ -111,6 +111,9 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private var syncCurrentItem: CirqaFileAccessItemListParser.Item? = null
     private var syncCurrentLocalItemId: Long? = null
     private var syncNextRequestId = 3
+    /** #637: Smart 47.3 sent / Smart 47.4 answer seen in this sync session. */
+    private var syncMonitoringFlushSent = false
+    private var syncMonitoringFlushAnswered = false
     private var syncCurrentPullRequestId: Int? = null
     private val syncPullRequestItems = HashMap<Int, Long>()
     private val syncArchivedLocalIds = HashSet<Long>()
@@ -2330,6 +2333,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         syncQueuedBytes = 0L
         syncSkippedFiles = 0
         syncPushedFiles = 0
+        syncMonitoringFlushSent = false
+        syncMonitoringFlushAnswered = false
         syncSeenItemReferences.clear()
         devicePushReassembler.reset()
         syncIncompleteReason = null
@@ -2625,6 +2630,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                         serial.post { mark("sync_response verifiziert; warte auf Item-Liste") }
                     }
                     syncProtoShapes = (syncProtoShapes + "${CirqaProtobufShapeInspector.nestedShape(msg)};").take(400)
+                    if (CirqaMonitoringFlushRequest.isResponse(msg)) syncMonitoringFlushAnswered = true
                     // An item_list_response carries real, readable items. Parse it and
                     // request the first one; UIDs stay in memory and are never reported.
                     CirqaFileAccessItemListParser.parsePullResult(msg)?.let { pull ->
@@ -2725,6 +2731,15 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     // Connect requests the pending file list only AFTER sync_response.
                     val handle = historyHandle
                     if (handle != null && !syncItemListSent) {
+                        if (!syncMonitoringFlushSent) {
+                            // #637: like Connect, ask the band to close its current monitoring data into a file
+                            // first; a resulting FileAccess 12 push is pulled by handleDeviceFileAccessPush.
+                            syncMonitoringFlushSent = true
+                            val flushId = syncNextRequestId
+                            syncNextRequestId = if (syncNextRequestId >= 0xffff) 1 else syncNextRequestId + 1
+                            queueAck(g, CirqaMonitoringFlushRequest.mlValue(handle, flushId))
+                            serial.post { mark("Monitoring-Abschluss (Smart 47.3) wie Connect angefragt") }
+                        }
                         syncItemListSent = true
                         syncListRequestKinds[2] = null
                         queueAck(
@@ -3673,7 +3688,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     "transactionFollowupResponseItemCounts=${syncTransactionFollowupResponseItemCounts.joinToString(
                         prefix = "[", postfix = "]"
                     )}," +
-                    "selected=$syncSelectedFiles,queuedTotal=$syncQueuedFiles,selectedBytes=$syncQueuedBytes,skipped=$syncSkippedFiles,pushed=$syncPushedFiles," +
+                    "selected=$syncSelectedFiles,queuedTotal=$syncQueuedFiles,selectedBytes=$syncQueuedBytes,skipped=$syncSkippedFiles,pushed=$syncPushedFiles,monitoringFlush=${if (syncMonitoringFlushSent) (if (syncMonitoringFlushAnswered) "answered" else "sent") else "no"}," +
                     "pages=$syncListPageCount,currentBytes=${mlrData.size()},details=$syncFileResults," +
                     "pipeline=[${syncPipelineLedger.summary()}],pipelineItems=[${syncPipelineLedger.orderedSummary()}]," +
                     "pipelineStageOrder=selected,queued,ble-write-accepted,response-received,transfer-completed," +
@@ -3847,6 +3862,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             syncQueuedBytes = 0L
             syncSkippedFiles = 0
             syncPushedFiles = 0
+            syncMonitoringFlushSent = false
+            syncMonitoringFlushAnswered = false
             syncSeenItemReferences.clear()
             devicePushReassembler.reset()
             syncIncompleteReason = null
