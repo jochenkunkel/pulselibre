@@ -1,0 +1,13 @@
+# START – #661 Komponenten-Audit fortsetzen
+- Zeit (UTC): 2026-11-27 08:12
+- Von: OpenCode
+- An: Projektleitung, GUI-Agent
+- Issue/Task: #661; vom Nutzer gesetztes Arbeitsfenster bis ca. 08:57 UTC
+- Bezug/Antwort auf: PR #740/#741 und bestehende Sitzung `2026-11-27_0648_opencode_issue661-followup-audit.md`
+- Status: aktiv
+- Zuständigkeit und betroffene Dateien: Offline-Audit des noch nicht erfassten Protokoll-/Decoder-/Importcodes; zuerst Auditbericht und gezielte produktive Komponenten/Tests.
+- Geplanter Umfang / tatsächlich erledigt: nach PR #741 den verbleibenden Issue-#661-Umfang anhand des Main-Codeinventars abgleichen, konkrete reproduzierbare Fehler nach Möglichkeit mit fokussiertem Fix/Test beheben; keine Geräte-/Telefonaktion.
+- Was ich von anderen brauche: nichts
+- Was ich anderen liefere: priorisierte Findings und nachvollziehbare Evidenz für #661
+- Nachweise: Basis `origin/main=07d02be6`; #740 und #741 gemergt, #661 offen.
+- Nächster Schritt / Besitzer: OpenCode prüft die noch nicht abgedeckten Decoder-/Importkomponenten und dokumentiert Befunde.
