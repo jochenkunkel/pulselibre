@@ -2378,7 +2378,7 @@ class CirqaDatabase(private val contextRef: Context) :
             "sleep_level", "monitoring_cycles", "monitoring_activity_type",
             "skin_temperature_deviation", "skin_temperature_7_day_deviation",
             "monitoring_current_activity_type", "monitoring_intensity_code" // #707: 55/24 components
-        )
+        ) + FitHistoricalObservations.PROFILE_SCALAR_METRIC_KEYS // #150: HRV, resting HR, activity counters
         private val keyFormat = java.time.format.DateTimeFormatterBuilder().appendInstant(9).toFormatter()
         internal fun timeKey(time: java.time.Instant): String = keyFormat.format(time)
         private fun timeKey(timestamp: String): String? = try { timeKey(java.time.Instant.parse(timestamp)) }

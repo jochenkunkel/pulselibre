@@ -17,7 +17,8 @@ class ReviewCandidateMetricsTest {
         val mapping = committer.substringAfter("val metric = when (candidate.profileFieldName) {").substringBefore("else ->")
         val written = Regex("""->\s*"([a-z0-9_]+)"""").findAll(mapping).map { it.groupValues[1] }.toSet()
         assertTrue("mapping not found", written.size >= 8)
-        assertEquals(written, CirqaDatabase.FIT_REVIEW_CANDIDATE_METRICS)
+        // #150: profile scalars are mapped generically via FitHistoricalObservations.profileScalarMetric.
+        assertEquals(written + FitHistoricalObservations.PROFILE_SCALAR_METRIC_KEYS, CirqaDatabase.FIT_REVIEW_CANDIDATE_METRICS)
     }
 
     @Test fun noValidatorKeepsItsOwnShorterList() {
