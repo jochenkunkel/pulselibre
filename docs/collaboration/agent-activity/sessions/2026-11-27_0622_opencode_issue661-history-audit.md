@@ -1,0 +1,15 @@
+# OpenCode – Offline-Audit #661: History-Download
+- Agent/Umgebung: OpenCode, vorübergehende GUI-/Hauptentwicklerrolle auf Owner-Auftrag
+- Beginn: 2026-11-27 06:22 UTC
+- Letzte Aktualisierung: 2026-11-27 06:22 UTC
+- Status: aktiv
+- Rolle/Zuständigkeit: temporärer Hauptentwickler; fokussierter Offline-Audit des historischen Garmin-Downloads
+- Aktueller Auftrag: #661, Umsetzung nur für klar isolierte und belegte Fehler ohne Überschneidung.
+- Jetzt in Bearbeitung: #661 – ItemList, PullItem, Mehrphasen-/Fortsetzungslogik, Retry/Timeout, Auto-/Manuell-Koordination, FIT-Archiv und Datenintegrität auf `origin/main=d30b0b35` prüfen.
+- Zeitnah geplant: gezielte Tests nach Befunden; keine zusätzliche Ticketübernahme.
+- Betroffene Dateien/Bereiche: zunächst nur lesende Prüfung der History-/FileAccess-Quellen und Tests; Auditbericht/Agentenlogs.
+- Branch/Worktree: `opencode/issue661-history-audit-20261127`, `/tmp/opencode/issue661-history-audit-20261127`, Basis `d30b0b35`.
+- Abstimmungsbedarf: keiner; Owner-Auftrag gestattet temporäre alleinige Ausführung. Claude-PR #735 berührt FIT-Decoder/UI-Dateien; diese werden nicht bearbeitet.
+- Agent-sync-Nachrichten: `2026-11-27_0622_opencode_START_issue661-history-audit.md`.
+- Nachweise: PRs #731/#732/#733/#734 geprüft; kein Gerätezugriff.
+- Nächster Schritt: aktuelle Main-Implementierung und Regressionstests im Detail nachvollziehen, Findings in bestätigt/plausibel/offen trennen.
