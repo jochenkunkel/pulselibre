@@ -57,19 +57,22 @@ internal object HistoryDataCache {
         var fitFailed = false
         val fit = try { FitHistoryReader(context).read(start, windowEnd) } catch (_: Exception) { fitFailed = true; null }
         // One table for live, imported and band data (derived `unified_measurements`, refreshed incrementally).
+        var series: Map<String, List<HistoryPoint>>? = null
         val allData = try {
             CirqaDatabase(context).use { db ->
                 db.ensureHistoricalStoreCopied()
                 val unified = UnifiedMeasurements(db.writableDatabase)
                 unified.refresh()
+                // #763: one query for all chart measures, same connection as the summary.
+                series = HistoryMetricCatalog.group(unified.seriesRows(HistoryMetricCatalog.ALL_METRICS, start.toEpochMilli(), windowEnd.toEpochMilli()))
                 val offset = java.time.ZoneId.systemDefault().rules.getOffset(windowEnd).totalSeconds * 1000L
                 unified.dailySummary(start.toEpochMilli(), windowEnd.toEpochMilli(), offset)
             }
-        } catch (_: Exception) { emptyList() }
+        } catch (_: Exception) { series = null; emptyList() }
         return HistorySnapshot(range, start, windowEnd,
             pulse.slice(start.toEpochMilli(), windowEnd.toEpochMilli()),
             oxygen.slice(start.toEpochMilli(), windowEnd.toEpochMilli()),
-            fit?.points.orEmpty(), fit?.available ?: false, fitFailed, fit?.newest, fit?.kinds.orEmpty(), fit?.duplicates ?: 0, allData)
+            fit?.points.orEmpty(), fit?.available ?: false, fitFailed, fit?.newest, fit?.kinds.orEmpty(), fit?.duplicates ?: 0, allData, series)
     }
 
     private fun sync(context: Context, now: Instant) {

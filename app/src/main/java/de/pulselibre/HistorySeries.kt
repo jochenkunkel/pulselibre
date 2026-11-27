@@ -57,7 +57,9 @@ data class HistorySnapshot(
     /** Band values of the window also in another FIT file; charts count them once (R1). */
     val fitDuplicates: Int = 0,
     /** Per day, origin and metric summary of everything in the window: live, imported and band data in one list. */
-    val allData: List<UnifiedDaySummary> = emptyList()
+    val allData: List<UnifiedDaySummary> = emptyList(),
+    /** #763: one series per [HistoryMetricCatalog] spec, live and band merged; null = not read (fall back to the fields above). */
+    val unified: Map<String, List<HistoryPoint>>? = null
 )
 
 /** Fixed display resolutions sized to keep selected ranges readable on a phone chart. */

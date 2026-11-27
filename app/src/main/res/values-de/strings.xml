@@ -1136,4 +1136,9 @@
     <string name="wear_src_gdi">Gerätestatus des Armbands</string>
     <string name="wear_src_fit">FIT-Datei des Armbands</string>
     <string name="wear_src_other">Armband</string>
+    <string name="hv_basis_combined_legend">Zeitachse: Band-Werte zur Messzeit, Live-Werte zur Empfangszeit · Punkt: Median · Ring: Mittelwert (bei mehreren Werten) · Linie: Min–Max · Lücken: keine Messdaten</string>
+    <string name="hv_basis_combined_info">Live- und Band-Werte derselben Messgröße in einem Diagramm. Band-Werte stehen zur Messzeit des Bandes, Live-Werte zur Empfangszeit auf dem Telefon. Doppelte Band-Werte werden einmal gezählt; die Herkunft bleibt in der Tabelle sichtbar.</string>
+    <string name="hv_fold_count">%1$d Werte</string>
+    <string name="hv_fold_collapse_cd">Diagramm %1$s einklappen</string>
+    <string name="hv_fold_expand_cd">Diagramm %1$s ausklappen</string>
 </resources>
