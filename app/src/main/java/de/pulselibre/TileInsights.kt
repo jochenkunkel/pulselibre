@@ -45,6 +45,10 @@ internal object TileInsightCalc {
         return FitDaySummary(day.date, values.size, values.min(), values.max(), values.average(), hourly.toList())
     }
 
+    /** Live and band observations of one measure as one time-ordered series (#763); exact duplicates count once. */
+    fun merge(live: List<DayObservation>, band: List<DayObservation>): List<DayObservation> =
+        if (band.isEmpty()) live else (live + band).distinctBy { it.time to it.value }.sortedBy { it.time }
+
     val CUMULATIVE = setOf(DashboardMeasurement.STEPS, DashboardMeasurement.CALORIES_TOTAL,
         DashboardMeasurement.CALORIES_ACTIVE, DashboardMeasurement.MODERATE, DashboardMeasurement.VIGOROUS)
 
@@ -133,6 +137,13 @@ internal class TileInsightReader(private val context: Context) {
                 } else first
             }
         } catch (_: Exception) { null }
-        return TileInsightCalc.summarize(metric, today, day, now, weekValues).copy(fit = fit)
+        // #763: one series per measure. Today's band values join the live values in the same summary and sparkline;
+        // only an older band day (no band values today) stays a separate, dated text line.
+        val todaysBand = if (metric == DashboardMeasurement.PULSE && fit != null && fit.date == day.date) try {
+            FitHistoryReader(context).read(day.start, maxOf(day.start.plusSeconds(1), minOf(day.end, now.plusSeconds(60))))
+                .points.map { DayObservation(it.receivedAt, it.value.toLong()) }
+        } catch (_: Exception) { emptyList() } else emptyList()
+        return TileInsightCalc.summarize(metric, TileInsightCalc.merge(today, todaysBand), day, now, weekValues)
+            .copy(fit = fit?.takeIf { todaysBand.isEmpty() })
     }
 }

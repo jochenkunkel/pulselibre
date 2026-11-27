@@ -849,7 +849,7 @@
     <string name="tl_gap_many">%1$d lacunes, la plus longue %2$d min (%3$s–%4$s)</string>
     <string name="tl_lane_line">%1$s : %2$s, %3$d mesures, %4$s.</string>
     <string name="tl_no_data">aucune donnée</string>
-    <string name="tl_lane_band">Fréquence cardiaque · bracelet (FIT)</string>
+    <string name="tl_lane_band">Fréquence cardiaque, valeurs du bracelet</string>
     <string name="tl_lane_value">%1$s : %2$s</string>
     <string name="tl_note_phone">Fréquence cardiaque et pas : heure de réception sur le téléphone.</string>
     <string name="tl_note_band">%1$s : heure mesurée par le bracelet, pas l’heure de réception.</string>

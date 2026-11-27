@@ -849,7 +849,7 @@
     <string name="tl_gap_many">%1$d intervalos sin datos, el más largo %2$d min (%3$s–%4$s)</string>
     <string name="tl_lane_line">%1$s: %2$s, %3$d mediciones, %4$s.</string>
     <string name="tl_no_data">sin datos</string>
-    <string name="tl_lane_band">Frecuencia cardíaca · pulsera (FIT)</string>
+    <string name="tl_lane_band">Frecuencia cardíaca, valores de la pulsera</string>
     <string name="tl_lane_value">%1$s: %2$s</string>
     <string name="tl_note_phone">Frecuencia cardíaca y pasos: hora de recepción en el teléfono.</string>
     <string name="tl_note_band">%1$s: hora medida por la pulsera, no la de recepción.</string>
