@@ -1,5 +1,7 @@
 package de.pulselibre
 
+import java.nio.file.Files
+import java.nio.file.LinkOption
 import java.security.MessageDigest
 
 /**
@@ -43,6 +45,38 @@ object CirqaTargetedPullPolicy {
         if (identity.transactionId == null) return true
         return completedImports.none {
             it.identity == identity && it.importSucceeded && it.contentSha256.matches(SHA256) && it.localCopyVerified
+        }
+    }
+
+    /**
+     * A content-addressed filename and matching length do not prove the bytes
+     * stayed intact after the original import. Fail closed unless the regular
+     * file itself still hashes to the manifest SHA.
+     */
+    fun localCopyMatches(file: java.io.File, expectedSize: Long, expectedSha256: String): Boolean {
+        if (expectedSize !in 1..CirqaVerifiedRawFileStore.MAX_FILE_BYTES ||
+            !expectedSha256.matches(SHA256)
+        ) return false
+        return try {
+            val path = file.toPath()
+            if (!Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS) ||
+                Files.isSymbolicLink(path) || file.length() != expectedSize
+            ) return false
+            val digest = MessageDigest.getInstance("SHA-256")
+            var bytesRead = 0L
+            Files.newInputStream(path, LinkOption.NOFOLLOW_LINKS).use { input ->
+                val buffer = ByteArray(8 * 1024)
+                while (true) {
+                    val count = input.read(buffer)
+                    if (count < 0) break
+                    bytesRead += count
+                    if (bytesRead > expectedSize) return false
+                    digest.update(buffer, 0, count)
+                }
+            }
+            bytesRead == expectedSize && digest.digest().lowerHex() == expectedSha256
+        } catch (_: Exception) {
+            false
         }
     }
 

@@ -1,0 +1,12 @@
+# START – Fortsetzung Offline-Audit #661
+- Zeit (UTC): 2026-11-27 06:48
+- Von: OpenCode (temporäre Hauptentwicklerrolle)
+- An: Projektleitung, Claude Code
+- Auftrag: Fortsetzung des Offline-Audits #661; der gemergte PR #739 war nur der History/FileAccess-Teil, Issue bleibt offen.
+- Basis/Branch: `origin/main=01ed2978`; `opencode/issue661-history-audit-followup-20261127`.
+- Umfang: offene Fragen zu 2810/2820 vs. 2812/2822, ItemList-/Band-Push-Selektion, Tageshistorie, Retry/Resume/Timeout, Auto-/Manuell-Koordination und Persistenz.
+- Gerätezugriff: keiner.
+- Geplante Arbeit: Code/Test-Evidenz prüfen; neue Aussagen nur bei belastbarem Beleg, sonst Forschungsfrage mit präziser Grenze festhalten.
+- Was ich von anderen brauche: nichts.
+- Nachweise: PR #739 gemergt `01ed2978ffab106c99c438efee61dc86e451242d`; Issue #661 wieder offen.
+- Nächster Schritt: Audit der weiteren Orchestrierungs-/Continuation-Pfade und vorhandenen Regressionstests.

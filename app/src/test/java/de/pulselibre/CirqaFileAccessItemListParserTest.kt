@@ -129,6 +129,31 @@ class CirqaFileAccessItemListParserTest {
         assertArrayEquals(smart, body.copyOfRange(14, body.size))
     }
 
+    @Test fun pullRequestBuildsDocumentedReferenceSubsetRatherThanClaimingExactWireCopy() {
+        val item = CirqaFileAccessItemListParser.Item(
+            uid = byteArrayOf(1, 2, 3),
+            dataType = byteArrayOf(0x08, 0x02),
+            dataSize = 777,
+            flags = 1,
+            transactionId = 44,
+            modifiedTime = 55,
+            referenceBytes = byteArrayOf(99, 98, 97)
+        )
+        val service = CirqaFileAccessItemListParser.fields(
+            CirqaFileAccessPullRequest.smart(item)
+        )!!.single { it.number == 43 }.bytes!!
+        val request = CirqaFileAccessItemListParser.fields(service)!!
+            .single { it.number == 1 }.bytes!!
+        val reference = CirqaFileAccessItemListParser.fields(request)!!
+            .single { it.number == 1 }.bytes!!
+        val fields = CirqaFileAccessItemListParser.fields(reference)!!
+
+        assertEquals(listOf(1, 2, 3), fields.map { it.number })
+        assertArrayEquals(item.uid, fields.single { it.number == 1 }.bytes)
+        assertArrayEquals(item.dataType, fields.single { it.number == 2 }.bytes)
+        assertEquals(item.dataSize, fields.single { it.number == 3 }.varint)
+    }
+
     @Test fun compressionWindowIsExplicitOptionalPullItemFieldFive() {
         val item = CirqaFileAccessItemListParser.Item(
             uid = ByteArray(16) { (it + 3).toByte() },
