@@ -1020,6 +1020,10 @@
     <string name="ht_m_hrv_night_high">VFC nuit dernière, 5 min max (ms)</string>
     <string name="ht_m_resting_today">Pouls au repos aujourd’hui</string>
     <string name="ht_m_active_time">Temps actif (s)</string>
+    <string name="ht_m_act_avg_hr">Activité · pouls moyen</string>
+    <string name="ht_m_act_max_hr">Activité · pouls max.</string>
+    <string name="ht_m_act_kcal">Activité · calories (kcal)</string>
+    <string name="ht_m_act_duration">Activité · durée (s)</string>
     <string name="ht_m_distance">Distance (m)</string>
     <string name="ht_m_speed">Vitesse (m/s)</string>
     <string name="ht_m_cadence">Cadence (tr/min)</string>
