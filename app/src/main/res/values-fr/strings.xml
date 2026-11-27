@@ -132,6 +132,8 @@
     <string name="sync_sum_followup_empty">%1$d fichiers sur %2$d proposés transférés ; ensuite le bracelet n’en a plus signalé. L’exhaustivité de l’historique n’est pas prouvée.</string>
     <string name="sync_sum_partial">%1$d fichiers sur %2$d proposés transférés.</string>
     <string name="sync_sum_no_daily_history">Le bracelet n’a proposé que des enregistrements d’activité, sans historique journalier (stress, SpO₂, respiration, pouls continu, sommeil). Raison fréquente : Garmin Connect a déjà récupéré ces fichiers.</string>
+    <string name="sync_sum_skipped">%1$d fichiers déjà enregistrés n’ont pas été transférés à nouveau.</string>
+    <string name="sync_sum_flush_unanswered">Le bracelet n’a pas confirmé la demande de clôturer ses données du jour ; des valeurs depuis le dernier téléchargement peuvent manquer.</string>
     <string name="sync_sum_details">Détails techniques (toucher pour déplier) :</string>
     <string name="main_hist_heading">Données historiques de l’appareil</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->

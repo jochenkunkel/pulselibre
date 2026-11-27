@@ -59,4 +59,15 @@ class SyncReportSummaryTest {
         assertTrue(!SyncReportSummary.lacksDailyHistory(followupEmpty))
         assertTrue(!SyncReportSummary.display(GermanStrings, followupEmpty).contains("Tageshistorie"))
     }
+
+    // #637/#752: say in words what the new report fields mean.
+    @Test fun skippedFilesAndUnansweredFlushAreExplained() {
+        val report = followupEmpty + "; files=[selected=6,skipped=43,pushed=0,monitoringFlush=sent,pages=4]"
+        val shown = SyncReportSummary.display(GermanStrings, report)
+        assertTrue(shown, shown.contains("43 bereits gespeicherte Dateien wurden nicht erneut übertragen"))
+        assertTrue(shown, shown.contains("nicht bestätigt"))
+        val answered = SyncReportSummary.display(GermanStrings, report.replace("monitoringFlush=sent", "monitoringFlush=answered"))
+        assertTrue(!answered.contains("nicht bestätigt"))
+        assertTrue(!SyncReportSummary.display(GermanStrings, followupEmpty).contains("nicht erneut übertragen"))
+    }
 }
