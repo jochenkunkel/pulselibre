@@ -133,6 +133,9 @@ class Replay:
         self.list_request_shapes: Counter = Counter()
         self.ml_services: dict = defaultdict(Counter)
         self.att_pairs: dict = defaultdict(Counter)
+        # #637/#752: Smart 47.3 request -> 47.4 answer -> FileAccess 12 push of a new daily file
+        self.flush = Counter()
+        self.flush_answered_at: int | None = None
 
     # ----- transport -----
     def record(self, r) -> None:
@@ -272,6 +275,13 @@ class Replay:
     def message(self, host: bool, kind: int, rid: int, message: bytes) -> None:
         who = "host" if host else "device"
         for number, _, value in pb_fields(message) or []:
+            if number == 47:
+                sub = [n for n, _, _ in pb_fields(value) or []]
+                if host and 3 in sub:
+                    self.flush["request"] += 1
+                if not host and 4 in sub:
+                    self.flush["answer"] += 1
+                    self.flush_answered_at = self.connection
             if number != 43:
                 self.smart[(who, kind, number)] += 1
                 continue
@@ -288,7 +298,10 @@ class Replay:
                     self.list_types[self.reference(ref)[1]] += 1
             elif op == 12 and not host:
                 for ref in _get(f, 1):
-                    self.push_types[self.reference(ref)[1]] += 1
+                    label = self.reference(ref)[1]
+                    self.push_types[label] += 1
+                    if self.flush_answered_at == self.connection:
+                        self.flush["push_after_answer:" + label] += 1
             elif op == 1 and host:
                 item = pb_fields((_get(f, 1) or [b""])[0]) or []
                 uid = _get(item, 1)
@@ -348,6 +361,7 @@ class Replay:
             "pushed_types": dict(sorted(self.push_types.items())),
             "pulled_types": dict(sorted(self.pull_types.items())),
             "set_flags_types": dict(sorted(self.flag_types.items())),
+            "monitoring_flush": dict(sorted(self.flush.items())),
             "mlr_transfers": len(self.transfers),
             "mlr_transfer_status": dict(sorted(status.items())),
         }

@@ -87,6 +87,8 @@ def scenario():
     c.connect()
     c.att(True, 0x15, bytes((0, 0)) + bytes(8) + struct.pack("<H", 0x2018) + b"\x00")  # register MLR (mgmt)
     c.att(False, 0x12, bytes((0, 1)) + bytes(8) + struct.pack("<H", 0x2018) + b"\x00\x86")
+    c.ml(True, 7, cobs(gfdi(5043, 11, ld(47, ld(3, vi(1, 0))))))                  # Smart 47.3 (as Connect)
+    c.ml(False, 7, cobs(gfdi(5044, 11, ld(47, ld(4, vi(1, 0))))))                 # answer 47.4
     c.ml(True, 7, cobs(gfdi(5043, 1, ld(43, ld(9, vi(2, 5) + ld(4, b"\x09" + bytes(8)))))))
     c.ml(False, 7, cobs(gfdi(5044, 1, ld(43, ld(10, vi(1, 0) + ld(4, ref))))))
     c.ml(False, 7, cobs(gfdi(5043, 9, ld(43, ld(12, ld(1, ref))))))
@@ -119,6 +121,7 @@ class FileAccessReplayTest(unittest.TestCase):
         self.assertEqual({"size_exact_fit": 1}, s["mlr_transfer_status"])
         self.assertEqual(0, s["gfdi_crc_invalid"])
         self.assertEqual(1, s["fileaccess_messages"]["device/5043/12"])
+        self.assertEqual({"answer": 1, "push_after_answer:FIT_TYPE_32": 1, "request": 1}, s["monitoring_flush"])
 
     def test_output_never_contains_identifiers(self):
         data, uid = scenario()
