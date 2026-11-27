@@ -41,6 +41,11 @@ object ScienceSeriesLoader {
         SeriesTimeBasis.BAND_CLOCK, "value > 0 AND value <= 100", SeriesQuality.VALID)
     val STRESS_BAND = ScienceSeriesSpec("stress_band", MeasurementOrigin.BAND, "stress", "device_scale", SeriesOrigin.BAND,
         SeriesTimeBasis.BAND_CLOCK, "value >= 1 AND value <= 100", SeriesQuality.VALID)
+    // #150: device values from FIT hrv_value (371) and monitoring_hr_data (211); shown as written by the band.
+    val HRV_BAND = ScienceSeriesSpec("hrv_band", MeasurementOrigin.BAND, "hrv", "ms", SeriesOrigin.BAND,
+        SeriesTimeBasis.BAND_CLOCK, "value > 0 AND value <= 300", SeriesQuality.UNVERIFIED)
+    val RESTING_HR_BAND = ScienceSeriesSpec("rhr_band", MeasurementOrigin.BAND, "resting_heart_rate", "bpm", SeriesOrigin.BAND,
+        SeriesTimeBasis.BAND_CLOCK, "value >= 1 AND value <= 240", SeriesQuality.VALID)
     val HEART_RATE_LIVE = ScienceSeriesSpec("hr_live", MeasurementOrigin.LIVE, "bpm", "bpm", SeriesOrigin.LIVE,
         SeriesTimeBasis.PHONE_RECEPTION, "value >= 1 AND value <= 240", SeriesQuality.VALID)
     val SPO2_LIVE = ScienceSeriesSpec("spo2_live", MeasurementOrigin.LIVE, "spo2_percent", "%", SeriesOrigin.LIVE,

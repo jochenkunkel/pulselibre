@@ -1010,6 +1010,12 @@
     <string name="ht_m_cycles">Monitoring-Zyklen</string>
     <string name="ht_m_activity_type">Aktivitätstyp (Code)</string>
     <string name="ht_m_intensity_code">Bewegungsintensität (Code)</string>
+    <string name="ht_m_hrv">HRV (ms)</string>
+    <string name="ht_m_hrv_week">HRV Wochenmittel (ms)</string>
+    <string name="ht_m_hrv_night">HRV letzte Nacht (ms)</string>
+    <string name="ht_m_hrv_night_high">HRV letzte Nacht, höchste 5 min (ms)</string>
+    <string name="ht_m_resting_today">Ruhepuls heute</string>
+    <string name="ht_m_active_time">Aktive Zeit (s)</string>
     <string name="ht_m_distance">Distanz (m)</string>
     <string name="ht_m_speed">Geschwindigkeit (m/s)</string>
     <string name="ht_m_cadence">Kadenz (U/min)</string>
@@ -1032,6 +1038,8 @@
     <string name="sd_spo2_band">SpO₂ · Band (FIT), Qualität ungeprüft</string>
     <string name="sd_resp_band">Atemfrequenz · Band (FIT)</string>
     <string name="sd_stress_band">Stress · Band (FIT, Geräteskala)</string>
+    <string name="sd_hrv_band">HRV · Band (FIT, ms, Gerätewert)</string>
+    <string name="sd_rhr_band">Ruhepuls · Band (FIT)</string>
     <string name="sd_src_band">Quelle: Band · Zeitbasis: Messzeit des Bandes</string>
     <string name="sd_src_live">Quelle: Telefon (live) · Zeitbasis: Empfangszeit</string>
     <string name="sd_loading">Daten werden gelesen …</string>
@@ -1062,7 +1070,7 @@
     <string name="sd_na_title">Noch nicht verfügbar</string>
     <string name="sd_na_sleep">Schlaf: Es liegen keine verifizierten Schlafintervalle vor.</string>
     <string name="sd_na_activity">Aktivitätsverlauf: Die Zeitbasis der Bandaktivität ist nicht belegt.</string>
-    <string name="sd_na_hrv">HRV: Es gibt nur RR-Intervalle, keine verifizierte HRV-Auswertung.</string>
+    <string name="sd_na_hrv">HRV: Die HRV-Werte des Bandes stehen oben (Gerätewert, nicht verifiziert); eine eigene Berechnung aus RR-Intervallen macht PulsLibre nicht.</string>
     <string name="sd_na_temp">Temperatur: Die Unterstützung durch das Band ist nicht belegt.</string>
     <string name="sd_cd">%1$s. %2$s</string>
     <string name="dev_meta_gatt_appearance">Erscheinungsbild</string>
