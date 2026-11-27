@@ -73,4 +73,22 @@ class GarminDeviceStatusProtobufTest {
     }
 
     private fun ByteArray.toHex(): String = joinToString("") { "%02x".format(it.toInt() and 255) }
+
+    // #532: answer exactly as in the Garmin Connect capture of 24.11.2026 – Smart{8:{3:{1:1, 2:23, 3:1}}}.
+    @Test fun capturedConnectAnswerBecomesStoredBatteryValues() {
+        val smart = lenField(8, response(intField(1, 1), intField(2, 23), intField(3, 1)))
+        val parsed = GarminDeviceStatusProtobuf.parseBatteryResponse(smart)!!
+        val values = GarminDeviceStatusProtobuf.toLiveMetadata(parsed, 1_000L)
+        val level = values.single { it.fieldKey == DeviceMetadataFields.BATTERY_LEVEL }
+        assertEquals("23", level.valueText)
+        assertEquals("%", level.unit)
+        assertEquals(DeviceMetadataSources.GARMIN_GDI_STATUS, level.source)
+        assertTrue(values.any { it.fieldKey == DeviceMetadataFields.BATTERY_STATUS })
+        assertTrue(values.none { it.fieldKey == DeviceMetadataFields.BATTERY_HOURS }) // not sent -> not invented
+    }
+
+    @Test fun failedOrLevelLessAnswerStoresNothing() {
+        val noDevice = lenField(8, response(intField(1, 2)))
+        assertTrue(GarminDeviceStatusProtobuf.toLiveMetadata(GarminDeviceStatusProtobuf.parseBatteryResponse(noDevice)!!, 1L).isEmpty())
+    }
 }

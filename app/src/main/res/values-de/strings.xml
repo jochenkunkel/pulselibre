@@ -135,6 +135,9 @@
     <string name="sync_sum_skipped">%1$d bereits gespeicherte Dateien wurden nicht erneut übertragen.</string>
     <string name="sync_sum_flush_unanswered">Das Band hat die Anfrage, die aktuellen Tagesdaten abzuschließen, nicht bestätigt; Tageswerte seit dem letzten Abruf können fehlen.</string>
     <string name="sync_sum_details">Technische Details (antippen zum Aufklappen):</string>
+    <string name="daily_fresh_none">Noch keine Tageshistorie vom Band gespeichert (Stress, SpO₂, Atmung).</string>
+    <string name="daily_fresh_latest">Neueste Tageswerte vom Band: %1$s (vor %2$d h)</string>
+    <string name="daily_fresh_gap">Mögliche Lücke: Band verbinden und Historie abrufen; ggf. hat Garmin Connect die Tagesdateien abgeholt.</string>
     <string name="main_hist_heading">Historische Gerätedaten</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="main_hist_info">Dateien werden lokal und privat gespeichert. FIT-Messwerte werden zusätzlich in SQLite importiert; unbekannte Dateitypen bleiben als Original erhalten.</string>

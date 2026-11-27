@@ -49,6 +49,22 @@ internal object GarminDeviceStatusProtobuf {
         val responseStatusName: String get() = responseStatusName(responseStatus)
     }
 
+    /**
+     * Stored values for a successful response (#532): level (%), status name and remaining hours, each only when the
+     * band sent it. Shared by [DeviceMetadataProbe] and the history sync so both store identical rows.
+     */
+    fun toLiveMetadata(parsed: BatteryResponse, nowMs: Long): List<LiveDeviceMetadata> {
+        if (!parsed.isOk || parsed.batteryLevel == null) return emptyList()
+        return buildList {
+            add(LiveDeviceMetadata(DeviceMetadataFields.BATTERY_LEVEL, parsed.batteryLevel.toString(), "%",
+                DeviceMetadataSources.GARMIN_GDI_STATUS, nowMs))
+            parsed.batteryStatus?.let { add(LiveDeviceMetadata(DeviceMetadataFields.BATTERY_STATUS, statusName(it), null,
+                DeviceMetadataSources.GARMIN_GDI_STATUS, nowMs)) }
+            parsed.hoursRemaining?.let { add(LiveDeviceMetadata(DeviceMetadataFields.BATTERY_HOURS, it.toString(), "h",
+                DeviceMetadataSources.GARMIN_GDI_STATUS, nowMs)) }
+        }
+    }
+
     /** Parse the first device-status battery response found anywhere in a Smart container. */
     fun parseBatteryResponse(smart: ByteArray): BatteryResponse? {
         val services = lengthDelimitedFields(smart, SMART_DEVICE_STATUS_SERVICE)
