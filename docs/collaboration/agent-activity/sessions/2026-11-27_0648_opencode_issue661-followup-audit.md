@@ -2,17 +2,17 @@
 - Agent/Umgebung: OpenCode, temporäre Hauptentwicklerrolle gemäß Owner-Auftrag vom 27.11.
 - Beginn: 2026-11-27 06:48 UTC
 - Letzte Aktualisierung: 2026-11-27 08:12 UTC
-- Status: aktiv – Komponenten-Audit #661 nach PR #741
+- Status: pausiert – PR #742 wartet auf Pflichtchecks; Issue #661 weist Ausführung inzwischen ausschließlich dem GUI-Agent zu
 - Auftrag: Weiterführung des #661-Audits über den gemergten History/FileAccess-Teil aus #739 hinaus; keine Geräteaktion.
 - Basis: `origin/main=07d02be6`, Branch `opencode/issue661-component-audit-20261127`.
 - Umfang: verbliebene Punkte des priorisierten History-Audits (2810/2820 vs. 2812/2822, ItemList-/Push-Selektion, fehlende Tageshistorie, Resume/Timeout, Auto-/Manuell-Race, Persistenz/Regressionstests); anschließend Komponenten-Audit gezielt nach Beleglage.
 - Erledigt: ItemList/PullItem, 2810/2820 vs. 2812/2822, Auto-/Manuell-Koordination, Timeout/Continuation, tägliche Historienverfügbarkeit nach Connect-set_flags, Verified-Skip-SHA-Fix (PR #740 gemergt), combined JVM/emulator coverage workflow, Legacy-Directory-/FIT-Auswahl und synthetische Grenzen. 5031 Supported-Types-Parser lehnt jetzt ungezählte Restbytes ab; Regressionstest ergänzt. Python Replay-Tests 5/5; PR #740 QUICK grün.
 - Jetzt bearbeitet: fileweiser Abgleich der noch nicht dokumentierten History-/Import-/Decoder-Komponenten gegen Issue #661; konkrete Defekte nur nach Code-/Testbeleg beheben.
 - Betroffene Dateien: Auditbericht, priorisierte Protokoll-/Importkomponenten und gezielte Regressionstests.
-- Fortschritt 2026-11-27: Deframer-Fehler in `GarminHistoryFrameStream` reproduzierbar am Code/Testvertrag bestätigt und in PR #742 behoben (`ad34dc7f`); targeted Gradle-Test konnte wegen nicht konfiguriertem Android SDK nicht starten. QUICK/Dependency-Gates laufen; Issue #661 mit PR-/Befundhinweis aktualisiert.
+- Fortschritt 2026-11-27: Deframer-Fehler in `GarminHistoryFrameStream` am Code/Testvertrag bestätigt und in PR #742 behoben (`ad34dc7f`); gezielter Gradle-Test konnte wegen nicht konfiguriertem Android SDK nicht starten. Dependency-Graph bestanden; Build/Unit/Lint/APK und Dependency Review für aktuellen Head `2d5521a1` noch ausstehend. Issue #661 mit PR-/Befundhinweis aktualisiert.
 - Abstimmungsbedarf: keiner gemäß Owner-Auftrag; keine Überschneidung mit Claude-PR #735 erkannt, nur aktuelle main verwenden.
 - Vorheriger Task: PR #739 gemergt als `01ed2978ffab106c99c438efee61dc86e451242d`; #661 bleibt bewusst offen für den breiteren Audit.
 - Befunde: 2810/2820 vs. 2812/2822 ist im #731-Capture aufgeklärt (selbe ML-Instanz, getrennte Verbindungen; Tageshistorie Phase 1). PullItem-Wire-Shape-Differenz ist belegt (PulsLibre UID/type/size, Connect capture UID-only), Wirkung bleibt unbelegt; kein Wire-Verhalten geändert. SetFlags-Ausblendung ist externes Verfügbarkeitsrisiko. Der Safe-Skip-Hashmangel ist ein bestätigter lokaler Sicherheits-/Datenverfügbarkeitsfehler.
 - Tests: Python Replay-Regressionen 5/5 bestanden; `git diff --check` folgt. Kotlin-Test läuft über GitHub-CI, lokale Gradle-Version inkompatibel.
 - Nachweise: PR #740 gemergt `9b0a3652`; PR #741 gemergt `07d02be6`; QUICK-Build/Unit/Lint/APK, Dependency Review und PR-Abhängigkeitsgraph auf finalem #741-Head grün, API-35 unter QUICK übersprungen; Python-Replaytests 5/5.
-- Nächster Schritt: PR #742 Pflichtchecks überwachen, auf Fehler reagieren und anschließend verbleibenden Auditumfang sowie offene Grenzen nachvollziehbar aktualisieren; #661 offenlassen.
+- Nächster Schritt / Übergabe: PR #742 bleibt offen; keine weiteren #661-Komponenten durch OpenCode bearbeiten, da die aktuelle Issue-Anweisung vom 2026-11-26 den GUI-Agent als einzigen ausführenden Agenten festlegt. GUI-Agent kann vorhandene Evidenz/PR übernehmen und Pflichtchecks abwarten. #661 bleibt offen.
