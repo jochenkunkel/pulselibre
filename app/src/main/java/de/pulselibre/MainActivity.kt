@@ -733,15 +733,9 @@ class MainActivity : AppCompatActivity() {
                     // The user's explicit download wins over a running battery/metadata read (it holds the BLE gate).
                     deviceMetadataProbe?.close()
                     deviceMetadataProbe = null
-                    val probe = CirqaMlHandshakeProbe(this@MainActivity, adapter)
-                    historicalDownloadProbe?.close()
-                    historicalDownloadProbe = probe
-                    probe.startHistoricalDownload(
-                        userConfirmed = true,
-                        progress = { progress ->
-                            if (!destroyed) syncProgress.show(progress)
-                        }
-                    ) { message ->
+                    runHistoricalDownload(progress = { progress ->
+                        if (!destroyed) syncProgress.show(progress)
+                    }) { message ->
                         runOnUiThread {
                             manualHistoricalSyncActive = false
                             recordHistoricalSyncResult(prefs, message) // also after the screen closed (abort in onDestroy)
@@ -989,15 +983,9 @@ class MainActivity : AppCompatActivity() {
         automaticHistoricalSyncActive = true
         statusView.text = getString(R.string.main_auto_sync_running)
         syncProgressView?.show(HistorySyncProgress(HistorySyncStage.CONNECTING))
-        val probe = CirqaMlHandshakeProbe(this, adapter)
-        historicalDownloadProbe?.close()
-        historicalDownloadProbe = probe
-        probe.startHistoricalDownload(
-            userConfirmed = true,
-            progress = { progress ->
-                if (!destroyed) syncProgressView?.show(progress)
-            }
-        ) { message ->
+        runHistoricalDownload(progress = { progress ->
+            if (!destroyed) syncProgressView?.show(progress)
+        }) { message ->
             runOnUiThread {
                 automaticHistoricalSyncActive = false
                 // Persist success only for a completely drained run; partial/error runs remain retryable
@@ -1007,6 +995,29 @@ class MainActivity : AppCompatActivity() {
                 statusView.text = SyncReportSummary.display(Strings.of(this), SyncReportStore.forStorage(message))
                 syncProgressView?.show(HistorySyncProgress.fromReport(message))
                 historyRefresh?.invoke()
+            }
+        }
+    }
+
+    /**
+     * One history download; a failure at connection setup before the band accepted the sync (GATT 133, CCCD error) is
+     * repeated once after a pause (#637, [HistorySyncRetryPolicy]). [onResult] gets only the final report.
+     */
+    private fun runHistoricalDownload(
+        progress: (HistorySyncProgress) -> Unit,
+        attempt: Int = 1,
+        onResult: (String) -> Unit
+    ) {
+        val probe = CirqaMlHandshakeProbe(this, adapter)
+        historicalDownloadProbe?.close()
+        historicalDownloadProbe = probe
+        probe.startHistoricalDownload(userConfirmed = true, progress = progress) { message ->
+            if (HistorySyncRetryPolicy.shouldRetry(message, attempt)) {
+                handler.postDelayed({
+                    if (destroyed) onResult(message) else runHistoricalDownload(progress, attempt + 1, onResult)
+                }, HistorySyncRetryPolicy.DELAY_MS)
+            } else {
+                onResult(message)
             }
         }
     }
