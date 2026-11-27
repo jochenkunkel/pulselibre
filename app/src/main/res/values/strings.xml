@@ -1068,10 +1068,10 @@
     <string name="sd_unverified">Values with unverified quality (hollow circles)</string>
     <string name="sd_gaps">%1$d gaps (hatched, not filled in)</string>
     <string name="sd_na_title">Not available yet</string>
-    <string name="sd_na_sleep">Sleep: there are no verified sleep intervals.</string>
-    <string name="sd_na_activity">Activity curve: the time basis of band activity is not established.</string>
+    <string name="sd_na_sleep">Sleep: the band\'s sleep stages are listed in History (as codes); PulsLibre does not compute sleep duration or a sleep score from them yet.</string>
+    <string name="sd_na_activity">Activity: the band\'s active minutes and calories are listed in History (device counters); PulsLibre does not derive an activity curve from them yet.</string>
     <string name="sd_na_hrv">HRV: the band\'s own HRV values are shown above (device value, not verified); PulsLibre does not compute HRV from RR intervals.</string>
-    <string name="sd_na_temp">Temperature: band support is not established.</string>
+    <string name="sd_na_temp">Temperature: the band only reports a nightly skin-temperature deviation (°C), listed in History; no absolute temperature is available.</string>
     <string name="sd_cd">%1$s. %2$s</string>
     <string name="dev_meta_gatt_appearance">Appearance</string>
     <string name="dev_meta_gatt_conn_pref">Preferred connection interval</string>
