@@ -132,7 +132,8 @@ internal object FitObservationCommitter {
                     MonitoringActivityIntensity.INTENSITY -> "monitoring_intensity_code"
                     "average_deviation" -> "skin_temperature_deviation"
                     "average_7_day_deviation" -> "skin_temperature_7_day_deviation"
-                    else -> error("Unsupported FIT review candidate")
+                    else -> FitHistoricalObservations.profileScalarMetric(candidate.profileFieldName)
+                        ?.name?.lowercase() ?: error("Unsupported FIT review candidate")
                 }
                 candidateInsert.clearBindings()
                 candidateInsert.bindString(1, candidate.idempotencyKey)

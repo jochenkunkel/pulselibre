@@ -1,5 +1,8 @@
 package de.pulselibre
 
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -67,5 +70,38 @@ class CirqaTargetedPullPolicyTest {
             )
         )
         assertTrue(CirqaTargetedPullPolicy.shouldPull(identity, listOf(entry)))
+    }
+
+    // #148: proven identity = UID + type + size + flags + band transaction ID, plus a verified local original.
+    private val withTr = identity.copy(transactionId = 958L)
+    private fun done(id: CirqaTargetedPullPolicy.ItemIdentity, local: Boolean = true, ok: Boolean = true, sha: String = "a".repeat(64)) =
+        CirqaTargetedPullPolicy.CompletedImport(id, sha, ok, null, local)
+
+    @Test fun verifiedImportWithSameTransactionAndLocalOriginalIsSkipped() {
+        assertFalse(CirqaTargetedPullPolicy.shouldPull(withTr, listOf(done(withTr))))
+    }
+
+    @Test fun missingLocalOriginalForcesPull() {
+        assertTrue(CirqaTargetedPullPolicy.shouldPull(withTr, listOf(done(withTr, local = false))))
+    }
+
+    @Test fun changedTransactionOrSizeForcesPull() {
+        assertTrue(CirqaTargetedPullPolicy.shouldPull(withTr.copy(transactionId = 959L), listOf(done(withTr))))
+        assertTrue(CirqaTargetedPullPolicy.shouldPull(withTr.copy(dataSize = 129L), listOf(done(withTr))))
+    }
+
+    @Test fun noTransactionIdMeansNoProofAndAlwaysPulls() {
+        assertTrue(CirqaTargetedPullPolicy.shouldPull(identity, listOf(done(identity))))
+    }
+
+    @Test fun failedImportOrBadHashForcesPull() {
+        assertTrue(CirqaTargetedPullPolicy.shouldPull(withTr, listOf(done(withTr, ok = false))))
+        assertTrue(CirqaTargetedPullPolicy.shouldPull(withTr, listOf(done(withTr, sha = "bad"))))
+    }
+
+    @Test fun transactionIdIsPartOfTheStabilityKey() {
+        assertNotEquals(CirqaTargetedPullPolicy.stabilityKey(identity), CirqaTargetedPullPolicy.stabilityKey(withTr))
+        assertEquals(CirqaTargetedPullPolicy.stabilityKey(identity),
+            CirqaTargetedPullPolicy.stabilityKey(identity.copy(transactionId = null)))
     }
 }

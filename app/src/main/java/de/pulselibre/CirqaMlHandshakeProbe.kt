@@ -1114,7 +1114,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         }
         val manifestRecorded = if (
             result.format == CirqaSyncFileCompletion.Format.FIT &&
-            result.status == CirqaSyncFileCompletion.Status.IMPORTED &&
+            (result.status == CirqaSyncFileCompletion.Status.IMPORTED ||
+                result.status == CirqaSyncFileCompletion.Status.NO_IMPORTABLE_DATA) &&
             result.sqliteCommit == CirqaSyncFileCompletion.Stage.SUCCEEDED
         ) {
             val sha = java.security.MessageDigest.getInstance("SHA-256")
@@ -1146,7 +1147,14 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     /** A local hash never proves remote freshness; always pull within the budget. */
     private fun shouldPullTargetedItem(item: CirqaFileAccessItemListParser.Item): Boolean {
         val identity = targetedPullManifest.identity(item) ?: return true
-        return CirqaTargetedPullPolicy.shouldPull(identity.policyIdentity, emptyList())
+        val sha = targetedPullManifest.completedImportSha256(item) ?: return true
+        // The archived original must still be there (a database reset deletes it; then pull again).
+        val local = java.io.File(java.io.File(context.filesDir, "verified_fit"), "$sha.fit")
+        val localCopyVerified = local.isFile && local.length() == item.dataSize
+        return CirqaTargetedPullPolicy.shouldPull(
+            identity.policyIdentity,
+            listOf(CirqaTargetedPullPolicy.CompletedImport(identity.policyIdentity, sha, true, null, localCopyVerified))
+        )
     }
 
     private fun requestNextSyncItemListPage(g: BluetoothGatt) {

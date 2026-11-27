@@ -953,7 +953,8 @@ class DatabaseBackupTest {
                 "monitoring_activity_type" to "monitoring_activity_type", "average_deviation" to "skin_temperature_deviation",
                 "average_7_day_deviation" to "skin_temperature_7_day_deviation",
                 MonitoringActivityIntensity.ACTIVITY_TYPE to "monitoring_current_activity_type", // #707: 55/24
-                MonitoringActivityIntensity.INTENSITY to "monitoring_intensity_code")
+                MonitoringActivityIntensity.INTENSITY to "monitoring_intensity_code") +
+                FitHistoricalObservations.PROFILE_SCALAR_CANDIDATES // #150: HRV, resting HR, activity counters
             val fields = written.keys.toList()
             val candidates = fields.mapIndexed { i, name ->
                 FitHistoricalObservations.ReviewCandidate(

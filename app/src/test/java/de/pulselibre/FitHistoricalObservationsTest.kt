@@ -887,4 +887,36 @@ class FitHistoricalObservationsTest {
         assertTrue(result.unknownFields.any { it.globalMessageNumber == 233 })
         assertTrue(result.unknownFields.any { it.globalMessageNumber == 397 })
     }
+
+    // #150: Garmin profile 21.222.0 – hrv_value 371/0 (uint16, scale 128, ms), monitoring_hr_data 211/0+1 (uint8 bpm),
+    // monitoring 55/19 active_calories (uint16 kcal). Values from the real-file range (HRV 34 ms, resting pulse 71).
+    @Test fun decodesHrvRestingHeartRateAndActiveCaloriesWithProfileScale() {
+        val ts = 0x10000000 + 300_000
+        val data = byteArrayOf(0x40, 0, 0, 0x73, 0x01, 2, 253.toByte(), 4, 0x86.toByte(), 0, 2, 0x84.toByte()) +
+            byteArrayOf(0) + u32(ts) + u16(34 * 128) +
+            byteArrayOf(0x41, 0, 0, 0xD3.toByte(), 0x00, 3, 253.toByte(), 4, 0x86.toByte(), 0, 1, 0x02, 1, 1, 0x02) +
+            byteArrayOf(1) + u32(ts + 60) + byteArrayOf(71, 0xFF.toByte()) +
+            byteArrayOf(0x42, 0, 0, 55, 0, 2, 253.toByte(), 4, 0x86.toByte(), 19, 2, 0x84.toByte()) +
+            byteArrayOf(2) + u32(ts + 120) + u16(737)
+        val result = FitHistoricalObservations.decode(fit(data))!!
+        val byMetric = result.observations.associateBy { it.metric }
+        assertEquals(34.0, byMetric.getValue(FitHistoricalObservations.Metric.HRV).value, 0.0)
+        assertEquals("ms", byMetric.getValue(FitHistoricalObservations.Metric.HRV).unit)
+        assertEquals(fitTime(ts.toLong()), byMetric.getValue(FitHistoricalObservations.Metric.HRV).timestampEpochMillis)
+        assertEquals(71.0, byMetric.getValue(FitHistoricalObservations.Metric.RESTING_HEART_RATE).value, 0.0)
+        // 0xFF is the uint8 invalid value: no current-day resting pulse is invented.
+        assertFalse(byMetric.containsKey(FitHistoricalObservations.Metric.CURRENT_DAY_RESTING_HEART_RATE))
+        assertEquals(737.0, byMetric.getValue(FitHistoricalObservations.Metric.ACTIVE_CALORIES).value, 0.0)
+        assertTrue(result.observations.all { it.quality == FitHistoricalObservations.Quality.PROFILE_VALID })
+        assertEquals("hrv", FitHistoricalObservations.PROFILE_SCALAR_CANDIDATES["hrv_value"])
+    }
+
+    @Test fun hrvWithWrongBaseTypeIsNotGuessed() {
+        val ts = 0x10000000 + 300_000
+        // field 0 declared as sint16 (0x83) instead of uint16: unsupported, never decoded.
+        val data = byteArrayOf(0x40, 0, 0, 0x73, 0x01, 2, 253.toByte(), 4, 0x86.toByte(), 0, 2, 0x83.toByte()) +
+            byteArrayOf(0) + u32(ts) + u16(34 * 128)
+        val result = FitHistoricalObservations.decode(fit(data))!!
+        assertTrue(result.observations.none { it.metric == FitHistoricalObservations.Metric.HRV })
+    }
 }

@@ -1010,6 +1010,12 @@
     <string name="ht_m_cycles">Monitoring cycles</string>
     <string name="ht_m_activity_type">Activity type (code)</string>
     <string name="ht_m_intensity_code">Motion intensity (code)</string>
+    <string name="ht_m_hrv">HRV (ms)</string>
+    <string name="ht_m_hrv_week">HRV weekly average (ms)</string>
+    <string name="ht_m_hrv_night">HRV last night (ms)</string>
+    <string name="ht_m_hrv_night_high">HRV last night, highest 5 min (ms)</string>
+    <string name="ht_m_resting_today">Resting pulse today</string>
+    <string name="ht_m_active_time">Active time (s)</string>
     <string name="ht_m_distance">Distance (m)</string>
     <string name="ht_m_speed">Speed (m/s)</string>
     <string name="ht_m_cadence">Cadence (rpm)</string>
@@ -1032,6 +1038,8 @@
     <string name="sd_spo2_band">SpO₂ · band (FIT), quality unverified</string>
     <string name="sd_resp_band">Respiration rate · band (FIT)</string>
     <string name="sd_stress_band">Stress · band (FIT, device scale)</string>
+    <string name="sd_hrv_band">HRV · Band (FIT, ms, device value)</string>
+    <string name="sd_rhr_band">Resting pulse · Band (FIT)</string>
     <string name="sd_src_band">Source: band · Time basis: band measurement time</string>
     <string name="sd_src_live">Source: phone (live) · Time basis: reception time</string>
     <string name="sd_loading">Reading data …</string>
@@ -1062,7 +1070,7 @@
     <string name="sd_na_title">Not available yet</string>
     <string name="sd_na_sleep">Sleep: there are no verified sleep intervals.</string>
     <string name="sd_na_activity">Activity curve: the time basis of band activity is not established.</string>
-    <string name="sd_na_hrv">HRV: only RR intervals exist, no verified HRV analysis.</string>
+    <string name="sd_na_hrv">HRV: the band\'s own HRV values are shown above (device value, not verified); PulsLibre does not compute HRV from RR intervals.</string>
     <string name="sd_na_temp">Temperature: band support is not established.</string>
     <string name="sd_cd">%1$s. %2$s</string>
     <string name="dev_meta_gatt_appearance">Appearance</string>

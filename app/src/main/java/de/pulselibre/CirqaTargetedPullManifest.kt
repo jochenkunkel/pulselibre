@@ -24,7 +24,7 @@ class CirqaTargetedPullManifest(private val storage: Storage) {
         val uidKey = sha256(item.uid)
         val typeKey = sha256(item.dataType)
         val policyIdentity = CirqaTargetedPullPolicy.ItemIdentity(
-            uidKey, typeKey, item.dataSize, item.flags
+            uidKey, typeKey, item.dataSize, item.flags, item.transactionId
         )
         return Identity(policyIdentity, CirqaTargetedPullPolicy.stabilityKey(policyIdentity))
     }
