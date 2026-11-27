@@ -85,6 +85,28 @@ class CirqaTargetedPullPolicyTest {
         assertTrue(CirqaTargetedPullPolicy.shouldPull(withTr, listOf(done(withTr, local = false))))
     }
 
+    @Test fun localOriginalMustHashToManifestRatherThanOnlyMatchingItsLengthAndName() {
+        val directory = java.nio.file.Files.createTempDirectory("targeted-pull-hash").toFile()
+        val file = java.io.File(directory, "${"a".repeat(64)}.fit")
+        val original = byteArrayOf(1, 2, 3, 4)
+        val sha = java.security.MessageDigest.getInstance("SHA-256")
+            .digest(original).lowerHex()
+        try {
+            file.writeBytes(original)
+            assertTrue(CirqaTargetedPullPolicy.localCopyMatches(file, original.size.toLong(), sha))
+
+            file.writeBytes(byteArrayOf(4, 3, 2, 1)) // same size, different content
+            val verified = CirqaTargetedPullPolicy.localCopyMatches(
+                file, original.size.toLong(), sha
+            )
+            assertFalse(verified)
+            assertTrue(CirqaTargetedPullPolicy.shouldPull(withTr, listOf(done(withTr, local = verified))))
+        } finally {
+            file.delete()
+            directory.delete()
+        }
+    }
+
     @Test fun changedTransactionOrSizeForcesPull() {
         assertTrue(CirqaTargetedPullPolicy.shouldPull(withTr.copy(transactionId = 959L), listOf(done(withTr))))
         assertTrue(CirqaTargetedPullPolicy.shouldPull(withTr.copy(dataSize = 129L), listOf(done(withTr))))

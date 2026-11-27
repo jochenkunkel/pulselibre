@@ -4,11 +4,13 @@ package de.pulselibre
  * PullItem builder used only by the existing foreground, user-initiated sync.
  *
  * Smart{ file_access_service(43) = Service{ pull_item_request(1) =
- *   PullItemDataRequest{ item(1) = the exact ItemReference bytes from the
- *   item list, priority(2)=0, offset(4)=0,
+ *   PullItemDataRequest{ item(1) = a constructed ItemReference containing
+ *   UID(1), data_type(2), and data_size(3), priority(2)=0, offset(4)=0,
  *   requested_compression_window(5)=optional } } }, wrapped in a GFDI 5043 frame.
  * Field 5/value 15 was observed in the Garmin Connect PullItem capture for #637.
  * Its compression-window meaning comes from independent protocol reconstruction.
+ * Connect's observed PullItem ItemReference contained UID only; the product's
+ * extra type/size fields are a known shape difference, not proven necessary.
  * Read-only: requests file data, never changes device state.
  */
 object CirqaFileAccessPullRequest {

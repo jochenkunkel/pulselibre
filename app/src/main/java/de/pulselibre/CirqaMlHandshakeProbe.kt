@@ -1150,7 +1150,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         val sha = targetedPullManifest.completedImportSha256(item) ?: return true
         // The archived original must still be there (a database reset deletes it; then pull again).
         val local = java.io.File(java.io.File(context.filesDir, "verified_fit"), "$sha.fit")
-        val localCopyVerified = local.isFile && local.length() == item.dataSize
+        val localCopyVerified = CirqaTargetedPullPolicy.localCopyMatches(local, item.dataSize, sha)
         return CirqaTargetedPullPolicy.shouldPull(
             identity.policyIdentity,
             listOf(CirqaTargetedPullPolicy.CompletedImport(identity.policyIdentity, sha, true, null, localCopyVerified))
