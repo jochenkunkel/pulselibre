@@ -29,6 +29,18 @@ class GarminHistoryFrameStreamTest {
         assertEquals(5012, GarminFrameValidator.inspectVerified(result[1])?.messageType)
     }
 
+    @Test fun concatenatedFramesMayExceedThePerFrameLimit() {
+        val decoder = GarminHistoryFrameStream(maxFrameBytes = 6)
+        val all = frame(5011) + frame(5012)
+
+        val result = decoder.accept(all)
+
+        assertEquals(2, result.size)
+        assertEquals(5011, GarminFrameValidator.inspectVerified(result[0])?.messageType)
+        assertEquals(5012, GarminFrameValidator.inspectVerified(result[1])?.messageType)
+        assertFalse(decoder.failed)
+    }
+
     @Test fun badCrcFailsClosed() {
         val decoder = GarminHistoryFrameStream()
         val bad = frame()
