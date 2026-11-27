@@ -59,7 +59,7 @@ class DatabaseBackupTest {
 
             CirqaDatabase(context).use { database ->
                 val db = database.readableDatabase
-                assertEquals(11, db.version)
+                assertEquals(12, db.version)
                 db.rawQuery(
                     """SELECT g.source_sha256, g.decoder_version, g.profile_version,
                               g.output_count, a.generation_id
@@ -176,7 +176,7 @@ class DatabaseBackupTest {
             legacy.close()
 
             CirqaDatabase(context).use { database ->
-                assertEquals(11, database.readableDatabase.version)
+                assertEquals(12, database.readableDatabase.version)
                 val sourceCount = database.readableDatabase.rawQuery(
                     "SELECT COUNT(*) FROM fit_sources", null
                 ).use { it.moveToFirst(); it.getInt(0) }
@@ -822,7 +822,7 @@ class DatabaseBackupTest {
                 DatabaseBackup.restore(context, it)
             }
             CirqaDatabase(context).use { db ->
-                assertEquals(11, db.readableDatabase.version)
+                assertEquals(12, db.readableDatabase.version)
                 assertTrue(db.latestLiveDeviceMetadata().isEmpty())
             }
         } finally {

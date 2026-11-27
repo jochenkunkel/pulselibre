@@ -487,6 +487,15 @@ class CirqaDatabase(private val contextRef: Context) :
      */
     private fun widenReviewCandidateUniqueKey(db: SQLiteDatabase) {
         if (!hasTable(db, "fit_review_candidates")) return
+        val hasRows = db.rawQuery("SELECT 1 FROM fit_review_candidates LIMIT 1", null).use { it.moveToFirst() }
+        if (!hasRows) {
+            // Nothing to keep. Old schemas (v8 test databases) may even lack fit_sources, so an INSERT … SELECT would
+            // not compile against the foreign key; recreate the empty table with the new key instead.
+            db.execSQL("DROP TABLE fit_review_candidates")
+            db.execSQL("DROP INDEX IF EXISTS fit_review_candidates_by_time")
+            createFitReviewCandidateSchema(db)
+            return
+        }
         db.execSQL("ALTER TABLE fit_review_candidates RENAME TO fit_review_candidates_v11")
         db.execSQL("DROP INDEX IF EXISTS fit_review_candidates_by_time")
         createFitReviewCandidateSchema(db)

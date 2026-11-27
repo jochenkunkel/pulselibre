@@ -30,7 +30,7 @@ class CirqaStorageMigrationTest {
             }
             CirqaDatabase(context).use { database ->
                 val db = database.writableDatabase
-                assertEquals(11, db.version)
+                assertEquals(12, db.version)
                 assertTrue(db.rawQuery(
                     "SELECT 1 FROM pragma_table_info('fit_decoder_generations') WHERE name='decoded_field_count'",
                     null
@@ -74,7 +74,7 @@ class CirqaStorageMigrationTest {
 
             CirqaDatabase(context).use { database ->
                 val db = database.writableDatabase
-                assertEquals(11, db.version)
+                assertEquals(12, db.version)
                 assertEquals(13, db.rawQuery("PRAGMA table_info(fit_review_candidates)", null).use { rows ->
                     var count = 0
                     while (rows.moveToNext()) count++
@@ -120,7 +120,7 @@ class CirqaStorageMigrationTest {
 
             CirqaDatabase(context).use { database ->
                 val db = database.writableDatabase
-                assertEquals(11, db.version)
+                assertEquals(12, db.version)
                 assertEquals(listOf(event), database.allLines())
                 assertEquals(3, db.rawQuery(
                     """SELECT COUNT(*) FROM sqlite_master WHERE type = 'table'
@@ -191,7 +191,7 @@ class CirqaStorageMigrationTest {
             CirqaDatabase(context).use { database ->
                 assertEquals(listOf(event), database.allLines())
                 assertTrue(database.rawDeviceMetadata().isEmpty())
-                assertEquals(11, database.writableDatabase.version)
+                assertEquals(12, database.writableDatabase.version)
             }
         } finally {
             root.deleteRecursively()
