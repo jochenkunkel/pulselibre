@@ -1,5 +1,7 @@
 package de.pulselibre
 
+import java.security.MessageDigest
+
 /**
  * Offline-only reader for the Connect/FileAccess item list protobuf.
  *
@@ -26,6 +28,11 @@ object CirqaFileAccessItemListParser {
         /** Exact bounded ItemReference, retained locally including unknown metadata. */
         val referenceBytes: ByteArray = byteArrayOf()
     )
+
+    /** Exact-reference key for suppressing duplicate push notices within one run. */
+    fun pushDeduplicationKey(item: Item): String =
+        MessageDigest.getInstance("SHA-256").digest(item.referenceBytes).lowerHex()
+
     data class ItemListPage(
         val items: List<Item>,
         val status: Long?,

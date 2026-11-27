@@ -147,8 +147,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     private var syncSkippedFiles = 0
     /** #637: files the band announced itself (FA 12) and that were queued in addition to the list. */
     private var syncPushedFiles = 0
-    /** UIDs (hex, memory only) already queued in this run; a push never duplicates a listed file. */
-    private val syncSeenUids = HashSet<String>()
+    /** Exact item-reference digests already queued in this run; changed references are not discarded by UID alone. */
+    private val syncSeenItemReferences = HashSet<String>()
     private var syncIncompleteReason: String? = null
     private val syncGdxmlStrings = linkedMapOf<Long, String>()
     private var mlrHandle: Int? = null
@@ -1398,7 +1398,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     "keine Vollständigkeit behauptet.", g)
                 return
             }
-            syncSeenUids += item.uid.lowerHex()
+            syncSeenItemReferences += CirqaFileAccessItemListParser.pushDeduplicationKey(item)
             val localId = syncPipelineLedger.select()
             syncSelectedFiles++
             syncPendingItems.addLast(SyncQueueItem(item, localId))
@@ -1436,7 +1436,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         val pushed = CirqaFileAccessItemListParser.parseItemAvailable(message.payload) ?: return
         val item = pushed.item
         syncGdxmlStrings.putAll(pushed.gdxmlStrings)
-        if (!syncSeenUids.add(item.uid.lowerHex())) return
+        if (!syncSeenItemReferences.add(CirqaFileAccessItemListParser.pushDeduplicationKey(item))) return
         if (syncQueuedFiles >= CirqaSyntheticDownloadLimits.MAX_FILES ||
             item.dataSize !in 1..CirqaVerifiedRawFileStore.MAX_FILE_BYTES ||
             item.dataSize > CirqaSyntheticDownloadLimits.MAX_TOTAL_BYTES - syncQueuedBytes
@@ -2330,7 +2330,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         syncQueuedBytes = 0L
         syncSkippedFiles = 0
         syncPushedFiles = 0
-        syncSeenUids.clear()
+        syncSeenItemReferences.clear()
         devicePushReassembler.reset()
         syncIncompleteReason = null
         syncGdxmlStrings.clear()
@@ -3845,7 +3845,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             syncQueuedBytes = 0L
             syncSkippedFiles = 0
             syncPushedFiles = 0
-            syncSeenUids.clear()
+            syncSeenItemReferences.clear()
             devicePushReassembler.reset()
             syncIncompleteReason = null
             syncProgressCallback = null

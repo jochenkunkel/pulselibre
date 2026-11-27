@@ -43,6 +43,29 @@ class CirqaFileAccessItemListParserTest {
         assertArrayEquals(ref, pushed.item.referenceBytes)
     }
 
+    @Test fun pushDeduplicationDistinguishesRevisionsWithSameUid() {
+        val uid = byteArrayOf(1, 2, 3)
+        val type = byteArrayOf(8, 1)
+        fun parsed(transaction: Long) = CirqaFileAccessItemListParser.parseItemAvailable(
+            field(43, field(12, field(1,
+                field(1, uid) + field(2, type) + scalarField(3, 128) +
+                    scalarField(5, transaction)
+            )))
+        )!!.item
+
+        val revisionA = parsed(20)
+        val revisionB = parsed(21)
+        assertArrayEquals(revisionA.uid, revisionB.uid)
+        assertNotEquals(
+            CirqaFileAccessItemListParser.pushDeduplicationKey(revisionA),
+            CirqaFileAccessItemListParser.pushDeduplicationKey(revisionB)
+        )
+        assertEquals(
+            CirqaFileAccessItemListParser.pushDeduplicationKey(revisionA),
+            CirqaFileAccessItemListParser.pushDeduplicationKey(parsed(20))
+        )
+    }
+
     @Test fun itemAvailableIgnoresOtherFileAccessMessagesAndMalformedReferences() {
         val ref = field(1, byteArrayOf(1)) + scalarField(3, 10)
         // FA 5 (transfer complete) and FA 10 (list response) are not pushes.
