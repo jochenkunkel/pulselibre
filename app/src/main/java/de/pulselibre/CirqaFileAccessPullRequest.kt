@@ -1,7 +1,7 @@
 package de.pulselibre
 
 /**
- * PullItem builder used only by the existing foreground, user-initiated sync.
+ * PullItem builder used by the foreground historical sync (manual or automatic).
  *
  * Smart{ file_access_service(43) = Service{ pull_item_request(1) =
  *   PullItemDataRequest{ item(1) = a constructed ItemReference containing
