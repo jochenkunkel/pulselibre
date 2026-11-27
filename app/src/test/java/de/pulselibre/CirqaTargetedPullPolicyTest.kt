@@ -107,6 +107,24 @@ class CirqaTargetedPullPolicyTest {
         }
     }
 
+    @Test fun symlinkedLocalOriginalCannotAuthorizeSkip() {
+        val directory = java.nio.file.Files.createTempDirectory("targeted-pull-link").toFile()
+        val target = java.io.File(directory, "target.fit")
+        val link = java.io.File(directory, "${"b".repeat(64)}.fit")
+        val content = byteArrayOf(7, 8, 9)
+        val sha = java.security.MessageDigest.getInstance("SHA-256")
+            .digest(content).lowerHex()
+        try {
+            target.writeBytes(content)
+            java.nio.file.Files.createSymbolicLink(link.toPath(), target.toPath())
+            assertFalse(CirqaTargetedPullPolicy.localCopyMatches(link, content.size.toLong(), sha))
+        } finally {
+            java.nio.file.Files.deleteIfExists(link.toPath())
+            target.delete()
+            directory.delete()
+        }
+    }
+
     @Test fun changedTransactionOrSizeForcesPull() {
         assertTrue(CirqaTargetedPullPolicy.shouldPull(withTr.copy(transactionId = 959L), listOf(done(withTr))))
         assertTrue(CirqaTargetedPullPolicy.shouldPull(withTr.copy(dataSize = 129L), listOf(done(withTr))))
