@@ -49,8 +49,8 @@ object CirqaTargetedPullPolicy {
     fun stabilityKey(identity: ItemIdentity): String =
         MessageDigest.getInstance("SHA-256")
             .digest(
-                "${identity.uidKey}:${identity.dataTypeKey}:${identity.dataSize}:${identity.flags}" +
-                    (identity.transactionId?.let { ":tr=$it" } ?: "")
+                ("${identity.uidKey}:${identity.dataTypeKey}:${identity.dataSize}:${identity.flags}" +
+                    (identity.transactionId?.let { ":tr=$it" } ?: ""))
                     .toByteArray()
             )
             .lowerHex()
