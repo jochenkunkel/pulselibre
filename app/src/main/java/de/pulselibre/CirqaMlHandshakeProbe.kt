@@ -1403,7 +1403,9 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     "keine Vollständigkeit behauptet.", g)
                 return
             }
-            syncSeenItemReferences += CirqaFileAccessItemListParser.pushDeduplicationKey(item)
+            // A file the band already pushed in this run (FileAccess 12, queued before the list arrived) is not
+            // queued a second time when it also appears in the list.
+            if (!syncSeenItemReferences.add(CirqaFileAccessItemListParser.pushDeduplicationKey(item))) continue
             val localId = syncPipelineLedger.select()
             syncSelectedFiles++
             syncPendingItems.addLast(SyncQueueItem(item, localId))
@@ -1461,7 +1463,10 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             CirqaFileAccessItemListParser.redactedSummary(listOf(item), syncGdxmlStrings)).take(1800)
         serial.post { mark("Band meldet neue Datei; read-only Abruf eingeplant") }
         // Only start a pull when nothing is in flight; otherwise the queue continues after the current transfer.
-        if (idle && !syncContinuationRequest.isOutstanding()) sendNextSyncFile(g)
+        // Before the FIRST item-list page arrived the push is only queued: in Connect's order the band pushes right after
+        // Smart 47.4, while the list request is still outstanding. Pulling now would let an empty queue ask for the next
+        // list page before the first one was processed; appendSyncItemListPage starts the queue instead.
+        if (idle && syncListPageCount > 0 && !syncContinuationRequest.isOutstanding()) sendNextSyncFile(g)
     }
 
     private fun drainDeferredAcks(g: BluetoothGatt) {
