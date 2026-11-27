@@ -45,7 +45,14 @@ internal data class CaptureInventory(
             fun one(sql: String): Long? = try { db.rawQuery(sql, null).use { if (it.moveToFirst()) it.getLong(0) else null } } catch (_: Exception) { null }
             val candidates = try {
                 val m = LinkedHashMap<String, Long>()
-                db.rawQuery("SELECT metric, COUNT(*) FROM fit_review_candidates GROUP BY metric ORDER BY metric", null).use {
+                // Since #696 every canonical FIT value starts as a review candidate with the same sample_id. Only
+                // candidates WITHOUT an active canonical observation are "stored but not counted" (status codes etc.);
+                // listing all of them showed e.g. HRV and stress as "not counted" although they are measurements.
+                db.rawQuery(
+                    """SELECT metric, COUNT(*) FROM fit_review_candidates
+                       WHERE sample_id NOT IN (SELECT g.sample_id FROM fit_generation_observations g
+                                               JOIN fit_active_generations a ON a.generation_id = g.generation_id)
+                       GROUP BY metric ORDER BY metric""", null).use {
                     while (it.moveToNext()) m[it.getString(0)] = it.getLong(1)
                 }
                 m
