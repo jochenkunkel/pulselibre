@@ -478,7 +478,8 @@ class HistoryOverviewView(
             Unit
         }
         current = if (isExpanded(spec)) {
-            val bandOnly = snapshot.unified == null && spec.key == "heart_rate" && snapshot.heartRate.isEmpty()
+            val bandOnly = snapshot.unified == null && spec.key == "heart_rate" && snapshot.heartRate.isEmpty() &&
+                (snapshot.fitAvailable || snapshot.fitHeartRate.isNotEmpty() || snapshot.fitReadFailed)
             metricCard(spec.title, spec.unit, points, snapshot, spec.hardMaximum, accentFor(spec), resolution,
                 if (bandOnly) TimeBasis.DEVICE_MEASURED else TimeBasis.COMBINED,
                 if (spec.key == "heart_rate") fitEmptyNote(snapshot) else null,
