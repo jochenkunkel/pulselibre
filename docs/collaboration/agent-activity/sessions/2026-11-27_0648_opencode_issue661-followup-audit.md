@@ -5,8 +5,8 @@
 - Auftrag: Weiterführung des #661-Audits über den gemergten History/FileAccess-Teil aus #739 hinaus; keine Geräteaktion.
 - Basis: `origin/main=9b0a3652`, Branch `opencode/issue661-ci-coverage-audit-20261127`.
 - Umfang: verbliebene Punkte des priorisierten History-Audits (2810/2820 vs. 2812/2822, ItemList-/Push-Selektion, fehlende Tageshistorie, Resume/Timeout, Auto-/Manuell-Race, Persistenz/Regressionstests); anschließend Komponenten-Audit gezielt nach Beleglage.
-- Erledigt: ItemList/PullItem, 2810/2820 vs. 2812/2822, Auto-/Manuell-Koordination, Timeout/Continuation, tägliche Historienverfügbarkeit nach Connect-set_flags, Verified-Skip-SHA-Fix (PR #740 gemergt), combined JVM/emulator coverage workflow. Python Replay-Tests 5/5; PR #740 QUICK grün.
-- Jetzt bearbeitet: Ergebnis der CI-Coverage-Prüfung in den audit report aufnehmen und verbleibende offene Fragen/Forschungsgrenzen festhalten.
+- Erledigt: ItemList/PullItem, 2810/2820 vs. 2812/2822, Auto-/Manuell-Koordination, Timeout/Continuation, tägliche Historienverfügbarkeit nach Connect-set_flags, Verified-Skip-SHA-Fix (PR #740 gemergt), combined JVM/emulator coverage workflow, Legacy-Directory-/FIT-Auswahl und synthetische Grenzen. Python Replay-Tests 5/5; PR #740 QUICK grün.
+- Jetzt bearbeitet: Coverage- und Legacy-Befunde im Auditbericht; PR #741 (Dokumentation) wartet auf Pflichtchecks. Danach übrige History-nahe Komponenten gegen Befundliste abgleichen.
 - Betroffene Dateien: primär `docs/quality/audits/ISSUE_661_HISTORY_AUDIT_2026-11-27.md`, Agentenlogs.
 - Abstimmungsbedarf: keiner gemäß Owner-Auftrag; keine Überschneidung mit Claude-PR #735 erkannt, nur aktuelle main verwenden.
 - Vorheriger Task: PR #739 gemergt als `01ed2978ffab106c99c438efee61dc86e451242d`; #661 bleibt bewusst offen für den breiteren Audit.

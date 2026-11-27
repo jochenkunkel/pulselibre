@@ -20,6 +20,7 @@ vollständige CIRQA-Historie und keine unbekannte Wire-Semantik.
 | Auto-/Manuell-Koordination | Auf Main-Thread-Gates geprüft; manuelle Bestätigung prüft erneut, ob Auto inzwischen gestartet ist. Auto prüft aktiven manuellen Lauf; UI-Status wird erst im Result-Callback freigegeben. | `HistorySyncExclusion`, `MainActivity.kt`, `HistorySyncExclusionTest`. Kein reproduzierbarer Race im geprüften Ablauf; Boolean-Tests belegen keinen Android-Lifecycle-Stresstest. |
 | Verified-Skip-Integrität | **Bestätigter Fehler; in PR #740 korrigiert:** Die bisherige Skip-Prüfung vertraute bei `verified_fit/$sha.fit` auf Dateiname und gleiche Länge, ohne den Dateiinhalt erneut gegen das Manifest-SHA zu hashen. Eine gleich lange beschädigte Datei konnte so als verifiziert gelten. | `shouldPullTargetedItem`, `CirqaTargetedPullPolicy.localCopyMatches`; Skip nur bei regulärer Nicht-Symlink-Datei, passender Größe und passendem neu berechnetem SHA-256. Regressionstests decken geänderte Bytes gleicher Länge und Symlink ab. |
 | FIT-/SQLite-Persistenz | Erfolgsmanifest setzt FIT-Format, erfolgreiche Integrität und abgeschlossenen SQLite-Commit voraus; Originalarchiv und Import sind getrennte Ledger-Stufen. | `completeSyncFile`, `CirqaSyncPipelineLedger`, `CirqaTargetedPullManifest`. |
+| Legacy-Verzeichnis-/FIT-Einzelabruf | Auswahl und Transfer sind begrenzt: strikt vollständige Directory-Struktur ohne doppelte Indizes, nur lesbare unterstützte FIT-Einträge, Datei-/Gesamtbudget, CRC-/Offset-validierte Chunks, FIT-Validierung vor atomarem privatem Speichern; Fehler stoppen den Lauf ohne Retry. Abschlussmeldungen bezeichnen ausdrücklich die begrenzte Auswahl, nicht komplette Gerätehistorie. | `CirqaLegacyDirectoryParser`, `CirqaLegacyDownloadLimits`, `CirqaMlHandshakeProbe.completeLegacyTransferAndContinue`; synthetische `CirqaBoundedLegacyFileTest` decken End-to-End-Auswahl, CRC-Splits, Offset/CRC/Formatfehler, Dedupe und Parent-Deadline ab. Das Verzeichnislayout/Größenfelder stammen aus Connect-Beobachtungen und sind nicht auf CIRQA validiert; deshalb kein Protokollfehler bestätigt. |
 | Abdeckung | Ein begrenzter/drained Lauf wird nicht als vollständige Gerätehistorie ausgewiesen. | `CirqaSyncCoverage`; Marker bleibt `device-history-unverified`. |
 | Kombinierte JVM-/Emulator-Coverage | FULL-CI führt Unit- und Instrumentation-Coverage zusammen und bricht ab, wenn eine der beiden Datenquellen oder die Klassen aus demselben Checkout fehlen. Das kombinierte Artefakt wird auch bei fehlgeschlagener Emulator-Phase hochgeladen, sofern der Job die Upload-Stufe erreicht. | `.github/workflows/android.yml`, `tools/ci/run-ci.sh`, `app/build.gradle.kts`; `createCombinedCoverageReport` selbst setzt `mustRunAfter` und prüft Exec-Dateien, während `run-ci.sh` die Unit-/Emulator-Tests in der vorgesehenen Reihenfolge explizit ausführt. Keine Coverage-/CI-Lücke im geprüften Workflow festgestellt. |
 
@@ -38,6 +39,10 @@ vollständige CIRQA-Historie und keine unbekannte Wire-Semantik.
 - Die genaue Bedeutung von Transaction-/Session-Fortsetzungen und die
   Vollständigkeit unterschiedlicher Garmin-Transportpfade bleiben
   Forschungsfragen; lokale Tests können diese Wire-Semantik nicht belegen.
+- Legacy-Directory-Layout und Bedeutung der Directory-Felder `fieldA`/`fieldB`
+  (insbesondere `fieldA` als Dateigröße), sowie Connect-abgeleitete Type/Subtype-
+  Kennungen, sind für CIRQA weiterhin nicht durch ein Geräte-Capture validiert.
+  Offline-Tests belegen Parser-/Grenzverhalten, keine CIRQA-Kompatibilität.
 - `HistoricalSyncPolicy.AUTOMATIC_SYNC_ENABLED` steht weiterhin auf `true`.
   Die aktuelle Owner-Regel erlaubt das Abschalten des Start-Syncs; sie verlangt
   es nicht zwingend. Daher hier keine Produktverhaltensänderung vorgenommen.
