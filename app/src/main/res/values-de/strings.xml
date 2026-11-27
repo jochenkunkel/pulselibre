@@ -132,6 +132,8 @@
     <string name="sync_sum_followup_empty">%1$d von %2$d angebotenen Dateien übertragen; danach meldete das Band keine weiteren. Ob die Historie vollständig ist, ist nicht nachgewiesen.</string>
     <string name="sync_sum_partial">%1$d von %2$d angebotenen Dateien übertragen.</string>
     <string name="sync_sum_no_daily_history">Das Band hat nur Aktivitätsaufzeichnungen angeboten, keine Tageshistorie (Stress, SpO₂, Atmung, Ganztagespuls, Schlaf). Häufiger Grund: Garmin Connect hat diese Dateien bereits vom Band abgeholt.</string>
+    <string name="sync_sum_skipped">%1$d bereits gespeicherte Dateien wurden nicht erneut übertragen.</string>
+    <string name="sync_sum_flush_unanswered">Das Band hat die Anfrage, die aktuellen Tagesdaten abzuschließen, nicht bestätigt; Tageswerte seit dem letzten Abruf können fehlen.</string>
     <string name="sync_sum_details">Technische Details (antippen zum Aufklappen):</string>
     <string name="main_hist_heading">Historische Gerätedaten</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->

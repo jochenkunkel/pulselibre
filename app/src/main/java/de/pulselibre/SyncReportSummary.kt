@@ -45,10 +45,23 @@ internal object SyncReportSummary {
         return types.isNotEmpty() && types.none { it in DAILY_HISTORY_TYPES }
     }
 
-    /** Text for the status card: readable summary, then the hint and the technical report. */
+    /** Files not transferred again because an identical, verified import exists (#733). */
+    fun skippedVerified(report: String): Int = int(report, "skipped") ?: 0
+
+    /**
+     * #752: PulsLibre asked the band (Smart 47.3) to close its current monitoring data into a file. "sent" without
+     * "answered" means the band did not confirm, so daily data since the last download may be missing.
+     */
+    fun flushUnanswered(report: String): Boolean = report.contains("monitoringFlush=sent")
+
+    /** Text for the status card: readable summary, then the hints and the technical report. */
     fun display(strings: Strings, report: String): String {
         val summary = explain(strings, report) ?: return report
-        val daily = if (lacksDailyHistory(report)) "\n\n" + strings.get(R.string.sync_sum_no_daily_history) else ""
-        return summary + daily + "\n\n" + strings.get(R.string.sync_sum_details) + "\n" + report
+        val hints = buildList {
+            skippedVerified(report).takeIf { it > 0 }?.let { add(strings.get(R.string.sync_sum_skipped, it)) }
+            if (flushUnanswered(report)) add(strings.get(R.string.sync_sum_flush_unanswered))
+            if (lacksDailyHistory(report)) add(strings.get(R.string.sync_sum_no_daily_history))
+        }
+        return (listOf(summary) + hints).joinToString("\n\n") + "\n\n" + strings.get(R.string.sync_sum_details) + "\n" + report
     }
 }
