@@ -849,7 +849,7 @@
     <string name="tl_gap_many">%1$d Lücken, längste %2$d min (%3$s–%4$s)</string>
     <string name="tl_lane_line">%1$s: %2$s, %3$d Messwerte, %4$s.</string>
     <string name="tl_no_data">keine Daten</string>
-    <string name="tl_lane_band">Herzfrequenz · Band (FIT)</string>
+    <string name="tl_lane_band">Herzfrequenz, Band-Werte</string>
     <string name="tl_lane_value">%1$s: %2$s</string>
     <string name="tl_note_phone">Herzfrequenz und Schritte: Empfangszeit am Telefon.</string>
     <string name="tl_note_band">%1$s: vom Band gemessene Zeit, nicht der Empfang.</string>

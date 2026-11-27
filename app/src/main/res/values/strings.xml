@@ -849,7 +849,7 @@
     <string name="tl_gap_many">%1$d gaps, longest %2$d min (%3$s–%4$s)</string>
     <string name="tl_lane_line">%1$s: %2$s, %3$d readings, %4$s.</string>
     <string name="tl_no_data">no data</string>
-    <string name="tl_lane_band">Heart rate · band (FIT)</string>
+    <string name="tl_lane_band">Heart rate, band values</string>
     <string name="tl_lane_value">%1$s: %2$s</string>
     <string name="tl_note_phone">Heart rate and steps: reception time on the phone.</string>
     <string name="tl_note_band">%1$s: time measured by the band, not reception.</string>

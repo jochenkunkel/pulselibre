@@ -27,3 +27,13 @@ class HistoryMetricCatalogTest {
         assertEquals(all.size, all.toSet().size)
     }
 }
+
+class TileMergeTest {
+    @Test fun liveAndBandBecomeOneOrderedSeries() {
+        val t = java.time.Instant.parse("2026-11-27T08:00:00Z")
+        val live = listOf(DayObservation(t.plusSeconds(60), 80))
+        val band = listOf(DayObservation(t, 61), DayObservation(t.plusSeconds(60), 80), DayObservation(t.plusSeconds(120), 63))
+        assertEquals(listOf(61L, 80L, 63L), TileInsightCalc.merge(live, band).map { it.value })
+        assertEquals(live, TileInsightCalc.merge(live, emptyList()))
+    }
+}
