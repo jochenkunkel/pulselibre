@@ -17,6 +17,18 @@
 >   - Keine Regression bei HRV, Schlaf und Hauttemperatur.
 >   - 0 neue Importfehler, Provenienz vollständig, keine Duplikate, eine aktive Generation je Quelle.
 >   - Details: Issue #637.
+> - **Ergänzung 27.11. abends** (FULL/API-35 auf main `40293f12` grün):
+>   - **Aktuelle Tageshistorie ohne Garmin Connect** (#752): PulsLibre sendet wie Connect `Smart{47:{3:{1:0}}}`, das Band schließt die laufenden Monitoring-Daten als neue monitoring_b-Datei ab. Belegt am S10: Stress 412 → 632, SpO₂ 415 → 650 im 24-h-Fenster.
+>   - **Robustheit:**
+>     - Verbindungsfehler vor der Sync-Annahme werden einmal wiederholt (#755).
+>     - Ein Push vor der ersten Item-List wird sicher eingereiht, ohne Doppelabruf (#761).
+>     - Klartext-Diagnose und Lückenanzeige (#753, #757).
+>     - Duplikatfreiheit nach Mehrfachläufen am Gerät belegt.
+>   - **Akkustand:** Smart 8.2 innerhalb der Sitzung (#756). In den Connect-Mitschnitten antwortete das Band (23 % bzw. 5 %); der Gerätenachweis in PulsLibre steht aus.
+>   - **Decoder 8/9:**
+>     - Aktivitätszusammenfassungen (#747) und Schlafstörungen (#759).
+>     - FIT-enum-Invalid 0xFF wird korrekt ausgeschlossen.
+>   - **Tageswechsel:** Das Band schließt monitoring_b um 00:00 Ortszeit, danach beginnen die Zähler neu. Das ist für eine Mitternacht belegt; die Tagesregel ist vorbereitet (#758), noch ohne UI.
 > - **Nicht nachgewiesen:**
 >   - vollständige Gerätehistorie;
 >   - Aufbewahrungsdauer auf dem Band ohne Connect;
