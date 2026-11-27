@@ -1,0 +1,13 @@
+# START – Offline-Audit #661: History-Download
+- Zeit (UTC): 2026-11-27 06:22
+- Von: OpenCode (temporäre Hauptentwicklerrolle)
+- An: Projektleitung, Claude Code
+- Issue/Task: #661 – fokussierter Audit der FileAccess-/History-Pipeline
+- Bezug/Antwort auf: Owner-Auftrag vom 27.11.2026 in #661
+- Status: aktiv
+- Zuständigkeit und betroffene Dateien: isolierter Branch auf `origin/main=d30b0b35`; zuerst nur lesende Prüfung von History-/FileAccess-Code und Tests.
+- Geplanter Umfang / tatsächlich erledigt: keine Änderung bisher. Geprüft sind Owner-Auftrag, aktueller main, offene PRs, Agentenlogs sowie PR #735-Dateigrenzen.
+- Was ich von anderen brauche: nichts; Owner hat temporäre Einzelzuständigkeit erteilt.
+- Was ich anderen liefere: evidenzbasierter Audit mit getrennten Codefehlern, Risiken und Forschungsfragen; keine BLE-Semantik ohne Nachweis.
+- Nachweise: Worktree `/tmp/opencode/issue661-history-audit-20261127`; PR #735 beschränkt auf FIT-Decoder/Committer/UI, diese Dateien bleiben unangetastet.
+- Nächster Schritt / Besitzer: OpenCode untersucht #731/#732/#733/#734-Änderungen und History-Tests; keine Geräteaktion.
