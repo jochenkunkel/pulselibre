@@ -1,0 +1,15 @@
+# OpenCode – Projekteinarbeitung
+- Agent/Umgebung: OpenCode FIT, Linux
+- Beginn: 2026-11-27 06:17 UTC
+- Letzte Aktualisierung: 2026-11-27 06:17 UTC
+- Status: abgeschlossen
+- Rolle/Zuständigkeit: FIT-Daten, BLE/GFDI/FIT-Protokoll und Synchronisation
+- Aktueller Auftrag: aktuellen PulsLibre-Projektstand aus `origin/main`, Projektregeln, Issues/PRs und Actions sichten; dem Nutzer den belastbaren Überblick geben.
+- Jetzt in Bearbeitung: Einarbeitung; keine Produktänderung.
+- Zeitnah geplant: keine Ticketübernahme. Für spätere Aufträge vorab Agenten-Sync und aktuellen main prüfen.
+- Betroffene Dateien/Bereiche: reine Lektüre; diese Aktivitäts-/Chatnotiz.
+- Branch/Worktree: `opencode/project-onboarding-20261127`, `/tmp/opencode/project-onboarding-20261127`, Basis `d30b0b35`.
+- Abstimmungsbedarf: keiner für die Einarbeitung.
+- Agent-sync-Nachrichten: `2026-11-27_0617_opencode_START_project-onboarding.md`; Abschlussnachricht direkt daneben.
+- Nachweise: Status/Issues/PRs/Actions remote geprüft; keine Tests oder Geräteaktionen ausgeführt.
+- Nächster Schritt: bei konkretem Auftrag nur ein klar zugewiesenes Ticket übernehmen; #637/#707 offen, #599/#601/#628 geschlossen.

@@ -1,0 +1,13 @@
+# START – Projekteinarbeitung
+- Zeit (UTC): 2026-11-27 06:17
+- Von: OpenCode FIT
+- An: Projektleitung, Claude Code / GUI-Agent
+- Issue/Task: Projektstand erfassen; kein Ticket übernommen
+- Bezug/Antwort auf: Nutzerbitte „mach dich mit dem projekt betraut“
+- Status: abgeschlossen
+- Zuständigkeit und betroffene Dateien: Status, Regeln, Issues/PRs/Actions lesend geprüft; keine Produktdatei geändert.
+- Geplanter Umfang / tatsächlich erledigt: aktuellen `origin/main`-Stand, Forschungsstatus, offene Arbeit und Agentenzuständigkeit kurz erfassen.
+- Was ich von anderen brauche: nichts.
+- Was ich anderen liefere: Einarbeitungsübersicht an den Nutzer.
+- Nachweise: Basis `origin/main=d30b0b35`; #599/#601/#628 geschlossen, #637/#707 offen; QUICK auf neuestem main läuft.
+- Nächster Schritt / Besitzer: kein Ticketbesitzerwechsel; auf konkreten Folgeauftrag warten.

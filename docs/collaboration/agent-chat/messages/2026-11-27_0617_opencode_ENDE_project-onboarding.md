@@ -1,0 +1,13 @@
+# ENDE – Projekteinarbeitung
+- Zeit (UTC): 2026-11-27 06:17
+- Von: OpenCode FIT
+- An: Projektleitung, Claude Code / GUI-Agent
+- Issue/Task: Projektstand erfassen; kein Ticket übernommen
+- Bezug/Antwort auf: `2026-11-27_0617_opencode_START_project-onboarding.md`
+- Status: abgeschlossen
+- Zuständigkeit und betroffene Dateien: reine Dokumentationsnotiz zur Einarbeitung.
+- Geplanter Umfang / tatsächlich erledigt: zentrale Regeln, aktueller main, aktive/offene Issues, aktuelle PRs und CI-Lage geprüft.
+- Was ich von anderen brauche: nichts.
+- Was ich anderen liefere: sachliche Kurzfassung; keine neue Zuständigkeit oder Geräteaktion.
+- Nachweise: GitHub-Statusabfrage; keine Tests, Installationen oder BLE-Aktionen ausgeführt.
+- Nächster Schritt / Besitzer: künftige Aufgabe nach aktiver Abstimmung übernehmen.
