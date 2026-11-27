@@ -86,3 +86,32 @@ vollständige CIRQA-Historie und keine unbekannte Wire-Semantik.
   versucht, aber vor Tests wegen fehlendem Android SDK (`ANDROID_HOME`/`sdk.dir`)
   nicht ausführbar. CI für den neuen Commit noch ausstehend; `git diff --check`
   erfolgreich, keine Gerätezugriffe.
+
+## Komponenten-Inventar aller 129 Dateien aus #661 (Claude, 27.11.2026)
+
+**Methode:** statische Erreichbarkeit auf `origin/main` nach #742.
+- **Graph:** Deklarationen je Datei gegen Bezeichner im kommentarbereinigten Code aller anderen Produktionsdateien.
+- **Einstieg:** Activities/Services aus `AndroidManifest.xml`.
+- **Gegenprobe:** Für jede als unerreichbar erkannte Datei `grep -w` über `app/src/main`.
+- **Testabdeckung:** Für jede Datei wurde geprüft, ob ein JVM- oder Instrumentationstest auf sie oder ihre Parser-Objekte verweist.
+
+| Ergebnis | Anzahl | Bewertung |
+|---|---:|---|
+| Aus App-Einstiegen erreichbar, mit Test | 123 | Alle hängen über `CirqaMlHandshakeProbe`, das den produktiven Historienlauf und die per Laufzeitmodus gesperrten Experimente bündelt, oder über Import, Backup und UI am Produktionspfad. Für jede Datei gibt es mindestens einen Test. |
+| Nur von eigenen Tests benutzt (toter Code) | 6 | **Entfernt** samt Tests: `CirqaConnect531Host5024Response`, `CirqaConnectionIndicator`, `CirqaLegacyFitFileSelector`, `GarminCompactAck`, `GarminDeviceInformationReference`, `GarminHistoryFrameStream`. Dokumentverweise bleiben als historische Belege. |
+| Erreichbar ohne Test | 0 | `CirqaRawDeviceMetadata` wird von `CirqaRawDeviceMetadataTest` über das Parser-Objekt geprüft. |
+
+**Hinweis zu #742:** Der Deframer-Fix war korrekt. `GarminHistoryFrameStream` wird produktiv aber nicht verwendet; der GFDI-Strom läuft über den COBS-Framer von `CirqaMlHandshakeProbe`. Deshalb ist die Datei entfernt.
+
+**Inhaltlich geprüft (seit 26.11.)**, jeweils mit Fix, Test und Beleg in eigenen PRs:
+- FileAccess (List/Pull/Push): #732, #733, #740, #742
+- Sync-Fristen und Ablehnungen: #719
+- Decoder gegen das Garmin FIT SDK auf 37 echten Dateien: #717, #727, #729, #735
+- Importfehler-Gründe: #720
+- Dekodier-Performance: #726
+- Offline-Replay: #734
+
+**Offen für eine spätere, risikobasierte Vertiefung:** die experimentellen Legacy- und 5050-Sitzungen (`CirqaLegacy50xx*`, `Cirqa5050*`).
+- Sie sind nur über ausdrücklich gewählte Testlabor-Modi aktiv.
+- Sie haben Tests und sind nicht Teil des automatischen Historienlaufs.
+- Ob sie entfernt werden, ist eine Produktfrage (Testlabor-Umfang), keine Fehlerbehebung.

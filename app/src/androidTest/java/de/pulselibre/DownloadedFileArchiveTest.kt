@@ -192,7 +192,7 @@ class DownloadedFileArchiveTest {
                 it.writableDatabase.version = 9
             }
             CirqaDatabase(context).use {
-                assertEquals(11, it.readableDatabase.version)
+                assertEquals(12, it.readableDatabase.version)
                 assertEquals(1, it.allLines().size)
                 assertEquals(1, it.archiveExistingDownloads())
                 assertEquals(0, it.archiveExistingDownloads())
