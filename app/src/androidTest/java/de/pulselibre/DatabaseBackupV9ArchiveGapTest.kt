@@ -113,14 +113,14 @@ class DatabaseBackupV9ArchiveGapTest {
         try {
             CirqaDatabase(context).use { database ->
                 assertTrue(database.insertLine(event))
-                assertEquals(11, database.writableDatabase.version)
+                assertEquals(12, database.writableDatabase.version)
                 database.writableDatabase.version = 9
             }
             // There is no production helper expecting version 9: with the current
             // helper (version 11) a lowered user_version is an upgrade, never a
             // downgrade. Pin that no rows are lost on this seam.
             CirqaDatabase(context).use { database ->
-                assertEquals(11, database.readableDatabase.version)
+                assertEquals(12, database.readableDatabase.version)
                 assertEquals(listOf(event), database.allLines())
                 assertEquals(0, countRows(database, "downloaded_files"))
                 assertEquals(0, database.readableDatabase.rawQuery("PRAGMA foreign_key_check", null).use { rows ->

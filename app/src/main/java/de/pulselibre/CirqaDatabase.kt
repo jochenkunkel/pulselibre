@@ -13,7 +13,7 @@ import java.security.MessageDigest
  * UNIQUE SHA-256 of each full line makes repeated imports idempotent.
  */
 class CirqaDatabase(private val contextRef: Context) :
-    SQLiteOpenHelper(contextRef, "cirqa_measurements.db", null, 11), FitObservationStore {
+    SQLiteOpenHelper(contextRef, "cirqa_measurements.db", null, 12), FitObservationStore {
 
     data class ArchivedFitReplayResult(
         val candidatesSeen: Int,
@@ -57,7 +57,7 @@ class CirqaDatabase(private val contextRef: Context) :
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-        require(oldVersion in 1..10 && newVersion == 11)
+        require(oldVersion in 1..11 && newVersion == 12)
         if (oldVersion < 6) {
           if (oldVersion <= 2) {
             if (oldVersion == 1) {
@@ -93,6 +93,7 @@ class CirqaDatabase(private val contextRef: Context) :
             migrateExistingFitObservationsToGeneration(db)
         }
         createFitReviewCandidateSchema(db)
+        if (oldVersion < 12) widenReviewCandidateUniqueKey(db)
         createLiveDeviceMetadataSchema(db)
         backfillLiveFromFit(db)
         if (oldVersion < 9) {
@@ -473,9 +474,40 @@ class CirqaDatabase(private val contextRef: Context) :
             timestamp_origin TEXT NOT NULL CHECK(timestamp_origin IN
                 ('DIRECT', 'RECONSTRUCTED_TS16', 'RECONSTRUCTED_COMPRESSED', 'UNKNOWN')),
             decoder_version TEXT NOT NULL,
-            UNIQUE(source_sha256, record_ordinal, global_message_number, field_number)
+            UNIQUE(source_sha256, record_ordinal, global_message_number, field_number, metric)
         )""")
         db.execSQL("CREATE INDEX IF NOT EXISTS fit_review_candidates_by_time ON fit_review_candidates(metric, measured_at_ms)")
+    }
+
+    /**
+     * Schema 12 (#637/#628): one FIT field can carry several components – monitoring 55/24 holds activity type and
+     * intensity (#708). The old key (source, record, message, field) made SQLite drop the second component silently
+     * (INSERT OR IGNORE), the retention check then threw and every monitoring_b file failed as SOURCE_CONFLICT. The
+     * metric is part of the key now. Rebuild copies every row unchanged.
+     */
+    private fun widenReviewCandidateUniqueKey(db: SQLiteDatabase) {
+        if (!hasTable(db, "fit_review_candidates")) return
+        val hasRows = db.rawQuery("SELECT 1 FROM fit_review_candidates LIMIT 1", null).use { it.moveToFirst() }
+        if (!hasRows) {
+            // Nothing to keep. Old schemas (v8 test databases) may even lack fit_sources, so an INSERT … SELECT would
+            // not compile against the foreign key; recreate the empty table with the new key instead.
+            db.execSQL("DROP TABLE fit_review_candidates")
+            db.execSQL("DROP INDEX IF EXISTS fit_review_candidates_by_time")
+            createFitReviewCandidateSchema(db)
+            return
+        }
+        db.execSQL("ALTER TABLE fit_review_candidates RENAME TO fit_review_candidates_v11")
+        db.execSQL("DROP INDEX IF EXISTS fit_review_candidates_by_time")
+        createFitReviewCandidateSchema(db)
+        db.execSQL(
+            """INSERT INTO fit_review_candidates
+               (sample_id, device_id, metric, measured_at_ms, value, unit, source_sha256, record_ordinal,
+                global_message_number, field_number, quality, timestamp_origin, decoder_version)
+               SELECT sample_id, device_id, metric, measured_at_ms, value, unit, source_sha256, record_ordinal,
+                      global_message_number, field_number, quality, timestamp_origin, decoder_version
+               FROM fit_review_candidates_v11"""
+        )
+        db.execSQL("DROP TABLE fit_review_candidates_v11")
     }
 
     /**
