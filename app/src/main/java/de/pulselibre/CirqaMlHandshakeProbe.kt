@@ -114,6 +114,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     /** #637: Smart 47.3 sent / Smart 47.4 answer seen in this sync session. */
     private var syncMonitoringFlushSent = false
     private var syncMonitoringFlushAnswered = false
+    /** #532: battery level reported by the band in this sync (Smart 8.3), or null. */
+    private var syncBatteryLevel: Int? = null
     private var syncCurrentPullRequestId: Int? = null
     private val syncPullRequestItems = HashMap<Int, Long>()
     private val syncArchivedLocalIds = HashSet<Long>()
@@ -2335,6 +2337,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         syncPushedFiles = 0
         syncMonitoringFlushSent = false
         syncMonitoringFlushAnswered = false
+        syncBatteryLevel = null
         syncSeenItemReferences.clear()
         devicePushReassembler.reset()
         syncIncompleteReason = null
@@ -2631,6 +2634,13 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     }
                     syncProtoShapes = (syncProtoShapes + "${CirqaProtobufShapeInspector.nestedShape(msg)};").take(400)
                     if (CirqaMonitoringFlushRequest.isResponse(msg)) syncMonitoringFlushAnswered = true
+                    GarminDeviceStatusProtobuf.parseBatteryResponse(msg)?.let { battery ->
+                        val values = GarminDeviceStatusProtobuf.toLiveMetadata(battery, System.currentTimeMillis())
+                        if (values.isNotEmpty()) {
+                            syncBatteryLevel = battery.batteryLevel
+                            try { CirqaDatabase(context).use { it.storeLiveDeviceMetadata(values) } } catch (_: Exception) {}
+                        }
+                    }
                     // An item_list_response carries real, readable items. Parse it and
                     // request the first one; UIDs stay in memory and are never reported.
                     CirqaFileAccessItemListParser.parsePullResult(msg)?.let { pull ->
@@ -2739,6 +2749,12 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                             syncNextRequestId = if (syncNextRequestId >= 0xffff) 1 else syncNextRequestId + 1
                             queueAck(g, CirqaMonitoringFlushRequest.mlValue(handle, flushId))
                             serial.post { mark("Monitoring-Abschluss (Smart 47.3) wie Connect angefragt") }
+                            // #532: Connect asks for the battery inside the established session (Smart 8.2); outside
+                            // of it the band never answered the metadata probe.
+                            val batteryId = syncNextRequestId
+                            syncNextRequestId = if (syncNextRequestId >= 0xffff) 1 else syncNextRequestId + 1
+                            queueAck(g, byteArrayOf(handle.toByte()) + GarminFileListRequest.cobs(
+                                CirqaFileAccessListRequest.gfdiFrame(batteryId, GarminDeviceStatusProtobuf.batteryStatusRequest())))
                         }
                         syncItemListSent = true
                         syncListRequestKinds[2] = null
@@ -3688,7 +3704,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     "transactionFollowupResponseItemCounts=${syncTransactionFollowupResponseItemCounts.joinToString(
                         prefix = "[", postfix = "]"
                     )}," +
-                    "selected=$syncSelectedFiles,queuedTotal=$syncQueuedFiles,selectedBytes=$syncQueuedBytes,skipped=$syncSkippedFiles,pushed=$syncPushedFiles,monitoringFlush=${if (syncMonitoringFlushSent) (if (syncMonitoringFlushAnswered) "answered" else "sent") else "no"}," +
+                    "selected=$syncSelectedFiles,queuedTotal=$syncQueuedFiles,selectedBytes=$syncQueuedBytes,skipped=$syncSkippedFiles,pushed=$syncPushedFiles,battery=${syncBatteryLevel?.let { "$it%" } ?: "none"},monitoringFlush=${if (syncMonitoringFlushSent) (if (syncMonitoringFlushAnswered) "answered" else "sent") else "no"}," +
                     "pages=$syncListPageCount,currentBytes=${mlrData.size()},details=$syncFileResults," +
                     "pipeline=[${syncPipelineLedger.summary()}],pipelineItems=[${syncPipelineLedger.orderedSummary()}]," +
                     "pipelineStageOrder=selected,queued,ble-write-accepted,response-received,transfer-completed," +
@@ -3864,6 +3880,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             syncPushedFiles = 0
             syncMonitoringFlushSent = false
             syncMonitoringFlushAnswered = false
+            syncBatteryLevel = null
             syncSeenItemReferences.clear()
             devicePushReassembler.reset()
             syncIncompleteReason = null
