@@ -72,9 +72,9 @@ internal fun showDayTimeline(activity: MainActivity, worker: Executor) {
                 if (read == null) { summary.text = activity.getString(R.string.day_read_failed); return@runOnUiThread }
                 val (pulse, steps, band) = read
                 val allLanes = listOf(
-                    DayTimeline.lane(DashboardMeasurement.PULSE, MetricText.title(activity, "Herzfrequenz"), "bpm", pulse.points, day, now),
+                    // #763: one heart-rate lane, live and band values together
+                    DayTimeline.lane(DashboardMeasurement.PULSE, MetricText.title(activity, "Herzfrequenz"), "bpm", TileInsightCalc.merge(pulse.points, band), day, now),
                     DayTimeline.lane(DashboardMeasurement.STEPS, MetricText.title(activity, "Schritte (Tageszähler)"), "", steps.points, day, now),
-                    DayTimeline.lane(DashboardMeasurement.PULSE, bandLaneTitle, "bpm", band, day, now),
                 )
                 val lanes = allLanes.filter { it.points.isNotEmpty() }
                 val description = DayTimeline.describe(strings, allLanes, day, now, zone)
