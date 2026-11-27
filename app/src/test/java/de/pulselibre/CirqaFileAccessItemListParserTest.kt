@@ -29,6 +29,53 @@ class CirqaFileAccessItemListParserTest {
             CirqaTargetedPullPolicy.CompletedImport(identity, "a".repeat(64), true, evidence))))
     }
 
+    // #637: shape from the Garmin Connect capture – Smart 43 → 12 {1: ItemReference{uid, data_type{1=0,2="FIT_TYPE_32",3=0},
+    // size, transaction(5), 6=1}}. Synthetic values only.
+    @Test fun parsesDeviceItemAvailablePushWithLabel() {
+        val uid = byteArrayOf(9, 8, 7, 6, 5, 4, 3, 2)
+        val type = scalarField(1, 0) + field(2, "FIT_TYPE_32".toByteArray()) + scalarField(3, 0)
+        val ref = field(1, uid) + field(2, type) + scalarField(3, 3018) + scalarField(5, 707) + scalarField(6, 1)
+        val pushed = CirqaFileAccessItemListParser.parseItemAvailable(field(43, field(12, field(1, ref))))!!
+        assertArrayEquals(uid, pushed.item.uid)
+        assertEquals(3018L, pushed.item.dataSize)
+        assertEquals(707L, pushed.item.transactionId)
+        assertEquals("FIT_TYPE_32", pushed.gdxmlStrings[0L])
+        assertArrayEquals(ref, pushed.item.referenceBytes)
+    }
+
+    @Test fun pushDeduplicationDistinguishesRevisionsWithSameUid() {
+        val uid = byteArrayOf(1, 2, 3)
+        val type = byteArrayOf(8, 1)
+        fun parsed(transaction: Long) = CirqaFileAccessItemListParser.parseItemAvailable(
+            field(43, field(12, field(1,
+                field(1, uid) + field(2, type) + scalarField(3, 128) +
+                    scalarField(5, transaction)
+            )))
+        )!!.item
+
+        val revisionA = parsed(20)
+        val revisionB = parsed(21)
+        assertArrayEquals(revisionA.uid, revisionB.uid)
+        assertNotEquals(
+            CirqaFileAccessItemListParser.pushDeduplicationKey(revisionA),
+            CirqaFileAccessItemListParser.pushDeduplicationKey(revisionB)
+        )
+        assertEquals(
+            CirqaFileAccessItemListParser.pushDeduplicationKey(revisionA),
+            CirqaFileAccessItemListParser.pushDeduplicationKey(parsed(20))
+        )
+    }
+
+    @Test fun itemAvailableIgnoresOtherFileAccessMessagesAndMalformedReferences() {
+        val ref = field(1, byteArrayOf(1)) + scalarField(3, 10)
+        // FA 5 (transfer complete) and FA 10 (list response) are not pushes.
+        assertNull(CirqaFileAccessItemListParser.parseItemAvailable(field(43, field(5, field(1, ref)))))
+        assertNull(CirqaFileAccessItemListParser.parseItemAvailable(field(43, field(10, scalarField(1, 0)))))
+        // Empty UID and truncated protobuf are rejected (fail-closed).
+        assertNull(CirqaFileAccessItemListParser.parseItemAvailable(field(43, field(12, field(1, field(1, byteArrayOf()))))))
+        assertNull(CirqaFileAccessItemListParser.parseItemAvailable(byteArrayOf(0x5a, 0x05, 0x62)))
+    }
+
     private fun field(number: Int, bytes: ByteArray): ByteArray {
         val out = java.io.ByteArrayOutputStream()
         out.write(varint((number.toLong() shl 3) or 2))
@@ -80,6 +127,31 @@ class CirqaFileAccessItemListParserTest {
         assertEquals(5043, GarminGfdiHeader.inspect(frame)!!.type)
         val body = frame.copyOfRange(4, frame.size - 2)
         assertArrayEquals(smart, body.copyOfRange(14, body.size))
+    }
+
+    @Test fun pullRequestBuildsDocumentedReferenceSubsetRatherThanClaimingExactWireCopy() {
+        val item = CirqaFileAccessItemListParser.Item(
+            uid = byteArrayOf(1, 2, 3),
+            dataType = byteArrayOf(0x08, 0x02),
+            dataSize = 777,
+            flags = 1,
+            transactionId = 44,
+            modifiedTime = 55,
+            referenceBytes = byteArrayOf(99, 98, 97)
+        )
+        val service = CirqaFileAccessItemListParser.fields(
+            CirqaFileAccessPullRequest.smart(item)
+        )!!.single { it.number == 43 }.bytes!!
+        val request = CirqaFileAccessItemListParser.fields(service)!!
+            .single { it.number == 1 }.bytes!!
+        val reference = CirqaFileAccessItemListParser.fields(request)!!
+            .single { it.number == 1 }.bytes!!
+        val fields = CirqaFileAccessItemListParser.fields(reference)!!
+
+        assertEquals(listOf(1, 2, 3), fields.map { it.number })
+        assertArrayEquals(item.uid, fields.single { it.number == 1 }.bytes)
+        assertArrayEquals(item.dataType, fields.single { it.number == 2 }.bytes)
+        assertEquals(item.dataSize, fields.single { it.number == 3 }.varint)
     }
 
     @Test fun compressionWindowIsExplicitOptionalPullItemFieldFive() {

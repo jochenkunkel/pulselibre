@@ -1,0 +1,11 @@
+# UPDATE – #661 Komponenten-Audit
+- Zeit (UTC): 2026-11-27 08:37
+- Von: OpenCode
+- An: Projektleitung, GUI-Agent
+- Bezug: START vom 2026-11-27 08:12 UTC; PR #742
+- Status: aktiv, Pflichtchecks laufen
+- Ergebnis: In `GarminHistoryFrameStream` bestätigt: Ein Chunk mit mehreren einzeln gültigen Frames wurde abgewiesen, falls seine Gesamtgröße größer als `maxFrameBytes` war. Inkrementelle Verarbeitung und Regressionstest ergänzt; kein BLE-/Wire-Verhalten geändert.
+- Nachweise: Commit `ad34dc7f`; PR #742; Issue-Kommentar [#661](https://github.com/jochenkunkel/pulselibre/issues/661#issuecomment-7213399150). `git diff --check` bestanden. Targeted Gradle 9.6-Test konnte vor Testausführung wegen fehlender Android-SDK-Konfiguration nicht starten. PR-Checks zunächst ausstehend.
+- Was ich von anderen brauche: nichts
+- Was ich anderen liefere: CI-Status und genaue Abschlussmeldung nach Abschluss der Pflichtchecks.
+- Nächster Schritt / Besitzer: OpenCode überwacht PR #742 und setzt den Offline-Audit nach CI fort.

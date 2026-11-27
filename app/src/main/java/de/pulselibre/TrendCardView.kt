@@ -38,7 +38,9 @@ internal class TrendCardView(context: Context) : LinearLayout(context) {
         /** Daily steps INCLUDING today's running counter (atlas only); empty = use [stepsDaily]. */
         val stepsWithToday: Map<LocalDate, Double> = emptyMap(),
         /** All pre-specified hypotheses (#45), Benjamini–Hochberg corrected; [correlation] is the first one. */
-        val hypotheses: List<RelationshipHypotheses.Outcome> = emptyList()
+        val hypotheses: List<RelationshipHypotheses.Outcome> = emptyList(),
+        /** #329: per-day mean of band FIT stress (device scale). */
+        val stressDaily: Map<LocalDate, Double> = emptyMap()
     )
 
     init {
@@ -91,8 +93,21 @@ internal class TrendCardView(context: Context) : LinearLayout(context) {
             primary.primary!!.copy(verdict = primary.verdict),
             PairedCorrelation.pair(steps, rest, 1).map { it.second to it.third }, rest, steps, today,
             PairedCorrelation.sensitivity(steps, rest, 1),
-            reader.read(DashboardMeasurement.STEPS, first, today.plusDays(1), zone), hypotheses)
+            reader.read(DashboardMeasurement.STEPS, first, today.plusDays(1), zone), hypotheses,
+            bandStressDaily(app, today.minusDays(WeekSummary.DAYS.toLong()), today, zone))
     }
+
+    private fun bandStressDaily(app: Context, first: LocalDate, today: LocalDate, zone: ZoneId): Map<LocalDate, Double> =
+        try {
+            CirqaDatabase(app).use { db ->
+                val unified = UnifiedMeasurements(db.writableDatabase)
+                unified.refresh()
+                val pts = unified.points(MeasurementOrigin.BAND, "stress",
+                    first.atStartOfDay(zone).toInstant().toEpochMilli(), today.atStartOfDay(zone).toInstant().toEpochMilli())
+                WeekSummary.dailyMean(pts.map { it.first to it.second }, zone)
+            }
+        } catch (_: Exception) { emptyMap() }
+
 
     private fun showMessage(text: String) {
         content.removeAllViews()
@@ -213,7 +228,7 @@ internal class TrendCardView(context: Context) : LinearLayout(context) {
     private fun addWeekSummary(d: Data) {
         val goal = context.getSharedPreferences(SpO2DisplaySettings.STORE, Context.MODE_PRIVATE)
             .getString("step_goal", null)?.trim()?.toIntOrNull()?.takeIf { it in 100..100_000 }
-        val week = WeekSummary.build(d.stepsDaily, d.restDaily, d.today, goal) { v ->
+        val week = WeekSummary.build(d.stepsDaily, d.restDaily, d.today, goal, d.stressDaily) { v ->
             NumberFormat.getIntegerInstance(context.displayLocale()).format(Math.round(v))
         }
         val box = LinearLayout(context).apply { orientation = VERTICAL; tag = "week_summary"; setPadding(0, dp(8), 0, dp(4)) }

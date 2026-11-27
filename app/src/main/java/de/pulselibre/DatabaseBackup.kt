@@ -1999,7 +1999,7 @@ object DatabaseBackup {
         return digest.digest().toHex()
     }
 
-    private fun ByteArray.toHex(): String = joinToString("") { "%02x".format(it.toInt() and 255) }
+    private fun ByteArray.toHex(): String = lowerHex()
 }
 
 /** Technical, data-free reason of a failed backup for the user and support (class and message only, no values). */

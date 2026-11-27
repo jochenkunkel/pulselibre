@@ -33,7 +33,7 @@ object DownloadedFileArchive {
     }
 
     fun sha256(bytes: ByteArray): String = MessageDigest.getInstance("SHA-256").digest(bytes)
-        .joinToString("") { "%02x".format(it.toInt() and 255) }
+        .lowerHex()
 
     /** Caller owns the transaction. Never replaces a previous content version. */
     fun store(db: SQLiteDatabase, bytes: ByteArray, reference: ByteArray, label: String, at: Long): Boolean {

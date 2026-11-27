@@ -128,9 +128,12 @@
     <string name="main_status_ready">Hors ligne · prêt</string>
     <string name="main_hist_status_none">Aucun téléchargement de données historiques lancé.</string>
     <string name="sync_sum_complete">Téléchargement complet : %1$d fichiers transférés.</string>
-    <string name="sync_sum_pull_rejected">Le bracelet a refusé le téléchargement du premier fichier (code %1$s). Il proposait %2$d fichiers ; %3$d autres n’ont pas été demandés.</string>
+    <string name="sync_sum_pull_rejected">Le bracelet a refusé des téléchargements de fichiers (code %1$s). Il proposait %2$d fichiers ; %3$d autres n’ont pas été demandés.</string>
     <string name="sync_sum_followup_empty">%1$d fichiers sur %2$d proposés transférés ; ensuite le bracelet n’en a plus signalé. L’exhaustivité de l’historique n’est pas prouvée.</string>
     <string name="sync_sum_partial">%1$d fichiers sur %2$d proposés transférés.</string>
+    <string name="sync_sum_no_daily_history">Le bracelet n’a proposé que des enregistrements d’activité, sans historique journalier (stress, SpO₂, respiration, pouls continu, sommeil). Raison fréquente : Garmin Connect a déjà récupéré ces fichiers.</string>
+    <string name="sync_sum_skipped">%1$d fichiers déjà enregistrés n’ont pas été transférés à nouveau.</string>
+    <string name="sync_sum_flush_unanswered">Le bracelet n’a pas confirmé la demande de clôturer ses données du jour ; des valeurs depuis le dernier téléchargement peuvent manquer.</string>
     <string name="sync_sum_details">Détails techniques (toucher pour déplier) :</string>
     <string name="main_hist_heading">Données historiques de l’appareil</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
@@ -539,12 +542,13 @@
     <string name="md_cov_hint">il manque des jours pour une affirmation de tendance (au moins %1$s nécessaires)</string>
     <string name="tr_week_value">%1$s : %2$s</string>
     <string name="md_week_cov">%1$s jours sur 7</string>
-    <string name="md_week_unavail">Sans valeurs quotidiennes (pas encore de séries quotidiennes vérifiées ; les valeurs de l’appareil n’apparaissent qu’en direct) : durée de sommeil, calories, minutes d’intensité, stress.</string>
+    <string name="md_week_unavail">Sans valeurs quotidiennes (pas encore de séries quotidiennes vérifiées ; les valeurs de l’appareil n’apparaissent qu’en direct) : durée du sommeil, calories, minutes d’intensité.</string>
     <string name="md_week_goal">Objectif (%1$s) atteint sur %2$s des %3$s jours avec données.</string>
     <string name="md_week_avg_steps">Ø pas par jour</string>
     <string name="md_week_total_steps">Total des pas</string>
     <string name="md_week_total_val">%1$s (jours avec données uniquement)</string>
     <string name="md_week_avg_rest">Ø pouls au repos de l’appareil</string>
+    <string name="md_week_avg_stress">Ø stress (bracelet, échelle de l’appareil)</string>
     <string name="md_atlas_summary">%1$s jours sur %2$s avec valeurs de pas vérifiées</string>
     <string name="md_atlas_none">%1$s\nAucune donnée quotidienne vérifiée.</string>
     <string name="md_atlas_partial">%1$s\nJusqu’ici %2$s pas (aujourd’hui, pas encore terminé).</string>
@@ -1013,6 +1017,16 @@
     <string name="ht_m_cycles">Cycles de monitoring</string>
     <string name="ht_m_activity_type">Type d’activité (code)</string>
     <string name="ht_m_intensity_code">Intensité de mouvement (code)</string>
+    <string name="ht_m_hrv">VFC (ms)</string>
+    <string name="ht_m_hrv_week">VFC moyenne hebdo (ms)</string>
+    <string name="ht_m_hrv_night">VFC nuit dernière (ms)</string>
+    <string name="ht_m_hrv_night_high">VFC nuit dernière, 5 min max (ms)</string>
+    <string name="ht_m_resting_today">Pouls au repos aujourd’hui</string>
+    <string name="ht_m_active_time">Temps actif (s)</string>
+    <string name="ht_m_act_avg_hr">Activité · pouls moyen</string>
+    <string name="ht_m_act_max_hr">Activité · pouls max.</string>
+    <string name="ht_m_act_kcal">Activité · calories (kcal)</string>
+    <string name="ht_m_act_duration">Activité · durée (s)</string>
     <string name="ht_m_distance">Distance (m)</string>
     <string name="ht_m_speed">Vitesse (m/s)</string>
     <string name="ht_m_cadence">Cadence (tr/min)</string>
@@ -1038,6 +1052,8 @@
     <string name="sd_spo2_band">SpO₂ · bracelet (FIT), qualité non vérifiée</string>
     <string name="sd_resp_band">Fréquence respiratoire · bracelet (FIT)</string>
     <string name="sd_stress_band">Stress · bracelet (FIT, échelle de l’appareil)</string>
+    <string name="sd_hrv_band">VFC · Bracelet (FIT, ms, valeur de l’appareil)</string>
+    <string name="sd_rhr_band">Pouls au repos · Bracelet (FIT)</string>
     <string name="sd_src_band">Source : bracelet · Base de temps : heure de mesure du bracelet</string>
     <string name="sd_src_live">Source : téléphone (direct) · Base de temps : heure de réception</string>
     <string name="sd_loading">Lecture des données …</string>
@@ -1066,10 +1082,10 @@
     <string name="sd_unverified">Valeurs de qualité non vérifiée (cercles creux)</string>
     <string name="sd_gaps">%1$d lacunes (hachurées, non comblées)</string>
     <string name="sd_na_title">Pas encore disponible</string>
-    <string name="sd_na_sleep">Sommeil : aucun intervalle de sommeil vérifié.</string>
-    <string name="sd_na_activity">Courbe d’activité : la base de temps de l’activité du bracelet n’est pas établie.</string>
-    <string name="sd_na_hrv">VFC : il n’y a que des intervalles RR, pas d’analyse de VFC vérifiée.</string>
-    <string name="sd_na_temp">Température : la prise en charge par le bracelet n’est pas établie.</string>
+    <string name="sd_na_sleep">Sommeil : les phases de sommeil du bracelet figurent dans l’historique (codes) ; PulsLibre n’en calcule pas encore la durée ni un score.</string>
+    <string name="sd_na_activity">Activité : les minutes et calories actives du bracelet figurent dans l’historique (compteurs) ; PulsLibre n’en déduit pas encore de courbe d’activité.</string>
+    <string name="sd_na_hrv">VFC : les valeurs VFC du bracelet sont affichées ci-dessus (valeur de l’appareil, non vérifiée) ; PulsLibre ne calcule pas de VFC à partir des intervalles RR.</string>
+    <string name="sd_na_temp">Température : le bracelet ne fournit qu’un écart nocturne de température cutanée (°C), affiché dans l’historique ; pas de température absolue.</string>
     <string name="sd_cd">%1$s. %2$s</string>
     <!-- REVIEW: Übersetzung (ChatGPT/Projektinhaber prüfen) -->
     <string name="dev_meta_gatt_appearance">Apparence</string>

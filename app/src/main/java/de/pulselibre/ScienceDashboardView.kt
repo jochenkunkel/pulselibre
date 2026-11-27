@@ -37,7 +37,8 @@ internal class ScienceDashboardView(context: Context) : LinearLayout(context) {
         R.string.sd_spo2 to ScienceSeriesLoader.SPO2_LIVE, R.string.sd_resp to ScienceSeriesLoader.RESPIRATION_LIVE,
         R.string.sd_stress to ScienceSeriesLoader.STRESS_LIVE,
         R.string.sd_spo2_band to ScienceSeriesLoader.SPO2_BAND, R.string.sd_resp_band to ScienceSeriesLoader.RESPIRATION_BAND,
-        R.string.sd_stress_band to ScienceSeriesLoader.STRESS_BAND)
+        R.string.sd_stress_band to ScienceSeriesLoader.STRESS_BAND,
+        R.string.sd_hrv_band to ScienceSeriesLoader.HRV_BAND, R.string.sd_rhr_band to ScienceSeriesLoader.RESTING_HR_BAND)
 
     /**
      * Band cards and the FIT message kind they show (data source matrix, docs/product/ui/DATENQUELLEN_DIAGRAMME.md):

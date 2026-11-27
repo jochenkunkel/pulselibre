@@ -128,9 +128,12 @@
     <string name="main_status_ready">Sin conexión · preparado</string>
     <string name="main_hist_status_none">Todavía no se ha iniciado ninguna descarga de datos históricos.</string>
     <string name="sync_sum_complete">Descarga completa: %1$d archivos transferidos.</string>
-    <string name="sync_sum_pull_rejected">La pulsera rechazó la descarga del primer archivo (código %1$s). Ofrecía %2$d archivos; no se solicitaron otros %3$d.</string>
+    <string name="sync_sum_pull_rejected">La pulsera rechazó descargas de archivos (código %1$s). Ofrecía %2$d archivos; no se solicitaron otros %3$d.</string>
     <string name="sync_sum_followup_empty">%1$d de %2$d archivos ofrecidos transferidos; después la pulsera no informó de más. No está demostrado que el historial esté completo.</string>
     <string name="sync_sum_partial">%1$d de %2$d archivos ofrecidos transferidos.</string>
+    <string name="sync_sum_no_daily_history">La pulsera solo ofreció registros de actividad, sin historial diario (estrés, SpO₂, respiración, pulso continuo, sueño). Motivo habitual: Garmin Connect ya recogió estos archivos de la pulsera.</string>
+    <string name="sync_sum_skipped">%1$d archivos ya guardados no se volvieron a transferir.</string>
+    <string name="sync_sum_flush_unanswered">La pulsera no confirmó la solicitud de cerrar sus datos del día; pueden faltar valores desde la última descarga.</string>
     <string name="sync_sum_details">Detalles técnicos (toca para desplegar):</string>
     <string name="main_hist_heading">Datos históricos del dispositivo</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
@@ -539,12 +542,13 @@
     <string name="md_cov_hint">faltan días para una afirmación de tendencia (se necesitan al menos %1$s)</string>
     <string name="tr_week_value">%1$s: %2$s</string>
     <string name="md_week_cov">%1$s de 7 días</string>
-    <string name="md_week_unavail">Sin valores diarios (aún no hay series diarias verificadas; los valores del dispositivo solo aparecen en directo): duración del sueño, calorías, minutos de intensidad, estrés.</string>
+    <string name="md_week_unavail">Sin valores diarios (aún no hay series diarias verificadas; los valores del dispositivo solo aparecen en directo): duración del sueño, calorías, minutos de intensidad.</string>
     <string name="md_week_goal">Objetivo (%1$s) alcanzado en %2$s de %3$s días con datos.</string>
     <string name="md_week_avg_steps">Ø pasos por día</string>
     <string name="md_week_total_steps">Total de pasos</string>
     <string name="md_week_total_val">%1$s (solo días con datos)</string>
     <string name="md_week_avg_rest">Ø pulso en reposo del dispositivo</string>
+    <string name="md_week_avg_stress">Ø estrés (pulsera, escala del dispositivo)</string>
     <string name="md_atlas_summary">%1$s de %2$s días con valores de pasos verificados</string>
     <string name="md_atlas_none">%1$s\nSin datos diarios verificados.</string>
     <string name="md_atlas_partial">%1$s\nHasta ahora %2$s pasos (hoy, aún sin terminar).</string>
@@ -1013,6 +1017,16 @@
     <string name="ht_m_cycles">Ciclos de monitorización</string>
     <string name="ht_m_activity_type">Tipo de actividad (código)</string>
     <string name="ht_m_intensity_code">Intensidad de movimiento (código)</string>
+    <string name="ht_m_hrv">VFC (ms)</string>
+    <string name="ht_m_hrv_week">VFC media semanal (ms)</string>
+    <string name="ht_m_hrv_night">VFC anoche (ms)</string>
+    <string name="ht_m_hrv_night_high">VFC anoche, 5 min máx. (ms)</string>
+    <string name="ht_m_resting_today">Pulso en reposo hoy</string>
+    <string name="ht_m_active_time">Tiempo activo (s)</string>
+    <string name="ht_m_act_avg_hr">Actividad · pulso medio</string>
+    <string name="ht_m_act_max_hr">Actividad · pulso máx.</string>
+    <string name="ht_m_act_kcal">Actividad · calorías (kcal)</string>
+    <string name="ht_m_act_duration">Actividad · duración (s)</string>
     <string name="ht_m_distance">Distancia (m)</string>
     <string name="ht_m_speed">Velocidad (m/s)</string>
     <string name="ht_m_cadence">Cadencia (rpm)</string>
@@ -1038,6 +1052,8 @@
     <string name="sd_spo2_band">SpO₂ · pulsera (FIT), calidad no verificada</string>
     <string name="sd_resp_band">Frecuencia respiratoria · pulsera (FIT)</string>
     <string name="sd_stress_band">Estrés · pulsera (FIT, escala del dispositivo)</string>
+    <string name="sd_hrv_band">VFC · Pulsera (FIT, ms, valor del dispositivo)</string>
+    <string name="sd_rhr_band">Pulso en reposo · Pulsera (FIT)</string>
     <string name="sd_src_band">Fuente: pulsera · Base de tiempo: hora de medición de la pulsera</string>
     <string name="sd_src_live">Fuente: teléfono (en vivo) · Base de tiempo: hora de recepción</string>
     <string name="sd_loading">Leyendo los datos …</string>
@@ -1066,10 +1082,10 @@
     <string name="sd_unverified">Valores de calidad sin verificar (círculos huecos)</string>
     <string name="sd_gaps">%1$d huecos (rayados, no rellenados)</string>
     <string name="sd_na_title">Aún no disponible</string>
-    <string name="sd_na_sleep">Sueño: no hay intervalos de sueño verificados.</string>
-    <string name="sd_na_activity">Curva de actividad: la base de tiempo de la actividad de la pulsera no está establecida.</string>
-    <string name="sd_na_hrv">VFC: solo hay intervalos RR, no un análisis de VFC verificado.</string>
-    <string name="sd_na_temp">Temperatura: la compatibilidad de la pulsera no está establecida.</string>
+    <string name="sd_na_sleep">Sueño: las fases de sueño de la pulsera aparecen en el historial (como códigos); PulsLibre aún no calcula duración ni puntuación.</string>
+    <string name="sd_na_activity">Actividad: los minutos y calorías activos de la pulsera aparecen en el historial (contadores); PulsLibre aún no deriva una curva de actividad.</string>
+    <string name="sd_na_hrv">VFC: los valores VFC de la pulsera se muestran arriba (valor del dispositivo, no verificado); PulsLibre no calcula la VFC a partir de intervalos RR.</string>
+    <string name="sd_na_temp">Temperatura: la pulsera solo informa una desviación nocturna de la temperatura de la piel (°C), en el historial; no hay temperatura absoluta.</string>
     <string name="sd_cd">%1$s. %2$s</string>
     <!-- REVIEW: Übersetzung (ChatGPT/Projektinhaber prüfen) -->
     <string name="dev_meta_gatt_appearance">Apariencia</string>

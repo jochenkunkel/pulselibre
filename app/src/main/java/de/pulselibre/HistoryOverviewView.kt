@@ -283,6 +283,21 @@ class HistoryOverviewView(
         "monitoring_cycles" -> R.string.ht_m_cycles
         "monitoring_activity_type", "monitoring_current_activity_type" -> R.string.ht_m_activity_type
         "monitoring_intensity_code" -> R.string.ht_m_intensity_code
+        // #150
+        "hrv" -> R.string.ht_m_hrv
+        "hrv_weekly_average" -> R.string.ht_m_hrv_week
+        "hrv_last_night_average" -> R.string.ht_m_hrv_night
+        "hrv_last_night_5_min_high" -> R.string.ht_m_hrv_night_high
+        "resting_heart_rate" -> R.string.ht_m_resting
+        "current_day_resting_heart_rate" -> R.string.ht_m_resting_today
+        "active_calories" -> R.string.ht_m_kcal_active
+        "active_time" -> R.string.ht_m_active_time
+        "moderate_activity_minutes" -> R.string.ht_m_min_moderate
+        "vigorous_activity_minutes" -> R.string.ht_m_min_vigorous
+        "activity_avg_heart_rate" -> R.string.ht_m_act_avg_hr
+        "activity_max_heart_rate" -> R.string.ht_m_act_max_hr
+        "activity_calories" -> R.string.ht_m_act_kcal
+        "activity_duration" -> R.string.ht_m_act_duration
         "distance" -> R.string.ht_m_distance
         "speed" -> R.string.ht_m_speed
         "cadence" -> R.string.ht_m_cadence

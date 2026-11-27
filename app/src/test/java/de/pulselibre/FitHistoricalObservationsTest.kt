@@ -866,4 +866,72 @@ class FitHistoricalObservationsTest {
         assertEquals(FitHistoricalObservations.MAX_OBSERVATIONS, atLimit!!.observations.size)
         assertNull(FitHistoricalObservations.decode(heartRateFile(FitHistoricalObservations.MAX_OBSERVATIONS + 1)))
     }
+
+    // #707: proprietary 233/2 (4-byte array) and 397/1 (float32) have no Garmin profile meaning. They must never become
+    // measurements or review candidates, but their exact bytes stay in the raw generation and in the unknown inventory.
+    @Test fun proprietary233And397StayRawUnchangedAndNeverBecomeMeasurements() {
+        val ts = 0x10000000 + 200_000
+        val tag = byteArrayOf(0xC0.toByte(), 0x2A, 0x01, 0xB8.toByte())
+        val data = byteArrayOf(0x40, 0, 0, 0xE9.toByte(), 0x00, 2, 253.toByte(), 4, 0x86.toByte(), 2, 4, 0x0D) +
+            byteArrayOf(0) + u32(ts) + tag +
+            byteArrayOf(0x41, 0, 0, 0x8D.toByte(), 0x01, 2, 253.toByte(), 4, 0x86.toByte(), 1, 4, 0x88.toByte()) +
+            byteArrayOf(1) + u32(ts + 1) + f32(36.75f)
+        val result = FitHistoricalObservations.decode(fit(data))!!
+        assertTrue(result.observations.isEmpty())
+        assertTrue(result.reviewCandidates.isEmpty())
+        val f233 = result.decodedFields.single { it.globalMessageNumber == 233 && it.fieldNumber == 2 }
+        assertArrayEquals(tag, f233.rawBytes)
+        val f397 = result.decodedFields.single { it.globalMessageNumber == 397 && it.fieldNumber == 1 }
+        assertArrayEquals(f32(36.75f), f397.rawBytes)
+        assertEquals(0x88, f397.baseTypeCode)
+        assertTrue(result.unknownFields.any { it.globalMessageNumber == 233 })
+        assertTrue(result.unknownFields.any { it.globalMessageNumber == 397 })
+    }
+
+    // #150: Garmin profile 21.222.0 – hrv_value 371/0 (uint16, scale 128, ms), monitoring_hr_data 211/0+1 (uint8 bpm),
+    // monitoring 55/19 active_calories (uint16 kcal). Values from the real-file range (HRV 34 ms, resting pulse 71).
+    @Test fun decodesHrvRestingHeartRateAndActiveCaloriesWithProfileScale() {
+        val ts = 0x10000000 + 300_000
+        val data = byteArrayOf(0x40, 0, 0, 0x73, 0x01, 2, 253.toByte(), 4, 0x86.toByte(), 0, 2, 0x84.toByte()) +
+            byteArrayOf(0) + u32(ts) + u16(34 * 128) +
+            byteArrayOf(0x41, 0, 0, 0xD3.toByte(), 0x00, 3, 253.toByte(), 4, 0x86.toByte(), 0, 1, 0x02, 1, 1, 0x02) +
+            byteArrayOf(1) + u32(ts + 60) + byteArrayOf(71, 0xFF.toByte()) +
+            byteArrayOf(0x42, 0, 0, 55, 0, 2, 253.toByte(), 4, 0x86.toByte(), 19, 2, 0x84.toByte()) +
+            byteArrayOf(2) + u32(ts + 120) + u16(737)
+        val result = FitHistoricalObservations.decode(fit(data))!!
+        val byMetric = result.observations.associateBy { it.metric }
+        assertEquals(34.0, byMetric.getValue(FitHistoricalObservations.Metric.HRV).value, 0.0)
+        assertEquals("ms", byMetric.getValue(FitHistoricalObservations.Metric.HRV).unit)
+        assertEquals(fitTime(ts.toLong()), byMetric.getValue(FitHistoricalObservations.Metric.HRV).timestampEpochMillis)
+        assertEquals(71.0, byMetric.getValue(FitHistoricalObservations.Metric.RESTING_HEART_RATE).value, 0.0)
+        // 0xFF is the uint8 invalid value: no current-day resting pulse is invented.
+        assertFalse(byMetric.containsKey(FitHistoricalObservations.Metric.CURRENT_DAY_RESTING_HEART_RATE))
+        assertEquals(737.0, byMetric.getValue(FitHistoricalObservations.Metric.ACTIVE_CALORIES).value, 0.0)
+        assertTrue(result.observations.all { it.quality == FitHistoricalObservations.Quality.PROFILE_VALID })
+        assertEquals("hrv", FitHistoricalObservations.PROFILE_SCALAR_CANDIDATES["hrv_value"])
+    }
+
+    @Test fun hrvWithWrongBaseTypeIsNotGuessed() {
+        val ts = 0x10000000 + 300_000
+        // field 0 declared as sint16 (0x83) instead of uint16: unsupported, never decoded.
+        val data = byteArrayOf(0x40, 0, 0, 0x73, 0x01, 2, 253.toByte(), 4, 0x86.toByte(), 0, 2, 0x83.toByte()) +
+            byteArrayOf(0) + u32(ts) + u16(34 * 128)
+        val result = FitHistoricalObservations.decode(fit(data))!!
+        assertTrue(result.observations.none { it.metric == FitHistoricalObservations.Metric.HRV })
+    }
+
+    // #150: session 18 – avg/max heart rate (uint8 bpm), total_calories (uint16 kcal), total_elapsed_time (uint32/1000 s).
+    @Test fun decodesActivitySummaryFromSessionMessage() {
+        val ts = 0x10000000 + 400_000
+        val data = byteArrayOf(0x40, 0, 0, 18, 0, 5, 253.toByte(), 4, 0x86.toByte(), 16, 1, 0x02, 17, 1, 0x02,
+                11, 2, 0x84.toByte(), 7, 4, 0x86.toByte()) +
+            byteArrayOf(0) + u32(ts) + byteArrayOf(99, 0xFF.toByte()) + u16(1250) + u32(14_466_135)
+        val result = FitHistoricalObservations.decode(fit(data))!!
+        val byMetric = result.observations.associateBy { it.metric }
+        assertEquals(99.0, byMetric.getValue(FitHistoricalObservations.Metric.ACTIVITY_AVG_HEART_RATE).value, 0.0)
+        assertFalse(byMetric.containsKey(FitHistoricalObservations.Metric.ACTIVITY_MAX_HEART_RATE)) // 0xFF = invalid
+        assertEquals(1250.0, byMetric.getValue(FitHistoricalObservations.Metric.ACTIVITY_CALORIES).value, 0.0)
+        assertEquals(14_466.135, byMetric.getValue(FitHistoricalObservations.Metric.ACTIVITY_DURATION).value, 1e-9)
+        assertEquals(fitTime(ts.toLong()), byMetric.getValue(FitHistoricalObservations.Metric.ACTIVITY_DURATION).timestampEpochMillis)
+    }
 }

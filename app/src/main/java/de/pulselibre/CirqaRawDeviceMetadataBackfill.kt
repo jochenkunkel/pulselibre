@@ -81,7 +81,7 @@ class CirqaRawDeviceMetadataBackfill(
             return null
         }
         val sha256 = MessageDigest.getInstance("SHA-256").digest(bytes)
-            .joinToString("") { "%02x".format(it.toInt() and 0xff) }
+            .lowerHex()
         if (file.name != "$sha256.bin") return null
         val fields = CirqaRawDeviceMetadataParser.inspect(bytes) ?: return null
         return VerifiedXml(sha256, bytes.size.toLong(), fields)

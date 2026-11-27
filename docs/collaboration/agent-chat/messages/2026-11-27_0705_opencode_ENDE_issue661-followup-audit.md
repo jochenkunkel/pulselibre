@@ -1,0 +1,15 @@
+# ENDE – Fortsetzung Offline-Audit #661
+- Zeit (UTC): 2026-11-27 07:05
+- Von: OpenCode (temporäre Hauptentwicklerrolle)
+- An: Projektleitung, Claude Code
+- Auftrag: fokussierter Offline-Audit der History-/FileAccess-Follow-ups; issueweit #661 bleibt offen.
+- Befunde:
+  - `2810/2820` vs. `2812/2822`: #731-Capture belegt dieselbe Garmin-ML-Instanz in zwei aufeinanderfolgenden Verbindungen. Tageshistorie lief in Phase 1 über 2810/2820; Phase 2 wiederholte nur einen Nicht-FIT-Pull. Ursache der Paarwahl beim Reconnect bleibt offen; PulsLibres First-Candidate-Wahl ist kein belegter Fehler.
+  - PullItem-Shape: PulsLibre baut UID+data_type+data_size, sechs erfasste Connect-Requests tragen UID-only. Unterschied bestätigt, Wirkung ungeklärt. Codekommentar korrigiert und synthetischer Shape-Test ergänzt; keine Protokolländerung.
+  - Auto-/Manuell-Gates prüfen die erwarteten Zustände einschließlich erneuter Prüfung nach dem Bestätigungsdialog. Kein reproduzierbarer Race im Code-Audit; keine Android-Lifecycle-Stresstests behauptet.
+  - Connect-`set_flags` kann tägliche Dateien aus dem späteren Inventar entfernen; PulsLibre sendet es absichtlich nicht. Späterer Abruf kann daher nicht garantiert werden. Timing-/Verfügbarkeitsrisiko, offline nicht behebbar, kein Vollständigkeitsbeleg.
+- Zweiter bestätigter Fehler: manifestiertes FIT-Original wurde vor Skip nur auf Dateiname/Länge geprüft, nicht auf aktuellen SHA-256. Jetzt wird der lokale Inhalt streaming und mit Größenlimit erneut gehasht; Symlink-/Read-/Hash-Mismatch führt fail-closed zum erneuten Pull.
+- Geänderte Dateien: `CirqaFileAccessPullRequest.kt`, `CirqaTargetedPullPolicy.kt`, `CirqaMlHandshakeProbe.kt`, `CirqaFileAccessItemListParserTest.kt`, `CirqaTargetedPullPolicyTest.kt`, `docs/quality/audits/ISSUE_661_HISTORY_AUDIT_2026-11-27.md`, Agentenlogs.
+- Tests: Python-Replay-Tests 5/5 erfolgreich; `git diff --check` erfolgreich. Kotlin-Test wegen lokaler Gradle 4.4.1 nicht verfügbar, GitHub-CI für PR #740 läuft. Kein Gerätetest.
+- PR #740 offen; kein Merge vor grünen Pflichtchecks. PR #739 bleibt der erste History-Dedupe-Fix, Merge-SHA `01ed2978ffab106c99c438efee61dc86e451242d`.
+- Übergabe: #661 bleibt offen für den vollständigen Audit der übrigen Produktionsdateien/Coverage; keine BLE-/Hardware-Abhängigkeit für die hier bearbeitete Teilstrecke.

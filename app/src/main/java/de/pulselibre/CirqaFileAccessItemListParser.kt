@@ -1,5 +1,7 @@
 package de.pulselibre
 
+import java.security.MessageDigest
+
 /**
  * Offline-only reader for the Connect/FileAccess item list protobuf.
  *
@@ -26,6 +28,11 @@ object CirqaFileAccessItemListParser {
         /** Exact bounded ItemReference, retained locally including unknown metadata. */
         val referenceBytes: ByteArray = byteArrayOf()
     )
+
+    /** Exact-reference key for suppressing duplicate push notices within one run. */
+    fun pushDeduplicationKey(item: Item): String =
+        MessageDigest.getInstance("SHA-256").digest(item.referenceBytes).lowerHex()
+
     data class ItemListPage(
         val items: List<Item>,
         val status: Long?,
@@ -109,22 +116,7 @@ object CirqaFileAccessItemListParser {
         val gdxmlStrings = linkedMapOf<Long, String>()
         val items = ArrayList<Item>()
         for (entry in responseFields.filter { it.number == 4 && it.wire == 2 }) {
-            val f = fields(entry.bytes ?: return null) ?: return null
-            val uid = f.firstOrNull { it.number == 1 && it.wire == 2 }?.bytes ?: return null
-            if (uid.isEmpty()) return null
-            val dataType = f.firstOrNull { it.number == 2 && it.wire == 2 }?.bytes ?: byteArrayOf()
-            val dataTypeFields = fields(dataType) ?: return null
-            val typeLabel = dataTypeFields.firstOrNull { it.number == 2 && it.wire == 2 }
-                ?.bytes?.toString(Charsets.UTF_8)
-            val stringKey = dataTypeFields.firstOrNull { it.number == 3 && it.wire == 0 }?.varint
-            if (typeLabel != null && stringKey != null) gdxmlStrings[stringKey] = typeLabel
-            val size = f.firstOrNull { it.number == 3 && it.wire == 0 }?.varint ?: 0L
-            val flags = f.firstOrNull { it.number == 4 && it.wire == 0 }?.varint ?: 0L
-            val transaction = f.firstOrNull { it.number == 5 && it.wire == 0 }?.varint
-            val modified = f.firstOrNull { it.number == 7 && it.wire == 0 }?.varint
-            if (transaction != null && transaction !in 0..0xffff_ffffL) return null
-            if (modified != null && modified !in 0..0xffff_ffffL) return null
-            items.add(Item(uid, dataType, size, flags, transaction, modified, entry.bytes.copyOf()))
+            items.add(parseItemReference(entry.bytes ?: return null, gdxmlStrings) ?: return null)
         }
         val sessionId = responseFields.firstOrNull { it.number == 2 && it.wire == 0 }?.varint
         val nextTransactionId = responseFields.firstOrNull { it.number == 3 && it.wire == 0 }?.varint
@@ -138,6 +130,43 @@ object CirqaFileAccessItemListParser {
             gdxmlStrings = gdxmlStrings,
             complete = true
         )
+    }
+
+    /** One ItemReference{uid(1), data_type(2), data_size(3), flags(4), transaction_id(5), modified_time(7)}; fail-closed. */
+    private fun parseItemReference(bytes: ByteArray, gdxmlStrings: MutableMap<Long, String>): Item? {
+        val f = fields(bytes) ?: return null
+        val uid = f.firstOrNull { it.number == 1 && it.wire == 2 }?.bytes ?: return null
+        if (uid.isEmpty()) return null
+        val dataType = f.firstOrNull { it.number == 2 && it.wire == 2 }?.bytes ?: byteArrayOf()
+        val dataTypeFields = fields(dataType) ?: return null
+        val typeLabel = dataTypeFields.firstOrNull { it.number == 2 && it.wire == 2 }
+            ?.bytes?.toString(Charsets.UTF_8)
+        val stringKey = dataTypeFields.firstOrNull { it.number == 3 && it.wire == 0 }?.varint
+        if (typeLabel != null && stringKey != null) gdxmlStrings[stringKey] = typeLabel
+        val size = f.firstOrNull { it.number == 3 && it.wire == 0 }?.varint ?: 0L
+        val flags = f.firstOrNull { it.number == 4 && it.wire == 0 }?.varint ?: 0L
+        val transaction = f.firstOrNull { it.number == 5 && it.wire == 0 }?.varint
+        val modified = f.firstOrNull { it.number == 7 && it.wire == 0 }?.varint
+        if (transaction != null && transaction !in 0..0xffff_ffffL) return null
+        if (modified != null && modified !in 0..0xffff_ffffL) return null
+        return Item(uid, dataType, size, flags, transaction, modified, bytes.copyOf())
+    }
+
+    /** A file the band announced on its own (#637). */
+    data class ItemAvailable(val item: Item, val gdxmlStrings: Map<Long, String>)
+
+    /**
+     * Device-initiated Smart.file_access_service(43) -> field 12 {1: ItemReference}. In the Garmin Connect capture
+     * (#637) the band sends this for every new monitoring (FIT 32/44), sleep (49) or other file while connected,
+     * and Connect pulls the item right away. Read-only: parsing never triggers flags or deletion.
+     */
+    fun parseItemAvailable(smart: ByteArray): ItemAvailable? {
+        val service = fields(smart)?.firstOrNull { it.number == 43 && it.wire == 2 }?.bytes ?: return null
+        val notice = fields(service)?.firstOrNull { it.number == 12 && it.wire == 2 }?.bytes ?: return null
+        val reference = fields(notice)?.firstOrNull { it.number == 1 && it.wire == 2 }?.bytes ?: return null
+        val strings = linkedMapOf<Long, String>()
+        val item = parseItemReference(reference, strings) ?: return null
+        return ItemAvailable(item, strings)
     }
 
     /** Extract Service.pull_item_response(2) -> PullItemDataResponse from a Smart message. */

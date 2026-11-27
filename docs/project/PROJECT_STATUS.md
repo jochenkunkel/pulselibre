@@ -1,5 +1,27 @@
 # PulsLibre – zentraler Projektstatus und Chat-Übergabe
 
+> **Historien-Download und Tageshistorie – Stand 27.11.2026 (Claude Code, einziger ausführender Agent seit 26.11.):**
+> - **Download am S10 belegt.** Am 26.11. wurden 29/29 Dateien übertragen. Am 27.11. bot das Band nach pausiertem Garmin Connect erstmals Tageshistorie an: 46 Dateien, darunter 2× monitoring_b, 6× Typ 44, Schlaf (49), 73 und 68. Alle 46 wurden übertragen, verifiziert und archiviert.
+> - **Der Abruf ist abgesichert:**
+>   - Leerlauf- und Gesamtfrist (#719); abgelehnte Einzeldateien brechen den Lauf nicht ab.
+>   - Automatischer Abruf beim App-Vordergrund und Abruf vom Band gemeldeter Dateien (#732).
+>   - Bereits importierte Dateien mit belegter Identität werden übersprungen (#733 und #740).
+> - **Garmin Connect:** Connect setzt nach jedem Abruf ein Flag. Danach verschwinden die Tagesdateien vom Band, Aktivitäten bleiben (#731). PulsLibre setzt keine Flags; wer zuerst abruft, erhält die Tagesdaten.
+> - **Decoder:**
+>   - Gegen das Garmin FIT SDK auf 37 echten Dateien zu 100 % identisch (#727, #729).
+>   - Decoder 7 ergänzt HRV, Ruhepuls und Aktivminuten/-kalorien (#735).
+>   - Proprietäre Felder 233/397 bleiben Rohdaten (#730).
+> - **Importfehler monitoring_b (#744, Schema 12):** Feld 55/24 liefert zwei Komponenten. Der alte Eindeutigkeitsschlüssel verwarf die zweite, deshalb scheiterte jede monitoring_b-Datei beim Commit. Das war auch die Ursache der SOURCE_CONFLICTs aus #628.
+>   - Gerätenachweis S10, Build 2515: Backup vorher und nachher geprüft, In-place-Update, kein Bandkontakt.
+>   - Kanonisch kamen hinzu: Stress 0 → 755, SpO₂ 0 → 791, Atmung 0 → 787, Ganztagespuls +749. Die Werte stimmen exakt mit der SDK-geprüften Offline-Erwartung überein.
+>   - Keine Regression bei HRV, Schlaf und Hauttemperatur.
+>   - 0 neue Importfehler, Provenienz vollständig, keine Duplikate, eine aktive Generation je Quelle.
+>   - Details: Issue #637.
+> - **Nicht nachgewiesen:**
+>   - vollständige Gerätehistorie;
+>   - Aufbewahrungsdauer auf dem Band ohne Connect;
+>   - Akkustand (weder FIT noch GATT 0x180F).
+
 > **AKTUALISIERUNG 26.11.2026 – aktuelle Rollen und belegte Grenzen:** Claude Code / GUI-Agent übernimmt **alle offenen Tickets als alleiniger ausführender Agent**; vollständige Übergabe: [FIT → Claude](../collaboration/agent-sync/2026-11-26_195500_opencode-an-claude_complete-handoff.md). Die früheren FIT-/OpenCode-/CI-Rollenangaben in diesem langen Statusdokument sind **datierte Historie**, keine aktuellen Zuständigkeiten. Seit dem früheren Stand sind u. a. #705 (archivierte FIT-Originale wieder dekodierbar), #712 (Sync-Diagnose bis 64 KiB, Ergebnisblock priorisiert), #713 (synthetische Full-Pull-Wiederholung nach Neustart), #717 (269/2 uint8), #720 (dateibezogene Importfehler) und #722 (Code-Erreichbarkeitsaudit) gemergt. **#637 bleibt P0:** Im dokumentierten S10-Lauf waren 29 Dateien ausgewählt, 28 Streams archiviert; der 29. Pull blieb bis zum 120-s-Limit unbeantwortet. Der alte Bericht war abgeschnitten; #712 kann ihn nicht rückwirkend vervollständigen. Vollständige historische Monitoring-Abdeckung ist **nicht bewiesen**. **#707:** unabhängiger Vergleich mit Garmin FIT SDK 21.222.0 nur auf synthetischen Vektoren (32/33 Matches, bewusste HR=0-Abweichung; timestamp16 nicht direkt vergleichbar); private Originale beim GUI-Agenten `NOT_AVAILABLE`, keine repräsentative ≥95-%-Aussage. Proprietäre 233/397 und SpO₂-Confidence-Semantik offen. **Vor #637-Arbeit dirty Worktree aus Übergabe untersuchen/sichern.** Die nachfolgenden Abschnitte behalten ihre ursprüngliche Datierung und Evidenzgrenzen.
 
 > **P0 – vollständige Banddatenerfassung (24.11.2026):** Maßgeblich ist [DATA_ACQUISITION_PRIORITY.md](../protocol/DATA_ACQUISITION_PRIORITY.md): alle technisch zugänglichen zulässigen Daten lokal archivieren, medizinische Validierung nachgelagert. Generation-scoped FIT-Feldbytes mit Provenienz/Digest, atomarem Replay/Aktivierung/Rollback, SQLite v11 und Backup v10 wurden mit PR [#610](https://github.com/jochenkunkel/pulselibre/pull/610) gemergt (`267c3558`); verlustfreie private BLE-Notification-Archivierung kam mit #609 hinzu. Unabhängiges Review empfahl Merge; PR-Head-FULL/API-35 und Post-Merge-FULL auf `main` grün. Post-Merge-Lauf [45354853683](https://github.com/jochenkunkel/pulselibre/actions/runs/45354853683): Build/Unit/Lint/R8/APK und API-35-Emulator erfolgreich. Keine Hardwaretests oder Änderung des BLE-Transportverhaltens. [FIT-Vertrag und Evidenz](../protocol/data/COMPLETE_BAND_DATA_PERSISTENCE.md).

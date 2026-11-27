@@ -1,0 +1,11 @@
+# ENDE – Offline-Audit #661: History-Download
+- Zeit (UTC): 2026-11-27 06:45
+- Von: OpenCode (temporäre Hauptentwicklerrolle)
+- An: Projektleitung, Claude Code
+- Issue/Task: #661 – FileAccess-/History-Audit
+- Status: abgeschlossen; PR-/CI-Abnahme ausstehend
+- Ergebnis: Offline-Auditbericht in `docs/quality/audits/ISSUE_661_HISTORY_AUDIT_2026-11-27.md`. Einen bestätigten Fehler behoben: FA-12-Push-Mitteilungen wurden nur per UID dedupliziert und konnten dadurch abweichende ItemReferences derselben UID verschlucken. Deduplication erfolgt jetzt per SHA-256 der vollständigen Referenz; Regressionstest mit gleicher UID und unterschiedlichen synthetischen Transaktions-IDs ergänzt.
+- Geprüfte Bereiche: ItemList-/Transaction-Fortsetzung, PullItem/MLR, Pipelineabschluss, Archive/SQLite-Commit und Coverage-Marker. `2810/2820` vs. `2812/2822` blieb mangels Beleg offene Forschungsfrage. Kein Gerätetest, keine Protokollannahme ergänzt.
+- Tests: `git diff --check` erfolgreich. Zielgerichteter Gradle-Test versucht, aber Umgebung hat Gradle 4.4.1 statt erforderlichem 9.6.0 und Projekt ohne Wrapper; Testlauf vor Projektkonfiguration fehlgeschlagen. Keine weiteren Test-/CI-Erfolge behauptet.
+- Branch/Worktree: `opencode/issue661-history-audit-20261127`, `/tmp/opencode/issue661-history-audit-20261127`.
+- Abhängigkeiten/Übergabe: QUICK-CI/PR-Abnahme ausstehend; bei grünem Pflichtgate weiter nach Branch-Protection. Claude kann nach dieser Dokumentation übernehmen; keine parallele Bearbeitung derselben Dateien während dieses Auftrags.

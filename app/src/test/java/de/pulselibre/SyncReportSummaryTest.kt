@@ -16,7 +16,7 @@ class SyncReportSummaryTest {
         "files=[successful=38,notSuccessful=0,selected=38]; terminal=[listed=38,selected=38,pendingQueue=0]"
 
     @Test fun rejectedPullNamesCodeOfferedAndUnrequestedFiles() {
-        assertEquals("Das Band hat den Abruf der ersten Datei abgelehnt (Code 3). Es hatte 38 Dateien angeboten; " +
+        assertEquals("Das Band hat Dateiabrufe abgelehnt (Code 3). Es hatte 38 Dateien angeboten; " +
             "37 weitere wurden nicht angefragt.", SyncReportSummary.explain(GermanStrings, rejected))
     }
 
@@ -36,5 +36,38 @@ class SyncReportSummaryTest {
         val shown = SyncReportSummary.display(GermanStrings, rejected)
         assertTrue(shown.endsWith(rejected))
         assertTrue(shown.contains("Technische Details (antippen zum Aufklappen):"))
+    }
+
+    // #637, S10 26.11.: after a Garmin Connect sync the band only listed activity/workout/device files.
+    private val onlyActivity = followupEmpty + "; items=[page=1,status=0,items=29;items=29; " +
+        "types=FIT_TYPE_4:20,FIT_TYPE_5:4,FIT_TYPE_1:1,format_3:1,FIT_TYPE_72:1,format_0:1,FIT_TYPE_74:1; sizes=1|page=2,status=0,items=0; types=; sizes=]"
+
+    @Test fun offeredTypesAreParsedFromAllPages() {
+        assertEquals(setOf(4, 5, 1, 72, 74), SyncReportSummary.offeredFitTypes(onlyActivity))
+    }
+
+    @Test fun onlyActivityFilesShowTheDailyHistoryHint() {
+        assertTrue(SyncReportSummary.lacksDailyHistory(onlyActivity))
+        val shown = SyncReportSummary.display(GermanStrings, onlyActivity)
+        assertTrue(shown, shown.contains("keine Tageshistorie") && shown.contains("Garmin Connect"))
+        assertTrue(shown.endsWith(onlyActivity))
+    }
+
+    @Test fun monitoringOrSleepFilesOrNoTypeInfoShowNoHint() {
+        assertTrue(!SyncReportSummary.lacksDailyHistory(onlyActivity.replace("FIT_TYPE_74:1", "FIT_TYPE_32:2")))
+        assertTrue(!SyncReportSummary.lacksDailyHistory(onlyActivity.replace("FIT_TYPE_74:1", "FIT_TYPE_49:1")))
+        assertTrue(!SyncReportSummary.lacksDailyHistory(followupEmpty))
+        assertTrue(!SyncReportSummary.display(GermanStrings, followupEmpty).contains("Tageshistorie"))
+    }
+
+    // #637/#752: say in words what the new report fields mean.
+    @Test fun skippedFilesAndUnansweredFlushAreExplained() {
+        val report = followupEmpty + "; files=[selected=6,skipped=43,pushed=0,monitoringFlush=sent,pages=4]"
+        val shown = SyncReportSummary.display(GermanStrings, report)
+        assertTrue(shown, shown.contains("43 bereits gespeicherte Dateien wurden nicht erneut übertragen"))
+        assertTrue(shown, shown.contains("nicht bestätigt"))
+        val answered = SyncReportSummary.display(GermanStrings, report.replace("monitoringFlush=sent", "monitoringFlush=answered"))
+        assertTrue(!answered.contains("nicht bestätigt"))
+        assertTrue(!SyncReportSummary.display(GermanStrings, followupEmpty).contains("nicht erneut übertragen"))
     }
 }

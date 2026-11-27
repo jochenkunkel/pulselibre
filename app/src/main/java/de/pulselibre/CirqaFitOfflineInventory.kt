@@ -303,5 +303,5 @@ internal object CirqaFitOfflineInventory {
     }
 
     private fun ByteArray.sha256Hex(): String = java.security.MessageDigest.getInstance("SHA-256")
-        .digest(this).joinToString("") { "%02x".format(it) }
+        .digest(this).lowerHex()
 }

@@ -11,7 +11,7 @@ class WeekSummaryTest {
 
     @Test fun averagesOnlyCoverDaysWithDataAndMissingDaysAreNeverZero() {
         val steps = mapOf(d(1) to 8000.0, d(2) to 6000.0, d(4) to 10000.0)
-        val r = WeekSummary.build(steps, emptyMap(), today, null, fmt)
+        val r = WeekSummary.build(steps, emptyMap(), today, null, format = fmt)
         assertEquals("8000", r.rows[0].value)
         assertEquals(3, r.rows[0].validDays)
         assertEquals("3 von 7 Tagen", r.rows[0].coverage())
@@ -20,13 +20,13 @@ class WeekSummaryTest {
 
     @Test fun todayAndOlderThanSevenDaysAreExcluded() {
         val steps = mapOf(today to 99999.0, d(8) to 99999.0, d(7) to 1000.0)
-        val r = WeekSummary.build(steps, emptyMap(), today, null, fmt)
+        val r = WeekSummary.build(steps, emptyMap(), today, null, format = fmt)
         assertEquals("1000", r.rows[0].value)
         assertEquals(1, r.rows[0].validDays)
     }
 
     @Test fun noDataIsStatedNotShownAsZero() {
-        val r = WeekSummary.build(emptyMap(), emptyMap(), today, 8000, fmt)
+        val r = WeekSummary.build(emptyMap(), emptyMap(), today, 8000, format = fmt)
         assertTrue(r.rows.all { it.value == null && it.validDays == 0 })
         assertEquals("Ø Schritte pro Tag: keine Daten", r.rows[0].text())
         assertNull(r.rows[0].detail)
@@ -34,19 +34,33 @@ class WeekSummaryTest {
 
     @Test fun restingPulseUsesOnlyReportedPositiveValues() {
         val rest = mapOf(d(1) to 58.0, d(2) to 0.0, d(3) to Double.NaN, d(5) to 62.0)
-        val r = WeekSummary.build(emptyMap(), rest, today, null, fmt)
+        val r = WeekSummary.build(emptyMap(), rest, today, null, format = fmt)
         assertEquals("60 bpm", r.rows[2].value)
         assertEquals(2, r.rows[2].validDays)
     }
 
     @Test fun goalStatementCountsDaysAtOrAboveGoalOverDaysWithData() {
         val steps = mapOf(d(1) to 8100.0, d(2) to 8099.0, d(3) to 9000.0)
-        val r = WeekSummary.build(steps, emptyMap(), today, 8100, fmt)
+        val r = WeekSummary.build(steps, emptyMap(), today, 8100, format = fmt)
         assertEquals("Ziel (8100) erreicht an 2 von 3 Tagen mit Daten.", r.rows[0].detail)
-        assertNull(WeekSummary.build(steps, emptyMap(), today, null, fmt).rows[0].detail)
+        assertNull(WeekSummary.build(steps, emptyMap(), today, null, format = fmt).rows[0].detail)
     }
 
     @Test fun unavailableMetricsAreNamedWithReason() {
         assertTrue(WeekSummary.UNAVAILABLE.contains("Schlafdauer") && WeekSummary.UNAVAILABLE.contains("Ohne Tageswerte"))
+    }
+
+    // #329: band stress (FIT, device scale) as a daily series; days without band values are missing, not 0.
+    @Test fun bandStressDailyMeanCoversOnlyDaysWithValues() {
+        val zone = java.time.ZoneId.of("Europe/Berlin")
+        fun at(day: LocalDate, hour: Int) = day.atTime(hour, 0).atZone(zone).toInstant().toEpochMilli()
+        val daily = WeekSummary.dailyMean(listOf(at(d(1), 8) to 20.0, at(d(1), 9) to 40.0, at(d(3), 22) to 60.0,
+            at(d(2), 10) to 0.0, at(d(2), 11) to -1.0), zone)
+        assertEquals(mapOf(d(1) to 30.0, d(3) to 60.0), daily)
+        val r = WeekSummary.build(emptyMap(), emptyMap(), today, null, daily, format = fmt)
+        val row = r.rows.single { it.label == WeekSummary.STRESS_LABEL }
+        assertEquals("45", row.value)
+        assertEquals(2, row.validDays)
+        assertFalse(r.unavailable.contains("Stress"))
     }
 }

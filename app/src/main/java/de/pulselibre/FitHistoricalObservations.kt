@@ -16,7 +16,7 @@ object FitHistoricalObservations {
     private const val MIN_ABSOLUTE_FIT_TIME = 0x1000_0000L
     private const val INVALID_FIT_TIME = 0xffff_ffffL
     const val MAX_OBSERVATIONS = 50_000
-    const val DECODER_VERSION = "6"
+    const val DECODER_VERSION = "8"
     /** Review candidates evolve independently from the trusted observation decoder. */
     const val REVIEW_CANDIDATE_DECODER_VERSION = "3"
     const val PROFILE_VERSION = "21.222.0"
@@ -50,7 +50,64 @@ object FitHistoricalObservations {
         MONITORING_CURRENT_ACTIVITY_TYPE("profile_code"),
         /** #707: 55/24, high 3 bits. A context-dependent code, not a clinical load, MET or percentage. */
         MONITORING_INTENSITY_CODE("profile_code"),
+        /** #150: hrv_value 371/0 (profile: uint16, scale 128, ms). One value per 5-min window from the band. */
+        HRV("ms"),
+        /** #150: hrv_status_summary 370/0, 370/1, 370/2 (uint16, scale 128, ms). */
+        HRV_WEEKLY_AVERAGE("ms"),
+        HRV_LAST_NIGHT_AVERAGE("ms"),
+        HRV_LAST_NIGHT_5_MIN_HIGH("ms"),
+        /** #150: monitoring_hr_data 211/0 and 211/1 (uint8, bpm). */
+        RESTING_HEART_RATE("bpm"),
+        CURRENT_DAY_RESTING_HEART_RATE("bpm"),
+        /** #150: monitoring 55/19 (uint16 kcal), 55/4 (uint32, scale 1000, s), 55/33 and 55/34 (uint16 min). Device counters as written by the band. */
+        ACTIVE_CALORIES("kcal"),
+        ACTIVE_TIME("s"),
+        MODERATE_ACTIVITY_MINUTES("min"),
+        VIGOROUS_ACTIVITY_MINUTES("min"),
+        /** #150: activity summary `session` 18/16, 18/17 (uint8 bpm), 18/11 (uint16 kcal), 18/7 (uint32, scale 1000, s). Time = session end (253). */
+        ACTIVITY_AVG_HEART_RATE("bpm"),
+        ACTIVITY_MAX_HEART_RATE("bpm"),
+        ACTIVITY_CALORIES("kcal"),
+        ACTIVITY_DURATION("s"),
     }
+
+    /** #150: plain numeric Garmin profile 21.222.0 fields: message, field, profile name, base type, scale, unit, metric. */
+    private data class ProfileScalar(
+        val global: Int, val field: Int, val name: String, val baseType: Int, val scale: Double, val metric: Metric
+    )
+
+    private val PROFILE_SCALARS = listOf(
+        ProfileScalar(371, 0, "hrv_value", 0x84, 128.0, Metric.HRV),
+        ProfileScalar(370, 0, "hrv_weekly_average", 0x84, 128.0, Metric.HRV_WEEKLY_AVERAGE),
+        ProfileScalar(370, 1, "hrv_last_night_average", 0x84, 128.0, Metric.HRV_LAST_NIGHT_AVERAGE),
+        ProfileScalar(370, 2, "hrv_last_night_5_min_high", 0x84, 128.0, Metric.HRV_LAST_NIGHT_5_MIN_HIGH),
+        ProfileScalar(211, 0, "resting_heart_rate", 0x02, 1.0, Metric.RESTING_HEART_RATE),
+        ProfileScalar(211, 1, "current_day_resting_heart_rate", 0x02, 1.0, Metric.CURRENT_DAY_RESTING_HEART_RATE),
+        ProfileScalar(55, 19, "active_calories", 0x84, 1.0, Metric.ACTIVE_CALORIES),
+        ProfileScalar(55, 4, "active_time", 0x86, 1000.0, Metric.ACTIVE_TIME),
+        ProfileScalar(55, 33, "moderate_activity_minutes", 0x84, 1.0, Metric.MODERATE_ACTIVITY_MINUTES),
+        ProfileScalar(55, 34, "vigorous_activity_minutes", 0x84, 1.0, Metric.VIGOROUS_ACTIVITY_MINUTES),
+        ProfileScalar(18, 16, "session_avg_heart_rate", 0x02, 1.0, Metric.ACTIVITY_AVG_HEART_RATE),
+        ProfileScalar(18, 17, "session_max_heart_rate", 0x02, 1.0, Metric.ACTIVITY_MAX_HEART_RATE),
+        ProfileScalar(18, 11, "session_total_calories", 0x84, 1.0, Metric.ACTIVITY_CALORIES),
+        ProfileScalar(18, 7, "session_total_elapsed_time", 0x86, 1000.0, Metric.ACTIVITY_DURATION)
+    )
+    private val PROFILE_SCALAR_METRICS = PROFILE_SCALARS.associate { it.name to it.metric }
+
+    private val ZERO_IS_STATUS = setOf(
+        Metric.HRV, Metric.HRV_WEEKLY_AVERAGE, Metric.HRV_LAST_NIGHT_AVERAGE, Metric.HRV_LAST_NIGHT_5_MIN_HIGH,
+        Metric.RESTING_HEART_RATE, Metric.CURRENT_DAY_RESTING_HEART_RATE,
+        Metric.ACTIVITY_AVG_HEART_RATE, Metric.ACTIVITY_MAX_HEART_RATE
+    )
+
+    /** Stored (lowercase) metric keys of the #150 profile scalars; restore/validation must accept them. */
+    val PROFILE_SCALAR_METRIC_KEYS: Set<String> get() = PROFILE_SCALAR_CANDIDATES.values.toSet()
+
+    /** Review-candidate name -> stored metric key for the #150 profile scalars. */
+    val PROFILE_SCALAR_CANDIDATES: Map<String, String> get() = PROFILE_SCALARS.associate { it.name to it.metric.name.lowercase() }
+
+    /** Metric for a #150 profile-scalar review candidate name, or null. Shared with the SQLite committer. */
+    fun profileScalarMetric(profileFieldName: String): Metric? = PROFILE_SCALAR_METRICS[profileFieldName]
 
     enum class Quality { PROFILE_VALID, MISSING_TIMESTAMP, OUTSIDE_DISPLAY_RANGE }
     enum class TimestampOrigin { DIRECT, RECONSTRUCTED_TS16, RECONSTRUCTED_COMPRESSED, UNKNOWN }
@@ -655,6 +712,39 @@ object FitHistoricalObservations {
                 }
             }
 
+            // #150: plain numeric profile fields (HRV, resting heart rate, activity counters). Wrong base type ->
+            // unsupported; FIT invalid value -> sentinel; never guessed. Raw bytes stay in decodedFields.
+            for (spec in PROFILE_SCALARS) {
+                if (definition.globalNumber != spec.global) continue
+                val field = definition.fields.firstOrNull { it.number == spec.field } ?: continue
+                val offset = fieldBytes[field] ?: continue
+                val raw = readCandidateValue(file, offset, field, definition.bigEndian, expectedBaseType = spec.baseType)
+                when {
+                    raw == null -> {
+                        unsupportedFields++
+                        trackExcluded(spec.global, spec.field, null, spec.name, ExclusionReason.UNSUPPORTED_ENCODING)
+                    }
+                    raw == invalidSentinel(field) -> {
+                        invalidMeasurementFields++
+                        trackExcluded(spec.global, spec.field, null, spec.name, ExclusionReason.INVALID_SENTINEL)
+                    }
+                    else -> {
+                        if (reviewCandidates.size >= MAX_OBSERVATIONS) return null
+                        reviewCandidates += ReviewCandidate(
+                            profileFieldName = spec.name,
+                            value = raw.toDouble() / spec.scale,
+                            unit = spec.metric.unit,
+                            timestampEpochMillis = timestampMillis,
+                            sourceFileSha256 = fileSha,
+                            recordOrdinal = decodedRecordOrdinal,
+                            globalMessageNumber = spec.global,
+                            fieldNumber = spec.field,
+                            timestampOrigin = timestampOrigin
+                        )
+                    }
+                }
+            }
+
             // Keep sleep-level codes as review-only profile candidates. A
             // timestamped level transition is not by itself a validated sleep
             // interval or a derived sleep duration.
@@ -848,7 +938,7 @@ object FitHistoricalObservations {
                 "monitoring_activity_type" -> Metric.MONITORING_ACTIVITY_TYPE
                 MonitoringActivityIntensity.ACTIVITY_TYPE -> Metric.MONITORING_CURRENT_ACTIVITY_TYPE
                 MonitoringActivityIntensity.INTENSITY -> Metric.MONITORING_INTENSITY_CODE
-                else -> null
+                else -> PROFILE_SCALAR_METRICS[candidate.profileFieldName]
             } ?: return@mapNotNull null
             // Monitoring field 3 "cycles" has profile scale 2 (the steps/strokes subfields
             // are not applied here: no step count is derived from cycles).
@@ -861,7 +951,10 @@ object FitHistoricalObservations {
             if ((metric == Metric.STRESS && value !in 1.0..100.0) ||
                 (metric == Metric.RESPIRATION && value <= 0.0) ||
                 (metric == Metric.SPO2 && value !in 1.0..100.0) ||
-                (metric == Metric.MONITORING_ACTIVITY_TYPE && value >= 255.0)) return@mapNotNull null
+                (metric == Metric.MONITORING_ACTIVITY_TYPE && value >= 255.0) ||
+                // #150: 0 is not a heart-rate variability or resting heart rate; counters stay >= 0.
+                (metric in ZERO_IS_STATUS && value <= 0.0) ||
+                (metric in PROFILE_SCALAR_METRICS.values && value < 0.0)) return@mapNotNull null
             val quality = if (candidate.timestampEpochMillis == null)
                 Quality.MISSING_TIMESTAMP else Quality.PROFILE_VALID
             val semanticKey = "${metric.name}:${candidate.timestampEpochMillis ?: "missing"}:${value.toBits()}"
@@ -1072,7 +1165,7 @@ object FitHistoricalObservations {
 
     private fun sha256(value: ByteArray): String =
         MessageDigest.getInstance("SHA-256").digest(value)
-            .joinToString("") { "%02x".format(it.toInt() and 0xff) }
+            .lowerHex()
 }
 
 /**

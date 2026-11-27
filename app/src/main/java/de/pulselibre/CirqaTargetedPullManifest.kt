@@ -24,7 +24,7 @@ class CirqaTargetedPullManifest(private val storage: Storage) {
         val uidKey = sha256(item.uid)
         val typeKey = sha256(item.dataType)
         val policyIdentity = CirqaTargetedPullPolicy.ItemIdentity(
-            uidKey, typeKey, item.dataSize, item.flags
+            uidKey, typeKey, item.dataSize, item.flags, item.transactionId
         )
         return Identity(policyIdentity, CirqaTargetedPullPolicy.stabilityKey(policyIdentity))
     }
@@ -80,6 +80,6 @@ class CirqaTargetedPullManifest(private val storage: Storage) {
 
         private fun sha256(bytes: ByteArray): String =
             MessageDigest.getInstance("SHA-256").digest(bytes)
-                .joinToString("") { "%02x".format(it.toInt() and 255) }
+                .lowerHex()
     }
 }

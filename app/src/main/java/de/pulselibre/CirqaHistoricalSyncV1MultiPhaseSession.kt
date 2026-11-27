@@ -304,6 +304,7 @@ class CirqaHistoricalSyncV1MultiPhaseSession(val token: Any = Any(), val maxPhas
             val subtype = body[offset++].toInt() and 255
             result.add(type to subtype)
         }
+        if (offset != body.size) return null
         return result
     }
 
