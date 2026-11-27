@@ -1,15 +1,15 @@
 # OpenCode – Fortsetzung Offline-Audit #661
 - Agent/Umgebung: OpenCode, temporäre Hauptentwicklerrolle gemäß Owner-Auftrag vom 27.11.
 - Beginn: 2026-11-27 06:48 UTC
-- Status: aktiv – zusätzlicher bestätigter Safe-Skip-Fehler wird behoben
+- Status: aktiv – fortgesetzter Offline-Audit nach PR #740
 - Auftrag: Weiterführung des #661-Audits über den gemergten History/FileAccess-Teil aus #739 hinaus; keine Geräteaktion.
-- Basis: `origin/main=01ed2978`, Branch `opencode/issue661-history-audit-followup-20261127`.
+- Basis: `origin/main=9b0a3652`, Branch `opencode/issue661-ci-coverage-audit-20261127`.
 - Umfang: verbliebene Punkte des priorisierten History-Audits (2810/2820 vs. 2812/2822, ItemList-/Push-Selektion, fehlende Tageshistorie, Resume/Timeout, Auto-/Manuell-Race, Persistenz/Regressionstests); anschließend Komponenten-Audit gezielt nach Beleglage.
-- Erledigt: ItemList/PullItem, 2810/2820 vs. 2812/2822, Auto-/Manuell-Koordination, Timeout/Continuation, tägliche Historienverfügbarkeit nach Connect-set_flags und Regressionstestabdeckung vertieft. Python Replay-Tests 5/5.
-- Jetzt bearbeitet: Safe-Skip-Pfad prüfte lokales Original nur anhand Dateiname/Länge, nicht anhand Inhalt-SHA; echte Hashprüfung und synthetischer Regressionstest implementiert, noch nicht getestet von CI.
-- Betroffene Dateien: `CirqaFileAccessPullRequest.kt`, `CirqaTargetedPullPolicy.kt`, `CirqaMlHandshakeProbe.kt`, `CirqaFileAccessItemListParserTest.kt`, `CirqaTargetedPullPolicyTest.kt`, Auditbericht/Agentenlogs.
+- Erledigt: ItemList/PullItem, 2810/2820 vs. 2812/2822, Auto-/Manuell-Koordination, Timeout/Continuation, tägliche Historienverfügbarkeit nach Connect-set_flags, Verified-Skip-SHA-Fix (PR #740 gemergt), combined JVM/emulator coverage workflow, Legacy-Directory-/FIT-Auswahl und synthetische Grenzen. 5031 Supported-Types-Parser lehnt jetzt ungezählte Restbytes ab; Regressionstest ergänzt. Python Replay-Tests 5/5; PR #740 QUICK grün.
+- Jetzt bearbeitet: PR #741 enthält nun Auditdokumentation plus den eng begrenzten Parser-Fix und wartet auf aktualisierte Pflichtchecks. Danach übrige History-nahe Komponenten gegen Befundliste abgleichen.
+- Betroffene Dateien: primär `docs/quality/audits/ISSUE_661_HISTORY_AUDIT_2026-11-27.md`, Agentenlogs.
 - Abstimmungsbedarf: keiner gemäß Owner-Auftrag; keine Überschneidung mit Claude-PR #735 erkannt, nur aktuelle main verwenden.
 - Vorheriger Task: PR #739 gemergt als `01ed2978ffab106c99c438efee61dc86e451242d`; #661 bleibt bewusst offen für den breiteren Audit.
 - Befunde: 2810/2820 vs. 2812/2822 ist im #731-Capture aufgeklärt (selbe ML-Instanz, getrennte Verbindungen; Tageshistorie Phase 1). PullItem-Wire-Shape-Differenz ist belegt (PulsLibre UID/type/size, Connect capture UID-only), Wirkung bleibt unbelegt; kein Wire-Verhalten geändert. SetFlags-Ausblendung ist externes Verfügbarkeitsrisiko. Der Safe-Skip-Hashmangel ist ein bestätigter lokaler Sicherheits-/Datenverfügbarkeitsfehler.
 - Tests: Python Replay-Regressionen 5/5 bestanden; `git diff --check` folgt. Kotlin-Test läuft über GitHub-CI, lokale Gradle-Version inkompatibel.
-- Nächster Schritt: PR für zusätzliche Fixes; nach Pflichtchecks mergen, Issue #661 bleibt für übrige Produktionskomponenten offen.
+- Nächster Schritt: restliche History-relevante Files/Tests gegen Befundliste abgleichen; Issue #661 bleibt für übrige Produktionskomponenten offen.
