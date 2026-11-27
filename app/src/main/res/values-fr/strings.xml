@@ -186,7 +186,7 @@
     <string name="sleep_band_summary">%1$d changements de stade entre %2$s et %3$s (heure du bracelet)</string>
     <string name="sleep_band_cd">Stades de sommeil du bracelet : éveil %1$d, léger %2$d, profond %3$d, paradoxal %4$d, non mesurable %5$d signalements</string>
     <string name="sleep_band_legend">éveil %1$d · léger %2$d · profond %3$d · paradoxal %4$d · non mesurable %5$d</string>
-    <string name="sleep_band_note">Indique quand le bracelet a signalé quel stade. Aucune durée de sommeil n’est calculée tant que les intervalles ne sont pas validés.</string>
+    <string name="sleep_band_note">Chaque zone va d’une phase signalée au signalement suivant (heure du bracelet). Les lacunes et le temps après le dernier signalement restent vides ; aucune durée de sommeil n’est calculée.</string>
     <string name="metric_steps">Pas</string>
     <string name="metric_steps_today">Pas aujourd’hui</string>
     <string name="metric_no_data">Aucune donnée de mesure</string>
@@ -1149,4 +1149,10 @@
     <string name="hv_fold_count">%1$d valeurs</string>
     <string name="hv_fold_collapse_cd">Replier le graphique %1$s</string>
     <string name="hv_fold_expand_cd">Déplier le graphique %1$s</string>
+    <string name="sleep_band_night">Nuit du %1$s au %2$s</string>
+    <string name="sleep_band_day">Sommeil le %1$s</string>
+    <string name="sleep_stage_awake">Éveil</string>
+    <string name="sleep_stage_rem">Paradoxal</string>
+    <string name="sleep_stage_light">Léger</string>
+    <string name="sleep_stage_deep">Profond</string>
 </resources>

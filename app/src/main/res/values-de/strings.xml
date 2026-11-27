@@ -186,7 +186,7 @@
     <string name="sleep_band_summary">%1$d Stufenwechsel zwischen %2$s und %3$s (Bandzeit)</string>
     <string name="sleep_band_cd">Schlafstufen vom Band: wach %1$d, leicht %2$d, tief %3$d, REM %4$d, nicht messbar %5$d Meldungen</string>
     <string name="sleep_band_legend">wach %1$d · leicht %2$d · tief %3$d · REM %4$d · nicht messbar %5$d</string>
-    <string name="sleep_band_note">Markiert ist, wann das Band welche Stufe gemeldet hat. Eine Schlafdauer wird nicht berechnet, solange die Intervalle nicht geprüft sind.</string>
+    <string name="sleep_band_note">Jede Fläche reicht von einer gemeldeten Stufe bis zur nächsten Meldung (Bandzeit). Lücken und die Zeit nach der letzten Meldung bleiben leer; eine Schlafdauer wird nicht berechnet.</string>
     <string name="metric_steps">Schritte</string>
     <string name="metric_steps_today">Schritte heute</string>
     <string name="metric_no_data">Keine Messdaten</string>
@@ -1141,4 +1141,10 @@
     <string name="hv_fold_count">%1$d Werte</string>
     <string name="hv_fold_collapse_cd">Diagramm %1$s einklappen</string>
     <string name="hv_fold_expand_cd">Diagramm %1$s ausklappen</string>
+    <string name="sleep_band_night">Nacht vom %1$s auf den %2$s</string>
+    <string name="sleep_band_day">Schlaf am %1$s</string>
+    <string name="sleep_stage_awake">Wach</string>
+    <string name="sleep_stage_rem">REM</string>
+    <string name="sleep_stage_light">Leicht</string>
+    <string name="sleep_stage_deep">Tief</string>
 </resources>
