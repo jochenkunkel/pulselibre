@@ -986,6 +986,87 @@ class DatabaseBackupTest {
         } finally { root.deleteRecursively() }
     }
 
+    @Test fun bothComponentsOfOneMonitoringFieldAreStored() {
+        // 27.11.2026 (S10): both monitoring_b files failed with IllegalStateException. 55/24 yields activity type AND
+        // intensity for the same record/field; the old UNIQUE key dropped the second and the retention check threw.
+        val base = ApplicationProvider.getApplicationContext<Context>()
+        val root = Files.createTempDirectory(base.cacheDir.toPath(), "component-").toFile()
+        val context = isolatedContext(base, root)
+        try {
+            val sha = "e".repeat(64)
+            val candidates = listOf(MonitoringActivityIntensity.ACTIVITY_TYPE, MonitoringActivityIntensity.INTENSITY).mapIndexed { i, name ->
+                FitHistoricalObservations.ReviewCandidate(
+                    profileFieldName = name, value = 1.0 + i, unit = "profile_code", timestampEpochMillis = 20_000L,
+                    sourceFileSha256 = sha, recordOrdinal = 7, globalMessageNumber = 55, fieldNumber = 24,
+                    timestampOrigin = FitHistoricalObservations.TimestampOrigin.DIRECT,
+                    idempotencyKey = "k$i".padEnd(64, '0')
+                )
+            }
+            CirqaDatabase(context).use { database ->
+                database.ensureHistoricalStoreCopied()
+                database.commitFitFile(
+                    sourceSha256 = sha, fileBytes = 100, relativePath = "verified_fit/$sha.fit",
+                    validatedAtEpochMillis = 7_000, decoderVersion = FitHistoricalObservations.DECODER_VERSION,
+                    profileVersion = FitHistoricalObservations.PROFILE_VERSION, observations = emptyList(),
+                    deviceMetadata = emptyList(), reviewCandidates = candidates
+                )
+                val metrics = database.readableDatabase.rawQuery(
+                    "SELECT metric FROM fit_review_candidates WHERE record_ordinal = 7 ORDER BY metric", null
+                ).use { c -> buildList { while (c.moveToNext()) add(c.getString(0)) } }
+                assertEquals(listOf("monitoring_current_activity_type", "monitoring_intensity_code"), metrics)
+            }
+        } finally { root.deleteRecursively() }
+    }
+
+    @Test fun schema11ReviewCandidatesSurviveTheUniqueKeyMigration() {
+        val base = ApplicationProvider.getApplicationContext<Context>()
+        val root = Files.createTempDirectory(base.cacheDir.toPath(), "migrate12-").toFile()
+        val context = isolatedContext(base, root)
+        try {
+            val sha = "f".repeat(64)
+            CirqaDatabase(context).use { database ->
+                database.ensureHistoricalStoreCopied()
+                database.commitFitFile(
+                    sourceSha256 = sha, fileBytes = 100, relativePath = "verified_fit/$sha.fit",
+                    validatedAtEpochMillis = 7_000, decoderVersion = FitHistoricalObservations.DECODER_VERSION,
+                    profileVersion = FitHistoricalObservations.PROFILE_VERSION, observations = emptyList(),
+                    deviceMetadata = emptyList(), reviewCandidates = listOf(FitHistoricalObservations.ReviewCandidate(
+                        profileFieldName = "stress_level_value", value = 5.0, unit = "device_scale",
+                        timestampEpochMillis = 1_000L, sourceFileSha256 = sha, recordOrdinal = 1,
+                        globalMessageNumber = 227, fieldNumber = 0,
+                        timestampOrigin = FitHistoricalObservations.TimestampOrigin.DIRECT))
+                )
+            }
+            val path = context.getDatabasePath("cirqa_measurements.db").absolutePath
+            SQLiteDatabase.openDatabase(path, null, SQLiteDatabase.OPEN_READWRITE).use { db ->
+                // Put the table back to its schema-11 key, keep the row, lower user_version.
+                db.execSQL("ALTER TABLE fit_review_candidates RENAME TO tmp_candidates")
+                db.execSQL("DROP INDEX IF EXISTS fit_review_candidates_by_time")
+                db.execSQL("""CREATE TABLE fit_review_candidates (sample_id TEXT PRIMARY KEY NOT NULL, device_id TEXT NOT NULL,
+                    metric TEXT NOT NULL, measured_at_ms INTEGER, value REAL NOT NULL, unit TEXT NOT NULL,
+                    source_sha256 TEXT NOT NULL REFERENCES fit_sources(source_sha256) ON DELETE RESTRICT,
+                    record_ordinal INTEGER NOT NULL, global_message_number INTEGER NOT NULL,
+                    field_number INTEGER NOT NULL, quality TEXT NOT NULL, timestamp_origin TEXT NOT NULL,
+                    decoder_version TEXT NOT NULL, UNIQUE(source_sha256, record_ordinal, global_message_number, field_number))""")
+                db.execSQL("INSERT INTO fit_review_candidates SELECT * FROM tmp_candidates")
+                db.execSQL("DROP TABLE tmp_candidates")
+                db.version = 11
+            }
+            CirqaDatabase(context).use { database ->
+                val db = database.writableDatabase
+                assertEquals(12, db.version)
+                db.rawQuery("SELECT metric, value FROM fit_review_candidates", null).use {
+                    assertTrue(it.moveToFirst()); assertEquals("stress", it.getString(0)); assertEquals(5.0, it.getDouble(1), 0.0)
+                    assertFalse(it.moveToNext())
+                }
+                val ddl = db.rawQuery("SELECT sql FROM sqlite_master WHERE name = 'fit_review_candidates'", null)
+                    .use { it.moveToFirst(); it.getString(0) }
+                assertTrue(ddl, ddl.contains("field_number, metric)"))
+                assertFalse(db.rawQuery("SELECT 1 FROM sqlite_master WHERE name = 'fit_review_candidates_v11'", null).use { it.moveToFirst() })
+            }
+        } finally { root.deleteRecursively() }
+    }
+
     @Test fun recorderCanWriteWhileABackupReadsItsSnapshot() {
         // 25.11.2026 (S10, build 2232): the backup held an exclusive transaction for minutes; the recorder's write on
         // the main thread waited for it and the app showed "reagiert nicht". The snapshot must not block writers.
