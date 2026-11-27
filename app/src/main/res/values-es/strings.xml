@@ -186,7 +186,7 @@
     <string name="sleep_band_summary">%1$d cambios de fase entre %2$s y %3$s (hora de la pulsera)</string>
     <string name="sleep_band_cd">Fases del sueño de la pulsera: despierto %1$d, ligero %2$d, profundo %3$d, REM %4$d, no medible %5$d registros</string>
     <string name="sleep_band_legend">despierto %1$d · ligero %2$d · profundo %3$d · REM %4$d · no medible %5$d</string>
-    <string name="sleep_band_note">Se marca cuándo la pulsera informó de cada fase. No se calcula la duración del sueño mientras los intervalos no estén validados.</string>
+    <string name="sleep_band_note">Cada área va de una fase notificada a la siguiente notificación (hora de la pulsera). Los huecos y el tiempo tras la última notificación quedan vacíos; no se calcula la duración del sueño.</string>
     <string name="metric_steps">Pasos</string>
     <string name="metric_steps_today">Pasos hoy</string>
     <string name="metric_no_data">Sin datos de medición</string>
@@ -849,7 +849,7 @@
     <string name="tl_gap_many">%1$d intervalos sin datos, el más largo %2$d min (%3$s–%4$s)</string>
     <string name="tl_lane_line">%1$s: %2$s, %3$d mediciones, %4$s.</string>
     <string name="tl_no_data">sin datos</string>
-    <string name="tl_lane_band">Frecuencia cardíaca · pulsera (FIT)</string>
+    <string name="tl_lane_band">Frecuencia cardíaca, valores de la pulsera</string>
     <string name="tl_lane_value">%1$s: %2$s</string>
     <string name="tl_note_phone">Frecuencia cardíaca y pasos: hora de recepción en el teléfono.</string>
     <string name="tl_note_band">%1$s: hora medida por la pulsera, no la de recepción.</string>
@@ -1149,4 +1149,10 @@
     <string name="hv_fold_count">%1$d valores</string>
     <string name="hv_fold_collapse_cd">Contraer el gráfico %1$s</string>
     <string name="hv_fold_expand_cd">Expandir el gráfico %1$s</string>
+    <string name="sleep_band_night">Noche del %1$s al %2$s</string>
+    <string name="sleep_band_day">Sueño el %1$s</string>
+    <string name="sleep_stage_awake">Despierto</string>
+    <string name="sleep_stage_rem">REM</string>
+    <string name="sleep_stage_light">Ligero</string>
+    <string name="sleep_stage_deep">Profundo</string>
 </resources>

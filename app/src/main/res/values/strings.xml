@@ -186,7 +186,7 @@
     <string name="sleep_band_summary">%1$d stage changes between %2$s and %3$s (band time)</string>
     <string name="sleep_band_cd">Sleep stages from the band: awake %1$d, light %2$d, deep %3$d, REM %4$d, unmeasurable %5$d reports</string>
     <string name="sleep_band_legend">awake %1$d · light %2$d · deep %3$d · REM %4$d · unmeasurable %5$d</string>
-    <string name="sleep_band_note">Marked is when the band reported which stage. No sleep duration is calculated while the intervals are not validated.</string>
+    <string name="sleep_band_note">Each area lasts from a reported stage to the next report (band time). Gaps and the time after the last report stay empty; no sleep duration is calculated.</string>
     <string name="metric_steps">Steps</string>
     <string name="metric_steps_today">Steps today</string>
     <string name="metric_no_data">No measurement data</string>
@@ -849,7 +849,7 @@
     <string name="tl_gap_many">%1$d gaps, longest %2$d min (%3$s–%4$s)</string>
     <string name="tl_lane_line">%1$s: %2$s, %3$d readings, %4$s.</string>
     <string name="tl_no_data">no data</string>
-    <string name="tl_lane_band">Heart rate · band (FIT)</string>
+    <string name="tl_lane_band">Heart rate, band values</string>
     <string name="tl_lane_value">%1$s: %2$s</string>
     <string name="tl_note_phone">Heart rate and steps: reception time on the phone.</string>
     <string name="tl_note_band">%1$s: time measured by the band, not reception.</string>
@@ -1141,4 +1141,10 @@
     <string name="hv_fold_count">%1$d values</string>
     <string name="hv_fold_collapse_cd">Collapse %1$s chart</string>
     <string name="hv_fold_expand_cd">Expand %1$s chart</string>
+    <string name="sleep_band_night">Night of %1$s to %2$s</string>
+    <string name="sleep_band_day">Sleep on %1$s</string>
+    <string name="sleep_stage_awake">Awake</string>
+    <string name="sleep_stage_rem">REM</string>
+    <string name="sleep_stage_light">Light</string>
+    <string name="sleep_stage_deep">Deep</string>
 </resources>

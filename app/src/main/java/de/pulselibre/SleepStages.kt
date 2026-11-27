@@ -15,7 +15,56 @@ internal object SleepStages {
     const val WINDOW_MS = 24L * 3_600_000L
     private const val CACHE_MS = 60_000L
 
+    /** Longest span one reported stage may fill; a longer silence is shown as a gap, not as that stage (#762). */
+    const val MAX_SEGMENT_MS = 2L * 3_600_000L
+    /** Silence that separates two nights. */
+    const val NIGHT_BREAK_MS = 4L * 3_600_000L
+
+    const val AWAKE = 1; const val LIGHT = 2; const val DEEP = 3; const val REM = 4
+
+    /** Legend and chart order, top to bottom (#762): awake, REM, light, deep. */
+    val LEGEND_ORDER = listOf(AWAKE, REM, LIGHT, DEEP)
+
+    /** Fixed stage colours (dark blue deep, light blue light, violet REM, magenta awake); rows and labels carry meaning too. */
+    val COLORS: Map<Int, Int> = mapOf(DEEP to 0xFF1E3A8A.toInt(), LIGHT to 0xFF60A5FA.toInt(), REM to 0xFF8B5CF6.toInt(), AWAKE to 0xFFDB2777.toInt())
+
     data class Event(val atMs: Long, val code: Int)
+    /** One stage from a reported change [startMs] until the next report [endMs) (half-open). */
+    data class Segment(val startMs: Long, val endMs: Long, val code: Int)
+
+    /**
+     * Each stage report starts an interval that lasts until the next report. Same timestamp twice: the later report wins.
+     * Code 0 (unmeasurable), spans longer than [maxSegmentMs] and the time after the last report stay empty; the last
+     * report only closes the previous interval, because no end of sleep is reported. Equal neighbours are merged.
+     */
+    fun segments(events: List<Event>, maxSegmentMs: Long = MAX_SEGMENT_MS): List<Segment> {
+        val dedup = events.sortedBy { it.atMs }.groupBy { it.atMs }.map { it.value.last() }
+        val out = ArrayList<Segment>()
+        for (i in 0 until dedup.size - 1) {
+            val a = dedup[i]; val b = dedup[i + 1]
+            if (a.code !in LEGEND_ORDER || b.atMs - a.atMs > maxSegmentMs) continue
+            val prev = out.lastOrNull()
+            if (prev != null && prev.code == a.code && prev.endMs == a.atMs) out[out.lastIndex] = prev.copy(endMs = b.atMs)
+            else out.add(Segment(a.atMs, b.atMs, a.code))
+        }
+        return out
+    }
+
+    /** The newest night: the events after the last silence longer than [NIGHT_BREAK_MS]. */
+    fun latestNight(night: Night): Night {
+        val e = night.events
+        var from = 0
+        for (i in 1 until e.size) if (e[i].atMs - e[i - 1].atMs > NIGHT_BREAK_MS) from = i
+        return Night(e.subList(from, e.size))
+    }
+
+    /** Local calendar dates of the first and last report: equal for a nap, different for a night over midnight. */
+    fun dates(night: Night, zone: java.time.ZoneId): Pair<java.time.LocalDate, java.time.LocalDate>? {
+        val first = night.firstMs ?: return null
+        val last = night.lastMs ?: return null
+        return java.time.Instant.ofEpochMilli(first).atZone(zone).toLocalDate() to java.time.Instant.ofEpochMilli(last).atZone(zone).toLocalDate()
+    }
+
     data class Night(val events: List<Event>) {
         val counts: Map<Int, Int> get() = events.groupingBy { it.code }.eachCount()
         val firstMs: Long? get() = events.firstOrNull()?.atMs
@@ -46,29 +95,30 @@ internal object SleepStages {
 }
 
 /**
- * One tick per reported stage change at its time; ticks are not joined into bars, because a filled span would claim a
- * duration that is not validated. Higher ticks = lighter sleep (awake highest, deep lowest), REM between light and deep.
+ * Stage intervals as filled steps on a true time axis (#762): one row per stage (awake top, deep bottom), each interval
+ * filled in its stage colour until the next report. Gaps stay empty; nothing is drawn after the last report.
  */
-internal class SleepStageStripView(context: Context, private val night: SleepStages.Night, private val colors: Map<Int, Int>,
-                                   private val track: Int) : View(context) {
+internal class SleepStageStripView(context: Context, private val night: SleepStages.Night, private val track: Int) : View(context) {
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val density = resources.displayMetrics.density
-    private fun level(code: Int) = when (code) { 1 -> 0; 2 -> 1; 4 -> 2; 3 -> 3; else -> 4 } // awake top … unmeasurable bottom
+    val segments = SleepStages.segments(night.events)
 
     override fun onDraw(canvas: Canvas) {
         val first = night.firstMs ?: return
         val last = night.lastMs ?: return
         val span = (last - first).coerceAtLeast(60_000L).toFloat()
         val pad = 6 * density
-        val rowH = (height - 2 * pad) / 5f
-        paint.color = track; paint.strokeWidth = density
-        for (row in 0..4) canvas.drawLine(pad, pad + rowH * (row + 0.5f), width - pad, pad + rowH * (row + 0.5f), paint)
-        paint.strokeWidth = 3 * density; paint.strokeCap = Paint.Cap.ROUND
-        for (e in night.events) {
-            val x = pad + (width - 2 * pad) * ((e.atMs - first) / span)
-            val y = pad + rowH * (level(e.code) + 0.5f)
-            paint.color = colors[e.code] ?: track
-            canvas.drawLine(x, y - rowH * 0.35f, x, y + rowH * 0.35f, paint)
+        val rows = SleepStages.LEGEND_ORDER.size
+        val rowH = (height - 2 * pad) / rows
+        paint.color = track; paint.strokeWidth = density; paint.style = Paint.Style.STROKE
+        for (row in 0..rows) canvas.drawLine(pad, pad + rowH * row, width - pad, pad + rowH * row, paint)
+        paint.style = Paint.Style.FILL
+        fun x(t: Long) = pad + (width - 2 * pad) * ((t - first) / span)
+        for (s in segments) {
+            val row = SleepStages.LEGEND_ORDER.indexOf(s.code)
+            paint.color = SleepStages.COLORS[s.code] ?: track
+            // the bar reaches from its row down to the bottom, so the step height itself shows the stage
+            canvas.drawRect(x(s.startMs), pad + rowH * row + density, maxOf(x(s.endMs), x(s.startMs) + density), height - pad, paint)
         }
     }
 }
