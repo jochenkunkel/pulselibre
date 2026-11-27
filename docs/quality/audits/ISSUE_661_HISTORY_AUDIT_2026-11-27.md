@@ -21,6 +21,7 @@ vollständige CIRQA-Historie und keine unbekannte Wire-Semantik.
 | Verified-Skip-Integrität | **Bestätigter Fehler; in PR #740 korrigiert:** Die bisherige Skip-Prüfung vertraute bei `verified_fit/$sha.fit` auf Dateiname und gleiche Länge, ohne den Dateiinhalt erneut gegen das Manifest-SHA zu hashen. Eine gleich lange beschädigte Datei konnte so als verifiziert gelten. | `shouldPullTargetedItem`, `CirqaTargetedPullPolicy.localCopyMatches`; Skip nur bei regulärer Nicht-Symlink-Datei, passender Größe und passendem neu berechnetem SHA-256. Regressionstests decken geänderte Bytes gleicher Länge und Symlink ab. |
 | FIT-/SQLite-Persistenz | Erfolgsmanifest setzt FIT-Format, erfolgreiche Integrität und abgeschlossenen SQLite-Commit voraus; Originalarchiv und Import sind getrennte Ledger-Stufen. | `completeSyncFile`, `CirqaSyncPipelineLedger`, `CirqaTargetedPullManifest`. |
 | Abdeckung | Ein begrenzter/drained Lauf wird nicht als vollständige Gerätehistorie ausgewiesen. | `CirqaSyncCoverage`; Marker bleibt `device-history-unverified`. |
+| Kombinierte JVM-/Emulator-Coverage | FULL-CI führt Unit- und Instrumentation-Coverage zusammen und bricht ab, wenn eine der beiden Datenquellen oder die Klassen aus demselben Checkout fehlen. Das kombinierte Artefakt wird auch bei fehlgeschlagener Emulator-Phase hochgeladen, sofern der Job die Upload-Stufe erreicht. | `.github/workflows/android.yml`, `tools/ci/run-ci.sh`, `app/build.gradle.kts`; `createCombinedCoverageReport` selbst setzt `mustRunAfter` und prüft Exec-Dateien, während `run-ci.sh` die Unit-/Emulator-Tests in der vorgesehenen Reihenfolge explizit ausführt. Keine Coverage-/CI-Lücke im geprüften Workflow festgestellt. |
 
 ## Offene Punkte / nicht als Fehler bestätigt
 
@@ -65,4 +66,8 @@ vollständige CIRQA-Historie und keine unbekannte Wire-Semantik.
   Projekt benötigt Gradle 9.6.0 und enthält keinen Wrapper. Der Versuch endete
   vor der Projektkonfiguration mit „Project 'app' not found“.
 - `git diff --check` erfolgreich; keine Hardwaretests. Targeted Kotlin tests for
-  this follow-up await PR CI; the prior local Gradle limitation remains.
+  the verified-skip follow-up passed in PR #740 QUICK on head
+  `a6347b3314ca6f979e6bd13776d71fb878a40b76`; Dependency Review and graph also
+  passed. API-35 instrumentation skipped under QUICK. Merge:
+  `9b0a3652ca63f478a06cb7a85e4f1ae274ac3980`. The prior local Gradle limitation
+  remains; no device test.
