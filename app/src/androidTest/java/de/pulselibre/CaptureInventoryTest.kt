@@ -51,7 +51,7 @@ class CaptureInventoryTest {
         assertEquals(1L, inv.archivedFiles)
         assertEquals(3L, inv.archivedBytes)
         assertEquals(mapOf("spo2" to 2L, "stress" to 1L), inv.candidatesByMetric)
-        assertNull(inv.regularObservations)
+        assertEquals(0L, inv.regularObservations) // generation tables exist, but no observation
         assertFalse(inv.isEmpty)
     }
 
