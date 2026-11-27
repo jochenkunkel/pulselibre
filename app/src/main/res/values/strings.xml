@@ -540,12 +540,13 @@
     <string name="md_cov_hint">days are missing for a trend statement (at least %1$s needed)</string>
     <string name="tr_week_value">%1$s: %2$s</string>
     <string name="md_week_cov">%1$s of 7 days</string>
-    <string name="md_week_unavail">Without daily values (no verified daily series yet; device values appear only live): sleep duration, calories, intensity minutes, stress.</string>
+    <string name="md_week_unavail">Without daily values (no verified daily series yet; device values appear only live): sleep duration, calories, intensity minutes.</string>
     <string name="md_week_goal">Goal (%1$s) reached on %2$s of %3$s days with data.</string>
     <string name="md_week_avg_steps">Ø steps per day</string>
     <string name="md_week_total_steps">Total steps</string>
     <string name="md_week_total_val">%1$s (days with data only)</string>
     <string name="md_week_avg_rest">Ø device resting pulse</string>
+    <string name="md_week_avg_stress">Ø stress (band, device scale)</string>
     <string name="md_atlas_summary">%1$s of %2$s days with verified step values</string>
     <string name="md_atlas_none">%1$s\nNo verified daily data.</string>
     <string name="md_atlas_partial">%1$s\nSo far %2$s steps (today, not finished yet).</string>

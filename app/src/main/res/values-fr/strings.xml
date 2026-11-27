@@ -540,12 +540,13 @@
     <string name="md_cov_hint">il manque des jours pour une affirmation de tendance (au moins %1$s nécessaires)</string>
     <string name="tr_week_value">%1$s : %2$s</string>
     <string name="md_week_cov">%1$s jours sur 7</string>
-    <string name="md_week_unavail">Sans valeurs quotidiennes (pas encore de séries quotidiennes vérifiées ; les valeurs de l’appareil n’apparaissent qu’en direct) : durée de sommeil, calories, minutes d’intensité, stress.</string>
+    <string name="md_week_unavail">Sans valeurs quotidiennes (pas encore de séries quotidiennes vérifiées ; les valeurs de l’appareil n’apparaissent qu’en direct) : durée du sommeil, calories, minutes d’intensité.</string>
     <string name="md_week_goal">Objectif (%1$s) atteint sur %2$s des %3$s jours avec données.</string>
     <string name="md_week_avg_steps">Ø pas par jour</string>
     <string name="md_week_total_steps">Total des pas</string>
     <string name="md_week_total_val">%1$s (jours avec données uniquement)</string>
     <string name="md_week_avg_rest">Ø pouls au repos de l’appareil</string>
+    <string name="md_week_avg_stress">Ø stress (bracelet, échelle de l’appareil)</string>
     <string name="md_atlas_summary">%1$s jours sur %2$s avec valeurs de pas vérifiées</string>
     <string name="md_atlas_none">%1$s\nAucune donnée quotidienne vérifiée.</string>
     <string name="md_atlas_partial">%1$s\nJusqu’ici %2$s pas (aujourd’hui, pas encore terminé).</string>
