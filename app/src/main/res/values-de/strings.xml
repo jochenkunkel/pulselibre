@@ -1017,6 +1017,10 @@
     <string name="ht_m_hrv_night_high">HRV letzte Nacht, höchste 5 min (ms)</string>
     <string name="ht_m_resting_today">Ruhepuls heute</string>
     <string name="ht_m_active_time">Aktive Zeit (s)</string>
+    <string name="ht_m_act_avg_hr">Aktivität · Ø Puls</string>
+    <string name="ht_m_act_max_hr">Aktivität · max. Puls</string>
+    <string name="ht_m_act_kcal">Aktivität · Kalorien (kcal)</string>
+    <string name="ht_m_act_duration">Aktivität · Dauer (s)</string>
     <string name="ht_m_distance">Distanz (m)</string>
     <string name="ht_m_speed">Geschwindigkeit (m/s)</string>
     <string name="ht_m_cadence">Kadenz (U/min)</string>
