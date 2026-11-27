@@ -298,6 +298,8 @@ class HistoryOverviewView(
         "activity_max_heart_rate" -> R.string.ht_m_act_max_hr
         "activity_calories" -> R.string.ht_m_act_kcal
         "activity_duration" -> R.string.ht_m_act_duration
+        "sleep_disruption_severity" -> R.string.ht_m_sleep_disruption
+        "sleep_disruption_overnight_severity" -> R.string.ht_m_sleep_disruption_night
         "distance" -> R.string.ht_m_distance
         "speed" -> R.string.ht_m_speed
         "cadence" -> R.string.ht_m_cadence

@@ -135,6 +135,9 @@
     <string name="sync_sum_skipped">%1$d files already stored were not transferred again.</string>
     <string name="sync_sum_flush_unanswered">The band did not confirm the request to close its current daily data; daily values since the last download may be missing.</string>
     <string name="sync_sum_details">Technical details (tap to expand):</string>
+    <string name="daily_fresh_none">No daily history from the band stored yet (stress, SpO₂, breathing).</string>
+    <string name="daily_fresh_latest">Newest daily values from the band: %1$s (%2$d h ago)</string>
+    <string name="daily_fresh_gap">Possible gap: connect the band and download the history; Garmin Connect may have taken the daily files.</string>
     <string name="main_hist_heading">Historical device data</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="main_hist_info">Files are stored locally and privately. FIT measurements are also imported into SQLite; unknown file types are kept as originals.</string>
@@ -1023,6 +1026,8 @@
     <string name="ht_m_act_max_hr">Activity · maximum pulse</string>
     <string name="ht_m_act_kcal">Activity · calories (kcal)</string>
     <string name="ht_m_act_duration">Activity · duration (s)</string>
+    <string name="ht_m_sleep_disruption">Sleep disruption (code)</string>
+    <string name="ht_m_sleep_disruption_night">Sleep disruption overnight (code)</string>
     <string name="ht_m_distance">Distance (m)</string>
     <string name="ht_m_speed">Speed (m/s)</string>
     <string name="ht_m_cadence">Cadence (rpm)</string>

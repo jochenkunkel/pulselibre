@@ -16,7 +16,7 @@ object FitHistoricalObservations {
     private const val MIN_ABSOLUTE_FIT_TIME = 0x1000_0000L
     private const val INVALID_FIT_TIME = 0xffff_ffffL
     const val MAX_OBSERVATIONS = 50_000
-    const val DECODER_VERSION = "8"
+    const val DECODER_VERSION = "9"
     /** Review candidates evolve independently from the trusted observation decoder. */
     const val REVIEW_CANDIDATE_DECODER_VERSION = "3"
     const val PROFILE_VERSION = "21.222.0"
@@ -69,6 +69,9 @@ object FitHistoricalObservations {
         ACTIVITY_MAX_HEART_RATE("bpm"),
         ACTIVITY_CALORIES("kcal"),
         ACTIVITY_DURATION("s"),
+        /** #150: sleep_disruption_severity_period 470/0 and overnight 471/0 – profile enum sleep_disruption_severity (code). */
+        SLEEP_DISRUPTION_SEVERITY("profile_code"),
+        SLEEP_DISRUPTION_OVERNIGHT_SEVERITY("profile_code"),
     }
 
     /** #150: plain numeric Garmin profile 21.222.0 fields: message, field, profile name, base type, scale, unit, metric. */
@@ -90,7 +93,9 @@ object FitHistoricalObservations {
         ProfileScalar(18, 16, "session_avg_heart_rate", 0x02, 1.0, Metric.ACTIVITY_AVG_HEART_RATE),
         ProfileScalar(18, 17, "session_max_heart_rate", 0x02, 1.0, Metric.ACTIVITY_MAX_HEART_RATE),
         ProfileScalar(18, 11, "session_total_calories", 0x84, 1.0, Metric.ACTIVITY_CALORIES),
-        ProfileScalar(18, 7, "session_total_elapsed_time", 0x86, 1000.0, Metric.ACTIVITY_DURATION)
+        ProfileScalar(18, 7, "session_total_elapsed_time", 0x86, 1000.0, Metric.ACTIVITY_DURATION),
+        ProfileScalar(470, 0, "sleep_disruption_severity", 0x00, 1.0, Metric.SLEEP_DISRUPTION_SEVERITY),
+        ProfileScalar(471, 0, "sleep_disruption_overnight_severity", 0x00, 1.0, Metric.SLEEP_DISRUPTION_OVERNIGHT_SEVERITY)
     )
     private val PROFILE_SCALAR_METRICS = PROFILE_SCALARS.associate { it.name to it.metric }
 
@@ -1141,7 +1146,9 @@ object FitHistoricalObservations {
     }
 
     private fun invalidSentinel(field: FieldDefinition): Long = when (field.baseType and 0x1f) {
-        2 -> 0xffL
+        // FIT base types: enum (0) and uint8 (2) both use 0xFF as invalid. 27.11.2026: a sleep_disruption_severity
+        // record without severity came out as 255 because enum was missing here (Garmin SDK: no value).
+        0, 2 -> 0xffL
         4 -> 0xffffL
         6 -> 0xffff_ffffL
         else -> Long.MIN_VALUE
