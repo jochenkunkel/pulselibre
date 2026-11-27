@@ -38,11 +38,15 @@ class HistoryOverviewView(
         DEVICE_MEASURED(
             "Zeitachse: Messzeit des Bandes (aus FIT-Dateien) · Punkt: Median · Ring: Mittelwert (bei mehreren Werten) · Linie: Min–Max · Lücken: keine Messdaten",
             "Zeitstempel = vom Band gemessen (FIT-Datei), nicht der Empfang auf dem Telefon. Bei einem Teil der Werte ist die Zeit aus der Kurzform der Datei zurückgerechnet.",
-            "Keine Band-Verlaufsdaten in diesem Zeitraum")
+            "Keine Band-Verlaufsdaten in diesem Zeitraum"),
+        COMBINED(
+            "Zeitachse: Band-Werte zur Messzeit, Live-Werte zur Empfangszeit · Punkt: Median · Ring: Mittelwert (bei mehreren Werten) · Linie: Min–Max · Lücken: keine Messdaten",
+            "Live- und Band-Werte derselben Messgröße in einem Diagramm. Band-Werte stehen zur Messzeit des Bandes, Live-Werte zur Empfangszeit auf dem Telefon. Doppelte Band-Werte werden einmal gezählt; die Herkunft bleibt in der Tabelle sichtbar.",
+            "Keine Messdaten in diesem Zeitraum")
     }
 
     private companion object {
-        const val FIT_HEART_RATE_TITLE = "Herzfrequenz · Band-Verlauf (FIT)"
+        const val CHART_PREFS = "history_charts"
         val worker: java.util.concurrent.ExecutorService = java.util.concurrent.Executors.newSingleThreadExecutor()
     }
 
@@ -177,15 +181,13 @@ class HistoryOverviewView(
         addWindowNavigation(snapshot)
         val resolution = HistoryResolution.forRange(snapshot.range)
         allDataCard(snapshot)
-        // #334: FIT-Historie des Bands in eigener Karte mit eigener Zeitbasis (Messzeit), nie mit Empfangszeit vermischt.
-        // Zuerst, weil sie die meisten Werte enthaelt; feinere Aufloesung, weil die Banddaten dicht sind.
-        if (snapshot.fitAvailable || snapshot.fitHeartRate.isNotEmpty() || snapshot.fitReadFailed) {
-            metricCard(FIT_HEART_RATE_TITLE, "bpm", snapshot.fitHeartRate, snapshot, 240, palette.pulse,
-                HistoryResolution.forFitRange(snapshot.range), TimeBasis.DEVICE_MEASURED, fitEmptyNote(snapshot),
-                FitKindText.note(Strings.of(context), snapshot.fitKinds, snapshot.fitDuplicates))
+        // #763: one chart per measure; live and band values share it (origin stays in the table above and in the DB).
+        // #764: each chart folds in and out; the choice is kept across restarts.
+        HistoryMetricCatalog.SPECS.forEach { spec ->
+            val points = seriesFor(spec, snapshot)
+            if (points.isEmpty() && !spec.alwaysShown) return@forEach
+            addView(specCard(spec, points, snapshot, resolution), LayoutParams(-1, -2).apply { bottomMargin = dp(12) })
         }
-        metricCard("Herzfrequenz", "bpm", snapshot.heartRate, snapshot, 240, palette.pulse, resolution)
-        metricCard("Sauerstoffsättigung · SpO₂", "%", snapshot.oxygen, snapshot, 100, palette.oxygen, resolution)
         // The scientific trend block now lives in the main tab "Analysen" (#227).
     }
 
@@ -331,8 +333,10 @@ class HistoryOverviewView(
         basis: TimeBasis = TimeBasis.PHONE_RECEIVED,
         emptyNote: String? = null,
         /** Where the shown values come from (e.g. normal band history vs. activity recordings); shown with data only. */
-        sourceNote: String? = null
-    ) {
+        sourceNote: String? = null,
+        /** #764: fold toggle shown in the heading; null = not collapsible. */
+        onCollapse: (() -> Unit)? = null
+    ): LinearLayout {
         val buckets = aggregateHistoryPoints(points, snapshot.start, snapshot.end, resolution)
         // Fit the vertical range to the observed data (e.g. SpO₂ 89–100 % no longer squeezed into the top of 0–100).
         val scale = if (buckets.isEmpty()) AxisScale(0, hardMaximum)
@@ -367,6 +371,7 @@ class HistoryOverviewView(
                 android.widget.FrameLayout.LayoutParams(dp(20), dp(20), Gravity.CENTER))
         }
         heading.addView(infoButton, LayoutParams(dp(48), dp(48)))
+        onCollapse?.let { heading.addView(foldButton(title, true, it), LayoutParams(dp(48), dp(48))) }
         card.addView(heading)
         card.addView(label(context.getString(R.string.hv_card_summary, points.size, buckets.size, DomainText.tr(context, resolution.label), scale.minimum.toString(), scale.maximum.toString(), unit),
             12f, palette.muted), LayoutParams(-1, -2).apply { topMargin = dp(4) })
@@ -442,8 +447,78 @@ class HistoryOverviewView(
             card.addView(densityLegend, LayoutParams(-1, -2).apply { topMargin = dp(8) })
             if (title in safeTitles) safeMode.performClick() else if (title in densityTitles) densityMode.performClick()
         }
-        addView(card, LayoutParams(-1, -2).apply { bottomMargin = dp(12) })
+        return card
     }
+
+    private val chartPrefs by lazy { context.getSharedPreferences(CHART_PREFS, Context.MODE_PRIVATE) }
+
+    private fun isExpanded(spec: HistoryMetricCatalog.Spec): Boolean =
+        try { chartPrefs.getBoolean("expanded_${spec.key}", spec.defaultExpanded) } catch (_: Exception) { spec.defaultExpanded }
+
+    /** Live and band values of one measure; older snapshots without the unified read fall back to the separate series. */
+    private fun seriesFor(spec: HistoryMetricCatalog.Spec, snapshot: HistorySnapshot): List<HistoryPoint> =
+        snapshot.unified?.get(spec.key) ?: when (spec.key) {
+            "heart_rate" -> (snapshot.heartRate + snapshot.fitHeartRate).sortedBy { it.receivedAt }
+            "spo2" -> snapshot.oxygen
+            else -> emptyList()
+        }
+
+    /** A chart card or, folded, only its heading; folding never re-reads data and builds the chart only when shown. */
+    private fun specCard(spec: HistoryMetricCatalog.Spec, points: List<HistoryPoint>, snapshot: HistorySnapshot,
+                         resolution: HistoryResolution): View {
+        lateinit var current: View
+        val toggle = {
+            val now = !isExpanded(spec)
+            try { chartPrefs.edit().putBoolean("expanded_${spec.key}", now).apply() } catch (_: Exception) {}
+            val index = indexOfChild(current)
+            val params = current.layoutParams
+            current = specCard(spec, points, snapshot, resolution)
+            if (index >= 0) { removeViewAt(index); addView(current, index, params) }
+            current.findViewWithTag<View>("history_fold_${spec.title}")?.let { it.post { it.sendAccessibilityEvent(android.view.accessibility.AccessibilityEvent.TYPE_VIEW_FOCUSED) } }
+            Unit
+        }
+        current = if (isExpanded(spec)) {
+            val bandOnly = snapshot.unified == null && spec.key == "heart_rate" && snapshot.heartRate.isEmpty() &&
+                (snapshot.fitAvailable || snapshot.fitHeartRate.isNotEmpty() || snapshot.fitReadFailed)
+            metricCard(spec.title, spec.unit, points, snapshot, spec.hardMaximum, accentFor(spec), resolution,
+                if (bandOnly) TimeBasis.DEVICE_MEASURED else TimeBasis.COMBINED,
+                if (spec.key == "heart_rate") fitEmptyNote(snapshot) else null,
+                if (spec.key == "heart_rate" && snapshot.fitKinds.isNotEmpty()) FitKindText.note(Strings.of(context), snapshot.fitKinds, snapshot.fitDuplicates) else null,
+                toggle)
+        } else collapsedCard(spec, points.size, toggle)
+        return current
+    }
+
+    private fun accentFor(spec: HistoryMetricCatalog.Spec): Int = when (spec.key) {
+        "heart_rate", "resting_heart_rate" -> palette.pulse
+        "spo2", "respiration" -> palette.oxygen
+        else -> palette.accent
+    }
+
+    private fun collapsedCard(spec: HistoryMetricCatalog.Spec, count: Int, toggle: () -> Unit): LinearLayout =
+        LinearLayout(context).apply {
+            orientation = HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(dp(14), dp(4), dp(4), dp(4))
+            background = GradientDrawable().apply { setColor(palette.card); cornerRadius = dp(18).toFloat() }
+            tag = "history_series_${spec.title}"
+            addView(PlIcon.view(context, DashboardMetricIconView.iconFor(spec.title), 20, accentFor(spec)),
+                LayoutParams(dp(20), dp(20)).apply { marginEnd = dp(7) })
+            addView(label(DomainText.tr(context, spec.title), 15f, palette.ink, true).apply { maxLines = 2 }, LayoutParams(0, -2, 1f))
+            addView(label(context.getString(R.string.hv_fold_count, count), 12f, palette.muted), LayoutParams(-2, -2))
+            addView(foldButton(spec.title, false, toggle), LayoutParams(dp(48), dp(48)))
+        }
+
+    private fun foldButton(title: String, expanded: Boolean, toggle: () -> Unit): TextView =
+        label(if (expanded) "−" else "+", 20f, palette.accent, true).apply {
+            gravity = Gravity.CENTER
+            minWidth = dp(48); minHeight = dp(48)
+            isClickable = true; isFocusable = true
+            tag = "history_fold_$title"
+            contentDescription = context.getString(if (expanded) R.string.hv_fold_collapse_cd else R.string.hv_fold_expand_cd,
+                DomainText.tr(context, title))
+            setOnClickListener { toggle() }
+        }
 
     private fun showFailure() {
         removeAllViews()

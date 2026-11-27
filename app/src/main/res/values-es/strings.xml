@@ -1144,4 +1144,9 @@
     <string name="wear_src_gdi">estado del dispositivo de la pulsera</string>
     <string name="wear_src_fit">archivo FIT de la pulsera</string>
     <string name="wear_src_other">pulsera</string>
+    <string name="hv_basis_combined_legend">Eje temporal: valores de la pulsera a la hora de medición, valores en directo a la hora de recepción · Punto: mediana · Anillo: media (si hay varios valores) · Línea: mín–máx · Huecos: sin datos</string>
+    <string name="hv_basis_combined_info">Valores en directo y de la pulsera de una misma medida en un solo gráfico. Los valores de la pulsera usan la hora de medición, los valores en directo la hora de recepción en el teléfono. Los duplicados de la pulsera se cuentan una vez; el origen sigue visible en la tabla.</string>
+    <string name="hv_fold_count">%1$d valores</string>
+    <string name="hv_fold_collapse_cd">Contraer el gráfico %1$s</string>
+    <string name="hv_fold_expand_cd">Expandir el gráfico %1$s</string>
 </resources>

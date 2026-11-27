@@ -1136,4 +1136,9 @@
     <string name="wear_src_gdi">band device status</string>
     <string name="wear_src_fit">band FIT file</string>
     <string name="wear_src_other">band</string>
+    <string name="hv_basis_combined_legend">Time axis: band values at measurement time, live values at phone reception time · Dot: median · Ring: mean (if several values) · Line: min–max · Gaps: no data</string>
+    <string name="hv_basis_combined_info">Live and band values of the same measure in one chart. Band values use the band’s measurement time, live values the phone’s reception time. Duplicate band values are counted once; the origin stays visible in the table.</string>
+    <string name="hv_fold_count">%1$d values</string>
+    <string name="hv_fold_collapse_cd">Collapse %1$s chart</string>
+    <string name="hv_fold_expand_cd">Expand %1$s chart</string>
 </resources>

@@ -1144,4 +1144,9 @@
     <string name="wear_src_gdi">état de l’appareil du bracelet</string>
     <string name="wear_src_fit">fichier FIT du bracelet</string>
     <string name="wear_src_other">bracelet</string>
+    <string name="hv_basis_combined_legend">Axe du temps : valeurs du bracelet à l’heure de mesure, valeurs en direct à l’heure de réception · Point : médiane · Anneau : moyenne (si plusieurs valeurs) · Ligne : min–max · Lacunes : pas de données</string>
+    <string name="hv_basis_combined_info">Valeurs en direct et du bracelet d’une même mesure dans un seul graphique. Les valeurs du bracelet suivent l’heure de mesure, les valeurs en direct l’heure de réception sur le téléphone. Les doublons du bracelet sont comptés une fois ; l’origine reste visible dans le tableau.</string>
+    <string name="hv_fold_count">%1$d valeurs</string>
+    <string name="hv_fold_collapse_cd">Replier le graphique %1$s</string>
+    <string name="hv_fold_expand_cd">Déplier le graphique %1$s</string>
 </resources>

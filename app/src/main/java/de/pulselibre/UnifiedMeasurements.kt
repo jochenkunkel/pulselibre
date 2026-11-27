@@ -247,6 +247,20 @@ class UnifiedMeasurements(private val db: SQLiteDatabase) {
      * Band values of [metric] in [startMs, endMs) per FIT message kind, so a view can say how much of it is normal
      * all-day history and how much comes from recorded activities.
      */
+    /** All rows of the given metrics in [startMs, endMs), live and band together, in one query (#763). */
+    fun seriesRows(metrics: Set<String>, startMs: Long, endMs: Long): List<Triple<String, Long, Double>> {
+        if (metrics.isEmpty()) return emptyList()
+        val out = ArrayList<Triple<String, Long, Double>>()
+        val marks = metrics.joinToString(",") { "?" }
+        db.rawQuery(
+            """SELECT metric, measured_at_ms, value FROM unified_measurements
+               WHERE metric IN ($marks) AND measured_at_ms >= ? AND measured_at_ms < ? AND display_duplicate = 0
+               ORDER BY measured_at_ms""",
+            (metrics.toList() + listOf(startMs.toString(), endMs.toString())).toTypedArray()
+        ).use { c -> while (c.moveToNext()) out.add(Triple(c.getString(0), c.getLong(1), c.getDouble(2))) }
+        return out
+    }
+
     fun bandKindCounts(metric: String, startMs: Long, endMs: Long): Map<BandRecordKind, Int> {
         val out = LinkedHashMap<BandRecordKind, Int>()
         db.rawQuery(

@@ -88,7 +88,7 @@ class HistoryOverviewViewTest {
             assertEquals("je Diagrammkarte eine Beschriftung (Herzfrequenz, SpO2)", 2, captions.size)
             captions.forEach {
                 val t = it.text.toString()
-                assertTrue(t.contains("Telefonzeit"))
+                assertTrue(t.contains("Empfangszeit"))
                 assertTrue(t.contains("Median"))
                 assertTrue(t.contains("Min–Max"))
                 assertTrue(t.contains("Lücken"))

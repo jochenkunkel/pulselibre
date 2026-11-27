@@ -102,8 +102,9 @@ class FitHistoryViewTest {
         } finally { root.deleteRecursively() }
     }
 
-    @Test fun fitCardIsSeparateAndNamesTheBandClock() {
+    @Test fun liveAndBandHeartRateShareOneChart() {
         val context = ContextThemeWrapper(AppLanguageSettings.wrap(ApplicationProvider.getApplicationContext<Context>()), androidx.appcompat.R.style.Theme_AppCompat)
+        context.getSharedPreferences("history_charts", Context.MODE_PRIVATE).edit().clear().commit()
         val end = Instant.parse("2026-11-17T12:00:00Z")
         val live = listOf(HistoryPoint(end.minusSeconds(600), 80))
         val fit = listOf(HistoryPoint(end.minusSeconds(7_200), 61), HistoryPoint(end.minusSeconds(7_140), 63))
@@ -114,11 +115,11 @@ class FitHistoryViewTest {
             }
             view.refreshSynchronously()
             val all = texts(view)
-            assertTrue(all.any { it == "Herzfrequenz · Band-Verlauf (FIT)" })
-            assertTrue(all.any { it.contains("Zeitachse: Messzeit des Bandes") })
-            assertTrue(all.any { it.contains("Zeitachse: Telefonzeit") })   // live card keeps its own clock
-            assertTrue(all.any { it.startsWith("2 Werte") })                 // FIT card counts only FIT points
-            assertTrue(all.any { it.startsWith("1 Werte") })                 // live card counts only live points
+            // #763: no separate band and live heart-rate diagrams any more
+            assertFalse(all.any { it == "Herzfrequenz · Band-Verlauf (FIT)" })
+            assertEquals(1, all.count { it == "Herzfrequenz" })
+            assertTrue(all.any { it.contains("Band-Werte zur Messzeit, Live-Werte zur Empfangszeit") })
+            assertTrue(all.any { it.startsWith("3 Werte") })                 // one chart: 2 band + 1 live
         }
     }
 
