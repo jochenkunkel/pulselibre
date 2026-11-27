@@ -1030,6 +1030,8 @@
     <string name="ht_m_act_max_hr">Activité · pouls max.</string>
     <string name="ht_m_act_kcal">Activité · calories (kcal)</string>
     <string name="ht_m_act_duration">Activité · durée (s)</string>
+    <string name="ht_m_sleep_disruption">Perturbation du sommeil (code)</string>
+    <string name="ht_m_sleep_disruption_night">Perturbation du sommeil, nuit (code)</string>
     <string name="ht_m_distance">Distance (m)</string>
     <string name="ht_m_speed">Vitesse (m/s)</string>
     <string name="ht_m_cadence">Cadence (tr/min)</string>

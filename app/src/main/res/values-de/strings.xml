@@ -1026,6 +1026,8 @@
     <string name="ht_m_act_max_hr">Aktivität · max. Puls</string>
     <string name="ht_m_act_kcal">Aktivität · Kalorien (kcal)</string>
     <string name="ht_m_act_duration">Aktivität · Dauer (s)</string>
+    <string name="ht_m_sleep_disruption">Schlafstörung (Code)</string>
+    <string name="ht_m_sleep_disruption_night">Schlafstörung Nacht (Code)</string>
     <string name="ht_m_distance">Distanz (m)</string>
     <string name="ht_m_speed">Geschwindigkeit (m/s)</string>
     <string name="ht_m_cadence">Kadenz (U/min)</string>
