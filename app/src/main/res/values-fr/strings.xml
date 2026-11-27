@@ -540,12 +540,13 @@
     <string name="md_cov_hint">il manque des jours pour une affirmation de tendance (au moins %1$s nécessaires)</string>
     <string name="tr_week_value">%1$s : %2$s</string>
     <string name="md_week_cov">%1$s jours sur 7</string>
-    <string name="md_week_unavail">Sans valeurs quotidiennes (pas encore de séries quotidiennes vérifiées ; les valeurs de l’appareil n’apparaissent qu’en direct) : durée de sommeil, calories, minutes d’intensité, stress.</string>
+    <string name="md_week_unavail">Sans valeurs quotidiennes (pas encore de séries quotidiennes vérifiées ; les valeurs de l’appareil n’apparaissent qu’en direct) : durée du sommeil, calories, minutes d’intensité.</string>
     <string name="md_week_goal">Objectif (%1$s) atteint sur %2$s des %3$s jours avec données.</string>
     <string name="md_week_avg_steps">Ø pas par jour</string>
     <string name="md_week_total_steps">Total des pas</string>
     <string name="md_week_total_val">%1$s (jours avec données uniquement)</string>
     <string name="md_week_avg_rest">Ø pouls au repos de l’appareil</string>
+    <string name="md_week_avg_stress">Ø stress (bracelet, échelle de l’appareil)</string>
     <string name="md_atlas_summary">%1$s jours sur %2$s avec valeurs de pas vérifiées</string>
     <string name="md_atlas_none">%1$s\nAucune donnée quotidienne vérifiée.</string>
     <string name="md_atlas_partial">%1$s\nJusqu’ici %2$s pas (aujourd’hui, pas encore terminé).</string>
@@ -1020,6 +1021,10 @@
     <string name="ht_m_hrv_night_high">VFC nuit dernière, 5 min max (ms)</string>
     <string name="ht_m_resting_today">Pouls au repos aujourd’hui</string>
     <string name="ht_m_active_time">Temps actif (s)</string>
+    <string name="ht_m_act_avg_hr">Activité · pouls moyen</string>
+    <string name="ht_m_act_max_hr">Activité · pouls max.</string>
+    <string name="ht_m_act_kcal">Activité · calories (kcal)</string>
+    <string name="ht_m_act_duration">Activité · durée (s)</string>
     <string name="ht_m_distance">Distance (m)</string>
     <string name="ht_m_speed">Vitesse (m/s)</string>
     <string name="ht_m_cadence">Cadence (tr/min)</string>
@@ -1075,10 +1080,10 @@
     <string name="sd_unverified">Valeurs de qualité non vérifiée (cercles creux)</string>
     <string name="sd_gaps">%1$d lacunes (hachurées, non comblées)</string>
     <string name="sd_na_title">Pas encore disponible</string>
-    <string name="sd_na_sleep">Sommeil : aucun intervalle de sommeil vérifié.</string>
-    <string name="sd_na_activity">Courbe d’activité : la base de temps de l’activité du bracelet n’est pas établie.</string>
+    <string name="sd_na_sleep">Sommeil : les phases de sommeil du bracelet figurent dans l’historique (codes) ; PulsLibre n’en calcule pas encore la durée ni un score.</string>
+    <string name="sd_na_activity">Activité : les minutes et calories actives du bracelet figurent dans l’historique (compteurs) ; PulsLibre n’en déduit pas encore de courbe d’activité.</string>
     <string name="sd_na_hrv">VFC : les valeurs VFC du bracelet sont affichées ci-dessus (valeur de l’appareil, non vérifiée) ; PulsLibre ne calcule pas de VFC à partir des intervalles RR.</string>
-    <string name="sd_na_temp">Température : la prise en charge par le bracelet n’est pas établie.</string>
+    <string name="sd_na_temp">Température : le bracelet ne fournit qu’un écart nocturne de température cutanée (°C), affiché dans l’historique ; pas de température absolue.</string>
     <string name="sd_cd">%1$s. %2$s</string>
     <!-- REVIEW: Übersetzung (ChatGPT/Projektinhaber prüfen) -->
     <string name="dev_meta_gatt_appearance">Apparence</string>

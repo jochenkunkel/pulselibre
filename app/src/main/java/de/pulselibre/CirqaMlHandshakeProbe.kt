@@ -3574,7 +3574,9 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                 importableObservations = importable.size,
                 detail = "len=${data.size};expected=${item.dataSize};type=$label;$zlibMark;fitHeader=true;" +
                     "sha256=$sha;privateFit=${saved.outcome};observations=${decoded.observations.size};" +
-                    "importable=${importable.size};sqlite=failed:${e.javaClass.simpleName}",
+                    "importable=${importable.size};sqlite=failed:${e.javaClass.simpleName};" +
+                    // 27.11.2026: the class alone ("IllegalStateException") did not say which commit check failed.
+                    "reason=${ImportAuditRecorder.reasonOf(e).replace(';', ',')}",
                 failure = CirqaSyncFileCompletion.FailureDiagnostic(
                     failurePhase,
                     e.javaClass.simpleName

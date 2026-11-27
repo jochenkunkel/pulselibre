@@ -16,7 +16,7 @@ object FitHistoricalObservations {
     private const val MIN_ABSOLUTE_FIT_TIME = 0x1000_0000L
     private const val INVALID_FIT_TIME = 0xffff_ffffL
     const val MAX_OBSERVATIONS = 50_000
-    const val DECODER_VERSION = "7"
+    const val DECODER_VERSION = "8"
     /** Review candidates evolve independently from the trusted observation decoder. */
     const val REVIEW_CANDIDATE_DECODER_VERSION = "3"
     const val PROFILE_VERSION = "21.222.0"
@@ -64,6 +64,11 @@ object FitHistoricalObservations {
         ACTIVE_TIME("s"),
         MODERATE_ACTIVITY_MINUTES("min"),
         VIGOROUS_ACTIVITY_MINUTES("min"),
+        /** #150: activity summary `session` 18/16, 18/17 (uint8 bpm), 18/11 (uint16 kcal), 18/7 (uint32, scale 1000, s). Time = session end (253). */
+        ACTIVITY_AVG_HEART_RATE("bpm"),
+        ACTIVITY_MAX_HEART_RATE("bpm"),
+        ACTIVITY_CALORIES("kcal"),
+        ACTIVITY_DURATION("s"),
     }
 
     /** #150: plain numeric Garmin profile 21.222.0 fields: message, field, profile name, base type, scale, unit, metric. */
@@ -81,13 +86,18 @@ object FitHistoricalObservations {
         ProfileScalar(55, 19, "active_calories", 0x84, 1.0, Metric.ACTIVE_CALORIES),
         ProfileScalar(55, 4, "active_time", 0x86, 1000.0, Metric.ACTIVE_TIME),
         ProfileScalar(55, 33, "moderate_activity_minutes", 0x84, 1.0, Metric.MODERATE_ACTIVITY_MINUTES),
-        ProfileScalar(55, 34, "vigorous_activity_minutes", 0x84, 1.0, Metric.VIGOROUS_ACTIVITY_MINUTES)
+        ProfileScalar(55, 34, "vigorous_activity_minutes", 0x84, 1.0, Metric.VIGOROUS_ACTIVITY_MINUTES),
+        ProfileScalar(18, 16, "session_avg_heart_rate", 0x02, 1.0, Metric.ACTIVITY_AVG_HEART_RATE),
+        ProfileScalar(18, 17, "session_max_heart_rate", 0x02, 1.0, Metric.ACTIVITY_MAX_HEART_RATE),
+        ProfileScalar(18, 11, "session_total_calories", 0x84, 1.0, Metric.ACTIVITY_CALORIES),
+        ProfileScalar(18, 7, "session_total_elapsed_time", 0x86, 1000.0, Metric.ACTIVITY_DURATION)
     )
     private val PROFILE_SCALAR_METRICS = PROFILE_SCALARS.associate { it.name to it.metric }
 
     private val ZERO_IS_STATUS = setOf(
         Metric.HRV, Metric.HRV_WEEKLY_AVERAGE, Metric.HRV_LAST_NIGHT_AVERAGE, Metric.HRV_LAST_NIGHT_5_MIN_HIGH,
-        Metric.RESTING_HEART_RATE, Metric.CURRENT_DAY_RESTING_HEART_RATE
+        Metric.RESTING_HEART_RATE, Metric.CURRENT_DAY_RESTING_HEART_RATE,
+        Metric.ACTIVITY_AVG_HEART_RATE, Metric.ACTIVITY_MAX_HEART_RATE
     )
 
     /** Stored (lowercase) metric keys of the #150 profile scalars; restore/validation must accept them. */
