@@ -135,6 +135,9 @@
     <string name="sync_sum_skipped">%1$d fichiers déjà enregistrés n’ont pas été transférés à nouveau.</string>
     <string name="sync_sum_flush_unanswered">Le bracelet n’a pas confirmé la demande de clôturer ses données du jour ; des valeurs depuis le dernier téléchargement peuvent manquer.</string>
     <string name="sync_sum_details">Détails techniques (toucher pour déplier) :</string>
+    <string name="daily_fresh_none">Aucun historique journalier du bracelet enregistré (stress, SpO₂, respiration).</string>
+    <string name="daily_fresh_latest">Dernières valeurs journalières du bracelet : %1$s (il y a %2$d h)</string>
+    <string name="daily_fresh_gap">Lacune possible : connectez le bracelet et téléchargez l’historique ; Garmin Connect a peut-être récupéré les fichiers.</string>
     <string name="main_hist_heading">Données historiques de l’appareil</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="main_hist_info">Les fichiers sont enregistrés localement et en privé. Les mesures FIT sont en outre importées dans SQLite ; les types de fichiers inconnus sont conservés en l’état.</string>

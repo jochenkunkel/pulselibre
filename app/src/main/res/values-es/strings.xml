@@ -135,6 +135,9 @@
     <string name="sync_sum_skipped">%1$d archivos ya guardados no se volvieron a transferir.</string>
     <string name="sync_sum_flush_unanswered">La pulsera no confirmó la solicitud de cerrar sus datos del día; pueden faltar valores desde la última descarga.</string>
     <string name="sync_sum_details">Detalles técnicos (toca para desplegar):</string>
+    <string name="daily_fresh_none">Aún no hay historial diario de la pulsera (estrés, SpO₂, respiración).</string>
+    <string name="daily_fresh_latest">Últimos valores diarios de la pulsera: %1$s (hace %2$d h)</string>
+    <string name="daily_fresh_gap">Posible hueco: conecta la pulsera y descarga el historial; puede que Garmin Connect haya recogido los archivos.</string>
     <string name="main_hist_heading">Datos históricos del dispositivo</string>
     <!-- REVIEW: heikler Text, Freigabe Projektinhaber -->
     <string name="main_hist_info">Los archivos se guardan de forma local y privada. Las mediciones FIT además se importan a SQLite; los tipos de archivo desconocidos se conservan como originales.</string>
