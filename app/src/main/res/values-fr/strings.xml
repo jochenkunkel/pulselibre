@@ -1076,10 +1076,10 @@
     <string name="sd_unverified">Valeurs de qualité non vérifiée (cercles creux)</string>
     <string name="sd_gaps">%1$d lacunes (hachurées, non comblées)</string>
     <string name="sd_na_title">Pas encore disponible</string>
-    <string name="sd_na_sleep">Sommeil : aucun intervalle de sommeil vérifié.</string>
-    <string name="sd_na_activity">Courbe d’activité : la base de temps de l’activité du bracelet n’est pas établie.</string>
+    <string name="sd_na_sleep">Sommeil : les phases de sommeil du bracelet figurent dans l’historique (codes) ; PulsLibre n’en calcule pas encore la durée ni un score.</string>
+    <string name="sd_na_activity">Activité : les minutes et calories actives du bracelet figurent dans l’historique (compteurs) ; PulsLibre n’en déduit pas encore de courbe d’activité.</string>
     <string name="sd_na_hrv">VFC : les valeurs VFC du bracelet sont affichées ci-dessus (valeur de l’appareil, non vérifiée) ; PulsLibre ne calcule pas de VFC à partir des intervalles RR.</string>
-    <string name="sd_na_temp">Température : la prise en charge par le bracelet n’est pas établie.</string>
+    <string name="sd_na_temp">Température : le bracelet ne fournit qu’un écart nocturne de température cutanée (°C), affiché dans l’historique ; pas de température absolue.</string>
     <string name="sd_cd">%1$s. %2$s</string>
     <!-- REVIEW: Übersetzung (ChatGPT/Projektinhaber prüfen) -->
     <string name="dev_meta_gatt_appearance">Apparence</string>

@@ -1076,10 +1076,10 @@
     <string name="sd_unverified">Valores de calidad sin verificar (círculos huecos)</string>
     <string name="sd_gaps">%1$d huecos (rayados, no rellenados)</string>
     <string name="sd_na_title">Aún no disponible</string>
-    <string name="sd_na_sleep">Sueño: no hay intervalos de sueño verificados.</string>
-    <string name="sd_na_activity">Curva de actividad: la base de tiempo de la actividad de la pulsera no está establecida.</string>
+    <string name="sd_na_sleep">Sueño: las fases de sueño de la pulsera aparecen en el historial (como códigos); PulsLibre aún no calcula duración ni puntuación.</string>
+    <string name="sd_na_activity">Actividad: los minutos y calorías activos de la pulsera aparecen en el historial (contadores); PulsLibre aún no deriva una curva de actividad.</string>
     <string name="sd_na_hrv">VFC: los valores VFC de la pulsera se muestran arriba (valor del dispositivo, no verificado); PulsLibre no calcula la VFC a partir de intervalos RR.</string>
-    <string name="sd_na_temp">Temperatura: la compatibilidad de la pulsera no está establecida.</string>
+    <string name="sd_na_temp">Temperatura: la pulsera solo informa una desviación nocturna de la temperatura de la piel (°C), en el historial; no hay temperatura absoluta.</string>
     <string name="sd_cd">%1$s. %2$s</string>
     <!-- REVIEW: Übersetzung (ChatGPT/Projektinhaber prüfen) -->
     <string name="dev_meta_gatt_appearance">Apariencia</string>
