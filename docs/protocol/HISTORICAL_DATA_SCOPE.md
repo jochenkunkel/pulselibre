@@ -1,5 +1,7 @@
 # PulsLibre: Vollständiger historischer Datenabruf (Projektziel)
 
+> **Aktueller Abgleich 26.11.2026:** Die Zielsetzung „alle technisch zugänglichen historischen Dateien“ gilt unverändert. Neuere Nachweise: #637 dokumentiert einen begrenzten Lauf mit 29 ausgewählten, 28 archivierten Dateien und einem unbeantworteten letzten Pull bis 120 s; PR #712 verbessert **künftige** Diagnoseberichte, PR #705 den **Offline-Re-Decode bereits archivierter** FIT-Dateien, PR #713 die synthetische Full-Pull-Wiederholung nach Neustart. **Vollständige Normal-Monitoring-Historie, FileAccess-Dateiauswahl, Geräteabdeckung und echte Originaldatei-Referenzgenauigkeit bleiben offen.** Alleiniger Bearbeiter: Claude Code / GUI-Agent. Siehe [FIT-Übergabe](../collaboration/agent-sync/2026-11-26_195500_opencode-an-claude_complete-handoff.md) und [#637](https://github.com/jochenkunkel/pulselibre/issues/637). Die nachfolgenden V26-Werte sind historische Evidenz.
+
 > **Aktuelle P0-Owner-Entscheidung (24.11.2026):** [Vollständige lokale Armband-Datenerfassung](DATA_ACQUISITION_PRIORITY.md). Auch unkalibrierte, unvalidierte und unbekannte Werte erfassen und im privaten Archiv plus SQLite-Inventar nachhalten. Die untenstehenden älteren Geräte-/Teststände sind historische Evidenz, keine Erfassungsverbote aufgrund medizinischer Unsicherheit.
 
 

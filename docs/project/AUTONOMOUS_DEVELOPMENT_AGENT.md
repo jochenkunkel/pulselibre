@@ -1,5 +1,7 @@
 # PulsLibre – Auftrag des autonomen Entwicklungsagenten
 
+> **Aktualisierung 26.11.2026:** Die ursprüngliche Mehr-Agenten-/stündliche-Automatisierungsbeschreibung ist **kein Nachweis einer laufenden Automation**. Aktueller alleiniger ausführender Agent ist Claude Code / GUI-Agent. Er bearbeitet alle offenen Issues autonom nach Priorität und Abhängigkeiten; keine Abstimmung mit FIT/OpenCode/CI-Agent erforderlich. Die untenstehenden Arbeitsrhythmusvorschläge gelten nur bei tatsächlich gestarteten Durchläufen. Sicherheits- und CI-Regeln: [AGENTS.md](../../AGENTS.md); vollständige Übergabe: [FIT → Claude](../collaboration/agent-sync/2026-11-26_195500_opencode-an-claude_complete-handoff.md).
+
 Stand: 2026-11-16 · Verbindliche Arbeitsanweisung für wiederkehrende Entwicklungsdurchläufe.
 
 ## 1. Rolle und Ziel

@@ -1,5 +1,7 @@
 # PulsLibre
 
+> **Aktueller Einstieg – 26.11.2026:** Claude Code / GUI-Agent ist der **alleinige aktive Entwicklungs- und Integrationsagent** für sämtliche offenen Tickets. Maßgeblich sind [AGENTS.md](AGENTS.md), [die vollständige FIT-Übergabe](docs/collaboration/agent-sync/2026-11-26_195500_opencode-an-claude_complete-handoff.md) und [der Projektstatus](docs/project/PROJECT_STATUS.md). **Die historische Monitoring-Vollabdeckung ist weiterhin nicht nachgewiesen.** PRs #705 (Archiv-Re-Decode), #712 (Sync-Bericht bis 64 KiB), #713 (Retry-/Neustart-Tests), #717 (SpO₂-Modus), #720 (Importfehler) und #722 (Codeaudit) wurden gemergt; diese Teilfortschritte nicht mit vollständigem Gerätedownload gleichsetzen. Der folgende Status vom 18.11.2026 bleibt als datierte historische Momentaufnahme stehen.
+
 **Geplante Wissenschaftsnavigation:** eigener Hauptreiter [„Analysen“ (#227)](https://github.com/jochenkunkel/pulselibre/issues/227), [Sitemap und Modulgruppen](docs/science/ANALYSEN_NAVIGATION_CONCEPT.md); **noch nicht als App-Reiter implementiert**.
 
 **Anwenderinnen und Anwender:** [Hilfe, Benutzerhandbuch und Fehlerbehebung](docs/product/user/README.md).

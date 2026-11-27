@@ -1,5 +1,7 @@
 # Zusammenarbeit, Verantwortlichkeiten und Projektregeln
 
+> **Rollenstand 26.11.2026:** Claude Code / GUI-Agent ist der **einzige aktive Entwicklungs-, Test- und Integrationsagent** für sämtliche offenen Tickets. Die nachfolgenden Agenten-Chat-/Sync-Regeln beschreiben die historische Mehr-Agenten-Zusammenarbeit und dienen jetzt der Nachvollziehbarkeit, **nicht** als Pflicht zur Abstimmung oder Delegation an ehemalige Agenten. Verbindlich: [AGENTS.md](../../AGENTS.md) und [FIT-Gesamtübergabe](agent-sync/2026-11-26_195500_opencode-an-claude_complete-handoff.md). Dokumentation von Änderungen, CI, Geräte-Leases und Sicherheitsgrenzen bleiben erforderlich.
+
 Hier finden Entwickler, die Haupt-IDE VSCodium/Codium (mit alternativem Claude-Code- oder Codex-Zugang) und weitere Agenten die **Arbeitsvereinbarungen, Qualitätsgrenzen und Übergaberegeln**. Die Dokumente sind verbindlich, soweit sie nicht durch aktuellere explizite Projektentscheidungen ersetzt wurden.
 
 ## Verbindliche Einstiege

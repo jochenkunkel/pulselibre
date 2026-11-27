@@ -1,5 +1,7 @@
 # PulsLibre CI: QUICK / FULL / RELEASE (Owner 2026-11-25)
 
+> **Rollenpräzisierung 26.11.2026:** Alle in dieser Richtlinie genannten FIT-Self-Reviews, FIT-Merges und FIT-Testentscheidungen werden **ab jetzt durch Claude Code / GUI-Agent als alleinigen ausführenden Agenten** wahrgenommen. Die QUICK/FULL/RELEASE-Gates, GitHub-Branch-Protection und Dependency-Checks ändern sich dadurch **nicht**. Kein weiterer Agentenreview nötig, soweit Repository-Regeln keinen Review technisch verlangen. Keine lokale FULL-Emulation als Pflicht.
+
 ## Trigger
 - Pull Request nach main: QUICK (Python-Regressionstests, Debug/R8-Build, JVM-Unit-Tests, APK-/Signaturdiagnostik). Kein Emulator.
 - Push nach main: QUICK.
