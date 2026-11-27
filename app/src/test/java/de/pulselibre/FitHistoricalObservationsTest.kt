@@ -934,4 +934,16 @@ class FitHistoricalObservationsTest {
         assertEquals(14_466.135, byMetric.getValue(FitHistoricalObservations.Metric.ACTIVITY_DURATION).value, 1e-9)
         assertEquals(fitTime(ts.toLong()), byMetric.getValue(FitHistoricalObservations.Metric.ACTIVITY_DURATION).timestampEpochMillis)
     }
+
+    // #150: sleep_disruption_severity_period 470/0 (enum). 0xFF is the enum invalid value: no measurement (SDK: none).
+    @Test fun sleepDisruptionSeverityKeepsCodesAndDropsEnumInvalid() {
+        val ts = 0x10000000 + 500_000
+        val data = byteArrayOf(0x40, 0, 0, 0xD6.toByte(), 0x01, 2, 253.toByte(), 4, 0x86.toByte(), 0, 1, 0x00) +
+            byteArrayOf(0) + u32(ts) + byteArrayOf(0xFF.toByte()) +
+            byteArrayOf(0) + u32(ts + 60) + byteArrayOf(2)
+        val result = FitHistoricalObservations.decode(fit(data))!!
+        val severity = result.observations.filter { it.metric == FitHistoricalObservations.Metric.SLEEP_DISRUPTION_SEVERITY }
+        assertEquals(listOf(2.0), severity.map { it.value })
+        assertEquals(fitTime((ts + 60).toLong()), severity.single().timestampEpochMillis)
+    }
 }

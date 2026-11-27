@@ -28,6 +28,7 @@ class MainActivity : AppCompatActivity() {
     private var connectionIndicatorRefresh: (() -> Unit)? = null
     private var cirqaLink = CirqaLinkStatus.Result(CirqaLinkStatus.Kind.UNAVAILABLE, false, "")
     private var historyRefresh: (() -> Unit)? = null
+    private var refreshDailyFreshness: (() -> Unit)? = null
     private var deviceOverviewRef: DeviceOverviewView? = null
     /** Re-reads the profile into the overview card; also needed after saving via the header settings button. */
     private var refreshBodyCardRef: (() -> Unit)? = null
@@ -106,7 +107,7 @@ class MainActivity : AppCompatActivity() {
                                     now - historyLastRefreshAt, LiveRefreshPolicy.HISTORY_MIN_MS)) {
                                 historyLastEventId = latest
                                 historyLastRefreshAt = now
-                                historyRefresh?.invoke()
+                                historyRefresh?.invoke(); refreshDailyFreshness?.invoke()
                             }
                         }
                     }
@@ -742,7 +743,7 @@ class MainActivity : AppCompatActivity() {
                             if (!destroyed) {
                                 historicalSyncStatus.text = SyncReportSummary.display(Strings.of(this@MainActivity), SyncReportStore.forStorage(message))
                                 syncProgress.show(HistorySyncProgress.fromReport(message))
-                                historyRefresh?.invoke()
+                                historyRefresh?.invoke(); refreshDailyFreshness?.invoke()
                             }
                         }
                     }
@@ -750,6 +751,21 @@ class MainActivity : AppCompatActivity() {
                 .show()
         }, 4)
         deviceView(syncProgress, 4)
+        // #637: how current is the band's daily history (stress/SpO2/breathing), independent of the last report.
+        val dailyFreshness = text(getString(R.string.daily_fresh_none), 13f, muted).apply {
+            setPadding(dp(16), dp(8), dp(16), dp(8))
+        }
+        deviceView(dailyFreshness, 4)
+        refreshDailyFreshness = {
+            Thread {
+                val latest = DailyHistoryFreshness.latest(applicationContext)
+                runOnUiThread {
+                    if (!destroyed) dailyFreshness.text = DailyHistoryFreshness.text(Strings.of(this), latest,
+                        System.currentTimeMillis(), java.time.ZoneId.systemDefault(), resources.configuration.locales[0])
+                }
+            }.start()
+        }
+        refreshDailyFreshness?.invoke()
         deviceView(historicalSyncStatus, 4)
         cirqaCard = text("CIRQA Smart Band", 15f, ink, true).apply {
             setPadding(dp(16), dp(16), dp(16), dp(16))
@@ -859,7 +875,7 @@ class MainActivity : AppCompatActivity() {
             if (index == 1) {
                 dashboardLastEventId = -1L
                 dashboardLastRefreshAt = 0L
-                historyRefresh?.invoke()
+                historyRefresh?.invoke(); refreshDailyFreshness?.invoke()
             }
             if (index == 2) recorderRefresh?.invoke()
             if (index == 2) refreshUnknownFields()
@@ -994,7 +1010,7 @@ class MainActivity : AppCompatActivity() {
                 if (destroyed) return@runOnUiThread
                 statusView.text = SyncReportSummary.display(Strings.of(this), SyncReportStore.forStorage(message))
                 syncProgressView?.show(HistorySyncProgress.fromReport(message))
-                historyRefresh?.invoke()
+                historyRefresh?.invoke(); refreshDailyFreshness?.invoke()
             }
         }
     }
