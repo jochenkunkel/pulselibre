@@ -39,7 +39,7 @@ class CirqaDataModelV9InstrumentedTest {
 
             CirqaDatabase(context).use { database ->
                 val db = database.readableDatabase
-                assertEquals(11, db.version)
+                assertEquals(12, db.version)
 
                 // Catalogues are additive and carry documented provenance only.
                 assertEquals(
@@ -84,7 +84,7 @@ class CirqaDataModelV9InstrumentedTest {
             // Reopening must not duplicate the deterministic projection.
             CirqaDatabase(context).use { database ->
                 val db = database.readableDatabase
-                assertEquals(11, db.version)
+                assertEquals(12, db.version)
                 assertEquals(2, count(db, "observation_quality"))
                 assertEquals(2, count(db, "observations"))
                 assertEquals("ok", db.integrity())
