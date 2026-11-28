@@ -1152,4 +1152,5 @@
     <string name="sleep_next_night_cd">Nächste Nacht</string>
     <string name="sleep_no_night_on_day">Für diesen Tag gibt es keine Schlafphasen vom Band.</string>
     <string name="ov_band_active_kcal">Band heute: %1$s kcal aktiv (alle Aktivitätsarten, Stand %2$s)</string>
+    <string name="sync_sum_band_busy">Das Band gibt seine Dateien noch nicht frei (nach einer Aktivität braucht es oft einige Minuten). PulsLibre versucht es in 5 Minuten noch einmal; es ging nichts verloren.</string>
 </resources>

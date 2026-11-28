@@ -1028,10 +1028,13 @@ class MainActivity : AppCompatActivity() {
         historicalDownloadProbe?.close()
         historicalDownloadProbe = probe
         probe.startHistoricalDownload(userConfirmed = true, progress = progress) { message ->
-            if (HistorySyncRetryPolicy.shouldRetry(message, attempt)) {
+            val delay = HistorySyncRetryPolicy.delayFor(message, attempt)
+            if (delay != null) {
+                // the waiting report is shown meanwhile, so a busy band does not look like a hang
+                if (delay > HistorySyncRetryPolicy.DELAY_MS) onResult(message)
                 handler.postDelayed({
                     if (destroyed) onResult(message) else runHistoricalDownload(progress, attempt + 1, onResult)
-                }, HistorySyncRetryPolicy.DELAY_MS)
+                }, delay)
             } else {
                 onResult(message)
             }

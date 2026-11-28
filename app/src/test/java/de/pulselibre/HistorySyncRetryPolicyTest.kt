@@ -23,4 +23,13 @@ class HistorySyncRetryPolicyTest {
         assertFalse(HistorySyncRetryPolicy.shouldRetry(
             "Sync-Beobachtung: x; incompleteReason=next-transaction-followup-empty; itemListSent=true", 1))
     }
+
+    @Test fun bandBusyAfterActivityIsRetriedOnceLater() {
+        val busy = "details=pull-rejected(result=3);pull-rejected(result=3);pull-rejected(result=3); " +
+            "Pull-Antwort nicht erfolgreich; 3 Ablehnungen in Folge, weitere Abrufe gestoppt. files=[successful=0,notSuccessful=3]"
+        org.junit.Assert.assertEquals(HistorySyncRetryPolicy.BUSY_DELAY_MS, HistorySyncRetryPolicy.delayFor(busy, 1))
+        org.junit.Assert.assertNull(HistorySyncRetryPolicy.delayFor(busy, 2))
+        // some files moved: no repeat
+        org.junit.Assert.assertNull(HistorySyncRetryPolicy.delayFor(busy.replace("successful=0,", "successful=4,"), 1))
+    }
 }
