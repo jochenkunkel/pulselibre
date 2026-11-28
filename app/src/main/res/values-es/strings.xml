@@ -1155,4 +1155,5 @@
     <string name="sleep_stage_rem">REM</string>
     <string name="sleep_stage_light">Ligero</string>
     <string name="sleep_stage_deep">Profundo</string>
+    <string name="sleep_band_value">Fases de sueño registradas</string>
 </resources>

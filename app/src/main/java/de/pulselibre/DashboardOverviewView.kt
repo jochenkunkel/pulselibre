@@ -424,7 +424,7 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
             }, android.widget.FrameLayout.LayoutParams(-1, -1))
             content.addView(valueLayer, LayoutParams(-1, dp(76)).apply { topMargin = dp(4) })
         } else {
-            content.addView(label(MetricText.value(context, metric.value), 22f, accent, true),
+            content.addView(label(MetricText.value(context, metric.value), 22f, accent, true).apply { tag = "metric_value" },
                 LayoutParams(-1, -2).apply { topMargin = dp(6) })
         }
         val profile = MetricReferenceProfile.forMetric(metric, stepGoal)
@@ -517,6 +517,8 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
             val night = try { SleepStages.latestNight(SleepStages.read(app)) } catch (_: Exception) { null }
             post {
                 if (night == null || night.events.isEmpty()) return@post
+                // #762: the headline must not say "no data" while band stages are shown below (no duration is claimed)
+                content.findViewWithTag<TextView>("metric_value")?.text = context.getString(R.string.sleep_band_value)
                 val zone = ZoneId.systemDefault()
                 val locale = context.resources.configuration.locales[0]
                 val time = DateTimeFormatter.ofPattern("HH:mm").withZone(zone)
