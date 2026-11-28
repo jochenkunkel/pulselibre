@@ -12,7 +12,8 @@ import android.view.View
  */
 internal object SleepStages {
     const val METRIC = "sleep_level"
-    const val WINDOW_MS = 24L * 3_600_000L
+    /** Eight days, so the card can step back through the last week of nights (#762). */
+    const val WINDOW_MS = 8L * 24L * 3_600_000L
     private const val CACHE_MS = 60_000L
 
     /** Longest span one reported stage may fill; a longer silence is shown as a gap, not as that stage (#762). */
@@ -47,6 +48,17 @@ internal object SleepStages {
             if (prev != null && prev.code == a.code && prev.endMs == a.atMs) out[out.lastIndex] = prev.copy(endMs = b.atMs)
             else out.add(Segment(a.atMs, b.atMs, a.code))
         }
+        return out
+    }
+
+    /** All nights, oldest first: the events split at every silence longer than [NIGHT_BREAK_MS]. */
+    fun nights(night: Night): List<Night> {
+        val out = ArrayList<Night>(); var cur = ArrayList<Event>()
+        for (e in night.events) {
+            if (cur.isNotEmpty() && e.atMs - cur.last().atMs > NIGHT_BREAK_MS) { out.add(Night(cur)); cur = ArrayList() }
+            cur.add(e)
+        }
+        if (cur.isNotEmpty()) out.add(Night(cur))
         return out
     }
 
