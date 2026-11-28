@@ -1153,7 +1153,7 @@
     <string name="sleep_no_night_on_day">Für diesen Tag gibt es keine Schlafphasen vom Band.</string>
     <string name="ov_band_active_kcal">Band heute: %1$s kcal aktiv (alle Aktivitätsarten, Stand %2$s)</string>
     <string name="sync_sum_band_busy">Das Band gibt seine Dateien noch nicht frei (nach einer Aktivität braucht es oft einige Minuten). PulsLibre versucht es in 5 Minuten noch einmal; es ging nichts verloren.</string>
-    <string name="sync_sum_activity_running">Das Band meldet eine laufende Aktivität (Code 3, beobachtetes Protokoll, noch nicht bestätigt). Beende sie am Band, damit ihre Datei abrufbar wird.</string>
+    <string name="sync_sum_activity_running">Das Band meldet eine laufende Aktivität (beobachtetes Protokoll, noch nicht bestätigt). Beende sie am Band, damit ihre Datei abrufbar wird.</string>
     <string name="band_activity_running">Am Band läuft eine Aktivität – ihre Dateien kommen erst nach dem Beenden.</string>
     <string name="band_activity_end_button">Aktivität beenden und speichern</string>
     <string name="band_activity_end_title">Aktivität am Band beenden?</string>

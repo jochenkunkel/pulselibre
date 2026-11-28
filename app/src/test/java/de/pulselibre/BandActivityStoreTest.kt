@@ -19,6 +19,7 @@ class BandActivityStoreTest {
         assertTrue(BandActivityStore.isActive(3, now - 60_000, now))
         assertTrue(BandActivityStore.isActive(1, now, now))
         assertTrue(BandActivityStore.isActive(5, now, now))
+        assertTrue(BandActivityStore.isActive(9, now, now)) // walk activity, S10 28.11.2026
         assertFalse(BandActivityStore.isActive(4, now, now))
         assertFalse(BandActivityStore.isActive(BandActivityStore.NONE, now, now))
         assertFalse(BandActivityStore.isActive(null, now, now))

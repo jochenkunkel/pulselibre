@@ -173,7 +173,7 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         startDashboardPolling()
         connectionIndicatorRefresh?.invoke()
-        if (refreshPositionTrack != null) { syncPositionTrackWithBand(); refreshPositionTrack?.invoke() }
+        syncPositionTrackWithBand(); refreshPositionTrack?.invoke()
         if (::adapter.isInitialized && ::status.isInitialized && !adapter.isEnabled) {
             status.text = getString(R.string.main_bt_off)
         }
