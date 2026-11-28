@@ -16,7 +16,7 @@ class MonitoringDailyTotalsReaderTest {
         execSQL("INSERT INTO fit_active_generations VALUES ('g1')")
     }
     private fun SQLiteDatabase.obs(gen: String, t: Long, ord: Int, metric: String, v: Double, field: Int) =
-        execSQL("INSERT INTO fit_generation_observations VALUES (?,?,?,?,?,55,?)", arrayOf(gen, t, ord, metric, v, field))
+        execSQL("INSERT INTO fit_generation_observations VALUES (?,?,?,?,?,55,?)", arrayOf<Any>(gen, t, ord, metric, v, field))
 
     @Test fun pairsByTimestampAndRankAndSkipsInactiveOrAmbiguousRecords() {
         val d = db()
