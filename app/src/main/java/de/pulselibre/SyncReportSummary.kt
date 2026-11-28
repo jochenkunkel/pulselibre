@@ -54,6 +54,9 @@ internal object SyncReportSummary {
      */
     fun flushUnanswered(report: String): Boolean = report.contains("monitoringFlush=sent")
 
+    /** #737: the band reported state 3 (running) after the read-only Smart 30 subscription. */
+    fun bandActivityRunning(report: String): Boolean = report.contains("bandActivity=3,")
+
     /** Text for the status card: readable summary, then the hints and the technical report. */
     fun display(strings: Strings, report: String): String {
         val summary = explain(strings, report) ?: return report
@@ -62,6 +65,7 @@ internal object SyncReportSummary {
             if (flushUnanswered(report)) add(strings.get(R.string.sync_sum_flush_unanswered))
             if (lacksDailyHistory(report)) add(strings.get(R.string.sync_sum_no_daily_history))
             if (HistorySyncRetryPolicy.bandBusy(report)) add(strings.get(R.string.sync_sum_band_busy))
+            if (bandActivityRunning(report)) add(strings.get(R.string.sync_sum_activity_running))
         }
         return (listOf(summary) + hints).joinToString("\n\n") + "\n\n" + strings.get(R.string.sync_sum_details) + "\n" + report
     }

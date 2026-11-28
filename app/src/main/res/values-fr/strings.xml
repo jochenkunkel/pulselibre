@@ -1161,4 +1161,5 @@
     <string name="sleep_no_night_on_day">Aucune phase de sommeil du bracelet pour ce jour.</string>
     <string name="ov_band_active_kcal">Bracelet aujourd’hui : %1$s kcal actives (tous types d’activité, état %2$s)</string>
     <string name="sync_sum_band_busy">Le bracelet ne libère pas encore ses fichiers (après une activité, il lui faut souvent quelques minutes). PulsLibre réessaie dans 5 minutes ; rien n’a été perdu.</string>
+    <string name="sync_sum_activity_running">Le bracelet signale une activité en cours (code 3, protocole observé, pas encore confirmé). Termine-la sur le bracelet pour rendre son fichier disponible.</string>
 </resources>
