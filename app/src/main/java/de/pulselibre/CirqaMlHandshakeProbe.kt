@@ -1443,6 +1443,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         val offset = (0..3).fold(0L) { n, k -> n or ((body[2 + k].toLong() and 255L) shl (8 * k)) }
         queueAck(g, CirqaLegacy5043AckCandidate.mlGattValueCandidate(handle, id, offset, 5043))
         val message = devicePushReassembler.acceptMessage(frame) ?: return
+        // #737: the band sends activity-status updates (Smart 30.3) as device-initiated 5043, not as 5044 answer.
+        CirqaActivityStatus.stateCode(message.payload)?.let { syncActivityState = it; return }
         val pushed = CirqaFileAccessItemListParser.parseItemAvailable(message.payload) ?: return
         val item = pushed.item
         syncGdxmlStrings.putAll(pushed.gdxmlStrings)
