@@ -222,7 +222,7 @@ class CirqaContinuousRecordingService : Service() {
                             .putLong(KEY_LAST_READING_MS, nowMs).apply()
                     }
                     writeReading(service, reading)
-                    else updateNotification(getString(R.string.svc_received, readings))
+                    updateNotification(getString(R.string.svc_received, readings))
                 }
             }
         }
