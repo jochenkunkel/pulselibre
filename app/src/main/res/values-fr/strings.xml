@@ -1155,4 +1155,5 @@
     <string name="sleep_stage_rem">Paradoxal</string>
     <string name="sleep_stage_light">Léger</string>
     <string name="sleep_stage_deep">Profond</string>
+    <string name="sleep_band_value">Phases de sommeil enregistrées</string>
 </resources>
