@@ -61,6 +61,7 @@ internal object SyncReportSummary {
             skippedVerified(report).takeIf { it > 0 }?.let { add(strings.get(R.string.sync_sum_skipped, it)) }
             if (flushUnanswered(report)) add(strings.get(R.string.sync_sum_flush_unanswered))
             if (lacksDailyHistory(report)) add(strings.get(R.string.sync_sum_no_daily_history))
+            if (HistorySyncRetryPolicy.bandBusy(report)) add(strings.get(R.string.sync_sum_band_busy))
         }
         return (listOf(summary) + hints).joinToString("\n\n") + "\n\n" + strings.get(R.string.sync_sum_details) + "\n" + report
     }
