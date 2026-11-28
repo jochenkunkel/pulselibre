@@ -717,6 +717,11 @@ class MainActivity : AppCompatActivity() {
                 historicalSyncStatus.text = getString(R.string.main_auto_sync_running)
                 return@actionButton
             }
+            // A second press while a manual download runs (or pauses the recording) must not abort it.
+            if (manualHistoricalSyncActive) {
+                android.widget.Toast.makeText(this@MainActivity, getString(R.string.main_hist_running), android.widget.Toast.LENGTH_SHORT).show()
+                return@actionButton
+            }
             if (!ensureSyncPermissions()) return@actionButton
             if (scanning) stopScan()
             androidx.appcompat.app.AlertDialog.Builder(this@MainActivity)
@@ -731,6 +736,7 @@ class MainActivity : AppCompatActivity() {
                         historicalSyncStatus.text = getString(R.string.main_auto_sync_running)
                         return@setPositiveButton
                     }
+                    if (manualHistoricalSyncActive) return@setPositiveButton
                     manualHistoricalSyncActive = true
                     historicalSyncStatus.text = getString(R.string.main_hist_running)
                     syncProgress.show(HistorySyncProgress(HistorySyncStage.CONNECTING))
