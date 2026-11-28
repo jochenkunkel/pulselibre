@@ -62,6 +62,12 @@ internal object SleepStages {
         return out
     }
 
+    /** Night for a picked calendar day: the night ending that morning, else the one starting that evening; -1 if none. */
+    fun indexForDay(nights: List<Night>, day: java.time.LocalDate, zone: java.time.ZoneId): Int {
+        val byMorning = nights.indexOfLast { dates(it, zone)?.second == day }
+        return if (byMorning >= 0) byMorning else nights.indexOfLast { dates(it, zone)?.first == day }
+    }
+
     /** The newest night: the events after the last silence longer than [NIGHT_BREAK_MS]. */
     fun latestNight(night: Night): Night {
         val e = night.events

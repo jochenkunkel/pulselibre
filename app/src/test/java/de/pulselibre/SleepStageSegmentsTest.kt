@@ -84,4 +84,16 @@ class SleepNightsTest {
         org.junit.Assert.assertEquals(listOf(listOf(0L, h), listOf(24 * h, 25 * h), listOf(48 * h)), n.map { x -> x.events.map { it.atMs } })
         org.junit.Assert.assertTrue(SleepStages.nights(SleepStages.Night(emptyList())).isEmpty())
     }
+
+    @Test fun pickedDayIsTheMorningOfTheNight() {
+        val z = java.time.ZoneId.of("Europe/Berlin")
+        fun at(d: Int, h: Int, m: Int = 0) = java.time.ZonedDateTime.of(2026, 11, d, h, m, 0, 0, z).toInstant().toEpochMilli()
+        val n1 = SleepStages.Night(listOf(SleepStages.Event(at(27, 0, 57), 2), SleepStages.Event(at(27, 6, 37), 4)))
+        val n2 = SleepStages.Night(listOf(SleepStages.Event(at(27, 23, 16), 2), SleepStages.Event(at(28, 7, 28), 1)))
+        val nights = listOf(n1, n2)
+        org.junit.Assert.assertEquals(0, SleepStages.indexForDay(nights, java.time.LocalDate.of(2026, 11, 27), z))
+        org.junit.Assert.assertEquals(1, SleepStages.indexForDay(nights, java.time.LocalDate.of(2026, 11, 28), z))
+        org.junit.Assert.assertEquals(0, SleepStages.indexForDay(nights, java.time.LocalDate.of(2026, 11, 26), z))
+        org.junit.Assert.assertEquals(-1, SleepStages.indexForDay(nights, java.time.LocalDate.of(2026, 11, 20), z))
+    }
 }

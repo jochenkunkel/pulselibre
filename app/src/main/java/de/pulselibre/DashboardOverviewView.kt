@@ -531,7 +531,8 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
                     val current = SleepStages.dates(nights[index], zone)?.second ?: java.time.LocalDate.now(zone)
                     android.app.DatePickerDialog(context, { _, y, m, d ->
                         val picked = java.time.LocalDate.of(y, m + 1, d)
-                        val found = nights.indexOfLast { n -> SleepStages.dates(n, zone)?.let { it.second == picked || it.first == picked } == true }
+                        // the picked day is the morning one wakes up on; only without such a night the evening date counts
+                        val found = SleepStages.indexForDay(nights, picked, zone)
                         if (found >= 0) { index = found; show() }
                         else android.widget.Toast.makeText(context, context.getString(R.string.sleep_no_night_on_day), android.widget.Toast.LENGTH_SHORT).show()
                     }, current.year, current.monthValue - 1, current.dayOfMonth).apply {
