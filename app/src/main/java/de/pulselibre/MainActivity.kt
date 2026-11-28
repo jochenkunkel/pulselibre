@@ -1131,16 +1131,32 @@ class MainActivity : AppCompatActivity() {
         val state = label("", 13f, palette.ink, true)
         deviceView(state, 4)
         val export = actionButton(getString(R.string.pos_export), false, null) {
-            val last = try {
-                de.pulselibre.positiontracking.PositionTrackStore(this).use { it.sessions().firstOrNull { s -> s.endMs != null } }
-            } catch (_: Exception) { null }
-            if (last == null) {
+            // one GeoJSON per band activity: pick the activity by its start/end time
+            val tracks = try {
+                de.pulselibre.positiontracking.PositionTrackStore(this).use { st ->
+                    st.sessions().filter { it.endMs != null }.map { it to st.pointCount(it.id) }
+                }
+            } catch (_: Exception) { emptyList() }
+            if (tracks.isEmpty()) {
                 android.widget.Toast.makeText(this, getString(R.string.pos_export_none), android.widget.Toast.LENGTH_SHORT).show()
             } else {
-                exportTrackId = last.id
-                val name = "pulslibre_spur_" + java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd_HHmm")
-                    .withZone(java.time.ZoneId.systemDefault()).format(java.time.Instant.ofEpochMilli(last.startMs)) + ".geojson"
-                exportTrack.launch(name)
+                val zone = java.time.ZoneId.systemDefault()
+                val day = java.time.format.DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm").withZone(zone)
+                val time = java.time.format.DateTimeFormatter.ofPattern("HH:mm").withZone(zone)
+                val labels = tracks.map { (t, n) ->
+                    getString(R.string.pos_track_item, day.format(java.time.Instant.ofEpochMilli(t.startMs)),
+                        time.format(java.time.Instant.ofEpochMilli(t.endMs ?: t.startMs)), n)
+                }.toTypedArray()
+                androidx.appcompat.app.AlertDialog.Builder(this)
+                    .setTitle(R.string.pos_export)
+                    .setItems(labels) { _, which ->
+                        val t = tracks[which].first
+                        exportTrackId = t.id
+                        exportTrack.launch("pulslibre_spur_" + java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd_HHmm")
+                            .withZone(zone).format(java.time.Instant.ofEpochMilli(t.startMs)) + ".geojson")
+                    }
+                    .setNegativeButton(R.string.action_cancel, null)
+                    .show()
             }
         }
         deviceView(export, 12)

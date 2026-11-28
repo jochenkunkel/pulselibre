@@ -1176,7 +1176,7 @@
     <string name="pos_stop">Terminer l\'activité</string>
     <string name="pos_state_off">Aucune activité du bracelet avec trace en cours.</string>
     <string name="pos_state_on">Activité du bracelet en cours · %1$d positions enregistrées</string>
-    <string name="pos_export">Exporter la dernière trace (GeoJSON)</string>
+    <string name="pos_export">Exporter une trace (GeoJSON)</string>
     <string name="pos_export_none">Aucune trace terminée.</string>
     <string name="pos_export_done">Trace exportée.</string>
     <string name="pos_export_failed">Échec de l\'export.</string>
@@ -1185,4 +1185,5 @@
     <string name="pos_channel">Trace de position</string>
     <string name="pos_notification_title">PulsLibre enregistre la trace de position</string>
     <string name="pos_notification_text">Local uniquement · terminer dans l\'app ou ici</string>
+    <string name="pos_track_item">%1$s–%2$s · %3$d positions</string>
 </resources>

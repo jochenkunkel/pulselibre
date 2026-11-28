@@ -1176,7 +1176,7 @@
     <string name="pos_stop">Finalizar actividad</string>
     <string name="pos_state_off">No hay actividad de la pulsera con traza en curso.</string>
     <string name="pos_state_on">Actividad de la pulsera en curso · %1$d posiciones guardadas</string>
-    <string name="pos_export">Exportar última traza (GeoJSON)</string>
+    <string name="pos_export">Exportar traza (GeoJSON)</string>
     <string name="pos_export_none">Aún no hay traza terminada.</string>
     <string name="pos_export_done">Traza exportada.</string>
     <string name="pos_export_failed">Error al exportar.</string>
@@ -1185,4 +1185,5 @@
     <string name="pos_channel">Traza de posición</string>
     <string name="pos_notification_title">PulsLibre graba la traza de posición</string>
     <string name="pos_notification_text">Solo local · finalizar en la app o aquí</string>
+    <string name="pos_track_item">%1$s–%2$s · %3$d posiciones</string>
 </resources>

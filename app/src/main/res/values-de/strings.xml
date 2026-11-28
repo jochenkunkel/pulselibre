@@ -1168,7 +1168,7 @@
     <string name="pos_stop">Tätigkeit beenden</string>
     <string name="pos_state_off">Keine Band-Aktivität mit Spur aktiv.</string>
     <string name="pos_state_on">Band-Aktivität läuft · %1$d Positionen gespeichert</string>
-    <string name="pos_export">Letzte Spur exportieren (GeoJSON)</string>
+    <string name="pos_export">Spur exportieren (GeoJSON)</string>
     <string name="pos_export_none">Noch keine abgeschlossene Spur.</string>
     <string name="pos_export_done">Spur exportiert.</string>
     <string name="pos_export_failed">Export fehlgeschlagen.</string>
@@ -1177,4 +1177,5 @@
     <string name="pos_channel">Positionsspur</string>
     <string name="pos_notification_title">PulsLibre zeichnet die Positionsspur auf</string>
     <string name="pos_notification_text">Nur lokal · in der App oder hier beenden</string>
+    <string name="pos_track_item">%1$s–%2$s · %3$d Positionen</string>
 </resources>
