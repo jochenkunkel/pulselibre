@@ -63,4 +63,22 @@ class WeekSummaryTest {
         assertEquals(2, row.validDays)
         assertFalse(r.unavailable.contains("Stress"))
     }
+
+    // #329: active calories per day from the band counters; a non-monotonic day is left out, never estimated.
+    @Test fun bandActiveCaloriesPerDayOnlyFromMonotonicDays() {
+        val zone = java.time.ZoneId.of("Europe/Berlin")
+        fun at(day: LocalDate, hour: Int) = day.atTime(hour, 0).atZone(zone).toInstant().toEpochMilli()
+        val midnight = d(1).atStartOfDay(zone).toInstant().toEpochMilli() // closing record of d(2)
+        val samples = listOf(
+            MonitoringDailyTotals.Sample(at(d(2), 9), 6, 100.0), MonitoringDailyTotals.Sample(midnight, 6, 300.0),
+            MonitoringDailyTotals.Sample(at(d(2), 10), 0, 50.0),
+            MonitoringDailyTotals.Sample(at(d(3), 9), 6, 200.0), MonitoringDailyTotals.Sample(at(d(3), 10), 6, 150.0))
+        val daily = WeekSummary.activeKcalDaily(samples, zone)
+        assertEquals(mapOf(d(2) to 350.0), daily)
+        val row = WeekSummary.build(emptyMap(), emptyMap(), today, null, activeKcalDaily = daily, format = fmt)
+            .rows.single { it.label == WeekSummary.ACTIVE_KCAL_LABEL }
+        assertEquals("350 kcal", row.value)
+        assertEquals(1, row.validDays)
+        assertFalse(WeekSummary.UNAVAILABLE.contains("Kalorien"))
+    }
 }

@@ -545,12 +545,13 @@
     <string name="md_cov_hint">für eine Trendaussage fehlen Tage (mindestens %1$s nötig)</string>
     <string name="tr_week_value">%1$s: %2$s</string>
     <string name="md_week_cov">%1$s von 7 Tagen</string>
-    <string name="md_week_unavail">Ohne Tageswerte (noch keine geprüften Tagesreihen; Gerätewerte erscheinen nur live): Schlafdauer, Kalorien, Intensitätsminuten.</string>
+    <string name="md_week_unavail">Ohne Tageswerte (noch keine geprüften Tagesreihen; Gerätewerte erscheinen nur live): Schlafdauer, Intensitätsminuten.</string>
     <string name="md_week_goal">Ziel (%1$s) erreicht an %2$s von %3$s Tagen mit Daten.</string>
     <string name="md_week_avg_steps">Ø Schritte pro Tag</string>
     <string name="md_week_total_steps">Schritte gesamt</string>
     <string name="md_week_total_val">%1$s (nur Tage mit Daten)</string>
     <string name="md_week_avg_rest">Ø Geräte-Ruhepuls</string>
+    <string name="md_week_avg_active_kcal">Ø aktive Kalorien pro Tag (Band)</string>
     <string name="md_week_avg_stress">Ø Stress (Band, Geräteskala)</string>
     <string name="md_atlas_summary">%1$s von %2$s Tagen mit verifizierten Schrittwerten</string>
     <string name="md_atlas_none">%1$s\nKeine verifizierten Tagesdaten.</string>
