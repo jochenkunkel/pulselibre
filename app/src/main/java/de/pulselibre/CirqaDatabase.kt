@@ -25,6 +25,8 @@ class CirqaDatabase(private val contextRef: Context) :
         val truncated: Boolean
     )
 
+    init { SqliteOpen.skipLocale(this) }
+
     override fun onConfigure(db: SQLiteDatabase) {
         super.onConfigure(db)
         db.setForeignKeyConstraintsEnabled(true)

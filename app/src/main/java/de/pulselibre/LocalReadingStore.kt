@@ -91,6 +91,8 @@ interface FitObservationStore {
 class LocalReadingStore(context: Context) : SQLiteOpenHelper(
     context.applicationContext, "pulselibre_readings.db", null, 3
 ), FitObservationStore {
+    init { SqliteOpen.skipLocale(this) }
+
     override fun onConfigure(db: SQLiteDatabase) {
         super.onConfigure(db)
         db.setForeignKeyConstraintsEnabled(true)

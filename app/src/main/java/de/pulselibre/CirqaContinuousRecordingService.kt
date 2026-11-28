@@ -46,6 +46,23 @@ class CirqaContinuousRecordingService : Service() {
     }
 
     private val handler = Handler(Looper.getMainLooper())
+    /**
+     * #773: every log write opens SQLite and may wait for another connection's lock (S10 28.11.: ANR, main thread in
+     * the busy handler). Writes run in order on this one thread; a failed write stops collection on the main thread.
+     */
+    private val writer = java.util.concurrent.Executors.newSingleThreadExecutor()
+
+    private fun write(type: String, fields: Map<String, Any?> = emptyMap(), stopOnFailure: Boolean = false) {
+        val l = log
+        writer.execute {
+            if (!l.append(type, fields) && stopOnFailure) handler.post { if (running) stopCollection("storage_limit") }
+        }
+    }
+
+    private fun writeReading(service: Int, reading: GarminRealtime.Reading) {
+        val l = log
+        writer.execute { if (!l.reading(service, reading)) handler.post { if (running) stopCollection("storage_limit") } }
+    }
     private var probe: RecorderLink? = null
     private var running = false
     private var stopPending = false
@@ -102,10 +119,7 @@ class CirqaContinuousRecordingService : Service() {
             .putLong(KEY_HEARTBEAT_MS, System.currentTimeMillis()).apply()
         heartbeat()
         registerBluetoothStateReceiver()
-        if (!log.append("session_start", mapOf("mode" to "continuous_notifications"))) {
-            stopCollection("storage_limit")
-            return START_NOT_STICKY
-        }
+        write("session_start", mapOf("mode" to "continuous_notifications"), stopOnFailure = true)
         sample()
         return START_NOT_STICKY
     }
@@ -139,13 +153,13 @@ class CirqaContinuousRecordingService : Service() {
                 probe?.close()
                 probe = null
                 attemptGate.start()
-                log.append("bluetooth_state", mapOf("state" to "off"))
+                write("bluetooth_state", mapOf("state" to "off"))
                 updateNotification(getString(R.string.svc_bt_off))
             }
             RecorderBluetoothPolicy.Action.RESTART_ATTEMPT -> {
                 probe?.close()
                 probe = null
-                log.append("bluetooth_state", mapOf("state" to "on"))
+                write("bluetooth_state", mapOf("state" to "on"))
                 sample()
             }
         }
@@ -166,7 +180,7 @@ class CirqaContinuousRecordingService : Service() {
         if (!RecorderStall.isStalled(attemptStartedMs, lastReadingMs, now, stallAfterMs)) return
         val reconnectToken = attemptGate.finish(currentToken, current) ?: return
         probe = null
-        log.append("stall_detected", mapOf("attempt" to attempts, "silent_ms" to now - maxOf(attemptStartedMs, lastReadingMs)))
+        write("stall_detected", mapOf("attempt" to attempts, "silent_ms" to now - maxOf(attemptStartedMs, lastReadingMs)))
         current.close()
         scheduleReconnect(reconnectToken, "stall")
     }
@@ -180,10 +194,7 @@ class CirqaContinuousRecordingService : Service() {
         currentToken = token
         attemptStartedMs = System.currentTimeMillis()
         val attemptNumber = attempts
-        if (!log.append("attempt_start", mapOf("number" to attemptNumber))) {
-            stopCollection("storage_limit")
-            return
-        }
+        write("attempt_start", mapOf("number" to attemptNumber), stopOnFailure = true)
         val factory = linkFactory
         val current: RecorderLink = if (factory != null) factory(this) else {
             val adapter = (getSystemService(BLUETOOTH_SERVICE) as BluetoothManager).adapter
@@ -210,8 +221,8 @@ class CirqaContinuousRecordingService : Service() {
                         getSharedPreferences(PREFS, MODE_PRIVATE).edit()
                             .putLong(KEY_LAST_READING_MS, nowMs).apply()
                     }
-                    if (!log.reading(service, reading)) stopCollection("storage_limit")
-                    else updateNotification(getString(R.string.svc_received, readings))
+                    writeReading(service, reading)
+                    updateNotification(getString(R.string.svc_received, readings))
                 }
             }
         }
@@ -227,14 +238,8 @@ class CirqaContinuousRecordingService : Service() {
                         val reconnectToken = attemptGate.finish(token, current)
                             ?: return@post
                         probe = null
-                        if (!log.append("attempt", mapOf(
-                                "number" to attemptNumber,
-                                "result" to result.take(600)
-                            ))) {
-                            stopCollection("storage_limit")
-                        } else {
-                            scheduleReconnect(reconnectToken, "connection_ended")
-                        }
+                        write("attempt", mapOf("number" to attemptNumber, "result" to result.take(600)), stopOnFailure = true)
+                        scheduleReconnect(reconnectToken, "connection_ended")
                     }
                 }
             }
@@ -246,7 +251,7 @@ class CirqaContinuousRecordingService : Service() {
         // Bounded backoff: 2, 4, 8, 16, 32, then 60 seconds, counted since the last reading (not since service start).
         val delayMs = RecorderBackoff.delayMs(attemptsSinceReading.coerceAtLeast(1))
         updateNotification(getString(R.string.svc_reconnect, delayMs / 1000))
-        log.append("reconnect_scheduled", mapOf("reason" to reason, "delay_ms" to delayMs))
+        write("reconnect_scheduled", mapOf("reason" to reason, "delay_ms" to delayMs))
         handler.postDelayed({
             if (attemptGate.canRetry(token)) sample()
         }, delayMs)
@@ -254,7 +259,7 @@ class CirqaContinuousRecordingService : Service() {
 
     private fun stopCollection(reason: String) {
         if (stopPending) return
-        if (running) log.append("session_end", mapOf("reason" to reason, "attempts" to attempts, "readings" to readings))
+        if (running) write("session_end", mapOf("reason" to reason, "attempts" to attempts, "readings" to readings))
         stopPending = true
         running = false
         attemptGate.stop()
@@ -300,6 +305,7 @@ class CirqaContinuousRecordingService : Service() {
 
     override fun onDestroy() {
         if (running) stopCollection("service_destroyed")
+        writer.shutdown() // queued writes (e.g. session_end) still complete
         super.onDestroy()
     }
 }
