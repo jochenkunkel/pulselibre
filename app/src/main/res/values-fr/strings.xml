@@ -1169,4 +1169,5 @@
     <string name="band_activity_end_ok">Terminer et enregistrer</string>
     <string name="band_activity_ending">Fin de l’activité sur le bracelet …</string>
     <string name="ov_band_activity_running">Une activité est en cours sur le bracelet. L’historique arrive une fois terminée (onglet Appareil).</string>
+    <string name="main_hist_recording_paused">Enregistrement en pause pour le téléchargement de l\'historique ; il reprend ensuite …</string>
 </resources>

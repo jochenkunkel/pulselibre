@@ -1161,4 +1161,5 @@
     <string name="band_activity_end_ok">End and save</string>
     <string name="band_activity_ending">Ending the activity on the band …</string>
     <string name="ov_band_activity_running">An activity is running on the band. History arrives once it has ended (device tab).</string>
+    <string name="main_hist_recording_paused">Recording paused for the history download; it resumes afterwards …</string>
 </resources>

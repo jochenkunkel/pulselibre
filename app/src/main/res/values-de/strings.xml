@@ -1161,4 +1161,5 @@
     <string name="band_activity_end_ok">Beenden und speichern</string>
     <string name="band_activity_ending">Aktivität am Band wird beendet …</string>
     <string name="ov_band_activity_running">Am Band läuft eine Aktivität. Die Historie kommt, sobald sie beendet ist (Reiter Gerät).</string>
+    <string name="main_hist_recording_paused">Aufzeichnung für den Historien-Download pausiert; sie startet danach wieder …</string>
 </resources>

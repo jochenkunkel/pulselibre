@@ -1169,4 +1169,5 @@
     <string name="band_activity_end_ok">Finalizar y guardar</string>
     <string name="band_activity_ending">Finalizando la actividad en la pulsera …</string>
     <string name="ov_band_activity_running">Hay una actividad en curso en la pulsera. El historial llega cuando termine (pestaña Dispositivo).</string>
+    <string name="main_hist_recording_paused">Grabación en pausa para la descarga del historial; se reanuda después …</string>
 </resources>

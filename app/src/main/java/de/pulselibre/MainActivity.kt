@@ -22,6 +22,10 @@ import androidx.core.app.ActivityCompat
 class MainActivity : AppCompatActivity() {
     override fun attachBaseContext(newBase: android.content.Context) = super.attachBaseContext(AppLanguageSettings.wrap(newBase))
     private val handler = Handler(Looper.getMainLooper())
+    private companion object {
+        const val RECORDING_PAUSE_TIMEOUT_MS = 20_000L
+        const val RECORDING_SETTLE_MS = 1_500L
+    }
     /** One long-lived helper for the 1-second change poll instead of opening/closing the database every second (#114). */
     private val pollDatabase by lazy { CirqaDatabase(applicationContext) }
     private var dashboardRefresh: (() -> Unit)? = null
@@ -1031,7 +1035,9 @@ class MainActivity : AppCompatActivity() {
                 if (Build.VERSION.SDK_INT >= 31) Manifest.permission.BLUETOOTH_CONNECT
                 else Manifest.permission.ACCESS_FINE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED ||
-            !::adapter.isInitialized || !adapter.isEnabled || CirqaBleSessionGate.isBusy()
+            !::adapter.isInitialized || !adapter.isEnabled ||
+            // a running recording is paused for the download (see pauseRecordingForSync); any other session blocks
+            (CirqaBleSessionGate.isBusy() && !AutoStartRecording.isServiceAlive(this))
         ) return
         val prefs = getSharedPreferences("historical_sync_energy_policy", MODE_PRIVATE)
         val now = System.currentTimeMillis()
@@ -1071,8 +1077,10 @@ class MainActivity : AppCompatActivity() {
         progress: (HistorySyncProgress) -> Unit,
         attempt: Int = 1,
         endActivity: Boolean = false,
+        recordingPaused: Boolean = false,
         onResult: (String) -> Unit
     ) {
+        pauseRecordingForSync(recordingPaused) { paused ->
         val probe = CirqaMlHandshakeProbe(this, adapter)
         historicalDownloadProbe?.close()
         historicalDownloadProbe = probe
@@ -1080,15 +1088,53 @@ class MainActivity : AppCompatActivity() {
             BandActivityStore.record(getSharedPreferences(BandActivityStore.PREFS, MODE_PRIVATE), message, System.currentTimeMillis())
             runOnUiThread { if (!destroyed) { refreshBandActivity?.invoke(); dashboardRefresh?.invoke() } }
             val delay = HistorySyncRetryPolicy.delayFor(message, attempt)
+            // A quick retry (8 s) keeps the recording paused; before a long wait or at the end it runs again.
+            val keepPaused = delay != null && delay <= HistorySyncRetryPolicy.DELAY_MS
+            if (paused && !keepPaused) runOnUiThread { restartRecordingAfterSync() }
             if (delay != null) {
                 // the waiting report is shown meanwhile, so a busy band does not look like a hang
                 if (delay > HistorySyncRetryPolicy.DELAY_MS) onResult(message)
                 handler.postDelayed({
-                    if (destroyed) onResult(message) else runHistoricalDownload(progress, attempt + 1, onResult = onResult)
+                    if (destroyed) { onResult(message); if (paused && keepPaused) restartRecordingAfterSync() }
+                    else runHistoricalDownload(progress, attempt + 1, recordingPaused = paused && keepPaused, onResult = onResult)
                 }, delay)
             } else {
                 onResult(message)
             }
+        }
+        }
+    }
+
+    /**
+     * The recording service and a history download cannot share the band (one BLE session). If the recording runs, it is
+     * stopped, the download runs once the session is free, and the caller starts it again afterwards; [block] learns
+     * whether the recording was paused.
+     */
+    private fun pauseRecordingForSync(alreadyPaused: Boolean, block: (paused: Boolean) -> Unit) {
+        if (alreadyPaused) { block(true); return }
+        if (!AutoStartRecording.isServiceAlive(this)) { block(false); return }
+        try {
+            startService(Intent(this, CirqaContinuousRecordingService::class.java).setAction(CirqaContinuousRecordingService.ACTION_STOP))
+        } catch (_: Exception) { block(false); return }
+        historicalSyncStatusView?.text = getString(R.string.main_hist_recording_paused)
+        val deadline = android.os.SystemClock.elapsedRealtime() + RECORDING_PAUSE_TIMEOUT_MS
+        fun poll() {
+            val free = !CirqaBleSessionGate.isBusy() && !AutoStartRecording.isServiceAlive(this)
+            if (free || android.os.SystemClock.elapsedRealtime() > deadline) {
+                // short pause so the band sees the recording link closed before the sync connects
+                handler.postDelayed({ block(true) }, RECORDING_SETTLE_MS)
+            } else handler.postDelayed({ poll() }, 500L)
+        }
+        poll()
+    }
+
+    private fun restartRecordingAfterSync() {
+        if (AutoStartRecording.isServiceAlive(this)) return
+        try {
+            androidx.core.content.ContextCompat.startForegroundService(this,
+                Intent(this, CirqaContinuousRecordingService::class.java).setAction(CirqaContinuousRecordingService.ACTION_START))
+        } catch (_: Exception) {
+            android.widget.Toast.makeText(this, getString(R.string.main_rec_autostart_failed), android.widget.Toast.LENGTH_LONG).show()
         }
     }
 
