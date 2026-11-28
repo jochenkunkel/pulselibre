@@ -525,6 +525,20 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
                 var index = nights.indexOfFirst { it.firstMs == selectedSleepNightMs }.takeIf { it >= 0 } ?: nights.lastIndex
                 fun show() { selectedSleepNightMs = nights[index].firstMs; renderNight(box, nights, index) { index = it; show() } }
                 show()
+                // #762: tapping the sleep tile picks a night by date (the generic day dialog has no sleep data)
+                val zone = ZoneId.systemDefault()
+                setOnClickListener {
+                    val current = SleepStages.dates(nights[index], zone)?.second ?: java.time.LocalDate.now(zone)
+                    android.app.DatePickerDialog(context, { _, y, m, d ->
+                        val picked = java.time.LocalDate.of(y, m + 1, d)
+                        val found = nights.indexOfLast { n -> SleepStages.dates(n, zone)?.let { it.second == picked || it.first == picked } == true }
+                        if (found >= 0) { index = found; show() }
+                        else android.widget.Toast.makeText(context, context.getString(R.string.sleep_no_night_on_day), android.widget.Toast.LENGTH_SHORT).show()
+                    }, current.year, current.monthValue - 1, current.dayOfMonth).apply {
+                        datePicker.maxDate = System.currentTimeMillis()
+                        nights.first().firstMs?.let { datePicker.minDate = it - 86_400_000L }
+                    }.show()
+                }
                 box.visibility = View.VISIBLE
             }
         }.start()

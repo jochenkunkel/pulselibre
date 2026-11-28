@@ -1150,4 +1150,5 @@
     <string name="sleep_band_value">Schlafphasen erfasst</string>
     <string name="sleep_prev_night_cd">Vorherige Nacht</string>
     <string name="sleep_next_night_cd">Nächste Nacht</string>
+    <string name="sleep_no_night_on_day">Für diesen Tag gibt es keine Schlafphasen vom Band.</string>
 </resources>
