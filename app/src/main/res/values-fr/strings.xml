@@ -1172,11 +1172,10 @@
     <string name="main_hist_recording_paused">Enregistrement en pause pour le téléchargement de l\'historique ; il reprend ensuite …</string>
     <string name="pos_heading">Trace de position</string>
     <string name="pos_switch">Trace GPS de l\'activité en cours</string>
-    <string name="pos_info">Facultatif, désactivé par défaut. Pendant une activité lancée dans PulsLibre, chaque position Android disponible (GPS, Wi-Fi, réseau mobile) est enregistrée localement avec sa précision. Rien ne quitte le téléphone ; export GeoJSON uniquement sur demande. Écran éteint, Android peut fournir moins de positions.</string>
-    <string name="pos_start">Démarrer l\'activité avec trace</string>
+    <string name="pos_info">Facultatif, désactivé par défaut. Tant que le bracelet signale une activité en cours (détectée à chaque téléchargement de l\'historique, p. ex. à l\'ouverture de l\'app), PulsLibre enregistre toutes les 5 s la position Android la plus précise (GPS, Wi-Fi, réseau mobile) avec sa précision. La trace se termine quand l\'activité est terminée sur le bracelet ou dans l\'app. Local uniquement ; export GeoJSON sur demande.</string>
     <string name="pos_stop">Terminer l\'activité</string>
-    <string name="pos_state_off">Aucune activité avec trace en cours.</string>
-    <string name="pos_state_on">Activité en cours · %1$d positions enregistrées</string>
+    <string name="pos_state_off">Aucune activité du bracelet avec trace en cours.</string>
+    <string name="pos_state_on">Activité du bracelet en cours · %1$d positions enregistrées</string>
     <string name="pos_export">Exporter la dernière trace (GeoJSON)</string>
     <string name="pos_export_none">Aucune trace terminée.</string>
     <string name="pos_export_done">Trace exportée.</string>

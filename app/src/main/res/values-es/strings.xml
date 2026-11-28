@@ -1172,11 +1172,10 @@
     <string name="main_hist_recording_paused">Grabación en pausa para la descarga del historial; se reanuda después …</string>
     <string name="pos_heading">Traza de posición</string>
     <string name="pos_switch">Traza GPS de la actividad en curso</string>
-    <string name="pos_info">Opcional, desactivado por defecto. Durante una actividad iniciada en PulsLibre se guarda localmente cada posición de Android disponible (GPS, Wi-Fi, red móvil) con su precisión. Nada sale del teléfono; exportación GeoJSON solo a petición. Con la pantalla apagada, Android puede entregar menos posiciones.</string>
-    <string name="pos_start">Iniciar actividad con traza</string>
+    <string name="pos_info">Opcional, desactivado por defecto. Mientras la pulsera indique una actividad en curso (detectada en cada descarga del historial, p. ej. al abrir la app), PulsLibre guarda cada 5 s la posición de Android más precisa (GPS, Wi-Fi, red móvil) con su precisión. La traza termina cuando la actividad se finaliza en la pulsera o en la app. Solo local; exportación GeoJSON a petición.</string>
     <string name="pos_stop">Finalizar actividad</string>
-    <string name="pos_state_off">No hay actividad con traza en curso.</string>
-    <string name="pos_state_on">Actividad en curso · %1$d posiciones guardadas</string>
+    <string name="pos_state_off">No hay actividad de la pulsera con traza en curso.</string>
+    <string name="pos_state_on">Actividad de la pulsera en curso · %1$d posiciones guardadas</string>
     <string name="pos_export">Exportar última traza (GeoJSON)</string>
     <string name="pos_export_none">Aún no hay traza terminada.</string>
     <string name="pos_export_done">Traza exportada.</string>

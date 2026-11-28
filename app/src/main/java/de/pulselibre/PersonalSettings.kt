@@ -165,6 +165,19 @@ object PersonalSettings {
             contentDescription = context.getString(R.string.recording_autostart_cd)
             layout.addView(this, LinearLayout.LayoutParams(-1, -2))
         }
+        // #788: GPS track during an activity started on the band; default off.
+        val gpsTrack = androidx.appcompat.widget.SwitchCompat(context).apply {
+            text = context.getString(R.string.pos_switch)
+            isChecked = de.pulselibre.positiontracking.PositionTracking.isEnabled(context)
+            tag = "settings_gps_track"
+            setTextColor(palette.ink)
+            minimumHeight = dp(48)
+            layout.addView(this, LinearLayout.LayoutParams(-1, -2))
+        }
+        layout.addView(TextView(context).apply {
+            text = context.getString(R.string.pos_info)
+            setTextColor(palette.muted); textSize = 13f
+        })
 
         heading(PlIcon.OVERVIEW, context.getString(R.string.appearance_heading))
         val themeChoice = Spinner(context).apply {
@@ -330,6 +343,7 @@ object PersonalSettings {
                     return@setOnClickListener
                 }
                 AutoStartRecording.save(context, autoStart.isChecked)
+                de.pulselibre.positiontracking.PositionTracking.setEnabled(context, gpsTrack.isChecked)
                 ActivityDetectionPreference.save(context, ActivityDetectionSettings(
                     restBelowStepsPerMinute = restSteps.text.toString().toInt(),
                     sportAboveStepsPerMinute = sportSteps.text.toString().toInt(),

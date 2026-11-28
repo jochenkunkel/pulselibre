@@ -1164,11 +1164,10 @@
     <string name="main_hist_recording_paused">Aufzeichnung für den Historien-Download pausiert; sie startet danach wieder …</string>
     <string name="pos_heading">Positionsspur</string>
     <string name="pos_switch">GPS Spur zu aktiver Tätigkeit</string>
-    <string name="pos_info">Optional, standardmäßig aus. Während einer in PulsLibre gestarteten Tätigkeit speichert die App jede verfügbare Android-Position (GPS, WLAN, Mobilfunk) lokal mit ihrer Genauigkeit. Nichts verlässt das Telefon; Export nur auf Wunsch als GeoJSON. Bei ausgeschaltetem Display kann Android weniger Positionen liefern.</string>
-    <string name="pos_start">Tätigkeit mit Spur starten</string>
+    <string name="pos_info">Optional, standardmäßig aus. Solange das Band eine laufende Aktivität meldet (erkannt bei jedem Historien-Download, z. B. beim Öffnen der App), speichert PulsLibre alle 5 s die genaueste Android-Position (GPS, WLAN, Mobilfunk) mit ihrer Genauigkeit. Die Spur endet, wenn die Aktivität am Band oder in der App beendet wird. Nur lokal; GeoJSON-Export auf Wunsch.</string>
     <string name="pos_stop">Tätigkeit beenden</string>
-    <string name="pos_state_off">Keine Tätigkeit mit Spur aktiv.</string>
-    <string name="pos_state_on">Tätigkeit läuft · %1$d Positionen gespeichert</string>
+    <string name="pos_state_off">Keine Band-Aktivität mit Spur aktiv.</string>
+    <string name="pos_state_on">Band-Aktivität läuft · %1$d Positionen gespeichert</string>
     <string name="pos_export">Letzte Spur exportieren (GeoJSON)</string>
     <string name="pos_export_none">Noch keine abgeschlossene Spur.</string>
     <string name="pos_export_done">Spur exportiert.</string>

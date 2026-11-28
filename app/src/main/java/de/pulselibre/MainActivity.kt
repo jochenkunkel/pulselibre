@@ -36,7 +36,6 @@ class MainActivity : AppCompatActivity() {
     private var refreshBandActivity: (() -> Unit)? = null
     private var refreshPositionTrack: (() -> Unit)? = null
     private var positionTrackTick = 0
-    private var startTrackAfterPermission = false
     private var exportTrackId: Long? = null
     private val exportTrack = registerForActivityResult(
         androidx.activity.result.contract.ActivityResultContracts.CreateDocument("application/geo+json")
@@ -174,6 +173,7 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         startDashboardPolling()
         connectionIndicatorRefresh?.invoke()
+        if (refreshPositionTrack != null) { syncPositionTrackWithBand(); refreshPositionTrack?.invoke() }
         if (::adapter.isInitialized && ::status.isInitialized && !adapter.isEnabled) {
             status.text = getString(R.string.main_bt_off)
         }
@@ -1095,7 +1095,7 @@ class MainActivity : AppCompatActivity() {
         historicalDownloadProbe = probe
         probe.startHistoricalDownload(userConfirmed = true, progress = progress, endActivity = endActivity) { message ->
             BandActivityStore.record(getSharedPreferences(BandActivityStore.PREFS, MODE_PRIVATE), message, System.currentTimeMillis())
-            runOnUiThread { if (!destroyed) { refreshBandActivity?.invoke(); dashboardRefresh?.invoke() } }
+            runOnUiThread { if (!destroyed) { refreshBandActivity?.invoke(); dashboardRefresh?.invoke(); syncPositionTrackWithBand() } }
             val delay = HistorySyncRetryPolicy.delayFor(message, attempt)
             // A quick retry (8 s) keeps the recording paused; before a long wait or at the end it runs again.
             val keepPaused = delay != null && delay <= HistorySyncRetryPolicy.DELAY_MS
@@ -1119,34 +1119,17 @@ class MainActivity : AppCompatActivity() {
      * stopped, the download runs once the session is free, and the caller starts it again afterwards; [block] learns
      * whether the recording was paused.
      */
-    /** #788: opt-in position track of an activity started in PulsLibre (own location service, export as GeoJSON). */
+    /** #788: position track of the activity running on the band (own location service, export as GeoJSON). */
     private fun addPositionTrackSection(
         deviceView: (android.view.View, Int) -> Unit,
         label: (String, Float, Int, Boolean) -> TextView,
         actionButton: (String, Boolean, PlIcon?, () -> Unit) -> android.view.View
     ) {
         val palette = AppPalette.of(this)
-        val ink = palette.ink
-        val muted = palette.muted
-        deviceView(label(getString(R.string.pos_heading), 17f, ink, true), 16)
-        val toggle = androidx.appcompat.widget.SwitchCompat(this).apply {
-            text = getString(R.string.pos_switch)
-            setTextColor(ink)
-            isChecked = de.pulselibre.positiontracking.PositionTracking.isEnabled(this@MainActivity)
-        }
-        deviceView(toggle, 4)
-        deviceView(label(getString(R.string.pos_info), 13f, muted, false), 4)
-        val state = label("", 13f, ink, true)
+        val heading = label(getString(R.string.pos_heading), 17f, palette.ink, true)
+        deviceView(heading, 16)
+        val state = label("", 13f, palette.ink, true)
         deviceView(state, 4)
-        val startStop = actionButton(getString(R.string.pos_start), true, PlIcon.RECORD_START) {
-            if (de.pulselibre.positiontracking.PositionTracking.activeSession(this) != null) stopPositionTrack()
-            else if (hasLocationPermission()) startPositionTrack()
-            else {
-                startTrackAfterPermission = true
-                ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION), 13)
-            }
-        }
-        deviceView(startStop, 4)
         val export = actionButton(getString(R.string.pos_export), false, null) {
             val last = try {
                 de.pulselibre.positiontracking.PositionTrackStore(this).use { it.sessions().firstOrNull { s -> s.endMs != null } }
@@ -1164,21 +1147,29 @@ class MainActivity : AppCompatActivity() {
         refreshPositionTrack = {
             val enabled = de.pulselibre.positiontracking.PositionTracking.isEnabled(this)
             val active = de.pulselibre.positiontracking.PositionTracking.activeSession(this)
-            startStop.visibility = if (enabled) android.view.View.VISIBLE else android.view.View.GONE
-            export.visibility = startStop.visibility
-            state.visibility = startStop.visibility
-            (startStop as? TextView)?.text = getString(if (active != null) R.string.pos_stop else R.string.pos_start)
-            state.text = if (active == null) getString(R.string.pos_state_off) else {
-                val n = try { de.pulselibre.positiontracking.PositionTrackStore(this).use { it.pointCount(active) } } catch (_: Exception) { 0 }
-                getString(R.string.pos_state_on, n)
+            val v = if (enabled) android.view.View.VISIBLE else android.view.View.GONE
+            heading.visibility = v; state.visibility = v; export.visibility = v
+            state.text = when {
+                active != null -> {
+                    val n = try { de.pulselibre.positiontracking.PositionTrackStore(this).use { it.pointCount(active) } } catch (_: Exception) { 0 }
+                    getString(R.string.pos_state_on, n)
+                }
+                !hasLocationPermission() -> getString(R.string.pos_permission_denied)
+                else -> getString(R.string.pos_state_off)
             }
         }
-        toggle.setOnCheckedChangeListener { _, on ->
-            de.pulselibre.positiontracking.PositionTracking.setEnabled(this, on)
-            if (!on) stopPositionTrack()
-            refreshPositionTrack?.invoke()
-        }
         refreshPositionTrack?.invoke()
+    }
+
+    /** #788: follow the band – track while it reports an unfinished activity, stop once it is saved or gone. */
+    private fun syncPositionTrackWithBand() {
+        if (!de.pulselibre.positiontracking.PositionTracking.isEnabled(this)) { stopPositionTrack(); return }
+        val active = BandActivityStore.isActive(getSharedPreferences(BandActivityStore.PREFS, MODE_PRIVATE), System.currentTimeMillis())
+        val tracking = de.pulselibre.positiontracking.PositionTracking.activeSession(this) != null
+        if (active && !tracking) {
+            if (hasLocationPermission()) startPositionTrack()
+            else ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION), 13)
+        } else if (!active && tracking) stopPositionTrack()
     }
 
     private fun hasLocationPermission() =
@@ -1347,9 +1338,8 @@ class MainActivity : AppCompatActivity() {
         if (requestCode == 13) {
             // #788: coarse-only ("ungefähr") is accepted as well; the track then holds coarse positions.
             val any = grantResults.any { it == PackageManager.PERMISSION_GRANTED }
-            if (any && startTrackAfterPermission) startPositionTrack()
+            if (any) syncPositionTrackWithBand()
             else if (!any) android.widget.Toast.makeText(this, getString(R.string.pos_permission_denied), android.widget.Toast.LENGTH_LONG).show()
-            startTrackAfterPermission = false
             refreshPositionTrack?.invoke()
         }
         if (requestCode == 11) {
