@@ -39,4 +39,20 @@ class CirqaActivityStatusTest {
         assertTrue(CirqaActivityStatus.isSubscribed(smart30(2, "0a06080012020813")))
         assertFalse(CirqaActivityStatus.isSubscribed(smart30(3, "0a0113a23f0412020803")))
     }
+
+    @Test fun endCommandsAreTheConnectBytes() {
+        // host 5043 payloads from the Connect reference run, 11:48:14 and 11:48:15
+        assertEquals("c203058a01021002", CirqaActivityStatus.command(CirqaActivityStatus.STOP).joinToString("") { "%02x".format(it) })
+        assertEquals("c203058a01021003", CirqaActivityStatus.command(CirqaActivityStatus.SAVE).joinToString("") { "%02x".format(it) })
+    }
+
+    @Test fun endSequenceIsStopThenSaveOnce() {
+        assertEquals(CirqaActivityStatus.STOP, CirqaActivityStatus.nextEndCommand(3, stopSent = false, saveSent = false))
+        assertNull(CirqaActivityStatus.nextEndCommand(3, stopSent = true, saveSent = false))
+        assertEquals(CirqaActivityStatus.SAVE, CirqaActivityStatus.nextEndCommand(1, stopSent = true, saveSent = false))
+        assertNull(CirqaActivityStatus.nextEndCommand(1, stopSent = true, saveSent = true))
+        assertNull(CirqaActivityStatus.nextEndCommand(4, stopSent = true, saveSent = true))
+        assertNull(CirqaActivityStatus.nextEndCommand(5, stopSent = false, saveSent = false))
+        assertNull(CirqaActivityStatus.nextEndCommand(null, stopSent = false, saveSent = false))
+    }
 }

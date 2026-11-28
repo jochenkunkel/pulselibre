@@ -1162,4 +1162,11 @@
     <string name="ov_band_active_kcal">Pulsera hoy: %1$s kcal activas (todos los tipos de actividad, a las %2$s)</string>
     <string name="sync_sum_band_busy">La pulsera aún no libera sus archivos (tras una actividad suele necesitar unos minutos). PulsLibre lo intenta de nuevo en 5 minutos; no se ha perdido nada.</string>
     <string name="sync_sum_activity_running">La pulsera informa de una actividad en curso (código 3, protocolo observado, aún sin confirmar). Termínala en la pulsera para que su archivo esté disponible.</string>
+    <string name="band_activity_running">Hay una actividad en curso en la pulsera: sus archivos llegan cuando termine.</string>
+    <string name="band_activity_end_button">Finalizar y guardar actividad</string>
+    <string name="band_activity_end_title">¿Finalizar la actividad en la pulsera?</string>
+    <string name="band_activity_end_message">PulsLibre detiene la actividad en curso en la pulsera y la guarda, como Garmin Connect (protocolo observado). Después no se puede continuar. No se borra nada. La pulsera suele necesitar unos minutos antes de que los archivos se puedan descargar.</string>
+    <string name="band_activity_end_ok">Finalizar y guardar</string>
+    <string name="band_activity_ending">Finalizando la actividad en la pulsera …</string>
+    <string name="ov_band_activity_running">Hay una actividad en curso en la pulsera. El historial llega cuando termine (pestaña Dispositivo).</string>
 </resources>

@@ -29,6 +29,7 @@ class MainActivity : AppCompatActivity() {
     private var cirqaLink = CirqaLinkStatus.Result(CirqaLinkStatus.Kind.UNAVAILABLE, false, "")
     private var historyRefresh: (() -> Unit)? = null
     private var refreshDailyFreshness: (() -> Unit)? = null
+    private var refreshBandActivity: (() -> Unit)? = null
     private var deviceOverviewRef: DeviceOverviewView? = null
     /** Re-reads the profile into the overview card; also needed after saving via the header settings button. */
     private var refreshBodyCardRef: (() -> Unit)? = null
@@ -767,6 +768,53 @@ class MainActivity : AppCompatActivity() {
         }
         refreshDailyFreshness?.invoke()
         deviceView(historicalSyncStatus, 4)
+        // #737: activity state from the last download, with Connect's "end and save" behind a confirmation.
+        val bandActivityText = text(getString(R.string.band_activity_running), 14f, ink, true).apply {
+            setPadding(dp(16), dp(12), dp(16), dp(4))
+            tag = "band_activity_state"
+        }
+        val endActivityButton = actionButton(getString(R.string.band_activity_end_button), true, PlIcon.HISTORY) {
+            if (!HistorySyncExclusion.canStartManual(automaticHistoricalSyncActive) || manualHistoricalSyncActive) {
+                historicalSyncStatus.text = getString(R.string.main_auto_sync_running)
+                return@actionButton
+            }
+            if (!ensureSyncPermissions()) return@actionButton
+            if (scanning) stopScan()
+            androidx.appcompat.app.AlertDialog.Builder(this@MainActivity)
+                .setTitle(R.string.band_activity_end_title)
+                .setMessage(R.string.band_activity_end_message)
+                .setNegativeButton(R.string.action_cancel, null)
+                .setPositiveButton(R.string.band_activity_end_ok) { _, _ ->
+                    if (!HistorySyncExclusion.canStartManual(automaticHistoricalSyncActive)) return@setPositiveButton
+                    manualHistoricalSyncActive = true
+                    historicalSyncStatus.text = getString(R.string.band_activity_ending)
+                    syncProgress.show(HistorySyncProgress(HistorySyncStage.CONNECTING))
+                    val prefs = getSharedPreferences("historical_sync_energy_policy", MODE_PRIVATE)
+                    prefs.edit().putLong("last_attempt", System.currentTimeMillis()).commit()
+                    deviceMetadataProbe?.close()
+                    deviceMetadataProbe = null
+                    runHistoricalDownload(progress = { progress -> if (!destroyed) syncProgress.show(progress) }, endActivity = true) { message ->
+                        runOnUiThread {
+                            manualHistoricalSyncActive = false
+                            recordHistoricalSyncResult(prefs, message)
+                            if (!destroyed) {
+                                historicalSyncStatus.text = SyncReportSummary.display(Strings.of(this@MainActivity), SyncReportStore.forStorage(message))
+                                syncProgress.show(HistorySyncProgress.fromReport(message))
+                                historyRefresh?.invoke(); refreshDailyFreshness?.invoke()
+                            }
+                        }
+                    }
+                }
+                .show()
+        }
+        deviceView(bandActivityText, 4)
+        deviceView(endActivityButton, 4)
+        refreshBandActivity = {
+            val active = BandActivityStore.isActive(getSharedPreferences(BandActivityStore.PREFS, MODE_PRIVATE), System.currentTimeMillis())
+            bandActivityText.visibility = if (active) android.view.View.VISIBLE else android.view.View.GONE
+            endActivityButton.visibility = bandActivityText.visibility
+        }
+        refreshBandActivity?.invoke()
         cirqaCard = text("CIRQA Smart Band", 15f, ink, true).apply {
             setPadding(dp(16), dp(16), dp(16), dp(16))
             background = rounded(palette.card)
@@ -1022,18 +1070,21 @@ class MainActivity : AppCompatActivity() {
     private fun runHistoricalDownload(
         progress: (HistorySyncProgress) -> Unit,
         attempt: Int = 1,
+        endActivity: Boolean = false,
         onResult: (String) -> Unit
     ) {
         val probe = CirqaMlHandshakeProbe(this, adapter)
         historicalDownloadProbe?.close()
         historicalDownloadProbe = probe
-        probe.startHistoricalDownload(userConfirmed = true, progress = progress) { message ->
+        probe.startHistoricalDownload(userConfirmed = true, progress = progress, endActivity = endActivity) { message ->
+            BandActivityStore.record(getSharedPreferences(BandActivityStore.PREFS, MODE_PRIVATE), message, System.currentTimeMillis())
+            runOnUiThread { if (!destroyed) { refreshBandActivity?.invoke(); dashboardRefresh?.invoke() } }
             val delay = HistorySyncRetryPolicy.delayFor(message, attempt)
             if (delay != null) {
                 // the waiting report is shown meanwhile, so a busy band does not look like a hang
                 if (delay > HistorySyncRetryPolicy.DELAY_MS) onResult(message)
                 handler.postDelayed({
-                    if (destroyed) onResult(message) else runHistoricalDownload(progress, attempt + 1, onResult)
+                    if (destroyed) onResult(message) else runHistoricalDownload(progress, attempt + 1, onResult = onResult)
                 }, delay)
             } else {
                 onResult(message)

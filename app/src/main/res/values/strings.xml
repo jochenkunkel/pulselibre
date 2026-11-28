@@ -1154,4 +1154,11 @@
     <string name="ov_band_active_kcal">Band today: %1$s kcal active (all activity types, as of %2$s)</string>
     <string name="sync_sum_band_busy">The band did not release its files yet (it often needs a few minutes after an activity). PulsLibre tries once more in 5 minutes; nothing was lost.</string>
     <string name="sync_sum_activity_running">The band reports a running activity (code 3, observed protocol, not yet confirmed). End it on the band to make its file available.</string>
+    <string name="band_activity_running">Activity running on the band – its files arrive after it ends.</string>
+    <string name="band_activity_end_button">End and save activity</string>
+    <string name="band_activity_end_title">End the activity on the band?</string>
+    <string name="band_activity_end_message">PulsLibre stops the running activity on the band and saves it, like Garmin Connect does (observed protocol). The activity cannot be continued afterwards. Nothing is deleted. The band may need a few minutes before its files can be downloaded.</string>
+    <string name="band_activity_end_ok">End and save</string>
+    <string name="band_activity_ending">Ending the activity on the band …</string>
+    <string name="ov_band_activity_running">An activity is running on the band. History arrives once it has ended (device tab).</string>
 </resources>

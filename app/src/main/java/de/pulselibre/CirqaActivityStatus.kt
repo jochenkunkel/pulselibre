@@ -41,5 +41,27 @@ object CirqaActivityStatus {
         return CirqaFileAccessItemListParser.fields(service)?.any { it.number == 2 && it.wire == 2 } == true
     }
 
+    /** Smart{56:{17:{2:[command]}}} – Connect's "end activity" command: 2 = stop, 3 = save (reference run 28.11.2026). */
+    fun command(command: Int): ByteArray {
+        require(command == STOP || command == SAVE)
+        return byteArrayOf(0xC2.toByte(), 0x03, 0x05, 0x8A.toByte(), 0x01, 0x02, 0x10, command.toByte())
+    }
+
+    fun commandMlValue(handle: Int, requestId: Int, command: Int): ByteArray {
+        require(handle in 1..127)
+        return byteArrayOf(handle.toByte()) +
+            GarminFileListRequest.cobs(CirqaFileAccessListRequest.gfdiFrame(requestId, command(command)))
+    }
+
+    const val STOP = 2
+    const val SAVE = 3
+
+    /** Next command for "end and save": stop while running, save once stopped, nothing otherwise. */
+    fun nextEndCommand(state: Int?, stopSent: Boolean, saveSent: Boolean): Int? = when {
+        state == 3 && !stopSent -> STOP
+        state == 1 && !saveSent -> SAVE
+        else -> null
+    }
+
     fun state(code: Int?): State = State.entries.firstOrNull { it.code != null && it.code == code } ?: State.UNKNOWN
 }

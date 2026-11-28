@@ -50,8 +50,22 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
         val overview = dashboardOverview(metrics)
         val keys = DashboardLayout.defaultKeys(overview.details.map { it.title })
         val entries = DashboardLayout.resolve(DashboardLayout.decode(displayPrefs.getString(LAYOUT_KEY, null)), keys)
+        addBandActivityBanner()
         if (DashboardLayout.isDefault(entries, keys)) renderDefault(overview, activity) else renderCustom(overview, activity, entries)
         addCustomizeButton(entries)
+    }
+
+    /** #737: while the band reports an unfinished activity it holds its files back; say so above the tiles. */
+    private fun addBandActivityBanner() {
+        val prefs = context.getSharedPreferences(BandActivityStore.PREFS, Context.MODE_PRIVATE)
+        if (!BandActivityStore.isActive(prefs, System.currentTimeMillis())) return
+        addView(label(context.getString(R.string.ov_band_activity_running), 13f, ink, true).apply {
+            setPadding(dp(12), dp(10), dp(12), dp(10))
+            tag = "band_activity_banner"
+            background = android.graphics.drawable.GradientDrawable().apply {
+                cornerRadius = dp(12).toFloat(); setColor(palette.card)
+            }
+        }, LayoutParams(-1, -2).apply { bottomMargin = dp(8) })
     }
 
     private fun renderDefault(overview: DashboardOverview, activity: StepActivityEstimate) {
