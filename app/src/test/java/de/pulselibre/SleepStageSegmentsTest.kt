@@ -68,3 +68,14 @@ class SleepStageSegmentsTest {
         assertEquals(listOf(20 * h, 21 * h), SleepStages.latestNight(all).events.map { it.atMs })
     }
 }
+
+class SleepNightsTest {
+    @Test fun nightsSplitAtLongSilencesOldestFirst() {
+        val h = 3_600_000L
+        val all = SleepStages.Night(listOf(SleepStages.Event(0, 2), SleepStages.Event(h, 1), SleepStages.Event(24 * h, 2),
+            SleepStages.Event(25 * h, 3), SleepStages.Event(48 * h, 4)))
+        val n = SleepStages.nights(all)
+        org.junit.Assert.assertEquals(listOf(listOf(0L, h), listOf(24 * h, 25 * h), listOf(48 * h)), n.map { x -> x.events.map { it.atMs } })
+        org.junit.Assert.assertTrue(SleepStages.nights(SleepStages.Night(emptyList())).isEmpty())
+    }
+}

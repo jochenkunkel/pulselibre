@@ -1156,4 +1156,6 @@
     <string name="sleep_stage_light">Ligero</string>
     <string name="sleep_stage_deep">Profundo</string>
     <string name="sleep_band_value">Fases de sueño registradas</string>
+    <string name="sleep_prev_night_cd">Noche anterior</string>
+    <string name="sleep_next_night_cd">Noche siguiente</string>
 </resources>

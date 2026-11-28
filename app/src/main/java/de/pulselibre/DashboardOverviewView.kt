@@ -341,6 +341,8 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
     }
 
     private companion object {
+        /** Selected sleep night (first report time); kept across the overview's re-renders (#762). */
+        @Volatile var selectedSleepNightMs: Long? = null
         private const val LAYOUT_KEY = "layout_v1"
         const val INSIGHT_CACHE_MS = 60_000L
         val insightCache = java.util.concurrent.ConcurrentHashMap<String, Pair<TileInsight, Long>>()
@@ -514,43 +516,64 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
         content.addView(box, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) })
         val app = context.applicationContext
         Thread {
-            val night = try { SleepStages.latestNight(SleepStages.read(app)) } catch (_: Exception) { null }
+            val nights = try { SleepStages.nights(SleepStages.read(app)) } catch (_: Exception) { emptyList() }
             post {
-                if (night == null || night.events.isEmpty()) return@post
+                if (nights.isEmpty()) return@post
                 // #762: the headline must not say "no data" while band stages are shown below (no duration is claimed)
                 content.findViewWithTag<TextView>("metric_value")?.text = context.getString(R.string.sleep_band_value)
-                val zone = ZoneId.systemDefault()
-                val locale = context.resources.configuration.locales[0]
-                val time = DateTimeFormatter.ofPattern("HH:mm").withZone(zone)
-                val day = DateTimeFormatter.ofLocalizedDate(java.time.format.FormatStyle.MEDIUM).withLocale(locale)
-                val c = night.counts
-                box.addView(label(context.getString(R.string.sleep_band_title), 13f, ink, true))
-                // #762: the night's calendar date(s), never only clock times
-                SleepStages.dates(night, zone)?.let { (from, to) ->
-                    box.addView(label(if (from == to) context.getString(R.string.sleep_band_day, day.format(from))
-                        else context.getString(R.string.sleep_band_night, day.format(from), day.format(to)), 13f, ink).apply { tag = "sleep_band_date" })
-                }
-                box.addView(label(context.getString(R.string.sleep_band_summary, night.events.size,
-                    time.format(Instant.ofEpochMilli(night.firstMs!!)), time.format(Instant.ofEpochMilli(night.lastMs!!))), 12f, muted))
-                box.addView(SleepStageStripView(context, night, palette.track).apply {
-                    tag = "sleep_band_strip"
-                    contentDescription = context.getString(R.string.sleep_band_cd, c[1] ?: 0, c[2] ?: 0, c[3] ?: 0, c[4] ?: 0, c[0] ?: 0)
-                }, LinearLayout.LayoutParams(-1, dp(88)).apply { topMargin = dp(4) })
-                // legend uses exactly the chart's colours and order
-                val legend = LinearLayout(context).apply { orientation = LinearLayout.HORIZONTAL; tag = "sleep_band_legend" }
-                SleepStages.LEGEND_ORDER.forEach { code ->
-                    val name = context.getString(when (code) { SleepStages.AWAKE -> R.string.sleep_stage_awake; SleepStages.REM -> R.string.sleep_stage_rem
-                        SleepStages.LIGHT -> R.string.sleep_stage_light; else -> R.string.sleep_stage_deep })
-                    legend.addView(View(context).apply { background = GradientDrawable().apply { setColor(SleepStages.COLORS.getValue(code)); cornerRadius = dp(3).toFloat() } },
-                        LinearLayout.LayoutParams(dp(12), dp(12)).apply { marginEnd = dp(4); gravity = Gravity.CENTER_VERTICAL })
-                    legend.addView(label(name, 12f, ink).apply { tag = "sleep_legend_$code" }, LinearLayout.LayoutParams(-2, -2).apply { marginEnd = dp(10) })
-                }
-                box.addView(legend, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(4) })
-                box.addView(label(context.getString(R.string.sleep_band_legend, c[1] ?: 0, c[2] ?: 0, c[3] ?: 0, c[4] ?: 0, c[0] ?: 0), 11f, muted))
-                box.addView(label(context.getString(R.string.sleep_band_note), 11f, muted).apply { tag = "sleep_band_note" })
+                // the selected night survives the frequent re-renders of the overview
+                var index = nights.indexOfFirst { it.firstMs == selectedSleepNightMs }.takeIf { it >= 0 } ?: nights.lastIndex
+                fun show() { selectedSleepNightMs = nights[index].firstMs; renderNight(box, nights, index) { index = it; show() } }
+                show()
                 box.visibility = View.VISIBLE
             }
         }.start()
+    }
+
+    /** One night of band sleep stages with navigation to the neighbouring nights (#762). */
+    private fun renderNight(box: LinearLayout, nights: List<SleepStages.Night>, index: Int, select: (Int) -> Unit) {
+        box.removeAllViews()
+        val night = nights[index]
+        val zone = ZoneId.systemDefault()
+        val locale = context.resources.configuration.locales[0]
+        val time = DateTimeFormatter.ofPattern("HH:mm").withZone(zone)
+        val day = DateTimeFormatter.ofLocalizedDate(java.time.format.FormatStyle.MEDIUM).withLocale(locale)
+        val c = night.counts
+        box.addView(label(context.getString(R.string.sleep_band_title), 13f, ink, true))
+        val nav = LinearLayout(context).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
+        fun step(symbol: String, cd: Int, target: Int, tagName: String) = label(symbol, 20f, if (target in nights.indices) palette.accent else muted, true).apply {
+            gravity = Gravity.CENTER; minWidth = dp(48); minHeight = dp(48); tag = tagName
+            isEnabled = target in nights.indices; isClickable = isEnabled; isFocusable = isEnabled
+            contentDescription = context.getString(cd)
+            setOnClickListener { if (target in nights.indices) select(target) }
+        }
+        nav.addView(step("‹", R.string.sleep_prev_night_cd, index - 1, "sleep_prev_night"), LinearLayout.LayoutParams(dp(48), dp(48)))
+        // #762: the night's calendar date(s), never only clock times
+        val dateText = SleepStages.dates(night, zone)?.let { (from, to) ->
+            if (from == to) context.getString(R.string.sleep_band_day, day.format(from))
+            else context.getString(R.string.sleep_band_night, day.format(from), day.format(to))
+        } ?: ""
+        nav.addView(label(dateText, 13f, ink).apply { tag = "sleep_band_date"; gravity = Gravity.CENTER }, LinearLayout.LayoutParams(0, -2, 1f))
+        nav.addView(step("›", R.string.sleep_next_night_cd, index + 1, "sleep_next_night"), LinearLayout.LayoutParams(dp(48), dp(48)))
+        box.addView(nav)
+        box.addView(label(context.getString(R.string.sleep_band_summary, night.events.size,
+            time.format(Instant.ofEpochMilli(night.firstMs!!)), time.format(Instant.ofEpochMilli(night.lastMs!!))), 12f, muted))
+        box.addView(SleepStageStripView(context, night, palette.track).apply {
+            tag = "sleep_band_strip"
+            contentDescription = context.getString(R.string.sleep_band_cd, c[1] ?: 0, c[2] ?: 0, c[3] ?: 0, c[4] ?: 0, c[0] ?: 0)
+        }, LinearLayout.LayoutParams(-1, dp(88)).apply { topMargin = dp(4) })
+        // legend uses exactly the chart's colours and order
+        val legend = LinearLayout(context).apply { orientation = LinearLayout.HORIZONTAL; tag = "sleep_band_legend" }
+        SleepStages.LEGEND_ORDER.forEach { code ->
+            val name = context.getString(when (code) { SleepStages.AWAKE -> R.string.sleep_stage_awake; SleepStages.REM -> R.string.sleep_stage_rem
+                SleepStages.LIGHT -> R.string.sleep_stage_light; else -> R.string.sleep_stage_deep })
+            legend.addView(View(context).apply { background = GradientDrawable().apply { setColor(SleepStages.COLORS.getValue(code)); cornerRadius = dp(3).toFloat() } },
+                LinearLayout.LayoutParams(dp(12), dp(12)).apply { marginEnd = dp(4); gravity = Gravity.CENTER_VERTICAL })
+            legend.addView(label(name, 12f, ink).apply { tag = "sleep_legend_$code" }, LinearLayout.LayoutParams(-2, -2).apply { marginEnd = dp(10) })
+        }
+        box.addView(legend, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(4) })
+        box.addView(label(context.getString(R.string.sleep_band_legend, c[1] ?: 0, c[2] ?: 0, c[3] ?: 0, c[4] ?: 0, c[0] ?: 0), 11f, muted))
+        box.addView(label(context.getString(R.string.sleep_band_note), 11f, muted).apply { tag = "sleep_band_note" })
     }
 
     private fun receptionLabel(f: ReceptionFreshness) = when (f) {

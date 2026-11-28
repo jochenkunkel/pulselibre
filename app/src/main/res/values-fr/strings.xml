@@ -1156,4 +1156,6 @@
     <string name="sleep_stage_light">Léger</string>
     <string name="sleep_stage_deep">Profond</string>
     <string name="sleep_band_value">Phases de sommeil enregistrées</string>
+    <string name="sleep_prev_night_cd">Nuit précédente</string>
+    <string name="sleep_next_night_cd">Nuit suivante</string>
 </resources>

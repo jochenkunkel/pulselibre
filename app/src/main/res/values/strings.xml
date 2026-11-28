@@ -1148,4 +1148,6 @@
     <string name="sleep_stage_light">Light</string>
     <string name="sleep_stage_deep">Deep</string>
     <string name="sleep_band_value">Sleep stages recorded</string>
+    <string name="sleep_prev_night_cd">Previous night</string>
+    <string name="sleep_next_night_cd">Next night</string>
 </resources>
