@@ -58,7 +58,7 @@ object CirqaActivityStatus {
 
     /** Next command for "end and save": stop while running, save once stopped, nothing otherwise. */
     fun nextEndCommand(state: Int?, stopSent: Boolean, saveSent: Boolean): Int? = when {
-        state == 3 && !stopSent -> STOP
+        (state == 3 || state == 9) && !stopSent -> STOP // 9: running walk activity (S10 28.11.2026)
         state == 1 && !saveSent -> SAVE
         else -> null
     }

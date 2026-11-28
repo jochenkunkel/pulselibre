@@ -55,7 +55,8 @@ internal object SyncReportSummary {
     fun flushUnanswered(report: String): Boolean = report.contains("monitoringFlush=sent")
 
     /** #737: the band reported state 3 (running) after the read-only Smart 30 subscription. */
-    fun bandActivityRunning(report: String): Boolean = report.contains("bandActivity=3,")
+    fun bandActivityRunning(report: String): Boolean =
+        BandActivityStore.fromReport(report).let { it != null && it != BandActivityStore.NONE && it != BandActivityStore.READY }
 
     /** Text for the status card: readable summary, then the hints and the technical report. */
     fun display(strings: Strings, report: String): String {

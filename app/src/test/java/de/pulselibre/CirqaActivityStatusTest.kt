@@ -49,6 +49,7 @@ class CirqaActivityStatusTest {
     @Test fun endSequenceIsStopThenSaveOnce() {
         assertEquals(CirqaActivityStatus.STOP, CirqaActivityStatus.nextEndCommand(3, stopSent = false, saveSent = false))
         assertNull(CirqaActivityStatus.nextEndCommand(3, stopSent = true, saveSent = false))
+        assertEquals(CirqaActivityStatus.STOP, CirqaActivityStatus.nextEndCommand(9, stopSent = false, saveSent = false))
         assertEquals(CirqaActivityStatus.SAVE, CirqaActivityStatus.nextEndCommand(1, stopSent = true, saveSent = false))
         assertNull(CirqaActivityStatus.nextEndCommand(1, stopSent = true, saveSent = true))
         assertNull(CirqaActivityStatus.nextEndCommand(4, stopSent = true, saveSent = true))

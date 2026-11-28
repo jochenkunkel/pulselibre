@@ -26,9 +26,14 @@ object BandActivityStore {
         prefs.edit().putInt(KEY_CODE, code).putLong(KEY_AT, nowMs).apply()
     }
 
-    /** True while the last known state is an unfinished activity (running, stopped or saving). */
+    /**
+     * True while the last known state is an unfinished activity. Observed: 3 running, 9 running (walk, S10 28.11.2026),
+     * 1 stopped, 5 saving; only 4 (saved/ready) and "no state" mean finished. Unknown codes count as running.
+     */
     fun isActive(code: Int?, atMs: Long, nowMs: Long): Boolean =
-        code in setOf(3, 1, 5) && nowMs - atMs in 0..MAX_AGE_MS
+        code != null && code != NONE && code != READY && nowMs - atMs in 0..MAX_AGE_MS
+
+    const val READY = 4
 
     fun isActive(prefs: SharedPreferences, nowMs: Long): Boolean =
         isActive(if (prefs.contains(KEY_CODE)) prefs.getInt(KEY_CODE, NONE) else null, prefs.getLong(KEY_AT, 0L), nowMs)

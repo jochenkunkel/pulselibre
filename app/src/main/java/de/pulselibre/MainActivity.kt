@@ -34,6 +34,12 @@ class MainActivity : AppCompatActivity() {
     private var historyRefresh: (() -> Unit)? = null
     private var refreshDailyFreshness: (() -> Unit)? = null
     private var refreshBandActivity: (() -> Unit)? = null
+    private var refreshPositionTrack: (() -> Unit)? = null
+    private var positionTrackTick = 0
+    private var exportTrackId: Long? = null
+    private val exportTrack = registerForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.CreateDocument("application/geo+json")
+    ) { uri -> uri?.let { writeTrackExport(it) } }
     private var deviceOverviewRef: DeviceOverviewView? = null
     /** Re-reads the profile into the overview card; also needed after saving via the header settings button. */
     private var refreshBodyCardRef: (() -> Unit)? = null
@@ -91,6 +97,7 @@ class MainActivity : AppCompatActivity() {
             if (!dashboardPolling || destroyed) return
             connectionIndicatorRefresh?.invoke()
             recorderRefresh?.invoke()
+            if (positionTrackTick++ % 5 == 0) refreshPositionTrack?.invoke()
             if ((dashboardVisible || historyVisible) && !pollInFlight) {
                 pollInFlight = true
                 dashboardWorker.execute {
@@ -166,6 +173,7 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         startDashboardPolling()
         connectionIndicatorRefresh?.invoke()
+        syncPositionTrackWithBand(); refreshPositionTrack?.invoke()
         if (::adapter.isInitialized && ::status.isInitialized && !adapter.isEnabled) {
             status.text = getString(R.string.main_bt_off)
         }
@@ -883,6 +891,7 @@ class MainActivity : AppCompatActivity() {
         recorderRow.addView(playButton, LinearLayout.LayoutParams(0, -2, 1f).apply { rightMargin = dp(8) })
         recorderRow.addView(stopButton, LinearLayout.LayoutParams(0, -2, 1f))
         deviceView(recorderRow, 12)
+        addPositionTrackSection(::deviceView, ::text, ::actionButton)
         var shownRecorderRunning: Boolean? = null
         recorderRefresh = refresh@{
             val running = RecorderStatus.isRunning(getSharedPreferences(CirqaContinuousRecordingService.PREFS, MODE_PRIVATE))
@@ -1092,7 +1101,7 @@ class MainActivity : AppCompatActivity() {
         historicalDownloadProbe = probe
         probe.startHistoricalDownload(userConfirmed = true, progress = progress, endActivity = endActivity) { message ->
             BandActivityStore.record(getSharedPreferences(BandActivityStore.PREFS, MODE_PRIVATE), message, System.currentTimeMillis())
-            runOnUiThread { if (!destroyed) { refreshBandActivity?.invoke(); dashboardRefresh?.invoke() } }
+            runOnUiThread { if (!destroyed) { refreshBandActivity?.invoke(); dashboardRefresh?.invoke(); syncPositionTrackWithBand() } }
             val delay = HistorySyncRetryPolicy.delayFor(message, attempt)
             // A quick retry (8 s) keeps the recording paused; before a long wait or at the end it runs again.
             val keepPaused = delay != null && delay <= HistorySyncRetryPolicy.DELAY_MS
@@ -1116,6 +1125,129 @@ class MainActivity : AppCompatActivity() {
      * stopped, the download runs once the session is free, and the caller starts it again afterwards; [block] learns
      * whether the recording was paused.
      */
+    /** #788: position track of the activity running on the band (own location service, export as GeoJSON). */
+    private fun addPositionTrackSection(
+        deviceView: (android.view.View, Int) -> Unit,
+        label: (String, Float, Int, Boolean) -> TextView,
+        actionButton: (String, Boolean, PlIcon?, () -> Unit) -> android.view.View
+    ) {
+        val palette = AppPalette.of(this)
+        val heading = label(getString(R.string.pos_heading), 17f, palette.ink, true)
+        deviceView(heading, 16)
+        val state = label("", 13f, palette.ink, true)
+        deviceView(state, 4)
+        val export = actionButton(getString(R.string.pos_export), false, null) {
+            // one GeoJSON per band activity: pick the activity by its start/end time
+            val tracks = try {
+                de.pulselibre.positiontracking.PositionTrackStore(this).use { st ->
+                    st.sessions().filter { it.endMs != null }.map { it to st.pointCount(it.id) }
+                }
+            } catch (_: Exception) { emptyList() }
+            if (tracks.isEmpty()) {
+                android.widget.Toast.makeText(this, getString(R.string.pos_export_none), android.widget.Toast.LENGTH_SHORT).show()
+            } else {
+                val zone = java.time.ZoneId.systemDefault()
+                val day = java.time.format.DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm").withZone(zone)
+                val time = java.time.format.DateTimeFormatter.ofPattern("HH:mm").withZone(zone)
+                val labels = tracks.map { (t, n) ->
+                    getString(R.string.pos_track_item, day.format(java.time.Instant.ofEpochMilli(t.startMs)),
+                        time.format(java.time.Instant.ofEpochMilli(t.endMs ?: t.startMs)), n)
+                }.toTypedArray()
+                androidx.appcompat.app.AlertDialog.Builder(this)
+                    .setTitle(R.string.pos_export)
+                    .setItems(labels) { _, which ->
+                        val t = tracks[which].first
+                        exportTrackId = t.id
+                        exportTrack.launch("pulslibre_spur_" + java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd_HHmm")
+                            .withZone(zone).format(java.time.Instant.ofEpochMilli(t.startMs)) + ".geojson")
+                    }
+                    .setNegativeButton(R.string.action_cancel, null)
+                    .show()
+            }
+        }
+        deviceView(export, 12)
+        refreshPositionTrack = {
+            val enabled = de.pulselibre.positiontracking.PositionTracking.isEnabled(this)
+            val active = de.pulselibre.positiontracking.PositionTracking.activeSession(this)
+            val v = if (enabled) android.view.View.VISIBLE else android.view.View.GONE
+            heading.visibility = v; state.visibility = v; export.visibility = v
+            state.text = when {
+                active != null -> {
+                    val n = try { de.pulselibre.positiontracking.PositionTrackStore(this).use { it.pointCount(active) } } catch (_: Exception) { 0 }
+                    getString(R.string.pos_state_on, n)
+                }
+                !hasLocationPermission() -> getString(R.string.pos_permission_denied)
+                else -> getString(R.string.pos_state_off)
+            }
+        }
+        refreshPositionTrack?.invoke()
+    }
+
+    /** #788: follow the band – track while it reports an unfinished activity, stop once it is saved or gone. */
+    private fun syncPositionTrackWithBand() {
+        if (!de.pulselibre.positiontracking.PositionTracking.isEnabled(this)) { stopPositionTrack(); return }
+        val active = BandActivityStore.isActive(getSharedPreferences(BandActivityStore.PREFS, MODE_PRIVATE), System.currentTimeMillis())
+        val tracking = de.pulselibre.positiontracking.PositionTracking.activeSession(this) != null
+        if (active && !tracking) {
+            if (hasLocationPermission()) startPositionTrack()
+            else ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION), 13)
+        } else if (!active && tracking) stopPositionTrack()
+    }
+
+    private fun hasLocationPermission() =
+        ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ||
+            ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
+
+    private fun startPositionTrack() {
+        try {
+            androidx.core.content.ContextCompat.startForegroundService(this,
+                Intent(this, de.pulselibre.positiontracking.PositionTrackingService::class.java)
+                    .setAction(de.pulselibre.positiontracking.PositionTrackingService.ACTION_START))
+        } catch (_: Exception) {
+            android.widget.Toast.makeText(this, getString(R.string.pos_start_failed), android.widget.Toast.LENGTH_LONG).show()
+        }
+        handler.postDelayed({ refreshPositionTrack?.invoke() }, 1000L)
+    }
+
+    private fun stopPositionTrack() {
+        if (de.pulselibre.positiontracking.PositionTracking.activeSession(this) == null) return
+        try {
+            startService(Intent(this, de.pulselibre.positiontracking.PositionTrackingService::class.java)
+                .setAction(de.pulselibre.positiontracking.PositionTrackingService.ACTION_STOP))
+        } catch (_: Exception) {}
+        handler.postDelayed({ refreshPositionTrack?.invoke() }, 1000L)
+    }
+
+    /** Heart rate and SpO₂ (live and band) during the track; read-only, an unreadable store just exports without them. */
+    private fun trackHealth(session: de.pulselibre.positiontracking.PositionSession): Map<String, List<Pair<Long, Double>>> = try {
+        CirqaDatabase(this).use { db ->
+            val unified = UnifiedMeasurements(db.writableDatabase)
+            unified.refresh()
+            val rows = unified.seriesRows(setOf("bpm", "heart_rate", "spo2_percent", "spo2"), session.startMs - 60_000L,
+                (session.endMs ?: System.currentTimeMillis()) + 60_000L)
+            mapOf(
+                "heartRateBpm" to rows.filter { it.first == "bpm" || it.first == "heart_rate" }.filter { it.third in 1.0..240.0 }.map { it.second to it.third },
+                "spo2Percent" to rows.filter { it.first == "spo2_percent" || it.first == "spo2" }.filter { it.third in 50.0..100.0 }.map { it.second to it.third }
+            ).mapValues { (_, v) -> v.sortedBy { it.first } }.filterValues { it.isNotEmpty() }
+        }
+    } catch (_: Exception) { emptyMap() }
+
+    private fun writeTrackExport(uri: android.net.Uri) {
+        val id = exportTrackId ?: return
+        Thread {
+            val ok = try {
+                val (session, points) = de.pulselibre.positiontracking.PositionTrackStore(this).use { store ->
+                    store.sessions().first { it.id == id } to store.points(id)
+                }
+                val json = de.pulselibre.positiontracking.PositionGeoJson.export(session, points, trackHealth(session))
+                contentResolver.openOutputStream(uri, "wt")?.use { it.write(json.toByteArray(Charsets.UTF_8)) } != null
+            } catch (_: Exception) { false }
+            runOnUiThread {
+                android.widget.Toast.makeText(this, getString(if (ok) R.string.pos_export_done else R.string.pos_export_failed), android.widget.Toast.LENGTH_LONG).show()
+            }
+        }.start()
+    }
+
     private fun pauseRecordingForSync(alreadyPaused: Boolean, block: (paused: Boolean) -> Unit) {
         if (alreadyPaused) { block(true); return }
         if (!AutoStartRecording.isServiceAlive(this)) { block(false); return }
@@ -1239,6 +1371,13 @@ class MainActivity : AppCompatActivity() {
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == 13) {
+            // #788: coarse-only ("ungefähr") is accepted as well; the track then holds coarse positions.
+            val any = grantResults.any { it == PackageManager.PERMISSION_GRANTED }
+            if (any) syncPositionTrackWithBand()
+            else if (!any) android.widget.Toast.makeText(this, getString(R.string.pos_permission_denied), android.widget.Toast.LENGTH_LONG).show()
+            refreshPositionTrack?.invoke()
+        }
         if (requestCode == 11) {
             val granted = grantResults.isNotEmpty() && grantResults.all { it == PackageManager.PERMISSION_GRANTED }
             if (!granted && ::output.isInitialized) {
