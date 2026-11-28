@@ -558,6 +558,7 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
         fun step(symbol: String, cd: Int, target: Int, tagName: String) = label(symbol, 20f, if (target in nights.indices) palette.accent else muted, true).apply {
             gravity = Gravity.CENTER; minWidth = dp(48); minHeight = dp(48); tag = tagName
             isEnabled = target in nights.indices; isClickable = isEnabled; isFocusable = isEnabled
+            alpha = if (isEnabled) 1f else 0.25f // no further night in this direction
             contentDescription = context.getString(cd)
             setOnClickListener { if (target in nights.indices) select(target) }
         }
