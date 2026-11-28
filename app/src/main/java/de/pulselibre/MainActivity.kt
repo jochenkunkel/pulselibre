@@ -1122,21 +1122,21 @@ class MainActivity : AppCompatActivity() {
     /** #788: opt-in position track of an activity started in PulsLibre (own location service, export as GeoJSON). */
     private fun addPositionTrackSection(
         deviceView: (android.view.View, Int) -> Unit,
-        text: (String, Float, Int, Boolean) -> TextView,
+        label: (String, Float, Int, Boolean) -> TextView,
         actionButton: (String, Boolean, PlIcon?, () -> Unit) -> android.view.View
     ) {
         val palette = AppPalette.of(this)
         val ink = palette.ink
         val muted = palette.muted
-        deviceView(text(getString(R.string.pos_heading), 17f, ink, true), 16)
+        deviceView(label(getString(R.string.pos_heading), 17f, ink, true), 16)
         val toggle = androidx.appcompat.widget.SwitchCompat(this).apply {
             text = getString(R.string.pos_switch)
             setTextColor(ink)
             isChecked = de.pulselibre.positiontracking.PositionTracking.isEnabled(this@MainActivity)
         }
         deviceView(toggle, 4)
-        deviceView(text(getString(R.string.pos_info), 13f, muted, false), 4)
-        val state = text("", 13f, ink, true)
+        deviceView(label(getString(R.string.pos_info), 13f, muted, false), 4)
+        val state = label("", 13f, ink, true)
         deviceView(state, 4)
         val startStop = actionButton(getString(R.string.pos_start), true, PlIcon.RECORD_START) {
             if (de.pulselibre.positiontracking.PositionTracking.activeSession(this) != null) stopPositionTrack()
