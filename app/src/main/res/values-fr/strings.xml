@@ -1159,4 +1159,5 @@
     <string name="sleep_prev_night_cd">Nuit précédente</string>
     <string name="sleep_next_night_cd">Nuit suivante</string>
     <string name="sleep_no_night_on_day">Aucune phase de sommeil du bracelet pour ce jour.</string>
+    <string name="ov_band_active_kcal">Bracelet aujourd’hui : %1$s kcal actives (tous types d’activité, état %2$s)</string>
 </resources>

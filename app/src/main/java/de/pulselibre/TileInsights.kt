@@ -23,7 +23,10 @@ internal data class TileInsight(
     /** SpO₂ only: share of today's readings in the orientation bands (≥95, 90–94, <90), percent; else null. */
     val bands: Triple<Double, Double, Double>?,
     /** Heart rate only: today's values from band FIT files (band MEASUREMENT time); kept apart from the live values above (#334). */
-    val fit: FitDaySummary? = null
+    val fit: FitDaySummary? = null,
+    /** Active calories only: band daily total (#329), shown only when every counter rose monotonically that day. */
+    val bandDay: MonitoringDailyTotals.DayTotal? = null,
+    val bandDayLatestMs: Long? = null
 ) {
     val deltaToWeek: Double? get() = if (current != null && weekAtThisTime != null) current - weekAtThisTime else null
 }
@@ -143,7 +146,17 @@ internal class TileInsightReader(private val context: Context) {
             FitHistoryReader(context).read(day.start, maxOf(day.start.plusSeconds(1), minOf(day.end, now.plusSeconds(60))))
                 .points.map { DayObservation(it.receivedAt, it.value.toLong()) }
         } catch (_: Exception) { emptyList() } else emptyList()
+        var bandDay: MonitoringDailyTotals.DayTotal? = null
+        var bandLatest: Long? = null
+        if (metric == DashboardMeasurement.CALORIES_ACTIVE) try {
+            CirqaDatabase(context).use { db ->
+                val samples = MonitoringDailyTotals.readActiveCalories(db.readableDatabase, day.start.toEpochMilli(), now.toEpochMilli())
+                    .filter { MonitoringDailyTotals.dayOf(it.timeMs, zone) == day.date }
+                bandDay = MonitoringDailyTotals.totals(samples, zone, MonitoringDailyTotals.Reset.LOCAL_MIDNIGHT)[day.date]?.takeIf { it.monotonic }
+                bandLatest = samples.maxOfOrNull { it.timeMs }
+            }
+        } catch (_: Exception) { bandDay = null }
         return TileInsightCalc.summarize(metric, TileInsightCalc.merge(today, todaysBand), day, now, weekValues)
-            .copy(fit = fit?.takeIf { todaysBand.isEmpty() })
+            .copy(fit = fit?.takeIf { todaysBand.isEmpty() }, bandDay = bandDay, bandDayLatestMs = bandLatest)
     }
 }

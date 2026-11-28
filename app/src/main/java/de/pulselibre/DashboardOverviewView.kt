@@ -445,7 +445,7 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
         card.content.addView(box, LayoutParams(-1, -2).apply { topMargin = dp(8) })
         fun render(i: TileInsight) {
             box.removeAllViews()
-            if (i.count == 0 && i.fit == null) { box.visibility = View.GONE; return }
+            if (i.count == 0 && i.fit == null && i.bandDay == null) { box.visibility = View.GONE; return }
             val unit = if (measurement.unit.startsWith("Geräteskala")) "" else measurement.unit
             val nf = TileInsightCalc
             val range = when {
@@ -468,6 +468,12 @@ class DashboardOverviewView(context: Context) : LinearLayout(context) {
                 if (fit.hourly.count { it != null } >= 2) box.addView(SparkView(context, accent, palette.track).apply {
                     alpha = 0.7f; tag = "tile_fit_spark_${metric.title}"; show(fit.hourly, java.time.LocalTime.now().hour)
                 }, LayoutParams(-1, dp(34)).apply { topMargin = dp(4) })
+            }
+            // #329: band daily total of active calories (sum over activity types, midnight reset proven on the S10)
+            i.bandDay?.let { d ->
+                val at = i.bandDayLatestMs?.let { java.time.format.DateTimeFormatter.ofPattern("HH:mm").withZone(java.time.ZoneId.systemDefault()).format(Instant.ofEpochMilli(it)) } ?: "–"
+                box.addView(label(context.getString(R.string.ov_band_active_kcal, nf.format(d.total, ""), at), 11f, muted).apply { tag = "tile_band_day_${metric.title}" },
+                    LayoutParams(-1, -2).apply { topMargin = dp(if (i.count > 0) 8 else 0) })
             }
             i.bands?.let { (hi, mid, lo) ->
                 box.addView(object : View(context) {
