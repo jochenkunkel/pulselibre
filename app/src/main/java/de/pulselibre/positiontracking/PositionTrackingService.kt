@@ -29,6 +29,17 @@ class PositionTrackingService : Service() {
     private var store: PositionTrackStore? = null
     private var sessionId: Long? = null
     private val listener = LocationListener { onLocation(it) }
+    private var handler: Handler? = null
+    /** Most accurate fix of the current 5-s window (owner 28.11.: one point, the most precise, every 5 s). */
+    private var best: PositionPoint? = null
+    private val flush = object : Runnable {
+        override fun run() {
+            val id = sessionId ?: return
+            best?.let { try { store?.add(id, it) } catch (_: Exception) {} }
+            best = null
+            handler?.postDelayed(this, WINDOW_MS)
+        }
+    }
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -65,7 +76,9 @@ class PositionTrackingService : Service() {
             add(LocationManager.GPS_PROVIDER); add(LocationManager.NETWORK_PROVIDER)
             if (Build.VERSION.SDK_INT >= 31) add(LocationManager.FUSED_PROVIDER)
         }
-        Handler(t.looper).post {
+        val h = Handler(t.looper).also { handler = it }
+        h.postDelayed(flush, WINDOW_MS)
+        h.post {
             for (p in wanted) {
                 try {
                     if (lm.allProviders.contains(p)) lm.requestLocationUpdates(p, INTERVAL_MS, 0f, listener, t.looper)
@@ -75,7 +88,7 @@ class PositionTrackingService : Service() {
     }
 
     private fun onLocation(l: Location) {
-        val id = sessionId ?: return
+        if (sessionId == null) return
         val point = PositionPoint(
             timeMs = l.time.takeIf { it > 0 } ?: System.currentTimeMillis(),
             latitude = l.latitude, longitude = l.longitude,
@@ -85,15 +98,20 @@ class PositionTrackingService : Service() {
             speedMps = if (l.hasSpeed()) l.speed else null,
             bearingDeg = if (l.hasBearing()) l.bearing else null
         )
-        try { store?.add(id, point) } catch (_: Exception) {}
+        if (!point.isValid()) return
+        best = PositionBest.pick(best, point)
     }
 
     private fun stopTracking() {
         val lm = getSystemService(Context.LOCATION_SERVICE) as LocationManager
         try { lm.removeUpdates(listener) } catch (_: Exception) {}
+        handler?.removeCallbacks(flush)
+        val pending = best; best = null
+        sessionId?.let { id -> pending?.let { try { store?.add(id, it) } catch (_: Exception) {} } }
         sessionId?.let { id -> try { store?.endSession(id, System.currentTimeMillis()) } catch (_: Exception) {} }
         sessionId = null
         PositionTracking.setActive(this, null)
+        handler = null
         thread?.quitSafely(); thread = null
         store?.close(); store = null
         stopForeground(STOP_FOREGROUND_REMOVE)
@@ -122,6 +140,7 @@ class PositionTrackingService : Service() {
         const val ACTION_STOP = "de.pulselibre.position.STOP"
         private const val CHANNEL = "position_track"
         private const val ID = 1788
-        private const val INTERVAL_MS = 2_000L
+        private const val INTERVAL_MS = 1_000L
+        private const val WINDOW_MS = 5_000L
     }
 }
