@@ -70,11 +70,15 @@ internal object SleepStages {
         return Night(e.subList(from, e.size))
     }
 
-    /** Local calendar dates of the first and last report: equal for a nap, different for a night over midnight. */
+    /** Calendar dates of the night: evening date to morning date; equal only for daytime sleep (nap after noon). */
     fun dates(night: Night, zone: java.time.ZoneId): Pair<java.time.LocalDate, java.time.LocalDate>? {
         val first = night.firstMs ?: return null
         val last = night.lastMs ?: return null
-        return java.time.Instant.ofEpochMilli(first).atZone(zone).toLocalDate() to java.time.Instant.ofEpochMilli(last).atZone(zone).toLocalDate()
+        val start = java.time.Instant.ofEpochMilli(first).atZone(zone)
+        val end = java.time.Instant.ofEpochMilli(last).atZone(zone).toLocalDate()
+        // A first report before noon belongs to the night that began the evening before (S10 28.11.: first report 00:57).
+        val from = if (start.toLocalDate() == end && start.hour < 12) end.minusDays(1) else start.toLocalDate()
+        return from to end
     }
 
     data class Night(val events: List<Event>) {

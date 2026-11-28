@@ -53,6 +53,12 @@ class SleepStageSegmentsTest {
         val (a, b) = SleepStages.dates(n, ZoneId.of("Pacific/Honolulu"))!!
         assertEquals(a, b)
         assertNull(SleepStages.dates(SleepStages.Night(emptyList()), berlin))
+        // first report after midnight: still the night from the previous evening
+        val late = SleepStages.Night(listOf(Event(at(2026, 11, 27, 0, 57), LIGHT), Event(at(2026, 11, 27, 6, 37), REM)))
+        assertEquals(LocalDate.of(2026, 11, 26) to LocalDate.of(2026, 11, 27), SleepStages.dates(late, berlin))
+        // a nap in the afternoon stays one day
+        val nap = SleepStages.Night(listOf(Event(at(2026, 11, 27, 14, 0), LIGHT), Event(at(2026, 11, 27, 15, 0), AWAKE)))
+        assertEquals(LocalDate.of(2026, 11, 27) to LocalDate.of(2026, 11, 27), SleepStages.dates(nap, berlin))
     }
 
     @Test fun dstNightKeepsTrueDurations() {
