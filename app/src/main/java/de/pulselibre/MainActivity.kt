@@ -1212,14 +1212,28 @@ class MainActivity : AppCompatActivity() {
         handler.postDelayed({ refreshPositionTrack?.invoke() }, 1000L)
     }
 
+    /** Heart rate and SpO₂ (live and band) during the track; read-only, an unreadable store just exports without them. */
+    private fun trackHealth(session: de.pulselibre.positiontracking.PositionSession): Map<String, List<Pair<Long, Double>>> = try {
+        CirqaDatabase(this).use { db ->
+            val unified = UnifiedMeasurements(db.writableDatabase)
+            unified.refresh()
+            val rows = unified.seriesRows(setOf("bpm", "heart_rate", "spo2_percent", "spo2"), session.startMs - 60_000L,
+                (session.endMs ?: System.currentTimeMillis()) + 60_000L)
+            mapOf(
+                "heartRateBpm" to rows.filter { it.first == "bpm" || it.first == "heart_rate" }.filter { it.third in 1.0..240.0 }.map { it.second to it.third },
+                "spo2Percent" to rows.filter { it.first == "spo2_percent" || it.first == "spo2" }.filter { it.third in 50.0..100.0 }.map { it.second to it.third }
+            ).mapValues { (_, v) -> v.sortedBy { it.first } }.filterValues { it.isNotEmpty() }
+        }
+    } catch (_: Exception) { emptyMap() }
+
     private fun writeTrackExport(uri: android.net.Uri) {
         val id = exportTrackId ?: return
         Thread {
             val ok = try {
-                val json = de.pulselibre.positiontracking.PositionTrackStore(this).use { store ->
-                    val session = store.sessions().first { it.id == id }
-                    de.pulselibre.positiontracking.PositionGeoJson.export(session, store.points(id))
+                val (session, points) = de.pulselibre.positiontracking.PositionTrackStore(this).use { store ->
+                    store.sessions().first { it.id == id } to store.points(id)
                 }
+                val json = de.pulselibre.positiontracking.PositionGeoJson.export(session, points, trackHealth(session))
                 contentResolver.openOutputStream(uri, "wt")?.use { it.write(json.toByteArray(Charsets.UTF_8)) } != null
             } catch (_: Exception) { false }
             runOnUiThread {

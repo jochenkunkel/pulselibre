@@ -37,4 +37,23 @@ class PositionGeoJsonTest {
         val json = PositionGeoJson.export(session, listOf(PositionPoint(2_000L, 1.0, 2.0), PositionPoint(3_000L, 0.0, 0.0)))
         assertTrue(json.contains("\"points\":1"))
     }
+
+    @Test fun summaryAndNearestHealthValues() {
+        // two points 0.001° latitude apart = about 111 m, 60 s apart
+        val pts = listOf(PositionPoint(1_000L, 10.0, 20.0, 5f, "gps"), PositionPoint(61_000L, 10.001, 20.0, 5f, "gps"))
+        val hr = listOf(1_500L to 100.0, 59_000L to 120.0)
+        val json = PositionGeoJson.export(session, pts, mapOf("heartRateBpm" to hr))
+        assertTrue(json, json.contains("\"durationSeconds\":60"))
+        assertTrue(json, Regex("\"distanceMeters\":111\\.").containsMatchIn(json))
+        assertTrue(json.contains("\"averageHeartRateBpm\":110"))
+        assertTrue(json.contains("\"maxHeartRateBpm\":120"))
+        assertTrue(json.contains("\"heartRateBpm\":100"))
+        assertTrue(json.contains("\"heartRateBpm\":120"))
+    }
+
+    @Test fun healthFurtherThanTenSecondsIsNotAttached() {
+        assertEquals(null, PositionGeoJson.nearest(listOf(0L to 80.0), 20_000L))
+        assertEquals(80.0, PositionGeoJson.nearest(listOf(0L to 80.0, 50_000L to 90.0), 9_000L)!!, 0.0)
+        assertEquals(90.0, PositionGeoJson.nearest(listOf(0L to 80.0, 50_000L to 90.0), 45_000L)!!, 0.0)
+    }
 }
