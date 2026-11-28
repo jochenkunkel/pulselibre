@@ -3,14 +3,17 @@
     <uses-feature android:name="android.hardware.bluetooth_le" android:required="true"/>
     <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30"/>
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30"/>
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" android:maxSdkVersion="30"/>
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" android:maxSdkVersion="30"/>
+    <!-- BLE scan on API <= 30 and, since #788, the opt-in position track ("GPS Spur zu aktiver Tätigkeit") on all versions. -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     <uses-permission android:name="android.permission.BLUETOOTH_SCAN" android:usesPermissionFlags="neverForLocation"/>
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT"/>
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION"/>
     <application android:name=".PulseLibreApplication" android:icon="@mipmap/ic_launcher" android:roundIcon="@mipmap/ic_launcher_round" android:allowBackup="false" android:label="PulsLibre" android:dataExtractionRules="@xml/data_extraction_rules" android:fullBackupContent="@xml/full_backup_content" android:theme="@style/Theme.PulsLibre" android:supportsRtl="true" android:localeConfig="@xml/locales_config">
+        <service android:name=".positiontracking.PositionTrackingService" android:exported="false" android:foregroundServiceType="location" android:label="@string/pos_channel"/>
         <service android:name=".CirqaContinuousRecordingService" android:exported="false" android:foregroundServiceType="connectedDevice" android:label="@string/svc_channel"/>
         <activity android:name=".ExportActivity" android:exported="false"
             android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboardHidden"/>
