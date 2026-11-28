@@ -28,20 +28,23 @@ internal object WeekSummary {
     }
 
     /** Sources that are not backed by validated daily values yet (see GARMIN_CONNECT_BENCHMARK_261). */
-    const val UNAVAILABLE = "Ohne Tageswerte (noch keine geprüften Tagesreihen; Gerätewerte erscheinen nur live): Schlafdauer, Kalorien, Intensitätsminuten."
+    const val UNAVAILABLE = "Ohne Tageswerte (noch keine geprüften Tagesreihen; Gerätewerte erscheinen nur live): Schlafdauer, Intensitätsminuten."
     const val STRESS_LABEL = "Ø Stress (Band, Geräteskala)"
+    const val ACTIVE_KCAL_LABEL = "Ø aktive Kalorien pro Tag (Band)"
 
     /**
      * [stressDaily] (#329): per-day mean of the band's FIT stress values (1–100, device scale, status codes already
      * excluded by the decoder). Days without a band value are missing, never 0.
      */
     fun build(stepsDaily: Map<LocalDate, Double>, restDaily: Map<LocalDate, Double>, today: LocalDate,
-              stepGoal: Int?, stressDaily: Map<LocalDate, Double> = emptyMap(), format: (Double) -> String): Result {
+              stepGoal: Int?, stressDaily: Map<LocalDate, Double> = emptyMap(),
+              activeKcalDaily: Map<LocalDate, Double> = emptyMap(), format: (Double) -> String): Result {
         val days = (1..DAYS).map { today.minusDays(it.toLong()) }
         fun valid(m: Map<LocalDate, Double>) = days.mapNotNull { d -> m[d]?.takeIf { it.isFinite() && it >= 0.0 } }
         val steps = valid(stepsDaily)
         val rest = valid(restDaily).filter { it > 0.0 }
         val stress = valid(stressDaily).filter { it in 1.0..100.0 }
+        val kcal = valid(activeKcalDaily)
         val goalDetail = stepGoal?.takeIf { it > 0 && steps.isNotEmpty() }?.let { goal ->
             "Ziel ($goal) erreicht an ${steps.count { it >= goal }} von ${steps.size} Tagen mit Daten."
         }
@@ -50,8 +53,17 @@ internal object WeekSummary {
             Row("Schritte gesamt", steps.takeIf { it.isNotEmpty() }?.let { format(it.sum()) + " (nur Tage mit Daten)" }, steps.size),
             Row("Ø Geräte-Ruhepuls", rest.takeIf { it.isNotEmpty() }?.let { format(it.average()) + " bpm" }, rest.size),
             Row(STRESS_LABEL, stress.takeIf { it.isNotEmpty() }?.let { format(it.average()) }, stress.size),
+            Row(ACTIVE_KCAL_LABEL, kcal.takeIf { it.isNotEmpty() }?.let { format(it.average()) + " kcal" }, kcal.size),
         ), UNAVAILABLE)
     }
+
+    /**
+     * #329: daily band active calories from the cumulative monitoring counters (reset at local midnight, #779). Only
+     * days whose counters rose monotonically are kept; others are missing, never estimated.
+     */
+    fun activeKcalDaily(samples: List<MonitoringDailyTotals.Sample>, zone: java.time.ZoneId): Map<LocalDate, Double> =
+        MonitoringDailyTotals.totals(samples, zone, MonitoringDailyTotals.Reset.LOCAL_MIDNIGHT)
+            .filterValues { it.monotonic }.mapValues { it.value.total }
 
     /** Per local day mean of band stress points (time ms, value); only 1–100. */
     fun dailyMean(points: List<Pair<Long, Double>>, zone: java.time.ZoneId): Map<LocalDate, Double> =
