@@ -119,6 +119,10 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     /** #737: activity state code reported after the Smart 30 subscription (read-only), or null. */
     private var syncActivityState: Int? = null
     private var syncActivitySubscribed = false
+    /** #737: user confirmed "end and save the activity"; set only by [startHistoricalDownload]. */
+    private var syncEndActivityRequested = false
+    private var syncActivityStopSent = false
+    private var syncActivitySaveSent = false
     private var syncCurrentPullRequestId: Int? = null
     private val syncPullRequestItems = HashMap<Int, Long>()
     private val syncArchivedLocalIds = HashSet<Long>()
@@ -1435,6 +1439,19 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
      * has pulled and flagged disappear from the band. PulsLibre ACKs the chunk the same way and queues the announced
      * item for the same read-only pull. It never sets flags, archives or deletes anything.
      */
+    /** #737: record the band's activity state; with the user's confirmation end the activity like Connect (stop, then save). */
+    private fun onActivityState(g: BluetoothGatt, code: Int) {
+        syncActivityState = code
+        if (!syncEndActivityRequested) return
+        val handle = historyHandle ?: return
+        val command = CirqaActivityStatus.nextEndCommand(code, syncActivityStopSent, syncActivitySaveSent) ?: return
+        if (command == CirqaActivityStatus.STOP) syncActivityStopSent = true else syncActivitySaveSent = true
+        val id = syncNextRequestId
+        syncNextRequestId = if (syncNextRequestId >= 0xffff) 1 else syncNextRequestId + 1
+        queueAck(g, CirqaActivityStatus.commandMlValue(handle, id, command))
+        serial.post { mark(if (command == CirqaActivityStatus.STOP) "Aktivität anhalten gesendet (vom Nutzer bestätigt)" else "Aktivität speichern gesendet (vom Nutzer bestätigt)") }
+    }
+
     private fun handleDeviceFileAccessPush(g: BluetoothGatt, frame: ByteArray) {
         val handle = historyHandle ?: return
         val body = frame.copyOfRange(4, frame.size - 2)
@@ -1444,7 +1461,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         queueAck(g, CirqaLegacy5043AckCandidate.mlGattValueCandidate(handle, id, offset, 5043))
         val message = devicePushReassembler.acceptMessage(frame) ?: return
         // #737: the band sends activity-status updates (Smart 30.3) as device-initiated 5043, not as 5044 answer.
-        CirqaActivityStatus.stateCode(message.payload)?.let { syncActivityState = it; return }
+        CirqaActivityStatus.stateCode(message.payload)?.let { onActivityState(g, it); return }
         val pushed = CirqaFileAccessItemListParser.parseItemAvailable(message.payload) ?: return
         val item = pushed.item
         syncGdxmlStrings.putAll(pushed.gdxmlStrings)
@@ -2221,6 +2238,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
     internal fun startHistoricalDownload(
         userConfirmed: Boolean,
         progress: ((HistorySyncProgress) -> Unit)? = null,
+        endActivity: Boolean = false,
         result: (String) -> Unit
     ) = startSyncRequest(
         userConfirmed = userConfirmed,
@@ -2228,6 +2246,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         repeatItemLists = false,
         requireDeviceTestGate = false,
         progress = progress,
+        endActivity = endActivity,
         result = result
     )
 
@@ -2239,6 +2258,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         requireDeviceTestGate: Boolean,
         nextTransactionProbe: Boolean = false,
         progress: ((HistorySyncProgress) -> Unit)? = null,
+        endActivity: Boolean = false,
         result: (String) -> Unit
     ) {
         if ((requireDeviceTestGate &&
@@ -2292,6 +2312,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             }
         }
         syncRequestMode = true
+        syncEndActivityRequested = endActivity
         syncProgressCallback = progress
         emitSyncProgress(HistorySyncStage.STARTED)
         syncStopBeforePullMode = stopBeforePull
@@ -2350,6 +2371,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
         syncBatteryLevel = null
         syncActivityState = null
         syncActivitySubscribed = false
+        syncActivityStopSent = false
+        syncActivitySaveSent = false
         syncSeenItemReferences.clear()
         devicePushReassembler.reset()
         syncIncompleteReason = null
@@ -2647,7 +2670,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     syncProtoShapes = (syncProtoShapes + "${CirqaProtobufShapeInspector.nestedShape(msg)};").take(400)
                     if (CirqaMonitoringFlushRequest.isResponse(msg)) syncMonitoringFlushAnswered = true
                     if (CirqaActivityStatus.isSubscribed(msg)) syncActivitySubscribed = true
-                    CirqaActivityStatus.stateCode(msg)?.let { syncActivityState = it }
+                    CirqaActivityStatus.stateCode(msg)?.let { onActivityState(g, it) }
                     GarminDeviceStatusProtobuf.parseBatteryResponse(msg)?.let { battery ->
                         val values = GarminDeviceStatusProtobuf.toLiveMetadata(battery, System.currentTimeMillis())
                         if (values.isNotEmpty()) {
@@ -3722,7 +3745,7 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
                     "transactionFollowupResponseItemCounts=${syncTransactionFollowupResponseItemCounts.joinToString(
                         prefix = "[", postfix = "]"
                     )}," +
-                    "selected=$syncSelectedFiles,queuedTotal=$syncQueuedFiles,selectedBytes=$syncQueuedBytes,skipped=$syncSkippedFiles,pushed=$syncPushedFiles,battery=${syncBatteryLevel?.let { "$it%" } ?: "none"},bandActivity=${syncActivityState ?: if (syncActivitySubscribed) "subscribed" else "none"},monitoringFlush=${if (syncMonitoringFlushSent) (if (syncMonitoringFlushAnswered) "answered" else "sent") else "no"}," +
+                    "selected=$syncSelectedFiles,queuedTotal=$syncQueuedFiles,selectedBytes=$syncQueuedBytes,skipped=$syncSkippedFiles,pushed=$syncPushedFiles,battery=${syncBatteryLevel?.let { "$it%" } ?: "none"},bandActivity=${syncActivityState ?: if (syncActivitySubscribed) "subscribed" else "none"},activityEnd=${if (!syncEndActivityRequested) "no" else if (syncActivitySaveSent) "save-sent" else if (syncActivityStopSent) "stop-sent" else "requested"},monitoringFlush=${if (syncMonitoringFlushSent) (if (syncMonitoringFlushAnswered) "answered" else "sent") else "no"}," +
                     "pages=$syncListPageCount,currentBytes=${mlrData.size()},details=$syncFileResults," +
                     "pipeline=[${syncPipelineLedger.summary()}],pipelineItems=[${syncPipelineLedger.orderedSummary()}]," +
                     "pipelineStageOrder=selected,queued,ble-write-accepted,response-received,transfer-completed," +
@@ -3901,6 +3924,8 @@ class CirqaMlHandshakeProbe(private val context: Context, private val adapter: B
             syncBatteryLevel = null
             syncActivityState = null
             syncActivitySubscribed = false
+            syncActivityStopSent = false
+            syncActivitySaveSent = false
             syncSeenItemReferences.clear()
             devicePushReassembler.reset()
             syncIncompleteReason = null

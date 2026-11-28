@@ -1162,4 +1162,12 @@
     <string name="ov_band_active_kcal">Bracelet aujourd’hui : %1$s kcal actives (tous types d’activité, état %2$s)</string>
     <string name="sync_sum_band_busy">Le bracelet ne libère pas encore ses fichiers (après une activité, il lui faut souvent quelques minutes). PulsLibre réessaie dans 5 minutes ; rien n’a été perdu.</string>
     <string name="sync_sum_activity_running">Le bracelet signale une activité en cours (code 3, protocole observé, pas encore confirmé). Termine-la sur le bracelet pour rendre son fichier disponible.</string>
+    <string name="band_activity_running">Une activité est en cours sur le bracelet – ses fichiers arrivent après sa fin.</string>
+    <string name="band_activity_end_button">Terminer et enregistrer l’activité</string>
+    <string name="band_activity_end_title">Terminer l’activité sur le bracelet ?</string>
+    <string name="band_activity_end_message">PulsLibre arrête l’activité en cours sur le bracelet et l’enregistre, comme Garmin Connect (protocole observé). Elle ne pourra plus être reprise. Rien n’est supprimé. Le bracelet a souvent besoin de quelques minutes avant que les fichiers soient téléchargeables.</string>
+    <string name="band_activity_end_ok">Terminer et enregistrer</string>
+    <string name="band_activity_ending">Fin de l’activité sur le bracelet …</string>
+    <string name="ov_band_activity_running">Une activité est en cours sur le bracelet. L’historique arrive une fois terminée (onglet Appareil).</string>
+    <string name="main_hist_recording_paused">Enregistrement en pause pour le téléchargement de l\'historique ; il reprend ensuite …</string>
 </resources>
