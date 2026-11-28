@@ -1159,4 +1159,5 @@
     <string name="sleep_prev_night_cd">Noche anterior</string>
     <string name="sleep_next_night_cd">Noche siguiente</string>
     <string name="sleep_no_night_on_day">No hay fases de sueño de la pulsera para este día.</string>
+    <string name="ov_band_active_kcal">Pulsera hoy: %1$s kcal activas (todos los tipos de actividad, a las %2$s)</string>
 </resources>

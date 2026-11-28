@@ -32,4 +32,15 @@ class MonitoringDailyTotalsTest {
             zone, MonitoringDailyTotals.Reset.LOCAL_MIDNIGHT)
         assertEquals(50.0, t.getValue(LocalDate.of(2026, 11, 27)).total, 0.0)
     }
+
+    @Test fun recordAtMidnightClosesThePreviousDay() {
+        // S10 28.11.: walking 1427 at 23:49, 1427 again stamped 00:00 (closing record), then 3 at 07:34
+        val midnight = LocalDate.of(2026, 11, 28).atStartOfDay(zone).toInstant().toEpochMilli()
+        val t = MonitoringDailyTotals.totals(listOf(s(27, 23, 6, 1427.0), MonitoringDailyTotals.Sample(midnight, 6, 1427.0),
+            MonitoringDailyTotals.Sample(midnight, 0, 193.0), s(28, 7, 6, 3.0)), zone, MonitoringDailyTotals.Reset.LOCAL_MIDNIGHT)
+        assertEquals(1427.0 + 193.0, t.getValue(LocalDate.of(2026, 11, 27)).total, 0.0)
+        val today = t.getValue(LocalDate.of(2026, 11, 28))
+        assertEquals(3.0, today.total, 0.0)
+        assertTrue(today.monotonic)
+    }
 }
